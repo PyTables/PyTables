@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 import os
-import sys
 import tempfile
 
 from tables import *
@@ -49,24 +48,24 @@ def WriteRead(filename, testTuple):
 
 class BasicTestCase(TestCase):
     def test00_char(self):
-        "Data integrity during recovery (character types)"
+        """Data integrity during recovery (character types)"""
 
         a = self.charList
-        fname = tempfile.mktemp(".h5")
+        h5fname = tempfile.mktemp(".h5")
         try:
-            WriteRead(fname, a)
+            WriteRead(h5fname, a)
         finally:
-            os.remove(fname)
+            os.remove(h5fname)
 
     def test01_types(self):
-        "Data integrity during recovery (numerical types)"
+        """Data integrity during recovery (numerical types)"""
 
         a = self.numericalList
-        fname = tempfile.mktemp(".h5")
+        h5fname = tempfile.mktemp(".h5")
         try:
-            WriteRead(fname, a)
+            WriteRead(h5fname, a)
         finally:
-            os.remove(fname)
+            os.remove(h5fname)
 
 
 class Basic0DOneTestCase(BasicTestCase):
@@ -121,43 +120,31 @@ class Basic10DTestCase(BasicTestCase):
 
 class ExceptionTestCase(TestCase):
     def test00_char(self):
-        "Non suppported lists objects (character objects)"
+        """Non suppported lists objects (character objects)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running test for %s" % (self.title))
         a = self.charList
+
+        h5fname = tempfile.mktemp(".h5")
         try:
-            fname = tempfile.mktemp(".h5")
-            try:
-                WriteRead(fname, a)
-            finally:
-                os.remove(fname)
-        except ValueError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next error was catched!")
-                print(type, ":", value)
-        else:
-            self.fail("expected a ValueError")
+            with self.assertRaises(ValueError):
+                WriteRead(h5fname, a)
+        finally:
+            os.remove(h5fname)
 
     def test01_types(self):
-        "Non supported lists object (numerical types)"
+        """Non supported lists object (numerical types)"""
 
         a = self.numericalList
+
+        h5fname = tempfile.mktemp(".h5")
         try:
-            fname = tempfile.mktemp(".h5")
-            try:
-                WriteRead(fname, a)
-            finally:
-                os.remove(fname)
-        except ValueError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next was catched!")
-                print(value)
-        else:
-            self.fail("expected an ValueError")
+            with self.assertRaises(ValueError):
+                WriteRead(h5fname, a)
+        finally:
+            os.remove(h5fname)
 
 
 class Basic1DFourTestCase(ExceptionTestCase):
@@ -166,35 +153,28 @@ class Basic1DFourTestCase(ExceptionTestCase):
     charList = [b"aaa", [b"bbb", b"ccc"]]
 
 
-class GetItemTestCase(TestCase):
+class GetItemTestCase(common.TempFileMixin, TestCase):
     def test00_single(self):
-        "Single element access (character types)"
+        """Single element access (character types)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if common.verbose:
             print("Original first element:", a[0])
             print("Read first element:", arr[0])
         self.assertEqual(a[0], arr[0])
-
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
 
     def test01_single(self):
-        "Single element access (numerical types)"
+        """Single element access (numerical types)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -202,39 +182,27 @@ class GetItemTestCase(TestCase):
             print("Read first element:", arr[0])
         self.assertEqual(a[0], arr[0])
 
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
-
     def test02_range(self):
-        "Range element access (character types)"
+        """Range element access (character types)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if common.verbose:
             print("Original elements:", a[1:4])
             print("Read elements:", arr[1:4])
         self.assertEqual(a[1:4], arr[1:4])
-
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
 
     def test03_range(self):
-        "Range element access (numerical types)"
+        """Range element access (numerical types)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -242,39 +210,27 @@ class GetItemTestCase(TestCase):
             print("Read elements:", arr[1:4])
         self.assertEqual(a[1:4], arr[1:4])
 
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
-
     def test04_range(self):
-        "Range element access, strided (character types)"
+        """Range element access, strided (character types)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if common.verbose:
             print("Original elements:", a[1:4:2])
             print("Read elements:", arr[1:4:2])
         self.assertEqual(a[1:4:2], arr[1:4:2])
-
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
 
     def test05_range(self):
-        "Range element access (numerical types)"
+        """Range element access (numerical types)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -282,19 +238,13 @@ class GetItemTestCase(TestCase):
             print("Read elements:", arr[1:4:2])
         self.assertEqual(a[1:4:2], arr[1:4:2])
 
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
-
     def test06_negativeIndex(self):
-        "Negative Index element access (character types)"
+        """Negative Index element access (character types)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -302,19 +252,13 @@ class GetItemTestCase(TestCase):
             print("Read last element:", arr[-1])
         self.assertEqual(a[-1], arr[-1])
 
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
-
     def test07_negativeIndex(self):
-        "Negative Index element access (numerical types)"
+        """Negative Index element access (numerical types)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if common.verbose:
@@ -322,50 +266,33 @@ class GetItemTestCase(TestCase):
             print("Read before last element:", arr[-2])
         self.assertEqual(a[-2], arr[-2])
 
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
-
     def test08_negativeRange(self):
-        "Negative range element access (character types)"
+        """Negative range element access (character types)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if common.verbose:
             print("Original last elements:", a[-4:-1])
             print("Read last elements:", arr[-4:-1])
         self.assertEqual(a[-4:-1], arr[-4:-1])
-
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
 
     def test09_negativeRange(self):
-        "Negative range element access (numerical types)"
+        """Negative range element access (numerical types)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if common.verbose:
             print("Original last elements:", a[-4:-1])
             print("Read last elements:", arr[-4:-1])
         self.assertEqual(a[-4:-1], arr[-4:-1])
-
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
 
 
 class GI1ListTestCase(GetItemTestCase):
@@ -397,15 +324,14 @@ class GI2ListTestCase(GetItemTestCase):
     ]
 
 
-class GeneratorTestCase(TestCase):
+class GeneratorTestCase(common.TempFileMixin, TestCase):
     def test00a_single(self):
-        "Testing generator access to Arrays, single elements (char)"
+        """Testing generator access to Arrays, single elements (char)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         ga = [i for i in a]
@@ -414,20 +340,14 @@ class GeneratorTestCase(TestCase):
             print("Result of original iterator:", ga)
             print("Result of read generator:", garr)
         self.assertEqual(ga, garr)
-
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
 
     def test00b_me(self):
-        "Testing generator access to Arrays, multiple elements (char)"
+        """Testing generator access to Arrays, multiple elements (char)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if isinstance(a[0], tuple):
@@ -440,19 +360,13 @@ class GeneratorTestCase(TestCase):
             print("Result of read generator:", garr)
         self.assertEqual(ga, garr)
 
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
-
     def test01a_single(self):
-        "Testing generator access to Arrays, single elements (numeric)"
+        """Testing generator access to Arrays, single elements (numeric)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         ga = [i for i in a]
@@ -462,19 +376,13 @@ class GeneratorTestCase(TestCase):
             print("Result of read generator:", garr)
         self.assertEqual(ga, garr)
 
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
-
     def test01b_me(self):
-        "Testing generator access to Arrays, multiple elements (numeric)"
+        """Testing generator access to Arrays, multiple elements (numeric)"""
 
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, mode="w")
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr = fileh.create_array(fileh.root, 'somearray', a, "Some array")
+        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
+                                       "Some array")
 
         # Get and compare an element
         if isinstance(a[0], tuple):
@@ -486,11 +394,6 @@ class GeneratorTestCase(TestCase):
             print("Result of original iterator:", ga)
             print("Result of read generator:", garr)
         self.assertEqual(ga, garr)
-
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
 
 
 class GE1ListTestCase(GeneratorTestCase):

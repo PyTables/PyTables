@@ -1,9 +1,7 @@
 # -*- coding: latin-1 -*-
 
 from __future__ import print_function
-import os
 import sys
-import tempfile
 
 import numpy
 import numpy.testing as npt
@@ -21,7 +19,7 @@ class C:
     c = (3, 4.5)
 
 
-class BasicTestCase(TestCase):
+class BasicTestCase(common.TempFileMixin, TestCase):
     compress = 0
     complib = "zlib"
     shuffle = 0
@@ -29,12 +27,12 @@ class BasicTestCase(TestCase):
     flavor = "numpy"
 
     def setUp(self):
+        super(BasicTestCase, self).setUp()
+
         # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        self.rootgroup = self.fileh.root
+        self.rootgroup = self.h5file.root
         self.populateFile()
-        self.fileh.close()
+        self.h5file.close()
 
     def populateFile(self):
         group = self.rootgroup
@@ -42,11 +40,11 @@ class BasicTestCase(TestCase):
                           complib=self.complib,
                           shuffle=self.shuffle,
                           fletcher32=self.fletcher32)
-        vlarray = self.fileh.create_vlarray(group, 'vlarray1',
-                                            atom=Int32Atom(),
-                                            title="ragged array if ints",
-                                            filters=filters,
-                                            expectedrows=1000)
+        vlarray = self.h5file.create_vlarray(group, 'vlarray1',
+                                             atom=Int32Atom(),
+                                             title="ragged array if ints",
+                                             filters=filters,
+                                             expectedrows=1000)
         vlarray.flavor = self.flavor
 
         # Fill it with 5 rows
@@ -60,15 +58,9 @@ class BasicTestCase(TestCase):
         vlarray.append([6, 7, 8, 9])
         vlarray.append([10, 11, 12, 13, 14])
 
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-
-    #----------------------------------------
-
     def test00_attributes(self):
-        self.fileh = open_file(self.file, "r")
-        obj = self.fileh.get_node("/vlarray1")
+        self.h5file = open_file(self.h5fname, "r")
+        obj = self.h5file.get_node("/vlarray1")
 
         self.assertEqual(obj.flavor, self.flavor)
         self.assertEqual(obj.shape, (5,))
@@ -84,8 +76,8 @@ class BasicTestCase(TestCase):
             print("Running %s.test01_read..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.get_node("/vlarray1")
+        self.h5file = open_file(self.h5fname, "r")
+        vlarray = self.h5file.get_node("/vlarray1")
 
         # Choose a small value for buffer size
         vlarray.nrowsinbuf = 3
@@ -135,8 +127,8 @@ class BasicTestCase(TestCase):
             print("Running %s.test02a_getitem..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.get_node("/vlarray1")
+        self.h5file = open_file(self.h5fname, "r")
+        vlarray = self.h5file.get_node("/vlarray1")
 
         rows = [[1, 2], [3, 4, 5], [], [6, 7, 8, 9], [10, 11, 12, 13, 14]]
 
@@ -177,8 +169,8 @@ class BasicTestCase(TestCase):
             return
 
         # Create an instance of an HDF5 Table
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.get_node("/vlarray1")
+        self.h5file = open_file(self.h5fname, "r")
+        vlarray = self.h5file.get_node("/vlarray1")
 
         # Get a numpy array of objects
         rows = numpy.array(vlarray[:], dtype=numpy.object)
@@ -204,13 +196,15 @@ class BasicTestCase(TestCase):
             print("Running %s.test03_append..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.fileh = open_file(self.file, "a")
-        vlarray = self.fileh.get_node("/vlarray1")
+        self.h5file = open_file(self.h5fname, "a")
+        vlarray = self.h5file.get_node("/vlarray1")
+
         # Append a new row
         vlarray.append([7, 8, 9, 10])
 
         # Choose a small value for buffer size
         vlarray.nrowsinbuf = 3
+
         # Read some rows:
         row1 = vlarray[0]
         row2 = vlarray[2]
@@ -241,8 +235,8 @@ class BasicTestCase(TestCase):
     def test04_get_row_size(self):
         """Checking get_row_size method."""
 
-        self.fileh = open_file(self.file, "a")
-        vlarray = self.fileh.get_node("/vlarray1")
+        self.h5file = open_file(self.h5fname, "a")
+        vlarray = self.h5file.get_node("/vlarray1")
 
         self.assertEqual(vlarray.get_row_size(0), 2 * vlarray.atom.size)
         self.assertEqual(vlarray.get_row_size(1), 3 * vlarray.atom.size)
@@ -336,21 +330,10 @@ class AllFiltersTestCase(BasicTestCase):
     fletcher32 = 1
 
 
-class TypesTestCase(TestCase):
-    mode = "w"
+class TypesTestCase(common.TempFileMixin, TestCase):
+    open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
-
-    def setUp(self):
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, self.mode)
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-
-    #----------------------------------------
 
     def test01_StringAtom(self):
         """Checking vlarray with NumPy string atoms ('numpy' flavor)"""
@@ -359,18 +342,17 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01_StringAtom..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', 'stringAtom',
-                                            atom=StringAtom(itemsize=3),
-                                            title="Ragged array of strings")
+        vlarray = self.h5file.create_vlarray('/', 'stringAtom',
+                                             atom=StringAtom(itemsize=3),
+                                             title="Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
         vlarray.append(numpy.array(["1", "12345"]))
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -394,18 +376,17 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01a_StringAtom..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', 'stringAtom',
-                                            atom=StringAtom(itemsize=3),
-                                            title="Ragged array of strings")
+        vlarray = self.h5file.create_vlarray('/', 'stringAtom',
+                                             atom=StringAtom(itemsize=3),
+                                             title="Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"][::2]))
         vlarray.append(numpy.array(["1", "12345", "2", "321"])[::3])
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -428,18 +409,17 @@ class TypesTestCase(TestCase):
             print("Running %s.test01a_2_StringAtom..." %
                   self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', 'stringAtom',
-                                            atom=StringAtom(itemsize=3),
-                                            title="Ragged array of strings")
+        vlarray = self.h5file.create_vlarray('/', 'stringAtom',
+                                             atom=StringAtom(itemsize=3),
+                                             title="Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "123"]))
         vlarray.append(numpy.array(["1", "2", "321"]))
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -462,18 +442,17 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01b_StringAtom..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', 'stringAtom2',
-                                            atom=StringAtom(itemsize=3),
-                                            title="Ragged array of strings")
+        vlarray = self.h5file.create_vlarray('/', 'stringAtom2',
+                                             atom=StringAtom(itemsize=3),
+                                             title="Ragged array of strings")
         vlarray.flavor = "python"
         vlarray.append(["1", "12", "123", "1234", "12345"])
         vlarray.append(["1", "12345"])
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -500,9 +479,9 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01c_StringAtom..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', 'stringAtom',
-                                            atom=StringAtom(itemsize=3),
-                                            title="Ragged array of strings")
+        vlarray = self.h5file.create_vlarray('/', 'stringAtom',
+                                             atom=StringAtom(itemsize=3),
+                                             title="Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
         vlarray.append(numpy.array(["1", "12345"]))
@@ -513,9 +492,8 @@ class TypesTestCase(TestCase):
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -538,9 +516,9 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01d_StringAtom..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', 'stringAtom2',
-                                            atom=StringAtom(itemsize=3),
-                                            title="Ragged array of strings")
+        vlarray = self.h5file.create_vlarray('/', 'stringAtom2',
+                                             atom=StringAtom(itemsize=3),
+                                             title="Ragged array of strings")
         vlarray.flavor = "python"
         vlarray.append(["1", "12", "123", "1234", "12345"])
         vlarray.append(["1", "12345"])
@@ -551,9 +529,8 @@ class TypesTestCase(TestCase):
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -576,17 +553,15 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02_BoolAtom..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', 'BoolAtom',
-                                            atom=BoolAtom(),
-                                            title="Ragged array of Booleans")
+        vlarray = self.h5file.create_vlarray('/', 'BoolAtom', atom=BoolAtom(),
+                                             title="Ragged array of Booleans")
         vlarray.append([1, 0, 3])
         vlarray.append([-1, 0])
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -608,9 +583,8 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02b_BoolAtom..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', 'BoolAtom',
-                                            atom=BoolAtom(),
-                                            title="Ragged array of Booleans")
+        vlarray = self.h5file.create_vlarray('/', 'BoolAtom', atom=BoolAtom(),
+                                             title="Ragged array of Booleans")
         vlarray.append([1, 0, 3])
         vlarray.append([-1, 0])
 
@@ -620,9 +594,8 @@ class TypesTestCase(TestCase):
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -655,16 +628,15 @@ class TypesTestCase(TestCase):
             print("Running %s.test03_IntAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray('/', atype,
-                                                atom=Atom.from_sctype(atype))
+            vlarray = self.h5file.create_vlarray('/', atype,
+                                                 atom=Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
             vlarray.append([-1, 0])
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -700,7 +672,7 @@ class TypesTestCase(TestCase):
             print("Running %s.test03a_IntAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1, 2, 3], dtype=atype)
             a0 = a0.byteswap()
@@ -713,9 +685,8 @@ class TypesTestCase(TestCase):
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -751,7 +722,7 @@ class TypesTestCase(TestCase):
             print("Running %s.test03_IntAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
             vlarray.append([-1, 0])
@@ -762,9 +733,8 @@ class TypesTestCase(TestCase):
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -800,7 +770,7 @@ class TypesTestCase(TestCase):
             print("Running %s.test03c_IntAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1, 2, 3], dtype=atype)
             vlarray.append(a0)
@@ -819,9 +789,8 @@ class TypesTestCase(TestCase):
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -858,7 +827,7 @@ class TypesTestCase(TestCase):
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(ttypes[atype]),
                 byteorder=byteorder)
             a0 = numpy.array([1, 2, 3], dtype=atype)
@@ -878,9 +847,8 @@ class TypesTestCase(TestCase):
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -906,9 +874,10 @@ class TypesTestCase(TestCase):
     def test04_FloatAtom(self):
         """Checking vlarray with floating point atoms."""
 
-        ttypes = ["Float32",
-                  "Float64",
-                  ]
+        ttypes = [
+            "Float32",
+            "Float64",
+        ]
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + 'Atom'
             if atomname in globals():
@@ -919,16 +888,15 @@ class TypesTestCase(TestCase):
             print("Running %s.test04_FloatAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(atype))
             vlarray.append([1.3, 2.2, 3.3])
             vlarray.append([-1.3e34, 1.e-32])
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -965,7 +933,7 @@ class TypesTestCase(TestCase):
             print("Running %s.test04a_FloatAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
             a0 = a0.byteswap()
@@ -978,9 +946,8 @@ class TypesTestCase(TestCase):
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -1015,7 +982,7 @@ class TypesTestCase(TestCase):
             print("Running %s.test04b_FloatAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(atype))
             vlarray.append([1.3, 2.2, 3.3])
             vlarray.append([-1.3e34, 1.e-32])
@@ -1026,9 +993,8 @@ class TypesTestCase(TestCase):
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -1065,7 +1031,7 @@ class TypesTestCase(TestCase):
             print("Running %s.test04c_FloatAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
             vlarray.append(a0)
@@ -1084,9 +1050,8 @@ class TypesTestCase(TestCase):
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -1124,7 +1089,7 @@ class TypesTestCase(TestCase):
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(ttypes[atype]),
                 byteorder=byteorder)
             a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
@@ -1144,9 +1109,8 @@ class TypesTestCase(TestCase):
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -1184,16 +1148,15 @@ class TypesTestCase(TestCase):
             print("Running %s.test04_ComplexAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(atype))
             vlarray.append([(1.3 + 0j), (0+2.2j), (3.3+3.3j)])
             vlarray.append([(0-1.3e34j), (1.e-32 + 0j)])
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -1233,7 +1196,7 @@ class TypesTestCase(TestCase):
                   self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=Atom.from_sctype(atype))
             vlarray.append([(1.3 + 0j), (0+2.2j), (3.3+3.3j)])
             vlarray.append([(0-1.3e34j), (1.e-32 + 0j)])
@@ -1244,9 +1207,8 @@ class TypesTestCase(TestCase):
 
             if self.reopen:
                 name = vlarray._v_pathname
-                self.fileh.close()
-                self.fileh = open_file(self.file, "a")
-                vlarray = self.fileh.get_node(name)
+                self._reopen(mode='a')
+                vlarray = self.h5file.get_node(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -1279,7 +1241,7 @@ class TypesTestCase(TestCase):
             print("Running %s.test05_VLStringAtom..." %
                   self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray(
+        vlarray = self.h5file.create_vlarray(
             '/', "VLStringAtom", atom=VLStringAtom())
         vlarray.append("asd")
         vlarray.append("asd\xe4")
@@ -1292,9 +1254,8 @@ class TypesTestCase(TestCase):
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1321,7 +1282,7 @@ class TypesTestCase(TestCase):
             print("Running %s.test05b_VLStringAtom..." %
                   self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray(
+        vlarray = self.h5file.create_vlarray(
             '/', "VLStringAtom", atom=VLStringAtom())
         vlarray.append("asd")
         vlarray.append(u"aaana")
@@ -1334,9 +1295,8 @@ class TypesTestCase(TestCase):
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1359,7 +1319,7 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06a_Object..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray(
+        vlarray = self.h5file.create_vlarray(
             '/', "Object", atom=ObjectAtom())
         vlarray.append([[1, 2, 3], "aaa", u"aaaççç"])
         vlarray.append([3, 4, C()])
@@ -1367,9 +1327,8 @@ class TypesTestCase(TestCase):
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1396,7 +1355,7 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06b_Object..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', "Object", atom=ObjectAtom())
+        vlarray = self.h5file.create_vlarray('/', "Object", atom=ObjectAtom())
         # When updating an object, this seems to change the number
         # of bytes that pickle.dumps generates
         # vlarray.append(([1,2,3], "aaa", u"aaaççç"))
@@ -1412,9 +1371,8 @@ class TypesTestCase(TestCase):
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1428,6 +1386,7 @@ class TypesTestCase(TestCase):
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [4, 4])
+
         # self.assertEqual(obj.c, C().c)
         self.assertEqual(obj, [24])
         self.assertEqual(len(row[0]), 3)
@@ -1440,16 +1399,15 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06c_Object..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', "Object", atom=ObjectAtom())
+        vlarray = self.h5file.create_vlarray('/', "Object", atom=ObjectAtom())
         vlarray.append(numpy.array([[1, 2], [0, 4]], 'i4'))
         vlarray.append(numpy.array([0, 1, 2, 3], 'i8'))
         vlarray.append(numpy.array(42, 'i1'))
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1470,7 +1428,7 @@ class TypesTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06d_Object..." % self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray('/', "Object", atom=ObjectAtom())
+        vlarray = self.h5file.create_vlarray('/', "Object", atom=ObjectAtom())
         vlarray.append(numpy.array([[1, 2], [0, 4]], 'i4'))
         vlarray.append(numpy.array([0, 1, 2, 3], 'i8'))
         vlarray.append(numpy.array(42, 'i1'))
@@ -1484,9 +1442,8 @@ class TypesTestCase(TestCase):
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1512,7 +1469,7 @@ class TypesTestCase(TestCase):
             print("Running %s.test07_VLUnicodeAtom..." %
                   self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray(
+        vlarray = self.h5file.create_vlarray(
             '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
         vlarray.append("asd")
         vlarray.append(u"asd\u0140")
@@ -1525,9 +1482,8 @@ class TypesTestCase(TestCase):
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1554,7 +1510,7 @@ class TypesTestCase(TestCase):
             print("Running %s.test07b_VLUnicodeAtom..." %
                   self.__class__.__name__)
 
-        vlarray = self.fileh.create_vlarray(
+        vlarray = self.h5file.create_vlarray(
             '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
         vlarray.append("asd")
         vlarray.append(u"aaan\xe4")
@@ -1567,9 +1523,8 @@ class TypesTestCase(TestCase):
 
         if self.reopen:
             name = vlarray._v_pathname
-            self.fileh.close()
-            self.fileh = open_file(self.file, "r")
-            vlarray = self.fileh.get_node(name)
+            self._reopen()
+            vlarray = self.h5file.get_node(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1596,23 +1551,14 @@ class TypesNoReopenTestCase(TypesTestCase):
     reopen = False
 
 
-class MDTypesTestCase(TestCase):
-    mode = "w"
+class MDTypesTestCase(common.TempFileMixin, TestCase):
+    open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, self.mode)
-        self.rootgroup = self.fileh.root
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-
-    #----------------------------------------
+        super(MDTypesTestCase, self).setUp()
+        self.rootgroup = self.h5file.root
 
     def test01_StringAtom(self):
         """Checking vlarray with MD NumPy string atoms."""
@@ -1623,9 +1569,9 @@ class MDTypesTestCase(TestCase):
             print("Running %s.test01_StringAtom..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'stringAtom',
-                                            StringAtom(itemsize=3, shape=(2,)),
-                                            "Ragged array of strings")
+        vlarray = self.h5file.create_vlarray(
+            root, 'stringAtom', StringAtom(itemsize=3, shape=(2,)),
+            "Ragged array of strings")
         vlarray.append([["123", "45"], ["45", "123"]])
         vlarray.append([["s", "abc"], ["abc", "f"],
                         ["s", "ab"], ["ab", "f"]])
@@ -1655,9 +1601,9 @@ class MDTypesTestCase(TestCase):
             print("Running %s.test01b_StringAtom..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'stringAtom',
-                                            StringAtom(itemsize=3, shape=(2,)),
-                                            "Ragged array of strings")
+        vlarray = self.h5file.create_vlarray(
+            root, 'stringAtom', StringAtom(itemsize=3, shape=(2,)),
+            "Ragged array of strings")
         vlarray.flavor = "python"
         vlarray.append([["123", "45"], ["45", "123"]])
         vlarray.append([["s", "abc"], ["abc", "f"],
@@ -1686,9 +1632,9 @@ class MDTypesTestCase(TestCase):
             print("Running %s.test01c_StringAtom..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'stringAtom',
-                                            StringAtom(itemsize=3, shape=(2,)),
-                                            "Ragged array of strings")
+        vlarray = self.h5file.create_vlarray(
+            root, 'stringAtom', StringAtom(itemsize=3, shape=(2,)),
+            "Ragged array of strings")
         vlarray.flavor = "python"
         a = numpy.array([["a", "b"], ["123", "45"], ["45", "123"]], dtype="S3")
         vlarray.append(a[1:])
@@ -1720,9 +1666,9 @@ class MDTypesTestCase(TestCase):
             print("Running %s.test01d_StringAtom..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'stringAtom',
-                                            StringAtom(itemsize=3, shape=(2,)),
-                                            "Ragged array of strings")
+        vlarray = self.h5file.create_vlarray(
+            root, 'stringAtom', StringAtom(itemsize=3, shape=(2,)),
+            "Ragged array of strings")
         vlarray.flavor = "python"
         a = numpy.array([["a", "b"], ["123", "45"], ["45", "123"]], dtype="S3")
         vlarray.append(a[1::2])
@@ -1753,9 +1699,9 @@ class MDTypesTestCase(TestCase):
             print("Running %s.test02_BoolAtom..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'BoolAtom',
-                                            BoolAtom(shape=(3,)),
-                                            "Ragged array of Booleans")
+        vlarray = self.h5file.create_vlarray(root, 'BoolAtom',
+                                             BoolAtom(shape=(3,)),
+                                             "Ragged array of Booleans")
         vlarray.append([(1, 0, 3), (1, 1, 1), (0, 0, 0)])
         vlarray.append([(-1, 0, 0)])
 
@@ -1784,9 +1730,9 @@ class MDTypesTestCase(TestCase):
             print("Running %s.test02b_BoolAtom..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'BoolAtom',
-                                            BoolAtom(shape=(3,)),
-                                            "Ragged array of Booleans")
+        vlarray = self.h5file.create_vlarray(root, 'BoolAtom',
+                                             BoolAtom(shape=(3,)),
+                                             "Ragged array of Booleans")
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (0, 0, 0)], dtype='bool')
         vlarray.append(a[1:])  # Create an offset
@@ -1818,9 +1764,9 @@ class MDTypesTestCase(TestCase):
             print("Running %s.test02c_BoolAtom..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'BoolAtom',
-                                            BoolAtom(shape=(3,)),
-                                            "Ragged array of Booleans")
+        vlarray = self.h5file.create_vlarray(root, 'BoolAtom',
+                                             BoolAtom(shape=(3,)),
+                                             "Ragged array of Booleans")
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (0, 0, 0)], dtype='bool')
         vlarray.append(a[1::2])  # Create an strided array
@@ -1847,15 +1793,16 @@ class MDTypesTestCase(TestCase):
     def test03_IntAtom(self):
         """Checking vlarray with MD integer atoms."""
 
-        ttypes = ["Int8",
-                  "UInt8",
-                  "Int16",
-                  "UInt16",
-                  "Int32",
-                  "UInt32",
-                  "Int64",
-                  #"UInt64",  # Unavailable in some platforms
-                  ]
+        ttypes = [
+            "Int8",
+            "UInt8",
+            "Int16",
+            "UInt16",
+            "Int32",
+            "UInt32",
+            "Int64",
+            #"UInt64",  # Unavailable in some platforms
+        ]
         root = self.rootgroup
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1863,7 +1810,7 @@ class MDTypesTestCase(TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 root, atype, atom=Atom.from_sctype(atype, (2, 3)))
             vlarray.append([numpy.ones((2, 3), atype),
                             numpy.zeros((2, 3), atype)])
@@ -1912,7 +1859,7 @@ class MDTypesTestCase(TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(
+            vlarray = self.h5file.create_vlarray(
                 root, atype, atom=Atom.from_sctype(atype, (5, 2, 6)))
             vlarray.append([numpy.ones((5, 2, 6), atype)*1.3,
                             numpy.zeros((5, 2, 6), atype)])
@@ -1941,21 +1888,12 @@ class MDTypesNumPyTestCase(MDTypesTestCase):
     title = "MDTypes"
 
 
-class AppendShapeTestCase(TestCase):
-    mode = "w"
+class AppendShapeTestCase(common.TempFileMixin, TestCase):
+    open_mode = "w"
 
     def setUp(self):
-
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, self.mode)
-        self.rootgroup = self.fileh.root
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-
-    #----------------------------------------
+        super(AppendShapeTestCase, self).setUp()
+        self.rootgroup = self.h5file.root
 
     def test00_difinputs(self):
         """Checking vlarray.append() with different inputs."""
@@ -1966,9 +1904,9 @@ class AppendShapeTestCase(TestCase):
             print("Running %s.test00_difinputs..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'vlarray',
-                                            Int32Atom(),
-                                            "Ragged array of ints")
+        vlarray = self.h5file.create_vlarray(root, 'vlarray',
+                                             Int32Atom(),
+                                             "Ragged array of ints")
         vlarray.flavor = "python"
 
         # Check different ways to input
@@ -1980,9 +1918,8 @@ class AppendShapeTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            vlarray = self.fileh.root.vlarray
+            self._reopen()
+            vlarray = self.h5file.root.vlarray
 
         # Read all the vlarray
         row = vlarray.read()
@@ -2005,26 +1942,18 @@ class AppendShapeTestCase(TestCase):
             print("Running %s.test01_toomanydims..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'vlarray',
-                                            StringAtom(itemsize=3),
-                                            "Ragged array of strings")
+        vlarray = self.h5file.create_vlarray(root, 'vlarray',
+                                             StringAtom(itemsize=3),
+                                             "Ragged array of strings")
         # Adding an array with one dimensionality more than allowed
-        try:
+        with self.assertRaises(ValueError):
             vlarray.append([["123", "456", "3"]])
-        except ValueError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next RuntimeError was catched!")
-                print(value)
-        else:
-            self.fail("expected a ValueError")
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            vlarray = self.fileh.root.vlarray
+            self._reopen()
+            vlarray = self.h5file.root.vlarray
 
         # Read all the rows (there should be none)
         row = vlarray.read()
@@ -2043,17 +1972,16 @@ class AppendShapeTestCase(TestCase):
             print("Running %s.test02_zerodims..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'vlarray',
-                                            Int32Atom(),
-                                            "Ragged array of ints")
+        vlarray = self.h5file.create_vlarray(root, 'vlarray',
+                                             Int32Atom(),
+                                             "Ragged array of ints")
         vlarray.append(numpy.zeros(dtype='int32', shape=(6, 0)))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            vlarray = self.fileh.root.vlarray
+            self._reopen()
+            vlarray = self.h5file.root.vlarray
 
         # Read the only row in vlarray
         row = vlarray.read(0)[0]
@@ -2075,18 +2003,17 @@ class AppendShapeTestCase(TestCase):
             print("Running %s.test03a_cast..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'vlarray',
-                                            Int32Atom(),
-                                            "Ragged array of ints")
+        vlarray = self.h5file.create_vlarray(root, 'vlarray',
+                                             Int32Atom(),
+                                             "Ragged array of ints")
         # This type has to be upgraded
         vlarray.append(numpy.array([1, 2], dtype='int16'))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            vlarray = self.fileh.root.vlarray
+            self._reopen()
+            vlarray = self.h5file.root.vlarray
 
         # Read the only row in vlarray
         row = vlarray.read(0)[0]
@@ -2108,18 +2035,17 @@ class AppendShapeTestCase(TestCase):
             print("Running %s.test03b_cast..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, 'vlarray',
-                                            Int32Atom(),
-                                            "Ragged array of ints")
+        vlarray = self.h5file.create_vlarray(root, 'vlarray',
+                                             Int32Atom(),
+                                             "Ragged array of ints")
         # This type has to be downcasted
         vlarray.append(numpy.array([1, 2], dtype='float64'))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            vlarray = self.fileh.root.vlarray
+            self._reopen()
+            vlarray = self.h5file.root.vlarray
 
         # Read the only row in vlarray
         row = vlarray.read(0)[0]
@@ -2141,23 +2067,14 @@ class CloseAppendShapeTestCase(AppendShapeTestCase):
     close = 1
 
 
-class FlavorTestCase(TestCase):
-    mode = "w"
+class FlavorTestCase(common.TempFileMixin, TestCase):
+    open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, self.mode)
-        self.rootgroup = self.fileh.root
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-
-    #----------------------------------------
+        super(FlavorTestCase, self).setUp()
+        self.rootgroup = self.h5file.root
 
     def test01a_EmptyVLArray(self):
         """Checking empty vlarrays with different flavors (closing the file)"""
@@ -2169,18 +2086,20 @@ class FlavorTestCase(TestCase):
                   self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, "vlarray",
-                                            Atom.from_kind('int', itemsize=4))
+        vlarray = self.h5file.create_vlarray(root, "vlarray",
+                                             Atom.from_kind('int', itemsize=4))
         vlarray.flavor = self.flavor
-        self.fileh.close()
-        self.fileh = open_file(self.file, "r")
+        self.h5file.close()
+        self.h5file = open_file(self.h5fname, "r")
+
         # Read all the rows (it should be empty):
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
         row = vlarray.read()
         if common.verbose:
             print("Testing flavor:", self.flavor)
             print("Object read:", row, repr(row))
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+
         # Check that the object read is effectively empty
         self.assertEqual(vlarray.nrows, 0)
         self.assertEqual(row, [])
@@ -2195,15 +2114,17 @@ class FlavorTestCase(TestCase):
                   self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, "vlarray",
-                                            Atom.from_kind('int', itemsize=4))
+        vlarray = self.h5file.create_vlarray(root, "vlarray",
+                                             Atom.from_kind('int', itemsize=4))
         vlarray.flavor = self.flavor
+
         # Read all the rows (it should be empty):
         row = vlarray.read()
         if common.verbose:
             print("Testing flavor:", self.flavor)
             print("Object read:", row)
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
+
         # Check that the object read is effectively empty
         self.assertEqual(vlarray.nrows, 0)
         self.assertEqual(row, [])
@@ -2217,7 +2138,7 @@ class FlavorTestCase(TestCase):
             print("Running %s.test02_BoolAtom..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.fileh.create_vlarray(root, "Bool", BoolAtom())
+        vlarray = self.h5file.create_vlarray(root, "Bool", BoolAtom())
         vlarray.flavor = self.flavor
         vlarray.append([1, 2, 3])
         vlarray.append(())   # Empty row
@@ -2257,16 +2178,18 @@ class FlavorTestCase(TestCase):
     def test03_IntAtom(self):
         """Checking vlarray with different flavors (integer versions)"""
 
-        ttypes = ["Int8",
-                  "UInt8",
-                  "Int16",
-                  "UInt16",
-                  "Int32",
-                  "UInt32",
-                  "Int64",
-                  # Not checked because some platforms does not support it
-                  #"UInt64",
-                  ]
+        ttypes = [
+            "Int8",
+            "UInt8",
+            "Int16",
+            "UInt16",
+            "Int32",
+            "UInt32",
+            "Int64",
+            # Not checked because some platforms does not support it
+            #"UInt64",
+        ]
+
         root = self.rootgroup
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2274,8 +2197,8 @@ class FlavorTestCase(TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(root, atype,
-                                                Atom.from_sctype(atype))
+            vlarray = self.h5file.create_vlarray(root, atype,
+                                                 Atom.from_sctype(atype))
             vlarray.flavor = self.flavor
             vlarray.append([1, 2, 3])
             vlarray.append(())
@@ -2315,16 +2238,18 @@ class FlavorTestCase(TestCase):
     def test03b_IntAtom(self):
         """Checking vlarray flavors (integer versions and closed file)"""
 
-        ttypes = ["Int8",
-                  "UInt8",
-                  "Int16",
-                  "UInt16",
-                  "Int32",
-                  "UInt32",
-                  "Int64",
-                  # Not checked because some platforms does not support it
-                  #"UInt64",
-                  ]
+        ttypes = [
+            "Int8",
+            "UInt8",
+            "Int16",
+            "UInt16",
+            "Int32",
+            "UInt32",
+            "Int64",
+            # Not checked because some platforms does not support it
+            #"UInt64",
+        ]
+
         root = self.rootgroup
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2332,16 +2257,17 @@ class FlavorTestCase(TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(root, atype,
-                                                Atom.from_sctype(atype))
+            vlarray = self.h5file.create_vlarray(root, atype,
+                                                 Atom.from_sctype(atype))
             vlarray.flavor = self.flavor
             vlarray.append([1, 2, 3])
             vlarray.append(())
             vlarray.append([100, 0])
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")  # open in "a"ppend mode
-            root = self.fileh.root  # Very important!
-            vlarray = self.fileh.get_node(root, str(atype))
+            self.h5file.close()
+            self.h5file = open_file(self.h5fname, "a")  # open in "a"ppend mode
+            root = self.h5file.root  # Very important!
+            vlarray = self.h5file.get_node(root, str(atype))
+
             # Read all the rows:
             row = vlarray.read()
             if common.verbose:
@@ -2400,8 +2326,8 @@ class FlavorTestCase(TestCase):
 
         # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.create_vlarray(root, atype,
-                                                Atom.from_sctype(atype))
+            vlarray = self.h5file.create_vlarray(root, atype,
+                                                 Atom.from_sctype(atype))
             vlarray.flavor = self.flavor
             vlarray.append([1.3, 2.2, 3.3])
             vlarray.append(())
@@ -2447,47 +2373,39 @@ class PythonFlavorTestCase(FlavorTestCase):
     flavor = "python"
 
 
-class ReadRangeTestCase(TestCase):
+class ReadRangeTestCase(common.TempFileMixin, TestCase):
     nrows = 100
     mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, self.mode)
-        self.rootgroup = self.fileh.root
+        super(ReadRangeTestCase, self).setUp()
+        self.rootgroup = self.h5file.root
         self.populateFile()
-        self.fileh.close()
+        self._reopen()
 
     def populateFile(self):
         group = self.rootgroup
         filters = Filters(complevel=self.compress,
                           complib=self.complib)
-        vlarray = self.fileh.create_vlarray(group, 'vlarray', Int32Atom(),
-                                            "ragged array if ints",
-                                            filters=filters,
-                                            expectedrows=1000)
+        vlarray = self.h5file.create_vlarray(group, 'vlarray', Int32Atom(),
+                                             "ragged array if ints",
+                                             filters=filters,
+                                             expectedrows=1000)
 
         # Fill it with 100 rows with variable length
         for i in range(self.nrows):
             vlarray.append(range(i))
 
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-
-    #------------------------------------------------------------------
-
     def test01_start(self):
-        "Checking reads with only a start value"
+        """Checking reads with only a start value"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01_start..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Read some rows:
         row = []
@@ -2507,13 +2425,13 @@ class ReadRangeTestCase(TestCase):
         self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
 
     def test01b_start(self):
-        "Checking reads with only a start value in a slice"
+        """Checking reads with only a start value in a slice"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01b_start..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Read some rows:
         row = []
@@ -2533,13 +2451,13 @@ class ReadRangeTestCase(TestCase):
         self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
 
     def test01np_start(self):
-        "Checking reads with only a start value in a slice (numpy indexes)"
+        """Checking reads with only a start value in a slice (numpy indexes)"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01np_start..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Read some rows:
         row = []
@@ -2559,13 +2477,13 @@ class ReadRangeTestCase(TestCase):
         self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
 
     def test02_stop(self):
-        "Checking reads with only a stop value"
+        """Checking reads with only a stop value"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02_stop..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -2592,13 +2510,14 @@ class ReadRangeTestCase(TestCase):
                             x], numpy.arange(x, dtype='int32')))
 
     def test02b_stop(self):
-        "Checking reads with only a stop value in a slice"
+        """Checking reads with only a stop value in a slice"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02b_stop..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -2626,13 +2545,14 @@ class ReadRangeTestCase(TestCase):
                             x], numpy.arange(x, dtype='int32')))
 
     def test03_startstop(self):
-        "Checking reads with a start and stop values"
+        """Checking reads with a start and stop values"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03_startstop..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -2660,13 +2580,14 @@ class ReadRangeTestCase(TestCase):
                             x], numpy.arange(x, dtype='int32')))
 
     def test03b_startstop(self):
-        "Checking reads with a start and stop values in slices"
+        """Checking reads with a start and stop values in slices"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03b_startstop..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -2694,14 +2615,15 @@ class ReadRangeTestCase(TestCase):
                             x], numpy.arange(x, dtype='int32')))
 
     def test04_startstopstep(self):
-        "Checking reads with a start, stop & step values"
+        """Checking reads with a start, stop & step values"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test04_startstopstep..." %
                   self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -2729,14 +2651,15 @@ class ReadRangeTestCase(TestCase):
                 allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test04np_startstopstep(self):
-        "Checking reads with a start, stop & step values (numpy indices)"
+        """Checking reads with a start, stop & step values (numpy indices)"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test04np_startstopstep..." %
                   self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -2765,13 +2688,14 @@ class ReadRangeTestCase(TestCase):
                 allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test04b_slices(self):
-        "Checking reads with start, stop & step values in slices"
+        """Checking reads with start, stop & step values in slices"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test04b_slices..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -2809,8 +2733,8 @@ class ReadRangeTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test04bnp_slices..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -2838,14 +2762,14 @@ class ReadRangeTestCase(TestCase):
                 allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test05_out_of_range(self):
-        "Checking out of range reads"
+        """Checking out of range reads"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test05_out_of_range..." %
                   self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
@@ -2858,57 +2782,51 @@ class ReadRangeTestCase(TestCase):
                 (type, value, traceback) = sys.exc_info()
                 print("\nGreat!, the next IndexError was catched!")
                 print(value)
-            self.fileh.close()
+            self.h5file.close()
         else:
             (type, value, traceback) = sys.exc_info()
             self.fail("expected a IndexError and got:\n%s" % value)
 
 
-class GetItemRangeTestCase(TestCase):
+class GetItemRangeTestCase(common.TempFileMixin, TestCase):
     nrows = 100
-    mode = "w"
+    open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, self.mode)
-        self.rootgroup = self.fileh.root
+        super(GetItemRangeTestCase, self).setUp()
+
+        self.rootgroup = self.h5file.root
         self.populateFile()
-        self.fileh.close()
+        self._reopen()
 
     def populateFile(self):
         group = self.rootgroup
         filters = Filters(complevel=self.compress,
                           complib=self.complib)
-        vlarray = self.fileh.create_vlarray(group, 'vlarray', Int32Atom(),
-                                            "ragged array if ints",
-                                            filters=filters,
-                                            expectedrows=1000)
+        vlarray = self.h5file.create_vlarray(group, 'vlarray', Int32Atom(),
+                                             "ragged array if ints",
+                                             filters=filters,
+                                             expectedrows=1000)
 
         # Fill it with 100 rows with variable length
         for i in range(self.nrows):
             vlarray.append(range(i))
 
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-
-    #------------------------------------------------------------------
-
     def test01_start(self):
-        "Checking reads with only a start value"
+        """Checking reads with only a start value"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01_start..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Read some rows:
         row = []
         row.append(vlarray[0])
+
         # rank-0 array should work as a regular index (see #303)
         row.append(vlarray[numpy.array(10)])
         row.append(vlarray[99])
@@ -2928,13 +2846,13 @@ class GetItemRangeTestCase(TestCase):
             allequal(row[2], numpy.arange(99, dtype='int32')))
 
     def test01b_start(self):
-        "Checking reads with only a start value in a slice"
+        """Checking reads with only a start value in a slice"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01b_start..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Read some rows:
         row = []
@@ -2954,13 +2872,14 @@ class GetItemRangeTestCase(TestCase):
         self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
 
     def test02_stop(self):
-        "Checking reads with only a stop value"
+        """Checking reads with only a stop value"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02_stop..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -2987,13 +2906,14 @@ class GetItemRangeTestCase(TestCase):
                             x], numpy.arange(x, dtype='int32')))
 
     def test02b_stop(self):
-        "Checking reads with only a stop value in a slice"
+        """Checking reads with only a stop value in a slice"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02b_stop..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -3021,13 +2941,14 @@ class GetItemRangeTestCase(TestCase):
                             x], numpy.arange(x, dtype='int32')))
 
     def test03_startstop(self):
-        "Checking reads with a start and stop values"
+        """Checking reads with a start and stop values"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03_startstop..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -3055,13 +2976,14 @@ class GetItemRangeTestCase(TestCase):
                             x], numpy.arange(x, dtype='int32')))
 
     def test03b_startstop(self):
-        "Checking reads with a start and stop values in slices"
+        """Checking reads with a start and stop values in slices"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03b_startstop..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -3089,13 +3011,14 @@ class GetItemRangeTestCase(TestCase):
                             x], numpy.arange(x, dtype='int32')))
 
     def test04_slices(self):
-        "Checking reads with a start, stop & step values"
+        """Checking reads with a start, stop & step values"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test04_slices..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -3123,13 +3046,14 @@ class GetItemRangeTestCase(TestCase):
                 allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test04bnp_slices(self):
-        "Checking reads with start, stop & step values (numpy indices)"
+        """Checking reads with start, stop & step values (numpy indices)"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test04np_slices..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
+
         # Choose a small value for buffer size
         vlarray._nrowsinbuf = 3
 
@@ -3157,99 +3081,73 @@ class GetItemRangeTestCase(TestCase):
                 allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
 
     def test05_out_of_range(self):
-        "Checking out of range reads"
+        """Checking out of range reads"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test05_out_of_range..." %
                   self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
-        try:
+        with self.assertRaises(IndexError):
             row = vlarray[1000]
             print("row-->", row)
-        except IndexError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next IndexError was catched!")
-                print(value)
-            self.fileh.close()
-        else:
-            (type, value, traceback) = sys.exc_info()
-            self.fail("expected a IndexError and got:\n%s" % value)
 
     def test05np_out_of_range(self):
-        "Checking out of range reads (numpy indexes)"
+        """Checking out of range reads (numpy indexes)"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test05np_out_of_range..." %
                   self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "r")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
-        try:
+        with self.assertRaises(IndexError):
             row = vlarray[numpy.int32(1000)]
             print("row-->", row)
-        except IndexError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next IndexError was catched!")
-                print(value)
-            self.fileh.close()
-        else:
-            (type, value, traceback) = sys.exc_info()
-            self.fail("expected a IndexError and got:\n%s" % value)
 
 
-class SetRangeTestCase(TestCase):
+class SetRangeTestCase(common.TempFileMixin, TestCase):
     nrows = 100
-    mode = "w"
+    open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, self.mode)
-        self.rootgroup = self.fileh.root
+        super(SetRangeTestCase, self).setUp()
+        self.rootgroup = self.h5file.root
         self.populateFile()
-        self.fileh.close()
+        self._reopen(mode='a')
 
     def populateFile(self):
         group = self.rootgroup
         filters = Filters(complevel=self.compress,
                           complib=self.complib)
-        vlarray = self.fileh.create_vlarray(group, 'vlarray', Int32Atom(),
-                                            "ragged array if ints",
-                                            filters=filters,
-                                            expectedrows=1000)
+        vlarray = self.h5file.create_vlarray(group, 'vlarray', Int32Atom(),
+                                             "ragged array if ints",
+                                             filters=filters,
+                                             expectedrows=1000)
 
         # Fill it with 100 rows with variable length
         for i in range(self.nrows):
             vlarray.append(range(i))
 
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-
-    #------------------------------------------------------------------
-
     def test01_start(self):
-        "Checking updates that modifies a complete row"
+        """Checking updates that modifies a complete row"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01_start..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "a")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Modify some rows:
         vlarray[0] = vlarray[0]*2 + 3
@@ -3277,13 +3175,13 @@ class SetRangeTestCase(TestCase):
             allequal(row[2], numpy.arange(99, dtype='int32')*2 + 3))
 
     def test01np_start(self):
-        "Checking updates that modifies a complete row"
+        """Checking updates that modifies a complete row"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01np_start..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "a")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Modify some rows:
         vlarray[numpy.int8(0)] = vlarray[numpy.int16(0)]*2 + 3
@@ -3311,13 +3209,13 @@ class SetRangeTestCase(TestCase):
             allequal(row[2], numpy.arange(99, dtype='int32')*2 + 3))
 
     def test02_partial(self):
-        "Checking updates with only a part of a row"
+        """Checking updates with only a part of a row"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02_partial..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "a")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Modify some rows:
         vlarray[0] = vlarray[0]*2 + 3
@@ -3346,14 +3244,14 @@ class SetRangeTestCase(TestCase):
         self.assertTrue(allequal(row[2], a))
 
     def test03a_several_rows(self):
-        "Checking updating several rows at once (slice style)"
+        """Checking updating several rows at once (slice style)"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03a_several_rows..." %
                   self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "a")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Modify some rows:
         vlarray[3:6] = (vlarray[3]*2 + 3,
@@ -3378,14 +3276,14 @@ class SetRangeTestCase(TestCase):
         self.assertTrue(allequal(row[2], numpy.arange(5, dtype='int32')*2 + 3))
 
     def test03b_several_rows(self):
-        "Checking updating several rows at once (list style)"
+        """Checking updating several rows at once (list style)"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03b_several_rows..." %
                   self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "a")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Modify some rows:
         vlarray[[0, 10, 96]] = (vlarray[0]*2 + 3,
@@ -3413,14 +3311,14 @@ class SetRangeTestCase(TestCase):
             allequal(row[2], numpy.arange(96, dtype='int32')*2 + 3))
 
     def test03c_several_rows(self):
-        "Checking updating several rows at once (NumPy's where style)"
+        """Checking updating several rows at once (NumPy's where style)"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03c_several_rows..." %
                   self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "a")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         # Modify some rows:
         vlarray[(numpy.array([0, 10, 96]),)] = (vlarray[0]*2 + 3,
@@ -3448,57 +3346,38 @@ class SetRangeTestCase(TestCase):
             allequal(row[2], numpy.arange(96, dtype='int32')*2 + 3))
 
     def test04_out_of_range(self):
-        "Checking out of range updates (first index)"
+        """Checking out of range updates (first index)"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test04_out_of_range..." %
                   self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "a")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
-        try:
+        with self.assertRaises(IndexError):
             vlarray[1000] = [1]
-        except IndexError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next IndexError was catched!")
-                print(value)
-            self.fileh.close()
-        else:
-            (type, value, traceback) = sys.exc_info()
-            self.fail("expected a IndexError and got:\n%s" % value)
 
     def test05_value_error(self):
-        "Checking out value errors"
+        """Checking out value errors"""
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test05_value_error..." % self.__class__.__name__)
 
-        self.fileh = open_file(self.file, "a")
-        vlarray = self.fileh.root.vlarray
+        vlarray = self.h5file.root.vlarray
 
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
-        try:
+        with self.assertRaises(ValueError):
             vlarray[10] = [1]*100
-            print("row-->", row)
-        except ValueError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next ValueError was catched!")
-                print(value)
-            self.fileh.close()
-        else:
-            (type, value, traceback) = sys.exc_info()
-            self.fail("expected a ValueError and got:\n%s" % value)
 
 
-class CopyTestCase(TestCase):
+class CopyTestCase(common.TempFileMixin, TestCase):
     close = True
 
     def test01a_copy(self):
@@ -3508,14 +3387,10 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01a_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an Vlarray
         arr = Int16Atom(shape=2)
-        array1 = fileh.create_vlarray(
-            fileh.root, 'array1', arr, "title array1")
+        array1 = self.h5file.create_vlarray(
+            self.h5file.root, 'array1', arr, "title array1")
         array1.flavor = "python"
         array1.append([[2, 3]])
         array1.append(())  # an empty row
@@ -3524,9 +3399,8 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy it to another location
         array2 = array1.copy('/', 'array2')
@@ -3534,10 +3408,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("array1-->", repr(array1))
@@ -3559,10 +3432,6 @@ class CopyTestCase(TestCase):
 
         self.assertEqual(array1.title, array2.title)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test01b_copy(self):
         """Checking VLArray.copy() method.
 
@@ -3574,14 +3443,10 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01b_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an Vlarray
         arr = VLStringAtom()
-        array1 = fileh.create_vlarray(
-            fileh.root, 'array1', arr, "title array1")
+        array1 = self.h5file.create_vlarray(
+            self.h5file.root, 'array1', arr, "title array1")
         array1.flavor = "python"
         array1.append("a string")
         array1.append("")  # an empty row
@@ -3590,9 +3455,8 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy it to another location
         array2 = array1.copy('/', 'array2')
@@ -3600,10 +3464,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("array1-->", repr(array1))
@@ -3625,10 +3488,6 @@ class CopyTestCase(TestCase):
 
         self.assertEqual(array1.title, array2.title)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test02_copy(self):
         """Checking VLArray.copy() method (where specified)"""
 
@@ -3636,14 +3495,10 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an VLArray
         arr = Int16Atom(shape=2)
-        array1 = fileh.create_vlarray(
-            fileh.root, 'array1', arr, "title array1")
+        array1 = self.h5file.create_vlarray(
+            self.h5file.root, 'array1', arr, "title array1")
         array1.flavor = "python"
         array1.append([[2, 3]])
         array1.append(())  # an empty row
@@ -3652,21 +3507,19 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy to another location
-        group1 = fileh.create_group("/", "group1")
+        group1 = self.h5file.create_group("/", "group1")
         array2 = array1.copy(group1, 'array2')
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.group1.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.group1.array2
 
         if common.verbose:
             print("array1-->", repr(array1))
@@ -3687,10 +3540,6 @@ class CopyTestCase(TestCase):
         self.assertEqual(repr(array1.atom), repr(array1.atom))
         self.assertEqual(array1.title, array2.title)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test03_copy(self):
         """Checking VLArray.copy() method ('python' flavor)"""
 
@@ -3698,14 +3547,10 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an VLArray
         atom = Int16Atom(shape=2)
-        array1 = fileh.create_vlarray(fileh.root, 'array1', atom,
-                                      title="title array1")
+        array1 = self.h5file.create_vlarray(
+            self.h5file.root, 'array1', atom, title="title array1")
         array1.flavor = "python"
         array1.append(((2, 3),))
         array1.append(())  # an empty row
@@ -3714,9 +3559,8 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy to another location
         array2 = array1.copy('/', 'array2')
@@ -3724,10 +3568,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -3741,10 +3584,6 @@ class CopyTestCase(TestCase):
         self.assertEqual(repr(array1.atom), repr(array1.atom))
         self.assertEqual(array1.title, array2.title)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test04_copy(self):
         """Checking VLArray.copy() method (checking title copying)"""
 
@@ -3752,17 +3591,14 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test04_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an VLArray
         atom = Int16Atom(shape=2)
-        array1 = fileh.create_vlarray(fileh.root, 'array1', atom=atom,
-                                      title="title array1")
+        array1 = self.h5file.create_vlarray(
+            self.h5file.root, 'array1', atom=atom, title="title array1")
         array1.append(((2, 3),))
         array1.append(())  # an empty row
         array1.append(((3, 457), (2, 4)))
+
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -3770,9 +3606,8 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', title="title array2")
@@ -3780,19 +3615,14 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         # Assert user attributes
         if common.verbose:
             print("title of destination array-->", array2.title)
         self.assertEqual(array2.title, "title array2")
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
     def test05_copy(self):
         """Checking VLArray.copy() method (user attributes copied)"""
@@ -3801,17 +3631,14 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test05_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an Array
         atom = Int16Atom(shape=2)
-        array1 = fileh.create_vlarray(fileh.root, 'array1', atom=atom,
-                                      title="title array1")
+        array1 = self.h5file.create_vlarray(
+            self.h5file.root, 'array1', atom=atom, title="title array1")
         array1.append(((2, 3),))
         array1.append(())  # an empty row
         array1.append(((3, 457), (2, 4)))
+
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -3819,9 +3646,8 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', copyuserattrs=1)
@@ -3829,10 +3655,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -3842,10 +3667,6 @@ class CopyTestCase(TestCase):
         self.assertEqual(array2.attrs.attr1, "attr1")
         self.assertEqual(array2.attrs.attr2, 2)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def notest05b_copy(self):
         """Checking VLArray.copy() method (user attributes not copied)"""
 
@@ -3853,17 +3674,14 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test05b_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an VLArray
         atom = Int16Atom(shape=2)
-        array1 = fileh.create_vlarray(fileh.root, 'array1', atom=atom,
-                                      title="title array1")
+        array1 = self.h5file.create_vlarray(
+            self.h5file.root, 'array1', atom=atom, title="title array1")
         array1.append(((2, 3),))
         array1.append(())  # an empty row
         array1.append(((3, 457), (2, 4)))
+
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -3871,9 +3689,8 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', copyuserattrs=0)
@@ -3881,10 +3698,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -3893,10 +3709,6 @@ class CopyTestCase(TestCase):
         # Assert user attributes
         self.assertEqual(array2.attrs.attr1, None)
         self.assertEqual(array2.attrs.attr2, None)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
 
 class CloseCopyTestCase(CopyTestCase):
@@ -3907,7 +3719,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
-class CopyIndexTestCase(TestCase):
+class CopyIndexTestCase(common.TempFileMixin, TestCase):
 
     def test01_index(self):
         """Checking VLArray.copy() method with indexes."""
@@ -3916,14 +3728,12 @@ class CopyIndexTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01_index..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Array
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an VLArray
         atom = Int32Atom(shape=(2,))
-        array1 = fileh.create_vlarray(fileh.root, 'array1', atom, "t array1")
+        array1 = self.h5file.create_vlarray(
+            self.h5file.root, 'array1', atom, "t array1")
         array1.flavor = "python"
+
         # The next creates 20 rows of variable length
         r = []
         for row in range(20):
@@ -3933,9 +3743,8 @@ class CopyIndexTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy to another array
         array2 = array1.copy("/", 'array2',
@@ -3951,14 +3760,12 @@ class CopyIndexTestCase(TestCase):
             print("attrs array2-->", repr(array2.attrs))
             print("nrows in array2-->", array2.nrows)
             print("and it should be-->", len(r2))
+
         # Check that all the elements are equal
         self.assertEqual(r2, array2[:])
+
         # Assert the number of rows in array
         self.assertEqual(len(r2), array2.nrows)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
 
 class CopyIndex1TestCase(CopyIndexTestCase):
@@ -4045,24 +3852,19 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     step = 1
 
 
-class ChunkshapeTestCase(TestCase):
+class ChunkshapeTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        self.file = tempfile.mktemp('.h5')
-        self.fileh = open_file(self.file, 'w', title='Chunkshape test')
+        super(ChunkshapeTestCase, self).setUp()
         atom = Int32Atom(shape=(2,))
-        self.fileh.create_vlarray('/', 'vlarray', atom=atom,
-                                  title="t array1",
-                                  chunkshape=13)
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
+        self.h5file.create_vlarray('/', 'vlarray', atom=atom,
+                                   title="t array1",
+                                   chunkshape=13)
 
     def test00(self):
         """Test setting the chunkshape in a table (no reopen)."""
 
-        vla = self.fileh.root.vlarray
+        vla = self.h5file.root.vlarray
         if common.verbose:
             print("chunkshape-->", vla.chunkshape)
         self.assertEqual(vla.chunkshape, (13,))
@@ -4070,61 +3872,58 @@ class ChunkshapeTestCase(TestCase):
     def test01(self):
         """Test setting the chunkshape in a table (reopen)."""
 
-        self.fileh.close()
-        self.fileh = open_file(self.file, 'r')
-        vla = self.fileh.root.vlarray
+        self.h5file.close()
+        self.h5file = open_file(self.h5fname, 'r')
+        vla = self.h5file.root.vlarray
         if common.verbose:
             print("chunkshape-->", vla.chunkshape)
         self.assertEqual(vla.chunkshape, (13,))
 
 
 class VLUEndianTestCase(TestCase):
+    def setUp(self):
+        super(VLUEndianTestCase, self).setUp()
+        self.h5fname = self._testFilename('vlunicode_endian.h5')
+        self.h5file = open_file(self.h5fname)
+
+    def tearDown(self):
+        self.h5file.close()
+
     def test(self):
         """Accessing ``vlunicode`` data of a different endianness."""
-        h5fname = self._testFilename('vlunicode_endian.h5')
-        h5f = open_file(h5fname)
-        try:
-            bedata = h5f.root.vlunicode_big[0]
-            ledata = h5f.root.vlunicode_little[0]
-            self.assertEqual(bedata, u'para\u0140lel')
-            self.assertEqual(ledata, u'para\u0140lel')
-        finally:
-            h5f.close()
+
+        bedata = self.h5file.root.vlunicode_big[0]
+        ledata = self.h5file.root.vlunicode_little[0]
+        self.assertEqual(bedata, u'para\u0140lel')
+        self.assertEqual(ledata, u'para\u0140lel')
 
 
-class TruncateTestCase(TestCase):
+class TruncateTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
+        super(TruncateTestCase, self).setUp()
 
         # Create an VLArray
         arr = Int16Atom(dflt=3)
-        array1 = self.fileh.create_vlarray(
-            self.fileh.root, 'array1', arr, "title array1")
+        array1 = self.h5file.create_vlarray(
+            self.h5file.root, 'array1', arr, "title array1")
+
         # Add a couple of rows
         array1.append(numpy.array([456, 2], dtype='Int16'))
         array1.append(numpy.array([3], dtype='Int16'))
 
-    def tearDown(self):
-        # Close the file
-        self.fileh.close()
-        os.remove(self.file)
-
     def test00_truncate(self):
         """Checking VLArray.truncate() method (truncating to 0 rows)"""
 
-        array1 = self.fileh.root.array1
+        array1 = self.h5file.root.array1
         # Truncate to 0 elements
         array1.truncate(0)
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            array1 = self.fileh.root.array1
+            self._reopen()
+            array1 = self.h5file.root.array1
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -4135,16 +3934,15 @@ class TruncateTestCase(TestCase):
     def test01_truncate(self):
         """Checking VLArray.truncate() method (truncating to 1 rows)"""
 
-        array1 = self.fileh.root.array1
+        array1 = self.h5file.root.array1
         # Truncate to 1 element
         array1.truncate(1)
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            array1 = self.fileh.root.array1
+            self._reopen()
+            array1 = self.h5file.root.array1
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -4156,16 +3954,15 @@ class TruncateTestCase(TestCase):
     def test02_truncate(self):
         """Checking VLArray.truncate() method (truncating to == self.nrows)"""
 
-        array1 = self.fileh.root.array1
+        array1 = self.h5file.root.array1
         # Truncate to 2 elements
         array1.truncate(2)
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            array1 = self.fileh.root.array1
+            self._reopen()
+            array1 = self.h5file.root.array1
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -4178,25 +3975,26 @@ class TruncateTestCase(TestCase):
     def test03_truncate(self):
         """Checking VLArray.truncate() method (truncating to > self.nrows)"""
 
-        array1 = self.fileh.root.array1
+        array1 = self.h5file.root.array1
         # Truncate to 4 elements
         array1.truncate(4)
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            array1 = self.fileh.root.array1
+            self._reopen()
+            array1 = self.h5file.root.array1
 
         if common.verbose:
             print("array1-->", array1.read())
 
         self.assertEqual(array1.nrows, 4)
+
         # Check the original values
         self.assertTrue(
             allequal(array1[0], numpy.array([456, 2], dtype='Int16')))
         self.assertTrue(allequal(array1[1], numpy.array([3], dtype='Int16')))
+
         # Check that the added rows are empty
         self.assertTrue(allequal(array1[2], numpy.array([], dtype='Int16')))
         self.assertTrue(allequal(array1[3], numpy.array([], dtype='Int16')))
@@ -4210,9 +4008,10 @@ class TruncateCloseTestCase(TruncateTestCase):
     close = 1
 
 
-class PointSelectionTestCase(TestCase):
+class PointSelectionTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
+        super(PointSelectionTestCase, self).setUp()
 
         # The next are valid selections for both NumPy and PyTables
         self.working_keyset = [
@@ -4232,27 +4031,22 @@ class PointSelectionTestCase(TestCase):
             ([True, False, True],),   # tuple of bools
         ]
 
-        # Create an instance of an HDF5 Array
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = fileh = open_file(self.file, "w")
         # Create a sample array
         arr1 = numpy.array([5, 6], dtype="i4")
         arr2 = numpy.array([5, 6, 7], dtype="i4")
         arr3 = numpy.array([5, 6, 9, 8], dtype="i4")
         self.nparr = numpy.array([arr1, arr2, arr3], dtype="object")
-        # Create the VLArray
-        self.vlarr = vlarr = fileh.create_vlarray(
-            fileh.root, 'vlarray', Int32Atom())
-        vlarr.append(arr1)
-        vlarr.append(arr2)
-        vlarr.append(arr3)
 
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
+        # Create the VLArray
+        self.vlarr = self.h5file.create_vlarray(
+            self.h5file.root, 'vlarray', Int32Atom())
+        self.vlarr.append(arr1)
+        self.vlarr.append(arr2)
+        self.vlarr.append(arr3)
 
     def test01a_read(self):
         """Test for point-selections (read, boolean keys)."""
+
         nparr = self.nparr
         vlarr = self.vlarr
         for key in self.working_keyset:
@@ -4269,6 +4063,7 @@ class PointSelectionTestCase(TestCase):
 
     def test01b_read(self):
         """Test for point-selections (not working selections, read)."""
+
         vlarr = self.vlarr
         for key in self.not_working_keyset:
             if common.verbose:
@@ -4276,21 +4071,11 @@ class PointSelectionTestCase(TestCase):
             self.assertRaises(IndexError, vlarr.__getitem__, key)
 
 
-class SizeInMemoryPropertyTestCase(TestCase):
-
-    def setUp(self):
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode="w")
-
-    def tearDown(self):
-        self.fileh.close()
-        # Then, delete the file
-        os.remove(self.file)
-
+class SizeInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
     def create_array(self, atom, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.array = self.fileh.create_vlarray('/', 'vlarray', atom=atom,
-                                               filters=filters)
+        self.array = self.h5file.create_vlarray('/', 'vlarray', atom=atom,
+                                                filters=filters)
 
     def test_zero_length(self):
         atom = Int32Atom()
@@ -4343,21 +4128,11 @@ class SizeInMemoryPropertyTestCase(TestCase):
         self.assertEqual(self.array.size_in_memory, expected_size)
 
 
-class SizeOnDiskPropertyTestCase(TestCase):
-
-    def setUp(self):
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode="w")
-
-    def tearDown(self):
-        self.fileh.close()
-        # Then, delete the file
-        os.remove(self.file)
-
+class SizeOnDiskPropertyTestCase(common.TempFileMixin, TestCase):
     def create_array(self, atom, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.fileh.create_vlarray('/', 'vlarray', atom, filters=filters)
-        self.array = self.fileh.get_node('/', 'vlarray')
+        self.h5file.create_vlarray('/', 'vlarray', atom, filters=filters)
+        self.array = self.h5file.get_node('/', 'vlarray')
 
     def test_not_implemented(self):
         atom = IntAtom()
@@ -4368,7 +4143,6 @@ class SizeOnDiskPropertyTestCase(TestCase):
 
 
 class AccessClosedTestCase(common.TempFileMixin, TestCase):
-
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
         self.array = self.h5file.create_vlarray(

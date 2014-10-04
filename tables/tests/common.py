@@ -374,6 +374,9 @@ class PyTablesTestCase(unittest.TestCase):
 
 
 class TempFileMixin(object):
+    open_mode = 'w'
+    open_kwargs = {}
+
     def setUp(self):
         """Set ``h5file`` and ``h5fname`` instance attributes.
 
@@ -385,7 +388,8 @@ class TempFileMixin(object):
         super(TempFileMixin, self).setUp()
         self.h5fname = tempfile.mktemp(suffix='.h5')
         self.h5file = tables.open_file(
-            self.h5fname, 'w', title=self._getName())
+            self.h5fname, self.open_mode, title=self._getName(),
+            **self.open_kwargs)
 
     def tearDown(self):
         """Close ``h5file`` and remove ``h5fname``."""

@@ -15,7 +15,7 @@ from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
-class BasicTestCase(TestCase):
+class BasicTestCase(common.TempFileMixin, TestCase):
     # Default values
     obj = None
     flavor = "numpy"
@@ -35,15 +35,14 @@ class BasicTestCase(TestCase):
     reopen = 1  # Tells whether the file has to be reopened on each test or not
 
     def setUp(self):
+        super(BasicTestCase, self).setUp()
 
         # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        self.rootgroup = self.fileh.root
+        self.rootgroup = self.h5file.root
         self.populateFile()
         if self.reopen:
             # Close the file
-            self.fileh.close()
+            self.h5file.close()
 
     def populateFile(self):
         group = self.rootgroup
@@ -60,10 +59,10 @@ class BasicTestCase(TestCase):
                           complib=self.complib,
                           shuffle=self.shuffle,
                           fletcher32=self.fletcher32)
-        earray = self.fileh.create_earray(group, 'earray1',
-                                          atom=atom, shape=self.shape,
-                                          title=title, filters=filters,
-                                          expectedrows=1, obj=obj)
+        earray = self.h5file.create_earray(group, 'earray1',
+                                           atom=atom, shape=self.shape,
+                                           title=title, filters=filters,
+                                           expectedrows=1, obj=obj)
         earray.flavor = self.flavor
 
         # Fill it with rows
@@ -97,10 +96,6 @@ class BasicTestCase(TestCase):
             else:
                 earray.append(object * i)
 
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-
     #----------------------------------------
 
     def _get_shape(self):
@@ -113,8 +108,8 @@ class BasicTestCase(TestCase):
 
     def test00_attributes(self):
         if self.reopen:
-            self.fileh = open_file(self.file, "r")
-        obj = self.fileh.get_node("/earray1")
+            self._reopen()
+        obj = self.h5file.get_node("/earray1")
 
         shape = self._get_shape()
         shape = list(shape)
@@ -138,8 +133,8 @@ class BasicTestCase(TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = open_file(self.file, "r")
-        earray = self.fileh.get_node("/earray1")
+            self._reopen()
+        earray = self.h5file.get_node("/earray1")
 
         # Choose a small value for buffer size
         earray.nrowsinbuf = 3
@@ -224,8 +219,8 @@ class BasicTestCase(TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = open_file(self.file, "r")
-        earray = self.fileh.get_node("/earray1")
+            self._reopen()
+        earray = self.h5file.get_node("/earray1")
 
         # Choose a small value for buffer size
         earray.nrowsinbuf = 3
@@ -306,8 +301,8 @@ class BasicTestCase(TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = open_file(self.file, "r")
-        earray = self.fileh.get_node("/earray1")
+            self._reopen()
+        earray = self.h5file.get_node("/earray1")
 
         # Choose a small value for buffer size
         earray.nrowsinbuf = 3
@@ -415,8 +410,8 @@ class BasicTestCase(TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = open_file(self.file, "r")
-        earray = self.fileh.get_node("/earray1")
+            self._reopen()
+        earray = self.h5file.get_node("/earray1")
 
         # Choose a small value for buffer size
         earray.nrowsinbuf = 3
@@ -532,8 +527,8 @@ class BasicTestCase(TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = open_file(self.file, "r")
-        earray = self.fileh.get_node("/earray1")
+            self._reopen()
+        earray = self.h5file.get_node("/earray1")
 
         # Choose a small value for buffer size
         # earray.nrowsinbuf = 3   # this does not really changes the chunksize
@@ -638,8 +633,8 @@ class BasicTestCase(TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = open_file(self.file, "a")
-        earray = self.fileh.get_node("/earray1")
+            self._reopen(mode="a")
+        earray = self.h5file.get_node("/earray1")
 
         # Choose a small value for buffer size
         # earray.nrowsinbuf = 3   # this does not really changes the chunksize
@@ -1216,29 +1211,24 @@ class StringComprTestCase(BasicTestCase):
     step = 20
 
 
-class SizeOnDiskInMemoryPropertyTestCase(TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
+        super(SizeOnDiskInMemoryPropertyTestCase, self).setUp()
+
         self.array_size = (0, 10)
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
         self.chunkshape = (1000, 10)
         # approximate size (in bytes) of non-data portion of hdf5 file
         self.hdf_overhead = 6000
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode="w")
-
-    def tearDown(self):
-        self.fileh.close()
-        # Then, delete the file
-        os.remove(self.file)
 
     def create_array(self, complevel):
         filters = Filters(complevel=complevel, complib='blosc')
-        self.array = self.fileh.create_earray('/', 'earray', atom=Int32Atom(),
-                                              shape=self.array_size,
-                                              filters=filters,
-                                              chunkshape=self.chunkshape)
+        self.array = self.h5file.create_earray('/', 'earray', atom=Int32Atom(),
+                                               shape=self.array_size,
+                                               filters=filters,
+                                               chunkshape=self.chunkshape)
 
     def test_zero_length(self):
         complevel = 0
@@ -1267,28 +1257,21 @@ class SizeOnDiskInMemoryPropertyTestCase(TestCase):
         complevel = 1
         self.create_array(complevel)
         self.array.append([tuple(range(10))] * self.chunkshape[0] * 10)
-        file_size = os.stat(self.file).st_size
+        file_size = os.stat(self.h5fname).st_size
         self.assertTrue(
             abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)
         self.assertTrue(self.array.size_on_disk < self.array.size_in_memory)
 
 
-class OffsetStrideTestCase(TestCase):
+class OffsetStrideTestCase(common.TempFileMixin, TestCase):
     mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, self.mode)
-        self.rootgroup = self.fileh.root
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
+        super(OffsetStrideTestCase, self).setUp()
+        self.rootgroup = self.h5file.root
 
     #----------------------------------------
 
@@ -1300,10 +1283,10 @@ class OffsetStrideTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01a_StringAtom..." % self.__class__.__name__)
 
-        earray = self.fileh.create_earray(root, 'strings',
-                                          atom=StringAtom(itemsize=3),
-                                          shape=(0, 2, 2),
-                                          title="Array of strings")
+        earray = self.h5file.create_earray(root, 'strings',
+                                           atom=StringAtom(itemsize=3),
+                                           shape=(0, 2, 2),
+                                           title="Array of strings")
         a = numpy.array([[["a", "b"], [
                         "123", "45"], ["45", "123"]]], dtype="S3")
         earray.append(a[:, 1:])
@@ -1332,7 +1315,7 @@ class OffsetStrideTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01b_StringAtom..." % self.__class__.__name__)
 
-        earray = self.fileh.create_earray(root, 'strings',
+        earray = self.h5file.create_earray(root, 'strings',
                                           atom=StringAtom(itemsize=3),
                                           shape=(0, 2, 2),
                                           title="Array of strings")
@@ -1365,7 +1348,7 @@ class OffsetStrideTestCase(TestCase):
             print("Running %s.test02a_int..." % self.__class__.__name__)
 
         # Create an string atom
-        earray = self.fileh.create_earray(root, 'EAtom',
+        earray = self.h5file.create_earray(root, 'EAtom',
                                           atom=Int32Atom(), shape=(0, 3),
                                           title="array of ints")
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
@@ -1397,7 +1380,7 @@ class OffsetStrideTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02b_int..." % self.__class__.__name__)
 
-        earray = self.fileh.create_earray(root, 'EAtom',
+        earray = self.h5file.create_earray(root, 'EAtom',
                                           atom=Int32Atom(), shape=(0, 3),
                                           title="array of ints")
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
@@ -1429,9 +1412,9 @@ class OffsetStrideTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03a_int..." % self.__class__.__name__)
 
-        earray = self.fileh.create_earray(root, 'EAtom',
-                                          atom=Int32Atom(), shape=(0, 3),
-                                          title="array of ints")
+        earray = self.h5file.create_earray(root, 'EAtom',
+                                           atom=Int32Atom(), shape=(0, 3),
+                                           title="array of ints")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='Int32')
@@ -1461,9 +1444,9 @@ class OffsetStrideTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03b_float..." % self.__class__.__name__)
 
-        earray = self.fileh.create_earray(root, 'EAtom',
-                                          atom=Float64Atom(), shape=(0, 3),
-                                          title="array of floats")
+        earray = self.h5file.create_earray(root, 'EAtom',
+                                           atom=Float64Atom(), shape=(0, 3),
+                                           title="array of floats")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='Float64')
@@ -1494,10 +1477,10 @@ class OffsetStrideTestCase(TestCase):
             print("Running %s.test04a_int..." % self.__class__.__name__)
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
-        earray = self.fileh.create_earray(root, 'EAtom',
-                                          atom=Int32Atom(), shape=(0, 3),
-                                          title="array of ints",
-                                          byteorder=byteorder)
+        earray = self.h5file.create_earray(root, 'EAtom',
+                                           atom=Int32Atom(), shape=(0, 3),
+                                           title="array of ints",
+                                           byteorder=byteorder)
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='Int32')
@@ -1528,13 +1511,13 @@ class OffsetStrideTestCase(TestCase):
             print("Running %s.test04b_int..." % self.__class__.__name__)
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
-        earray = self.fileh.create_earray(root, 'EAtom',
-                                          atom=Int32Atom(), shape=(0, 3),
-                                          title="array of ints",
-                                          byteorder=byteorder)
-        self.fileh.close()
-        self.fileh = open_file(self.file, "a")
-        earray = self.fileh.get_node("/EAtom")
+        earray = self.h5file.create_earray(root, 'EAtom',
+                                           atom=Int32Atom(), shape=(0, 3),
+                                           title="array of ints",
+                                           byteorder=byteorder)
+        self.h5file.close()
+        self.h5file = open_file(self.h5fname, "a")
+        earray = self.h5file.get_node("/EAtom")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='Int32')
@@ -1565,10 +1548,10 @@ class OffsetStrideTestCase(TestCase):
             print("Running %s.test04c_float..." % self.__class__.__name__)
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
-        earray = self.fileh.create_earray(root, 'EAtom',
-                                          atom=Float64Atom(), shape=(0, 3),
-                                          title="array of floats",
-                                          byteorder=byteorder)
+        earray = self.h5file.create_earray(root, 'EAtom',
+                                           atom=Float64Atom(), shape=(0, 3),
+                                           title="array of floats",
+                                           byteorder=byteorder)
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='Float64')
@@ -1599,13 +1582,12 @@ class OffsetStrideTestCase(TestCase):
             print("Running %s.test04d_float..." % self.__class__.__name__)
 
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
-        earray = self.fileh.create_earray(root, 'EAtom',
-                                          atom=Float64Atom(), shape=(0, 3),
-                                          title="array of floats",
-                                          byteorder=byteorder)
-        self.fileh.close()
-        self.fileh = open_file(self.file, "a")
-        earray = self.fileh.get_node("/EAtom")
+        earray = self.h5file.create_earray(root, 'EAtom',
+                                           atom=Float64Atom(), shape=(0, 3),
+                                           title="array of floats",
+                                           byteorder=byteorder)
+        self._reopen(mode='a')
+        earray = self.h5file.get_node("/EAtom")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='Float64')
@@ -1628,7 +1610,7 @@ class OffsetStrideTestCase(TestCase):
         self.assertTrue(allequal(native, swapped))
 
 
-class CopyTestCase(TestCase):
+class CopyTestCase(common.TempFileMixin, TestCase):
 
     def test01_copy(self):
         """Checking EArray.copy() method."""
@@ -1637,23 +1619,18 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an EArray
         atom = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1',
-                                     atom=atom, shape=(0, 2),
-                                     title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy it to another location
         array2 = array1.copy('/', 'array2')
@@ -1661,10 +1638,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -1686,10 +1662,6 @@ class CopyTestCase(TestCase):
         self.assertEqual(array1.atom.itemsize, array2.atom.itemsize)
         self.assertEqual(array1.title, array2.title)
         self.assertEqual(str(array1.atom), str(array2.atom))
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
     def test02_copy(self):
         """Checking EArray.copy() method (where specified)"""
@@ -1698,35 +1670,29 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an EArray
         atom = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1',
-                                     atom=atom, shape=(0, 2),
-                                     title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy to another location
-        group1 = fileh.create_group("/", "group1")
+        group1 = self.h5file.create_group("/", "group1")
         array2 = array1.copy(group1, 'array2')
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.group1.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.group1.array2
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -1749,10 +1715,6 @@ class CopyTestCase(TestCase):
         self.assertEqual(array1.title, array2.title)
         self.assertEqual(str(array1.atom), str(array2.atom))
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test03a_copy(self):
         """Checking EArray.copy() method (python flavor)"""
 
@@ -1760,23 +1722,18 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03b_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         atom = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1',
-                                     atom=atom, shape=(0, 2),
-                                     title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         array1.flavor = "python"
         array1.append(((456, 2), (3, 457)))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy to another location
         array2 = array1.copy('/', 'array2')
@@ -1784,10 +1741,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -1805,10 +1761,6 @@ class CopyTestCase(TestCase):
         self.assertEqual(array1.atom.itemsize, array2.atom.itemsize)
         self.assertEqual(array1.title, array2.title)
         self.assertEqual(str(array1.atom), str(array2.atom))
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
     def test03b_copy(self):
         """Checking EArray.copy() method (python string flavor)"""
@@ -1817,23 +1769,18 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03d_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         atom = StringAtom(itemsize=3)
-        array1 = fileh.create_earray(fileh.root, 'array1',
-                                     atom=atom, shape=(0, 2),
-                                     title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         array1.flavor = "python"
         array1.append([["456", "2"], ["3", "457"]])
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy to another location
         array2 = array1.copy('/', 'array2')
@@ -1841,10 +1788,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -1864,10 +1810,6 @@ class CopyTestCase(TestCase):
         self.assertEqual(array1.title, array2.title)
         self.assertEqual(str(array1.atom), str(array2.atom))
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test03c_copy(self):
         """Checking EArray.copy() method (String flavor)"""
 
@@ -1875,23 +1817,18 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03e_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         atom = StringAtom(itemsize=4)
-        array1 = fileh.create_earray(fileh.root, 'array1',
-                                     atom=atom, shape=(0, 2),
-                                     title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         array1.flavor = "numpy"
         array1.append(numpy.array([["456", "2"], ["3", "457"]], dtype="S4"))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy to another location
         array2 = array1.copy('/', 'array2')
@@ -1899,10 +1836,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -1921,10 +1857,6 @@ class CopyTestCase(TestCase):
         self.assertEqual(array1.title, array2.title)
         self.assertEqual(str(array1.atom), str(array2.atom))
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test04_copy(self):
         """Checking EArray.copy() method (checking title copying)"""
 
@@ -1932,15 +1864,11 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test04_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an EArray
         atom = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1',
-                                     atom=atom, shape=(0, 2),
-                                     title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1949,9 +1877,8 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', title="title array2")
@@ -1959,19 +1886,14 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         # Assert user attributes
         if common.verbose:
             print("title of destination array-->", array2.title)
         self.assertEqual(array2.title, "title array2")
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
     def test05_copy(self):
         """Checking EArray.copy() method (user attributes copied)"""
@@ -1980,15 +1902,11 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test05_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an EArray
         atom = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1',
-                                     atom=atom, shape=(0, 2),
-                                     title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1997,9 +1915,8 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', copyuserattrs=1)
@@ -2007,10 +1924,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -2020,10 +1936,6 @@ class CopyTestCase(TestCase):
         self.assertEqual(array2.attrs.attr1, "attr1")
         self.assertEqual(array2.attrs.attr2, 2)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test05b_copy(self):
         """Checking EArray.copy() method (user attributes not copied)"""
 
@@ -2031,15 +1943,11 @@ class CopyTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test05b_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an Array
         atom = Int16Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1',
-                                     atom=atom, shape=(0, 2),
-                                     title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -2048,9 +1956,8 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode='a')
+            array1 = self.h5file.root.array1
 
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', copyuserattrs=0)
@@ -2058,10 +1965,9 @@ class CopyTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -2070,10 +1976,6 @@ class CopyTestCase(TestCase):
         # Assert user attributes
         self.assertEqual(hasattr(array2.attrs, "attr1"), 0)
         self.assertEqual(hasattr(array2.attrs, "attr2"), 0)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
 
 class CloseCopyTestCase(CopyTestCase):
@@ -2084,7 +1986,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
-class CopyIndexTestCase(TestCase):
+class CopyIndexTestCase(common.TempFileMixin, TestCase):
     nrowsinbuf = 2
 
     def test01_index(self):
@@ -2094,15 +1996,11 @@ class CopyIndexTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01_index..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Array
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an EArray
         atom = Int32Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1',
-                                     atom=atom, shape=(0, 2),
-                                     title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         r = numpy.arange(200, dtype='int32')
         r.shape = (100, 2)
         array1.append(r)
@@ -2131,10 +2029,6 @@ class CopyIndexTestCase(TestCase):
             print("and it should be-->", r2.shape[0])
         self.assertEqual(r2.shape[0], array2.nrows)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test02_indexclosef(self):
         """Checking EArray.copy() method with indexes (close file version)"""
 
@@ -2142,15 +2036,11 @@ class CopyIndexTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02_indexclosef..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Array
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an EArray
         atom = Int32Atom()
-        array1 = fileh.create_earray(fileh.root, 'array1',
-                                     atom=atom, shape=(0, 2),
-                                     title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         r = numpy.arange(200, dtype='int32')
         r.shape = (100, 2)
         array1.append(r)
@@ -2164,10 +2054,9 @@ class CopyIndexTestCase(TestCase):
                              stop=self.stop,
                              step=self.step)
         # Close and reopen the file
-        fileh.close()
-        fileh = open_file(file, mode="r")
-        array1 = fileh.root.array1
-        array2 = fileh.root.array2
+        self._reopen()
+        array1 = self.h5file.root.array1
+        array2 = self.h5file.root.array2
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -2184,10 +2073,6 @@ class CopyIndexTestCase(TestCase):
             print("nrows in array2-->", array2.nrows)
             print("and it should be-->", r2.shape[0])
         self.assertEqual(r2.shape[0], array2.nrows)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
 
 class CopyIndex1TestCase(CopyIndexTestCase):
@@ -2269,39 +2154,31 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     step = 1
 
 
-class TruncateTestCase(TestCase):
+class TruncateTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
+        super(TruncateTestCase, self).setUp()
 
         # Create an EArray
         atom = Int16Atom(dflt=3)
-        array1 = self.fileh.create_earray(self.fileh.root, 'array1',
-                                          atom=atom, shape=(0, 2),
-                                          title="title array1")
+        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
+                                           atom=atom, shape=(0, 2),
+                                           title="title array1")
         # Add a couple of rows
         array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
-
-    def tearDown(self):
-        # Close the file
-        self.fileh.close()
-        os.remove(self.file)
 
     def test00_truncate(self):
         """Checking EArray.truncate() method (truncating to 0 rows)"""
 
-        array1 = self.fileh.root.array1
+        array1 = self.h5file.root.array1
         # Truncate to 0 elements
         array1.truncate(0)
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            array1 = self.fileh.root.array1
+            self._reopen()
+            array1 = self.h5file.root.array1
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -2312,16 +2189,15 @@ class TruncateTestCase(TestCase):
     def test01_truncate(self):
         """Checking EArray.truncate() method (truncating to 1 rows)"""
 
-        array1 = self.fileh.root.array1
+        array1 = self.h5file.root.array1
         # Truncate to 1 element
         array1.truncate(1)
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            array1 = self.fileh.root.array1
+            self._reopen()
+            array1 = self.h5file.root.array1
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -2332,16 +2208,15 @@ class TruncateTestCase(TestCase):
     def test02_truncate(self):
         """Checking EArray.truncate() method (truncating to == self.nrows)"""
 
-        array1 = self.fileh.root.array1
+        array1 = self.h5file.root.array1
         # Truncate to 2 elements
         array1.truncate(2)
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            array1 = self.fileh.root.array1
+            self._reopen()
+            array1 = self.h5file.root.array1
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -2353,16 +2228,15 @@ class TruncateTestCase(TestCase):
     def test03_truncate(self):
         """Checking EArray.truncate() method (truncating to > self.nrows)"""
 
-        array1 = self.fileh.root.array1
+        array1 = self.h5file.root.array1
         # Truncate to 4 elements
         array1.truncate(4)
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r")
-            array1 = self.fileh.root.array1
+            self._reopen()
+            array1 = self.h5file.root.array1
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -2385,41 +2259,33 @@ class TruncateCloseTestCase(TruncateTestCase):
 
 
 # The next test should be run only in **common.heavy** mode
-class Rows64bitsTestCase(TestCase):
+class Rows64bitsTestCase(common.TempFileMixin, TestCase):
+    open_mode = 'a'
     narows = 1000 * 1000   # each numpy object will have 1 million entries
     # narows = 1000   # for testing only
     nanumber = 1000 * 3    # That should account for more than 2**31-1
 
     def setUp(self):
+        super(Rows64bitsTestCase, self).setUp()
 
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        fileh = self.fileh = open_file(self.file, "a")
         # Create an EArray
-        array = fileh.create_earray(fileh.root, 'array',
-                                    atom=Int8Atom(), shape=(0,),
-                                    filters=Filters(complib='lzo',
-                                                    complevel=1),
-                                    # Specifying expectedrows takes more
-                                    # CPU, but less disk
-                                    expectedrows=self.narows * self.nanumber)
+        array = self.h5file.create_earray(
+            self.h5file.root, 'array',
+            atom=Int8Atom(), shape=(0,),
+            filters=Filters(complib='lzo', complevel=1),
+            # Specifying expectedrows takes more
+            # CPU, but less disk
+            expectedrows=self.narows * self.nanumber)
 
         # Fill the array
         na = numpy.arange(self.narows, dtype='Int8')
         for i in range(self.nanumber):
             array.append(na)
 
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-
-    #----------------------------------------
-
     def test01_basiccheck(self):
         "Some basic checks for earrays exceeding 2**31 rows"
 
-        fileh = self.fileh
-        array = fileh.root.array
+        array = self.h5file.root.array
 
         if self.close:
             if common.verbose:
@@ -2428,11 +2294,11 @@ class Rows64bitsTestCase(TestCase):
                 print("Entries:", array.nrows, type(array.nrows))
                 print("Entries:", array.nrows / (1000 * 1000), "Millions")
                 print("Shape:", array.shape)
+
             # Close the file
-            fileh.close()
-            # Re-open the file
-            fileh = self.fileh = open_file(self.file)
-            array = fileh.root.array
+            self._reopen()
+
+            array = self.h5file.root.array
             if common.verbose:
                 print("After re-open")
 
@@ -2474,25 +2340,21 @@ class Rows64bitsTestCase2(Rows64bitsTestCase):
 
 
 # Test for appending zero-sized arrays
-class ZeroSizedTestCase(TestCase):
-
+class ZeroSizedTestCase(common.TempFileMixin, TestCase):
+    open_mode = 'a'
     def setUp(self):
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "a")
+        super(ZeroSizedTestCase,self).setUp()
+
         # Create an EArray
-        ea = self.fileh.create_earray('/', 'test',
-                                      atom=Int32Atom(), shape=(3, 0))
+        ea = self.h5file.create_earray('/', 'test',
+                                       atom=Int32Atom(), shape=(3, 0))
         # Append a single row
         ea.append([[1], [2], [3]])
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
 
     def test01_canAppend(self):
         "Appending zero length array."
 
-        fileh = self.fileh
+        fileh = self.h5file
         ea = fileh.root.test
         np = numpy.empty(shape=(3, 0), dtype='int32')
         ea.append(np)
@@ -2501,7 +2363,7 @@ class ZeroSizedTestCase(TestCase):
     def test02_appendWithWrongShape(self):
         "Appending zero length array with wrong dimension."
 
-        fileh = self.fileh
+        fileh = self.h5file
         ea = fileh.root.test
         np = numpy.empty(shape=(3, 0, 3), dtype='int32')
         self.assertRaises(ValueError, ea.append, np)
@@ -2682,9 +2544,9 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                                   self.atom, self.shape,
                                   self.title, self.filters,
                                   self.expectedrows, self.chunkshape)
-        self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self._reopen()
+
         ptarr = self.h5file.get_node(self.where, self.name)
 
         self.assertEqual(ptarr.title, self.title)
@@ -2702,9 +2564,9 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                                           self.expectedrows,
                                           self.chunkshape)
         ptarr.append(self.obj)
-        self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self._reopen()
+
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2726,9 +2588,9 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                                   self.byteorder,
                                   self.createparents,
                                   self.obj)
-        self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self._reopen()
+
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2744,9 +2606,9 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
         self.h5file.create_earray(self.where, self.name, title=self.title,
                                   chunkshape=self.chunkshape,
                                   obj=self.obj)
-        self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self._reopen()
+
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2764,9 +2626,9 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                                           chunkshape=self.chunkshape,
                                           atom=self.atom, shape=self.shape)
         ptarr.append(self.obj)
-        self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self._reopen()
+
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2784,9 +2646,9 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                                           chunkshape=self.chunkshape,
                                           atom=self.atom, shape=self.shape)
         #ptarr.append(self.obj)
-        self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self._reopen()
+
         ptarr = self.h5file.get_node(self.where, self.name)
 
         self.assertEqual(ptarr.title, self.title)
@@ -2802,9 +2664,9 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                                           chunkshape=self.chunkshape,
                                           obj=self.obj,
                                           atom=self.atom)
-        self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self._reopen()
+
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2822,9 +2684,9 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                                           chunkshape=self.chunkshape,
                                           obj=self.obj,
                                           shape=self.shape)
-        self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self._reopen()
+
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2843,9 +2705,9 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                                           obj=self.obj,
                                           atom=self.atom,
                                           shape=self.shape)
-        self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self._reopen()
+
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 

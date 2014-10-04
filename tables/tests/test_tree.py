@@ -3,6 +3,7 @@
 from __future__ import print_function
 import os
 import sys
+import time
 import tempfile
 import warnings
 
@@ -24,17 +25,16 @@ class Record(IsDescription):
     var5 = Float32Col()          # float  (single-precision)
 
 
-class TreeTestCase(TestCase):
-    mode = "w"
+class TreeTestCase(common.TempFileMixin, TestCase):
+    open_mode = "w"
     title = "This is the table title"
     expectedrows = 10
     appendrows = 5
 
     def setUp(self):
-        # Create a temporary file
-        self.file = tempfile.mktemp(".h5")
+        super(TreeTestCase, self).setUp()
+
         # Create an instance of HDF5 Table
-        self.h5file = open_file(self.file, self.mode, self.title)
         self.populateFile()
         self.h5file.close()
 
@@ -73,23 +73,14 @@ class TreeTestCase(TestCase):
             # Iterate over this new group (group2)
             group = group2
 
-    def tearDown(self):
-        # Close the file
-        if self.h5file.isopen:
-            self.h5file.close()
-
-        os.remove(self.file)
-
-    #----------------------------------------
-
     def test00_getNode(self):
-        "Checking the File.get_node() with string node names"
+        """Checking the File.get_node() with string node names"""
 
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test00_getNode..." % self.__class__.__name__)
 
-        self.h5file = open_file(self.file, "r")
+        self.h5file = open_file(self.h5fname, "r")
         nodelist = ['/', '/table0', '/group0/var1', '/group0/group1/var4']
         nodenames = []
         for node in nodelist:
@@ -164,14 +155,15 @@ class TreeTestCase(TestCase):
             print("get_node(groupobject, name, classname='Array') test passed")
 
     def test01_getNodeClass(self):
-        "Checking the File.get_node() with instances"
+        """Checking the File.get_node() with instances"""
 
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01_getNodeClass..." %
                   self.__class__.__name__)
 
-        self.h5file = open_file(self.file, "r")
+        self.h5file = open_file(self.h5fname, "r")
+
         # This tree ways of get_node usage should return a table instance
         table = self.h5file.get_node("/group0/table1")
         self.assertTrue(isinstance(table, Table))
@@ -190,7 +182,7 @@ class TreeTestCase(TestCase):
         self.assertTrue(isinstance(group, Group))
 
     def test02_listNodes(self):
-        "Checking the File.list_nodes() method"
+        """Checking the File.list_nodes() method"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -198,7 +190,7 @@ class TreeTestCase(TestCase):
 
         # Made the warnings to raise an error
         # warnings.filterwarnings("error", category=UserWarning)
-        self.h5file = open_file(self.file, "r")
+        self.h5file = open_file(self.h5fname, "r")
 
         self.assertRaises(TypeError,
                           self.h5file.list_nodes, '/', 'NoSuchClass')
@@ -288,13 +280,13 @@ class TreeTestCase(TestCase):
         # warnings.filterwarnings("default", category=UserWarning)
 
     def test02b_iterNodes(self):
-        "Checking the File.iter_nodes() method"
+        """Checking the File.iter_nodes() method"""
 
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02b_iterNodes..." % self.__class__.__name__)
 
-        self.h5file = open_file(self.file, "r")
+        self.h5file = open_file(self.h5fname, "r")
 
         self.assertRaises(TypeError,
                           self.h5file.list_nodes, '/', 'NoSuchClass')
@@ -384,14 +376,14 @@ class TreeTestCase(TestCase):
         # warnings.filterwarnings("default", category=UserWarning)
 
     def test03_TraverseTree(self):
-        "Checking the File.walk_groups() method"
+        """Checking the File.walk_groups() method"""
 
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03_TraverseTree..." %
                   self.__class__.__name__)
 
-        self.h5file = open_file(self.file, "r")
+        self.h5file = open_file(self.h5fname, "r")
         groups = []
         tables = []
         arrays = []
@@ -439,13 +431,13 @@ class TreeTestCase(TestCase):
             print("walk_groups(pathname) test passed")
 
     def test04_walkNodes(self):
-        "Checking File.walk_nodes"
+        """Checking File.walk_nodes"""
 
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test04_walkNodes..." % self.__class__.__name__)
 
-        self.h5file = open_file(self.file, "r")
+        self.h5file = open_file(self.h5fname, "r")
 
         self.assertRaises(TypeError,
                           self.h5file.walk_nodes('/', 'NoSuchClass').next)
@@ -505,10 +497,12 @@ class TreeTestCase(TestCase):
             print("walk_nodes(pathname, classname) test passed")
 
 
-class DeepTreeTestCase(TestCase):
+class DeepTreeTestCase(common.TempFileMixin, TestCase):
     """Checks for deep hierarchy levels in PyTables trees."""
 
     def setUp(self):
+        super(DeepTreeTestCase, self).setUp()
+
         # Here we put a more conservative limit to deal with more platforms
         # With maxdepth = 64 this test would take less than 40 MB
         # of main memory to run, which is quite reasonable nowadays.
@@ -521,110 +515,135 @@ class DeepTreeTestCase(TestCase):
             print("Maximum depth tested :", self.maxdepth)
 
         # Open a new empty HDF5 file
-        self.file = tempfile.mktemp(".h5")
-        fileh = open_file(self.file, mode="w")
-        group = fileh.root
+        group = self.h5file.root
         if common.verbose:
             print("Depth writing progress: ", end=' ')
+
         # Iterate until maxdepth
         for depth in range(self.maxdepth):
             # Save it on the HDF5 file
             if common.verbose:
                 print("%3d," % (depth), end=' ')
             # Create a couple of arrays here
-            fileh.create_array(group, 'array', [1, 1], "depth: %d" % depth)
-            fileh.create_array(group, 'array2', [1, 1], "depth: %d" % depth)
+            self.h5file.create_array(
+                group, 'array', [1, 1], "depth: %d" % depth)
+            self.h5file.create_array(
+                group, 'array2', [1, 1], "depth: %d" % depth)
             # And also a group
-            fileh.create_group(group, 'group2_' + str(depth))
+            self.h5file.create_group(group, 'group2_' + str(depth))
             # Finally, iterate over a new group
-            group = fileh.create_group(group, 'group' + str(depth))
+            group = self.h5file.create_group(group, 'group' + str(depth))
+
         # Close the file
-        fileh.close()
+        self.h5file.close()
 
-    def tearDown(self):
-        os.remove(self.file)
-
-    def _check_tree(self, file):
+    def _check_tree(self, filename):
         # Open the previous HDF5 file in read-only mode
-        fileh = open_file(file, mode="r")
-        group = fileh.root
-        if common.verbose:
-            print("\nDepth reading progress: ", end=' ')
-        # Get the metadata on the previosly saved arrays
-        for depth in range(self.maxdepth):
+
+        with open_file(filename, mode="r") as h5file:
+            group = h5file.root
             if common.verbose:
-                print("%3d," % (depth), end=' ')
-            # Check the contents
-            self.assertEqual(group.array[:], [1, 1])
-            self.assertTrue("array2" in group)
-            self.assertTrue("group2_"+str(depth) in group)
-            # Iterate over the next group
-            group = fileh.get_node(group, 'group' + str(depth))
-        if common.verbose:
-            print()  # This flush the stdout buffer
-        fileh.close()
+                print("\nDepth reading progress: ", end=' ')
+
+            # Get the metadata on the previosly saved arrays
+            for depth in range(self.maxdepth):
+                if common.verbose:
+                    print("%3d," % (depth), end=' ')
+
+                # Check the contents
+                self.assertEqual(group.array[:], [1, 1])
+                self.assertTrue("array2" in group)
+                self.assertTrue("group2_"+str(depth) in group)
+
+                # Iterate over the next group
+                group = h5file.get_node(group, 'group' + str(depth))
+
+            if common.verbose:
+                print()  # This flush the stdout buffer
 
     def test00_deepTree(self):
-        "Creation of a large depth object tree."
-        self._check_tree(self.file)
+        """Creation of a large depth object tree."""
+
+        self._check_tree(self.h5fname)
 
     def test01a_copyDeepTree(self):
-        "Copy of a large depth object tree."
-        fileh = open_file(self.file, mode="r")
-        file2 = tempfile.mktemp(".h5")
-        fileh2 = open_file(file2, mode="w")
+        """Copy of a large depth object tree."""
+
+        self.h5file = open_file(self.h5fname, mode="r")
+        h5fname2 = tempfile.mktemp(".h5")
+        h5file2 = open_file(h5fname2, mode="w")
         if common.verbose:
             print("\nCopying deep tree...")
-        fileh.copy_node(fileh.root, fileh2.root, recursive=True)
-        fileh.close()
-        fileh2.close()
-        self._check_tree(file2)
-        os.remove(file2)
+
+        self.h5file.copy_node(self.h5file.root, h5file2.root, recursive=True)
+        self.h5file.close()
+        h5file2.close()
+
+        try:
+            self._check_tree(h5fname2)
+        finally:
+            os.remove(h5fname2)
 
     def test01b_copyDeepTree(self):
-        "Copy of a large depth object tree with small node cache."
-        fileh = open_file(self.file, mode="r", node_cache_slots=10)
-        file2 = tempfile.mktemp(".h5")
-        fileh2 = open_file(file2, mode="w", node_cache_slots=10)
+        """Copy of a large depth object tree with small node cache."""
+
+        self.h5file = open_file(self.h5fname, mode="r", node_cache_slots=10)
+        h5fname2 = tempfile.mktemp(".h5")
+        h5file2 = open_file(h5fname2, mode="w", node_cache_slots=10)
         if common.verbose:
             print("\nCopying deep tree...")
-        fileh.copy_node(fileh.root, fileh2.root, recursive=True)
-        fileh.close()
-        fileh2.close()
-        self._check_tree(file2)
-        os.remove(file2)
+
+        self.h5file.copy_node(self.h5file.root, h5file2.root, recursive=True)
+        self.h5file.close()
+        h5file2.close()
+
+        try:
+            self._check_tree(h5fname2)
+        finally:
+            os.remove(h5fname2)
 
     def test01c_copyDeepTree(self):
-        "Copy of a large depth object tree with no node cache."
-        fileh = open_file(self.file, mode="r", node_cache_slots=0)
-        file2 = tempfile.mktemp(".h5")
-        fileh2 = open_file(file2, mode="w", node_cache_slots=0)
+        """Copy of a large depth object tree with no node cache."""
+
+        self.h5file = open_file(self.h5fname, mode="r", node_cache_slots=0)
+        h5fname2 = tempfile.mktemp(".h5")
+        h5file2 = open_file(h5fname2, mode="w", node_cache_slots=0)
         if common.verbose:
             print("\nCopying deep tree...")
-        fileh.copy_node(fileh.root, fileh2.root, recursive=True)
-        fileh.close()
-        fileh2.close()
-        self._check_tree(file2)
-        os.remove(file2)
+
+        self.h5file.copy_node(self.h5file.root, h5file2.root, recursive=True)
+        self.h5file.close()
+        h5file2.close()
+
+        try:
+            self._check_tree(h5fname2)
+        finally:
+            os.remove(h5fname2)
 
     def test01d_copyDeepTree(self):
-        "Copy of a large depth object tree with static node cache."
+        """Copy of a large depth object tree with static node cache."""
+
         # Do not execute this in heavy mode
         if common.heavy:
             return
-        fileh = open_file(self.file, mode="r", node_cache_slots=-256)
-        file2 = tempfile.mktemp(".h5")
-        fileh2 = open_file(file2, mode="w", node_cache_slots=-256)
+
+        self.h5file = open_file(self.h5fname, mode="r", node_cache_slots=-256)
+        h5fname2 = tempfile.mktemp(".h5")
+        h5file2 = open_file(h5fname2, mode="w", node_cache_slots=-256)
         if common.verbose:
             print("\nCopying deep tree...")
-        fileh.copy_node(fileh.root, fileh2.root, recursive=True)
-        fileh.close()
-        fileh2.close()
-        self._check_tree(file2)
-        os.remove(file2)
+
+        self.h5file.copy_node(self.h5file.root, h5file2.root, recursive=True)
+        self.h5file.close()
+        h5file2.close()
+
+        try:
+            self._check_tree(h5fname2)
+        finally:
+            os.remove(h5fname2)
 
 
-class WideTreeTestCase(TestCase):
+class WideTreeTestCase(common.TempFileMixin, TestCase):
     """Checks for maximum number of children for a Group."""
 
     def test00_Leafs(self):
@@ -638,58 +657,52 @@ class WideTreeTestCase(TestCase):
 
         """
 
-        import time
         if common.heavy:
             maxchildren = 4096
         else:
             maxchildren = 256
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test00_wideTree..." %
                   self.__class__.__name__)
             print("Maximum number of children tested :", maxchildren)
-        # Open a new empty HDF5 file
-        file = tempfile.mktemp(".h5")
-        # file = "test_widetree.h5"
 
         a = [1, 1]
-        fileh = open_file(file, mode="w")
         if common.verbose:
             print("Children writing progress: ", end=' ')
         for child in range(maxchildren):
             if common.verbose:
                 print("%3d," % (child), end=' ')
-            fileh.create_array(fileh.root, 'array' + str(child),
-                               a, "child: %d" % child)
+            self.h5file.create_array(self.h5file.root, 'array' + str(child),
+                                     a, "child: %d" % child)
         if common.verbose:
             print()
-        # Close the file
-        fileh.close()
 
         t1 = time.time()
         a = [1, 1]
+
         # Open the previous HDF5 file in read-only mode
-        fileh = open_file(file, mode="r")
+        self._reopen()
         if common.verbose:
             print("\nTime spent opening a file with %d arrays: %s s" %
                   (maxchildren, time.time()-t1))
             print("\nChildren reading progress: ", end=' ')
+
         # Get the metadata on the previosly saved arrays
         for child in range(maxchildren):
             if common.verbose:
                 print("%3d," % (child), end=' ')
+
             # Create an array for later comparison
             # Get the actual array
-            array_ = getattr(fileh.root, 'array' + str(child))
+            array_ = getattr(self.h5file.root, 'array' + str(child))
             b = array_.read()
+
             # Arrays a and b must be equal
             self.assertEqual(a, b)
         if common.verbose:
             print()  # This flush the stdout buffer
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
 
     def test01_wideTree(self):
         """Checking creation of large number of groups (1024) per group.
@@ -702,7 +715,6 @@ class WideTreeTestCase(TestCase):
 
         """
 
-        import time
         if common.heavy:
             # for big platforms!
             maxchildren = 4096
@@ -714,26 +726,21 @@ class WideTreeTestCase(TestCase):
             print("Running %s.test00_wideTree..." %
                   self.__class__.__name__)
             print("Maximum number of children tested :", maxchildren)
-        # Open a new empty HDF5 file
-        file = tempfile.mktemp(".h5")
-        # file = "test_widetree.h5"
 
-        fileh = open_file(file, mode="w")
         if common.verbose:
             print("Children writing progress: ", end=' ')
         for child in range(maxchildren):
             if common.verbose:
                 print("%3d," % (child), end=' ')
-            fileh.create_group(fileh.root, 'group' + str(child),
-                               "child: %d" % child)
+            self.h5file.create_group(self.h5file.root, 'group' + str(child),
+                                     "child: %d" % child)
         if common.verbose:
             print()
-        # Close the file
-        fileh.close()
 
         t1 = time.time()
+
         # Open the previous HDF5 file in read-only mode
-        fileh = open_file(file, mode="r")
+        self._reopen()
         if common.verbose:
             print("\nTime spent opening a file with %d groups: %s s" %
                   (maxchildren, time.time()-t1))
@@ -743,25 +750,18 @@ class WideTreeTestCase(TestCase):
             if common.verbose:
                 print("%3d," % (child), end=' ')
             # Get the actual group
-            group = getattr(fileh.root, 'group' + str(child))
+            group = getattr(self.h5file.root, 'group' + str(child))
             # Arrays a and b must be equal
             self.assertEqual(group._v_title, "child: %d" % child)
         if common.verbose:
             print()  # This flush the stdout buffer
-        # Close the file
-        fileh.close()
-        # Then, delete the file
-        os.remove(file)
 
 
-class HiddenTreeTestCase(TestCase):
-
+class HiddenTreeTestCase(common.TempFileMixin, TestCase):
     """Check for hidden groups, leaves and hierarchies."""
 
     def setUp(self):
-        self.h5fname = tempfile.mktemp('.h5')
-        self.h5file = open_file(
-            self.h5fname, 'w', title="Test for hidden nodes")
+        super(HiddenTreeTestCase, self).setUp()
 
         self.visible = []  # list of visible object paths
         self.hidden = []  # list of hidden object paths
@@ -786,11 +786,6 @@ class HiddenTreeTestCase(TestCase):
 
         self.hidden.extend(
             ['/_p_a', '/_p_g', '/_p_g/a', '/_p_g/_p_a', '/g/_p_a'])
-
-    def tearDown(self):
-        self.h5file.close()
-        self.h5file = None
-        os.remove(self.h5fname)
 
     # The test behind commented out because the .objects dictionary
     # has been removed (as well as .leaves and .groups)
@@ -956,7 +951,6 @@ class HiddenTreeTestCase(TestCase):
 
 
 class CreateParentsTestCase(common.TempFileMixin, TestCase):
-
     """Test the ``createparents`` flag.
 
     These are mainly for the user interface.  More thorough tests on the
@@ -994,7 +988,7 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
         self.assertRaises(NodeError, self.h5file.copy_node,
                           '/group', '/group/foo/bar',
                           recursive=True, createparents=True)
-        self.assertFalse('/group/foo' in self.h5file)
+        self.assertFalse('/group/foo' in self.h5fname)
 
     def test02_filters(self):
         """Propagating the filters of created parent groups."""
