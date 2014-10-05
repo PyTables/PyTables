@@ -5977,8 +5977,6 @@ class MDLargeColReopen(MDLargeColTestCase):
 # See ticket #264.
 class ExhaustedIter(common.TempFileMixin, TestCase):
     def setUp(self):
-        """Create small database."""
-
         super(ExhaustedIter, self).setUp()
 
         class Observations(IsDescription):

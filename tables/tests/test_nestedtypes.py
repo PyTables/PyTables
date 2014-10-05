@@ -1232,30 +1232,36 @@ class C_Candidate(t.IsDescription):
     nested1 = Nested()
     nested2 = Nested
 
-Dnested = {'uid': t.IntCol(pos=1),
-           'value': t.FloatCol(pos=2),
-           }
+Dnested = {
+    'uid': t.IntCol(pos=1),
+    'value': t.FloatCol(pos=2),
+}
 
-D_Candidate = {"nested1": Dnested,
-               "nested2": Dnested,
-               }
+D_Candidate = {
+    "nested1": Dnested,
+    "nested2": Dnested,
+}
 
-E_Candidate = {"nested1": Nested,
-               "nested2": Dnested,
-               }
+E_Candidate = {
+    "nested1": Nested,
+    "nested2": Dnested,
+}
 
-F_Candidate = {"nested1": Nested(),
-               "nested2": Dnested,
-               }
+F_Candidate = {
+    "nested1": Nested(),
+    "nested2": Dnested,
+}
 
 # Checking several nested columns declared in the same way
 
 
 class SameNestedTestCase(common.TempFileMixin, TestCase):
 
-    correct_names = ['',  # The root of columns
-                     'nested1', 'nested1/uid', 'nested1/value',
-                     'nested2', 'nested2/uid', 'nested2/value']
+    correct_names = [
+        '',  # The root of columns
+        'nested1', 'nested1/uid', 'nested1/value',
+        'nested2', 'nested2/uid', 'nested2/value',
+    ]
 
     def test01a(self):
         """Checking same nested columns (instance flavor)."""
@@ -1387,8 +1393,10 @@ class SameNestedTestCase(common.TempFileMixin, TestCase):
             row.append()
         tbl.flush()
 
-        cols = {'i1': tbl.cols.nested.i1,
-                'i2': tbl.cols.nested.i2, }
+        cols = {
+            'i1': tbl.cols.nested.i1,
+            'i2': tbl.cols.nested.i2,
+        }
         cols['i1'].create_index()
         cols['i2'].create_index()
 
@@ -1399,8 +1407,8 @@ class SameNestedTestCase(common.TempFileMixin, TestCase):
             cols = {'i1': tbl.cols.nested.i1,
                     'i2': tbl.cols.nested.i2, }
 
-        i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
-        i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
+        i1res = [r[i1] for r in tbl.where('i1 < 10', cols)]
+        i2res = [r[i2] for r in tbl.where('i2 < 10', cols)]
 
         if common.verbose:
             print("Retrieved values (i1):", i1res)
@@ -1452,8 +1460,8 @@ class SameNestedTestCase(common.TempFileMixin, TestCase):
             cols = {'i1': tbl.cols.nested1.nested2.nested3.i1,
                     'i2': tbl.cols.nested1.nested2.nested3.i2, }
 
-        i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
-        i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
+        i1res = [r[i1] for r in tbl.where('i1 < 10', cols)]
+        i2res = [r[i2] for r in tbl.where('i2 < 10', cols)]
 
         if common.verbose:
             print("Retrieved values (i1):", i1res)
@@ -1477,8 +1485,7 @@ class SameNestedReopen(SameNestedTestCase):
 
 class NestedTypesWithGaps(TestCase):
 
-    correct_descr = \
-        """{
+    correct_descr = """{
   "float": Float32Col(shape=(), dflt=0.0, pos=0),
   "compound": {
     "char": Int8Col(shape=(), dflt=0, pos=0),
