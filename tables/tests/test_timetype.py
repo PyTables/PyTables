@@ -83,13 +83,6 @@ class OpenTestCase(common.TempFileMixin, TestCase):
     myTime64Atom = tables.Time64Atom(shape=(2, 1))
 
     def setUp(self):
-        """setUp() -> None
-
-        This method sets the following instance attributes:
-          * 'h5fname', the name of the temporary HDF5 file with '/table',
-            '/vlarray4' and '/vlarray8' nodes.
-        """
-
         super(OpenTestCase, self).setUp()
 
         # Create test Table.
@@ -414,11 +407,13 @@ class BigEndianTestCase(TestCase):
     """Tests for reading big-endian time values in arrays and nested tables."""
 
     def setUp(self):
+        super(BigEndianTestCase, self).setUp()
         filename = self._testFilename('times-nested-be.h5')
         self.h5file = tables.open_file(filename, 'r')
 
     def tearDown(self):
         self.h5file.close()
+        super(BigEndianTestCase, self).tearDown()
 
     def test00a_Read32Array(self):
         """Checking Time32 type in arrays."""

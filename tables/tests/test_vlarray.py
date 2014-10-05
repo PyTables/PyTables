@@ -3888,6 +3888,7 @@ class VLUEndianTestCase(TestCase):
 
     def tearDown(self):
         self.h5file.close()
+        super(VLUEndianTestCase, self).tearDown()
 
     def test(self):
         """Accessing ``vlunicode`` data of a different endianness."""

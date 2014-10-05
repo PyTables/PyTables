@@ -36,12 +36,14 @@ class HDF5CompatibilityTestCase(TestCase):
     """
 
     def setUp(self):
+        super(HDF5CompatibilityTestCase, self).setUp()
         self.h5file = None
 
     def tearDown(self):
         if self.h5file is not None:
             self.h5file.close()
         self.h5file = None
+        super(HDF5CompatibilityTestCase, self).tearDown()
 
     def test(self):
         self.h5fname = self._testFilename(self.h5fname)
@@ -327,12 +329,14 @@ class SzipTestCase(HDF5CompatibilityTestCase):
 class MatlabFileTestCase(TestCase):
 
     def setUp(self):
-        h5fname = 'matlab_file.mat'
-        file_path = self._testFilename(h5fname)
-        self.h5file = tables.open_file(file_path, 'r')
+        super(MatlabFileTestCase, self).setUp()
+        self.h5fname = 'matlab_file.mat'
+        self.h5fname = self._testFilename(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname, 'r')
 
     def tearDown(self):
         self.h5file.close()
+        super(MatlabFileTestCase, self).tearDown()
 
     def test_unicode(self):
         array = self.h5file.get_node(unicode('/'), unicode('a'))

@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-from tables import *
+import tables
 from tables.tests import common
 from tables.tests.common import verbose
 from tables.tests.common import unittest
@@ -13,23 +13,25 @@ from tables.tests.common import PyTablesTestCase as TestCase
 class IndexesTestCase(TestCase):
 
     def setUp(self):
-        self.fileh = open_file(self._testFilename(self.file_), "r")
-        self.table1 = self.fileh.root.table1
-        self.table2 = self.fileh.root.table2
+        super(IndexesTestCase, self).setUp()
+        self.h5file = tables.open_file(self._testFilename(self.h5fname), "r")
+        self.table1 = self.h5file.root.table1
+        self.table2 = self.h5file.root.table2
         self.il = 0
         self.sl = self.table1.cols.var1.index.slicesize
 
     def tearDown(self):
-        self.fileh.close()
+        self.h5file.close()
+        super(IndexesTestCase, self).tearDown()
 
     #----------------------------------------
     def test00_version(self):
         """Checking index version."""
 
         t1var1 = self.table1.cols.var1
-        if "2_0" in self.file_:
+        if "2_0" in self.h5fname:
             self.assertEqual(t1var1.index._v_version, "2.0")
-        elif "2_1" in self.file_:
+        elif "2_1" in self.h5fname:
             self.assertEqual(t1var1.index._v_version, "2.1")
 
     def test01_string(self):
@@ -158,13 +160,13 @@ class IndexesTestCase(TestCase):
 
 # Check indexes from PyTables version 2.0
 class Indexes2_0TestCase(IndexesTestCase):
-    file_ = "indexes_2_0.h5"
+    h5fname = "indexes_2_0.h5"
 
 # Check indexes from PyTables version 2.1
 
 
 class Indexes2_1TestCase(IndexesTestCase):
-    file_ = "indexes_2_1.h5"
+    h5fname = "indexes_2_1.h5"
 
 
 #----------------------------------------------------------------------

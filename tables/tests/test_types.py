@@ -41,7 +41,7 @@ class RangeTestCase(TestCase):
     compress = 0
 
     def setUp(self):
-        # Create an instance of HDF5 Table
+        super(RangeTestCase, self).setUp()
         self.h5file = open_file(self.h5fname, mode="w")
         self.rootgroup = self.h5file.root
 
@@ -52,6 +52,7 @@ class RangeTestCase(TestCase):
     def tearDown(self):
         self.h5file.close()
         os.remove(self.h5fname)
+        super(RangeTestCase, self).tearDown()
 
     def test00_range(self):
         """Testing the range check."""
@@ -158,6 +159,7 @@ class ReadFloatTestCase(TestCase):
     ncols = 6
 
     def setUp(self):
+        super(ReadFloatTestCase, self).setUp()
         self.h5file = open_file(self._testFilename(self.h5fname), mode="r")
         x = numpy.arange(self.ncols)
         y = numpy.arange(self.nrows)
@@ -166,6 +168,7 @@ class ReadFloatTestCase(TestCase):
 
     def tearDown(self):
         self.h5file.close()
+        super(ReadFloatTestCase, self).tearDown()
 
     def test01_read_float16(self):
         dtype = "float16"
