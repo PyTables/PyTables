@@ -7,9 +7,9 @@ import time
 import tempfile
 import warnings
 
-from tables import *
-# Next imports are only necessary for this test suite
+import tables
 from tables import Group, Leaf, Table, Array
+from tables import StringCol, IntCol, Int16Col, FloatCol, Float32Col
 
 from tables.tests import common
 from tables.tests.common import unittest
@@ -17,7 +17,7 @@ from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Test Record class
-class Record(IsDescription):
+class Record(tables.IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
     var2 = IntCol()              # integer
     var3 = Int16Col()            # short integer
@@ -80,7 +80,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test00_getNode..." % self.__class__.__name__)
 
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         nodelist = ['/', '/table0', '/group0/var1', '/group0/group1/var4']
         nodenames = []
         for node in nodelist:
@@ -162,7 +162,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_getNodeClass..." %
                   self.__class__.__name__)
 
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
 
         # This tree ways of get_node usage should return a table instance
         table = self.h5file.get_node("/group0/table1")
@@ -190,7 +190,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
 
         # Made the warnings to raise an error
         # warnings.filterwarnings("error", category=UserWarning)
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
 
         self.assertRaises(TypeError,
                           self.h5file.list_nodes, '/', 'NoSuchClass')
@@ -286,7 +286,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02b_iterNodes..." % self.__class__.__name__)
 
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
 
         self.assertRaises(TypeError,
                           self.h5file.list_nodes, '/', 'NoSuchClass')
@@ -383,14 +383,14 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test03_TraverseTree..." %
                   self.__class__.__name__)
 
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         groups = []
-        tables = []
+        tables_ = []
         arrays = []
         for group in self.h5file.walk_groups():
             groups.append(group._v_pathname)
             for table in self.h5file.list_nodes(group, 'Table'):
-                tables.append(table._v_pathname)
+                tables_.append(table._v_pathname)
             for arr in self.h5file.list_nodes(group, 'Array'):
                 arrays.append(arr._v_pathname)
 
@@ -399,7 +399,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
                           "/group0/group1/group2"])
 
         self.assertEqual(
-            tables,
+            tables_,
             ["/table0", "/group0/table1", "/group0/group1/table2"])
 
         self.assertEqual(arrays,
@@ -410,19 +410,19 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print("walk_groups() test passed")
 
         groups = []
-        tables = []
+        tables_ = []
         arrays = []
         for group in self.h5file.walk_groups("/group0/group1"):
             groups.append(group._v_pathname)
             for table in self.h5file.list_nodes(group, 'Table'):
-                tables.append(table._v_pathname)
+                tables_.append(table._v_pathname)
             for arr in self.h5file.list_nodes(group, 'Array'):
                 arrays.append(arr._v_pathname)
 
         self.assertEqual(groups,
                          ["/group0/group1", "/group0/group1/group2"])
 
-        self.assertEqual(tables, ["/group0/group1/table2"])
+        self.assertEqual(tables_, ["/group0/group1/table2"])
 
         self.assertEqual(arrays, [
                          '/group0/group1/var1', '/group0/group1/var4'])
@@ -437,19 +437,19 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test04_walkNodes..." % self.__class__.__name__)
 
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
 
         self.assertRaises(TypeError,
                           self.h5file.walk_nodes('/', 'NoSuchClass').next)
 
         groups = []
-        tables = []
+        tables1 = []
         tables2 = []
         arrays = []
         for group in self.h5file.walk_nodes(classname="Group"):
             groups.append(group._v_pathname)
             for table in group._f_iter_nodes(classname='Table'):
-                tables.append(table._v_pathname)
+                tables1.append(table._v_pathname)
         # Test the recursivity
         for table in self.h5file.root._f_walknodes('Table'):
             tables2.append(table._v_pathname)
@@ -460,7 +460,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(groups,
                          ["/", "/group0", "/group0/group1",
                           "/group0/group1/group2"])
-        self.assertEqual(tables,
+        self.assertEqual(tables1,
                          ["/table0", "/group0/table1",
                           "/group0/group1/table2"])
         self.assertEqual(tables2,
@@ -475,20 +475,20 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print("File.__iter__() and Group.__iter__ test passed")
 
         groups = []
-        tables = []
+        tables_ = []
         arrays = []
         for group in self.h5file.walk_nodes("/group0/group1",
                                             classname="Group"):
             groups.append(group._v_pathname)
             for table in group._f_walknodes('Table'):
-                tables.append(table._v_pathname)
+                tables_.append(table._v_pathname)
             for arr in self.h5file.walk_nodes(group, 'Array'):
                 arrays.append(arr._v_pathname)
 
         self.assertEqual(groups,
                          ["/group0/group1", "/group0/group1/group2"])
 
-        self.assertEqual(tables, ["/group0/group1/table2"])
+        self.assertEqual(tables_, ["/group0/group1/table2"])
 
         self.assertEqual(arrays, [
                          '/group0/group1/var1', '/group0/group1/var4'])
@@ -540,7 +540,7 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
     def _check_tree(self, filename):
         # Open the previous HDF5 file in read-only mode
 
-        with open_file(filename, mode="r") as h5file:
+        with tables.open_file(filename, mode="r") as h5file:
             group = h5file.root
             if common.verbose:
                 print("\nDepth reading progress: ", end=' ')
@@ -569,9 +569,9 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
     def test01a_copyDeepTree(self):
         """Copy of a large depth object tree."""
 
-        self.h5file = open_file(self.h5fname, mode="r")
+        self.h5file = tables.open_file(self.h5fname, mode="r")
         h5fname2 = tempfile.mktemp(".h5")
-        h5file2 = open_file(h5fname2, mode="w")
+        h5file2 = tables.open_file(h5fname2, mode="w")
         if common.verbose:
             print("\nCopying deep tree...")
 
@@ -587,9 +587,10 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
     def test01b_copyDeepTree(self):
         """Copy of a large depth object tree with small node cache."""
 
-        self.h5file = open_file(self.h5fname, mode="r", node_cache_slots=10)
+        self.h5file = tables.open_file(self.h5fname, mode="r",
+                                       node_cache_slots=10)
         h5fname2 = tempfile.mktemp(".h5")
-        h5file2 = open_file(h5fname2, mode="w", node_cache_slots=10)
+        h5file2 = tables.open_file(h5fname2, mode="w", node_cache_slots=10)
         if common.verbose:
             print("\nCopying deep tree...")
 
@@ -605,9 +606,10 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
     def test01c_copyDeepTree(self):
         """Copy of a large depth object tree with no node cache."""
 
-        self.h5file = open_file(self.h5fname, mode="r", node_cache_slots=0)
+        self.h5file = tables.open_file(self.h5fname, mode="r",
+                                       node_cache_slots=0)
         h5fname2 = tempfile.mktemp(".h5")
-        h5file2 = open_file(h5fname2, mode="w", node_cache_slots=0)
+        h5file2 = tables.open_file(h5fname2, mode="w", node_cache_slots=0)
         if common.verbose:
             print("\nCopying deep tree...")
 
@@ -627,9 +629,10 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
         if common.heavy:
             return
 
-        self.h5file = open_file(self.h5fname, mode="r", node_cache_slots=-256)
+        self.h5file = tables.open_file(self.h5fname, mode="r",
+                                       node_cache_slots=-256)
         h5fname2 = tempfile.mktemp(".h5")
-        h5file2 = open_file(h5fname2, mode="w", node_cache_slots=-256)
+        h5file2 = tables.open_file(h5fname2, mode="w", node_cache_slots=-256)
         if common.verbose:
             print("\nCopying deep tree...")
 
@@ -928,7 +931,7 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
         """Reopening a file with hidden nodes."""
 
         self.h5file.close()
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         self.test00_objects()
 
     def test07_move(self):
@@ -958,7 +961,7 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     """
 
-    filters = Filters(complevel=4)  # simply non-default
+    filters = tables.Filters(complevel=4)  # simply non-default
 
     def setUp(self):
         super(CreateParentsTestCase, self).setUp()
@@ -981,11 +984,11 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     def test01_inside(self):
         """Placing a node inside a nonexistent child of itself."""
-        self.assertRaises(NodeError, self.h5file.move_node,
+        self.assertRaises(tables.NodeError, self.h5file.move_node,
                           '/group', '/group/foo/bar',
                           createparents=True)
         self.assertFalse('/group/foo' in self.h5file)
-        self.assertRaises(NodeError, self.h5file.copy_node,
+        self.assertRaises(tables.NodeError, self.h5file.copy_node,
                           '/group', '/group/foo/bar',
                           recursive=True, createparents=True)
         self.assertFalse('/group/foo' in self.h5fname)

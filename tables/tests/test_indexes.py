@@ -7,7 +7,11 @@ import tempfile
 
 import numpy
 
-from tables import *
+import tables
+from tables import (
+    StringCol, BoolCol, IntCol, FloatCol, Int8Col, Int32Col, Int64Col,
+    UInt16Col, Float32Col,
+)
 from tables.index import Index, default_auto_index, default_index_filters
 from tables.idxutils import calc_chunksize
 from tables.exceptions import OldIndexWarning
@@ -22,7 +26,7 @@ minRowIndex = 10
 small_blocksizes = (96, 24, 6, 3)
 
 
-class TDescr(IsDescription):
+class TDescr(tables.IsDescription):
     var1 = StringCol(itemsize=4, dflt=b"", pos=1)
     var2 = BoolCol(dflt=0, pos=2)
     var3 = IntCol(dflt=0, pos=3)
@@ -49,10 +53,10 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         group = self.rootgroup
         # Create a table
         title = "This is the IndexArray title"
-        self.filters = Filters(complevel=self.compress,
-                               complib=self.complib,
-                               shuffle=self.shuffle,
-                               fletcher32=self.fletcher32)
+        self.filters = tables.Filters(complevel=self.compress,
+                                      complib=self.complib,
+                                      shuffle=self.shuffle,
+                                      fletcher32=self.fletcher32)
         table = self.h5file.create_table(group, 'table', TDescr, title,
                                          self.filters, self.nrows)
         for i in range(self.nrows):
@@ -81,7 +85,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in append mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         # Add just 3 rows more
         for i in range(3):
@@ -108,7 +112,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test00_update..." % self.__class__.__name__)
 
         # Open the HDF5 file in append mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         # Modify a couple of columns
         for i, row in enumerate(table.where("(var3>1) & (var3<5)")):
@@ -140,7 +144,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_readIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-only mode
-        self.h5file = open_file(self.h5fname, mode="r")
+        self.h5file = tables.open_file(self.h5fname, mode="r")
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -161,7 +165,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02_readIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-only mode
-        self.h5file = open_file(self.h5fname, mode="r")
+        self.h5file = tables.open_file(self.h5fname, mode="r")
         table = self.h5file.root.table
         idxcol = table.cols.var2.index
         if verbose:
@@ -185,7 +189,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test03_readIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-only mode
-        self.h5file = open_file(self.h5fname, mode="r")
+        self.h5file = tables.open_file(self.h5fname, mode="r")
         table = self.h5file.root.table
         idxcol = table.cols.var3.index
         if verbose:
@@ -208,7 +212,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test04_readIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-only mode
-        self.h5file = open_file(self.h5fname, mode="r")
+        self.h5file = tables.open_file(self.h5fname, mode="r")
         table = self.h5file.root.table
         idxcol = table.cols.var4.index
         if verbose:
@@ -235,7 +239,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         idxcol = table.cols.var4.index
         if verbose:
@@ -262,7 +266,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         idxcol = table.cols.var2.index
         if verbose:
@@ -292,7 +296,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         idxcol = table.cols.var4.index
         if verbose:
@@ -319,7 +323,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         idxcol = table.cols.var4.index
         if verbose:
@@ -346,7 +350,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -382,7 +386,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -422,7 +426,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test10a_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -460,7 +464,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test10b_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -503,7 +507,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test10c_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a", node_cache_slots=10)
+        self.h5file = tables.open_file(self.h5fname, mode="a",
+                                       node_cache_slots=10)
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -541,7 +546,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test10d_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a", node_cache_slots=0)
+        self.h5file = tables.open_file(self.h5fname, mode="a",
+                                       node_cache_slots=0)
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -580,7 +586,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -624,7 +630,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test11b_removeTableWithIndex..." %
                   self.__class__.__name__)
 
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
@@ -672,7 +678,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test11c_removeTableWithIndex..." %
                   self.__class__.__name__)
 
-        class Distance(IsDescription):
+        class Distance(tables.IsDescription):
             frame = Int32Col(pos=0)
             distance = FloatCol(pos=1)
 
@@ -680,7 +686,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         os.remove(self.h5fname)
 
         self.h5fname = tempfile.mktemp(".h5")
-        self.h5file = open_file(self.h5fname, mode='w')
+        self.h5file = tables.open_file(self.h5fname, mode='w')
         table = self.h5file.create_table(
             self.h5file.root, 'distance_table', Distance)
         table.cols.frame.create_index(_blocksizes=small_blocksizes)
@@ -696,7 +702,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.remove_node(self.h5file.root.distance_table)
 
     def test12_doubleIterate(self):
-        self.h5file = open_file(self.h5fname, mode="r")
+        self.h5file = tables.open_file(self.h5fname, mode="r")
         table = self.h5file.root.table
         tests = [1, 4, self.nrows]
         if self.nrows > 500:
@@ -952,8 +958,8 @@ class IndexProps(object):
 DefaultProps = IndexProps()
 NoAutoProps = IndexProps(auto=False)
 ChangeFiltersProps = IndexProps(
-    filters=Filters(complevel=6, complib="zlib",
-                    shuffle=False, fletcher32=False))
+    filters=tables.Filters(complevel=6, complib="zlib",
+                           shuffle=False, fletcher32=False))
 
 
 class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
@@ -1673,10 +1679,10 @@ class ManyNodesTestCase(common.TempFileMixin, TestCase):
 class IndexPropsChangeTestCase(TempFileMixin, TestCase):
     """Test case for changing index properties in a table."""
 
-    class MyDescription(IsDescription):
+    class MyDescription(tables.IsDescription):
         icol = IntCol()
     oldIndexProps = IndexProps()
-    newIndexProps = IndexProps(auto=False, filters=Filters(complevel=9))
+    newIndexProps = IndexProps(auto=False, filters=tables.Filters(complevel=9))
 
     def setUp(self):
         super(IndexPropsChangeTestCase, self).setUp()
@@ -1742,7 +1748,7 @@ class IndexFiltersTestCase(TempFileMixin, TestCase):
         """Checking input parameters in recomputed indexes."""
         icol = self.table.cols.icol
         icol.create_index(
-            kind='full', optlevel=5, filters=Filters(complevel=3))
+            kind='full', optlevel=5, filters=tables.Filters(complevel=3))
         kind = icol.index.kind
         optlevel = icol.index.optlevel
         filters = icol.index.filters
@@ -1762,7 +1768,7 @@ class OldIndexTestCase(TestCase):
     def test1_x(self):
         """Check that files with 1.x indexes are recognized and warned."""
         fname = self._testFilename("idx-std-1.x.h5")
-        with open_file(fname) as f:
+        with tables.open_file(fname) as f:
             self.assertWarns(OldIndexWarning, f.get_node, "/table")
 
 
@@ -1776,7 +1782,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
     nrows = 100
     nrowsinbuf = 11
 
-    class MyDescription(IsDescription):
+    class MyDescription(tables.IsDescription):
         rcol = IntCol(pos=1)
         icol = IntCol(pos=2)
 
@@ -2342,7 +2348,7 @@ class ReadSortedIndexTestCase(TempFileMixin, TestCase):
     nrows = 100
     nrowsinbuf = 11
 
-    class MyDescription(IsDescription):
+    class MyDescription(tables.IsDescription):
         rcol = IntCol(pos=1)
         icol = IntCol(pos=2)
 
@@ -2447,14 +2453,14 @@ class Issue156TestBase(common.TempFileMixin, TestCase):
         super(Issue156TestBase, self).setUp()
 
         # create nested table
-        class Foo(IsDescription):
+        class Foo(tables.IsDescription):
             frame = UInt16Col()
 
-            class Bar(IsDescription):
+            class Bar(tables.IsDescription):
                 code = UInt16Col()
 
         table = self.h5file.create_table('/', 'foo', Foo,
-                                         filters=Filters(3, 'zlib'),
+                                         filters=tables.Filters(3, 'zlib'),
                                          createparents=True)
 
         self.h5file.flush()
@@ -2504,7 +2510,7 @@ class Issue156TestCase02(Issue156TestBase):
 class Issue119Time32ColTestCase(common.TempFileMixin, TestCase):
     """TimeCol not properly indexing."""
 
-    col_typ = Time32Col
+    col_typ = tables.Time32Col
     values = [
         0.93240451618785880,
         0.76322375510776170,
@@ -2521,7 +2527,7 @@ class Issue119Time32ColTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
         super(Issue119Time32ColTestCase, self).setUp()
 
-        class Descr(IsDescription):
+        class Descr(tables.IsDescription):
             when = self.col_typ(pos=1)
             value = Float32Col(pos=2)
 
@@ -2547,7 +2553,7 @@ class Issue119Time32ColTestCase(common.TempFileMixin, TestCase):
 
 
 class Issue119Time64ColTestCase(Issue119Time32ColTestCase):
-    col_typ = Time64Col
+    col_typ = tables.Time64Col
 
 
 class TestIndexingNans(TempFileMixin, TestCase):

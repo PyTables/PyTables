@@ -7,7 +7,8 @@ import tempfile
 
 import numpy
 
-from tables import *
+import tables
+from tables import StringCol, BoolCol, IntCol, FloatCol
 from tables.idxutils import calc_chunksize
 from tables.tests import common
 from tables.tests.common import verbose, heavy
@@ -27,7 +28,7 @@ small_blocksizes = (16, 8, 4, 2)  # The smaller set of parameters...
 minRowIndex = 1000
 
 
-class Small(IsDescription):
+class Small(tables.IsDescription):
     var1 = StringCol(itemsize=4, dflt=b"")
     var2 = BoolCol(dflt=0)
     var3 = IntCol(dflt=0)
@@ -52,7 +53,7 @@ class SelectValuesTestCase(TestCase):
         if verbose:
             print("Checking index kind-->", self.kind)
         self.h5fname = tempfile.mktemp(".h5")
-        self.h5file = open_file(self.h5fname, "w")
+        self.h5file = tables.open_file(self.h5fname, "w")
         self.rootgroup = self.h5file.root
         self.populateFile()
 
@@ -64,10 +65,10 @@ class SelectValuesTestCase(TestCase):
         group = self.rootgroup
         # Create an table
         title = "This is the IndexArray title"
-        filters = Filters(complevel=self.compress,
-                          complib=self.complib,
-                          shuffle=self.shuffle,
-                          fletcher32=self.fletcher32)
+        filters = tables.Filters(complevel=self.compress,
+                                 complib=self.complib,
+                                 shuffle=self.shuffle,
+                                 fletcher32=self.fletcher32)
         table1 = self.h5file.create_table(group, 'table1', Small, title,
                                           filters, self.nrows,
                                           chunkshape=(self.chunkshape,))
@@ -113,7 +114,7 @@ class SelectValuesTestCase(TestCase):
 
         if self.reopen:
             self.h5file.close()
-            self.h5file = open_file(self.h5fname, "a")  # for flavor changes
+            self.h5file = tables.open_file(self.h5fname, "a")  # flavor changes
             self.table1 = self.h5file.root.table1
             self.table2 = self.h5file.root.table1
 
@@ -3170,13 +3171,14 @@ class LastRowReuseBuffers(TestCase):
     numpy.random.seed(1)
     random.seed(1)
 
-    class Record(IsDescription):
-        id1 = Int16Col()
+    class Record(tables.IsDescription):
+        id1 = tables.Int16Col()
 
     def test00_lrucache(self):
         filename = tempfile.mktemp(".h5")
-        fp = open_file(filename, 'w', node_cache_slots=64)
-        ta = fp.create_table('/', 'table', self.Record, filters=Filters(1))
+        fp = tables.open_file(filename, 'w', node_cache_slots=64)
+        ta = fp.create_table('/', 'table', self.Record,
+                             filters=tables.Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
@@ -3197,8 +3199,9 @@ class LastRowReuseBuffers(TestCase):
 
     def test01_nocache(self):
         filename = tempfile.mktemp(".h5")
-        fp = open_file(filename, 'w', node_cache_slots=0)
-        ta = fp.create_table('/', 'table', self.Record, filters=Filters(1))
+        fp = tables.open_file(filename, 'w', node_cache_slots=0)
+        ta = fp.create_table('/', 'table', self.Record,
+                             filters=tables.Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
@@ -3219,8 +3222,9 @@ class LastRowReuseBuffers(TestCase):
 
     def test02_dictcache(self):
         filename = tempfile.mktemp(".h5")
-        fp = open_file(filename, 'w', node_cache_slots=-64)
-        ta = fp.create_table('/', 'table', self.Record, filters=Filters(1))
+        fp = tables.open_file(filename, 'w', node_cache_slots=-64)
+        ta = fp.create_table('/', 'table', self.Record,
+                             filters=tables.Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 

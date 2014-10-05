@@ -3,11 +3,11 @@
 from __future__ import print_function
 import os
 import sys
-import tempfile
 
 import numpy
 
-from tables import *
+import tables
+from tables import Int16Atom, Int32Atom, Float64Atom, StringAtom
 from tables.utils import byteorders
 from tables.tests import common
 from tables.tests.common import allequal
@@ -51,14 +51,14 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             if self.type == "string":
                 atom = StringAtom(itemsize=self.length)
             else:
-                atom = Atom.from_type(self.type)
+                atom = tables.Atom.from_type(self.type)
         else:
             atom = None
         title = self.__class__.__name__
-        filters = Filters(complevel=self.compress,
-                          complib=self.complib,
-                          shuffle=self.shuffle,
-                          fletcher32=self.fletcher32)
+        filters = tables.Filters(complevel=self.compress,
+                                 complib=self.complib,
+                                 shuffle=self.shuffle,
+                                 fletcher32=self.fletcher32)
         earray = self.h5file.create_earray(group, 'earray1',
                                            atom=atom, shape=self.shape,
                                            title=title, filters=filters,
@@ -198,7 +198,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                 print("Error in compress. Class:", self.__class__.__name__)
                 print("self, earray:", self.compress, earray.filters.complevel)
             self.assertEqual(earray.filters.complevel, self.compress)
-            if self.compress > 0 and which_lib_version(self.complib):
+            if self.compress > 0 and tables.which_lib_version(self.complib):
                 self.assertEqual(earray.filters.complib, self.complib)
             if self.shuffle != earray.filters.shuffle and common.verbose:
                 print("Error in shuffle. Class:", self.__class__.__name__)
@@ -1224,7 +1224,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
         self.hdf_overhead = 6000
 
     def create_array(self, complevel):
-        filters = Filters(complevel=complevel, complib='blosc')
+        filters = tables.Filters(complevel=complevel, complib='blosc')
         self.array = self.h5file.create_earray('/', 'earray', atom=Int32Atom(),
                                                shape=self.array_size,
                                                filters=filters,
@@ -1316,9 +1316,9 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01b_StringAtom..." % self.__class__.__name__)
 
         earray = self.h5file.create_earray(root, 'strings',
-                                          atom=StringAtom(itemsize=3),
-                                          shape=(0, 2, 2),
-                                          title="Array of strings")
+                                           atom=StringAtom(itemsize=3),
+                                           shape=(0, 2, 2),
+                                           title="Array of strings")
         a = numpy.array([[["a", "b"], [
                         "123", "45"], ["45", "123"]]], dtype="S3")
         earray.append(a[:, ::2])
@@ -1349,8 +1349,8 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         earray = self.h5file.create_earray(root, 'EAtom',
-                                          atom=Int32Atom(), shape=(0, 3),
-                                          title="array of ints")
+                                           atom=Int32Atom(), shape=(0, 3),
+                                           title="array of ints")
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (0, 0, 0)], dtype='int32')
         earray.append(a[2:])  # Create an offset
@@ -1381,8 +1381,8 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02b_int..." % self.__class__.__name__)
 
         earray = self.h5file.create_earray(root, 'EAtom',
-                                          atom=Int32Atom(), shape=(0, 3),
-                                          title="array of ints")
+                                           atom=Int32Atom(), shape=(0, 3),
+                                           title="array of ints")
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='int32')
         earray.append(a[::3])  # Create an offset
@@ -1515,8 +1515,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
                                            atom=Int32Atom(), shape=(0, 3),
                                            title="array of ints",
                                            byteorder=byteorder)
-        self.h5file.close()
-        self.h5file = open_file(self.h5fname, "a")
+        self._reopen(mode="a")
         earray = self.h5file.get_node("/EAtom")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
@@ -2271,8 +2270,8 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
         # Create an EArray
         array = self.h5file.create_earray(
             self.h5file.root, 'array',
-            atom=Int8Atom(), shape=(0,),
-            filters=Filters(complib='lzo', complevel=1),
+            atom=tables.Int8Atom(), shape=(0,),
+            filters=tables.Filters(complib='lzo', complevel=1),
             # Specifying expectedrows takes more
             # CPU, but less disk
             expectedrows=self.narows * self.nanumber)
@@ -2342,8 +2341,9 @@ class Rows64bitsTestCase2(Rows64bitsTestCase):
 # Test for appending zero-sized arrays
 class ZeroSizedTestCase(common.TempFileMixin, TestCase):
     open_mode = 'a'
+
     def setUp(self):
-        super(ZeroSizedTestCase,self).setUp()
+        super(ZeroSizedTestCase, self).setUp()
 
         # Create an EArray
         ea = self.h5file.create_earray('/', 'test',
@@ -2373,7 +2373,8 @@ class ZeroSizedTestCase(common.TempFileMixin, TestCase):
 class MDAtomTestCase(common.TempFileMixin, TestCase):
 
     def test01a_append(self):
-        "Append a row to a (unidimensional) EArray with a MD atom."
+        """Append a row to a (unidimensional) EArray with a MD tables.Atom."""
+
         # Create an EArray
         ea = self.h5file.create_earray('/', 'test',
                                        atom=Int32Atom((2, 2)), shape=(0,))
@@ -2388,7 +2389,9 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(ea[0], numpy.array([[1, 3], [4, 5]], 'i4')))
 
     def test01b_append(self):
-        "Append several rows to a (unidimensional) EArray with a MD atom."
+        """Append several rows to a (unidimensional) EArray with a MD
+        tables.Atom."""
+
         # Create an EArray
         ea = self.h5file.create_earray('/', 'test',
                                        atom=Int32Atom((2, 2)), shape=(0,))
@@ -2403,7 +2406,9 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(ea[2], numpy.array([[3, 3], [3, 3]], 'i4')))
 
     def test02a_append(self):
-        "Append a row to a (multidimensional) EArray with a MD atom."
+        """Append a row to a (multidimensional) EArray with a
+        MD tables.Atom."""
+
         # Create an EArray
         ea = self.h5file.create_earray('/', 'test',
                                        atom=Int32Atom((2,)), shape=(0, 3))
@@ -2419,7 +2424,9 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
             [[1, 3], [4, 5], [7, 9]], 'i4')))
 
     def test02b_append(self):
-        "Append several rows to a (multidimensional) EArray with a MD atom."
+        """Append several rows to a (multidimensional) EArray with a MD
+        tables.Atom."""
+
         # Create an EArray
         ea = self.h5file.create_earray('/', 'test',
                                        atom=Int32Atom((2,)), shape=(0, 3))
@@ -2437,7 +2444,9 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
             ea[2], numpy.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
 
     def test03a_MDMDMD(self):
-        "Complex append of a MD array in a MD EArray with a MD atom."
+        """Complex append of a MD array in a MD EArray with a
+        MD tables.Atom."""
+
         # Create an EArray
         ea = self.h5file.create_earray('/', 'test', atom=Int32Atom((2, 4)),
                                        shape=(0, 2, 3))
@@ -2510,19 +2519,19 @@ class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
     def test_read(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.read)
+        self.assertRaises(tables.ClosedNodeError, self.array.read)
 
     def test_getitem(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.__getitem__, 0)
+        self.assertRaises(tables.ClosedNodeError, self.array.__getitem__, 0)
 
     def test_setitem(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
+        self.assertRaises(tables.ClosedNodeError, self.array.__setitem__, 0, 0)
 
     def test_append(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.append,
+        self.assertRaises(tables.ClosedNodeError, self.array.append,
                           numpy.zeros((10, 10)))
 
 
@@ -2530,7 +2539,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
     obj = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     where = '/'
     name = 'earray'
-    atom = Atom.from_dtype(obj.dtype)
+    atom = tables.Atom.from_dtype(obj.dtype)
     shape = (0,) + obj.shape[1:]
     title = 'title'
     filters = None
@@ -2720,7 +2729,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(self.obj, nparr))
 
     def test_kwargs_obj_atom_error(self):
-        atom = Atom.from_dtype(numpy.dtype('complex'))
+        atom = tables.Atom.from_dtype(numpy.dtype('complex'))
         #shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_earray,
@@ -2731,7 +2740,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                           atom=atom)
 
     def test_kwargs_obj_shape_error(self):
-        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        #atom = tables.Atom.from_dtype(numpy.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_earray,
@@ -2742,7 +2751,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                           shape=shape)
 
     def test_kwargs_obj_atom_shape_error_01(self):
-        atom = Atom.from_dtype(numpy.dtype('complex'))
+        atom = tables.Atom.from_dtype(numpy.dtype('complex'))
         #shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_earray,
@@ -2754,7 +2763,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                           shape=self.shape)
 
     def test_kwargs_obj_atom_shape_error_02(self):
-        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        #atom = tables.Atom.from_dtype(numpy.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_earray,
@@ -2766,7 +2775,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                           shape=shape)
 
     def test_kwargs_obj_atom_shape_error_03(self):
-        atom = Atom.from_dtype(numpy.dtype('complex'))
+        atom = tables.Atom.from_dtype(numpy.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_earray,

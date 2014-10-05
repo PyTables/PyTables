@@ -7,7 +7,10 @@ import numpy
 import numpy.testing as npt
 
 import tables
-from tables import *
+from tables import (
+    Atom, StringAtom, BoolAtom, IntAtom, Int16Atom, Int32Atom,
+    ObjectAtom, VLStringAtom, VLUnicodeAtom,
+)
 from tables.tests import common
 from tables.tests.common import allequal
 from tables.tests.common import unittest
@@ -36,10 +39,10 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        filters = Filters(complevel=self.compress,
-                          complib=self.complib,
-                          shuffle=self.shuffle,
-                          fletcher32=self.fletcher32)
+        filters = tables.Filters(complevel=self.compress,
+                                 complib=self.complib,
+                                 shuffle=self.shuffle,
+                                 fletcher32=self.fletcher32)
         vlarray = self.h5file.create_vlarray(group, 'vlarray1',
                                              atom=Int32Atom(),
                                              title="ragged array if ints",
@@ -59,7 +62,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         vlarray.append([10, 11, 12, 13, 14])
 
     def test00_attributes(self):
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         obj = self.h5file.get_node("/vlarray1")
 
         self.assertEqual(obj.flavor, self.flavor)
@@ -76,7 +79,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_read..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         vlarray = self.h5file.get_node("/vlarray1")
 
         # Choose a small value for buffer size
@@ -107,7 +110,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Error in compress. Class:", self.__class__.__name__)
             print("self, vlarray:", self.compress, vlarray.filters.complevel)
         self.assertEqual(vlarray.filters.complevel, self.compress)
-        if self.compress > 0 and which_lib_version(self.complib):
+        if self.compress > 0 and tables.which_lib_version(self.complib):
             self.assertEqual(vlarray.filters.complib, self.complib)
         if self.shuffle != vlarray.filters.shuffle and common.verbose:
             print("Error in shuffle. Class:", self.__class__.__name__)
@@ -127,7 +130,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02a_getitem..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         vlarray = self.h5file.get_node("/vlarray1")
 
         rows = [[1, 2], [3, 4, 5], [], [6, 7, 8, 9], [10, 11, 12, 13, 14]]
@@ -169,7 +172,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             return
 
         # Create an instance of an HDF5 Table
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         vlarray = self.h5file.get_node("/vlarray1")
 
         # Get a numpy array of objects
@@ -196,7 +199,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test03_append..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = open_file(self.h5fname, "a")
+        self.h5file = tables.open_file(self.h5fname, "a")
         vlarray = self.h5file.get_node("/vlarray1")
 
         # Append a new row
@@ -235,7 +238,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     def test04_get_row_size(self):
         """Checking get_row_size method."""
 
-        self.h5file = open_file(self.h5fname, "a")
+        self.h5file = tables.open_file(self.h5fname, "a")
         vlarray = self.h5file.get_node("/vlarray1")
 
         self.assertEqual(vlarray.get_row_size(0), 2 * vlarray.atom.size)
@@ -880,7 +883,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         ]
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + 'Atom'
-            if atomname in globals():
+            if hasattr(tables, atomname):
                 ttypes.append(name)
 
         if common.verbose:
@@ -921,11 +924,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             "Float32": numpy.float32,
             "Float64": numpy.float64,
         }
-        if "Float16Atom" in globals():
+        if hasattr(tables, "Float16Atom"):
             ttypes["float16"] = numpy.float16
-        if "Float96Atom" in globals():
+        if hasattr(tables, "Float96Atom"):
             ttypes["float96"] = numpy.float96
-        if "Float128Atom" in globals():
+        if hasattr(tables, "Float128Atom"):
             ttypes["float128"] = numpy.float128
 
         if common.verbose:
@@ -974,7 +977,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         ]
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + 'Atom'
-            if atomname in globals():
+            if hasattr(tables, atomname):
                 ttypes.append(name)
 
         if common.verbose:
@@ -1019,11 +1022,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             "Float32": numpy.float32,
             "Float64": numpy.float64,
         }
-        if "Float16Atom" in globals():
+        if hasattr(tables, "Float16Atom"):
             ttypes["float16"] = numpy.float16
-        if "Float96Atom" in globals():
+        if hasattr(tables, "Float96Atom"):
             ttypes["float96"] = numpy.float96
-        if "Float128Atom" in globals():
+        if hasattr(tables, "Float128Atom"):
             ttypes["float128"] = numpy.float128
 
         if common.verbose:
@@ -1076,11 +1079,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             "Float32": numpy.float32,
             "Float64": numpy.float64,
         }
-        if "Float16Atom" in globals():
+        if hasattr(tables, "Float16Atom"):
             ttypes["float16"] = numpy.float16
-        if "Float96Atom" in globals():
+        if hasattr(tables, "Float96Atom"):
             ttypes["float96"] = numpy.float96
-        if "Float128Atom" in globals():
+        if hasattr(tables, "Float128Atom"):
             ttypes["float128"] = numpy.float128
 
         if common.verbose:
@@ -1138,9 +1141,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             "Complex64",
         ]
 
-        if "Complex192Atom" in globals():
+        if hasattr(tables, "Complex192Atom"):
             ttypes.append("Complex96")
-        if "Complex256Atom" in globals():
+        if hasattr(tables, "Complex256Atom"):
             ttypes.append("Complex128")
 
         if common.verbose:
@@ -1185,9 +1188,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             "Complex64",
         ]
 
-        if "Complex192Atom" in globals():
+        if hasattr(tables, "Complex192Atom"):
             ttypes.append("Complex96")
-        if "Complex256Atom" in globals():
+        if hasattr(tables, "Complex256Atom"):
             ttypes.append("Complex128")
 
         if common.verbose:
@@ -1845,11 +1848,11 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
 
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + "Atom"
-            if atomname in globals():
+            if hasattr(tables, atomname):
                 ttypes.append(name.capitalize())
         for itemsize in (192, 256):
             atomname = "Complex%dAtom" % itemsize
-            if atomname in globals():
+            if hasattr(tables, atomname):
                 ttypes.append("Complex%d" % (itemsize // 2))
 
         root = self.rootgroup
@@ -2090,7 +2093,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
                                              Atom.from_kind('int', itemsize=4))
         vlarray.flavor = self.flavor
         self.h5file.close()
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
 
         # Read all the rows (it should be empty):
         vlarray = self.h5file.root.vlarray
@@ -2263,8 +2266,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
             vlarray.append([1, 2, 3])
             vlarray.append(())
             vlarray.append([100, 0])
-            self.h5file.close()
-            self.h5file = open_file(self.h5fname, "a")  # open in "a"ppend mode
+            self._reopen(mode='a')  # open in "a"ppend mode
             root = self.h5file.root  # Very important!
             vlarray = self.h5file.get_node(root, str(atype))
 
@@ -2311,12 +2313,12 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
 
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + "Atom"
-            if atomname in globals():
+            if hasattr(tables, atomname):
                 ttypes.append(name.capitalize())
 
         for itemsize in (192, 256):
             atomname = "Complex%dAtom" % itemsize
-            if atomname in globals():
+            if hasattr(tables, atomname):
                 ttypes.append("Complex%d" % (itemsize // 2))
 
         root = self.rootgroup
@@ -2387,8 +2389,8 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        filters = Filters(complevel=self.compress,
-                          complib=self.complib)
+        filters = tables.Filters(complevel=self.compress,
+                                 complib=self.complib)
         vlarray = self.h5file.create_vlarray(group, 'vlarray', Int32Atom(),
                                              "ragged array if ints",
                                              filters=filters,
@@ -2803,8 +2805,8 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        filters = Filters(complevel=self.compress,
-                          complib=self.complib)
+        filters = tables.Filters(complevel=self.compress,
+                                 complib=self.complib)
         vlarray = self.h5file.create_vlarray(group, 'vlarray', Int32Atom(),
                                              "ragged array if ints",
                                              filters=filters,
@@ -3129,8 +3131,8 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        filters = Filters(complevel=self.compress,
-                          complib=self.complib)
+        filters = tables.Filters(complevel=self.compress,
+                                 complib=self.complib)
         vlarray = self.h5file.create_vlarray(group, 'vlarray', Int32Atom(),
                                              "ragged array if ints",
                                              filters=filters,
@@ -3873,7 +3875,7 @@ class ChunkshapeTestCase(common.TempFileMixin, TestCase):
         """Test setting the chunkshape in a table (reopen)."""
 
         self.h5file.close()
-        self.h5file = open_file(self.h5fname, 'r')
+        self.h5file = tables.open_file(self.h5fname, 'r')
         vla = self.h5file.root.vlarray
         if common.verbose:
             print("chunkshape-->", vla.chunkshape)
@@ -3884,7 +3886,7 @@ class VLUEndianTestCase(TestCase):
     def setUp(self):
         super(VLUEndianTestCase, self).setUp()
         self.h5fname = self._testFilename('vlunicode_endian.h5')
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
 
     def tearDown(self):
         self.h5file.close()
@@ -4074,7 +4076,7 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
 
 class SizeInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
     def create_array(self, atom, complevel):
-        filters = Filters(complevel=complevel, complib='blosc')
+        filters = tables.Filters(complevel=complevel, complib='blosc')
         self.array = self.h5file.create_vlarray('/', 'vlarray', atom=atom,
                                                 filters=filters)
 
@@ -4131,7 +4133,7 @@ class SizeInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
 
 class SizeOnDiskPropertyTestCase(common.TempFileMixin, TestCase):
     def create_array(self, atom, complevel):
-        filters = Filters(complevel=complevel, complib='blosc')
+        filters = tables.Filters(complevel=complevel, complib='blosc')
         self.h5file.create_vlarray('/', 'vlarray', atom, filters=filters)
         self.array = self.h5file.get_node('/', 'vlarray')
 
@@ -4152,19 +4154,23 @@ class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
     def test_read(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.read)
+        self.assertRaises(
+            tables.ClosedNodeError, self.array.read)
 
     def test_getitem(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.__getitem__, 0)
+        self.assertRaises(
+            tables.ClosedNodeError, self.array.__getitem__, 0)
 
     def test_setitem(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, '0')
+        self.assertRaises(
+            tables.ClosedNodeError, self.array.__setitem__, 0, '0')
 
     def test_append(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.append, 'xxxxxxxxx')
+        self.assertRaises(
+            tables.ClosedNodeError, self.array.append, 'xxxxxxxxx')
 
 
 class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
@@ -4186,7 +4192,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
                                    self.expectedrows)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
 
         self.assertEqual(ptarr.title, self.title)
@@ -4204,7 +4210,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
         ptarr.append(self.obj)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()[0]
 
@@ -4228,7 +4234,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
                                    self.obj)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()[0]
 
@@ -4245,7 +4251,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
                                    obj=self.obj)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()[0]
 
@@ -4264,7 +4270,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
         ptarr.append(self.obj)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()[0]
 
@@ -4283,7 +4289,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
         #ptarr.append(self.obj)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
 
         self.assertEqual(ptarr.title, self.title)
@@ -4299,7 +4305,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
                                            atom=self.atom)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()[0]
 

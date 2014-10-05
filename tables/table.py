@@ -778,7 +778,8 @@ class Table(tableextension.Table, Leaf):
         self._where_condition = None
         """Condition function and argument list for selection of values."""
         self._seqcache_key = None
-        """The key under which to save a query's results (list of row indexes) or None to not save."""
+        """The key under which to save a query's results (list of row indexes)
+        or None to not save."""
         max_slots = parentnode._v_file.params['COND_CACHE_SLOTS']
         self._condition_cache = CacheDict(max_slots)
         """Cache of already compiled conditions."""
@@ -1360,7 +1361,7 @@ class Table(tableextension.Table, Leaf):
             typemap[colname] = _nxtype_from_nptype[coltype]
 
             # Get the set of columns with usable indexes.
-            if (self._enabled_indexing_in_queries  # not test in-kernel searches
+            if (self._enabled_indexing_in_queries  # no in-kernel searches
                     and self.colindexed[col.pathname] and not col.index.dirty):
                 indexedcols.append(colname)
 
@@ -2222,16 +2223,16 @@ class Table(tableextension.Table, Leaf):
 
         ::
 
-            from tables import *
+            import tables as tb
 
-            class Particle(IsDescription):
-                name        = StringCol(16, pos=1) # 16-character String
-                lati        = IntCol(pos=2)        # integer
-                longi       = IntCol(pos=3)        # integer
-                pressure    = Float32Col(pos=4)    # float  (single-precision)
-                temperature = FloatCol(pos=5)      # double (double-precision)
+            class Particle(tb.IsDescription):
+                name        = tb.StringCol(16, pos=1) # 16-character String
+                lati        = tb.IntCol(pos=2)        # integer
+                longi       = tb.IntCol(pos=3)        # integer
+                pressure    = tb.Float32Col(pos=4)  # float  (single-precision)
+                temperature = tb.FloatCol(pos=5)    # double (double-precision)
 
-            fileh = open_file('test4.h5', mode='w')
+            fileh = tb.open_file('test4.h5', mode='w')
             table = fileh.create_table(fileh.root, 'table', Particle,
                                        "A table")
 

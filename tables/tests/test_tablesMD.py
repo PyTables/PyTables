@@ -6,7 +6,10 @@ import sys
 import numpy as np
 from numpy import rec as records
 
-from tables import *
+import tables
+from tables import (
+    Col, StringCol, IntCol, FloatCol, Int16Col, UInt16Col, Float32Col,
+)
 from tables.tests import common
 from tables.tests.common import allequal
 from tables.tests.common import unittest
@@ -18,7 +21,7 @@ from tables.description import descr_from_dtype
 # to ease the comparison with structured arrays.
 
 # Test Record class
-class Record(IsDescription):
+class Record(tables.IsDescription):
     var0 = StringCol(itemsize=4, dflt=b"", shape=2)  # 4-character string array
     var1 = StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2))
     var1_ = IntCol(dflt=((1, 1),), shape=2)           # integer array
@@ -48,7 +51,7 @@ RecordDescriptionDict = {
 # Record class with numpy dtypes (mixed shapes is checked here)
 
 
-class RecordDT(IsDescription):
+class RecordDT(tables.IsDescription):
     var0 = Col.from_dtype(np.dtype("2S4"), dflt=b"")  # shape in dtype
     var1 = Col.from_dtype(np.dtype(("S4", (
         2, 2))), dflt=[b"abcd", b"efgh"])  # shape is a mix
@@ -124,8 +127,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             self.initRecArray()
         for j in range(3):
             # Create a table
-            filters = Filters(complevel=self.compress,
-                              complib=self.complib)
+            filters = tables.Filters(complevel=self.compress,
+                                     complib=self.complib)
             if j < 2:
                 byteorder = sys.byteorder
             else:
@@ -173,7 +176,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     def test00_description(self):
         """Checking table description and descriptive fields."""
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
 
         tbl = self.h5file.get_node('/table0')
         desc = tbl.description
@@ -244,7 +247,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.get_node("/table0")
 
         # Choose a small value for buffer size
@@ -282,57 +285,57 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01b_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.get_node("/table0")
 
         # Choose a small value for buffer size
         table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
-        result = [r['var5'] for r in table.iterrows() if r['var2'][0][0] < 20]
+        result1 = [r['var5'] for r in table.iterrows() if r['var2'][0][0] < 20]
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
             print("Last record in table ==>", r)
-            print("Total selected records in table ==> ", len(result))
+            print("Total selected records in table ==> ", len(result1))
         nrows = table.nrows
-        r = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
-        if isinstance(r['var5'], np.ndarray):
-            self.assertTrue(allequal(result[0],
+        result2 = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
+        if isinstance(result2['var5'], np.ndarray):
+            self.assertTrue(allequal(result1[0],
                                      np.array((float(0),)*4, np.float32)))
-            self.assertTrue(allequal(result[1],
+            self.assertTrue(allequal(result1[1],
                                      np.array((float(1),)*4, np.float32)))
-            self.assertTrue(allequal(result[2],
+            self.assertTrue(allequal(result1[2],
                                      np.array((float(2),)*4, np.float32)))
-            self.assertTrue(allequal(result[3],
+            self.assertTrue(allequal(result1[3],
                                      np.array((float(3),)*4, np.float32)))
-            self.assertTrue(allequal(result[10],
+            self.assertTrue(allequal(result1[10],
                                      np.array((float(10),)*4, np.float32)))
-            self.assertTrue(allequal(r['var5'],
+            self.assertTrue(allequal(result2['var5'],
                                      np.array((float(nrows-1),)*4,
                                               np.float32)))
         else:
-            self.assertEqual(r['var5'], float(nrows-1))
-        self.assertEqual(len(result), 20)
+            self.assertEqual(result2['var5'], float(nrows-1))
+        self.assertEqual(len(result1), 20)
 
         # Read the records and select those with "var2" file less than 20
-        result = [r['var1'] for r in table.iterrows() if r['var2'][0][0] < 20]
-        r = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
+        result1 = [r['var1'] for r in table.iterrows() if r['var2'][0][0] < 20]
+        result2 = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
 
-        if r['var1'].dtype.char == "S":
+        if result2['var1'].dtype.char == "S":
             a = np.array([['%04d' % (self.expectedrows - 0)]*2]*2, 'S')
-            self.assertTrue(allequal(result[0], a))
+            self.assertTrue(allequal(result1[0], a))
             a = np.array([['%04d' % (self.expectedrows - 1)]*2]*2, 'S')
-            self.assertTrue(allequal(result[1], a))
+            self.assertTrue(allequal(result1[1], a))
             a = np.array([['%04d' % (self.expectedrows - 2)]*2]*2, 'S')
-            self.assertTrue(allequal(result[2], a))
+            self.assertTrue(allequal(result1[2], a))
             a = np.array([['%04d' % (self.expectedrows - 3)]*2]*2, 'S')
-            self.assertTrue(allequal(result[3], a))
+            self.assertTrue(allequal(result1[3], a))
             a = np.array([['%04d' % (self.expectedrows - 10)]*2]*2, 'S')
-            self.assertTrue(allequal(result[10], a))
+            self.assertTrue(allequal(result1[10], a))
             a = np.array([['%04d' % (1)]*2]*2, 'S')
-            self.assertTrue(allequal(r['var1'], a))
+            self.assertTrue(allequal(result2['var1'], a))
         else:
-            self.assertEqual(r['var1'], "0001")
-        self.assertEqual(len(result), 20)
+            self.assertEqual(result1['var1'], "0001")
+        self.assertEqual(len(result1), 20)
 
     def test01c_readTable(self):
         """Checking shape of multidimensional columns."""
@@ -342,7 +345,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01c_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.get_node("/table0")
 
         if common.verbose:
@@ -354,7 +357,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         """Checking whether appending record rows works or not."""
 
         # Now, open it, but in "append" mode
-        self.h5file = open_file(self.h5fname, mode="a")
+        self.h5file = tables.open_file(self.h5fname, mode="a")
         self.rootgroup = self.h5file.root
         if common.verbose:
             print('\n', '-=' * 30)
@@ -422,7 +425,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test03_endianess..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.get_node("/group0/group1/table2")
 
         # Read the records and select the ones with "var3" column less than 20
@@ -567,11 +570,10 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
         group = self.rootgroup
         for j in range(3):
             # Create a table
-            table = self.h5file.create_table(group, 'table'+str(j),
-                                             self.record,
-                                             title=self.title,
-                                             filters=Filters(self.compress),
-                                             expectedrows=self.expectedrows)
+            table = self.h5file.create_table(
+                group, 'table'+str(j), self.record, title=self.title,
+                filters=tables.Filters(self.compress),
+                expectedrows=self.expectedrows)
             # Get the row object associated with the new table
             row = table.row
 
@@ -603,12 +605,11 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
 
     def check_range(self):
         # Create an instance of an HDF5 Table
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.get_node("/table0")
 
         table.nrowsinbuf = self.nrowsinbuf
-        r = slice(self.start, self.stop, self.step)
-        resrange = r.indices(table.nrows)
+        resrange = slice(self.start, self.stop, self.step).indices(table.nrows)
         reslength = len(range(*resrange))
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
@@ -973,7 +974,7 @@ class getColRangeTestCase(BasicRangeTestCase):
                   self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = open_file(self.h5fname, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         self.root = self.h5file.root
         table = self.h5file.get_node("/table0")
 
@@ -987,7 +988,7 @@ class getColRangeTestCase(BasicRangeTestCase):
             self.fail("expected a KeyError")
 
 
-class Rec(IsDescription):
+class Rec(tables.IsDescription):
     col1 = IntCol(pos=1, shape=(2,))
     col2 = StringCol(itemsize=3, pos=2, shape=(3,))
     col3 = FloatCol(pos=3, shape=(3, 2))
@@ -1265,7 +1266,7 @@ class DefaultValues(common.TempFileMixin, TestCase):
         # self.assertTrue(common.areArraysEqual(r,r2))
 
 
-class RecordT(IsDescription):
+class RecordT(tables.IsDescription):
     var0 = IntCol(dflt=1, shape=())  # native int
     var1 = IntCol(dflt=[1], shape=(1,))  # 1-D int (one element)
     var2_s = IntCol(dflt=[1, 1], shape=2)  # 1-D int (two elements)

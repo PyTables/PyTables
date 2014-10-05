@@ -5,10 +5,15 @@ import os
 import sys
 import tempfile
 
-import numpy
-from numpy import *
+import numpy as np
+#from numpy import *
 
-from tables import *
+import tables
+from tables import (
+    StringCol, BoolCol, FloatCol, ComplexCol, EnumCol,
+    Int8Col, UInt8Col, Int16Col, UInt16Col, Int32Col, UInt32Col,
+    Int64Col, Float32Col, Float64Col, Time64Col
+)
 from tables.tests import common
 from tables.tests.common import allequal
 from tables.tests.common import unittest
@@ -24,11 +29,11 @@ else:
     typecodes += ['B', 'H', 'I', 'L', 'F', 'D']
 typecodes += ['b1']   # boolean
 
-if 'Float16Atom' in globals():
+if hasattr(tables, 'Float16Atom'):
     typecodes.append('e')
-if 'Float96Atom' in globals() or 'Float128Atom' in globals():
+if hasattr(tables, 'Float96Atom') or hasattr(tables, 'Float128Atom'):
     typecodes.append('g')
-if 'Complex192Atom' in globals() or 'Conplex256Atom' in globals():
+if hasattr(tables, 'Complex192Atom') or hasattr(tables, 'Conplex256Atom'):
     typecodes.append('G')
 
 byteorder = {'little': '<', 'big': '>'}[sys.byteorder]
@@ -51,7 +56,7 @@ class BasicTestCase(TestCase):
 
         # Create an instance of HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode="w")
+        self.fileh = tables.open_file(self.file, mode="w")
         self.root = self.fileh.root
         # Create the array under root and name 'somearray'
         a = testArray
@@ -61,14 +66,14 @@ class BasicTestCase(TestCase):
         self.fileh.close()
 
         # Re-open the file in read-only mode
-        self.fileh = open_file(self.file, mode="r")
+        self.fileh = tables.open_file(self.file, mode="r")
         self.root = self.fileh.root
 
         # Read the saved array
         b = self.root.somearray.read()
         # For cases that read returns a python type instead of a numpy type
         if not hasattr(b, "shape"):
-            b = array(b, dtype=a.dtype.str)
+            b = np.np.array(b, dtype=a.dtype.str)
 
         # Compare them. They should be equal.
         # if not allequal(a,b, "numpy") and common.verbose:
@@ -102,14 +107,14 @@ class BasicTestCase(TestCase):
     def test00_char(self):
         """Data integrity during recovery (character objects)"""
 
-        a = array(self.tupleChar, 'S'+str(len(self.tupleChar)))
+        a = np.array(self.tupleChar, 'S'+str(len(self.tupleChar)))
         self.WriteRead(a)
         return
 
     def test01_char_nc(self):
         """Data integrity during recovery (non-contiguous character objects)"""
 
-        a = array(self.tupleChar, 'S'+str(len(self.tupleChar)))
+        a = np.array(self.tupleChar, 'S'+str(len(self.tupleChar)))
         if a.shape == ():
             b = a               # We cannot use the indexing notation
         else:
@@ -128,7 +133,7 @@ class BasicTestCase(TestCase):
                 a = self.tupleInt.astype(typecode)
             else:
                 # shape is the empty tuple ()
-                a = array(self.tupleInt, dtype=typecode)
+                a = np.array(self.tupleInt, dtype=typecode)
             self.WriteRead(a)
 
         return
@@ -141,7 +146,7 @@ class BasicTestCase(TestCase):
                 a = self.tupleInt.astype(typecode)
             else:
                 # shape is the empty tuple ()
-                a = array(self.tupleInt, dtype=typecode)
+                a = np.array(self.tupleInt, dtype=typecode)
             # This should not be tested for the rank-0 case
             if len(a.shape) == 0:
                 return
@@ -157,64 +162,64 @@ class BasicTestCase(TestCase):
 class Basic0DOneTestCase(BasicTestCase):
     # Rank-0 case
     title = "Rank-0 case 1"
-    tupleInt = array(3)
+    tupleInt = np.array(3)
     tupleChar = "4"
 
 
 class Basic0DTwoTestCase(BasicTestCase):
     # Rank-0 case
     title = "Rank-0 case 2"
-    tupleInt = array(33)
+    tupleInt = np.array(33)
     tupleChar = "44"
 
 
 class Basic1DOneTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 1"
-    tupleInt = array((3,))
+    tupleInt = np.array((3,))
     tupleChar = ("a",)
 
 
 class Basic1DTwoTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 2"
-    tupleInt = array((0, 4))
+    tupleInt = np.array((0, 4))
     tupleChar = ("aaa",)
 
 
 class Basic1DThreeTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 3"
-    tupleInt = array((3, 4, 5))
+    tupleInt = np.array((3, 4, 5))
     tupleChar = ("aaaa", "bbb",)
 
 
 class Basic2DTestCase(BasicTestCase):
     # 2D case
     title = "Rank-2 case 1"
-    # tupleInt = reshape(array(arange((4)**2)), (4,)*2)
-    tupleInt = ones((4,)*2)
+    # tupleInt = reshape(np.array(np.arange((4)**2)), (4,)*2)
+    tupleInt = np.ones((4,)*2)
     tupleChar = [["aaa", "ddddd"], ["d", "ss"], ["s", "tt"]]
 
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 case 1"
-    # tupleInt = reshape(array(arange((2)**10)), (2,)*10)
-    tupleInt = ones((2,)*10)
-    # tupleChar = reshape(array([1],dtype="S1"),(1,)*10)
+    # tupleInt = reshape(np.array(np.arange((2)**10)), (2,)*10)
+    tupleInt = np.ones((2,)*10)
+    # tupleChar = reshape(np.array([1],dtype="S1"),(1,)*10)
     # The next tuple consumes far more time, so this
     # test should be run in common.heavy mode.
-    tupleChar = array(tupleInt, dtype="S1")
+    tupleChar = np.array(tupleInt, dtype="S1")
 
 
 # class Basic32DTestCase(BasicTestCase):
 #     # 32D case (maximum)
-#     tupleInt = reshape(array((22,)), (1,)*32)
+#     tupleInt = reshape(np.array((22,)), (1,)*32)
 #     # Strings seems to be very slow with somewhat large dimensions
 #     # This should not be run unless the numarray people address this problem
 #     # F. Alted 2006-01-04
-#     tupleChar = array(tupleInt, dtype="S1")
+#     tupleChar = np.array(tupleInt, dtype="S1")
 
 
 class GroupsArrayTestCase(common.TempFileMixin, TestCase):
@@ -242,7 +247,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
         i = 1
         for typecode in typecodes:
             # Create an array of typecode, with incrementally bigger ranges
-            a = ones((2,) * i, typecode)
+            a = np.ones((2,) * i, typecode)
             # Save it on the HDF5 file
             dsetname = 'array_' + typecode
             if common.verbose:
@@ -261,7 +266,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
         # Get the metadata on the previosly saved arrays
         for i in range(1, len(typecodes)):
             # Create an array for later comparison
-            a = ones((2,) * i, typecodes[i - 1])
+            a = np.ones((2,) * i, typecodes[i - 1])
             # Get the dset object hanging from group
             dset = getattr(group, 'array_' + typecodes[i-1])
             # Get the actual array
@@ -276,7 +281,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
                 print(". Type ==> %s" % b.dtype.char)
 
             self.assertEqual(a.shape, b.shape)
-            if dtype('l').itemsize == 4:
+            if np.dtype('l').itemsize == 4:
                 if (a.dtype.char == "i" or a.dtype.char == "l"):
                     # Special expection. We have no way to distinguish between
                     # "l" and "i" typecode, and we can consider them the same
@@ -289,7 +294,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
                     self.assertTrue(b.dtype.char == "L" or b.dtype.char == "I")
                 else:
                     self.assertTrue(allequal(a, b, "numpy"))
-            elif dtype('l').itemsize == 8:
+            elif np.dtype('l').itemsize == 8:
                 if (a.dtype.char == "q" or a.dtype.char == "l"):
                     # Special expection. We have no way to distinguish between
                     # "q" and "l" typecode in 64-bit platforms, and we can
@@ -330,7 +335,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
             print("Rank array writing progress: ", end=' ')
         for rank in range(minrank, maxrank + 1):
             # Create an array of integers, with incrementally bigger ranges
-            a = ones((1,) * rank, 'i')
+            a = np.ones((1,) * rank, 'i')
             if common.verbose:
                 print("%3d," % (rank), end=' ')
             self.h5file.create_array(group, "array", a, "Rank: %s" % rank)
@@ -348,12 +353,13 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
         # Get the metadata on the previosly saved arrays
         for rank in range(minrank, maxrank + 1):
             # Create an array for later comparison
-            a = ones((1,) * rank, 'i')
+            a = np.ones((1,) * rank, 'i')
             # Get the actual array
             b = group.array.read()
             if common.verbose:
                 print("%3d," % (rank), end=' ')
             if not a.tolist() == b.tolist() and common.verbose:
+                dset = group.array
                 print("Info from dataset:", dset._v_pathname)
                 print("  Shape: ==>", dset.shape, end=' ')
                 print("  typecode ==> %c" % dset.typecode)
@@ -378,7 +384,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
 
 
 # Test Record class
-class Record(IsDescription):
+class Record(tables.IsDescription):
     var1 = StringCol(itemsize=4, dflt=b"abcd", pos=0)
     var2 = StringCol(itemsize=1, dflt=b"a", pos=1)
     var3 = BoolCol(dflt=1)
@@ -393,16 +399,16 @@ class Record(IsDescription):
     var12 = Float64Col(dflt=1.0)
     var13 = ComplexCol(itemsize=8, dflt=(1.+0.j))
     var14 = ComplexCol(itemsize=16, dflt=(1.+0.j))
-    if 'Float16Col' in globals():
-        var15 = Float16Col(dflt=1.0)
-    if 'Float96Col' in globals():
-        var16 = Float96Col(dflt=1.0)
-    if 'Float128Col' in globals():
-        var17 = Float128Col(dflt=1.0)
-    if 'Complex196Col' in globals():
-        var18 = ComplexCol(itemsize=24, dflt=(1.+0.j))
-    if 'Complex256Col' in globals():
-        var19 = ComplexCol(itemsize=32, dflt=(1.+0.j))
+    if hasattr(tables, 'Float16Col'):
+        var15 = tables.Float16Col(dflt=1.0)
+    if hasattr(tables, 'Float96Col'):
+        var16 = tables.Float96Col(dflt=1.0)
+    if hasattr(tables, 'Float128Col'):
+        var17 = tables.Float128Col(dflt=1.0)
+    if hasattr(tables, 'Complex196Col'):
+        var18 = tables.ComplexCol(itemsize=24, dflt=(1.+0.j))
+    if hasattr(tables, 'Complex256Col'):
+        var19 = tables.ComplexCol(itemsize=32, dflt=(1.+0.j))
 
 
 class TableReadTestCase(common.TempFileMixin, TestCase):
@@ -434,9 +440,9 @@ class TableReadTestCase(common.TempFileMixin, TestCase):
             nctypecode = numcol.dtype.char
             if typecol == "string":
                 if itemsizecol > 1:
-                    orignumcol = array(['abcd']*self.nrows, dtype='S4')
+                    orignumcol = np.array(['abcd']*self.nrows, dtype='S4')
                 else:
-                    orignumcol = array(['a']*self.nrows, dtype='S1')
+                    orignumcol = np.array(['a']*self.nrows, dtype='S1')
                 if common.verbose:
                     print("Typecode of NumPy column read:", nctypecode)
                     print("Should look like:", 'c')
@@ -459,12 +465,12 @@ class TableReadTestCase(common.TempFileMixin, TestCase):
         for colname in table.colnames:
             numcol = table.read(field=colname)
             typecol = table.coltypes[colname]
-            nctypecode = typeNA[numcol.dtype.char[0]]
+            nctypecode = np.typeNA[numcol.dtype.char[0]]
             if typecol != "string":
                 if common.verbose:
                     print("Typecode of NumPy column read:", nctypecode)
                     print("Should look like:", typecol)
-                orignumcol = ones(shape=self.nrows, dtype=numcol.dtype.char)
+                orignumcol = np.ones(shape=self.nrows, dtype=numcol.dtype.char)
                 # Check that both NumPy objects are equal
                 self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
@@ -486,9 +492,9 @@ class TableReadTestCase(common.TempFileMixin, TestCase):
             nctypecode = numcol.dtype.char
             if typecol == "string":
                 if itemsizecol > 1:
-                    orignumcol = array(['abcd']*self.nrows, dtype='S4')
+                    orignumcol = np.array(['abcd']*self.nrows, dtype='S4')
                 else:
-                    orignumcol = array(['a']*self.nrows, dtype='S1')
+                    orignumcol = np.array(['a']*self.nrows, dtype='S1')
                 if common.verbose:
                     print("Typecode of NumPy column read:", nctypecode)
                     print("Should look like:", 'c')
@@ -520,7 +526,7 @@ class TableReadTestCase(common.TempFileMixin, TestCase):
                 if common.verbose:
                     print("Type of read NumPy column:", type_)
                     print("Should look like:", typecol)
-                orignumcol = ones(shape=self.nrows, dtype=numcol.dtype.char)
+                orignumcol = np.ones(shape=self.nrows, dtype=numcol.dtype.char)
                 # Check that both NumPy objects are equal
                 self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
@@ -528,19 +534,20 @@ class TableReadTestCase(common.TempFileMixin, TestCase):
         """Getting table rows specifyied as NumPy scalar integers."""
 
         table = self.h5file.root.table
-        coords = numpy.array([1, 2, 3], dtype='int8')
+        coords = np.array([1, 2, 3], dtype='int8')
         for colname in table.colnames:
             numcol = [table[coord][colname] for coord in coords]
             typecol = table.coltypes[colname]
             if typecol != "string":
                 if typecol == "int64":
                     return
-                numcol = numpy.array(numcol, typecol)
+                numcol = np.array(numcol, typecol)
                 if common.verbose:
                     type_ = numcol.dtype.type
                     print("Type of read NumPy column:", type_)
                     print("Should look like:", typecol)
-                orignumcol = ones(shape=len(numcol), dtype=numcol.dtype.char)
+                orignumcol = np.ones(shape=len(numcol),
+                                     dtype=numcol.dtype.char)
                 # Check that both NumPy objects are equal
                 self.assertTrue(allequal(numcol, orignumcol, "numpy"))
 
@@ -550,7 +557,7 @@ class TableReadTestCase(common.TempFileMixin, TestCase):
         self._reopen(mode='a')
         table = self.h5file.root.table
         table.flavor = "numpy"
-        coords = numpy.array([1, 2, 3], dtype='int8')
+        coords = np.array([1, 2, 3], dtype='int8')
         # Modify row 1
         # From PyTables 2.0 on, assignments to records can be done
         # only as tuples (see http://projects.scipy.org/scipy/numpy/ticket/315)
@@ -562,9 +569,10 @@ class TableReadTestCase(common.TempFileMixin, TestCase):
         # record = list(table[coords[0]])
         record = table.read(coords[0], coords[0] + 1)
         if common.verbose:
-            print("""Original row:
-['aasa', 'x', True, -24, 232, 232, 232, 232, 232L, 232, 232.0, 232.0, (232 + 0j), (232+0j), 232.0, (232+0j)]
-""")
+            print("Original row:\n"
+                  "['aasa', 'x', True, -24, 232, 232, 232, 232, 232L, "
+                  "232, 232.0, 232.0, (232 + 0j), (232+0j), 232.0, "
+                  "(232+0j)]\n")
             print("Read row:\n", record)
         self.assertEqual(record['var1'], b'aasa')
         self.assertEqual(record['var2'], b'x')
@@ -574,13 +582,13 @@ class TableReadTestCase(common.TempFileMixin, TestCase):
 
 
 # The declaration of the nested table:
-class Info(IsDescription):
+class Info(tables.IsDescription):
     _v_pos = 3
     Name = StringCol(itemsize=2)
     Value = ComplexCol(itemsize=16)
 
 
-class TestTDescr(IsDescription):
+class TestTDescr(tables.IsDescription):
 
     """A description that has several nested columns."""
 
@@ -591,14 +599,14 @@ class TestTDescr(IsDescription):
     color = StringCol(itemsize=4, dflt=b"ab", pos=2)
     info = Info()
 
-    class Info(IsDescription):  # 1
+    class Info(tables.IsDescription):  # 1
         _v_pos = 1
         name = StringCol(itemsize=2)
         value = ComplexCol(itemsize=16, pos=0)  # 0
         y2 = FloatCol(pos=1)  # 1
         z2 = UInt8Col()
 
-        class Info2(IsDescription):
+        class Info2(tables.IsDescription):
             y3 = Time64Col(shape=2)
             name = StringCol(itemsize=2)
             value = ComplexCol(itemsize=16, shape=2)
@@ -631,18 +639,18 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("First 3 elements of read:", data[:3])
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the value of some columns
         # A flat column
         col = table.cols.x[:3]
-        self.assertTrue(isinstance(col, ndarray))
-        npcol = zeros((3, 2), dtype="int32")
+        self.assertTrue(isinstance(col, np.ndarray))
+        npcol = np.zeros((3, 2), dtype="int32")
         self.assertTrue(allequal(col, npcol, "numpy"))
 
         # A nested column
         col = table.cols.Info[:3]
-        self.assertTrue(isinstance(col, ndarray))
+        self.assertTrue(isinstance(col, np.ndarray))
         dtype = [('value', 'c16'),
                  ('y2', 'f8'),
                  ('Info2',
@@ -651,7 +659,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
                    ('y3', 'f8', (2,))]),
                  ('name', 'S2'),
                  ('z2', 'u1')]
-        npcol = zeros((3,), dtype=dtype)
+        npcol = np.zeros((3,), dtype=dtype)
         self.assertEqual(col.dtype.descr, npcol.dtype.descr)
         if common.verbose:
             print("col-->", col)
@@ -673,18 +681,18 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("First 3 elements of read:", data[:3])
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the value of some columns
         # A flat column
         col = table.cols.x[:9:3]
-        self.assertTrue(isinstance(col, ndarray))
-        npcol = zeros((3, 2), dtype="int32")
+        self.assertTrue(isinstance(col, np.ndarray))
+        npcol = np.zeros((3, 2), dtype="int32")
         self.assertTrue(allequal(col, npcol, "numpy"))
 
         # A nested column
         col = table.cols.Info[:9:3]
-        self.assertTrue(isinstance(col, ndarray))
+        self.assertTrue(isinstance(col, np.ndarray))
         dtype = [('value', '%sc16' % byteorder),
                  ('y2', '%sf8' % byteorder),
                  ('Info2',
@@ -693,7 +701,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
                    ('y3', '%sf8' % byteorder, (2,))]),
                  ('name', '|S2'),
                  ('z2', '|u1')]
-        npcol = zeros((3,), dtype=dtype)
+        npcol = np.zeros((3,), dtype=dtype)
         self.assertEqual(col.dtype.descr, npcol.dtype.descr)
         if common.verbose:
             print("col-->", col)
@@ -715,13 +723,13 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("First 3 elements of read:", data[:3])
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check that all columns have been selected
         self.assertEqual(len(data), 100)
 
         # Finally, check that the contents are ok
-        self.assertTrue(allequal(data, arange(100, dtype="i8"), "numpy"))
+        self.assertTrue(allequal(data, np.arange(100, dtype="i8"), "numpy"))
 
     def test03a_readWhere(self):
         """Checking the return of NumPy in read_where method (strings)."""
@@ -737,7 +745,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check that all columns have been selected
         self.assertEqual(len(data), self.nrows)
@@ -756,7 +764,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check that all columns have been selected
         self.assertEqual(len(data), 0)
@@ -772,7 +780,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
                    ('y3', '%sf8' % byteorder, (2,))]),
                  ('name', '|S2'),
                  ('z2', '|u1')]
-        npdata = zeros((3,), dtype=dtype)
+        npdata = np.zeros((3,), dtype=dtype)
         table = self.h5file.create_table(self.h5file.root, 'table2', npdata)
         if self.close:
             self._reopen(mode='a')
@@ -785,7 +793,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, npdata.dtype.descr)
@@ -813,7 +821,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, npdata.dtype.descr)
@@ -828,7 +836,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
         """Checking assigning to a column."""
 
         table = self.h5file.root.table
-        table.cols.z[:] = zeros((100,), dtype='u1')
+        table.cols.z[:] = np.zeros((100,), dtype='u1')
         if self.close:
             self._reopen(mode='a')
             table = self.h5file.root.table
@@ -840,21 +848,21 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check that all columns have been selected
         self.assertEqual(len(data), 100)
 
         # Finally, check that the contents are ok
-        self.assertTrue(allequal(data, zeros((100,), dtype="u1"), "numpy"))
+        self.assertTrue(allequal(data, np.zeros((100,), dtype="u1"), "numpy"))
 
     def test05b_modifyingColumns(self):
         """Checking modifying several columns at once."""
 
         table = self.h5file.root.table
-        xcol = ones((3, 2), 'int32')
-        ycol = zeros((3, 2, 2), 'float64')
-        zcol = zeros((3,), 'uint8')
+        xcol = np.ones((3, 2), 'int32')
+        ycol = np.zeros((3, 2, 2), 'float64')
+        zcol = np.zeros((3,), 'uint8')
         table.modify_columns(3, 6, 1, [xcol, ycol, zcol], ['x', 'y', 'z'])
         if self.close:
             self._reopen(mode='a')
@@ -867,7 +875,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, ycol.dtype.descr)
@@ -883,12 +891,12 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
 
         table = self.h5file.root.table
         dtype = [('x', 'i4', (2,)), ('y', 'f8', (2, 2)), ('z', 'u1')]
-        nparray = zeros((3,), dtype=dtype)
+        nparray = np.zeros((3,), dtype=dtype)
         table.modify_columns(3, 6, 1, nparray, ['x', 'y', 'z'])
         if self.close:
             self._reopen(mode='a')
             table = self.h5file.root.table
-        ycol = zeros((3, 2, 2), 'float64')
+        ycol = np.zeros((3, 2, 2), 'float64')
         data = table.cols.y[3:6]
         if common.verbose:
             print("Type of read:", type(data))
@@ -897,7 +905,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, ycol.dtype.descr)
@@ -920,7 +928,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
                    ('y3', '%sf8' % byteorder, (2,))]),
                  ('name', '|S2'),
                  ('z2', '|u1')]
-        npdata = zeros((3,), dtype=dtype)
+        npdata = np.zeros((3,), dtype=dtype)
         data = table.cols.Info[3:6]
         table.modify_column(3, 6, 1, column=npdata, colname='Info')
         if self.close:
@@ -934,7 +942,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, npdata.dtype.descr)
@@ -957,7 +965,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
                    ('y3', '%sf8' % byteorder, (2,))]),
                  ('name', '|S2'),
                  ('z2', '|u1')]
-        npdata = zeros((3,), dtype=dtype)
+        npdata = np.zeros((3,), dtype=dtype)
         #self.assertRaises(NotImplementedError,
         #                  table.cols.Info.__setitem__, slice(3,6,1),  npdata)
         table.cols.Info[3:6] = npdata
@@ -972,7 +980,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, npdata.dtype.descr)
@@ -997,7 +1005,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
         if self.close:
             self._reopen(mode='a')
             table = self.h5file.root.table
-        ycol = zeros((3, 2, 2), 'float64')-1
+        ycol = np.zeros((3, 2, 2), 'float64')-1
         data = table.cols.y[3:6]
         if common.verbose:
             print("Type of read:", type(data))
@@ -1006,7 +1014,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, ycol.dtype.descr)
@@ -1031,7 +1039,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             table = self.h5file.root.table
 
         # Check that some column has been actually modified
-        ycol = zeros((3, 2, 2), 'float64')-1
+        ycol = np.zeros((3, 2, 2), 'float64')-1
         data = table.cols.y[3:6]
         if common.verbose:
             print("Type of read:", type(data))
@@ -1040,7 +1048,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, ycol.dtype.descr)
@@ -1065,7 +1073,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             table = self.h5file.root.table
 
         # Check that some column has been actually modified
-        ycol = zeros((2, 2), 'float64')-1
+        ycol = np.zeros((2, 2), 'float64')-1
         data = table.cols.y[6]
         if common.verbose:
             print("Type of read:", type(data))
@@ -1074,7 +1082,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, ycol.dtype.descr)
@@ -1099,7 +1107,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             table = self.h5file.root.table
 
         # Check that some column has been actually modified
-        ycol = zeros((2, 2), 'float64')-1
+        ycol = np.zeros((2, 2), 'float64')-1
         data = table.cols.y[6]
         if common.verbose:
             print("Type of read:", type(data))
@@ -1108,7 +1116,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("Length of the data read:", len(data))
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, ycol.dtype.descr)
@@ -1131,14 +1139,14 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("First 3 elements of read:", data[:3])
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check that all columns have been selected
         self.assertEqual(len(data), 100)
 
         # Finally, check that the contents are ok
         for idata in data['color']:
-            self.assertEqual(idata, array("ab", dtype="|S4"))
+            self.assertEqual(idata, np.array("ab", dtype="|S4"))
 
     def test09b_getStrings(self):
         """Checking the return of string columns with spaces.
@@ -1160,7 +1168,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("First 3 elements of read:", data[:3])
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check that all columns have been selected
         self.assertEqual(len(data), 100)
@@ -1169,9 +1177,9 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
         for i in range(100):
             idata = data['color'][i]
             if i >= 50:
-                self.assertEqual(idata, array("ab", dtype="|S4"))
+                self.assertEqual(idata, np.array("ab", dtype="|S4"))
             else:
-                self.assertEqual(idata, array("a  ", dtype="|S4"))
+                self.assertEqual(idata, np.array("a  ", dtype="|S4"))
 
     def test09c_getStrings(self):
         """Checking the return of string columns with spaces.
@@ -1190,7 +1198,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
         table.flush()
         if self.close:
             self.h5file.close()
-            self.h5file = open_file(self.h5fname, "a")
+            self.h5file = tables.open_file(self.h5fname, "a")
         data = self.h5file.root.table[:]
         if common.verbose:
             print("Type of read:", type(data))
@@ -1198,7 +1206,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
             print("First 3 elements of read:", data[:3])
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check that all columns have been selected
         self.assertEqual(len(data), 150)
@@ -1207,9 +1215,9 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
         for i in range(150):
             idata = data['color'][i]
             if i < 100:
-                self.assertEqual(idata, array("ab", dtype="|S4"))
+                self.assertEqual(idata, np.array("ab", dtype="|S4"))
             else:
-                self.assertEqual(idata, array("a  ", dtype="|S4"))
+                self.assertEqual(idata, np.array("a  ", dtype="|S4"))
 
 
 class TableNativeFlavorOpenTestCase(TableNativeFlavorTestCase):
@@ -1232,7 +1240,7 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
         """Checking the creation of a numpy attribute."""
         group = self.h5file.root.group
         g_attrs = group._v_attrs
-        g_attrs.numpy1 = zeros((1, 1), dtype='int16')
+        g_attrs.numpy1 = np.zeros((1, 1), dtype='int16')
         if self.close:
             self._reopen(mode='a')
             group = self.h5file.root.group
@@ -1240,10 +1248,10 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
 
         # Check that we can retrieve a numpy object
         data = g_attrs.numpy1
-        npcomp = zeros((1, 1), dtype='int16')
+        npcomp = np.zeros((1, 1), dtype='int16')
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, npcomp.dtype.descr)
@@ -1257,21 +1265,21 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
 
         group = self.h5file.root.group
         g_attrs = group._v_attrs
-        g_attrs.numpy1 = zeros((1, 2), dtype='int16')
+        g_attrs.numpy1 = np.zeros((1, 2), dtype='int16')
         if self.close:
             self._reopen(mode='a')
             group = self.h5file.root.group
             g_attrs = group._v_attrs
 
         # Update this attribute
-        g_attrs.numpy1 = ones((1, 2), dtype='int16')
+        g_attrs.numpy1 = np.ones((1, 2), dtype='int16')
 
         # Check that we can retrieve a numpy object
         data = g_attrs.numpy1
-        npcomp = ones((1, 2), dtype='int16')
+        npcomp = np.ones((1, 2), dtype='int16')
 
         # Check that both NumPy objects are equal
-        self.assertTrue(isinstance(data, ndarray))
+        self.assertTrue(isinstance(data, np.ndarray))
 
         # Check the type
         self.assertEqual(data.dtype.descr, npcomp.dtype.descr)

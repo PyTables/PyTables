@@ -2,17 +2,22 @@
 
 from __future__ import print_function
 import os
+import sys
 
 import numpy
 
-from tables import *
+import tables
+from tables import (
+    Col, StringCol, Atom, StringAtom, Int16Atom, Int32Atom,
+    FloatAtom, Float64Atom,
+)
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Test Record class
-class Record(IsDescription):
+class Record(tables.IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
     var2 = Col.from_kind('int')   # integer
     var3 = Col.from_kind('int', itemsize=2)  # short integer
@@ -20,15 +25,15 @@ class Record(IsDescription):
     var5 = Col.from_kind('float', itemsize=4)  # float  (single-precision)
     var6 = Col.from_kind('complex')  # double-precision
     var7 = Col.from_kind('complex', itemsize=8)  # single-precision
-    if "Float16Atom" in globals():
+    if hasattr(tables, "Float16Atom"):
         var8 = Col.from_kind('float', itemsize=2)  # half-precision
-    if "Float96Atom" in globals():
+    if hasattr(tables, "Float96Atom"):
         var9 = Col.from_kind('float', itemsize=12)  # extended-precision
-    if "Float128Atom" in globals():
+    if hasattr(tables, "Float128Atom"):
         var10 = Col.from_kind('float', itemsize=16)  # extended-precision
-    if "Complex192Atom" in globals():
+    if hasattr(tables, "Complex192Atom"):
         var11 = Col.from_kind('complex', itemsize=24)  # extended-precision
-    if "Complex256Atom" in globals():
+    if hasattr(tables, "Complex256Atom"):
         var12 = Col.from_kind('complex', itemsize=32)  # extended-precision
 
 
@@ -42,7 +47,7 @@ class RangeTestCase(TestCase):
 
     def setUp(self):
         super(RangeTestCase, self).setUp()
-        self.h5file = open_file(self.h5fname, mode="w")
+        self.h5file = tables.open_file(self.h5fname, mode="w")
         self.rootgroup = self.h5file.root
 
         # Create a table
@@ -67,11 +72,11 @@ class RangeTestCase(TestCase):
         rec['var5'] = float(i)
         rec['var6'] = float(i)
         rec['var7'] = complex(i, i)
-        if "Float16Atom" in globals():
+        if hasattr(tables, "Float16Atom"):
             rec['var8'] = float(i)
-        if "Float96Atom" in globals():
+        if hasattr(tables, "Float96Atom"):
             rec['var9'] = float(i)
-        if "Float128Atom" in globals():
+        if hasattr(tables, "Float128Atom"):
             rec['var10'] = float(i)
         try:
             rec.append()
@@ -102,11 +107,11 @@ class RangeTestCase(TestCase):
 
         rec['var6'] = float(i)
         rec['var7'] = complex(i, i)
-        if "Float16Atom" in globals():
+        if hasattr(tables, "Float16Atom"):
             rec['var8'] = float(i)
-        if "Float96Atom" in globals():
+        if hasattr(tables, "Float96Atom"):
             rec['var9'] = float(i)
-        if "Float128Atom" in globals():
+        if hasattr(tables, "Float128Atom"):
             rec['var10'] = float(i)
 
 
@@ -160,7 +165,7 @@ class ReadFloatTestCase(TestCase):
 
     def setUp(self):
         super(ReadFloatTestCase, self).setUp()
-        self.h5file = open_file(self._testFilename(self.h5fname), mode="r")
+        self.h5file = tables.open_file(self._testFilename(self.h5fname))
         x = numpy.arange(self.ncols)
         y = numpy.arange(self.nrows)
         y.shape = (self.nrows, 1)
@@ -174,7 +179,7 @@ class ReadFloatTestCase(TestCase):
         dtype = "float16"
         if hasattr(numpy, dtype):
             ds = getattr(self.h5file.root, dtype)
-            self.assertFalse(isinstance(ds, UnImplemented))
+            self.assertFalse(isinstance(ds, tables.UnImplemented))
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
             self.assertEqual(ds.dtype, dtype)
             self.assertTrue(common.allequal(
@@ -182,12 +187,12 @@ class ReadFloatTestCase(TestCase):
         else:
             with self.assertWarns(UserWarning):
                 ds = getattr(self.h5file.root, dtype)
-            self.assertTrue(isinstance(ds, UnImplemented))
+            self.assertTrue(isinstance(ds, tables.UnImplemented))
 
     def test02_read_float32(self):
         dtype = "float32"
         ds = getattr(self.h5file.root, dtype)
-        self.assertFalse(isinstance(ds, UnImplemented))
+        self.assertFalse(isinstance(ds, tables.UnImplemented))
         self.assertEqual(ds.shape, (self.nrows, self.ncols))
         self.assertEqual(ds.dtype, dtype)
         self.assertTrue(common.allequal(
@@ -196,7 +201,7 @@ class ReadFloatTestCase(TestCase):
     def test03_read_float64(self):
         dtype = "float64"
         ds = getattr(self.h5file.root, dtype)
-        self.assertFalse(isinstance(ds, UnImplemented))
+        self.assertFalse(isinstance(ds, tables.UnImplemented))
         self.assertEqual(ds.shape, (self.nrows, self.ncols))
         self.assertEqual(ds.dtype, dtype)
         self.assertTrue(common.allequal(
@@ -204,17 +209,17 @@ class ReadFloatTestCase(TestCase):
 
     def test04_read_longdouble(self):
         dtype = "longdouble"
-        if "Float96Atom" in globals() or "Float128Atom" in globals():
+        if hasattr(tables, "Float96Atom") or hasattr(tables, "Float128Atom"):
             ds = getattr(self.h5file.root, dtype)
-            self.assertFalse(isinstance(ds, UnImplemented))
+            self.assertFalse(isinstance(ds, tables.UnImplemented))
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
             self.assertEqual(ds.dtype, dtype)
             self.assertTrue(common.allequal(
                 ds.read(), self.values.astype(dtype)))
 
-            if "Float96Atom" in globals():
+            if hasattr(tables, "Float96Atom"):
                 self.assertEqual(ds.dtype, "float96")
-            elif "Float128Atom" in globals():
+            elif hasattr(tables, "Float128Atom"):
                 self.assertEqual(ds.dtype, "float128")
         else:
             # XXX: check
@@ -222,7 +227,7 @@ class ReadFloatTestCase(TestCase):
             try:
                 with self.assertWarns(UserWarning):
                     ds = getattr(self.h5file.root, dtype)
-                self.assertTrue(isinstance(ds, UnImplemented))
+                self.assertTrue(isinstance(ds, tables.UnImplemented))
             except AssertionError:
                 from tables.utilsextension import _broken_hdf5_long_double
                 if not _broken_hdf5_long_double():
@@ -234,7 +239,7 @@ class ReadFloatTestCase(TestCase):
         try:
             with self.assertWarns(UserWarning):
                 ds = self.h5file.root.quadprecision
-            self.assertTrue(isinstance(ds, UnImplemented))
+            self.assertTrue(isinstance(ds, tables.UnImplemented))
         except AssertionError:
             # NOTE: it would be nice to have some sort of message that warns
             #       against the potential precision loss: the quad-precision

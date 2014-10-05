@@ -888,7 +888,8 @@ class Int32TestCase(BasicTestCase):
     step = 20
 
 
-@unittest.skipIf('Float16Atom' not in globals(), 'Float16Atom not available')
+@unittest.skipUnless(hasattr(tables, 'Float16Atom'),
+                     'Float16Atom not available')
 class Float16TestCase(BasicTestCase):
     type = "float16"
     shape = (200,)
@@ -922,7 +923,8 @@ class Float64TestCase(BasicTestCase):
     step = 20
 
 
-@unittest.skipIf('Float96Atom' not in globals(), 'Float96Atom not available')
+@unittest.skipUnless(hasattr(tables, 'Float96Atom'),
+                     'Float96Atom not available')
 class Float96TestCase(BasicTestCase):
     type = "float96"
     shape = (200,)
@@ -934,7 +936,8 @@ class Float96TestCase(BasicTestCase):
     step = 20
 
 
-@unittest.skipIf('Float128Atom' not in globals(), 'Float128Atom not available')
+@unittest.skipUnless(hasattr(tables, 'Float128Atom'),
+                     'Float128Atom not available')
 class Float128TestCase(BasicTestCase):
     type = "float128"
     shape = (200,)
@@ -968,8 +971,8 @@ class Complex128TestCase(BasicTestCase):
     step = 20
 
 
-@unittest.skipIf('Complex192Atom' not in globals(),
-                 'Complex192Atom not available')
+@unittest.skipUnless(hasattr(tables, 'Complex192Atom'),
+                     'Complex192Atom not available')
 class Complex192TestCase(BasicTestCase):
     type = "complex192"
     shape = (20,)
@@ -981,8 +984,8 @@ class Complex192TestCase(BasicTestCase):
     step = 20
 
 
-@unittest.skipIf('Complex256Atom' not in globals(),
-                 'Complex256Atom not available')
+@unittest.skipUnless(hasattr(tables, 'Complex256Atom'),
+                     'Complex256Atom not available')
 class Complex256TestCase(BasicTestCase):
     type = "complex256"
     shape = (20,)

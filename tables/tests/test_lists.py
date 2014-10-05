@@ -4,7 +4,7 @@ from __future__ import print_function
 import os
 import tempfile
 
-from tables import *
+import tables
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
@@ -16,7 +16,7 @@ def WriteRead(filename, testTuple):
         print("Running test for object %s" % type(testTuple))
 
     # Create an instance of HDF5 Table
-    fileh = open_file(filename, mode="w")
+    fileh = tables.open_file(filename, mode="w")
     root = fileh.root
     try:
         # Create the array under root and name 'somearray'
@@ -27,7 +27,7 @@ def WriteRead(filename, testTuple):
         fileh.close()
 
     # Re-open the file in read-only mode
-    fileh = open_file(filename, mode="r")
+    fileh = tables.open_file(filename, mode="r")
     root = fileh.root
 
     # Read the saved array
