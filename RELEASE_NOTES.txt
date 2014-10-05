@@ -38,6 +38,8 @@ Improvements
 - Allow negative indices in point selection (closes :issue:`360`)
 - Index wasn't being used if it claimed there were no results.
   Closes :issue:`351` (see also :issue:`353`)
+- Atoms and Col types are no longer generated dynamically so now it is easier
+  for IDEs and static analysis tool to handle them (closes :issue:`345 `)
 - Small unit tests re-factoring:
 
   * :func:`print_versions` and :func:`tests.common.print_heavy` functions

@@ -269,9 +269,46 @@ def _generate_col_classes():
         yield newclass
 
 # Create all column classes.
-for _newclass in _generate_col_classes():
-    exec('%s = _newclass' % _newclass.__name__)
-del _newclass
+#for _newclass in _generate_col_classes():
+#    exec('%s = _newclass' % _newclass.__name__)
+#del _newclass
+
+StringCol = Col._subclass_from_prefix('String')
+BoolCol = Col._subclass_from_prefix('Bool')
+EnumCol = Col._subclass_from_prefix('Enum')
+IntCol = Col._subclass_from_prefix('Int')
+Int8Col = Col._subclass_from_prefix('Int8')
+Int16Col = Col._subclass_from_prefix('Int16')
+Int32Col = Col._subclass_from_prefix('Int32')
+Int64Col = Col._subclass_from_prefix('Int64')
+UIntCol = Col._subclass_from_prefix('UInt')
+UInt8Col = Col._subclass_from_prefix('UInt8')
+UInt16Col = Col._subclass_from_prefix('UInt16')
+UInt32Col = Col._subclass_from_prefix('UInt32')
+UInt64Col = Col._subclass_from_prefix('UInt64')
+
+FloatCol = Col._subclass_from_prefix('Float')
+if hasattr(atom, 'Float16Atom'):
+    Float16Col = Col._subclass_from_prefix('Float16')
+Float32Col = Col._subclass_from_prefix('Float32')
+Float64Col = Col._subclass_from_prefix('Float64')
+if hasattr(atom, 'Float96Atom'):
+    Float96Col = Col._subclass_from_prefix('Float96')
+if hasattr(atom, 'Float128Atom'):
+    Float128Col = Col._subclass_from_prefix('Float128')
+
+ComplexCol = Col._subclass_from_prefix('Complex')
+Complex32Col = Col._subclass_from_prefix('Complex32')
+Complex64Col = Col._subclass_from_prefix('Complex64')
+Complex128Col = Col._subclass_from_prefix('Complex128')
+if hasattr(atom, 'Complex192Atom'):
+    Complex192Col = Col._subclass_from_prefix('Complex192')
+if hasattr(atom, 'Complex256Atom'):
+    Complex256Col = Col._subclass_from_prefix('Complex256')
+
+TimeCol = Col._subclass_from_prefix('Time')
+Time32Col = Col._subclass_from_prefix('Time32')
+Time64Col = Col._subclass_from_prefix('Time64')
 
 
 # Table description classes
