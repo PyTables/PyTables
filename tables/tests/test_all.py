@@ -16,6 +16,7 @@ from tables.tests.common import print_heavy, print_versions
 
 def get_tuple_version(hexversion):
     """Get a tuple from a compact version in hex."""
+
     h = hexversion
     return(h & 0xff0000) >> 16, (h & 0xff00) >> 8, h & 0xff
 

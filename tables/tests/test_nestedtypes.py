@@ -49,7 +49,6 @@ class Info(t.IsDescription):
 
 
 class TestTDescr(t.IsDescription):
-
     """A description that has several nested columns."""
 
     x = t.Int32Col(dflt=0, shape=2, pos=0)  # 0
@@ -176,7 +175,6 @@ def areDescriptionsEqual(desc1, desc2):
 
 # Test creating nested column descriptions
 class DescriptionTestCase(TestCase):
-
     _TestTDescr = TestTDescr
     _testADescr = testADescr
     _testADescr2 = testADescr2
@@ -202,7 +200,6 @@ class DescriptionTestCase(TestCase):
 
 # Test creating a nested table and opening it
 class CreateTestCase(common.TempFileMixin, TestCase):
-
     _TestTDescr = TestTDescr
     _testABuffer = testABuffer
     _testAData = testAData
@@ -300,7 +297,6 @@ class CreateTestCase(common.TempFileMixin, TestCase):
 
 # Test writing data in a nested table
 class WriteTestCase(common.TempFileMixin, TestCase):
-
     _TestTDescr = TestTDescr
     _testAData = testAData
     _testCondition = testCondition
@@ -535,7 +531,7 @@ class WriteTestCase(common.TempFileMixin, TestCase):
                         "Written and read values differ.")
 
     def test06_modifyRows(self):
-        "Checking modifying several rows at once (using nested rec array)"
+        """Checking modifying several rows at once (using nested rec array)"""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
@@ -604,7 +600,7 @@ class WriteTestCase(common.TempFileMixin, TestCase):
                          "Search returned incorrect results.")
 
     def test08_setNestedField(self):
-        "Checking modifying a nested field via natural naming."
+        """Checking modifying a nested field via natural naming."""
         # See ticket #93 (http://www.pytables.org/trac/ticket/93).
 
         tbl = self.h5file.create_table(
@@ -633,7 +629,6 @@ class WriteReopen(WriteTestCase):
 
 
 class ReadTestCase(common.TempFileMixin, TestCase):
-
     _TestTDescr = TestTDescr
     _testABuffer = testABuffer
     _testAData = testAData
@@ -862,7 +857,6 @@ class ReadReopen(ReadTestCase):
 
 # Checking the Table.Cols accessor
 class ColsTestCase(common.TempFileMixin, TestCase):
-
     _TestTDescr = TestTDescr
     _testABuffer = testABuffer
     _testAData = testAData
@@ -1256,7 +1250,6 @@ F_Candidate = {
 
 
 class SameNestedTestCase(common.TempFileMixin, TestCase):
-
     correct_names = [
         '',  # The root of columns
         'nested1', 'nested1/uid', 'nested1/value',
@@ -1483,7 +1476,8 @@ class SameNestedReopen(SameNestedTestCase):
     reopen = 1
 
 
-class NestedTypesWithGaps(TestCase):
+class NestedTypesWithGaps(common.TestFileMixin, TestCase):
+    h5fname = TestCase._testFilename('nested-type-with-gaps.h5')
 
     correct_descr = """{
   "float": Float32Col(shape=(), dflt=0.0, pos=0),
@@ -1494,8 +1488,7 @@ class NestedTypesWithGaps(TestCase):
     def test01(self):
         """Opening a table with nested types with gaps."""
 
-        h5file = t.open_file(self._testFilename('nested-type-with-gaps.h5'))
-        tbl = h5file.get_node('/nestedtype')
+        tbl = self.h5file.get_node('/nestedtype')
         type_descr = repr(tbl.description)
         if common.verbose:
             print("Type size with no gaps:", tbl.description._v_itemsize)
@@ -1509,10 +1502,7 @@ class NestedTypesWithGaps(TestCase):
         if common.verbose:
             print("Great!  Nested types with gaps recognized correctly.")
 
-        h5file.close()
 
-
-#----------------------------------------------------------------------
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 

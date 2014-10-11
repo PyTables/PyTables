@@ -3,9 +3,7 @@
 """This test unit checks node attributes that are persistent (AttributeSet)."""
 
 from __future__ import print_function
-import os
 import sys
-import tempfile
 from distutils.version import LooseVersion
 
 import numpy
@@ -29,15 +27,9 @@ class Record(IsDescription):
     var5 = Float32Col()           # float  (single-precision)
 
 
-class CreateTestCase(TestCase):
-
+class CreateTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
         super(CreateTestCase, self).setUp()
-
-        # Create an instance of HDF5 Table
-        self.h5fname = tempfile.mktemp(".h5")
-        self.h5file = tables.open_file(
-            self.h5fname, mode="w", node_cache_slots=self.node_cache_slots)
         self.root = self.h5file.root
 
         # Create a table object
@@ -49,13 +41,6 @@ class CreateTestCase(TestCase):
         # Create a group object
         self.group = self.h5file.create_group(self.root, 'agroup',
                                               "Group title")
-
-    def tearDown(self):
-        self.h5file.close()
-        os.remove(self.h5fname)
-        super(CreateTestCase, self).tearDown()
-
-#---------------------------------------
 
     def test01_setAttributes(self):
         """Checking setting large string attributes (File methods)"""
@@ -73,10 +58,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         self.assertEqual(self.h5file.get_node_attr(self.root.agroup, 'attr1'),
@@ -101,10 +83,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         self.assertEqual(self.root.agroup._f_getattr(
@@ -126,10 +105,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         # This should work even when the node cache is disabled
@@ -164,10 +140,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         agroup = self.root.agroup
@@ -221,10 +194,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         agroup = self.root.agroup
@@ -263,10 +233,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         agroup = self.root.agroup
@@ -319,10 +286,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         agroup = self.root.agroup
@@ -368,10 +332,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         agroup = self.root.agroup
@@ -400,10 +361,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         atable = self.root.atable
@@ -438,10 +396,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         atable = self.root.atable
@@ -475,10 +430,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         agroup2 = self.root.agroup2
@@ -500,10 +452,7 @@ class CreateTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+",
-                node_cache_slots=self.node_cache_slots)
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
         atable2 = self.root.atable2
@@ -569,31 +518,37 @@ class CreateTestCase(TestCase):
 class NotCloseCreate(CreateTestCase):
     close = False
     node_cache_slots = NODE_CACHE_SLOTS
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class CloseCreate(CreateTestCase):
     close = True
     node_cache_slots = NODE_CACHE_SLOTS
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class NoCacheNotCloseCreate(CreateTestCase):
     close = False
     node_cache_slots = 0
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class NoCacheCloseCreate(CreateTestCase):
     close = True
     node_cache_slots = 0
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class DictCacheNotCloseCreate(CreateTestCase):
     close = False
     node_cache_slots = -NODE_CACHE_SLOTS
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class DictCacheCloseCreate(CreateTestCase):
     close = True
     node_cache_slots = -NODE_CACHE_SLOTS
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class TypesTestCase(common.TempFileMixin, TestCase):
@@ -608,8 +563,6 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         # Create a group object
         self.group = self.h5file.create_group(self.root, 'agroup',
                                               "Group title")
-
-#---------------------------------------
 
     def test00a_setBoolAttributes(self):
         """Checking setting Bool attributes (scalar, Python case)"""
@@ -627,8 +580,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -652,8 +604,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -680,8 +631,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -705,8 +655,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -731,8 +680,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -762,8 +710,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -785,8 +732,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -812,8 +758,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -838,8 +783,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -868,8 +812,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -898,8 +841,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -926,8 +868,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -954,8 +895,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -981,8 +921,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1008,8 +947,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1033,8 +971,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1057,13 +994,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.root.anarray.attrs.pq,
-                           numpy.array(['foo']))
+        assert_array_equal(self.root.anarray.attrs.pq, numpy.array(['foo']))
 
     def test04c_setStringAttributes(self):
         """Checking setting string attributes (empty unidimensional
@@ -1078,8 +1013,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
             if common.verbose:
@@ -1100,8 +1034,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1121,13 +1054,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.root.anarray.attrs.pq,
-                           numpy.array(['', '']))
+        assert_array_equal(self.root.anarray.attrs.pq, numpy.array(['', '']))
 
     def test04f_setStringAttributes(self):
         """Checking setting string attributes (bidimensional 4-elem case)"""
@@ -1142,8 +1073,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1168,8 +1098,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1198,8 +1127,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1226,8 +1154,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1253,8 +1180,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1283,8 +1209,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1307,8 +1232,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1331,8 +1255,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
             if common.verbose:
@@ -1353,8 +1276,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1374,8 +1296,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1395,8 +1316,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1422,8 +1342,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1453,8 +1372,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1470,6 +1388,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         # Build a nested dtype
         dt = numpy.dtype([('f1', [('f1', 'i2', (2,)), ('f2', 'f8')])])
+
         # Set some attrs
         self.array.attrs.pq = numpy.zeros(2, dt)
         self.array.attrs.qr = numpy.ones((2, 2), dt)
@@ -1484,8 +1403,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
@@ -1506,14 +1424,11 @@ class CloseTypesTestCase(TypesTestCase):
     close = 1
 
 
-class NoSysAttrsTestCase(TestCase):
+class NoSysAttrsTestCase(common.TempFileMixin, TestCase):
+    open_kwargs = dict(pytables_sys_attrs=False)
 
     def setUp(self):
         super(NoSysAttrsTestCase, self).setUp()
-        # Create an instance of HDF5 Table
-        self.h5fname = tempfile.mktemp(".h5")
-        self.h5file = tables.open_file(
-            self.h5fname, mode="w", pytables_sys_attrs=False)
         self.root = self.h5file.root
 
         # Create a table object
@@ -1525,11 +1440,6 @@ class NoSysAttrsTestCase(TestCase):
         # Create a group object
         self.group = self.h5file.create_group(self.root, 'agroup',
                                               "Group title")
-
-    def tearDown(self):
-        self.h5file.close()
-        os.remove(self.h5fname)
-        super(NoSysAttrsTestCase, self).tearDown()
 
     def test00_listAttributes(self):
         """Checking listing attributes (no system attrs version)."""
@@ -1558,9 +1468,7 @@ class NoSysAttrsTestCase(TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.h5file.close()
-            self.h5file = tables.open_file(
-                self.h5fname, mode="r+")
+            self._reopen(mode='r+')
             self.root = self.h5file.root
 
         agroup = self.root.agroup
@@ -1587,15 +1495,8 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
     close = True
 
 
-class CompatibilityTestCase(TestCase):
-    def setUp(self):
-        super(CompatibilityTestCase, self).setUp()
-        self.h5fname = self._testFilename('issue_368.h5')
-        self.h5file = tables.open_file(self.h5fname)
-
-    def tearDown(self):
-        self.h5file.close()
-        super(CompatibilityTestCase, self).tearDown()
+class CompatibilityTestCase(common.TestFileMixin, TestCase):
+    h5fname = TestCase._testFilename('issue_368.h5')
 
     @unittest.skipIf(LooseVersion(numpy.__version__) < '1.9.0',
                      'requires numpy >= 1.9')
@@ -1698,16 +1599,8 @@ class VlenStrAttrTestCase(TestCase):
                 self.assertEqual(item, value.encode('ascii'))
 
 
-class UnsupportedAttrTypeTestCase(TestCase):
-
-    def setUp(self):
-        super(UnsupportedAttrTypeTestCase, self).setUp()
-        self.h5fname = self._testFilename('attr-u16.h5')
-        self.h5file = tables.open_file(self.h5fname)
-
-    def tearDown(self):
-        self.h5file.close()
-        super(UnsupportedAttrTypeTestCase, self).tearDown()
+class UnsupportedAttrTypeTestCase(common.TestFileMixin, TestCase):
+    h5fname = TestCase._testFilename('attr-u16.h5')
 
     def test00_unsupportedType(self):
         """Checking file with unsupported type."""
@@ -1719,14 +1612,16 @@ class UnsupportedAttrTypeTestCase(TestCase):
 class SpecificAttrsTestCase(common.TempFileMixin, TestCase):
 
     def test00_earray(self):
-        "Testing EArray specific attrs (create)."
+        """Testing EArray specific attrs (create)."""
+
         ea = self.h5file.create_earray('/', 'ea', Int32Atom(), (2, 0, 4))
         if common.verbose:
             print("EXTDIM-->", ea.attrs.EXTDIM)
         self.assertEqual(ea.attrs.EXTDIM, 1)
 
     def test01_earray(self):
-        "Testing EArray specific attrs (open)."
+        """Testing EArray specific attrs (open)."""
+
         ea = self.h5file.create_earray('/', 'ea', Int32Atom(), (0, 1, 4))
         self._reopen('r')
         ea = self.h5file.root.ea
@@ -1750,7 +1645,6 @@ class SpecificAttrsTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.root._v_title, title)
 
 
-#----------------------------------------------------------------------
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1

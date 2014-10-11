@@ -373,9 +373,29 @@ class PyTablesTestCase(unittest.TestCase):
             "node1 and node2 does not have the same values.")
 
 
+class TestFileMixin(object):
+    h5fname = None
+    open_kwargs = {}
+
+    def setUp(self):
+        super(TestFileMixin, self).setUp()
+        #self.h5fname = self._testFilename(self.testfname)
+        self.h5file = tables.open_file(
+            self.h5fname, title=self._getName(), **self.open_kwargs)
+
+    def tearDown(self):
+        """Close ``h5file``."""
+
+        self.h5file.close()
+        super(TestFileMixin, self).tearDown()
+
+
 class TempFileMixin(object):
     open_mode = 'w'
     open_kwargs = {}
+
+    def _getTempFileName(self):
+        return tempfile.mktemp(prefix=self._getName(), suffix='.h5')
 
     def setUp(self):
         """Set ``h5file`` and ``h5fname`` instance attributes.
@@ -386,7 +406,7 @@ class TempFileMixin(object):
         """
 
         super(TempFileMixin, self).setUp()
-        self.h5fname = tempfile.mktemp(suffix='.h5')
+        self.h5fname = self._getTempFileName()
         self.h5file = tables.open_file(
             self.h5fname, self.open_mode, title=self._getName(),
             **self.open_kwargs)
@@ -399,7 +419,7 @@ class TempFileMixin(object):
         os.remove(self.h5fname)   # comment this for debugging purposes only
         super(TempFileMixin, self).tearDown()
 
-    def _reopen(self, mode='r'):
+    def _reopen(self, mode='r', **kwargs):
         """Reopen ``h5file`` in the specified ``mode``.
 
         Returns a true or false value depending on whether the file was
@@ -408,7 +428,7 @@ class TempFileMixin(object):
         """
 
         self.h5file.close()
-        self.h5file = tables.open_file(self.h5fname, mode)
+        self.h5file = tables.open_file(self.h5fname, mode, **kwargs)
         return True
 
 

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import sys
 import warnings
 
 import tables
@@ -58,19 +57,24 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray', [3, 4], "Another array")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that otherarray does not exist in the object tree
         self.assertTrue("/otherarray" not in self.h5file)
         self.assertEqual(self.h5file._curaction, 0)
         self.assertEqual(self.h5file._curmark, 0)
+
         # Redo the operation
         self._do_reopen()
         self.h5file.redo()
         if common.verbose:
             print("Object tree after redo:", self.h5file)
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/otherarray" in self.h5file)
         self.assertEqual(self.h5file.root.otherarray.read(), [3, 4])
@@ -87,9 +91,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray', [3, 4], "Another array")
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Now undo the past operations
         self._do_reopen()
         self.h5file.undo()
@@ -97,8 +103,10 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray2" not in self.h5file)
         self.assertEqual(self.h5file._curaction, 0)
         self.assertEqual(self.h5file._curmark, 0)
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/otherarray" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
@@ -118,26 +126,31 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray', [3, 4], "Another array")
+
         # Put a mark
         self._do_reopen()
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
         self.assertEqual(self.h5file._curaction, 3)
         self.assertEqual(self.h5file._curmark, 1)
+
         # Unwind just one mark
         self.h5file.undo()
         self.assertTrue("/otherarray" in self.h5file)
         self.assertTrue("/otherarray2" not in self.h5file)
         self.assertEqual(self.h5file._curaction, 2)
         self.assertEqual(self.h5file._curmark, 1)
+
         # Unwind another mark
         self.h5file.undo()
         self.assertEqual(self.h5file._curaction, 0)
         self.assertEqual(self.h5file._curmark, 0)
         self.assertTrue("/otherarray" not in self.h5file)
         self.assertTrue("/otherarray2" not in self.h5file)
+
         # Redo until the next mark
         self.h5file.redo()
         self.assertTrue("/otherarray" in self.h5file)
@@ -145,6 +158,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self._do_reopen()
         self.assertEqual(self.h5file._curaction, 2)
         self.assertEqual(self.h5file._curmark, 1)
+
         # Redo until the end
         self.h5file.redo()
         self.assertTrue("/otherarray" in self.h5file)
@@ -166,18 +180,22 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Put a mark
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
+
         # Put a mark
         self._do_reopen()
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray5', [7, 8], "Another array 5")
         self.h5file.create_array('/', 'otherarray6', [8, 9], "Another array 6")
+
         # Unwind just one mark
         self.h5file.undo()
         self.assertTrue("/otherarray1" in self.h5file)
@@ -186,6 +204,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray4" in self.h5file)
         self.assertTrue("/otherarray5" not in self.h5file)
         self.assertTrue("/otherarray6" not in self.h5file)
+
         # Unwind another mark
         self.h5file.undo()
         self.assertTrue("/otherarray1" in self.h5file)
@@ -194,6 +213,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray4" not in self.h5file)
         self.assertTrue("/otherarray5" not in self.h5file)
         self.assertTrue("/otherarray6" not in self.h5file)
+
         # Unwind all marks
         self.h5file.undo()
         self.assertTrue("/otherarray1" not in self.h5file)
@@ -202,6 +222,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray4" not in self.h5file)
         self.assertTrue("/otherarray5" not in self.h5file)
         self.assertTrue("/otherarray6" not in self.h5file)
+
         # Redo until the next mark
         self._do_reopen()
         self.h5file.redo()
@@ -211,6 +232,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray4" not in self.h5file)
         self.assertTrue("/otherarray5" not in self.h5file)
         self.assertTrue("/otherarray6" not in self.h5file)
+
         # Redo until the next mark
         self.h5file.redo()
         self.assertTrue("/otherarray1" in self.h5file)
@@ -219,6 +241,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray4" in self.h5file)
         self.assertTrue("/otherarray5" not in self.h5file)
         self.assertTrue("/otherarray6" not in self.h5file)
+
         # Redo until the end
         self.h5file.redo()
         self.assertTrue("/otherarray1" in self.h5file)
@@ -251,20 +274,24 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Put a mark
         self.h5file.mark()
         self._do_reopen()
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
+
         # Unwind the previous mark
         self.h5file.undo()
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertTrue("/otherarray3" not in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Put a mark in the middle of stack
         if common.verbose:
             print("All nodes:", self.h5file.walk_nodes())
@@ -278,6 +305,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray4" not in self.h5file)
         self.assertTrue("/otherarray5" in self.h5file)
         self.assertTrue("/otherarray6" in self.h5file)
+
         # Unwind previous mark
         self.h5file.undo()
         self.assertTrue("/otherarray1" in self.h5file)
@@ -286,6 +314,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray4" not in self.h5file)
         self.assertTrue("/otherarray5" not in self.h5file)
         self.assertTrue("/otherarray6" not in self.h5file)
+
         # Redo until the last mark
         self.h5file.redo()
         self.assertTrue("/otherarray1" in self.h5file)
@@ -294,6 +323,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray4" not in self.h5file)
         self.assertTrue("/otherarray5" in self.h5file)
         self.assertTrue("/otherarray6" in self.h5file)
+
         # Redo until the next mark (non-existent, so no action)
         self._do_reopen()
         self.h5file.redo()
@@ -321,17 +351,22 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
+
         # Put a mark
         self.h5file.mark()
         self._do_reopen()
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Do the destructive operation
         self._do_reopen()
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
+
         # Check objects
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
@@ -351,23 +386,30 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
+
         # Put a mark
         self._do_reopen()
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Do the destructive operation
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
+
         # Put a mark
         self._do_reopen()
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
         self.assertTrue("/otherarray4" in self.h5file)
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check objects
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
@@ -388,25 +430,32 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
+
         # Put a mark
         self.h5file.mark()
         self._do_reopen()
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Do the destructive operation
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
+
         # Put a mark
         self.h5file.mark()
         self._do_reopen()
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
         self.assertTrue("/otherarray4" in self.h5file)
+
         # Now unwind twice
         self.h5file.undo()
         self._do_reopen()
         self.h5file.undo()
+
         # Check objects
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" not in self.h5file)
@@ -423,23 +472,30 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
+
         # Put a mark
         self._do_reopen()
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Do the destructive operation
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
+
         # Put a mark
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
         self.assertTrue("/otherarray4" in self.h5file)
+
         # Now, go to the first mark
         self._do_reopen()
         self.h5file.undo(0)
+
         # Check objects
         self.assertTrue("/otherarray1" not in self.h5file)
         self.assertTrue("/otherarray2" not in self.h5file)
@@ -456,26 +512,32 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
+
         # Put a mark
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Now undo the past operation
         self.h5file.undo()
         self._do_reopen()
+
         # Do the destructive operation
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
+
         # Now, unwind the actions
         self.h5file.undo(0)
         self._do_reopen()
+
         # Check objects
         self.assertTrue("/otherarray1" not in self.h5file)
         self.assertTrue("/otherarray2" not in self.h5file)
         self.assertTrue("/otherarray3" not in self.h5file)
 
     def test05f_destructive(self):
-        "Checking with a destructive creation of existing node during undo"
+        """Checking with a destructive creation of existing node during undo"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -505,10 +567,12 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray', [3, 4], "Another array")
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Now undo the past operations
         self._do_reopen()
         self.h5file.undo(0)
@@ -524,15 +588,19 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray', [3, 4], "Another array")
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Now undo the past operations
         self.h5file.undo(0)
+
         # Redo all the operations
         self._do_reopen()
         self.h5file.redo(-1)
+
         # Check that objects has come back to life in a sane state
         self.assertTrue("/otherarray" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
@@ -550,6 +618,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
         self.h5file.mark("first")
@@ -558,6 +627,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
         self.h5file.mark("third")
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
+
         # Now go to mark "first"
         self.h5file.undo("first")
         self._do_reopen()
@@ -565,18 +635,21 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray2" not in self.h5file)
         self.assertTrue("/otherarray3" not in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Go to mark "third"
         self.h5file.redo("third")
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertTrue("/otherarray3" in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Now go to mark "second"
         self.h5file.undo("second")
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertTrue("/otherarray3" not in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Go to the end
         self._do_reopen()
         self.h5file.redo(-1)
@@ -584,6 +657,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertTrue("/otherarray3" in self.h5file)
         self.assertTrue("/otherarray4" in self.h5file)
+
         # Check that objects has come back to life in a sane state
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray2.read(), [4, 5])
@@ -600,18 +674,22 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # open the do/undo
         self.h5file.enable_undo()
         initmid = self.h5file.get_current_mark()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray', [3, 4], "Another array")
         self.h5file.mark()
         self._do_reopen()
         self.h5file.create_array('/', 'otherarray2', [4, 5], "Another array 2")
+
         # Now undo the past operations
         self.h5file.undo(initmid)
         self.assertTrue("/otherarray" not in self.h5file)
         self.assertTrue("/otherarray2" not in self.h5file)
+
         # Redo all the operations
         self.h5file.redo(-1)
         self._do_reopen()
+
         # Check that objects has come back to life in a sane state
         self.assertTrue("/otherarray" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
@@ -629,6 +707,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
         self.h5file.mark("first")
@@ -638,31 +717,22 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
         self.h5file.mark("third")
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
+
         # Now go to mark "first"
         self.h5file.undo("first")
+
         # Try to undo up to mark "third"
-        try:
+        with self.assertRaises(tables.UndoRedoError):
             self.h5file.undo("third")
-        except tables.UndoRedoError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next UndoRedoError was catched!")
-                print(value)
-        else:
-            self.fail("expected an UndoRedoError")
+
         # Now go to mark "third"
         self.h5file.redo("third")
         self._do_reopen()
+
         # Try to redo up to mark "second"
-        try:
+        with self.assertRaises(tables.UndoRedoError):
             self.h5file.redo("second")
-        except tables.UndoRedoError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next UndoRedoError was catched!")
-                print(value)
-        else:
-            self.fail("expected an UndoRedoError")
+
         # Final checks
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
@@ -678,6 +748,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
         self._do_reopen()
@@ -688,18 +759,21 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self._do_reopen()
         self.h5file.mark("third")
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
+
         # Now go to mark "first"
         self.h5file.goto("first")
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" not in self.h5file)
         self.assertTrue("/otherarray3" not in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Go to mark "third"
         self.h5file.goto("third")
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertTrue("/otherarray3" in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Now go to mark "second"
         self._do_reopen()
         self.h5file.goto("second")
@@ -707,12 +781,14 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertTrue("/otherarray3" not in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Go to the end
         self.h5file.goto(-1)
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertTrue("/otherarray3" in self.h5file)
         self.assertTrue("/otherarray4" in self.h5file)
+
         # Check that objects has come back to life in a sane state
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
@@ -729,6 +805,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [3, 4], "Another array 1")
         self.h5file.mark("first")
@@ -738,6 +815,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
         self.h5file.mark("third")
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
+
         # Now go to mark "first"
         self.h5file.goto(1)
         self._do_reopen()
@@ -745,12 +823,14 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray2" not in self.h5file)
         self.assertTrue("/otherarray3" not in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Go to beginning
         self.h5file.goto(0)
         self.assertTrue("/otherarray1" not in self.h5file)
         self.assertTrue("/otherarray2" not in self.h5file)
         self.assertTrue("/otherarray3" not in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Go to mark "third"
         self._do_reopen()
         self.h5file.goto(3)
@@ -758,12 +838,14 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertTrue("/otherarray3" in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Now go to mark "second"
         self.h5file.goto(2)
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertTrue("/otherarray3" not in self.h5file)
         self.assertTrue("/otherarray4" not in self.h5file)
+
         # Go to the end
         self._do_reopen()
         self.h5file.goto(-1)
@@ -771,6 +853,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertTrue("/otherarray3" in self.h5file)
         self.assertTrue("/otherarray4" in self.h5file)
+
         # Check that objects has come back to life in a sane state
         self.assertTrue("/otherarray2" in self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
@@ -779,7 +862,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.root.otherarray4.read(), [6, 7])
 
     def test11_contiguous(self):
-        "Creating contiguous marks"
+        """Creating contiguous marks"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -805,7 +888,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.get_current_mark(), 0)
 
     def test12_keepMark(self):
-        "Ensuring the mark is kept after an UNDO operation"
+        """Ensuring the mark is kept after an UNDO operation"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -818,13 +901,15 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(mid is not None)
         self._do_reopen()
         self.h5file.undo()
+
         # We should have moved to the initial mark.
         self.assertEqual(self.h5file.get_current_mark(), 0)
+
         # So /newarray1 should not be there.
         self.assertTrue('/newarray1' not in self.h5file)
 
     def test13_severalEnableDisable(self):
-        "Checking that successive enable/disable Undo works"
+        """Checking that successive enable/disable Undo works"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -835,12 +920,16 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.create_array('/', 'newarray1', [1])
         self.h5file.undo()
         self._do_reopen()
+
         # We should have moved to 'mid' mark, not the initial mark.
         self.assertEqual(self.h5file.get_current_mark(), 0)
+
         # So /newarray1 should still be there.
         self.assertTrue('/newarray1' not in self.h5file)
+
         # Close this do/undo session
         self.h5file.disable_undo()
+
         # Do something
         self.h5file.create_array('/', 'newarray2', [1])
 
@@ -880,6 +969,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue('/newarray2' in self.h5file)
         self.assertTrue('/newarray3' in self.h5file)
         self.assertTrue('/newarray4' not in self.h5file)
+
         # Close this do/undo session
         self.h5file.disable_undo()
 
@@ -927,14 +1017,19 @@ class CreateArrayTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [1, 2], "Another array 1")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that otherarray does not exist in the object tree
         self.assertTrue("/otherarray1" not in self.h5file)
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.title, "Another array 1")
@@ -949,16 +1044,21 @@ class CreateArrayTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [1, 2], "Another array 1")
         self.h5file.create_array('/', 'otherarray2', [2, 3], "Another array 2")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that otherarray does not exist in the object tree
         self.assertTrue("/otherarray1" not in self.h5file)
         self.assertTrue("/otherarray2" not in self.h5file)
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
@@ -976,18 +1076,23 @@ class CreateArrayTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [1, 2], "Another array 1")
         self.h5file.create_array('/', 'otherarray2', [2, 3], "Another array 2")
         self.h5file.create_array('/', 'otherarray3', [3, 4], "Another array 3")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that otherarray does not exist in the object tree
         self.assertTrue("/otherarray1" not in self.h5file)
         self.assertTrue("/otherarray2" not in self.h5file)
         self.assertTrue("/otherarray3" not in self.h5file)
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/otherarray2" in self.h5file)
@@ -1008,20 +1113,25 @@ class CreateArrayTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.create_array('/', 'otherarray1', [1, 2], "Another array 1")
         self.h5file.create_array('/agroup', 'otherarray2',
                                  [2, 3], "Another array 2")
         self.h5file.create_array('/agroup/agroup3', 'otherarray3',
                                  [3, 4], "Another array 3")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that otherarray does not exist in the object tree
         self.assertTrue("/otherarray1" not in self.h5file)
         self.assertTrue("/agroup/otherarray2" not in self.h5file)
         self.assertTrue("/agroup/agroup3/otherarray3" not in self.h5file)
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/otherarray1" in self.h5file)
         self.assertTrue("/agroup/otherarray2" in self.h5file)
@@ -1074,14 +1184,19 @@ class CreateGroupTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new group
         self.h5file.create_group('/', 'othergroup1', "Another group 1")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that othergroup1 does not exist in the object tree
         self.assertTrue("/othergroup1" not in self.h5file)
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that othergroup1 has come back to life in a sane state
         self.assertTrue("/othergroup1" in self.h5file)
         self.assertEqual(self.h5file.root.othergroup1._v_title,
@@ -1096,16 +1211,21 @@ class CreateGroupTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new group
         self.h5file.create_group('/', 'othergroup1', "Another group 1")
         self.h5file.create_group('/', 'othergroup2', "Another group 2")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that othergroup does not exist in the object tree
         self.assertTrue("/othergroup1" not in self.h5file)
         self.assertTrue("/othergroup2" not in self.h5file)
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that othergroup* has come back to life in a sane state
         self.assertTrue("/othergroup1" in self.h5file)
         self.assertTrue("/othergroup2" in self.h5file)
@@ -1123,18 +1243,23 @@ class CreateGroupTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new group
         self.h5file.create_group('/', 'othergroup1', "Another group 1")
         self.h5file.create_group('/', 'othergroup2', "Another group 2")
         self.h5file.create_group('/', 'othergroup3', "Another group 3")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that othergroup* does not exist in the object tree
         self.assertTrue("/othergroup1" not in self.h5file)
         self.assertTrue("/othergroup2" not in self.h5file)
         self.assertTrue("/othergroup3" not in self.h5file)
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that othergroup* has come back to life in a sane state
         self.assertTrue("/othergroup1" in self.h5file)
         self.assertTrue("/othergroup2" in self.h5file)
@@ -1155,21 +1280,26 @@ class CreateGroupTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new group
         self.h5file.create_group('/', 'othergroup1', "Another group 1")
         self.h5file.create_group(
             '/othergroup1', 'othergroup2', "Another group 2")
         self.h5file.create_group(
             '/othergroup1/othergroup2', 'othergroup3', "Another group 3")
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that othergroup* does not exist in the object tree
         self.assertTrue("/othergroup1" not in self.h5file)
         self.assertTrue("/othergroup1/othergroup2" not in self.h5file)
         self.assertTrue(
             "/othergroup1/othergroup2/othergroup3" not in self.h5file)
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that othergroup* has come back to life in a sane state
         self.assertTrue("/othergroup1" in self.h5file)
         self.assertTrue("/othergroup1/othergroup2" in self.h5file)
@@ -1200,6 +1330,7 @@ def populateTable(where, name):
                                        None, nrows)
     for i in range(nrows):
         table.row['var1'] = str(i)
+
         # table.row['var2'] = i > 2
         table.row['var2'] = i % 2
         table.row['var3'] = i
@@ -1211,6 +1342,7 @@ def populateTable(where, name):
     indexrows = table.cols.var1.create_index()
     indexrows = table.cols.var2.create_index()
     indexrows = table.cols.var3.create_index()
+
     # Do not index the var4 column
     # indexrows = table.cols.var4.create_index()
     if common.verbose:
@@ -1259,16 +1391,21 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.rename_node('/agroup2', 'agroup3')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that it does not exist in the object tree
         self.assertTrue("/agroup2" in self.h5file)
         self.assertTrue("/agroup3" not in self.h5file)
         self.assertEqual(self.h5file.root.agroup2._v_title, "Group title 2")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/agroup2" not in self.h5file)
         self.assertTrue("/agroup3" in self.h5file)
@@ -1283,24 +1420,31 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.rename_node('/agroup', 'agroup3')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that it does not exist in the object tree
         self.assertTrue("/agroup" in self.h5file)
         self.assertTrue("/agroup3" not in self.h5file)
+
         # Check that children are reachable
         self.assertTrue("/agroup/anarray1" in self.h5file)
         self.assertTrue("/agroup/anarray2" in self.h5file)
         self.assertTrue("/agroup/agroup3" in self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/agroup" not in self.h5file)
         self.assertTrue("/agroup3" in self.h5file)
         self.assertEqual(self.h5file.root.agroup3._v_title, "Group title")
+
         # Check that children are reachable
         self.assertTrue("/agroup3/anarray1" in self.h5file)
         self.assertTrue("/agroup3/anarray2" in self.h5file)
@@ -1315,25 +1459,32 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.rename_node('/agroup', 'agroup3')
         self.h5file.rename_node('/agroup3', 'agroup4')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that it does not exist in the object tree
         self.assertTrue("/agroup" in self.h5file)
         self.assertTrue("/agroup4" not in self.h5file)
+
         # Check that children are reachable
         self.assertTrue("/agroup/anarray1" in self.h5file)
         self.assertTrue("/agroup/anarray2" in self.h5file)
         self.assertTrue("/agroup/agroup3" in self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/agroup" not in self.h5file)
         self.assertTrue("/agroup4" in self.h5file)
         self.assertEqual(self.h5file.root.agroup4._v_title, "Group title")
+
         # Check that children are reachable
         self.assertTrue("/agroup4/anarray1" in self.h5file)
         self.assertTrue("/agroup4/anarray2" in self.h5file)
@@ -1348,16 +1499,21 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.rename_node('/anarray', 'anarray2')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that otherarray does not exist in the object tree
         self.assertTrue("/anarray" in self.h5file)
         self.assertTrue("/anarray2" not in self.h5file)
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/anarray" not in self.h5file)
         self.assertTrue("/anarray2" in self.h5file)
@@ -1372,10 +1528,13 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.rename_node('/table', 'table2')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that table2 does not exist in the object tree
         self.assertTrue("/table" in self.h5file)
         table = self.h5file.root.table
@@ -1388,8 +1547,10 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
         self.assertTrue("/table2" not in self.h5file)
         self.assertEqual(self.h5file.root.table.title, "Indexed")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that table2 has come back to life in a sane state
         self.assertTrue("/table" not in self.h5file)
         self.assertTrue("/table2" in self.h5file)
@@ -1444,16 +1605,21 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.move_node('/anarray', '/agroup/agroup3')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that it does not exist in the object tree
         self.assertTrue("/anarray" in self.h5file)
         self.assertTrue("/agroup/agroup3/anarray" not in self.h5file)
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/anarray" not in self.h5file)
         self.assertTrue("/agroup/agroup3/anarray" in self.h5file)
@@ -1469,25 +1635,32 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.move_node('/agroup', '/agroup2', 'agroup3')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that it does not exist in the object tree
         self.assertTrue("/agroup" in self.h5file)
         self.assertTrue("/agroup2/agroup3" not in self.h5file)
+
         # Check that children are reachable
         self.assertTrue("/agroup/anarray1" in self.h5file)
         self.assertTrue("/agroup/anarray2" in self.h5file)
         self.assertTrue("/agroup/agroup3" in self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/agroup" not in self.h5file)
         self.assertTrue("/agroup2/agroup3" in self.h5file)
         self.assertEqual(self.h5file.root.agroup2.agroup3._v_title,
                          "Group title")
+
         # Check that children are reachable
         self.assertTrue("/agroup2/agroup3/anarray1" in self.h5file)
         self.assertTrue("/agroup2/agroup3/anarray2" in self.h5file)
@@ -1502,26 +1675,33 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.move_node('/agroup', '/', 'agroup3')
         self.h5file.move_node('/agroup3', '/agroup2', 'agroup4')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that it does not exist in the object tree
         self.assertTrue("/agroup" in self.h5file)
         self.assertTrue("/agroup2/agroup4" not in self.h5file)
+
         # Check that children are reachable
         self.assertTrue("/agroup/anarray1" in self.h5file)
         self.assertTrue("/agroup/anarray2" in self.h5file)
         self.assertTrue("/agroup/agroup3" in self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/agroup" not in self.h5file)
         self.assertTrue("/agroup2/agroup4" in self.h5file)
         self.assertEqual(self.h5file.root.agroup2.agroup4._v_title,
                          "Group title")
+
         # Check that children are reachable
         self.assertTrue("/agroup2/agroup4/anarray1" in self.h5file)
         self.assertTrue("/agroup2/agroup4/anarray2" in self.h5file)
@@ -1536,16 +1716,21 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.move_node('/anarray', '/agroup2', 'anarray2')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that otherarray does not exist in the object tree
         self.assertTrue("/anarray" in self.h5file)
         self.assertTrue("/agroup2/anarray2" not in self.h5file)
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that otherarray has come back to life in a sane state
         self.assertTrue("/anarray" not in self.h5file)
         self.assertTrue("/agroup2/anarray2" in self.h5file)
@@ -1561,10 +1746,13 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.move_node('/table', '/agroup2', 'table2')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that table2 does not exist in the object tree
         self.assertTrue("/table" in self.h5file)
         self.assertTrue("/agroup2/table2" not in self.h5file)
@@ -1577,8 +1765,10 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
         self.assertEqual(self.h5file.root.table.title, "Indexed")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that table2 has come back to life in a sane state
         self.assertTrue("/table" not in self.h5file)
         self.assertTrue("/agroup2/table2" in self.h5file)
@@ -1633,15 +1823,20 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Delete an existing array
         self.h5file.remove_node('/anarray')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that it does exist in the object tree
         self.assertTrue("/anarray" in self.h5file)
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that array has gone again
         self.assertTrue("/anarray" not in self.h5file)
 
@@ -1654,19 +1849,24 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Delete a couple of arrays
         self.h5file.remove_node('/anarray')
         self.h5file.remove_node('/agroup/anarray2')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that arrays has come into life
         self.assertTrue("/anarray" in self.h5file)
         self.assertTrue("/agroup/anarray2" in self.h5file)
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
         self.assertEqual(
             self.h5file.root.agroup.anarray2.title, "Array title 2")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that arrays has disappeared again
         self.assertTrue("/anarray" not in self.h5file)
         self.assertTrue("/agroup/anarray2" not in self.h5file)
@@ -1680,10 +1880,13 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Create a new array
         self.h5file.remove_node('/table')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that table2 does not exist in the object tree
         self.assertTrue("/table" in self.h5file)
         table = self.h5file.root.table
@@ -1695,8 +1898,10 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
         self.assertEqual(self.h5file.root.table.title, "Indexed")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that table2 has come back to life in a sane state
         self.assertTrue("/table" not in self.h5file)
 
@@ -1709,18 +1914,23 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Delete a group recursively
         self.h5file.remove_node('/agroup', recursive=1)
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that parent and children has come into life in a sane state
         self.assertTrue("/agroup" in self.h5file)
         self.assertTrue("/agroup/anarray1" in self.h5file)
         self.assertTrue("/agroup/anarray2" in self.h5file)
         self.assertTrue("/agroup/agroup3" in self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that parent and children are not reachable
         self.assertTrue("/agroup" not in self.h5file)
         self.assertTrue("/agroup/anarray1" not in self.h5file)
@@ -1736,24 +1946,31 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # Remove a couple of groups
         self.h5file.remove_node('/agroup', recursive=1)
         self.h5file.remove_node('/agroup2')
+
         # Now undo the past operation
         self.h5file.undo()
+
         # Check that they does exist in the object tree
         self.assertTrue("/agroup" in self.h5file)
         self.assertTrue("/agroup2" in self.h5file)
+
         # Check that children are reachable
         self.assertTrue("/agroup/anarray1" in self.h5file)
         self.assertTrue("/agroup/anarray2" in self.h5file)
         self.assertTrue("/agroup/agroup3" in self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that groups does not exist again
         self.assertTrue("/agroup" not in self.h5file)
         self.assertTrue("/agroup2" not in self.h5file)
+
         # Check that children are not reachable
         self.assertTrue("/agroup/anarray1" not in self.h5file)
         self.assertTrue("/agroup/anarray2" not in self.h5file)
@@ -1800,16 +2017,19 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         # Enable undo/redo.
         self.h5file.enable_undo()
+
         # /anarray => /agroup/agroup3/
         new_node = self.h5file.copy_node('/anarray', '/agroup/agroup3')
 
         # Undo the copy.
         self.h5file.undo()
+
         # Check that the copied node does not exist in the object tree.
         self.assertTrue('/agroup/agroup3/anarray' not in self.h5file)
 
         # Redo the copy.
         self.h5file.redo()
+
         # Check that the copied node exists again in the object tree.
         self.assertTrue('/agroup/agroup3/anarray' in self.h5file)
         self.assertTrue(self.h5file.root.agroup.agroup3.anarray is new_node)
@@ -1823,6 +2043,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         # open the do/undo
         self.h5file.enable_undo()
+
         # /table => /agroup/agroup3/
         warnings.filterwarnings("ignore", category=UserWarning)
         table = self.h5file.copy_node(
@@ -1839,6 +2060,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
         self.assertTrue(table.cols.var4.index is None)
+
         # Now undo the past operation
         self.h5file.undo()
         table = self.h5file.root.table
@@ -1849,10 +2071,13 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
+
         # Check that the copied node does not exist in the object tree.
         self.assertTrue("/agroup/agroup3/table" not in self.h5file)
+
         # Redo the operation
         self.h5file.redo()
+
         # Check that table has come back to life in a sane state
         self.assertTrue("/table" in self.h5file)
         self.assertTrue("/agroup/agroup3/table" in self.h5file)
@@ -1867,7 +2092,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(table.cols.var4.index is None)
 
     def test01_copyGroup(self):
-        "Copying a group (recursively)."
+        """Copying a group (recursively)."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1875,12 +2100,14 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         # Enable undo/redo.
         self.h5file.enable_undo()
+
         # /agroup => /acopy
         new_node = self.h5file.copy_node(
             '/agroup', newname='acopy', recursive=True)
 
         # Undo the copy.
         self.h5file.undo()
+
         # Check that the copied node does not exist in the object tree.
         self.assertTrue('/acopy' not in self.h5file)
         self.assertTrue('/acopy/anarray1' not in self.h5file)
@@ -1889,6 +2116,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         # Redo the copy.
         self.h5file.redo()
+
         # Check that the copied node exists again in the object tree.
         self.assertTrue('/acopy' in self.h5file)
         self.assertTrue('/acopy/anarray1' in self.h5file)
@@ -1897,7 +2125,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(self.h5file.root.acopy is new_node)
 
     def test02_copyLeafOverwrite(self):
-        "Copying a leaf, overwriting destination."
+        """Copying a leaf, overwriting destination."""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1906,6 +2134,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         # Enable undo/redo.
         self.h5file.enable_undo()
+
         # /anarray => /agroup/agroup
         oldNode = self.h5file.root.agroup
         new_node = self.h5file.copy_node(
@@ -1913,12 +2142,14 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         # Undo the copy.
         self.h5file.undo()
+
         # Check that the copied node does not exist in the object tree.
         # Check that the overwritten node exists again in the object tree.
         self.assertTrue(self.h5file.root.agroup is oldNode)
 
         # Redo the copy.
         self.h5file.redo()
+
         # Check that the copied node exists again in the object tree.
         # Check that the overwritten node does not exist in the object tree.
         self.assertTrue(self.h5file.root.agroup is new_node)
@@ -1933,11 +2164,13 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         # Enable undo/redo.
         self.h5file.enable_undo()
+
         # /agroup/* => /agroup/
         self.h5file.copy_children('/agroup', '/agroup2', recursive=True)
 
         # Undo the copy.
         self.h5file.undo()
+
         # Check that the copied nodes do not exist in the object tree.
         self.assertTrue('/agroup2/anarray1' not in self.h5file)
         self.assertTrue('/agroup2/anarray2' not in self.h5file)
@@ -1945,6 +2178,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         # Redo the copy.
         self.h5file.redo()
+
         # Check that the copied nodes exist again in the object tree.
         self.assertTrue('/agroup2/anarray1' in self.h5file)
         self.assertTrue('/agroup2/anarray2' in self.h5file)
@@ -1959,6 +2193,7 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
 
         h5file = self.h5file
         root = h5file.root
+
         # Create an array
         h5file.create_array(root, 'array', [1, 2], title="Title example")
 
@@ -1988,21 +2223,27 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
 
         # Enable undo/redo.
         self.h5file.enable_undo()
+
         # Create an array
         self.h5file.create_array(self.h5file.root, 'anarray3',
                                  [1], "Array title 3")
         # Create a group
         self.h5file.create_group(self.h5file.root, 'agroup3', "Group title 3")
+
         # /anarray => /agroup/agroup3/
         new_node = self.h5file.copy_node('/anarray3', '/agroup/agroup3')
         new_node = self.h5file.copy_children(
             '/agroup', '/agroup3', recursive=1)
+
         # rename anarray
         self.h5file.rename_node('/anarray', 'anarray4')
+
         # Move anarray
         new_node = self.h5file.copy_node('/anarray3', '/agroup')
+
         # Remove anarray4
         self.h5file.remove_node('/anarray4')
+
         # Undo the actions
         self.h5file.undo()
         self.assertTrue('/anarray4' not in self.h5file)
@@ -2014,6 +2255,7 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
 
         # Redo the actions
         self.h5file.redo()
+
         # Check that the copied node exists again in the object tree.
         self.assertTrue('/agroup/agroup3/anarray3' in self.h5file)
         self.assertTrue('/agroup/anarray3' in self.h5file)
@@ -2032,26 +2274,32 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
 
         # Enable undo/redo.
         self.h5file.enable_undo()
+
         # remove /anarray
         self.h5file.remove_node('/anarray')
+
         # Create an array in the same place
         self.h5file.create_array(self.h5file.root, 'anarray',
                                  [2], "Array title 2")
         # remove the array again
         self.h5file.remove_node('/anarray')
+
         # Create an array
         self.h5file.create_array(self.h5file.root, 'anarray',
                                  [3], "Array title 3")
         # remove the array again
         self.h5file.remove_node('/anarray')
+
         # Create an array
         self.h5file.create_array(self.h5file.root, 'anarray',
                                  [4], "Array title 4")
         # Undo the actions
         self.h5file.undo()
+
         # Check that /anarray is in the correct state before redoing
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
         self.assertEqual(self.h5file.root.anarray[:], [1])
+
         # Redo the actions
         self.h5file.redo()
         self.assertEqual(self.h5file.root.anarray.title, "Array title 4")
@@ -2066,26 +2314,36 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
 
         # Enable undo/redo.
         self.h5file.enable_undo()
+
         # remove /agroup
         self.h5file.remove_node('/agroup2')
+
         # Create a group in the same place
         self.h5file.create_group(self.h5file.root, 'agroup2', "Group title 22")
+
         # remove the group
         self.h5file.remove_node('/agroup2')
+
         # Create a group
         self.h5file.create_group(self.h5file.root, 'agroup2', "Group title 3")
+
         # remove the group
         self.h5file.remove_node('/agroup2')
+
         # Create a group
         self.h5file.create_group(self.h5file.root, 'agroup2', "Group title 4")
+
         # Create a child group
         self.h5file.create_group(self.h5file.root.agroup2, 'agroup5',
                                  "Group title 5")
+
         # Undo the actions
         self.h5file.undo()
+
         # Check that /agroup is in the state before enabling do/undo
         self.assertEqual(self.h5file.root.agroup2._v_title, "Group title 2")
         self.assertTrue('/agroup2' in self.h5file)
+
         # Redo the actions
         self.h5file.redo()
         self.assertEqual(self.h5file.root.agroup2._v_title, "Group title 4")
@@ -2101,23 +2359,31 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
 
         # Enable undo/redo.
         self.h5file.enable_undo()
+
         # remove /agroup
         self.h5file.remove_node('/agroup', recursive=1)
+
         # Create a group in the same place
         self.h5file.create_group(self.h5file.root, 'agroup', "Group title 2")
+
         # remove the group
         self.h5file.remove_node('/agroup')
+
         # Create a group
         self.h5file.create_group(self.h5file.root, 'agroup', "Group title 3")
+
         # remove the group
         self.h5file.remove_node('/agroup')
+
         # Create a group
         self.h5file.create_group(self.h5file.root, 'agroup', "Group title 4")
+
         # Create a child group
         self.h5file.create_group(self.h5file.root.agroup, 'agroup5',
                                  "Group title 5")
         # Undo the actions
         self.h5file.undo()
+
         # Check that /agroup is in the state before enabling do/undo
         self.assertTrue('/agroup' in self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
@@ -2125,6 +2391,7 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
         self.assertTrue('/agroup/anarray2' in self.h5file)
         self.assertTrue('/agroup/agroup3' in self.h5file)
         self.assertTrue('/agroup/agroup5' not in self.h5file)
+
         # Redo the actions
         self.h5file.redo()
         self.assertTrue('/agroup' in self.h5file)
@@ -2143,18 +2410,24 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
 
         # Enable undo/redo.
         self.h5file.enable_undo()
+
         # Create a new group with a child
         self.h5file.create_group(self.h5file.root, 'agroup3', "Group title 3")
         self.h5file.create_group(self.h5file.root.agroup3, 'agroup4',
                                  "Group title 4")
+
         # remove /agroup3
         self.h5file.remove_node('/agroup3', recursive=1)
+
         # Create a group in the same place
         self.h5file.create_group(self.h5file.root, 'agroup3', "Group title 4")
+
         # Undo the actions
         self.h5file.undo()
+
         # Check that /agroup is in the state before enabling do/undo
         self.assertTrue('/agroup3' not in self.h5file)
+
         # Redo the actions
         self.h5file.redo()
         self.assertEqual(self.h5file.root.agroup3._v_title, "Group title 4")
@@ -2374,6 +2647,7 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     def test00_create(self):
         """Test creating a node."""
+
         def pre():
             pass
 
@@ -2387,6 +2661,7 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     def test01_move(self):
         """Test moving a node."""
+
         def pre():
             self.h5file.create_array('/', 'array', [1])
 
@@ -2402,6 +2677,7 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     def test02_copy(self):
         """Test copying a node."""
+
         def pre():
             self.h5file.create_array('/', 'array', [1])
 
@@ -2415,6 +2691,7 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     def test03_copyChildren(self):
         """Test copying the children of a group."""
+
         def pre():
             g = self.h5file.create_group('/', 'group')
             self.h5file.create_array(g, 'array1', [1])

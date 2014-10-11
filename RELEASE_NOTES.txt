@@ -57,6 +57,7 @@ Improvements
   * use :meth:`tests.common.PyTablesTestCase.assertWarns` as context manager
     when appropriate
   * use the :func:`unittest.skipIf` decorator when appropriate
+  * new :class:tests.comon.TestFileMixin: class
 
 
 .. _unittest2: https://pypi.python.org/pypi/unittest2

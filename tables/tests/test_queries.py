@@ -235,7 +235,6 @@ class SilentlySkipTest(unittest.SkipTest):
 # Base test cases
 # ---------------
 class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
-
     """Base test case for querying tables.
 
     Sub-classes must define the following attributes:
@@ -614,7 +613,6 @@ _gvar = None
 
 
 class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
-
     """Test case for query usage on scalar tables.
 
     This also tests for most usage errors and situations.
@@ -623,30 +621,36 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
     def test_empty_condition(self):
         """Using an empty condition."""
+
         self.assertRaises(SyntaxError, self.table.where, '')
 
     def test_syntax_error(self):
         """Using a condition with a syntax error."""
+
         self.assertRaises(SyntaxError, self.table.where, 'foo bar')
 
     def test_unsupported_object(self):
         """Using a condition with an unsupported object."""
+
         self.assertRaises(TypeError, self.table.where, '[]')
         self.assertRaises(TypeError, self.table.where, 'obj', {'obj': {}})
         self.assertRaises(TypeError, self.table.where, 'c_bool < []')
 
     def test_unsupported_syntax(self):
         """Using a condition with unsupported syntax."""
+
         self.assertRaises(TypeError, self.table.where, 'c_bool[0]')
         self.assertRaises(TypeError, self.table.where, 'c_bool()')
         self.assertRaises(NameError, self.table.where, 'c_bool.__init__')
 
     def test_no_column(self):
         """Using a condition with no participating columns."""
+
         self.assertRaises(ValueError, self.table.where, 'True')
 
     def test_foreign_column(self):
         """Using a condition with a column from other table."""
+
         table2 = self.h5file.create_table('/', 'other', self.tableDescription)
         self.assertRaises(ValueError, self.table.where,
                           'c_int32_a + c_int32_b > 0',
@@ -655,6 +659,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
     def test_unsupported_op(self):
         """Using a condition with unsupported operations on types."""
+
         NIE = NotImplementedError
         self.assertRaises(NIE, self.table.where, 'c_complex128 > 0j')
         if sys.version_info[0] < 3:
@@ -665,14 +670,17 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
     def test_not_boolean(self):
         """Using a non-boolean condition."""
+
         self.assertRaises(TypeError, self.table.where, 'c_int32')
 
     def test_nested_col(self):
         """Using a condition with nested columns."""
+
         self.assertRaises(TypeError, self.table.where, 'c_nested')
 
     def test_implicit_col(self):
         """Using implicit column names in conditions."""
+
         # If implicit columns didn't work, a ``NameError`` would be raised.
         self.assertRaises(TypeError, self.table.where, 'c_int32')
         # If overriding didn't work, no exception would be raised.
@@ -695,12 +703,16 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
         def where_with_locals():
             bound = 'foo'  # this wouldn't cause an error
+            # silence pyflakes warnings
+            self.assertTrue(isinstance(bound, str))
             self.table.where('c_string > bound', {'bound': 0})
         self.assertRaises(NotImplementedError, where_with_locals)
 
         def where_with_globals():
             global _gvar
             _gvar = 'foo'  # this wouldn't cause an error
+            # silence pyflakes warnings
+            self.assertTrue(isinstance(_gvar, str))
             try:
                 self.table.where('c_string > _gvar', {'_gvar': 0})
             finally:
@@ -728,25 +740,27 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         def where_with_globals():
             global _gvar
             _gvar = self.table.cols.c_int32
+            # silence pyflakes warnings
+            self.assertTrue(_gvar is not None)
             try:
                 self.table.where('_gvar')
             finally:
                 del _gvar  # to keep global namespace clean
+
         self.assertRaises(TypeError, where_with_globals)
 
 
 class MDTableUsageTestCase(MDTableMixin, BaseTableUsageTestCase):
-
     """Test case for query usage on multidimensional tables."""
 
     def test(self):
         """Using a condition on a multidimensional table."""
+
         # Easy: queries on multidimensional tables are not implemented yet!
         self.assertRaises(NotImplementedError, self.table.where, 'c_bool')
 
 
 class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
-
     """Test case for query usage on indexed tables.
 
     Indexing could be used in more cases, but it is expected to kick in
@@ -915,6 +929,7 @@ class IndexedTableUsage10(IndexedTableUsage):
 
 class IndexedTableUsage11(IndexedTableUsage):
     """Complex operations are not eligible for indexing."""
+
     conditions = [
         'sin(c_int32) > 0',
         '(c_int32 * 2.4) > 0',

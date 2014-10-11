@@ -96,8 +96,6 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             else:
                 earray.append(object * i)
 
-    #----------------------------------------
-
     def _get_shape(self):
         if self.shape is not None:
             shape = self.shape
@@ -1273,8 +1271,6 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
         super(OffsetStrideTestCase, self).setUp()
         self.rootgroup = self.h5file.root
 
-    #----------------------------------------
-
     def test01a_String(self):
         """Checking earray with offseted numpy strings appends."""
 
@@ -2282,7 +2278,7 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
             array.append(na)
 
     def test01_basiccheck(self):
-        "Some basic checks for earrays exceeding 2**31 rows"
+        """Some basic checks for earrays exceeding 2**31 rows"""
 
         array = self.h5file.root.array
 
@@ -2352,7 +2348,7 @@ class ZeroSizedTestCase(common.TempFileMixin, TestCase):
         ea.append([[1], [2], [3]])
 
     def test01_canAppend(self):
-        "Appending zero length array."
+        """Appending zero length array."""
 
         fileh = self.h5file
         ea = fileh.root.test
@@ -2361,7 +2357,7 @@ class ZeroSizedTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(ea.nrows, 1, "The number of rows should be 1.")
 
     def test02_appendWithWrongShape(self):
-        "Appending zero length array with wrong dimension."
+        """Appending zero length array with wrong dimension."""
 
         fileh = self.h5file
         ea = fileh.root.test
@@ -2786,8 +2782,6 @@ class TestCreateEArrayArgs(common.TempFileMixin, TestCase):
                           atom=atom,
                           shape=shape)
 
-
-#----------------------------------------------------------------------
 
 def suite():
     theSuite = unittest.TestSuite()

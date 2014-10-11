@@ -27,7 +27,6 @@ from tables.tests.common import PyTablesTestCase as TestCase
 
 
 class GarbageTestCase(TestCase):
-
     """Test for uncollectable garbage."""
 
     def test00(self):

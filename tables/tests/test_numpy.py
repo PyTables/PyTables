@@ -6,7 +6,6 @@ import sys
 import tempfile
 
 import numpy as np
-#from numpy import *
 
 import tables
 from tables import (
@@ -55,61 +54,63 @@ class BasicTestCase(TestCase):
             print("for class check:", self.title)
 
         # Create an instance of HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = tables.open_file(self.file, mode="w")
-        self.root = self.fileh.root
-        # Create the array under root and name 'somearray'
-        a = testArray
-        self.fileh.create_array(self.root, 'somearray', a, "Some array")
+        self.h5fname = tempfile.mktemp(".h5")
+        try:
+            with tables.open_file(self.h5fname, mode="w") as self.h5file:
+                self.root = self.h5file.root
 
-        # Close the file
-        self.fileh.close()
+                # Create the array under root and name 'somearray'
+                a = testArray
+                self.h5file.create_array(self.root, 'somearray', a,
+                                         "Some array")
 
-        # Re-open the file in read-only mode
-        self.fileh = tables.open_file(self.file, mode="r")
-        self.root = self.fileh.root
+            # Re-open the file in read-only mode
+            with tables.open_file(self.h5fname, mode="r") as self.h5file:
+                self.root = self.h5file.root
 
-        # Read the saved array
-        b = self.root.somearray.read()
-        # For cases that read returns a python type instead of a numpy type
-        if not hasattr(b, "shape"):
-            b = np.np.array(b, dtype=a.dtype.str)
+                # Read the saved array
+                b = self.root.somearray.read()
 
-        # Compare them. They should be equal.
-        # if not allequal(a,b, "numpy") and common.verbose:
-        if common.verbose:
-            print("Array written:", a)
-            print("Array written shape:", a.shape)
-            print("Array written itemsize:", a.itemsize)
-            print("Array written type:", a.dtype.char)
-            print("Array read:", b)
-            print("Array read shape:", b.shape)
-            print("Array read itemsize:", b.itemsize)
-            print("Array read type:", b.dtype.char)
+                # For cases that read returns a python type instead of a
+                # numpy type
+                if not hasattr(b, "shape"):
+                    b = np.np.array(b, dtype=a.dtype.str)
 
-        type_ = self.root.somearray.atom.type
-        # Check strictly the array equality
-        self.assertEqual(type(a), type(b))
-        self.assertEqual(a.shape, b.shape)
-        self.assertEqual(a.shape, self.root.somearray.shape)
-        self.assertEqual(a.dtype, b.dtype)
-        if a.dtype.char[0] == "S":
-            self.assertEqual(type_, "string")
-        else:
-            self.assertEqual(a.dtype.base.name, type_)
+                # Compare them. They should be equal.
+                # if not allequal(a,b, "numpy") and common.verbose:
+                if common.verbose:
+                    print("Array written:", a)
+                    print("Array written shape:", a.shape)
+                    print("Array written itemsize:", a.itemsize)
+                    print("Array written type:", a.dtype.char)
+                    print("Array read:", b)
+                    print("Array read shape:", b.shape)
+                    print("Array read itemsize:", b.itemsize)
+                    print("Array read type:", b.dtype.char)
 
-        self.assertTrue(allequal(a, b, "numpy"))
-        self.fileh.close()
-        # Then, delete the file
-        os.remove(self.file)
-        return
+                type_ = self.root.somearray.atom.type
+
+                # Check strictly the array equality
+                self.assertEqual(type(a), type(b))
+                self.assertEqual(a.shape, b.shape)
+                self.assertEqual(a.shape, self.root.somearray.shape)
+                self.assertEqual(a.dtype, b.dtype)
+                if a.dtype.char[0] == "S":
+                    self.assertEqual(type_, "string")
+                else:
+                    self.assertEqual(a.dtype.base.name, type_)
+
+                self.assertTrue(allequal(a, b, "numpy"))
+        finally:
+            # Then, delete the file
+            if os.path.exists(self.h5fname):
+                os.remove(self.h5fname)
 
     def test00_char(self):
         """Data integrity during recovery (character objects)"""
 
         a = np.array(self.tupleChar, 'S'+str(len(self.tupleChar)))
         self.WriteRead(a)
-        return
 
     def test01_char_nc(self):
         """Data integrity during recovery (non-contiguous character objects)"""
@@ -123,7 +124,6 @@ class BasicTestCase(TestCase):
             if a.shape[0] > 2:
                 self.assertEqual(b.flags['CONTIGUOUS'], False)
         self.WriteRead(b)
-        return
 
     def test02_types(self):
         """Data integrity during recovery (numerical types)"""
@@ -136,8 +136,6 @@ class BasicTestCase(TestCase):
                 a = np.array(self.tupleInt, dtype=typecode)
             self.WriteRead(a)
 
-        return
-
     def test03_types_nc(self):
         """Data integrity during recovery (non-contiguous numerical types)"""
 
@@ -147,16 +145,16 @@ class BasicTestCase(TestCase):
             else:
                 # shape is the empty tuple ()
                 a = np.array(self.tupleInt, dtype=typecode)
+
             # This should not be tested for the rank-0 case
             if len(a.shape) == 0:
-                return
+                raise unittest.SkipTest
             b = a[::2]
+
             # Ensure that this array is non-contiguous (for non-trivial case)
             if a.shape[0] > 2:
                 self.assertEqual(b.flags['CONTIGUOUS'], False)
             self.WriteRead(b)
-
-        return
 
 
 class Basic0DOneTestCase(BasicTestCase):
@@ -1229,7 +1227,6 @@ class TableNativeFlavorCloseTestCase(TableNativeFlavorTestCase):
 
 
 class AttributesTestCase(common.TempFileMixin, TestCase):
-
     def setUp(self):
         super(AttributesTestCase, self).setUp()
 
@@ -1238,6 +1235,7 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
 
     def test01_writeAttribute(self):
         """Checking the creation of a numpy attribute."""
+
         group = self.h5file.root.group
         g_attrs = group._v_attrs
         g_attrs.numpy1 = np.zeros((1, 1), dtype='int16')
@@ -1298,7 +1296,6 @@ class AttributesCloseTestCase(AttributesTestCase):
 
 
 class StrlenTestCase(common.TempFileMixin, TestCase):
-
     def setUp(self):
         super(StrlenTestCase, self).setUp()
 
@@ -1376,8 +1373,6 @@ class StrlenOpenTestCase(StrlenTestCase):
 class StrlenCloseTestCase(StrlenTestCase):
     close = 1
 
-
-#--------------------------------------------------------
 
 def suite():
     theSuite = unittest.TestSuite()

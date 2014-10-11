@@ -79,11 +79,14 @@ class ExprTestCase(common.TempFileMixin, TestCase):
             self.r1 = self.h5file.create_array(root, "r1", r1)
         elif self.kind == "CArray":
             self.a = self.h5file.create_carray(
-                root, "a", atom=tables.Atom.from_dtype(a.dtype), shape=self.shape)
+                root, "a", atom=tables.Atom.from_dtype(a.dtype),
+                shape=self.shape)
             self.b = self.h5file.create_carray(
-                root, "b", atom=tables.Atom.from_dtype(b.dtype), shape=self.shape)
+                root, "b", atom=tables.Atom.from_dtype(b.dtype),
+                shape=self.shape)
             self.c = self.h5file.create_carray(
-                root, "c", atom=tables.Atom.from_dtype(c.dtype), shape=self.shape)
+                root, "c", atom=tables.Atom.from_dtype(c.dtype),
+                shape=self.shape)
             self.r1 = self.h5file.create_carray(
                 root, "r1", atom=tables.Atom.from_dtype(r1.dtype),
                 shape=self.shape)
@@ -749,6 +752,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             a1 = self.h5file.create_array(root, 'a1', a)
             b1 = self.h5file.create_array(root, 'b1', b)
             two = np.int32(2)
+            self.assertTrue(isinstance(two, np.integer))
             expr = tables.Expr("two * a1-b1")
             r1 = expr.eval()
             a = np.array([1, 2, 3], 'int32')
@@ -1473,21 +1477,17 @@ class VeryLargeInputsTestCase(common.TempFileMixin, TestCase):
             print("Should look like:", 0)
         self.assertEqual(r1, 0, "Evaluate is returning a wrong value.")
 
+
 # The next can go on regular tests, as it should be light enough
-
-
 class VeryLargeInputs1(VeryLargeInputsTestCase):
     shape = (2**20,)    # larger than any internal I/O buffers
 
+
 # The next is only meant for 'heavy' mode as it can take more than 1 minute
 # on modern machines
-
-
 class VeryLargeInputs2(VeryLargeInputsTestCase):
     shape = (2**32 + 1,)    # check that arrays > 32-bit are supported
 
-
-#----------------------------------------------------------------------
 
 def suite():
     """Return a test suite consisting of all the test cases in the module."""

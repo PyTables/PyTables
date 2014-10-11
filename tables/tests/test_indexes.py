@@ -1763,13 +1763,13 @@ class IndexFiltersTestCase(TempFileMixin, TestCase):
         self.assertEqual(ni.filters, filters)
 
 
-class OldIndexTestCase(TestCase):
+class OldIndexTestCase(common.TestFileMixin, TestCase):
+    h5fname = TestCase._testFilename("idx-std-1.x.h5")
 
     def test1_x(self):
         """Check that files with 1.x indexes are recognized and warned."""
-        fname = self._testFilename("idx-std-1.x.h5")
-        with tables.open_file(fname) as f:
-            self.assertWarns(OldIndexWarning, f.get_node, "/table")
+
+        self.assertWarns(OldIndexWarning, self.h5file.get_node, "/table")
 
 
 # Sensible parameters for indexing with small blocksizes
@@ -2647,8 +2647,6 @@ class TestIndexingNans(TempFileMixin, TestCase):
 
         results = table.read_where('(values > 0)')
         self.assertEqual(len(results), 100*2)
-
-#----------------------------------------------------------------------
 
 
 def suite():

@@ -450,6 +450,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             groups.append(group._v_pathname)
             for table in group._f_iter_nodes(classname='Table'):
                 tables1.append(table._v_pathname)
+
         # Test the recursivity
         for table in self.h5file.root._f_walknodes('Table'):
             tables2.append(table._v_pathname)
@@ -571,18 +572,19 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
 
         self.h5file = tables.open_file(self.h5fname, mode="r")
         h5fname2 = tempfile.mktemp(".h5")
-        h5file2 = tables.open_file(h5fname2, mode="w")
-        if common.verbose:
-            print("\nCopying deep tree...")
-
-        self.h5file.copy_node(self.h5file.root, h5file2.root, recursive=True)
-        self.h5file.close()
-        h5file2.close()
-
         try:
+            with tables.open_file(h5fname2, mode="w") as h5file2:
+                if common.verbose:
+                    print("\nCopying deep tree...")
+
+                self.h5file.copy_node(self.h5file.root, h5file2.root,
+                                      recursive=True)
+                self.h5file.close()
+
             self._check_tree(h5fname2)
         finally:
-            os.remove(h5fname2)
+            if os.path.exists(h5fname2):
+                os.remove(h5fname2)
 
     def test01b_copyDeepTree(self):
         """Copy of a large depth object tree with small node cache."""
@@ -590,18 +592,20 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
         self.h5file = tables.open_file(self.h5fname, mode="r",
                                        node_cache_slots=10)
         h5fname2 = tempfile.mktemp(".h5")
-        h5file2 = tables.open_file(h5fname2, mode="w", node_cache_slots=10)
-        if common.verbose:
-            print("\nCopying deep tree...")
-
-        self.h5file.copy_node(self.h5file.root, h5file2.root, recursive=True)
-        self.h5file.close()
-        h5file2.close()
-
         try:
+            with tables.open_file(h5fname2, mode="w",
+                                  node_cache_slots=10) as h5file2:
+                if common.verbose:
+                    print("\nCopying deep tree...")
+
+                self.h5file.copy_node(self.h5file.root, h5file2.root,
+                                      recursive=True)
+                self.h5file.close()
+
             self._check_tree(h5fname2)
         finally:
-            os.remove(h5fname2)
+            if os.path.exists(h5fname2):
+                os.remove(h5fname2)
 
     def test01c_copyDeepTree(self):
         """Copy of a large depth object tree with no node cache."""
@@ -609,41 +613,42 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
         self.h5file = tables.open_file(self.h5fname, mode="r",
                                        node_cache_slots=0)
         h5fname2 = tempfile.mktemp(".h5")
-        h5file2 = tables.open_file(h5fname2, mode="w", node_cache_slots=0)
-        if common.verbose:
-            print("\nCopying deep tree...")
-
-        self.h5file.copy_node(self.h5file.root, h5file2.root, recursive=True)
-        self.h5file.close()
-        h5file2.close()
-
         try:
+            with tables.open_file(h5fname2, mode="w",
+                                  node_cache_slots=0) as h5file2:
+                if common.verbose:
+                    print("\nCopying deep tree...")
+
+                self.h5file.copy_node(self.h5file.root, h5file2.root,
+                                      recursive=True)
+                self.h5file.close()
+
             self._check_tree(h5fname2)
         finally:
-            os.remove(h5fname2)
+            if os.path.exists(h5fname2):
+                os.remove(h5fname2)
 
+    @unittest.skipUnless(common.heavy, 'only in heavy mode')
     def test01d_copyDeepTree(self):
         """Copy of a large depth object tree with static node cache."""
-
-        # Do not execute this in heavy mode
-        if common.heavy:
-            return
 
         self.h5file = tables.open_file(self.h5fname, mode="r",
                                        node_cache_slots=-256)
         h5fname2 = tempfile.mktemp(".h5")
-        h5file2 = tables.open_file(h5fname2, mode="w", node_cache_slots=-256)
-        if common.verbose:
-            print("\nCopying deep tree...")
-
-        self.h5file.copy_node(self.h5file.root, h5file2.root, recursive=True)
-        self.h5file.close()
-        h5file2.close()
-
         try:
+            with tables.open_file(h5fname2, mode="w",
+                                  node_cache_slots=-256) as h5file2:
+                if common.verbose:
+                    print("\nCopying deep tree...")
+
+                self.h5file.copy_node(self.h5file.root, h5file2.root,
+                                      recursive=True)
+                self.h5file.close()
+
             self._check_tree(h5fname2)
         finally:
-            os.remove(h5fname2)
+            if os.path.exists(h5fname2):
+                os.remove(h5fname2)
 
 
 class WideTreeTestCase(common.TempFileMixin, TestCase):
@@ -724,6 +729,7 @@ class WideTreeTestCase(common.TempFileMixin, TestCase):
         else:
             # for standard platforms
             maxchildren = 256
+
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test00_wideTree..." %
@@ -748,6 +754,7 @@ class WideTreeTestCase(common.TempFileMixin, TestCase):
             print("\nTime spent opening a file with %d groups: %s s" %
                   (maxchildren, time.time()-t1))
             print("\nChildren reading progress: ", end=' ')
+
         # Get the metadata on the previosly saved arrays
         for child in range(maxchildren):
             if common.verbose:
@@ -756,6 +763,7 @@ class WideTreeTestCase(common.TempFileMixin, TestCase):
             group = getattr(self.h5file.root, 'group' + str(child))
             # Arrays a and b must be equal
             self.assertEqual(group._v_title, "child: %d" % child)
+
         if common.verbose:
             print()  # This flush the stdout buffer
 
@@ -995,13 +1003,13 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     def test02_filters(self):
         """Propagating the filters of created parent groups."""
+
         self.h5file.create_group('/group/foo/bar', 'baz', createparents=True)
         self.assertTrue('/group/foo/bar/baz' in self.h5file)
         for group in self.h5file.walk_groups('/group'):
             self.assertEqual(self.filters, group._v_filters)
 
 
-#----------------------------------------------------------------------
 def suite():
     theSuite = unittest.TestSuite()
     # This counter is useful when detecting memory leaks

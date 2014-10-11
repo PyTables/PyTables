@@ -460,9 +460,8 @@ class RecordDTWriteTestCase(BasicTestCase):
     title = "RecordDTWriteTestCase"
     record = RecordDT
 
+
 # Pure NumPy dtype
-
-
 class NumPyDTWriteTestCase(BasicTestCase):
     title = "NumPyDTWriteTestCase"
     record = np.dtype("(2,)S4,(2,2)S4,(2,)i4,(2,2)i4,i2,2f8,f4,i2,S1")
@@ -536,8 +535,9 @@ class BigTablesTestCase(BasicTestCase):
     # 10000 rows takes much more time than we can afford for tests
     # reducing to 1000 would be more than enough
     # F. Alted 2004-01-19
-#     expectedrows = 10000
-#     appendrows = 1000
+
+    #expectedrows = 10000
+    #appendrows = 1000
     expectedrows = 1000
     appendrows = 100
 
@@ -962,7 +962,7 @@ class RecArrayRangeTestCase(BasicRangeTestCase):
     checkrecarray = 1
 
 
-class getColRangeTestCase(BasicRangeTestCase):
+class GetColRangeTestCase(BasicRangeTestCase):
     checkgetCol = 1
 
     def test01_nonexistentField(self):
@@ -978,14 +978,8 @@ class getColRangeTestCase(BasicRangeTestCase):
         self.root = self.h5file.root
         table = self.h5file.get_node("/table0")
 
-        try:
+        with self.assertRaises(KeyError):
             table.read(field='non-existent-column')
-        except KeyError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next KeyError was catched!")
-        else:
-            self.fail("expected a KeyError")
 
 
 class Rec(tables.IsDescription):
@@ -1380,6 +1374,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
 
         # Modify just one existing row
         table[2] = (456, 'db2', 1.2)
+
         # Create the modified recarray
         r1 = records.array([[456, 'dbe', 1.2], [2, 'ded', 1.3],
                             [456, 'db2', 1.2], [5, 'de1', 1.3]],
@@ -2222,7 +2217,6 @@ class UpdateRowTestCase4(UpdateRowTestCase):
     buffersize = 1000
 
 
-#----------------------------------------------------------------------
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
@@ -2240,7 +2234,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
-        theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
+        theSuite.addTest(unittest.makeSuite(GetColRangeTestCase))
         theSuite.addTest(unittest.makeSuite(DefaultValues))
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
         theSuite.addTest(unittest.makeSuite(ShapeTestCase1))

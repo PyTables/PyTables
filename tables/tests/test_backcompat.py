@@ -31,7 +31,7 @@ class BackCompatTablesTestCase(TestCase):
         # Create an instance of an HDF5 Table
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)
-            h5file = tables.open_file(self._testFilename(self.file), "r")
+            h5file = tables.open_file(self._testFilename(self.h5fname), "r")
 
         try:
             table = h5file.get_node("/tuple0")
@@ -50,42 +50,40 @@ class BackCompatTablesTestCase(TestCase):
 
 @unittest.skipIf(not lzo_avail, 'lzo not available')
 class Table2_1LZO(BackCompatTablesTestCase):
-    file = "Table2_1_lzo_nrv2e_shuffle.h5"  # pytables 0.8.x versions and after
+    # pytables 0.8.x versions and after
+    h5fname = "Table2_1_lzo_nrv2e_shuffle.h5"
 
 
 @unittest.skipIf(not lzo_avail, 'lzo not available')
 class Tables_LZO1(BackCompatTablesTestCase):
-    file = "Tables_lzo1.h5"  # files compressed with LZO1
+    h5fname = "Tables_lzo1.h5"  # files compressed with LZO1
 
 
 @unittest.skipIf(not lzo_avail, 'lzo not available')
 class Tables_LZO1_shuffle(BackCompatTablesTestCase):
-    file = "Tables_lzo1_shuffle.h5"  # files compressed with LZO1 and shuffle
+    # files compressed with LZO1 and shuffle
+    h5fname = "Tables_lzo1_shuffle.h5"
 
 
 @unittest.skipIf(not lzo_avail, 'lzo not available')
 class Tables_LZO2(BackCompatTablesTestCase):
-    file = "Tables_lzo2.h5"  # files compressed with LZO2
+    h5fname = "Tables_lzo2.h5"  # files compressed with LZO2
 
 
 @unittest.skipIf(not lzo_avail, 'lzo not available')
 class Tables_LZO2_shuffle(BackCompatTablesTestCase):
-    file = "Tables_lzo2_shuffle.h5"  # files compressed with LZO2 and shuffle
+    # files compressed with LZO2 and shuffle
+    h5fname = "Tables_lzo2_shuffle.h5"
 
 # Check read attributes from PyTables >= 1.0 properly
 
 
-class BackCompatAttrsTestCase(TestCase):
+class BackCompatAttrsTestCase(common.TestFileMixin, TestCase):
     FILENAME = "zerodim-attrs-%s.h5"
 
     def setUp(self):
+        self.h5fname = TestCase._testFilename(self.FILENAME % self.format)
         super(BackCompatAttrsTestCase, self).setUp()
-        self.h5fname = self._testFilename(self.FILENAME)
-        self.h5file = tables.open_file(self.h5fname % self.format, "r")
-
-    def tearDown(self):
-        self.h5file.close()
-        super(BackCompatAttrsTestCase, self).tearDown()
 
     def test01_readAttr(self):
         """Checking backward compatibility of old formats for attributes."""
@@ -116,16 +114,8 @@ class Attrs_1_4(BackCompatAttrsTestCase):
     format = "1.4"    # pytables 1.1.x versions and later
 
 
-class VLArrayTestCase(TestCase):
-
-    def setUp(self):
-        super(VLArrayTestCase, self).setUp()
-        self.h5fname = self._testFilename("flavored_vlarrays-format1.6.h5")
-        self.h5file = tables.open_file(self.h5fname)
-
-    def tearDown(self):
-        self.h5file.close()
-        super(VLArrayTestCase, self).tearDown()
+class VLArrayTestCase(common.TestFileMixin, TestCase):
+    h5fname = TestCase._testFilename("flavored_vlarrays-format1.6.h5")
 
     def test01_backCompat(self):
         """Checking backward compatibility with old flavors of VLArray."""
@@ -140,17 +130,9 @@ class VLArrayTestCase(TestCase):
 
 # Make sure that 1.x files with TimeXX types continue to be readable
 # and that its byteorder is correctly retrieved.
-class TimeTestCase(TestCase):
-
-    def setUp(self):
-        super(TimeTestCase, self).setUp()
-        # Open a PYTABLES_FORMAT_VERSION=1.x file
-        self.h5fname = self._testFilename("time-table-vlarray-1_x.h5")
-        self.h5file = tables.open_file(self.h5fname, "r")
-
-    def tearDown(self):
-        self.h5file.close()
-        super(TimeTestCase, self).tearDown()
+class TimeTestCase(common.TestFileMixin, TestCase):
+    # Open a PYTABLES_FORMAT_VERSION=1.x file
+    h5fname = TestCase._testFilename("time-table-vlarray-1_x.h5")
 
     def test00_table(self):
         """Checking backward compatibility with old TimeXX types (tables)."""
@@ -225,8 +207,6 @@ class OldFlavorsTestCase01(TestCase):
 
 class OldFlavorsTestCase02(TestCase):
     close = True
-
-#----------------------------------------------------------------------
 
 
 def suite():

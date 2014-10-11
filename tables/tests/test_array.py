@@ -481,7 +481,6 @@ class Basic1DZeroTestCase(BasicTestCase):
 
 
 class Basic1DOneTestCase(BasicTestCase):
-    "Method doc"
     # 1D case
     title = "Rank-1 case 1"
     tupleInt = (3,)
@@ -696,7 +695,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(c, b))
 
     def test01_signedShort_unaligned(self):
-        "Checking an unaligned signed short integer array"
+        """Checking an unaligned signed short integer array"""
 
         r = numpy.rec.array(b'a'*200, formats='i1,f4,i2', shape=10)
         a = r["f2"]
@@ -706,7 +705,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.write_read(a)
 
     def test02_float_unaligned(self):
-        "Checking an unaligned single precision array"
+        """Checking an unaligned single precision array"""
 
         r = numpy.rec.array(b'a'*200, formats='i1,f4,i2', shape=10)
         a = r["f1"]
@@ -716,7 +715,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.write_read(a)
 
     def test03_byte_offset(self):
-        "Checking an offsetted byte array"
+        """Checking an offsetted byte array"""
 
         r = numpy.arange(100, dtype=numpy.int8)
         r.shape = (10, 10)
@@ -724,7 +723,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.write_read(a)
 
     def test04_short_offset(self):
-        "Checking an offsetted unsigned short int precision array"
+        """Checking an offsetted unsigned short int precision array"""
 
         r = numpy.arange(100, dtype=numpy.uint32)
         r.shape = (10, 10)
@@ -732,7 +731,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.write_read(a)
 
     def test05_int_offset(self):
-        "Checking an offsetted integer array"
+        """Checking an offsetted integer array"""
 
         r = numpy.arange(100, dtype=numpy.int32)
         r.shape = (10, 10)
@@ -740,7 +739,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.write_read(a)
 
     def test06_longlongint_offset(self):
-        "Checking an offsetted long long integer array"
+        """Checking an offsetted long long integer array"""
 
         r = numpy.arange(100, dtype=numpy.int64)
         r.shape = (10, 10)
@@ -748,7 +747,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.write_read(a)
 
     def test07_float_offset(self):
-        "Checking an offsetted single precision array"
+        """Checking an offsetted single precision array"""
 
         r = numpy.arange(100, dtype=numpy.float32)
         r.shape = (10, 10)
@@ -756,7 +755,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.write_read(a)
 
     def test08_double_offset(self):
-        "Checking an offsetted double precision array"
+        """Checking an offsetted double precision array"""
 
         r = numpy.arange(100, dtype=numpy.float64)
         r.shape = (10, 10)
@@ -764,7 +763,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.write_read(a)
 
     def test09_float_offset_unaligned(self):
-        "Checking an unaligned and offsetted single precision array"
+        """Checking an unaligned and offsetted single precision array"""
 
         r = numpy.rec.array(b'a'*200, formats='i1,3f4,i2', shape=10)
         a = r["f1"][3]
@@ -774,7 +773,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.write_read(a)
 
     def test10_double_offset_unaligned(self):
-        "Checking an unaligned and offsetted double precision array"
+        """Checking an unaligned and offsetted double precision array"""
 
         r = numpy.rec.array(b'a'*400, formats='i1,3f8,i2', shape=10)
         a = r["f1"][3]
@@ -784,7 +783,8 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.write_read(a)
 
     def test11_int_byteorder(self):
-        "Checking setting data with different byteorder in a range (integer)"
+        """Checking setting data with different byteorder in a range
+         (integer)"""
 
         # Save an array with the reversed byteorder on it
         a = numpy.arange(25, dtype=numpy.int32).reshape(5, 5)
@@ -812,7 +812,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a, c))
 
     def test12_float_byteorder(self):
-        "Checking setting data with different byteorder in a range (float)"
+        """Checking setting data with different byteorder in a range (float)"""
 
         # Save an array with the reversed byteorder on it
         a = numpy.arange(25, dtype=numpy.float64).reshape(5, 5)
@@ -1319,7 +1319,7 @@ class CopyIndex12TestCase(CopyIndexTestCase):
 class GetItemTestCase(common.TempFileMixin, TestCase):
 
     def test00_single(self):
-        "Single element access (character types)"
+        """Single element access (character types)"""
 
         # Create the array under root and name 'somearray'
         a = self.charList
@@ -1338,7 +1338,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(type(a[0]), type(arr[0]))
 
     def test01_single(self):
-        "Single element access (numerical types)"
+        """Single element access (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalList
@@ -1357,7 +1357,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(type(a[0]), type(arr[0]))
 
     def test02_range(self):
-        "Range element access (character types)"
+        """Range element access (character types)"""
 
         # Create the array under root and name 'somearray'
         a = self.charListME
@@ -1375,7 +1375,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[1:4], arr[1:4]))
 
     def test03_range(self):
-        "Range element access (numerical types)"
+        """Range element access (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
@@ -1393,7 +1393,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[1:4], arr[1:4]))
 
     def test04_range(self):
-        "Range element access, strided (character types)"
+        """Range element access, strided (character types)"""
 
         # Create the array under root and name 'somearray'
         a = self.charListME
@@ -1411,7 +1411,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
 
     def test05_range(self):
-        "Range element access, strided (numerical types)"
+        """Range element access, strided (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
@@ -1429,7 +1429,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
 
     def test06_negativeIndex(self):
-        "Negative Index element access (character types)"
+        """Negative Index element access (character types)"""
 
         # Create the array under root and name 'somearray'
         a = self.charListME
@@ -1447,7 +1447,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[-1], arr[-1]))
 
     def test07_negativeIndex(self):
-        "Negative Index element access (numerical types)"
+        """Negative Index element access (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
@@ -1468,7 +1468,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
             self.assertEqual(a[-2], arr[-2])
 
     def test08_negativeRange(self):
-        "Negative range element access (character types)"
+        """Negative range element access (character types)"""
 
         # Create the array under root and name 'somearray'
         a = self.charListME
@@ -1486,7 +1486,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
 
     def test09_negativeRange(self):
-        "Negative range element access (numerical types)"
+        """Negative range element access (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
@@ -1554,7 +1554,7 @@ class GI2NACloseTestCase(GI2NATestCase):
 class SetItemTestCase(common.TempFileMixin, TestCase):
 
     def test00_single(self):
-        "Single element update (character types)"
+        """Single element update (character types)"""
 
         # Create the array under root and name 'somearray'
         a = self.charList
@@ -1576,7 +1576,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[0], arr[0]))
 
     def test01_single(self):
-        "Single element update (numerical types)"
+        """Single element update (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalList
@@ -1598,7 +1598,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(a[0], arr[0])
 
     def test02_range(self):
-        "Range element update (character types)"
+        """Range element update (character types)"""
 
         # Create the array under root and name 'somearray'
         a = self.charListME
@@ -1620,7 +1620,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[1:4], arr[1:4]))
 
     def test03_range(self):
-        "Range element update (numerical types)"
+        """Range element update (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
@@ -1645,7 +1645,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[1:4], arr[1:4]))
 
     def test04_range(self):
-        "Range element update, strided (character types)"
+        """Range element update, strided (character types)"""
 
         # Create the array under root and name 'somearray'
         a = self.charListME
@@ -1668,7 +1668,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
 
     def test05_range(self):
-        "Range element update, strided (numerical types)"
+        """Range element update, strided (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
@@ -1693,7 +1693,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
 
     def test06_negativeIndex(self):
-        "Negative Index element update (character types)"
+        """Negative Index element update (character types)"""
 
         # Create the array under root and name 'somearray'
         a = self.charListME
@@ -1716,7 +1716,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[-1], arr[-1]))
 
     def test07_negativeIndex(self):
-        "Negative Index element update (numerical types)"
+        """Negative Index element update (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
@@ -1742,7 +1742,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
             self.assertEqual(a[-2], arr[-2])
 
     def test08_negativeRange(self):
-        "Negative range element update (character types)"
+        """Negative range element update (character types)"""
 
         # Create the array under root and name 'somearray'
         a = self.charListME
@@ -1765,7 +1765,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
 
     def test09_negativeRange(self):
-        "Negative range element update (numerical types)"
+        """Negative range element update (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
@@ -1790,7 +1790,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
 
     def test10_outOfRange(self):
-        "Out of range update (numerical types)"
+        """Out of range update (numerical types)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
@@ -1868,7 +1868,7 @@ class SI2NACloseTestCase(SI2NATestCase):
 class GeneratorTestCase(common.TempFileMixin, TestCase):
 
     def test00a_single(self):
-        "Testing generator access to Arrays, single elements (char)"
+        """Testing generator access to Arrays, single elements (char)"""
 
         # Create the array under root and name 'somearray'
         a = self.charList
@@ -1888,7 +1888,7 @@ class GeneratorTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(ga, garr)
 
     def test00b_me(self):
-        "Testing generator access to Arrays, multiple elements (char)"
+        """Testing generator access to Arrays, multiple elements (char)"""
 
         # Create the array under root and name 'somearray'
         a = self.charListME
@@ -1910,7 +1910,7 @@ class GeneratorTestCase(common.TempFileMixin, TestCase):
             self.assertTrue(allequal(ga[i], garr[i]))
 
     def test01a_single(self):
-        "Testing generator access to Arrays, single elements (numeric)"
+        """Testing generator access to Arrays, single elements (numeric)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalList
@@ -1930,7 +1930,7 @@ class GeneratorTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(ga, garr)
 
     def test01b_me(self):
-        "Testing generator access to Arrays, multiple elements (numeric)"
+        """Testing generator access to Arrays, multiple elements (numeric)"""
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
@@ -2001,6 +2001,7 @@ class GE2NACloseTestCase(GE2NATestCase):
 class NonHomogeneousTestCase(common.TempFileMixin, TestCase):
     def test(self):
         """Test for creation of non-homogeneous arrays."""
+
         # This checks ticket #12.
         self.assertRaises(ValueError,
                           self.h5file.create_array, '/', 'test', [1, [2, 3]])
@@ -2010,6 +2011,7 @@ class NonHomogeneousTestCase(common.TempFileMixin, TestCase):
 class TruncateTestCase(common.TempFileMixin, TestCase):
     def test(self):
         """Test for unability to truncate Array objects."""
+
         array1 = self.h5file.create_array('/', 'array1', [0, 2])
         self.assertRaises(TypeError, array1.truncate, 0)
 
@@ -2034,6 +2036,7 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
 
     def test01a_read(self):
         """Test for point-selections (read, boolean keys)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for value1, value2 in self.limits:
@@ -2042,15 +2045,13 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
                 print("Selection to test:", key)
             a = nparr[key]
             b = tbarr[key]
-#             if common.verbose:
-#                 print("NumPy selection:", a)
-#                 print("PyTables selection:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables selections does not match.")
 
     def test01b_read(self):
         """Test for point-selections (read, integer keys)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for value1, value2 in self.limits:
@@ -2059,15 +2060,13 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
                 print("Selection to test:", key)
             a = nparr[key]
             b = tbarr[key]
-#             if common.verbose:
-#                 print("NumPy selection:", a)
-#                 print("PyTables selection:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables selections does not match.")
 
     def test01c_read(self):
         """Test for point-selections (read, float keys)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for value1, value2 in self.limits:
@@ -2101,6 +2100,7 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
 
     def test02a_write(self):
         """Test for point-selections (write, boolean keys)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for value1, value2 in self.limits:
@@ -2112,15 +2112,13 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             tbarr[key] = s * 2
             a = nparr[:]
             b = tbarr[:]
-#             if common.verbose:
-#                 print("NumPy modified array:", a)
-#                 print("PyTables modifyied array:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
     def test02b_write(self):
         """Test for point-selections (write, integer keys)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for value1, value2 in self.limits:
@@ -2132,15 +2130,13 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             tbarr[key] = s * 2
             a = nparr[:]
             b = tbarr[:]
-#             if common.verbose:
-#                 print("NumPy modified array:", a)
-#                 print("PyTables modifyied array:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
     def test02c_write(self):
         """Test for point-selections (write, integer values, broadcast)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for value1, value2 in self.limits:
@@ -2152,9 +2148,6 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             tbarr[key] = 2   # force a broadcast
             a = nparr[:]
             b = tbarr[:]
-#             if common.verbose:
-#                 print("NumPy modified array:", a)
-#                 print("PyTables modifyied array:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
@@ -2293,6 +2286,7 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
 
     def test01a_read(self):
         """Test for fancy-selections (working selections, read)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for key in self.working_keyset:
@@ -2300,15 +2294,13 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
                 print("Selection to test:", key)
             a = nparr[key]
             b = tbarr[key]
-#             if common.verbose:
-#                 print("NumPy selection:", a)
-#                 print("PyTables selection:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables selections does not match.")
 
     def test01b_read(self):
         """Test for fancy-selections (not working selections, read)."""
+
         # nparr = self.nparr
         tbarr = self.tbarr
         for key in self.not_working_keyset:
@@ -2319,6 +2311,7 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
 
     def test01c_read(self):
         """Test for fancy-selections (out-of-bound indexes, read)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for key in self.not_working_oob:
@@ -2329,6 +2322,7 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
 
     def test01d_read(self):
         """Test for fancy-selections (too many indexes, read)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for key in self.not_working_too_many:
@@ -2341,6 +2335,7 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
 
     def test02a_write(self):
         """Test for fancy-selections (working selections, write)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for key in self.working_keyset:
@@ -2351,15 +2346,13 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
             tbarr[key] = s * 2
             a = nparr[:]
             b = tbarr[:]
-#             if common.verbose:
-#                 print("NumPy modified array:", a)
-#                 print("PyTables modifyied array:", b)
             self.assertTrue(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
     def test02b_write(self):
         """Test for fancy-selections (working selections, write, broadcast)."""
+
         nparr = self.nparr
         tbarr = self.tbarr
         for key in self.working_keyset:
@@ -2416,11 +2409,13 @@ class CopyNativeHDF5MDAtom(TestCase):
 
     def test01_copy(self):
         """Checking that native MD atoms are copied as-is"""
+
         self.assertEqual(self.arr.atom, self.arr2.atom)
         self.assertEqual(self.arr.shape, self.arr2.shape)
 
     def test02_reopen(self):
         """Checking that native MD atoms are copied as-is (re-open)"""
+
         self.copyh.close()
         self.copyh = tables.open_file(self.copy, mode="r")
         self.arr2 = self.copyh.root.arr2
@@ -2667,9 +2662,6 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                           obj=self.obj,
                           atom=atom,
                           shape=shape)
-
-
-#----------------------------------------------------------------------
 
 
 def suite():

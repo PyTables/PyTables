@@ -472,11 +472,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test01c_StringAtom(self):
-        """Checking updating vlarray with NumPy string atoms.
-
-        ('numpy' flavor)
-
-        """
+        """Checking updating vlarray with NumPy string atoms
+        ('numpy' flavor)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2776,18 +2773,9 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
-        try:
+        with self.assertRaises(IndexError):
             row = vlarray.read(1000)[0]
             print("row-->", row)
-        except IndexError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next IndexError was catched!")
-                print(value)
-            self.h5file.close()
-        else:
-            (type, value, traceback) = sys.exc_info()
-            self.fail("expected a IndexError and got:\n%s" % value)
 
 
 class GetItemRangeTestCase(common.TempFileMixin, TestCase):
@@ -3435,11 +3423,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(array1.title, array2.title)
 
     def test01b_copy(self):
-        """Checking VLArray.copy() method.
-
-        Pseudo-atom case.
-
-        """
+        """Checking VLArray.copy() method (Pseudo-atom case)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -4328,8 +4312,6 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
                           obj=self.obj,
                           atom=atom)
 
-
-#----------------------------------------------------------------------
 
 def suite():
     theSuite = unittest.TestSuite()

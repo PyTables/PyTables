@@ -47,25 +47,29 @@ def WriteRead(filename, testTuple):
 
 
 class BasicTestCase(TestCase):
+    def setUp(self):
+        super(BasicTestCase, self).setUp()
+        self.h5fname = tempfile.mktemp(".h5")
+        self.h5file = None
+
+    def tearDown(self):
+        if self.h5file is not None:
+            self.h5file.close()
+        if os.path.exists(self.h5fname):
+            os.remove(self.h5fname)
+        super(BasicTestCase, self).tearDown()
+
     def test00_char(self):
         """Data integrity during recovery (character types)"""
 
         a = self.charList
-        h5fname = tempfile.mktemp(".h5")
-        try:
-            WriteRead(h5fname, a)
-        finally:
-            os.remove(h5fname)
+        WriteRead(self.h5fname, a)
 
     def test01_types(self):
         """Data integrity during recovery (numerical types)"""
 
         a = self.numericalList
-        h5fname = tempfile.mktemp(".h5")
-        try:
-            WriteRead(h5fname, a)
-        finally:
-            os.remove(h5fname)
+        WriteRead(self.h5fname, a)
 
 
 class Basic0DOneTestCase(BasicTestCase):
@@ -119,6 +123,18 @@ class Basic10DTestCase(BasicTestCase):
 
 
 class ExceptionTestCase(TestCase):
+    def setUp(self):
+        super(ExceptionTestCase, self).setUp()
+        self.h5fname = tempfile.mktemp(".h5")
+        self.h5file = None
+
+    def tearDown(self):
+        if self.h5file is not None:
+            self.h5file.close()
+        if os.path.exists(self.h5fname):
+            os.remove(self.h5fname)
+        super(ExceptionTestCase, self).tearDown()
+
     def test00_char(self):
         """Non suppported lists objects (character objects)"""
 
@@ -126,25 +142,15 @@ class ExceptionTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running test for %s" % (self.title))
         a = self.charList
-
-        h5fname = tempfile.mktemp(".h5")
-        try:
-            with self.assertRaises(ValueError):
-                WriteRead(h5fname, a)
-        finally:
-            os.remove(h5fname)
+        with self.assertRaises(ValueError):
+            WriteRead(self.h5fname, a)
 
     def test01_types(self):
         """Non supported lists object (numerical types)"""
 
         a = self.numericalList
-
-        h5fname = tempfile.mktemp(".h5")
-        try:
-            with self.assertRaises(ValueError):
-                WriteRead(h5fname, a)
-        finally:
-            os.remove(h5fname)
+        with self.assertRaises(ValueError):
+            WriteRead(self.h5fname, a)
 
 
 class Basic1DFourTestCase(ExceptionTestCase):

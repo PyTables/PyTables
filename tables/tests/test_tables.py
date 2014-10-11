@@ -4,6 +4,7 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
+from itertools import groupby
 
 import numpy as np
 from numpy import rec as records
@@ -523,16 +524,10 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Check that a KeyError is raised
         # self.assertRaises only work with functions
         # self.assertRaises(KeyError, [rec['no-field'] for rec in table])
-        try:
+        with self.assertRaises(KeyError):
             result = [rec['no-field'] for rec in table]
-        except KeyError:
             if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next KeyError was catched!")
-                print(value)
-        else:
-            print(result)
-            self.fail("expected a KeyError")
+                print('result:', result)
 
     def test01a_badtypefield(self):
         """Checking table read (using Row[{}])"""
@@ -549,16 +544,10 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Check that a TypeError is raised
         # self.assertRaises only work with functions
         # self.assertRaises(TypeError, [rec[{}] for rec in table])
-        try:
+        with self.assertRaises(TypeError):
             result = [rec[{}] for rec in table]
-        except TypeError:
             if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next TypeError was catched!")
-                print(value)
-        else:
-            print(result)
-            self.fail("expected a TypeError")
+                print('result:', result)
 
     def test01b_readTable(self):
         """Checking table read and cuts (multidimensional columns case)"""
@@ -2505,11 +2494,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(result["var2"], self.expectedrows - 1)
 
     def test01b_singleItem(self):
-        """Checking __getitem__ method with single parameter (neg.
-
-        int)
-
-        """
+        """Checking __getitem__ method with single parameter (neg. int)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2541,11 +2526,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(result["var2"], self.expectedrows - 1)
 
     def test01d_singleItem(self):
-        """Checking __getitem__ method with single parameter (neg.
-
-        long)
-
-        """
+        """Checking __getitem__ method with single parameter (neg. long)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2626,15 +2607,8 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
 
         self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.root.table0
-        try:
+        with self.assertRaises(ValueError):
             table[2:3:-3]
-        except ValueError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next ValueError was catched!")
-                print(value)
-        else:
-            self.fail("expected a ValueError")
 
     def test06a_singleItemCol(self):
         """Checking __getitem__ method in Col with single parameter."""
@@ -2652,11 +2626,8 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(colvar2[self.expectedrows-1], self.expectedrows - 1)
 
     def test06b_singleItemCol(self):
-        """Checking __getitem__ method in Col with single parameter.
-
-        (negative)
-
-        """
+        """Checking __getitem__ method in Col with single parameter
+        (negative)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -2714,15 +2685,8 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.root.table0
         colvar2 = table.cols.var2
-        try:
+        with self.assertRaises(ValueError):
             colvar2[2:3:-3]
-        except ValueError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next ValueError was catched!")
-                print(value)
-        else:
-            self.fail("expected a ValueError")
 
     def test10_list_integers(self):
         """Checking accessing Table with a list of integers."""
@@ -3149,7 +3113,6 @@ class SetItemTestCase4(SetItemTestCase):
 
 
 class UpdateRowTestCase(common.TempFileMixin, TestCase):
-
     def test01(self):
         """Checking modifying one table row with Row.update"""
 
@@ -5356,36 +5319,34 @@ class WhereAppendTestCase(common.TempFileMixin, TestCase):
         """Appending to a table in another file."""
 
         h5fname2 = tempfile.mktemp(suffix='.h5')
-        h5file2 = tables.open_file(h5fname2, 'w')
 
         try:
-            tbl1 = self.h5file.root.test
-            tbl2 = h5file2.create_table('/', 'test', self.SrcTblDesc)
+            with tables.open_file(h5fname2, 'w') as h5file2:
+                tbl1 = self.h5file.root.test
+                tbl2 = h5file2.create_table('/', 'test', self.SrcTblDesc)
 
-            # RW to RW.
-            tbl1.append_where(tbl2, 'id > 1')
+                # RW to RW.
+                tbl1.append_where(tbl2, 'id > 1')
 
             # RW to RO.
-            h5file2.close()
-            h5file2 = tables.open_file(h5fname2, 'r')
-            tbl2 = h5file2.root.test
-            self.assertRaises(tables.FileModeError,
-                              tbl1.append_where, tbl2, 'id > 1')
+            with tables.open_file(h5fname2, 'r') as h5file2:
+                tbl2 = h5file2.root.test
+                self.assertRaises(tables.FileModeError,
+                                  tbl1.append_where, tbl2, 'id > 1')
 
-            # RO to RO.
-            self._reopen('r')
-            tbl1 = self.h5file.root.test
-            self.assertRaises(tables.FileModeError,
-                              tbl1.append_where, tbl2, 'id > 1')
+                # RO to RO.
+                self._reopen('r')
+                tbl1 = self.h5file.root.test
+                self.assertRaises(tables.FileModeError,
+                                  tbl1.append_where, tbl2, 'id > 1')
 
             # RO to RW.
-            h5file2.close()
-            h5file2 = tables.open_file(h5fname2, 'a')
-            tbl2 = h5file2.root.test
-            tbl1.append_where(tbl2, 'id > 1')
+            with tables.open_file(h5fname2, 'a') as h5file2:
+                tbl2 = h5file2.root.test
+                tbl1.append_where(tbl2, 'id > 1')
         finally:
-            h5file2.close()
-            os.remove(h5fname2)
+            if os.path.exists(h5fname2):
+                os.remove(h5fname2)
 
 
 class DerivedTableTestCase(common.TempFileMixin, TestCase):
@@ -5757,9 +5718,6 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
                 print("Selection to test:", key, type(key))
             a = recarr[key]
             b = table[key]
-#             if common.verbose:
-#                 print "NumPy selection:", a
-#                 print "PyTables selection:", b
             npt.assert_array_equal(
                 a, b, "NumPy array and PyTables selections does not match.")
 
@@ -5789,9 +5747,6 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
                 print("Selection to test:", key, type(key))
             a = recarr[key]
             b = table[key]
-#             if common.verbose:
-#                 print "NumPy selection:", a
-#                 print "PyTables selection:", b
             npt.assert_array_equal(
                 a, b, "NumPy array and PyTables selections does not match.")
 
@@ -5807,9 +5762,6 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
                 print("Selection to test:", key, type(key))
             a = recarr[key]
             b = table[key]
-#             if common.verbose:
-#                 print "NumPy selection:", a
-#                 print "PyTables selection:", b
             npt.assert_array_equal(
                 a, b, "NumPy array and PyTables selections does not match.")
 
@@ -5853,9 +5805,6 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             table[key] = s
             a = recarr[:]
             b = table[:]
-#             if common.verbose:
-#                 print "NumPy modified array:", a
-#                 print "PyTables modifyied array:", b
             npt.assert_array_equal(
                 a, b, "NumPy array and PyTables modifications does not match.")
 
@@ -5878,9 +5827,6 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             table[key] = s
             a = recarr[:]
             b = table[:]
-#             if common.verbose:
-#                 print "NumPy modified array:", a
-#                 print "PyTables modifyied array:", b
             npt.assert_array_equal(
                 a, b, "NumPy array and PyTables modifications does not match.")
 
@@ -5956,13 +5902,7 @@ class ExhaustedIter(common.TempFileMixin, TestCase):
         self.assertEqual(scenario_means, [112.0, 112.0, 112.0])
 
     def test01_groupby(self):
-        """Checking iterating an exhausted iterator (ticket #264).
-
-        Reopen.
-
-        """
-
-        from itertools import groupby
+        """Checking iterating an exhausted iterator (ticket #264). Reopen."""
 
         self._reopen()
 
@@ -6271,9 +6211,6 @@ class TestCreateTableArgs(common.TempFileMixin, TestCase):
                           title=self.title,
                           obj=self.obj,
                           description=RecordDescriptionDict)
-
-
-#----------------------------------------------------------------------
 
 
 def suite():

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import os
 import sys
 
 import numpy
@@ -37,8 +36,7 @@ class Record(tables.IsDescription):
         var12 = Col.from_kind('complex', itemsize=32)  # extended-precision
 
 
-class RangeTestCase(TestCase):
-    h5fname = "test.h5"
+class RangeTestCase(common.TempFileMixin, TestCase):
     title = "This is the table title"
     expectedrows = 100
     maxshort = 2 ** 15
@@ -47,22 +45,17 @@ class RangeTestCase(TestCase):
 
     def setUp(self):
         super(RangeTestCase, self).setUp()
-        self.h5file = tables.open_file(self.h5fname, mode="w")
         self.rootgroup = self.h5file.root
 
         # Create a table
         self.table = self.h5file.create_table(self.rootgroup, 'table',
                                               Record, self.title)
 
-    def tearDown(self):
-        self.h5file.close()
-        os.remove(self.h5fname)
-        super(RangeTestCase, self).tearDown()
-
     def test00_range(self):
         """Testing the range check."""
 
         rec = self.table.row
+
         # Save a record
         i = self.maxshort
         rec['var1'] = '%04d' % (i)
@@ -158,22 +151,17 @@ class DtypeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(a.dtype, a.atom.dtype)
 
 
-class ReadFloatTestCase(TestCase):
-    h5fname = "float.h5"
+class ReadFloatTestCase(common.TestFileMixin, TestCase):
+    h5fname = TestCase._testFilename("float.h5")
     nrows = 5
     ncols = 6
 
     def setUp(self):
         super(ReadFloatTestCase, self).setUp()
-        self.h5file = tables.open_file(self._testFilename(self.h5fname))
         x = numpy.arange(self.ncols)
         y = numpy.arange(self.nrows)
         y.shape = (self.nrows, 1)
         self.values = x + y
-
-    def tearDown(self):
-        self.h5file.close()
-        super(ReadFloatTestCase, self).tearDown()
 
     def test01_read_float16(self):
         dtype = "float16"
@@ -317,8 +305,6 @@ class AtomTestCase(TestCase):
         # ValueError: unknown kind: 'Float'
         self.assertRaises(ValueError, Atom.from_kind, 'Float')
 
-
-#----------------------------------------------------------------------
 
 def suite():
     import doctest

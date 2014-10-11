@@ -35,7 +35,7 @@ class Small(tables.IsDescription):
     var4 = FloatCol(dflt=0)
 
 
-class SelectValuesTestCase(TestCase):
+class SelectValuesTestCase(common.TempFileMixin, TestCase):
     compress = 1
     complib = "zlib"
     shuffle = 1
@@ -52,8 +52,6 @@ class SelectValuesTestCase(TestCase):
         # Create an instance of an HDF5 Table
         if verbose:
             print("Checking index kind-->", self.kind)
-        self.h5fname = tempfile.mktemp(".h5")
-        self.h5file = tables.open_file(self.h5fname, "w")
         self.rootgroup = self.h5file.root
         self.populateFile()
 
@@ -113,17 +111,9 @@ class SelectValuesTestCase(TestCase):
             print("Number of indexed rows:", indexrows)
 
         if self.reopen:
-            self.h5file.close()
-            self.h5file = tables.open_file(self.h5fname, "a")  # flavor changes
+            self._reopen(mode='a')  # flavor changes
             self.table1 = self.h5file.root.table1
             self.table2 = self.h5file.root.table1
-
-    def tearDown(self):
-        self.h5file.close()
-        os.remove(self.h5fname)
-        super(SelectValuesTestCase, self).tearDown()
-
-    #----------------------------------------
 
     def test01a(self):
         """Checking selecting values from an Index (string flavor)"""
@@ -1601,7 +1591,8 @@ class SelectValuesTestCase(TestCase):
         table1._enable_indexing_in_queries()
 
     def test09c(self):
-        "Check non-indexed where() w/ ranges, changing step (string flavor)"
+        """Check non-indexed where() w/ ranges, changing step
+        (string flavor)"""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -1698,7 +1689,8 @@ class SelectValuesTestCase(TestCase):
         table1._enable_indexing_in_queries()
 
     def test09d(self):
-        "Checking non-indexed where() w/ ranges, changing step (int flavor)"
+        """Checking non-indexed where() w/ ranges, changing step
+        (int flavor)"""
 
         if verbose:
             print('\n', '-=' * 30)
@@ -3174,11 +3166,22 @@ class LastRowReuseBuffers(TestCase):
     class Record(tables.IsDescription):
         id1 = tables.Int16Col()
 
+    def setUp(self):
+        super(LastRowReuseBuffers, self).setUp()
+        self.h5fname = tempfile.mktemp(".h5")
+        self.h5file = None
+
+    def tearDown(self):
+        if self.h5file is not None:
+            self.h5file.close()
+        if os.path.exists(self.h5fname):
+            os.remove(self.h5fname)
+        super(LastRowReuseBuffers, self).tearDown()
+
     def test00_lrucache(self):
-        filename = tempfile.mktemp(".h5")
-        fp = tables.open_file(filename, 'w', node_cache_slots=64)
-        ta = fp.create_table('/', 'table', self.Record,
-                             filters=tables.Filters(1))
+        self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=64)
+        ta = self.h5file.create_table('/', 'table', self.Record,
+                                      filters=tables.Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
@@ -3193,15 +3196,11 @@ class LastRowReuseBuffers(TestCase):
             self.assertTrue(
                 nrow in idx,
                 "nrow not found: %s != %s, %s" % (idx, nrow, value))
-
-        fp.close()
-        os.remove(filename)
 
     def test01_nocache(self):
-        filename = tempfile.mktemp(".h5")
-        fp = tables.open_file(filename, 'w', node_cache_slots=0)
-        ta = fp.create_table('/', 'table', self.Record,
-                             filters=tables.Filters(1))
+        self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=0)
+        ta = self.h5file.create_table('/', 'table', self.Record,
+                                      filters=tables.Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
@@ -3216,15 +3215,11 @@ class LastRowReuseBuffers(TestCase):
             self.assertTrue(
                 nrow in idx,
                 "nrow not found: %s != %s, %s" % (idx, nrow, value))
-
-        fp.close()
-        os.remove(filename)
 
     def test02_dictcache(self):
-        filename = tempfile.mktemp(".h5")
-        fp = tables.open_file(filename, 'w', node_cache_slots=-64)
-        ta = fp.create_table('/', 'table', self.Record,
-                             filters=tables.Filters(1))
+        self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=-64)
+        ta = self.h5file.create_table('/', 'table', self.Record,
+                                      filters=tables.Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
@@ -3239,14 +3234,11 @@ class LastRowReuseBuffers(TestCase):
             self.assertTrue(
                 nrow in idx,
                 "nrow not found: %s != %s, %s" % (idx, nrow, value))
-
-        fp.close()
-        os.remove(filename)
 
 
 normal_tests = (
     "SV1aTestCase", "SV2aTestCase", "SV3aTestCase",
-    )
+)
 
 heavy_tests = (
     # The next are too hard to be in the 'normal' suite
@@ -3307,8 +3299,8 @@ for (cname, cbasenames, cdict) in iclassdata():
     class_ = type(cname, cbases, cdict)
     exec('%s = class_' % cname)
 
-
 # -----------------------------
+
 
 def suite():
     theSuite = unittest.TestSuite()

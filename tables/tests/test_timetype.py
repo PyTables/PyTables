@@ -506,8 +506,6 @@ class BigEndianTestCase(TestCase):
                         "Retrieved values do not match the expected values.")
 
 
-#----------------------------------------------------------------------
-
 def suite():
     """suite() -> test suite
 
