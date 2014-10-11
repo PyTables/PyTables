@@ -975,23 +975,13 @@ def read_f_attr(hid_t file_id, str attr_name):
         retvalue = numpy.unicode_(u'')
       else:
         retvalue = numpy.bytes_(b'')
-    elif cset == H5T_CSET_UTF8:
-      if size == 1 and attr_value[0] == 0:
-        # compatibility with PyTables <= 3.1.1
-        retvalue = numpy.unicode_(u'')
-      retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
-      retvalue = numpy.str_(retvalue)
     else:
-      retvalue = PyBytes_FromStringAndSize(attr_value, size)
-      # AV: oct 2012
-      # since now we use the string size got form HDF5 we have to strip
-      # trailing zeros used for padding.
-      # The entire process is quite odd but due to a bug (??) in the way
-      # numpy arrays are pickled in python 3 we can't assume that
-      # strlen(attr_value) is the actual length of the attibute
-      # and numpy.bytes_(attr_value) can give a truncated pickle sting
-      retvalue = retvalue.rstrip(b'\x00')
-      retvalue = numpy.bytes_(retvalue)     # bytes
+      retvalue = <bytes>(attr_value).rstrip(b'\x00')
+      if cset == H5T_CSET_UTF8:
+        retvalue = retvalue.decode('utf-8')
+        retvalue = numpy.str_(retvalue)
+      else:
+        retvalue = numpy.bytes_(retvalue)     # bytes
 
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:

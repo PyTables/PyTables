@@ -2465,7 +2465,7 @@ class TestSysattrCompatibility(TestCase):
             self.assertTrue(h5file.isopen)
 
     def test_open_python3(self):
-        h5fname = self._testFilename("python2.h5")
+        h5fname = self._testFilename("python3.h5")
         with tables.open_file(h5fname, "r") as h5file:
             self.assertTrue(h5file.isopen)
 
