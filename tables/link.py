@@ -199,7 +199,8 @@ class SoftLink(linkextension.SoftLink, Link):
             target.__setattr__(attrname, value)
 
     def is_dangling(self):
-        return self.target in self._v_file
+        target = self._v_file._get_node(self.target)
+        return not (target in self._v_file)
 
     def __call__(self):
         """Dereference `self.target` and return the object.
