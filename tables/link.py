@@ -155,7 +155,7 @@ class SoftLink(linkextension.SoftLink, Link):
         * `move`
         * `remove`
         * `is_dangling`
-        * any attribute name beginning with `_`
+        * any attribute name beginning with `_f_`, `_c_`, `_g_`, or `_v_`
 
     For backwards compatibility, it is also possible to obtain the target node
     via the `__call__` special method (this action is called *dereferencing*;
@@ -164,7 +164,8 @@ class SoftLink(linkextension.SoftLink, Link):
     """
 
     target = None
-    special_attrnames = ('target', 'copy', 'move', 'remove', 'is_dangling')
+    _special_attrnames = ('target', 'copy', 'move', 'remove', 'is_dangling')
+    _special_prefixes = ('_f_', '_c_', '_g_', '_v_')
 
     # Class identifier.
     _c_classid = 'SOFTLINK'
@@ -174,7 +175,8 @@ class SoftLink(linkextension.SoftLink, Link):
     def __getattribute__(self, attrname):
 
         # get attribute of the SoftLink itself
-        if attrname in SoftLink.special_attrnames or attrname.startswith('_'):
+        if (attrname in SoftLink._special_attrnames
+            or attrname[:3] in SoftLink._special_prefixes):
             return object.__getattribute__(self, attrname)
 
         # get attribute of the target node
@@ -187,7 +189,8 @@ class SoftLink(linkextension.SoftLink, Link):
     def __setattr__(self, attrname, value):
 
         # set attribute of the SoftLink itself
-        if attrname in SoftLink.special_attrnames or attrname.startswith('_'):
+        if (attrname in SoftLink._special_attrnames
+            or attrname[:3] in SoftLink._special_prefixes):
             object.__setattr__(self, attrname, value)
 
         # set attribute of the target node
@@ -201,6 +204,7 @@ class SoftLink(linkextension.SoftLink, Link):
     def is_dangling(self):
         target = self._v_file._get_node(self.target)
         return not (target in self._v_file)
+
 
     def __call__(self):
         """Dereference `self.target` and return the object.
