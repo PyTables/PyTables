@@ -312,6 +312,18 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         h5f.close()
         os.remove(fname)
 
+    def test11_direct_attribute_access(self):
+        """Check direct get/set of target node attributes"""
+        self._createFile()
+        larr1 = self.h5file.get_node('/lgroup1/larr1')
+        arr1 = self.h5file.get_node('/arr1')
+        # get
+        self.assertTrue(larr1.shape == (2,))
+        self.assertTrue(larr1[:] == [1, 2])
+        # set
+        larr1[0] = -1
+        self.assertTrue(arr1[:] == [-1, 2])
+
 
 # Test for external links
 @unittest.skipIf(tables.file._FILE_OPEN_POLICY == 'strict',

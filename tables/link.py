@@ -146,7 +146,7 @@ class SoftLink(linkextension.SoftLink, Link):
     Provided that the target node exists, its attributes and methods can be
     accessed directly from the softlink using the normal `.` syntax.
 
-    Softlinks also have the following private methods/attributes:
+    Softlinks also have the following public methods/attributes:
 
         * `target`
         * `dereference()`
