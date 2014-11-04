@@ -143,15 +143,63 @@ class SoftLink(linkextension.SoftLink, Link):
     """Represents a soft link (aka symbolic link).
 
     A soft link is a reference to another node in the *same* file hierarchy.
-    Getting access to the pointed node (this action is called *dereferrencing*)
-    is done via the __call__ special method (see below).
+
+    Provided that the target node exists, its attributes and methods can be
+    accessed directly from the softlink using the normal `.` syntax. The
+    following attribute names are exceptions, in that they are always treated
+    as attributes of the SoftLink instance itself, rather than of the target
+    node:
+
+        * `target`
+        * `copy`
+        * `move`
+        * `remove`
+        * `is_dangling`
+        * any attribute name beginning with `_`
+
+    For backwards compatibility, it is also possible to obtain the target node
+    via the `__call__` special method (this action is called *dereferencing*;
+    see below)
 
     """
+
+    target = None
+    special_attrnames = ('target', 'copy', 'move', 'remove', 'is_dangling')
 
     # Class identifier.
     _c_classid = 'SOFTLINK'
 
     _c_classId = previous_api_property('_c_classid')
+
+    def __getattribute__(self, attrname):
+
+        # get attribute of the SoftLink itself
+        if attrname in SoftLink.special_attrnames or attrname.startswith('_'):
+            return object.__getattribute__(self, attrname)
+
+        # get attribute of the target node
+        elif self.is_dangling():
+            return None
+        else:
+            target = self._v_file._get_node(self.target)
+            return target.__getattribute__(attrname)
+
+    def __setattr__(self, attrname, value):
+
+        # set attribute of the SoftLink itself
+        if attrname in SoftLink.special_attrnames or attrname.startswith('_'):
+            object.__setattr__(self, attrname, value)
+
+        # set attribute of the target node
+        elif self.is_dangling():
+            raise AttributeError(
+                "Can't set target node attribute: softlink is dangling")
+        else:
+            target = self._v_file._get_node(self.target)
+            target.__setattr__(attrname, value)
+
+    def is_dangling(self):
+        return self.target in self._v_file
 
     def __call__(self):
         """Dereference `self.target` and return the object.
