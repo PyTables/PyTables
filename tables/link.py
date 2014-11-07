@@ -244,7 +244,13 @@ class SoftLink(linkextension.SoftLink, Link):
         elif self.is_dangling():
             return None
         else:
-            return self.dereference().__getattribute__(attrname)
+            target_node = self.dereference()
+            try:
+                # __getattribute__() fails to get children of Groups
+                return target_node.__getattribute__(attrname)
+            except AttributeError:
+                # some node classes (e.g. Array) don't implement __getattr__()
+                return target_node.__getattr__(attrname)
 
     def __setattr__(self, attrname, value):
 
