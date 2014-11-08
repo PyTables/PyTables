@@ -670,6 +670,7 @@ if has_setuptools:
             'ptdump = tables.scripts.ptdump:main',
             'ptrepack = tables.scripts.ptrepack:main',
             'pt2to3 = tables.scripts.pt2to3:main',
+            'pttree = tables.scripts.pttree:main',
         ],
     }
 
@@ -688,7 +689,7 @@ else:
         'tables.tests', 'tables.nodes.tests',
     ]
     setuptools_kwargs['scripts'] = [
-        'utils/ptdump', 'utils/ptrepack', 'utils/pt2to3']
+        'utils/ptdump', 'utils/ptrepack', 'utils/pt2to3', 'utils/pttree']
 # Copy additional data for packages that need it.
 setuptools_kwargs['package_data'] = {
     'tables.tests': ['*.h5', '*.mat'],
