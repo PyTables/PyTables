@@ -1921,6 +1921,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
             tables.flavor.description_map.update(description_map)
 
 
+@unittest.skipIf('win' in platform.system().lower(), 'known bug: gh-389')
 class UnicodeFilename(common.TempFileMixin, TestCase):
     unicode_prefix = u'para\u0140lel'
 
