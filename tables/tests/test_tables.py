@@ -1560,12 +1560,16 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
                                    names=names)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class CompressBloscTablesTestCase(BasicTestCase):
     title = "CompressBloscTables"
     compress = 6
     complib = "blosc"
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class CompressBloscShuffleTablesTestCase(BasicTestCase):
     title = "CompressBloscTables"
     compress = 1
@@ -1573,6 +1577,8 @@ class CompressBloscShuffleTablesTestCase(BasicTestCase):
     complib = "blosc"
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class CompressBloscBloscLZTablesTestCase(BasicTestCase):
     title = "CompressBloscLZTables"
     compress = 1
@@ -1580,6 +1586,8 @@ class CompressBloscBloscLZTablesTestCase(BasicTestCase):
     complib = "blosc:blosclz"
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class CompressBloscLZ4TablesTestCase(BasicTestCase):
     title = "CompressLZ4Tables"
@@ -1588,6 +1596,8 @@ class CompressBloscLZ4TablesTestCase(BasicTestCase):
     complib = "blosc:lz4"
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
     title = "CompressLZ4HCTables"
@@ -1596,6 +1606,8 @@ class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
     complib = "blosc:lz4hc"
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
                  'snappy required')
 class CompressBloscSnappyTablesTestCase(BasicTestCase):
@@ -1605,6 +1617,8 @@ class CompressBloscSnappyTablesTestCase(BasicTestCase):
     complib = "blosc:snappy"
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
 class CompressBloscZlibTablesTestCase(BasicTestCase):
     title = "CompressZlibTables"
@@ -1613,12 +1627,14 @@ class CompressBloscZlibTablesTestCase(BasicTestCase):
     complib = "blosc:zlib"
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class CompressLZOTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
     compress = 1
     complib = "lzo"
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class CompressLZOShuffleTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
     compress = 1
@@ -1626,12 +1642,16 @@ class CompressLZOShuffleTablesTestCase(BasicTestCase):
     complib = "lzo"
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class CompressBzip2TablesTestCase(BasicTestCase):
     title = "CompressBzip2Tables"
     compress = 1
     complib = "bzip2"
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class CompressBzip2ShuffleTablesTestCase(BasicTestCase):
     title = "CompressBzip2Tables"
     compress = 1
@@ -2392,7 +2412,7 @@ class RecArrayRangeTestCase(BasicRangeTestCase):
     checkrecarray = 1
 
 
-class getColRangeTestCase(BasicRangeTestCase):
+class GetColRangeTestCase(BasicRangeTestCase):
     checkgetCol = 1
 
     def test01_nonexistentField(self):
@@ -6249,7 +6269,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TableReadByteorderTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayRangeTestCase))
-        theSuite.addTest(unittest.makeSuite(getColRangeTestCase))
+        theSuite.addTest(unittest.makeSuite(GetColRangeTestCase))
         theSuite.addTest(unittest.makeSuite(GetItemTestCase))
         theSuite.addTest(unittest.makeSuite(SetItemTestCase1))
         theSuite.addTest(unittest.makeSuite(SetItemTestCase2))

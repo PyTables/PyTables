@@ -552,12 +552,15 @@ class FiltersCase1(FiltersTreeTestCase):
     open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class FiltersCase2(FiltersTreeTestCase):
     filters = Filters(complevel=1, complib="bzip2")
     gfilters = Filters(complevel=1)
     open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class FiltersCase3(FiltersTreeTestCase):
     filters = Filters(shuffle=True, complib="zlib")
     gfilters = Filters(complevel=1, shuffle=False, complib="lzo")
@@ -594,24 +597,32 @@ class FiltersCase8(FiltersTreeTestCase):
     open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class FiltersCase9(FiltersTreeTestCase):
     filters = Filters(shuffle=True, complib="zlib")
     gfilters = Filters(complevel=5, shuffle=True, complib="bzip2")
     open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class FiltersCase10(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc")
     open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class FiltersCaseBloscBloscLZ(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:blosclz")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:blosclz")
     open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4")
@@ -619,6 +630,8 @@ class FiltersCaseBloscLZ4(FiltersTreeTestCase):
     open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4hc")
@@ -626,6 +639,8 @@ class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
     open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
                  'snappy required')
 class FiltersCaseBloscSnappy(FiltersTreeTestCase):
@@ -634,6 +649,8 @@ class FiltersCaseBloscSnappy(FiltersTreeTestCase):
     open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
 class FiltersCaseBloscZlib(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:zlib")
@@ -976,6 +993,7 @@ class CopyGroupCase7(CopyGroupTestCase):
     dstnode = '/'
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class CopyGroupCase8(CopyGroupTestCase):
     close = 1
     filters = Filters(complevel=1, complib="lzo")
@@ -1458,6 +1476,7 @@ class GroupFiltersTestCase(common.TempFileMixin, TestCase):
         self._test_change('/explicit_yes', del_filters, tables.Filters())
 
 
+@unittest.skipIf(not common.blosc_avail, 'BLOSC not available')
 class SetBloscMaxThreadsTestCase(common.TempFileMixin, TestCase):
     filters = tables.Filters(complevel=4, complib="blosc")
 

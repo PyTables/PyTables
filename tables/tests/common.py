@@ -58,6 +58,12 @@ if '--heavy' in sys.argv:
     sys.argv.remove('--heavy')
 
 
+zlib_avail = tables.which_lib_version("zlib") is not None
+lzo_avail = tables.which_lib_version("lzo") is not None
+bzip2_avail = tables.which_lib_version("bzip2") is not None
+blosc_avail = tables.which_lib_version("blosc") is not None
+
+
 def print_heavy(heavy):
     if heavy:
         print("""Performing the complete test suite!""")

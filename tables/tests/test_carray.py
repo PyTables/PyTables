@@ -465,6 +465,7 @@ class EmptyCArray2TestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class SlicesCArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -482,6 +483,7 @@ class EllipsisCArrayTestCase(BasicTestCase):
     slices = (Ellipsis, slice(1, 2, 1))
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class Slices2CArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -498,6 +500,7 @@ class Ellipsis2CArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class Slices3CArrayTestCase(BasicTestCase):
     compress = 1      # To show the chunks id DEBUG is on
     complib = "lzo"
@@ -641,6 +644,8 @@ class ZlibShuffleTestCase(BasicTestCase):
     step = 10
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "blosc"
@@ -650,6 +655,8 @@ class BloscComprTestCase(BasicTestCase):
     step = 3
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscShuffleTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -661,6 +668,8 @@ class BloscShuffleTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscFletcherTestCase(BasicTestCase):
     # see gh-21
     shape = (200, 300)
@@ -674,6 +683,8 @@ class BloscFletcherTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscBloscLZTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -685,6 +696,8 @@ class BloscBloscLZTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4TestCase(BasicTestCase):
     shape = (20, 30)
@@ -697,6 +710,8 @@ class BloscLZ4TestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4HCTestCase(BasicTestCase):
     shape = (20, 30)
@@ -709,6 +724,8 @@ class BloscLZ4HCTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
                  'snappy required')
 class BloscSnappyTestCase(BasicTestCase):
@@ -722,6 +739,8 @@ class BloscSnappyTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
 class BloscZlibTestCase(BasicTestCase):
     shape = (20, 30)
@@ -734,6 +753,7 @@ class BloscZlibTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
@@ -743,6 +763,7 @@ class LZOComprTestCase(BasicTestCase):
     step = 3
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class LZOShuffleTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -754,6 +775,8 @@ class LZOShuffleTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class Bzip2ComprTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -764,6 +787,8 @@ class Bzip2ComprTestCase(BasicTestCase):
     step = 8
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class Bzip2ShuffleTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -1951,9 +1976,8 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     stop = None  # None should mean the last element (including it)
     step = 1
 
+
 # The next test should be run only in **heavy** mode
-
-
 class Rows64bitsTestCase(common.TempFileMixin, TestCase):
     narows = 1000 * 1000   # each array will have 1 million entries
     # narows = 1000        # for testing only

@@ -745,6 +745,8 @@ class ZlibReadTestCase(BasicTestCase):
     nrows = small_ss
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscReadTestCase(BasicTestCase):
     compress = 1
     complib = "blosc"
@@ -753,6 +755,7 @@ class BloscReadTestCase(BasicTestCase):
     nrows = small_ss
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class LZOReadTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -761,6 +764,8 @@ class LZOReadTestCase(BasicTestCase):
     nrows = small_ss
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class Bzip2ReadTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"

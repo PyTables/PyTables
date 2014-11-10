@@ -16,9 +16,6 @@ from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
-lzo_avail = tables.which_lib_version("lzo") is not None
-
-
 # Check read Tables from pytables version 0.8
 class BackCompatTablesTestCase(TestCase):
     def test01_readTable(self):
@@ -48,36 +45,35 @@ class BackCompatTablesTestCase(TestCase):
             h5file.close()
 
 
-@unittest.skipIf(not lzo_avail, 'lzo not available')
+@unittest.skipIf(not common.lzo_avail, 'lzo not available')
 class Table2_1LZO(BackCompatTablesTestCase):
     # pytables 0.8.x versions and after
     h5fname = "Table2_1_lzo_nrv2e_shuffle.h5"
 
 
-@unittest.skipIf(not lzo_avail, 'lzo not available')
+@unittest.skipIf(not common.lzo_avail, 'lzo not available')
 class Tables_LZO1(BackCompatTablesTestCase):
     h5fname = "Tables_lzo1.h5"  # files compressed with LZO1
 
 
-@unittest.skipIf(not lzo_avail, 'lzo not available')
+@unittest.skipIf(not common.lzo_avail, 'lzo not available')
 class Tables_LZO1_shuffle(BackCompatTablesTestCase):
     # files compressed with LZO1 and shuffle
     h5fname = "Tables_lzo1_shuffle.h5"
 
 
-@unittest.skipIf(not lzo_avail, 'lzo not available')
+@unittest.skipIf(not common.lzo_avail, 'lzo not available')
 class Tables_LZO2(BackCompatTablesTestCase):
     h5fname = "Tables_lzo2.h5"  # files compressed with LZO2
 
 
-@unittest.skipIf(not lzo_avail, 'lzo not available')
+@unittest.skipIf(not common.lzo_avail, 'lzo not available')
 class Tables_LZO2_shuffle(BackCompatTablesTestCase):
     # files compressed with LZO2 and shuffle
     h5fname = "Tables_lzo2_shuffle.h5"
 
+
 # Check read attributes from PyTables >= 1.0 properly
-
-
 class BackCompatAttrsTestCase(common.TestFileMixin, TestCase):
     FILENAME = "zerodim-attrs-%s.h5"
 

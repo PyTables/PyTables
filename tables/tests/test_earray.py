@@ -851,6 +851,7 @@ class Empty2EArrayTestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class SlicesEArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -861,6 +862,8 @@ class SlicesEArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(1, 3, 1))
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class Slices2EArrayTestCase(BasicTestCase):
     compress = 1
     complib = "blosc"
@@ -888,6 +891,8 @@ class Ellipsis2EArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class Slices3EArrayTestCase(BasicTestCase):
     compress = 1      # To show the chunks id DEBUG is on
     complib = "blosc"
@@ -1058,6 +1063,8 @@ class ZlibShuffleTestCase(BasicTestCase):
     step = 10
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "blosc"
@@ -1068,6 +1075,8 @@ class BloscComprTestCase(BasicTestCase):
     step = 3
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscShuffleTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
@@ -1079,6 +1088,7 @@ class BloscShuffleTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
@@ -1089,6 +1099,7 @@ class LZOComprTestCase(BasicTestCase):
     step = 3
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class LZOShuffleTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
@@ -1100,6 +1111,8 @@ class LZOShuffleTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class Bzip2ComprTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"
@@ -1110,6 +1123,8 @@ class Bzip2ComprTestCase(BasicTestCase):
     step = 8
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class Bzip2ShuffleTestCase(BasicTestCase):
     compress = 1
     shuffle = 1

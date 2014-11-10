@@ -38,9 +38,6 @@ from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
-blosc_avail = tables.which_lib_version("blosc") is not None
-
-
 class OpenFileFailureTestCase(TestCase):
     def setUp(self):
         super(OpenFileFailureTestCase, self).setUp()
@@ -2058,7 +2055,7 @@ class FilePropertyTestCase(TestCase):
 
 
 # Test for reading a file that uses Blosc and created on a big-endian platform
-@unittest.skipIf(not blosc_avail, 'Blosc not available')
+@unittest.skipIf(not common.blosc_avail, 'Blosc not available')
 class BloscBigEndian(common.TestFileMixin, TestCase):
     h5fname = TestCase._testFilename("blosc_bigendian.h5")
 
@@ -2103,6 +2100,7 @@ def _worker(fn, qout=None):
                  'multiprocessing module not available')
 @unittest.skipIf(platform.system().lower() in ('gnu', 'gnu/kfreebsd'),
                  "multiprocessing module is not supported on Hurd/kFreeBSD")
+@unittest.skipIf(not common.blosc_avail, 'Blosc not available')
 class BloscSubprocess(TestCase):
     def test_multiprocess(self):
         # Create a relatively large table with Blosc level 9 (large blocks)
