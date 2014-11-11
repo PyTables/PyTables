@@ -20,26 +20,29 @@ import tables
 import numpy as np
 import os
 import argparse
+from collections import defaultdict, deque
+
 
 def _get_parser():
     parser = argparse.ArgumentParser(
         description='''
         `pttree` is designed to give a quick overview of the contents of a
         PyTables HDF5 file by printing a depth-indented list of nodes, similar
-        to the output of the Unix `tree` utility for viewing directory
-        structures. It can also display the size, shape and compression states
-        of individual nodes, as well as summary information for the whole file.
-        For a more verbose output including metadata, see `ptdump`.
+        to the output of the Unix `tree` function.
+
+        It can also display the size, shape and compression states of
+        individual nodes, as well as summary information for the whole file.
+
+        For a more verbose output (including metadata), see `ptdump`.
         ''')
 
-
     parser.add_argument(
-        '-L', '--max-level', type=int, dest='max_depth',
-        help='maximum display depth of tree (-1 = no limit)',
+        '-L', '--max-level', type=int, dest='max_depth', default=1,
+        help='maximum branch depth of tree to display (-1 == no limit)',
     )
     parser.add_argument(
         '--print-size', action='store_true', dest='print_size',
-        help='print size of each node',
+        help='print size of each node/branch',
     )
     parser.add_argument(
         '--no-print-size', action='store_false', dest='print_size',
@@ -59,12 +62,29 @@ def _get_parser():
         '--no-print-compression', action='store_false',
         dest='print_compression',
     )
+    parser.add_argument(
+        '--print-percent', action='store_true', dest='print_percent',
+        help='print size of each node as a %% of the total tree size on disk',
+    )
+    parser.add_argument(
+        '--no-print-percent', action='store_false',
+        dest='print_percent',
+    )
+    parser.add_argument(
+        '--use-si-units', action='store_true', dest='use_si_units',
+        help='report sizes in SI units (1 MB == 10^6 B)',
+    )
+    parser.add_argument(
+        '--use-binary-units', action='store_false', dest='use_si_units',
+        help='report sizes in binary units (1 MiB == 2^20 B)',
+    )
 
     parser.add_argument('src', metavar='filename[:nodepath]',
                         help='path to the root of the tree structure')
 
-    parser.set_defaults(max_depth=-1, print_size=True, print_shape=False,
-                        print_compression=False)
+    parser.set_defaults(max_depth=1, print_size=True, print_percent=True,
+                        print_shape=False, print_compression=False,
+                        use_si_units=False)
 
     return parser
 
@@ -90,106 +110,178 @@ def main():
 
     pass
 
+
 def get_tree_str(f, where='/', max_depth=-1, print_class=True,
-                 print_size=True, print_shape=False, print_compression=False,
-                 print_total=True):
+                 print_size=True, print_percent=True, print_shape=False,
+                 print_compression=False, print_total=True,
+                 use_si_units=False):
+    """
+    Generate the ASCII string representing the tree structure, and the summary
+    info (if requested)
+    """
 
-    root_node = f.get_node(where)
-    root_node._g_check_open()
+    root = f.get_node(where)
+    root._g_check_open()
+    start_depth = root._v_depth
+    if max_depth < 0:
+        max_depth = os.sys.maxint
 
-    start_depth = root_node._v_depth
+    b2h = bytes2human(use_si_units)
 
-    tree_nodes = {}
+    # we will pass over each node in the tree twice
+
+    # on the first pass we'll start at the root node and recurse down the
+    # branches, finding all of the tip nodes and calculating the total size
+    # over all tables and arrays
 
     total_in_mem = 0
     total_on_disk = 0
     total_items = 0
+    stack = deque()
 
-    if max_depth < 0:
-        max_depth = os.sys.maxint
+    # defaultdicts for holding the cumulative branch sizes at each node
+    in_mem = defaultdict(lambda: 0.)
+    on_disk = defaultdict(lambda: 0.)
+    item_count = defaultdict(lambda: 0)
+    visited = defaultdict(lambda: False)
 
-    for node in f.walk_nodes(root_node):
+    # this will store the PrettyTree objects for every node we're printing
+    pretty = {}
 
-        pathname = node._v_pathname
-        parent_pathname = node._v_parent._v_pathname
-        name  = node._v_name
-        if print_class:
-            name += " (%s)" % node.__class__.__name__
-        labels = []
+    for node in f.walk_nodes(root):
+
+        # make sure we don't count linked arrays/tables twice
+        # TODO: this test does not currently exclude hardlinks
+        if not isinstance(node, tables.link.Link):
+            try:
+                path = node._v_pathname
+                m = node.size_in_memory
+                d = node.size_on_disk
+
+                # size of this node
+                in_mem[path] += m
+                on_disk[path] += d
+                item_count[path] += 1
+
+                # total over all nodes
+                total_in_mem += m
+                total_on_disk += d
+                total_items += 1
+
+            except AttributeError:
+                pass
+
+        if not hasattr(node, '_v_children'):
+            # push tip nodes onto the stack
+            stack.append(node)
+
+    # on the second pass we start at each tip and work upwards towards the root
+    # node, computing the cumulative size of each branch at each node, and
+    # instantiating a PrettyTree object for each node to create an ASCII
+    # representation of the tree structure
+
+    while stack:
+
+        node = stack.pop()
+        path = node._v_pathname
+        parent = node._v_parent
+        parent_path = parent._v_pathname
+
+        # this is a bit of a hack
+        if visited[path]:
+            continue
+        else:
+            visited[path] = True
+
+        # cumulative size at parent node
+        in_mem[parent_path] += in_mem[path]
+        on_disk[parent_path] += on_disk[path]
+        item_count[parent_path] += item_count[path]
 
         depth = node._v_depth - start_depth
 
-        if depth > max_depth:
-            # this is pretty dumb, but I don't really know of a way to stop
-            # walk_nodes at a particular depth
-            continue
+        # if we're deeper than the max recursion depth, we print nothing
+        if not depth > max_depth:
 
-        elif depth == max_depth and isinstance(node, tables.group.Group):
+            # create a PrettyTree representation of this node
+            name = node._v_name
+            if print_class:
+                name += " (%s)" % node.__class__.__name__
+            labels = []
 
-            # we measure the size of all of the children of this branch
-            n_items, in_mem, on_disk = get_branch_size(f, node)
-            ratio = float(on_disk) / in_mem
-            if print_size:
-                sizestr = ', total size=(%s/%s/%.2f)' % (
-                    b2h(in_mem), b2h(on_disk), ratio)
-            else:
-                sizestr = ''
-            extra_itemstr = '... %i items%s' % (n_items, sizestr)
-            labels.append(extra_itemstr)
-
-            total_items += n_items
-            total_on_disk += on_disk
-            total_in_mem += in_mem
-
-            pass
-
-        else:
-
-            # node labels
-            if isinstance(node, tables.link.Link):
-                labels.append('target=%s' % node.target)
-
-            elif isinstance(node, (tables.array.Array, tables.table.Table)):
-
-                on_disk = node.size_on_disk
-                in_mem = node.size_in_memory
-                ratio = float(on_disk) / in_mem
+            # if we're at our max recursion depth, we'll print summary
+            # information for this branch
+            if depth == max_depth:
+                itemstr = '... %i items' % item_count[path]
                 if print_size:
-                    labels.append('size=(%s/%s/%.2f)' % (
-                                  b2h(in_mem), b2h(on_disk), ratio))
-                if print_shape:
-                    labels.append('shape=%s' % node.shape)
-                if print_compression:
-                    lib = node.filters.complib
-                    level = node.filters.complevel
-                    if level:
-                        compstr = '%s(%i)' % (lib, level)
-                    else:
-                        compstr = 'None'
-                    labels.append('compression=%s' % compstr)
+                    itemstr += ', mem=%s, disk=%s' % (
+                        b2h(in_mem[path]), b2h(on_disk[path]))
+                if print_percent:
+                    pct = 100. * on_disk[path] / total_on_disk
+                    itemstr += ' [%4.1f%%]' % pct
+                labels.append(itemstr)
 
-                total_items += 1
-                total_on_disk += on_disk
-                total_in_mem += in_mem
+            # otherwise we print details for this node
+            else:
+                if isinstance(node, tables.link.Link):
+                    labels.append('target=%s' % node.target)
 
-        new_tree_node = PrettyTree(name, labels=labels)
-        tree_nodes.update({pathname:new_tree_node})
+                elif isinstance(node, (tables.Array, tables.Table)):
 
-        # exclude root node (otherwise we get infinite recursions)
-        if pathname != '/' and parent_pathname in tree_nodes:
-            tree_nodes[parent_pathname].add_child(new_tree_node)
+                    if print_size:
+                        sizestr = 'mem=%s, disk=%s' % (
+                            b2h(in_mem[path]), b2h(on_disk[path]))
+                        if print_percent:
+                            pct = 100 * on_disk[path] / total_on_disk
+                            sizestr += ' [%4.1f%%]' % pct
+                        labels.append(sizestr)
+
+                    if print_shape:
+                        labels.append('shape=%s' % repr(node.shape))
+
+                    if print_compression:
+                        lib = node.filters.complib
+                        level = node.filters.complevel
+                        if level:
+                            compstr = '%s(%i)' % (lib, level)
+                        else:
+                            compstr = 'None'
+                        labels.append('compression=%s' % compstr)
+
+            # create a PrettyTree for this node, if one doesn't exist already
+            if path not in pretty:
+                pretty.update({path: PrettyTree()})
+            pretty[path].name = name
+            pretty[path].labels = labels
+
+            # exclude root node or we'll get infinite recursions (since '/' is
+            # the parent of '/')
+            if path is not '/':
+
+                # create a PrettyTree for the parent of this node, if one
+                # doesn't exist already
+                if parent_path not in pretty:
+                    pretty.update({parent_path: PrettyTree()})
+
+                # make this PrettyTree a child of the parent PrettyTree
+                pretty[parent_path].add_child(pretty[path])
+
+        if node is not root and parent not in stack:
+            # we append to the 'bottom' of the stack, so that we exhaust all of
+            # the nodes at this level before going up a level in the tree
+            stack.appendleft(parent)
 
     out_str = '\n' + '-' * 60 + '\n' * 2
-    out_str += str(tree_nodes[root_node._v_pathname]) + '\n' * 2
+    out_str += str(pretty[root._v_pathname]) + '\n' * 2
 
     if print_total:
         avg_ratio = float(total_on_disk) / total_in_mem
         fsize = os.stat(f.filename).st_size
 
         out_str += '-' * 60 + '\n'
-        out_str += 'Total stored items:     %i\n' % total_items
-        out_str += 'Total data size:        %s in memory, %s on disk\n' % (
-                    b2h(total_in_mem), b2h(total_on_disk))
+        out_str += 'Total branch items:     %i\n' % total_items
+        out_str += 'Total branch size:      %s in memory, %s on disk\n' % (
+            b2h(total_in_mem), b2h(total_on_disk))
         out_str += 'Mean compression ratio: %.2f\n' % avg_ratio
         out_str += 'HDF5 file size:         %s\n' % b2h(fsize)
         out_str += '-' * 60 + '\n'
@@ -198,6 +290,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
 
 
 class PrettyTree(object):
+
     """
 
     A pretty ASCII representation of a recursive tree structure. Each node can
@@ -218,7 +311,7 @@ class PrettyTree(object):
 
     """
 
-    def __init__(self, name, children=None, labels=None):
+    def __init__(self, name=None, children=None, labels=None):
 
         # NB: do NOT assign default list/dict arguments in the function
         # declaration itself - these objects are shared between ALL instances
@@ -236,9 +329,9 @@ class PrettyTree(object):
     def add_child(self, child):
         # some basic checks to help to avoid infinite recursion
         assert child is not self
-        assert child not in self.children
         assert self not in child.children
-        self.children.append(child)
+        if child not in self.children:
+            self.children.append(child)
 
     def tree_lines(self):
         yield self.name
@@ -258,7 +351,7 @@ class PrettyTree(object):
         return '<%s at %s>' % (self.__class__.__name__, hex(id(self)))
 
 
-def b2h(nbytes, use_si_units=False):
+def bytes2human(use_si_units=False):
 
     if use_si_units:
         prefixes = 'TB', 'GB', 'MB', 'kB', 'B'
@@ -267,36 +360,16 @@ def b2h(nbytes, use_si_units=False):
         prefixes = 'TiB', 'GiB', 'MiB', 'KiB', 'B'
         values = 2 ** 40, 2 ** 30, 2 ** 20, 2 ** 10, 1
 
-    for (prefix, value) in zip(prefixes, values):
-        scaled = float(nbytes) / value
-        if scaled >= 1:
-            break
+    def b2h(nbytes):
 
-    return "%.1f%s" % (scaled, prefix)
+        for (prefix, value) in zip(prefixes, values):
+            scaled = float(nbytes) / value
+            if scaled >= 1:
+                break
 
+        return "%.1f%s" % (scaled, prefix)
 
-def get_branch_size(f, where):
-
-    total_mem = 0.
-    total_disk = 0.
-    total_items = 0
-
-    for node in f.walk_nodes(where):
-
-        # don't dereference links, or we'll count the same arrays multiple
-        # times
-        if not isinstance(node, tables.link.Link):
-            try:
-                in_mem = node.size_in_memory
-                on_disk = node.size_on_disk
-            except AttributeError:
-                continue
-
-            total_mem += in_mem
-            total_disk += on_disk
-            total_items += 1
-
-    return total_items, total_mem, total_disk
+    return b2h
 
 
 def make_test_file(prefix='/tmp'):
