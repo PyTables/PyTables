@@ -137,21 +137,22 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
     total_in_mem = 0
     total_on_disk = 0
     total_items = 0
-    stack = deque()
 
     # defaultdicts for holding the cumulative branch sizes at each node
     in_mem = defaultdict(lambda: 0.)
     on_disk = defaultdict(lambda: 0.)
     item_count = defaultdict(lambda: 0)
-    visited = defaultdict(lambda: False)
 
-    # this will store the PrettyTree objects for every node we're printing
-    pretty = {}
+    # # debugging
+    # visited = defaultdict(lambda: 0)
 
-    for node in f.walk_nodes(root):
+    stack = deque(root)
+    tips = deque()
 
-        # make sure we don't count linked arrays/tables twice
-        # TODO: this test does not currently exclude hardlinks
+    while stack:
+
+        node = stack.pop()
+
         if not isinstance(node, tables.link.Link):
             try:
                 path = node._v_pathname
@@ -171,14 +172,22 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             except AttributeError:
                 pass
 
-        if not hasattr(node, '_v_children'):
-            # push tip nodes onto the stack
-            stack.append(node)
+        if hasattr(node, '_v_children'):
+            # recurse down this branch
+            stack.extend(node._v_children.values())
+        else:
+            # push tip nodes onto the stack for the next pass
+            tips.append(node)
 
     # on the second pass we start at each tip and work upwards towards the root
     # node, computing the cumulative size of each branch at each node, and
     # instantiating a PrettyTree object for each node to create an ASCII
     # representation of the tree structure
+
+    # this will store the PrettyTree objects for every node we're printing
+    pretty = {}
+
+    stack = tips
 
     while stack:
 
@@ -187,11 +196,8 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
         parent = node._v_parent
         parent_path = parent._v_pathname
 
-        # this is a bit of a hack
-        if visited[path]:
-            continue
-        else:
-            visited[path] = True
+        # # debugging
+        # visited[path] += 1
 
         # cumulative size at parent node
         in_mem[parent_path] += in_mem[path]
