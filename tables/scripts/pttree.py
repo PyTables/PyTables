@@ -37,8 +37,12 @@ def _get_parser():
         ''')
 
     parser.add_argument(
-        '-L', '--max-level', type=int, dest='max_depth', default=1,
+        '-L', '--max-level', type=int, dest='max_depth',
         help='maximum branch depth of tree to display (-1 == no limit)',
+    )
+    parser.add_argument(
+        '-S', '--sort-by', type=str, dest='sort_by',
+        help='artificially order nodes, can be either "size", "name" or "none"'
     )
     parser.add_argument(
         '--print-size', action='store_true', dest='print_size',
@@ -82,9 +86,9 @@ def _get_parser():
     parser.add_argument('src', metavar='filename[:nodepath]',
                         help='path to the root of the tree structure')
 
-    parser.set_defaults(max_depth=1, print_size=True, print_percent=True,
-                        print_shape=False, print_compression=False,
-                        use_si_units=False)
+    parser.set_defaults(max_depth=1, sort_by="size", print_size=True,
+                        print_percent=True, print_shape=False,
+                        print_compression=False, use_si_units=False)
 
     return parser
 
@@ -113,7 +117,7 @@ def main():
 
 def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                  print_size=True, print_percent=True, print_shape=False,
-                 print_compression=False, print_total=True,
+                 print_compression=False, print_total=True, sort_by=None,
                  use_si_units=False):
     """
     Generate the ASCII string representing the tree structure, and the summary
@@ -209,6 +213,8 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                 name += " (%s)" % node.__class__.__name__
             labels = []
 
+            pct = 100 * on_disk[path] / total_on_disk
+
             # if we're at our max recursion depth, we'll print summary
             # information for this branch
             if depth == max_depth:
@@ -217,7 +223,6 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                     itemstr += ', mem=%s, disk=%s' % (
                         b2h(in_mem[path]), b2h(on_disk[path]))
                 if print_percent:
-                    pct = 100. * on_disk[path] / total_on_disk
                     itemstr += ' [%4.1f%%]' % pct
                 labels.append(itemstr)
 
@@ -232,7 +237,6 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                         sizestr = 'mem=%s, disk=%s' % (
                             b2h(in_mem[path]), b2h(on_disk[path]))
                         if print_percent:
-                            pct = 100 * on_disk[path] / total_on_disk
                             sizestr += ' [%4.1f%%]' % pct
                         labels.append(sizestr)
 
@@ -253,6 +257,14 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                 pretty.update({path: PrettyTree()})
             pretty[path].name = name
             pretty[path].labels = labels
+            if sort_by == 'size':
+                # descending size order
+                pretty[path].sort_by = -pct
+            elif sort_by == 'name':
+                pretty[path].sort_by = node._v_name
+            else:
+                # natural order
+                pretty[path].sort_by = parent._v_children.values().index(node)
 
             # exclude root node or we'll get infinite recursions (since '/' is
             # the parent of '/')
@@ -311,7 +323,7 @@ class PrettyTree(object):
 
     """
 
-    def __init__(self, name=None, children=None, labels=None):
+    def __init__(self, name=None, children=None, labels=None, sort_by=None):
 
         # NB: do NOT assign default list/dict arguments in the function
         # declaration itself - these objects are shared between ALL instances
@@ -325,6 +337,7 @@ class PrettyTree(object):
         self.name = name
         self.children = children
         self.labels = labels
+        self.sort_by = sort_by
 
     def add_child(self, child):
         # some basic checks to help to avoid infinite recursion
@@ -337,8 +350,9 @@ class PrettyTree(object):
         yield self.name
         for label in self.labels:
             yield '   ' + label
-        last = self.children[-1] if self.children else None
-        for child in self.children:
+        children = sorted(self.children, key=(lambda c: c.sort_by))
+        last = children[-1] if children else None
+        for child in children:
             prefix = '`--' if child is last else '+--'
             for line in child.tree_lines():
                 yield prefix + line
