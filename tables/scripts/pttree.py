@@ -221,9 +221,33 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
 
             pct = 100 * on_disk[path] / total_on_disk
 
+            if isinstance(node, tables.link.Link):
+                labels.append('target=%s' % node.target)
+
+            elif isinstance(node, (tables.Array, tables.Table)):
+
+                if print_size:
+                    sizestr = 'mem=%s, disk=%s' % (
+                        b2h(in_mem[path]), b2h(on_disk[path]))
+                    if print_percent:
+                        sizestr += ' [%4.1f%%]' % pct
+                    labels.append(sizestr)
+
+                if print_shape:
+                    labels.append('shape=%s' % repr(node.shape))
+
+                if print_compression:
+                    lib = node.filters.complib
+                    level = node.filters.complevel
+                    if level:
+                        compstr = '%s(%i)' % (lib, level)
+                    else:
+                        compstr = 'None'
+                    labels.append('compression=%s' % compstr)
+
             # if we're at our max recursion depth, we'll print summary
             # information for this branch
-            if depth == max_depth:
+            elif depth == max_depth:
                 itemstr = '... %i items' % item_count[path]
                 if print_size:
                     itemstr += ', mem=%s, disk=%s' % (
@@ -231,32 +255,6 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                 if print_percent:
                     itemstr += ' [%4.1f%%]' % pct
                 labels.append(itemstr)
-
-            # otherwise we print details for this node
-            else:
-                if isinstance(node, tables.link.Link):
-                    labels.append('target=%s' % node.target)
-
-                elif isinstance(node, (tables.Array, tables.Table)):
-
-                    if print_size:
-                        sizestr = 'mem=%s, disk=%s' % (
-                            b2h(in_mem[path]), b2h(on_disk[path]))
-                        if print_percent:
-                            sizestr += ' [%4.1f%%]' % pct
-                        labels.append(sizestr)
-
-                    if print_shape:
-                        labels.append('shape=%s' % repr(node.shape))
-
-                    if print_compression:
-                        lib = node.filters.complib
-                        level = node.filters.complevel
-                        if level:
-                            compstr = '%s(%i)' % (lib, level)
-                        else:
-                            compstr = 'None'
-                        labels.append('compression=%s' % compstr)
 
             # create a PrettyTree for this node, if one doesn't exist already
             if path not in pretty:
