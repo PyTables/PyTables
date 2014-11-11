@@ -21,6 +21,7 @@ import numpy as np
 import os
 import argparse
 from collections import defaultdict, deque
+import warnings
 
 
 def _get_parser():
@@ -173,8 +174,12 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                 total_on_disk += d
                 total_items += 1
 
-            except AttributeError:
+            except AttributeError as e:
                 pass
+            except NotImplementedError as e:
+                # size_on_disk not implemented for VLArrays
+                warnings.warn(e.message)
+
 
         if hasattr(node, '_v_children'):
             # recurse down this branch
