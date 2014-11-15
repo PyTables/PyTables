@@ -312,6 +312,42 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         h5f.close()
         os.remove(fname)
 
+    def test11_direct_attribute_access(self):
+        """Check direct get/set attributes via link-->target.attribute"""
+        self._createFile()
+        larr1 = self.h5file.get_node('/lgroup1/larr1')
+        arr1 = self.h5file.get_node('/arr1')
+        # get
+        self.assertTrue(larr1.shape == (2,))
+        self.assertTrue(larr1[:] == [1, 2])
+        # set
+        larr1[0] = -1
+        self.assertTrue(arr1[:] == [-1, 2])
+
+    def test12_access_child_node_attributes(self):
+        """Check get/set attributes via link-->target.child.attribute"""
+        self._createFile()
+        lgroup1 = self.h5file.get_node('/lgroup1')
+        arr2 = self.h5file.get_node('/group1/arr2')
+        # get child attribute
+        self.assertTrue(lgroup1.arr2[:] == [1, 2, 3])
+        # set child attribute
+        lgroup1.arr2[0] = -1
+        self.assertTrue(arr2[:] == [-1, 2, 3])
+
+    def test13_direct_attribute_access_via_chained_softlinks(self):
+        """Check get/set access via link2-->link1-->target.child.attribute"""
+        self._createFile()
+        lgroup1 = self.h5file.get_node('/lgroup1')
+        arr2 = self.h5file.get_node('/group1/arr2')
+        # multiple chained links
+        l_lgroup1 = self.h5file.create_soft_link('/', 'l_lgroup1', '/lgroup1')
+        # get child attribute
+        self.assertTrue(l_lgroup1.arr2[:] == [1, 2, 3])
+        # set child attribute
+        l_lgroup1.arr2[0] = -1
+        self.assertTrue(arr2[:] == [-1, 2, 3])
+
 
 # Test for external links
 @unittest.skipIf(tables.file._FILE_OPEN_POLICY == 'strict',
