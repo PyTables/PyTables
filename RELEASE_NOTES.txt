@@ -14,6 +14,10 @@ Changes from 3.1.1 to 3.1.2
 Improvements
 ------------
 
+- :class:`link.SoftLink` objects no longer need to be explicitly dereferenced.
+  Methods and attributes of the linked object are now automatically accessed
+  when the user acts on a soft-link (see :issue:`399`).
+  Thanks to Alistair Muldal.
 - Now :program:`ptrepack` recognizes hardlinks and replicates them in the
   output (*repacked*) file. This saves disk space and makes repacked files
   more conformal to the original one. Closes :issue:`380`.
@@ -30,10 +34,10 @@ Improvements
 - Improved handling of empty string attributes. In previous versions of
   PyTables empty string were stored as scalar HDF5 attributes having size 1
   and value '\0' (an empty null terminated string).
-  Now empty string are stored as HDF5 attributes having zero size 
+  Now empty string are stored as HDF5 attributes having zero size
 - Added a new cookbook recipe and a couple of examples for simple threading
   with PyTables.
-- The redundant :func:`utilsextension.get_indices` function has been 
+- The redundant :func:`utilsextension.get_indices` function has been
   eliminated (replaced by :meth:`slice.indices`). Closes :issue:`195`.
 - Allow negative indices in point selection (closes :issue:`360`)
 - Index wasn't being used if it claimed there were no results.
@@ -50,7 +54,7 @@ Improvements
   * always use :class:`tests.common.PyTablesTestCase` as base class for all
     test cases
   * code of the old :func:`tasts.common.cleanup` function has been moved to
-    :metn:`tests.common.PyTablesTestCase.tearDown` method
+    :meth:`tests.common.PyTablesTestCase.tearDown` method
   * new implementation of :meth:`tests.common.PyTablesTestCase.assertWarns`
     compatible with the one provided by the standard :mod:`unittest` module
     in Python >= 3.2
