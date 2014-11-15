@@ -163,29 +163,29 @@ class SoftLink(linkextension.SoftLink, Link):
     via the `__call__()` special method (this action is called *dereferencing*;
     see below)
 
-    Example usage:
-    ----
+    Examples
+    --------
 
-        ::
-            >>> f = tables.open_file('/tmp/test_softlink.h5', 'w')
-            >>> a = f.create_array('/', 'A', np.arange(10))
-            >>> link_a = f.create_soft_link('/', 'link_A', target='/A')
+    ::
+        >>> f = tables.open_file('/tmp/test_softlink.h5', 'w')
+        >>> a = f.create_array('/', 'A', np.arange(10))
+        >>> link_a = f.create_soft_link('/', 'link_A', target='/A')
 
-            # transparent read/write access to a softlinked node
-            >>> link_a[0] = -1
-            >>> print(link_a[:], link_a.dtype)
-            (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
+        # transparent read/write access to a softlinked node
+        >>> link_a[0] = -1
+        >>> print(link_a[:], link_a.dtype)
+        (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
 
-            # dereferencing a softlink using the __call__() method
-            >>> print(link_a() is a)
-            True
+        # dereferencing a softlink using the __call__() method
+        >>> print(link_a() is a)
+        True
 
-            # SoftLink.remove() overrides Array.remove()
-            >>> link_a.remove()
-            >>> print(link_a)
-            <closed tables.link.SoftLink at 0x7febe97186e0>
-            >>> print(a[:], a.dtype)
-            (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
+        # SoftLink.remove() overrides Array.remove()
+        >>> link_a.remove()
+        >>> print(link_a)
+        <closed tables.link.SoftLink at 0x7febe97186e0>
+        >>> print(a[:], a.dtype)
+        (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
 
 
     """

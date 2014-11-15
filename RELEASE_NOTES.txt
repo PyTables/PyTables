@@ -43,7 +43,7 @@ Improvements
 - Index wasn't being used if it claimed there were no results.
   Closes :issue:`351` (see also :issue:`353`)
 - Atoms and Col types are no longer generated dynamically so now it is easier
-  for IDEs and static analysis tool to handle them (closes :issue:`345 `)
+  for IDEs and static analysis tool to handle them (closes :issue:`345`)
 - Small unit tests re-factoring:
 
   * :func:`print_versions` and :func:`tests.common.print_heavy` functions
@@ -79,7 +79,7 @@ Bugs fixed
 - Fixed support for unicode node titles (only Python 2 was affected).
   Closes :issue:`370` and :issue:`374`.
 - Fixed a bug that caused the silent truncation of unicode attributes
-  containing the '\0' character. Closes :issue:`371'.
+  containing the '\0' character. Closes :issue:`371`.
 - Fixed :func:`descr_from_dtype` to work as expected with complex types.
   Closes :issue:`381`.
 - Fixed the :class:`tests.test_basics.ThreadingTestCase` test case.
