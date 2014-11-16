@@ -136,9 +136,8 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
     # we will pass over each node in the tree twice
 
     # on the first pass we'll start at the root node and recurse down the
-    # branches, finding all of the tip nodes and calculating the total size
+    # branches, finding all of the leaf nodes and calculating the total size
     # over all tables and arrays
-
     total_in_mem = 0
     total_on_disk = 0
     total_items = 0
@@ -146,72 +145,100 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
     # defaultdicts for holding the cumulative branch sizes at each node
     in_mem = defaultdict(lambda: 0.)
     on_disk = defaultdict(lambda: 0.)
-    item_count = defaultdict(lambda: 0)
+    leaf_count = defaultdict(lambda: 0)
 
-    # # debugging
-    # visited = defaultdict(lambda: 0)
+    # keep track of node addresses within the HDF5 file so that we don't count
+    # nodes with multiple references (i.e. hardlinks) multiple times
+    ref_count = defaultdict(lambda: 0)
+    ref_idx = defaultdict(lambda: 0)
+    hl_addresses = defaultdict(lambda: None)
+    hl_targets = defaultdict(lambda: '')
 
     stack = deque(root)
-    tips = deque()
+    leaves = deque()
 
     while stack:
 
         node = stack.pop()
 
-        if not isinstance(node, tables.link.Link):
-            try:
-                path = node._v_pathname
-                m = node.size_in_memory
-                d = node.size_on_disk
+        if isinstance(node, tables.link.Link):
+            # we treat links like leaves, except we don't dereference them to
+            # get their sizes or addresses
+            leaves.append(node)
+            continue
 
-                # size of this node
-                in_mem[path] += m
-                on_disk[path] += d
-                item_count[path] += 1
+        path = node._v_pathname
+        addr, rc = node._get_obj_info()
+        ref_count[addr] += 1
+        ref_idx[path] = ref_count[addr]
+        hl_addresses[path] = addr
 
-                # total over all nodes
-                total_in_mem += m
-                total_on_disk += d
-                total_items += 1
+        if isinstance(node, tables.Leaf):
 
-            except AttributeError as e:
-                pass
-            except NotImplementedError as e:
-                # size_on_disk not implemented for VLArrays
-                warnings.warn(e.message)
+            # only count the size of a hardlinked leaf the first time it is
+            # visited
+            if ref_count[addr] == 1:
+
+                try:
+                    m = node.size_in_memory
+                    d = node.size_on_disk
+
+                    # size of this node
+                    in_mem[path] += m
+                    on_disk[path] += d
+                    leaf_count[path] += 1
+
+                    # total over all nodes
+                    total_in_mem += m
+                    total_on_disk += d
+                    total_items += 1
+
+                    # arbitrarily treat this node as the 'target' for all other
+                    # hardlinks that point to the same address
+                    hl_targets[addr] = path
+
+                except NotImplementedError as e:
+                    # size_on_disk is not implemented for VLArrays
+                    warnings.warn(e.message)
+
+            # push leaf nodes onto the stack for the next pass
+            leaves.append(node)
+
+        elif isinstance(node, tables.Group):
+
+            # don't recurse down the same hardlinked branch multiple times!
+            if ref_count[addr] == 1:
+                stack.extend(node._v_children.values())
+                hl_targets[addr] = path
+
+            # if we've already visited this group's address, treat it as a leaf
+            # instead
+            else:
+                leaves.append(node)
 
 
-        if hasattr(node, '_v_children'):
-            # recurse down this branch
-            stack.extend(node._v_children.values())
-        else:
-            # push tip nodes onto the stack for the next pass
-            tips.append(node)
-
-    # on the second pass we start at each tip and work upwards towards the root
-    # node, computing the cumulative size of each branch at each node, and
+    # on the second pass we start at each leaf and work upwards towards the
+    # root node, computing the cumulative size of each branch at each node, and
     # instantiating a PrettyTree object for each node to create an ASCII
     # representation of the tree structure
 
     # this will store the PrettyTree objects for every node we're printing
     pretty = {}
 
-    stack = tips
+    stack = leaves
 
     while stack:
 
         node = stack.pop()
         path = node._v_pathname
+
         parent = node._v_parent
         parent_path = parent._v_pathname
-
-        # # debugging
-        # visited[path] += 1
 
         # cumulative size at parent node
         in_mem[parent_path] += in_mem[path]
         on_disk[parent_path] += on_disk[path]
-        item_count[parent_path] += item_count[path]
+        leaf_count[parent_path] += leaf_count[path]
 
         depth = node._v_depth - start_depth
 
@@ -222,12 +249,24 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             name = node._v_name
             if print_class:
                 name += " (%s)" % node.__class__.__name__
-            labels = []
 
+            labels = []
             pct = 100 * on_disk[path] / total_on_disk
 
+            # if the address of this object has a ref_count > 1, it has
+            # multiple hardlinks
+            if ref_count[hl_addresses[path]] > 1:
+                name += ', addr=%i, ref=%i/%i' % (
+                    hl_addresses[path], ref_idx[path],
+                    ref_count[hl_addresses[path]]
+                )
+
             if isinstance(node, tables.link.Link):
-                labels.append('target=%s' % node.target)
+                labels.append('softlink --> %s' % node.target)
+
+            elif ref_idx[path] > 1:
+                labels.append('hardlink --> %s'
+                              % hl_targets[hl_addresses[path]])
 
             elif isinstance(node, (tables.Array, tables.Table)):
 
@@ -253,7 +292,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             # if we're at our max recursion depth, we'll print summary
             # information for this branch
             elif depth == max_depth:
-                itemstr = '... %i items' % item_count[path]
+                itemstr = '... %i leaves' % leaf_count[path]
                 if print_size:
                     itemstr += ', mem=%s, disk=%s' % (
                         b2h(in_mem[path]), b2h(on_disk[path]))
@@ -305,7 +344,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
         fsize = os.stat(f.filename).st_size
 
         out_str += '-' * 60 + '\n'
-        out_str += 'Total branch items:     %i\n' % total_items
+        out_str += 'Total branch leaves:    %i\n' % total_items
         out_str += 'Total branch size:      %s in memory, %s on disk\n' % (
             b2h(total_in_mem), b2h(total_on_disk))
         out_str += 'Mean compression ratio: %.2f\n' % avg_ratio
@@ -421,5 +460,7 @@ def make_test_file(prefix='/tmp'):
                                   '/group1/group1a/zeros128b')
     hardlink = f.create_hard_link(g2, 'hardlink_g1a_z128',
                                   '/group1/group1a/zeros128b')
+
+    hlgroup = f.create_hard_link(g2, 'hardlink_g1a', '/group1/group1a')
 
     return f
