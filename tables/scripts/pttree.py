@@ -273,7 +273,12 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                 pretty[path].sort_by = node._v_name
             else:
                 # natural order
-                pretty[path].sort_by = parent._v_children.values().index(node)
+                if path is '/':
+                    # root is not in root._v_children
+                    pretty[path].sort_by = 0
+                else:
+                    pretty[path].sort_by = parent._v_children.values(
+                                                                ).index(node)
 
             # exclude root node or we'll get infinite recursions (since '/' is
             # the parent of '/')
