@@ -14,15 +14,27 @@
 
 from __future__ import print_function
 import os
+import re
 import sys
 import time
-import unittest
+import locale
+import platform
 import tempfile
 import warnings
-import os.path
+
+try:
+    import unittest2 as unittest
+except ImportError:
+    if sys.version_info < (2, 7):
+        raise
+    else:
+        import unittest
 
 import numpy
+import numexpr
+
 import tables
+from tables.utils import detect_number_of_cores
 
 verbose = False
 """Show detailed output of the testing process."""
@@ -46,6 +58,79 @@ if '--heavy' in sys.argv:
     sys.argv.remove('--heavy')
 
 
+zlib_avail = tables.which_lib_version("zlib") is not None
+lzo_avail = tables.which_lib_version("lzo") is not None
+bzip2_avail = tables.which_lib_version("bzip2") is not None
+blosc_avail = tables.which_lib_version("blosc") is not None
+
+
+def print_heavy(heavy):
+    if heavy:
+        print("""Performing the complete test suite!""")
+    else:
+        print("""\
+Performing only a light (yet comprehensive) subset of the test suite.
+If you want a more complete test, try passing the --heavy flag to this script
+(or set the 'heavy' parameter in case you are using tables.test() call).
+The whole suite will take more than 4 hours to complete on a relatively
+modern CPU and around 512 MB of main memory.""")
+    print('-=' * 38)
+
+
+def print_versions():
+    """Print all the versions of software that PyTables relies on."""
+
+    print('-=' * 38)
+    print("PyTables version:  %s" % tables.__version__)
+    print("HDF5 version:      %s" % tables.which_lib_version("hdf5")[1])
+    print("NumPy version:     %s" % numpy.__version__)
+    tinfo = tables.which_lib_version("zlib")
+    if numexpr.use_vml:
+        # Get only the main version number and strip out all the rest
+        vml_version = numexpr.get_vml_version()
+        vml_version = re.findall("[0-9.]+", vml_version)[0]
+        vml_avail = "using VML/MKL %s" % vml_version
+    else:
+        vml_avail = "not using Intel's VML/MKL"
+    print("Numexpr version:   %s (%s)" % (numexpr.__version__, vml_avail))
+    if tinfo is not None:
+        print("Zlib version:      %s (%s)" % (tinfo[1],
+                                              "in Python interpreter"))
+    tinfo = tables.which_lib_version("lzo")
+    if tinfo is not None:
+        print("LZO version:       %s (%s)" % (tinfo[1], tinfo[2]))
+    tinfo = tables.which_lib_version("bzip2")
+    if tinfo is not None:
+        print("BZIP2 version:     %s (%s)" % (tinfo[1], tinfo[2]))
+    tinfo = tables.which_lib_version("blosc")
+    if tinfo is not None:
+        blosc_date = tinfo[2].split()[1]
+        print("Blosc version:     %s (%s)" % (tinfo[1], blosc_date))
+        blosc_cinfo = tables.blosc_get_complib_info()
+        blosc_cinfo = [
+            "%s (%s)" % (k, v[1]) for k, v in sorted(blosc_cinfo.items())
+        ]
+        print("Blosc compressors: %s" % ', '.join(blosc_cinfo))
+    try:
+        from Cython import __version__ as cython_version
+        print('Cython version:    %s' % cython_version)
+    except:
+        pass
+    print('Python version:    %s' % sys.version)
+    print('Platform:          %s' % platform.platform())
+    #if os.name == 'posix':
+    #    (sysname, nodename, release, version, machine) = os.uname()
+    #    print('Platform:          %s-%s' % (sys.platform, machine))
+    print('Byte-ordering:     %s' % sys.byteorder)
+    print('Detected cores:    %s' % detect_number_of_cores())
+    print('Default encoding:  %s' % sys.getdefaultencoding())
+    print('Default locale:    (%s, %s)' % locale.getdefaultlocale())
+    print('-=' * 38)
+
+    # This should improve readability whan tests are run by CI tools
+    sys.stdout.flush()
+
+
 def verbosePrint(string, nonl=False):
     """Print out the `string` if verbose output is enabled."""
     if not verbose:
@@ -54,14 +139,6 @@ def verbosePrint(string, nonl=False):
         print(string, end=' ')
     else:
         print(string)
-
-
-def cleanup(klass):
-    # klass.__dict__.clear()     # This is too hard. Don't do that
-#    print("Class attributes deleted")
-    for key in klass.__dict__:
-        if not klass.__dict__[key].__class__.__name__ in ('instancemethod'):
-            klass.__dict__[key] = None
 
 
 def allequal(a, b, flavor="numpy"):
@@ -136,61 +213,99 @@ def areArraysEqual(arr1, arr2):
     return numpy.all(arr1 == arr2)
 
 
-def pyTablesTest(oldmethod):
-    def newmethod(self, *args, **kwargs):
-        self._verboseHeader()
-        try:
+# COMPATIBILITY: assertWarns is new in Python 3.2
+# Code copied from the standard unittest.case module (Python 3.4)
+if not hasattr(unittest.TestCase, 'assertWarns'):
+    class _BaseTestCaseContext:
+        def __init__(self, test_case):
+            self.test_case = test_case
+
+        def _raiseFailure(self, standardMsg):
+            msg = self.test_case._formatMessage(self.msg, standardMsg)
+            raise self.test_case.failureException(msg)
+
+    class _AssertRaisesBaseContext(_BaseTestCaseContext):
+        def __init__(self, expected, test_case, callable_obj=None,
+                     expected_regex=None):
+            _BaseTestCaseContext.__init__(self, test_case)
+            self.expected = expected
+            self.test_case = test_case
+            if callable_obj is not None:
+                try:
+                    self.obj_name = callable_obj.__name__
+                except AttributeError:
+                    self.obj_name = str(callable_obj)
+            else:
+                self.obj_name = None
+            if expected_regex is not None:
+                expected_regex = re.compile(expected_regex)
+            self.expected_regex = expected_regex
+            self.msg = None
+
+        def handle(self, name, callable_obj, args, kwargs):
+            """
+            If callable_obj is None, assertRaises/Warns is being used as a
+            context manager, so check for a 'msg' kwarg and return self.
+            If callable_obj is not None, call it passing args and kwargs.
+            """
+            if callable_obj is None:
+                self.msg = kwargs.pop('msg', None)
+                return self
+            with self:
+                callable_obj(*args, **kwargs)
+
+    class _AssertWarnsContext(_AssertRaisesBaseContext):
+        def __enter__(self):
+            for v in sys.modules.values():
+                if getattr(v, '__warningregistry__', None):
+                    v.__warningregistry__ = {}
+            self.warnings_manager = warnings.catch_warnings(record=True)
+            self.warnings = self.warnings_manager.__enter__()
+            warnings.simplefilter("always", self.expected)
+            return self
+
+        def __exit__(self, exc_type, exc_value, tb):
+            self.warnings_manager.__exit__(exc_type, exc_value, tb)
+            if exc_type is not None:
+                # let unexpected exceptions pass through
+                return
             try:
-                return oldmethod(self, *args, **kwargs)
-            except SkipTest as se:
-                if se.args:
-                    msg = se.args[0]
-                else:
-                    msg = "<skipped>"
-                verbosePrint("\nSkipped test: %s" % msg)
-            except self.failureException as fe:
-                if fe.args:
-                    msg = fe.args[0]
-                else:
-                    msg = "<failed>"
-                verbosePrint("\nTest failed: %s" % msg)
-                raise
-            except Exception as exc:
-                cname = exc.__class__.__name__
-                verbosePrint("\nError in test::\n\n  %s: %s" % (cname, exc))
-                raise
-        finally:
-            verbosePrint('')  # separator line between tests
-    newmethod.__name__ = oldmethod.__name__
-    newmethod.__doc__ = oldmethod.__doc__
-    return newmethod
-
-
-class SkipTest(Exception):
-    """When this exception is raised, the test is skipped successfully."""
-    pass
-
-
-class MetaPyTablesTestCase(type):
-
-    """Metaclass for PyTables test case classes."""
-
-    # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/198078
-
-    def __new__(class_, name, bases, dict_):
-        newdict = {}
-        for (aname, avalue) in dict_.iteritems():
-            if callable(avalue) and aname.startswith('test'):
-                avalue = pyTablesTest(avalue)
-            newdict[aname] = avalue
-        return type.__new__(class_, name, bases, newdict)
+                exc_name = self.expected.__name__
+            except AttributeError:
+                exc_name = str(self.expected)
+            first_matching = None
+            for m in self.warnings:
+                w = m.message
+                if not isinstance(w, self.expected):
+                    continue
+                if first_matching is None:
+                    first_matching = w
+                if (self.expected_regex is not None and
+                        not self.expected_regex.search(str(w))):
+                    continue
+                # store warning for later retrieval
+                self.warning = w
+                self.filename = m.filename
+                self.lineno = m.lineno
+                return
+            # Now we simply try to choose a helpful failure message
+            if first_matching is not None:
+                self._raiseFailure(
+                    '"{0}" does not match "{1}"'.format(
+                        self.expected_regex.pattern, str(first_matching)))
+            if self.obj_name:
+                self._raiseFailure("{0} not triggered by {1}".format(
+                                   exc_name, self.obj_name))
+            else:
+                self._raiseFailure("{0} not triggered".format(exc_name))
 
 
 class PyTablesTestCase(unittest.TestCase):
-
-    """Abstract test case with useful methods."""
-
-    __metaclass__ = MetaPyTablesTestCase
+    def tearDown(self):
+        super(PyTablesTestCase, self).tearDown()
+        for key in self.__dict__:
+            if self.__dict__[key].__class__.__name__ not in ('instancemethod'):
+                self.__dict__[key] = None
 
     def _getName(self):
         """Get the name of this test case."""
@@ -224,112 +339,70 @@ class PyTablesTestCase(unittest.TestCase):
         dirname = os.path.dirname(modfile)
         return os.path.join(dirname, filename)
 
-    def failUnlessWarns(self, warnClass, callableObj, *args, **kwargs):
-        """Fail unless a warning of class `warnClass` is issued.
-
-        This method will fail if no warning belonging to the given
-        `warnClass` is issued when invoking `callableObj` with arguments
-        `args` and keyword arguments `kwargs`.  Warnings of the
-        `warnClass` are hidden, while others are shown.
-
-        This method returns the value returned by the call to
-        `callableObj`.
-
-        """
-
-        issued = [False]  # let's avoid scoping problems ;)
-
-        # Save the original warning-showing function.
-        showwarning = warnings.showwarning
-
-        # This warning-showing function hides and takes note
-        # of expected warnings and acts normally on others.
-        def myShowWarning(message, category, filename, lineno,
-                          file=None, line=None):
-            if issubclass(category, warnClass):
-                issued[0] = True
-                verbosePrint(
-                    "Great!  The following ``%s`` was caught::\n"
-                    "\n"
-                    "  %s\n"
-                    "\n"
-                    "In file ``%s``, line number %d.\n"
-                    % (category.__name__, message, filename, lineno))
-            else:
-                showwarning(message, category, filename, lineno, file, line)
-
-        # By forcing Python to always show warnings of the wanted class,
-        # and replacing the warning-showing function with a tailored one,
-        # we can check for *every* occurence of the warning.
-        warnings.filterwarnings('always', category=warnClass)
-        warnings.showwarning = myShowWarning
-        try:
-            # Run code and see what happens.
-            ret = callableObj(*args, **kwargs)
-        finally:
-            # Restore the original warning-showing function
-            # and warning filter.
-            warnings.showwarning = showwarning
-            warnings.filterwarnings('default', category=warnClass)
-
-        if not issued[0]:
-            raise self.failureException(
-                "``%s`` was not issued" % warnClass.__name__)
-
-        # We only get here if the call to `callableObj` was successful
-        # and it issued the expected warning.
-        return ret
-
-    assertWarns = failUnlessWarns
-
-    def failUnlessRaises(self, excClass, callableObj, *args, **kwargs):
-        if not verbose:
-            # Use the ordinary implementation from `unittest.TestCase`.
-            return super(PyTablesTestCase, self).assertRaises(
-                excClass, callableObj, *args, **kwargs)
-
-        try:
-            callableObj(*args, **kwargs)
-        except excClass as exc:
-            print((
-                "Great!  The following ``%s`` was caught::\n"
-                "\n"
-                "  %s\n"
-                % (exc.__class__.__name__, exc)))
-        else:
-            raise self.failureException(
-                "``%s`` was not raised" % excClass.__name__)
-
-    assertRaises = failUnlessRaises
+    # COMPATIBILITY: assertWarns is new in Python 3.2
+    if not hasattr(unittest.TestCase, 'assertWarns'):
+        def assertWarns(self, expected_warning, callable_obj=None,
+                        *args, **kwargs):
+            context = _AssertWarnsContext(expected_warning, self, callable_obj)
+            return context.handle('assertWarns', callable_obj, args, kwargs)
 
     def _checkEqualityGroup(self, node1, node2, hardlink=False):
         if verbose:
             print("Group 1:", node1)
             print("Group 2:", node2)
         if hardlink:
-            self.assertTrue(node1._v_pathname != node2._v_pathname,
-                            "node1 and node2 have the same pathnames.")
+            self.assertTrue(
+                node1._v_pathname != node2._v_pathname,
+                "node1 and node2 have the same pathnames.")
         else:
-            self.assertTrue(node1._v_pathname == node2._v_pathname,
+            self.assertTrue(
+                node1._v_pathname == node2._v_pathname,
                 "node1 and node2 does not have the same pathnames.")
-        self.assertTrue(node1._v_children == node2._v_children,
-                "node1 and node2 does not have the same children.")
+        self.assertTrue(
+            node1._v_children == node2._v_children,
+            "node1 and node2 does not have the same children.")
 
     def _checkEqualityLeaf(self, node1, node2, hardlink=False):
         if verbose:
             print("Leaf 1:", node1)
             print("Leaf 2:", node2)
         if hardlink:
-            self.assertTrue(node1._v_pathname != node2._v_pathname,
+            self.assertTrue(
+                node1._v_pathname != node2._v_pathname,
                 "node1 and node2 have the same pathnames.")
         else:
-            self.assertTrue(node1._v_pathname == node2._v_pathname,
+            self.assertTrue(
+                node1._v_pathname == node2._v_pathname,
                 "node1 and node2 does not have the same pathnames.")
-        self.assertTrue(areArraysEqual(node1[:], node2[:]),
+        self.assertTrue(
+            areArraysEqual(node1[:], node2[:]),
             "node1 and node2 does not have the same values.")
 
 
-class TempFileMixin:
+class TestFileMixin(object):
+    h5fname = None
+    open_kwargs = {}
+
+    def setUp(self):
+        super(TestFileMixin, self).setUp()
+        #self.h5fname = self._testFilename(self.testfname)
+        self.h5file = tables.open_file(
+            self.h5fname, title=self._getName(), **self.open_kwargs)
+
+    def tearDown(self):
+        """Close ``h5file``."""
+
+        self.h5file.close()
+        super(TestFileMixin, self).tearDown()
+
+
+class TempFileMixin(object):
+    open_mode = 'w'
+    open_kwargs = {}
+
+    def _getTempFileName(self):
+        return tempfile.mktemp(prefix=self._getName(), suffix='.h5')
+
     def setUp(self):
         """Set ``h5file`` and ``h5fname`` instance attributes.
 
@@ -338,9 +411,11 @@ class TempFileMixin:
 
         """
 
-        self.h5fname = tempfile.mktemp(suffix='.h5')
+        super(TempFileMixin, self).setUp()
+        self.h5fname = self._getTempFileName()
         self.h5file = tables.open_file(
-            self.h5fname, 'w', title=self._getName())
+            self.h5fname, self.open_mode, title=self._getName(),
+            **self.open_kwargs)
 
     def tearDown(self):
         """Close ``h5file`` and remove ``h5fname``."""
@@ -348,8 +423,9 @@ class TempFileMixin:
         self.h5file.close()
         self.h5file = None
         os.remove(self.h5fname)   # comment this for debugging purposes only
+        super(TempFileMixin, self).tearDown()
 
-    def _reopen(self, mode='r'):
+    def _reopen(self, mode='r', **kwargs):
         """Reopen ``h5file`` in the specified ``mode``.
 
         Returns a true or false value depending on whether the file was
@@ -358,7 +434,7 @@ class TempFileMixin:
         """
 
         self.h5file.close()
-        self.h5file = tables.open_file(self.h5fname, mode)
+        self.h5file = tables.open_file(self.h5fname, mode, **kwargs)
         return True
 
 

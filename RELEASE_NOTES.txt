@@ -8,6 +8,101 @@
 .. py:currentmodule:: tables
 
 
+Changes from 3.1.1 to 3.1.2
+===========================
+
+Improvements
+------------
+
+- :class:`link.SoftLink` objects no longer need to be explicitly dereferenced.
+  Methods and attributes of the linked object are now automatically accessed
+  when the user acts on a soft-link (see :issue:`399`).
+  Thanks to Alistair Muldal.
+- Now :program:`ptrepack` recognizes hardlinks and replicates them in the
+  output (*repacked*) file. This saves disk space and makes repacked files
+  more conformal to the original one. Closes :issue:`380`.
+- The internal Blosc_ library has been updated to version 1.4.0.
+  It includes a couple of security fixes and support for architectures
+  requiring strict access alignment.
+- The :func:`print_versions` function now also reports the version of
+  compression libraries used by blosc
+- Now the :file:`setup.py` tries to use the '-march=native' C flag by
+  default. In falls back on '-msse2' if '-march=native' is not supported
+  by the compiler. Closes :issue:`379`.
+- Fixed a spurious unicode comparison warning (closes :issue:`372` and
+  :issue:`373`).
+- Improved handling of empty string attributes. In previous versions of
+  PyTables empty string were stored as scalar HDF5 attributes having size 1
+  and value '\0' (an empty null terminated string).
+  Now empty string are stored as HDF5 attributes having zero size
+- Added a new cookbook recipe and a couple of examples for simple threading
+  with PyTables.
+- The redundant :func:`utilsextension.get_indices` function has been
+  eliminated (replaced by :meth:`slice.indices`). Closes :issue:`195`.
+- Allow negative indices in point selection (closes :issue:`360`)
+- Index wasn't being used if it claimed there were no results.
+  Closes :issue:`351` (see also :issue:`353`)
+- Atoms and Col types are no longer generated dynamically so now it is easier
+  for IDEs and static analysis tool to handle them (closes :issue:`345`)
+- Small unit tests re-factoring:
+
+  * :func:`print_versions` and :func:`tests.common.print_heavy` functions
+     moved to the :mod:`tests.common` module
+  * always use :func:`print_versions` when test modules are called as scripts
+  * use the unittest2_ package in Python 2.6.x
+  * removed internal machinery used to replicate unittest2_ features
+  * always use :class:`tests.common.PyTablesTestCase` as base class for all
+    test cases
+  * code of the old :func:`tasts.common.cleanup` function has been moved to
+    :meth:`tests.common.PyTablesTestCase.tearDown` method
+  * new implementation of :meth:`tests.common.PyTablesTestCase.assertWarns`
+    compatible with the one provided by the standard :mod:`unittest` module
+    in Python >= 3.2
+  * use :meth:`tests.common.PyTablesTestCase.assertWarns` as context manager
+    when appropriate
+  * use the :func:`unittest.skipIf` decorator when appropriate
+  * new :class:tests.comon.TestFileMixin: class
+
+
+.. _unittest2: https://pypi.python.org/pypi/unittest2
+
+
+Bugs fixed
+----------
+
+- Fixed compatibility problems with numpy 1.9 and 1.10-dev
+  (closes :issue:`362` and :issue:`366`)
+- Fixed compatibility with Cython_ >= 0.20 (closes :issue:`386` and
+  :issue:`387`)
+- Fixed support for unicode node names in LRU cache (only Python 2 was
+  affected). Closes :issue:`367` and :issue:`369`.
+- Fixed support for unicode node titles (only Python 2 was affected).
+  Closes :issue:`370` and :issue:`374`.
+- Fixed a bug that caused the silent truncation of unicode attributes
+  containing the '\0' character. Closes :issue:`371`.
+- Fixed :func:`descr_from_dtype` to work as expected with complex types.
+  Closes :issue:`381`.
+- Fixed the :class:`tests.test_basics.ThreadingTestCase` test case.
+  Closes :issue:`359`.
+- Fix incomplete results when performing the same query twice and exhausting
+  the second iterator before the first. The first one writes incomplete
+  results to *seqcache* (:issue:`353`)
+- Fix false results potentially going to *seqcache* if
+  :meth:`tableextension.Row.update` is used during iteration
+  (see :issue:`353`)
+- Fix :meth:`Column.create_csindex` when there's NaNs
+- Fixed handling of unicode file names on windows (closes :issue:`389`)
+
+
+Other changes
+-------------
+
+- The minimum Cython_ version is now 0.14.
+
+
+.. _Cython: http://cython.org
+
+
 Changes from 3.1.0 to 3.1.1
 ===========================
 

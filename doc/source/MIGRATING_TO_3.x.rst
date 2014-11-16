@@ -124,10 +124,10 @@ corresponding ``create_xxx()`` methods on the ``File`` class.  These would be ca
 as follows::
 
     # All create methods will support the following
-    crete_xxx(where, name, obj=obj)
+    create_xxx(where, name, obj=obj)
 
     # All non-variable length arrays support the following:
-    crete_xxx(where, name, atom=atom, shape=shape)
+    create_xxx(where, name, atom=atom, shape=shape)
 
 Using ``obj`` or ``atom`` and ``shape`` are mutually exclusive. Previously only
 ``Array`` could be created with an existing Python object using the ``object``

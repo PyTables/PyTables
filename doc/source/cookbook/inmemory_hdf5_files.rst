@@ -69,7 +69,7 @@ disables the backing store feature and all changes in the working `h5file`
 are lost after closing::
 
     >>> h5file = tables.open_file("new_sample.h5", "w", driver="H5FD_CORE",
-    ...                           driver_core_bacling_store=0)
+    ...                           driver_core_backing_store=0)
 
 Please note that the *driver_core_backing_store* disables saving of data, not
 loading.

@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import unittest
 import os
-import tempfile
+import sys
 
 import numpy
 
 import tables
-from tables import *
+from tables import (
+    Atom, StringAtom, IntAtom, Int8Atom, Int16Atom, Int32Atom, Int64Atom,
+    FloatAtom, Float32Atom,
+)
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.tests.common import unittest
+from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
 
-
-class BasicTestCase(unittest.TestCase):
+class BasicTestCase(common.TempFileMixin, TestCase):
     # Default values
     obj = None
     flavor = "numpy"
@@ -34,15 +35,13 @@ class BasicTestCase(unittest.TestCase):
     reopen = 1  # Tells whether the file has to be reopened on each test or not
 
     def setUp(self):
-
+        super(BasicTestCase, self).setUp()
         # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        self.rootgroup = self.fileh.root
+        self.rootgroup = self.h5file.root
         self.populateFile()
         if self.reopen:
             # Close the file
-            self.fileh.close()
+            self.h5file.close()
 
     def populateFile(self):
         group = self.rootgroup
@@ -55,14 +54,14 @@ class BasicTestCase(unittest.TestCase):
         else:
             atom = None
         title = self.__class__.__name__
-        filters = Filters(complevel=self.compress,
-                          complib=self.complib,
-                          shuffle=self.shuffle,
-                          fletcher32=self.fletcher32)
-        carray = self.fileh.create_carray(group, 'carray1',
-                                          atom=atom, shape=self.shape,
-                                          title=title, filters=filters,
-                                          chunkshape=self.chunkshape, obj=obj)
+        filters = tables.Filters(complevel=self.compress,
+                                 complib=self.complib,
+                                 shuffle=self.shuffle,
+                                 fletcher32=self.fletcher32)
+        carray = self.h5file.create_carray(group, 'carray1',
+                                           atom=atom, shape=self.shape,
+                                           title=title, filters=filters,
+                                           chunkshape=self.chunkshape, obj=obj)
         carray.flavor = self.flavor
 
         # Fill it with data
@@ -82,13 +81,6 @@ class BasicTestCase(unittest.TestCase):
 
         carray[...] = object
 
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
-
-    #----------------------------------------
-
     def _get_shape(self):
         if self.shape is not None:
             shape = self.shape
@@ -99,8 +91,8 @@ class BasicTestCase(unittest.TestCase):
 
     def test00_attributes(self):
         if self.reopen:
-            self.fileh = open_file(self.file, "r")
-        obj = self.fileh.get_node("/carray1")
+            self.h5file = tables.open_file(self.h5fname, "r")
+        obj = self.h5file.get_node("/carray1")
 
         shape = self._get_shape()
 
@@ -120,8 +112,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = open_file(self.file, "r")
-        carray = self.fileh.get_node("/carray1")
+            self.h5file = tables.open_file(self.h5fname, "r")
+        carray = self.h5file.get_node("/carray1")
 
         # Choose a small value for buffer size
         carray.nrowsinbuf = 3
@@ -158,7 +150,7 @@ class BasicTestCase(unittest.TestCase):
             stop = int(carray.nrows)
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
-        object = object_[self.start:stop:self.step].copy()
+        obj = object_[self.start:stop:self.step].copy()
 
         # Read all the array
         try:
@@ -170,10 +162,10 @@ class BasicTestCase(unittest.TestCase):
                 data = numpy.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
-            if hasattr(object, "shape"):
-                print("shape should look as:", object.shape)
+            if hasattr(obj, "shape"):
+                print("shape should look as:", obj.shape)
             print("Object read ==>", repr(data))
-            print("Should look like ==>", repr(object))
+            print("Should look like ==>", repr(obj))
 
         if hasattr(data, "shape"):
             self.assertEqual(len(data.shape), len(shape))
@@ -181,15 +173,15 @@ class BasicTestCase(unittest.TestCase):
             # Scalar case
             self.assertEqual(len(self.shape), 1)
         self.assertEqual(carray.chunkshape, self.chunkshape)
-        self.assertTrue(allequal(data, object, self.flavor))
+        self.assertTrue(allequal(data, obj, self.flavor))
 
     def test01_readCArray_out_argument(self):
         """Checking read() of chunked layout arrays."""
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = open_file(self.file, "r")
-        carray = self.fileh.get_node("/carray1")
+            self.h5file = tables.open_file(self.h5fname, "r")
+        carray = self.h5file.get_node("/carray1")
 
         shape = self._get_shape()
 
@@ -221,7 +213,7 @@ class BasicTestCase(unittest.TestCase):
             stop = int(carray.nrows)
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
-        object = object_[self.start:stop:self.step].copy()
+        obj = object_[self.start:stop:self.step].copy()
 
         # Read all the array
         try:
@@ -240,7 +232,7 @@ class BasicTestCase(unittest.TestCase):
             # Scalar case
             self.assertEqual(len(shape), 1)
         self.assertEqual(carray.chunkshape, self.chunkshape)
-        self.assertTrue(allequal(data, object, self.flavor))
+        self.assertTrue(allequal(data, obj, self.flavor))
 
     def test02_getitemCArray(self):
         """Checking chunked layout array __getitem__ special method."""
@@ -256,8 +248,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = open_file(self.file, "r")
-        carray = self.fileh.get_node("/carray1")
+            self.h5file = tables.open_file(self.h5fname, "r")
+        carray = self.h5file.get_node("/carray1")
 
         if common.verbose:
             print("CArray descr:", repr(carray))
@@ -277,7 +269,7 @@ class BasicTestCase(unittest.TestCase):
 
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
-        object = object_.__getitem__(self.slices).copy()
+        obj = object_.__getitem__(self.slices).copy()
 
         # Read data from the array
         try:
@@ -291,24 +283,21 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print("Object read:\n", repr(data))  # , data.info()
-            print("Should look like:\n", repr(object))  # , object.info()
-            if hasattr(object, "shape"):
+            print("Should look like:\n", repr(obj))  # , object.info()
+            if hasattr(obj, "shape"):
                 print("Original object shape:", self.shape)
                 print("Shape read:", data.shape)
-                print("shape should look as:", object.shape)
+                print("shape should look as:", obj.shape)
 
         if not hasattr(data, "shape"):
             # Scalar case
             self.assertEqual(len(self.shape), 1)
         self.assertEqual(carray.chunkshape, self.chunkshape)
-        self.assertTrue(allequal(data, object, self.flavor))
+        self.assertTrue(allequal(data, obj, self.flavor))
 
     def test03_setitemCArray(self):
         """Checking chunked layout array __setitem__ special method."""
 
-        if self.__class__.__name__ == "Ellipsis6CArrayTestCase":
-            # see test_earray.py BasicTestCase.test03_setitemEArray
-            return
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03_setitemCArray..." %
@@ -320,8 +309,8 @@ class BasicTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         if self.reopen:
-            self.fileh = open_file(self.file, "a")
-        carray = self.fileh.get_node("/carray1")
+            self.h5file = tables.open_file(self.h5fname, "a")
+        carray = self.h5file.get_node("/carray1")
 
         if common.verbose:
             print("CArray descr:", repr(carray))
@@ -341,26 +330,26 @@ class BasicTestCase(unittest.TestCase):
 
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
-        object = object_.__getitem__(self.slices).copy()
+        obj = object_.__getitem__(self.slices).copy()
 
         if self.type == "string":
             if hasattr(self, "wslice"):
-                object[self.wslize] = "xXx"
+                obj[self.wslize] = "xXx"
                 carray[self.wslice] = "xXx"
-            elif sum(object[self.slices].shape) != 0:
-                object[:] = "xXx"
-                if object.size > 0:
-                    carray[self.slices] = object
+            elif sum(obj[self.slices].shape) != 0:
+                obj[:] = "xXx"
+                if obj.size > 0:
+                    carray[self.slices] = obj
         else:
             if hasattr(self, "wslice"):
-                object[self.wslice] = object[self.wslice] * 2 + 3
+                obj[self.wslice] = obj[self.wslice] * 2 + 3
                 carray[self.wslice] = carray[self.wslice] * 2 + 3
-            elif sum(object[self.slices].shape) != 0:
-                object = object * 2 + 3
-                if numpy.prod(object.shape) > 0:
+            elif sum(obj[self.slices].shape) != 0:
+                obj = obj * 2 + 3
+                if numpy.prod(obj.shape) > 0:
                     carray[self.slices] = carray[self.slices] * 2 + 3
             # Cast again object to its original type
-            object = numpy.array(object, dtype=carray.atom.dtype)
+            obj = numpy.array(obj, dtype=carray.atom.dtype)
         # Read datafrom the array
         try:
             data = carray.__getitem__(self.slices)
@@ -373,17 +362,17 @@ class BasicTestCase(unittest.TestCase):
 
         if common.verbose:
             print("Object read:\n", repr(data))  # , data.info()
-            print("Should look like:\n", repr(object))  # , object.info()
-            if hasattr(object, "shape"):
+            print("Should look like:\n", repr(obj))  # , object.info()
+            if hasattr(obj, "shape"):
                 print("Original object shape:", self.shape)
                 print("Shape read:", data.shape)
-                print("shape should look as:", object.shape)
+                print("shape should look as:", obj.shape)
 
         if not hasattr(data, "shape"):
             # Scalar case
             self.assertEqual(len(self.shape), 1)
         self.assertEqual(carray.chunkshape, self.chunkshape)
-        self.assertTrue(allequal(data, object, self.flavor))
+        self.assertTrue(allequal(data, obj, self.flavor))
 
 
 class BasicWriteTestCase(BasicTestCase):
@@ -476,6 +465,7 @@ class EmptyCArray2TestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class SlicesCArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -493,6 +483,7 @@ class EllipsisCArrayTestCase(BasicTestCase):
     slices = (Ellipsis, slice(1, 2, 1))
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class Slices2CArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -509,6 +500,7 @@ class Ellipsis2CArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class Slices3CArrayTestCase(BasicTestCase):
     compress = 1      # To show the chunks id DEBUG is on
     complib = "lzo"
@@ -652,6 +644,8 @@ class ZlibShuffleTestCase(BasicTestCase):
     step = 10
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "blosc"
@@ -661,6 +655,8 @@ class BloscComprTestCase(BasicTestCase):
     step = 3
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscShuffleTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -672,6 +668,8 @@ class BloscShuffleTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscFletcherTestCase(BasicTestCase):
     # see gh-21
     shape = (200, 300)
@@ -685,6 +683,8 @@ class BloscFletcherTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscBloscLZTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -696,6 +696,9 @@ class BloscBloscLZTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4TestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -707,6 +710,9 @@ class BloscLZ4TestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4HCTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -718,6 +724,10 @@ class BloscLZ4HCTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
+                 'snappy required')
 class BloscSnappyTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -729,6 +739,9 @@ class BloscSnappyTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
 class BloscZlibTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -740,6 +753,7 @@ class BloscZlibTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
@@ -749,6 +763,7 @@ class LZOComprTestCase(BasicTestCase):
     step = 3
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class LZOShuffleTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -760,6 +775,8 @@ class LZOShuffleTestCase(BasicTestCase):
     step = 7
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class Bzip2ComprTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -770,6 +787,8 @@ class Bzip2ComprTestCase(BasicTestCase):
     step = 8
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class Bzip2ShuffleTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -888,6 +907,8 @@ class Int32TestCase(BasicTestCase):
     step = 20
 
 
+@unittest.skipUnless(hasattr(tables, 'Float16Atom'),
+                     'Float16Atom not available')
 class Float16TestCase(BasicTestCase):
     type = "float16"
     shape = (200,)
@@ -921,6 +942,8 @@ class Float64TestCase(BasicTestCase):
     step = 20
 
 
+@unittest.skipUnless(hasattr(tables, 'Float96Atom'),
+                     'Float96Atom not available')
 class Float96TestCase(BasicTestCase):
     type = "float96"
     shape = (200,)
@@ -932,6 +955,8 @@ class Float96TestCase(BasicTestCase):
     step = 20
 
 
+@unittest.skipUnless(hasattr(tables, 'Float128Atom'),
+                     'Float128Atom not available')
 class Float128TestCase(BasicTestCase):
     type = "float128"
     shape = (200,)
@@ -965,6 +990,8 @@ class Complex128TestCase(BasicTestCase):
     step = 20
 
 
+@unittest.skipUnless(hasattr(tables, 'Complex192Atom'),
+                     'Complex192Atom not available')
 class Complex192TestCase(BasicTestCase):
     type = "complex192"
     shape = (20,)
@@ -976,6 +1003,8 @@ class Complex192TestCase(BasicTestCase):
     step = 20
 
 
+@unittest.skipUnless(hasattr(tables, 'Complex256Atom'),
+                     'Complex256Atom not available')
 class Complex256TestCase(BasicTestCase):
     type = "complex256"
     shape = (20,)
@@ -1001,23 +1030,18 @@ class ComprTestCase(BasicTestCase):
 
 # this is a subset of the tests in test_array.py, mostly to verify that errors
 # are handled in the same way
-class ReadOutArgumentTests(unittest.TestCase):
+class ReadOutArgumentTests(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode='w')
+        super(ReadOutArgumentTests, self).setUp()
         self.size = 1000
-        self.filters = Filters(complevel=1, complib='blosc')
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
+        self.filters = tables.Filters(complevel=1, complib='blosc')
 
     def create_array(self):
         array = numpy.arange(self.size, dtype='i8')
-        disk_array = self.fileh.create_carray('/', 'array', atom=Int64Atom(),
-                                              shape=(self.size, ),
-                                              filters=self.filters)
+        disk_array = self.h5file.create_carray('/', 'array', atom=Int64Atom(),
+                                               shape=(self.size, ),
+                                               filters=self.filters)
         disk_array[:] = array
         return array, disk_array
 
@@ -1051,31 +1075,24 @@ class ReadOutArgumentTests(unittest.TestCase):
             self.assertTrue('output array size invalid, got' in str(exc))
 
 
-class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
+        super(SizeOnDiskInMemoryPropertyTestCase, self).setUp()
         self.array_size = (10000, 10)
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
         self.chunkshape = (1000, 10)
         # approximate size (in bytes) of non-data portion of hdf5 file
         self.hdf_overhead = 6000
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode="w")
-
-    def tearDown(self):
-        self.fileh.close()
-        # Then, delete the file
-        os.remove(self.file)
-        common.cleanup(self)
 
     def create_array(self, complevel):
-        filters = Filters(complevel=complevel, complib='blosc')
-        self.array = self.fileh.create_carray('/', 'somearray',
-                                              atom=Int16Atom(),
-                                              shape=self.array_size,
-                                              filters=filters,
-                                              chunkshape=self.chunkshape)
+        filters = tables.Filters(complevel=complevel, complib='blosc')
+        self.array = self.h5file.create_carray('/', 'somearray',
+                                               atom=Int16Atom(),
+                                               shape=self.array_size,
+                                               filters=filters,
+                                               chunkshape=self.chunkshape)
 
     def test_no_data(self):
         complevel = 0
@@ -1094,8 +1111,8 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         complevel = 1
         self.create_array(complevel)
         self.array[:] = 1
-        self.fileh.flush()
-        file_size = os.stat(self.file).st_size
+        self.h5file.flush()
+        file_size = os.stat(self.h5fname).st_size
         self.assertTrue(
             abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertTrue(self.array.size_on_disk < self.array.size_in_memory)
@@ -1106,37 +1123,27 @@ class SizeOnDiskInMemoryPropertyTestCase(unittest.TestCase):
         complevel = 1
         self.create_array(complevel)
         self.array[:] = numpy.random.randint(0, 1e6, self.array_size)
-        self.fileh.flush()
-        file_size = os.stat(self.file).st_size
+        self.h5file.flush()
+        file_size = os.stat(self.h5fname).st_size
         self.assertTrue(
             abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
 
         # XXX: check. The test fails if blosc is not available
-        if which_lib_version('blosc') is not None:
+        if tables.which_lib_version('blosc') is not None:
             self.assertAlmostEqual(self.array.size_on_disk, 10000 * 10 * 2)
         else:
             self.assertTrue(
                 abs(self.array.size_on_disk - 10000 * 10 * 2) < 200)
 
 
-class OffsetStrideTestCase(unittest.TestCase):
-    mode = "w"
+class OffsetStrideTestCase(common.TempFileMixin, TestCase):
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-
+        super(OffsetStrideTestCase, self).setUp()
         # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, self.mode)
-        self.rootgroup = self.fileh.root
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
-
-    #----------------------------------------
+        self.rootgroup = self.h5file.root
 
     def test01a_String(self):
         """Checking carray with offseted NumPy strings appends."""
@@ -1148,11 +1155,11 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         shape = (3, 2, 2)
         # Create an string atom
-        carray = self.fileh.create_carray(root, 'strings',
-                                          atom=StringAtom(itemsize=3),
-                                          shape=shape,
-                                          title="Array of strings",
-                                          chunkshape=(1, 2, 2))
+        carray = self.h5file.create_carray(root, 'strings',
+                                           atom=StringAtom(itemsize=3),
+                                           shape=shape,
+                                           title="Array of strings",
+                                           chunkshape=(1, 2, 2))
         a = numpy.array([[["a", "b"], [
                         "123", "45"], ["45", "123"]]], dtype="S3")
         carray[0] = a[0, 1:]
@@ -1182,12 +1189,13 @@ class OffsetStrideTestCase(unittest.TestCase):
             print("Running %s.test01b_String..." % self.__class__.__name__)
 
         shape = (3, 2, 2)
+
         # Create an string atom
-        carray = self.fileh.create_carray(root, 'strings',
-                                          atom=StringAtom(itemsize=3),
-                                          shape=shape,
-                                          title="Array of strings",
-                                          chunkshape=(1, 2, 2))
+        carray = self.h5file.create_carray(root, 'strings',
+                                           atom=StringAtom(itemsize=3),
+                                           shape=shape,
+                                           title="Array of strings",
+                                           chunkshape=(1, 2, 2))
         a = numpy.array([[["a", "b"], [
                         "123", "45"], ["45", "123"]]], dtype="S3")
         carray[0] = a[0, ::2]
@@ -1217,11 +1225,12 @@ class OffsetStrideTestCase(unittest.TestCase):
             print("Running %s.test02a_int..." % self.__class__.__name__)
 
         shape = (3, 3)
+
         # Create an string atom
-        carray = self.fileh.create_carray(root, 'CAtom',
-                                          atom=Int32Atom(), shape=shape,
-                                          title="array of ints",
-                                          chunkshape=(1, 3))
+        carray = self.h5file.create_carray(root, 'CAtom',
+                                           atom=Int32Atom(), shape=shape,
+                                           title="array of ints",
+                                           chunkshape=(1, 3))
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (0, 0, 0)], dtype='int32')
         carray[0:2] = a[2:]  # Introduce an offset
@@ -1252,11 +1261,12 @@ class OffsetStrideTestCase(unittest.TestCase):
             print("Running %s.test02b_int..." % self.__class__.__name__)
 
         shape = (3, 3)
+
         # Create an string atom
-        carray = self.fileh.create_carray(root, 'CAtom',
-                                          atom=Int32Atom(), shape=shape,
-                                          title="array of ints",
-                                          chunkshape=(1, 3))
+        carray = self.h5file.create_carray(root, 'CAtom',
+                                           atom=Int32Atom(), shape=shape,
+                                           title="array of ints",
+                                           chunkshape=(1, 3))
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
             1, 1, 1), (3, 3, 3)], dtype='int32')
         carray[0:2] = a[::3]  # Create an offset
@@ -1279,7 +1289,7 @@ class OffsetStrideTestCase(unittest.TestCase):
                         2], numpy.array([1, 1, 1], dtype='int32')))
 
 
-class CopyTestCase(unittest.TestCase):
+class CopyTestCase(common.TempFileMixin, TestCase):
 
     def test01a_copy(self):
         """Checking CArray.copy() method."""
@@ -1288,24 +1298,19 @@ class CopyTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01a_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an CArray
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode="a")
+            array1 = self.h5file.root.array1
 
         # Copy it to another location
         array2 = array1.copy('/', 'array2')
@@ -1313,10 +1318,9 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -1342,10 +1346,6 @@ class CopyTestCase(unittest.TestCase):
         # F. Alted 2006-11-27
         # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test01b_copy(self):
         """Checking CArray.copy() method."""
 
@@ -1353,35 +1353,29 @@ class CopyTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01b_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an CArray
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(5, 5))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(5, 5))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+                print("(closing h5fname version)")
+            self._reopen(mode="a")
+            array1 = self.h5file.root.array1
 
         # Copy it to another location
         array2 = array1.copy('/', 'array2')
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+                print("(closing h5fname version)")
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -1405,10 +1399,6 @@ class CopyTestCase(unittest.TestCase):
         # By default, the chunkshape should be the same
         self.assertEqual(array1.chunkshape, array2.chunkshape)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test01c_copy(self):
         """Checking CArray.copy() method."""
 
@@ -1416,24 +1406,19 @@ class CopyTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01c_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an CArray
         shape = (5, 5)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode="a")
+            array1 = self.h5file.root.array1
 
         # Copy it to another location
         array2 = array1.copy('/', 'array2')
@@ -1441,10 +1426,9 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -1469,10 +1453,6 @@ class CopyTestCase(unittest.TestCase):
         # keep the same chunkshape anymore.
         # F. Alted 2006-11-27
         # self.assertEqual(array1.chunkshape, array2.chunkshape)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
     def test02_copy(self):
         """Checking CArray.copy() method (where specified)"""
@@ -1481,36 +1461,30 @@ class CopyTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an CArray
         shape = (5, 5)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode="a")
+            array1 = self.h5file.root.array1
 
         # Copy to another location
-        group1 = fileh.create_group("/", "group1")
+        group1 = self.h5file.create_group("/", "group1")
         array2 = array1.copy(group1, 'array2')
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.group1.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.group1.array2
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -1536,10 +1510,6 @@ class CopyTestCase(unittest.TestCase):
         # F. Alted 2006-11-27
         # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test03a_copy(self):
         """Checking CArray.copy() method (python flavor)"""
 
@@ -1547,24 +1517,19 @@ class CopyTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03c_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         array1.flavor = "python"
         array1[...] = [[456, 2], [3, 457]]
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode="a")
+            array1 = self.h5file.root.array1
 
         # Copy to another location
         array2 = array1.copy('/', 'array2')
@@ -1572,10 +1537,9 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -1597,10 +1561,6 @@ class CopyTestCase(unittest.TestCase):
         # F. Alted 2006-11-27
         # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test03b_copy(self):
         """Checking CArray.copy() method (string python flavor)"""
 
@@ -1608,24 +1568,19 @@ class CopyTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03d_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         shape = (2, 2)
         atom = StringAtom(itemsize=4)
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         array1.flavor = "python"
         array1[...] = [["456", "2"], ["3", "457"]]
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode="a")
+            array1 = self.h5file.root.array1
 
         # Copy to another location
         array2 = array1.copy('/', 'array2')
@@ -1633,10 +1588,9 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("type value-->", type(array2[:][0][0]))
@@ -1661,10 +1615,6 @@ class CopyTestCase(unittest.TestCase):
         # F. Alted 2006-11-27
         # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test03c_copy(self):
         """Checking CArray.copy() method (chararray flavor)"""
 
@@ -1672,23 +1622,18 @@ class CopyTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03e_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         shape = (2, 2)
         atom = StringAtom(itemsize=4)
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([["456", "2"], ["3", "457"]], dtype="S4")
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode="a")
+            array1 = self.h5file.root.array1
 
         # Copy to another location
         array2 = array1.copy('/', 'array2')
@@ -1696,10 +1641,9 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -1721,10 +1665,6 @@ class CopyTestCase(unittest.TestCase):
         # F. Alted 2006-11-27
         # self.assertEqual(array1.chunkshape, array2.chunkshape)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test04_copy(self):
         """Checking CArray.copy() method (checking title copying)"""
 
@@ -1732,17 +1672,14 @@ class CopyTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test04_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an CArray
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
+
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1750,9 +1687,8 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode="a")
+            array1 = self.h5file.root.array1
 
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', title="title array2")
@@ -1760,19 +1696,14 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         # Assert user attributes
         if common.verbose:
             print("title of destination array-->", array2.title)
         self.assertEqual(array2.title, "title array2")
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
     def test05_copy(self):
         """Checking CArray.copy() method (user attributes copied)"""
@@ -1781,17 +1712,14 @@ class CopyTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test05_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an CArray
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
+
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1799,9 +1727,8 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode="a")
+            array1 = self.h5file.root.array1
 
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', copyuserattrs=1)
@@ -1809,10 +1736,9 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -1822,10 +1748,6 @@ class CopyTestCase(unittest.TestCase):
         self.assertEqual(array2.attrs.attr1, "attr1")
         self.assertEqual(array2.attrs.attr2, 2)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test05b_copy(self):
         """Checking CArray.copy() method (user attributes not copied)"""
 
@@ -1833,17 +1755,14 @@ class CopyTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test05b_copy..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an Array
         shape = (2, 2)
         atom = Int16Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
+
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1851,9 +1770,8 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="a")
-            array1 = fileh.root.array1
+            self._reopen(mode="a")
+            array1 = self.h5file.root.array1
 
         # Copy it to another Array
         array2 = array1.copy('/', 'array2', copyuserattrs=0)
@@ -1861,10 +1779,9 @@ class CopyTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            fileh.close()
-            fileh = open_file(file, mode="r")
-            array1 = fileh.root.array1
-            array2 = fileh.root.array2
+            self._reopen()
+            array1 = self.h5file.root.array1
+            array2 = self.h5file.root.array2
 
         if common.verbose:
             print("attrs array1-->", repr(array1.attrs))
@@ -1873,10 +1790,6 @@ class CopyTestCase(unittest.TestCase):
         # Assert user attributes
         self.assertEqual(hasattr(array2.attrs, "attr1"), 0)
         self.assertEqual(hasattr(array2.attrs, "attr2"), 0)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
 
 class CloseCopyTestCase(CopyTestCase):
@@ -1887,7 +1800,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
-class CopyIndexTestCase(unittest.TestCase):
+class CopyIndexTestCase(common.TempFileMixin, TestCase):
     nrowsinbuf = 2
 
     def test01_index(self):
@@ -1897,16 +1810,12 @@ class CopyIndexTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01_index..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Array
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an CArray
         shape = (100, 2)
         atom = Int32Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
         array1[...] = r
@@ -1940,10 +1849,6 @@ class CopyIndexTestCase(unittest.TestCase):
         # assert array1.chunkshape == array2.chunkshape
         self.assertEqual(r2.shape[0], array2.nrows)
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def _test02_indexclosef(self):
         """Checking CArray.copy() method with indexes (close file version)"""
 
@@ -1951,16 +1856,12 @@ class CopyIndexTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02_indexclosef..." % self.__class__.__name__)
 
-        # Create an instance of an HDF5 Array
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-
         # Create an CArray
         shape = (100, 2)
         atom = Int32Atom()
-        array1 = fileh.create_carray(fileh.root, 'array1',
-                                     atom=atom, shape=shape,
-                                     title="title array1", chunkshape=(2, 2))
+        array1 = self.h5file.create_carray(
+            self.h5file.root, 'array1', atom=atom, shape=shape,
+            title="title array1", chunkshape=(2, 2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
         array1[...] = r
@@ -1973,11 +1874,11 @@ class CopyIndexTestCase(unittest.TestCase):
                              start=self.start,
                              stop=self.stop,
                              step=self.step)
+
         # Close and reopen the file
-        fileh.close()
-        fileh = open_file(file, mode="r")
-        array1 = fileh.root.array1
-        array2 = fileh.root.array2
+        self._reopen()
+        array1 = self.h5file.root.array1
+        array2 = self.h5file.root.array2
 
         if common.verbose:
             print("array1-->", array1.read())
@@ -1995,10 +1896,6 @@ class CopyIndexTestCase(unittest.TestCase):
             print("nrows in array2-->", array2.nrows)
             print("and it should be-->", r2.shape[0])
         self.assertEqual(r2.shape[0], array2.nrows)
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
 
 class CopyIndex1TestCase(CopyIndexTestCase):
@@ -2079,25 +1976,22 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     stop = None  # None should mean the last element (including it)
     step = 1
 
+
 # The next test should be run only in **heavy** mode
-
-
-class Rows64bitsTestCase(unittest.TestCase):
+class Rows64bitsTestCase(common.TempFileMixin, TestCase):
     narows = 1000 * 1000   # each array will have 1 million entries
     # narows = 1000        # for testing only
     nanumber = 1000 * 3    # That should account for more than 2**31-1
 
     def setUp(self):
+        super(Rows64bitsTestCase, self).setUp()
 
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        fileh = self.fileh = open_file(self.file, "a")
         # Create an CArray
         shape = (self.narows * self.nanumber,)
-        array = fileh.create_carray(fileh.root, 'array',
-                                    atom=Int8Atom(), shape=shape,
-                                    filters=Filters(complib='lzo',
-                                                    complevel=1))
+        array = self.h5file.create_carray(
+            self.h5file.root, 'array',
+            atom=Int8Atom(), shape=shape,
+            filters=tables.Filters(complib='lzo', complevel=1))
 
         # Fill the array
         na = numpy.arange(self.narows, dtype='int8')
@@ -2109,18 +2003,10 @@ class Rows64bitsTestCase(unittest.TestCase):
         s = slice((self.nanumber-1)*self.narows, self.nanumber * self.narows)
         array[s] = na
 
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
-
-    #----------------------------------------
-
     def test01_basiccheck(self):
         "Some basic checks for carrays exceeding 2**31 rows"
 
-        fileh = self.fileh
-        array = fileh.root.array
+        array = self.h5file.root.array
 
         if self.close:
             if common.verbose:
@@ -2129,11 +2015,10 @@ class Rows64bitsTestCase(unittest.TestCase):
                 print("Entries:", array.nrows, type(array.nrows))
                 print("Entries:", array.nrows / (1000 * 1000), "Millions")
                 print("Shape:", array.shape)
-            # Close the file
-            fileh.close()
+
             # Re-open the file
-            fileh = self.fileh = open_file(self.file)
-            array = fileh.root.array
+            self._reopen()
+            array = self.h5file.root.array
             if common.verbose:
                 print("After re-open")
 
@@ -2151,12 +2036,16 @@ class Rows64bitsTestCase(unittest.TestCase):
             print("Should look like:", numpy.arange(start, stop, dtype='int8'))
 
         nrows = self.narows * self.nanumber
+
         # check nrows
         self.assertEqual(array.nrows, nrows)
+
         # Check shape
         self.assertEqual(array.shape, (nrows,))
+
         # check the 10 first elements
         self.assertTrue(allequal(array[:10], numpy.arange(10, dtype='int8')))
+
         # check the 10 last elements
         stop = self.narows % 256
         if stop > 127:
@@ -2174,7 +2063,7 @@ class Rows64bitsTestCase2(Rows64bitsTestCase):
     close = 1
 
 
-class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class BigArrayTestCase(common.TempFileMixin, TestCase):
     shape = (3000000000,)  # more than 2**31-1
 
     def setUp(self):
@@ -2194,7 +2083,6 @@ class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # In python 2.4 calling "len(self.h5file.root.array)" raises
             # an OverflowError also on 64bit platforms::
             #   OverflowError: __len__() should return 0 <= outcome < 2**31
-            import sys
             if sys.version_info[:2] > (2, 4):
                 # This can't be avoided in 32-bit platforms.
                 self.assertTrue(self.shape[0] > numpy.iinfo(int).max,
@@ -2208,7 +2096,7 @@ class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 # Test for default values when creating arrays.
-class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class DfltAtomTestCase(common.TempFileMixin, TestCase):
 
     def test00_dflt(self):
         "Check that Atom.dflt is honored (string version)."
@@ -2270,10 +2158,11 @@ class DfltAtomReopen(DfltAtomTestCase):
 
 
 # Test for representation of defaults in atoms. Ticket #212.
-class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class AtomDefaultReprTestCase(common.TempFileMixin, TestCase):
 
     def test00a_zeros(self):
-        "Testing default values.  Zeros (scalar)."
+        """Testing default values.  Zeros (scalar)."""
+
         N = ()
         atom = StringAtom(itemsize=3, shape=N, dflt=b"")
         ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
@@ -2288,7 +2177,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
 
     def test00b_zeros(self):
-        "Testing default values.  Zeros (array)."
+        """Testing default values.  Zeros (array)."""
+
         N = 2
         atom = StringAtom(itemsize=3, shape=N, dflt=b"")
         ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
@@ -2303,7 +2193,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
 
     def test01a_values(self):
-        "Testing default values.  Ones."
+        """Testing default values.  Ones."""
+
         N = 2
         atom = Int32Atom(shape=N, dflt=1)
         ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
@@ -2318,7 +2209,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(allequal(ca.atom.dflt, numpy.ones(N, 'i4')))
 
     def test01b_values(self):
-        "Testing default values.  Generic value."
+        """Testing default values.  Generic value."""
+
         N = 2
         generic = 112.32
         atom = Float32Atom(shape=N, dflt=generic)
@@ -2334,7 +2226,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(allequal(ca.atom.dflt, numpy.ones(N, 'f4')*generic))
 
     def test02a_None(self):
-        "Testing default values.  None (scalar)."
+        """Testing default values.  None (scalar)."""
+
         N = ()
         atom = Int32Atom(shape=N, dflt=None)
         ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
@@ -2348,7 +2241,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
 
     def test02b_None(self):
-        "Testing default values.  None (array)."
+        """Testing default values.  None (array)."""
+
         N = 2
         atom = Int32Atom(shape=N, dflt=None)
         ca = self.h5file.create_carray('/', 'test', atom=atom, shape=(1,))
@@ -2370,18 +2264,20 @@ class AtomDefaultReprReopen(AtomDefaultReprTestCase):
     reopen = True
 
 
-class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class TruncateTestCase(common.TempFileMixin, TestCase):
     def test(self):
         """Test for unability to truncate Array objects."""
+
         array1 = self.h5file.create_carray('/', 'array1', IntAtom(), [2, 2])
         self.assertRaises(TypeError, array1.truncate, 0)
 
 
 # Test for dealing with multidimensional atoms
-class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class MDAtomTestCase(common.TempFileMixin, TestCase):
 
     def test01a_assign(self):
-        "Assign a row to a (unidimensional) CArray with a MD atom."
+        """Assign a row to a (unidimensional) CArray with a MD atom."""
+
         # Create an CArray
         ca = self.h5file.create_carray('/', 'test',
                                        atom=Int32Atom((2, 2)), shape=(1,))
@@ -2396,7 +2292,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(allequal(ca[0], numpy.array([[1, 3], [4, 5]], 'i4')))
 
     def test01b_assign(self):
-        "Assign several rows to a (unidimensional) CArray with a MD atom."
+        """Assign several rows to a (unidimensional) CArray with a MD atom."""
+
         # Create an CArray
         ca = self.h5file.create_carray('/', 'test',
                                        atom=Int32Atom((2, 2)), shape=(3,))
@@ -2411,7 +2308,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(allequal(ca[2], numpy.array([[3, 3], [3, 3]], 'i4')))
 
     def test02a_assign(self):
-        "Assign a row to a (multidimensional) CArray with a MD atom."
+        """Assign a row to a (multidimensional) CArray with a MD atom."""
+
         # Create an CArray
         ca = self.h5file.create_carray('/', 'test',
                                        atom=Int32Atom((2,)), shape=(1, 3))
@@ -2427,7 +2325,9 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             [[1, 3], [4, 5], [7, 9]], 'i4')))
 
     def test02b_assign(self):
-        "Assign several rows to a (multidimensional) CArray with a MD atom."
+        """Assign several rows to a (multidimensional) CArray with
+        a MD atom."""
+
         # Create an CArray
         ca = self.h5file.create_carray('/', 'test',
                                        atom=Int32Atom((2,)), shape=(3, 3))
@@ -2445,13 +2345,15 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
             allequal(ca[2], numpy.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
 
     def test03a_MDMDMD(self):
-        "Complex assign of a MD array in a MD CArray with a MD atom."
+        """Complex assign of a MD array in a MD CArray with a MD atom."""
+
         # Create an CArray
         ca = self.h5file.create_carray('/', 'test',
                                        atom=Int32Atom((2, 4)), shape=(3, 2, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
+
         # Assign values
         # The shape of the atom should be added at the end of the arrays
         a = numpy.arange(2 * 3*2*4, dtype='i4').reshape((2, 3, 2, 4))
@@ -2462,13 +2364,15 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(allequal(ca[2], a * 3))
 
     def test03b_MDMDMD(self):
-        "Complex assign of a MD array in a MD CArray with a MD atom (II)."
+        """Complex assign of a MD array in a MD CArray with a MD atom (II)."""
+
         # Create an CArray
         ca = self.h5file.create_carray(
             '/', 'test', atom=Int32Atom((2, 4)), shape=(2, 3, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
+
         # Assign values
         # The shape of the atom should be added at the end of the arrays
         a = numpy.arange(2 * 3*3*2*4, dtype='i4').reshape((2, 3, 3, 2, 4))
@@ -2479,13 +2383,15 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(allequal(ca[:, 2, ...], a[:, 2, ...]))
 
     def test03c_MDMDMD(self):
-        "Complex assign of a MD array in a MD CArray with a MD atom (III)."
+        """Complex assign of a MD array in a MD CArray with a MD atom (III)."""
+
         # Create an CArray
         ca = self.h5file.create_carray('/', 'test',
                                        atom=Int32Atom((2, 4)), shape=(3, 1, 2))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
+
         # Assign values
         # The shape of the atom should be added at the end of the arrays
         a = numpy.arange(3 * 1*2*2*4, dtype='i4').reshape((3, 1, 2, 2, 4))
@@ -2505,16 +2411,18 @@ class MDAtomReopen(MDAtomTestCase):
 
 
 # Test for building very large MD atoms without defaults.  Ticket #211.
-class MDLargeAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class MDLargeAtomTestCase(common.TempFileMixin, TestCase):
 
     def test01_create(self):
-        "Create a CArray with a very large MD atom."
+        """Create a CArray with a very large MD atom."""
+
         N = 2**16      # 4x larger than maximum object header size (64 KB)
         ca = self.h5file.create_carray('/', 'test',
                                        atom=Int32Atom(shape=N), shape=(1,))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
+
         # Check the value
         if common.verbose:
             print("First row-->", ca[0])
@@ -2529,7 +2437,7 @@ class MDLargeAtomReopen(MDLargeAtomTestCase):
     reopen = True
 
 
-class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
         super(AccessClosedTestCase, self).setUp()
@@ -2540,18 +2448,18 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_read(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.read)
+        self.assertRaises(tables.ClosedNodeError, self.array.read)
 
     def test_getitem(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.__getitem__, 0)
+        self.assertRaises(tables.ClosedNodeError, self.array.__getitem__, 0)
 
     def test_setitem(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
+        self.assertRaises(tables.ClosedNodeError, self.array.__setitem__, 0, 0)
 
 
-class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
+class TestCreateCArrayArgs(common.TempFileMixin, TestCase):
     obj = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     where = '/'
     name = 'carray'
@@ -2569,7 +2477,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                                   self.title, self.filters, self.chunkshape)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2588,7 +2496,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         ptarr[...] = self.obj
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2608,7 +2516,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                                   self.obj)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2625,7 +2533,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                                   obj=self.obj)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2644,7 +2552,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         ptarr[...] = self.obj
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2663,7 +2571,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         #ptarr[...] = self.obj
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2682,7 +2590,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                                           atom=self.atom)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2701,7 +2609,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                                           shape=self.shape)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2721,7 +2629,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                                           shape=self.shape)
         self.h5file.close()
 
-        self.h5file = open_file(self.h5fname)
+        self.h5file = tables.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2791,9 +2699,6 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           shape=shape)
 
 
-#----------------------------------------------------------------------
-
-
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
@@ -2822,13 +2727,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BloscShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(BloscFletcherTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBloscLZTestCase))
-        if 'lz4' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(BloscLZ4TestCase))
-            theSuite.addTest(unittest.makeSuite(BloscLZ4HCTestCase))
-        if 'snappy' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(BloscSnappyTestCase))
-        if 'zlib' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(BloscZlibTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscLZ4TestCase))
+        theSuite.addTest(unittest.makeSuite(BloscLZ4HCTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscSnappyTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscZlibTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))
@@ -2841,20 +2743,15 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Int8TestCase))
         theSuite.addTest(unittest.makeSuite(Int16TestCase))
         theSuite.addTest(unittest.makeSuite(Int32TestCase))
-        if 'Float16Atom' in globals():
-            theSuite.addTest(unittest.makeSuite(Float16TestCase))
+        theSuite.addTest(unittest.makeSuite(Float16TestCase))
         theSuite.addTest(unittest.makeSuite(Float32TestCase))
         theSuite.addTest(unittest.makeSuite(Float64TestCase))
-        if 'Float96Atom' in globals():
-            theSuite.addTest(unittest.makeSuite(Float96TestCase))
-        if 'Float128Atom' in globals():
-            theSuite.addTest(unittest.makeSuite(Float128TestCase))
+        theSuite.addTest(unittest.makeSuite(Float96TestCase))
+        theSuite.addTest(unittest.makeSuite(Float128TestCase))
         theSuite.addTest(unittest.makeSuite(Complex64TestCase))
         theSuite.addTest(unittest.makeSuite(Complex128TestCase))
-        if 'Complex192Atom' in globals():
-            theSuite.addTest(unittest.makeSuite(Complex192TestCase))
-        if 'Complex256Atom' in globals():
-            theSuite.addTest(unittest.makeSuite(Complex256TestCase))
+        theSuite.addTest(unittest.makeSuite(Complex192TestCase))
+        theSuite.addTest(unittest.makeSuite(Complex256TestCase))
         theSuite.addTest(unittest.makeSuite(ComprTestCase))
         theSuite.addTest(unittest.makeSuite(OffsetStrideTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
@@ -2905,7 +2802,9 @@ def suite():
 
     return theSuite
 
+
 if __name__ == '__main__':
+    common.print_versions()
     unittest.main(defaultTest='suite')
 
 ## Local Variables:

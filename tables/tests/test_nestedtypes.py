@@ -15,7 +15,6 @@
 
 from __future__ import print_function
 import sys
-import unittest
 import itertools
 
 import numpy
@@ -23,6 +22,8 @@ import numpy
 import tables as t
 from tables.utils import SizeType
 from tables.tests import common
+from tables.tests.common import unittest
+from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import Description
 
 minRowIndex = 10
@@ -48,7 +49,6 @@ class Info(t.IsDescription):
 
 
 class TestTDescr(t.IsDescription):
-
     """A description that has several nested columns."""
 
     x = t.Int32Col(dflt=0, shape=2, pos=0)  # 0
@@ -174,8 +174,7 @@ def areDescriptionsEqual(desc1, desc2):
 
 
 # Test creating nested column descriptions
-class DescriptionTestCase(common.PyTablesTestCase):
-
+class DescriptionTestCase(TestCase):
     _TestTDescr = TestTDescr
     _testADescr = testADescr
     _testADescr2 = testADescr2
@@ -200,8 +199,7 @@ class DescriptionTestCase(common.PyTablesTestCase):
 
 
 # Test creating a nested table and opening it
-class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
+class CreateTestCase(common.TempFileMixin, TestCase):
     _TestTDescr = TestTDescr
     _testABuffer = testABuffer
     _testAData = testAData
@@ -298,8 +296,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 # Test writing data in a nested table
-class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
+class WriteTestCase(common.TempFileMixin, TestCase):
     _TestTDescr = TestTDescr
     _testAData = testAData
     _testCondition = testCondition
@@ -534,7 +531,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
                         "Written and read values differ.")
 
     def test06_modifyRows(self):
-        "Checking modifying several rows at once (using nested rec array)"
+        """Checking modifying several rows at once (using nested rec array)"""
 
         tbl = self.h5file.create_table(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
@@ -603,7 +600,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
                          "Search returned incorrect results.")
 
     def test08_setNestedField(self):
-        "Checking modifying a nested field via natural naming."
+        """Checking modifying a nested field via natural naming."""
         # See ticket #93 (http://www.pytables.org/trac/ticket/93).
 
         tbl = self.h5file.create_table(
@@ -631,8 +628,7 @@ class WriteReopen(WriteTestCase):
     reopen = 1
 
 
-class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
+class ReadTestCase(common.TempFileMixin, TestCase):
     _TestTDescr = TestTDescr
     _testABuffer = testABuffer
     _testAData = testAData
@@ -860,8 +856,7 @@ class ReadReopen(ReadTestCase):
 
 
 # Checking the Table.Cols accessor
-class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
+class ColsTestCase(common.TempFileMixin, TestCase):
     _TestTDescr = TestTDescr
     _testABuffer = testABuffer
     _testAData = testAData
@@ -1231,30 +1226,35 @@ class C_Candidate(t.IsDescription):
     nested1 = Nested()
     nested2 = Nested
 
-Dnested = {'uid': t.IntCol(pos=1),
-           'value': t.FloatCol(pos=2),
-           }
+Dnested = {
+    'uid': t.IntCol(pos=1),
+    'value': t.FloatCol(pos=2),
+}
 
-D_Candidate = {"nested1": Dnested,
-               "nested2": Dnested,
-               }
+D_Candidate = {
+    "nested1": Dnested,
+    "nested2": Dnested,
+}
 
-E_Candidate = {"nested1": Nested,
-               "nested2": Dnested,
-               }
+E_Candidate = {
+    "nested1": Nested,
+    "nested2": Dnested,
+}
 
-F_Candidate = {"nested1": Nested(),
-               "nested2": Dnested,
-               }
+F_Candidate = {
+    "nested1": Nested(),
+    "nested2": Dnested,
+}
 
 # Checking several nested columns declared in the same way
 
 
-class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
-    correct_names = ['',  # The root of columns
-                     'nested1', 'nested1/uid', 'nested1/value',
-                     'nested2', 'nested2/uid', 'nested2/value']
+class SameNestedTestCase(common.TempFileMixin, TestCase):
+    correct_names = [
+        '',  # The root of columns
+        'nested1', 'nested1/uid', 'nested1/value',
+        'nested2', 'nested2/uid', 'nested2/value',
+    ]
 
     def test01a(self):
         """Checking same nested columns (instance flavor)."""
@@ -1386,8 +1386,10 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row.append()
         tbl.flush()
 
-        cols = {'i1': tbl.cols.nested.i1,
-                'i2': tbl.cols.nested.i2, }
+        cols = {
+            'i1': tbl.cols.nested.i1,
+            'i2': tbl.cols.nested.i2,
+        }
         cols['i1'].create_index()
         cols['i2'].create_index()
 
@@ -1398,8 +1400,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             cols = {'i1': tbl.cols.nested.i1,
                     'i2': tbl.cols.nested.i2, }
 
-        i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
-        i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
+        i1res = [r[i1] for r in tbl.where('i1 < 10', cols)]
+        i2res = [r[i2] for r in tbl.where('i2 < 10', cols)]
 
         if common.verbose:
             print("Retrieved values (i1):", i1res)
@@ -1451,8 +1453,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             cols = {'i1': tbl.cols.nested1.nested2.nested3.i1,
                     'i2': tbl.cols.nested1.nested2.nested3.i2, }
 
-        i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
-        i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
+        i1res = [r[i1] for r in tbl.where('i1 < 10', cols)]
+        i2res = [r[i2] for r in tbl.where('i2 < 10', cols)]
 
         if common.verbose:
             print("Retrieved values (i1):", i1res)
@@ -1474,10 +1476,10 @@ class SameNestedReopen(SameNestedTestCase):
     reopen = 1
 
 
-class NestedTypesWithGaps(common.PyTablesTestCase):
+class NestedTypesWithGaps(common.TestFileMixin, TestCase):
+    h5fname = TestCase._testFilename('nested-type-with-gaps.h5')
 
-    correct_descr = \
-        """{
+    correct_descr = """{
   "float": Float32Col(shape=(), dflt=0.0, pos=0),
   "compound": {
     "char": Int8Col(shape=(), dflt=0, pos=0),
@@ -1486,8 +1488,7 @@ class NestedTypesWithGaps(common.PyTablesTestCase):
     def test01(self):
         """Opening a table with nested types with gaps."""
 
-        h5file = t.open_file(self._testFilename('nested-type-with-gaps.h5'))
-        tbl = h5file.get_node('/nestedtype')
+        tbl = self.h5file.get_node('/nestedtype')
         type_descr = repr(tbl.description)
         if common.verbose:
             print("Type size with no gaps:", tbl.description._v_itemsize)
@@ -1501,10 +1502,7 @@ class NestedTypesWithGaps(common.PyTablesTestCase):
         if common.verbose:
             print("Great!  Nested types with gaps recognized correctly.")
 
-        h5file.close()
 
-
-#----------------------------------------------------------------------
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
@@ -1531,6 +1529,7 @@ def suite():
 
 
 if __name__ == '__main__':
+    common.print_versions()
     unittest.main(defaultTest='suite')
 
 

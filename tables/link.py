@@ -143,8 +143,50 @@ class SoftLink(linkextension.SoftLink, Link):
     """Represents a soft link (aka symbolic link).
 
     A soft link is a reference to another node in the *same* file hierarchy.
-    Getting access to the pointed node (this action is called *dereferrencing*)
-    is done via the __call__ special method (see below).
+    Provided that the target node exists, its attributes and methods can be
+    accessed directly from the softlink using the normal `.` syntax.
+
+    Softlinks also have the following public methods/attributes:
+
+        * `target`
+        * `dereference()`
+        * `copy()`
+        * `move()`
+        * `remove()`
+        * `rename()`
+        * `is_dangling()`
+
+    Note that these will override any correspondingly named methods/attributes
+    of the target node.
+
+    For backwards compatibility, it is also possible to obtain the target node
+    via the `__call__()` special method (this action is called *dereferencing*;
+    see below)
+
+    Examples
+    --------
+
+    ::
+        >>> f = tables.open_file('/tmp/test_softlink.h5', 'w')
+        >>> a = f.create_array('/', 'A', np.arange(10))
+        >>> link_a = f.create_soft_link('/', 'link_A', target='/A')
+
+        # transparent read/write access to a softlinked node
+        >>> link_a[0] = -1
+        >>> print(link_a[:], link_a.dtype)
+        (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
+
+        # dereferencing a softlink using the __call__() method
+        >>> print(link_a() is a)
+        True
+
+        # SoftLink.remove() overrides Array.remove()
+        >>> link_a.remove()
+        >>> print(link_a)
+        <closed tables.link.SoftLink at 0x7febe97186e0>
+        >>> print(a[:], a.dtype)
+        (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
+
 
     """
 
@@ -152,6 +194,14 @@ class SoftLink(linkextension.SoftLink, Link):
     _c_classid = 'SOFTLINK'
 
     _c_classId = previous_api_property('_c_classid')
+
+    # attributes with these names/prefixes are treated as attributes of the
+    # SoftLink rather than the target node
+    _link_attrnames = ('target', 'dereference', 'is_dangling', 'copy', 'move',
+                       'remove', 'rename', '__init__', '__str__', '__repr__',
+                       '__class__', '__dict__')
+    _link_attrprefixes = ('_f_', '_c_', '_g_', '_v_')
+
 
     def __call__(self):
         """Dereference `self.target` and return the object.
@@ -168,12 +218,80 @@ class SoftLink(linkextension.SoftLink, Link):
             /another/path (Group) ''
 
         """
+        return self.dereference()
 
-        target = self.target
-        # Check for relative pathnames
-        if not self.target.startswith('/'):
-            target = self._v_parent._g_join(self.target)
-        return self._v_file._get_node(target)
+    def dereference(self):
+
+        if self._v_isopen:
+            target = self.target
+            # Check for relative pathnames
+            if not self.target.startswith('/'):
+                target = self._v_parent._g_join(self.target)
+            return self._v_file._get_node(target)
+        else:
+            return None
+
+    def __getattribute__(self, attrname):
+
+        # get attribute of the SoftLink itself
+        if (attrname in SoftLink._link_attrnames
+            or attrname[:3] in SoftLink._link_attrprefixes):
+            return object.__getattribute__(self, attrname)
+
+        # get attribute of the target node
+        elif not self._v_isopen:
+            raise tables.ClosedNodeError('the node object is closed')
+        elif self.is_dangling():
+            return None
+        else:
+            target_node = self.dereference()
+            try:
+                # __getattribute__() fails to get children of Groups
+                return target_node.__getattribute__(attrname)
+            except AttributeError:
+                # some node classes (e.g. Array) don't implement __getattr__()
+                return target_node.__getattr__(attrname)
+
+    def __setattr__(self, attrname, value):
+
+        # set attribute of the SoftLink itself
+        if (attrname in SoftLink._link_attrnames
+            or attrname[:3] in SoftLink._link_attrprefixes):
+            object.__setattr__(self, attrname, value)
+
+        # set attribute of the target node
+        elif not self._v_isopen:
+            raise tables.ClosedNodeError('the node object is closed')
+        elif self.is_dangling():
+            raise ValueError("softlink target does not exist")
+        else:
+            self.dereference().__setattr__(attrname, value)
+
+    def __getitem__(self, key):
+        """__getitem__ must be defined in the SoftLink class in order for array
+        indexing syntax to work"""
+
+        if not self._v_isopen:
+            raise tables.ClosedNodeError('the node object is closed')
+        elif self.is_dangling():
+            raise ValueError("softlink target does not exist")
+        else:
+            return self.dereference().__getitem__(key)
+
+    def __setitem__(self, key, value):
+        """__setitem__ must be defined in the SoftLink class in order for array
+        indexing syntax to work"""
+
+        if not self._v_isopen:
+            raise tables.ClosedNodeError('the node object is closed')
+        elif self.is_dangling():
+            raise ValueError("softlink target does not exist")
+        else:
+            self.dereference().__setitem__(key, value)
+
+    def is_dangling(self):
+        return not (self.dereference() in self._v_file)
+
 
     def __str__(self):
         """Return a short string representation of the link.
@@ -190,16 +308,20 @@ class SoftLink(linkextension.SoftLink, Link):
         """
 
         classname = self.__class__.__name__
-        target = self.target
+        target = str(self.target)
         # Check for relative pathnames
         if not self.target.startswith('/'):
             target = self._v_parent._g_join(self.target)
-        if target in self._v_file:
-            dangling = ""
+        if self._v_isopen:
+            closed = ""
         else:
+            closed = "closed "
+        if self.is_dangling():
             dangling = " (dangling)"
-        return "%s (%s) -> %s%s" % (self._v_pathname, classname,
-                                    self.target, dangling)
+        else:
+            dangling = ""
+        return "%s%s (%s) -> %s%s" % (closed, self._v_pathname, classname,
+                                      self.target, dangling)
 
 
 class ExternalLink(linkextension.ExternalLink, Link):

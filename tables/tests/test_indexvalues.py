@@ -3,18 +3,18 @@
 from __future__ import print_function
 import os
 import random
-import unittest
 import tempfile
 
 import numpy
 
-from tables import *
+import tables
+from tables import StringCol, BoolCol, IntCol, FloatCol
 from tables.idxutils import calc_chunksize
 from tables.tests import common
-from tables.tests.common import verbose, heavy, cleanup
+from tables.tests.common import verbose, heavy
+from tables.tests.common import unittest
+from tables.tests.common import PyTablesTestCase as TestCase
 
-# To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
 
 # An alias for frozenset
 fzset = frozenset
@@ -28,14 +28,14 @@ small_blocksizes = (16, 8, 4, 2)  # The smaller set of parameters...
 minRowIndex = 1000
 
 
-class Small(IsDescription):
+class Small(tables.IsDescription):
     var1 = StringCol(itemsize=4, dflt=b"")
     var2 = BoolCol(dflt=0)
     var3 = IntCol(dflt=0)
     var4 = FloatCol(dflt=0)
 
 
-class SelectValuesTestCase(unittest.TestCase):
+class SelectValuesTestCase(common.TempFileMixin, TestCase):
     compress = 1
     complib = "zlib"
     shuffle = 1
@@ -47,12 +47,12 @@ class SelectValuesTestCase(unittest.TestCase):
     reopen = False
 
     def setUp(self):
+        super(SelectValuesTestCase, self).setUp()
+
         # Create an instance of an HDF5 Table
         if verbose:
             print("Checking index kind-->", self.kind)
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        self.rootgroup = self.fileh.root
+        self.rootgroup = self.h5file.root
         self.populateFile()
 
     def populateFile(self):
@@ -63,16 +63,16 @@ class SelectValuesTestCase(unittest.TestCase):
         group = self.rootgroup
         # Create an table
         title = "This is the IndexArray title"
-        filters = Filters(complevel=self.compress,
-                          complib=self.complib,
-                          shuffle=self.shuffle,
-                          fletcher32=self.fletcher32)
-        table1 = self.fileh.create_table(group, 'table1', Small, title,
-                                         filters, self.nrows,
-                                         chunkshape=(self.chunkshape,))
-        table2 = self.fileh.create_table(group, 'table2', Small, title,
-                                         filters, self.nrows,
-                                         chunkshape=(self.chunkshape,))
+        filters = tables.Filters(complevel=self.compress,
+                                 complib=self.complib,
+                                 shuffle=self.shuffle,
+                                 fletcher32=self.fletcher32)
+        table1 = self.h5file.create_table(group, 'table1', Small, title,
+                                          filters, self.nrows,
+                                          chunkshape=(self.chunkshape,))
+        table2 = self.h5file.create_table(group, 'table2', Small, title,
+                                          filters, self.nrows,
+                                          chunkshape=(self.chunkshape,))
         count = 0
         for i in xrange(0, self.nrows, self.nrep):
             for j in range(self.nrep):
@@ -111,17 +111,9 @@ class SelectValuesTestCase(unittest.TestCase):
             print("Number of indexed rows:", indexrows)
 
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")  # for flavor changes
-            self.table1 = self.fileh.root.table1
-            self.table2 = self.fileh.root.table1
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        cleanup(self)
-
-    #----------------------------------------
+            self._reopen(mode='a')  # flavor changes
+            self.table1 = self.h5file.root.table1
+            self.table2 = self.h5file.root.table1
 
     def test01a(self):
         """Checking selecting values from an Index (string flavor)"""
@@ -130,8 +122,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -147,8 +139,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Superior & inferior limits:", il, sl
-#             print "Selection results (index):", results1
             print("Should look like:", results2)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -164,8 +154,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -180,8 +168,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -197,8 +183,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -211,8 +195,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test01b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         # il = str(self.il).encode('ascii')
@@ -228,8 +212,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -244,8 +226,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -260,8 +240,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -277,8 +255,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -291,8 +267,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
@@ -300,8 +276,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -314,8 +288,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
@@ -323,8 +297,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var2"] for p in table1.where('t1var2 == False')]
         results2 = [p["var2"] for p in table2 if p["var2"] is False]
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -337,8 +309,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = int(self.il)
@@ -357,8 +329,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -373,8 +343,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -389,8 +357,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -405,8 +371,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -419,8 +383,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         # il = int(self.il)
@@ -440,8 +404,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -457,8 +419,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -474,8 +434,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -491,8 +449,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -505,8 +461,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03c..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         # il = long(self.il)
@@ -526,8 +482,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -543,8 +497,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -560,8 +512,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -577,8 +527,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -591,8 +539,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test03d..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         # il = int(self.il)
@@ -612,8 +560,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -629,8 +575,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -646,8 +590,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -663,8 +605,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -677,8 +617,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test04a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = float(self.il)
@@ -697,8 +637,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -713,8 +651,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -729,8 +665,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -747,8 +681,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -761,8 +693,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test04b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         # il = float(self.il)
@@ -782,8 +714,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -799,8 +729,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -816,8 +744,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -833,8 +759,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -847,8 +771,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test05a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -871,8 +795,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -893,8 +815,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -915,8 +835,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -939,8 +857,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -954,8 +870,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test05b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         # il = numpy.string_(self.il)
@@ -980,8 +896,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1002,8 +916,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1024,8 +936,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1045,8 +955,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1059,8 +967,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
@@ -1073,8 +981,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var2'] for p in table1.itersequence(rowList1)]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1088,8 +994,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
@@ -1104,8 +1010,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var2'] for p in table1.itersequence(rowList1)]
         results2 = [p["var2"] for p in table2 if p["var2"] is False]
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1118,8 +1022,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test07a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = int(self.il)
@@ -1142,8 +1046,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1164,8 +1066,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1186,8 +1086,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1210,8 +1108,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1225,8 +1121,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test07b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         # il = numpy.int32(self.il)
@@ -1251,8 +1147,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1273,8 +1167,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1295,8 +1187,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1317,8 +1207,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1331,8 +1219,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test08a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = float(self.il)
@@ -1356,8 +1244,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1378,8 +1264,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1399,8 +1283,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1422,8 +1304,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1437,8 +1317,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test08b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         # il = numpy.float32(self.il)
@@ -1461,8 +1341,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1482,8 +1360,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1503,8 +1379,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1524,8 +1398,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1538,8 +1410,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test09a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         table1._disable_indexing_in_queries()
 
@@ -1560,8 +1432,6 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] <= sl]
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (in-kernel):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1576,8 +1446,6 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var1"] < sl]
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (in-kernel):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1596,8 +1464,6 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print("Limits:", il, sl)
             print("Limit:", sl)
-#             print "Selection results (in-kernel):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1630,8 +1496,6 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (in-kernel):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1649,8 +1513,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test09b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         table1._disable_indexing_in_queries()
 
@@ -1671,8 +1535,6 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] < sl]
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (in-kernel):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1687,8 +1549,6 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var4"] <= sl]
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (in-kernel):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1706,8 +1566,6 @@ class SelectValuesTestCase(unittest.TestCase):
         ]
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (in-kernel):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1722,8 +1580,6 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] >= sl]
         if verbose:
             print("Limit:", sl)
-#             print "Selection results (in-kernel):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1735,14 +1591,15 @@ class SelectValuesTestCase(unittest.TestCase):
         table1._enable_indexing_in_queries()
 
     def test09c(self):
-        "Check non-indexed where() w/ ranges, changing step (string flavor)"
+        """Check non-indexed where() w/ ranges, changing step
+        (string flavor)"""
 
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test09c..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         table1._disable_indexing_in_queries()
 
@@ -1767,8 +1624,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1787,8 +1642,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1807,8 +1660,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1827,8 +1678,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1840,14 +1689,15 @@ class SelectValuesTestCase(unittest.TestCase):
         table1._enable_indexing_in_queries()
 
     def test09d(self):
-        "Checking non-indexed where() w/ ranges, changing step (int flavor)"
+        """Checking non-indexed where() w/ ranges, changing step
+        (int flavor)"""
 
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test09d..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         table1._disable_indexing_in_queries()
 
@@ -1872,8 +1722,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1892,8 +1740,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1912,8 +1758,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1932,8 +1776,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1951,8 +1793,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test10a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -1977,8 +1819,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2003,8 +1843,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2054,8 +1892,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2080,8 +1916,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2094,8 +1928,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test10b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = int(self.il)
@@ -2121,8 +1955,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2147,8 +1979,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2172,8 +2002,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2194,8 +2022,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2209,8 +2035,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test10c..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -2234,8 +2060,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2256,8 +2080,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2278,8 +2100,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2300,8 +2120,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2314,8 +2132,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test10d..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = int(self.il)
@@ -2339,8 +2157,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2361,8 +2177,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2383,8 +2197,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2405,8 +2217,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2419,8 +2229,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test11a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -2441,9 +2251,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Superior & inferior limits:", il, sl
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2456,8 +2263,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test12a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Append more rows in already created indexes
         count = 0
@@ -2508,8 +2315,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Superior & inferior limits:", il, sl
-#             print "Selection results (index):", results1
             print("Should look like:", results2)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2520,8 +2325,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2542,8 +2345,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2564,8 +2365,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort()
         results2.sort()
         if verbose:
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2578,8 +2377,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test13a..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -2605,8 +2404,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2631,8 +2428,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2645,8 +2440,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test13b..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -2672,8 +2467,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2698,8 +2491,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2712,8 +2503,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test13c..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -2738,8 +2529,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2763,8 +2552,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2778,8 +2565,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test13d..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -2805,8 +2592,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2830,8 +2615,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#            print "Selection results (indexed):", results1
-#            print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2844,8 +2627,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test13e..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -2871,8 +2654,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2898,8 +2679,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2912,8 +2691,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test13f..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Remove indexes in var2 column
         table1.cols.var2.remove_index()
@@ -2943,8 +2722,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2965,8 +2742,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2988,8 +2763,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -3002,8 +2775,8 @@ class SelectValuesTestCase(unittest.TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test13g..." % self.__class__.__name__)
 
-        table1 = self.fileh.root.table1
-        table2 = self.fileh.root.table2
+        table1 = self.h5file.root.table1
+        table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
         il = str(self.il).encode('ascii')
@@ -3025,8 +2798,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -3051,8 +2822,6 @@ class SelectValuesTestCase(unittest.TestCase):
         results2.sort()
         if verbose:
             print("Limits:", il, sl)
-#             print "Selection results (indexed):", results1
-#             print "Should look like:", results2
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -3387,20 +3156,32 @@ class SV15bTestCase(SelectValuesTestCase):
     sl = nrows
 
 
-class LastRowReuseBuffers(common.PyTablesTestCase):
+class LastRowReuseBuffers(TestCase):
     # Test that checks for possible reuse of buffers coming
     # from last row in the sorted part of indexes
     nelem = 1221
     numpy.random.seed(1)
     random.seed(1)
 
-    class Record(IsDescription):
-        id1 = Int16Col()
+    class Record(tables.IsDescription):
+        id1 = tables.Int16Col()
+
+    def setUp(self):
+        super(LastRowReuseBuffers, self).setUp()
+        self.h5fname = tempfile.mktemp(".h5")
+        self.h5file = None
+
+    def tearDown(self):
+        if self.h5file is not None:
+            self.h5file.close()
+        if os.path.exists(self.h5fname):
+            os.remove(self.h5fname)
+        super(LastRowReuseBuffers, self).tearDown()
 
     def test00_lrucache(self):
-        filename = tempfile.mktemp(".h5")
-        fp = open_file(filename, 'w', node_cache_slots=64)
-        ta = fp.create_table('/', 'table', self.Record, filters=Filters(1))
+        self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=64)
+        ta = self.h5file.create_table('/', 'table', self.Record,
+                                      filters=tables.Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
@@ -3415,14 +3196,11 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             self.assertTrue(
                 nrow in idx,
                 "nrow not found: %s != %s, %s" % (idx, nrow, value))
-
-        fp.close()
-        os.remove(filename)
 
     def test01_nocache(self):
-        filename = tempfile.mktemp(".h5")
-        fp = open_file(filename, 'w', node_cache_slots=0)
-        ta = fp.create_table('/', 'table', self.Record, filters=Filters(1))
+        self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=0)
+        ta = self.h5file.create_table('/', 'table', self.Record,
+                                      filters=tables.Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
@@ -3437,14 +3215,11 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             self.assertTrue(
                 nrow in idx,
                 "nrow not found: %s != %s, %s" % (idx, nrow, value))
-
-        fp.close()
-        os.remove(filename)
 
     def test02_dictcache(self):
-        filename = tempfile.mktemp(".h5")
-        fp = open_file(filename, 'w', node_cache_slots=-64)
-        ta = fp.create_table('/', 'table', self.Record, filters=Filters(1))
+        self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=-64)
+        ta = self.h5file.create_table('/', 'table', self.Record,
+                                      filters=tables.Filters(1))
         id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
@@ -3459,14 +3234,11 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             self.assertTrue(
                 nrow in idx,
                 "nrow not found: %s != %s, %s" % (idx, nrow, value))
-
-        fp.close()
-        os.remove(filename)
 
 
 normal_tests = (
     "SV1aTestCase", "SV2aTestCase", "SV3aTestCase",
-    )
+)
 
 heavy_tests = (
     # The next are too hard to be in the 'normal' suite
@@ -3527,8 +3299,8 @@ for (cname, cbasenames, cdict) in iclassdata():
     class_ = type(cname, cbases, cdict)
     exec('%s = class_' % cname)
 
-
 # -----------------------------
+
 
 def suite():
     theSuite = unittest.TestSuite()
@@ -3548,5 +3320,7 @@ def suite():
 
     return theSuite
 
+
 if __name__ == '__main__':
+    common.print_versions()
     unittest.main(defaultTest='suite')

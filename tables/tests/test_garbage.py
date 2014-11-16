@@ -19,14 +19,14 @@ all the tests.
 """
 
 from __future__ import print_function
-import unittest
 import gc
 
 from tables.tests import common
+from tables.tests.common import unittest
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
-class GarbageTestCase(common.PyTablesTestCase):
-
+class GarbageTestCase(TestCase):
     """Test for uncollectable garbage."""
 
     def test00(self):
@@ -60,8 +60,8 @@ def suite():
 
 
 if __name__ == '__main__':
+    common.print_versions()
     unittest.main(defaultTest='suite')
-
 
 
 ## Local Variables:

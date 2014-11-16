@@ -259,6 +259,24 @@ cdef extern from "hdf5.h" nogil:
   ctypedef herr_t (*H5E_walk_t)(unsigned n, H5E_error_t *err, void *data)
   ctypedef herr_t (*H5E_auto_t)(hid_t estack, void *data)
 
+  # object info
+  ctypedef struct H5O_info_t:
+    unsigned long       fileno      # Number of file where object is located
+    haddr_t             addr        # Object address in file
+    H5O_type_t          type        # Basic object type
+    unsigned            rc          # Reference count of object
+    time_t              atime       # Access time
+    time_t              mtime       # Modification time
+    time_t              ctime       # Change time
+    time_t              btime       # Birth time
+    hsize_t             num_attrs   # number of attributes attached to object
+    #H5O_hdr_info_t      hdr         # Object header information
+    #struct {
+    #    H5_ih_info_t    obj
+    #    H5_ih_info_t    attr
+    #} meta_size
+
+
   #------------------------------------------------------------------
 
   # HDF5 API
@@ -268,6 +286,9 @@ cdef extern from "hdf5.h" nogil:
                           unsigned *relnum )
   herr_t H5check_version(unsigned majnum, unsigned minnum,
                          unsigned relnum )
+
+  # misc
+  #herr_t H5free_memory(void *buf)  # new in HDF5 1.8.13
 
   # Operations with files
   hid_t  H5Fcreate(char *filename, unsigned int flags,
@@ -428,6 +449,10 @@ cdef extern from "hdf5.h" nogil:
   #herr_t H5Eclose_msg(hid_t mesg_id)
   #ssize_t H5Eget_class_name(hid_t class_id, char* name, size_t size)
 
+  # Onject interface
+  herr_t H5Oget_info(hid_t object_id, H5O_info_t *object_info)
+
+
 # Specific HDF5 functions for PyTables
 cdef extern from "H5ATTR.h" nogil:
   herr_t H5ATTRget_attribute(hid_t loc_id, char *attr_name,
@@ -472,11 +497,15 @@ cdef extern from "utils.h" nogil:
   herr_t get_order(hid_t type_id, char *byteorder)
   int    is_complex(hid_t type_id)
   herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size)
+
+  # compatibility
   herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
                                size_t block_size, size_t cbuf_size)
   herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
   herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
   ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
+  herr_t pt_H5free_memory(void *buf)
+
   int H5_HAVE_DIRECT_DRIVER, H5_HAVE_WINDOWS_DRIVER, H5_HAVE_IMAGE_FILE
 
 

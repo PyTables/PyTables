@@ -1,6 +1,6 @@
 # This Makefile is only intended to prepare for distribution the PyTables
 # sources exported from a repository.  For building and installing PyTables,
-# please use ``setup.py`` as described in the ``README.txt`` file.
+# please use ``setup.py`` as described in the ``README.rst`` file.
 
 VERSION = $(shell cat VERSION)
 SRCDIRS = src doc

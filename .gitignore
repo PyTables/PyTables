@@ -2,6 +2,7 @@
 build/
 doc/build/
 .ropeproject/
+.idea
 
 # File types
 *.pyc

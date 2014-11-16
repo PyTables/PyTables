@@ -3,22 +3,20 @@
 """This test unit checks node attributes that are persistent (AttributeSet)."""
 
 from __future__ import print_function
-import os
 import sys
-import unittest
-import tempfile
+from distutils.version import LooseVersion
 
 import numpy
 from numpy.testing import assert_array_equal, assert_almost_equal
 
-from tables.parameters import NODE_CACHE_SLOTS
-from tables import *
-from tables.tests import common
-from tables.tests.common import PyTablesTestCase
+import tables
+from tables import (IsDescription, Int32Atom, StringCol, IntCol, Int16Col,
+                    FloatCol, Float32Col)
 from tables.exceptions import DataTypeWarning
-
-# To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+from tables.parameters import NODE_CACHE_SLOTS
+from tables.tests import common
+from tables.tests.common import unittest
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
 class Record(IsDescription):
@@ -29,58 +27,45 @@ class Record(IsDescription):
     var5 = Float32Col()           # float  (single-precision)
 
 
-class CreateTestCase(unittest.TestCase):
-
+class CreateTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        # Create an instance of HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(
-            self.file, mode="w", node_cache_slots=self.node_cache_slots)
-        self.root = self.fileh.root
+        super(CreateTestCase, self).setUp()
+        self.root = self.h5file.root
 
         # Create a table object
-        self.table = self.fileh.create_table(self.root, 'atable',
-                                             Record, "Table title")
+        self.table = self.h5file.create_table(self.root, 'atable',
+                                              Record, "Table title")
         # Create an array object
-        self.array = self.fileh.create_array(self.root, 'anarray',
-                                             [1], "Array title")
+        self.array = self.h5file.create_array(self.root, 'anarray',
+                                              [1], "Array title")
         # Create a group object
-        self.group = self.fileh.create_group(self.root, 'agroup',
-                                             "Group title")
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
-
-#---------------------------------------
+        self.group = self.h5file.create_group(self.root, 'agroup',
+                                              "Group title")
 
     def test01_setAttributes(self):
         """Checking setting large string attributes (File methods)"""
 
         attrlength = 2048
         # Try to put a long string attribute on a group object
-        self.fileh.set_node_attr(self.root.agroup, "attr1", "p" * attrlength)
+        self.h5file.set_node_attr(self.root.agroup, "attr1", "p" * attrlength)
 
         # Now, try with a Table object
-        self.fileh.set_node_attr(self.root.atable, "attr1", "a" * attrlength)
+        self.h5file.set_node_attr(self.root.atable, "attr1", "a" * attrlength)
 
         # Finally, try with an Array object
-        self.fileh.set_node_attr(self.root.anarray, "attr1", "n" * attrlength)
+        self.h5file.set_node_attr(self.root.anarray, "attr1", "n" * attrlength)
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
-        self.assertEqual(self.fileh.get_node_attr(self.root.agroup, 'attr1'),
+        self.assertEqual(self.h5file.get_node_attr(self.root.agroup, 'attr1'),
                          "p" * attrlength)
-        self.assertEqual(self.fileh.get_node_attr(self.root.atable, 'attr1'),
+        self.assertEqual(self.h5file.get_node_attr(self.root.atable, 'attr1'),
                          "a" * attrlength)
-        self.assertEqual(self.fileh.get_node_attr(self.root.anarray, 'attr1'),
+        self.assertEqual(self.h5file.get_node_attr(self.root.anarray, 'attr1'),
                          "n" * attrlength)
 
     def test02_setAttributes(self):
@@ -98,10 +83,8 @@ class CreateTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         self.assertEqual(self.root.agroup._f_getattr(
             'attr1'), "p" * attrlength)
@@ -122,10 +105,8 @@ class CreateTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         # This should work even when the node cache is disabled
         self.assertEqual(self.root.agroup._v_attrs.attr1, "p" * attrlength)
@@ -159,10 +140,8 @@ class CreateTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         agroup = self.root.agroup
         self.assertEqual(agroup._v_attrs._f_list("user"), ["pq", "qr", "rs"])
@@ -215,10 +194,8 @@ class CreateTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         agroup = self.root.agroup
         if common.verbose:
@@ -251,15 +228,13 @@ class CreateTestCase(unittest.TestCase):
         self.group._v_attrs.qr = "2"
         self.group._v_attrs.rs = "3"
         # delete an attribute
-        self.fileh.del_node_attr(self.group, "pq")
+        self.h5file.del_node_attr(self.group, "pq")
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         agroup = self.root.agroup
         if common.verbose:
@@ -273,7 +248,7 @@ class CreateTestCase(unittest.TestCase):
                          ['CLASS', 'TITLE', 'VERSION', "qr", "rs"])
 
         # delete an attribute (File.del_node_attr method)
-        self.fileh.del_node_attr(self.root, "qr", "agroup")
+        self.h5file.del_node_attr(self.root, "qr", "agroup")
         if common.verbose:
             print("Attribute list:", agroup._v_attrs._f_list())
         # Check the local attributes names
@@ -311,10 +286,8 @@ class CreateTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         agroup = self.root.agroup
         if common.verbose:
@@ -359,10 +332,8 @@ class CreateTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         agroup = self.root.agroup
         if common.verbose:
@@ -390,10 +361,8 @@ class CreateTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         atable = self.root.atable
         if common.verbose:
@@ -422,15 +391,13 @@ class CreateTestCase(unittest.TestCase):
         self.group._v_attrs.qr = "2"
         self.group._v_attrs.rs = "3"
         # copy all attributes from "/agroup" to "/atable"
-        self.fileh.copy_node_attrs(self.group, self.root.atable)
+        self.h5file.copy_node_attrs(self.group, self.root.atable)
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         atable = self.root.atable
         if common.verbose:
@@ -458,15 +425,13 @@ class CreateTestCase(unittest.TestCase):
         self.group._v_attrs['CLASS'] = "GROUP2"
         self.group._v_attrs['VERSION'] = "1.3"
         # copy "/agroup" to "/agroup2"
-        self.fileh.copy_node(self.group, self.root, "agroup2")
+        self.h5file.copy_node(self.group, self.root, "agroup2")
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         agroup2 = self.root.agroup2
         if common.verbose:
@@ -482,15 +447,13 @@ class CreateTestCase(unittest.TestCase):
         atable._v_attrs['CLASS'] = "TABLE2"
         atable._v_attrs['VERSION'] = "1.3"
         # copy "/agroup" to "/agroup2"
-        self.fileh.copy_node(atable, self.root, "atable2")
+        self.h5file.copy_node(atable, self.root, "atable2")
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+", node_cache_slots=self.node_cache_slots)
-            self.root = self.fileh.root
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root
 
         atable2 = self.root.atable2
         if common.verbose:
@@ -555,54 +518,51 @@ class CreateTestCase(unittest.TestCase):
 class NotCloseCreate(CreateTestCase):
     close = False
     node_cache_slots = NODE_CACHE_SLOTS
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class CloseCreate(CreateTestCase):
     close = True
     node_cache_slots = NODE_CACHE_SLOTS
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class NoCacheNotCloseCreate(CreateTestCase):
     close = False
     node_cache_slots = 0
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class NoCacheCloseCreate(CreateTestCase):
     close = True
     node_cache_slots = 0
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class DictCacheNotCloseCreate(CreateTestCase):
     close = False
     node_cache_slots = -NODE_CACHE_SLOTS
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class DictCacheCloseCreate(CreateTestCase):
     close = True
     node_cache_slots = -NODE_CACHE_SLOTS
+    open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
-class TypesTestCase(unittest.TestCase):
+class TypesTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        # Create an instance of HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode="w")
-        self.root = self.fileh.root
+        super(TypesTestCase, self).setUp()
+        self.root = self.h5file.root
 
         # Create an array object
-        self.array = self.fileh.create_array(self.root, 'anarray',
-                                             [1], "Array title")
+        self.array = self.h5file.create_array(self.root, 'anarray',
+                                              [1], "Array title")
         # Create a group object
-        self.group = self.fileh.create_group(self.root, 'agroup',
-                                             "Group title")
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
-
-#---------------------------------------
+        self.group = self.h5file.create_group(self.root, 'agroup',
+                                              "Group title")
 
     def test00a_setBoolAttributes(self):
         """Checking setting Bool attributes (scalar, Python case)"""
@@ -620,10 +580,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertEqual(self.root.anarray.attrs.pq, True)
         self.assertEqual(self.root.anarray.attrs.qr, False)
@@ -645,10 +604,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.bool_))
         self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.bool_))
@@ -673,10 +631,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertEqual(self.root.anarray.attrs.pq, True)
         self.assertEqual(self.root.anarray.attrs.qr, False)
@@ -698,10 +655,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         assert_array_equal(self.root.anarray.attrs.pq, numpy.array([True]))
         assert_array_equal(self.root.anarray.attrs.qr, numpy.array([[False]]))
@@ -724,10 +680,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.int_))
         self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.int_))
@@ -755,10 +710,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
             assert_array_equal(getattr(self.array.attrs, dtype),
@@ -778,10 +732,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
             if common.verbose:
@@ -805,10 +758,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
             arr = numpy.array([1, 2, 3, 4], dtype=dtype)[::2]
@@ -831,10 +783,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         # Check the results
         for dtype in checktypes:
@@ -861,10 +812,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.float_))
         self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.float_))
@@ -891,10 +841,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
             # assert getattr(self.array.attrs, dtype) == 1.1
@@ -919,10 +868,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
             assert_array_equal(getattr(self.array.attrs, dtype),
@@ -947,10 +895,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
             arr = numpy.array([1.1, 2.1, 3.1, 4.1], dtype=dtype)[1::2]
@@ -974,10 +921,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
             assert_array_equal(
@@ -1001,10 +947,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertEqual(self.root.anarray.attrs.pq, [1.0, 2])
         self.assertEqual(self.root.anarray.attrs.qr, (1, 2))
@@ -1026,10 +971,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.str_))
         self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.str_))
@@ -1050,13 +994,11 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.root.anarray.attrs.pq,
-                           numpy.array(['foo']))
+        assert_array_equal(self.root.anarray.attrs.pq, numpy.array(['foo']))
 
     def test04c_setStringAttributes(self):
         """Checking setting string attributes (empty unidimensional
@@ -1071,10 +1013,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
             if common.verbose:
                 print("pq -->", self.array.attrs.pq)
 
@@ -1093,10 +1034,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         assert_array_equal(self.root.anarray.attrs.pq,
                            numpy.array(['foo', 'bar3']))
@@ -1114,13 +1054,11 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.root.anarray.attrs.pq,
-                           numpy.array(['', '']))
+        assert_array_equal(self.root.anarray.attrs.pq, numpy.array(['', '']))
 
     def test04f_setStringAttributes(self):
         """Checking setting string attributes (bidimensional 4-elem case)"""
@@ -1135,10 +1073,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         assert_array_equal(self.root.anarray.attrs.pq,
                            numpy.array([['foo', 'foo2'],
@@ -1161,10 +1098,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.complex_))
         self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.complex_))
@@ -1191,10 +1127,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
             # assert getattr(self.array.attrs, dtype) == 1.1 + 2j
@@ -1219,10 +1154,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
             assert_array_equal(getattr(self.array.attrs, dtype),
@@ -1246,10 +1180,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
             assert_array_equal(
@@ -1276,10 +1209,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertTrue(isinstance(self.array.attrs.pq, numpy.unicode_))
         self.assertTrue(isinstance(self.array.attrs.qr, numpy.unicode_))
@@ -1300,10 +1232,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         assert_array_equal(self.array.attrs.pq,
                            numpy.array([u'para\u0140lel']))
@@ -1324,10 +1255,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
             if common.verbose:
                 print("pq -->", repr(self.array.attrs.pq))
 
@@ -1346,10 +1276,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         assert_array_equal(self.array.attrs.pq,
                            numpy.array([u'para\u0140lel', u'bar3']))
@@ -1367,10 +1296,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         assert_array_equal(self.array.attrs.pq,
                            numpy.array(['', ''], dtype="U1"))
@@ -1388,10 +1316,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         assert_array_equal(self.array.attrs.pq,
                            numpy.array([[u'para\u0140lel', 'foo2'],
@@ -1415,10 +1342,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
         self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
@@ -1446,10 +1372,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
         self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
@@ -1463,6 +1388,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Build a nested dtype
         dt = numpy.dtype([('f1', [('f1', 'i2', (2,)), ('f2', 'f8')])])
+
         # Set some attrs
         self.array.attrs.pq = numpy.zeros(2, dt)
         self.array.attrs.qr = numpy.ones((2, 2), dt)
@@ -1477,10 +1403,9 @@ class TypesTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(self.file, mode="r+")
-            self.root = self.fileh.root
-            self.array = self.fileh.root.anarray
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
 
         self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
         self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
@@ -1499,29 +1424,22 @@ class CloseTypesTestCase(TypesTestCase):
     close = 1
 
 
-class NoSysAttrsTestCase(unittest.TestCase):
+class NoSysAttrsTestCase(common.TempFileMixin, TestCase):
+    open_kwargs = dict(pytables_sys_attrs=False)
 
     def setUp(self):
-        # Create an instance of HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(
-            self.file, mode="w", pytables_sys_attrs=False)
-        self.root = self.fileh.root
+        super(NoSysAttrsTestCase, self).setUp()
+        self.root = self.h5file.root
 
         # Create a table object
-        self.table = self.fileh.create_table(self.root, 'atable',
-                                             Record, "Table title")
+        self.table = self.h5file.create_table(self.root, 'atable',
+                                              Record, "Table title")
         # Create an array object
-        self.array = self.fileh.create_array(self.root, 'anarray',
-                                             [1], "Array title")
+        self.array = self.h5file.create_array(self.root, 'anarray',
+                                              [1], "Array title")
         # Create a group object
-        self.group = self.fileh.create_group(self.root, 'agroup',
-                                             "Group title")
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
+        self.group = self.h5file.create_group(self.root, 'agroup',
+                                              "Group title")
 
     def test00_listAttributes(self):
         """Checking listing attributes (no system attrs version)."""
@@ -1550,10 +1468,8 @@ class NoSysAttrsTestCase(unittest.TestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self.fileh.close()
-            self.fileh = open_file(
-                self.file, mode="r+")
-            self.root = self.fileh.root
+            self._reopen(mode='r+')
+            self.root = self.h5file.root
 
         agroup = self.root.agroup
         self.assertEqual(agroup._v_attrs._f_list("user"), ["pq", "qr", "rs"])
@@ -1579,7 +1495,31 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
     close = True
 
 
-class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class CompatibilityTestCase(common.TestFileMixin, TestCase):
+    h5fname = TestCase._testFilename('issue_368.h5')
+
+    @unittest.skipIf(LooseVersion(numpy.__version__) < '1.9.0',
+                     'requires numpy >= 1.9')
+    def test_pickled_unicode_attrs(self):
+        # See also gh-368 and https://github.com/numpy/numpy/issues/4879.
+        #
+        # This is a compatibility test. In PyTables < 3.0 unicode
+        # attributes were stored as pickld unicode stings.
+        # In PyTables >= 3.0 unicode strings are stored as encoded utf-8
+        # strings (the utf-8 marker is set at HDF5 level).
+        #
+        # In any case PyTables (>= 3.0) should be able to handle correctly
+        # also data files genetated with older versions of PyTables.
+        # Unfortunately a bug in numpy < 1.9
+        # (https://github.com/numpy/numpy/issues/4879) makes it impossible
+        # unpickle numpy arrays with dtype "U" resulting in an incorrect
+        # behaviour of PyTables.
+
+        self.assertEqual(
+            self.h5file.get_node_attr('/', 'py2_pickled_unicode'), u'abc')
+
+
+class SegFaultPythonTestCase(common.TempFileMixin, TestCase):
 
     def test00_segfault(self):
         """Checking workaround for Python unpickle problem (see #253)."""
@@ -1596,68 +1536,92 @@ class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Great! '0' and '0.' values can be safely retrieved.")
 
 
-class VlenStrAttrTestCase(PyTablesTestCase):
+class EmbeddedNullsTestCase(common.TempFileMixin, TestCase):
+    # See laso gh-371 (https://github.com/PyTables/PyTables/issues/371)
+
+    def test_unicode(self):
+        value = u"string with a null byte \x00 in it"
+
+        self.h5file.root._v_attrs.name = value
+        self.assertEqual(self.h5file.root._v_attrs.name, value)
+
+        self._reopen()
+
+        self.assertEqual(self.h5file.root._v_attrs.name, value)
+
+    def test_bytes(self):
+        value = b"string with a null byte \x00 in it"
+
+        self.h5file.root._v_attrs.name = value
+        self.assertEqual(self.h5file.root._v_attrs.name, value)
+
+        self._reopen()
+
+        self.assertEqual(self.h5file.root._v_attrs.name, value)
+
+
+class VlenStrAttrTestCase(TestCase):
+    def setUp(self):
+        super(VlenStrAttrTestCase, self).setUp()
+        self.h5fname = self._testFilename('vlstr_attr.h5')
+        self.h5file = tables.open_file(self.h5fname)
+
+    def tearDown(self):
+        self.h5file.close()
+        super(VlenStrAttrTestCase, self).tearDown()
 
     def test01_vlen_str_scalar(self):
         """Checking file with variable length string attributes."""
 
-        filename = self._testFilename('vlstr_attr.h5')
-        fileh = open_file(filename)
         attr = "vlen_str_scalar"
-        self.assertEqual(fileh.get_node_attr("/", attr), attr.encode('ascii'))
-        fileh.close()
+        self.assertEqual(
+            self.h5file.get_node_attr("/", attr), attr.encode('ascii'))
 
     def test02_vlen_str_array(self):
         """Checking file with variable length string attributes (1d)."""
 
-        filename = self._testFilename('vlstr_attr.h5')
-        fileh = open_file(filename)
         attr = "vlen_str_array"
-        v = fileh.get_node_attr('/', attr)
+        v = self.h5file.get_node_attr('/', attr)
         self.assertEqual(v.ndim, 1)
         for idx, item in enumerate(v):
             value = "%s_%d" % (attr, idx)
             self.assertEqual(item, value.encode('ascii'))
-        fileh.close()
 
     def test03_vlen_str_matrix(self):
         """Checking file with variable length string attributes (2d)."""
 
-        filename = self._testFilename('vlstr_attr.h5')
-        fileh = open_file(filename)
         attr = "vlen_str_matrix"
-        m = fileh.get_node_attr('/', attr)
+        m = self.h5file.get_node_attr('/', attr)
         self.assertEqual(m.ndim, 2)
         for row, rowdata in enumerate(m):
             for col, item in enumerate(rowdata):
                 value = "%s_%d%d" % (attr, row, col)
                 self.assertEqual(item, value.encode('ascii'))
-        fileh.close()
 
 
-class UnsupportedAttrTypeTestCase(PyTablesTestCase):
+class UnsupportedAttrTypeTestCase(common.TestFileMixin, TestCase):
+    h5fname = TestCase._testFilename('attr-u16.h5')
 
     def test00_unsupportedType(self):
         """Checking file with unsupported type."""
 
-        filename = self._testFilename('attr-u16.h5')
-        fileh = open_file(filename)
-        self.failUnlessWarns(DataTypeWarning, repr, fileh)
-        fileh.close()
+        self.assertWarns(DataTypeWarning, repr, self.h5file)
 
 
-# Test for specific system attributes in EArray
-class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+# Test for specific system attributes
+class SpecificAttrsTestCase(common.TempFileMixin, TestCase):
 
     def test00_earray(self):
-        "Testing EArray specific attrs (create)."
+        """Testing EArray specific attrs (create)."""
+
         ea = self.h5file.create_earray('/', 'ea', Int32Atom(), (2, 0, 4))
         if common.verbose:
             print("EXTDIM-->", ea.attrs.EXTDIM)
         self.assertEqual(ea.attrs.EXTDIM, 1)
 
     def test01_earray(self):
-        "Testing EArray specific attrs (open)."
+        """Testing EArray specific attrs (open)."""
+
         ea = self.h5file.create_earray('/', 'ea', Int32Atom(), (0, 1, 4))
         self._reopen('r')
         ea = self.h5file.root.ea
@@ -1665,8 +1629,22 @@ class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("EXTDIM-->", ea.attrs.EXTDIM)
         self.assertEqual(ea.attrs.EXTDIM, 0)
 
+    @unittest.skipIf(sys.version_info >= (3,), 'requires Python 2')
+    def test02_unicode_title(self):
+        # see gh-370 and gh-374
+        title = u'Elevation \N{MINUS SIGN}200m'
+        self.h5file.root._v_title = title
+        self.assertEqual(self.h5file.root._v_title, title)
 
-#----------------------------------------------------------------------
+    @unittest.skipIf(sys.version_info >= (3,), 'requires Python 2')
+    def test03_unicode_title_reopen(self):
+        # see gh-370 and gh-374
+        title = u'Elevation \N{MINUS SIGN}200m'
+        self.h5file.root._v_title = title
+        self._reopen()
+        self.assertEqual(self.h5file.root._v_title, title)
+
+
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
@@ -1682,7 +1660,9 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CloseTypesTestCase))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
+        theSuite.addTest(unittest.makeSuite(CompatibilityTestCase))
         theSuite.addTest(unittest.makeSuite(SegFaultPythonTestCase))
+        theSuite.addTest(unittest.makeSuite(EmbeddedNullsTestCase))
         theSuite.addTest(unittest.makeSuite(VlenStrAttrTestCase))
         theSuite.addTest(unittest.makeSuite(UnsupportedAttrTypeTestCase))
         theSuite.addTest(unittest.makeSuite(SpecificAttrsTestCase))
@@ -1691,4 +1671,5 @@ def suite():
 
 
 if __name__ == '__main__':
+    common.print_versions()
     unittest.main(defaultTest='suite')

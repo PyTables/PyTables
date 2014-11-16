@@ -15,27 +15,30 @@ from __future__ import print_function
 import os
 import sys
 import hashlib
-import unittest
 import tempfile
 import warnings
+from distutils.version import LooseVersion
 
 import numpy
 
-from tables import *
-# important objects to test
-from tables import Group, Leaf, Table, Array, hdf5_version
-from tables.tests import common
+import tables
+from tables import (
+    Group, Leaf, Table, Array, hdf5_version, Filters,
+    StringAtom, Int16Atom, Int64Atom, Float32Atom, Float64Atom,
+    Col, StringCol, IntCol, Int16Col, FloatCol, Float32Col,
+)
 from tables.parameters import MAX_COLUMNS
 from tables.hdf5extension import HAVE_DIRECT_DRIVER, HAVE_WINDOWS_DRIVER
 from tables.utils import quantize
-
-import tables
-
-# To delete the internal attributes automagically
-unittest.TestCase.tearDown = common.cleanup
+from tables.tests import common
+from tables.tests.common import unittest
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
-class Record(IsDescription):
+hdf5_version = LooseVersion(hdf5_version)
+
+
+class Record(tables.IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
     var2 = IntCol()               # integer
     var3 = Int16Col()             # short integer
@@ -43,8 +46,7 @@ class Record(IsDescription):
     var5 = Float32Col()           # float  (single-precision)
 
 
-class createTestCase(unittest.TestCase):
-    file = "test.h5"
+class CreateTestCase(common.TempFileMixin, TestCase):
     title = "This is the table title"
     expectedrows = 100
     maxshort = 2 ** 15
@@ -52,30 +54,24 @@ class createTestCase(unittest.TestCase):
     compress = 0
 
     def setUp(self):
+        super(CreateTestCase, self).setUp()
+
         # Create an instance of HDF5 Table
-        self.fileh = open_file(self.file, mode="w")
-        self.root = self.fileh.root
+        self.root = self.h5file.root
 
         # Create a table object
-        self.table = self.fileh.create_table(self.root, 'atable',
-                                             Record, "Table title")
+        self.table = self.h5file.create_table(self.root, 'atable',
+                                              Record, "Table title")
         # Create an array object
-        self.array = self.fileh.create_array(self.root, 'anarray',
-                                             [1], "Array title")
+        self.array = self.h5file.create_array(self.root, 'anarray',
+                                              [1], "Array title")
         # Create a group object
-        self.group = self.fileh.create_group(self.root, 'agroup',
-                                             "Group title")
-
-    def tearDown(self):
-
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
-
-    #----------------------------------------
+        self.group = self.h5file.create_group(self.root, 'agroup',
+                                              "Group title")
 
     def test00_isClass(self):
         """Testing table creation."""
+
         self.assertTrue(isinstance(self.table, Table))
         self.assertTrue(isinstance(self.array, Array))
         self.assertTrue(isinstance(self.array, Leaf))
@@ -85,96 +81,67 @@ class createTestCase(unittest.TestCase):
         """Checking protection against node overwriting."""
 
         try:
-            self.array = self.fileh.create_array(self.root, 'anarray',
-                                                 [1], "Array title")
-        except NodeError:
+            self.array = self.h5file.create_array(self.root, 'anarray',
+                                                  [1], "Array title")
+        except tables.NodeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print("\nGreat!, the next NameError was catched!")
                 print(value)
         else:
-            self.fail("expected a NodeError")
+            self.fail("expected a tables.NodeError")
 
     def test02_syntaxname(self):
         """Checking syntax in object tree names."""
 
-        # Now, try to attach an array to the object tree with
-        # a not allowed Python variable name
-        warnings.filterwarnings("error", category=NaturalNameWarning)
-        try:
-            self.array = self.fileh.create_array(self.root, ' array',
-                                                 [1], "Array title")
-        except NaturalNameWarning:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next NaturalNameWarning was catched!")
-                print(value)
-        else:
-            self.fail("expected a NaturalNameWarning")
+        with self.assertWarns(tables.NaturalNameWarning):
+            self.array = self.h5file.create_array(self.root, ' array',
+                                                  [1], "Array title")
 
         # another name error
-        try:
-            self.array = self.fileh.create_array(self.root, '$array',
-                                                 [1], "Array title")
-        except NaturalNameWarning:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next NaturalNameWarning was catched!")
-                print(value)
-        else:
-            self.fail("expected a NaturalNameWarning")
+        with self.assertWarns(tables.NaturalNameWarning):
+            self.array = self.h5file.create_array(self.root, '$array',
+                                                  [1], "Array title")
 
         # Finally, test a reserved word
-        try:
-            self.array = self.fileh.create_array(self.root, 'for',
-                                                 [1], "Array title")
-        except NaturalNameWarning:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next NaturalNameWarning was catched!")
-                print(value)
-        else:
-            self.fail("expected a NaturalNameWarning")
-        # Reset the warning
-        warnings.filterwarnings("default", category=NaturalNameWarning)
+        with self.assertWarns(tables.NaturalNameWarning):
+            self.array = self.h5file.create_array(self.root, 'for',
+                                                  [1], "Array title")
 
     def test03a_titleAttr(self):
         """Checking the self.title attr in nodes."""
 
         # Close the opened file to destroy the object tree
-        self.fileh.close()
-        # Open the file again to re-create the objects
-        self.fileh = open_file(self.file, "r")
+        self._reopen()
 
         # Now, test that self.title exists and is correct in all the nodes
-        self.assertEqual(self.fileh.root.agroup._v_title, "Group title")
-        self.assertEqual(self.fileh.root.atable.title, "Table title")
-        self.assertEqual(self.fileh.root.anarray.title, "Array title")
+        self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
+        self.assertEqual(self.h5file.root.atable.title, "Table title")
+        self.assertEqual(self.h5file.root.anarray.title, "Array title")
 
     def test03b_titleLength(self):
         """Checking large title character length limit (1023)"""
 
         titlelength = 1023
         # Try to put a very long title on a group object
-        group = self.fileh.create_group(self.root, 'group',
-                                        "t" * titlelength)
+        group = self.h5file.create_group(self.root, 'group', "t" * titlelength)
         self.assertEqual(group._v_title, "t" * titlelength)
         self.assertEqual(group._f_getattr('TITLE'), "t" * titlelength)
 
         # Now, try with a table object
-        table = self.fileh.create_table(self.root, 'table',
-                                        Record, "t" * titlelength)
+        table = self.h5file.create_table(self.root, 'table',
+                                         Record, "t" * titlelength)
         self.assertEqual(table.title, "t" * titlelength)
         self.assertEqual(table.get_attr("TITLE"), "t" * titlelength)
 
         # Finally, try with an Array object
-        arr = self.fileh.create_array(self.root, 'arr',
-                                      [1], "t" * titlelength)
+        arr = self.h5file.create_array(self.root, 'arr',
+                                       [1], "t" * titlelength)
         self.assertEqual(arr.title, "t" * titlelength)
         self.assertEqual(arr.get_attr("TITLE"), "t" * titlelength)
 
     def test04_maxFields(self):
-        "Checking a large number of fields in tables"
+        """Checking a large number of fields in tables"""
 
         # The number of fields for a table
         varnumber = MAX_COLUMNS
@@ -191,8 +158,8 @@ class createTestCase(unittest.TestCase):
             i += 1
         # Append this entry to indicate the alignment!
         recordDict['_v_align'] = "="
-        table = self.fileh.create_table(self.root, 'table',
-                                        recordDict, "MetaRecord instance")
+        table = self.h5file.create_table(self.root, 'table',
+                                         recordDict, "MetaRecord instance")
         row = table.row
         listrows = []
         # Write 10 records
@@ -220,7 +187,7 @@ class createTestCase(unittest.TestCase):
 
     # The next limitation has been released. A warning is still there, though
     def test05_maxFieldsExceeded(self):
-        "Checking an excess of the maximum number of fields in tables"
+        """Checking an excess of the maximum number of fields in tables"""
 
         # The number of fields for a table
         varnumber = MAX_COLUMNS + 1
@@ -241,24 +208,24 @@ class createTestCase(unittest.TestCase):
         # table = Table(recordDict, "MetaRecord instance")
 
         # Attach the table to object tree
-        warnings.filterwarnings("error", category=PerformanceWarning)
-        # Here, a PerformanceWarning should be raised!
+        warnings.filterwarnings("error", category=tables.PerformanceWarning)
+        # Here, a tables.PerformanceWarning should be raised!
         try:
-            self.fileh.create_table(self.root, 'table',
-                                    recordDict, "MetaRecord instance")
-        except PerformanceWarning:
+            self.h5file.create_table(self.root, 'table',
+                                     recordDict, "MetaRecord instance")
+        except tables.PerformanceWarning:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print("\nGreat!, the next PerformanceWarning was catched!")
                 print(value)
         else:
-            self.fail("expected an PerformanceWarning")
+            self.fail("expected an tables.PerformanceWarning")
         # Reset the warning
-        warnings.filterwarnings("default", category=PerformanceWarning)
+        warnings.filterwarnings("default", category=tables.PerformanceWarning)
 
     # The next limitation has been released
     def _test06_maxColumnNameLengthExceeded(self):
-        "Checking an excess (256) of the maximum length in column names"
+        """Checking an excess (256) of the maximum length in column names"""
 
         # Build a dictionary with the types as values and varnames as keys
         recordDict = {}
@@ -272,19 +239,12 @@ class createTestCase(unittest.TestCase):
 
         # Attach the table to object tree
         # Here, ValueError should be raised!
-        try:
-            self.fileh.create_table(self.root, 'table',
-                                    recordDict, "MetaRecord instance")
-        except ValueError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next ValueError was catched!")
-                print(value)
-        else:
-            self.fail("expected an ValueError")
+        with self.assertRaises(ValueError):
+            self.h5file.create_table(self.root, 'table',
+                                     recordDict, "MetaRecord instance")
 
     def test06_noMaxColumnNameLength(self):
-        "Checking unlimited length in column names"
+        """Checking unlimited length in column names"""
 
         # Build a dictionary with the types as values and varnames as keys
         recordDict = {}
@@ -293,27 +253,24 @@ class createTestCase(unittest.TestCase):
 
         # Attach the table to object tree
         # Here, IndexError should be raised!
-        table = self.fileh.create_table(self.root, 'table',
-                                        recordDict, "MetaRecord instance")
+        table = self.h5file.create_table(self.root, 'table',
+                                         recordDict, "MetaRecord instance")
         self.assertEqual(table.colnames[0], "a" * 255)
         self.assertEqual(table.colnames[1], "b" * 1024)
 
 
-class Record2(IsDescription):
+class Record2(tables.IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
     var2 = IntCol()               # integer
     var3 = Int16Col()             # short integer
 
 
-class FiltersTreeTestCase(unittest.TestCase):
+class FiltersTreeTestCase(common.TempFileMixin, TestCase):
     title = "A title"
     nrows = 10
 
     def setUp(self):
-        # Create a temporary file
-        self.file = tempfile.mktemp(".h5")
-        # Create an instance of HDF5 Table
-        self.h5file = open_file(self.file, "w", filters=self.filters)
+        super(FiltersTreeTestCase, self).setUp()
         self.populateFile()
 
     def populateFile(self):
@@ -373,18 +330,8 @@ class FiltersTreeTestCase(unittest.TestCase):
             # Iterate over this new group (group2)
             group = group2
 
-    def tearDown(self):
-        # Close the file
-        if self.h5file.isopen:
-            self.h5file.close()
-
-        os.remove(self.file)
-        common.cleanup(self)
-
-    #----------------------------------------
-
     def test00_checkFilters(self):
-        "Checking inheritance of filters on trees (open file version)"
+        """Checking inheritance of filters on trees (open file version)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -401,17 +348,18 @@ class FiltersTreeTestCase(unittest.TestCase):
         else:
             filters = self.filters
         self.assertEqual(repr(filters), repr(self.h5file.filters))
+
         # The next nodes have to have the same filter properties as
         # self.filters
         nodelist = [
             '/table1', '/group0/earray1', '/group0/vlarray1', '/group0',
         ]
         for node in nodelist:
-            object = self.h5file.get_node(node)
-            if isinstance(object, Group):
-                self.assertEqual(repr(filters), repr(object._v_filters))
+            obj = self.h5file.get_node(node)
+            if isinstance(obj, Group):
+                self.assertEqual(repr(filters), repr(obj._v_filters))
             else:
-                self.assertEqual(repr(filters), repr(object.filters))
+                self.assertEqual(repr(filters), repr(obj.filters))
 
         # Second and third level check
         group1 = self.h5file.root.group0.group1
@@ -427,17 +375,20 @@ class FiltersTreeTestCase(unittest.TestCase):
             print("Filters in file:", repr(group1._v_filters))
 
         self.assertEqual(repr(gfilters), repr(group1._v_filters))
+
         # The next nodes have to have the same filter properties as
         # gfilters
-        nodelist = ['/group0/group1', '/group0/group1/earray1',
-                    '/group0/group1/vlarray1',
-                    '/group0/group1/table1', '/group0/group1/group2/table1']
+        nodelist = [
+            '/group0/group1', '/group0/group1/earray1',
+            '/group0/group1/vlarray1',
+            '/group0/group1/table1', '/group0/group1/group2/table1',
+        ]
         for node in nodelist:
-            object = self.h5file.get_node(node)
-            if isinstance(object, Group):
-                self.assertEqual(repr(gfilters), repr(object._v_filters))
+            obj = self.h5file.get_node(node)
+            if isinstance(obj, Group):
+                self.assertEqual(repr(gfilters), repr(obj._v_filters))
             else:
-                self.assertEqual(repr(gfilters), repr(object.filters))
+                self.assertEqual(repr(gfilters), repr(obj.filters))
 
         # Fourth and fifth level check
         if self.filters is None:
@@ -454,35 +405,40 @@ class FiltersTreeTestCase(unittest.TestCase):
             print("Filters in file:", repr(group3._v_filters))
 
         self.assertEqual(repr(filters), repr(group3._v_filters))
+
         # The next nodes have to have the same filter properties as
         # self.filter
-        nodelist = ['/group0/group1/group2/group3',
-                    '/group0/group1/group2/group3/earray1',
-                    '/group0/group1/group2/group3/vlarray1',
-                    '/group0/group1/group2/group3/table1',
-                    '/group0/group1/group2/group3/group4']
+        nodelist = [
+            '/group0/group1/group2/group3',
+            '/group0/group1/group2/group3/earray1',
+            '/group0/group1/group2/group3/vlarray1',
+            '/group0/group1/group2/group3/table1',
+            '/group0/group1/group2/group3/group4',
+        ]
         for node in nodelist:
-            object = self.h5file.get_node(node)
-            if isinstance(object, Group):
-                self.assertEqual(repr(filters), repr(object._v_filters))
+            obj = self.h5file.get_node(node)
+            if isinstance(obj, Group):
+                self.assertEqual(repr(filters), repr(obj._v_filters))
             else:
-                self.assertEqual(repr(filters), repr(object.filters))
+                self.assertEqual(repr(filters), repr(obj.filters))
 
         # Checking the special case for Arrays in which the compression
         # should always be the empty Filter()
         # The next nodes have to have the same filter properties as
         # Filter()
-        nodelist = ['/array1',
-                    '/group0/array1',
-                    '/group0/group1/array1',
-                    '/group0/group1/group2/array1',
-                    '/group0/group1/group2/group3/array1']
+        nodelist = [
+            '/array1',
+            '/group0/array1',
+            '/group0/group1/array1',
+            '/group0/group1/group2/array1',
+            '/group0/group1/group2/group3/array1',
+        ]
         for node in nodelist:
-            object = self.h5file.get_node(node)
-            self.assertEqual(repr(Filters()), repr(object.filters))
+            obj = self.h5file.get_node(node)
+            self.assertEqual(repr(Filters()), repr(obj.filters))
 
     def test01_checkFilters(self):
-        "Checking inheritance of filters on trees (close file version)"
+        """Checking inheritance of filters on trees (close file version)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -490,9 +446,7 @@ class FiltersTreeTestCase(unittest.TestCase):
                   self.__class__.__name__)
 
         # Close the file
-        self.h5file.close()
-        # And open it again
-        self.h5file = open_file(self.file, "r")
+        self._reopen()
 
         # First level check
         if self.filters is None:
@@ -504,6 +458,7 @@ class FiltersTreeTestCase(unittest.TestCase):
             print("Filters in file:", repr(self.h5file.filters))
 
         self.assertEqual(repr(filters), repr(self.h5file.filters))
+
         # The next nodes have to have the same filter properties as
         # self.filters
         nodelist = [
@@ -529,12 +484,15 @@ class FiltersTreeTestCase(unittest.TestCase):
             print("Test filter:", repr(gfilters))
             print("Filters in file:", repr(group1._v_filters))
 
-        repr(gfilters) == repr(group1._v_filters)
+        self.assertEqual(repr(gfilters), repr(group1._v_filters))
+
         # The next nodes have to have the same filter properties as
         # gfilters
-        nodelist = ['/group0/group1', '/group0/group1/earray1',
-                    '/group0/group1/vlarray1',
-                    '/group0/group1/table1', '/group0/group1/group2/table1']
+        nodelist = [
+            '/group0/group1', '/group0/group1/earray1',
+            '/group0/group1/vlarray1',
+            '/group0/group1/table1', '/group0/group1/group2/table1',
+        ]
         for node in nodelist:
             object_ = self.h5file.get_node(node)
             if isinstance(object_, Group):
@@ -558,119 +516,160 @@ class FiltersTreeTestCase(unittest.TestCase):
         repr(filters) == repr(group3._v_filters)
         # The next nodes have to have the same filter properties as
         # self.filters
-        nodelist = ['/group0/group1/group2/group3',
-                    '/group0/group1/group2/group3/earray1',
-                    '/group0/group1/group2/group3/vlarray1',
-                    '/group0/group1/group2/group3/table1',
-                    '/group0/group1/group2/group3/group4']
+        nodelist = [
+            '/group0/group1/group2/group3',
+            '/group0/group1/group2/group3/earray1',
+            '/group0/group1/group2/group3/vlarray1',
+            '/group0/group1/group2/group3/table1',
+            '/group0/group1/group2/group3/group4',
+        ]
         for node in nodelist:
-            object = self.h5file.get_node(node)
-            if isinstance(object, Group):
-                self.assertEqual(repr(filters), repr(object._v_filters))
+            obj = self.h5file.get_node(node)
+            if isinstance(obj, Group):
+                self.assertEqual(repr(filters), repr(obj._v_filters))
             else:
-                self.assertEqual(repr(filters), repr(object.filters))
+                self.assertEqual(repr(filters), repr(obj.filters))
 
         # Checking the special case for Arrays in which the compression
         # should always be the empty Filter()
         # The next nodes have to have the same filter properties as
         # Filter()
-        nodelist = ['/array1',
-                    '/group0/array1',
-                    '/group0/group1/array1',
-                    '/group0/group1/group2/array1',
-                    '/group0/group1/group2/group3/array1']
+        nodelist = [
+            '/array1',
+            '/group0/array1',
+            '/group0/group1/array1',
+            '/group0/group1/group2/array1',
+            '/group0/group1/group2/group3/array1',
+        ]
         for node in nodelist:
-            object = self.h5file.get_node(node)
-            self.assertEqual(repr(Filters()), repr(object.filters))
+            obj = self.h5file.get_node(node)
+            self.assertEqual(repr(Filters()), repr(obj.filters))
 
 
 class FiltersCase1(FiltersTreeTestCase):
     filters = Filters()
     gfilters = Filters(complevel=1)
+    open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class FiltersCase2(FiltersTreeTestCase):
     filters = Filters(complevel=1, complib="bzip2")
     gfilters = Filters(complevel=1)
+    open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class FiltersCase3(FiltersTreeTestCase):
     filters = Filters(shuffle=True, complib="zlib")
     gfilters = Filters(complevel=1, shuffle=False, complib="lzo")
+    open_kwargs = dict(filters=filters)
 
 
 class FiltersCase4(FiltersTreeTestCase):
     filters = Filters(shuffle=True)
     gfilters = Filters(complevel=1, shuffle=False)
+    open_kwargs = dict(filters=filters)
 
 
 class FiltersCase5(FiltersTreeTestCase):
     filters = Filters(fletcher32=True)
     gfilters = Filters(complevel=1, shuffle=False)
+    open_kwargs = dict(filters=filters)
 
 
 class FiltersCase6(FiltersTreeTestCase):
     filters = None
     gfilters = Filters(complevel=1, shuffle=False)
+    open_kwargs = dict(filters=filters)
 
 
 class FiltersCase7(FiltersTreeTestCase):
     filters = Filters(complevel=1)
     gfilters = None
+    open_kwargs = dict(filters=filters)
 
 
 class FiltersCase8(FiltersTreeTestCase):
     filters = None
     gfilters = None
+    open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class FiltersCase9(FiltersTreeTestCase):
     filters = Filters(shuffle=True, complib="zlib")
     gfilters = Filters(complevel=5, shuffle=True, complib="bzip2")
+    open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class FiltersCase10(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc")
+    open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class FiltersCaseBloscBloscLZ(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:blosclz")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:blosclz")
+    open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4")
+    open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4hc")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4hc")
+    open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
+                 'snappy required')
 class FiltersCaseBloscSnappy(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:snappy")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:snappy")
+    open_kwargs = dict(filters=filters)
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
 class FiltersCaseBloscZlib(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:zlib")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zlib")
+    open_kwargs = dict(filters=filters)
 
 
-class CopyGroupTestCase(unittest.TestCase):
+class CopyGroupTestCase(common.TempFileMixin, TestCase):
     title = "A title"
     nrows = 10
 
     def setUp(self):
+        super(CopyGroupTestCase, self).setUp()
+
         # Create a temporary file
-        self.file = tempfile.mktemp(".h5")
-        self.file2 = tempfile.mktemp(".h5")
-        # Create the source file
-        self.h5file = open_file(self.file, "w")
+        self.h5fname2 = tempfile.mktemp(".h5")
+
         # Create the destination
-        self.h5file2 = open_file(self.file2, "w")
+        self.h5file2 = tables.open_file(self.h5fname2, "w")
         self.populateFile()
 
     def populateFile(self):
@@ -735,19 +734,14 @@ class CopyGroupTestCase(unittest.TestCase):
 
     def tearDown(self):
         # Close the file
-        if self.h5file.isopen:
-            self.h5file.close()
         if self.h5file2.isopen:
             self.h5file2.close()
+        os.remove(self.h5fname2)
 
-        os.remove(self.file)
-        os.remove(self.file2)
-        common.cleanup(self)
-
-    #----------------------------------------
+        super(CopyGroupTestCase, self).tearDown()
 
     def test00_nonRecursive(self):
-        "Checking non-recursive copy of a Group"
+        """Checking non-recursive copy of a Group"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -756,16 +750,15 @@ class CopyGroupTestCase(unittest.TestCase):
 
         # Copy a group non-recursively
         srcgroup = self.h5file.root.group0.group1
-#         srcgroup._f_copy_children(self.h5file2.root,
-#                                recursive=False,
-#                                filters=self.filters)
+        #srcgroup._f_copy_children(self.h5file2.root, recursive=False,
+        #                          filters=self.filters)
         self.h5file.copy_children(srcgroup, self.h5file2.root,
                                   recursive=False, filters=self.filters)
         if self.close:
             # Close the destination file
             self.h5file2.close()
             # And open it again
-            self.h5file2 = open_file(self.file2, "r")
+            self.h5file2 = tables.open_file(self.h5fname2, "r")
 
         # Check that the copy has been done correctly
         dstgroup = self.h5file2.root
@@ -781,7 +774,7 @@ class CopyGroupTestCase(unittest.TestCase):
         self.assertEqual(nodelist1, nodelist2)
 
     def test01_nonRecursiveAttrs(self):
-        "Checking non-recursive copy of a Group (attributes copied)"
+        """Checking non-recursive copy of a Group (attributes copied)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -798,7 +791,7 @@ class CopyGroupTestCase(unittest.TestCase):
             # Close the destination file
             self.h5file2.close()
             # And open it again
-            self.h5file2 = open_file(self.file2, "r")
+            self.h5file2 = tables.open_file(self.h5fname2, "r")
 
         # Check that the copy has been done correctly
         dstgroup = self.h5file2.root
@@ -814,9 +807,11 @@ class CopyGroupTestCase(unittest.TestCase):
                 srcattrskeys = srcattrs._f_list("all")
                 dstattrs = dstnode.attrs
                 dstattrskeys = dstattrs._f_list("all")
+
             # Filters may differ, do not take into account
             if self.filters is not None:
                 dstattrskeys.remove('FILTERS')
+
             # These lists should already be ordered
             if common.verbose:
                 print("srcattrskeys for node %s: %s" % (srcnode._v_name,
@@ -839,7 +834,7 @@ class CopyGroupTestCase(unittest.TestCase):
                 print("The attrs contents has been copied correctly")
 
     def test02_Recursive(self):
-        "Checking recursive copy of a Group"
+        """Checking recursive copy of a Group"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -864,7 +859,7 @@ class CopyGroupTestCase(unittest.TestCase):
             # Close the destination file
             self.h5file2.close()
             # And open it again
-            self.h5file2 = open_file(self.file2, "r")
+            self.h5file2 = tables.open_file(self.h5fname2, "r")
             dstgroup = self.h5file2.get_node(self.dstnode)
 
         # Check that the copy has been done correctly
@@ -895,7 +890,7 @@ class CopyGroupTestCase(unittest.TestCase):
         self.assertEqual(nodelist1, nodelist2)
 
     def test03_RecursiveFilters(self):
-        "Checking recursive copy of a Group (cheking Filters)"
+        """Checking recursive copy of a Group (cheking Filters)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -921,7 +916,7 @@ class CopyGroupTestCase(unittest.TestCase):
             # Close the destination file
             self.h5file2.close()
             # And open it again
-            self.h5file2 = open_file(self.file2, "r")
+            self.h5file2 = tables.open_file(self.h5fname2, "r")
             dstgroup = self.h5file2.get_node(self.dstnode)
 
         # Check that the copy has been done correctly
@@ -998,6 +993,7 @@ class CopyGroupCase7(CopyGroupTestCase):
     dstnode = '/'
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class CopyGroupCase8(CopyGroupTestCase):
     close = 1
     filters = Filters(complevel=1, complib="lzo")
@@ -1005,16 +1001,17 @@ class CopyGroupCase8(CopyGroupTestCase):
     dstnode = '/'
 
 
-class CopyFileTestCase(unittest.TestCase):
+class CopyFileTestCase(common.TempFileMixin, TestCase):
     title = "A title"
     nrows = 10
 
     def setUp(self):
+        super(CopyFileTestCase, self).setUp()
+
         # Create a temporary file
-        self.file = tempfile.mktemp(".h5")
-        self.file2 = tempfile.mktemp(".h5")
+        self.h5fname2 = tempfile.mktemp(".h5")
+
         # Create the source file
-        self.h5file = open_file(self.file, "w")
         self.populateFile()
 
     def populateFile(self):
@@ -1080,42 +1077,37 @@ class CopyFileTestCase(unittest.TestCase):
 
     def tearDown(self):
         # Close the file
-        if self.h5file.isopen:
-            self.h5file.close()
         if hasattr(self, 'h5file2') and self.h5file2.isopen:
             self.h5file2.close()
 
-        os.remove(self.file)
-        if hasattr(self, 'file2') and os.path.exists(self.file2):
-            os.remove(self.file2)
-        common.cleanup(self)
+        if hasattr(self, 'h5fname2') and os.path.exists(self.h5fname2):
+            os.remove(self.h5fname2)
 
-    #----------------------------------------
+        super(CopyFileTestCase, self).tearDown()
 
     def test00_overwrite(self):
-        "Checking copy of a File (overwriting file)"
+        """Checking copy of a File (overwriting file)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test00_overwrite..." % self.__class__.__name__)
 
         # Create a temporary file
-        file2h = open(self.file2, "w")
+        file2h = open(self.h5fname2, "w")
         file2h.close()
+
         # Copy the file to the destination
-        self.h5file.copy_file(self.file2, title=self.title,
+        self.h5file.copy_file(self.h5fname2, title=self.title,
                               overwrite=1,
                               copyuserattrs=0,
                               filters=None)
 
         # Close the original file, if needed
         if self.close:
-            self.h5file.close()
-            # re-open it
-            self.h5file = open_file(self.file, "r")
+            self._reopen()
 
         # ...and open the destination file
-        self.h5file2 = open_file(self.file2, "r")
+        self.h5file2 = tables.open_file(self.h5fname2, "r")
 
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
@@ -1133,7 +1125,7 @@ class CopyFileTestCase(unittest.TestCase):
         self.assertEqual(self.h5file2.title, self.title)
 
     def test00a_srcdstequal(self):
-        "Checking copy of a File (srcfile == dstfile)"
+        """Checking copy of a File (srcfile == dstfile)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1144,7 +1136,7 @@ class CopyFileTestCase(unittest.TestCase):
         self.assertRaises(IOError, self.h5file.copy_file, self.h5file.filename)
 
     def test00b_firstclass(self):
-        "Checking copy of a File (first-class function)"
+        """Checking copy of a File (first-class function)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1154,18 +1146,19 @@ class CopyFileTestCase(unittest.TestCase):
         self.h5file.close()
 
         # Copy the file to the destination
-        copy_file(self.file, self.file2, title=self.title,
-                  copyuserattrs=0, filters=None, overwrite=1)
+        tables.copy_file(self.h5fname, self.h5fname2, title=self.title,
+                         copyuserattrs=0, filters=None, overwrite=1)
 
         # ...and open the source and destination file
-        self.h5file = open_file(self.file, "r")
-        self.h5file2 = open_file(self.file2, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file2 = tables.open_file(self.h5fname2, "r")
 
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
         nodelist1 = srcgroup._v_children.keys()
         nodelist2 = dstgroup._v_children.keys()
+
         # Sort the lists
         nodelist1.sort()
         nodelist2.sort()
@@ -1177,31 +1170,30 @@ class CopyFileTestCase(unittest.TestCase):
         self.assertEqual(self.h5file2.title, self.title)
 
     def test01_copy(self):
-        "Checking copy of a File (attributes not copied)"
+        """Checking copy of a File (attributes not copied)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01_copy..." % self.__class__.__name__)
 
         # Copy the file to the destination
-        self.h5file.copy_file(self.file2, title=self.title,
+        self.h5file.copy_file(self.h5fname2, title=self.title,
                               copyuserattrs=0,
                               filters=self.filters)
 
         # Close the original file, if needed
         if self.close:
-            self.h5file.close()
-            # re-open it
-            self.h5file = open_file(self.file, "r")
+            self._reopen()
 
         # ...and open the destination file
-        self.h5file2 = open_file(self.file2, "r")
+        self.h5file2 = tables.open_file(self.h5fname2, "r")
 
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
         nodelist1 = srcgroup._v_children.keys()
         nodelist2 = dstgroup._v_children.keys()
+
         # Sort the lists
         nodelist1.sort()
         nodelist2.sort()
@@ -1221,9 +1213,11 @@ class CopyFileTestCase(unittest.TestCase):
             srcattrskeys = srcattrs._f_list("sys")
             dstattrs = dstnode._v_attrs
             dstattrskeys = dstattrs._f_list("all")
+
             # Filters may differ, do not take into account
             if self.filters is not None:
                 dstattrskeys.remove('FILTERS')
+
             # These lists should already be ordered
             if common.verbose:
                 print("srcattrskeys for node %s: %s" % (srcnode._v_name,
@@ -1246,25 +1240,23 @@ class CopyFileTestCase(unittest.TestCase):
                 print("The attrs contents has been copied correctly")
 
     def test02_Attrs(self):
-        "Checking copy of a File (attributes copied)"
+        """Checking copy of a File (attributes copied)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02_Attrs..." % self.__class__.__name__)
 
         # Copy the file to the destination
-        self.h5file.copy_file(self.file2, title=self.title,
+        self.h5file.copy_file(self.h5fname2, title=self.title,
                               copyuserattrs=1,
                               filters=self.filters)
 
         # Close the original file, if needed
         if self.close:
-            self.h5file.close()
-            # re-open it
-            self.h5file = open_file(self.file, "r")
+            self._reopen()
 
         # ...and open the destination file
-        self.h5file2 = open_file(self.file2, "r")
+        self.h5file2 = tables.open_file(self.h5fname2, "r")
 
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
@@ -1281,6 +1273,7 @@ class CopyFileTestCase(unittest.TestCase):
                                                         srcattrskeys))
                 print("dstattrskeys for node %s: %s" % (dstnode._v_name,
                                                         dstattrskeys))
+
             # Filters may differ, do not take into account
             if self.filters is not None:
                 dstattrskeys.remove('FILTERS')
@@ -1348,10 +1341,10 @@ class CopyFileCase8(CopyFileTestCase):
     filters = Filters(complevel=1, complib="lzo")
 
 
-class CopyFileCase10(unittest.TestCase):
+class CopyFileCase10(common.TempFileMixin, TestCase):
 
     def test01_notoverwrite(self):
-        "Checking copy of a File (checking not overwriting)"
+        """Checking copy of a File (checking not overwriting)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1359,29 +1352,20 @@ class CopyFileCase10(unittest.TestCase):
                   self.__class__.__name__)
 
         # Create two empty files:
-        file = tempfile.mktemp(".h5")
-        fileh = open_file(file, "w")
-        file2 = tempfile.mktemp(".h5")
-        fileh2 = open_file(file2, "w")
-        fileh2.close()  # close the second one
-        # Copy the first into the second
+        self.h5fname2 = tempfile.mktemp(".h5")
+        self.h5file2 = tables.open_file(self.h5fname2, "w")
+        self.h5file2.close()  # close the second one
+
         try:
-            fileh.copy_file(file2, overwrite=False)
-        except IOError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next IOError was catched!")
-                print(value)
-        else:
-            self.fail("expected a IOError")
-
-        # Delete files
-        fileh.close()
-        os.remove(file)
-        os.remove(file2)
+            # Copy the first into the second
+            self.assertRaises(
+                IOError, self.h5file.copy_file, self.h5fname2, overwrite=False)
+        finally:
+            # Delete files
+            os.remove(self.h5fname2)
 
 
-class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class GroupFiltersTestCase(common.TempFileMixin, TestCase):
     filters = tables.Filters(complevel=4)  # something non-default
 
     def setUp(self):
@@ -1416,10 +1400,12 @@ class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 node_filters = node.filters
             else:
                 node_filters = node._v_filters
+
             # Compare to given filters.
             if filters is not None:
                 self.assertEqual(node_filters, filters)
                 return
+
             # Guess filters to compare to by node name.
             if node._v_name.endswith('_no'):
                 self.assertEqual(
@@ -1432,6 +1418,7 @@ class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_propagate(self):
         """Filters propagating to children."""
+
         self._check_filters(self.h5file)
 
     def _test_copyFile(self, filters=None):
@@ -1448,22 +1435,27 @@ class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test01_copyFile(self):
         """Keeping filters when copying a file."""
+
         self._test_copyFile()
 
     def test02_copyFile_override(self):
         """Overriding filters when copying a file."""
+
         self._test_copyFile(self.filters)
 
     def _test_change(self, pathname, change_filters, new_filters):
         group = self.h5file.get_node(pathname)
+
         # Check expected current filters.
         old_filters = tables.Filters()
         if pathname.endswith('_yes'):
             old_filters = self.filters
         self.assertEqual(group._v_filters, old_filters)
+
         # Change filters.
         change_filters(group)
         self.assertEqual(group._v_filters, new_filters)
+
         # Get and check changed filters.
         if self._reopen():
             group = self.h5file.get_node(pathname)
@@ -1471,23 +1463,26 @@ class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test03_change(self):
         """Changing the filters of a group."""
+
         def set_filters(group):
             group._v_filters = self.filters
         self._test_change('/', set_filters, self.filters)
 
     def test04_delete(self):
         """Deleting the filters of a group."""
+
         def del_filters(group):
             del group._v_filters
         self._test_change('/explicit_yes', del_filters, tables.Filters())
 
 
-class SetBloscMaxThreadsTestCase(common.TempFileMixin,
-                                 common.PyTablesTestCase):
+@unittest.skipIf(not common.blosc_avail, 'BLOSC not available')
+class SetBloscMaxThreadsTestCase(common.TempFileMixin, TestCase):
     filters = tables.Filters(complevel=4, complib="blosc")
 
     def test00(self):
         """Checking set_blosc_max_threads()"""
+
         nthreads_old = tables.set_blosc_max_threads(4)
         if common.verbose:
             print("Previous max threads:", nthreads_old)
@@ -1504,6 +1499,7 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin,
 
     def test01(self):
         """Checking set_blosc_max_threads() (re-open)"""
+
         nthreads_old = tables.set_blosc_max_threads(4)
         self.h5file.create_carray('/', 'some_array',
                                   atom=tables.Int32Atom(), shape=(3, 3),
@@ -1516,7 +1512,7 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin,
         self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
 
 
-class FilterTestCase(common.PyTablesTestCase):
+class FilterTestCase(TestCase):
     def test_filter_pack_type(self):
         self.assertEqual(type(Filters()._pack()), numpy.int64)
 
@@ -1576,15 +1572,13 @@ class FilterTestCase(common.PyTablesTestCase):
         self.assertEqual(filter_.complib, 'zlib')
 
 
-class DefaultDriverTestCase(common.PyTablesTestCase):
+class DefaultDriverTestCase(common.TempFileMixin, TestCase):
     DRIVER = None
     DRIVER_PARAMS = {}
+    open_kwargs = dict(driver=DRIVER, **DRIVER_PARAMS)
 
     def setUp(self):
-        self.h5fname = tempfile.mktemp(suffix=".h5")
-        self.h5file = tables.open_file(self.h5fname, mode="w",
-                                       driver=self.DRIVER,
-                                       **self.DRIVER_PARAMS)
+        super(DefaultDriverTestCase, self).setUp()
 
         # Create an HDF5 file and contents
         root = self.h5file.root
@@ -1592,13 +1586,6 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
         self.h5file.create_array(root, "array", [1, 2], title="array")
         self.h5file.create_table(root, "table", {"var1": tables.IntCol()},
                                  title="table")
-
-    def tearDown(self):
-        if self.h5file:
-            self.h5file.close()
-        self.h5file = None
-        if os.path.isfile(self.h5fname):
-            os.remove(self.h5fname)
 
     def assertIsFile(self):
         self.assertTrue(os.path.isfile(self.h5fname))
@@ -1661,12 +1648,9 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
         self.h5file.create_array(root, "array2", [1, 2], title="array2")
         self.h5file.create_table(root, "table2", {"var2": tables.FloatCol()},
                                  title="table2")
-        self.h5file.close()
 
         # check contents
-        self.h5file = tables.open_file(self.h5fname, mode="a",
-                                       driver=self.DRIVER,
-                                       **self.DRIVER_PARAMS)
+        self._reopen(mode="a", driver=self.DRIVER, **self.DRIVER_PARAMS)
 
         root = self.h5file.root
 
@@ -1718,12 +1702,9 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
         self.h5file.create_array(root, "array2", [1, 2], title="array2")
         self.h5file.create_table(root, "table2", {"var2": tables.FloatCol()},
                                  title="table2")
-        self.h5file.close()
 
         # check contents
-        self.h5file = tables.open_file(self.h5fname, mode="r+",
-                                       driver=self.DRIVER,
-                                       **self.DRIVER_PARAMS)
+        self._reopen(mode="r+", driver=self.DRIVER, **self.DRIVER_PARAMS)
 
         root = self.h5file.root
 
@@ -1747,52 +1728,57 @@ class DefaultDriverTestCase(common.PyTablesTestCase):
         self.assertEqual(root.table2.cols.var2.dtype, tables.FloatCol().dtype)
 
 
+@unittest.skipIf(hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
 class Sec2DriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_SEC2"
+    open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
 
-    if hdf5_version >= "1.8.9":
-        def test_get_file_image(self):
-            image = self.h5file.get_file_image()
-            self.assertTrue(len(image) > 0)
-            if sys.version_info[0] < 3:
-                self.assertEqual([ord(i) for i in image[
-                                 :4]], [137, 72, 68, 70])
-            else:
-                self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
+    def test_get_file_image(self):
+        image = self.h5file.get_file_image()
+        self.assertTrue(len(image) > 0)
+        if sys.version_info[0] < 3:
+            self.assertEqual([ord(i) for i in image[
+                             :4]], [137, 72, 68, 70])
+        else:
+            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
+@unittest.skipIf(hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
 class StdioDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_STDIO"
+    open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
 
-    if hdf5_version >= "1.8.9":
-        def test_get_file_image(self):
-            image = self.h5file.get_file_image()
-            self.assertTrue(len(image) > 0)
-            if sys.version_info[0] < 3:
-                self.assertEqual([ord(i) for i in image[
-                                 :4]], [137, 72, 68, 70])
-            else:
-                self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
+    def test_get_file_image(self):
+        image = self.h5file.get_file_image()
+        self.assertTrue(len(image) > 0)
+        if sys.version_info[0] < 3:
+            self.assertEqual([ord(i) for i in image[
+                             :4]], [137, 72, 68, 70])
+        else:
+            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
+@unittest.skipIf(hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
 class CoreDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_CORE"
+    open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
 
-    if hdf5_version >= "1.8.9":
-        def test_get_file_image(self):
-            image = self.h5file.get_file_image()
-            self.assertTrue(len(image) > 0)
-            if sys.version_info[0] < 3:
-                self.assertEqual([ord(i) for i in image[
-                                 :4]], [137, 72, 68, 70])
-            else:
-                self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
+    def test_get_file_image(self):
+        image = self.h5file.get_file_image()
+        self.assertTrue(len(image) > 0)
+        if sys.version_info[0] < 3:
+            self.assertEqual([ord(i) for i in image[
+                             :4]], [137, 72, 68, 70])
+        else:
+            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
-class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
+class CoreDriverNoBackingStoreTestCase(TestCase):
     DRIVER = "H5FD_CORE"
 
     def setUp(self):
+        super(CoreDriverNoBackingStoreTestCase, self).setUp()
+
         self.h5fname = tempfile.mktemp(suffix=".h5")
         self.h5file = None
 
@@ -1807,6 +1793,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
         self.h5file = None
         if os.path.isfile(self.h5fname):
             os.remove(self.h5fname)
+
+        super(CoreDriverNoBackingStoreTestCase, self).tearDown()
 
     def test_newFile(self):
         """Ensure that nothing is written to file."""
@@ -1883,13 +1871,13 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
     def test_openNewFileRW(self):
         self.assertFalse(os.path.isfile(self.h5fname))
-        self.assertRaises(HDF5ExtError,
+        self.assertRaises(tables.HDF5ExtError,
                           tables.open_file, self.h5fname, mode="r+",
                           driver=self.DRIVER, driver_core_backing_store=False)
 
     def test_openNewFileR(self):
         self.assertFalse(os.path.isfile(self.h5fname))
-        self.assertRaises(HDF5ExtError,
+        self.assertRaises(tables.HDF5ExtError,
                           tables.open_file, self.h5fname, mode="r",
                           driver=self.DRIVER, driver_core_backing_store=False)
 
@@ -2009,25 +1997,25 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
         # ensure that there is no change on the file on disk
         self.assertEqual(hexdigest, self._get_digest(self.h5fname))
 
-    if hdf5_version >= "1.8.9":
-        def test_get_file_image(self):
-            self.h5file = tables.open_file(self.h5fname, mode="w",
-                                           driver=self.DRIVER,
-                                           driver_core_backing_store=False)
-            root = self.h5file.root
-            self.h5file.set_node_attr(root, "testattr", 41)
-            self.h5file.create_array(root, "array", [1, 2], title="array")
-            self.h5file.create_table(root, "table", {"var1": tables.IntCol()},
-                                     title="table")
+    @unittest.skipIf(hdf5_version < "1.8.9", 'HDF5 >= "1.8.9" required')
+    def test_get_file_image(self):
+        self.h5file = tables.open_file(self.h5fname, mode="w",
+                                       driver=self.DRIVER,
+                                       driver_core_backing_store=False)
+        root = self.h5file.root
+        self.h5file.set_node_attr(root, "testattr", 41)
+        self.h5file.create_array(root, "array", [1, 2], title="array")
+        self.h5file.create_table(root, "table", {"var1": tables.IntCol()},
+                                 title="table")
 
-            image = self.h5file.get_file_image()
+        image = self.h5file.get_file_image()
 
-            self.assertTrue(len(image) > 0)
-            if sys.version_info[0] < 3:
-                self.assertEqual([ord(i) for i in image[
-                                 :4]], [137, 72, 68, 70])
-            else:
-                self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
+        self.assertTrue(len(image) > 0)
+        if sys.version_info[0] < 3:
+            self.assertEqual([ord(i) for i in image[
+                             :4]], [137, 72, 68, 70])
+        else:
+            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
 class SplitDriverTestCase(DefaultDriverTestCase):
@@ -2036,39 +2024,37 @@ class SplitDriverTestCase(DefaultDriverTestCase):
         "driver_split_meta_ext": "-xm.h5",
         "driver_split_raw_ext": "-xr.h5",
     }
+    open_kwargs = dict(driver=DRIVER, **DRIVER_PARAMS)
+
+    def _getTempFileName(self):
+        return tempfile.mktemp(prefix=self._getName())
 
     def setUp(self):
-        self.h5fname = tempfile.mktemp()
+        super(SplitDriverTestCase, self).setUp()
+
         self.h5fnames = [self.h5fname + self.DRIVER_PARAMS[k] for k in
                          ("driver_split_meta_ext", "driver_split_raw_ext")]
-        self.h5file = tables.open_file(self.h5fname, mode="w",
-                                       driver=self.DRIVER,
-                                       **self.DRIVER_PARAMS)
-        root = self.h5file.root
-        self.h5file.set_node_attr(root, "testattr", 41)
-        self.h5file.create_array(root, "array", [1, 2], title="array")
-        self.h5file.create_table(root, "table", {"var1": tables.IntCol()},
-                                 title="table")
 
     def tearDown(self):
-        if self.h5file:
-            self.h5file.close()
-        self.h5file = None
+        self.h5file.close()
         for fname in self.h5fnames:
             if os.path.isfile(fname):
                 os.remove(fname)
+        #super(SplitDriverTestCase, self).tearDown()
+        TestCase.tearDown(self)
 
     def assertIsFile(self):
         for fname in self.h5fnames:
             self.assertTrue(os.path.isfile(fname))
 
 
-class NotSpportedDriverTestCase(common.PyTablesTestCase):
+class NotSpportedDriverTestCase(TestCase):
     DRIVER = None
     DRIVER_PARAMS = {}
     EXCEPTION = ValueError
 
     def setUp(self):
+        super(NotSpportedDriverTestCase, self).setUp()
         self.h5fname = tempfile.mktemp(suffix=".h5")
 
     def tearDown(self):
@@ -2078,6 +2064,7 @@ class NotSpportedDriverTestCase(common.PyTablesTestCase):
                 h5file.close()
         if os.path.exists(self.h5fname):
             os.remove(self.h5fname)
+        super(NotSpportedDriverTestCase, self).tearDown()
 
     def test_newFile(self):
         self.assertRaises(self.EXCEPTION, tables.open_file, self.h5fname,
@@ -2094,6 +2081,7 @@ else:
 
 class LogDriverTestCase(BaseLogDriverTestCase):
     DRIVER = "H5FD_LOG"
+    open_kwargs = dict(driver=DRIVER, **BaseLogDriverTestCase.DRIVER_PARAMS)
 
     def setUp(self):
         # local binding
@@ -2104,14 +2092,17 @@ class LogDriverTestCase(BaseLogDriverTestCase):
         super(LogDriverTestCase, self).setUp()
 
     def tearDown(self):
-        super(LogDriverTestCase, self).tearDown()
         if os.path.exists(self.DRIVER_PARAMS["driver_log_file"]):
             os.remove(self.DRIVER_PARAMS["driver_log_file"])
+        super(LogDriverTestCase, self).tearDown()
 
 
 if HAVE_DIRECT_DRIVER:
     class DirectDriverTestCase(DefaultDriverTestCase):
         DRIVER = "H5FD_DIRECT"
+        open_kwargs = dict(
+            driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS
+        )
 
 else:
     class DirectDriverTestCase(NotSpportedDriverTestCase):
@@ -2122,6 +2113,9 @@ else:
 if HAVE_WINDOWS_DRIVER:
     class WindowsDriverTestCase(DefaultDriverTestCase):
         DRIVER = "H5FD_WINDOWS"
+        open_kwargs = dict(
+            driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS
+        )
 
 else:
     class WindowsDriverTestCase(NotSpportedDriverTestCase):
@@ -2149,10 +2143,12 @@ class StreamDriverTestCase(NotSpportedDriverTestCase):
     DRIVER = "H5FD_STREAM"
 
 
-class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
+@unittest.skipIf(hdf5_version < "1.8.9", 'HDF5 >= "1.8.9" required')
+class InMemoryCoreDriverTestCase(TestCase):
     DRIVER = "H5FD_CORE"
 
     def setUp(self):
+        super(InMemoryCoreDriverTestCase, self).setUp()
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = None
 
@@ -2163,20 +2159,22 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         if os.path.isfile(self.h5fname):
             os.remove(self.h5fname)
+        super(InMemoryCoreDriverTestCase, self).tearDown()
 
     def _create_image(self, filename="in-memory", title="Title", mode='w'):
-        fileh = open_file(filename, mode=mode, title=title,
-                          driver=self.DRIVER, driver_core_backing_store=0)
+        h5file = tables.open_file(filename, mode=mode, title=title,
+                                  driver=self.DRIVER,
+                                  driver_core_backing_store=0)
 
         try:
-            fileh.create_array(fileh.root, 'array', [1, 2], title="Array")
-            fileh.create_table(fileh.root, 'table', {
-                               'var1': IntCol()}, "Table")
-            fileh.root._v_attrs.testattr = 41
+            h5file.create_array(h5file.root, 'array', [1, 2], title="Array")
+            h5file.create_table(h5file.root, 'table', {
+                                'var1': IntCol()}, "Table")
+            h5file.root._v_attrs.testattr = 41
 
-            image = fileh.get_file_image()
+            image = h5file.get_file_image()
         finally:
-            fileh.close()
+            h5file.close()
 
         return image
 
@@ -2203,10 +2201,10 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.exists(self.h5fname))
 
         # Open an existing file
-        self.h5file = open_file(self.h5fname, mode="r",
-                                driver=self.DRIVER,
-                                driver_core_image=image,
-                                driver_core_backing_store=0)
+        self.h5file = tables.open_file(self.h5fname, mode="r",
+                                       driver=self.DRIVER,
+                                       driver_core_image=image,
+                                       driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2224,10 +2222,10 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.exists(self.h5fname))
 
         # Open an existing file
-        self.h5file = open_file(self.h5fname, mode="r+",
-                                driver=self.DRIVER,
-                                driver_core_image=image,
-                                driver_core_backing_store=0)
+        self.h5file = tables.open_file(self.h5fname, mode="r+",
+                                       driver=self.DRIVER,
+                                       driver_core_image=image,
+                                       driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2254,10 +2252,10 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.exists(self.h5fname))
 
         # Open an existing file
-        self.h5file = open_file(self.h5fname, mode="r+",
-                                driver=self.DRIVER,
-                                driver_core_image=image1,
-                                driver_core_backing_store=0)
+        self.h5file = tables.open_file(self.h5fname, mode="r+",
+                                       driver=self.DRIVER,
+                                       driver_core_image=image1,
+                                       driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2285,10 +2283,10 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertNotEqual(image1, image2)
 
         # Open an existing file
-        self.h5file = open_file(self.h5fname, mode="r",
-                                driver=self.DRIVER,
-                                driver_core_image=image2,
-                                driver_core_backing_store=0)
+        self.h5file = tables.open_file(self.h5fname, mode="r",
+                                       driver=self.DRIVER,
+                                       driver_core_image=image2,
+                                       driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2317,10 +2315,10 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.exists(self.h5fname))
 
         # Open an existing file
-        self.h5file = open_file(self.h5fname, mode="a",
-                                driver=self.DRIVER,
-                                driver_core_image=image,
-                                driver_core_backing_store=0)
+        self.h5file = tables.open_file(self.h5fname, mode="a",
+                                       driver=self.DRIVER,
+                                       driver_core_image=image,
+                                       driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2338,15 +2336,15 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.exists(self.h5fname))
 
     def test_openFileA_update(self):
-        filename = tempfile.mktemp(".h5")
-        image1 = self._create_image(filename)
+        h5fname = tempfile.mktemp(".h5")
+        image1 = self._create_image(h5fname)
         self.assertFalse(os.path.exists(self.h5fname))
 
         # Open an existing file
-        self.h5file = open_file(self.h5fname, mode="a",
-                                driver=self.DRIVER,
-                                driver_core_image=image1,
-                                driver_core_backing_store=0)
+        self.h5file = tables.open_file(self.h5fname, mode="a",
+                                       driver=self.DRIVER,
+                                       driver_core_image=image1,
+                                       driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2374,10 +2372,10 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertNotEqual(image1, image2)
 
         # Open an existing file
-        self.h5file = open_file(self.h5fname, mode="r",
-                                driver=self.DRIVER,
-                                driver_core_image=image2,
-                                driver_core_backing_store=0)
+        self.h5file = tables.open_file(self.h5fname, mode="r",
+                                       driver=self.DRIVER,
+                                       driver_core_image=image2,
+                                       driver_core_backing_store=0)
 
         # Get the CLASS attribute of the arr object
         self.assertTrue(hasattr(self.h5file.root._v_attrs, "TITLE"))
@@ -2402,9 +2400,9 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.exists(self.h5fname))
 
     def test_str(self):
-        self.h5file = open_file(self.h5fname, mode="w", title="Title",
-                                driver=self.DRIVER,
-                                driver_core_backing_store=0)
+        self.h5file = tables.open_file(self.h5fname, mode="w", title="Title",
+                                       driver=self.DRIVER,
+                                       driver_core_backing_store=0)
 
         self.h5file.create_array(self.h5file.root, 'array', [1, 2],
                                  title="Array")
@@ -2421,23 +2419,23 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertFalse(os.path.exists(self.h5fname))
 
 
-class QuantizeTestCase(unittest.TestCase):
+class QuantizeTestCase(common.TempFileMixin, TestCase):
     mode = "w"
     title = "This is the table title"
     expectedrows = 10
     appendrows = 5
 
     def setUp(self):
+        super(QuantizeTestCase, self).setUp()
+
         self.data = numpy.linspace(-5., 5., 41)
         self.randomdata = numpy.random.random_sample(1000000)
         self.randomints = numpy.random.random_integers(
             -1000000, 1000000, 1000000).astype('int64')
-        # Create a temporary file
-        self.file = tempfile.mktemp(".h5")
-        # Create an instance of HDF5 Table
-        self.h5file = open_file(self.file, self.mode, self.title)
+
         self.populateFile()
         self.h5file.close()
+
         self.quantizeddata_0 = numpy.asarray(
             [-5.] * 2 + [-4.] * 5 + [-3.] * 3 + [-2.] * 5 + [-1.] * 3 +
             [0.] * 5 + [1.] * 3 + [2.] * 5 + [3.] * 3 + [4.] * 5 + [5.] * 2)
@@ -2473,16 +2471,6 @@ class QuantizeTestCase(unittest.TestCase):
                                            (41,), filters=filters)
         datam1[:] = self.data
 
-    def tearDown(self):
-        # Close the file
-        if self.h5file.isopen:
-            self.h5file.close()
-
-        os.remove(self.file)
-        common.cleanup(self)
-
-    #----------------------------------------
-
     def test00_quantizeData(self):
         """Checking the quantize() function."""
 
@@ -2502,6 +2490,7 @@ class QuantizeTestCase(unittest.TestCase):
         quantized_1 = quantize(self.randomdata, 1)
         quantized_2 = quantize(self.randomdata, 2)
         quantized_m1 = quantize(self.randomdata, -1)
+
         # assertLess is new in Python 2.7
         #self.assertLess(numpy.abs(quantized_0 - self.randomdata).max(), 0.5)
         #self.assertLess(numpy.abs(quantized_1 - self.randomdata).max(), 0.05)
@@ -2516,7 +2505,7 @@ class QuantizeTestCase(unittest.TestCase):
     def test02_array(self):
         """Checking quantized data as written to disk."""
 
-        self.h5file = open_file(self.file, "r")
+        self.h5file = tables.open_file(self.h5fname, "r")
         numpy.testing.assert_array_equal(self.h5file.root.data1[:], self.data)
         numpy.testing.assert_array_equal(self.h5file.root.data2[:], self.data)
         numpy.testing.assert_array_equal(self.h5file.root.data0[:],
@@ -2527,6 +2516,7 @@ class QuantizeTestCase(unittest.TestCase):
                                          self.randomints)
         self.assertEqual(self.h5file.root.integers[:].dtype,
                          self.randomints.dtype)
+
         # assertLess is new in Python 2.7
         #self.assertLess(
         #    numpy.abs(self.h5file.root.floats[:] - self.randomdata).max(),
@@ -2537,8 +2527,6 @@ class QuantizeTestCase(unittest.TestCase):
             0.05
         )
 
-
-#----------------------------------------------------------------------
 
 def suite():
     import doctest
@@ -2552,13 +2540,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(FiltersCase2))
         theSuite.addTest(unittest.makeSuite(FiltersCase10))
         theSuite.addTest(unittest.makeSuite(FiltersCaseBloscBloscLZ))
-        if 'lz4' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4))
-            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4HC))
-        if 'snappy' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscSnappy))
-        if 'zlib' in tables.blosc_compressor_list():
-            theSuite.addTest(unittest.makeSuite(FiltersCaseBloscZlib))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4HC))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscSnappy))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscZlib))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
         theSuite.addTest(unittest.makeSuite(CopyFileCase1))
@@ -2584,14 +2569,12 @@ def suite():
         theSuite.addTest(unittest.makeSuite(MpioDriverTestCase))
         theSuite.addTest(unittest.makeSuite(MpiPosixDriverTestCase))
         theSuite.addTest(unittest.makeSuite(StreamDriverTestCase))
-
-        if hdf5_version >= "1.8.9":
-            theSuite.addTest(unittest.makeSuite(InMemoryCoreDriverTestCase))
+        theSuite.addTest(unittest.makeSuite(InMemoryCoreDriverTestCase))
 
         theSuite.addTest(unittest.makeSuite(QuantizeTestCase))
 
     if common.heavy:
-        theSuite.addTest(unittest.makeSuite(createTestCase))
+        theSuite.addTest(unittest.makeSuite(CreateTestCase))
         theSuite.addTest(unittest.makeSuite(FiltersCase3))
         theSuite.addTest(unittest.makeSuite(FiltersCase4))
         theSuite.addTest(unittest.makeSuite(FiltersCase5))
@@ -2617,4 +2600,5 @@ def suite():
 
 
 if __name__ == '__main__':
+    common.print_versions()
     unittest.main(defaultTest='suite')

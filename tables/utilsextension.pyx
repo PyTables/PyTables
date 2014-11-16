@@ -35,7 +35,7 @@ from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp, strncmp, strlen
-from cpython.bytes cimport PyBytes_Check
+from cpython.bytes cimport PyBytes_Check, PyBytes_FromStringAndSize
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 
 from numpy cimport (import_array, ndarray, dtype,
@@ -69,7 +69,8 @@ from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   PyArray_Scalar, create_ieee_complex128, create_ieee_complex64,
   create_ieee_float16, create_ieee_complex192, create_ieee_complex256,
   get_len_of_range, get_order, herr_t, hid_t, hsize_t,
-  hssize_t, htri_t, is_complex, register_blosc, set_order)
+  hssize_t, htri_t, is_complex, register_blosc, set_order,
+  pt_H5free_memory)
 
 
 # Platform-dependent types
@@ -182,11 +183,6 @@ cdef extern from "utils.h":
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout,
                              hid_t *type_id, hid_t *dataset_id) nogil
 
-  # To access to the slice.indices functionality for long long ints
-  hssize_t getIndicesExt(object s, hsize_t length,
-                         hssize_t *start, hssize_t *stop, hssize_t *step,
-                         hsize_t *slicelength)
-
 
 # Functions from Blosc
 cdef extern from "blosc.h" nogil:
@@ -194,6 +190,7 @@ cdef extern from "blosc.h" nogil:
   int blosc_set_nthreads(int nthreads)
   char* blosc_list_compressors()
   int blosc_compcode_to_compname(int compcode, char **compname)
+  int blosc_get_complib_info(char *compname, char **complib, char **version)
 
 
 # @TODO: use the c_string_type and c_string_encoding global directives
@@ -213,6 +210,49 @@ cdef str cstr_to_pystr(const_char* cstring):
 # The NumPy API requires this function to be called before
 # using any NumPy facilities in an extension module.
 import_array()
+
+# NaN-aware sorting with NaN as the greatest element
+# numpy.isNaN only takes floats, this should work for strings too
+cpdef nan_aware_lt(a, b): return a < b or (b != b and a == a)
+cpdef nan_aware_le(a, b): return a <= b or b != b
+cpdef nan_aware_gt(a, b): return a > b or (a != a and b == b)
+cpdef nan_aware_ge(a, b): return a >= b or a != a
+
+def bisect_left(a, x, int lo=0):
+  """Return the index where to insert item x in list a, assuming a is sorted.
+
+  The return value i is such that all e in a[:i] have e < x, and all e in
+  a[i:] have e >= x.  So if x already appears in the list, i points just
+  before the leftmost x already there.
+
+  """
+
+  cdef int mid, hi = len(a)
+
+  lo = 0
+  while lo < hi:
+    mid = (lo+hi)/2
+    if nan_aware_lt(a[mid], x): lo = mid+1
+    else: hi = mid
+  return lo
+
+def bisect_right(a, x, int lo=0):
+  """Return the index where to insert item x in list a, assuming a is sorted.
+
+  The return value i is such that all e in a[:i] have e <= x, and all e in
+  a[i:] have e > x.  So if x already appears in the list, i points just
+  beyond the rightmost x already there.
+
+  """
+
+  cdef int mid, hi = len(a)
+
+  lo = 0
+  while lo < hi:
+    mid = (lo+hi)/2
+    if nan_aware_lt(x, a[mid]): hi = mid
+    else: lo = mid+1
+  return lo
 
 cdef register_blosc_():
   cdef char *version
@@ -480,7 +520,7 @@ cdef hid_t get_nested_native_type(hid_t type_id) nogil:
     # Release resources
     H5Tclose(native_tid)
     H5Tclose(member_type_id)
-    free(colname)
+    pt_H5free_memory(colname)
 
   # Correct the type size in case the memory type size is less
   # than the type in-disk (probably due to reading native HDF5
@@ -564,7 +604,7 @@ def encode_filename(object filename):
   if isinstance(filename, (unicode, numpy.str_)):
 #  if type(filename) is unicode:
     encoding = sys.getfilesystemencoding()
-    encname = filename.encode(encoding)
+    encname = filename.encode(encoding, 'replace')
   else:
     encname = filename
 
@@ -750,6 +790,32 @@ def blosc_compcode_to_compname_(compcode):
   return compname.decode()
 
 
+def blosc_get_complib_info_():
+  """Get info from compression libraries included in the current build
+  of blosc.
+
+  Returns a mapping containing the compressor names as keys and the
+  tuple (complib, version) as values.
+
+  """
+
+  cdef char *complib, *version
+
+  cinfo = {}
+  for name in blosc_list_compressors().split(b','):
+    ret = blosc_get_complib_info(name, &complib, &version)
+    if ret < 0:
+      continue
+    if isinstance(name, str):
+      cinfo[name] = (complib, version)
+    else:
+      cinfo[name.decode()] = (complib.decode(), version.decode())
+    free(complib)
+    free(version)
+
+  return cinfo
+
+
 def which_class(hid_t loc_id, object name):
   """Detects a class ID using heuristics."""
 
@@ -816,8 +882,8 @@ def which_class(hid_t loc_id, object name):
            (strcmp(field_name1, "r") == 0 and
             strcmp(field_name2, "i") == 0) ):
         iscomplex = True
-      free(<void *>field_name1)
-      free(<void *>field_name2)
+      pt_H5free_memory(<void *>field_name1)
+      pt_H5free_memory(<void *>field_name2)
     if layout == H5D_CHUNKED:
       if iscomplex:
         classId = "CARRAY"
@@ -879,24 +945,6 @@ def get_nested_field(recarray, fieldname):
 getNestedField = previous_api(get_nested_field)
 
 
-def get_indices(object start, object stop, object step, hsize_t length):
-  cdef hssize_t o_start, o_stop, o_step
-  cdef hsize_t slicelength
-  cdef object s
-
-  # In order to convert possible numpy.integer values to long ones
-  if start is not None: start = long(start)
-  if stop is not None: stop = long(stop)
-  if step is not None: step = long(step)
-  s = slice(start, stop, step)
-  if getIndicesExt(s, length, &o_start, &o_stop, &o_step, &slicelength) < 0:
-    raise ValueError("Problems getting the indices on slice '%s'" % s)
-  return (o_start, o_stop, o_step)
-
-
-getIndices = previous_api(get_indices)
-
-
 def read_f_attr(hid_t file_id, str attr_name):
   """Read PyTables file attributes (i.e. in root group).
 
@@ -922,13 +970,19 @@ def read_f_attr(hid_t file_id, str attr_name):
   if H5ATTRfind_attribute(file_id, c_attr_name):
     # Read the attr_name attribute
     size = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
-    if size > 0:
+    if size == 0:
       if cset == H5T_CSET_UTF8:
-        retvalue = PyUnicode_DecodeUTF8(attr_value, strlen(attr_value), NULL)
+        retvalue = numpy.unicode_(u'')
+      else:
+        retvalue = numpy.bytes_(b'')
+    else:
+      retvalue = <bytes>(attr_value).rstrip(b'\x00')
+      if cset == H5T_CSET_UTF8:
+        retvalue = retvalue.decode('utf-8')
         retvalue = numpy.str_(retvalue)
       else:
-        retvalue = attr_value
-        retvalue = numpy.bytes_(retvalue)
+        retvalue = numpy.bytes_(retvalue)     # bytes
+
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
       free(attr_value)
@@ -1032,7 +1086,7 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
 
     pyename = cstr_to_pystr(ename)
 
-    free(ename)
+    pt_H5free_memory(ename)
 
     if H5Tget_member_value(enumId, i, rbuf) < 0:
       raise HDF5ExtError(
@@ -1221,7 +1275,7 @@ def hdf5_to_np_nested_type(hid_t type_id):
 
     # Release resources
     H5Tclose(member_type_id)
-    free(c_colname)
+    pt_H5free_memory(c_colname)
 
   return desc
 

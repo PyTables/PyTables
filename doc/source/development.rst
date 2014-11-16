@@ -32,8 +32,6 @@ Other resources for developers:
 
   - `master <http://hudson.openmicroscopy.org.uk/job/PyTables>`_ branch at
     OME_
-  - `develop <https://jenkins.shiningpanda.com/pytables/>`_ branch at
-    `Shining Panda`_
   - `all branches <https://travis-ci.org/PyTables/PyTables>`_ on `Travis-CI`_
 
 * `Old trac site <http://www.pytables.org/trac-bck>`_

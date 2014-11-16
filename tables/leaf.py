@@ -401,24 +401,18 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         if warn_negstep and step and step < 0:
             raise ValueError("slice step cannot be negative")
-        # (start, stop, step) = slice(start, stop, step).indices(nrows)
-        # The next function is a substitute for slice().indices in order to
-        # support full 64-bit integer for slices even in 32-bit machines.
-        # F. Alted 2005-05-08
-        start, stop, step = utilsextension.get_indices(start, stop, step,
-                                                       long(nrows))
-        return (start, stop, step)
+
+        #if start is not None: start = long(start)
+        #if stop is not None: stop = long(stop)
+        #if step is not None: step = long(step)
+
+        return slice(start, stop, step).indices(long(nrows))
 
     _processRange = previous_api(_process_range)
 
-    # This method is appropiate for calls to read() methods
+    # This method is appropriate for calls to read() methods
     def _process_range_read(self, start, stop, step, warn_negstep=True):
         nrows = self.nrows
-        if start is None and stop is None:
-        #if start is None and stop is None and step is None:
-            start = 0
-            stop = nrows
-            #step = 1
         if start is not None and stop is None and step is None:
             # Protection against start greater than available records
             # nrows == 0 is a special case for empty objects
@@ -563,6 +557,14 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:
                 # For 1-dimensional datasets
                 coords = numpy.asarray(key, dtype="i8")
+
+            # handle negative indices
+            idx = coords < 0
+            coords[idx] = (coords + self.shape)[idx]
+
+            # bounds check
+            if numpy.any(coords < 0) or numpy.any(coords >= self.shape):
+                raise IndexError("Index out of bounds")
         else:
             raise TypeError("Only integer coordinates allowed.")
         # We absolutely need a contiguous array

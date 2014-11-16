@@ -18,4 +18,5 @@ functionality.
 
 """
 
-from tables.tests.test_all import print_versions, test, suite
+from tables.tests.common import print_versions
+from tables.tests.test_all import test, suite
