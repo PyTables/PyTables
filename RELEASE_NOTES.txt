@@ -21,6 +21,8 @@ Improvements
 - Now :program:`ptrepack` recognizes hardlinks and replicates them in the
   output (*repacked*) file. This saves disk space and makes repacked files
   more conformal to the original one. Closes :issue:`380`.
+- New :program:`pttree` script for printing HDF5 file contents as a pretty
+  ASCII tree (closes :issue:`400`). Thanks to Alistair Muldal.
 - The internal Blosc_ library has been updated to version 1.4.0.
   It includes a couple of security fixes and support for architectures
   requiring strict access alignment.
