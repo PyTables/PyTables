@@ -3,7 +3,7 @@
 # Small script to check the example repository quickly
 
 # CONFIGURATION - interpreter to use
-PYTHON=python2.7
+PYTHON=python
 
 # exit on non-zero return status
 set -e
