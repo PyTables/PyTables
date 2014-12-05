@@ -243,7 +243,7 @@ print("Third modif-->", pressureObject[:])
 print("name array")
 nameObject = h5file.root.columns.name
 print("Before modif-->", nameObject[:])
-nameObject[0] = 'Particle:   None'
+nameObject[0] = ['Particle:   None']
 print("First modif-->", nameObject[:])
 nameObject[1:3] = ['Particle:      0', 'Particle:      1']
 print("Second modif-->", nameObject[:])

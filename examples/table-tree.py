@@ -64,7 +64,7 @@ table.flush()
 
 # Get actual data from table. We are interested in column pressure.
 pressure = [p['pressure'] for p in table.iterrows()]
-print("Last record ==>", p)
+print("Last record ==>", pressure)
 print("Column pressure ==>", np.array(pressure))
 print("Total records in table ==> ", len(pressure))
 print()
