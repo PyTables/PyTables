@@ -73,10 +73,11 @@ print('-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-')
 
 # Read actual data from table. We are interested in collecting pressure values
 # on entries where TDCcount field is greater than 3 and pressure less than 50
-pressure = [x['pressure'] for x in table.iterrows()
-            if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50]
+xs = [x for x in table.iterrows()
+      if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50]
+pressure = [x['pressure'] for x in xs ]
 print("Last record read:")
-print(repr(x))
+print(repr(xs[-1]))
 print("Field pressure elements satisfying the cuts:")
 print(repr(pressure))
 
