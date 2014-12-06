@@ -316,7 +316,7 @@ class SoftLink(linkextension.SoftLink, Link):
             closed = ""
         else:
             closed = "closed "
-        if self.is_dangling():
+        if target not in self._v_file:
             dangling = " (dangling)"
         else:
             dangling = ""

@@ -14,6 +14,7 @@
 
 from __future__ import print_function
 import os
+import re
 import tempfile
 
 import tables
@@ -24,6 +25,10 @@ from tables.tests.common import PyTablesTestCase as TestCase
 
 # Test for hard links
 class HardLinkTestCase(common.TempFileMixin, TestCase):
+
+    def setUp(self):
+        super(HardLinkTestCase, self).setUp()
+        self._createFile()
 
     def _createFile(self):
         self.h5file.create_array('/', 'arr1', [1, 2])
@@ -39,7 +44,6 @@ class HardLinkTestCase(common.TempFileMixin, TestCase):
     def test00_create(self):
         """Creating hard links."""
 
-        self._createFile()
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.lgroup1,
                                  hardlink=True)
@@ -53,7 +57,6 @@ class HardLinkTestCase(common.TempFileMixin, TestCase):
     def test01_open(self):
         """Opening a file with hard links."""
 
-        self._createFile()
         self._reopen()
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.lgroup1,
@@ -68,7 +71,6 @@ class HardLinkTestCase(common.TempFileMixin, TestCase):
     def test02_removeLeaf(self):
         """Removing a hard link to a Leaf."""
 
-        self._createFile()
         # First delete the initial link
         self.h5file.root.arr1.remove()
         self.assertTrue('/arr1' not in self.h5file)
@@ -83,7 +85,6 @@ class HardLinkTestCase(common.TempFileMixin, TestCase):
     def test03_removeGroup(self):
         """Removing a hard link to a Group."""
 
-        self._createFile()
         if common.verbose:
             print("Original object tree:", self.h5file)
         # First delete the initial link
@@ -104,6 +105,10 @@ class HardLinkTestCase(common.TempFileMixin, TestCase):
 # Test for soft links
 class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
+    def setUp(self):
+        super(SoftLinkTestCase, self).setUp()
+        self._createFile()
+
     def _createFile(self):
         self.h5file.create_array('/', 'arr1', [1, 2])
         group1 = self.h5file.create_group('/', 'group1')
@@ -117,7 +122,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
     def test00_create(self):
         """Creating soft links."""
-        self._createFile()
+
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.lgroup1())
         self._checkEqualityLeaf(self.h5file.root.arr1,
@@ -128,7 +133,6 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
     def test01_open(self):
         """Opening a file with soft links."""
 
-        self._createFile()
         self._reopen()
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.lgroup1())
@@ -140,7 +144,6 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
     def test02_remove(self):
         """Removing a soft link."""
 
-        self._createFile()
         # First delete the referred link
         self.h5file.root.arr1.remove()
         self.assertTrue('/arr1' not in self.h5file)
@@ -155,7 +158,6 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
     def test03_copy(self):
         """Copying a soft link."""
 
-        self._createFile()
         # Copy the link into another location
         root = self.h5file.root
         lgroup1 = root.lgroup1
@@ -174,7 +176,6 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
     def test03_overwrite(self):
         """Overwrite a soft link."""
 
-        self._createFile()
         # Copy the link into another location
         root = self.h5file.root
         lgroup1 = root.lgroup1
@@ -194,7 +195,6 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
     def test04_move(self):
         """Moving a soft link."""
 
-        self._createFile()
         # Move the link into another location
         lgroup1 = self.h5file.root.lgroup1
         group2 = self.h5file.create_group('/', 'group2')
@@ -210,7 +210,6 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
     def test05_rename(self):
         """Renaming a soft link."""
 
-        self._createFile()
         # Rename the link
         lgroup1 = self.h5file.root.lgroup1
         lgroup1.rename('lgroup2')
@@ -225,7 +224,6 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
     def test06a_relative_path(self):
         """Using soft links with relative paths."""
 
-        self._createFile()
         # Create new group
         self.h5file.create_group('/group1', 'group3')
         # ... and relative link
@@ -240,7 +238,6 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
     def test06b_relative_path(self):
         """Using soft links with relative paths (./ version)"""
 
-        self._createFile()
         # Create new group
         self.h5file.create_group('/group1', 'group3')
         # ... and relative link
@@ -255,7 +252,6 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
     def test07_walkNodes(self):
         """Checking `walk_nodes` with `classname` option."""
 
-        self._createFile()
         links = [node._v_pathname for node in
                  self.h5file.walk_nodes('/', classname="Link")]
         if common.verbose:
@@ -270,7 +266,6 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
     def test08__v_links(self):
         """Checking `Group._v_links`."""
 
-        self._createFile()
         links = [node for node in self.h5file.root._v_links]
         if common.verbose:
             print("detected links (under root):", links)
@@ -282,7 +277,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
     def test09_link_to_link(self):
         """Checking linked links."""
-        self._createFile()
+
         # Create a link to another existing link
         lgroup2 = self.h5file.create_soft_link(
             '/', 'lgroup2', '/lgroup1')
@@ -297,7 +292,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
     def test10_copy_link_to_file(self):
         """Checking copying a link to another file."""
-        self._createFile()
+
         fname = tempfile.mktemp(".h5")
         h5f = tables.open_file(fname, "a")
         h5f.create_array('/', 'arr1', [1, 2])
@@ -314,7 +309,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
     def test11_direct_attribute_access(self):
         """Check direct get/set attributes via link-->target.attribute"""
-        self._createFile()
+
         larr1 = self.h5file.get_node('/lgroup1/larr1')
         arr1 = self.h5file.get_node('/arr1')
         # get
@@ -326,7 +321,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
     def test12_access_child_node_attributes(self):
         """Check get/set attributes via link-->target.child.attribute"""
-        self._createFile()
+
         lgroup1 = self.h5file.get_node('/lgroup1')
         arr2 = self.h5file.get_node('/group1/arr2')
         # get child attribute
@@ -337,7 +332,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
     def test13_direct_attribute_access_via_chained_softlinks(self):
         """Check get/set access via link2-->link1-->target.child.attribute"""
-        self._createFile()
+
         lgroup1 = self.h5file.get_node('/lgroup1')
         arr2 = self.h5file.get_node('/group1/arr2')
         # multiple chained links
@@ -347,6 +342,17 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         # set child attribute
         l_lgroup1.arr2[0] = -1
         self.assertTrue(arr2[:] == [-1, 2, 3])
+
+    def test_str(self):
+        s = str(self.h5file)
+        self.assertEqual(len(re.findall('\(SoftLink\)', s)), 3)
+        self.assertEqual(len(re.findall('\(dangling\)', s)), 0)
+
+    def test_str_with_dangling_link(self):
+        self.h5file.root.group1.arr2.remove()
+        s = str(self.h5file)
+        self.assertEqual(len(re.findall('\(SoftLink\)', s)), 3)
+        self.assertEqual(len(re.findall('\(dangling\)', s)), 1)
 
 
 # Test for external links
