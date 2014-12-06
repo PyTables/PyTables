@@ -45,17 +45,23 @@ heavy = False
 show_memory = False
 """Show the progress of memory consumption."""
 
-if 'verbose' in sys.argv:
-    verbose = True
-    sys.argv.remove('verbose')
 
-if 'silent' in sys.argv:  # take care of old flag, just in case
-    verbose = False
-    sys.argv.remove('silent')
+def parse_argv(argv):
+    global verbose, heavy
 
-if '--heavy' in sys.argv:
-    heavy = True
-    sys.argv.remove('--heavy')
+    if 'verbose' in argv:
+        verbose = True
+        argv.remove('verbose')
+
+    if 'silent' in argv:  # take care of old flag, just in case
+        verbose = False
+        argv.remove('silent')
+
+    if '--heavy' in argv:
+        heavy = True
+        argv.remove('--heavy')
+
+    return argv
 
 
 zlib_avail = tables.which_lib_version("zlib") is not None

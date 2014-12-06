@@ -110,6 +110,8 @@ def test(verbose=False, heavy=False):
 
 if __name__ == '__main__':
 
+    common.parse_argv(sys.argv)
+
     hdf5_version = get_tuple_version(tables.which_lib_version("hdf5")[0])
     if hdf5_version < min_hdf5_version:
         print("*Warning*: HDF5 version is lower than recommended: %s < %s" %

@@ -1404,5 +1404,6 @@ def suite():
 
 
 if __name__ == '__main__':
+    common.parse_argv(sys.argv)
     common.print_versions()
     unittest.main(defaultTest='suite')
