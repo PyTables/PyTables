@@ -2,7 +2,13 @@
 queues."""
 
 from __future__ import print_function
-import Queue as queue
+import sys
+
+if sys.version < '3':
+    import Queue as queue
+else:
+    import queue
+
 import multiprocessing
 import os
 import random
