@@ -85,7 +85,6 @@ option(PREFER_EXTERNAL_COMPLIBS
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-
 if(NOT PREFER_EXTERNAL_COMPLIBS)
     message(STATUS "Finding external libraries disabled.  Using internal sources.")
 endif(NOT PREFER_EXTERNAL_COMPLIBS)
@@ -154,6 +153,12 @@ if(MSVC)
     if(NOT CMAKE_C_FLAGS)
         set(CMAKE_C_FLAGS "/Ox" CACHE STRING "C flags." FORCE)
     endif(NOT CMAKE_C_FLAGS)
+
+    # Turn off misguided "secure CRT" warnings in MSVC.
+    # Microsoft wants people to use the MS-specific <function>_s
+    # versions of certain C functions but this is difficult to do
+    # in platform-independent code.
+    add_definitions( -D_CRT_SECURE_NO_WARNINGS )
 endif(MSVC)
 
 if(WIN32)

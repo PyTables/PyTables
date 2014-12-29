@@ -6,6 +6,17 @@ set(SOURCES bench.c)
 add_executable(bench ${SOURCES})
 target_link_libraries(bench blosc_shared)
 
+# have to copy blosc dlls for Visual Studio
+if(MSVC)
+    add_custom_command(
+        TARGET      bench
+        POST_BUILD
+        COMMAND     ${CMAKE_COMMAND}
+        ARGS        -E copy_if_different
+                    "${PROJECT_BINARY_DIR}/blosc/\$\(Configuration\)/blosc.dll"
+                    "${CMAKE_CURRENT_BINARY_DIR}/\$\(Configuration\)/blosc.dll")
+endif(MSVC)
+
 
 # tests
 if(BUILD_TESTS)

@@ -105,7 +105,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     size_t nelements = 8;
     unsigned int values[] = {0,0,0,0,0,0,0,0};
     hid_t super_type;
-    H5T_class_t class;
+    H5T_class_t classt;
 
     r = GET_FILTER(dcpl, FILTER_BLOSC, &flags, &nelements, values, 0, NULL);
     if(r<0) return -1;
@@ -126,8 +126,8 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     typesize = H5Tget_size(type);
     if (typesize==0) return -1;
     /* Get the size of the base type, even for ARRAY types */
-    class = H5Tget_class(type);
-    if (class == H5T_ARRAY) {
+    classt = H5Tget_class(type);
+    if (classt == H5T_ARRAY) {
       /* Get the array base component */
       super_type = H5Tget_super(type);
       basetypesize = H5Tget_size(super_type);
@@ -157,6 +157,9 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
 
     r = H5Pmodify_filter(dcpl, FILTER_BLOSC, flags, nelements, values);
     if(r<0) return -1;
+
+    /* Initialize Blosc */
+    blosc_init();
 
     return 1;
 }
