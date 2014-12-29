@@ -2096,6 +2096,7 @@ def _worker(fn, qout=None):
 #
 #  on kfreebsd /dev/shm is N/A
 #  on Hurd -- inter-process semaphore locking is N/A
+@unittest.skip('temporary disabled')
 @unittest.skipIf(not multiprocessing_imported,
                  'multiprocessing module not available')
 @unittest.skipIf(platform.system().lower() in ('gnu', 'gnu/kfreebsd'),
