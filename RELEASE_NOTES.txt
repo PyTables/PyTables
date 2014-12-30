@@ -23,9 +23,12 @@ Improvements
   more conformal to the original one. Closes :issue:`380`.
 - New :program:`pttree` script for printing HDF5 file contents as a pretty
   ASCII tree (closes :issue:`400`). Thanks to Alistair Muldal.
-- The internal Blosc_ library has been updated to version 1.5.1.
-  It includes a couple of security fixes and support for architectures
-  requiring strict access alignment.
+- The internal Blosc_ library has been updated to version 1.5.2.
+  In order to fix a threading issue in multiprocess scenarios (see
+  :issue:`411` and :issue:`412`) now the Blosc_ HDF5 filter only uses one
+  thread. This limitation will be removed as soon as possible.
+  The new version of Blosc_ also includes a couple of security fixes and
+  support for architectures requiring strict access alignment.
 - The :func:`print_versions` function now also reports the version of
   compression libraries used by blosc
 - Now the :file:`setup.py` tries to use the '-march=native' C flag by
