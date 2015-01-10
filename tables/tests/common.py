@@ -87,9 +87,9 @@ def print_versions():
     """Print all the versions of software that PyTables relies on."""
 
     print('-=' * 38)
-    print("PyTables version:  %s" % tables.__version__)
-    print("HDF5 version:      %s" % tables.which_lib_version("hdf5")[1])
-    print("NumPy version:     %s" % numpy.__version__)
+    print("PyTables version:    %s" % tables.__version__)
+    print("HDF5 version:        %s" % tables.which_lib_version("hdf5")[1])
+    print("NumPy version:       %s" % numpy.__version__)
     tinfo = tables.which_lib_version("zlib")
     if numexpr.use_vml:
         # Get only the main version number and strip out all the rest
@@ -98,39 +98,40 @@ def print_versions():
         vml_avail = "using VML/MKL %s" % vml_version
     else:
         vml_avail = "not using Intel's VML/MKL"
-    print("Numexpr version:   %s (%s)" % (numexpr.__version__, vml_avail))
+    print("Numexpr version:     %s (%s)" % (numexpr.__version__, vml_avail))
     if tinfo is not None:
-        print("Zlib version:      %s (%s)" % (tinfo[1],
-                                              "in Python interpreter"))
+        print("Zlib version:        %s (%s)" % (tinfo[1],
+                                                "in Python interpreter"))
     tinfo = tables.which_lib_version("lzo")
     if tinfo is not None:
-        print("LZO version:       %s (%s)" % (tinfo[1], tinfo[2]))
+        print("LZO version:         %s (%s)" % (tinfo[1], tinfo[2]))
     tinfo = tables.which_lib_version("bzip2")
     if tinfo is not None:
-        print("BZIP2 version:     %s (%s)" % (tinfo[1], tinfo[2]))
+        print("BZIP2 version:       %s (%s)" % (tinfo[1], tinfo[2]))
     tinfo = tables.which_lib_version("blosc")
     if tinfo is not None:
         blosc_date = tinfo[2].split()[1]
-        print("Blosc version:     %s (%s)" % (tinfo[1], blosc_date))
+        print("Blosc version:       %s (%s)" % (tinfo[1], blosc_date))
         blosc_cinfo = tables.blosc_get_complib_info()
         blosc_cinfo = [
             "%s (%s)" % (k, v[1]) for k, v in sorted(blosc_cinfo.items())
         ]
-        print("Blosc compressors: %s" % ', '.join(blosc_cinfo))
+        print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
     try:
         from Cython import __version__ as cython_version
-        print('Cython version:    %s' % cython_version)
+        print('Cython version:      %s' % cython_version)
     except:
         pass
-    print('Python version:    %s' % sys.version)
-    print('Platform:          %s' % platform.platform())
+    print('Python version:      %s' % sys.version)
+    print('Platform:            %s' % platform.platform())
     #if os.name == 'posix':
     #    (sysname, nodename, release, version, machine) = os.uname()
     #    print('Platform:          %s-%s' % (sys.platform, machine))
-    print('Byte-ordering:     %s' % sys.byteorder)
-    print('Detected cores:    %s' % detect_number_of_cores())
-    print('Default encoding:  %s' % sys.getdefaultencoding())
-    print('Default locale:    (%s, %s)' % locale.getdefaultlocale())
+    print('Byte-ordering:       %s' % sys.byteorder)
+    print('Detected cores:      %s' % detect_number_of_cores())
+    print('Default encoding:    %s' % sys.getdefaultencoding())
+    print('Default FS encoding: %s' % sys.getfilesystemencoding())
+    print('Default locale:      (%s, %s)' % locale.getdefaultlocale())
     print('-=' * 38)
 
     # This should improve readability whan tests are run by CI tools
