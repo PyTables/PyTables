@@ -267,25 +267,24 @@ cdef register_blosc_():
   else:
     return compinfo
 
-# The version of the blosc compression library that is currently included in
-# PyTables relies on unaligned memory access, so it is not functional on some
+blosc_version = register_blosc_()
+# Old versions (<1.4) of the blosc compression library
+# rely on unaligned memory access, so they are not functional on some
 # platforms (see https://github.com/FrancescAlted/blosc/issues/3 and
 # http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=661286).
-# This function detects if blosc can work correctly on the current platform.
 # This function has been written by Julian Taylor <jtaylor@ubuntu.com>.
 def _arch_without_blosc():
     import platform
     arch = platform.machine().lower()
-    for a in ["arm", "sparc", "mips"]:
+    for a in ("arm", "sparc", "mips", "aarch64"):
         if a in arch:
             return True
     return False
 
-# Only register bloc compressor on platforms that actually support it.
-if _arch_without_blosc():
+if blosc_version < ('1', '4') and _arch_without_blosc():
+    # Only use bloc compressor on platforms that actually support it.
     blosc_version = None
 else:
-    blosc_version = register_blosc_()
     blosc_init()  # from 1.2 on, Blosc library must be initialized
 
 
