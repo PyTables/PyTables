@@ -452,6 +452,14 @@ cdef extern from "hdf5.h" nogil:
   # Onject interface
   herr_t H5Oget_info(hid_t object_id, H5O_info_t *object_info)
 
+  # Operations with filters and compression interface
+  ctypedef int H5Z_filter_t
+
+  #herr_t H5Zregister(const void *cls)
+  herr_t H5Zunregister(H5Z_filter_t id)
+  #htri_t H5Zfilter_avail(H5Z_filter_t id)
+  #herr_t H5Zget_filter_info(H5Z_filter_t, unsigned int*)
+
 
 # Specific HDF5 functions for PyTables
 cdef extern from "H5ATTR.h" nogil:
@@ -527,3 +535,4 @@ cdef extern from "typeconv.h" nogil:
 # Blosc registration
 cdef extern from "blosc_filter.h" nogil:
   int register_blosc(char **version, char **date)
+  int FILTER_BLOSC

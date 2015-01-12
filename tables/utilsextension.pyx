@@ -66,6 +66,7 @@ from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   H5Tget_native_type, H5Tget_nmembers, H5Tget_offset, H5Tget_order,
   H5Tget_precision, H5Tget_sign, H5Tget_size, H5Tget_super, H5Tinsert,
   H5Tis_variable_str, H5Tpack, H5Tset_precision, H5Tset_size, H5Tvlen_create,
+  H5Zunregister, FILTER_BLOSC,
   PyArray_Scalar, create_ieee_complex128, create_ieee_complex64,
   create_ieee_float16, create_ieee_complex192, create_ieee_complex256,
   get_len_of_range, get_order, herr_t, hid_t, hsize_t,
@@ -268,24 +269,26 @@ cdef register_blosc_():
     return compinfo
 
 blosc_version = register_blosc_()
+
 # Old versions (<1.4) of the blosc compression library
 # rely on unaligned memory access, so they are not functional on some
 # platforms (see https://github.com/FrancescAlted/blosc/issues/3 and
 # http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=661286).
 # This function has been written by Julian Taylor <jtaylor@ubuntu.com>.
 def _arch_without_blosc():
-    import platform
-    arch = platform.machine().lower()
-    for a in ("arm", "sparc", "mips", "aarch64"):
-        if a in arch:
-            return True
-    return False
+  import platform
+  arch = platform.machine().lower()
+  for a in ("arm", "sparc", "mips", "aarch64"):
+    if a in arch:
+      return True
+  return False
 
-if blosc_version < ('1', '4') and _arch_without_blosc():
-    # Only use bloc compressor on platforms that actually support it.
-    blosc_version = None
+if blosc_version and blosc_version < ('1', '4') and _arch_without_blosc():
+  # Only use bloc compressor on platforms that actually support it.
+  H5Zunregister(FILTER_BLOSC)
+  blosc_version = None
 else:
-    blosc_init()  # from 1.2 on, Blosc library must be initialized
+  blosc_init()  # from 1.2 on, Blosc library must be initialized
 
 
 # Important: Blosc calls that modifies global variables in Blosc must be
