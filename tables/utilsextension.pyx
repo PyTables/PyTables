@@ -276,7 +276,7 @@ blosc_version = register_blosc_()
 def _arch_without_blosc():
     import platform
     arch = platform.machine().lower()
-    for a in ("arm", "sparc", "mips"):
+    for a in ("arm", "sparc", "mips", "aarch64"):
         if a in arch:
             return True
     return False
