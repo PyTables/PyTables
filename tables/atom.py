@@ -257,7 +257,7 @@ class Atom(object):
     you will need when writing your code. Otherwise, you may use one
     of the Atom.from_*() factory Methods.
 
-    .. rubric:: Arom attributes
+    .. rubric:: Atom attributes
 
     .. attribute:: dflt
 
