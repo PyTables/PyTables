@@ -161,8 +161,8 @@ class AttributeSet(hdf5extension.AttributeSet, object):
     __delitem__() methods are available, so you may write things like
     this::
 
-        for name in :attr:`Node._v_attrs`._f_list():
-            print("name: %s, value: %s" % (name, :attr:`Node._v_attrs`[name]))
+        for name in node._v_attrs._f_list():
+            print("name: %s, value: %s" % (name, node._v_attrs[name]))
 
     Use whatever idiom you prefer to access the attributes.
 
