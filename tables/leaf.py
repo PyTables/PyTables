@@ -364,7 +364,10 @@ class Leaf(Node):
         # Compute the nrowsinbuf
         rowsize = self.rowsize
         buffersize = params['IO_BUFFER_SIZE']
-        nrowsinbuf = buffersize // rowsize
+        if rowsize != 0:
+            nrowsinbuf = buffersize // rowsize
+        else:
+            nrowsinbuf = 1
 
         # tableextension.pyx performs an assertion
         # to make sure nrowsinbuf is greater than or
