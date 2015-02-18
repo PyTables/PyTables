@@ -22,7 +22,7 @@ You can also, find more information by reading the PyTables :doc:`FAQ`.
 PyTables development is a continuing effort and we are always looking for
 more developers, testers, and users.  If you are interested in being
 involved with this project, please contact us via `github`_ or the
-mailing list.
+`mailing list`_.
 
 
 --------
@@ -53,3 +53,4 @@ Helpful Links
 
 
 .. _github: https://github.com/PyTables/PyTables
+.. _`mailing list`: https://groups.google.com/group/pytables-users
