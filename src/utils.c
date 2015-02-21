@@ -244,12 +244,15 @@ out:
 ****************************************************************/
 int get_objinfo(hid_t loc_id, const char *name) {
   herr_t     ret;            /* Generic return value         */
-  H5O_info_t oinfo;
+  H5G_stat_t oinfo;
+  /* H5O_info_t oinfo; H5Oget_info_by_name seems to have performance issues (see gh-402) */
 
   /* Get type of the object, without emiting an error in case the
      node does not exist. */
   H5E_BEGIN_TRY {
-    ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);
+    ret = H5Gget_objinfo(loc_id, name, FALSE, &oinfo);
+    /* H5Oget_info_by_name seems to have performance issues (see gh-402) */
+    /*ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);*/
   } H5E_END_TRY;
   if (ret < 0)
     return -2;
@@ -285,7 +288,8 @@ herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
   PyObject   **out_info=(PyObject **)data;
   PyObject   *strname;
   herr_t     ret;
-  H5O_info_t oinfo;
+  H5G_stat_t oinfo;
+  /*H5O_info_t oinfo; H5Oget_info_by_name seems to have performance issues (see gh-402) */
   int        namedtypes = 0;
 
   strname = PyString_FromString(name);
@@ -300,9 +304,36 @@ herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
       break;
     case H5L_TYPE_HARD:
       /* Get type of the object and check it */
+      ret = H5Gget_objinfo(loc_id, name, FALSE, &oinfo);
+      if (ret < 0)
+        return -1;
+
+      switch(oinfo.type) {
+        case H5G_GROUP:
+          PyList_Append(out_info[0], strname);
+          break;
+        case H5G_DATASET:
+          PyList_Append(out_info[1], strname);
+          break;
+        case H5G_TYPE:
+          ++namedtypes;
+          break;
+        case H5G_UNKNOWN:
+          PyList_Append(out_info[3], strname);
+          break;
+        case H5G_LINK:
+          /* should not happen */
+          PyList_Append(out_info[2], strname);
+          break;
+        default:
+          /* should not happen: assume it is an external link */
+          PyList_Append(out_info[2], strname);
+      }
+
+      /* H5Oget_info_by_name seems to have performance issues (see gh-402)
       ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);
       if (ret < 0)
-          return -1;
+        return -1;
 
       switch(oinfo.type) {
         case H5O_TYPE_GROUP:
@@ -318,9 +349,10 @@ herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
           PyList_Append(out_info[3], strname);
           break;
         default:
-          /* should not happen */
+          / * should not happen * /
           PyList_Append(out_info[3], strname);
       }
+      */
       break;
     default:
       /* should not happen */

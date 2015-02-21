@@ -98,6 +98,7 @@ Bugs fixed
 - Fix :meth:`Column.create_csindex` when there's NaNs
 - Fixed handling of unicode file names on windows (closes :issue:`389`)
 - No longer not modify :data:`sys.argv` at import time (closes :issue:`405`)
+- Fix a performance issue on NFS (closes :issue:`402`)
 
 
 Other changes

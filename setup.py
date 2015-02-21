@@ -486,7 +486,9 @@ CFLAGS.extend([
     #"-DH5Topen_vers=2",
     "-DH5Z_class_t_vers=2",
 ])
-CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
+# H5Oget_info_by_name seems to have performance issues (see gh-402), so we
+# need to use teh deprecated H5Gget_objinfo function
+# CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
 
 # Do not use numpy deprecated API
 #CFLAGS.append("-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
