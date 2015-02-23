@@ -343,6 +343,15 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         l_lgroup1.arr2[0] = -1
         self.assertTrue(arr2[:] == [-1, 2, 3])
 
+    def test14_child_of_softlink_to_group(self):
+        """Create an array whose parent is a softlink to another group"""
+
+        group1 = self.h5file.get_node('/group1')
+        lgroup1 = self.h5file.get_node('/lgroup1')
+        new_arr = self.h5file.create_array(lgroup1, 'new_arr', obj=[1, 2, 3])
+        new_arr2 = self.h5file.get_node('/group1/new_arr')
+        self.assertTrue(new_arr2[:] == [1, 2, 3])
+
     def test_str(self):
         s = str(self.h5file)
         self.assertEqual(len(re.findall('\(SoftLink\)', s)), 3)
