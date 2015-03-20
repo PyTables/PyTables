@@ -204,6 +204,10 @@ class Node(object):
         # Remember to assign these values in the root group constructor
         # as it does not use this method implementation!
 
+        # if the parent node is a softlink, dereference it
+        if isinstance(parentnode, class_name_dict['SoftLink']):
+            parentnode = parentnode.dereference()
+
         self._v_file = None
         """The hosting File instance (see :ref:`FileClassDescr`)."""
 
