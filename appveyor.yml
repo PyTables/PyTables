@@ -1,13 +1,10 @@
 environment:
-  # See README for information on the token
-  binstar_token:
-    secure: EPnqw5UAitLbpf3dVQS0VtouUoQ2Ph5BAfKquUk2EZJpP97yHzBQi3S6WX0x5GR0
 
   global:
     # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
     # /E:ON and /V:ON options are not enabled in the batch script intepreter
     # See: http://stackoverflow.com/a/13751649/163740
-    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\continuous-integration\\appveyor\\run_with_env.cmd"
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci\\appveyor\\run_with_env.cmd"
 
   matrix:
     - PYTHON: "C:\\Python27_32"
@@ -37,33 +34,13 @@ environment:
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
-  - powershell .\\continuous-integration\\appveyor\\install.ps1
+  - powershell .\\ci\\appveyor\\install.ps1
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
 build: false
 
 test_script:
-  # Build and test the package. This appears(?) to sporadically fail due to a 
-  # bug in conda-build on 32 bit python.
-  # https://github.com/conda/conda-build/issues/152
-  #
-  # Note also that our setup.py script, which is called by conda-build, writes
-  # a __conda_version__.txt file, so the version number on the binary package
-  # is set dynamically. This unfortunately mean that conda build --output
-  # doesn't really work.
-  #
-  - "%CMD_IN_ENV% conda build conda-recipe --quiet"
-  # Move the conda package into the current directory, to register it
-  # as an "artifact" for Appveyor. cmd.exe does't have good globbing, so
-  # we'll use a simple python script.
-  - python continuous-integration\move-conda-package.py conda-recipe
-
-artifacts:
-  # Archive the generated conda package in the ci.appveyor.com build report.
-  - path: '*.tar.bz2'
-
-on_success:
-  # Upload built binaries to binstar.org. The globbing and handling of the
-  # exit-status code is tricky in cmd.exe or powershell, so we're just using
-  # a python script.
-  - python continuous-integration\binstar-push.py
+  - "%CMD_IN_ENV% conda install hdf5"
+  - "%CMD_IN_ENV% pip install -r requirements.txt"
+  - "%CMD_IN_ENV% pip install unittest2"
+  - "%CMD_IN_ENV% coverage run tables\\tests\\test_all.py --verbose"
