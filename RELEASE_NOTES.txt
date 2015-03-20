@@ -14,6 +14,8 @@ Changes from 3.1.1 to 3.1.2
 Improvements
 ------------
 
+- It is now possible to create a new node whose parent is a softlink to another
+  group (see :issue:`422`). Thanks to Alistair Muldal.
 - :class:`link.SoftLink` objects no longer need to be explicitly dereferenced.
   Methods and attributes of the linked object are now automatically accessed
   when the user acts on a soft-link (see :issue:`399`).
