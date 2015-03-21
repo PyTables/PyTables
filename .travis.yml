@@ -15,7 +15,6 @@ addons:
   apt_packages:
     - libhdf5-serial-dev
     - liblzo2-dev
-    - python3-numpy
 
 install:
   - pip install -r requirements.txt --use-mirrors
