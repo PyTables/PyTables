@@ -40,7 +40,7 @@ install:
 build: false
 
 test_script:
-  - "%CMD_IN_ENV% conda install hdf5"
+  - "%CMD_IN_ENV% conda install --yes hdf5"
   - "%CMD_IN_ENV% pip install -r requirements.txt"
   - "%CMD_IN_ENV% pip install unittest2"
   - "%CMD_IN_ENV% coverage run tables\\tests\\test_all.py --verbose"
