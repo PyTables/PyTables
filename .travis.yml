@@ -11,6 +11,7 @@ sudo: false
 
 addons:
   apt_packages:
+    - libbz2-dev
     - libhdf5-serial-dev
     - liblzo2-dev
 
