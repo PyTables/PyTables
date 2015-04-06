@@ -96,7 +96,7 @@ fairly simple to get things ready to go. Following are very simple
 instructions on how to proceed. However, more detailed instructions,
 including a section on binary installation for Windows users, is
 available in Chapter 2 of the User's Manual (``doc/usersguide.pdf`` or
-http://www.pytables.org/moin/HowToUse).
+http://pytables.github.io/usersguide/introduction.html).
 
 1. First, make sure that you have HDF5, NumPy and Numexpr installed
    (you will need at least HDF5 1.8.4, HDF5 >= 1.8.7 is strongly recommended,
