@@ -68,7 +68,7 @@ if sys.version_info >= (3,):
 # The minimum required versions
 min_numpy_version = None
 min_numexpr_version = None
-min_cython_version = 0.22
+min_cython_version = None
 min_hdf5_version = None
 min_python_version = (2, 6)
 exec(open(os.path.join('tables', 'req_versions.py')).read())
