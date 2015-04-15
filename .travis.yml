@@ -9,10 +9,16 @@ python:
   - 3.3
   - 3.4
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libhdf5-serial-dev liblzo2-dev libbz2-dev python3-numpy
-  - pip install -r requirements.txt --use-mirrors
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install -U unittest2 --use-mirrors; fi
+sudo: false
+
+addons:
+  apt_packages:
+    - libbz2-dev
+    - libhdf5-serial-dev
+    - liblzo2-dev
+
+install:
+  - pip install -r requirements.txt
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
 
 script: make check
