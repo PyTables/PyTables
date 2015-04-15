@@ -32,7 +32,14 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
   #include <windows.h>
-  #include "win32/stdint-windows.h"
+
+  /* stdint.h only available in VS2010 (VC++ 16.0) and newer */
+  #if defined(_MSC_VER) && _MSC_VER < 1600
+    #include "win32/stdint-windows.h"
+  #else
+    #include <stdint.h>
+  #endif
+
   #include <process.h>
   #define getpid _getpid
 #else
@@ -46,6 +53,11 @@
   #include "win32/pthread.c"
 #else
   #include <pthread.h>
+#endif
+
+/* If C11 is supported, use it's built-in aligned allocation. */
+#if __STDC_VERSION__ >= 201112L
+  #include <stdalign.h>
 #endif
 
 
@@ -186,7 +198,10 @@ static uint8_t *my_malloc(size_t size)
   void *block = NULL;
   int res = 0;
 
-#if defined(_WIN32)
+#if __STDC_VERSION__ >= 201112L
+  /* C11 aligned allocation. 'size' must be a multiple of the alignment. */
+  block = aligned_alloc(16, size);
+#elif defined(_WIN32)
   /* A (void *) cast needed for avoiding a warning with MINGW :-/ */
   block = (void *)_aligned_malloc(size, 16);
 #elif defined __APPLE__
@@ -1376,7 +1391,7 @@ static void *t_blosc(void *ctxt)
 
     if(context->parent_context->end_threads)
     {
-      return(NULL);
+      break;
     }
 
     /* Get parameters for this thread before entering the main loop */
@@ -1590,9 +1605,9 @@ int blosc_set_nthreads(int nthreads_new)
 {
   int ret = g_threads;
 
-  /* Check if should initialize (implementing previous 1.2.3 behaviour,
-     where calling blosc_set_nthreads was enough) */
-  if (!g_initlib) blosc_init();
+  /* Re-initialize Blosc */
+  blosc_destroy();
+  blosc_init();
 
   g_threads = nthreads_new;
 

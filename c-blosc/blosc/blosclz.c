@@ -20,7 +20,17 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
   #include <windows.h>
-  #include "win32/stdint-windows.h"
+
+  /* stdint.h only available in VS2010 (VC++ 16.0) and newer */
+  #if defined(_MSC_VER) && _MSC_VER < 1600
+    #include "win32/stdint-windows.h"
+  #else
+    #include <stdint.h>
+  #endif
+  /* llabs only available in VS2013 (VC++ 18.0) and newer */
+  #if defined(_MSC_VER) && _MSC_VER < 1800
+    #define llabs(v) abs(v)
+  #endif
 #else
   #include <stdint.h>
 #endif  /* _WIN32 */
@@ -112,7 +122,7 @@
 }
 
 #define SAFE_COPY(op, ref, len, op_limit)     \
-if (abs(op-ref) < CPYSIZE) {                  \
+if (llabs(op-ref) < CPYSIZE) {                \
   for(; len; --len)                           \
     *op++ = *ref++;                           \
 }                                             \
@@ -120,7 +130,7 @@ else BLOCK_COPY(op, ref, len, op_limit);
 
 /* Copy optimized for GCC 4.8.  Seems like long copy loops are optimal. */
 #define GCC_SAFE_COPY(op, ref, len, op_limit) \
-if ((len > 32) || (abs(op-ref) < CPYSIZE)) {  \
+if ((len > 32) || (llabs(op-ref) < CPYSIZE)) { \
   for(; len; --len)                           \
     *op++ = *ref++;                           \
 }                                             \

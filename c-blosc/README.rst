@@ -41,7 +41,7 @@ details.
 
 .. [1] http://www.blosc.org
 .. [2] http://blosc.org/docs/StarvingCPUs-CISE-2010.pdf
-.. [3] http://blosc.org/trac/wiki/SyntheticBenchmarks
+.. [3] http://blosc.org/synthetic-benchmarks.html
 
 Meta-compression and other advantages over existing compressors
 ===============================================================
@@ -80,7 +80,7 @@ Other advantages of Blosc are:
   nthreads) additional bytes over the source buffer length are needed
   to compress *every* input.
 
-* Maximum destination length: contrarily to many other
+* Maximum destination length: contrary to many other
   compressors, both compression and decompression routines have
   support for maximum size lengths for the destination buffer.
 
@@ -230,7 +230,7 @@ directories are. Also, make sure that Zlib DDL library is in your
 However, the full sources for LZ4, LZ4HC, Snappy and Zlib have been
 included in Blosc too. So, in general, you should not worry about not
 having (or CMake not finding) the libraries in your system because in
-this case, their sources will be automaticall compiled for you. That
+this case, their sources will be automatically compiled for you. That
 effectively means that you can be confident in having a complete
 support for all the supported compression libraries in all supported
 platforms.
@@ -291,28 +291,7 @@ http://groups.google.es/group/blosc
 Acknowledgments
 ===============
 
-I'd like to thank the PyTables community that have collaborated in the
-exhaustive testing of Blosc.  With an aggregate amount of more than
-300 TB of different datasets compressed *and* decompressed
-successfully, I can say that Blosc is pretty safe now and ready for
-production purposes.
-
-Other important contributions:
-
-* Valentin Haenel did a terrific work implementing the support for the
-  Snappy compression, fixing typos and improving docs and the plotting
-  script.
-
-* Thibault North, with ideas from Oscar Villellas, contributed a way
-  to call Blosc from different threads in a safe way.  Christopher
-  Speller introduced contexts so that a global lock is not necessary
-  anymore.
-
-* The CMake support was initially contributed by Thibault North, and
-  Antonio Valentino and Mark Wiebe made great enhancements to it.
-
-* Christopher Speller also introduced the two new '_ctx' calls to
-  avoid the use of the blosc_init() and blosc_destroy().
+See THANKS.rst.
 
 
 ----

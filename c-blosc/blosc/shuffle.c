@@ -14,7 +14,14 @@
 #if defined(_WIN32) && !defined(__MINGW32__)
   #include <windows.h>
   #include "win32/stdint-windows.h"
-  #define __SSE2__          /* Windows does not define this by default */
+
+  /* Define the __SSE2__ symbol if compiling with Visual C++ and
+     targeting the minimum architecture level supporting SSE2.
+     Other compilers define this as expected and emit warnings
+     when it is re-defined. */
+  #if defined(_MSC_VER) && (defined(_M_X64) || (defined(_M_IX86) && _M_IX86_FP >= 2))
+    #define __SSE2__
+  #endif
 #else
   #include <stdint.h>
   #include <inttypes.h>

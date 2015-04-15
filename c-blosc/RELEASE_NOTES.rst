@@ -1,10 +1,42 @@
 ================================
- Release notes for c-blosc 1.5.2
+ Release notes for c-blosc 1.5.4
 ================================
 
 :Author: Francesc Alted
 :Contact: francesc@blosc.org
 :URL: http://www.blosc.org
+
+
+Changes from 1.5.3 to 1.5.4
+===========================
+
+* Updated to LZ4 1.6.0 (r128).
+
+* Fix resource leak in t_blosc.  Jack Pappas.
+
+* Better checks during testing.  Jack Pappas.
+
+* Dynamically loadable HDF5 filter plugin. Kiyo Masui.
+
+
+Changes from 1.5.2 to 1.5.3
+===========================
+
+* Use llabs function (where available) instead of abs to avoid
+  truncating the result.  Jack Pappas.
+
+* Use C11 aligned_alloc when it's available.  Jack Pappas.
+
+* Use the built-in stdint.h with MSVC when available.  Jack Pappas.
+
+* Only define the __SSE2__ symbol when compiling with MS Visual C++
+  and targeting x64 or x86 with the correct /arch flag set. This
+  avoids re-defining the symbol which makes other compilers issue
+  warnings.  Jack Pappas.
+
+* Reinitializing Blosc during a call to set_nthreads() so as to fix
+  problems with contexts.  Francesc Alted.
+
 
 
 Changes from 1.5.1 to 1.5.2

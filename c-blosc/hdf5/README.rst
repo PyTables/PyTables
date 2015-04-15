@@ -17,9 +17,15 @@ value is returned.
 An example C program ("example.c") is included which demonstrates the
 proper use of the filter.
 
+Alternatively, instead of registering the Blosc filter,  you can use the
+automatically detectable `HDF5 filter plugin`_ which is supported in HDF5
+1.8.11 and later.
+
 This filter has been tested against HDF5 versions 1.6.5 through
 1.8.10.  It is released under the MIT license (see LICENSE.txt for
 details).
+
+.. _`HDF5 filter plugin`: http://www.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf
 
 
 Compiling
@@ -56,6 +62,23 @@ to your filter's directory if you do not have HDF5 installed in your PATH.
 For activating the support for other compressors than the integrated
 BloscLZ (like LZ4, LZ4HC, Snappy or Zlib) see the README file in the
 main Blosc directory.
+
+
+Compiling dynamically loadable filter plugin
+============================================
+
+Compile blosc_plugin.c and blosc_filter.c to a shared library and then
+let HDF5 know where to find it.
+
+To complie using GCC on UNIX:
+
+    gcc -O3 -msse2 -lhdf5 -lpthread ../blosc/*.c \
+        blosc_filter.c blosc_plugin.c -fPIC -shared \
+        -o libblosch5plugin.so
+
+Then ether move the shared library to HDF5's default search location for
+plugins (on UNIX ``/usr/local/hdf5/lib/plugin``) or to a directory pointed to
+by the ``HDF5_PLUGIN_PATH`` environment variable.
 
 
 IMPORTANT WINDOWS NOTE

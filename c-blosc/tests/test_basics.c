@@ -66,7 +66,7 @@ static char *test_maxout_great() {
 static char * test_shuffle()
 {
   int sizes[] = {7, 64 * 3, 7*256, 500, 8000, 100000, 702713};
-  int types[] = {1, 2, 3, 4, 5, 6, 7, 8, 16};
+  int types[] = {1, 2, 3, 4, 5, 6, 7, 8, 11, 16, 22, 30, 32, 42, 48, 52, 53, 64, 80};
   int i, j, k;
   int ok;
   for (i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
@@ -81,10 +81,7 @@ static char * test_shuffle()
       }
       blosc_compress(5, 1, t, t * n, d, o, t * n + BLOSC_MAX_OVERHEAD);
       blosc_decompress(o, d2, t * n);
-      ok = 1;
-      for (k = 0; ok && k < n; k++) {
-        ok = (d[k] == d2[k]);
-      }
+      ok = (memcmp(d, d2, t * n) == 0);
       free(d);
       free(d2);
       free(o);
@@ -98,7 +95,7 @@ static char * test_shuffle()
 static char * test_noshuffle()
 {
   int sizes[] = {7, 64 * 3, 7*256, 500, 8000, 100000, 702713};
-  int types[] = {1, 2, 3, 4, 5, 6, 7, 8, 16};
+  int types[] = {1, 2, 3, 4, 5, 6, 7, 8, 11, 16, 22, 30, 32, 42, 48, 52, 53, 64, 80};
   int i, j, k;
   int ok;
   for (i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
@@ -113,10 +110,7 @@ static char * test_noshuffle()
       }
       blosc_compress(5, 0, t, t * n, d, o, t * n + BLOSC_MAX_OVERHEAD);
       blosc_decompress(o, d2, t * n);
-      ok = 1;
-      for (k = 0; ok && k < n; k++) {
-        ok = (d[k] == d2[k]);
-      }
+      ok = (memcmp(d, d2, t * n) == 0);
       free(d);
       free(d2);
       free(o);
@@ -130,7 +124,7 @@ static char * test_noshuffle()
 static char * test_getitem()
 {
   int sizes[] = {7, 64 * 3, 7*256, 500, 8000, 100000, 702713};
-  int types[] = {1, 2, 3, 4, 5, 6, 7, 8, 16};
+  int types[] = {1, 2, 3, 4, 5, 6, 7, 8, 11, 16, 22, 30, 32, 42, 48, 52, 53, 64, 80};
   int i, j, k;
   int ok;
   for (i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
@@ -145,10 +139,7 @@ static char * test_getitem()
       }
       blosc_compress(5, 1, t, t * n, d, o, t * n + BLOSC_MAX_OVERHEAD);
       blosc_getitem(o, 0, n, d2);
-      ok = 1;
-      for (k = 0; ok && k < n; k++) {
-        ok = (d[k] == d2[k]);
-      }
+      ok = (memcmp(d, d2, t * n) == 0);
       free(d);
       free(d2);
       free(o);
