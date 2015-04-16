@@ -48,6 +48,7 @@ def suite():
         'tables.tests.test_indexes',
         'tables.tests.test_indexvalues',
         'tables.tests.test_index_backcompat',
+        'tables.tests.test_aux',
         # Sub-packages
         'tables.nodes.tests.test_filenode',
     ]

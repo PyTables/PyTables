@@ -4,15 +4,25 @@
 
 We are happy to announce PyTables @VERSION@.
 
-#XXX some general blurb XXX#
+*******************************
+IMPORTANT NOTICE:
+
+If you are a user of PyTables, it needs your help to keep going.  Please
+read the next thread as it contains important information about the
+future of the project:
+
+https://groups.google.com/forum/#!topic/pytables-users/yY2aUa4H7W4
+
+Thanks!
+*******************************
 
 
 What's new
 ==========
 
-#XXX version-specific blurb XXX#
-
-As always, a large amount of bugs have been addressed and squashed as well.
+This is a major release of PyTables and it is the result of more than a
+year of accumulated patches, but specially many usablity and performance
+improvements.
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://pytables.github.io/release_notes.html
