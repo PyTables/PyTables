@@ -51,6 +51,9 @@ Improvements
   Closes :issue:`351` (see also :issue:`353`)
 - Atoms and Col types are no longer generated dynamically so now it is easier
   for IDEs and static analysis tool to handle them (closes :issue:`345`)
+- The keysort functions in idx-opt.c have been cythonised using fused types.
+  The perfomance is mostly unchanged, but the code is much more simpler now.
+  Thanks to Andrea Bedini.
 - Small unit tests re-factoring:
 
   * :func:`print_versions` and :func:`tests.common.print_heavy` functions
