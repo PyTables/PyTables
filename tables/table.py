@@ -1632,13 +1632,7 @@ class Table(tableextension.Table, Leaf):
     getWhereList = previous_api(get_where_list)
 
     def itersequence(self, sequence):
-        """Iterate over a sequence of row coordinates.
-
-        Notes
-        -----
-        This iterator can be nested (see :meth:`Table.where` for an example).
-
-        """
+        """Iterate over a sequence of row coordinates."""
 
         if not hasattr(sequence, '__getitem__'):
             raise TypeError(("Wrong 'sequence' parameter type. Only sequences "
@@ -1771,10 +1765,6 @@ class Table(tableextension.Table, Leaf):
             result = [ row['var2'] for row in table.iterrows(step=5)
                                                     if row['var1'] <= 20 ]
 
-        Notes
-        -----
-        This iterator can be nested (see :meth:`Table.where` for an example).
-
         .. versionchanged:: 3.0
            If the *start* parameter is provided and *stop* is None then the
            table is iterated from *start* to the last line.
@@ -1810,10 +1800,6 @@ class Table(tableextension.Table, Leaf):
 
             result = [ row['var2'] for row in table.iterrows()
                                                     if row['var1'] <= 20 ]
-
-        Notes
-        -----
-        This iterator can be nested (see :meth:`Table.where` for an example).
 
         """
 
