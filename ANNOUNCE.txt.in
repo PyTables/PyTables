@@ -21,8 +21,9 @@ What's new
 ==========
 
 This is a major release of PyTables and it is the result of more than a
-year of accumulated patches, but specially many usablity and performance
-improvements.
+year of accumulated patches, but most specially it fixes a nasty problem
+with indexed queries not returning the correct results in some
+scenarios.  There are many usablity and performance improvements too.
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://pytables.github.io/release_notes.html
