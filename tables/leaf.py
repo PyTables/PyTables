@@ -366,6 +366,11 @@ class Leaf(Node):
         buffersize = params['IO_BUFFER_SIZE']
         if rowsize != 0:
             nrowsinbuf = buffersize // rowsize
+            if self.__class__.__name__ == "Table":
+                # The number of rows in buffer needs to be an exact multiple of
+                # chunkshape[0] for queries using indexed columns.
+                # Fixes #319 and probably #409 too.
+                nrowsinbuf -= nrowsinbuf % self.chunkshape[0]
         else:
             nrowsinbuf = 1
 

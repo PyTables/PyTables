@@ -3299,6 +3299,63 @@ for (cname, cbasenames, cdict) in iclassdata():
     class_ = type(cname, cbases, cdict)
     exec('%s = class_' % cname)
 
+
+# Test case for issue #319
+class BuffersizeMultipleChunksize(TestCase):
+
+    def test01(self):
+        numpy.random.seed(2)
+        n = 700000
+        cs = 50000
+        chunks = n / cs
+
+        arr = numpy.zeros(
+            (n,), dtype=[('index', 'i8'), ('o', 'i8'), ('value', 'f8')])
+        arr['index'] = numpy.arange(n)
+        arr['o'] = numpy.random.randint(-20000, -15000, size=n)
+        arr['value'] = numpy.random.randn(n)
+
+        handle = tables.open_file('test.h5', 'w')
+        node = handle.create_group(handle.root, 'foo')
+        table = handle.create_table(node, 'table', dict(
+            index=tables.Int64Col(),
+            o=tables.Int64Col(),
+            value=tables.FloatCol(shape=())), expectedrows=10000000)
+
+        table.append(arr)
+        handle.close()
+
+        v1 = numpy.unique(arr['o'])[0]
+        v2 = numpy.unique(arr['o'])[1]
+        res = numpy.array([v1, v2])
+        selector = '((o == %s) | (o == %s))' % (v1, v2)
+        if verbose:
+            print("selecting values: %s" % selector)
+
+        handle = tables.open_file('test.h5', 'a')
+        table = handle.root.foo.table
+
+        result = numpy.unique(table.read_where(selector)['o'])
+        numpy.testing.assert_almost_equal(result, res)
+        if verbose:
+            print("select entire table:")
+            print("result: %s\texpected: %s" % (result, res))
+
+        if verbose:
+            print("index the column o")
+        table.cols.o.create_index()   # this was triggering the issue
+
+        if verbose:
+            print("select via chunks")
+        for i in range(chunks):
+            result = table.read_where(selector, start=i*cs, stop=(i+1)*cs)
+            result = numpy.unique(result['o'])
+            numpy.testing.assert_almost_equal(numpy.unique(result), res)
+            if verbose:
+                print("result: %s\texpected: %s" % (result, res))
+
+        handle.close()
+
 # -----------------------------
 
 
@@ -3317,6 +3374,7 @@ def suite():
                 suite_ = unittest.makeSuite(class_)
                 theSuite.addTest(suite_)
         theSuite.addTest(unittest.makeSuite(LastRowReuseBuffers))
+        theSuite.addTest(unittest.makeSuite(BuffersizeMultipleChunksize))
 
     return theSuite
 
