@@ -873,6 +873,8 @@ cdef class Row:
       table._where_condition = None
 
     if table._use_index:
+      # Indexing code depends on this condition (see #319)
+      assert self.nrowsinbuf % self.chunksize == 0
       self.indexed = 1
       # Compute totalchunks here because self.nrows can change during the
       # life of a Row instance.

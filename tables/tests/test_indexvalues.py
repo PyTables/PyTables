@@ -3307,7 +3307,7 @@ class BuffersizeMultipleChunksize(TestCase):
         numpy.random.seed(2)
         n = 700000
         cs = 50000
-        chunks = n / cs
+        nchunks = n // cs
 
         arr = numpy.zeros(
             (n,), dtype=[('index', 'i8'), ('o', 'i8'), ('value', 'f8')])
@@ -3347,7 +3347,7 @@ class BuffersizeMultipleChunksize(TestCase):
 
         if verbose:
             print("select via chunks")
-        for i in range(chunks):
+        for i in range(nchunks):
             result = table.read_where(selector, start=i*cs, stop=(i+1)*cs)
             result = numpy.unique(result['o'])
             numpy.testing.assert_almost_equal(numpy.unique(result), res)
