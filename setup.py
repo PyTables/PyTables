@@ -13,11 +13,11 @@ import subprocess
 from os.path import exists, expanduser
 import glob
 
-# Using ``setuptools`` enables lots of goodies, such as building eggs.
-if 'FORCE_SETUPTOOLS' in os.environ:
+# Using ``setuptools`` enables lots of goodies
+try:
     from setuptools import setup, find_packages
     has_setuptools = True
-else:
+except:
     from distutils.core import setup
     has_setuptools = False
 
@@ -25,7 +25,6 @@ from distutils.core import Extension
 from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
-from distutils.version import LooseVersion
 
 cmdclass = {}
 setuptools_kwargs = {}
@@ -66,9 +65,6 @@ if sys.version_info >= (3,):
 
 
 # The minimum required versions
-min_numpy_version = None
-min_numexpr_version = None
-min_cython_version = None
 min_hdf5_version = None
 min_python_version = (2, 6)
 exec(open(os.path.join('tables', 'req_versions.py')).read())
@@ -97,51 +93,13 @@ if sys.version_info < min_python_version:
     exit_with_error("You need Python 2.6 or greater to install PyTables!")
 print("* Using Python %s" % sys.version.splitlines()[0])
 
-
-# Check for required Python packages
-def check_import(pkgname, pkgver):
-    try:
-        mod = __import__(pkgname)
-    except ImportError:
-        exit_with_error(
-            "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
-            % {'pkgname': pkgname, 'pkgver': pkgver})
-    else:
-        if mod.__version__ < LooseVersion(pkgver):
-            exit_with_error(
-                "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
-                % {'pkgname': pkgname, 'pkgver': pkgver})
-
-    print("* Found %(pkgname)s %(pkgver)s package installed."
-          % {'pkgname': pkgname, 'pkgver': mod.__version__})
-    globals()[pkgname] = mod
-
-check_import('numpy', min_numpy_version)
-# Check for numexpr only if not using setuptools (see #298)
-if not has_setuptools:
-    check_import('numexpr', min_numexpr_version)
-
-# Check if Cython is installed or not (requisite)
-try:
-    from Cython import __version__ as cython_version
-    from Cython.Distutils import build_ext
-    cmdclass['build_ext'] = build_ext
-except ImportError:
-    exit_with_error(
-        "You need %(pkgname)s %(pkgver)s or greater to compile PyTables!"
-        % {'pkgname': 'Cython', 'pkgver': min_cython_version})
-
-if LooseVersion(cython_version) < min_cython_version:
-    exit_with_error(
-        "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
-        % {'pkgname': 'Cython', 'pkgver': min_cython_version})
-else:
-    print("* Found %(pkgname)s %(pkgver)s package installed."
-          % {'pkgname': 'Cython', 'pkgver': cython_version})
-
 VERSION = open('VERSION').read().strip()
 
-#----------------------------------------------------------------------
+# Fetch the requisites
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
+# ----------------------------------------------------------------------
 
 debug = '--debug' in sys.argv
 
@@ -439,7 +397,7 @@ for arg in args:
             def_macros = [('DEBUG', 1)]
         # Don't delete this argument. It maybe useful for distutils
         # when adding more flags later on
-        #sys.argv.remove(arg)
+        # sys.argv.remove(arg)
 
 # For windows, search for the hdf5 dll in the path and use it if found.
 # This is much more convenient than having to manually set an environment
@@ -477,13 +435,13 @@ CFLAGS.extend([
     "-DH5Gopen_vers=2",
     "-DH5Pget_filter_vers=2",
     "-DH5Pget_filter_by_id_vers=2",
-    #"-DH5Pinsert_vers=2",
-    #"-DH5Pregister_vers=2",
-    #"-DH5Rget_obj_type_vers=2",
+    # "-DH5Pinsert_vers=2",
+    # "-DH5Pregister_vers=2",
+    # "-DH5Rget_obj_type_vers=2",
     "-DH5Tarray_create_vers=2",
-    #"-DH5Tcommit_vers=2",
+    # "-DH5Tcommit_vers=2",
     "-DH5Tget_array_dims_vers=2",
-    #"-DH5Topen_vers=2",
+    # "-DH5Topen_vers=2",
     "-DH5Z_class_t_vers=2",
 ])
 # H5Oget_info_by_name seems to have performance issues (see gh-402), so we
@@ -491,7 +449,7 @@ CFLAGS.extend([
 # CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
 
 # Do not use numpy deprecated API
-#CFLAGS.append("-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
+# CFLAGS.append("-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
 
 # Try to locate the compulsory and optional libraries.
 lzo2_enabled = False
@@ -596,7 +554,7 @@ if lzo2_enabled:
 else:
     lzo_package = lzo1_package
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 cython_extnames = [
     'utilsextension',
@@ -643,28 +601,17 @@ if newer('VERSION', 'src/version.h'):
     open('src/version.h', 'w').write(
         '#define PYTABLES_VERSION "%s"\n' % VERSION)
 
-#--------------------------------------------------------------------
+# --------------------------------------------------------------------
 
 # Package information for ``setuptools``.
 if has_setuptools:
     # PyTables contains data files for tests.
     setuptools_kwargs['zip_safe'] = False
 
-    # ``NumPy`` headers are needed for building the extensions, as
-    # well as Cython.
-    setuptools_kwargs['setup_requires'] = [
-        'numpy>=%s' % min_numpy_version,
-        'cython>=%s' % min_cython_version,
-    ]
-
-    # ``NumPy`` and ``Numexpr`` are absolutely required for running PyTables.
-    setuptools_kwargs['install_requires'] = [
-        'numpy>=%s' % min_numpy_version,
-        'numexpr>=%s' % min_numexpr_version,
-    ]
-
     setuptools_kwargs['extras_require'] = {}
 
+    setuptools_kwargs['setup_requires'] = requirements
+    setuptools_kwargs['install_requires'] = requirements
     # Detect packages automatically.
     setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
     # Entry points for automatic creation of scripts.
@@ -681,10 +628,6 @@ if has_setuptools:
     setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
     setuptools_kwargs['scripts'] = []
 else:
-    # The next should work with stock distutils, but it does not!
-    # It is better to rely on check_import
-    # setuptools_kwargs['requires'] = ['numpy (>= %s)' % min_numpy_version,
-    #                                  'numexpr (>= %s)' % min_numexpr_version]
     # There is no other chance, these values must be hardwired.
     setuptools_kwargs['packages'] = [
         'tables', 'tables.nodes', 'tables.scripts', 'tables.misc',
@@ -693,14 +636,15 @@ else:
     ]
     setuptools_kwargs['scripts'] = [
         'utils/ptdump', 'utils/ptrepack', 'utils/pt2to3', 'utils/pttree']
+
 # Copy additional data for packages that need it.
 setuptools_kwargs['package_data'] = {
     'tables.tests': ['*.h5', '*.mat'],
     'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5']}
 
 
-#Having the Python version included in the package name makes managing a
-#system with multiple versions of Python much easier.
+# Having the Python version included in the package name makes managing a
+# system with multiple versions of Python much easier.
 
 def find_name(base='tables'):
     '''If "--name-with-python-version" is on the command line then
