@@ -32,6 +32,7 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
   #include <windows.h>
+  #include <malloc.h>
 
   /* stdint.h only available in VS2010 (VC++ 16.0) and newer */
   #if defined(_MSC_VER) && _MSC_VER < 1600
@@ -198,18 +199,19 @@ static uint8_t *my_malloc(size_t size)
   void *block = NULL;
   int res = 0;
 
+/* Do an alignment to 32 bytes because AVX2 is supported */
 #if __STDC_VERSION__ >= 201112L
   /* C11 aligned allocation. 'size' must be a multiple of the alignment. */
-  block = aligned_alloc(16, size);
+  block = aligned_alloc(32, size);
 #elif defined(_WIN32)
   /* A (void *) cast needed for avoiding a warning with MINGW :-/ */
-  block = (void *)_aligned_malloc(size, 16);
+  block = (void *)_aligned_malloc(size, 32);
 #elif defined __APPLE__
   /* Mac OS X guarantees 16-byte alignment in small allocs */
   block = malloc(size);
 #elif _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
   /* Platform does have an implementation of posix_memalign */
-  res = posix_memalign(&block, 16, size);
+  res = posix_memalign(&block, 32, size);
 #else
   block = malloc(size);
 #endif  /* _WIN32 */

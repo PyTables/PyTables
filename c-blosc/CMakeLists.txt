@@ -135,19 +135,52 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 
+find_package(SSE)
+execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE CC_VERSION)
+if(CMAKE_C_COMPILER_ID STREQUAL GNU)
+     if (CC_VERSION VERSION_GREATER 4.7 OR CC_VERSION VERSION_EQUAL 4.7)
+          set( COMPILER_SUPPORT_AVX2 true)
+     else (CC_VERSION VERSION_GREATER 4.7 OR CC_VERSION VERSION_EQUAL 4.7)
+          set( COMPILER_SUPPORT_AVX2 false)
+          if(AVX2_TRUE)
+              message("AVX2 is available on this host, but this compiler not support it!")
+              message("GCC>=4.7 needed!")
+           endif(AVX2_TRUE)
+     endif (CC_VERSION VERSION_GREATER 4.7 OR CC_VERSION VERSION_EQUAL 4.7)
+elseif(CMAKE_C_COMPILER_ID STREQUAL Intel)
+     if (CC_VERSION VERSION_GREATER 14.0 OR CC_VERSION VERSION_EQUAL 14.0)
+          set( COMPILER_SUPPORT_AVX2 true)
+     else (CC_VERSION VERSION_GREATER 14.0 OR CC_VERSION VERSION_EQUAL 14.0)
+          set( COMPILER_SUPPORT_AVX2 false)
+          if(AVX2_TRUE)
+              message("AVX2 is available on this host, but this compiler not support it!")
+          endif(AVX2_TRUE)
+     endif (CC_VERSION VERSION_GREATER 14.0 OR CC_VERSION VERSION_EQUAL 14.0)
+else(CMAKE_C_COMPILER_ID STREQUAL GNU)
+     set( COMPILER_SUPPORT_AVX2 false)
+     message("AVX2 is available on this host, but compiler support it?? ")
+endif (CMAKE_C_COMPILER_ID STREQUAL GNU)
+
 # flags
 # @TODO: set -Wall
 # @NOTE: -O3 is enabled in Release mode (CMAKE_BUILD_TYPE="Release")
 
+# Set the "-march=core-avx2" build flag only if the CMAKE_C_FLAGS is not
+# already set, still it should be supported by the compiler.
 # Set the "-msse2" build flag only if the CMAKE_C_FLAGS is not already set.
 # Probably "-msse2" should be appended to CMAKE_C_FLAGS_RELEASE.
-find_package(SSE)
-if(CMAKE_C_COMPILER_ID STREQUAL GNU OR CMAKE_C_COMPILER_ID STREQUAL Clang)
+if(CMAKE_C_COMPILER_ID STREQUAL GNU OR CMAKE_C_COMPILER_ID STREQUAL Clang OR CMAKE_C_COMPILER_ID STREQUAL Intel)
+     if(NOT CMAKE_C_FLAGS AND AVX2_TRUE AND COMPILER_SUPPORT_AVX2)
+         message(STATUS "AVX2 is here.  Adding support for it.")
+         set(CMAKE_C_FLAGS -march=core-avx2 CACHE STRING "C flags." FORCE)
+         set(RES_SUPPORT_AVX2 true)
+     endif(NOT CMAKE_C_FLAGS AND AVX2_TRUE AND COMPILER_SUPPORT_AVX2)
      if(NOT CMAKE_C_FLAGS AND SSE2_TRUE)
          message(STATUS "SSE2 is here.  Adding support for it.")
          set(CMAKE_C_FLAGS -msse2 CACHE STRING "C flags." FORCE)
      endif(NOT CMAKE_C_FLAGS AND SSE2_TRUE)
-endif(CMAKE_C_COMPILER_ID STREQUAL GNU OR CMAKE_C_COMPILER_ID STREQUAL Clang)
+endif(CMAKE_C_COMPILER_ID STREQUAL GNU OR CMAKE_C_COMPILER_ID STREQUAL Clang OR CMAKE_C_COMPILER_ID STREQUAL Intel)
+
 
 if(MSVC)
     if(NOT CMAKE_C_FLAGS)
