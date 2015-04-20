@@ -283,7 +283,7 @@ class RawPyTablesIO(io.RawIOBase):
         self._checkClosed()
         self._checkReadable()
 
-        chunksize = self._node.chunkshape[0]
+        chunksize = self._node.chunkshape[0] if self._node.chunkshape else -1
 
         # XXX: check
         lsep = b'\n'
