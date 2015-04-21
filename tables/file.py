@@ -387,7 +387,7 @@ class NodeManager(object):
             if not self.registry[key]._v_isopen:
                 del self.registry[key]
             elif self.registry[key] is not node:
-                raise RuntimeError('trying to ragister a node with an '
+                raise RuntimeError('trying to register a node with an '
                                    'existing key: ``%s``' % key)
         else:
             self.registry[key] = node
