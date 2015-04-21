@@ -3,6 +3,8 @@
 
 """Setup script for the tables package"""
 
+from __future__ import print_function
+
 import os
 import re
 import sys
@@ -81,6 +83,13 @@ VERSION = open('VERSION').read().strip()
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
+# Need to get access to numpy, so do it now and crash early if not there
+try:
+    from numpy.distutils.misc_util import get_numpy_include_dirs
+except:
+    exit_with_error("You need NumPy prior to install PyTables!")
+
+
 # ----------------------------------------------------------------------
 
 debug = '--debug' in sys.argv
@@ -137,7 +146,7 @@ elif os.name == 'nt':
     default_runtime_dirs.extend(
         [os.path.join(sys.prefix, 'Lib\\site-packages\\tables')])
 
-from numpy.distutils.misc_util import get_numpy_include_dirs
+
 inc_dirs.extend(get_numpy_include_dirs())
 
 # Gcc 4.0.1 on Mac OS X 10.4 does not seem to include the default
