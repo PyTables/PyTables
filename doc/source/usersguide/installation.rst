@@ -49,9 +49,9 @@ Prerequisites
 First, make sure that you have
 
 * Python_ >= 2.6 including Python 3.x
-* HDF5_ >= 1.8.4 (>=1.8.7 is strongly recommended),
-* NumPy_ >= 1.4.1,
-* Numexpr_ >= 2.0 and
+* HDF5_ >= 1.8.7
+* NumPy_ >= 1.7.1,
+* Numexpr_ >= 2.4 and
 * Cython_ >= 0.14
 * c-blosc_ >= 1.3.0 (it is bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
@@ -60,7 +60,7 @@ First, make sure that you have
 * unittest2_ (only Python 2.6)
 
 installed (for testing purposes, we are using HDF5_ 1.8.12, NumPy_ 1.8.0
-and Numexpr_ 2.2.2 currently). If you don't, fetch and install them before
+and Numexpr_ 2.4.1 currently). If you don't, fetch and install them before
 proceeding.
 
 .. _Python: http://www.python.org
@@ -71,12 +71,6 @@ proceeding.
 .. _c-blosc: http://blosc.org
 .. _argparse: http://code.google.com/p/argparse
 .. _unittest2: http://pypi.python.org/pypi/unittest2
-
-.. note::
-
-    HDF5 versions < 1.8.7 are supported with some limitations.
-    It is not possible to open the same file multiple times (simultaneously),
-    even in read-only mode.
 
 .. note::
 
