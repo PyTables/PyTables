@@ -1,7 +1,7 @@
 /*********************************************************************
   Blosc - Blocked Suffling and Compression Library
 
-  Author: Francesc Alted <francesc@blosc.org>
+  Author: Francesc Alted <francesc@blosc.io>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/

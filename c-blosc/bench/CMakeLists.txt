@@ -4,24 +4,7 @@ set(SOURCES bench.c)
 
 # targets
 add_executable(bench ${SOURCES})
-if(UNIX)
-  # cmake is complaining about LINK_PRIVATE in original PR
-  # and removing it does not seem to hurt, so be it.
-  # target_link_libraries(bench LINK_PRIVATE rt)
-  target_link_libraries(bench rt)
-endif(UNIX)
 target_link_libraries(bench blosc_shared)
-
-# have to copy blosc dlls for Visual Studio
-if(MSVC)
-    add_custom_command(
-        TARGET      bench
-        POST_BUILD
-        COMMAND     ${CMAKE_COMMAND}
-        ARGS        -E copy_if_different
-                    "${PROJECT_BINARY_DIR}/blosc/\$\(Configuration\)/blosc.dll"
-                    "${CMAKE_CURRENT_BINARY_DIR}/\$\(Configuration\)/blosc.dll")
-endif(MSVC)
 
 
 # tests

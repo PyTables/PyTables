@@ -1,7 +1,7 @@
 /*********************************************************************
   Blosc - Blocked Suffling and Compression Library
 
-  Author: Francesc Alted <francesc@blosc.org>
+  Author: Francesc Alted <francesc@blosc.io>
   Creation date: 2009-05-20
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
@@ -20,17 +20,7 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
   #include <windows.h>
-
-  /* stdint.h only available in VS2010 (VC++ 16.0) and newer */
-  #if defined(_MSC_VER) && _MSC_VER < 1600
-    #include "win32/stdint-windows.h"
-  #else
-    #include <stdint.h>
-  #endif
-  /* llabs only available in VS2013 (VC++ 18.0) and newer */
-  #if defined(_MSC_VER) && _MSC_VER < 1800
-    #define llabs(v) abs(v)
-  #endif
+  #include "win32/stdint-windows.h"
 #else
   #include <stdint.h>
 #endif  /* _WIN32 */
@@ -54,8 +44,8 @@
 #elif defined(__I86__) /* Digital Mars */
 #undef BLOSCLZ_STRICT_ALIGN
 /* Seems like unaligned access in ARM (at least ARMv6) is pretty
-   expensive, so we are going to always enforce strict aligment in ARM.
-   If anybody suggest that newer ARMs are better, we can revisit this. */
+   expensive, so we are always to enfor strict aligment in ARM.  If
+   anybody suggest that newer ARMs are better, we can revisit this. */
 /* #elif defined(__ARM_FEATURE_UNALIGNED) */  /* ARM, GNU C */
 /* #undef BLOSCLZ_STRICT_ALIGN */
 #endif
@@ -86,6 +76,7 @@
 #endif
 
 #define MAX_COPY       32
+#define MAX_LEN       264  /* 256 + 8 */
 #define MAX_DISTANCE 8191
 #define MAX_FARDISTANCE (65535+MAX_DISTANCE-1)
 
@@ -96,51 +87,15 @@
 #endif
 
 
-/*
- * Fast copy macros
- */
-#define CPYSIZE              8
-#define MCPY(d,s)            { memcpy(d, s, CPYSIZE); d+=CPYSIZE; s+=CPYSIZE; }
-#define FASTCOPY(d,s,e)      { do { MCPY(d,s) } while (d<e); }
-#define SAFECOPY(d,s,e)      { while (d<e) { MCPY(d,s) } }
+static inline int32_t hash_function(uint8_t* p, uint8_t hash_log)
+{
+  int32_t v;
 
-/* Copy optimized for copying in blocks */
-#define BLOCK_COPY(op, ref, len, op_limit)    \
-{ int ilen = len % CPYSIZE;                   \
-  uint8_t *cpy = op + len;                    \
-  if (cpy + CPYSIZE - ilen <= op_limit) {     \
-    FASTCOPY(op, ref, cpy);                   \
-    ref -= (op-cpy); op = cpy;                \
-  }                                           \
-  else {                                      \
-    cpy -= ilen;                              \
-    SAFECOPY(op, ref, cpy);                   \
-    ref -= (op-cpy); op = cpy;                \
-    for(; ilen; --ilen)	                      \
-        *op++ = *ref++;                       \
-  }                                           \
+  v = BLOSCLZ_READU16(p);
+  v ^= BLOSCLZ_READU16(p+1)^(v>>(16-hash_log));
+  v &= (1 << hash_log) - 1;
+  return v;
 }
-
-#define SAFE_COPY(op, ref, len, op_limit)     \
-if (llabs(op-ref) < CPYSIZE) {                \
-  for(; len; --len)                           \
-    *op++ = *ref++;                           \
-}                                             \
-else BLOCK_COPY(op, ref, len, op_limit);
-
-/* Copy optimized for GCC 4.8.  Seems like long copy loops are optimal. */
-#define GCC_SAFE_COPY(op, ref, len, op_limit) \
-if ((len > 32) || (llabs(op-ref) < CPYSIZE)) { \
-  for(; len; --len)                           \
-    *op++ = *ref++;                           \
-}                                             \
-else BLOCK_COPY(op, ref, len, op_limit);
-
-/* Simple, but pretty effective hash function for 3-byte sequence */
-#define HASH_FUNCTION(v,p,l) {	       \
-v = BLOSCLZ_READU16(p);                \
-v ^= BLOSCLZ_READU16(p+1)^(v>>(16-l)); \
-v &= (1 << l) - 1; }
 
 
 #define IP_BOUNDARY 2
@@ -155,7 +110,7 @@ int blosclz_compress(int opt_level, const void* input,
   uint8_t* op = (uint8_t*) output;
 
   /* Hash table depends on the opt level.  Hash_log cannot be larger than 15. */
-  int8_t hash_log_[10] = {-1, 8, 9, 9, 11, 11, 12, 12, 12, 13};
+  int8_t hash_log_[10] = {-1, 8, 9, 9, 11, 11, 12, 13, 14, 15};
   uint8_t hash_log = hash_log_[opt_level];
   uint16_t hash_size = 1 << hash_log;
   uint16_t *htab;
@@ -215,7 +170,7 @@ int blosclz_compress(int opt_level, const void* input,
     }
 
     /* find potential match */
-    HASH_FUNCTION(hval, ip, hash_log);
+    hval = hash_function(ip, hash_log);
     ref = ibase + htab[hval];
     /* update hash table */
     htab[hval] = (uint16_t)(anchor - ibase);
@@ -355,9 +310,9 @@ int blosclz_compress(int opt_level, const void* input,
     }
 
     /* update the hash at match boundary */
-    HASH_FUNCTION(hval, ip, hash_log);
+    hval = hash_function(ip, hash_log);
     htab[hval] = (uint16_t)(ip++ - ibase);
-    HASH_FUNCTION(hval, ip, hash_log);
+    hval = hash_function(ip, hash_log);
     htab[hval] = (uint16_t)(ip++ - ibase);
 
     /* assuming literal copy */
@@ -406,6 +361,7 @@ int blosclz_compress(int opt_level, const void* input,
 
 }
 
+
 int blosclz_decompress(const void* input, int length, void* output, int maxout)
 {
   const uint8_t* ip = (const uint8_t*) input;
@@ -416,7 +372,7 @@ int blosclz_decompress(const void* input, int length, void* output, int maxout)
   int32_t loop = 1;
 
   do {
-    uint8_t* ref = op;
+    const uint8_t* ref = op;
     int32_t len = ctrl >> 5;
     int32_t ofs = (ctrl & 31) << 8;
 
@@ -465,11 +421,21 @@ int blosclz_decompress(const void* input, int length, void* output, int maxout)
         /* copy from reference */
         ref--;
         len += 3;
-#if defined(__GCC__) || !defined(__clang__)
-        GCC_SAFE_COPY(op, ref, len, op_limit);
-#else
-        SAFE_COPY(op, ref, len, op_limit);
-#endif
+        if (abs((int32_t)(ref-op)) <= (int32_t)len) {
+          /* src and dst do overlap: do a loop */
+          for(; len; --len)
+            *op++ = *ref++;
+          /* The memmove below does not work well (don't know why) */
+          /* memmove(op, ref, len);
+             op += len;
+             ref += len;
+             len = 0; */
+        }
+        else {
+          memcpy(op, ref, len);
+          op += len;
+          ref += len;
+        }
       }
     }
     else {
@@ -483,7 +449,9 @@ int blosclz_decompress(const void* input, int length, void* output, int maxout)
       }
 #endif
 
-      BLOCK_COPY(op, ip, ctrl, op_limit);
+      memcpy(op, ip, ctrl);
+      ip += ctrl;
+      op += ctrl;
 
       loop = (int32_t)BLOSCLZ_EXPECT_CONDITIONAL(ip < ip_limit);
       if(loop)

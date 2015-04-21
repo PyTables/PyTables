@@ -105,7 +105,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     size_t nelements = 8;
     unsigned int values[] = {0,0,0,0,0,0,0,0};
     hid_t super_type;
-    H5T_class_t classt;
+    H5T_class_t class;
 
     r = GET_FILTER(dcpl, FILTER_BLOSC, &flags, &nelements, values, 0, NULL);
     if(r<0) return -1;
@@ -126,8 +126,8 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     typesize = H5Tget_size(type);
     if (typesize==0) return -1;
     /* Get the size of the base type, even for ARRAY types */
-    classt = H5Tget_class(type);
-    if (classt == H5T_ARRAY) {
+    class = H5Tget_class(type);
+    if (class == H5T_ARRAY) {
       /* Get the array base component */
       super_type = H5Tget_super(type);
       basetypesize = H5Tget_size(super_type);
@@ -175,7 +175,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     int doshuffle = 1;             /* Shuffle default */
     int compcode;                  /* Blosc compressor */
     int code;
-    char *compname = "blosclz";    /* The compressor by default */
+    char *compname = NULL;
     char *complist;
     char errmsg[256];
 
@@ -226,8 +226,12 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
             goto failed;
         }
 
-        status = blosc_compress_ctx(clevel, doshuffle, typesize, nbytes,
-                                    *buf, outbuf, nbytes, compname, 0, 1);
+	/* Select the correct compressor to use */
+        if (compname != NULL)
+	  blosc_set_compressor(compname);
+
+        status = blosc_compress(clevel, doshuffle, typesize, nbytes,
+                                *buf, outbuf, nbytes);
         if (status < 0) {
           PUSH_ERR("blosc_filter", H5E_CALLBACK, "Blosc compression error");
           goto failed;
@@ -260,7 +264,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
           goto failed;
         }
 
-        status = blosc_decompress_ctx(*buf, outbuf, outbuf_size, 1);
+        status = blosc_decompress(*buf, outbuf, outbuf_size);
 
         if(status <= 0){    /* decompression failed */
           PUSH_ERR("blosc_filter", H5E_CALLBACK, "Blosc decompression error");

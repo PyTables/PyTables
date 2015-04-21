@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2010  Francesc Alted
-    http://blosc.org
+    http://blosc.pytables.org
     License: MIT (see LICENSE.txt)
 
     Example program demonstrating use of the Blosc filter from C code.
@@ -9,7 +9,8 @@
 
     To compile this program:
 
-    h5cc blosc_filter.c example.c -o example -lblosc -lpthread
+    h5cc [-DH5_USE_16_API] -lblosc blosc_filter.c example.c \
+         -o example -lpthread
 
     To run:
 
@@ -72,7 +73,7 @@ int main(){
     r = H5Pset_chunk(plist, 3, chunkshape);
     if(r<0) goto failed;
 
-    /* Using the blosc filter in combination with other ones also works */
+    /* Using the blosc filter in combianation with other ones also works */
     /*
     r = H5Pset_fletcher32(plist);
     if(r<0) goto failed;
@@ -80,7 +81,7 @@ int main(){
 
     /* This is the easiest way to call Blosc with default values: 5
      for BloscLZ and shuffle active. */
-    /* r = H5Pset_filter(plist, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 0, NULL); */
+    /* r = H5Pset_filter(plist, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 0, NULL);  */
 
     /* But you can also taylor Blosc parameters to your needs */
     /* 0 to 3 (inclusive) param slots are reserved. */

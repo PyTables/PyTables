@@ -1,17 +1,14 @@
 ===============================================================
- Announcing c-blosc 1.6.0
+ Announcing c-blosc 1.4.1
  A blocking, shuffling and lossless compression library
 ===============================================================
 
 What is new?
 ============
 
-Support for AVX2 is here!  The benchmarks with a 4-core Intel Haswell
-machine report that both compression and decompression are accelerated
-around a 10%, reaching peaks of 9.6 GB/s during compression and 26
-GB/s during decompression (memcpy() speed for this machine is 7.5 GB/s
-for writes and 11.7 GB/s for reads).  Many thanks to @littlezhou for
-this nice work.
+This is a maintenance release, where a bug in blosc_getitem() introduced
+in 1.4.0 has been tracked down and squashed.  If you use this function,
+please update your c-blosc copy.
 
 For more info, please see the release notes in:
 
@@ -63,3 +60,9 @@ http://groups.google.es/group/blosc
 
 Enjoy Data!
 
+
+.. Local Variables:
+.. mode: rst
+.. coding: utf-8
+.. fill-column: 70
+.. End:

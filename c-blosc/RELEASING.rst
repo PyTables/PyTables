@@ -3,7 +3,7 @@ Releasing Blosc
 ================
 
 :Author: Francesc Alted
-:Contact: francesc@blosc.org
+:Contact: francesc@blosc.io
 :Date: 2014-01-15
 
 
@@ -20,13 +20,13 @@ Testing
 
 Create a new build/ directory, change into it and issue::
 
-  $ cmake -DBUILD_HDF5_FILTER=TRUE ..
+  $ cmake ..
   $ make
   $ make test
 
 To actually test Blosc the hard way, look at the end of:
 
-http://blosc.org/synthetic-benchmarks.html
+http://blosc.org/trac/wiki/SyntheticBenchmarks
 
 where instructions on how to intensively test (and benchmark) Blosc
 are given.

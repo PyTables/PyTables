@@ -1,119 +1,10 @@
 ================================
- Release notes for c-blosc 1.6.0
+ Release notes for c-blosc 1.4.1
 ================================
 
 :Author: Francesc Alted
-:Contact: francesc@blosc.org
+:Contact: francesc@blosc.io
 :URL: http://www.blosc.org
-
-
-Changes from 1.5.4 to 1.6.0
-===========================
-
-* Support for AVX2 is here!  The benchmarks with a 4-core Intel
-  Haswell machine tell that both compression and decompression are
-  accelerated around a 10%, reaching peaks of 9.6 GB/s during
-  compression and 26 GB/s during decompression (memcpy() speed for
-  this machine is 7.5 GB/s for writes and 11.7 GB/s for reads).  Many
-  thanks to @littlezhou for this nice work.
-
-* Support HPET (high precision timers) for the `bench` program.  This
-  is particularly important for microbenchmarks like bench is doing;
-  since they take so little time to run, the granularity of a
-  less-accurate timer may account for a significant portion of the
-  runtime of the benchmark itself, skewing the results.  Thanks to
-  Jack Pappas.
-
-
-Changes from 1.5.3 to 1.5.4
-===========================
-
-* Updated to LZ4 1.6.0 (r128).
-
-* Fix resource leak in t_blosc.  Jack Pappas.
-
-* Better checks during testing.  Jack Pappas.
-
-* Dynamically loadable HDF5 filter plugin. Kiyo Masui.
-
-
-Changes from 1.5.2 to 1.5.3
-===========================
-
-* Use llabs function (where available) instead of abs to avoid
-  truncating the result.  Jack Pappas.
-
-* Use C11 aligned_alloc when it's available.  Jack Pappas.
-
-* Use the built-in stdint.h with MSVC when available.  Jack Pappas.
-
-* Only define the __SSE2__ symbol when compiling with MS Visual C++
-  and targeting x64 or x86 with the correct /arch flag set. This
-  avoids re-defining the symbol which makes other compilers issue
-  warnings.  Jack Pappas.
-
-* Reinitializing Blosc during a call to set_nthreads() so as to fix
-  problems with contexts.  Francesc Alted.
-
-
-
-Changes from 1.5.1 to 1.5.2
-===========================
-
-* Using blosc_compress_ctx() / blosc_decompress_ctx() inside the HDF5
-  compressor for allowing operation in multiprocess scenarios.  See:
-  https://github.com/PyTables/PyTables/issues/412
-
-  The drawback of this quick fix is that the Blosc filter will be only
-  able to use a single thread until another solution can be devised.
-
-
-Changes from 1.5.0 to 1.5.1
-===========================
-
-* Updated to LZ4 1.5.0.  Closes #74.
-
-* Added the 'const' qualifier to non SSE2 shuffle functions. Closes #75.
-
-* Explicitly call blosc_init() in HDF5 blosc_filter.c, fixing a
-  segfault.
-
-* Quite a few improvements in cmake files for HDF5 support.  Thanks to
-  Dana Robinson (The HDF Group).
-
-* Variable 'class' caused problems compiling the HDF5 filter with g++.
-  Thanks to Laurent Chapon.
-
-* Small improvements on docstrings of c-blosc main functions.
-
-
-Changes from 1.4.1 to 1.5.0
-===========================
-
-* Added new calls for allowing Blosc to be used *simultaneously*
-  (i.e. lock free) from multi-threaded environments.  The new
-  functions are:
-
-  - blosc_compress_ctx(...)
-  - blosc_decompress_ctx(...)
-
-  See the new docstrings in blosc.h for how to use them.  The previous
-  API should be completely unaffected.  Thanks to Christopher Speller.
-
-* Optimized copies during BloscLZ decompression.  This can make BloscLZ
-  to decompress up to 1.5x faster in some situations.
-
-* LZ4 and LZ4HC compressors updated to version 1.3.1.
-
-* Added an examples directory on how to link apps with Blosc.
-
-* stdlib.h moved from blosc.c to blosc.h as suggested by Rob Lathm.
-
-* Fix a warning for {snappy,lz4}-free compilation.  Thanks to Andrew Schaaf.
-
-* Several improvements for CMakeLists.txt (cmake).
-
-* Fixing C99 compatibility warnings.  Thanks to Christopher Speller.
 
 
 Changes from 1.4.0 to 1.4.1
@@ -473,3 +364,11 @@ Changes from 0.8.0 to 0.9
   necessary on Mac because 16 bytes alignment is ensured by default.
   Thanks to Ivan Vilata.  Fixes #3.
 
+
+
+
+.. Local Variables:
+.. mode: rst
+.. coding: utf-8
+.. fill-column: 72
+.. End:
