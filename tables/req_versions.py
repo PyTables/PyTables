@@ -17,4 +17,4 @@
 # Minimum recommended versions for mandatory packages
 min_numpy_version = '1.7.1'
 min_numexpr_version = '2.4'
-min_hdf5_version = (1, 8, 7)
+min_hdf5_version = (1, 8, 4)
