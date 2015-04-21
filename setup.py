@@ -14,12 +14,7 @@ from os.path import exists, expanduser
 import glob
 
 # Using ``setuptools`` enables lots of goodies
-try:
-    from setuptools import setup, find_packages
-    has_setuptools = True
-except:
-    from distutils.core import setup
-    has_setuptools = False
+from setuptools import setup, find_packages
 
 from distutils.core import Extension
 from distutils.dep_util import newer
@@ -43,32 +38,24 @@ if sys.version_info >= (3,):
         'lib2to3.fixes.fix_xrange',
     ]
 
-    if has_setuptools:
-        from lib2to3.refactor import get_fixers_from_package
+    from lib2to3.refactor import get_fixers_from_package
 
-        all_fixers = set(get_fixers_from_package('lib2to3.fixes'))
-        exclude_fixers = sorted(all_fixers.difference(fixer_names))
+    all_fixers = set(get_fixers_from_package('lib2to3.fixes'))
+    exclude_fixers = sorted(all_fixers.difference(fixer_names))
 
-        setuptools_kwargs['use_2to3'] = True
-        setuptools_kwargs['use_2to3_fixers'] = []
-        setuptools_kwargs['use_2to3_exclude_fixers'] = exclude_fixers
-    else:
-        from distutils.command.build_py import build_py_2to3 as build_py
-        from distutils.command.build_scripts \
-            import build_scripts_2to3 as build_scripts
-
-        build_py.fixer_names = fixer_names
-        build_scripts.fixer_names = fixer_names
-
-        cmdclass['build_py'] = build_py
-        cmdclass['build_scripts'] = build_scripts
-
+    setuptools_kwargs['use_2to3'] = True
+    setuptools_kwargs['use_2to3_fixers'] = []
+    setuptools_kwargs['use_2to3_exclude_fixers'] = exclude_fixers
 
 # The minimum required versions
-min_hdf5_version = None
 min_python_version = (2, 6)
-exec(open(os.path.join('tables', 'req_versions.py')).read())
+# Check for Python
+if sys.version_info < min_python_version:
+    exit_with_error("You need Python 2.6 or greater to install PyTables!")
+print("* Using Python %s" % sys.version.splitlines()[0])
 
+# Minumum equired versions for numpy, numexpr and HDF5
+exec(open(os.path.join('tables', 'req_versions.py')).read())
 
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):
@@ -87,11 +74,6 @@ def exit_with_error(head, body=''):
 def print_warning(head, body=''):
     _print_admonition('warning', head, body)
 
-
-# Check for Python
-if sys.version_info < min_python_version:
-    exit_with_error("You need Python 2.6 or greater to install PyTables!")
-print("* Using Python %s" % sys.version.splitlines()[0])
 
 VERSION = open('VERSION').read().strip()
 
@@ -578,17 +560,11 @@ def get_cython_extfiles(extnames):
         extcfile = '%s.c' % extfile
 
         if not exists(extcfile) or newer(extpfile, extcfile):
-            # For some reason, setup in setuptools does not compile
-            # Cython files (!)  Do that manually...
-            # 2013/08/24: the issue should be fixed in distribute 0.6.15
-            # see also https://bitbucket.org/tarek/distribute/issue/195
-            print("cythoning %s to %s" % (extpfile, extcfile))
-            retcode = subprocess.call(
-                [sys.executable, "-m", "cython", extpfile]
-            )
-            if retcode > 0:
-                print("cython aborted compilation with retcode:", retcode)
-                sys.exit()
+            # This is the only place where Cython is needed, but every
+            # developer should have it installed, so it should not be
+            # a requisite
+            from Cython.Build import cythonize
+            cythonize(extpfile)
         extfiles[extname] = extcfile
 
     return extfiles
@@ -603,39 +579,29 @@ if newer('VERSION', 'src/version.h'):
 
 # --------------------------------------------------------------------
 
-# Package information for ``setuptools``.
-if has_setuptools:
-    # PyTables contains data files for tests.
-    setuptools_kwargs['zip_safe'] = False
+# Package information for ``setuptools``
+# PyTables contains data files for tests.
+setuptools_kwargs['zip_safe'] = False
 
-    setuptools_kwargs['extras_require'] = {}
+setuptools_kwargs['extras_require'] = {}
 
-    setuptools_kwargs['setup_requires'] = requirements
-    setuptools_kwargs['install_requires'] = requirements
-    # Detect packages automatically.
-    setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
-    # Entry points for automatic creation of scripts.
-    setuptools_kwargs['entry_points'] = {
-        'console_scripts': [
-            'ptdump = tables.scripts.ptdump:main',
-            'ptrepack = tables.scripts.ptrepack:main',
-            'pt2to3 = tables.scripts.pt2to3:main',
-            'pttree = tables.scripts.pttree:main',
+setuptools_kwargs['setup_requires'] = requirements
+setuptools_kwargs['install_requires'] = requirements
+# Detect packages automatically.
+setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
+# Entry points for automatic creation of scripts.
+setuptools_kwargs['entry_points'] = {
+    'console_scripts': [
+        'ptdump = tables.scripts.ptdump:main',
+        'ptrepack = tables.scripts.ptrepack:main',
+        'pt2to3 = tables.scripts.pt2to3:main',
+        'pttree = tables.scripts.pttree:main',
         ],
     }
 
-    # Test suites.
-    setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
-    setuptools_kwargs['scripts'] = []
-else:
-    # There is no other chance, these values must be hardwired.
-    setuptools_kwargs['packages'] = [
-        'tables', 'tables.nodes', 'tables.scripts', 'tables.misc',
-        # Test suites.
-        'tables.tests', 'tables.nodes.tests',
-    ]
-    setuptools_kwargs['scripts'] = [
-        'utils/ptdump', 'utils/ptrepack', 'utils/pt2to3', 'utils/pttree']
+# Test suites.
+setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
+setuptools_kwargs['scripts'] = []
 
 # Copy additional data for packages that need it.
 setuptools_kwargs['package_data'] = {
@@ -699,7 +665,7 @@ if 'BLOSC' not in optional_libs:
         finally:
             os.remove(fd.name)
 
-    try_flags = ["-march=native", "-msse2", "-mavx2"]
+    try_flags = ["-march=native", "-msse2"]
     for ff in try_flags:
         if compiler_has_flags(compiler, [ff]):
             print("Setting compiler flag: " + ff)

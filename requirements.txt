@@ -1,3 +1,2 @@
-numpy>=1.4.1
-numexpr>=2.0
-cython>=0.14
+numpy>=1.7.1
+numexpr>=2.4
