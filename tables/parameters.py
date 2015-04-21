@@ -213,19 +213,19 @@ system attributes are not considered for guessing the class of the node
 during its loading from disk (this work is delegated to the PyTables'
 class discoverer function for general HDF5 files)."""
 
-MAX_NUMEXPR_THREADS = None
+MAX_NUMEXPR_THREADS = 2
 """The maximum number of threads that PyTables should use internally in
 Numexpr.  If `None`, it is automatically set to the number of cores in
 your machine. In general, it is a good idea to set this to the number of
-cores in your machine or, when your machine has many of them (e.g. > 4),
-perhaps one less than this."""
+cores in your machine or, when your machine has many of them (e.g. > 8),
+perhaps stay at 8 at maximum.  In general, 2 threads is a good tradeoff."""
 
-MAX_BLOSC_THREADS = None
+MAX_BLOSC_THREADS = 2
 """The maximum number of threads that PyTables should use internally in
 Blosc.  If `None`, it is automatically set to the number of cores in
 your machine. In general, it is a good idea to set this to the number of
-cores in your machine or, when your machine has many of them (e.g. > 4),
-perhaps one less than this."""
+cores in your machine or, when your machine has many of them (e.g. > 8),
+perhaps stay at 8 at maximum.  In general, 2 threads is a good tradeoff."""
 
 USER_BLOCK_SIZE = 0
 """Sets the user block size of a file.

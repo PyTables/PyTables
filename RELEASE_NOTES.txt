@@ -112,6 +112,9 @@ Other changes
 -------------
 
 - The minimum Cython_ version is now 0.14.
+- The number of threads used by default for numexpr and blosc operation that
+  was set to the number of available cores have been reduced to 2.  This is
+  a much more reasonable setting for not creating too much overhead.
 
 
 .. _Cython: http://cython.org
