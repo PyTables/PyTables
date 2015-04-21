@@ -23,6 +23,10 @@ from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
 
+# we need to avoid importing numpy until we can be sure it's installed
+# this approach is based on this SO answer http://stackoverflow.com/a/21621689
+from distutils.command.build_ext import build_ext as _build_ext
+
 cmdclass = {}
 setuptools_kwargs = {}
 
@@ -83,12 +87,15 @@ VERSION = open('VERSION').read().strip()
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-# Need to get access to numpy, so do it now and crash early if not there
-try:
-    from numpy.distutils.misc_util import get_numpy_include_dirs
-except:
-    exit_with_error("You need NumPy prior to install PyTables!")
+# see http://stackoverflow.com/a/21621689 (this is also what pandas does)
+class build_ext(_build_ext):
+    def build_extensions(self):
+        numpy_incl = pkg_resources.resource_filename('numpy', 'core/include')
 
+        for ext in self.extensions:
+            if hasattr(ext, 'include_dirs') and numpy_incl not in ext.include_dirs:
+                ext.include_dirs.append(numpy_incl)
+        _build_ext.build_extensions(self)
 
 # ----------------------------------------------------------------------
 
@@ -838,5 +845,6 @@ interactively save and retrieve large amounts of data.
     ext_modules=extensions,
     cmdclass=cmdclass,
     data_files=data_files,
+    cmdclass={'build_ext': build_ext},
     **setuptools_kwargs
 )
