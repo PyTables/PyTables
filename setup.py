@@ -40,7 +40,8 @@ class BuildExtensions(build_ext):
 
     BuildExtensions does two things
     1) it makes sure numpy is available
-    2) it injects numpy's core/include directory in the include_dirs parameter of all extensions
+    2) it injects numpy's core/include directory in the include_dirs parameter
+       of all extensions
     3) it runs the original build_ext command
     """
 
@@ -49,7 +50,8 @@ class BuildExtensions(build_ext):
         numpy_incl = pkg_resources.resource_filename('numpy', 'core/include')
 
         for ext in self.extensions:
-            if hasattr(ext, 'include_dirs') and numpy_incl not in ext.include_dirs:
+            if (hasattr(ext, 'include_dirs') and
+                numpy_incl not in ext.include_dirs):
                 ext.include_dirs.append(numpy_incl)
 
         build_ext.run(self)
@@ -590,7 +592,7 @@ def get_cython_extfiles(extnames):
         if not exists(extcfile) or newer(extpfile, extcfile):
             # This is the only place where Cython is needed, but every
             # developer should have it installed, so it should not be
-            # a requisite
+            # a hard requisite
             from Cython.Build import cythonize
             cythonize(extpfile)
         extfiles[extname] = extcfile
@@ -844,7 +846,8 @@ interactively save and retrieve large amounts of data.
 
 """,
     classifiers=[c for c in classifiers.split("\n") if c],
-    author='Francesc Alted, Ivan Vilata, et al.',
+    author=('Francesc Alted, Ivan Vilata,'
+            'Antonio Valentino, Anthony Scopatz et al.'),
     author_email='pytables@pytables.org',
     maintainer='PyTables maintainers',
     maintainer_email='pytables@pytables.org',
