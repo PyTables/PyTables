@@ -17,6 +17,7 @@ import glob
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, find_packages
+import pkg_resources
 
 from distutils.core import Extension
 from distutils.dep_util import newer
@@ -38,7 +39,7 @@ class build_ext(_build_ext):
         _build_ext.build_extensions(self)
 
 
-cmdclass={'build_ext': build_ext},
+cmdclass={'build_ext': build_ext}
 setuptools_kwargs = {}
 
 if sys.version_info >= (3,):
