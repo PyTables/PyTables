@@ -17,13 +17,45 @@ import glob
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, find_packages
+import pkg_resources
 
 from distutils.core import Extension
 from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
 
-cmdclass = {}
+# We need to avoid importing numpy until we can be sure it's installed
+# This approach is based on this SO answer http://stackoverflow.com/a/21621689
+# This is also what pandas does.
+from setuptools.command.build_ext import build_ext
+
+# Fetch the requisites
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
+numpy_requirement = [ r for r in requirements if 'numpy' in r ]
+
+class BuildExtensions(build_ext):
+    """Subclass setuptools build_ext command
+
+    BuildExtensions does two things
+    1) it makes sure numpy is available
+    2) it injects numpy's core/include directory in the include_dirs parameter of all extensions
+    3) it runs the original build_ext command
+    """
+
+    def run(self):
+        self.distribution.fetch_build_eggs(numpy_requirement)
+        numpy_incl = pkg_resources.resource_filename('numpy', 'core/include')
+
+        for ext in self.extensions:
+            if hasattr(ext, 'include_dirs') and numpy_incl not in ext.include_dirs:
+                ext.include_dirs.append(numpy_incl)
+
+        build_ext.run(self)
+
+
+cmdclass = {'build_ext': BuildExtensions}
 setuptools_kwargs = {}
 
 if sys.version_info >= (3,):
@@ -78,17 +110,6 @@ def print_warning(head, body=''):
 
 
 VERSION = open('VERSION').read().strip()
-
-# Fetch the requisites
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
-
-# Need to get access to numpy, so do it now and crash early if not there
-try:
-    from numpy.distutils.misc_util import get_numpy_include_dirs
-except:
-    exit_with_error("You need NumPy prior to install PyTables!")
-
 
 # ----------------------------------------------------------------------
 
@@ -146,8 +167,6 @@ elif os.name == 'nt':
     default_runtime_dirs.extend(
         [os.path.join(sys.prefix, 'Lib\\site-packages\\tables')])
 
-
-inc_dirs.extend(get_numpy_include_dirs())
 
 # Gcc 4.0.1 on Mac OS X 10.4 does not seem to include the default
 # header and library paths.  See ticket #18.
@@ -593,8 +612,6 @@ if newer('VERSION', 'src/version.h'):
 setuptools_kwargs['zip_safe'] = False
 
 setuptools_kwargs['extras_require'] = {}
-
-setuptools_kwargs['setup_requires'] = requirements
 setuptools_kwargs['install_requires'] = requirements
 # Detect packages automatically.
 setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
