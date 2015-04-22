@@ -1,2 +1,4 @@
+# Keep in sync with tables/req_versions.py, README.rst and
+# doc/source/usersguide/installation.rst
 numpy>=1.7.1
 numexpr>=2.4
