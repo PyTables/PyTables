@@ -23,11 +23,22 @@ from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
 
-# we need to avoid importing numpy until we can be sure it's installed
-# this approach is based on this SO answer http://stackoverflow.com/a/21621689
+# We need to avoid importing numpy until we can be sure it's installed
+# This approach is based on this SO answer http://stackoverflow.com/a/21621689
+# This is also what pandas does.
 from distutils.command.build_ext import build_ext as _build_ext
 
-cmdclass = {}
+class build_ext(_build_ext):
+    def build_extensions(self):
+        numpy_incl = pkg_resources.resource_filename('numpy', 'core/include')
+
+        for ext in self.extensions:
+            if hasattr(ext, 'include_dirs') and numpy_incl not in ext.include_dirs:
+                ext.include_dirs.append(numpy_incl)
+        _build_ext.build_extensions(self)
+
+
+cmdclass={'build_ext': build_ext},
 setuptools_kwargs = {}
 
 if sys.version_info >= (3,):
@@ -87,16 +98,6 @@ VERSION = open('VERSION').read().strip()
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-# see http://stackoverflow.com/a/21621689 (this is also what pandas does)
-class build_ext(_build_ext):
-    def build_extensions(self):
-        numpy_incl = pkg_resources.resource_filename('numpy', 'core/include')
-
-        for ext in self.extensions:
-            if hasattr(ext, 'include_dirs') and numpy_incl not in ext.include_dirs:
-                ext.include_dirs.append(numpy_incl)
-        _build_ext.build_extensions(self)
-
 # ----------------------------------------------------------------------
 
 debug = '--debug' in sys.argv
@@ -153,8 +154,6 @@ elif os.name == 'nt':
     default_runtime_dirs.extend(
         [os.path.join(sys.prefix, 'Lib\\site-packages\\tables')])
 
-
-inc_dirs.extend(get_numpy_include_dirs())
 
 # Gcc 4.0.1 on Mac OS X 10.4 does not seem to include the default
 # header and library paths.  See ticket #18.
@@ -601,7 +600,7 @@ setuptools_kwargs['zip_safe'] = False
 
 setuptools_kwargs['extras_require'] = {}
 
-setuptools_kwargs['setup_requires'] = requirements
+setuptools_kwargs['setup_requires'] = [ r for r in requirements if 'numpy' in r ]
 setuptools_kwargs['install_requires'] = requirements
 # Detect packages automatically.
 setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
@@ -845,6 +844,5 @@ interactively save and retrieve large amounts of data.
     ext_modules=extensions,
     cmdclass=cmdclass,
     data_files=data_files,
-    cmdclass={'build_ext': build_ext},
     **setuptools_kwargs
 )
