@@ -1,5 +1,5 @@
 ===================================
-Welcome to PyTable's documentation!
+Welcome to PyTables' documentation!
 ===================================
 
 PyTables is a package for managing hierarchical datasets and designed
