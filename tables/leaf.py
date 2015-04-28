@@ -378,10 +378,9 @@ class Leaf(Node):
         # to make sure nrowsinbuf is greater than or
         # equal to the chunksize.
         # See gh-206 and gh-238
-        if self.chunkshape is not None:
-            chunksize = self.chunkshape[self.maindim]
-            if nrowsinbuf < chunksize:
-                nrowsinbuf = chunksize
+        if self.chunkshape is not None and self.__class__.__name__ == "Table":
+            if nrowsinbuf < self.chunkshape[0]:
+                nrowsinbuf = self.chunkshape[0]
 
         # Safeguard against row sizes being extremely large
         if nrowsinbuf == 0:
