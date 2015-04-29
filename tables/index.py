@@ -2157,7 +2157,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
   slicesize := %s
   blocksize := %s
   superblocksize := %s
-  filters := %s
   dirty := %s
   byteorder := %r""" % (self._v_pathname, cpathname,
                         self.optlevel, self.kind,
@@ -2165,8 +2164,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                         self.nelements,
                         self.chunksize, self.slicesize,
                         self.blocksize, self.superblocksize,
-                        self.filters, self.dirty,
-                        self.byteorder)
+                        self.dirty, self.byteorder)
         retstr += "\n  sorted := %s" % self.sorted
         retstr += "\n  indices := %s" % self.indices
         retstr += "\n  ranges := %s" % self.ranges
