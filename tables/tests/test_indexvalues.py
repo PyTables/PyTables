@@ -3356,6 +3356,34 @@ class BuffersizeMultipleChunksize(TestCase):
 
         handle.close()
 
+
+# Test case for issue #441
+class SideEffectNumPyQuicksort(TestCase):
+
+    def test01(self):
+        bug_file = TestCase._testFilename("bug-idx.h5")
+        tmp_file = tempfile.mktemp(".h5")
+        tables.copy_file(bug_file, tmp_file)
+        h5 = tables.open_file(tmp_file, "a")
+        o = h5.root.table
+        vals = o.cols.path[:]
+        npvals = set(numpy.where(vals == 6)[0])
+
+        # Setting the chunkshape is critical for reproducing the bug
+        t = o.copy(newname="table2", chunkshape=2730)
+        t.cols.path.create_index()
+        indexed = set(r.nrow for r in t.where('path == 6'))
+
+        if verbose:
+            diffs = sorted(npvals - indexed)
+            print("ndiff:", len(diffs), diffs)
+        self.assertEqual(len(npvals), len(indexed))
+
+        h5.close()
+        if os.path.exists(tmp_file):
+            os.remove(tmp_file)
+
+
 # -----------------------------
 
 
@@ -3375,7 +3403,7 @@ def suite():
                 theSuite.addTest(suite_)
         theSuite.addTest(unittest.makeSuite(LastRowReuseBuffers))
         theSuite.addTest(unittest.makeSuite(BuffersizeMultipleChunksize))
-
+        theSuite.addTest(unittest.makeSuite(SideEffectNumPyQuicksort))
     return theSuite
 
 

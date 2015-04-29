@@ -61,8 +61,9 @@ if profile:
 
 
 # The default method for sorting
-defsort = "quicksort"
-# defsort = "mergesort"
+# defsort = "quicksort"
+# Changing to mergesort to fix #441
+defsort = "mergesort"
 
 # Default policy for automatically updating indexes after a table
 # append operation, or automatically reindexing after an
