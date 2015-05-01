@@ -155,6 +155,9 @@ Bugs fixed
 - Fixed a nasty problem affecting results of indexed queries.
   Closes :issue:`319` and probably :issue:`419` too.
 
+- Fixed another problem affecting results of indexed queries too.
+  Closes :issue:`441`.
+
 
 Other changes
 -------------
