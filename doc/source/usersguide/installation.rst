@@ -155,14 +155,7 @@ worry too much ;)
 
     Starting from PyTables 3.2 can also query the *pkg-config* database to
     find the required packages. If available, pkg-config is used by default
-    unless another flag like `--hdf5`, `--bzip2`, etc. has been specified.
-    To force the use of *pkg-config* the `--use-pkgconfig` flag can be used::
-
-      $ python setup.py build --hdf5=/custom/hdf5/path --use-pkgconfig
-
-    or use the :envvar:`USE-PKGCONFIG` environment variable::
-
-      $ env USE_PKGCONFIG=TRUE python setup.py build --hdf5=/custom/hdf5/path
+    unless explicitly disabled.
 
     To suppress the use of *pkg-config*::
 

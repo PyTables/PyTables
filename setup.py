@@ -432,7 +432,7 @@ LFLAGS = os.environ.get('LFLAGS', '').split()
 # is not a good idea.
 CFLAGS = os.environ.get('CFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
-USE_PKGCONFIG = None
+USE_PKGCONFIG = os.environ.get('USE_PKGCONFIG', 'TRUE')
 
 # ...then the command line.
 # Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH] --blosc=[PATH]
@@ -442,27 +442,21 @@ for arg in args:
     if arg.find('--hdf5=') == 0:
         HDF5_DIR = expanduser(arg.split('=')[1])
         sys.argv.remove(arg)
-        USE_PKGCONFIG = False if USE_PKGCONFIG is None else USE_PKGCONFIG
     elif arg.find('--lzo=') == 0:
         LZO_DIR = expanduser(arg.split('=')[1])
         sys.argv.remove(arg)
-        USE_PKGCONFIG = False if USE_PKGCONFIG is None else USE_PKGCONFIG
     elif arg.find('--bzip2=') == 0:
         BZIP2_DIR = expanduser(arg.split('=')[1])
         sys.argv.remove(arg)
-        USE_PKGCONFIG = False if USE_PKGCONFIG is None else USE_PKGCONFIG
     elif arg.find('--blosc=') == 0:
         BLOSC_DIR = expanduser(arg.split('=')[1])
         sys.argv.remove(arg)
-        USE_PKGCONFIG = False if USE_PKGCONFIG is None else USE_PKGCONFIG
     elif arg.find('--lflags=') == 0:
         LFLAGS = arg.split('=')[1].split()
         sys.argv.remove(arg)
-        USE_PKGCONFIG = False if USE_PKGCONFIG is None else USE_PKGCONFIG
     elif arg.find('--cflags=') == 0:
         CFLAGS = arg.split('=')[1].split()
         sys.argv.remove(arg)
-        USE_PKGCONFIG = False if USE_PKGCONFIG is None else USE_PKGCONFIG
     elif arg.find('--debug') == 0:
         # For debugging (mainly compression filters)
         if os.name != 'nt':  # to prevent including dlfcn.h by utils.c!!!
@@ -477,8 +471,6 @@ for arg in args:
             USE_PKGCONFIG = arg.split('=')[1]
 
 
-if USE_PKGCONFIG is None:
-    USE_PKGCONFIG = os.environ.get('USE_PKGCONFIG', 'TRUE')
 if isinstance(USE_PKGCONFIG, str):
     if USE_PKGCONFIG.upper() in ('TRUE', 'YES', '1', 'ON', 'OK'):
         USE_PKGCONFIG = True
