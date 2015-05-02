@@ -20,7 +20,7 @@
 
 #if H5Epush_vers == 2
 /* 1.8.x */
-#define PUSH_ERR(func, minor, str) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str)
+#define PUSH_ERR(func, minor, str...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str)
 #else
 /* 1.6.x */
 #define PUSH_ERR(func, minor, str) H5Epush(__FILE__, func, __LINE__, H5E_PLINE, minor, str)
@@ -195,11 +195,18 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         complist = blosc_list_compressors();
 	code = blosc_compcode_to_compname(compcode, &compname);
 	if (code == -1) {
+#if H5Epush_vers == 2
+            PUSH_ERR("blosc_filter", H5E_CALLBACK,
+                     "this Blosc library does not have support for "
+                     "the '%s' compressor, but only for: %s",
+                     compname, complist);
+#else
 	    sprintf(errmsg, "this Blosc library does not have support for "
                     "the '%s' compressor, but only for: %s",
 		    compname, complist);
             PUSH_ERR("blosc_filter", H5E_CALLBACK, errmsg);
             goto failed;
+#endif
 	}
     }
 
