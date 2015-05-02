@@ -84,15 +84,6 @@ if sys.version_info >= (3,):
     setuptools_kwargs['use_2to3_fixers'] = []
     setuptools_kwargs['use_2to3_exclude_fixers'] = exclude_fixers
 
-# The minimum required versions
-min_python_version = (2, 6)
-# Check for Python
-if sys.version_info < min_python_version:
-    exit_with_error("You need Python 2.6 or greater to install PyTables!")
-print("* Using Python %s" % sys.version.splitlines()[0])
-
-# Minumum equired versions for numpy, numexpr and HDF5
-exec(open(os.path.join('tables', 'req_versions.py')).read())
 
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):
@@ -110,6 +101,18 @@ def exit_with_error(head, body=''):
 
 def print_warning(head, body=''):
     _print_admonition('warning', head, body)
+
+
+# The minimum required versions
+min_python_version = (2, 6)
+# Check for Python
+if sys.version_info < min_python_version:
+    exit_with_error("You need Python 2.6 or greater to install PyTables!")
+print("* Using Python %s" % sys.version.splitlines()[0])
+
+# Minumum equired versions for numpy, numexpr and HDF5
+min_hdf5_version = None
+exec(open(os.path.join('tables', 'req_versions.py')).read())
 
 
 VERSION = open('VERSION').read().strip()
