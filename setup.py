@@ -33,7 +33,8 @@ from setuptools.command.build_ext import build_ext
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-numpy_requirement = [ r for r in requirements if 'numpy' in r ]
+numpy_requirement = [r for r in requirements if 'numpy' in r]
+
 
 class BuildExtensions(build_ext):
     """Subclass setuptools build_ext command
@@ -51,7 +52,7 @@ class BuildExtensions(build_ext):
 
         for ext in self.extensions:
             if (hasattr(ext, 'include_dirs') and
-                numpy_incl not in ext.include_dirs):
+                    numpy_incl not in ext.include_dirs):
                 ext.include_dirs.append(numpy_incl)
 
         build_ext.run(self)
@@ -357,7 +358,7 @@ blosc_package = _Package("blosc", 'BLOSC', 'blosc', *_platdep['BLOSC'])
 blosc_package.target_function = 'blosc_list_compressors'  # Blosc >= 1.3
 
 
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 
 def_macros = [('NDEBUG', 1)]
 # Define macros for Windows platform
