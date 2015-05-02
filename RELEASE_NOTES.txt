@@ -25,6 +25,12 @@ Improvements
   Although we think this is a good step, please keep us informed this is
   breaking some installation in a very bad manner.
 
+- setup.py now is able to used *pkg-config*, if available, to locate required
+  libraries (hdf5, bzip2, etc.). The use of *pkg-config* can be controlled
+  via setup.py command line flags or via environment variables.
+  Please refer to the installation guide (in the *User Manual*) for details.
+  Closes :issue:`442`.
+
 - It is now possible to create a new node whose parent is a softlink to another
   group (see :issue:`422`). Thanks to Alistair Muldal.
 
