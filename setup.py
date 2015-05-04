@@ -23,13 +23,14 @@ from distutils.core import Extension
 from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
+import distutils.spawn
 
 # We need to avoid importing numpy until we can be sure it's installed
 # This approach is based on this SO answer http://stackoverflow.com/a/21621689
 # This is also what pandas does.
 from setuptools.command.build_ext import build_ext
 
-
+# The name for the pkg-config utility
 PKG_CONFIG = 'pkg-config'
 
 
@@ -434,7 +435,10 @@ CFLAGS = os.environ.get('CFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
 # We start using pkg-config since some distributions are putting HDF5
 # (and possibly other libraries) in exotic locations.  See issue #442.
-USE_PKGCONFIG = os.environ.get('USE_PKGCONFIG', 'TRUE')
+if distutils.spawn.find_executable(PKG_CONFIG):
+    USE_PKGCONFIG = os.environ.get('USE_PKGCONFIG', 'TRUE')
+else:
+    USE_PKGCONFIG = 'FALSE'
 
 # ...then the command line.
 # Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH] --blosc=[PATH]
