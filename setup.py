@@ -432,6 +432,8 @@ LFLAGS = os.environ.get('LFLAGS', '').split()
 # is not a good idea.
 CFLAGS = os.environ.get('CFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
+# We start using pkg-config since some distributions are putting HDF5
+# (and possibly other libraries) in exotic locations.  See issue #442.
 USE_PKGCONFIG = os.environ.get('USE_PKGCONFIG', 'TRUE')
 
 # ...then the command line.
@@ -465,17 +467,10 @@ for arg in args:
         # when adding more flags later on
         # sys.argv.remove(arg)
     elif arg.find('--use-pkgconfig') == 0:
-        if arg == '--use-pkgconfig':
-            USE_PKGCONFIG = True
-        else:
-            USE_PKGCONFIG = arg.split('=')[1]
+        USE_PKGCONFIG = arg.split('=')[1]
+        sys.argv.remove(arg)
 
-
-if isinstance(USE_PKGCONFIG, str):
-    if USE_PKGCONFIG.upper() in ('TRUE', 'YES', '1', 'ON', 'OK'):
-        USE_PKGCONFIG = True
-    else:
-        USE_PKGCONFIG = False
+USE_PKGCONFIG = True if USE_PKGCONFIG.upper() == 'TRUE' else False
 print('* USE_PKGCONFIG:', USE_PKGCONFIG)
 
 
