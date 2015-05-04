@@ -474,7 +474,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             (start, stop, step) = slice(
                 self.start, self.stop, self.step).indices(shape[maindim])
             shape[maindim] = min(
-                shape[maindim], len(xrange(start, stop, step)))
+                shape[maindim], len(xrange(0, stop - start, step)))
             i_nrows = shape[maindim]
         else:
             start, stop, step = 0, 0, None

@@ -164,6 +164,10 @@ Bugs fixed
 - Fixed another problem affecting results of indexed queries too.
   Closes :issue:`441`.
 
+- Replaced "len(xrange(start, stop, step))" -> "len(xrange(0, stop -
+  start, step))" to fix issues with large row counts with Python 2.x.
+  Fixes #447.
+
 
 Other changes
 -------------

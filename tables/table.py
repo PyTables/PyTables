@@ -1843,7 +1843,7 @@ class Table(tableextension.Table, Leaf):
                 return nra
             return numpy.empty(shape=0, dtype=dtype_field)
 
-        nrows = len(xrange(start, stop, step))
+        nrows = len(xrange(0, stop - start, step))
 
         if out is None:
             # Compute the shape of the resulting column object
@@ -2364,7 +2364,7 @@ class Table(tableextension.Table, Leaf):
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = len(xrange(0, stop - start, step))
         if len(rows) != nrows:
             raise ValueError("The value has different elements than the "
                              "specified range")
@@ -2452,7 +2452,7 @@ class Table(tableextension.Table, Leaf):
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = len(xrange(0, stop - start, step))
         if len(column) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2529,7 +2529,7 @@ class Table(tableextension.Table, Leaf):
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = len(xrange(0, stop - start, step))
         if len(recarray) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2904,7 +2904,7 @@ class Table(tableextension.Table, Leaf):
         (start, stop, step) = self._process_range_read(
             start, stop, step, warn_negstep=sortby is None)
         # And the number of final rows
-        nrows = len(xrange(start, stop, step))
+        nrows = len(xrange(0, stop - start, step))
         # Create the new table and copy the selected data.
         newtable = Table(group, name, self.description, title=title,
                          filters=filters, expectedrows=nrows,
