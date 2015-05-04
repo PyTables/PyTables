@@ -29,11 +29,16 @@ from distutils.ccompiler import new_compiler
 # This is also what pandas does.
 from setuptools.command.build_ext import build_ext
 
+
+PKG_CONFIG = 'pkg-config'
+
+
 # Fetch the requisites
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-numpy_requirement = [ r for r in requirements if 'numpy' in r ]
+numpy_requirement = [r for r in requirements if 'numpy' in r]
+
 
 class BuildExtensions(build_ext):
     """Subclass setuptools build_ext command
@@ -51,7 +56,7 @@ class BuildExtensions(build_ext):
 
         for ext in self.extensions:
             if (hasattr(ext, 'include_dirs') and
-                numpy_incl not in ext.include_dirs):
+                    numpy_incl not in ext.include_dirs):
                 ext.include_dirs.append(numpy_incl)
 
         build_ext.run(self)
@@ -83,15 +88,6 @@ if sys.version_info >= (3,):
     setuptools_kwargs['use_2to3_fixers'] = []
     setuptools_kwargs['use_2to3_exclude_fixers'] = exclude_fixers
 
-# The minimum required versions
-min_python_version = (2, 6)
-# Check for Python
-if sys.version_info < min_python_version:
-    exit_with_error("You need Python 2.6 or greater to install PyTables!")
-print("* Using Python %s" % sys.version.splitlines()[0])
-
-# Minumum equired versions for numpy, numexpr and HDF5
-exec(open(os.path.join('tables', 'req_versions.py')).read())
 
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):
@@ -109,6 +105,18 @@ def exit_with_error(head, body=''):
 
 def print_warning(head, body=''):
     _print_admonition('warning', head, body)
+
+
+# The minimum required versions
+min_python_version = (2, 6)
+# Check for Python
+if sys.version_info < min_python_version:
+    exit_with_error("You need Python 2.6 or greater to install PyTables!")
+print("* Using Python %s" % sys.version.splitlines()[0])
+
+# Minumum equired versions for numpy, numexpr and HDF5
+min_hdf5_version = None
+exec(open(os.path.join('tables', 'req_versions.py')).read())
 
 
 VERSION = open('VERSION').read().strip()
@@ -147,6 +155,7 @@ if os.name == 'posix':
     add_from_path("CPATH", default_header_dirs)
     add_from_path("C_INCLUDE_PATH", default_header_dirs)
     add_from_flags("CPPFLAGS", "-I", default_header_dirs)
+    add_from_flags("CFLAGS", "-I", default_header_dirs)
     default_header_dirs.extend(
         os.path.join(_tree, 'include') for _tree in prefixes
     )
@@ -223,7 +232,19 @@ class Package(object):
                 except OSError:
                     pass
 
-    def find_directories(self, location):
+    def _pkg_config(self, flags):
+        try:
+            cmd = [PKG_CONFIG] + flags.split() + [self.library_name]
+            config = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+
+        # subprocess.CalledProcessError is only available in Python >= 2.7
+        # except (OSError, subprocess.CalledProcessError):
+        except Exception:
+            return []
+        else:
+            return config.decode().strip().split()
+
+    def find_directories(self, location, use_pkgconfig=False):
         dirdata = [
             (self.header_name, self.find_header_path, default_header_dirs),
             (self.library_name, self.find_library_path, default_library_dirs),
@@ -244,9 +265,41 @@ class Package(object):
                 for compdir in self._component_dirs
             ]
 
+        if use_pkgconfig:
+            # header
+            pkgconfig_header_dirs = self._pkg_config('--cflags')
+            pkgconfig_header_dirs = [
+                d.lstrip('-I') for d in pkgconfig_header_dirs
+                if d.startswith('-I')
+            ]
+            if pkgconfig_header_dirs:
+                print('* pkg-config header dirs for %s:' % self.name,
+                      ', '.join(pkgconfig_header_dirs))
+
+            # library
+            pkgconfig_library_dirs = self._pkg_config('--libs-only-L')
+            pkgconfig_library_dirs = [
+                d.lstrip('-L') for d in pkgconfig_library_dirs
+                if d.startswith('-L')
+            ]
+            if pkgconfig_library_dirs:
+                print('* pkg-config library dirs for %s:' % self.name,
+                      ', '.join(pkgconfig_library_dirs))
+
+            # runtime
+            pkgconfig_runtime_dirs = pkgconfig_library_dirs
+
+            pkgconfig_dirs = [
+                pkgconfig_header_dirs,
+                pkgconfig_library_dirs,
+                pkgconfig_runtime_dirs,
+            ]
+        else:
+            pkgconfig_dirs = [None, None, None]
+
         directories = [None, None, None]  # headers, libraries, runtime
         for idx, (name, find_path, default_dirs) in enumerate(dirdata):
-            path = find_path(locations or default_dirs)
+            path = find_path(locations or pkgconfig_dirs[idx] or default_dirs)
             if path:
                 if path is True:
                     directories[idx] = True
@@ -357,7 +410,7 @@ blosc_package = _Package("blosc", 'BLOSC', 'blosc', *_platdep['BLOSC'])
 blosc_package.target_function = 'blosc_list_compressors'  # Blosc >= 1.3
 
 
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 
 def_macros = [('NDEBUG', 1)]
 # Define macros for Windows platform
@@ -379,6 +432,7 @@ LFLAGS = os.environ.get('LFLAGS', '').split()
 # is not a good idea.
 CFLAGS = os.environ.get('CFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
+USE_PKGCONFIG = os.environ.get('USE_PKGCONFIG', 'TRUE')
 
 # ...then the command line.
 # Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH] --blosc=[PATH]
@@ -410,6 +464,20 @@ for arg in args:
         # Don't delete this argument. It maybe useful for distutils
         # when adding more flags later on
         # sys.argv.remove(arg)
+    elif arg.find('--use-pkgconfig') == 0:
+        if arg == '--use-pkgconfig':
+            USE_PKGCONFIG = True
+        else:
+            USE_PKGCONFIG = arg.split('=')[1]
+
+
+if isinstance(USE_PKGCONFIG, str):
+    if USE_PKGCONFIG.upper() in ('TRUE', 'YES', '1', 'ON', 'OK'):
+        USE_PKGCONFIG = True
+    else:
+        USE_PKGCONFIG = False
+print('* USE_PKGCONFIG:', USE_PKGCONFIG)
+
 
 # For windows, search for the hdf5 dll in the path and use it if found.
 # This is much more convenient than having to manually set an environment
@@ -477,7 +545,8 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
               % (lzo1_package.name, lzo2_package.name))
         continue  # do not use LZO 1 if LZO 2 is available
 
-    (hdrdir, libdir, rundir) = package.find_directories(location)
+    (hdrdir, libdir, rundir) = package.find_directories(
+        location, use_pkgconfig=USE_PKGCONFIG)
 
     # check if the library is in the standard compiler paths
     if not libdir and package.target_function:
