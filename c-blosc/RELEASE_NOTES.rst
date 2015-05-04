@@ -1,11 +1,21 @@
 ================================
- Release notes for c-blosc 1.4.1
+ Release notes for c-blosc 1.4.2
 ================================
 
 :Author: Francesc Alted
 :Contact: francesc@blosc.io
 :URL: http://www.blosc.org
 
+
+Changes from 1.4.1 to 1.4.2
+===========================
+
+* The implementation of H5Epush function has been modified in
+  hdf5-1.8.15 and there is a fix for this.
+
+* Use multithreaded or single-threaded code depending on Blosc version.
+  This is mainly useful for compiling HDF5 apps with non-included Blosc
+  libraries.
 
 Changes from 1.4.0 to 1.4.1
 ===========================
@@ -34,7 +44,7 @@ Changes from 1.3.5 to 1.3.6
 
 * Updated to LZ4 r118 due to a (highly unlikely) security hole.  For
   details see:
- 
+
   http://fastcompression.blogspot.fr/2014/06/debunking-lz4-20-years-old-bug-myth.html
 
 

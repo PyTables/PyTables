@@ -1,14 +1,14 @@
 ===============================================================
- Announcing c-blosc 1.4.1
+ Announcing c-blosc 1.4.2
  A blocking, shuffling and lossless compression library
 ===============================================================
 
 What is new?
 ============
 
-This is a maintenance release, where a bug in blosc_getitem() introduced
-in 1.4.0 has been tracked down and squashed.  If you use this function,
-please update your c-blosc copy.
+This is a maintenance release, mainly for adapting to recent changes
+in HDF5 1.8.15 (H5Epush) and also for using multithreaded or
+single-threaded code depending on Blosc version.
 
 For more info, please see the release notes in:
 
