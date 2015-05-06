@@ -364,16 +364,23 @@ class Leaf(Node):
         # Compute the nrowsinbuf
         rowsize = self.rowsize
         buffersize = params['IO_BUFFER_SIZE']
-        nrowsinbuf = buffersize // rowsize
+        if rowsize != 0:
+            nrowsinbuf = buffersize // rowsize
+            if self.__class__.__name__ == "Table":
+                # The number of rows in buffer needs to be an exact multiple of
+                # chunkshape[0] for queries using indexed columns.
+                # Fixes #319 and probably #409 too.
+                nrowsinbuf -= nrowsinbuf % self.chunkshape[0]
+        else:
+            nrowsinbuf = 1
 
         # tableextension.pyx performs an assertion
         # to make sure nrowsinbuf is greater than or
         # equal to the chunksize.
         # See gh-206 and gh-238
-        if self.chunkshape is not None:
-            chunksize = self.chunkshape[self.maindim]
-            if nrowsinbuf < chunksize:
-                nrowsinbuf = chunksize
+        if self.chunkshape is not None and self.__class__.__name__ == "Table":
+            if nrowsinbuf < self.chunkshape[0]:
+                nrowsinbuf = self.chunkshape[0]
 
         # Safeguard against row sizes being extremely large
         if nrowsinbuf == 0:
@@ -401,24 +408,18 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         if warn_negstep and step and step < 0:
             raise ValueError("slice step cannot be negative")
-        # (start, stop, step) = slice(start, stop, step).indices(nrows)
-        # The next function is a substitute for slice().indices in order to
-        # support full 64-bit integer for slices even in 32-bit machines.
-        # F. Alted 2005-05-08
-        start, stop, step = utilsextension.get_indices(start, stop, step,
-                                                       long(nrows))
-        return (start, stop, step)
+
+        #if start is not None: start = long(start)
+        #if stop is not None: stop = long(stop)
+        #if step is not None: step = long(step)
+
+        return slice(start, stop, step).indices(long(nrows))
 
     _processRange = previous_api(_process_range)
 
-    # This method is appropiate for calls to read() methods
+    # This method is appropriate for calls to read() methods
     def _process_range_read(self, start, stop, step, warn_negstep=True):
         nrows = self.nrows
-        if start is None and stop is None:
-        #if start is None and stop is None and step is None:
-            start = 0
-            stop = nrows
-            #step = 1
         if start is not None and stop is None and step is None:
             # Protection against start greater than available records
             # nrows == 0 is a special case for empty objects
@@ -563,6 +564,14 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:
                 # For 1-dimensional datasets
                 coords = numpy.asarray(key, dtype="i8")
+
+            # handle negative indices
+            idx = coords < 0
+            coords[idx] = (coords + self.shape)[idx]
+
+            # bounds check
+            if numpy.any(coords < 0) or numpy.any(coords >= self.shape):
+                raise IndexError("Index out of bounds")
         else:
             raise TypeError("Only integer coordinates allowed.")
         # We absolutely need a contiguous array

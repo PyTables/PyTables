@@ -3,6 +3,8 @@
 
 """Setup script for the tables package"""
 
+from __future__ import print_function
+
 import os
 import re
 import sys
@@ -13,20 +15,55 @@ import subprocess
 from os.path import exists, expanduser
 import glob
 
-# Using ``setuptools`` enables lots of goodies, such as building eggs.
-if 'FORCE_SETUPTOOLS' in os.environ:
-    from setuptools import setup, find_packages
-    has_setuptools = True
-else:
-    from distutils.core import setup
-    has_setuptools = False
+# Using ``setuptools`` enables lots of goodies
+from setuptools import setup, find_packages
+import pkg_resources
 
 from distutils.core import Extension
 from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
+import distutils.spawn
 
-cmdclass = {}
+# We need to avoid importing numpy until we can be sure it's installed
+# This approach is based on this SO answer http://stackoverflow.com/a/21621689
+# This is also what pandas does.
+from setuptools.command.build_ext import build_ext
+
+# The name for the pkg-config utility
+PKG_CONFIG = 'pkg-config'
+
+
+# Fetch the requisites
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
+numpy_requirement = [r for r in requirements if 'numpy' in r]
+
+
+class BuildExtensions(build_ext):
+    """Subclass setuptools build_ext command
+
+    BuildExtensions does two things
+    1) it makes sure numpy is available
+    2) it injects numpy's core/include directory in the include_dirs parameter
+       of all extensions
+    3) it runs the original build_ext command
+    """
+
+    def run(self):
+        self.distribution.fetch_build_eggs(numpy_requirement)
+        numpy_incl = pkg_resources.resource_filename('numpy', 'core/include')
+
+        for ext in self.extensions:
+            if (hasattr(ext, 'include_dirs') and
+                    numpy_incl not in ext.include_dirs):
+                ext.include_dirs.append(numpy_incl)
+
+        build_ext.run(self)
+
+
+cmdclass = {'build_ext': BuildExtensions}
 setuptools_kwargs = {}
 
 if sys.version_info >= (3,):
@@ -43,34 +80,14 @@ if sys.version_info >= (3,):
         'lib2to3.fixes.fix_xrange',
     ]
 
-    if has_setuptools:
-        from lib2to3.refactor import get_fixers_from_package
+    from lib2to3.refactor import get_fixers_from_package
 
-        all_fixers = set(get_fixers_from_package('lib2to3.fixes'))
-        exclude_fixers = sorted(all_fixers.difference(fixer_names))
+    all_fixers = set(get_fixers_from_package('lib2to3.fixes'))
+    exclude_fixers = sorted(all_fixers.difference(fixer_names))
 
-        setuptools_kwargs['use_2to3'] = True
-        setuptools_kwargs['use_2to3_fixers'] = []
-        setuptools_kwargs['use_2to3_exclude_fixers'] = exclude_fixers
-    else:
-        from distutils.command.build_py import build_py_2to3 as build_py
-        from distutils.command.build_scripts \
-            import build_scripts_2to3 as build_scripts
-
-        build_py.fixer_names = fixer_names
-        build_scripts.fixer_names = fixer_names
-
-        cmdclass['build_py'] = build_py
-        cmdclass['build_scripts'] = build_scripts
-
-
-# The minimum required versions
-min_numpy_version = None
-min_numexpr_version = None
-min_cython_version = None
-min_hdf5_version = None
-min_python_version = (2, 6)
-exec(open(os.path.join('tables', 'req_versions.py')).read())
+    setuptools_kwargs['use_2to3'] = True
+    setuptools_kwargs['use_2to3_fixers'] = []
+    setuptools_kwargs['use_2to3_exclude_fixers'] = exclude_fixers
 
 
 # Some functions for showing errors and warnings.
@@ -91,56 +108,21 @@ def print_warning(head, body=''):
     _print_admonition('warning', head, body)
 
 
+# The minimum required versions
+min_python_version = (2, 6)
 # Check for Python
 if sys.version_info < min_python_version:
     exit_with_error("You need Python 2.6 or greater to install PyTables!")
 print("* Using Python %s" % sys.version.splitlines()[0])
 
+# Minumum equired versions for numpy, numexpr and HDF5
+min_hdf5_version = None
+exec(open(os.path.join('tables', 'req_versions.py')).read())
 
-# Check for required Python packages
-def check_import(pkgname, pkgver):
-    try:
-        mod = __import__(pkgname)
-    except ImportError:
-        exit_with_error(
-            "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
-            % {'pkgname': pkgname, 'pkgver': pkgver})
-    else:
-        if mod.__version__ < pkgver:
-            exit_with_error(
-                "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
-                % {'pkgname': pkgname, 'pkgver': pkgver})
-
-    print("* Found %(pkgname)s %(pkgver)s package installed."
-          % {'pkgname': pkgname, 'pkgver': mod.__version__})
-    globals()[pkgname] = mod
-
-check_import('numpy', min_numpy_version)
-# Check for numexpr only if not using setuptools (see #298)
-if not has_setuptools:
-    check_import('numexpr', min_numexpr_version)
-
-# Check if Cython is installed or not (requisite)
-try:
-    from Cython.Distutils import build_ext
-    from Cython.Compiler.Main import Version
-    cmdclass['build_ext'] = build_ext
-except ImportError:
-    exit_with_error(
-        "You need %(pkgname)s %(pkgver)s or greater to compile PyTables!"
-        % {'pkgname': 'Cython', 'pkgver': min_cython_version})
-
-if Version.version < min_cython_version:
-    exit_with_error(
-        "At least Cython %s is needed so as to generate extensions!"
-        % (min_cython_version))
-else:
-    print("* Found %(pkgname)s %(pkgver)s package installed."
-          % {'pkgname': 'Cython', 'pkgver': Version.version})
 
 VERSION = open('VERSION').read().strip()
 
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 debug = '--debug' in sys.argv
 
@@ -174,6 +156,7 @@ if os.name == 'posix':
     add_from_path("CPATH", default_header_dirs)
     add_from_path("C_INCLUDE_PATH", default_header_dirs)
     add_from_flags("CPPFLAGS", "-I", default_header_dirs)
+    add_from_flags("CFLAGS", "-I", default_header_dirs)
     default_header_dirs.extend(
         os.path.join(_tree, 'include') for _tree in prefixes
     )
@@ -196,8 +179,6 @@ elif os.name == 'nt':
     default_runtime_dirs.extend(
         [os.path.join(sys.prefix, 'Lib\\site-packages\\tables')])
 
-from numpy.distutils.misc_util import get_numpy_include_dirs
-inc_dirs.extend(get_numpy_include_dirs())
 
 # Gcc 4.0.1 on Mac OS X 10.4 does not seem to include the default
 # header and library paths.  See ticket #18.
@@ -252,7 +233,19 @@ class Package(object):
                 except OSError:
                     pass
 
-    def find_directories(self, location):
+    def _pkg_config(self, flags):
+        try:
+            cmd = [PKG_CONFIG] + flags.split() + [self.library_name]
+            config = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+
+        # subprocess.CalledProcessError is only available in Python >= 2.7
+        # except (OSError, subprocess.CalledProcessError):
+        except Exception:
+            return []
+        else:
+            return config.decode().strip().split()
+
+    def find_directories(self, location, use_pkgconfig=False):
         dirdata = [
             (self.header_name, self.find_header_path, default_header_dirs),
             (self.library_name, self.find_library_path, default_library_dirs),
@@ -273,9 +266,41 @@ class Package(object):
                 for compdir in self._component_dirs
             ]
 
+        if use_pkgconfig:
+            # header
+            pkgconfig_header_dirs = self._pkg_config('--cflags')
+            pkgconfig_header_dirs = [
+                d.lstrip('-I') for d in pkgconfig_header_dirs
+                if d.startswith('-I')
+            ]
+            if pkgconfig_header_dirs:
+                print('* pkg-config header dirs for %s:' % self.name,
+                      ', '.join(pkgconfig_header_dirs))
+
+            # library
+            pkgconfig_library_dirs = self._pkg_config('--libs-only-L')
+            pkgconfig_library_dirs = [
+                d.lstrip('-L') for d in pkgconfig_library_dirs
+                if d.startswith('-L')
+            ]
+            if pkgconfig_library_dirs:
+                print('* pkg-config library dirs for %s:' % self.name,
+                      ', '.join(pkgconfig_library_dirs))
+
+            # runtime
+            pkgconfig_runtime_dirs = pkgconfig_library_dirs
+
+            pkgconfig_dirs = [
+                pkgconfig_header_dirs,
+                pkgconfig_library_dirs,
+                pkgconfig_runtime_dirs,
+            ]
+        else:
+            pkgconfig_dirs = [None, None, None]
+
         directories = [None, None, None]  # headers, libraries, runtime
         for idx, (name, find_path, default_dirs) in enumerate(dirdata):
-            path = find_path(locations or default_dirs)
+            path = find_path(locations or pkgconfig_dirs[idx] or default_dirs)
             if path:
                 if path is True:
                     directories[idx] = True
@@ -386,7 +411,7 @@ blosc_package = _Package("blosc", 'BLOSC', 'blosc', *_platdep['BLOSC'])
 blosc_package.target_function = 'blosc_list_compressors'  # Blosc >= 1.3
 
 
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 
 def_macros = [('NDEBUG', 1)]
 # Define macros for Windows platform
@@ -408,6 +433,12 @@ LFLAGS = os.environ.get('LFLAGS', '').split()
 # is not a good idea.
 CFLAGS = os.environ.get('CFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
+# We start using pkg-config since some distributions are putting HDF5
+# (and possibly other libraries) in exotic locations.  See issue #442.
+if distutils.spawn.find_executable(PKG_CONFIG):
+    USE_PKGCONFIG = os.environ.get('USE_PKGCONFIG', 'TRUE')
+else:
+    USE_PKGCONFIG = 'FALSE'
 
 # ...then the command line.
 # Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH] --blosc=[PATH]
@@ -438,7 +469,14 @@ for arg in args:
             def_macros = [('DEBUG', 1)]
         # Don't delete this argument. It maybe useful for distutils
         # when adding more flags later on
-        #sys.argv.remove(arg)
+        # sys.argv.remove(arg)
+    elif arg.find('--use-pkgconfig') == 0:
+        USE_PKGCONFIG = arg.split('=')[1]
+        sys.argv.remove(arg)
+
+USE_PKGCONFIG = True if USE_PKGCONFIG.upper() == 'TRUE' else False
+print('* USE_PKGCONFIG:', USE_PKGCONFIG)
+
 
 # For windows, search for the hdf5 dll in the path and use it if found.
 # This is much more convenient than having to manually set an environment
@@ -476,19 +514,21 @@ CFLAGS.extend([
     "-DH5Gopen_vers=2",
     "-DH5Pget_filter_vers=2",
     "-DH5Pget_filter_by_id_vers=2",
-    #"-DH5Pinsert_vers=2",
-    #"-DH5Pregister_vers=2",
-    #"-DH5Rget_obj_type_vers=2",
+    # "-DH5Pinsert_vers=2",
+    # "-DH5Pregister_vers=2",
+    # "-DH5Rget_obj_type_vers=2",
     "-DH5Tarray_create_vers=2",
-    #"-DH5Tcommit_vers=2",
+    # "-DH5Tcommit_vers=2",
     "-DH5Tget_array_dims_vers=2",
-    #"-DH5Topen_vers=2",
+    # "-DH5Topen_vers=2",
     "-DH5Z_class_t_vers=2",
 ])
-CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
+# H5Oget_info_by_name seems to have performance issues (see gh-402), so we
+# need to use teh deprecated H5Gget_objinfo function
+# CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
 
 # Do not use numpy deprecated API
-#CFLAGS.append("-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
+# CFLAGS.append("-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
 
 # Try to locate the compulsory and optional libraries.
 lzo2_enabled = False
@@ -504,7 +544,8 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
               % (lzo1_package.name, lzo2_package.name))
         continue  # do not use LZO 1 if LZO 2 is available
 
-    (hdrdir, libdir, rundir) = package.find_directories(location)
+    (hdrdir, libdir, rundir) = package.find_directories(
+        location, use_pkgconfig=USE_PKGCONFIG)
 
     # check if the library is in the standard compiler paths
     if not libdir and package.target_function:
@@ -593,7 +634,7 @@ if lzo2_enabled:
 else:
     lzo_package = lzo1_package
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 cython_extnames = [
     'utilsextension',
@@ -617,17 +658,11 @@ def get_cython_extfiles(extnames):
         extcfile = '%s.c' % extfile
 
         if not exists(extcfile) or newer(extpfile, extcfile):
-            # For some reason, setup in setuptools does not compile
-            # Cython files (!)  Do that manually...
-            # 2013/08/24: the issue should be fixed in distribute 0.6.15
-            # see also https://bitbucket.org/tarek/distribute/issue/195
-            print("cythoning %s to %s" % (extpfile, extcfile))
-            retcode = subprocess.call(
-                [sys.executable, "-m", "cython", extpfile]
-            )
-            if retcode > 0:
-                print("cython aborted compilation with retcode:", retcode)
-                sys.exit()
+            # This is the only place where Cython is needed, but every
+            # developer should have it installed, so it should not be
+            # a hard requisite
+            from Cython.Build import cythonize
+            cythonize(extpfile)
         extfiles[extname] = extcfile
 
     return extfiles
@@ -640,63 +675,38 @@ if newer('VERSION', 'src/version.h'):
     open('src/version.h', 'w').write(
         '#define PYTABLES_VERSION "%s"\n' % VERSION)
 
-#--------------------------------------------------------------------
+# --------------------------------------------------------------------
 
-# Package information for ``setuptools``.
-if has_setuptools:
-    # PyTables contains data files for tests.
-    setuptools_kwargs['zip_safe'] = False
+# Package information for ``setuptools``
+# PyTables contains data files for tests.
+setuptools_kwargs['zip_safe'] = False
 
-    # ``NumPy`` headers are needed for building the extensions, as
-    # well as Cython.
-    setuptools_kwargs['setup_requires'] = [
-        'numpy>=%s' % min_numpy_version,
-        'cython>=%s' % min_cython_version,
-    ]
-
-    # ``NumPy`` and ``Numexpr`` are absolutely required for running PyTables.
-    setuptools_kwargs['install_requires'] = [
-        'numpy>=%s' % min_numpy_version,
-        'numexpr>=%s' % min_numexpr_version,
-    ]
-
-    setuptools_kwargs['extras_require'] = {}
-
-    # Detect packages automatically.
-    setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
-    # Entry points for automatic creation of scripts.
-    setuptools_kwargs['entry_points'] = {
-        'console_scripts': [
-            'ptdump = tables.scripts.ptdump:main',
-            'ptrepack = tables.scripts.ptrepack:main',
-            'pt2to3 = tables.scripts.pt2to3:main',
+setuptools_kwargs['extras_require'] = {}
+setuptools_kwargs['install_requires'] = requirements
+# Detect packages automatically.
+setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
+# Entry points for automatic creation of scripts.
+setuptools_kwargs['entry_points'] = {
+    'console_scripts': [
+        'ptdump = tables.scripts.ptdump:main',
+        'ptrepack = tables.scripts.ptrepack:main',
+        'pt2to3 = tables.scripts.pt2to3:main',
+        'pttree = tables.scripts.pttree:main',
         ],
     }
 
-    # Test suites.
-    setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
-    setuptools_kwargs['scripts'] = []
-else:
-    # The next should work with stock distutils, but it does not!
-    # It is better to rely on check_import
-    # setuptools_kwargs['requires'] = ['numpy (>= %s)' % min_numpy_version,
-    #                                  'numexpr (>= %s)' % min_numexpr_version]
-    # There is no other chance, these values must be hardwired.
-    setuptools_kwargs['packages'] = [
-        'tables', 'tables.nodes', 'tables.scripts', 'tables.misc',
-        # Test suites.
-        'tables.tests', 'tables.nodes.tests',
-    ]
-    setuptools_kwargs['scripts'] = [
-        'utils/ptdump', 'utils/ptrepack', 'utils/pt2to3']
+# Test suites.
+setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
+setuptools_kwargs['scripts'] = []
+
 # Copy additional data for packages that need it.
 setuptools_kwargs['package_data'] = {
     'tables.tests': ['*.h5', '*.mat'],
     'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5']}
 
 
-#Having the Python version included in the package name makes managing a
-#system with multiple versions of Python much easier.
+# Having the Python version included in the package name makes managing a
+# system with multiple versions of Python much easier.
 
 def find_name(base='tables'):
     '''If "--name-with-python-version" is on the command line then
@@ -736,7 +746,7 @@ if 'BLOSC' not in optional_libs:
     # ...and the macros for all the compressors supported
     def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1)]
 
-    # Add -msse2 flag for optimizing shuffle in include Blosc
+    # Add extra flags for optimizing shuffle in include Blosc
     def compiler_has_flags(compiler, flags):
         with tempfile.NamedTemporaryFile(mode='w', suffix='.c',
                                          delete=False) as fd:
@@ -751,9 +761,12 @@ if 'BLOSC' not in optional_libs:
         finally:
             os.remove(fd.name)
 
-    if compiler_has_flags(compiler, ["-msse2"]):
-        print("Setting compiler flag '-msse2'")
-        CFLAGS.append("-msse2")
+    try_flags = ["-march=native", "-msse2"]
+    for ff in try_flags:
+        if compiler_has_flags(compiler, [ff]):
+            print("Setting compiler flag: " + ff)
+            CFLAGS.append(ff)
+            break
 else:
     ADDLIBS += ['blosc']
 
@@ -901,7 +914,8 @@ interactively save and retrieve large amounts of data.
 
 """,
     classifiers=[c for c in classifiers.split("\n") if c],
-    author='Francesc Alted, Ivan Vilata, et al.',
+    author=('Francesc Alted, Ivan Vilata,'
+            'Antonio Valentino, Anthony Scopatz et al.'),
     author_email='pytables@pytables.org',
     maintainer='PyTables maintainers',
     maintainer_email='pytables@pytables.org',

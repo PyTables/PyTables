@@ -20,7 +20,6 @@ import numpy as np
 import tables as tb
 from numexpr.necompiler import getContext, getExprNames, getType, NumExpr
 from numexpr.expressions import functions as numexpr_functions
-from tables.utilsextension import get_indices
 from tables.exceptions import PerformanceWarning
 from tables.parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 
@@ -472,10 +471,10 @@ value of dimensions that are orthogonal (and preferably close) to the
         # in account new possible values of start, stop and step in
         # the inputs range
         if maindim is not None:
-            (start, stop, step) = get_indices(
-                self.start, self.stop, self.step, shape[maindim])
+            (start, stop, step) = slice(
+                self.start, self.stop, self.step).indices(shape[maindim])
             shape[maindim] = min(
-                shape[maindim], len(xrange(start, stop, step)))
+                shape[maindim], len(xrange(0, stop - start, step)))
             i_nrows = shape[maindim]
         else:
             start, stop, step = 0, 0, None
@@ -501,8 +500,8 @@ value of dimensions that are orthogonal (and preferably close) to the
                 # account new possible values of start, stop and step in
                 # the output range
                 o_shape = list(out.shape)
-                (o_start, o_stop, o_step) = get_indices(
-                    self.o_start, self.o_stop, self.o_step, o_shape[o_maindim])
+                s = slice(self.o_start, self.o_stop, self.o_step)
+                o_start, o_stop, o_step = s.indices(o_shape[o_maindim])
                 o_shape[o_maindim] = min(o_shape[o_maindim],
                                          len(xrange(o_start, o_stop, o_step)))
 

@@ -244,12 +244,15 @@ out:
 ****************************************************************/
 int get_objinfo(hid_t loc_id, const char *name) {
   herr_t     ret;            /* Generic return value         */
-  H5O_info_t oinfo;
+  H5G_stat_t oinfo;
+  /* H5O_info_t oinfo; H5Oget_info_by_name seems to have performance issues (see gh-402) */
 
   /* Get type of the object, without emiting an error in case the
      node does not exist. */
   H5E_BEGIN_TRY {
-    ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);
+    ret = H5Gget_objinfo(loc_id, name, FALSE, &oinfo);
+    /* H5Oget_info_by_name seems to have performance issues (see gh-402) */
+    /*ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);*/
   } H5E_END_TRY;
   if (ret < 0)
     return -2;
@@ -285,7 +288,8 @@ herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
   PyObject   **out_info=(PyObject **)data;
   PyObject   *strname;
   herr_t     ret;
-  H5O_info_t oinfo;
+  H5G_stat_t oinfo;
+  /*H5O_info_t oinfo; H5Oget_info_by_name seems to have performance issues (see gh-402) */
   int        namedtypes = 0;
 
   strname = PyString_FromString(name);
@@ -300,9 +304,36 @@ herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
       break;
     case H5L_TYPE_HARD:
       /* Get type of the object and check it */
+      ret = H5Gget_objinfo(loc_id, name, FALSE, &oinfo);
+      if (ret < 0)
+        return -1;
+
+      switch(oinfo.type) {
+        case H5G_GROUP:
+          PyList_Append(out_info[0], strname);
+          break;
+        case H5G_DATASET:
+          PyList_Append(out_info[1], strname);
+          break;
+        case H5G_TYPE:
+          ++namedtypes;
+          break;
+        case H5G_UNKNOWN:
+          PyList_Append(out_info[3], strname);
+          break;
+        case H5G_LINK:
+          /* should not happen */
+          PyList_Append(out_info[2], strname);
+          break;
+        default:
+          /* should not happen: assume it is an external link */
+          PyList_Append(out_info[2], strname);
+      }
+
+      /* H5Oget_info_by_name seems to have performance issues (see gh-402)
       ret = H5Oget_info_by_name(loc_id, name, &oinfo, H5P_DEFAULT);
       if (ret < 0)
-          return -1;
+        return -1;
 
       switch(oinfo.type) {
         case H5O_TYPE_GROUP:
@@ -318,9 +349,10 @@ herr_t litercb(hid_t loc_id, const char *name, const H5L_info_t *info,
           PyList_Append(out_info[3], strname);
           break;
         default:
-          /* should not happen */
+          / * should not happen * /
           PyList_Append(out_info[3], strname);
       }
+      */
       break;
     default:
       /* should not happen */
@@ -522,124 +554,6 @@ out:
 }
 
 
-/* Extract a slice index from a PyLong, and store in *pi.  Silently
-   reduce values larger than LONGLONG_MAX to LONGLONG_MAX, and
-   silently boost values less than -LONGLONG_MAX to 0.  Return 0 on
-   error, 1 on success.
-*/
-/* Note: This has been copied and modified from the original in
-   Python/ceval.c so as to allow working with long long values.
-   F. Alted 2005-05-08
-*/
-
-/* Replaced LONLONG_MAX by ll_max because AIX does define the former.
-   F. Alted 2006-10-23
- */
-
-hsize_t _PyEval_SliceIndex_modif(PyObject *v, hssize_t *pi)
-{
-  PY_LONG_LONG ll_max;
-
-  /* I think it should be a more efficient way to know ll_max,
-   but this should work on every platform, be 32 or 64 bits.
-   F. Alted 2005-05-08
-  */
-
-/*  ll_max = (PY_LONG_LONG) (pow(2, 63) - 1); */ /* Works on Unix */
-  ll_max = (PY_LONG_LONG) (pow(2, 62) - 1); /* Safer on Windows */
-
-  if (v != NULL) {
-    PY_LONG_LONG x;
-    if (PyLong_Check(v)) {
-      x = PyLong_AsLongLong(v);
-    }
-    else if (PyLong_Check(v)) {
-      x = PyLong_AsLongLong(v);
-    } else {
-      PyErr_SetString(PyExc_TypeError,
-                      "PyTables slice indices must be integers");
-      return 0;
-    }
-    /* Truncate -- very long indices are truncated anyway */
-    if (x > ll_max)
-      x = ll_max;
-    else if (x < -ll_max)
-      x = -ll_max;
-    *pi = x;
-  }
-  return 1;
-}
-
-/* This has been copied from the Python 2.3 sources in order to get a
-   function similar to the method slice.indices(length) but that works
-   with 64-bit ints and not only with ints.
- */
-
-/* F. Alted 2005-05-08 */
-
-hsize_t getIndicesExt(PyObject *s, hsize_t length,
-                      hssize_t *start, hssize_t *stop, hssize_t *step,
-                      hsize_t *slicelength)
-{
-        /* this is harder to get right than you might think */
-
-        hssize_t defstart, defstop;
-        PySliceObject *r = (PySliceObject *) s;
-
-        if (r->step == Py_None) {
-                *step = 1;
-        }
-        else {
-                if (!_PyEval_SliceIndex_modif(r->step, step)) return -1;
-                if ((PY_LONG_LONG)*step == 0) {
-                        PyErr_SetString(PyExc_ValueError,
-                                        "slice step cannot be zero");
-                        return -1;
-                }
-        }
-
-        defstart = (PY_LONG_LONG)*step < 0 ? length-1 : 0;
-        defstop = (PY_LONG_LONG)*step < 0 ? -1 : length;
-
-        if (r->start == Py_None) {
-                *start = defstart;
-        }
-        else {
-                if (!_PyEval_SliceIndex_modif(r->start, start)) return -1;
-                if ((PY_LONG_LONG)*start < 0L) *start += length;
-                if ((PY_LONG_LONG)*start < 0) *start = ((PY_LONG_LONG)*step < 0) ? -1 : 0;
-                if ((PY_LONG_LONG)*start >= (PY_LONG_LONG)length)
-                        *start = ((PY_LONG_LONG)*step < 0) ? length - 1 : length;
-        }
-
-        if (r->stop == Py_None) {
-                *stop = defstop;
-        }
-        else {
-                if (!_PyEval_SliceIndex_modif(r->stop, stop)) return -1;
-                if ((PY_LONG_LONG)*stop < 0) *stop += length;
-                if ((PY_LONG_LONG)*stop < 0) *stop = -1;
-                //if ((PY_LONG_LONG)*stop < 0) *stop = (*step < 0) ? -1 : 0;
-                if ((PY_LONG_LONG)*stop > (PY_LONG_LONG)length) *stop = length;
-                //if ((PY_LONG_LONG)*stop >= (PY_LONG_LONG)length)// *stop = length;
-                //        *stop = (*step < 0) ? length - 1 : length;
-        }
-
-        if (((PY_LONG_LONG)*step < 0 && (PY_LONG_LONG)*stop >= (PY_LONG_LONG)*start)
-            || ((PY_LONG_LONG)*step > 0 && (PY_LONG_LONG)*start >= (PY_LONG_LONG)*stop)) {
-                *slicelength = 0;
-        }
-        else if ((PY_LONG_LONG)*step < 0) {
-                *slicelength = (*stop-*start+1)/(*step)+1;
-        }
-        else {
-                *slicelength = (*stop-*start-1)/(*step)+1;
-        }
-
-        return 0;
-}
-
-
 /* The next provides functions to support a complex datatype.
    HDF5 does not provide an atomic type class for complex numbers
    so we make one from a HDF5 compound type class.
@@ -674,8 +588,8 @@ int is_complex(hid_t type_id) {
         if (class1 == H5T_FLOAT && class2 == H5T_FLOAT)
           result = 1;
       }
-      free(colname1);
-      free(colname2);
+      pt_H5free_memory(colname1);
+      pt_H5free_memory(colname2);
     }
   }
   /* Is an Array of Complex? */
@@ -1054,15 +968,7 @@ out:
  */
 
 /* DIRECT driver */
-#ifdef H5_HAVE_DIRECT
-
-herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
-                             size_t block_size, size_t cbuf_size)
-{
- return H5Pset_fapl_direct(fapl_id, alignment, block_size, cbuf_size);
-}
-
-#else /* H5_HAVE_DIRECT */
+#ifndef H5_HAVE_DIRECT
 
 herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
                              size_t block_size, size_t cbuf_size)
@@ -1074,14 +980,7 @@ herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
 
 
 /* WINDOWS driver */
-#ifdef H5_HAVE_WINDOWS
-
-herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
-{
- return H5Pset_fapl_windows(fapl_id);
-}
-
-#else /* H5_HAVE_WINDOWS */
+#ifndef H5_HAVE_WINDOWS
 
 herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
 {
@@ -1091,18 +990,7 @@ herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
 #endif /* H5_HAVE_WINDOWS */
 
 
-#if (H5_HAVE_IMAGE_FILE == 1)
-/* HDF5 version >= 1.8.9 */
-
-herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) {
- return H5Pset_file_image(fapl_id, buf_ptr, buf_len);
-}
-
-ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len) {
- return H5Fget_file_image(file_id, buf_ptr, buf_len);
-}
-
-#else /* (H5_HAVE_IMAGE_FILE == 1) */
+#if (H5_HAVE_IMAGE_FILE != 1)
 /* HDF5 version < 1.8.9 */
 
 herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) {
@@ -1112,4 +1000,15 @@ herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) {
 ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len) {
  return -1;
 }
-#endif /* (H5_HAVE_IMAGE_FILE == 1) */
+
+#endif /* (H5_HAVE_IMAGE_FILE != 1) */
+
+
+#if H5_VERSION_LE(1,8,12)
+
+herr_t pt_H5free_memory(void *buf) {
+ free(buf);
+ return 0;
+}
+
+#endif

@@ -44,20 +44,3 @@ int bisect_right_d(npy_float64 *a, npy_float64 x, int hi, int offset);
 
 int bisect_left_g(npy_longdouble *a, npy_longdouble x, int hi, int offset);
 int bisect_right_g(npy_longdouble *a, npy_longdouble x, int hi, int offset);
-
-
-int keysort_f96(npy_float96 *start1, char *start2, npy_intp num, int ts);
-int keysort_f128(npy_float128 *start1, char *start2, npy_intp num, int ts);
-int keysort_f64(npy_float64 *start1, char *start2, npy_intp num, int ts);
-int keysort_f32(npy_float32 *start1, char *start2, npy_intp num, int ts);
-int keysort_f16(npy_float16 *start1, char *start2, npy_intp num, int ts);
-int keysort_i64(npy_int64 *start1, char *start2, npy_intp num, int ts);
-int keysort_u64(npy_uint64 *start1, char *start2, npy_intp num, int ts);
-int keysort_i32(npy_int32 *start1, char *start2, npy_intp num, int ts);
-int keysort_u32(npy_uint32 *start1, char *start2, npy_intp num, int ts);
-int keysort_i16(npy_int16 *start1, char *start2, npy_intp num, int ts);
-int keysort_u16(npy_uint16 *start1, char *start2, npy_intp num, int ts);
-int keysort_i8(npy_int8 *start1, char *start2, npy_intp num, int ts);
-int keysort_u8(npy_uint8 *start1, char *start2, npy_intp num, int ts);
-int keysort_S(char *start1, int ss, char *start2, npy_intp num, int ts);
-

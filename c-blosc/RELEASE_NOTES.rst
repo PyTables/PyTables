@@ -1,10 +1,68 @@
 ================================
- Release notes for c-blosc 1.3.5
+ Release notes for c-blosc 1.4.4
 ================================
 
 :Author: Francesc Alted
-:Contact: faltet@gmail.com
+:Contact: faltet@blosc.org
 :URL: http://www.blosc.org
+
+
+Changes from 1.4.3 to 1.4.4
+===========================
+
+* New computation of blocksize to be in sync with c-blosc 1.6.1
+
+* New parametrization of the hash table for blosclz (synced with c-blosc
+  1.6.1)
+
+
+Changes from 1.4.2 to 1.4.3
+===========================
+
+* Fixed a bug in blosclz that could potentially overwrite an area
+  beyond the output buffer.  See #113.
+
+
+Changes from 1.4.1 to 1.4.2
+===========================
+
+* The implementation of H5Epush function has been modified in
+  hdf5-1.8.15 and there is a fix for this.
+
+* Use multithreaded or single-threaded code depending on Blosc version.
+  This is mainly useful for compiling HDF5 apps with non-included Blosc
+  libraries.
+
+
+Changes from 1.4.0 to 1.4.1
+===========================
+
+* Fixed a bug in blosc_getitem() introduced in 1.4.0.  Added a test for
+  blosc_getitem() as well.
+
+
+Changes from 1.3.6 to 1.4.0
+===========================
+
+* Support for non-Intel and non-SSE2 architectures has been added.  In
+  particular, the Raspberry Pi platform (ARM) has been tested and all
+  tests pass here.
+
+* Architectures requiring strict access alignment are supported as well.
+  Due to this, arquitectures with a high penalty in accessing unaligned
+  data (e.g. Raspberry Pi, ARMv6) can compress up to 2.5x faster.
+
+* LZ4 has been updated to r119 (1.2.0) so as to fix a possible security
+  breach.
+
+
+Changes from 1.3.5 to 1.3.6
+===========================
+
+* Updated to LZ4 r118 due to a (highly unlikely) security hole.  For
+  details see:
+
+  http://fastcompression.blogspot.fr/2014/06/debunking-lz4-20-years-old-bug-myth.html
 
 
 Changes from 1.3.4 to 1.3.5

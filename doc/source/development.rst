@@ -16,7 +16,7 @@ Also, be sure to subscribe to the `Users' Mailing List`_ and/or the
 `Developers' Mailing List`_.
 
 .. _`GitHub project site`: https://github.com/PyTables
-.. _`Users' Mailing List`: https://lists.sourceforge.net/lists/listinfo/pytables-users
+.. _`Users' Mailing List`: https://groups.google.com/group/pytables-users
 .. _`Developers' Mailing List`: https://groups.google.com/group/pytables-dev
 
 Other resources for developers:
@@ -32,8 +32,6 @@ Other resources for developers:
 
   - `master <http://hudson.openmicroscopy.org.uk/job/PyTables>`_ branch at
     OME_
-  - `develop <https://jenkins.shiningpanda.com/pytables/>`_ branch at
-    `Shining Panda`_
   - `all branches <https://travis-ci.org/PyTables/PyTables>`_ on `Travis-CI`_
 
 * `Old trac site <http://www.pytables.org/trac-bck>`_

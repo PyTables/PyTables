@@ -2,6 +2,10 @@
  PyTables: hierarchical datasets in Python
 ===========================================
 
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/PyTables/PyTables
+   :target: https://gitter.im/PyTables/PyTables?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 :URL: http://www.pytables.org/
 
 
@@ -84,9 +88,9 @@ and bzip2 compression libraries support you will also need recent
 versions of them. LZO and bzip2 compression libraries are, however,
 optional.
 
-We've tested this PyTables version with HDF5 1.8.11/1.8.12, NumPy 1.7.1/1.8.0
-and Numexpr 2.2.2, and you *need* to use these versions, or higher, to
-make use of PyTables.
+We've tested this PyTables version with HDF5 1.8.4/1.8.12, NumPy
+1.7.1/1.8.0 and Numexpr 2.4, and you *need* to use these versions, or
+higher, to make use of PyTables.
 
 Installation
 ------------
@@ -96,19 +100,17 @@ fairly simple to get things ready to go. Following are very simple
 instructions on how to proceed. However, more detailed instructions,
 including a section on binary installation for Windows users, is
 available in Chapter 2 of the User's Manual (``doc/usersguide.pdf`` or
-http://www.pytables.org/moin/HowToUse).
+http://pytables.github.io/usersguide/introduction.html).
 
 1. First, make sure that you have HDF5, NumPy and Numexpr installed
-   (you will need at least HDF5 1.8.4, HDF5 >= 1.8.7 is strongly recommended,
-   NumPy 1.4.1 and Numexpr 2.0).
-   If don't, get them from http://www.hdfgroup.org/HDF5/,
-   http://www.numpy.org and http://code.google.com/p/numexpr.
-   Compile/install them.
+   (you will need at least HDF5 >= 1.8.4, NumPy 1.7.1 and Numexpr
+   2.3).  If don't, get them from http://www.hdfgroup.org/HDF5/,
+   http://www.numpy.org and https://github.com/pydata/numexpr and
+   install them.
 
-   Optionally, consider to install the excellent LZO compression
-   library from http://www.oberhumer.com/opensource/.  You can also
-   install the high-performance bzip2 compression library, available
-   at http://www.bzip.org/.
+   Optionally, consider to install the LZO compression library from
+   http://www.oberhumer.com/opensource/.  You can also install the
+   bzip2 compression library, available at http://www.bzip.org/.
 
 2. From the main PyTables distribution directory run this command,
    (plus any extra flags needed as discussed above)::

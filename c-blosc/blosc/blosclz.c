@@ -1,7 +1,7 @@
 /*********************************************************************
   Blosc - Blocked Suffling and Compression Library
 
-  Author: Francesc Alted <faltet@gmail.com>
+  Author: Francesc Alted <francesc@blosc.io>
   Creation date: 2009-05-20
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
@@ -43,6 +43,11 @@
 #undef BLOSCLZ_STRICT_ALIGN
 #elif defined(__I86__) /* Digital Mars */
 #undef BLOSCLZ_STRICT_ALIGN
+/* Seems like unaligned access in ARM (at least ARMv6) is pretty
+   expensive, so we are always to enfor strict aligment in ARM.  If
+   anybody suggest that newer ARMs are better, we can revisit this. */
+/* #elif defined(__ARM_FEATURE_UNALIGNED) */  /* ARM, GNU C */
+/* #undef BLOSCLZ_STRICT_ALIGN */
 #endif
 #endif
 
@@ -105,7 +110,13 @@ int blosclz_compress(int opt_level, const void* input,
   uint8_t* op = (uint8_t*) output;
 
   /* Hash table depends on the opt level.  Hash_log cannot be larger than 15. */
-  int8_t hash_log_[10] = {-1, 8, 9, 9, 11, 11, 12, 13, 14, 15};
+  /* The parametrization below is made from playing with the bench suite, like:
+     $ bench/bench blosclz single 4
+     $ bench/bench blosclz single 4 4194280 12 25
+     and taking the minimum times on a i5-3380M @ 2.90GHz.
+     Curiously enough, values >= 14 does not always
+     get maximum compression, even with large blocksizes. */
+  int8_t hash_log_[10] = {-1, 11, 12, 13, 14, 13, 13, 13, 13, 13};
   uint8_t hash_log = hash_log_[opt_level];
   uint16_t hash_size = 1 << hash_log;
   uint16_t *htab;
@@ -121,10 +132,9 @@ int blosclz_compress(int opt_level, const void* input,
   }
   op_limit = op + maxlength;
 
-  /* output buffer cannot be less than 66 bytes or we can get into problems.
-     As output is usually the same length than input, we take input length. */
-  if (length < 66) {
-    return 0;                   /* Mark this as uncompressible */
+  /* output buffer cannot be less than 66 bytes or we can get into trouble */
+  if (maxlength < 66) {
+    return 0;                   /* mark this as uncompressible */
   }
 
   htab = (uint16_t *) calloc(hash_size, sizeof(uint16_t));
@@ -201,7 +211,11 @@ int blosclz_compress(int opt_level, const void* input,
       memset(&value, x, 8);
       /* safe because the outer check against ip limit */
       while (ip < (ip_bound - (sizeof(int64_t) - IP_BOUNDARY))) {
+#if !defined(BLOSCLZ_STRICT_ALIGN)
         value2 = ((int64_t *)ref)[0];
+#else
+        memcpy(&value2, ref, 8);
+#endif
         if (value != value2) {
           /* Find the byte that starts to differ */
           while (ip < ip_bound) {
@@ -225,17 +239,17 @@ int blosclz_compress(int opt_level, const void* input,
         /* safe because the outer check against ip limit */
         while (ip < (ip_bound - (sizeof(int64_t) - IP_BOUNDARY))) {
           if (*ref++ != *ip++) break;
+#if !defined(BLOSCLZ_STRICT_ALIGN)
           if (((int64_t *)ref)[0] != ((int64_t *)ip)[0]) {
+#endif
             /* Find the byte that starts to differ */
             while (ip < ip_bound) {
               if (*ref++ != *ip++) break;
             }
             break;
-          }
-          else {
-            ip += 8;
-            ref += 8;
-          }
+#if !defined(BLOSCLZ_STRICT_ALIGN)
+          } else { ip += 8; ref += 8; }
+#endif
         }
         /* Last correction before exiting loop */
         if (ip > ip_bound) {

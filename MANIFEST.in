@@ -1,5 +1,5 @@
 include MANIFEST.in
-include *.txt THANKS
+include *.txt THANKS README.rst
 include setup.py setup.cfg VERSION Makefile
 
 recursive-include tables *.py *.pyx *.pxd *.c

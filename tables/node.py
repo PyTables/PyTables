@@ -153,7 +153,6 @@ class Node(object):
     # By default, attributes accept Undo/Redo.
     _AttributeSet = AttributeSet
 
-    # <properties>
     # `_v_parent` is accessed via its file to avoid upwards references.
     def _g_getparent(self):
         (parentpath, nodename) = split_path(self._v_pathname)
@@ -191,8 +190,6 @@ class Node(object):
                         ("A description of this node. A shorthand for "
                          "TITLE attribute."))
 
-    # </properties>
-
     # This may be looked up by ``__del__`` when ``__init__`` doesn't get
     # to be called.  See ticket #144 for more info.
     _v_isopen = False
@@ -206,6 +203,10 @@ class Node(object):
     def __init__(self, parentnode, name, _log=True):
         # Remember to assign these values in the root group constructor
         # as it does not use this method implementation!
+
+        # if the parent node is a softlink, dereference it
+        if isinstance(parentnode, class_name_dict['SoftLink']):
+            parentnode = parentnode.dereference()
 
         self._v_file = None
         """The hosting File instance (see :ref:`FileClassDescr`)."""

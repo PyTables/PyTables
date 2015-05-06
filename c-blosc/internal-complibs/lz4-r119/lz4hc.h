@@ -1,7 +1,7 @@
 /*
    LZ4 HC - High Compression Mode of LZ4
    Header File
-   Copyright (C) 2011-2013, Yann Collet.
+   Copyright (C) 2011-2014, Yann Collet.
    BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
 
    Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,7 @@ Decompression functions are provided within LZ4 source code (see "lz4.h") (BSD l
 /**************************************
    Using an external allocation
 **************************************/
-int LZ4_sizeofStateHC();
+int LZ4_sizeofStateHC(void);
 int LZ4_compressHC_withStateHC               (void* state, const char* source, char* dest, int inputSize);
 int LZ4_compressHC_limitedOutput_withStateHC (void* state, const char* source, char* dest, int inputSize, int maxOutputSize);
 
@@ -104,6 +104,7 @@ They just use the externally allocated memory area instead of allocating their o
 /**************************************
    Streaming Functions
 **************************************/
+/* Note : these streaming functions still follows the older model */
 void* LZ4_createHC (const char* inputBuffer);
 int   LZ4_compressHC_continue (void* LZ4HC_Data, const char* source, char* dest, int inputSize);
 int   LZ4_compressHC_limitedOutput_continue (void* LZ4HC_Data, const char* source, char* dest, int inputSize, int maxOutputSize);
@@ -142,7 +143,7 @@ Compression can then resume, using LZ4_compressHC_continue() or LZ4_compressHC_l
 When compression is completed, a call to LZ4_freeHC() will release the memory used by the LZ4HC Data Structure.
 */
 
-int LZ4_sizeofStreamStateHC();
+int LZ4_sizeofStreamStateHC(void);
 int LZ4_resetStreamStateHC(void* state, const char* inputBuffer);
 
 /*

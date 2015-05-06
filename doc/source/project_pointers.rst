@@ -13,7 +13,6 @@ Project pointers
 * Continuous Integration:
 
   - `OME <http://hudson.openmicroscopy.org.uk/job/PyTables>`_ (master branch)
-  - `Shining Panda <https://jenkins.shiningpanda.com/pytables/>`_ (development branch)
   - `Travis-CI <https://travis-ci.org/PyTables/PyTables>`_ (all branches)
 
 * `Project page on PyPi <https://pypi.python.org/pypi/tables>`_

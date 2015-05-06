@@ -32,6 +32,7 @@ See :ref:`filenode_usersguide` for instructions on use.
 
 import io
 import os
+import re
 import warnings
 
 import numpy as np
@@ -282,7 +283,7 @@ class RawPyTablesIO(io.RawIOBase):
         self._checkClosed()
         self._checkReadable()
 
-        chunksize = self._node.chunkshape[0]
+        chunksize = self._node.chunkshape[0] if self._node.chunkshape else -1
 
         # XXX: check
         lsep = b'\n'
@@ -728,7 +729,10 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
       Location of the filenode where the data shall be stored.  If
       *name* is not given, and *where* is either a :class:`Group`
       object or a string ending on ``/``, the leaf name will be set to
-      the file name of *filename*.
+      the file name of *filename*.  The *name* will be modified to
+      adhere to Python's natural naming convention; the original
+      filename will be preserved in the filenode's *_filename*
+      attribute.
 
     overwrite
       Whether or not a possibly existing filenode of the specified
@@ -751,10 +755,21 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
         raise IOError("The file '%s' is opened read-only" % h5file.filename)
 
     # guess filenode's name if necessary
-    if (name is None and (isinstance(where, tables.group.Group) or
-                          (isinstance(where, string_types) and
-                           where.endswith("/")))):
-        name = os.path.split(filename)[1]
+    if name is None:
+        if isinstance(where, tables.group.Group):
+            name = os.path.split(filename)[1]
+        if isinstance(where, string_types):
+            if where.endswith("/"):
+                name = os.path.split(filename)[1]
+            else:
+                nodepath = where.split("/")
+                where = "/" + "/".join(nodepath[:-1])
+                name = nodepath[-1]
+
+    # sanitize name if necessary
+    if not tables.path._python_id_re.match(name):
+        name = re.sub('(?![a-zA-Z0-9_]).', "_",
+                      re.sub('^(?![a-zA-Z_]).', "_", name))
 
     new_h5file = not isinstance(h5file, tables.file.File)
     f = tables.File(h5file, "a") if new_h5file else h5file
@@ -774,11 +789,6 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
     with open(filename, "rb") as fd:
         data = fd.read()
 
-    if isinstance(where, string_types) and name is None:
-        nodepath = where.split("/")
-        where = "/" + "/".join(nodepath[:-1])
-        name = nodepath[-1]
-
     # remove existing filenode if present
     try:
         f.remove_node(where=where, name=name)
@@ -788,6 +798,7 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
     # write file's contents to filenode
     fnode = new_node(f, where=where, name=name, title=title, filters=filters)
     fnode.write(data)
+    fnode.attrs._filename = os.path.split(filename)[1]
     fnode.close()
 
     # cleanup
@@ -810,11 +821,14 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
     filename
       Path of the file where the contents of the filenode shall be
       written to.  If *filename* points to a directory or ends with
-      ``/`` (``\`` on Windows), the filename will be set to the *name*
-      attribute of the read filenode.
+      ``/`` (``\`` on Windows), the filename will be set to the
+      *_filename* (if present; otherwise the *name*) attribute of the
+      read filenode.
 
     where, name
-      Location of the filenode where the data shall be read from.
+      Location of the filenode where the data shall be read from.  If
+      no node *name* can be found at *where*, the first node at
+      *where* whose *_filename* attribute matches *name* will be read.
 
     overwrite
       Whether or not a possibly existing file of the specified
@@ -827,11 +841,25 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
     """
     new_h5file = not isinstance(h5file, tables.file.File)
     f = tables.File(h5file, "r") if new_h5file else h5file
-    fnode = open_node(f.get_node(where=where, name=name))
+    try:
+        fnode = open_node(f.get_node(where=where, name=name))
+    except tables.NoSuchNodeError:
+        fnode = None
+        for n in f.walk_nodes(where=where, classname="EArray"):
+            if n.attrs._filename == name:
+                fnode = open_node(n)
+                break
+        if fnode is None:
+            f.close()
+            raise tables.NoSuchNodeError("A filenode '%s' cannot be found at "
+                                         "'%s'" % (name, where))
 
     # guess output filename if necessary
     if os.path.isdir(filename) or filename.endswith(os.path.sep):
-        filename = os.path.join(filename, fnode.node.name)
+        try:
+            filename = os.path.join(filename, fnode.node.attrs._filename)
+        except Exception:
+            filename = os.path.join(filename, fnode.node.name)
 
     if os.access(filename, os.R_OK) and not overwrite:
         if new_h5file:

@@ -9,7 +9,7 @@ SOURCES := $(wildcard *.c)
 EXECUTABLES := $(patsubst %.c, %.exe, $(SOURCES))
 
 # Support for internal LZ4 and LZ4HC
-LZ4_DIR = ../internal-complibs/lz4-r113
+LZ4_DIR = ../internal-complibs/lz4-r119
 CFLAGS += -DHAVE_LZ4 -I$(LZ4_DIR)
 BLOSC_LIB += $(wildcard $(LZ4_DIR)/*.c)
 

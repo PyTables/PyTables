@@ -242,7 +242,8 @@ def _table__where_indexed(self, compiled, condition, condvars,
         # Get the row sequence from the cache
         seq = self._seqcache.getitem(nslot)
         if len(seq) == 0:
-            return None
+            return iter([])
+        # seq is a list.
         seq = numpy.array(seq, dtype='int64')
         # Correct the ranges in cached sequence
         if (start, stop, step) != (0, self.nrows, 1):
@@ -250,10 +251,9 @@ def _table__where_indexed(self, compiled, condition, condvars,
                 seq < stop) & ((seq - start) % step == 0)]
         return self.itersequence(seq)
     else:
-        # No luck.  Set row sequence to empty.  It will be populated
-        # in the iterator. If not possible, the slot entry will be
-        # removed there.
-        self._nslotseq = self._seqcache.setitem(seqkey, [], 1)
+        # No luck.  self._seqcache will be populated
+        # in the iterator if possible. (Row._finish_riterator)
+        self._seqcache_key = seqkey
 
     # Compute the chunkmap for every index in indexed expression
     idxexprs = compiled.index_expressions
@@ -284,14 +284,15 @@ def _table__where_indexed(self, compiled, condition, condvars,
 
     if index.reduction == 1 and tcoords == 0:
         # No candidates found in any indexed expression component, so leave now
-        return None
+        self._seqcache.setitem(seqkey, [], 1)
+        return iter([])
 
     # Compute the final chunkmap
     chunkmap = numexpr.evaluate(strexpr, cmvars)
-    # Method .any() is twice as faster than method .sum()
     if not chunkmap.any():
-        # The chunkmap is empty
-        return None
+        # The chunkmap is all False, so the result is empty
+        self._seqcache.setitem(seqkey, [], 1)
+        return iter([])
 
     if profile:
         show_stats("Exiting table_whereIndexed", tref)
@@ -776,6 +777,9 @@ class Table(tableextension.Table, Leaf):
         """Whether an index can be used or not in a search.  Boolean."""
         self._where_condition = None
         """Condition function and argument list for selection of values."""
+        self._seqcache_key = None
+        """The key under which to save a query's results (list of row indexes)
+        or None to not save."""
         max_slots = parentnode._v_file.params['COND_CACHE_SLOTS']
         self._condition_cache = CacheDict(max_slots)
         """Cache of already compiled conditions."""
@@ -1357,7 +1361,7 @@ class Table(tableextension.Table, Leaf):
             typemap[colname] = _nxtype_from_nptype[coltype]
 
             # Get the set of columns with usable indexes.
-            if (self._enabled_indexing_in_queries  # not test in-kernel searches
+            if (self._enabled_indexing_in_queries  # no in-kernel searches
                     and self.colindexed[col.pathname] and not col.index.dirty):
                 indexedcols.append(colname)
 
@@ -1453,19 +1457,6 @@ class Table(tableextension.Table, Leaf):
             ...                if your_function(row['col2']) ]
             >>> print("Values that pass the cuts:", passvalues)
 
-        Note that, from PyTables 1.1 on, you can nest several
-        iterators over the same table. For example::
-
-            for p in rout.where('pressure < 16'):
-                for q in rout.where('pressure < 9'):
-                    for n in rout.where('energy < 10'):
-                        print("pressure, energy:", p['pressure'], n['energy'])
-
-        In this example, iterators returned by :meth:`Table.where` have been
-        used, but you may as well use any of the other reading iterators that
-        Table objects offer. See the file :file:`examples/nested-iter.py` for
-        the full code.
-
         .. note::
 
             A special care should be taken when the query condition includes
@@ -1537,8 +1528,7 @@ class Table(tableextension.Table, Leaf):
                 self._use_index = False
                 self._where_condition = None
                 # ...and return the iterator
-                if chunkmap is not None:
-                    return chunkmap
+                return chunkmap
         else:
             chunkmap = None  # default to an in-kernel query
 
@@ -1853,7 +1843,7 @@ class Table(tableextension.Table, Leaf):
                 return nra
             return numpy.empty(shape=0, dtype=dtype_field)
 
-        nrows = len(xrange(start, stop, step))
+        nrows = len(xrange(0, stop - start, step))
 
         if out is None:
             # Compute the shape of the resulting column object
@@ -2233,16 +2223,16 @@ class Table(tableextension.Table, Leaf):
 
         ::
 
-            from tables import *
+            import tables as tb
 
-            class Particle(IsDescription):
-                name        = StringCol(16, pos=1) # 16-character String
-                lati        = IntCol(pos=2)        # integer
-                longi       = IntCol(pos=3)        # integer
-                pressure    = Float32Col(pos=4)    # float  (single-precision)
-                temperature = FloatCol(pos=5)      # double (double-precision)
+            class Particle(tb.IsDescription):
+                name        = tb.StringCol(16, pos=1) # 16-character String
+                lati        = tb.IntCol(pos=2)        # integer
+                longi       = tb.IntCol(pos=3)        # integer
+                pressure    = tb.Float32Col(pos=4)  # float  (single-precision)
+                temperature = tb.FloatCol(pos=5)    # double (double-precision)
 
-            fileh = open_file('test4.h5', mode='w')
+            fileh = tb.open_file('test4.h5', mode='w')
             table = fileh.create_table(fileh.root, 'table', Particle,
                                        "A table")
 
@@ -2374,7 +2364,7 @@ class Table(tableextension.Table, Leaf):
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = len(xrange(0, stop - start, step))
         if len(rows) != nrows:
             raise ValueError("The value has different elements than the "
                              "specified range")
@@ -2462,7 +2452,7 @@ class Table(tableextension.Table, Leaf):
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = len(xrange(0, stop - start, step))
         if len(column) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2539,7 +2529,7 @@ class Table(tableextension.Table, Leaf):
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = len(xrange(0, stop - start, step))
         if len(recarray) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2842,7 +2832,10 @@ class Table(tableextension.Table, Leaf):
             self._g_copy_rows_optim(object, start, stop, step)
             return
         lenbuf = self.nrowsinbuf
-        absstep = abs(step)
+        absstep = step
+        if step < 0:
+            absstep = -step
+            start, stop = stop + 1, start + 1
         if sortby is not None:
             index = self._check_sortby_csi(sortby, checkCSI)
         for start2 in xrange(start, stop, absstep * lenbuf):
@@ -2911,7 +2904,7 @@ class Table(tableextension.Table, Leaf):
         (start, stop, step) = self._process_range_read(
             start, stop, step, warn_negstep=sortby is None)
         # And the number of final rows
-        nrows = len(xrange(start, stop, step))
+        nrows = len(xrange(0, stop - start, step))
         # Create the new table and copy the selected data.
         newtable = Table(group, name, self.description, title=title,
                          filters=filters, expectedrows=nrows,
@@ -3417,6 +3410,10 @@ class Column(object):
                      associated with this column (None if the column is not
                      indexed).""")
 
+    @lazyattr
+    def _itemtype(self):
+        return self.descr._v_dtypes[self.name]
+
     def _getshape(self):
         return (self.table.nrows,) + self.descr._v_dtypes[self.name].shape
 
@@ -3540,7 +3537,7 @@ class Column(object):
         table = self.table
         itemsize = self.dtype.itemsize
         nrowsinbuf = table._v_file.params['IO_BUFFER_SIZE'] // itemsize
-        buf = numpy.empty((nrowsinbuf, ), self.dtype)
+        buf = numpy.empty((nrowsinbuf, ), self._itemtype)
         max_row = len(self)
         for start_row in xrange(0, len(self), nrowsinbuf):
             end_row = min(start_row + nrowsinbuf, max_row)

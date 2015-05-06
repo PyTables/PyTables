@@ -4,7 +4,7 @@
   Unit tests for basic features in Blosc.
 
   Creation date: 2010-06-07
-  Author: Francesc Alted <faltet@gmail.com>
+  Author: Francesc Alted <francesc@blosc.io>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/
@@ -82,13 +82,77 @@ static char * test_shuffle()
       blosc_compress(5, 1, t, t * n, d, o, t * n + BLOSC_MAX_OVERHEAD);
       blosc_decompress(o, d2, t * n);
       ok = 1;
-      for (k = 0; ok&& k < n; k++) {
+      for (k = 0; ok && k < n; k++) {
         ok = (d[k] == d2[k]);
       }
       free(d);
       free(d2);
       free(o);
-      mu_assert("ERROR: multi size test failed", ok);
+      mu_assert("ERROR: shuffle test failed", ok);
+    }
+  }
+
+  return 0;
+}
+
+static char * test_noshuffle()
+{
+  int sizes[] = {7, 64 * 3, 7*256, 500, 8000, 100000, 702713};
+  int types[] = {1, 2, 3, 4, 5, 6, 7, 8, 16};
+  int i, j, k;
+  int ok;
+  for (i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
+    for (j = 0; j < sizeof(types) / sizeof(types[0]); j++) {
+      int n = sizes[i];
+      int t = types[j];
+      char * d = malloc(t * n);
+      char * d2 = malloc(t * n);
+      char * o = malloc(t * n + BLOSC_MAX_OVERHEAD);
+      for (k = 0; k < n; k++) {
+        d[k] = rand();
+      }
+      blosc_compress(5, 0, t, t * n, d, o, t * n + BLOSC_MAX_OVERHEAD);
+      blosc_decompress(o, d2, t * n);
+      ok = 1;
+      for (k = 0; ok && k < n; k++) {
+        ok = (d[k] == d2[k]);
+      }
+      free(d);
+      free(d2);
+      free(o);
+      mu_assert("ERROR: noshuffle test failed", ok);
+    }
+  }
+
+  return 0;
+}
+
+static char * test_getitem()
+{
+  int sizes[] = {7, 64 * 3, 7*256, 500, 8000, 100000, 702713};
+  int types[] = {1, 2, 3, 4, 5, 6, 7, 8, 16};
+  int i, j, k;
+  int ok;
+  for (i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
+    for (j = 0; j < sizeof(types) / sizeof(types[0]); j++) {
+      int n = sizes[i];
+      int t = types[j];
+      char * d = malloc(t * n);
+      char * d2 = malloc(t * n);
+      char * o = malloc(t * n + BLOSC_MAX_OVERHEAD);
+      for (k = 0; k < n; k++) {
+        d[k] = rand();
+      }
+      blosc_compress(5, 1, t, t * n, d, o, t * n + BLOSC_MAX_OVERHEAD);
+      blosc_getitem(o, 0, n, d2);
+      ok = 1;
+      for (k = 0; ok && k < n; k++) {
+        ok = (d[k] == d2[k]);
+      }
+      free(d);
+      free(d2);
+      free(o);
+      mu_assert("ERROR: getitem test failed", ok);
     }
   }
 
@@ -100,6 +164,8 @@ static char *all_tests() {
   mu_run_test(test_maxout_equal);
   mu_run_test(test_maxout_great);
   mu_run_test(test_shuffle);
+  mu_run_test(test_noshuffle);
+  mu_run_test(test_getitem);
   return 0;
 }
 

@@ -4,7 +4,7 @@
   Unit tests for Blosc API.
 
   Creation date: 2010-06-07
-  Author: Francesc Alted <faltet@gmail.com>
+  Author: Francesc Alted <francesc@blosc.io>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/

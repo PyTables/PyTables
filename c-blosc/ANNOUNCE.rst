@@ -1,14 +1,15 @@
 ===============================================================
- Announcing c-blosc 1.3.5
+ Announcing c-blosc 1.4.4
  A blocking, shuffling and lossless compression library
 ===============================================================
 
 What is new?
 ============
 
-This is just a maintenance release for removing a 'pointer from
-integer without a cast' compiler warning due to a bad macro
-definition.
+* New computation of blocksize to be in sync with c-blosc 1.6.1.
+
+* New parametrization of the hash table for blosclz (synced with c-blosc
+  1.6.1)
 
 For more info, please see the release notes in:
 
@@ -43,7 +44,7 @@ http://www.blosc.org/
 
 and proceed from there.  The github repository is over here:
 
-https://github.com/Blosc/c-blosc
+https://github.com/Blosc
 
 Blosc is distributed using the MIT license, see LICENSES/BLOSC.txt for
 details.

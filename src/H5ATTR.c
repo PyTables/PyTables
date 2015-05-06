@@ -132,17 +132,21 @@ herr_t H5ATTRset_attribute_string( hid_t obj_id,
       ( H5Tset_cset( attr_type, cset ) < 0 ) )
   goto out;
 
- if ( cset == H5T_CSET_ASCII )
-  attr_size += 1; /* extra null term */
-
- if ( ( attr_size > 0 ) && ( H5Tset_size( attr_type, attr_size) < 0 ) )
-  goto out;
-
  if ( H5Tset_strpad( attr_type, H5T_STR_NULLTERM ) < 0 )
   goto out;
 
- if ( (attr_space_id = H5Screate( H5S_SCALAR )) < 0 )
-  goto out;
+ if ( attr_size > 0 )
+ {
+  if (H5Tset_size( attr_type, attr_size) < 0 )
+   goto out;
+  if ( (attr_space_id = H5Screate( H5S_SCALAR )) < 0 )
+   goto out;
+ }
+ else
+ {
+  if ( (attr_space_id = H5Screate( H5S_NULL )) < 0 )
+   goto out;
+ }
 
  /* Verify if the attribute already exists */
  has_attr = H5ATTRfind_attribute( obj_id, attr_name );
@@ -250,6 +254,7 @@ hsize_t H5ATTRget_attribute_string( hid_t obj_id,
  /* identifiers */
  hid_t      attr_id;
  hid_t      attr_type;
+ hid_t      space_id;
  hsize_t    type_size = 0;
  htri_t     is_vlstr = 0;
 
@@ -271,11 +276,22 @@ hsize_t H5ATTRget_attribute_string( hid_t obj_id,
   if ( (type_size = H5Tget_size( attr_type )) < 0 )
    goto out;
 
-  /* Malloc space enough for the string, plus 1 for the trailing '\0' */
-  *data = (char *)malloc(type_size+1);
-
-  if ( H5Aread( attr_id, attr_type, *data ) < 0 )
+  if ( (space_id = H5Aget_space( attr_id )) < 0 )
    goto out;
+
+  if ( H5Sget_simple_extent_type( space_id ) == H5S_NULL )
+   type_size = 0;
+
+  H5Sclose( space_id );
+
+  /* Malloc space enough for the string, plus 1 for the trailing '\0' */
+  *data = (char *)malloc(type_size + 1);
+
+  if ( type_size > 0)
+  {
+   if ( H5Aread( attr_id, attr_type, *data ) < 0 )
+    goto out;
+  }
 
   /* Set the last character to \0 in case we are dealing with space
      padded strings */
@@ -283,6 +299,7 @@ hsize_t H5ATTRget_attribute_string( hid_t obj_id,
  }
  else
  {
+  /* is_vlstr */
   if ( H5Aread( attr_id, attr_type, data ) < 0 )
    goto out;
 

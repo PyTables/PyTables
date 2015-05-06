@@ -31,6 +31,10 @@ Misc variables:
 
 import os
 import warnings
+from collections import namedtuple
+
+ObjInfo = namedtuple('ObjInfo', ['addr', 'rc'])
+
 
 from cpython cimport PY_MAJOR_VERSION
 if PY_MAJOR_VERSION < 3:
@@ -61,7 +65,7 @@ from tables._past import previous_api
 from libc.stdlib cimport malloc, free
 from libc.string cimport strdup, strlen
 from numpy cimport import_array, ndarray, npy_intp
-from cpython cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
+from cpython.bytes cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
     PyBytes_Check)
 from cpython.unicode cimport PyUnicode_DecodeUTF8
 
@@ -87,6 +91,7 @@ from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Pset_fapl_split,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
+  H5Oget_info, H5O_info_t,
   H5ATTRset_attribute, H5ATTRset_attribute_string,
   H5ATTRget_attribute, H5ATTRget_attribute_string,
   H5ATTRget_attribute_vlen_string_array,
@@ -220,8 +225,14 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
   if H5ATTRfind_attribute(node_id, attr_name):
     size = H5ATTRget_attribute_string(node_id, attr_name, &attr_value, &cset)
     if size == 0:
-      return None
-    if cset == H5T_CSET_UTF8:
+      if cset == H5T_CSET_UTF8:
+        retvalue = numpy.unicode_(u'')
+      else:
+        retvalue = numpy.bytes_(b'')
+    elif cset == H5T_CSET_UTF8:
+      if size == 1 and attr_value[0] == 0:
+        # compatibility with PyTables <= 3.1.1
+        retvalue = numpy.unicode_(u'')
       retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
       retvalue = numpy.unicode_(retvalue)
     else:
@@ -230,9 +241,9 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
       # since now we use the string size got form HDF5 we have to stip
       # trailing zeros used for padding.
       # The entire process is quite odd but due to a bug (??) in the way
-      # numpy arrays are pickled in python 3 we can't assume that we can't
-      # assume that strlen(attr_value) is the actual length of the attibute
-      # and numpy.bytes_(attr_value) can give a truncated pickle sting
+      # numpy arrays are pickled in python 3 we can't assume that
+      # strlen(attr_value) is the actual length of the attibute
+      # and numpy.bytes_(attr_value) can give a truncated pickle string
       retvalue = retvalue.rstrip(b'\x00')
       retvalue = numpy.bytes_(retvalue)
 
@@ -749,10 +760,16 @@ cdef class AttributeSet:
       type_size = H5ATTRget_attribute_string(dset_id, cattrname, &str_value,
                                              &cset)
       if type_size == 0:
-        raise HDF5ExtError("Can't read attribute %s in node %s." %
-                           (attrname, self.name))
-      if cset == H5T_CSET_UTF8:
-        retvalue = PyUnicode_DecodeUTF8(str_value, strlen(str_value), NULL)
+        if cset == H5T_CSET_UTF8:
+          retvalue = numpy.unicode_(u'')
+        else:
+          retvalue = numpy.bytes_(b'')
+
+      elif cset == H5T_CSET_UTF8:
+        if type_size == 1 and str_value[0] == 0:
+          # compatibility with PyTables <= 3.1.1
+          retvalue = numpy.unicode_(u'')
+        retvalue = PyUnicode_DecodeUTF8(str_value, type_size, NULL)
         retvalue = numpy.unicode_(retvalue)
       else:
         retvalue = PyBytes_FromStringAndSize(str_value, type_size)
@@ -908,6 +925,17 @@ cdef class Node:
   def __dealloc__(self):
     self.parent_id = 0
 
+  def _get_obj_info(self):
+    cdef herr_t ret = 0
+    cdef H5O_info_t oinfo
+
+    ret = H5Oget_info(self._v_objectid, &oinfo)
+    if ret < 0:
+      raise HDF5ExtError("Unable to get object info for '%s'" %
+                         self. _v_pathname)
+
+    return ObjInfo(oinfo.addr, oinfo.rc)
+
 
 cdef class Group(Node):
   cdef hid_t   group_id
@@ -971,6 +999,9 @@ cdef class Group(Node):
           node_type = "Leaf"
         elif ret == H5O_TYPE_NAMED_DATATYPE:
           node_type = "NamedType"              # Not supported yet
+        #else H5O_TYPE_LINK:
+        #    # symbolic link
+        #    raise RuntimeError('unexpected object type')
         else:
           node_type = "Unknown"
     return node_type

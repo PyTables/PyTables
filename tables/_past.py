@@ -488,7 +488,6 @@ old2newnames = dict([
     ('whichLibVersion', 'which_lib_version'),
     ('whichClass', 'which_class'),
     ('getNestedField', 'get_nested_field'),
-    ('getIndices', 'get_indices'),
     ('getFilters', 'get_filters'),
     ('getTypeEnum', 'get_type_enum'),
     ('enumFromHDF5', 'enum_from_hdf5'),

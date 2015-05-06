@@ -52,6 +52,15 @@
 #define H5_HAVE_IMAGE_FILE 0
 #endif
 
+/* COMAPTIBILITY: H5_VERSION_LE has been introduced in HDF5 1.8.7 */
+#ifndef H5_VERSION_LE
+#define H5_VERSION_LE(Maj,Min,Rel) \
+       (((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR==Min) && (H5_VERS_RELEASE<=Rel)) || \
+        ((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR<Min)) || \
+        (H5_VERS_MAJOR<Maj))
+#endif
+
+
 /* Use %ld to print the value because long should cover most cases. */
 /* Used to make certain a return value _is_not_ a value */
 #define CHECK(ret, val, where) do {                                           \
@@ -95,10 +104,6 @@ PyObject *H5UIget_info( hid_t loc_id,
                         const char *dset_name,
                         char *byteorder);
 
-hsize_t getIndicesExt(PyObject *s, hsize_t length,
-                      hssize_t *start, hssize_t *stop, hssize_t *step,
-                      hsize_t *slicelength);
-
 herr_t set_order(hid_t type_id, const char *byteorder);
 
 int is_complex(hid_t type_id);
@@ -123,11 +128,34 @@ hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step);
 
 herr_t truncate_dset( hid_t dataset_id, const int maindim, const hsize_t size);
 
+/* compatibility */
+#ifndef H5_HAVE_DIRECT
 herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
                              size_t block_size, size_t cbuf_size);
+#else /* H5_HAVE_DIRECT */
+#define pt_H5Pset_fapl_direct H5Pset_fapl_direct
+#endif
 
+#ifndef H5_HAVE_WINDOWS
 herr_t pt_H5Pset_fapl_windows(hid_t fapl_id);
+#else /* H5_HAVE_WINDOWS */
+#define pt_H5Pset_fapl_windows H5Pset_fapl_windows
+#endif /* H5_HAVE_WINDOWS */
 
+
+#if (H5_HAVE_IMAGE_FILE != 1)
+/* HDF5 version >= 1.8.9 */
 herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len);
-
 ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len);
+#else /* (H5_HAVE_IMAGE_FILE != 1) */
+/* HDF5 version < 1.8.9 */
+#define pt_H5Pset_file_image H5Pset_file_image
+#define pt_H5Fget_file_image H5Fget_file_image
+#endif /* (H5_HAVE_IMAGE_FILE != 1) */
+
+
+#if H5_VERSION_LE(1,8,12)
+herr_t pt_H5free_memory(void *buf);
+#else
+#define pt_H5free_memory H5free_memory
+#endif

@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import unittest
 import os
-import tempfile
 import copy
-
-from tables import *
-from tables.index import Index, default_auto_index, default_index_filters
-from tables.idxutils import calc_chunksize
-from tables.tests.common import verbose, allequal, heavy, cleanup, \
-    PyTablesTestCase, TempFileMixin
-from tables.exceptions import OldIndexWarning
-
-# To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+import tempfile
 
 import numpy
+
+import tables
+from tables import (
+    StringCol, BoolCol, IntCol, FloatCol, Int8Col, Int32Col, Int64Col,
+    UInt16Col, Float32Col,
+)
+from tables.index import Index, default_auto_index, default_index_filters
+from tables.idxutils import calc_chunksize
+from tables.exceptions import OldIndexWarning
+from tables.tests import common
+from tables.tests.common import verbose, allequal, heavy, TempFileMixin
+from tables.tests.common import unittest
+from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Sensible parameters for indexing with small blocksizes
@@ -24,14 +26,14 @@ minRowIndex = 10
 small_blocksizes = (96, 24, 6, 3)
 
 
-class TDescr(IsDescription):
+class TDescr(tables.IsDescription):
     var1 = StringCol(itemsize=4, dflt=b"", pos=1)
     var2 = BoolCol(dflt=0, pos=2)
     var3 = IntCol(dflt=0, pos=3)
     var4 = FloatCol(dflt=0, pos=4)
 
 
-class BasicTestCase(PyTablesTestCase):
+class BasicTestCase(common.TempFileMixin, TestCase):
     compress = 0
     complib = "zlib"
     shuffle = 0
@@ -40,24 +42,23 @@ class BasicTestCase(PyTablesTestCase):
     ss = small_blocksizes[2]
 
     def setUp(self):
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        self.rootgroup = self.fileh.root
+        super(BasicTestCase, self).setUp()
+
+        self.rootgroup = self.h5file.root
         self.populateFile()
         # Close the file
-        self.fileh.close()
+        self.h5file.close()
 
     def populateFile(self):
         group = self.rootgroup
         # Create a table
         title = "This is the IndexArray title"
-        self.filters = Filters(complevel=self.compress,
-                               complib=self.complib,
-                               shuffle=self.shuffle,
-                               fletcher32=self.fletcher32)
-        table = self.fileh.create_table(group, 'table', TDescr, title,
-                                        self.filters, self.nrows)
+        self.filters = tables.Filters(complevel=self.compress,
+                                      complib=self.complib,
+                                      shuffle=self.shuffle,
+                                      fletcher32=self.fletcher32)
+        table = self.h5file.create_table(group, 'table', TDescr, title,
+                                         self.filters, self.nrows)
         for i in range(self.nrows):
             table.row['var1'] = str(i).encode('ascii')
             # table.row['var2'] = i > 2
@@ -75,14 +76,6 @@ class BasicTestCase(PyTablesTestCase):
 
         return
 
-    def tearDown(self):
-        self.fileh.close()
-        # print "File %s not removed!" % self.file
-        os.remove(self.file)
-        cleanup(self)
-
-    #----------------------------------------
-
     def test00_flushLastRow(self):
         """Checking flushing an Index incrementing only the last row."""
 
@@ -92,8 +85,8 @@ class BasicTestCase(PyTablesTestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in append mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         # Add just 3 rows more
         for i in range(3):
             table.row['var1'] = str(i).encode('ascii')
@@ -119,8 +112,8 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test00_update..." % self.__class__.__name__)
 
         # Open the HDF5 file in append mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         # Modify a couple of columns
         for i, row in enumerate(table.where("(var3>1) & (var3<5)")):
             row['var1'] = str(i)
@@ -151,8 +144,8 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test01_readIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-only mode
-        self.fileh = open_file(self.file, mode="r")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="r")
+        table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
             print("Max rows in buf:", table.nrowsinbuf)
@@ -172,8 +165,8 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test02_readIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-only mode
-        self.fileh = open_file(self.file, mode="r")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="r")
+        table = self.h5file.root.table
         idxcol = table.cols.var2.index
         if verbose:
             print("Rows in table:", table.nrows)
@@ -196,8 +189,8 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test03_readIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-only mode
-        self.fileh = open_file(self.file, mode="r")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="r")
+        table = self.h5file.root.table
         idxcol = table.cols.var3.index
         if verbose:
             print("Max rows in buf:", table.nrowsinbuf)
@@ -219,8 +212,8 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test04_readIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-only mode
-        self.fileh = open_file(self.file, mode="r")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="r")
+        table = self.h5file.root.table
         idxcol = table.cols.var4.index
         if verbose:
             print("Max rows in buf:", table.nrowsinbuf)
@@ -246,8 +239,8 @@ class BasicTestCase(PyTablesTestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var4.index
         if verbose:
             print("Max rows in buf:", table.nrowsinbuf)
@@ -273,8 +266,8 @@ class BasicTestCase(PyTablesTestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var2.index
         if verbose:
             print("Max rows in buf:", table.nrowsinbuf)
@@ -303,8 +296,8 @@ class BasicTestCase(PyTablesTestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var4.index
         if verbose:
             print("Max rows in buf:", table.nrowsinbuf)
@@ -330,8 +323,8 @@ class BasicTestCase(PyTablesTestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var4.index
         if verbose:
             print("Max rows in buf:", table.nrowsinbuf)
@@ -357,8 +350,8 @@ class BasicTestCase(PyTablesTestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
             print("Before deletion")
@@ -393,8 +386,8 @@ class BasicTestCase(PyTablesTestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
             print("Before deletion")
@@ -405,9 +398,8 @@ class BasicTestCase(PyTablesTestCase):
         table.cols.var1.remove_index()
 
         # close and reopen the file
-        self.fileh.close()
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self._reopen(mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var1.index
 
         if verbose:
@@ -434,8 +426,8 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test10a_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
             print("Before move")
@@ -444,7 +436,7 @@ class BasicTestCase(PyTablesTestCase):
         self.assertTrue(idxcol is not None)
 
         # Create a new group called "agroup"
-        agroup = self.fileh.create_group("/", "agroup")
+        agroup = self.h5file.create_group("/", "agroup")
 
         # move the table to "agroup"
         table.move(agroup, "table2")
@@ -472,8 +464,8 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test10b_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
             print("Before move")
@@ -481,15 +473,14 @@ class BasicTestCase(PyTablesTestCase):
         self.assertTrue(idxcol is not None)
         self.assertEqual(table.colindexed["var1"], 1)
         # Create a new group called "agroup"
-        agroup = self.fileh.create_group("/", "agroup")
+        agroup = self.h5file.create_group("/", "agroup")
 
         # move the table to "agroup"
         table.move(agroup, "table2")
 
         # close and reopen the file
-        self.fileh.close()
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.agroup.table2
+        self._reopen(mode="a")
+        table = self.h5file.root.agroup.table2
         idxcol = table.cols.var1.index
 
         if verbose:
@@ -516,8 +507,9 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test10c_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a", node_cache_slots=10)
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a",
+                                       node_cache_slots=10)
+        table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
             print("Before move")
@@ -526,7 +518,7 @@ class BasicTestCase(PyTablesTestCase):
         self.assertTrue(idxcol is not None)
 
         # Create a new group called "agroup"
-        agroup = self.fileh.create_group("/", "agroup")
+        agroup = self.h5file.create_group("/", "agroup")
 
         # move the table to "agroup"
         table.move(agroup, "table2")
@@ -554,8 +546,9 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test10d_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a", node_cache_slots=0)
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a",
+                                       node_cache_slots=0)
+        table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
             print("Before move")
@@ -564,7 +557,7 @@ class BasicTestCase(PyTablesTestCase):
         self.assertTrue(idxcol is not None)
 
         # Create a new group called "agroup"
-        agroup = self.fileh.create_group("/", "agroup")
+        agroup = self.h5file.create_group("/", "agroup")
 
         # move the table to "agroup"
         table.move(agroup, "table2")
@@ -593,8 +586,8 @@ class BasicTestCase(PyTablesTestCase):
                   self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
             print("Before deletion")
@@ -603,14 +596,14 @@ class BasicTestCase(PyTablesTestCase):
         self.assertTrue(idxcol is not None)
 
         # delete the table
-        self.fileh.remove_node("/table")
+        self.h5file.remove_node("/table")
         if verbose:
             print("After deletion")
-        self.assertTrue("table" not in self.fileh.root)
+        self.assertTrue("table" not in self.h5file.root)
 
         # re-create the table and the index again
-        table = self.fileh.create_table("/", 'table', TDescr, "New table",
-                                        self.filters, self.nrows)
+        table = self.h5file.create_table("/", 'table', TDescr, "New table",
+                                         self.filters, self.nrows)
         for i in range(self.nrows):
             table.row['var1'] = str(i)
             table.row['var2'] = i % 2
@@ -637,8 +630,8 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test11b_removeTableWithIndex..." %
                   self.__class__.__name__)
 
-        self.fileh = open_file(self.file, mode="a")
-        table = self.fileh.root.table
+        self.h5file = tables.open_file(self.h5fname, mode="a")
+        table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if verbose:
             print("Before deletion")
@@ -647,18 +640,17 @@ class BasicTestCase(PyTablesTestCase):
         self.assertTrue(idxcol is not None)
 
         # delete the table
-        self.fileh.remove_node("/table")
+        self.h5file.remove_node("/table")
         if verbose:
             print("After deletion")
-        self.assertTrue("table" not in self.fileh.root)
+        self.assertTrue("table" not in self.h5file.root)
 
         # close and reopen the file
-        self.fileh.close()
-        self.fileh = open_file(self.file, mode="r+")
+        self._reopen(mode="r+")
 
         # re-create the table and the index again
-        table = self.fileh.create_table("/", 'table', TDescr, "New table",
-                                        self.filters, self.nrows)
+        table = self.h5file.create_table("/", 'table', TDescr, "New table",
+                                         self.filters, self.nrows)
         for i in range(self.nrows):
             table.row['var1'] = str(i)
             table.row['var2'] = i % 2
@@ -686,17 +678,17 @@ class BasicTestCase(PyTablesTestCase):
             print("Running %s.test11c_removeTableWithIndex..." %
                   self.__class__.__name__)
 
-        class Distance(IsDescription):
+        class Distance(tables.IsDescription):
             frame = Int32Col(pos=0)
             distance = FloatCol(pos=1)
 
         # Delete the old temporal file
-        os.remove(self.file)
+        os.remove(self.h5fname)
 
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, mode='w')
-        table = self.fileh.create_table(
-            self.fileh.root, 'distance_table', Distance)
+        self.h5fname = tempfile.mktemp(".h5")
+        self.h5file = tables.open_file(self.h5fname, mode='w')
+        table = self.h5file.create_table(
+            self.h5file.root, 'distance_table', Distance)
         table.cols.frame.create_index(_blocksizes=small_blocksizes)
         r = table.row
         for i in range(10):
@@ -704,11 +696,35 @@ class BasicTestCase(PyTablesTestCase):
             r['distance'] = float(i**2)
             r.append()
         table.flush()
-        self.fileh.close()
 
-        self.fileh = open_file(self.file, mode='r+')
-        self.fileh.remove_node(self.fileh.root.distance_table)
+        self._reopen(mode='r+')
 
+        self.h5file.remove_node(self.h5file.root.distance_table)
+
+    def test12_doubleIterate(self):
+        self.h5file = tables.open_file(self.h5fname, mode="r")
+        table = self.h5file.root.table
+        tests = [1, 4, self.nrows]
+        if self.nrows > 500:
+            tests.append(self.nrows - 500)
+        for limit in tests:
+            handle_a = [0, table.where('(var3 < e)', dict(e=limit))]
+            handle_b = [0, table.where('(var3 < e)', dict(e=limit))]
+
+            try:
+                while True:
+                    next(handle_b[1])
+                    handle_b[0] += 1
+            except StopIteration:
+                for _ in handle_a[1]:
+                    handle_a[0] += 1
+                for _ in handle_b[1]:
+                    handle_b[0] += 1
+
+            self.assertEqual(handle_a[0], limit)
+            self.assertEqual(handle_b[0], limit)
+            self.assertEqual(
+                len(list(table.where('(var3 < e)', dict(e=limit)))), limit)
 
 small_ss = small_blocksizes[2]
 
@@ -729,6 +745,8 @@ class ZlibReadTestCase(BasicTestCase):
     nrows = small_ss
 
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 class BloscReadTestCase(BasicTestCase):
     compress = 1
     complib = "blosc"
@@ -737,6 +755,7 @@ class BloscReadTestCase(BasicTestCase):
     nrows = small_ss
 
 
+@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class LZOReadTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -745,6 +764,8 @@ class LZOReadTestCase(BasicTestCase):
     nrows = small_ss
 
 
+@unittest.skipIf(not common.bzip2_avail,
+                 'BZIP2 compression library not available')
 class Bzip2ReadTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"
@@ -789,19 +810,18 @@ class LowerBoundTestCase(BasicTestCase):
     nrows = small_ss * 2-1
 
 
-class DeepTableIndexTestCase(unittest.TestCase):
+class DeepTableIndexTestCase(common.TempFileMixin, TestCase):
     nrows = minRowIndex
 
     def test01(self):
-        "Checking the indexing of a table in a 2nd level hierarchy"
+        """Checking the indexing of a table in a 2nd level hierarchy"""
+
         # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        group = self.fileh.create_group(self.fileh.root, "agroup")
+        group = self.h5file.create_group(self.h5file.root, "agroup")
         # Create a table
         title = "This is the IndexArray title"
-        table = self.fileh.create_table(group, 'table', TDescr, title,
-                                        None, self.nrows)
+        table = self.h5file.create_table(group, 'table', TDescr, title,
+                                         None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
             table.row.append()
@@ -814,129 +834,125 @@ class DeepTableIndexTestCase(unittest.TestCase):
         self.assertEqual(table.colindexed["var1"], 1)
         self.assertTrue(idxcol is not None)
         self.assertEqual(idxcol.nelements, self.nrows)
-
-        self.fileh.close()
-        os.remove(self.file)
 
     def test01b(self):
-        "Checking the indexing of a table in 2nd level (persistent version)"
+        """Checking the indexing of a table in 2nd level
+        (persistent version)"""
+
         # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        group = self.fileh.create_group(self.fileh.root, "agroup")
+        group = self.h5file.create_group(self.h5file.root, "agroup")
+
         # Create a table
         title = "This is the IndexArray title"
-        table = self.fileh.create_table(group, 'table', TDescr, title,
-                                        None, self.nrows)
+        table = self.h5file.create_table(group, 'table', TDescr, title,
+                                         None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
             table.row.append()
         table.flush()
+
         # Index some column
         indexrows = table.cols.var1.create_index()
         self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
+
         # Close and re-open this file
-        self.fileh.close()
-        self.fileh = open_file(self.file, "a")
-        table = self.fileh.root.agroup.table
+        self._reopen(mode='a')
+
+        table = self.h5file.root.agroup.table
         idxcol = table.cols.var1.index
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
         self.assertTrue(idxcol is not None)
         self.assertEqual(idxcol.nelements, self.nrows)
-
-        self.fileh.close()
-        os.remove(self.file)
 
     def test02(self):
-        "Checking the indexing of a table in a 4th level hierarchy"
+        """Checking the indexing of a table in a 4th level hierarchy"""
+
         # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        group = self.fileh.create_group(self.fileh.root, "agroup")
-        group = self.fileh.create_group(group, "agroup")
-        group = self.fileh.create_group(group, "agroup")
+        group = self.h5file.create_group(self.h5file.root, "agroup")
+        group = self.h5file.create_group(group, "agroup")
+        group = self.h5file.create_group(group, "agroup")
+
         # Create a table
         title = "This is the IndexArray title"
-        table = self.fileh.create_table(group, 'table', TDescr, title,
-                                        None, self.nrows)
+        table = self.h5file.create_table(group, 'table', TDescr, title,
+                                         None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
             table.row.append()
         table.flush()
+
         # Index some column
         indexrows = table.cols.var1.create_index()
         self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
+
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
         self.assertTrue(idxcol is not None)
         self.assertEqual(idxcol.nelements, self.nrows)
-
-        self.fileh.close()
-        os.remove(self.file)
 
     def test02b(self):
-        "Checking the indexing of a table in a 4th level (persistent version)"
+        """Checking the indexing of a table in a 4th level
+        (persistent version)"""
+
         # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        group = self.fileh.create_group(self.fileh.root, "agroup")
-        group = self.fileh.create_group(group, "agroup")
-        group = self.fileh.create_group(group, "agroup")
+        group = self.h5file.create_group(self.h5file.root, "agroup")
+        group = self.h5file.create_group(group, "agroup")
+        group = self.h5file.create_group(group, "agroup")
+
         # Create a table
         title = "This is the IndexArray title"
-        table = self.fileh.create_table(group, 'table', TDescr, title,
-                                        None, self.nrows)
+        table = self.h5file.create_table(group, 'table', TDescr, title,
+                                         None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
             table.row.append()
         table.flush()
+
         # Index some column
         indexrows = table.cols.var1.create_index()
         self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
+
         # Close and re-open this file
-        self.fileh.close()
-        self.fileh = open_file(self.file, "a")
-        table = self.fileh.root.agroup.agroup.agroup.table
+        self._reopen(mode='a')
+
+        table = self.h5file.root.agroup.agroup.agroup.table
         idxcol = table.cols.var1.index
+
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
         self.assertTrue(idxcol is not None)
         self.assertEqual(idxcol.nelements, self.nrows)
-
-        self.fileh.close()
-        os.remove(self.file)
 
     def test03(self):
-        "Checking the indexing of a table in a 100th level hierarchy"
+        """Checking the indexing of a table in a 100th level hierarchy"""
+
         # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        group = self.fileh.root
+        group = self.h5file.root
         for i in range(100):
-            group = self.fileh.create_group(group, "agroup")
+            group = self.h5file.create_group(group, "agroup")
+
         # Create a table
         title = "This is the IndexArray title"
-        table = self.fileh.create_table(group, 'table', TDescr, title,
-                                        None, self.nrows)
+        table = self.h5file.create_table(group, 'table', TDescr, title,
+                                         None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
             table.row.append()
         table.flush()
+
         # Index some column
         indexrows = table.cols.var1.create_index()
         self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
+
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
         self.assertTrue(idxcol is not None)
         self.assertEqual(idxcol.nelements, self.nrows)
-
-        self.fileh.close()
-        os.remove(self.file)
 
 
 class IndexProps(object):
@@ -947,28 +963,28 @@ class IndexProps(object):
 DefaultProps = IndexProps()
 NoAutoProps = IndexProps(auto=False)
 ChangeFiltersProps = IndexProps(
-    filters=Filters(complevel=6, complib="zlib",
-                    shuffle=False, fletcher32=False))
+    filters=tables.Filters(complevel=6, complib="zlib",
+                           shuffle=False, fletcher32=False))
 
 
-class AutomaticIndexingTestCase(unittest.TestCase):
+class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
     reopen = 1
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
     small_blocksizes = (16, 8, 4, 2)
 
     def setUp(self):
+        super(AutomaticIndexingTestCase, self).setUp()
+
         # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w")
-        # Create a table
         title = "This is the IndexArray title"
-        root = self.fileh.root
+        root = self.h5file.root
+
         # Make the chunkshape smaller or equal than small_blocksizes[-1]
         chunkshape = (2,)
-        self.table = self.fileh.create_table(root, 'table', TDescr, title,
-                                             None, self.nrows,
-                                             chunkshape=chunkshape)
+        self.table = self.h5file.create_table(root, 'table', TDescr, title,
+                                              None, self.nrows,
+                                              chunkshape=chunkshape)
         self.table.autoindex = self.iprops.auto
         for colname in self.colsToIndex:
             self.table.colinstances[colname].create_index(
@@ -978,17 +994,12 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.table.row.append()
         self.table.flush()
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            self.table = self.fileh.root.table
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        cleanup(self)
+            self._reopen(mode='a')
+            self.table = self.h5file.root.table
 
     def test01_attrs(self):
-        "Checking indexing attributes (part1)"
+        """Checking indexing attributes (part1)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01_attrs..." % self.__class__.__name__)
@@ -1020,18 +1031,21 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.assertTrue(table.cols.var4.index is None)
 
     def test02_attrs(self):
-        "Checking indexing attributes (part2)"
+        """Checking indexing attributes (part2)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02_attrs..." % self.__class__.__name__)
 
         table = self.table
+
         # Check the policy parameters
         if verbose:
             if table.indexed:
                 print("index props:", table.autoindex)
             else:
                 print("Table is not indexed")
+
         # Check non-default values for index saving policy
         if self.iprops is NoAutoProps:
             self.assertFalse(table.autoindex)
@@ -1051,11 +1065,13 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.assertEqual(table.cols.var4.index, None)
 
     def test03_counters(self):
-        "Checking indexing counters"
+        """Checking indexing counters"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03_counters..." % self.__class__.__name__)
         table = self.table
+
         # Check the counters for indexes
         if verbose:
             if table.indexed:
@@ -1075,13 +1091,16 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                              self.nrows - indexedrows)
 
     def test04_noauto(self):
-        "Checking indexing counters (non-automatic mode)"
+        """Checking indexing counters (non-automatic mode)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test04_noauto..." % self.__class__.__name__)
         table = self.table
+
         # Force a sync in indexes
         table.flush_rows_to_index()
+
         # Check the counters for indexes
         if verbose:
             if table.indexed:
@@ -1109,23 +1128,27 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.assertTrue(table.autoindex)
 
     def test05_icounters(self):
-        "Checking indexing counters (remove_rows)"
+        """Checking indexing counters (remove_rows)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test05_icounters..." % self.__class__.__name__)
         table = self.table
+
         # Force a sync in indexes
         table.flush_rows_to_index()
+
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
+
         # Now, remove some rows:
         table.remove_rows(2, 4)
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            table = self.fileh.root.table
+            self._reopen(mode='a')
+            table = self.h5file.root.table
+
         # Check the counters for indexes
         if verbose:
             if table.indexed:
@@ -1150,19 +1173,22 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.assertTrue(table.autoindex)
 
     def test06_dirty(self):
-        "Checking dirty flags (remove_rows action)"
+        """Checking dirty flags (remove_rows action)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test06_dirty..." % self.__class__.__name__)
         table = self.table
+
         # Force a sync in indexes
         table.flush_rows_to_index()
+
         # Now, remove some rows:
         table.remove_rows(3, 5)
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            table = self.fileh.root.table
+            self._reopen(mode='a')
+            table = self.h5file.root.table
+
         # Check the dirty flag for indexes
         if verbose:
             print("auto flag:", table.autoindex)
@@ -1181,23 +1207,27 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                                      False)
 
     def test07_noauto(self):
-        "Checking indexing counters (modify_rows, no-auto mode)"
+        """Checking indexing counters (modify_rows, no-auto mode)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test07_noauto..." % self.__class__.__name__)
         table = self.table
+
         # Force a sync in indexes
         table.flush_rows_to_index()
+
         # No unindexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
+
         # Now, modify just one row:
         table.modify_rows(3, None, 1, [["asa", 0, 3, 3.1]])
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            table = self.fileh.root.table
+            self._reopen(mode='a')
+            table = self.h5file.root.table
+
         # Check the counters for indexes
         if verbose:
             if table.indexed:
@@ -1231,15 +1261,19 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                                      False)
 
     def test07b_noauto(self):
-        "Checking indexing queries (modify in iterator, no-auto mode)"
+        """Checking indexing queries (modify in iterator, no-auto mode)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test07b_noauto..." % self.__class__.__name__)
         table = self.table
+
         # Force a sync in indexes
         table.flush_rows_to_index()
+
         # Do a query that uses indexes
         res = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
+
         # Now, modify just one row:
         for row in table:
             if row.nrow == 3:
@@ -1250,9 +1284,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 row.update()
         table.flush()
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            table = self.fileh.root.table
+            self._reopen(mode='a')
+            table = self.h5file.root.table
 
         # Do a query that uses indexes
         resq = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
@@ -1265,24 +1298,27 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.assertEqual(res_, resq)
 
     def test07c_noauto(self):
-        "Checking indexing queries (append, no-auto mode)"
+        """Checking indexing queries (append, no-auto mode)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test07c_noauto..." % self.__class__.__name__)
         table = self.table
+
         # Force a sync in indexes
         table.flush_rows_to_index()
+
         # Do a query that uses indexes
         res = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
+
         # Now, append three rows
         table.append([("asa", True, 1, 3.1)])
         table.append([("asb", True, 2, 3.1)])
         table.append([("asc", True, 3, 3.1)])
         table.flush()
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            table = self.fileh.root.table
+            self._reopen(mode='a')
+            table = self.h5file.root.table
 
         # Do a query that uses indexes
         resq = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
@@ -1295,26 +1331,29 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.assertEqual(res_, resq)
 
     def test08_dirty(self):
-        "Checking dirty flags (modify_columns)"
+        """Checking dirty flags (modify_columns)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test08_dirty..." % self.__class__.__name__)
         table = self.table
+
         # Force a sync in indexes
         table.flush_rows_to_index()
+
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             self.assertTrue(indexedrows is not None)
             unsavedindexedrows = table._unsaved_indexedrows
             self.assertTrue(unsavedindexedrows is not None)
+
         # Now, modify a couple of rows:
         table.modify_columns(1, columns=[["asa", "asb"], [1., 2.]],
                              names=["var1", "var4"])
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            table = self.fileh.root.table
+            self._reopen(mode='a')
+            table = self.h5file.root.table
 
         # Check the counters
         self.assertEqual(table.nrows, self.nrows)
@@ -1341,11 +1380,13 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                                      False)
 
     def test09a_propIndex(self):
-        "Checking propagate Index feature in Table.copy() (attrs)"
+        """Checking propagate Index feature in Table.copy() (attrs)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test09a_propIndex..." % self.__class__.__name__)
         table = self.table
+
         # Don't force a sync in indexes
         # table.flush_rows_to_index()
         # Non indexated rows should remain here
@@ -1354,15 +1395,15 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.assertTrue(indexedrows is not None)
             unsavedindexedrows = table._unsaved_indexedrows
             self.assertTrue(unsavedindexedrows is not None)
+
         # Now, remove some rows to make columns dirty
         # table.remove_rows(3,5)
         # Copy a Table to another location
         table2 = table.copy("/", 'table2', propindexes=True)
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            table = self.fileh.root.table
-            table2 = self.fileh.root.table2
+            self._reopen(mode='a')
+            table = self.h5file.root.table
+            table2 = self.h5file.root.table2
 
         index1 = table.cols.var1.index
         index2 = table2.cols.var1.index
@@ -1372,6 +1413,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             if index1:
                 print("Elements in copied index:", index2.nelements)
                 print("Elements in original index:", index1.nelements)
+
         # Check the counters
         self.assertEqual(table.nrows, table2.nrows)
         if table.indexed:
@@ -1395,11 +1437,13 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                                  False)
 
     def test09b_propIndex(self):
-        "Checking that propindexes=False works"
+        """Checking that propindexes=False works"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test09b_propIndex..." % self.__class__.__name__)
         table = self.table
+
         # Don't force a sync in indexes
         # table.flush_rows_to_index()
         # Non indexated rows should remain here
@@ -1408,15 +1452,15 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.assertTrue(indexedrows is not None)
             unsavedindexedrows = table._unsaved_indexedrows
             self.assertTrue(unsavedindexedrows is not None)
+
         # Now, remove some rows to make columns dirty
         # table.remove_rows(3,5)
         # Copy a Table to another location
         table2 = table.copy("/", 'table2', propindexes=False)
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            table = self.fileh.root.table
-            table2 = self.fileh.root.table2
+            self._reopen(mode='a')
+            table = self.h5file.root.table
+            table2 = self.h5file.root.table2
 
         if verbose:
             print("autoindex?:", self.iprops.auto)
@@ -1431,11 +1475,13 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.assertTrue(table.cols.var1.is_indexed)
 
     def test10_propIndex(self):
-        "Checking propagate Index feature in Table.copy() (values)"
+        """Checking propagate Index feature in Table.copy() (values)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test10_propIndex..." % self.__class__.__name__)
         table = self.table
+
         # Don't force a sync in indexes
         # table.flush_rows_to_index()
         # Non indexated rows should remain here
@@ -1444,15 +1490,15 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.assertTrue(indexedrows is not None)
             unsavedindexedrows = table._unsaved_indexedrows
             self.assertTrue(unsavedindexedrows is not None)
+
         # Now, remove some rows to make columns dirty
         # table.remove_rows(3,5)
         # Copy a Table to another location
         table2 = table.copy("/", 'table2', propindexes=True)
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            table = self.fileh.root.table
-            table2 = self.fileh.root.table2
+            self._reopen(mode='a')
+            table = self.h5file.root.table
+            table2 = self.h5file.root.table2
 
         index1 = table.cols.var3.index
         index2 = table2.cols.var3.index
@@ -1464,30 +1510,34 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print("Elements in original index:", index1.nelements)
 
     def test11_propIndex(self):
-        "Checking propagate Index feature in Table.copy() (dirty flags)"
+        """Checking propagate Index feature in Table.copy() (dirty flags)"""
+
         if verbose:
             print('\n', '-=' * 30)
             print("Running %s.test11_propIndex..." % self.__class__.__name__)
         table = self.table
+
         # Force a sync in indexes
         table.flush_rows_to_index()
+
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             self.assertTrue(indexedrows is not None)
             unsavedindexedrows = table._unsaved_indexedrows
             self.assertTrue(unsavedindexedrows is not None)
+
         # Now, modify an indexed column and an unindexed one
         # to make the "var1" dirty
         table.modify_columns(1, columns=[["asa", "asb"], [1., 2.]],
                              names=["var1", "var4"])
+
         # Copy a Table to another location
         table2 = table.copy("/", 'table2', propindexes=True)
         if self.reopen:
-            self.fileh.close()
-            self.fileh = open_file(self.file, "a")
-            table = self.fileh.root.table
-            table2 = self.fileh.root.table2
+            self._reopen(mode='a')
+            table = self.h5file.root.table
+            table2 = self.h5file.root.table2
 
         index1 = table.cols.var1.index
         index2 = table2.cols.var1.index
@@ -1605,48 +1655,43 @@ class AI12TestCase(AutomaticIndexingTestCase):
     colsToIndex = ['var1', 'var2', 'var3']
 
 
-class ManyNodesTestCase(PyTablesTestCase):
-
-    def setUp(self):
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = open_file(self.file, "w", node_cache_slots=64)
+class ManyNodesTestCase(common.TempFileMixin, TestCase):
+    opem_kwargs = dict(node_cache_slots=64)
 
     def test00(self):
         """Indexing many nodes in one single session (based on bug #26)"""
+
         IdxRecord = {
             'f0': Int8Col(),
             'f1': Int8Col(),
             'f2': Int8Col(),
         }
-        h5 = self.fileh
+
         for qn in range(5):
             for sn in range(5):
                 qchr = 'chr' + str(qn)
                 name = 'chr' + str(sn)
                 path = "/at/%s/pt" % (qchr)
-                table = h5.create_table(path, name, IdxRecord, createparents=1)
+                table = self.h5file.create_table(
+                    path, name, IdxRecord, createparents=1)
                 table.cols.f0.create_index()
                 table.cols.f1.create_index()
                 table.cols.f2.create_index()
                 table.row.append()
                 table.flush()
 
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        cleanup(self)
 
-
-class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
+class IndexPropsChangeTestCase(TempFileMixin, TestCase):
     """Test case for changing index properties in a table."""
 
-    class MyDescription(IsDescription):
+    class MyDescription(tables.IsDescription):
         icol = IntCol()
     oldIndexProps = IndexProps()
-    newIndexProps = IndexProps(auto=False, filters=Filters(complevel=9))
+    newIndexProps = IndexProps(auto=False, filters=tables.Filters(complevel=9))
 
     def setUp(self):
         super(IndexPropsChangeTestCase, self).setUp()
+
         table = self.h5file.create_table('/', 'test', self.MyDescription)
         table.autoindex = self.oldIndexProps.auto
         row = table.row
@@ -1655,9 +1700,6 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
             row.append()
         table.flush()
         self.table = table
-
-    def tearDown(self):
-        super(IndexPropsChangeTestCase, self).tearDown()
 
     def test_attributes(self):
         """Storing index properties as table attributes."""
@@ -1672,7 +1714,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(oldtable.autoindex, newtable.autoindex)
 
 
-class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
+class IndexFiltersTestCase(TempFileMixin, TestCase):
     """Test case for setting index filters."""
 
     def setUp(self):
@@ -1711,7 +1753,7 @@ class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
         """Checking input parameters in recomputed indexes."""
         icol = self.table.cols.icol
         icol.create_index(
-            kind='full', optlevel=5, filters=Filters(complevel=3))
+            kind='full', optlevel=5, filters=tables.Filters(complevel=3))
         kind = icol.index.kind
         optlevel = icol.index.optlevel
         filters = icol.index.filters
@@ -1726,27 +1768,26 @@ class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(ni.filters, filters)
 
 
-class OldIndexTestCase(PyTablesTestCase):
+class OldIndexTestCase(common.TestFileMixin, TestCase):
+    h5fname = TestCase._testFilename("idx-std-1.x.h5")
 
     def test1_x(self):
         """Check that files with 1.x indexes are recognized and warned."""
-        fname = self._testFilename("idx-std-1.x.h5")
-        f = open_file(fname)
-        self.assertWarns(OldIndexWarning, f.get_node, "/table")
-        f.close()
+
+        self.assertWarns(OldIndexWarning, self.h5file.get_node, "/table")
 
 
 # Sensible parameters for indexing with small blocksizes
 small_blocksizes = (512, 128, 32, 8)
 
 
-class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
+class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
     """Test case for testing a complete sort in a table."""
 
     nrows = 100
     nrowsinbuf = 11
 
-    class MyDescription(IsDescription):
+    class MyDescription(tables.IsDescription):
         rcol = IntCol(pos=1)
         icol = IntCol(pos=2)
 
@@ -1767,6 +1808,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test00_isCompletelySortedIndex(self):
         """Testing the Column.is_csi property."""
+
         icol = self.icol
         self.assertEqual(icol.index.is_csi, True)
         icol.remove_index()
@@ -1784,6 +1826,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test01_readSorted1(self):
         """Testing the Index.read_sorted() method with no arguments."""
+
         icol = self.icol
         sortedcol = numpy.sort(icol[:])
         sortedcol2 = icol.index.read_sorted()
@@ -1794,6 +1837,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test01_readSorted2(self):
         """Testing the Index.read_sorted() method with arguments (I)."""
+
         icol = self.icol
         sortedcol = numpy.sort(icol[:])[30:55]
         sortedcol2 = icol.index.read_sorted(30, 55)
@@ -1804,6 +1848,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test01_readSorted3(self):
         """Testing the Index.read_sorted() method with arguments (II)."""
+
         icol = self.icol
         sortedcol = numpy.sort(icol[:])[33:97]
         sortedcol2 = icol.index.read_sorted(33, 97)
@@ -1814,6 +1859,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test02_readIndices1(self):
         """Testing the Index.read_indices() method with no arguments."""
+
         icol = self.icol
         indicescol = numpy.argsort(icol[:]).astype('uint64')
         indicescol2 = icol.index.read_indices()
@@ -1824,6 +1870,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test02_readIndices2(self):
         """Testing the Index.read_indices() method with arguments (I)."""
+
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[30:55].astype('uint64')
         indicescol2 = icol.index.read_indices(30, 55)
@@ -1834,6 +1881,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test02_readIndices3(self):
         """Testing the Index.read_indices() method with arguments (II)."""
+
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[33:97].astype('uint64')
         indicescol2 = icol.index.read_indices(33, 97)
@@ -1844,6 +1892,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test02_readIndices4(self):
         """Testing the Index.read_indices() method with arguments (III)."""
+
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[33:97:2].astype('uint64')
         indicescol2 = icol.index.read_indices(33, 97, 2)
@@ -1854,6 +1903,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test02_readIndices5(self):
         """Testing the Index.read_indices() method with arguments (IV)."""
+
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[33:55:5].astype('uint64')
         indicescol2 = icol.index.read_indices(33, 55, 5)
@@ -1864,6 +1914,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test02_readIndices6(self):
         """Testing the Index.read_indices() method with step only."""
+
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[::3].astype('uint64')
         indicescol2 = icol.index.read_indices(step=3)
@@ -1874,6 +1925,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test03_getitem1(self):
         """Testing the Index.__getitem__() method with no arguments."""
+
         icol = self.icol
         indicescol = numpy.argsort(icol[:]).astype('uint64')
         indicescol2 = icol.index[:]
@@ -1884,6 +1936,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test03_getitem2(self):
         """Testing the Index.__getitem__() method with start."""
+
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[31].astype('uint64')
         indicescol2 = icol.index[31]
@@ -1894,6 +1947,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test03_getitem3(self):
         """Testing the Index.__getitem__() method with start, stop."""
+
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[2:16].astype('uint64')
         indicescol2 = icol.index[2:16]
@@ -1904,6 +1958,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test04_itersorted1(self):
         """Testing the Table.itersorted() method with no arguments."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')
         sortedtable2 = numpy.array(
@@ -1916,6 +1971,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test04_itersorted2(self):
         """Testing the Table.itersorted() method with a start."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[15:]
         sortedtable2 = numpy.array(
@@ -1928,6 +1984,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test04_itersorted3(self):
         """Testing the Table.itersorted() method with a stop."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[:20]
         sortedtable2 = numpy.array(
@@ -1940,6 +1997,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test04_itersorted4(self):
         """Testing the Table.itersorted() method with a start and stop."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[15:20]
         sortedtable2 = numpy.array(
@@ -1953,6 +2011,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test04_itersorted5(self):
         """Testing the Table.itersorted() method with a start, stop and
         step."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[15:45:4]
         sortedtable2 = numpy.array(
@@ -1966,6 +2025,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test04_itersorted6(self):
         """Testing the Table.itersorted() method with a start, stop and
         step."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[33:55:5]
         sortedtable2 = numpy.array(
@@ -1978,6 +2038,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test04_itersorted7(self):
         """Testing the Table.itersorted() method with checkCSI=True."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')
         sortedtable2 = numpy.array(
@@ -1991,6 +2052,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test04_itersorted8(self):
         """Testing the Table.itersorted() method with a start, stop and
         negative step."""
+
         # see also gh-252
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[55:33:-5]
@@ -2004,6 +2066,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test04_itersorted9(self):
         """Testing the Table.itersorted() method with a negative step."""
+
         # see also gh-252
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[::-5]
@@ -2017,6 +2080,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05_readSorted1(self):
         """Testing the Table.read_sorted() method with no arguments."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')
         sortedtable2 = table.read_sorted('icol')
@@ -2027,6 +2091,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05_readSorted2(self):
         """Testing the Table.read_sorted() method with a start."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[16:17]
         sortedtable2 = table.read_sorted('icol', start=16)
@@ -2037,6 +2102,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05_readSorted3(self):
         """Testing the Table.read_sorted() method with a start and stop."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[16:33]
         sortedtable2 = table.read_sorted('icol', start=16, stop=33)
@@ -2048,6 +2114,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test05_readSorted4(self):
         """Testing the Table.read_sorted() method with a start, stop and
         step."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[33:55:5]
         sortedtable2 = table.read_sorted('icol', start=33, stop=55, step=5)
@@ -2058,6 +2125,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05_readSorted5(self):
         """Testing the Table.read_sorted() method with only a step."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[::3]
         sortedtable2 = table.read_sorted('icol', step=3)
@@ -2068,6 +2136,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05_readSorted6(self):
         """Testing the Table.read_sorted() method with negative step."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[::-1]
         sortedtable2 = table.read_sorted('icol', step=-1)
@@ -2078,6 +2147,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05_readSorted7(self):
         """Testing the Table.read_sorted() method with negative step (II)."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')[::-2]
         sortedtable2 = table.read_sorted('icol', step=-2)
@@ -2088,6 +2158,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05_readSorted8(self):
         """Testing the Table.read_sorted() method with negative step (III))."""
+
         table = self.table
         sstart = 100-24-1
         sstop = 100-54-1
@@ -2100,6 +2171,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05_readSorted9(self):
         """Testing the Table.read_sorted() method with negative step (IV))."""
+
         table = self.table
         sstart = 100-14-1
         sstop = 100-54-1
@@ -2112,6 +2184,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05_readSorted10(self):
         """Testing the Table.read_sorted() method with negative step (V))."""
+
         table = self.table
         sstart = 100-24-1
         sstop = 100-25-1
@@ -2124,6 +2197,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05_readSorted11(self):
         """Testing the Table.read_sorted() method with start > stop."""
+
         table = self.table
         sstart = 100-137-1
         sstop = 100-25-1
@@ -2136,6 +2210,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05a_readSorted12(self):
         """Testing the Table.read_sorted() method with checkCSI (I)."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')
         sortedtable2 = table.read_sorted('icol', checkCSI=True)
@@ -2146,12 +2221,14 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test05b_readSorted12(self):
         """Testing the Table.read_sorted() method with checkCSI (II)."""
+
         table = self.table
         self.assertRaises(ValueError,
                           table.read_sorted, "rcol", checkCSI=False)
 
     def test06_copy_sorted1(self):
         """Testing the Table.copy(sortby) method with no arguments."""
+
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
@@ -2165,6 +2242,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test06_copy_sorted2(self):
         """Testing the Table.copy(sortby) method with step=-1."""
+
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
@@ -2178,6 +2256,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test06_copy_sorted3(self):
         """Testing the Table.copy(sortby) method with only a start."""
+
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
@@ -2191,6 +2270,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test06_copy_sorted4(self):
         """Testing the Table.copy(sortby) method with start, stop."""
+
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
@@ -2204,6 +2284,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test06_copy_sorted5(self):
         """Testing the Table.copy(sortby) method with start, stop, step."""
+
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
@@ -2218,6 +2299,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test06_copy_sorted6(self):
         """Testing the Table.copy(sortby) method after table re-opening."""
+
         self._reopen(mode='a')
         table = self.h5file.root.table
         # Copy to another table
@@ -2232,7 +2314,9 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test06_copy_sorted7(self):
         """Testing the `checkCSI` parameter of Table.copy() (I)."""
+
         table = self.table
+
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
         table2 = table.copy("/", 'table2', sortby="icol")
@@ -2242,7 +2326,9 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test06_copy_sorted8(self):
         """Testing the `checkCSI` parameter of Table.copy() (II)."""
+
         table = self.table
+
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
         table2 = table.copy("/", 'table2', sortby="icol")
@@ -2252,6 +2338,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test07_isCSI_noelements(self):
         """Testing the representation of an index with no elements."""
+
         t2 = self.h5file.create_table('/', 't2', self.MyDescription)
         irows = t2.cols.rcol.create_csindex()
         if verbose:
@@ -2260,18 +2347,19 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(t2.colindexes['rcol'].is_csi, False)
 
 
-class ReadSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
+class ReadSortedIndexTestCase(TempFileMixin, TestCase):
     """Test case for testing sorted reading in a "full" sorted column."""
 
     nrows = 100
     nrowsinbuf = 11
 
-    class MyDescription(IsDescription):
+    class MyDescription(tables.IsDescription):
         rcol = IntCol(pos=1)
         icol = IntCol(pos=2)
 
     def setUp(self):
         super(ReadSortedIndexTestCase, self).setUp()
+
         table = self.h5file.create_table('/', 'table', self.MyDescription)
         row = table.row
         nrows = self.nrows
@@ -2288,6 +2376,7 @@ class ReadSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test01_readSorted1(self):
         """Testing the Table.read_sorted() method with no arguments."""
+
         table = self.table
         sortedtable = numpy.sort(table[:], order='icol')
         sortedtable2 = table.read_sorted('icol')
@@ -2300,8 +2389,9 @@ class ReadSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
                                  numpy.sort(sortedtable2, order="icol")))
 
     def test01_readSorted2(self):
-        """Testing the Table.read_sorted() method with no arguments (re-open).
-        """
+        """Testing the Table.read_sorted() method with no arguments
+        (re-open)."""
+
         self._reopen()
         table = self.h5file.root.table
         sortedtable = numpy.sort(table[:], order='icol')
@@ -2316,6 +2406,7 @@ class ReadSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test02_copy_sorted1(self):
         """Testing the Table.copy(sortby) method."""
+
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
@@ -2329,6 +2420,7 @@ class ReadSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
     def test02_copy_sorted2(self):
         """Testing the Table.copy(sortby) method after table re-opening."""
+
         self._reopen(mode='a')
         table = self.h5file.root.table
         # Copy to another table
@@ -2358,27 +2450,25 @@ class ReadSortedIndex9(ReadSortedIndexTestCase):
     optlevel = 9
 
 
-class Issue156TestBase(PyTablesTestCase):
+class Issue156TestBase(common.TempFileMixin, TestCase):
     # field name in table according to which test_copysort() sorts the table
     sort_field = None
 
     def setUp(self):
-        # create hdf5 file
-        self.filename = tempfile.mktemp(".hdf5")
-        self.file = open_file(self.filename, mode="w")
+        super(Issue156TestBase, self).setUp()
 
         # create nested table
-        class Foo(IsDescription):
+        class Foo(tables.IsDescription):
             frame = UInt16Col()
 
-            class Bar(IsDescription):
+            class Bar(tables.IsDescription):
                 code = UInt16Col()
 
-        table = self.file.create_table('/', 'foo', Foo,
-                                       filters=Filters(3, 'zlib'),
-                                       createparents=True)
+        table = self.h5file.create_table('/', 'foo', Foo,
+                                         filters=tables.Filters(3, 'zlib'),
+                                         createparents=True)
 
-        self.file.flush()
+        self.h5file.flush()
 
         # fill table with 10 random numbers
         for k in xrange(10):
@@ -2387,15 +2477,11 @@ class Issue156TestBase(PyTablesTestCase):
             row['Bar/code'] = numpy.random.random_integers(0, 2**16-1)
             row.append()
 
-        self.file.flush()
-
-    def tearDown(self):
-        self.file.close()
-        os.remove(self.filename)
+        self.h5file.flush()
 
     def test_copysort(self):
         # copy table
-        oldNode = self.file.get_node('/foo')
+        oldNode = self.h5file.get_node('/foo')
 
         # create completely sorted index on a main column
         oldNode.colinstances[self.sort_field].create_csindex()
@@ -2426,10 +2512,10 @@ class Issue156TestCase02(Issue156TestBase):
     sort_field = 'Bar/code'
 
 
-class Issue119Time32ColTestCase(PyTablesTestCase):
+class Issue119Time32ColTestCase(common.TempFileMixin, TestCase):
     """TimeCol not properly indexing."""
 
-    col_typ = Time32Col
+    col_typ = tables.Time32Col
     values = [
         0.93240451618785880,
         0.76322375510776170,
@@ -2444,24 +2530,18 @@ class Issue119Time32ColTestCase(PyTablesTestCase):
     ]
 
     def setUp(self):
-        # create hdf5 file
-        self.filename = tempfile.mktemp(".hdf5")
-        self.file = open_file(self.filename, mode="w")
+        super(Issue119Time32ColTestCase, self).setUp()
 
-        class Descr(IsDescription):
+        class Descr(tables.IsDescription):
             when = self.col_typ(pos=1)
             value = Float32Col(pos=2)
 
-        self.table = self.file.create_table('/', 'test', Descr)
+        self.table = self.h5file.create_table('/', 'test', Descr)
 
         self.t = 1321031471.0  # 11/11/11 11:11:11
         data = [(self.t + i, item) for i, item in enumerate(self.values)]
         self.table.append(data)
-        self.file.flush()
-
-    def tearDown(self):
-        self.file.close()
-        os.remove(self.filename)
+        self.h5file.flush()
 
     def test_timecol_issue(self):
         tbl = self.table
@@ -2478,10 +2558,10 @@ class Issue119Time32ColTestCase(PyTablesTestCase):
 
 
 class Issue119Time64ColTestCase(Issue119Time32ColTestCase):
-    col_typ = Time64Col
+    col_typ = tables.Time64Col
 
 
-class TestIndexingNans(TempFileMixin, PyTablesTestCase):
+class TestIndexingNans(TempFileMixin, TestCase):
     def test_issue_282(self):
         trMap = {'index': Int64Col(), 'values': FloatCol()}
         table = self.h5file.create_table('/', 'table', trMap)
@@ -2518,12 +2598,60 @@ class TestIndexingNans(TempFileMixin, PyTablesTestCase):
         table.cols.values2.create_index()
 
         results2 = table.read_where('(values2 > 0)')
-        self.assertTrue(len(results2) == 4)
+        self.assertTrue(len(results2), 4)
 
         results = table.read_where('(values > 0)')
-        self.assertTrue(len(results) == 2)
+        self.assertEqual(len(results), 2)
 
-#----------------------------------------------------------------------
+    def test_issue_327_b(self):
+        table = self.h5file.create_table('/', 'table', dict(
+            index=Int64Col(),
+            values=FloatCol(shape=()),
+            values2=FloatCol(shape=()),
+        ))
+
+        r = table.row
+        for _ in range(100):
+            for i in range(5):
+                r['index'] = i
+                r['values'] = numpy.nan if i == 2 or i == 3 else i
+                r['values2'] = i
+                r.append()
+        table.flush()
+
+        table.cols.values.create_index(_blocksizes=small_blocksizes)
+        table.cols.values2.create_index(_blocksizes=small_blocksizes)
+
+        results2 = table.read_where('(values2 > 0)')
+        self.assertTrue(len(results2), 400)
+
+        results = table.read_where('(values > 0)')
+        self.assertEqual(len(results), 200)
+
+    def test_csindex_nans(self):
+        table = self.h5file.create_table('/', 'table', dict(
+            index=Int64Col(),
+            values=FloatCol(shape=()),
+            values2=FloatCol(shape=()),
+        ))
+
+        r = table.row
+        for x in range(100):
+            for i in range(5):
+                r['index'] = i
+                r['values'] = numpy.nan if i == 2 or i == 3 else i
+                r['values2'] = i
+                r.append()
+        table.flush()
+
+        table.cols.values.create_csindex(_blocksizes=small_blocksizes)
+        table.cols.values2.create_csindex(_blocksizes=small_blocksizes)
+
+        results2 = table.read_where('(values2 > 0)')
+        self.assertTrue(len(results2), 100*4)
+
+        results = table.read_where('(values > 0)')
+        self.assertEqual(len(results), 100*2)
 
 
 def suite():
@@ -2575,5 +2703,9 @@ def suite():
 
     return theSuite
 
+
 if __name__ == '__main__':
+    import sys
+    common.parse_argv(sys.argv)
+    common.print_versions()
     unittest.main(defaultTest='suite')

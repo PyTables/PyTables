@@ -567,10 +567,15 @@ class Array(hdf5extension.Array, Leaf):
                         "Empty selections are not allowed (axis %d)" % idx)
                 elif len(exp) > 1:
                     if list_seen:
-                        raise IndexError(
-                            "Only one selection list is allowed")
+                        raise IndexError("Only one selection list is allowed")
                     else:
                         list_seen = True
+                else:
+                    if (not isinstance(exp[0], (int, long, numpy.integer)) or
+                        (isinstance(exp[0], numpy.ndarray) and not
+                            numpy.issubdtype(exp[0].dtype, numpy.integer))):
+                        raise TypeError("Only integer coordinates allowed.")
+
                 nexp = numpy.asarray(exp, dtype="i8")
                 # Convert negative values
                 nexp = numpy.where(nexp < 0, length + nexp, nexp)
@@ -580,7 +585,10 @@ class Array(hdf5extension.Array, Leaf):
                     raise IndexError(
                         "Selection lists cannot have repeated values")
                 neworder = nexp.argsort()
-                if not numpy.alltrue(neworder == numpy.arange(len(exp))):
+                if (neworder.shape != (len(exp),) or
+                        numpy.sum(
+                            numpy.abs(
+                                neworder - numpy.arange(len(exp)))) != 0):
                     if reorder is not None:
                         raise IndexError(
                             "Only one selection list can be unordered")
@@ -839,7 +847,7 @@ class Array(hdf5extension.Array, Leaf):
     def _read(self, start, stop, step, out=None):
         """Read the array from disk without slice or flavor processing."""
 
-        nrowstoread = len(xrange(start, stop, step))
+        nrowstoread = len(xrange(0, stop - start, step))
         shape = list(self.shape)
         if shape:
             shape[self.maindim] = nrowstoread

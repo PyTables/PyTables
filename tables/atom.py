@@ -257,7 +257,7 @@ class Atom(object):
     you will need when writing your code. Otherwise, you may use one
     of the Atom.from_*() factory Methods.
 
-    .. rubric:: Arom attributes
+    .. rubric:: Atom attributes
 
     .. attribute:: dflt
 
@@ -688,10 +688,28 @@ def _generate_floating_classes():
 
 
 # Create all numeric atom classes.
-for _classgen in [_generate_integral_classes, _generate_floating_classes]:
-    for _newclass in _classgen():
-        exec('%s = _newclass' % _newclass.__name__)
-del _classgen, _newclass
+#for _classgen in [_generate_integral_classes, _generate_floating_classes]:
+#    for _newclass in _classgen():
+#        exec('%s = _newclass' % _newclass.__name__)
+#del _classgen, _newclass
+
+Int8Atom = _create_numeric_class(IntAtom, 1)
+Int16Atom = _create_numeric_class(IntAtom, 2)
+Int32Atom = _create_numeric_class(IntAtom, 4)
+Int64Atom = _create_numeric_class(IntAtom, 8)
+UInt8Atom = _create_numeric_class(UIntAtom, 1)
+UInt16Atom = _create_numeric_class(UIntAtom, 2)
+UInt32Atom = _create_numeric_class(UIntAtom, 4)
+UInt64Atom = _create_numeric_class(UIntAtom, 8)
+
+if hasattr(numpy, 'float16'):
+    Float16Atom = _create_numeric_class(FloatAtom, 2)
+Float32Atom = _create_numeric_class(FloatAtom, 4)
+Float64Atom = _create_numeric_class(FloatAtom, 8)
+if hasattr(numpy, 'float96'):
+    Float96Atom = _create_numeric_class(FloatAtom, 12)
+if hasattr(numpy, 'float128'):
+    Float128Atom = _create_numeric_class(FloatAtom, 16)
 
 
 class ComplexAtom(Atom):
@@ -1166,16 +1184,3 @@ class ObjectAtom(_BufferedAtom):
         if array.size == 0:
             return None
         return cPickle.loads(array.tostring())
-
-
-# Main part
-# =========
-def _test():
-    """Run ``doctest`` on this module."""
-
-    import doctest
-    doctest.testmod()
-
-
-if __name__ == '__main__':
-    _test()

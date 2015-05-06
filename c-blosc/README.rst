@@ -3,7 +3,7 @@
 ===============================================================
 
 :Author: Francesc Alted
-:Contact: faltet@gmail.com
+:Contact: francesc@blosc.io
 :URL: http://www.blosc.org
 
 What is it?
@@ -53,10 +53,15 @@ ratio).  At any rate, it can also be called a compressor because it
 happens that it already integrates one compressor and one
 pre-conditioner, so it can actually work like so.
 
-Currently it uses BloscLZ, a compressor heavily based on FastLZ
-(http://fastlz.org/), and a highly optimized (it can use SSE2
-instructions, if available) Shuffle pre-conditioner. However,
-different compressors or pre-conditioners may be added in the future.
+Currently it comes with support of BloscLZ, a compressor heavily based
+on FastLZ (http://fastlz.org/), LZ4 and LZ4HC
+(http://fastcompression.blogspot.com.es/p/lz4.html), Snappy
+(https://github.com/google/snappy) and Zlib (http://www.zlib.net/), as
+well as a highly optimized (it can use SSE2 instructions, if
+available) Shuffle pre-conditioner (for info on how it works, see
+slide 17 of http://www.slideshare.net/PyData/blosc-py-data-2014).
+However, different compressors or pre-conditioners may be added in the
+future.
 
 Blosc is in charge of coordinating the compressor and pre-conditioners
 so that they can leverage the blocking technique (described above) as
@@ -71,18 +76,13 @@ Other advantages of Blosc are:
   meta-information for improved compression ratio (using the
   integrated shuffle pre-conditioner).
 
-* Small overhead on non-compressible data: only a maximum of 16
-  additional bytes over the source buffer length are needed to
-  compress *every* input.
+* Small overhead on non-compressible data: only a maximum of (16 + 4 *
+  nthreads) additional bytes over the source buffer length are needed
+  to compress *every* input.
 
 * Maximum destination length: contrarily to many other
   compressors, both compression and decompression routines have
   support for maximum size lengths for the destination buffer.
-
-* Replacement for memcpy(): it supports a 0 compression level that
-  does not compress at all and only adds 16 bytes of overhead. In
-  this mode Blosc can copy memory usually faster than a plain
-  memcpy().
 
 When taken together, all these features set Blosc apart from other
 similar solutions.
