@@ -1,14 +1,15 @@
 ===============================================================
- Announcing c-blosc 1.4.2
+ Announcing c-blosc 1.4.4
  A blocking, shuffling and lossless compression library
 ===============================================================
 
 What is new?
 ============
 
-This is a maintenance release, mainly for adapting to recent changes
-in HDF5 1.8.15 (H5Epush) and also for using multithreaded or
-single-threaded code depending on Blosc version.
+* New computation of blocksize to be in sync with c-blosc 1.6.1.
+
+* New parametrization of the hash table for blosclz (synced with c-blosc
+  1.6.1)
 
 For more info, please see the release notes in:
 

@@ -18,13 +18,13 @@ extern "C" {
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
 #define BLOSC_VERSION_MINOR    4    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  2    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_RELEASE  4    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.4.2"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.4.4"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2015-05-04 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2015-05-05 #$"    /* date version */
 
-#define BLOSCLZ_VERSION_STRING "1.0.2"   /* the internal compressor version */
+#define BLOSCLZ_VERSION_STRING "1.0.2.1"   /* the internal compressor version */
 
 /* The *_FORMAT symbols should be just 1-byte long */
 #define BLOSC_VERSION_FORMAT    2   /* Blosc format version, starting at 1 */
