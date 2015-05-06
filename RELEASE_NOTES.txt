@@ -46,12 +46,10 @@ Improvements
 - New :program:`pttree` script for printing HDF5 file contents as a pretty
   ASCII tree (closes :issue:`400`). Thanks to Alistair Muldal.
 
-- The internal Blosc library has been downgraded to version 1.4.1.
-  This is in order to still allow using multiple threads *inside* Blosc, even
-  on multithreaded applications (see :issue:`411` and :issue:`412`).  This
-  issue can (and should) be removed in the future.
-  The new version of Blosc also includes a couple of security fixes and
-  support for architectures requiring strict access alignment.
+- The internal Blosc library has been downgraded to version 1.4.4.  This
+  is in order to still allow using multiple threads *inside* Blosc, even
+  on multithreaded applications (see :issue:`411`, :issue:`412`,
+  :issue:`437` and :issue:`448`).
 
 - The :func:`print_versions` function now also reports the version of
   compression libraries used by Blosc.
