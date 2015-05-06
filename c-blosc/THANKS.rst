@@ -22,4 +22,7 @@ Other important contributions:
   avoid the use of the blosc_init() and blosc_destroy().
 
 * Jack Pappas contributed important portability enhancements,
-  specially with MS Visual C++.
+  specially with MS Visual C++ as well as high precision timers
+  (HPET) for the benchmark program.
+
+* @littlezhou contributed the AVX2 version of shuffle routines.

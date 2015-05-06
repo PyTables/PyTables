@@ -3,7 +3,7 @@
 ===============================================================
 
 :Author: Francesc Alted
-:Contact: francesc@blosc.org
+:Contact: francesc@blosc.io
 :URL: http://www.blosc.org
 
 What is it?
@@ -41,7 +41,7 @@ details.
 
 .. [1] http://www.blosc.org
 .. [2] http://blosc.org/docs/StarvingCPUs-CISE-2010.pdf
-.. [3] http://blosc.org/synthetic-benchmarks.html
+.. [3] http://blosc.org/trac/wiki/SyntheticBenchmarks
 
 Meta-compression and other advantages over existing compressors
 ===============================================================
@@ -80,7 +80,7 @@ Other advantages of Blosc are:
   nthreads) additional bytes over the source buffer length are needed
   to compress *every* input.
 
-* Maximum destination length: contrary to many other
+* Maximum destination length: contrarily to many other
   compressors, both compression and decompression routines have
   support for maximum size lengths for the destination buffer.
 
@@ -90,74 +90,56 @@ similar solutions.
 Compiling your application with a minimalistic Blosc
 ====================================================
 
-The minimal Blosc consists of the next files (in `blosc/ directory
-<https://github.com/Blosc/c-blosc/tree/master/blosc>`_)::
+The minimal Blosc consists of the next files (in blosc/ directory)::
 
     blosc.h and blosc.c      -- the main routines
     shuffle.h and shuffle.c  -- the shuffle code
     blosclz.h and blosclz.c  -- the blosclz compressor
 
 Just add these files to your project in order to use Blosc.  For
-information on compression and decompression routines, see `blosc.h
-<https://github.com/Blosc/c-blosc/blob/master/blosc/blosc.h>`_.
+information on compression and decompression routines, see blosc.h.
 
 To compile using GCC (4.4 or higher recommended) on Unix:
 
 .. code-block:: console
 
-   $ gcc -O3 -msse2 -o myprog myprog.c blosc/*.c -Iblosc -lpthread
+   $ gcc -O3 -msse2 -o myprog myprog.c blosc/*.c -lpthread
 
 Using Windows and MINGW:
 
 .. code-block:: console
 
-   $ gcc -O3 -msse2 -o myprog myprog.c -Iblosc blosc\*.c
+   $ gcc -O3 -msse2 -o myprog myprog.c blosc\*.c
 
 Using Windows and MSVC (2010 or higher recommended):
 
 .. code-block:: console
 
-  $ cl /Ox /Femyprog.exe /Iblosc myprog.c blosc\*.c
-
-In the `examples/ directory
-<https://github.com/Blosc/c-blosc/tree/master/examples>`_ you can find
-more hints on how to link your app with Blosc.
+  $ cl /Ox /Femyprog.exe myprog.c blosc\*.c
 
 A simple usage example is the benchmark in the bench/bench.c file.
 Another example for using Blosc as a generic HDF5 filter is in the
-`hdf5/ directory
-<https://github.com/Blosc/c-blosc/tree/master/hdf5>`_.
+hdf5/ directory.
 
 I have not tried to compile this with compilers other than GCC, clang,
 MINGW, Intel ICC or MSVC yet. Please report your experiences with your
 own platforms.
 
-Adding support for other compressors with a minimalistic Blosc
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Adding support for other compressors (LZ4, LZ4HC, Snappy, Zlib)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The official cmake files (see below) for Blosc try hard to include
-support for LZ4, LZ4HC, Snappy, Zlib inside the Blosc library, so
-using them is just a matter of calling the appropriate
-`blosc_set_compressor() API call
-<https://github.com/Blosc/c-blosc/blob/master/blosc/blosc.h>`_.  See
-an `example here
-<https://github.com/Blosc/c-blosc/blob/master/examples/many_compressors.c>`_.
-
-Having said this, it is also easy to use a minimalistic Blosc and just
-add the symbols HAVE_LZ4 (will include both LZ4 and LZ4HC),
-HAVE_SNAPPY and HAVE_ZLIB during compilation as well as the
-appropriate libraries. For example, for compiling with minimalistic
-Blosc but with added Zlib support do:
+If you want to add support for the LZ4, LZ4HC, Snappy or Zlib
+compressors, just add the symbols HAVE_LZ4 (will include both LZ4 and
+LZ4HC), HAVE_SNAPPY and HAVE_ZLIB during compilation and add the
+libraries. For example, for compiling Blosc with Zlib support do:
 
 .. code-block:: console
 
-   $ gcc -O3 -msse2 -o myprog myprog.c blosc/*.c -Iblosc -lpthread -DHAVE_ZLIB -lz
+   $ gcc -O3 -msse2 -o myprog myprog.c blosc/*.c -lpthread -DHAVE_ZLIB -lz
 
-In the `bench/ directory
-<https://github.com/Blosc/c-blosc/tree/master/bench>`_ there a couple
-of Makefile files (one for UNIX and the other for MinGW) with more
-complete building examples, like switching between libraries or
-internal sources for the compressors.
+In the bench/ directory there a couple of Makefile files (one for UNIX
+and the other for MinGW) with more complete building examples, like
+selecting between libraries or internal sources for the compressors.
 
 Compiling the Blosc library with CMake
 ======================================
@@ -208,18 +190,13 @@ CMAKE_INSTALL_PREFIX.
 
 .. _CMake: http://www.cmake.org
 
-Once you have compiled your Blosc library, you can easily link your
-apps with it as shown in the `example/ directory
-<https://github.com/Blosc/c-blosc/blob/master/examples>`_.
-
 Adding support for other compressors (LZ4, LZ4HC, Snappy, Zlib) with CMake
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The CMake files in Blosc are configured to automatically detect other
 compressors like LZ4, LZ4HC, Snappy or Zlib by default.  So as long as
 the libraries and the header files for these libraries are accessible,
-these will be used by default.  See an `example here
-<https://github.com/Blosc/c-blosc/blob/master/examples/many_compressors.c>`_.
+these will be used by default.
 
 *Note on Zlib*: the library should be easily found on UNIX systems,
 although on Windows, you can help CMake to find it by setting the
@@ -230,7 +207,7 @@ directories are. Also, make sure that Zlib DDL library is in your
 However, the full sources for LZ4, LZ4HC, Snappy and Zlib have been
 included in Blosc too. So, in general, you should not worry about not
 having (or CMake not finding) the libraries in your system because in
-this case, their sources will be automatically compiled for you. That
+this case, their sources will be automaticall compiled for you. That
 effectively means that you can be confident in having a complete
 support for all the supported compression libraries in all supported
 platforms.
@@ -291,7 +268,23 @@ http://groups.google.es/group/blosc
 Acknowledgments
 ===============
 
-See THANKS.rst.
+I'd like to thank the PyTables community that have collaborated in the
+exhaustive testing of Blosc.  With an aggregate amount of more than
+300 TB of different datasets compressed *and* decompressed
+successfully, I can say that Blosc is pretty safe now and ready for
+production purposes.
+
+Other important contributions:
+
+* Valentin Haenel did a terrific work implementing the support for the
+  Snappy compression, fixing typos and improving docs and the plotting
+  script.
+
+* Thibault North, with ideas from Oscar Villellas, contributed a way
+  to call Blosc from different threads in a safe way.
+
+* The CMake support was initially contributed by Thibault North, and
+  Antonio Valentino and Mark Wiebe made great enhancements to it.
 
 
 ----

@@ -1,14 +1,15 @@
 ===============================================================
- Announcing c-blosc 1.5.4
+ Announcing c-blosc 1.4.4
  A blocking, shuffling and lossless compression library
 ===============================================================
 
 What is new?
 ============
 
-Besides several small enhancements and a leak fix, this release
-includes a dynamically loadable HDF5 filter plugin (hdf5 directory) as
-well as an update to LZ4 1.6.0 (from 1.5.0).
+* New computation of blocksize to be in sync with c-blosc 1.6.1.
+
+* New parametrization of the hash table for blosclz (synced with c-blosc
+  1.6.1)
 
 For more info, please see the release notes in:
 
@@ -60,3 +61,9 @@ http://groups.google.es/group/blosc
 
 Enjoy Data!
 
+
+.. Local Variables:
+.. mode: rst
+.. coding: utf-8
+.. fill-column: 70
+.. End:

@@ -3299,6 +3299,91 @@ for (cname, cbasenames, cdict) in iclassdata():
     class_ = type(cname, cbases, cdict)
     exec('%s = class_' % cname)
 
+
+# Test case for issue #319
+class BuffersizeMultipleChunksize(TestCase):
+
+    def test01(self):
+        numpy.random.seed(2)
+        n = 700000
+        cs = 50000
+        nchunks = n // cs
+
+        arr = numpy.zeros(
+            (n,), dtype=[('index', 'i8'), ('o', 'i8'), ('value', 'f8')])
+        arr['index'] = numpy.arange(n)
+        arr['o'] = numpy.random.randint(-20000, -15000, size=n)
+        arr['value'] = numpy.random.randn(n)
+
+        handle = tables.open_file('test.h5', 'w')
+        node = handle.create_group(handle.root, 'foo')
+        table = handle.create_table(node, 'table', dict(
+            index=tables.Int64Col(),
+            o=tables.Int64Col(),
+            value=tables.FloatCol(shape=())), expectedrows=10000000)
+
+        table.append(arr)
+        handle.close()
+
+        v1 = numpy.unique(arr['o'])[0]
+        v2 = numpy.unique(arr['o'])[1]
+        res = numpy.array([v1, v2])
+        selector = '((o == %s) | (o == %s))' % (v1, v2)
+        if verbose:
+            print("selecting values: %s" % selector)
+
+        handle = tables.open_file('test.h5', 'a')
+        table = handle.root.foo.table
+
+        result = numpy.unique(table.read_where(selector)['o'])
+        numpy.testing.assert_almost_equal(result, res)
+        if verbose:
+            print("select entire table:")
+            print("result: %s\texpected: %s" % (result, res))
+
+        if verbose:
+            print("index the column o")
+        table.cols.o.create_index()   # this was triggering the issue
+
+        if verbose:
+            print("select via chunks")
+        for i in range(nchunks):
+            result = table.read_where(selector, start=i*cs, stop=(i+1)*cs)
+            result = numpy.unique(result['o'])
+            numpy.testing.assert_almost_equal(numpy.unique(result), res)
+            if verbose:
+                print("result: %s\texpected: %s" % (result, res))
+
+        handle.close()
+
+
+# Test case for issue #441
+class SideEffectNumPyQuicksort(TestCase):
+
+    def test01(self):
+        bug_file = TestCase._testFilename("bug-idx.h5")
+        tmp_file = tempfile.mktemp(".h5")
+        tables.copy_file(bug_file, tmp_file)
+        h5 = tables.open_file(tmp_file, "a")
+        o = h5.root.table
+        vals = o.cols.path[:]
+        npvals = set(numpy.where(vals == 6)[0])
+
+        # Setting the chunkshape is critical for reproducing the bug
+        t = o.copy(newname="table2", chunkshape=2730)
+        t.cols.path.create_index()
+        indexed = set(r.nrow for r in t.where('path == 6'))
+
+        if verbose:
+            diffs = sorted(npvals - indexed)
+            print("ndiff:", len(diffs), diffs)
+        self.assertEqual(len(npvals), len(indexed))
+
+        h5.close()
+        if os.path.exists(tmp_file):
+            os.remove(tmp_file)
+
+
 # -----------------------------
 
 
@@ -3317,7 +3402,8 @@ def suite():
                 suite_ = unittest.makeSuite(class_)
                 theSuite.addTest(suite_)
         theSuite.addTest(unittest.makeSuite(LastRowReuseBuffers))
-
+        theSuite.addTest(unittest.makeSuite(BuffersizeMultipleChunksize))
+        theSuite.addTest(unittest.makeSuite(SideEffectNumPyQuicksort))
     return theSuite
 
 

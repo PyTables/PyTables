@@ -48,19 +48,19 @@ Prerequisites
 
 First, make sure that you have
 
-* Python_ >= 2.6 including Python 3.x
-* HDF5_ >= 1.8.4 (>=1.8.7 is strongly recommended),
-* NumPy_ >= 1.4.1,
-* Numexpr_ >= 2.0 and
+* Python_ >= 2.6 including Python 3.x (Python >= 2.7 is highly recommended)
+* HDF5_ >= 1.8.4 (>=1.8.7 is strongly recommended)
+* NumPy_ >= 1.7.1
+* Numexpr_ >= 2.4
 * Cython_ >= 0.14
-* c-blosc_ >= 1.3.0 (it is bundled with PyTables sources but the user can
+* c-blosc_ >= 1.4.1 (it is bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the :option:`--blosc` flag of the :file:`setup.py`)
 * argparse_ (only Python 2.6, it is used by the :program:`pt2to3` utility)
 * unittest2_ (only Python 2.6)
 
 installed (for testing purposes, we are using HDF5_ 1.8.12, NumPy_ 1.8.0
-and Numexpr_ 2.2.2 currently). If you don't, fetch and install them before
+and Numexpr_ 2.4.1 currently). If you don't, fetch and install them before
 proceeding.
 
 .. _Python: http://www.python.org
@@ -71,12 +71,6 @@ proceeding.
 .. _c-blosc: http://blosc.org
 .. _argparse: http://code.google.com/p/argparse
 .. _unittest2: http://pypi.python.org/pypi/unittest2
-
-.. note::
-
-    HDF5 versions < 1.8.7 are supported with some limitations.
-    It is not possible to open the same file multiple times (simultaneously),
-    even in read-only mode.
 
 .. note::
 
@@ -159,6 +153,18 @@ worry too much ;)
 
           $ C_INCLUDE_PATH=/usr/lib/openmpi/include pip install --upgrade tables
 
+    Starting from PyTables 3.2 can also query the *pkg-config* database to
+    find the required packages. If available, pkg-config is used by default
+    unless explicitly disabled.
+
+    To suppress the use of *pkg-config*::
+
+      $ python setup.py build --use-pkgconfig=FALSE
+
+    or use the :envvar:`USE-PKGCONFIG` environment variable::
+
+      $ env USE_PKGCONFIG=FALSE python setup.py build
+
 **Windows**
 
     You can get ready-to-use Windows binaries and other development files for
@@ -220,6 +226,11 @@ you can proceed with the PyTables package itself.
    any extra command line arguments as discussed above::
 
       $ python setup.py build
+
+   If the HDF5 installation is in a custom path, e.g. $HOME/hdf5-1.8.15pre7,
+   one of the following commands can be used::
+
+      $ python setup.py build --hdf5=$HOME/hdf5-1.8.15pre7
 
 #. To run the test suite, execute any of these commands.
 
@@ -325,6 +336,15 @@ you can proceed with the PyTables package itself.
 
       $ python setup.py install
 
+   Again if one needs to point to libraries installed in custom paths, then
+   specific setup.py options can be used::
+
+      $ python setup.py install --hdf5=/hdf5/custom/path
+
+   or::
+
+      $ env HDF5_DIR=/hdf5/custom/path python setup.py install
+
    Of course, you will need super-user privileges if you want to install
    PyTables on a system-protected area. You can select, though, a different
    place to install the package using the :option:`--prefix` flag::
@@ -364,10 +384,19 @@ installed at system level::
 
   $ pip install --user --upgrade tables
 
-The `--user` option tels to the :program:`pip` tool to install the package in
+The `--user` option tells to the :program:`pip` tool to install the package in
 the user folder (``$HOME/.local`` on GNU/Linux and Unix systems), while the
 `--upgrade` option forces the installation of the latest version even if an
 older version of the package is already installed.
+
+Additional options for the setup.py script can be specified using them
+`--install-option`::
+
+  $ pip install --install-option='--hdf5=/custom/path/to/hdf5' tables
+
+or::
+
+  $ env HDF5_DIR=/custom/path/to/hdf5 pip install tables
 
 The :program:`pip` tool can also be used to install packages from a source
 tar-ball::
@@ -393,6 +422,29 @@ can be used by :program:`pip` to install the PyTables dependencies::
 Of course the :file:`requirements.txt` file can be used to install only
 python packages.  Other dependencies like the HDF5 library of compression
 libraries have to be installed by the user.
+
+.. note::
+
+   Recent versions of Debian_ and Ubuntu_ the HDF5 library is installed in
+   with a very peculiar layout that allows to have both the serial and MPI
+   versions installed at the same time.
+
+   PyTables >= 3.2 natively supports the new layout via *pkg-config* (that
+   is expected to be installed on the system at build time).
+
+   If *pkg-config* is not available or PyTables is older that verison 3.2,
+   then the following command can be used::
+
+     $ env CPPFLAGS=-I/usr/include/hdf5/serial \
+     LDFLAGS=-L/usr/lib/x86_64-linux-gnu/hdf5/serial python3 setup.py install
+
+   or::
+
+     $ env CPPFLAGS=-I/usr/include/hdf5/serial \
+     LDFLAGS=-L/usr/lib/x86_64-linux-gnu/hdf5/serial pip install tables
+
+.. _Debian: https://www.debian.org
+.. _Ubuntu: http://www.ubuntu.com
 
 
 .. _binaryInstallationDescr:
