@@ -82,8 +82,7 @@ if os.name == 'nt':
 from tables.utilsextension import (
     get_pytables_version, get_hdf5_version, blosc_compressor_list,
     blosc_compcode_to_compname_ as blosc_compcode_to_compname,
-    blosc_get_complib_info_ as blosc_get_complib_info,
-    getPyTablesVersion, getHDF5Version)  # Pending Deprecation!
+    blosc_get_complib_info_ as blosc_get_complib_info)
 
 
 __version__ = get_pytables_version()
