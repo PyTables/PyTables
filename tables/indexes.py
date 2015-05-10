@@ -20,7 +20,6 @@ from tables.carray import CArray
 from tables.earray import EArray
 from tables import indexesextension
 
-from tables._past import previous_api, previous_api_property
 
 # Declarations for inheriting
 
@@ -31,7 +30,6 @@ class CacheArray(NotLoggedMixin, EArray, indexesextension.CacheArray):
     # Class identifier.
     _c_classid = 'CACHEARRAY'
 
-    _c_classId = previous_api_property('_c_classid')
 
 
 class LastRowArray(NotLoggedMixin, CArray, indexesextension.LastRowArray):
@@ -41,7 +39,6 @@ class LastRowArray(NotLoggedMixin, CArray, indexesextension.LastRowArray):
     # Class identifier.
     _c_classid = 'LASTROWARRAY'
 
-    _c_classId = previous_api_property('_c_classid')
 
 
 class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
@@ -75,7 +72,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
     # Class identifier.
     _c_classid = 'INDEXARRAY'
 
-    _c_classId = previous_api_property('_c_classid')
 
     # Properties
     # ~~~~~~~~~~
@@ -175,7 +171,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             result2 += chunksize * nchunk2
         return (result1, result2)
 
-    _searchBin = previous_api(_search_bin)
 
     def __str__(self):
         "A compact representation of this class"

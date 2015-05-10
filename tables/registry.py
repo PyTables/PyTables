@@ -27,7 +27,6 @@ Misc variables:
 
 """
 
-from tables._past import previous_api
 
 # Important: no modules from PyTables should be imported here
 # (but standard modules are OK), since the main reason for this module
@@ -90,7 +89,6 @@ def get_class_by_name(classname):
 
     return class_name_dict[classname]
 
-getClassByName = previous_api(get_class_by_name)
 
 
 ## Local Variables:

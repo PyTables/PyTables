@@ -24,7 +24,6 @@ import numpy
 from tables.utils import SizeType
 from tables.misc.enum import Enum
 
-from tables._past import previous_api
 
 # Public variables
 # ================
@@ -947,7 +946,6 @@ class EnumAtom(Atom):
             raise NotImplementedError("only scalar concrete values "
                                       "are supported for the moment, sorry")
 
-    _checkBase = previous_api(_checkbase)
 
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments."""

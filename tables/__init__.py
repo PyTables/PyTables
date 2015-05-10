@@ -107,10 +107,7 @@ hdf5Version = hdf5_version
 """
 
 from tables.utilsextension import (is_hdf5_file, is_pytables_file,
-    which_lib_version, set_blosc_max_threads, silence_hdf5_messages,
-    # Pending Deprecation!
-    isHDF5File, isPyTablesFile, whichLibVersion, setBloscMaxThreads,
-    silenceHDF5Messages)
+    which_lib_version, set_blosc_max_threads, silence_hdf5_messages)
 
 from tables.misc.enum import Enum
 from tables.atom import *
@@ -120,7 +117,7 @@ from tables.filters import Filters
 
 # Import the user classes from the proper modules
 from tables.exceptions import *
-from tables.file import File, open_file, copy_file, openFile, copyFile
+from tables.file import File, open_file, copy_file
 from tables.node import Node
 from tables.group import Group
 from tables.leaf import Leaf
@@ -177,13 +174,6 @@ __all__ = [
     'File',
     # Expr class
     'Expr',
-    #
-    # Pending deprecation!!!
-    #
-    'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
-    'copyFile', 'openFile', 'print_versions', 'test',
-    'split_type', 'restrict_flavors', 'setBloscMaxThreads',
-    'silenceHDF5Messages',
 ]
 
 if 'Float16Atom' in locals():

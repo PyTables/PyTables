@@ -48,7 +48,6 @@ profile = False
 if profile:
     from tables.utils import show_stats
 
-from tables._past import previous_api, previous_api_property
 
 # 2.2: Added support for complex types. Introduced in version 0.9.
 # 2.2.1: Added suport for time types.
@@ -107,20 +106,17 @@ _npsizetype = numpy.array(SizeType(0)).dtype.type
 def _index_name_of(node):
     return '_i_%s' % node._v_name
 
-_indexNameOf = previous_api(_index_name_of)
 
 
 def _index_pathname_of(node):
     nodeParentPath = split_path(node._v_pathname)[0]
     return join_path(nodeParentPath, _index_name_of(node))
 
-_indexPathnameOf = previous_api(_index_pathname_of)
 
 
 def _index_pathname_of_column(table, colpathname):
     return join_path(_index_pathname_of(table), colpathname)
 
-_indexPathnameOfColumn = previous_api(_index_pathname_of_column)
 
 # The next are versions that work with just paths (i.e. we don't need
 # a node instance for using them, which can be critical in certain
@@ -130,20 +126,17 @@ _indexPathnameOfColumn = previous_api(_index_pathname_of_column)
 def _index_name_of_(nodeName):
     return '_i_%s' % nodeName
 
-_indexNameOf_ = previous_api(_index_name_of_)
 
 
 def _index_pathname_of_(nodePath):
     nodeParentPath, nodeName = split_path(nodePath)
     return join_path(nodeParentPath, _index_name_of_(nodeName))
 
-_indexPathnameOf_ = previous_api(_index_pathname_of_)
 
 
 def _index_pathname_of_column_(tablePath, colpathname):
     return join_path(_index_pathname_of_(tablePath), colpathname)
 
-_indexPathnameOfColumn_ = previous_api(_index_pathname_of_column_)
 
 
 def _table__setautoindex(self, auto):
@@ -156,7 +149,6 @@ def _table__setautoindex(self, auto):
     # Update the cache in table instance as well
     self._autoindex = auto
 
-_table__setautoIndex = previous_api(_table__setautoindex)
 
 
 # **************** WARNING! ***********************
@@ -183,7 +175,6 @@ def _table__getautoindex(self):
         # The value is in cache, return it
         return self._autoindex
 
-_table__getautoIndex = previous_api(_table__getautoindex)
 
 _table__autoindex = property(
     _table__getautoindex, _table__setautoindex, None,
@@ -202,7 +193,6 @@ _table__autoindex = property(
     This value is persistent.
     """)
 
-_table__autoIndex = previous_api(_table__autoindex)
 
 
 def restorecache(self):
@@ -298,7 +288,6 @@ def _table__where_indexed(self, compiled, condition, condvars,
         show_stats("Exiting table_whereIndexed", tref)
     return chunkmap
 
-_table__whereIndexed = previous_api(_table__where_indexed)
 
 
 def create_indexes_table(table):
@@ -307,7 +296,6 @@ def create_indexes_table(table):
         "Indexes container for table " + table._v_pathname, new=True)
     return itgroup
 
-createIndexesTable = previous_api(create_indexes_table)
 
 
 def create_indexes_descr(igroup, dname, iname, filters):
@@ -317,7 +305,6 @@ def create_indexes_descr(igroup, dname, iname, filters):
         filters=filters, new=True)
     return idgroup
 
-createIndexesDescr = previous_api(create_indexes_descr)
 
 
 def _column__create_index(self, optlevel, kind, filters, tmp_dir,
@@ -413,7 +400,6 @@ def _column__create_index(self, optlevel, kind, filters, tmp_dir,
 
     return indexedrows
 
-_column__createIndex = previous_api(_column__create_index)
 
 
 class _ColIndexes(dict):
@@ -586,8 +572,6 @@ class Table(tableextension.Table, Leaf):
     # Class identifier.
     _c_classid = 'TABLE'
 
-    _c_classId = previous_api_property('_c_classid')
-    _v_objectId = previous_api_property('_v_objectid')
 
     # Properties
     # ~~~~~~~~~~
@@ -677,7 +661,6 @@ class Table(tableextension.Table, Leaf):
 
     """
 
-    autoIndex = previous_api_property('autoindex')
 
     indexedcolpathnames = property(
         lambda self: [_colpname for _colpname in self.colpathnames
@@ -943,7 +926,6 @@ class Table(tableextension.Table, Leaf):
             # Put the autoindex value in a cache variable
             self._autoindex = self.autoindex
 
-    _g_postInitHook = previous_api(_g_post_init_hook)
 
     def _getemptyarray(self, dtype):
         # Acts as a cache for empty arrays
@@ -968,7 +950,6 @@ class Table(tableextension.Table, Leaf):
                 for colobj in self.description._f_walk('Col')
                 if colobj.type == type_]
 
-    _getTypeColNames = previous_api(_get_type_col_names)
 
     def _get_enum_map(self):
         """Return mapping from enumerated column names to `Enum` instances."""
@@ -979,7 +960,6 @@ class Table(tableextension.Table, Leaf):
                 enumMap[colobj._v_pathname] = colobj.enum
         return enumMap
 
-    _getEnumMap = previous_api(_get_enum_map)
 
     def _g_create(self):
         """Create a new table on disk."""
@@ -1139,7 +1119,6 @@ class Table(tableextension.Table, Leaf):
         # Assign _v_dtype for this table
         self._v_dtype = self.description._v_dtype
 
-    _cacheDescriptionData = previous_api(_cache_description_data)
 
     def _get_column_instance(self, colpathname):
         """Get the instance of the column with the given `colpathname`.
@@ -1155,7 +1134,6 @@ class Table(tableextension.Table, Leaf):
             raise KeyError("table ``%s`` does not have a column named ``%s``"
                            % (self._v_pathname, colpathname))
 
-    _getColumnInstance = previous_api(_get_column_instance)
 
     _check_column = _get_column_instance
 
@@ -1173,7 +1151,6 @@ class Table(tableextension.Table, Leaf):
         self._condition_cache.nail()
         self._enabled_indexing_in_queries = False
 
-    _disableIndexingInQueries = previous_api(_disable_indexing_in_queries)
 
     def _enable_indexing_in_queries(self):
         """Allow queries to use indexing.
@@ -1187,7 +1164,6 @@ class Table(tableextension.Table, Leaf):
         self._condition_cache.unnail()
         self._enabled_indexing_in_queries = True
 
-    _enableIndexingInQueries = previous_api(_enable_indexing_in_queries)
 
     def _required_expr_vars(self, expression, uservars, depth=1):
         """Get the variables required by the `expression`.
@@ -1293,7 +1269,6 @@ class Table(tableextension.Table, Leaf):
             reqvars[var] = val
         return reqvars
 
-    _requiredExprVars = previous_api(_required_expr_vars)
 
     def _get_condition_key(self, condition, condvars):
         """Get the condition cache key for `condition` with `condvars`.
@@ -1326,7 +1301,6 @@ class Table(tableextension.Table, Leaf):
         condkey = (condition, colnames, varnames, colpaths, vartypes)
         return condkey
 
-    _getConditionKey = previous_api(_get_condition_key)
 
     def _compile_condition(self, condition, condvars):
         """Compile the `condition` and extract usable index conditions.
@@ -1378,7 +1352,6 @@ class Table(tableextension.Table, Leaf):
         condcache[condkey] = compiled
         return compiled.with_replaced_vars(condvars)
 
-    _compileCondition = previous_api(_compile_condition)
 
     def will_query_use_indexing(self, condition, condvars=None):
         """Will a query for the condition use indexing?
@@ -1401,7 +1374,6 @@ class Table(tableextension.Table, Leaf):
         idxcols = [condvars[var].pathname for var in compiled.index_variables]
         return frozenset(idxcols)
 
-    willQueryUseIndexing = previous_api(will_query_use_indexing)
 
     def where(self, condition, condvars=None,
               start=None, stop=None, step=None):
@@ -1566,7 +1538,6 @@ class Table(tableextension.Table, Leaf):
                     return self.read(cstart, cstop, field=field)
         return self.read_coordinates(coords, field)
 
-    readWhere = previous_api(read_where)
 
     def append_where(self, dstTable, condition, condvars=None,
                      start=None, stop=None, step=None):
@@ -1603,7 +1574,6 @@ class Table(tableextension.Table, Leaf):
         dstTable.flush()
         return nrows
 
-    whereAppend = previous_api(append_where)
 
     def get_where_list(self, condition, condvars=None, sort=False,
                        start=None, stop=None, step=None):
@@ -1629,7 +1599,6 @@ class Table(tableextension.Table, Leaf):
             coords = numpy.sort(coords)
         return internal_to_flavor(coords, self.flavor)
 
-    getWhereList = previous_api(get_where_list)
 
     def itersequence(self, sequence):
         """Iterate over a sequence of row coordinates."""
@@ -1676,7 +1645,6 @@ class Table(tableextension.Table, Leaf):
                 "Field `%s` must have associated a 'full' index "
                 "in table `%s`." % (sortby, self))
 
-    _check_sortby_CSI = previous_api(_check_sortby_csi)
 
     def itersorted(self, sortby, checkCSI=False,
                    start=None, stop=None, step=None):
@@ -1736,7 +1704,6 @@ class Table(tableextension.Table, Leaf):
         coords = index[start:stop:step]
         return self.read_coordinates(coords, field)
 
-    readSorted = previous_api(read_sorted)
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterate over the table using a Row instance.
@@ -1985,7 +1952,6 @@ class Table(tableextension.Table, Leaf):
                 result = self._getemptyarray(self.coldtypes[field])
         return result
 
-    _readCoordinates = previous_api(_read_coordinates)
 
     def read_coordinates(self, coords, field=None):
         """Get a set of rows given their indexes as a (record) array.
@@ -2003,7 +1969,6 @@ class Table(tableextension.Table, Leaf):
         result = self._read_coordinates(coords, field)
         return internal_to_flavor(result, self.flavor)
 
-    readCoordinates = previous_api(read_coordinates)
 
     def get_enum(self, colname):
         """Get the enumerated type associated with the named column.
@@ -2024,7 +1989,6 @@ class Table(tableextension.Table, Leaf):
                 "column ``%s`` of table ``%s`` is not of an enumerated type"
                 % (colname, self._v_pathname))
 
-    getEnum = previous_api(get_enum)
 
     def col(self, name):
         """Get a column from the table.
@@ -2193,7 +2157,6 @@ class Table(tableextension.Table, Leaf):
                 # All the columns are dirty now
                 self._mark_columns_as_dirty(self.colpathnames)
 
-    _saveBufferedRows = previous_api(_save_buffered_rows)
 
     def append(self, rows):
         """Append a sequence of rows to the end of the table.
@@ -2314,7 +2277,6 @@ class Table(tableextension.Table, Leaf):
 
         return SizeType(lcoords)
 
-    modifyCoordinates = previous_api(modify_coordinates)
 
     def modify_rows(self, start=None, stop=None, step=None, rows=None):
         """Modify a series of rows in the slice [start:stop:step].
@@ -2371,7 +2333,6 @@ class Table(tableextension.Table, Leaf):
 
         return SizeType(lenrows)
 
-    modifyRows = previous_api(modify_rows)
 
     def modify_column(self, start=None, stop=None, step=None,
                       column=None, colname=None):
@@ -2454,7 +2415,6 @@ class Table(tableextension.Table, Leaf):
 
         return SizeType(nrows)
 
-    modifyColumn = previous_api(modify_column)
 
     def modify_columns(self, start=None, stop=None, step=None,
                        columns=None, names=None):
@@ -2532,7 +2492,6 @@ class Table(tableextension.Table, Leaf):
 
         return SizeType(nrows)
 
-    modifyColumns = previous_api(modify_columns)
 
     def flush_rows_to_index(self, _lastrow=True):
         """Add remaining rows in buffers to non-dirty indexes.
@@ -2558,7 +2517,6 @@ class Table(tableextension.Table, Leaf):
             self._indexedrows += rowsadded
         return rowsadded
 
-    flushRowsToIndex = previous_api(flush_rows_to_index)
 
     def _add_rows_to_index(self, colname, start, nrows, lastrow, update):
         """Add more elements to the existing index."""
@@ -2589,7 +2547,6 @@ class Table(tableextension.Table, Leaf):
             indexedrows += self.nrows - startLR
         return indexedrows
 
-    _addRowsToIndex = previous_api(_add_rows_to_index)
 
     def remove_rows(self, start=None, stop=None, step=None):
         """Remove a range of rows in the table.
@@ -2650,7 +2607,6 @@ class Table(tableextension.Table, Leaf):
 
         return SizeType(nrows)
 
-    removeRows = previous_api(remove_rows)
 
     def remove_row(self, n):
         """Removes a row from the table.
@@ -2681,7 +2637,6 @@ class Table(tableextension.Table, Leaf):
         if 'row' in self.__dict__:
             self.__dict__['row'] = tableextension.Row(self)
 
-    _g_updateDependent = previous_api(_g_update_dependent)
 
     def _g_move(self, newparent, newname):
         """Move this node in the hierarchy.
@@ -2732,7 +2687,6 @@ class Table(tableextension.Table, Leaf):
         colindexed[colpathname] = isindexed
         self.indexed = max(colindexed.values())  # this is an OR :)
 
-    _setColumnIndexing = previous_api(_set_column_indexing)
 
     def _mark_columns_as_dirty(self, colnames):
         """Mark column indexes in `colnames` as dirty."""
@@ -2746,7 +2700,6 @@ class Table(tableextension.Table, Leaf):
                     col = cols._g_col(colname)
                     col.index.dirty = True
 
-    _markColumnsAsDirty = previous_api(_mark_columns_as_dirty)
 
     def _reindex(self, colnames):
         """Re-index columns in `colnames` if automatic indexing is true."""
@@ -2766,7 +2719,6 @@ class Table(tableextension.Table, Leaf):
             # The table caches for indexed queries are dirty now
             self._dirtycache = True
 
-    _reIndex = previous_api(_reindex)
 
     def _do_reindex(self, dirty):
         """Common code for `reindex()` and `reindex_dirty()`."""
@@ -2783,7 +2735,6 @@ class Table(tableextension.Table, Leaf):
 
         return SizeType(indexedrows)
 
-    _doReIndex = previous_api(_do_reindex)
 
     def reindex(self):
         """Recompute all the existing indexes in the table.
@@ -2796,7 +2747,6 @@ class Table(tableextension.Table, Leaf):
 
         self._do_reindex(dirty=False)
 
-    reIndex = previous_api(reindex)
 
     def reindex_dirty(self):
         """Recompute the existing indexes in table, *if* they are dirty.
@@ -2810,7 +2760,6 @@ class Table(tableextension.Table, Leaf):
 
         self._do_reindex(dirty=True)
 
-    reIndexDirty = previous_api(reindex_dirty)
 
     def _g_copy_rows(self, object, start, stop, step, sortby, checkCSI):
         "Copy rows from self to object"
@@ -2838,7 +2787,6 @@ class Table(tableextension.Table, Leaf):
             object.append(rows)
         object.flush()
 
-    _g_copyRows = previous_api(_g_copy_rows)
 
     def _g_copy_rows_optim(self, object, start, stop, step):
         """Copy rows from self to object (optimized version)"""
@@ -2860,7 +2808,6 @@ class Table(tableextension.Table, Leaf):
             nrowsdest += nrows
         object._close_append()
 
-    _g_copyRows_optim = previous_api(_g_copy_rows_optim)
 
     def _g_prop_indexes(self, other):
         """Generate index in `other` table for every indexed column here."""
@@ -2876,7 +2823,6 @@ class Table(tableextension.Table, Leaf):
                         kind=oldcolindex.kind, optlevel=oldcolindex.optlevel,
                         filters=oldcolindex.filters, tmp_dir=None)
 
-    _g_propIndexes = previous_api(_g_prop_indexes)
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
                            title, filters, chunkshape, _log, **kwargs):
@@ -2903,7 +2849,6 @@ class Table(tableextension.Table, Leaf):
             self._g_prop_indexes(newtable)
         return (newtable, nbytes)
 
-    _g_copyWithStats = previous_api(_g_copy_with_stats)
 
     # This overloading of copy is needed here in order to document
     # the additional keywords for the Table case.
@@ -2997,7 +2942,6 @@ class Table(tableextension.Table, Leaf):
         if '_v_wdflts' in mydict:
             del mydict['_v_wdflts']
 
-    _g_preKillHook = previous_api(_g_pre_kill_hook)
 
     def _f_close(self, flush=True):
         if not self._v_isopen:
@@ -3123,7 +3067,6 @@ class Cols(object):
         for colname in self._v_colnames:
             myDict[colname]._g_update_table_location(table)
 
-    _g_updateTableLocation = previous_api(_g_update_table_location)
 
     def __len__(self):
         """Get the number of top level columns in table."""
@@ -3438,7 +3381,6 @@ class Column(object):
         self._table_file = table._v_file
         self._table_path = table._v_pathname
 
-    _g_updateTableLocation = previous_api(_g_update_table_location)
 
     def __len__(self):
         """Get the number of elements in the column.
@@ -3659,7 +3601,6 @@ class Column(object):
                                         tmp_dir, _blocksizes, _verbose)
         return SizeType(idxrows)
 
-    createIndex = previous_api(create_index)
 
     def create_csindex(self, filters=None, tmp_dir=None,
                        _blocksizes=None, _testmode=False, _verbose=False):
@@ -3686,7 +3627,6 @@ class Column(object):
             kind='full', optlevel=9, filters=filters, tmp_dir=tmp_dir,
             _blocksizes=_blocksizes, _testmode=_testmode, _verbose=_verbose)
 
-    createCSIndex = previous_api(create_csindex)
 
     def _do_reindex(self, dirty):
         """Common code for reindex() and reindex_dirty() codes."""
@@ -3712,7 +3652,6 @@ class Column(object):
         else:
             return SizeType(0)  # The column is not intended for indexing
 
-    _doReIndex = previous_api(_do_reindex)
 
     def reindex(self):
         """Recompute the index associated with this column.
@@ -3726,7 +3665,6 @@ class Column(object):
 
         self._do_reindex(dirty=False)
 
-    reIndex = previous_api(reindex)
 
     def reindex_dirty(self):
         """Recompute the associated index only if it is dirty.
@@ -3741,7 +3679,6 @@ class Column(object):
 
         self._do_reindex(dirty=True)
 
-    reIndexDirty = previous_api(reindex_dirty)
 
     def remove_index(self):
         """Remove the index associated with this column.
@@ -3760,7 +3697,6 @@ class Column(object):
             index._f_remove()
             self.table._set_column_indexing(self.pathname, False)
 
-    removeIndex = previous_api(remove_index)
 
     def close(self):
         """Close this column."""

@@ -24,7 +24,6 @@ from tables.utils import (convert_to_np_atom, convert_to_np_atom2, idx2long,
 from tables.atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
 from tables.flavor import internal_to_flavor
 from tables.leaf import Leaf, calc_chunksize
-from tables._past import previous_api, previous_api_property
 
 # default version for VLARRAY objects
 # obversion = "1.0"    # initial version
@@ -203,7 +202,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
     # Class identifier.
     _c_classid = 'VLARRAY'
 
-    _c_classId = previous_api_property('_c_classid')
 
     # Lazy read-only attributes
     # `````````````````````````
@@ -496,7 +494,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         return self.atom.enum
 
-    getEnum = previous_api(get_enum)
 
     def append(self, sequence):
         """Add a sequence of data to the end of the dataset.
@@ -605,7 +602,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self._init = True  # Sentinel
         self.nrow = SizeType(self._start - self._step)    # row number
 
-    _initLoop = previous_api(_init_loop)
 
     def next(self):
         """Get the next element of the array during an iteration.
@@ -862,7 +858,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
         object.nrows = nrowscopied
         return (object, nbytes)
 
-    _g_copyWithStats = previous_api(_g_copy_with_stats)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

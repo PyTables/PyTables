@@ -17,7 +17,6 @@ import numpy
 from tables.utils import convert_to_np_atom2, SizeType
 from tables.carray import CArray
 
-from tables._past import previous_api, previous_api_property
 
 # default version for EARRAY objects
 # obversion = "1.0"    # initial version
@@ -130,7 +129,6 @@ class EArray(CArray):
     # Class identifier.
     _c_classid = 'EARRAY'
 
-    _c_classId = previous_api_property('_c_classid')
 
     # Special methods
     # ~~~~~~~~~~~~~~~
@@ -188,7 +186,6 @@ class EArray(CArray):
                                   "``%s`` EArray differ in non-enlargeable "
                                   "dimension %d") % (self._v_pathname, i))
 
-    _checkShapeAppend = previous_api(_check_shape_append)
 
     def append(self, sequence):
         """Add a sequence of data to the end of the dataset.
@@ -251,7 +248,6 @@ class EArray(CArray):
 
         return (object, nbytes)
 
-    _g_copyWithStats = previous_api(_g_copy_with_stats)
 
 ## Local Variables:
 ## mode: python

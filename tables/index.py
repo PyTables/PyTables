@@ -42,7 +42,6 @@ from tables.utilsextension import (nan_aware_gt, nan_aware_ge,
                                    bisect_left, bisect_right)
 from tables.lrucacheextension import ObjectCache
 
-from tables._past import previous_api, previous_api_property
 
 
 # default version for INDEX objects
@@ -100,7 +99,6 @@ def _table_column_pathname_of_index(indexpathname):
     colpathname = "/".join(names[i + 1:])
     return (tablepathname, colpathname)
 
-_tableColumnPathnameOfIndex = previous_api(_table_column_pathname_of_index)
 
 
 class Index(NotLoggedMixin, indexesextension.Index, Group):
@@ -157,7 +155,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
     _c_classid = 'INDEX'
 
-    _c_classId = previous_api_property('_c_classid')
 
     kind = property(
         lambda self: {1: 'ultralight', 2: 'light',
@@ -288,7 +285,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self.compute_overlaps(self, None, False)
         return self.noverlaps == 0
 
-    _is_CSI = previous_api(_is_csi)
 
     is_csi = property(_is_csi, None, None,
         """Whether the index is completely sorted or not.
@@ -298,7 +294,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         """)
 
-    is_CSI = previous_api(is_csi)
 
     @lazyattr
     def nrowsinchunk(self):
@@ -556,7 +551,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         if self.temp_required:
             self.create_temp()
 
-    _g_postInitHook = previous_api(_g_post_init_hook)
 
     def initial_append(self, xarr, nrow, reduction):
         """Compute an initial indices arrays for data to be indexed."""
@@ -770,7 +764,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         if profile:
             show_stats("Exiting appendLR", tref)
 
-    appendLastRow = previous_api(append_last_row)
 
     def optimize(self, verbose=False):
         """Optimize an index so as to allow faster searches.
@@ -1278,7 +1271,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         stepl = numpy.array([1], dtype=numpy.uint64)
         where._g_write_slice(startl, stepl, countl, buffer)
 
-    read_sliceLR = previous_api(read_slice_lr)
 
     def reorder_slice(self, nslice, sorted, indices, ssorted, sindices,
                       tmp_sorted, tmp_indices):
@@ -1738,7 +1730,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         return self.read_sorted_indices('sorted', start, stop, step)
 
-    readSorted = previous_api(read_sorted)
 
     def read_indices(self, start=None, stop=None, step=None):
         """Return the indices values of index in the specified range.
@@ -1750,7 +1741,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         return self.read_sorted_indices('indices', start, stop, step)
 
-    readIndices = previous_api(read_indices)
 
     def _process_range(self, start, stop, step):
         """Get a range specifc for the index usage."""
@@ -1772,7 +1762,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             step = idx2long(step)
         return (start, stop, step)
 
-    _processRange = previous_api(_process_range)
 
     def __getitem__(self, key):
         """Return the indices values of index in the specified range.
@@ -2012,7 +2001,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             stop = 0
         return (start, stop)
 
-    searchLastRow = previous_api(search_last_row)
 
     def get_chunkmap(self):
         """Compute a map with the interesting chunks in index."""
@@ -2122,7 +2110,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         return range_
 
-    getLookupRange = previous_api(get_lookup_range)
 
     def _f_remove(self, recursive=False):
         """Remove this Index object."""
@@ -2178,7 +2165,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 class IndexesDescG(NotLoggedMixin, Group):
     _c_classid = 'DINDEX'
 
-    _c_classId = previous_api_property('_c_classid')
 
     def _g_width_warning(self):
         warnings.warn(
@@ -2188,13 +2174,11 @@ class IndexesDescG(NotLoggedMixin, Group):
             "and possibly slow I/O" % self._v_max_group_width,
             PerformanceWarning)
 
-    _g_widthWarning = previous_api(_g_width_warning)
 
 
 class IndexesTableG(NotLoggedMixin, Group):
     _c_classid = 'TINDEX'
 
-    _c_classId = previous_api_property('_c_classid')
 
     def _getauto(self):
         if 'AUTO_INDEX' not in self._v_attrs:
@@ -2216,14 +2200,12 @@ class IndexesTableG(NotLoggedMixin, Group):
             "and possibly slow I/O" % self._v_max_group_width,
             PerformanceWarning)
 
-    _g_widthWarning = previous_api(_g_width_warning)
 
     def _g_check_name(self, name):
         if not name.startswith('_i_'):
             raise ValueError(
                 "names of index groups must start with ``_i_``: %s" % name)
 
-    _g_checkName = previous_api(_g_check_name)
 
     def _gettable(self):
         names = self._v_pathname.split("/")
@@ -2243,7 +2225,6 @@ class OldIndex(NotLoggedMixin, Group):
 
     _c_classid = 'CINDEX'
 
-    _c_classId = previous_api_property('_c_classid')
 
 
 ## Local Variables:

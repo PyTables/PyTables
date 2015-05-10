@@ -21,7 +21,6 @@ from tables.atom import Atom
 from tables.array import Array
 from tables.utils import correct_byteorder, SizeType
 
-from tables._past import previous_api, previous_api_property
 
 # default version for CARRAY objects
 # obversion = "1.0"    # Support for time & enumerated datatypes.
@@ -124,7 +123,6 @@ class CArray(Array):
     # Class identifier.
     _c_classid = 'CARRAY'
 
-    _c_classId = previous_api_property('_c_classid')
 
     # Properties
     # ~~~~~~~~~~
@@ -288,4 +286,3 @@ class CArray(Array):
 
         return (object, nbytes)
 
-    _g_copyWithStats = previous_api(_g_copy_with_stats)
