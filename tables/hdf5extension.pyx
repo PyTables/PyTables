@@ -58,7 +58,6 @@ from tables.utilsextension import (encode_filename, set_blosc_max_threads,
   pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
   platform_byteorder)
 
-from tables._past import previous_api
 
 
 # Types, constants, functions, classes & other objects from everywhere
@@ -603,20 +602,17 @@ cdef class File:
     descriptor = <uintptr_t *>file_handle
     return descriptor[0]
 
-  _getFileId = previous_api(_get_file_id)
 
   def _flush_file(self, scope):
     # Close the file
     H5Fflush(self.file_id, scope)
 
-  _flushFile = previous_api(_flush_file)
 
   def _close_file(self):
     # Close the file
     H5Fclose( self.file_id )
     self.file_id = 0    # Means file closed
 
-  _closeFile = previous_api(_close_file)
 
   # This method is moved out of scope, until we provide code to delete
   # the memory booked by this extension types
@@ -640,7 +636,6 @@ cdef class AttributeSet:
     a = Aiterate(node._v_objectid)
     return a
 
-  _g_listAttr = previous_api(_g_list_attr)
 
   def _g_setattr(self, node, name, object value):
     """Save Python or NumPy objects as HDF5 attributes.
@@ -715,7 +710,6 @@ cdef class AttributeSet:
         raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
                            (name, self._v_node))
 
-  _g_setAttr = previous_api(_g_setattr)
 
   # Get attributes
   def _g_getattr(self, node, attrname):
@@ -880,7 +874,6 @@ cdef class AttributeSet:
 
     return retvalue
 
-  _g_getAttr = previous_api(_g_getattr)
 
   def _g_remove(self, node, attrname):
     cdef int ret
@@ -1015,7 +1008,6 @@ cdef class Group(Node):
 
     return Giterate(parent._v_objectid, self._v_objectid, encoded_name)
 
-  _g_listGroup = previous_api(_g_list_group)
 
   def _g_get_gchild_attr(self, group_name, attr_name):
     """Return an attribute of a child `Group`.
@@ -1044,7 +1036,6 @@ cdef class Group(Node):
 
     return retvalue
 
-  _g_getGChildAttr = previous_api(_g_get_gchild_attr)
 
   def _g_get_lchild_attr(self, leaf_name, attr_name):
     """Return an attribute of a child `Leaf`.
@@ -1071,13 +1062,11 @@ cdef class Group(Node):
     H5Dclose(leaf_id)
     return retvalue
 
-  _g_getLChildAttr = previous_api(_g_get_lchild_attr)
 
   def _g_flush_group(self):
     # Close the group
     H5Fflush(self.group_id, H5F_SCOPE_GLOBAL)
 
-  _g_flushGroup = previous_api(_g_flush_group)
 
   def _g_close_group(self):
     cdef int ret
@@ -1087,7 +1076,6 @@ cdef class Group(Node):
       raise HDF5ExtError("Problems closing the Group %s" % self.name)
     self.group_id = 0  # indicate that this group is closed
 
-  _g_closeGroup = previous_api(_g_close_group)
 
   def _g_move_node(self, hid_t oldparent, oldname, hid_t newparent, newname,
                    oldpathname, newpathname):
@@ -1104,7 +1092,6 @@ cdef class Group(Node):
                          (oldpathname, newpathname) )
     return ret
 
-  _g_moveNode = previous_api(_g_move_node)
 
 
 cdef class Leaf(Node):
@@ -1164,7 +1151,6 @@ cdef class Leaf(Node):
       t64buf, byteoffset, bytestride, nrecords, nelements, sense)
 
   # can't do since cdef'd
-  #_convertTime64 = previous_api(_convert_time64)
 
   def _g_truncate(self, hsize_t size):
     """Truncate a Leaf to `size` nrows."""
@@ -1275,7 +1261,6 @@ cdef class Array(Leaf):
 
     return (self.dataset_id, shape, atom_)
 
-  _createArray = previous_api(_create_array)
 
   def _create_carray(self, object title):
     cdef int i
@@ -1347,7 +1332,6 @@ cdef class Array(Leaf):
 
     return self.dataset_id
 
-  _createCArray = previous_api(_create_carray)
 
   def _open_array(self):
     cdef size_t type_size, type_precision
@@ -1429,7 +1413,6 @@ cdef class Array(Leaf):
 
     return (self.dataset_id, atom, shape, chunkshapes)
 
-  _openArray = previous_api(_open_array)
 
   def _append(self, ndarray nparr):
     cdef int ret, extdim
@@ -1496,7 +1479,6 @@ cdef class Array(Leaf):
 
     return
 
-  _readArray = previous_api(_read_array)
 
   def _g_read_slice(self, ndarray startl, ndarray stopl, ndarray stepl,
                    ndarray nparr):
@@ -1532,7 +1514,6 @@ cdef class Array(Leaf):
 
     return
 
-  _g_readSlice = previous_api(_g_read_slice)
 
   def _g_read_coords(self, ndarray coords, ndarray nparr):
     """Read coordinates in an already created NumPy array."""
@@ -1581,7 +1562,6 @@ cdef class Array(Leaf):
 
     return
 
-  _g_readCoords = previous_api(_g_read_coords)
 
   def perform_selection(self, space_id, start, count, step, idx, mode):
     """Performs a selection using start/count/step in the given axis.
@@ -1676,7 +1656,6 @@ cdef class Array(Leaf):
 
     return
 
-  _g_readSelection = previous_api(_g_read_selection)
 
   def _g_write_slice(self, ndarray startl, ndarray stepl, ndarray countl,
                     ndarray nparr):
@@ -1711,7 +1690,6 @@ cdef class Array(Leaf):
 
     return
 
-  _g_writeSlice = previous_api(_g_write_slice)
 
   def _g_write_coords(self, ndarray coords, ndarray nparr):
     """Write a selection in an already created NumPy array."""
@@ -1755,7 +1733,6 @@ cdef class Array(Leaf):
 
     return
 
-  _g_writeCoords = previous_api(_g_write_coords)
 
   def _g_write_selection(self, object selection, ndarray nparr):
     """Write a selection in an already created NumPy array."""
@@ -1802,7 +1779,6 @@ cdef class Array(Leaf):
 
     return
 
-  _g_writeSelection = previous_api(_g_write_selection)
 
   def __dealloc__(self):
     if self.dims:
@@ -1879,7 +1855,6 @@ cdef class VLArray(Leaf):
 
     return self.dataset_id
 
-  _createArray = previous_api(_create_array)
 
   def _open_array(self):
     cdef char cbyteorder[11]  # "irrelevant" fits easily here
@@ -1924,7 +1899,6 @@ cdef class VLArray(Leaf):
     self.nrecords = nrecords  # Initialize the number of records saved
     return self.dataset_id, SizeType(nrecords), (SizeType(chunksize),), atom
 
-  _openArray = previous_api(_open_array)
 
   def _append(self, ndarray nparr, int nobjects):
     cdef int ret
@@ -2074,7 +2048,6 @@ cdef class VLArray(Leaf):
 
     return datalist
 
-  _readArray = previous_api(_read_array)
 
   def get_row_size(self, row):
     """Return the total size in bytes of all the elements contained in a given row."""

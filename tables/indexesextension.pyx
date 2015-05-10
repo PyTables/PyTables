@@ -51,7 +51,6 @@ from libc.string cimport memcpy, strncmp
 from definitions cimport hid_t, herr_t, hsize_t, H5Screate_simple, H5Sclose
 from lrucacheextension cimport NumCache
 
-from tables._past import previous_api
 
 
 #-------------------------------------------------------------------
@@ -624,7 +623,6 @@ cdef class IndexArray(Array):
     if ret < 0:
       raise HDF5ExtError("Problems reading the index indices.")
 
-  _readIndexSlice = previous_api(_read_index_slice)
 
   def _init_sorted_slice(self, index):
     """Initialize the structures for doing a binary search."""
@@ -685,7 +683,6 @@ cdef class IndexArray(Array):
         (maxslots, self.chunksize), dtype, 'sorted')
 
 
-  _initSortedSlice = previous_api(_init_sorted_slice)
 
   cdef void *_g_read_sorted_slice(self, hsize_t irow, hsize_t start,
                                 hsize_t stop):
@@ -711,7 +708,6 @@ cdef class IndexArray(Array):
     self._g_read_sorted_slice(irow, start, stop)
     return self.bufferlb
 
-  _readSortedSlice = previous_api(_read_sorted_slice)
 
   cdef void *get_lru_bounds(self, int nrow, int nbounds):
     """Get the bounds from the cache, or read them."""
@@ -815,7 +811,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_b = previous_api(_search_bin_na_b)
 
   # Optimized version for uint8
   def _search_bin_na_ub(self, long item1, long item2):
@@ -878,7 +873,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_ub = previous_api(_search_bin_na_ub)
 
   # Optimized version for int16
   def _search_bin_na_s(self, long item1, long item2):
@@ -940,7 +934,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_s = previous_api(_search_bin_na_s)
 
   # Optimized version for uint16
   def _search_bin_na_us(self, long item1, long item2):
@@ -1002,7 +995,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_us = previous_api(_search_bin_na_us)
 
   # Optimized version for int32
   def _search_bin_na_i(self, long item1, long item2):
@@ -1064,7 +1056,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_i = previous_api(_search_bin_na_i)
 
   # Optimized version for uint32
   def _search_bin_na_ui(self, npy_uint32 item1, npy_uint32 item2):
@@ -1126,7 +1117,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_ui = previous_api(_search_bin_na_ui)
 
   # Optimized version for int64
   def _search_bin_na_ll(self, npy_int64 item1, npy_int64 item2):
@@ -1188,7 +1178,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_ll = previous_api(_search_bin_na_ll)
 
   # Optimized version for uint64
   def _search_bin_na_ull(self, npy_uint64 item1, npy_uint64 item2):
@@ -1250,7 +1239,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_ull = previous_api(_search_bin_na_ull)
 
   # Optimized version for float16
   def _search_bin_na_e(self, npy_float64 item1, npy_float64 item2):
@@ -1314,7 +1302,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_e = previous_api(_search_bin_na_e)
 
   # Optimized version for float32
   def _search_bin_na_f(self, npy_float64 item1, npy_float64 item2):
@@ -1377,7 +1364,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_f = previous_api(_search_bin_na_f)
 
   # Optimized version for float64
   def _search_bin_na_d(self, npy_float64 item1, npy_float64 item2):
@@ -1442,7 +1428,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_d = previous_api(_search_bin_na_d)
 
   # Optimized version for npy_longdouble/float96/float128
   def _search_bin_na_g(self, npy_longdouble item1, npy_longdouble item2):
@@ -1507,7 +1492,6 @@ cdef class IndexArray(Array):
       rbufln[nrow] = length
     return tlength
 
-  _searchBinNA_g = previous_api(_search_bin_na_g)
 
   def _g_close(self):
     super(Array, self)._g_close()
@@ -1531,7 +1515,6 @@ cdef class LastRowArray(Array):
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data in Last Row.")
 
-  _readIndexSlice = previous_api(_read_index_slice)
 
   def _read_sorted_slice(self, IndexArray sorted, hsize_t start, hsize_t stop):
     """Read the sorted part of an LR index."""
@@ -1547,7 +1530,6 @@ cdef class LastRowArray(Array):
       raise HDF5ExtError("Problems reading the index data.")
     return sorted.bufferlb[:stop-start]
 
-  _readSortedSlice = previous_api(_read_sorted_slice)
 
 
 ## Local Variables:

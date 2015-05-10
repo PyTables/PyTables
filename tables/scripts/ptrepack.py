@@ -29,7 +29,6 @@ from tables.group import Group
 from tables.leaf import Filters
 from tables.flavor import internal_flavor
 from tables.exceptions import OldIndexWarning, NoSuchNodeError, FlavorWarning
-from tables._past import previous_api
 
 # Global variables
 verbose = False
@@ -62,7 +61,6 @@ def newdst_group(dstfileh, dstgroup, title, filters):
         group = group2
     return group
 
-newdstGroup = previous_api(newdst_group)
 
 
 def recreate_indexes(table, dstfileh, dsttable):
@@ -84,7 +82,6 @@ def recreate_indexes(table, dstfileh, dsttable):
             # We don't specify the filters for the indexes
             colobj.create_index(filters=None)
 
-recreateIndexes = previous_api(recreate_indexes)
 
 
 def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
@@ -178,7 +175,6 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
     srcfileh.close()
     dstfileh.close()
 
-copyLeaf = previous_api(copy_leaf)
 
 
 def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
@@ -273,7 +269,6 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
     srcfileh.close()
     dstfileh.close()
 
-copyChildren = previous_api(copy_children)
 
 
 def _get_parser():

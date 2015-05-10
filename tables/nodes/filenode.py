@@ -38,7 +38,6 @@ import warnings
 import numpy as np
 
 import tables
-from tables._past import previous_api
 
 
 NodeType = 'file'
@@ -469,7 +468,6 @@ class RawPyTablesIO(io.RawIOBase):
             raise ValueError(
                 "unsupported type version of node object: %s" % (ltypever,))
 
-    _checkAttributes = previous_api(_check_attributes)
 
     def _append_zeros(self, size):
         """_append_zeros(size) -> None.  Appends a string of zeros.
@@ -505,21 +503,18 @@ class FileNodeMixin(object):
         #sefl._checkClosed()
         return self._node.attrs
 
-    getAttrs = previous_api(_get_attrs)
 
     def _set_attrs(self, value):
         """set_attrs(string) -> None.  Raises ValueError."""
 
         raise ValueError("changing the whole attribute set is not allowed")
 
-    setAttrs = previous_api(_set_attrs)
 
     def _del_attrs(self):
         """del_attrs() -> None.  Raises ValueError."""
 
         raise ValueError("deleting the whole attribute set is not allowed")
 
-    delAttrs = previous_api(_del_attrs)
 
     # The attribute set property.
     attrs = property(
@@ -665,7 +660,6 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
         attrs.NODE_TYPE = NodeType
         attrs.NODE_TYPE_VERSION = NodeTypeVersions[-1]
 
-    _setAttributes = previous_api(_set_attributes)
 
 
 def new_node(h5file, **kwargs):
@@ -683,7 +677,6 @@ def new_node(h5file, **kwargs):
     return RAFileNode(None, h5file, **kwargs)
 
 
-newNode = previous_api(new_node)
 
 
 def open_node(node, mode='r'):
@@ -705,7 +698,6 @@ def open_node(node, mode='r'):
         raise IOError("invalid mode: %s" % (mode,))
 
 
-openNode = previous_api(open_node)
 
 
 def save_to_filenode(h5file, filename, where, name=None, overwrite=False,

@@ -64,7 +64,6 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
 
 from lrucacheextension cimport ObjectCache, NumCache
 
-from tables._past import previous_api, previous_api_property
 
 
 #-----------------------------------------------------------------
@@ -731,19 +730,6 @@ cdef class Row:
   cdef object  modified_fields
   cdef object  seqcache_key
 
-  # Deprecated API
-  indexChunk = previous_api_property('indexchunk')
-  indexValid = previous_api_property('indexvalid')
-  indexValues = previous_api_property('indexvalues')
-  bufcoordsData = previous_api_property('bufcoords_data')
-  indexValuesData = previous_api_property('index_values_data')
-  chunkmapData = previous_api_property('chunkmap_data')
-  indexValidData = previous_api_property('index_valid_data')
-  whereCond = previous_api_property('wherecond')
-  iterseqMaxElements = previous_api_property('iterseq_max_elements')
-  IObuf = previous_api_property('iobuf')
-  IObufcpy = previous_api_property('iobufcpy')
-
   # The nrow() method has been converted into a property, which is handier
   property nrow:
     """The current row number.
@@ -1279,7 +1265,6 @@ cdef class Row:
     self._riterator = 0  # out of iterator
     return
 
-  _fillCol = previous_api(_fill_col)
 
   def append(self):
     """Add a new row of data to the end of the dataset.
@@ -1345,12 +1330,10 @@ cdef class Row:
       # Reset the buffer unsaved counter
       self._unsaved_nrows = 0
 
-  _flushBufferedRows = previous_api(_flush_buffered_rows)
 
   def _get_unsaved_nrows(self):
     return self._unsaved_nrows
 
-  _getUnsavedNrows = previous_api(_get_unsaved_nrows)
 
   def update(self):
     """Change the data of the current row in the dataset.
@@ -1440,7 +1423,6 @@ cdef class Row:
     # Mark the modified fields' indexes as dirty.
     table._mark_columns_as_dirty(self.modified_fields)
 
-  _flushModRows = previous_api(_flush_mod_rows)
 
   def __contains__(self, item):
     """__contains__(item)
