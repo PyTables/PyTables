@@ -31,7 +31,6 @@ import collections
 import numexpr
 import numpy
 
-import tables.misc.proxydict
 from tables import hdf5extension
 from tables import utilsextension
 from tables import parameters
