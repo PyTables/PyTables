@@ -6,6 +6,9 @@
    :alt: Join the chat at https://gitter.im/PyTables/PyTables
    :target: https://gitter.im/PyTables/PyTables?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
+.. image:: https://travis-ci.org/PyTables/PyTables.svg?branch=develop
+   :target: https://travis-ci.org/PyTables/PyTables
+
 :URL: http://www.pytables.org/
 
 
