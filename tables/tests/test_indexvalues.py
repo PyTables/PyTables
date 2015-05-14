@@ -3301,7 +3301,8 @@ for (cname, cbasenames, cdict) in iclassdata():
 
 
 # Test case for issue #319
-class BuffersizeMultipleChunksize(TestCase):
+class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
+    open_mode = 'w'
 
     def test01(self):
         numpy.random.seed(2)
@@ -3315,15 +3316,15 @@ class BuffersizeMultipleChunksize(TestCase):
         arr['o'] = numpy.random.randint(-20000, -15000, size=n)
         arr['value'] = numpy.random.randn(n)
 
-        handle = tables.open_file('test.h5', 'w')
-        node = handle.create_group(handle.root, 'foo')
-        table = handle.create_table(node, 'table', dict(
+        node = self.h5file.create_group('/', 'foo')
+        table = self.h5file.create_table(node, 'table', dict(
             index=tables.Int64Col(),
             o=tables.Int64Col(),
             value=tables.FloatCol(shape=())), expectedrows=10000000)
 
         table.append(arr)
-        handle.close()
+
+        self._reopen('a')
 
         v1 = numpy.unique(arr['o'])[0]
         v2 = numpy.unique(arr['o'])[1]
@@ -3332,8 +3333,7 @@ class BuffersizeMultipleChunksize(TestCase):
         if verbose:
             print("selecting values: %s" % selector)
 
-        handle = tables.open_file('test.h5', 'a')
-        table = handle.root.foo.table
+        table = self.h5file.root.foo.table
 
         result = numpy.unique(table.read_where(selector)['o'])
         numpy.testing.assert_almost_equal(result, res)
@@ -3353,8 +3353,6 @@ class BuffersizeMultipleChunksize(TestCase):
             numpy.testing.assert_almost_equal(numpy.unique(result), res)
             if verbose:
                 print("result: %s\texpected: %s" % (result, res))
-
-        handle.close()
 
 
 # Test case for issue #441
