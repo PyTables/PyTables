@@ -34,7 +34,7 @@ from tables.flavor import all_flavors, array_of_flavor
 from tables.parameters import NODE_CACHE_SLOTS
 from tables.description import descr_from_dtype, dtype_from_descr
 from tables.tests import common
-from tables.tests.common import unittest
+from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
@@ -1276,7 +1276,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         """Checking opening of a generic HDF5 file."""
 
         # Open an existing generic HDF5 file
-        h5fname = self._testFilename("ex-noattr.h5")
+        h5fname = test_filename("ex-noattr.h5")
         with tables.open_file(h5fname, mode="r") as h5file:
             # Check for some objects inside
 
@@ -1310,7 +1310,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         # uncommented in Group.py!                                        #
         ###################################################################
 
-        h5fname = self._testFilename('smpl_unsupptype.h5')
+        h5fname = test_filename('smpl_unsupptype.h5')
         with tables.open_file(h5fname) as h5file:
             with self.assertWarns(UserWarning):
                 node = h5file.get_node('/CompoundChunked')
@@ -1320,7 +1320,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         """Checking opening of HDF5 files containing scalar dataset of
         UnImlemented type."""
 
-        with tables.open_file(self._testFilename("scalar.h5")) as h5file:
+        with tables.open_file(test_filename("scalar.h5")) as h5file:
             with self.assertWarns(UserWarning):
                 node = h5file.get_node('/variable length string')
             self.assertTrue(isinstance(node, UnImplemented))
@@ -1329,7 +1329,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         """Checking that an UnImplemented object cannot be copied."""
 
         # Open an existing generic HDF5 file
-        h5fname = self._testFilename("smpl_unsupptype.h5")
+        h5fname = test_filename("smpl_unsupptype.h5")
         with tables.open_file(h5fname, mode="r") as h5file:
             self.assertWarns(UserWarning, h5file.get_node, '/CompoundChunked')
             with warnings.catch_warnings():
@@ -1350,7 +1350,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         # Open an existing generic HDF5 file
         # We don't need to wrap this in a try clause because
         # it has already been tried and the warning will not happen again
-        h5fname2 = self._testFilename("ex-noattr.h5")
+        h5fname2 = test_filename("ex-noattr.h5")
         with tables.open_file(h5fname2, mode="r") as h5file2:
                 # An unsupported object (the deprecated H5T_ARRAY type in
             # Array, from pytables 0.8 on)
@@ -2058,7 +2058,7 @@ class FilePropertyTestCase(TestCase):
 # Test for reading a file that uses Blosc and created on a big-endian platform
 @unittest.skipIf(not common.blosc_avail, 'Blosc not available')
 class BloscBigEndian(common.TestFileMixin, TestCase):
-    h5fname = TestCase._testFilename("blosc_bigendian.h5")
+    h5fname = test_filename("blosc_bigendian.h5")
 
     def test00_bigendian(self):
         """Checking compatibility with Blosc on big-endian machines."""
@@ -2460,12 +2460,12 @@ class TestCol(TestCase):
 
 class TestSysattrCompatibility(TestCase):
     def test_open_python2(self):
-        h5fname = self._testFilename("python2.h5")
+        h5fname = test_filename("python2.h5")
         with tables.open_file(h5fname, "r") as h5file:
             self.assertTrue(h5file.isopen)
 
     def test_open_python3(self):
-        h5fname = self._testFilename("python3.h5")
+        h5fname = test_filename("python3.h5")
         with tables.open_file(h5fname, "r") as h5file:
             self.assertTrue(h5file.isopen)
 

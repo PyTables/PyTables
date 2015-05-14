@@ -15,7 +15,7 @@ from tables import (IsDescription, Int32Atom, StringCol, IntCol, Int16Col,
 from tables.exceptions import DataTypeWarning
 from tables.parameters import NODE_CACHE_SLOTS
 from tables.tests import common
-from tables.tests.common import unittest
+from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
@@ -1496,7 +1496,7 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
 
 
 class CompatibilityTestCase(common.TestFileMixin, TestCase):
-    h5fname = TestCase._testFilename('issue_368.h5')
+    h5fname = test_filename('issue_368.h5')
 
     @unittest.skipIf(LooseVersion(numpy.__version__) < '1.9.0',
                      'requires numpy >= 1.9')
@@ -1563,7 +1563,7 @@ class EmbeddedNullsTestCase(common.TempFileMixin, TestCase):
 class VlenStrAttrTestCase(TestCase):
     def setUp(self):
         super(VlenStrAttrTestCase, self).setUp()
-        self.h5fname = self._testFilename('vlstr_attr.h5')
+        self.h5fname = test_filename('vlstr_attr.h5')
         self.h5file = tables.open_file(self.h5fname)
 
     def tearDown(self):
@@ -1600,7 +1600,7 @@ class VlenStrAttrTestCase(TestCase):
 
 
 class UnsupportedAttrTypeTestCase(common.TestFileMixin, TestCase):
-    h5fname = TestCase._testFilename('attr-u16.h5')
+    h5fname = test_filename('attr-u16.h5')
 
     def test00_unsupportedType(self):
         """Checking file with unsupported type."""

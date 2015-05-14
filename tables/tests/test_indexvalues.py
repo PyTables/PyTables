@@ -12,7 +12,7 @@ from tables import StringCol, BoolCol, IntCol, FloatCol
 from tables.idxutils import calc_chunksize
 from tables.tests import common
 from tables.tests.common import verbose, heavy
-from tables.tests.common import unittest
+from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
@@ -3359,7 +3359,7 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
 class SideEffectNumPyQuicksort(TestCase):
 
     def test01(self):
-        bug_file = TestCase._testFilename("bug-idx.h5")
+        bug_file = test_filename("bug-idx.h5")
         tmp_file = tempfile.mktemp(".h5")
         tables.copy_file(bug_file, tmp_file)
         h5 = tables.open_file(tmp_file, "a")

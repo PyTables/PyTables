@@ -11,7 +11,7 @@ from tables import (
     FloatAtom, Float64Atom,
 )
 from tables.tests import common
-from tables.tests.common import unittest
+from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
@@ -152,7 +152,7 @@ class DtypeTestCase(common.TempFileMixin, TestCase):
 
 
 class ReadFloatTestCase(common.TestFileMixin, TestCase):
-    h5fname = TestCase._testFilename("float.h5")
+    h5fname = test_filename("float.h5")
     nrows = 5
     ncols = 6
 

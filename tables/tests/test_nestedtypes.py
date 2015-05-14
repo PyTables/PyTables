@@ -22,7 +22,7 @@ import numpy
 import tables as t
 from tables.utils import SizeType
 from tables.tests import common
-from tables.tests.common import unittest
+from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import Description
 
@@ -1477,7 +1477,7 @@ class SameNestedReopen(SameNestedTestCase):
 
 
 class NestedTypesWithGaps(common.TestFileMixin, TestCase):
-    h5fname = TestCase._testFilename('nested-type-with-gaps.h5')
+    h5fname = test_filename('nested-type-with-gaps.h5')
 
     correct_descr = """{
   "float": Float32Col(shape=(), dflt=0.0, pos=0),

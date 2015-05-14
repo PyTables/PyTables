@@ -22,6 +22,8 @@ import platform
 import tempfile
 import warnings
 
+from pkg_resources import resource_filename
+
 try:
     import unittest2 as unittest
 except ImportError:
@@ -136,6 +138,10 @@ def print_versions():
 
     # This should improve readability whan tests are run by CI tools
     sys.stdout.flush()
+
+
+def test_filename(filename):
+    return resource_filename('tables.tests', filename)
 
 
 def verbosePrint(string, nonl=False):
@@ -332,20 +338,6 @@ class PyTablesTestCase(unittest.TestCase):
             title = "Running %s.%s" % (name, methodName)
             print('%s\n%s' % (title, '-' * len(title)))
 
-    @classmethod
-    def _testFilename(class_, filename):
-        """Returns an absolute version of the `filename`, taking care of the
-        location of the calling test case class."""
-        modname = class_.__module__
-        # When the definitive switch to ``setuptools`` is made,
-        # this should definitely use the ``pkg_resouces`` API::
-        #
-        #   return pkg_resources.resource_filename(modname, filename)
-        #
-        modfile = sys.modules[modname].__file__
-        dirname = os.path.dirname(modfile)
-        return os.path.join(dirname, filename)
-
     # COMPATIBILITY: assertWarns is new in Python 3.2
     if not hasattr(unittest.TestCase, 'assertWarns'):
         def assertWarns(self, expected_warning, callable_obj=None,
@@ -392,7 +384,6 @@ class TestFileMixin(object):
 
     def setUp(self):
         super(TestFileMixin, self).setUp()
-        #self.h5fname = self._testFilename(self.testfname)
         self.h5file = tables.open_file(
             self.h5fname, title=self._getName(), **self.open_kwargs)
 

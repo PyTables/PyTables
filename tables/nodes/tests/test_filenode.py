@@ -17,12 +17,16 @@ import shutil
 import tempfile
 import warnings
 
+from pkg_resources import resource_filename
+
 import tables
 from tables.nodes import filenode
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 
+def test_file(name):
+    return resource_filename('tables.nodes.tests', name)
 
 class NewFileTestCase(common.TempFileMixin, TestCase):
     """Tests creating a new file node with the new_node() function."""
@@ -182,7 +186,7 @@ class WriteFileTestCase(common.TempFileMixin, TestCase):
 
         super(WriteFileTestCase, self).setUp()
         self.fnode = filenode.new_node(self.h5file, where='/', name='test')
-        self.datafname = self._testFilename(self.datafname)
+        self.datafname = test_file(self.datafname)
 
     def tearDown(self):
         """tearDown() -> None
@@ -341,7 +345,7 @@ class ReadFileTestCase(common.TempFileMixin, TestCase):
 
         """
 
-        self.datafname = self._testFilename(self.datafname)
+        self.datafname = test_file(self.datafname)
         self.datafile = open(self.datafname, 'rb')
 
         super(ReadFileTestCase, self).setUp()
@@ -814,7 +818,7 @@ class OldVersionTestCase(TestCase):
         super(OldVersionTestCase, self).setUp()
         self.h5fname = tempfile.mktemp(suffix='.h5')
 
-        self.oldh5fname = self._testFilename(self.oldh5fname)
+        self.oldh5fname = test_file(self.oldh5fname)
         oldh5f = tables.open_file(self.oldh5fname)
         oldh5f.copy_file(self.h5fname)
         oldh5f.close()
@@ -908,7 +912,7 @@ class DirectReadWriteTestCase(common.TempFileMixin, TestCase):
         """
 
         super(DirectReadWriteTestCase, self).setUp()
-        self.datafname = self._testFilename(self.datafname)
+        self.datafname = test_file(self.datafname)
         self.testfname = tempfile.mktemp()
         self.testh5fname = tempfile.mktemp(suffix=".h5")
         with open(self.datafname, "rb") as fd:

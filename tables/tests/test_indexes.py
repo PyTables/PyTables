@@ -17,7 +17,7 @@ from tables.idxutils import calc_chunksize
 from tables.exceptions import OldIndexWarning
 from tables.tests import common
 from tables.tests.common import verbose, allequal, heavy, TempFileMixin
-from tables.tests.common import unittest
+from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
@@ -1769,7 +1769,7 @@ class IndexFiltersTestCase(TempFileMixin, TestCase):
 
 
 class OldIndexTestCase(common.TestFileMixin, TestCase):
-    h5fname = TestCase._testFilename("idx-std-1.x.h5")
+    h5fname = test_filename("idx-std-1.x.h5")
 
     def test1_x(self):
         """Check that files with 1.x indexes are recognized and warned."""
