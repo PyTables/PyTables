@@ -9,6 +9,10 @@
 .. image:: https://travis-ci.org/PyTables/PyTables.svg?branch=develop
    :target: https://travis-ci.org/PyTables/PyTables
 
+.. image:: https://codeclimate.com/github/PyTables/PyTables/badges/gpa.svg
+   :target: https://codeclimate.com/github/PyTables/PyTables
+   :alt: Code Climate
+
 :URL: http://www.pytables.org/
 
 
