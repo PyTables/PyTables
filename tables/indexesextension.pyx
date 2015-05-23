@@ -205,14 +205,6 @@ cdef inline void swap_bytes(char *x, char *y, size_t n) nogil:
             x[i], y[i] = y[i], x[i]
 
 
-cdef inline int string_compare(char *a, char *b, size_t n) nogil:
-    cdef size_t i
-    for i in range(n):
-        if a[i] != b[i]:
-            return a[i] - b[i];
-    return 0;
-
-
 cdef inline int less_than(number_type* a, number_type* b) nogil:
     if number_type in floating_type:
         return a[0] < b[0] or (b[0] != b[0] and a[0] == a[0])
