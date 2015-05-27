@@ -66,7 +66,7 @@ not.
 
 # Public functions
 # ================
-def check_name_validity(name):
+def check_name_validity(name, allow_slash = True):
     """Check the validity of the `name` of an object.
 
     If the name is not valid, a ``ValueError`` is raised.  If it is
@@ -88,7 +88,7 @@ def check_name_validity(name):
         raise ValueError("the empty string is not allowed as an object name")
     if name == '.':
         raise ValueError("``.`` is not allowed as an object name")
-    if '/' in name:
+    if '/' in name and not allow_slash:
         raise ValueError("the ``/`` character is not allowed "
                          "in object names: %r" % name)
 
