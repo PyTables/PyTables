@@ -439,7 +439,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         attrnames = self._v_attrnames
 
         # Check for name validity
-        check_name_validity(name)
+        check_name_validity(name, allow_slash = True)
 
         nodefile._check_writable()
 

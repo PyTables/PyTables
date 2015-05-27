@@ -66,12 +66,28 @@ not.
 
 # Public functions
 # ================
-def check_name_validity(name):
+def check_name_validity(name, allow_slash = False):
     """Check the validity of the `name` of an object.
 
     If the name is not valid, a ``ValueError`` is raised.  If it is
     valid but it can not be used with natural naming, a
     `NaturalNameWarning` is issued.
+    >>> check_name_validity('a')
+    >>> check_name_validity('a_b')
+    >>> check_name_validity('a:b')
+    >>> check_name_validity('/a/b')
+    Traceback (most recent call last):
+     ...
+    ValueError: the ``/`` character is not allowed in object names: '/a/b'
+    >>> check_name_validity('/', True)
+    >>> check_name_validity('.')
+    Traceback (most recent call last):
+     ...
+    ValueError: ``.`` is not allowed as an object name
+    >>> check_name_validity('')
+    Traceback (most recent call last):
+     ...
+    ValueError: the empty string is not allowed as an object name
 
     """
 
@@ -86,12 +102,12 @@ def check_name_validity(name):
     # http://hdfgroup.org/HDF5/doc/UG/03_Model.html#Structure
     if name == '':
         raise ValueError("the empty string is not allowed as an object name")
-    if name == '.':
+    elif name == '.':
         raise ValueError("``.`` is not allowed as an object name")
-    if '/' in name:
+    elif '/' in name and not allow_slash:
         raise ValueError("the ``/`` character is not allowed "
                          "in object names: %r" % name)
-
+    
     # Check whether `name` is a valid Python identifier.
     if not _python_id_re.match(name):
         warnings.warn("object name is not a valid Python identifier: %r; "
