@@ -66,7 +66,64 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.get_node_attr(self.root.atable, 'attr1'),
                          "a" * attrlength)
         self.assertEqual(self.h5file.get_node_attr(self.root.anarray, 'attr1'),
-                         "n" * attrlength)
+                         "n" * attrlength) 
+                         
+    def check_name(self, name, val = ''):
+        """Check validity of attribute name filtering"""
+        def reopen():
+            # Reopen
+            if self.close:
+                if common.verbose:
+                    print("(closing file version)")
+                self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+                self.root = self.h5file.root
+        # Using File methods
+        self.h5file.set_node_attr(self.root.agroup, name, val)
+        self.h5file.set_node_attr(self.root.atable, name, val)
+        self.h5file.set_node_attr(self.root.anarray, name, val)
+         # Check File methods
+        reopen()
+        self.assertEqual(self.h5file.get_node_attr(self.root.agroup, name),val)
+        self.assertEqual(self.h5file.get_node_attr(self.root.atable, name),val)
+        self.assertEqual(self.h5file.get_node_attr(self.root.anarray, name),val)       
+        
+        # Using Node methods
+        self.root.agroup._f_setattr(name, val)
+        self.root.atable.set_attr(name, val)
+        self.root.anarray.set_attr(name, val)
+        # Check Node methods
+        reopen()
+        self.assertEqual(self.root.agroup._f_getattr(name), val)
+        self.assertEqual(self.root.atable.get_attr(name), val)
+        self.assertEqual(self.root.anarray.get_attr(name), val)   
+        
+        # Using AttributeSet methods
+        setattr(self.root.agroup._v_attrs, name, val)
+        setattr(self.root.atable.attrs, name, val)
+        setattr(self.root.anarray.attrs, name, val)        
+        # Check AttributeSet methods
+        reopen()
+        self.assertEqual(getattr(self.root.agroup._v_attrs, name), val)
+        self.assertEqual(getattr(self.root.atable.attrs, name), val)
+        self.assertEqual(getattr(self.root.anarray.attrs, name), val)
+        
+        # Using dict []
+        self.root.agroup._v_attrs[name]=val
+        self.root.atable.attrs[name]=val
+        self.root.anarray.attrs[name]=val
+        # Check dict []
+        reopen()  
+        self.assertEqual(self.root.agroup._v_attrs[name], val)
+        self.assertEqual(self.root.atable.attrs[name], val)
+        self.assertEqual(self.root.anarray.attrs[name], val)         
+        
+    def test01a_setAttributes(self):
+        """Checking attribute names validity"""
+        self.check_name('a')
+        self.check_name('a:b')
+        self.check_name('/a/b')
+        self.assertRaises(ValueError, self.check_name, '')
+        self.assertRaises(ValueError, self.check_name, '.')
 
     def test02_setAttributes(self):
         """Checking setting large string attributes (Node methods)"""

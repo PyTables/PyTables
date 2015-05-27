@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: numexpr
+Version: 2.4.3
+Summary: Fast numerical expression evaluator for NumPy
+Home-page: https://github.com/pydata/numexpr
+Author: David M. Cooke, Francesc Alted and others
+Author-email: david.m.cooke@gmail.com, faltet@gmail.com
+License: MIT
+Description: UNKNOWN
+Platform: UNKNOWN
