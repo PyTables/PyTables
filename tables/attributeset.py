@@ -22,7 +22,7 @@ from tables import hdf5extension
 from tables.utils import SizeType
 from tables.registry import class_name_dict
 from tables.exceptions import ClosedNodeError, PerformanceWarning
-from tables.path import check_name_validity
+from tables.path import check_attribute_name
 from tables.undoredo import attr_to_shadow
 from tables.filters import Filters
 
@@ -439,7 +439,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         attrnames = self._v_attrnames
 
         # Check for name validity
-        check_name_validity(name)
+        check_attribute_name(name)
 
         nodefile._check_writable()
 

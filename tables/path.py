@@ -63,47 +63,58 @@ while nodes with pathnames like ``/a/c/_i_x`` or ``/a/_p_x/y`` would
 not.
 """
 
+_warnInfo = (
+        "you will not be able to use natural naming to access this object; "
+        "using ``getattr()`` will still work, though")  
+"""Warning printed when a name will not be reachable through natural naming"""
 
 # Public functions
 # ================
-def check_name_validity(name):
-    """Check the validity of the `name` of an object.
 
+def check_attribute_name(name):
+    """Check the validity of the `name` of an attribute in AttributeSet.    
+    
     If the name is not valid, a ``ValueError`` is raised.  If it is
     valid but it can not be used with natural naming, a
     `NaturalNameWarning` is issued.
-
+    
+    >>> check_attribute_name('a')
+    >>> check_attribute_name('a_b')
+    >>> check_attribute_name('a:b')
+    >>> check_attribute_name('/a/b')
+    >>> check_attribute_name('/')
+    >>> check_attribute_name('.')
+    >>> check_attribute_name('__members__')
+    Traceback (most recent call last):
+     ...
+    ValueError: ``__members__`` is not allowed as an object name
+    >>> check_attribute_name(1)
+    Traceback (most recent call last):
+     ...
+    TypeError: object name is not a string: 1
+    >>> check_attribute_name('')
+    Traceback (most recent call last):
+     ...
+    ValueError: the empty string is not allowed as an object name
     """
-
-    warnInfo = (
-        "you will not be able to use natural naming to access this object; "
-        "using ``getattr()`` will still work, though")
-
     if not isinstance(name, basestring):  # Python >= 2.3
         raise TypeError("object name is not a string: %r" % (name,))
-
-    # Check whether `name` is a valid HDF5 name.
-    # http://hdfgroup.org/HDF5/doc/UG/03_Model.html#Structure
+    
     if name == '':
         raise ValueError("the empty string is not allowed as an object name")
-    if name == '.':
-        raise ValueError("``.`` is not allowed as an object name")
-    if '/' in name:
-        raise ValueError("the ``/`` character is not allowed "
-                         "in object names: %r" % name)
-
+    
     # Check whether `name` is a valid Python identifier.
     if not _python_id_re.match(name):
         warnings.warn("object name is not a valid Python identifier: %r; "
                       "it does not match the pattern ``%s``; %s"
-                      % (name, _python_id_re.pattern, warnInfo),
+                      % (name, _python_id_re.pattern, _warnInfo),
                       NaturalNameWarning)
         return
 
     # However, Python identifiers and keywords have the same form.
     if keyword.iskeyword(name):
         warnings.warn("object name is a Python keyword: %r; %s"
-                      % (name, warnInfo), NaturalNameWarning)
+                      % (name, _warnInfo), NaturalNameWarning)
         return
 
     # Still, names starting with reserved prefixes are not allowed.
@@ -115,8 +126,47 @@ def check_name_validity(name):
     # ``__members__`` is the only exception to that rule.
     if name == '__members__':
         raise ValueError("``__members__`` is not allowed as an object name")
+    
+
+def check_name_validity(name):
+    """Check the validity of the `name` of a Node object, which more limited
+    than attribute names.
+
+    If the name is not valid, a ``ValueError`` is raised.  If it is
+    valid but it can not be used with natural naming, a
+    `NaturalNameWarning` is issued.
+    
+    >>> check_name_validity('a')
+    >>> check_name_validity('a_b')
+    >>> check_name_validity('a:b')
+    >>> check_name_validity('/a/b')
+    Traceback (most recent call last):
+     ...
+    ValueError: the ``/`` character is not allowed in object names: '/a/b'
+    >>> check_name_validity('.')
+    Traceback (most recent call last):
+     ...
+    ValueError: ``.`` is not allowed as an object name
+    >>> check_name_validity('')
+    Traceback (most recent call last):
+     ...
+    ValueError: the empty string is not allowed as an object name
+
+    """
+    check_attribute_name(name)
+
+    # Check whether `name` is a valid HDF5 name.
+    # http://hdfgroup.org/HDF5/doc/UG/03_Model.html#Structure
+    if name == '.':
+        raise ValueError("``.`` is not allowed as an object name")
+    elif '/' in name:
+        raise ValueError("the ``/`` character is not allowed "
+                         "in object names: %r" % name)
+    
+
 
 checkNameValidity = previous_api(check_name_validity)
+
 
 
 def join_path(parentpath, name):
