@@ -66,7 +66,92 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.get_node_attr(self.root.atable, 'attr1'),
                          "a" * attrlength)
         self.assertEqual(self.h5file.get_node_attr(self.root.anarray, 'attr1'),
-                         "n" * attrlength)
+                         "n" * attrlength) 
+        
+    def reopen(self):
+        # Reopen
+        if self.close:
+            if common.verbose:
+                print("(closing file version)")
+            self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
+            self.root = self.h5file.root  
+            
+    def check_missing(self,name):
+        self.reopen()
+        self.assertFalse(name in self.root.agroup._v_attrs)
+        self.assertFalse(name in self.root.atable.attrs)
+        self.assertFalse(name in self.root.anarray.attrs)       
+        
+                         
+    def check_name(self, name, val = ''):
+        """Check validity of attribute name filtering"""
+        self.check_missing(name)
+        # Using File methods
+        self.h5file.set_node_attr(self.root.agroup, name, val)
+        self.h5file.set_node_attr(self.root.atable, name, val)
+        self.h5file.set_node_attr(self.root.anarray, name, val)
+         # Check File methods
+        self.reopen()
+        self.assertEqual(self.h5file.get_node_attr(self.root.agroup, name),val)
+        self.assertEqual(self.h5file.get_node_attr(self.root.atable, name),val)
+        self.assertEqual(self.h5file.get_node_attr(self.root.anarray, name),val)
+        # Remove, file methods
+        self.h5file.del_node_attr(self.root.agroup, name)
+        self.h5file.del_node_attr(self.root.atable, name)
+        self.h5file.del_node_attr(self.root.anarray, name)
+        self.check_missing(name)
+        
+        # Using Node methods
+        self.root.agroup._f_setattr(name, val)
+        self.root.atable.set_attr(name, val)
+        self.root.anarray.set_attr(name, val)
+        # Check Node methods
+        self.reopen()
+        self.assertEqual(self.root.agroup._f_getattr(name), val)
+        self.assertEqual(self.root.atable.get_attr(name), val)
+        self.assertEqual(self.root.anarray.get_attr(name), val)  
+        self.root.agroup._f_delattr(name)
+        self.root.atable.del_attr(name)
+        self.root.anarray.del_attr(name)      
+        self.check_missing(name)
+        
+        # Using AttributeSet methods
+        setattr(self.root.agroup._v_attrs, name, val)
+        setattr(self.root.atable.attrs, name, val)
+        setattr(self.root.anarray.attrs, name, val)        
+        # Check AttributeSet methods
+        self.reopen()
+        self.assertEqual(getattr(self.root.agroup._v_attrs, name), val)
+        self.assertEqual(getattr(self.root.atable.attrs, name), val)
+        self.assertEqual(getattr(self.root.anarray.attrs, name), val)
+        delattr(self.root.agroup._v_attrs,name)
+        delattr(self.root.atable.attrs, name)
+        delattr(self.root.anarray.attrs, name)
+        self.check_missing(name)
+        
+        # Using dict []
+        self.root.agroup._v_attrs[name]=val
+        self.root.atable.attrs[name]=val
+        self.root.anarray.attrs[name]=val
+        # Check dict []
+        self.reopen()  
+        self.assertEqual(self.root.agroup._v_attrs[name], val)
+        self.assertEqual(self.root.atable.attrs[name], val)
+        self.assertEqual(self.root.anarray.attrs[name], val)  
+        del self.root.agroup._v_attrs[name]
+        del self.root.atable.attrs[name]
+        del self.root.anarray.attrs[name]
+        self.check_missing(name)
+        
+    def test01a_setAttributes(self):
+        """Checking attribute names validity"""
+        self.check_name('a')
+        self.check_name('a:b')
+        self.check_name('/a/b')
+        self.check_name('.')
+        self.assertRaises(ValueError, self.check_name, '')
+        self.assertRaises(ValueError, self.check_name, '__members__')
+        self.assertRaises(TypeError, self.check_name, 0)
 
     def test02_setAttributes(self):
         """Checking setting large string attributes (Node methods)"""
