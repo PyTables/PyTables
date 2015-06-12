@@ -804,7 +804,7 @@ def descr_from_dtype(dtype_):
                     "are not supported yet, sorry")
             fbyteorder = byteorder
         # Non-nested column
-        if kind in 'biufSc':
+        if kind in 'biufSUc':
             col = Col.from_dtype(dtype, pos=pos)
         # Nested column
         elif kind == 'V' and dtype.shape in [(), (1,)]:
