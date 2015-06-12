@@ -372,7 +372,7 @@ class Atom(object):
         if basedtype.shape != ():
             raise ValueError("nested data types are not supported: %r"
                              % dtype)
-        if basedtype.kind == 'S':  # can not reuse something like 'string80'
+        if basedtype.kind in ('S', 'U'):  # can not reuse something like 'string80'
             itemsize = basedtype.itemsize
             return class_.from_kind('string', itemsize, dtype.shape, dflt)
         # Most NumPy types have direct correspondence with PyTables types.
