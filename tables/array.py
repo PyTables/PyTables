@@ -24,7 +24,6 @@ from tables.utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
                           byteorders, quantize)
 from tables.leaf import Leaf
 
-from tables._past import previous_api, previous_api_property
 
 # default version for ARRAY objects
 # obversion = "1.0"    # initial version
@@ -87,8 +86,6 @@ class Array(hdf5extension.Array, Leaf):
     # Class identifier.
     _c_classid = 'ARRAY'
 
-    _c_classId = previous_api_property('_c_classid')
-    _v_objectId = previous_api_property('_v_objectid')
 
     # Lazy read-only attributes
     # `````````````````````````
@@ -253,7 +250,6 @@ class Array(hdf5extension.Array, Leaf):
 
         return self.atom.enum
 
-    getEnum = previous_api(get_enum)
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterate over the rows of the array.
@@ -327,7 +323,6 @@ class Array(hdf5extension.Array, Leaf):
         self._init = True  # Sentinel
         self.nrow = SizeType(self._start - self._step)    # row number
 
-    _initLoop = previous_api(_init_loop)
 
     def next(self):
         """Get the next element of the array during an iteration.
@@ -619,7 +614,6 @@ class Array(hdf5extension.Array, Leaf):
         mshape = tuple(x for x in mshape if x != 0)
         return selection, reorder, mshape
 
-    _fancySelection = previous_api(_fancy_selection)
 
     def __getitem__(self, key):
         """Get a row, a range of rows or a slice from the array.
@@ -750,7 +744,6 @@ class Array(hdf5extension.Array, Leaf):
         else:
             return nparr
 
-    _checkShape = previous_api(_check_shape)
 
     def _read_slice(self, startl, stopl, stepl, shape):
         """Read a slice based on `startl`, `stopl` and `stepl`."""
@@ -765,7 +758,6 @@ class Array(hdf5extension.Array, Leaf):
             nparr = nparr[()]
         return nparr
 
-    _readSlice = previous_api(_read_slice)
 
     def _read_coords(self, coords):
         """Read a set of points defined by `coords`."""
@@ -778,7 +770,6 @@ class Array(hdf5extension.Array, Leaf):
             nparr = nparr[()]
         return nparr
 
-    _readCoords = previous_api(_read_coords)
 
     def _read_selection(self, selection, reorder, shape):
         """Read a `selection`.
@@ -804,7 +795,6 @@ class Array(hdf5extension.Array, Leaf):
             nparr = nparr[k].copy()
         return nparr
 
-    _readSelection = previous_api(_read_selection)
 
     def _write_slice(self, startl, stopl, stepl, shape, nparr):
         """Write `nparr` in a slice based on `startl`, `stopl` and `stepl`."""
@@ -813,7 +803,6 @@ class Array(hdf5extension.Array, Leaf):
         countl = ((stopl - startl - 1) // stepl) + 1
         self._g_write_slice(startl, stepl, countl, nparr)
 
-    _writeSlice = previous_api(_write_slice)
 
     def _write_coords(self, coords, nparr):
         """Write `nparr` values in points defined by `coords` coordinates."""
@@ -822,7 +811,6 @@ class Array(hdf5extension.Array, Leaf):
             nparr = self._check_shape(nparr, (len(coords),))
             self._g_write_coords(coords, nparr)
 
-    _writeCoords = previous_api(_write_coords)
 
     def _write_selection(self, selection, reorder, shape, nparr):
         """Write `nparr` in `selection`.
@@ -842,7 +830,6 @@ class Array(hdf5extension.Array, Leaf):
             nparr = nparr[k].copy()
         self._g_write_selection(selection, nparr)
 
-    _writeSelection = previous_api(_write_selection)
 
     def _read(self, start, stop, step, out=None):
         """Read the array from disk without slice or flavor processing."""
@@ -934,7 +921,6 @@ class Array(hdf5extension.Array, Leaf):
 
         return (object_, nbytes)
 
-    _g_copyWithStats = previous_api(_g_copy_with_stats)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
@@ -961,4 +947,3 @@ class ImageArray(Array):
     # Class identifier.
     _c_classid = 'IMAGE'
 
-    _c_classId = previous_api_property('_c_classid')

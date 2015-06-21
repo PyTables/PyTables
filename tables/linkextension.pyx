@@ -24,7 +24,6 @@ from cpython.unicode cimport PyUnicode_DecodeUTF8
 from definitions cimport (H5P_DEFAULT,
   const_char, hid_t, herr_t, hbool_t, int64_t, H5T_cset_t, haddr_t)
 
-from tables._past import previous_api
 
 
 #----------------------------------------------------------------------
@@ -106,7 +105,6 @@ def _get_link_class(parent_id, name):
       return "UnImplemented"
 
 
-_getLinkClass = previous_api(_get_link_class)
 
 
 def _g_create_hard_link(parentnode, str name, targetnode):
@@ -123,7 +121,6 @@ def _g_create_hard_link(parentnode, str name, targetnode):
     raise HDF5ExtError("failed to create HDF5 hard link")
 
 
-_g_createHardLink = previous_api(_g_create_hard_link)
 
 
 #----------------------------------------------------------------------

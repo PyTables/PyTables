@@ -23,7 +23,6 @@ from numexpr.expressions import functions as numexpr_functions
 from tables.exceptions import PerformanceWarning
 from tables.parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 
-from tables._past import previous_api
 
 
 class Expr(object):
@@ -308,7 +307,6 @@ class Expr(object):
             reqvars[var] = val
         return reqvars
 
-    _requiredExprVars = previous_api(_required_expr_vars)
 
     def set_inputs_range(self, start=None, stop=None, step=None):
         """Define a range for all inputs in expression.
@@ -326,7 +324,6 @@ class Expr(object):
         self.stop = stop
         self.step = step
 
-    setInputsRange = previous_api(set_inputs_range)
 
     def set_output(self, out, append_mode=False):
         """Set out as container for output as well as the append_mode.
@@ -360,7 +357,6 @@ class Expr(object):
                 "with an `append()` method (like the `EArray`)")
         self.append_mode = append_mode
 
-    setOutput = previous_api(set_output)
 
     def set_output_range(self, start=None, stop=None, step=None):
         """Define a range for user-provided output object.
@@ -379,7 +375,6 @@ class Expr(object):
         self.o_stop = stop
         self.o_step = step
 
-    setOutputRange = previous_api(set_output_range)
 
     # Although the next code is similar to the method in `Leaf`, it
     # allows the use of pure NumPy objects.

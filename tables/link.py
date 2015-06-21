@@ -34,7 +34,6 @@ from tables.node import Node
 from tables.utils import lazyattr
 from tables.attributeset import AttributeSet
 import tables.file
-from tables._past import previous_api, previous_api_property
 
 
 def _g_get_link_class(parent_id, name):
@@ -42,7 +41,6 @@ def _g_get_link_class(parent_id, name):
 
     return linkextension._get_link_class(parent_id, name)
 
-_g_getLinkClass = previous_api(_g_get_link_class)
 
 
 class Link(Node):
@@ -193,7 +191,6 @@ class SoftLink(linkextension.SoftLink, Link):
     # Class identifier.
     _c_classid = 'SOFTLINK'
 
-    _c_classId = previous_api_property('_c_classid')
 
     # attributes with these names/prefixes are treated as attributes of the
     # SoftLink rather than the target node
@@ -345,7 +342,6 @@ class ExternalLink(linkextension.ExternalLink, Link):
     # Class identifier.
     _c_classid = 'EXTERNALLINK'
 
-    _c_classId = previous_api_property('_c_classid')
 
     def __init__(self, parentnode, name, target=None, _log=False):
         self.extfile = None

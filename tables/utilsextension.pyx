@@ -29,7 +29,6 @@ from tables.exceptions import HDF5ExtError
 from tables.atom import Atom, EnumAtom
 
 from tables.utils import check_file_access
-from tables._past import previous_api
 
 from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
@@ -310,7 +309,6 @@ def set_blosc_max_threads(nthreads):
   return blosc_set_nthreads(nthreads)
 
 
-setBloscMaxThreads = previous_api(set_blosc_max_threads)
 
 
 if sys.platform == "win32":
@@ -423,7 +421,6 @@ def silence_hdf5_messages(silence=True):
         raise HDF5ExtError("unable to configure HDF5 internal error handling")
 
 
-silenceHDF5Messages = previous_api(silence_hdf5_messages)
 
 
 # Disable automatic HDF5 error logging
@@ -637,7 +634,6 @@ def is_hdf5_file(object filename):
   return ret > 0
 
 
-isHDF5File = previous_api(is_hdf5_file)
 
 
 def is_pytables_file(object filename):
@@ -673,7 +669,6 @@ def is_pytables_file(object filename):
   return isptf
 
 
-isPyTablesFile = previous_api(is_pytables_file)
 
 
 def get_hdf5_version():
@@ -682,7 +677,6 @@ def get_hdf5_version():
   return getHDF5VersionInfo()[1]
 
 
-getHDF5Version = previous_api(get_hdf5_version)
 
 
 def get_pytables_version():
@@ -690,7 +684,6 @@ def get_pytables_version():
 
   return _getTablesVersion()
 
-getPyTablesVersion = previous_api(get_pytables_version)
 
 
 def which_lib_version(str name):
@@ -743,7 +736,6 @@ def which_lib_version(str name):
   return None
 
 
-whichLibVersion = previous_api(which_lib_version)
 
 
 # A function returning all the compressors supported by local Blosc
@@ -916,7 +908,6 @@ def which_class(hid_t loc_id, object name):
   return classId
 
 
-whichClass = previous_api(which_class)
 
 
 def get_nested_field(recarray, fieldname):
@@ -944,7 +935,6 @@ def get_nested_field(recarray, fieldname):
   return field
 
 
-getNestedField = previous_api(get_nested_field)
 
 
 def read_f_attr(hid_t file_id, str attr_name):
@@ -1002,7 +992,6 @@ def get_filters(parent_id, name):
   return get_filter_names(parent_id, encoded_name)
 
 
-getFilters = previous_api(get_filters)
 
 
 # This is used by several <Leaf>._convert_types() methods.
@@ -1038,7 +1027,6 @@ def get_type_enum(hid_t h5type):
       "enumerated values can not be stored using the given type")
   return enumId
 
-getTypeEnum = previous_api(get_type_enum)
 
 
 def enum_from_hdf5(hid_t enumId, str byteorder):
@@ -1100,7 +1088,6 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
   return Enum(enumDict), dtype
 
 
-enumFromHDF5 = previous_api(enum_from_hdf5)
 
 
 def enum_to_hdf5(object enum_atom, str byteorder):
@@ -1157,7 +1144,6 @@ def enum_to_hdf5(object enum_atom, str byteorder):
   return enum_id
 
 
-enumToHDF5 = previous_api(enum_to_hdf5)
 
 
 def atom_to_hdf5_type(atom, str byteorder):
@@ -1208,7 +1194,6 @@ def atom_to_hdf5_type(atom, str byteorder):
   return tid
 
 
-AtomToHDF5Type = previous_api(atom_to_hdf5_type)
 
 
 def load_enum(hid_t type_id):
@@ -1240,7 +1225,6 @@ def load_enum(hid_t type_id):
       raise HDF5ExtError("failed to close HDF5 enumerated type")
 
 
-loadEnum = previous_api(load_enum)
 
 
 def hdf5_to_np_nested_type(hid_t type_id):
@@ -1282,7 +1266,6 @@ def hdf5_to_np_nested_type(hid_t type_id):
   return desc
 
 
-HDF5ToNPNestedType = previous_api(hdf5_to_np_nested_type)
 
 
 def hdf5_to_np_ext_type(hid_t type_id, pure_numpy_types=True, atom=False):
@@ -1387,7 +1370,6 @@ def hdf5_to_np_ext_type(hid_t type_id, pure_numpy_types=True, atom=False):
   return stype, shape
 
 
-HDF5ToNPExtType = previous_api(hdf5_to_np_ext_type)
 
 
 def atom_from_hdf5_type(hid_t type_id, pure_numpy_types=False):
@@ -1417,7 +1399,6 @@ def atom_from_hdf5_type(hid_t type_id, pure_numpy_types=False):
   return atom_
 
 
-AtomFromHDF5Type = previous_api(atom_from_hdf5_type)
 
 
 def create_nested_type(object desc, str byteorder):
@@ -1447,7 +1428,6 @@ def create_nested_type(object desc, str byteorder):
   return tid
 
 
-createNestedType = previous_api(create_nested_type)
 
 
 ## Local Variables:

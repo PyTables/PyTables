@@ -60,7 +60,6 @@ from tables.atom import Atom
 
 from tables.link import SoftLink, ExternalLink
 
-from tables._past import previous_api, previous_api_property
 
 
 # format_version = "1.0"  # Initial format
@@ -208,7 +207,6 @@ def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
         # Close the source file.
         srcfileh.close()
 
-copyFile = previous_api(copy_file)
 
 
 if tuple(map(int, utilsextension.get_hdf5_version().split('-')[0].split('.'))) \
@@ -316,7 +314,6 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
     # Finally, create the File instance, and return it
     return File(filename, mode, title, root_uep, filters, **kwargs)
 
-openFile = previous_api(open_file)
 
 
 # A dumb class that doesn't keep nothing at all
@@ -701,8 +698,6 @@ class File(hdf5extension.File, object):
 
     # The top level kinds. Group must go first!
     _node_kinds = ('Group', 'Leaf', 'Link', 'Unknown')
-    rootUEP = previous_api_property('root_uep')
-    _v_objectId = previous_api_property('_v_objectid')
 
     def _gettitle(self):
         return self.root._v_title
@@ -872,7 +867,6 @@ class File(hdf5extension.File, object):
         # create the object tree
         return RootGroup(self, root_uep, title=title, new=new, filters=filters)
 
-    __getRootGroup = previous_api(__get_root_group)
 
     def _get_or_create_path(self, path, create):
         """Get the given `path` or create it if `create` is true.
@@ -887,7 +881,6 @@ class File(hdf5extension.File, object):
         else:
             return self.get_node(path)
 
-    _getOrCreatePath = previous_api(_get_or_create_path)
 
     def _create_path(self, path):
         """Create the groups needed for the `path` to exist.
@@ -911,7 +904,6 @@ class File(hdf5extension.File, object):
             parent = child
         return parent
 
-    _createPath = previous_api(_create_path)
 
     def create_group(self, where, name, title="", filters=None,
                      createparents=False):
@@ -950,7 +942,6 @@ class File(hdf5extension.File, object):
         return Group(parentnode, name,
                      title=title, new=True, filters=filters)
 
-    createGroup = previous_api(create_group)
 
     def create_table(self, where, name, description=None, title="",
                      filters=None, expectedrows=10000,
@@ -1063,7 +1054,6 @@ class File(hdf5extension.File, object):
 
         return ptobj
 
-    createTable = previous_api(create_table)
 
     def create_array(self, where, name, obj=None, title="",
                      byteorder=None, createparents=False,
@@ -1150,7 +1140,6 @@ class File(hdf5extension.File, object):
         return Array(parentnode, name,
                      obj=obj, title=title, byteorder=byteorder)
 
-    createArray = previous_api(create_array)
 
     def create_carray(self, where, name, atom=None, shape=None, title="",
                       filters=None, chunkshape=None,
@@ -1251,7 +1240,6 @@ class File(hdf5extension.File, object):
 
         return ptobj
 
-    createCArray = previous_api(create_carray)
 
     def create_earray(self, where, name, atom=None, shape=None, title="",
                       filters=None, expectedrows=1000,
@@ -1359,7 +1347,6 @@ class File(hdf5extension.File, object):
 
         return ptobj
 
-    createEArray = previous_api(create_earray)
 
     def create_vlarray(self, where, name, atom=None, title="",
                        filters=None, expectedrows=None,
@@ -1461,7 +1448,6 @@ class File(hdf5extension.File, object):
 
         return ptobj
 
-    createVLArray = previous_api(create_vlarray)
 
     def create_hard_link(self, where, name, target, createparents=False):
         """Create a hard link.
@@ -1484,7 +1470,6 @@ class File(hdf5extension.File, object):
         # Return the target node
         return self.get_node(parentnode, name)
 
-    createHardLink = previous_api(create_hard_link)
 
     def create_soft_link(self, where, name, target, createparents=False):
         """Create a soft link (aka symbolic link) to a `target` node.
@@ -1514,7 +1499,6 @@ class File(hdf5extension.File, object):
         parentnode._g_add_children_names()
         return slink
 
-    createSoftLink = previous_api(create_soft_link)
 
     def create_external_link(self, where, name, target, createparents=False):
         """Create an external link.
@@ -1544,7 +1528,6 @@ class File(hdf5extension.File, object):
         parentnode._g_add_children_names()
         return elink
 
-    createExternalLink = previous_api(create_external_link)
 
     def _get_node(self, nodepath):
         # The root node is always at hand.
@@ -1556,7 +1539,6 @@ class File(hdf5extension.File, object):
 
         return node
 
-    _getNode = previous_api(_get_node)
 
     def get_node(self, where, name=None, classname=None):
         """Get the node under where with the given name.
@@ -1630,7 +1612,6 @@ class File(hdf5extension.File, object):
 
         return node
 
-    getNode = previous_api(get_node)
 
     def is_visible_node(self, path):
         """Is the node under `path` visible?
@@ -1642,7 +1623,6 @@ class File(hdf5extension.File, object):
         # ``util.isvisiblepath()`` is still recommended for internal use.
         return self.get_node(path)._f_isvisible()
 
-    isVisibleNode = previous_api(is_visible_node)
 
     def rename_node(self, where, newname, name=None, overwrite=False):
         """Change the name of the node specified by where and name to newname.
@@ -1663,7 +1643,6 @@ class File(hdf5extension.File, object):
         obj = self.get_node(where, name=name)
         obj._f_rename(newname, overwrite)
 
-    renameNode = previous_api(rename_node)
 
     def move_node(self, where, newparent=None, newname=None, name=None,
                   overwrite=False, createparents=False):
@@ -1694,7 +1673,6 @@ class File(hdf5extension.File, object):
         obj = self.get_node(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
 
-    moveNode = previous_api(move_node)
 
     def copy_node(self, where, newparent=None, newname=None, name=None,
                   overwrite=False, recursive=False, createparents=False,
@@ -1758,7 +1736,6 @@ class File(hdf5extension.File, object):
         return obj._f_copy(newparent, newname,
                            overwrite, recursive, createparents, **kwargs)
 
-    copyNode = previous_api(copy_node)
 
     def remove_node(self, where, name=None, recursive=False):
         """Remove the object node *name* under *where* location.
@@ -1780,7 +1757,6 @@ class File(hdf5extension.File, object):
         obj = self.get_node(where, name=name)
         obj._f_remove(recursive)
 
-    removeNode = previous_api(remove_node)
 
     def get_node_attr(self, where, attrname, name=None):
         """Get a PyTables attribute from the given node.
@@ -1799,7 +1775,6 @@ class File(hdf5extension.File, object):
         obj = self.get_node(where, name=name)
         return obj._f_getattr(attrname)
 
-    getNodeAttr = previous_api(get_node_attr)
 
     def set_node_attr(self, where, attrname, attrvalue, name=None):
         """Set a PyTables attribute for the given node.
@@ -1829,7 +1804,6 @@ class File(hdf5extension.File, object):
         obj = self.get_node(where, name=name)
         obj._f_setattr(attrname, attrvalue)
 
-    setNodeAttr = previous_api(set_node_attr)
 
     def del_node_attr(self, where, attrname, name=None):
         """Delete a PyTables attribute from the given node.
@@ -1848,7 +1822,6 @@ class File(hdf5extension.File, object):
         obj = self.get_node(where, name=name)
         obj._f_delattr(attrname)
 
-    delNodeAttr = previous_api(del_node_attr)
 
     def copy_node_attrs(self, where, dstnode, name=None):
         """Copy PyTables attributes from one node to another.
@@ -1868,7 +1841,6 @@ class File(hdf5extension.File, object):
         dstobject = self.get_node(dstnode)
         srcobject._v_attrs._f_copy(dstobject)
 
-    copyNodeAttrs = previous_api(copy_node_attrs)
 
     def copy_children(self, srcgroup, dstgroup,
                       overwrite=False, recursive=False,
@@ -1903,7 +1875,6 @@ class File(hdf5extension.File, object):
         srcgroup._f_copy_children(
             dstgroup, overwrite, recursive, createparents, **kwargs)
 
-    copyChildren = previous_api(copy_children)
 
     def copy_file(self, dstfilename, overwrite=False, **kwargs):
         """Copy the contents of this file to dstfilename.
@@ -1978,7 +1949,6 @@ class File(hdf5extension.File, object):
         finally:
             dstfileh.close()
 
-    copyFile = previous_api(copy_file)
 
     def list_nodes(self, where, classname=None):
         """Return a *list* with children nodes hanging from where.
@@ -1992,7 +1962,6 @@ class File(hdf5extension.File, object):
 
         return group._f_list_nodes(classname)
 
-    listNodes = previous_api(list_nodes)
 
     def iter_nodes(self, where, classname=None):
         """Iterate over children nodes hanging from where.
@@ -2019,7 +1988,6 @@ class File(hdf5extension.File, object):
 
         return group._f_iter_nodes(classname)
 
-    iterNodes = previous_api(iter_nodes)
 
     def __contains__(self, path):
         """Is there a node with that path?
@@ -2104,7 +2072,6 @@ class File(hdf5extension.File, object):
                 for leaf in self.iter_nodes(group, classname):
                     yield leaf
 
-    walkNodes = previous_api(walk_nodes)
 
     def walk_groups(self, where="/"):
         """Recursively iterate over groups (not leaves) hanging from where.
@@ -2123,7 +2090,6 @@ class File(hdf5extension.File, object):
         self._check_group(group)  # Is it a group?
         return group._f_walk_groups()
 
-    walkGroups = previous_api(walk_groups)
 
     def _check_open(self):
         """Check the state of the file.
@@ -2135,14 +2101,12 @@ class File(hdf5extension.File, object):
         if not self.isopen:
             raise ClosedFileError("the file object is closed")
 
-    _checkOpen = previous_api(_check_open)
 
     def _iswritable(self):
         """Is this file writable?"""
 
         return self.mode in ('w', 'a', 'r+')
 
-    _isWritable = previous_api(_iswritable)
 
     def _check_writable(self):
         """Check whether the file is writable.
@@ -2154,14 +2118,12 @@ class File(hdf5extension.File, object):
         if not self._iswritable():
             raise FileModeError("the file is not writable")
 
-    _checkWritable = previous_api(_check_writable)
 
     def _check_group(self, node):
         # `node` must already be a node.
         if not isinstance(node, Group):
             raise TypeError("node ``%s`` is not a group" % (node._v_pathname,))
 
-    _checkGroup = previous_api(_check_group)
 
     # <Undo/Redo support>
     def is_undo_enabled(self):
@@ -2177,13 +2139,11 @@ class File(hdf5extension.File, object):
         self._check_open()
         return self._undoEnabled
 
-    isUndoEnabled = previous_api(is_undo_enabled)
 
     def _check_undo_enabled(self):
         if not self._undoEnabled:
             raise UndoRedoError("Undo/Redo feature is currently disabled!")
 
-    _checkUndoEnabled = previous_api(_check_undo_enabled)
 
     def _create_transaction_group(self):
         tgroup = TransactionGroupG(
@@ -2193,21 +2153,18 @@ class File(hdf5extension.File, object):
         tgroup._v_attrs._g__setattr('FORMATVERSION', _trans_version)
         return tgroup
 
-    _createTransactionGroup = previous_api(_create_transaction_group)
 
     def _create_transaction(self, troot, tid):
         return TransactionG(
             troot, _trans_name % tid,
             "Transaction number %d" % tid, new=True)
 
-    _createTransaction = previous_api(_create_transaction)
 
     def _create_mark(self, trans, mid):
         return MarkG(
             trans, _markName % mid,
             "Mark number %d" % mid, new=True)
 
-    _createMark = previous_api(_create_mark)
 
     def enable_undo(self, filters=Filters(complevel=1)):
         """Enable the Undo/Redo mechanism.
@@ -2304,7 +2261,6 @@ class File(hdf5extension.File, object):
         # The Undo/Redo mechanism has been enabled.
         self._undoEnabled = True
 
-    enableUndo = previous_api(enable_undo)
 
     def disable_undo(self):
         """Disable the Undo/Redo mechanism.
@@ -2341,7 +2297,6 @@ class File(hdf5extension.File, object):
         # The Undo/Redo mechanism has been disabled.
         self._undoEnabled = False
 
-    disableUndo = previous_api(disable_undo)
 
     def mark(self, name=None):
         """Mark the state of the database.
@@ -2461,7 +2416,6 @@ class File(hdf5extension.File, object):
         # print("markid, self._nmarks:", markid, self._nmarks)
         return markid
 
-    _getMarkID = previous_api(_get_mark_id)
 
     def _get_final_action(self, markid):
         """Get the action to go.
@@ -2481,7 +2435,6 @@ class File(hdf5extension.File, object):
 
         return self._seqmarkers[markid]
 
-    _getFinalAction = previous_api(_get_final_action)
 
     def _doundo(self, finalaction, direction):
         """Undo/Redo actions up to final action in the specificed direction."""
@@ -2670,7 +2623,6 @@ class File(hdf5extension.File, object):
         self._check_undo_enabled()
         return self._curmark
 
-    getCurrentMark = previous_api(get_current_mark)
 
     def _shadow_name(self):
         """Compute and return a shadow name.
@@ -2687,7 +2639,6 @@ class File(hdf5extension.File, object):
 
         return (parent, name)
 
-    _shadowName = previous_api(_shadow_name)
 
     # </Undo/Redo support>
 
@@ -2849,7 +2800,6 @@ class File(hdf5extension.File, object):
                     descendent_node = self._get_node(nodepath)
                     descendent_node._g_update_location(newnodeppath)
 
-    _updateNodeLocations = previous_api(_update_node_locations)
 
 
 # If a user hits ^C during a run, it is wise to gracefully close the

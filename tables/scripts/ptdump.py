@@ -25,7 +25,6 @@ from tables.group import Group
 from tables.leaf import Leaf
 from tables.table import Table, Column
 from tables.unimplemented import UnImplemented
-from tables._past import previous_api
 
 # default options
 options = argparse.Namespace(
@@ -82,7 +81,6 @@ def dump_leaf(leaf):
                 idx = col.index
                 print(repr(idx))
 
-dumpLeaf = previous_api(dump_leaf)
 
 
 def dump_group(pgroup):
@@ -99,7 +97,6 @@ def dump_group(pgroup):
                     print(str(node))
 
 
-dumpGroup = previous_api(dump_group)
 
 
 def _get_parser():

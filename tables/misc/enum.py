@@ -28,7 +28,6 @@ standard variables and constants are more adequate.
 
 """
 
-from tables._past import previous_api
 
 
 __docformat__ = 'reStructuredText'
@@ -162,7 +161,6 @@ sequences, mappings and other enumerations""")
         values[value] = name
         self.__dict__[name] = value
 
-    _checkAndSetPair = previous_api(_check_and_set_pair)
 
     def __getitem__(self, name):
         """Get the concrete value of the enumerated value with that name.

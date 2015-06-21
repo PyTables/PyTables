@@ -443,19 +443,6 @@ and all sub-directories:
     Users of Python 2.6 should install :mod:`argparse` separately
     (e.g. via :program:`pip`).
 
-The old APIs and variable names will continue to be supported for the short term,
-where possible.  (The major backwards incompatible changes come from the renaming
-of some function and method arguments and keyword arguments.)  Using the 2.x APIs
-in the 3.x series, however, will issue warnings.  The following is the release
-plan for the warning types:
-
-* 3.0 - PendingDeprecationWarning
-* 3.1 - DeprecationWarning
-* >=3.2 - Remove warnings, previous_api(), and _past.py; keep pt2to3,
-
-The current plan is to maintain the old APIs for at least 2 years, though this
-is subject to change.
-
 .. _PEP 8: http://www.python.org/dev/peps/pep-0008/
 
 

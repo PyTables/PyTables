@@ -18,7 +18,6 @@ from tables import hdf5extension
 from tables.utils import SizeType
 from tables.node import Node
 from tables.leaf import Leaf
-from tables._past import previous_api_property
 
 
 class UnImplemented(hdf5extension.UnImplemented, Leaf):
@@ -49,7 +48,6 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
     # Class identifier.
     _c_classid = 'UNIMPLEMENTED'
 
-    _c_classId = previous_api_property('_c_classid')
 
     def __init__(self, parentnode, name):
         """Create the `UnImplemented` instance."""
@@ -127,7 +125,6 @@ class Unknown(Node):
     # Class identifier
     _c_classid = 'UNKNOWN'
 
-    _c_classId = previous_api_property('_c_classid')
 
     def __init__(self, parentnode, name):
         """Create the `Unknown` instance."""
@@ -165,4 +162,3 @@ class Unknown(Node):
 class OldIndexArray(UnImplemented):
     _c_classid = 'IndexArray'
 
-    _c_classId = previous_api_property('_c_classid')

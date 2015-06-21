@@ -16,7 +16,6 @@ import sys
 import math
 import numpy
 
-from tables._past import previous_api
 
 
 # Hints for chunk/slice/block/superblock computations:
@@ -136,7 +135,6 @@ def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
     sizes = (superblocksize, blocksize, slicesize, chunksize)
     return sizes
 
-calcChunksize = previous_api(calc_chunksize)
 
 
 def ccs_ultralight(optlevel, chunksize, slicesize):
@@ -390,7 +388,6 @@ def inftype(dtype, itemsize, sign=+1):
     except KeyError:
         raise TypeError("Type %s is not supported" % dtype.name)
 
-infType = previous_api(inftype)
 
 
 def string_next_after(x, direction, itemsize):
@@ -436,7 +433,6 @@ def string_next_after(x, direction, itemsize):
     xlist.reverse()
     return b"".join(xlist)
 
-StringNextAfter = previous_api(string_next_after)
 
 
 def int_type_next_after(x, direction, itemsize):
@@ -459,7 +455,6 @@ def int_type_next_after(x, direction, itemsize):
             # return int(PyNextAfter(x,x + 1)) + 1
             return int(numpy.nextafter(x, x + 1)) + 1
 
-IntTypeNextAfter = previous_api(int_type_next_after)
 
 
 def bool_type_next_after(x, direction, itemsize):
@@ -474,7 +469,6 @@ def bool_type_next_after(x, direction, itemsize):
     else:
         return True
 
-BoolTypeNextAfter = previous_api(bool_type_next_after)
 
 
 def nextafter(x, direction, dtype, itemsize):
