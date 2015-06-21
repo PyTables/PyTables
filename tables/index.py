@@ -168,10 +168,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         :ref:`FiltersClassDescr`.""")
 
     def _getdirty(self):
-        if 'DIRTY' not in self._v_attrs:
-            # If there is no ``DIRTY`` attribute, index should be clean.
-            return False
-        return self._v_attrs.DIRTY
+        # If there is no ``DIRTY`` attribute, index should be clean.
+        return getattr(self._v_attrs, 'DIRTY', False)
 
     def _setdirty(self, dirty):
         wasdirty, isdirty = self.dirty, bool(dirty)

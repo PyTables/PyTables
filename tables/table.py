@@ -1065,9 +1065,8 @@ class Table(tableextension.Table, Leaf):
 
                 # Set also the correct value in the desc._v_dflts dictionary
                 for descr in self.description._f_walk(type="Description"):
-                    names = descr._v_names
-                    for i in range(len(names)):
-                        objcol = descr._v_colobjects[names[i]]
+                    for name in descr._v_names:
+                        objcol = descr._v_colobjects[name]
                         if isinstance(objcol, Col):
                             descr._v_dflts[objcol._v_name] = objcol.dflt
 

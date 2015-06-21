@@ -577,9 +577,8 @@ class Description(object):
         names = self._v_names
         fmts = self._v_nested_formats
         self._v_nested_names = names[:]  # Important to do a copy!
-        self._v_nested_descr = [(names[i], fmts[i]) for i in range(len(names))]
-        for i in range(len(names)):
-            name = names[i]
+        self._v_nested_descr = list(zip(names, fmts))
+        for i, name in enumerate(names):
             new_object = self._v_colobjects[name]
             if isinstance(new_object, Description):
                 new_object._g_set_nested_names_descr()
@@ -687,9 +686,8 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
             object = stack.pop(0)  # pop at the front so as to ensure the order
             if type in ["All", "Description"]:
                 yield object  # yield description
-            names = object._v_names
-            for i in range(len(names)):
-                new_object = object._v_colobjects[names[i]]
+            for name in object._v_names:
+                new_object = object._v_colobjects[name]
                 if isinstance(new_object, Description):
                     stack.append(new_object)
                 else:
