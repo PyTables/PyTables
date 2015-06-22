@@ -268,8 +268,10 @@ class AtomTestCase(TestCase):
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_dtype_03(self):
-        atom1 = Atom.from_dtype(numpy.dtype('U5'), dflt=b'hello')
-        atom2 = StringAtom(itemsize=5, shape=(), dflt=b'hello')
+        dt = numpy.dtype('U5')
+        atom1 = Atom.from_dtype(dt, dflt=b'hello')
+        # Unicode itemsize is 4 * equivalent String itemsize
+        atom2 = StringAtom(itemsize=dt.base.itemsize, shape=(), dflt=b'hello')
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
