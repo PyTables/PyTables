@@ -26,6 +26,9 @@ from tables.misc.enum import Enum
 
 from tables._past import previous_api
 
+import warnings
+from tables.exceptions import DataTypeWarning
+
 # Public variables
 # ================
 __docformat__ = 'reStructuredText'
@@ -372,8 +375,15 @@ class Atom(object):
         if basedtype.shape != ():
             raise ValueError("nested data types are not supported: %r"
                              % dtype)
-        if basedtype.kind in ('S', 'U'):  # can not reuse something like 'string80'
+        if basedtype.kind == 'S':  # can not reuse something like 'string80'
             itemsize = basedtype.itemsize
+            return class_.from_kind('string', itemsize, dtype.shape, dflt)
+        elif basedtype.kind == 'U':
+            # workaround for unicode type (standard string type in Python 3)
+            warnings.warn("support for unicode type is very limited, "
+                          "and only works for strings that can be casted as ascii", DataTypeWarning)
+            itemsize = basedtype.itemsize / 4
+            assert str(itemsize) in basedtype.str, "something went wrong in handling unicode."
             return class_.from_kind('string', itemsize, dtype.shape, dflt)
         # Most NumPy types have direct correspondence with PyTables types.
         return class_.from_type(basedtype.name, dtype.shape, dflt)
