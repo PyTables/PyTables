@@ -382,7 +382,7 @@ class Atom(object):
             # workaround for unicode type (standard string type in Python 3)
             warnings.warn("support for unicode type is very limited, "
                           "and only works for strings that can be casted as ascii", DataTypeWarning)
-            itemsize = basedtype.itemsize / 4
+            itemsize = basedtype.itemsize // 4
             assert str(itemsize) in basedtype.str, "something went wrong in handling unicode."
             return class_.from_kind('string', itemsize, dtype.shape, dflt)
         # Most NumPy types have direct correspondence with PyTables types.
