@@ -27,7 +27,7 @@ from tables.misc.enum import Enum
 from tables._past import previous_api
 
 import warnings
-from tables.exceptions import DataTypeWarning
+from tables.exceptions import FlavorWarning
 
 # Public variables
 # ================
@@ -381,7 +381,7 @@ class Atom(object):
         elif basedtype.kind == 'U':
             # workaround for unicode type (standard string type in Python 3)
             warnings.warn("support for unicode type is very limited, "
-                          "and only works for strings that can be casted as ascii", DataTypeWarning)
+                          "and only works for strings that can be casted as ascii", FlavorWarning)
             itemsize = basedtype.itemsize // 4
             assert str(itemsize) in basedtype.str, "something went wrong in handling unicode."
             return class_.from_kind('string', itemsize, dtype.shape, dflt)
