@@ -290,7 +290,7 @@ cdef void _keysort(number_type* start1, char* start2, size_t elsize2, size_t n) 
             swap_bytes(ipi, ipr-elsize2, elsize2)
 
             # push largest partition on stack and proceed with the other
-            if (pi - pl) > (pr - pi):
+            if (pi - pl) < (pr - pi):
                 sptr[0] = pi + 1
                 sptr[1] = pr
                 sptr += 2
