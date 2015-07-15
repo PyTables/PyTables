@@ -128,7 +128,7 @@ You can also use the following functions in conditions:
 
 - sqrt(float|complex): float|complex - square root.
 
-- {abs}(float|complex): float|complex - absolute value.
+- abs(float|complex): float|complex - absolute value.
 
 - {real,imag}(complex):
   float - real or imaginary part of complex.
