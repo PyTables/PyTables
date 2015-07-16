@@ -21,3 +21,10 @@ install:
   - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
 
 script: make check
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/58f8a9014ef02f6217ec
+    on_success: change 
+
