@@ -1538,7 +1538,7 @@ class Table(tableextension.Table, Leaf):
         return self.read_coordinates(coords, field)
 
 
-    def append_where(self, dstTable, condition, condvars=None,
+    def append_where(self, dstTable, condition=None, condvars=None,
                      start=None, stop=None, step=None):
         """Append rows fulfilling the condition to the dstTable table.
 
@@ -1565,7 +1565,11 @@ class Table(tableextension.Table, Leaf):
         colNames = [colName for colName in self.colpathnames]
         dstRow = dstTable.row
         nrows = 0
-        for srcRow in self._where(condition, condvars, start, stop, step):
+        if condition is not None:
+            srcRows = self._where(condition, condvars, start, stop, step)
+        else:
+            srcRows = self.iterrows(start, stop, step)
+        for srcRow in srcRows:
             for colName in colNames:
                 dstRow[colName] = srcRow[colName]
             dstRow.append()
