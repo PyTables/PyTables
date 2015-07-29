@@ -118,7 +118,7 @@ string (of bytes).
     course, it can be quite large.
 
 The `ìmage` string can be passed around and can also be used to initialize a
-new HDF55 file descriptor::
+new HDF5 file descriptor::
 
     >>> import tables
     >>> h5file = tables.open_file("in-memory-sample.h5", driver="H5DF_CORE",
