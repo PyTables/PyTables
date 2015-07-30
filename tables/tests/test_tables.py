@@ -5368,6 +5368,26 @@ class WhereAppendTestCase(common.TempFileMixin, TestCase):
             if os.path.exists(h5fname2):
                 os.remove(h5fname2)
 
+    def test06_wholeTable(self):
+        """Append whole table."""
+
+        DstTblDesc = self.SrcTblDesc
+
+        tbl1 = self.h5file.root.test
+        tbl2 = self.h5file.create_table('/', 'test2', DstTblDesc)
+
+        tbl1.append_where(tbl2)
+
+        # Rows resulting from the query are those in the new table.
+        it2 = iter(tbl2)
+        for r1 in tbl1.__iter__():
+            r2 = next(it2)
+            self.assertTrue(r1['id'] == r2['id'] and r1['v1'] == r2['v1']
+                            and r1['v2'] == r2['v2'])
+
+        # There are no more rows.
+        self.assertRaises(StopIteration, it2.next)
+
 
 class DerivedTableTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
