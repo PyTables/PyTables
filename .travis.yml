@@ -21,6 +21,7 @@ install:
   - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
 
 script:
+  - mkdir clean_directory && cd clean_directory
   - python -m tables.tests.test_all
 
 notifications:
