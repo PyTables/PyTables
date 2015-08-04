@@ -67,8 +67,8 @@ def calc_chunksize(expected_mb):
     zone = int(math.log10(expected_mb))
     expected_mb = 10**zone
     chunksize = csformula(expected_mb)
-    return chunksize * 8     # XXX: Multiply by 8 seems optimal for
-                           # sequential access
+    # XXX: Multiply by 8 seems optimal for sequential access
+    return chunksize * 8
 
 
 class Leaf(Node):
@@ -137,35 +137,37 @@ class Leaf(Node):
 
     # Read-only node property aliases
     # ```````````````````````````````
-    name = property(
-        lambda self: self._v_name, None, None,
-        """The name of this node in its parent group
-        (This is an easier-to-write alias of :attr:`Node._v_name`).""")
+    @property
+    def name(self):
+        """The name of this node in its parent group (This is an easier-to-write alias of :attr:`Node._v_name`)."""
+        return self._v_name
 
-    chunkshape = property(
-        lambda self: getattr(self, '_v_chunkshape', None), None, None,
+    @property
+    def chunkshape(self):
         """The HDF5 chunk size for chunked leaves (a tuple).
 
         This is read-only because you cannot change the chunk size of a
         leaf once it has been created.
-        """)
+        """
+        return getattr(self, '_v_chunkshape', None)
 
-    object_id = property(
-        lambda self: self._v_objectid, None, None,
+    @property
+    def object_id(self):
         """A node identifier, which may change from run to run.
         (This is an easier-to-write alias of :attr:`Node._v_objectid`).
 
         .. versionchanged:: 3.0
            The *objectID* property has been renamed into *object_id*.
 
-        """)
+        """
+        return self._v_objectid
 
-
-    ndim = property(
-        lambda self: len(self.shape), None, None,
+    @property
+    def ndim(self):
         """The number of dimensions of the leaf data.
 
-        .. versionadded: 2.4""")
+        .. versionadded: 2.4"""
+        return len(self.shape)
 
     # Lazy read-only attributes
     # `````````````````````````
@@ -183,30 +185,21 @@ class Leaf(Node):
 
     # Other properties
     # ````````````````
-    def _getmaindim(self):
-        if self.extdim < 0:
-            return 0  # choose the first dimension
-        return self.extdim
 
-    maindim = property(
-        _getmaindim, None, None,
+    @property
+    def maindim(self):
         """The dimension along which iterators work.
 
         Its value is 0 (i.e. the first dimension) when the dataset is not
         extendable, and self.extdim (where available) for extendable ones.
-        """)
+        """
 
-    def _setflavor(self, flavor):
-        self._v_file._check_writable()
-        check_flavor(flavor)
-        self._v_attrs.FLAVOR = self._flavor = flavor  # logs the change
+        if self.extdim < 0:
+            return 0  # choose the first dimension
+        return self.extdim
 
-    def _delflavor(self):
-        del self._v_attrs.FLAVOR
-        self._flavor = internal_flavor
-
-    flavor = property(
-        lambda self: self._flavor, _setflavor, _delflavor,
+    @property
+    def flavor(self):
         """The type of data object read from this leaf.
 
         It can be any of 'numpy' or 'python'.
@@ -214,15 +207,30 @@ class Leaf(Node):
         You can (and are encouraged to) use this property to get, set
         and delete the FLAVOR HDF5 attribute of the leaf. When the leaf
         has no such attribute, the default flavor is used..
-        """)
+        """
 
-    size_on_disk = property(lambda self: self._get_storage_size(), None, None,
-                            """
+        return self._flavor
+
+    @flavor.setter
+    def flavor(self, flavor):
+        self._v_file._check_writable()
+        check_flavor(flavor)
+        self._v_attrs.FLAVOR = self._flavor = flavor  # logs the change
+
+    @flavor.deleter
+    def flavor(self):
+        del self._v_attrs.FLAVOR
+        self._flavor = internal_flavor
+
+    @property
+    def size_on_disk(self):
+        """
         The size of this leaf's data in bytes as it is stored on disk.  If the
         data is compressed, this shows the compressed size.  In the case of
         uncompressed, chunked data, this may be slightly larger than the amount
         of data, due to partially filled chunks.
-        """)
+        """
+        return self._get_storage_size()
 
     # Special methods
     # ~~~~~~~~~~~~~~~
@@ -312,7 +320,6 @@ class Leaf(Node):
                 self._flavor = flavor_alias_map.get(flavor, flavor)
             else:
                 self._flavor = internal_flavor
-
 
     def _calc_chunkshape(self, expectedrows, rowsize, itemsize):
         """Calculate the shape for the HDF5 chunk."""
@@ -412,7 +419,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         return slice(start, stop, step).indices(long(nrows))
 
-
     # This method is appropriate for calls to read() methods
     def _process_range_read(self, start, stop, step, warn_negstep=True):
         nrows = self.nrows
@@ -431,7 +437,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         start, stop, step = self._process_range(start, stop, step,
                                                 warn_negstep=warn_negstep)
         return (start, stop, step)
-
 
     def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         # Compute default arguments.
@@ -574,7 +579,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             coords = coords.copy()
         return coords
 
-
     # Public methods
     # ~~~~~~~~~~~~~~
     # Tree manipulation
@@ -686,7 +690,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         return self._f_isvisible()
 
-
     # Attribute handling
     # ``````````````````
     def get_attr(self, name):
@@ -698,7 +701,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         return self._f_getattr(name)
 
-
     def set_attr(self, name, value):
         """Set a PyTables attribute for this node.
 
@@ -708,7 +710,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_setattr(name, value)
 
-
     def del_attr(self, name):
         """Delete a PyTables attribute from this node.
 
@@ -717,7 +718,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         self._f_delattr(name)
-
 
     # Data handling
     # `````````````
