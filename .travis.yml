@@ -16,15 +16,16 @@ addons:
     - liblzo2-dev
 
 install:
-  - pip install -r requirements.txt
   - pip install cython
+  - pip install .
   - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
 
-script: make check
+script:
+  - python -m tables.tests.test_all
 
 notifications:
   webhooks:
     urls:
       - https://webhooks.gitter.im/e/58f8a9014ef02f6217ec
-    on_success: change 
+    on_success: change
 
