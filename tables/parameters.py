@@ -400,7 +400,7 @@ memory or on file.
 DRIVER_CORE_IMAGE = None
 """String containing an HDF5 file image.
 
-If this oprion is passed to the :func:`tables.open_file` function then the
+If this option is passed to the :func:`tables.open_file` function then the
 returned file object is set up using the specified image.
 
 A file image can be retrieved from an existing (and opened) file object
