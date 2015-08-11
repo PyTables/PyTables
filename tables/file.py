@@ -705,11 +705,11 @@ class File(hdf5extension.File, object):
         return self.root._v_title
 
     @title.setter
-    def _settitle(self, title):
+    def title(self, title):
         self.root._v_title = title
 
     @title.deleter
-    def _deltitle(self):
+    def title(self):
         del self.root._v_title
 
     @property
@@ -718,11 +718,11 @@ class File(hdf5extension.File, object):
         return self.root._v_filters
 
     @filters.setter
-    def _setfilters(self, filters):
+    def filters(self, filters):
         self.root._v_filters = filters
 
-    @filter.deleter
-    def _delfilters(self):
+    @filters.deleter
+    def filters(self):
         del self.root._v_filters
 
     @property
