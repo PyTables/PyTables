@@ -739,6 +739,7 @@ class ComplexAtom(Atom):
     _defvalue = 0j
     _isizes = [8, 16]
 
+    @property
     def itemsize(self):
          "Size in bytes of a sigle item in the atom."
          return self.dtype.base.itemsize
