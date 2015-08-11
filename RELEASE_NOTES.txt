@@ -7,11 +7,19 @@
 
 .. py:currentmodule:: tables
 
+Changes from 3.2.1 to xxxxx
+===========================
+
+- It is now possible to remove all rows from a table.
+
 
 Changes from 3.2.0 to 3.2.1
 ===========================
 
-- It is now possible to remove all rows from a table.
+Bug fixed
+---------
+
+- Fix indexesextension._keysort. Fixes :issue:`455`. Thanks to Andrew Lin.
 
 
 Changes from 3.1.1 to 3.2.0
