@@ -160,7 +160,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
     def kind(self):
         "The kind of this index."
         return {1: 'ultralight', 2: 'light',
-                4: 'medium', 8: 'full'}[self.indsize],
+                4: 'medium', 8: 'full'}[self.indsize]
 
     @property
     def filters(self):

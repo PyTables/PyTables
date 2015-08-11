@@ -3333,7 +3333,7 @@ class Column(object):
         return (self.table.nrows,) + self.descr._v_dtypes[self.name].shape
 
     @property
-    def isindexed(self):
+    def is_indexed(self):
         "True if the column is indexed, false otherwise."
         if self.index is None:
             return False
