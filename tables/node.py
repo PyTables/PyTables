@@ -154,11 +154,11 @@ class Node(object):
 
     # `_v_parent` is accessed via its file to avoid upwards references.
     def _g_getparent(self):
+        "The parent :class:`Group` instance"
         (parentpath, nodename) = split_path(self._v_pathname)
         return self._v_file._get_node(parentpath)
 
-    _v_parent = property(
-        _g_getparent, None, None, ("The parent :class:`Group` instance"))
+    _v_parent = property(_g_getparent)
 
     # '_v_attrs' is defined as a lazy read-only attribute.
     # This saves 0.7s/3.8s.
@@ -177,6 +177,7 @@ class Node(object):
     # '_v_title' is a direct read-write shorthand for the 'TITLE' attribute
     # with the empty string as a default value.
     def _g_gettitle(self):
+        "A description of this node. A shorthand for TITLE attribute."
         if hasattr(self._v_attrs, 'TITLE'):
             return self._v_attrs.TITLE
         else:
@@ -185,9 +186,7 @@ class Node(object):
     def _g_settitle(self, title):
         self._v_attrs.TITLE = title
 
-    _v_title = property(_g_gettitle, _g_settitle, None,
-                        ("A description of this node. A shorthand for "
-                         "TITLE attribute."))
+    _v_title = property(_g_gettitle, _g_settitle)
 
     # This may be looked up by ``__del__`` when ``__init__`` doesn't get
     # to be called.  See ticket #144 for more info.

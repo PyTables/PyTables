@@ -167,10 +167,10 @@ class Group(hdf5extension.Group, Node):
     # `_v_nchildren` is a direct read-only shorthand
     # for the number of *visible* children in a group.
     def _g_getnchildren(self):
+        "The number of children hanging from this group."
         return len(self._v_children)
 
-    _v_nchildren = property(_g_getnchildren, None, None,
-                            "The number of children hanging from this group.")
+    _v_nchildren = property(_g_getnchildren)
 
     # `_v_filters` is a direct read-write shorthand for the ``FILTERS``
     # attribute with the default `Filters` instance as a default value.

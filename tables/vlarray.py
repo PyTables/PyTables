@@ -212,22 +212,23 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     # Properties
     # ~~~~~~~~~~
-    shape = property(
-        lambda self: (self.nrows,), None, None,
-        "The shape of the stored array.")
 
-    def _get_size_on_disk(self):
-        raise NotImplementedError('size_on_disk not implemented for VLArrays')
+    @property
+    def shape(self):
+        "The shape of the stored array."
+        return (self.nrows,)
 
-    size_on_disk = property(_get_size_on_disk, None, None,
-                            """
+    @property
+    def size_on_disk(self):
+        """
         The HDF5 library does not include a function to determine size_on_disk
         for variable-length arrays.  Accessing this attribute will raise a
         NotImplementedError.
-        """)
+        """
+        raise NotImplementedError('size_on_disk not implemented for VLArrays')
 
-    size_in_memory = property(
-        lambda self: self._get_memory_size(), None, None,
+    @property
+    def size_in_memory(self):
         """
         The size of this array's data in bytes when it is fully loaded
         into memory.
@@ -242,7 +243,9 @@ class VLArray(hdf5extension.VLArray, Leaf):
             objects after they are loaded from disk, you can use this
             `ActiveState recipe
             <http://code.activestate.com/recipes/577504/>`_.
-        """)
+        """
+        return self._get_memory_size()
+
 
     # Other methods
     # ~~~~~~~~~~~~~

@@ -192,9 +192,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
     def _g_getnode(self):
         return self._v__nodefile._get_node(self._v__nodepath)
 
-    _v_node = property(_g_getnode, None, None,
-                       "The :class:`Node` instance this attribute set is "
-                       "associated with.")
+    @property
+    def _v_node(self):
+        """The :class:`Node` instance this attribute set is associated with."""
+        return self._g_getnode()
 
     def __init__(self, node):
         """Create the basic structures to keep the attribute information.

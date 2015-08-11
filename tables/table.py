@@ -139,61 +139,6 @@ def _index_pathname_of_column_(tablePath, colpathname):
 
 
 
-def _table__setautoindex(self, auto):
-    auto = bool(auto)
-    try:
-        indexgroup = self._v_file._get_node(_index_pathname_of(self))
-    except NoSuchNodeError:
-        indexgroup = create_indexes_table(self)
-    indexgroup.auto = auto
-    # Update the cache in table instance as well
-    self._autoindex = auto
-
-
-
-# **************** WARNING! ***********************
-# This function can be called during the destruction time of a table
-# so measures have been taken so that it doesn't have to revive
-# another node (which can fool the LRU cache). The solution devised
-# has been to add a cache for autoindex (Table._autoindex), populate
-# it in creation time of the cache (which is a safe period) and then
-# update the cache whenever it changes.
-# This solves the error when running test_indexes.py ManyNodesTestCase.
-# F. Alted 2007-04-20
-# **************************************************
-def _table__getautoindex(self):
-    if self._autoindex is None:
-        try:
-            indexgroup = self._v_file._get_node(_index_pathname_of(self))
-        except NoSuchNodeError:
-            self._autoindex = default_auto_index  # update cache
-            return self._autoindex
-        else:
-            self._autoindex = indexgroup.auto   # update cache
-            return self._autoindex
-    else:
-        # The value is in cache, return it
-        return self._autoindex
-
-
-_table__autoindex = property(
-    _table__getautoindex, _table__setautoindex, None,
-    """Automatically keep column indexes up to date?
-
-    Setting this value states whether existing indexes should be
-    automatically updated after an append operation or recomputed
-    after an index-invalidating operation (i.e. removal and
-    modification of rows).  The default is true.
-
-    This value gets into effect whenever a column is altered.  If you
-    don't have automatic indexing activated and you want to do an an
-    immediate update use `Table.flush_rows_to_index()`; for an immediate
-    reindexing of invalidated indexes, use `Table.reindex_dirty()`.
-
-    This value is persistent.
-    """)
-
-
 
 def restorecache(self):
     # Define a cache for sparse table reads
@@ -590,19 +535,22 @@ class Table(tableextension.Table, Leaf):
     # Read-only shorthands
     # ````````````````````
 
-    shape = property(
-        lambda self: (self.nrows,), None, None,
-        "The shape of this table.")
+    @property
+    def shape(self):
+        "The shape of this table."
+        return (self.nrows,)
 
-    rowsize = property(
-        lambda self: self.description._v_dtype.itemsize, None, None,
-        "The size in bytes of each row in the table.")
+    @property
+    def rowsize(self):
+        "The size in bytes of each row in the table."
+        return self.description._v_dtype.itemsize
 
-    size_in_memory = property(
-        lambda self: self.nrows * self.rowsize, None, None,
+    @property
+    def size_in_memory(self):
         """The size of this table's data in bytes when it is fully loaded into
         memory.  This may be used in combination with size_on_disk to calculate
-        the compression ratio of the data.""")
+        the compression ratio of the data."""
+        return self.nrows * self.rowsize
 
     # Lazy attributes
     # ```````````````
@@ -642,44 +590,81 @@ class Table(tableextension.Table, Leaf):
 
     # Index-related properties
     # ````````````````````````
-    autoindex = _table__autoindex
-    """Automatically keep column indexes up to date?
 
-    Setting this value states whether existing indexes should be automatically
-    updated after an append operation or recomputed after an index-invalidating
-    operation (i.e. removal and modification of rows). The default is true.
+    # **************** WARNING! ***********************
+    # This function can be called during the destruction time of a table
+    # so measures have been taken so that it doesn't have to revive
+    # another node (which can fool the LRU cache). The solution devised
+    # has been to add a cache for autoindex (Table._autoindex), populate
+    # it in creation time of the cache (which is a safe period) and then
+    # update the cache whenever it changes.
+    # This solves the error when running test_indexes.py ManyNodesTestCase.
+    # F. Alted 2007-04-20
+    # **************************************************
 
-    This value gets into effect whenever a column is altered. If you don't have
-    automatic indexing activated and you want to do an immediate update use
-    :meth:`Table.flush_rows_to_index`; for immediate reindexing of invalidated
-    indexes, use :meth:`Table.reindex_dirty`.
+    @property
+    def autoindex(self):
+        """Automatically keep column indexes up to date?
 
-    This value is persistent.
+        Setting this value states whether existing indexes should be
+        automatically updated after an append operation or recomputed
+        after an index-invalidating operation (i.e. removal and
+        modification of rows).  The default is true.
 
-    .. versionchanged:: 3.0
-       The *autoIndex* property has been renamed into *autoindex*.
+        This value gets into effect whenever a column is altered.  If you
+        don't have automatic indexing activated and you want to do an an
+        immediate update use `Table.flush_rows_to_index()`; for an immediate
+        reindexing of invalidated indexes, use `Table.reindex_dirty()`.
 
-    """
+        This value is persistent.
+
+        .. versionchanged:: 3.0
+           The *autoIndex* property has been renamed into *autoindex*.
+        """
+
+        if self._autoindex is None:
+            try:
+                indexgroup = self._v_file._get_node(_index_pathname_of(self))
+            except NoSuchNodeError:
+                self._autoindex = default_auto_index  # update cache
+                return self._autoindex
+            else:
+                self._autoindex = indexgroup.auto   # update cache
+                return self._autoindex
+        else:
+            # The value is in cache, return it
+            return self._autoindex
+
+    @autoindex.setter
+    def autoindex(self, auto):
+        auto = bool(auto)
+        try:
+            indexgroup = self._v_file._get_node(_index_pathname_of(self))
+        except NoSuchNodeError:
+            indexgroup = create_indexes_table(self)
+        indexgroup.auto = auto
+        # Update the cache in table instance as well
+        self._autoindex = auto
 
 
-    indexedcolpathnames = property(
-        lambda self: [_colpname for _colpname in self.colpathnames
-                      if self.colindexed[_colpname]],
-        None, None,
-        """List of pathnames of indexed columns in the table.""")
+    @property
+    def indexedcolpathnames(self):
+        """List of pathnames of indexed columns in the table."""
+        return [_colpname for _colpname in self.colpathnames if self.colindexed[_colpname]]
 
-    colindexes = property(
-        lambda self: _ColIndexes(
-            ((_colpname, self.cols._f_col(_colpname).index)
-             for _colpname in self.colpathnames
-             if self.colindexed[_colpname])),
-        None, None,
-        """A dictionary with the indexes of the indexed columns.""")
+    @property
+    def colindexes(self):
+        """A dictionary with the indexes of the indexed columns."""
+        return _ColIndexes(
+                ((_colpname, self.cols._f_col(_colpname).index)
+                    for _colpname in self.colpathnames
+                    if self.colindexed[_colpname]))
 
-    _dirtyindexes = property(
-        lambda self: self._condition_cache._nailcount > 0,
-        None, None,
-        """Whether some index in table is dirty.""")
+    @property
+    def _dirtyindexes(self):
+        """Whether some index in table is dirty."""
+        return self._condition_cache._nailcount > 0
+
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -3037,15 +3022,12 @@ class Cols(object):
 
     """
 
-    def _g_gettable(self):
+    @property
+    def _v_table(self):
+        "The parent Table instance (see :ref:`TableClassDescr`)."
         return self._v__tableFile._get_node(self._v__tablePath)
 
-    _v_table = property(
-        _g_gettable, None, None,
-        "The parent Table instance (see :ref:`TableClassDescr`).")
-
     def __init__(self, table, desc):
-
         myDict = self.__dict__
         myDict['_v__tableFile'] = table._v_file
         myDict['_v__tablePath'] = table._v_pathname
@@ -3322,14 +3304,17 @@ class Column(object):
 
     # Properties
     # ~~~~~~~~~~
-    def _gettable(self):
+
+    @property
+    def table(self):
+        """The parent Table instance (see :ref:`TableClassDescr`)."""
         return self._table_file._get_node(self._table_path)
 
-    table = property(_gettable, None, None,
-                     """The parent Table instance (see
-                     :ref:`TableClassDescr`).""")
 
-    def _getindex(self):
+    @property
+    def index(self):
+        """The Index instance (see :ref:`IndexClassDescr`) associated with this
+        column (None if the column is not indexed)."""
         indexPath = _index_pathname_of_column_(self._table_path, self.pathname)
         try:
             index = self._table_file._get_node(indexPath)
@@ -3337,36 +3322,31 @@ class Column(object):
             index = None  # The column is not indexed
         return index
 
-    index = property(_getindex, None, None,
-                     """The Index instance (see :ref:`IndexClassDescr`)
-                     associated with this column (None if the column is not
-                     indexed).""")
 
     @lazyattr
     def _itemtype(self):
         return self.descr._v_dtypes[self.name]
 
-    def _getshape(self):
+    @property
+    def shape(self):
+        "The shape of this column."
         return (self.table.nrows,) + self.descr._v_dtypes[self.name].shape
 
-    shape = property(_getshape, None, None, "The shape of this column.")
-
-    def _isindexed(self):
+    @property
+    def isindexed(self):
+        "True if the column is indexed, false otherwise."
         if self.index is None:
             return False
         else:
             return True
 
-    is_indexed = property(_isindexed, None, None,
-                          "True if the column is indexed, false otherwise.")
-
-    maindim = property(
-        lambda self: 0, None, None,
+    @property
+    def maindim(self):
         """"The dimension along which iterators work. Its value is 0 (i.e. the
-        first dimension).""")
+        first dimension)."""
+        return 0
 
     def __init__(self, table, name, descr):
-
         self._table_file = table._v_file
         self._table_path = table._v_pathname
         self.name = name

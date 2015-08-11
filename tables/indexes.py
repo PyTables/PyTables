@@ -75,13 +75,15 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
 
     # Properties
     # ~~~~~~~~~~
-    chunksize = property(
-        lambda self: self.chunkshape[1], None, None,
-        """The chunksize for this object.""")
+    @property
+    def chunksize(self):
+        """The chunksize for this object."""
+        return self.chunkshape[1]
 
-    slicesize = property(
-        lambda self: self.shape[1], None, None,
-        """The slicesize for this object.""")
+    @property
+    def slicesize(self):
+        """The slicesize for this object."""
+        return self.shape[1]
 
     # Other methods
     # ~~~~~~~~~~~~~
