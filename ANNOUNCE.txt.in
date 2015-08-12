@@ -4,27 +4,12 @@
 
 We are happy to announce PyTables @VERSION@.
 
-*******************************
-IMPORTANT NOTICE:
-
-If you are a user of PyTables, it needs your help to keep going.  Please
-read the next thread as it contains important information about the
-future (or lack of it) of the project:
-
-https://groups.google.com/forum/#!topic/pytables-users/yY2aUa4H7W4
-
-Thanks!
-*******************************
-
 
 What's new
 ==========
 
-This is a major release of PyTables and it is the result of more than a
-year of accumulated patches, but most specially it fixes a couple of
-nasty problem with indexed queries not returning the correct results in
-some scenarios.  There are many usablity and performance improvements
-too.
+This is a bug fix release. It contains a fix for a segv fault in
+indexesextension.keysort().
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html
