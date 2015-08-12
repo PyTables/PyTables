@@ -1565,36 +1565,22 @@ class File(hdf5extension.File, object):
 
         self._check_open()
 
-        # For compatibility with old default arguments.
-        if name == '':
-            name = None
-
-        # Get the parent path (and maybe the node itself).
         if isinstance(where, Node):
-            node = where
-            node._g_check_open()  # the node object must be open
-            nodepath = where._v_pathname
+            where._g_check_open()
+
+            basepath = where._v_pathname
+            nodepath = join_path(basepath, name or '') or '/'
+            node = where._v_file._get_node(nodepath)
         elif isinstance(where, (basestring, numpy.str_)):
-            node = None
-            if where.startswith('/'):
-                nodepath = where
-            else:
-                raise NameError(
-                    "``where`` must start with a slash ('/')")
+            if not where.startswith('/'):
+                raise NameError("``where`` must start with a slash ('/')")
+
+            basepath = where
+            nodepath = join_path(basepath, name or '') or '/'
+            node = self._get_node(nodepath)
         else:
             raise TypeError(
-                "``where`` is not a string nor a node: %r" % (where,))
-
-        # Get the name of the child node.
-        if name is not None:
-            node = None
-            nodepath = join_path(nodepath, name)
-
-        assert node is None or node._v_pathname == nodepath
-
-        # Now we have the definitive node path, let us try to get the node.
-        if node is None:
-            node = self._get_node(nodepath)
+                "``where`` must be a string or a node: %r" % (where,))
 
         # Finally, check whether the desired node is an instance
         # of the expected class.
