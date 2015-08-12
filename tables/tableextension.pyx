@@ -1227,7 +1227,7 @@ cdef class Row:
         istartb = (j+istep) % inrowsinbuf
         inextelement = inextelement + istep
         i = i + inrowsinbuf
-    elif 0 > istep:
+    elif istep < 0:
       inrowsinbuf = self.nrowsinbuf
       #istartb = self.startb
       istartb = self.nrowsinbuf - 1
@@ -1244,7 +1244,8 @@ cdef class Row:
           i = i - inrowsinbuf
           continue
         # Compute the end for this iteration
-        stopr = startr + ((istopb - istartb - 1) / istep)
+        # (we know we are going backward so try to keep indices positive)
+        stopr = startr + (1 - istopb + istartb) / (-istep)
         # Read a chunk
         inrowsread = inrowsread + self.table._read_records(i - inrowsinbuf + 1,
                                                            inrowsinbuf, self.iobuf)
