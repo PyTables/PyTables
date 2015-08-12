@@ -18,8 +18,13 @@ group1 = fileh.create_group(root, "group1")
 group2 = fileh.create_group(root, "group2")
 
 # Now, create an array in root group
+
+# Currently PyTables arrays don't support Unicode strings,
+# so we need to make sure we pass plain bytes
+
 array1 = fileh.create_array(
-    root, "array1", ["string", "array"], "String array")
+    root, "array1", [b"string", b"array"], "String array")
+
 # Create 2 new tables in group1
 table1 = fileh.create_table(group1, "table1", Particle)
 table2 = fileh.create_table("/group2", "table2", Particle)

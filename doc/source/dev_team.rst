@@ -13,7 +13,10 @@ The PyTables team includes:
 * Jeffrey Whitaker
 * `Josh Moore`_
 * `Anthony Scopatz`_
+* `Andrea Bedini`_
 
 .. _Anthony Scopatz: http://www.scopatz.com/
 .. _Antonio Valentino: https://github.com/avalentino
 .. _Josh Moore: https://github.com/joshmoore
+.. _Andrea Bedini: https://github.com/andreabedini
+

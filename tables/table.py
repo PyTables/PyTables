@@ -2582,13 +2582,6 @@ class Table(tableextension.Table, Leaf):
         """
 
         (start, stop, step) = self._process_range(start, stop, step)
-        nrows = numpy.abs(stop - start)
-        if nrows >= self.nrows:
-            raise NotImplementedError('You are trying to delete all the rows '
-                                      'in table "%s". This is not supported '
-                                      'right now due to limitations on the '
-                                      'underlying HDF5 library. Sorry!' %
-                                      self._v_pathname)
         nrows = self._remove_rows(start, stop, step)
         # remove_rows is a invalidating index operation
         self._reindex(self.colpathnames)

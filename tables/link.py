@@ -165,6 +165,7 @@ class SoftLink(linkextension.SoftLink, Link):
     --------
 
     ::
+
         >>> f = tables.open_file('/tmp/test_softlink.h5', 'w')
         >>> a = f.create_array('/', 'A', np.arange(10))
         >>> link_a = f.create_soft_link('/', 'link_A', target='/A')

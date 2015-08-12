@@ -1391,6 +1391,41 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # The last values has to be equal
         self.assertEqual(result[10:15], result2[10:15])
 
+    def test04e_delete(self):
+        """Checking whether all rows can be deleted."""
+
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test04e_delete..." % self.__class__.__name__)
+
+        # Create an instance of an HDF5 Table
+        self.h5file = tables.open_file(self.h5fname, "a")
+        table = self.h5file.get_node("/table0")
+
+        # Read all records
+        result = [r['var2'] for r in table.iterrows()]
+
+        if common.verbose:
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Last selected value ==>", result[-1])
+            print("Total selected records in table ==>", len(result))
+
+        nrows = table.nrows
+        table.nrowsinbuf = 4  # small value of the buffer
+        # Delete 100 rows
+        table.remove_rows(0, 100)
+
+        # Re-read the records
+        result2 = [r['var2'] for r in table.iterrows()]
+
+        if common.verbose:
+            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print("Total selected records in table ==>", len(result2))
+
+        self.assertEqual(table.nrows, 0)
+        self.assertEqual(table.shape, (0,))
+        self.assertEqual(len(result2), 0)
+
     def test05_filtersTable(self):
         """Checking tablefilters."""
 
