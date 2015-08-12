@@ -699,35 +699,34 @@ class File(hdf5extension.File, object):
     # The top level kinds. Group must go first!
     _node_kinds = ('Group', 'Leaf', 'Link', 'Unknown')
 
-    def _gettitle(self):
+    @property
+    def title(self):
+        "The title of the root group in the file."
         return self.root._v_title
 
-    def _settitle(self, title):
+    @title.setter
+    def title(self, title):
         self.root._v_title = title
 
-    def _deltitle(self):
+    @title.deleter
+    def title(self):
         del self.root._v_title
 
-    title = property(
-        _gettitle, _settitle, _deltitle,
-        "The title of the root group in the file.")
-
-    def _getfilters(self):
+    @property
+    def filters(self):
+        "Default filter properties for the root group (see :ref:`FiltersClassDescr`)."
         return self.root._v_filters
 
-    def _setfilters(self, filters):
+    @filters.setter
+    def filters(self, filters):
         self.root._v_filters = filters
 
-    def _delfilters(self):
+    @filters.deleter
+    def filters(self):
         del self.root._v_filters
 
-    filters = property(
-        _getfilters, _setfilters, _delfilters,
-        ("Default filter properties for the root group "
-         "(see :ref:`FiltersClassDescr`)."))
-
-    open_count = property(
-        lambda self: self._open_count, None, None,
+    @property
+    def open_count(self):
         """The number of times this file handle has been opened.
 
         .. versionchanged:: 3.1
@@ -737,7 +736,8 @@ class File(hdf5extension.File, object):
 
         .. deprecated:: 3.1
 
-        """)
+        """
+        return self._open_count
 
     def __init__(self, filename, mode="r", title="",
                  root_uep="/", filters=None, **kwargs):

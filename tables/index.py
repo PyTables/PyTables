@@ -156,22 +156,30 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
     _c_classid = 'INDEX'
 
 
-    kind = property(
-        lambda self: {1: 'ultralight', 2: 'light',
-                      4: 'medium', 8: 'full'}[self.indsize],
-        None, None,
-        "The kind of this index.")
+    @property
+    def kind(self):
+        "The kind of this index."
+        return {1: 'ultralight', 2: 'light',
+                4: 'medium', 8: 'full'}[self.indsize]
 
-    filters = property(
-        lambda self: self._v_filters, None, None,
+    @property
+    def filters(self):
         """Filter properties for this index - see Filters in
-        :ref:`FiltersClassDescr`.""")
+        :ref:`FiltersClassDescr`."""
+        return self._v_filters
 
-    def _getdirty(self):
-        # If there is no ``DIRTY`` attribute, index should be clean.
-        return getattr(self._v_attrs, 'DIRTY', False)
+    @property
+    def dirty(self):
+       """Whether the index is dirty or not.
+       Dirty indexes are out of sync with column data, so they exist but they
+       are not usable.
+       """
 
-    def _setdirty(self, dirty):
+       # If there is no ``DIRTY`` attribute, index should be clean.
+       return getattr(self._v_attrs, 'DIRTY', False)
+
+    @dirty.setter
+    def dirty(self, dirty):
         wasdirty, isdirty = self.dirty, bool(dirty)
         self._v_attrs.DIRTY = dirty
         # If an *actual* change in dirtiness happens,
@@ -182,47 +190,42 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         if wasdirty and not isdirty:
             conditioncache.unnail()
 
-    dirty = property(
-        _getdirty, _setdirty, None,
-        """Whether the index is dirty or not.
+    @property
+    def column(self):
+        """The Column (see :ref:`ColumnClassDescr`) instance for the indexed
+        column."""
 
-        Dirty indexes are out of sync with column data, so they exist but they
-        are not usable.
-        """)
-
-    def _getcolumn(self):
         tablepath, columnpath = _table_column_pathname_of_index(
             self._v_pathname)
         table = self._v_file._get_node(tablepath)
         column = table.cols._g_col(columnpath)
         return column
 
-    column = property(_getcolumn, None, None,
-        """The Column (see :ref:`ColumnClassDescr`) instance for the indexed
-        column.""")
-
-    def _gettable(self):
-        tablepath, columnpath = _table_column_pathname_of_index(
-            self._v_pathname)
+    @property
+    def table(self):
+        """Accessor for the `Table` object of this index."""
+        tablepath, columnpath = _table_column_pathname_of_index(self._v_pathname)
         table = self._v_file._get_node(tablepath)
         return table
 
-    table = property(_gettable, None, None,
-                     "Accessor for the `Table` object of this index.")
+    @property
+    def nblockssuperblock(self):
+        "The number of blocks in a superblock."
+        return self.superblocksize // self.blocksize
 
-    nblockssuperblock = property(
-        lambda self: self.superblocksize // self.blocksize, None, None,
-        "The number of blocks in a superblock.")
+    @property
+    def nslicesblock(self):
+        "The number of slices in a block."
+        return self.blocksize // self.slicesize
 
-    nslicesblock = property(
-        lambda self: self.blocksize // self.slicesize, None, None,
-        "The number of slices in a block.")
+    @property
+    def nchunkslice(self):
+        "The number of chunks in a slice."
+        return self.slicesize // self.chunksize
 
-    nchunkslice = property(
-        lambda self: self.slicesize // self.chunksize, None, None,
-        "The number of chunks in a slice.")
-
-    def _g_nsuperblocks(self):
+    @property
+    def nsuperblocks(self):
+        "The total number of superblocks in index."
         # Last row should not be considered as a superblock
         nelements = self.nelements - self.nelementsILR
         nblocks = nelements // self.superblocksize
@@ -230,10 +233,9 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             nblocks += 1
         return nblocks
 
-    nsuperblocks = property(_g_nsuperblocks, None, None,
-                            "The total number of superblocks in index.")
-
-    def _g_nblocks(self):
+    @property
+    def nblocks(self):
+        "The total number of blocks in index."
         # Last row should not be considered as a block
         nelements = self.nelements - self.nelementsILR
         nblocks = nelements // self.blocksize
@@ -241,34 +243,40 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             nblocks += 1
         return nblocks
 
-    nblocks = property(_g_nblocks, None, None,
-                       "The total number of blocks in index.")
+    @property
+    def nslices(self):
+        "The number of complete slices in index."
+        return self.nelements // self.slicesize
 
-    nslices = property(
-        lambda self: self.nelements // self.slicesize, None, None,
-        "The number of complete slices in index.")
+    @property
+    def nchunks(self):
+        "The number of complete chunks in index."
+        return self.nelements // self.chunksize
 
-    nchunks = property(
-        lambda self: self.nelements // self.chunksize, None, None,
-        "The number of complete chunks in index.")
+    @property
+    def shape(self):
+        "The shape of this index (in slices and elements)."
+        return (self.nrows, self.slicesize)
 
-    shape = property(
-        lambda self: (self.nrows, self.slicesize), None, None,
-        "The shape of this index (in slices and elements).")
+    @property
+    def temp_required(self):
+        "Whether a temporary file for indexes is required or not."
+        return self.indsize > 1 and self.optlevel > 0 and self.table.nrows > self.slicesize
 
-    temp_required = property(
-        lambda self: (self.indsize > 1 and
-                      self.optlevel > 0 and
-                      self.table.nrows > self.slicesize),
-        None, None,
-        "Whether a temporary file for indexes is required or not.")
+    @property
+    def want_complete_sort(self):
+        "Whether we should try to build a completely sorted index or not."
+        return self.indsize == 8 and self.optlevel == 9
 
-    want_complete_sort = property(
-        lambda self: (self.indsize == 8 and self.optlevel == 9),
-        None, None,
-        "Whether we should try to build a completely sorted index or not.")
+    @property
+    def is_csi(self):
+        """Whether the index is completely sorted or not.
 
-    def _is_csi(self):
+        .. versionchanged:: 3.0
+           The *is_CSI* property has been renamed into *is_csi*.
+
+        """
+
         if self.nelements == 0:
             # An index with 0 indexed elements is not a CSI one (by definition)
             return False
@@ -282,16 +290,6 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         # (the attribute 'is_csi' will be set there)
         self.compute_overlaps(self, None, False)
         return self.noverlaps == 0
-
-
-    is_csi = property(_is_csi, None, None,
-        """Whether the index is completely sorted or not.
-
-        .. versionchanged:: 3.0
-           The *is_CSI* property has been renamed into *is_csi*.
-
-        """)
-
 
     @lazyattr
     def nrowsinchunk(self):
@@ -2178,17 +2176,19 @@ class IndexesTableG(NotLoggedMixin, Group):
     _c_classid = 'TINDEX'
 
 
-    def _getauto(self):
+    @property
+    def auto(self):
         if 'AUTO_INDEX' not in self._v_attrs:
             return default_auto_index
         return self._v_attrs.AUTO_INDEX
 
-    def _setauto(self, auto):
+    @auto.setter
+    def auto(self, auto):
         self._v_attrs.AUTO_INDEX = bool(auto)
 
-    def _delauto(self):
+    @auto.deleter
+    def auto(self):
         del self._v_attrs.AUTO_INDEX
-    auto = property(_getauto, _setauto, _delauto)
 
     def _g_width_warning(self):
         warnings.warn(
@@ -2205,17 +2205,15 @@ class IndexesTableG(NotLoggedMixin, Group):
                 "names of index groups must start with ``_i_``: %s" % name)
 
 
-    def _gettable(self):
+    @property
+    def table(self):
+        "Accessor for the `Table` object of this `IndexesTableG` container."
         names = self._v_pathname.split("/")
         tablename = names.pop()[3:]   # "_i_" is at the beginning
         parentpathname = "/".join(names)
         tablepathname = join_path(parentpathname, tablename)
         table = self._v_file._get_node(tablepathname)
         return table
-
-    table = property(
-        _gettable, None, None,
-        "Accessor for the `Table` object of this `IndexesTableG` container.")
 
 
 class OldIndex(NotLoggedMixin, Group):

@@ -97,30 +97,30 @@ class Array(hdf5extension.Array, Leaf):
 
     # Properties
     # ~~~~~~~~~~
-    def _getnrows(self):
+
+    @property
+    def nrows(self):
+        "The number of rows in the array."
         if self.shape == ():
             return SizeType(1)  # scalar case
         else:
             return self.shape[self.maindim]
-    nrows = property(
-        _getnrows, None, None,
-        "The number of rows in the array.")
 
-    def _getrowsize(self):
+    @property
+    def rowsize(self):
+        "The size of the rows in bytes in dimensions orthogonal to *maindim*."
         maindim = self.maindim
         rowsize = self.atom.size
         for i, dim in enumerate(self.shape):
             if i != maindim:
                 rowsize *= dim
         return rowsize
-    rowsize = property(
-        _getrowsize, None, None,
-        "The size of the rows in bytes in dimensions orthogonal to *maindim*.")
 
-    size_in_memory = property(
-        lambda self: self.nrows * self.rowsize, None, None,
+    @property
+    def size_in_memory(self):
         """The size of this array's data in bytes when it is fully loaded into
-        memory.""")
+        memory."""
+        return self.nrows * self.rowsize
 
     # Other methods
     # ~~~~~~~~~~~~~

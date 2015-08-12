@@ -474,17 +474,23 @@ class Atom(object):
 
     # Properties
     # ~~~~~~~~~~
-    size = property(
-        lambda self: self.dtype.itemsize,
-        None, None, "Total size in bytes of the atom.")
-    recarrtype = property(
-        lambda self: str(self.dtype.shape) + self.dtype.base.str[1:],
-        None, None, "String type to be used in numpy.rec.array().")
-    ndim = property(
-        lambda self: len(self.shape), None, None,
+    @property
+    def size(self):
+        """Total size in bytes of the atom."""
+        return self.dtype.itemsize
+
+    @property
+    def recarrtype(self):
+        """String type to be used in numpy.rec.array()."""
+        return str(self.dtype.shape) + self.dtype.base.str[1:]
+
+    @property
+    def ndim(self):
         """The number of dimensions of the atom.
 
-        .. versionadded:: 2.4""")
+        .. versionadded:: 2.4"""
+        return len(self.shape)
+
 
     # Special methods
     # ~~~~~~~~~~~~~~~
@@ -588,11 +594,13 @@ class StringAtom(Atom):
     """
 
     kind = 'string'
-    itemsize = property(
-        lambda self: self.dtype.base.itemsize,
-        None, None, "Size in bytes of a sigle item in the atom.")
     type = 'string'
     _defvalue = b''
+
+    @property
+    def itemsize(self):
+        "Size in bytes of a sigle item in the atom."
+        return self.dtype.base.itemsize
 
     def __init__(self, itemsize, shape=(), dflt=_defvalue):
         if not hasattr(itemsize, '__int__') or int(itemsize) < 0:
@@ -727,12 +735,14 @@ class ComplexAtom(Atom):
     # using the old bottom-level complex classes.
 
     kind = 'complex'
-    itemsize = property(
-        lambda self: self.dtype.base.itemsize,
-        None, None, "Size in bytes of a sigle item in the atom.")
     _deftype = 'complex128'
     _defvalue = 0j
     _isizes = [8, 16]
+
+    @property
+    def itemsize(self):
+         "Size in bytes of a sigle item in the atom."
+         return self.dtype.base.itemsize
 
     # Only instances have a `type` attribute, so complex types must be
     # registered by hand.
@@ -905,9 +915,10 @@ class EnumAtom(Atom):
 
     # Properties
     # ~~~~~~~~~~
-    itemsize = property(
-        lambda self: self.dtype.base.itemsize,
-        None, None, "Size in bytes of a sigle item in the atom.")
+    @property
+    def itemsize(self):
+        "Size in bytes of a sigle item in the atom."
+        return self.dtype.base.itemsize
 
     # Private methods
     # ~~~~~~~~~~~~~~~
