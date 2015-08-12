@@ -1197,9 +1197,9 @@ cdef class Row:
 
     # We can't reuse existing buffers in this context
     self._init_loop(start, stop, step, None, None)
-    istart, istop, istep = (self.start, self.stop, self.step)
-    inrowsinbuf, inextelement, inrowsread = (self.nrowsinbuf, istart, istart)
-    istartb, startr = (self.startb, 0)
+    istart, istop, istep = self.start, self.stop, self.step
+    inrowsinbuf, inextelement, inrowsread = self.nrowsinbuf, istart, istart
+    istartb, startr = self.startb, 0
     i = istart
     if 0 < istep:
       while i < istop:
