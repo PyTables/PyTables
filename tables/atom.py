@@ -367,6 +367,16 @@ class Atom(object):
             >>> Atom.from_dtype(numpy.dtype('Float64'))
             Float64Atom(shape=(), dflt=0.0)
 
+        Note: for easier use in Python 3, where all strings lead to the
+        Unicode dtype, this dtype will also generate a StringAtom. Since
+        this is only viable for strings that are castable as ascii, a
+        warning is issued.
+
+            >>> Atom.from_dtype(numpy.dtype('U20'))
+            Atom.py:392: FlavorWarning: support for unicode type is very limited,
+                and only works for strings that can be casted as ascii
+            StringAtom(itemsize=20, shape=(), dflt=b'')
+
         """
         basedtype = dtype.base
         if basedtype.names:
