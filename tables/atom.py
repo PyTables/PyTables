@@ -374,7 +374,7 @@ class Atom(object):
 
             >>> Atom.from_dtype(numpy.dtype('U20')) # doctest: +SKIP
             Atom.py:392: FlavorWarning: support for unicode type is very limited,
-                and only works for strings that can be casted as ascii
+                and only works for strings that can be cast as ascii
             StringAtom(itemsize=20, shape=(), dflt=b'')
 
         """
@@ -391,7 +391,7 @@ class Atom(object):
         elif basedtype.kind == 'U':
             # workaround for unicode type (standard string type in Python 3)
             warnings.warn("support for unicode type is very limited, "
-                          "and only works for strings that can be casted as ascii", FlavorWarning)
+                          "and only works for strings that can be cast as ascii", FlavorWarning)
             itemsize = basedtype.itemsize // 4
             assert str(itemsize) in basedtype.str, "something went wrong in handling unicode."
             return class_.from_kind('string', itemsize, dtype.shape, dflt)

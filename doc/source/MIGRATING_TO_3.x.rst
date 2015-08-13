@@ -35,7 +35,7 @@ In Python 3, all strings are natively in Unicode. This introduces some
 difficulties, as the native HDF5 string format is not Unicode-compatible. 
 To minimize explicit conversion troubles when writing, especially :ref:`when 
 creating data sets from existing Python objects <create-signatures>`, string 
-objects are implicitly casted to non-Unicode for HDF5 storage. To make you
+objects are implicitly cast to non-Unicode for HDF5 storage. To make you
 aware of this, a warning is raised when this happens.
 
 This is certainly no true Unicode compatibility, but mainly for convenience 
