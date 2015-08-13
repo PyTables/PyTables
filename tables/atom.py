@@ -25,6 +25,9 @@ from tables.utils import SizeType
 from tables.misc.enum import Enum
 
 
+import warnings
+from tables.exceptions import FlavorWarning
+
 # Public variables
 # ================
 __docformat__ = 'reStructuredText'
@@ -363,6 +366,16 @@ class Atom(object):
             >>> Atom.from_dtype(numpy.dtype('Float64'))
             Float64Atom(shape=(), dflt=0.0)
 
+        Note: for easier use in Python 3, where all strings lead to the
+        Unicode dtype, this dtype will also generate a StringAtom. Since
+        this is only viable for strings that are castable as ascii, a
+        warning is issued.
+
+            >>> Atom.from_dtype(numpy.dtype('U20')) # doctest: +SKIP
+            Atom.py:392: FlavorWarning: support for unicode type is very limited,
+                and only works for strings that can be cast as ascii
+            StringAtom(itemsize=20, shape=(), dflt=b'')
+
         """
         basedtype = dtype.base
         if basedtype.names:
@@ -373,6 +386,13 @@ class Atom(object):
                              % dtype)
         if basedtype.kind == 'S':  # can not reuse something like 'string80'
             itemsize = basedtype.itemsize
+            return class_.from_kind('string', itemsize, dtype.shape, dflt)
+        elif basedtype.kind == 'U':
+            # workaround for unicode type (standard string type in Python 3)
+            warnings.warn("support for unicode type is very limited, "
+                          "and only works for strings that can be cast as ascii", FlavorWarning)
+            itemsize = basedtype.itemsize // 4
+            assert str(itemsize) in basedtype.str, "something went wrong in handling unicode."
             return class_.from_kind('string', itemsize, dtype.shape, dflt)
         # Most NumPy types have direct correspondence with PyTables types.
         return class_.from_type(basedtype.name, dtype.shape, dflt)
