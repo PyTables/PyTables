@@ -372,7 +372,7 @@ class Atom(object):
         this is only viable for strings that are castable as ascii, a
         warning is issued.
 
-            >>> Atom.from_dtype(numpy.dtype('U20'))
+            >>> Atom.from_dtype(numpy.dtype('U20')) # doctest: +SKIP
             Atom.py:392: FlavorWarning: support for unicode type is very limited,
                 and only works for strings that can be casted as ascii
             StringAtom(itemsize=20, shape=(), dflt=b'')
