@@ -1920,6 +1920,8 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
 
 
 @unittest.skipIf('win' in platform.system().lower(), 'known bug: gh-389')
+@unittest.skipIf(sys.getfilesystemencoding() != 'utf-8',
+                 'need utf-8 file-system encoding')
 class UnicodeFilename(common.TempFileMixin, TestCase):
     unicode_prefix = u'para\u0140lel'
 

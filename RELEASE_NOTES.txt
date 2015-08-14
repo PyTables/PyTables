@@ -10,7 +10,17 @@
 Changes from 3.2.1 to xxxxx
 ===========================
 
+Improvements
+------------
+
 - It is now possible to remove all rows from a table.
+
+
+Bug fixed
+---------
+
+- Only run `tables.tests.test_basics.UnicodeFilename` if the filesystem
+  encoding is utf-8. Closes :issue:`485`.
 
 
 Changes from 3.2.0 to 3.2.1
