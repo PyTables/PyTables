@@ -2539,10 +2539,10 @@ class Table(tableextension.Table, Leaf):
     def remove_rows(self, start=None, stop=None, step=None):
         """Remove a range of rows in the table.
 
-        If only start is supplied, only this row is to be deleted.  If a range
-        is supplied, i.e. both the start and stop parameters are passed, all
-        the rows in the range are removed. A step parameter is not supported,
-        and it is not foreseen to be implemented anytime soon.
+        If only start is supplied, that row and all following will be deleted.
+        If a range is supplied, i.e. both the start and stop parameters are
+        passed, all the rows in the range are removed. A step parameter is not
+        supported, and it is not foreseen to be implemented anytime soon.
 
         .. versionchanged:: 3.0
            The start, stop and step parameters now behave like in slice.
