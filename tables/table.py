@@ -2539,6 +2539,11 @@ class Table(tableextension.Table, Leaf):
     def remove_rows(self, start=None, stop=None, step=None):
         """Remove a range of rows in the table.
 
+        If only start is supplied, only this row is to be deleted.  If a range
+        is supplied, i.e. both the start and stop parameters are passed, all
+        the rows in the range are removed. A step parameter is not supported,
+        and it is not foreseen to be implemented anytime soon.
+
         .. versionchanged:: 3.0
            The start, stop and step parameters now behave like in slice.
 
@@ -2553,9 +2558,10 @@ class Table(tableextension.Table, Leaf):
         stop : int
             Sets the last row to be removed to stop-1, i.e. the end point is
             omitted (in the Python range() tradition). Negative values are also
-            accepted.
+            accepted. If None all rows after start will be removed.
         step : int
-            The step size between rows to remove.
+            The step size between rows to remove. This parameter is not yet
+            supported.
 
             .. versionadded:: 3.0
 
@@ -2566,7 +2572,7 @@ class Table(tableextension.Table, Leaf):
 
             t.remove_rows(5, 10)
 
-        Removing all rows starting drom the 10th::
+        Removing all rows starting from the 10th::
 
             t.remove_rows(10)
 
@@ -2592,17 +2598,29 @@ class Table(tableextension.Table, Leaf):
     def remove_row(self, n):
         """Removes a row from the table.
 
-        If only start is supplied, only this row is to be deleted.  If a range
-        is supplied, i.e. both the start and stop parameters are passed, all
-        the rows in the range are removed. A step parameter is not supported,
-        and it is not foreseen to be implemented anytime soon.
-
         Parameters
         ----------
         n : int
             The index of the row to remove.
 
         .. versionadded:: 3.0
+
+        Examples
+        --------
+
+        Remove row 15::
+
+            table.remove_row(15)
+
+        Which is equivalent to::
+
+            table.remove_rows(15, 16)
+
+        .. warning::
+
+            This is not equivalent to::
+
+                table.remove_rows(15)
 
         """
 
