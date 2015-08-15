@@ -1462,7 +1462,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(result2), 0)
 
     def test04g_delete(self):
-        """Checking whether rows can be deleted wit a step parameter."""
+        """Checking whether rows can be deleted with a step parameter."""
 
         if common.verbose:
             print('\n', '-=' * 30)
