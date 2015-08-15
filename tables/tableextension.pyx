@@ -637,7 +637,7 @@ cdef class Table(Leaf):
 
   def _remove_rows(self, hsize_t start, hsize_t stop, long step):
     cdef size_t rowsize
-    cdef hsize_t nrecords, nrecords2
+    cdef hsize_t nrecords=0, nrecords2
     cdef hsize_t i
 
     if step == 1:
@@ -657,21 +657,21 @@ cdef class Table(Leaf):
                             0, NULL, <char *>&nrecords2)
       # Set the caches to dirty
       self._dirtycache = True
-      # Return the number of records removed
-      return nrecords
     elif step == -1:
-      self._remove_rows(self, stop+1, start+1, 1)
+      nrecords = self._remove_rows(stop+1, start+1, 1)
     elif step >= 1:
       # always want to go through the space backwards
-      for i in range(stop - step, start - step, -step):
-        self._remove_rows(self, i, i+1, 1)
+      for i in range(stop - step, <ssize_t>start - step, -step):
+        nrecords += self._remove_rows(i, i+1, 1)
     elif step <= -1:
       # always want to go through the space backwards
       for i in range(start, stop, step):
-        self._remove_rows(self, i, i+1, 1)
+        nrecords += self._remove_rows(i, i+1, 1)
     else:
       raise ValueError("step size may not be 0.")
 
+    # Return the number of records removed
+    return nrecords
 
 cdef class Row:
   """Table row iterator and field accessor.
