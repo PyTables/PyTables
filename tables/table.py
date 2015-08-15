@@ -2541,8 +2541,7 @@ class Table(tableextension.Table, Leaf):
 
         If only start is supplied, that row and all following will be deleted.
         If a range is supplied, i.e. both the start and stop parameters are
-        passed, all the rows in the range are removed. A step parameter is not
-        supported, and it is not foreseen to be implemented anytime soon.
+        passed, all the rows in the range are removed.
 
         .. versionchanged:: 3.0
            The start, stop and step parameters now behave like in slice.
@@ -2560,8 +2559,7 @@ class Table(tableextension.Table, Leaf):
             omitted (in the Python range() tradition). Negative values are also
             accepted. If None all rows after start will be removed.
         step : int
-            The step size between rows to remove. This parameter is not yet
-            supported.
+            The step size between rows to remove.
 
             .. versionadded:: 3.0
 
