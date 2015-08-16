@@ -40,7 +40,7 @@ from utilsextension cimport get_native_type, cstr_to_pystr
 
 # numpy functions & objects
 from hdf5extension cimport Leaf
-from cpython cimport PY_MAJOR_VERSION
+from cpython cimport PY_MAJOR_VERSION, PyErr_Clear
 from libc.stdio cimport snprintf
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp, strlen
@@ -1599,6 +1599,7 @@ cdef class Row:
       if field.ndim == 1:
         ret = PyArray_SETITEM(field, field.data + offset * self._stride, value)
         if ret < 0:
+          PyErr_Clear()
           raise TypeError
       ##### End of optimization for scalar values
       else:
