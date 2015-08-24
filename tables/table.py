@@ -942,7 +942,7 @@ class Table(tableextension.Table, Leaf):
             maxrowsize = params['BUFFER_TIMES'] * buffersize
             if rowsize > maxrowsize:
                 warnings.warn("""\
-The Leaf ``%s`` is exceeding the maximum recommended rowsize (%d bytes);
+The Table ``%s`` is exceeding the maximum recommended rowsize (%d bytes);
 be ready to see PyTables asking for *lots* of memory and possibly slow
 I/O.  You may want to reduce the rowsize by trimming the value of
 dimensions that are orthogonal (and preferably close) to the *main*
