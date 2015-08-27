@@ -1543,23 +1543,32 @@ class File(hdf5extension.File, object):
     def get_node(self, where, name=None, classname=None):
         """Get the node under where with the given name.
 
-        where can be a Node instance (see :ref:`NodeClassDescr`) or a
-        path string leading to a node. If no name is specified, that
-        node is returned.
+        Parameters
+        ----------
+        where : str or Node
+            This can be a path string leading to a node or a Node instance (see
+            :ref:`NodeClassDescr`). If no name is specified, that node is
+            returned.
 
-        If a name is specified, this must be a string with the name of
-        a node under where.  In this case the where argument can only
-        lead to a Group (see :ref:`GroupClassDescr`) instance (else a
-        TypeError is raised). The node called name under the group
-        where is returned.
+            .. note::
 
-        In both cases, if the node to be returned does not exist, a
-        NoSuchNodeError is raised. Please note that hidden nodes are
-        also considered.
+                If where is a Node instance from a different file than the one
+                on which this function is called, the returned node will also
+                be from that other file.
 
-        If the classname argument is specified, it must be the name of
-        a class derived from Node. If the node is found but it is not
-        an instance of that class, a NoSuchNodeError is also raised.
+        name : str, optional
+            If a name is specified, this must be a string with the name of
+            a node under where.  In this case the where argument can only
+            lead to a Group (see :ref:`GroupClassDescr`) instance (else a
+            TypeError is raised). The node called name under the group
+            where is returned.
+        classname : str, optional
+            If the classname argument is specified, it must be the name of
+            a class derived from Node (e.g. Table). If the node is found but it
+            is not an instance of that class, a NoSuchNodeError is also raised.
+
+        If the node to be returned does not exist, a NoSuchNodeError is
+        raised. Please note that hidden nodes are also considered.
 
         """
 
