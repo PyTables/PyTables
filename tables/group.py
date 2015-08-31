@@ -17,27 +17,26 @@ import os
 import weakref
 import warnings
 
-import tables.misc.proxydict
-from tables import hdf5extension
-from tables import utilsextension
-from tables.registry import class_id_dict
-from tables.exceptions import (
-    NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning)
-from tables.filters import Filters
-from tables.registry import get_class_by_name
-from tables.path import check_name_validity, join_path, isvisiblename
-from tables.node import Node, NotLoggedMixin
-from tables.leaf import Leaf
-from tables.unimplemented import UnImplemented, Unknown
+from .misc.proxydict import ProxyDict
+from . import hdf5extension
+from . import utilsextension
+from .registry import class_id_dict
+from .exceptions import NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
+from .filters import Filters
+from .registry import get_class_by_name
+from .path import check_name_validity, join_path, isvisiblename
+from .node import Node, NotLoggedMixin
+from .leaf import Leaf
+from .unimplemented import UnImplemented, Unknown
 
-from tables.link import Link, SoftLink, ExternalLink
+from .link import Link, SoftLink, ExternalLink
 import six
 
 
 obversion = "1.0"
 
 
-class _ChildrenDict(tables.misc.proxydict.ProxyDict):
+class _ChildrenDict(ProxyDict):
     def _get_value_from_container(self, container, key):
         return container._f_get_child(key)
 

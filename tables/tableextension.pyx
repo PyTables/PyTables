@@ -27,14 +27,14 @@ import sys
 import numpy
 from time import time
 
-from tables.description import Col
-from tables.exceptions import HDF5ExtError
-from tables.conditions import call_on_recarr
-from tables.utilsextension import (get_nested_field, atom_from_hdf5_type,
+from .description import Col
+from .exceptions import HDF5ExtError
+from .conditions import call_on_recarr
+from .utilsextension import (get_nested_field, atom_from_hdf5_type,
   create_nested_type, hdf5_to_np_ext_type, create_nested_type, platform_byteorder,
   pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
   H5T_STD_I64)
-from tables.utils import SizeType
+from .utils import SizeType
 
 from utilsextension cimport get_native_type, cstr_to_pystr
 

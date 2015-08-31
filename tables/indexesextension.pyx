@@ -30,7 +30,7 @@ import cython
 import numpy
 cimport numpy as cnp
 
-from tables.exceptions import HDF5ExtError
+from .exceptions import HDF5ExtError
 from hdf5extension cimport Array
 
 

@@ -21,8 +21,8 @@ import numpy as np
 import tables as tb
 from numexpr.necompiler import getContext, getExprNames, getType, NumExpr
 from numexpr.expressions import functions as numexpr_functions
-from tables.exceptions import PerformanceWarning
-from tables.parameters import IO_BUFFER_SIZE, BUFFER_TIMES
+from .exceptions import PerformanceWarning
+from .parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 import six
 from six.moves import range
 from six.moves import zip

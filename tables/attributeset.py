@@ -19,13 +19,14 @@ import warnings
 import six.moves.cPickle
 import numpy
 
-from tables import hdf5extension
-from tables.utils import SizeType
-from tables.registry import class_name_dict
-from tables.exceptions import ClosedNodeError, PerformanceWarning
-from tables.path import check_attribute_name
-from tables.undoredo import attr_to_shadow
-from tables.filters import Filters
+from . import hdf5extension
+from .utils import SizeType
+from .registry import class_name_dict
+from .exceptions import ClosedNodeError, PerformanceWarning
+from .path import check_attribute_name
+from .undoredo import attr_to_shadow
+from .filters import Filters
+
 from six.moves import map
 import six
 

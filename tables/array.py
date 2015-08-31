@@ -14,16 +14,15 @@
 from __future__ import absolute_import
 
 import sys
-
 import numpy
 
-from tables import hdf5extension
-from tables.filters import Filters
-from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
+from . import hdf5extension
+from .filters import Filters
+from .flavor import flavor_of, array_as_internal, internal_to_flavor
+from .leaf import Leaf
+from .utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
+                    byteorders, quantize)
 
-from tables.utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
-                          byteorders, quantize)
-from tables.leaf import Leaf
 from six.moves import range
 from six.moves import zip
 import six
@@ -89,7 +88,6 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
 
     # Class identifier.
     _c_classid = 'ARRAY'
-
 
     # Lazy read-only attributes
     # `````````````````````````
@@ -254,7 +252,6 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
 
         return self.atom.enum
 
-
     def iterrows(self, start=None, stop=None, step=None):
         """Iterate over the rows of the array.
 
@@ -326,7 +323,6 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
         self._row = -1   # Sentinel
         self._init = True  # Sentinel
         self.nrow = SizeType(self._start - self._step)    # row number
-
 
     def __next__(self):
         """Get the next element of the array during an iteration.
@@ -618,7 +614,6 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
         mshape = tuple(x for x in mshape if x != 0)
         return selection, reorder, mshape
 
-
     def __getitem__(self, key):
         """Get a row, a range of rows or a slice from the array.
 
@@ -748,7 +743,6 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
         else:
             return nparr
 
-
     def _read_slice(self, startl, stopl, stepl, shape):
         """Read a slice based on `startl`, `stopl` and `stepl`."""
 
@@ -762,7 +756,6 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
             nparr = nparr[()]
         return nparr
 
-
     def _read_coords(self, coords):
         """Read a set of points defined by `coords`."""
 
@@ -773,7 +766,6 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
         if nparr.shape == ():
             nparr = nparr[()]
         return nparr
-
 
     def _read_selection(self, selection, reorder, shape):
         """Read a `selection`.
@@ -799,7 +791,6 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
             nparr = nparr[k].copy()
         return nparr
 
-
     def _write_slice(self, startl, stopl, stepl, shape, nparr):
         """Write `nparr` in a slice based on `startl`, `stopl` and `stepl`."""
 
@@ -807,14 +798,12 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
         countl = ((stopl - startl - 1) // stepl) + 1
         self._g_write_slice(startl, stepl, countl, nparr)
 
-
     def _write_coords(self, coords, nparr):
         """Write `nparr` values in points defined by `coords` coordinates."""
 
         if len(coords) > 0:
             nparr = self._check_shape(nparr, (len(coords),))
             self._g_write_coords(coords, nparr)
-
 
     def _write_selection(self, selection, reorder, shape, nparr):
         """Write `nparr` in `selection`.
@@ -833,7 +822,6 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
             # the reordered array
             nparr = nparr[k].copy()
         self._g_write_selection(selection, nparr)
-
 
     def _read(self, start, stop, step, out=None):
         """Read the array from disk without slice or flavor processing."""
@@ -925,7 +913,6 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
 
         return (object_, nbytes)
 
-
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
@@ -950,4 +937,3 @@ class ImageArray(Array):
 
     # Class identifier.
     _c_classid = 'IMAGE'
-

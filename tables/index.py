@@ -24,24 +24,24 @@ import warnings
 
 import numpy
 
-from tables.idxutils import (calc_chunksize, calcoptlevels,
+from .idxutils import (calc_chunksize, calcoptlevels,
                              get_reduction_level, nextafter, inftype)
 
-from tables import indexesextension
-from tables.node import NotLoggedMixin
-from tables.atom import UIntAtom, Atom
-from tables.earray import EArray
-from tables.carray import CArray
-from tables.leaf import Filters
-from tables.indexes import CacheArray, LastRowArray, IndexArray
-from tables.group import Group
-from tables.path import join_path
-from tables.exceptions import PerformanceWarning
-from tables.utils import is_idx, idx2long, lazyattr
-from tables.utilsextension import (nan_aware_gt, nan_aware_ge,
+from . import indexesextension
+from .node import NotLoggedMixin
+from .atom import UIntAtom, Atom
+from .earray import EArray
+from .carray import CArray
+from .leaf import Filters
+from .indexes import CacheArray, LastRowArray, IndexArray
+from .group import Group
+from .path import join_path
+from .exceptions import PerformanceWarning
+from .utils import is_idx, idx2long, lazyattr
+from .utilsextension import (nan_aware_gt, nan_aware_ge,
                                    nan_aware_lt, nan_aware_le,
                                    bisect_left, bisect_right)
-from tables.lrucacheextension import ObjectCache
+from .lrucacheextension import ObjectCache
 from six.moves import range
 
 
@@ -58,7 +58,7 @@ debug = False
 profile = False
 # profile = True  # Uncomment for profiling
 if profile:
-    from tables.utils import show_stats
+    from .utils import show_stats
 
 
 # The default method for sorting
@@ -389,7 +389,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         self.tprof = 0
         """Time counter for benchmarking purposes."""
 
-        from tables.file import open_file
+        from .file import open_file
         self._openFile = open_file
         """The `open_file()` function, to avoid a circular import."""
 

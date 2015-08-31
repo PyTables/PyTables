@@ -18,17 +18,17 @@ from __future__ import absolute_import
 import re
 import sys
 import inspect
-import six.moves.cPickle
 
 import numpy
 
-from tables.utils import SizeType
-from tables.misc.enum import Enum
+from .utils import SizeType
+from .misc.enum import Enum
 
+import six.moves.cPickle
+import six
 
 import warnings
-from tables.exceptions import FlavorWarning
-import six
+from .exceptions import FlavorWarning
 
 # Public variables
 # ================
@@ -130,7 +130,7 @@ def _normalize_shape(shape):
         raise TypeError("shape must be an integer or sequence: %r"
                         % (shape,))
 
-    ## XXX Get from HDF5 library if possible.
+    # XXX Get from HDF5 library if possible.
     # HDF5 does not support ranks greater than 32
     if len(shape) > 32:
         raise ValueError(

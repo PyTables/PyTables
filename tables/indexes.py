@@ -16,10 +16,10 @@ from __future__ import absolute_import
 
 from bisect import bisect_left, bisect_right
 
-from tables.node import NotLoggedMixin
-from tables.carray import CArray
-from tables.earray import EArray
-from tables import indexesextension
+from .node import NotLoggedMixin
+from .carray import CArray
+from .earray import EArray
+from . import indexesextension
 
 
 # Declarations for inheriting

@@ -18,9 +18,8 @@ from __future__ import absolute_import
 import warnings
 import numpy
 
-from tables import (
-    utilsextension, blosc_compressor_list, blosc_compcode_to_compname)
-from tables.exceptions import FiltersWarning
+from . import utilsextension, blosc_compressor_list, blosc_compcode_to_compname
+from .exceptions import FiltersWarning
 import six
 
 
@@ -108,9 +107,9 @@ class Filters(object):
     This is a small example on using the Filters class::
 
         import numpy
-        from tables import *
+        import tables
 
-        fileh = open_file('test5.h5', mode='w')
+        fileh = tables.open_file('test5.h5', mode='w')
         atom = Float32Atom()
         filters = Filters(complevel=1, complib='blosc', fletcher32=True)
         arr = fileh.create_earray(fileh.root, 'earray', atom, (0,2),

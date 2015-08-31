@@ -15,8 +15,8 @@ from __future__ import absolute_import
 
 import numpy
 
-from tables.utils import convert_to_np_atom2, SizeType
-from tables.carray import CArray
+from .utils import convert_to_np_atom2, SizeType
+from .carray import CArray
 from six.moves import range
 
 

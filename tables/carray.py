@@ -18,9 +18,9 @@ import sys
 
 import numpy
 
-from tables.atom import Atom
-from tables.array import Array
-from tables.utils import correct_byteorder, SizeType
+from .atom import Atom
+from .array import Array
+from .utils import correct_byteorder, SizeType
 from six.moves import range
 
 

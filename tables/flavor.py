@@ -51,7 +51,7 @@ from __future__ import absolute_import
 # =======
 import warnings
 
-from tables.exceptions import FlavorError, FlavorWarning
+from .exceptions import FlavorError, FlavorWarning
 import six
 
 

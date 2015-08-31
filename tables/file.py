@@ -32,34 +32,35 @@ import collections
 import numexpr
 import numpy
 
-from tables import hdf5extension
-from tables import utilsextension
-from tables import parameters
-from tables.exceptions import (ClosedFileError, FileModeError, NodeError,
+from . import hdf5extension
+from . import utilsextension
+from . import parameters
+from .exceptions import (ClosedFileError, FileModeError, NodeError,
                                NoSuchNodeError, UndoRedoError, ClosedNodeError,
                                PerformanceWarning)
-from tables.registry import get_class_by_name
-from tables.path import join_path, split_path
-from tables import undoredo
-from tables.description import (IsDescription, UInt8Col, StringCol,
+from .registry import get_class_by_name
+from .path import join_path, split_path
+from . import undoredo
+from .description import (IsDescription, UInt8Col, StringCol,
                                 descr_from_dtype, dtype_from_descr)
-from tables.filters import Filters
-from tables.node import Node, NotLoggedMixin
-from tables.group import Group, RootGroup
-from tables.group import TransactionGroupG, TransactionG, MarkG
-from tables.leaf import Leaf
-from tables.array import Array
-from tables.carray import CArray
-from tables.earray import EArray
-from tables.vlarray import VLArray
-from tables.table import Table
-from tables import linkextension
-from tables.utils import detect_number_of_cores
-from tables import lrucacheextension
-from tables.flavor import flavor_of, array_as_internal
-from tables.atom import Atom
+from .filters import Filters
+from .node import Node, NotLoggedMixin
+from .group import Group, RootGroup
+from .group import TransactionGroupG, TransactionG, MarkG
+from .leaf import Leaf
+from .array import Array
+from .carray import CArray
+from .earray import EArray
+from .vlarray import VLArray
+from .table import Table
+from . import linkextension
+from .utils import detect_number_of_cores
+from . import lrucacheextension
+from .flavor import flavor_of, array_as_internal
+from .atom import Atom
 
-from tables.link import SoftLink, ExternalLink
+from .link import SoftLink, ExternalLink
+
 import six
 from six.moves import map
 from six.moves import range

@@ -34,7 +34,7 @@ from libc.string cimport memcpy, strcmp
 from cpython.unicode cimport PyUnicode_Check
 from numpy cimport import_array, ndarray
 
-from tables.parameters import (DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES,
+from .parameters import (DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES,
   LOWEST_HIT_RATIO)
 
 

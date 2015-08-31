@@ -36,8 +36,10 @@ from numexpr.necompiler import typecode_to_kind
 from numexpr.necompiler import expressionToAST, typeCompileAst
 from numexpr.necompiler import stringToExpression, NumExpr
 from numexpr.expressions import ExpressionNode
-from tables.utilsextension import get_nested_field
-from tables.utils import lazyattr
+
+from .utilsextension import get_nested_field
+from .utils import lazyattr
+
 from six.moves import zip
 
 _no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")

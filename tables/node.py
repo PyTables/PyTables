@@ -15,13 +15,13 @@ from __future__ import absolute_import
 
 import warnings
 
-from tables.registry import class_name_dict, class_id_dict
-from tables.exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
+from .registry import class_name_dict, class_id_dict
+from .exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
                                PerformanceWarning)
-from tables.path import join_path, split_path, isvisiblepath
-from tables.utils import lazyattr
-from tables.undoredo import move_to_shadow
-from tables.attributeset import AttributeSet, NotLoggedAttributeSet
+from .path import join_path, split_path, isvisiblepath
+from .utils import lazyattr
+from .undoredo import move_to_shadow
+from .attributeset import AttributeSet, NotLoggedAttributeSet
 import six
 
 

@@ -22,8 +22,9 @@ import warnings
 
 import numpy
 
-from tables import atom
-from tables.path import check_name_validity
+from . import atom
+from .path import check_name_validity
+
 import six
 from six.moves import zip
 

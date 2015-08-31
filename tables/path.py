@@ -27,7 +27,7 @@ import re
 import warnings
 import keyword
 
-from tables.exceptions import NaturalNameWarning
+from .exceptions import NaturalNameWarning
 import six
 
 # Public variables

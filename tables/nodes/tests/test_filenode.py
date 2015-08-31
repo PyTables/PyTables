@@ -21,10 +21,10 @@ import warnings
 from pkg_resources import resource_filename
 
 import tables
-from tables.nodes import filenode
-from tables.tests import common
-from tables.tests.common import unittest
-from tables.tests.common import PyTablesTestCase as TestCase
+from .nodes import filenode
+from .tests import common
+from .tests.common import unittest
+from .tests.common import PyTablesTestCase as TestCase
 
 def test_file(name):
     return resource_filename('tables.nodes.tests', name)

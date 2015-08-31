@@ -30,10 +30,10 @@ from __future__ import absolute_import
 
 import os
 import tables
-from tables import linkextension
-from tables.node import Node
-from tables.utils import lazyattr
-from tables.attributeset import AttributeSet
+from . import linkextension
+from .node import Node
+from .utils import lazyattr
+from .attributeset import AttributeSet
 import tables.file
 
 

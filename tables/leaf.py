@@ -18,13 +18,13 @@ import math
 
 import numpy
 
-from tables.flavor import (check_flavor, internal_flavor,
+from .flavor import (check_flavor, internal_flavor,
                            alias_map as flavor_alias_map)
-from tables.node import Node
-from tables.filters import Filters
-from tables.utils import byteorders, lazyattr, SizeType
-from tables.exceptions import PerformanceWarning
-from tables import utilsextension
+from .node import Node
+from .filters import Filters
+from .utils import byteorders, lazyattr, SizeType
+from .exceptions import PerformanceWarning
+from . import utilsextension
 from six.moves import range
 
 

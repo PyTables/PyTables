@@ -17,14 +17,14 @@ import sys
 
 import numpy
 
-from tables import hdf5extension
-from tables.utils import (convert_to_np_atom, convert_to_np_atom2, idx2long,
+from . import hdf5extension
+from .utils import (convert_to_np_atom, convert_to_np_atom2, idx2long,
                           correct_byteorder, SizeType, is_idx, lazyattr)
 
 
-from tables.atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
-from tables.flavor import internal_to_flavor
-from tables.leaf import Leaf, calc_chunksize
+from .atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
+from .flavor import internal_to_flavor
+from .leaf import Leaf, calc_chunksize
 from six.moves import range
 from six.moves import zip
 import six

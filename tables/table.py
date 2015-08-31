@@ -23,24 +23,24 @@ from functools import reduce as _reduce
 import numpy
 import numexpr
 
-from tables import tableextension
-from tables.lrucacheextension import ObjectCache, NumCache
-from tables.atom import Atom
-from tables.conditions import compile_condition
+from . import tableextension
+from .lrucacheextension import ObjectCache, NumCache
+from .atom import Atom
+from .conditions import compile_condition
 from numexpr.necompiler import (
     getType as numexpr_getType, double, is_cpu_amd_intel)
 from numexpr.expressions import functions as numexpr_functions
-from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
-from tables.leaf import Leaf
-from tables.description import (
+from .flavor import flavor_of, array_as_internal, internal_to_flavor
+from .utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
+from .leaf import Leaf
+from .description import (
     IsDescription, Description, Col, descr_from_dtype)
-from tables.exceptions import (NodeError, HDF5ExtError, PerformanceWarning,
+from .exceptions import (NodeError, HDF5ExtError, PerformanceWarning,
                                OldIndexWarning, NoSuchNodeError)
-from tables.utilsextension import get_nested_field
+from .utilsextension import get_nested_field
 
-from tables.path import join_path, split_path
-from tables.index import (
+from .path import join_path, split_path
+from .index import (
     OldIndex, default_index_filters, default_auto_index, Index, IndexesDescG,
     IndexesTableG)
 import six
@@ -50,7 +50,7 @@ from six.moves import zip
 profile = False
 # profile = True  # Uncomment for profiling
 if profile:
-    from tables.utils import show_stats
+    from .utils import show_stats
 
 
 # 2.2: Added support for complex types. Introduced in version 0.9.

@@ -22,7 +22,7 @@ from time import time
 
 import numpy
 
-from tables.flavor import array_of_flavor
+from .flavor import array_of_flavor
 import six
 
 # The map between byteorders in NumPy and PyTables
