@@ -38,8 +38,6 @@ PKG_CONFIG = 'pkg-config'
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-numpy_requirement = [r for r in requirements if 'numpy' in r]
-
 
 class BuildExtensions(build_ext):
     """Subclass setuptools build_ext command
@@ -52,7 +50,9 @@ class BuildExtensions(build_ext):
     """
 
     def run(self):
-        self.distribution.fetch_build_eggs(numpy_requirement)
+        # According to
+        # https://pip.pypa.io/en/stable/reference/pip_install.html#installation-order
+        # at this point we can be sure pip has already installed numpy
         numpy_incl = pkg_resources.resource_filename('numpy', 'core/include')
 
         for ext in self.extensions:
