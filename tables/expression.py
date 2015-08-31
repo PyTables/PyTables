@@ -13,6 +13,7 @@
 """Here is defined the Expr class."""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import warnings
 
@@ -22,6 +23,9 @@ from numexpr.necompiler import getContext, getExprNames, getType, NumExpr
 from numexpr.expressions import functions as numexpr_functions
 from tables.exceptions import PerformanceWarning
 from tables.parameters import IO_BUFFER_SIZE, BUFFER_TIMES
+import six
+from six.moves import range
+from six.moves import zip
 
 
 
@@ -177,8 +181,8 @@ class Expr(object):
         self.names, _ = getExprNames(expr, context)
 
         # Raise a ValueError in case we have unsupported objects
-        for name, var in vars_.iteritems():
-            if type(var) in (int, long, float, str):
+        for name, var in six.iteritems(vars_):
+            if type(var) in (int, int, float, str):
                 continue
             if not isinstance(var, (tb.Leaf, tb.Column)):
                 if hasattr(var, "dtype"):
@@ -192,7 +196,7 @@ class Expr(object):
         # NumPy arrays to be copied? (we don't need to worry about
         # PyTables objects, as the reads always return contiguous and
         # aligned objects, or at least I think so).
-        for name, var in vars_.iteritems():
+        for name, var in six.iteritems(vars_):
             if isinstance(var, np.ndarray):
                 # See numexpr.necompiler.evaluate for a rational
                 # of the code below
@@ -258,7 +262,7 @@ class Expr(object):
             # Protection against growing the cache too much
             if len(exprvars_cache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
-                for k in exprvars_cache.keys()[:10]:
+                for k in list(exprvars_cache.keys())[:10]:
                     del exprvars_cache[k]
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [var for var in cexpr.co_names
@@ -469,7 +473,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             (start, stop, step) = slice(
                 self.start, self.stop, self.step).indices(shape[maindim])
             shape[maindim] = min(
-                shape[maindim], len(xrange(0, stop - start, step)))
+                shape[maindim], len(range(0, stop - start, step)))
             i_nrows = shape[maindim]
         else:
             start, stop, step = 0, 0, None
@@ -498,7 +502,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 s = slice(self.o_start, self.o_stop, self.o_step)
                 o_start, o_stop, o_step = s.indices(o_shape[o_maindim])
                 o_shape[o_maindim] = min(o_shape[o_maindim],
-                                         len(xrange(o_start, o_stop, o_step)))
+                                         len(range(o_start, o_stop, o_step)))
 
                 # Check that the shape of output is consistent with inputs
                 tr_oshape = list(o_shape)   # this implies a copy
@@ -593,7 +597,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 val._v_convert = False
 
         # Start the computation itself
-        for start2 in xrange(start, stop, step * nrowsinbuf):
+        for start2 in range(start, stop, step * nrowsinbuf):
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
@@ -659,7 +663,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 val._v_convert = False
 
         # Start the computation itself
-        for start2 in xrange(start, stop, step * nrowsinbuf):
+        for start2 in range(start, stop, step * nrowsinbuf):
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop

@@ -66,29 +66,6 @@ class BuildExtensions(build_ext):
 cmdclass = {'build_ext': BuildExtensions}
 setuptools_kwargs = {}
 
-if sys.version_info >= (3,):
-    fixer_names = [
-        'lib2to3.fixes.fix_basestring',
-        'lib2to3.fixes.fix_dict',
-        'lib2to3.fixes.fix_imports',
-        'lib2to3.fixes.fix_long',
-        'lib2to3.fixes.fix_metaclass',
-        'lib2to3.fixes.fix_next',
-        'lib2to3.fixes.fix_numliterals',
-        'lib2to3.fixes.fix_print',
-        'lib2to3.fixes.fix_unicode',
-        'lib2to3.fixes.fix_xrange',
-    ]
-
-    from lib2to3.refactor import get_fixers_from_package
-
-    all_fixers = set(get_fixers_from_package('lib2to3.fixes'))
-    exclude_fixers = sorted(all_fixers.difference(fixer_names))
-
-    setuptools_kwargs['use_2to3'] = True
-    setuptools_kwargs['use_2to3_fixers'] = []
-    setuptools_kwargs['use_2to3_exclude_fixers'] = exclude_fixers
-
 
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):

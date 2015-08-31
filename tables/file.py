@@ -21,6 +21,7 @@ nodes.
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 import time
@@ -59,6 +60,9 @@ from tables.flavor import flavor_of, array_as_internal
 from tables.atom import Atom
 
 from tables.link import SoftLink, ExternalLink
+import six
+from six.moves import map
+from six.moves import range
 
 
 
@@ -90,7 +94,7 @@ class _FileRegistry(object):
 
     @property
     def filenames(self):
-        return self._name_mapping.keys()
+        return list(self._name_mapping.keys())
 
     @property
     def handlers(self):
@@ -478,7 +482,7 @@ class NodeManager(object):
         # Only iter on the nodes in the registry since nodes in the cahce
         # should always have an entry in the registry
         closed_keys = []
-        for path, node in self.registry.items():
+        for path, node in list(self.registry.items()):
             if not node._v_isopen:
                 closed_keys.append(path)
             elif '/_i_' not in path:  # Indexes are not necessary to be flushed
@@ -753,14 +757,14 @@ class File(hdf5extension.File, object):
                              "'r', 'r+', 'a' and 'w'" % mode)
 
         # Get all the parameters in parameter file(s)
-        params = dict([(k, v) for k, v in parameters.__dict__.iteritems()
+        params = dict([(k, v) for k, v in six.iteritems(parameters.__dict__)
                        if k.isupper() and not k.startswith('_')])
         # Update them with possible keyword arguments
         if [k for k in kwargs if k.isupper()]:
             warnings.warn("The use of uppercase keyword parameters is "
                           "deprecated", DeprecationWarning)
 
-        kwargs = dict([(k.upper(), v) for k, v in kwargs.iteritems()])
+        kwargs = dict([(k.upper(), v) for k, v in six.iteritems(kwargs)])
         params.update(kwargs)
 
         # If MAX_ * _THREADS is not set yet, set it to the number of cores
@@ -1580,7 +1584,7 @@ class File(hdf5extension.File, object):
             basepath = where._v_pathname
             nodepath = join_path(basepath, name or '') or '/'
             node = where._v_file._get_node(nodepath)
-        elif isinstance(where, (basestring, numpy.str_)):
+        elif isinstance(where, (six.string_types, numpy.str_)):
             if not where.startswith('/'):
                 raise NameError("``where`` must start with a slash ('/')")
 
@@ -2362,7 +2366,7 @@ class File(hdf5extension.File, object):
                                                self._curmark))
             mnode._g_reset()
             # Delete the marker groups with backup objects
-            for mark in xrange(self._curmark + 1, self._nmarks):
+            for mark in range(self._curmark + 1, self._nmarks):
                 mnode = self.get_node(_markPath % (self._curtransaction, mark))
                 mnode._g_remove(recursive=1)
             # Update the new number of marks
@@ -2400,7 +2404,7 @@ class File(hdf5extension.File, object):
             markid = mark
         elif isinstance(mark, str):
             if mark not in self._markers:
-                lmarkers = sorted(self._markers.iterkeys())
+                lmarkers = sorted(six.iterkeys(self._markers))
                 raise UndoRedoError("The mark that you have specified has not "
                                     "been found in the internal marker list: "
                                     "%r" % lmarkers)
@@ -2443,7 +2447,7 @@ class File(hdf5extension.File, object):
         # Uncomment this for debugging
 #         print("curaction, finalaction, direction", \
 #               self._curaction, finalaction, direction)
-        for i in xrange(len(actionlog)):
+        for i in range(len(actionlog)):
             if actionlog['opcode'][i] != _op_to_code["MARK"]:
                 # undo/redo the action
                 if direction > 0:

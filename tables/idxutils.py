@@ -11,6 +11,7 @@
 ########################################################################
 
 """Utilities to be used mainly by the Index class."""
+from __future__ import absolute_import
 
 import sys
 import math
@@ -476,7 +477,7 @@ def nextafter(x, direction, dtype, itemsize):
     direction."""
 
     assert direction in [-1, 0, +1]
-    assert dtype.kind == "S" or type(x) in (bool, int, long, float)
+    assert dtype.kind == "S" or type(x) in (bool, int, int, float)
 
     if direction == 0:
         return x

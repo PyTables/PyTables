@@ -13,6 +13,7 @@
 """Test module for evaluating expressions under PyTables."""
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import numpy as np
 
@@ -20,6 +21,8 @@ import tables
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
+import six
+from six.moves import range
 
 # An example of record
 
@@ -35,7 +38,7 @@ class Record(tables.IsDescription):
 # Helper functions
 def get_sliced_vars(npvars, start, stop, step):
     npvars_ = {}
-    for name, var in npvars.iteritems():
+    for name, var in six.iteritems(npvars):
         if hasattr(var, "__len__"):
             npvars_[name] = var[start:stop:step]
         else:
@@ -47,7 +50,7 @@ def get_sliced_vars2(npvars, start, stop, step, shape, maindim):
     npvars_ = {}
     slices = [slice(None) for dim in shape]
     slices[maindim] = slice(start, stop, step)
-    for name, var in npvars.iteritems():
+    for name, var in six.iteritems(npvars):
         npvars_[name] = var.__getitem__(tuple(slices))
     return npvars_
 
@@ -189,7 +192,7 @@ class MixedContainersTestCase(common.TempFileMixin, TestCase):
         c = np.arange(2 * N, 3*N, dtype='int32').reshape(self.shape)
         d = np.arange(3 * N, 4*N, dtype='int32').reshape(self.shape)
         e = np.arange(4 * N, 5*N, dtype='int32').reshape(self.shape)
-        self.f = f = long(3)   # a regular python type
+        self.f = f = int(3)   # a regular python type
         self.g = g = np.int16(2)   # a NumPy scalar type
 
         # Original values
@@ -1291,7 +1294,7 @@ class setOutputRangeTestCase(common.TempFileMixin, TestCase):
         expr.set_output_range(start, stop, step)
         expr.eval()
         r2 = eval("a-b-1")
-        r[start:stop:step] = r2[:len(xrange(0, stop - start, step))]
+        r[start:stop:step] = r2[:len(range(0, stop - start, step))]
         if common.verbose:
             print("Tested shape:", shape)
             print("Computed expression:", repr(r1[:]), r1.dtype)
@@ -1327,7 +1330,7 @@ class setOutputRangeTestCase(common.TempFileMixin, TestCase):
         r2 = eval("a-b-1")
         lsl = tuple([slice(None)] * self.maindim)
         # print "lsl-->", lsl + (slice(start,stop,step),)
-        l = len(xrange(0, stop - start, step))
+        l = len(range(0, stop - start, step))
         r.__setitem__(lsl + (slice(start, stop, step),),
                       r2.__getitem__(lsl + (slice(0, l),)))
         if common.verbose:

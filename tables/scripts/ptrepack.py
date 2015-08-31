@@ -17,6 +17,7 @@ Pass the flag -h to this for help on usage.
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import time
 import os.path

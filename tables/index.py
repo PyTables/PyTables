@@ -13,6 +13,7 @@
 """Here is defined the Index class."""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 from time import time, clock
 import os
@@ -41,6 +42,7 @@ from tables.utilsextension import (nan_aware_gt, nan_aware_ge,
                                    nan_aware_lt, nan_aware_le,
                                    bisect_left, bisect_right)
 from tables.lrucacheextension import ObjectCache
+from six.moves import range
 
 
 
@@ -406,8 +408,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             attrs = self._v_attrs
             # Coerce NumPy scalars to Python scalars in order
             # to avoid undesired upcasting operations.
-            self.superblocksize = long(attrs.superblocksize)
-            self.blocksize = long(attrs.blocksize)
+            self.superblocksize = int(attrs.superblocksize)
+            self.blocksize = int(attrs.blocksize)
             self.slicesize = int(attrs.slicesize)
             self.chunksize = int(attrs.chunksize)
             self.blocksizes = (self.superblocksize, self.blocksize,
@@ -589,7 +591,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             # Fill the idx with the bucket indices
             offset = lbucket - ((nrow * (slicesize % lbucket)) % lbucket)
             idx[0:offset] = 0
-            for i in xrange(offset, slicesize, lbucket):
+            for i in range(offset, slicesize, lbucket):
                 idx[i:i + lbucket] = (i + lbucket - 1) // lbucket
             if indsize == 2:
                 # Add a second offset in this case
@@ -861,12 +863,12 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         sremain = numpy.array([], dtype=self.dtype)
         iremain = numpy.array([], dtype='u%d' % self.indsize)
         starts = numpy.zeros(shape=nslices, dtype=numpy.int_)
-        for i in xrange(nslices):
+        for i in range(nslices):
             # Find the overlapping elements for slice i
             sover = numpy.array([], dtype=self.dtype)
             iover = numpy.array([], dtype='u%d' % self.indsize)
             prev_end = ranges[i, 1]
-            for j in xrange(i + 1, nslices):
+            for j in range(i + 1, nslices):
                 stj = starts[j]
                 if ((j < self.nslices and stj == ss) or
                         (j == self.nslices and stj == nelementsLR)):
@@ -1095,7 +1097,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         cs = self.chunksize // reduction
         ncs = self.nchunkslice
         tmp = self.tmp
-        for i in xrange(self.nslices):
+        for i in range(self.nslices):
             # Copy sorted & indices slices
             sorted = tmp.sorted[i][::reduction].copy()
             self.sorted.append(sorted.reshape(1, sorted.size))
@@ -1155,13 +1157,13 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         ncs = ncs2 = self.nchunkslice
         self_nslices = self.nslices
         tmp = numpy.empty(shape=self.slicesize, dtype=dtype)
-        for i in xrange(nslices):
+        for i in range(nslices):
             ns = offset + i
             if ns == self_nslices:
                 # The number of complete chunks in the last row
                 ncs2 = self.nelementsILR // cs
             # Get slices in new order
-            for j in xrange(ncs2):
+            for j in range(ncs2):
                 idx = neworder[i * ncs + j]
                 ins = idx // ncs
                 inc = (idx - ins * ncs) * cs
@@ -1203,7 +1205,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         ncb2 = ncb
         boundsobj = tmp._f_get_child(boundsnames[mode])
         can_cross_bbounds = (self.indsize == 8 and self.nelementsILR > 0)
-        for nblock in xrange(self.nblocks):
+        for nblock in range(self.nblocks):
             # Protection for last block having less chunks than ncb
             remainingchunks = self.nchunks - nblock * ncb
             if remainingchunks < ncb:
@@ -1355,7 +1357,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
             nslice = 0   # Just in case the loop behind executes nothing
             # Loop over the remainding slices in block
-            for nslice in xrange(1, sorted.nrows):
+            for nslice in range(1, sorted.nrows):
                 self.reorder_slice(nslice, sorted, indices,
                                    ssorted, sindices,
                                    tmp_sorted, tmp_indices)
@@ -1388,7 +1390,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         else:
             # Iterate over each block.  No data should cross block
             # boundaries to avoid adressing problems with short indices.
-            for nb in xrange(nblocks):
+            for nb in range(nblocks):
                 # Bootstrap the process for reordering
                 # Read the first slice in buffers
                 nrow = nb * nsb
@@ -1400,7 +1402,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                 if lrb > nslices:
                     lrb = nslices
                 nslice = nrow   # Just in case the loop behind executes nothing
-                for nslice in xrange(nrow + 1, lrb):
+                for nslice in range(nrow + 1, lrb):
                     self.reorder_slice(nslice, sorted, indices,
                                        ssorted, sindices,
                                        tmp_sorted, tmp_indices)
@@ -1422,7 +1424,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         ncs = self.nchunkslice
         nss = self.superblocksize // self.slicesize
         nss2 = nss
-        for sblock in xrange(self.nsuperblocks):
+        for sblock in range(self.nsuperblocks):
             # Protection for last superblock having less slices than nss
             remainingslices = self.nslices - sblock * nss
             if remainingslices < nss:
@@ -1447,7 +1449,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                 continue
             ns = sblock * nss2
             # Swap sorted and indices slices following the new order
-            for i in xrange(nss2):
+            for i in range(nss2):
                 idx = sranges_idx[i]
                 # Swap sorted & indices slices
                 oi = ns + i
@@ -1468,7 +1470,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                 tmp.zbounds2[j:jn] = tmp.zbounds[xj:xjn]
                 tmp.mbounds2[j:jn] = tmp.mbounds[xj:xjn]
             # tmp -> originals
-            for i in xrange(nss2):
+            for i in range(nss2):
                 # Copy sorted & indices slices
                 oi = ns + i
                 sorted[oi] = tmp_sorted[oi]
@@ -1551,9 +1553,9 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         multiplicity = numpy.zeros(shape=nslices, dtype="int_")
         overlaps = multiplicity.copy()
         starts = multiplicity.copy()
-        for i in xrange(nslices):
+        for i in range(nslices):
             prev_end = ranges[i, 1]
-            for j in xrange(i + 1, nslices):
+            for j in range(i + 1, nslices):
                 stj = starts[j]
                 assert stj <= ss
                 if stj == ss:
@@ -1639,8 +1641,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         soverlap = 0.
         toverlap = -1.
         multiplicity = numpy.zeros(shape=nslices, dtype="int_")
-        for i in xrange(nslices):
-            for j in xrange(i + 1, nslices):
+        for i in range(nslices):
+            for j in range(i + 1, nslices):
                 if ranges[i, 1] > ranges[j, 0]:
                     noverlaps += 1
                     multiplicity[j - i] += 1
@@ -1699,7 +1701,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         tlen = stop - start
         bstart = 0
         ilen = 0
-        for nrow in xrange(nrow_start, nrow_stop + 1):
+        for nrow in range(nrow_start, nrow_stop + 1):
             blen = ss - istart
             if ilen + blen > tlen:
                 blen = tlen - ilen
@@ -1745,7 +1747,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             # Special case for the behaviour of PyTables iterators
             stop = idx2long(start + 1)
         if start is None:
-            start = 0L
+            start = 0
         else:
             start = idx2long(start)
         if stop is None:
@@ -1753,7 +1755,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         else:
             stop = idx2long(stop)
         if step is None:
-            step = 1L
+            step = 1
         else:
             step = idx2long(step)
         return (start, stop, step)
@@ -1842,7 +1844,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
             # Reset the lengths array (not necessary for starts)
             self.lengths[:] = 0
             # Now, set the interesting rows
-            for nrow in xrange(len(startlengths)):
+            for nrow in range(len(startlengths)):
                 nrow2, start, length = startlengths[nrow]
                 self.starts[nrow2] = start
                 self.lengths[nrow2] = length
@@ -1920,7 +1922,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
 
         tlen = 0
         # Do the lookup for values fullfilling the conditions
-        for i in xrange(self.nslices):
+        for i in range(self.nslices):
             (start, stop) = sorted._search_bin(i, item)
             self.starts[i] = start
             self.lengths[i] = stop - start
@@ -2011,14 +2013,14 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         lbucket = self.lbucket
         indsize = self.indsize
         bucketsinblock = float(self.blocksize) / lbucket
-        nchunks = long(math.ceil(float(self.nelements) / lbucket))
+        nchunks = int(math.ceil(float(self.nelements) / lbucket))
         chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
         reduction = self.reduction
         starts = (self.starts - 1) * reduction + 1
         stops = (self.starts + self.lengths) * reduction
         starts[starts < 0] = 0    # All negative values set to zero
         indices = self.indices
-        for nslice in xrange(self.nrows):
+        for nslice in range(self.nrows):
             start = starts[nslice]
             stop = stops[nslice]
             if stop > start:
@@ -2032,7 +2034,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
                 elif indsize == 2:
                     # The chunkmap size cannot be never larger than 'int_'
                     idx = idx.astype("int_")
-                    offset = long((nslice // nsb) * bucketsinblock)
+                    offset = int((nslice // nsb) * bucketsinblock)
                     idx += offset
                 elif indsize == 1:
                     # The chunkmap size cannot be never larger than 'int_'
@@ -2045,7 +2047,7 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         if lbucket != nrowsinchunk:
             # Map the 'coarse grain' chunkmap into the 'true' chunkmap
             nelements = self.nelements
-            tnchunks = long(math.ceil(float(nelements) / nrowsinchunk))
+            tnchunks = int(math.ceil(float(nelements) / nrowsinchunk))
             tchunkmap = numpy.zeros(shape=tnchunks, dtype="bool")
             ratio = float(lbucket) / nrowsinchunk
             idx = chunkmap.nonzero()[0]

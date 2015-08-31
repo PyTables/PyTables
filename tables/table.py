@@ -11,6 +11,7 @@
 ########################################################################
 
 """Here is defined the Table class."""
+from __future__ import absolute_import
 
 import sys
 import math
@@ -42,6 +43,9 @@ from tables.path import join_path, split_path
 from tables.index import (
     OldIndex, default_index_filters, default_auto_index, Index, IndexesDescG,
     IndexesTableG)
+import six
+from six.moves import range
+from six.moves import zip
 
 profile = False
 # profile = True  # Uncomment for profiling
@@ -64,7 +68,7 @@ try:
     from numexpr.necompiler import int_, long_
 except ImportError:
     int_ = int
-    long_ = long
+    long_ = int
 
 # Maps NumPy types to the types used by Numexpr.
 _nxtype_from_nptype = {
@@ -166,7 +170,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
 
     # Get the values in expression that are not columns
     values = []
-    for key, value in condvars.iteritems():
+    for key, value in six.iteritems(condvars):
         if isinstance(value, numpy.ndarray):
             values.append((key, value.item()))
     # Build a key for the sequence cache
@@ -209,7 +213,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
         if index.reduction == 1 and ncoords == 0:
             # No values from index condition, thus the chunkmap should be empty
             nrowsinchunk = self.chunkshape[0]
-            nchunks = long(math.ceil(float(self.nrows) / nrowsinchunk))
+            nchunks = int(math.ceil(float(self.nrows) / nrowsinchunk))
             chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
         else:
             # Get the chunkmap from the index
@@ -353,7 +357,7 @@ class _ColIndexes(dict):
     def __repr__(self):
         """Gives a detailed Description column representation."""
 
-        rep = ['  \"%s\": %s' % (k, self[k]) for k in self.iterkeys()]
+        rep = ['  \"%s\": %s' % (k, self[k]) for k in six.iterkeys(self)]
         return '{\n  %s}' % (',\n  '.join(rep))
 
 
@@ -566,14 +570,14 @@ class Table(tableextension.Table, Leaf):
 
         # First, do a check to see whether we need to set default values
         # different from 0 or not.
-        for coldflt in self.coldflts.itervalues():
+        for coldflt in six.itervalues(self.coldflts):
             if isinstance(coldflt, numpy.ndarray) or coldflt:
                 break
         else:
             # No default different from 0 found.  Returning None.
             return None
         wdflts = self._get_container(1)
-        for colname, coldflt in self.coldflts.iteritems():
+        for colname, coldflt in six.iteritems(self.coldflts):
             ra = get_nested_field(wdflts, colname)
             ra[:] = coldflt
         return wdflts
@@ -822,7 +826,7 @@ class Table(tableextension.Table, Leaf):
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
-            if isinstance(chunkshape, (int, numpy.integer, long)):
+            if isinstance(chunkshape, (int, numpy.integer, int)):
                 chunkshape = (chunkshape,)
             try:
                 chunkshape = tuple(chunkshape)
@@ -910,7 +914,7 @@ class Table(tableextension.Table, Leaf):
             self._unsaved_indexedrows = self.nrows - self._indexedrows
             # Put the autoindex value in a cache variable
             self._autoindex = self.autoindex
-    
+
     def _calc_nrowsinbuf(self):
         """Calculate the number of rows that fits on a PyTables buffer."""
 
@@ -1218,7 +1222,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Protection against growing the cache too much
             if len(exprvarscache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
-                for k in exprvarscache.keys()[:10]:
+                for k in list(exprvarscache.keys())[:10]:
                     del exprvarscache[k]
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [var for var in cexpr.co_names
@@ -1286,7 +1290,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                     "not allowed in conditions" % var)
             else:  # only non-column values are converted to arrays
                 # XXX: not 100% sure about this
-                if isinstance(val, unicode):
+                if isinstance(val, six.text_type):
                     val = numpy.asarray(val.encode('ascii'))
                 else:
                     val = numpy.asarray(val)
@@ -1307,7 +1311,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         colnames, varnames = [], []
         # Column paths and types for each of the previous variable.
         colpaths, vartypes = [], []
-        for (var, val) in condvars.iteritems():
+        for (var, val) in six.iteritems(condvars):
             if hasattr(val, 'pathname'):  # column
                 colnames.append(var)
                 colpaths.append(val.pathname)
@@ -1349,7 +1353,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         (condition, colnames, varnames, colpaths, vartypes) = condkey
 
         # Extract more information from referenced columns.
-        typemap = dict(zip(varnames, vartypes))  # start with normal variables
+        typemap = dict(list(zip(varnames, vartypes)))  # start with normal variables
         indexedcols = []
         for colname in colnames:
             col = condvars[colname]
@@ -1824,7 +1828,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 return nra
             return numpy.empty(shape=0, dtype=dtype_field)
 
-        nrows = len(xrange(0, stop - start, step))
+        nrows = len(range(0, stop - start, step))
 
         if out is None:
             # Compute the shape of the resulting column object
@@ -2340,7 +2344,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(xrange(0, stop - start, step))
+        nrows = len(range(0, stop - start, step))
         if len(rows) != nrows:
             raise ValueError("The value has different elements than the "
                              "specified range")
@@ -2427,7 +2431,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(xrange(0, stop - start, step))
+        nrows = len(range(0, stop - start, step))
         if len(column) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2503,7 +2507,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(xrange(0, stop - start, step))
+        nrows = len(range(0, stop - start, step))
         if len(recarray) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2535,7 +2539,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Update the number of unsaved indexed rows
             start = self._indexedrows
             nrows = self._unsaved_indexedrows
-            for (colname, colindexed) in self.colindexed.iteritems():
+            for (colname, colindexed) in six.iteritems(self.colindexed):
                 if colindexed:
                     col = self.cols._g_col(colname)
                     if nrows > 0 and not col.index.dirty:
@@ -2761,7 +2765,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Common code for `reindex()` and `reindex_dirty()`."""
 
         indexedrows = 0
-        for (colname, colindexed) in self.colindexed.iteritems():
+        for (colname, colindexed) in six.iteritems(self.colindexed):
             if colindexed:
                 indexcol = self.cols._g_col(colname)
                 indexedrows = indexcol._do_reindex(dirty)
@@ -2810,7 +2814,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             start, stop = stop + 1, start + 1
         if sortby is not None:
             index = self._check_sortby_csi(sortby, checkCSI)
-        for start2 in xrange(start, stop, absstep * lenbuf):
+        for start2 in range(start, stop, absstep * lenbuf):
             stop2 = start2 + absstep * lenbuf
             if stop2 > stop:
                 stop2 = stop
@@ -2831,7 +2835,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         nrowsinbuf = self.nrowsinbuf
         object._open_append(self._v_iobuf)
         nrowsdest = object.nrows
-        for start2 in xrange(start, stop, step * nrowsinbuf):
+        for start2 in range(start, stop, step * nrowsinbuf):
             # Save the records on disk
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
@@ -2873,7 +2877,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         (start, stop, step) = self._process_range_read(
             start, stop, step, warn_negstep=sortby is None)
         # And the number of final rows
-        nrows = len(xrange(0, stop - start, step))
+        nrows = len(range(0, stop - start, step))
         # Create the new table and copy the selected data.
         newtable = Table(group, name, self.description, title=title,
                          filters=filters, expectedrows=nrows,
@@ -3499,7 +3503,7 @@ class Column(object):
         nrowsinbuf = table._v_file.params['IO_BUFFER_SIZE'] // itemsize
         buf = numpy.empty((nrowsinbuf, ), self._itemtype)
         max_row = len(self)
-        for start_row in xrange(0, len(self), nrowsinbuf):
+        for start_row in range(0, len(self), nrowsinbuf):
             end_row = min(start_row + nrowsinbuf, max_row)
             buf_slice = buf[0:end_row - start_row]
             table.read(start_row, end_row, 1, field=self.pathname,
@@ -3613,7 +3617,7 @@ class Column(object):
         kinds = ['ultralight', 'light', 'medium', 'full']
         if kind not in kinds:
             raise ValueError("Kind must have any of these values: %s" % kinds)
-        if (not isinstance(optlevel, (int, long)) or
+        if (not isinstance(optlevel, six.integer_types) or
                 (optlevel < 0 or optlevel > 9)):
             raise ValueError("Optimization level must be an integer in the "
                              "range 0-9")

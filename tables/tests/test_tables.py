@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 import tempfile
@@ -21,6 +22,9 @@ from tables.tests.common import allequal, areArraysEqual
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
+import six
+from six.moves import range
+from six.moves import zip
 
 
 # Test Record class
@@ -137,7 +141,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         row = record[0]
         buflist = []
         # Fill the recarray
-        for i in xrange(self.expectedrows):
+        for i in range(self.expectedrows):
             tmplist = []
             var1 = '%04d' % (self.expectedrows - i)
             tmplist.append(var1)
@@ -226,7 +230,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                 # Get the row object associated with the new table
                 row = table.row
                 # Fill the table
-                for i in xrange(self.expectedrows):
+                for i in range(self.expectedrows):
                     s = '%04d' % (self.expectedrows - i)
                     row['var1'] = s.encode('ascii')
                     row['var7'] = s[-1].encode('ascii')
@@ -468,7 +472,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Total selected records in table ==> ", len(result))
             print("All results ==>", result)
         self.assertEqual(len(result), 20)
-        self.assertEqual(result, range(20))
+        self.assertEqual(result, list(range(20)))
 
     def test01a_extslice(self):
         """Checking table read (using Row[::2])"""
@@ -740,7 +744,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Record Format ==>", table.description._v_nested_formats)
             print("Record Size ==>", table.rowsize)
         # Append some rows
-        for i in xrange(self.appendrows):
+        for i in range(self.appendrows):
             s = '%04d' % (self.appendrows - i)
             row['var1'] = s.encode('ascii')
             row['var7'] = s[-1].encode('ascii')
@@ -839,7 +843,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                 print("Record Format ==>", table.description._v_nested_formats)
                 print("Record Size ==>", table.rowsize)
             # Append some rows
-            for i in xrange(self.appendrows):
+            for i in range(self.appendrows):
                 row['var1'] = '%04d' % (self.appendrows - i)
                 row['var7'] = row['var1'][-1]
                 row['var2'] = i
@@ -937,7 +941,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         row = table.row
         # Append some rows (3 * table.nrowsinbuf is enough for
         # checking purposes)
-        for i in xrange(3 * table.nrowsinbuf):
+        for i in range(3 * table.nrowsinbuf):
             s = '%04d' % (self.appendrows - i)
             row['var1'] = s.encode('ascii')
             row['var7'] = s[-1].encode('ascii')
@@ -1053,13 +1057,13 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Get their row object
         row = table.row
         # Append some rows
-        for i in xrange(10):
+        for i in range(10):
             row['var2'] = 100 + i
             row.append()
         # Force a flush
         table.flush()
         # Add new rows
-        for i in xrange(9):
+        for i in range(9):
             row['var2'] = 110 + i
             row.append()
         table.flush()  # XXX al eliminar...
@@ -1317,7 +1321,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # Append some rows
         row = table.row
-        for i in xrange(10, 15):
+        for i in range(10, 15):
             row['var1'] = '%04d' % (self.appendrows - i)
             # This line gives problems on Windows. Why?
             # row['var7'] = row['var1'][-1]
@@ -1558,7 +1562,7 @@ class DictWriteTestCase(BasicTestCase):
 @unittest.skipIf(sys.version_info >= (3,), 'requires Python 2')
 class DictWriteTestCase2(DictWriteTestCase):
     record = RecordDescriptionDict.copy()
-    record[unicode('var1')] = record.pop('var1')
+    record[six.text_type('var1')] = record.pop('var1')
 
 
 # Pure NumPy dtype
@@ -2107,7 +2111,7 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
             row = table.row
 
             # Fill the table
-            for i in xrange(self.expectedrows):
+            for i in range(self.expectedrows):
                 row['var1'] = '%04d' % (self.expectedrows - i)
                 row['var7'] = row['var1'][-1]
                 row['var2'] = i
@@ -2141,13 +2145,13 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
 
         table.nrowsinbuf = self.nrowsinbuf
         resrange = slice(self.start, self.stop, self.step).indices(table.nrows)
-        reslength = len(range(*resrange))
+        reslength = len(list(range(*resrange)))
         #print "self.checkrecarray = ", self.checkrecarray
         #print "self.checkgetCol = ", self.checkgetCol
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
-            for nrec in xrange(len(recarray)):
+            for nrec in range(len(recarray)):
                 if recarray['var2'][nrec] < self.nrows and 0 < self.step:
                     result.append(recarray['var2'][nrec])
                 elif recarray['var2'][nrec] > self.nrows and 0 > self.step:
@@ -2155,7 +2159,7 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
         elif self.checkgetCol:
             column = table.read(self.start, self.stop, self.step, 'var2')
             result = []
-            for nrec in xrange(len(column)):
+            for nrec in range(len(column)):
                 if column[nrec] < self.nrows and 0 < self.step:
                     result.append(column[nrec])
                 elif column[nrec] > self.nrows and 0 > self.step:
@@ -2208,11 +2212,11 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
             print("Total number of selected records ==>", len(result))
             print("Selected records:\n", result)
             print("Selected records should look like:\n",
-                  range(startr, stopr, self.step))
+                  list(range(startr, stopr, self.step)))
             print("start, stop, step ==>", self.start, self.stop, self.step)
             print("startr, stopr, step ==>", startr, stopr, self.step)
 
-        self.assertEqual(result, range(startr, stopr, self.step))
+        self.assertEqual(result, list(range(startr, stopr, self.step)))
         if not (self.checkrecarray or self.checkgetCol):
             if startr < stopr and 0 < self.step:
                 rec = [r for r in table.iterrows(self.start, self.stop,
@@ -2221,11 +2225,11 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
                 if self.nrows < self.expectedrows:
                     self.assertEqual(
                         rec['var2'],
-                        range(self.start, self.stop, self.step)[-1])
+                        list(range(self.start, self.stop, self.step))[-1])
                 else:
                     self.assertEqual(
                         rec['var2'],
-                        range(startr, stopr, self.step)[-1])
+                        list(range(startr, stopr, self.step))[-1])
             elif startr > stopr and 0 > self.step:
                 rec = [r['var2'] for r in table.iterrows(self.start, self.stop,
                                                          self.step)
@@ -2233,11 +2237,11 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
                 if self.nrows < self.expectedrows:
                     self.assertEqual(
                         rec,
-                        range(self.start, self.stop or -1, self.step)[0])
+                        list(range(self.start, self.stop or -1, self.step))[0])
                 else:
                     self.assertEqual(
                         rec,
-                        range(startr, stopr or -1, self.step)[0])
+                        list(range(startr, stopr or -1, self.step))[0])
 
         # Close the file
         self.h5file.close()
@@ -2578,7 +2582,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
             row = table.row
 
             # Fill the table
-            for i in xrange(self.expectedrows):
+            for i in range(self.expectedrows):
                 row['var1'] = '%04d' % (self.expectedrows - i)
                 row['var7'] = row['var1'][-1]
                 row['var2'] = i
@@ -2693,15 +2697,15 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.root.table0
         result = table[2:6]
-        self.assertEqual(result["var2"].tolist(), range(2, 6))
+        self.assertEqual(result["var2"].tolist(), list(range(2, 6)))
         result = table[2:-6]
-        self.assertEqual(result["var2"].tolist(), range(
-            2, self.expectedrows-6))
+        self.assertEqual(result["var2"].tolist(), list(range(
+            2, self.expectedrows-6)))
         result = table[2:]
-        self.assertEqual(result["var2"].tolist(), range(2, self.expectedrows))
+        self.assertEqual(result["var2"].tolist(), list(range(2, self.expectedrows)))
         result = table[-2:]
         self.assertEqual(result["var2"].tolist(),
-                         range(self.expectedrows-2, self.expectedrows))
+                         list(range(self.expectedrows-2, self.expectedrows)))
 
     def test03_threeItems(self):
         """Checking __getitem__ method with start, stop, step parameters."""
@@ -2713,15 +2717,15 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.root.table0
         result = table[2:6:3]
-        self.assertEqual(result["var2"].tolist(), range(2, 6, 3))
+        self.assertEqual(result["var2"].tolist(), list(range(2, 6, 3)))
         result = table[2::3]
-        self.assertEqual(result["var2"].tolist(), range(
-            2, self.expectedrows, 3))
+        self.assertEqual(result["var2"].tolist(), list(range(
+            2, self.expectedrows, 3)))
         result = table[:6:2]
-        self.assertEqual(result["var2"].tolist(), range(0, 6, 2))
+        self.assertEqual(result["var2"].tolist(), list(range(0, 6, 2)))
         result = table[::]
-        self.assertEqual(result["var2"].tolist(), range(
-            0, self.expectedrows, 1))
+        self.assertEqual(result["var2"].tolist(), list(range(
+            0, self.expectedrows, 1)))
 
     def test04_negativeStep(self):
         """Checking __getitem__ method with negative step parameter."""
@@ -2776,11 +2780,11 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.root.table0
         colvar2 = table.cols.var2
-        self.assertEqual(colvar2[2:6].tolist(), range(2, 6))
-        self.assertEqual(colvar2[2:-6].tolist(), range(2, self.expectedrows-6))
-        self.assertEqual(colvar2[2:].tolist(), range(2, self.expectedrows))
+        self.assertEqual(colvar2[2:6].tolist(), list(range(2, 6)))
+        self.assertEqual(colvar2[2:-6].tolist(), list(range(2, self.expectedrows-6)))
+        self.assertEqual(colvar2[2:].tolist(), list(range(2, self.expectedrows)))
         self.assertEqual(colvar2[-2:].tolist(),
-                         range(self.expectedrows-2, self.expectedrows))
+                         list(range(self.expectedrows-2, self.expectedrows)))
 
     def test08_threeItemsCol(self):
         """Checking __getitem__ method in Col with start, stop, step
@@ -2794,11 +2798,11 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.h5file = tables.open_file(self.h5fname, "r")
         table = self.h5file.root.table0
         colvar2 = table.cols.var2
-        self.assertEqual(colvar2[2:6:3].tolist(), range(2, 6, 3))
-        self.assertEqual(colvar2[2::3].tolist(), range(
-            2, self.expectedrows, 3))
-        self.assertEqual(colvar2[:6:2].tolist(), range(0, 6, 2))
-        self.assertEqual(colvar2[::].tolist(), range(0, self.expectedrows, 1))
+        self.assertEqual(colvar2[2:6:3].tolist(), list(range(2, 6, 3)))
+        self.assertEqual(colvar2[2::3].tolist(), list(range(
+            2, self.expectedrows, 3)))
+        self.assertEqual(colvar2[:6:2].tolist(), list(range(0, 6, 2)))
+        self.assertEqual(colvar2[::].tolist(), list(range(0, self.expectedrows, 1)))
 
     def test09_negativeStep(self):
         """Checking __getitem__ method in Col with negative step parameter."""
@@ -3496,7 +3500,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         nrows = 100
         # append new rows
         row = table.row
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['col1'] = i-1
             row['col2'] = 'a'+str(i-1)
             row['col3'] = -1.0
@@ -3514,7 +3518,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         r1 = records.array(None, shape=nrows,
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
-        for i in xrange(nrows):
+        for i in range(nrows):
             r1['col1'][i] = i
             r1['col2'][i] = 'b'+str(i)
             r1['col3'][i] = 0.0
@@ -3540,7 +3544,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         nrows = 100
         # append new rows
         row = table.row
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['col1'] = i-1
             row['col2'] = 'a'+str(i-1)
             row['col3'] = -1.0
@@ -3558,7 +3562,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         r1 = records.array(None, shape=nrows,
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
-        for i in xrange(nrows):
+        for i in range(nrows):
             r1['col1'][i] = i-1
             r1['col2'][i] = 'a'+str(i-1)
             r1['col3'][i] = -1.0
@@ -3584,7 +3588,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         nrows = 100
         # append new rows
         row = table.row
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['col1'] = i-1
             row['col2'] = 'a'+str(i-1)
             row['col3'] = -1.0
@@ -3602,7 +3606,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         r1 = records.array(None, shape=nrows,
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
-        for i in xrange(nrows):
+        for i in range(nrows):
             r1['col1'][i] = i-1
             r1['col2'][i] = 'a'+str(i-1)
             r1['col3'][i] = -1.0
@@ -3633,7 +3637,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         nrows = 100
         # append new rows
         row = table.row
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['col1'] = i-1
             row['col2'] = 'a'+str(i-1)
             row['col3'] = -1.0
@@ -3651,7 +3655,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         r1 = records.array(None, shape=nrows,
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
-        for i in xrange(nrows):
+        for i in range(nrows):
             if i % 10 > 0:
                 r1['col1'][i] = i-1
                 r1['col2'][i] = 'a'+str(i-1)
@@ -4437,7 +4441,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
 
         cinst1, cinst2 = table1.colinstances, table2.colinstances
         self.assertEqual(len(cinst1), len(cinst2))
-        for (cpathname, col1) in cinst1.iteritems():
+        for (cpathname, col1) in six.iteritems(cinst1):
             self.assertTrue(cpathname in cinst2)
             col2 = cinst2[cpathname]
             self.assertTrue(isinstance(col1, type(col2)))
@@ -5100,7 +5104,7 @@ class DefaultValues(common.TempFileMixin, TestCase):
         nrows = int(table.nrowsinbuf * 1.1)
         row = table.row
         # Fill the table with nrows records
-        for i in xrange(nrows):
+        for i in range(nrows):
             if i == 3:
                 row['var2'] = 2
             if i == 4:
@@ -5174,7 +5178,7 @@ class DefaultValues(common.TempFileMixin, TestCase):
         # Take a number of records a bit greater
         nrows = int(table.nrowsinbuf * 1.1)
         # Fill the table with nrows records
-        for i in xrange(nrows):
+        for i in range(nrows):
             if i == 3:
                 table.row['var2'] = 2
             if i == 4:
@@ -5269,7 +5273,7 @@ class LengthTestCase(common.TempFileMixin, TestCase):
         row = table.row
 
         # Fill the table
-        for i in xrange(self.nrows):
+        for i in range(self.nrows):
             row.append()
 
         # Flush the buffer for this table
@@ -5365,7 +5369,7 @@ class WhereAppendTestCase(common.TempFileMixin, TestCase):
                             and r1['v2'] == r2['v2'])
 
         # There are no more rows.
-        self.assertRaises(StopIteration, it2.next)
+        self.assertRaises(StopIteration, next, it2)
 
     def test01_compatible(self):
         """Query with compatible storage."""
@@ -5389,7 +5393,7 @@ class WhereAppendTestCase(common.TempFileMixin, TestCase):
                             and r1['v2'] == r2['v2'])
 
         # There are no more rows.
-        self.assertRaises(StopIteration, it2.next)
+        self.assertRaises(StopIteration, next, it2)
 
     def test02_lessPrecise(self):
         """Query with less precise storage."""
@@ -5412,7 +5416,7 @@ class WhereAppendTestCase(common.TempFileMixin, TestCase):
                             and r1['v2'] == r2['v2'])
 
         # There are no more rows.
-        self.assertRaises(StopIteration, it2.next)
+        self.assertRaises(StopIteration, next, it2)
 
     def test03_incompatible(self):
         """Query with incompatible storage."""
@@ -5492,7 +5496,7 @@ class WhereAppendTestCase(common.TempFileMixin, TestCase):
                             and r1['v2'] == r2['v2'])
 
         # There are no more rows.
-        self.assertRaises(StopIteration, it2.next)
+        self.assertRaises(StopIteration, next, it2)
 
 
 class DerivedTableTestCase(common.TempFileMixin, TestCase):
@@ -6020,8 +6024,8 @@ class ExhaustedIter(common.TempFileMixin, TestCase):
         # fill the database
         observations = np.arange(225)
         row = table.row
-        for market_id in xrange(5):
-            for scenario_id in xrange(3):
+        for market_id in range(5):
+            for scenario_id in range(3):
                 for obs in observations:
                     row['market_id'] = market_id
                     row['scenario_id'] = scenario_id

@@ -11,6 +11,7 @@
 ########################################################################
 
 """Here is defined the UnImplemented class."""
+from __future__ import absolute_import
 
 import warnings
 

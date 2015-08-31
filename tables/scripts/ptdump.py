@@ -17,6 +17,7 @@ Pass the flag -h to this for help on usage.
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import argparse
 
@@ -25,6 +26,8 @@ from tables.group import Group
 from tables.leaf import Leaf
 from tables.table import Table, Column
 from tables.unimplemented import UnImplemented
+import six
+from six.moves import range
 
 # default options
 options = argparse.Namespace(
@@ -147,7 +150,7 @@ def main():
     args = parser.parse_args(namespace=options)
 
     # Get the options
-    if isinstance(args.rng, basestring):
+    if isinstance(args.rng, six.string_types):
         try:
             options.rng = eval("slice(" + args.rng + ")")
         except Exception:

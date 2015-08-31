@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import random
 import tempfile
@@ -14,6 +15,8 @@ from tables.tests import common
 from tables.tests.common import verbose, heavy
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
+import six
+from six.moves import range
 
 
 # An alias for frozenset
@@ -74,7 +77,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                                           filters, self.nrows,
                                           chunkshape=(self.chunkshape,))
         count = 0
-        for i in xrange(0, self.nrows, self.nrep):
+        for i in range(0, self.nrows, self.nrep):
             for j in range(self.nrep):
                 if self.random:
                     k = random.randrange(self.nrows)
@@ -103,7 +106,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
             # Change the buffersize by default
             table1.nrowsinbuf = self.buffersize
         # Index all entries:
-        for col in table1.colinstances.itervalues():
+        for col in six.itervalues(table1.colinstances):
             indexrows = col.create_index(
                 kind=self.kind, _blocksizes=self.blocksizes)
         if verbose:
@@ -466,7 +469,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
 
         # Convert the limits to the appropriate type
         # il = long(self.il)
-        sl = long(self.sl)
+        sl = int(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var3
@@ -544,7 +547,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
 
         # Convert the limits to the appropriate type
         # il = int(self.il)
-        sl = long(self.sl)
+        sl = int(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var3
@@ -2268,7 +2271,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
 
         # Append more rows in already created indexes
         count = 0
-        for i in xrange(0, self.nrows//2, self.nrep):
+        for i in range(0, self.nrows//2, self.nrep):
             for j in range(self.nrep):
                 if self.random:
                     k = random.randrange(self.nrows)
@@ -3187,7 +3190,7 @@ class LastRowReuseBuffers(TestCase):
 
         ta.cols.id1.create_index()
 
-        for i in xrange(self.nelem):
+        for i in range(self.nelem):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
@@ -3206,7 +3209,7 @@ class LastRowReuseBuffers(TestCase):
 
         ta.cols.id1.create_index()
 
-        for i in xrange(self.nelem):
+        for i in range(self.nelem):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
@@ -3225,7 +3228,7 @@ class LastRowReuseBuffers(TestCase):
 
         ta.cols.id1.create_index()
 
-        for i in xrange(self.nelem):
+        for i in range(self.nelem):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)

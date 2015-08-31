@@ -11,6 +11,7 @@
 ########################################################################
 
 """Unit test for the filenode module."""
+from __future__ import absolute_import
 
 import os
 import shutil
@@ -112,7 +113,7 @@ class ClosedFileTestCase(common.TempFileMixin, TestCase):
     def test02_Next(self):
         """Getting the next line of a closed file."""
 
-        self.assertRaises(ValueError, self.fnode.next)
+        self.assertRaises(ValueError, next, self.fnode)
 
     def test03_Read(self):
         """Reading a closed file."""
@@ -290,7 +291,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
             fnode.mode, 'r',
             "File was opened with an invalid mode %s." % repr(fnode.mode))
         self.assertEqual(
-            fnode.tell(), 0L,
+            fnode.tell(), 0,
             "Pointer is not positioned at the beginning of the file.")
         fnode.close()
 
@@ -306,7 +307,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
             "File was opened with an invalid mode %s." % repr(fnode.mode))
 
         self.assertEqual(
-            fnode.tell(), 0L,
+            fnode.tell(), 0,
             "Pointer is not positioned at the beginning of the file.")
         fnode.close()
 
@@ -511,7 +512,7 @@ class ReadlineTestCase(common.TempFileMixin, TestCase):
         for line in self.fnode:
             pass
 
-        self.assertRaises(StopIteration, self.fnode.next)
+        self.assertRaises(StopIteration, next, self.fnode)
 
         self.fnode.seek(0)
 

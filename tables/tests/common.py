@@ -13,6 +13,7 @@
 """Utilities for PyTables' test suites."""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import re
 import sys
@@ -269,7 +270,7 @@ if not hasattr(unittest.TestCase, 'assertWarns'):
 
     class _AssertWarnsContext(_AssertRaisesBaseContext):
         def __enter__(self):
-            for v in sys.modules.values():
+            for v in list(sys.modules.values()):
                 if getattr(v, '__warningregistry__', None):
                     v.__warningregistry__ = {}
             self.warnings_manager = warnings.catch_warnings(record=True)

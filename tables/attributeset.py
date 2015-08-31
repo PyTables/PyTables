@@ -11,11 +11,12 @@
 ########################################################################
 
 """Here is defined the AttributeSet class."""
+from __future__ import absolute_import
 
 import re
 import sys
 import warnings
-import cPickle
+import six.moves.cPickle
 import numpy
 
 from tables import hdf5extension
@@ -25,6 +26,8 @@ from tables.exceptions import ClosedNodeError, PerformanceWarning
 from tables.path import check_attribute_name
 from tables.undoredo import attr_to_shadow
 from tables.filters import Filters
+from six.moves import map
+import six
 
 
 # System attributes
@@ -309,7 +312,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             # This format was used during the first 1.2 releases, just
             # for string defaults.
             try:
-                retval = cPickle.loads(value)
+                retval = six.moves.cPickle.loads(value)
                 retval = numpy.array(retval)
             except ImportError:
                 retval = None  # signal error avoiding exception
@@ -317,10 +320,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             # This is a big hack, but we don't have other way to recognize
             # pickled filters of PyTables 1.x files.
             value = _old_filters_re.sub(_new_filters_sub, value, 1)
-            retval = cPickle.loads(value)  # pass unpickling errors through
+            retval = six.moves.cPickle.loads(value)  # pass unpickling errors through
         elif maybe_pickled:
             try:
-                retval = cPickle.loads(value)
+                retval = six.moves.cPickle.loads(value)
             # except cPickle.UnpicklingError:
             # It seems that pickle may raise other errors than UnpicklingError
             # Perhaps it would be better just an "except:" clause?
@@ -337,7 +340,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 # explaining how the user can tell where the problem was.
                 retval = value
             # Additional check for allowing a workaround for #307
-            if isinstance(retval, unicode) and retval == u'':
+            if isinstance(retval, six.text_type) and retval == u'':
                 retval = numpy.array(retval)[()]
         elif name == 'FILTERS' and format_version >= (2, 0):
             retval = Filters._unpack(value)
@@ -347,7 +350,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 retval = value
             else:
                 retval = value.decode('utf-8')
-        elif (issysattrname(name) and isinstance(value, (bytes, unicode)) and
+        elif (issysattrname(name) and isinstance(value, (bytes, six.text_type)) and
               not isinstance(value, str) and not _field_fill_re.match(name)):
             # system attributes should always be str
             if sys.version_info[0] < 3:
@@ -390,10 +393,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         # (only in case it has not been converted yet)
         # Fixes ticket #59
         if (stvalue is value and
-                type(value) in (bool, bytes, int, float, complex, unicode,
+                type(value) in (bool, bytes, int, float, complex, six.text_type,
                                 numpy.unicode_)):
             # Additional check for allowing a workaround for #307
-            if isinstance(value, unicode) and len(value) == 0:
+            if isinstance(value, six.text_type) and len(value) == 0:
                 stvalue = numpy.array(u'')
             else:
                 stvalue = numpy.array(value)

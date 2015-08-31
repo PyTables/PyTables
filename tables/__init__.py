@@ -18,6 +18,7 @@ PyTables is a package for managing hierarchical datasets and designed
 to efficiently cope with extremely large amounts of data.
 
 """
+from __future__ import absolute_import
 
 
 import os

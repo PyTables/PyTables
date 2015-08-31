@@ -15,6 +15,7 @@
 # Imports
 # =======
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import copy
 import warnings
@@ -23,6 +24,8 @@ import numpy
 
 from tables import atom
 from tables.path import check_name_validity
+import six
+from six.moves import zip
 
 
 # Public variables
@@ -48,7 +51,7 @@ def same_position(oldmethod):
 
 # Column classes
 # ==============
-class Col(atom.Atom):
+class Col(six.with_metaclass(type, atom.Atom)):
     """Defines a non-nested column.
 
     Col instances are used as a means to declare the different properties of a
@@ -88,9 +91,6 @@ class Col(atom.Atom):
         will be randomly selected.
 
     """
-
-    # Avoid mangling atom class data.
-    __metaclass__ = type
 
     _class_from_prefix = {}  # filled as column classes are created
     """Maps column prefixes to column classes."""
@@ -247,12 +247,12 @@ def _generate_col_classes():
 
     # Abstract classes are not in the class map.
     cprefixes = ['Int', 'UInt', 'Float', 'Time']
-    for (kind, kdata) in atom.atom_map.iteritems():
+    for (kind, kdata) in six.iteritems(atom.atom_map):
         if hasattr(kdata, 'kind'):  # atom class: non-fixed item size
             atomclass = kdata
             cprefixes.append(atomclass.prefix())
         else:  # dictionary: fixed item size
-            for atomclass in kdata.itervalues():
+            for atomclass in six.itervalues(kdata):
                 cprefixes.append(atomclass.prefix())
 
     # Bottom-level complex classes are not in the type map, of course.
@@ -460,7 +460,7 @@ class Description(object):
         cols_no_pos = []  # just column names
 
         # Check for special variables and convert column descriptions
-        for (name, descr) in classdict.iteritems():
+        for (name, descr) in six.iteritems(classdict):
             if name.startswith('_v_'):
                 if name in newdict:
                     # print("Warning!")
@@ -651,7 +651,7 @@ class Description(object):
                 # children lists, a string signals that no more children
                 # remain to be processed, so we are done with the
                 # description at the top of the stack.
-                assert isinstance(head, basestring)
+                assert isinstance(head, six.string_types)
                 # Assign the computed set of descendent column paths.
                 desc._v_pathnames = cols
                 if len(stack) > 0:
@@ -731,7 +731,7 @@ class MetaIsDescription(type):
 
 
 
-class IsDescription(object):
+class IsDescription(six.with_metaclass(MetaIsDescription, object)):
     """Description of the structure of a table or nested column.
 
     This class is designed to be used as an easy, yet meaningful way to
@@ -774,8 +774,6 @@ class IsDescription(object):
         be accessed as normal class variables after its creation.
 
     """
-
-    __metaclass__ = MetaIsDescription
 
 
 def descr_from_dtype(dtype_):

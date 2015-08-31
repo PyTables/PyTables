@@ -19,6 +19,7 @@ Variables
     The format of documentation strings in this module.
 
 """
+from __future__ import absolute_import
 
 # Imports
 # =======
@@ -27,6 +28,7 @@ import warnings
 import keyword
 
 from tables.exceptions import NaturalNameWarning
+import six
 
 # Public variables
 # ================
@@ -96,7 +98,7 @@ def check_attribute_name(name):
      ...
     ValueError: the empty string is not allowed as an object name
     """
-    if not isinstance(name, basestring):  # Python >= 2.3
+    if not isinstance(name, six.string_types):  # Python >= 2.3
         raise TypeError("object name is not a string: %r" % (name,))
     
     if name == '':

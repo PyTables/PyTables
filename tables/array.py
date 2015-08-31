@@ -11,6 +11,7 @@
 ########################################################################
 
 """Here is defined the Array class."""
+from __future__ import absolute_import
 
 import sys
 
@@ -23,6 +24,9 @@ from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
                           byteorders, quantize)
 from tables.leaf import Leaf
+from six.moves import range
+from six.moves import zip
+import six
 
 
 # default version for ARRAY objects
@@ -34,7 +38,7 @@ from tables.leaf import Leaf
 obversion = "2.4"    # Numeric and numarray flavors are gone.
 
 
-class Array(hdf5extension.Array, Leaf):
+class Array(hdf5extension.Array, Leaf, six.Iterator):
     """This class represents homogeneous datasets in an HDF5 file.
 
     This class provides methods to write or read data to or from array objects
@@ -324,7 +328,7 @@ class Array(hdf5extension.Array, Leaf):
         self.nrow = SizeType(self._start - self._step)    # row number
 
 
-    def next(self):
+    def __next__(self):
         """Get the next element of the array during an iteration.
 
         The element is returned as an object of the current flavor.
@@ -380,7 +384,7 @@ class Array(hdf5extension.Array, Leaf):
             ellipsis = 0  # Sentinel
             if isinstance(key, type(Ellipsis)):
                 ellipsis = 1
-                for diml in xrange(dim, len(self.shape) - (nkeys - dim) + 1):
+                for diml in range(dim, len(self.shape) - (nkeys - dim) + 1):
                     startl[dim] = 0
                     stopl[dim] = self.shape[diml]
                     stepl[dim] = 1
@@ -411,7 +415,7 @@ class Array(hdf5extension.Array, Leaf):
 
         # Complete the other dimensions, if needed
         if dim < len(self.shape):
-            for diml in xrange(dim, len(self.shape)):
+            for diml in range(dim, len(self.shape)):
                 startl[dim] = 0
                 stopl[dim] = self.shape[diml]
                 stepl[dim] = 1
@@ -419,7 +423,7 @@ class Array(hdf5extension.Array, Leaf):
 
         # Compute the shape for the container properly. Fixes #1288792
         shape = []
-        for dim in xrange(len(self.shape)):
+        for dim in range(len(self.shape)):
             # The negative division operates differently with python scalars
             # and numpy scalars (which are similar to C conventions). See:
             # http://www.python.org/doc/faq/programming.html#why-does-22-10-return-3
@@ -431,7 +435,7 @@ class Array(hdf5extension.Array, Leaf):
             # Switch to `lrange` to allow long ranges (see #99).
             # use xrange, since it supports large integers as of Python 2.6
             # see github #181
-            new_dim = len(xrange(startl[dim], stopl[dim], stepl[dim]))
+            new_dim = len(range(startl[dim], stopl[dim], stepl[dim]))
             if not (new_dim == 1 and stop_None[dim]):
                 shape.append(new_dim)
 
@@ -455,7 +459,7 @@ class Array(hdf5extension.Array, Leaf):
             """Validate a list member for the given axis length."""
 
             try:
-                num = long(num)
+                num = int(num)
             except TypeError:
                 raise TypeError("Illegal index: %r" % num)
             if num > length - 1:
@@ -494,15 +498,15 @@ class Array(hdf5extension.Array, Leaf):
             if start is None:
                 start = 0
             else:
-                start = long(start)
+                start = int(start)
             if stop is None:
                 stop = length
             else:
-                stop = long(stop)
+                stop = int(stop)
             if step is None:
                 step = 1
             else:
-                step = long(step)
+                step = int(step)
 
             if step < 1:
                 raise IndexError("Step must be >= 1 (got %d)" % step)
@@ -566,7 +570,7 @@ class Array(hdf5extension.Array, Leaf):
                     else:
                         list_seen = True
                 else:
-                    if (not isinstance(exp[0], (int, long, numpy.integer)) or
+                    if (not isinstance(exp[0], (int, int, numpy.integer)) or
                         (isinstance(exp[0], numpy.ndarray) and not
                             numpy.issubdtype(exp[0].dtype, numpy.integer))):
                         raise TypeError("Only integer coordinates allowed.")
@@ -590,7 +594,7 @@ class Array(hdf5extension.Array, Leaf):
                     corrected_idx = sum(1 for x in mshape if x != 0) - 1
                     reorder = (corrected_idx, neworder)
                     nexp = nexp[neworder]
-                for select_idx in xrange(len(nexp) + 1):
+                for select_idx in range(len(nexp) + 1):
                     # This crazy piece of code performs a list selection
                     # using HDF5 hyperslabs.
                     # For each index, perform a "NOTB" selection on every
@@ -834,7 +838,7 @@ class Array(hdf5extension.Array, Leaf):
     def _read(self, start, stop, step, out=None):
         """Read the array from disk without slice or flavor processing."""
 
-        nrowstoread = len(xrange(0, stop - start, step))
+        nrowstoread = len(range(0, stop - start, step))
         shape = list(self.shape)
         if shape:
             shape[self.maindim] = nrowstoread

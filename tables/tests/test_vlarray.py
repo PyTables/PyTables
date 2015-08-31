@@ -1,6 +1,7 @@
 # -*- coding: latin-1 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 
 import numpy
@@ -16,6 +17,7 @@ from tables.tests.common import allequal
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.utils import byteorders
+from six.moves import range
 
 
 class C:
@@ -2412,7 +2414,7 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
 
         # Fill it with 100 rows with variable length
         for i in range(self.nrows):
-            vlarray.append(range(i))
+            vlarray.append(list(range(i)))
 
     def test01_start(self):
         """Checking reads with only a start value"""
@@ -2819,7 +2821,7 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
 
         # Fill it with 100 rows with variable length
         for i in range(self.nrows):
-            vlarray.append(range(i))
+            vlarray.append(list(range(i)))
 
     def test01_start(self):
         """Checking reads with only a start value"""
@@ -3145,7 +3147,7 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
 
         # Fill it with 100 rows with variable length
         for i in range(self.nrows):
-            vlarray.append(range(i))
+            vlarray.append(list(range(i)))
 
     def test01_start(self):
         """Checking updates that modifies a complete row"""
@@ -4092,7 +4094,7 @@ class SizeInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
         self.create_array(atom, complevel)
         self.array.flavor = flavor
         expected_size = 0
-        for i in xrange(10):
+        for i in range(10):
             row = numpy.arange((i + 1) * 10, dtype='i4')
             self.array.append(row)
             expected_size += row.nbytes
@@ -4125,7 +4127,7 @@ class SizeInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
         complevel = 0
         self.create_array(atom, complevel)
         obj = [1, 2, 3]
-        for i in xrange(10):
+        for i in range(10):
             self.array.append(obj)
         pickle_array = atom.toarray(obj)
         expected_size = 10 * pickle_array.nbytes

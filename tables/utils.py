@@ -13,6 +13,7 @@
 """Utility functions."""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 import warnings
@@ -22,6 +23,7 @@ from time import time
 import numpy
 
 from tables.flavor import array_of_flavor
+import six
 
 # The map between byteorders in NumPy and PyTables
 byteorders = {
@@ -48,7 +50,7 @@ def correct_byteorder(ptype, byteorder):
 def is_idx(index):
     """Checks if an object can work as an index or not."""
 
-    if type(index) in (int, long):
+    if type(index) in six.integer_types:
         return True
     elif hasattr(index, "__index__"):  # Only works on Python 2.5 (PEP 357)
         # Exclude the array([idx]) as working as an index.  Fixes #303.
@@ -77,7 +79,7 @@ def idx2long(index):
     """Convert a possible index into a long int."""
 
     try:
-        return long(index)
+        return int(index)
     except:
         raise TypeError("not an integer type.")
 
@@ -318,7 +320,7 @@ def log_instance_creation(instance, name=None):
 
 def string_to_classes(s):
     if s == '*':
-        c = sorted(tracked_classes.iterkeys())
+        c = sorted(six.iterkeys(tracked_classes))
         return c
     else:
         return s.split()
@@ -353,7 +355,7 @@ def dump_logged_instances(classes, file=sys.stdout):
             obj = ref()
             if obj is not None:
                 file.write('    %s:\n' % obj)
-                for key, value in obj.__dict__.iteritems():
+                for key, value in six.iteritems(obj.__dict__):
                     file.write('        %20s : %s\n' % (key, value))
 
 
@@ -373,7 +375,7 @@ class CacheDict(dict):
         if len(self) > self.maxentries:
             # Remove a 10% of (arbitrary) elements from the cache
             entries_to_remove = self.maxentries / 10
-            for k in self.keys()[:entries_to_remove]:
+            for k in list(self.keys())[:entries_to_remove]:
                 super(CacheDict, self).__delitem__(k)
         super(CacheDict, self).__setitem__(key, value)
 
@@ -427,7 +429,7 @@ class NailedDict(object):
         if len(cache) > self.maxentries:
             # Remove a 10% of (arbitrary) elements from the cache
             entries_to_remove = self.maxentries // 10
-            for k in cache.keys()[:entries_to_remove]:
+            for k in list(cache.keys())[:entries_to_remove]:
                 del cache[k]
         cache[key] = value
 

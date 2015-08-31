@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 
@@ -13,6 +14,7 @@ from tables.tests import common
 from tables.tests.common import allequal
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
+from six.moves import range
 
 
 class BasicTestCase(common.TempFileMixin, TestCase):
@@ -291,11 +293,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # This conversion made just in case indices are numpy scalars
         if self.start is not None:
-            self.start = long(self.start)
+            self.start = int(self.start)
         if self.stop is not None:
-            self.stop = long(self.stop)
+            self.stop = int(self.stop)
         if self.step is not None:
-            self.step = long(self.step)
+            self.step = int(self.step)
 
         # Create an instance of an HDF5 Table
         if self.reopen:
@@ -400,11 +402,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # This conversion made just in case indices are numpy scalars
         if self.start is not None:
-            self.start = long(self.start)
+            self.start = int(self.start)
         if self.stop is not None:
-            self.stop = long(self.stop)
+            self.stop = int(self.stop)
         if self.step is not None:
-            self.step = long(self.step)
+            self.step = int(self.step)
 
         # Create an instance of an HDF5 Table
         if self.reopen:
@@ -516,11 +518,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             # If there is not a slices attribute, create it
             # This conversion made just in case indices are numpy scalars
             if self.start is not None:
-                self.start = long(self.start)
+                self.start = int(self.start)
             if self.stop is not None:
-                self.stop = long(self.stop)
+                self.stop = int(self.stop)
             if self.step is not None:
-                self.step = long(self.step)
+                self.step = int(self.step)
             self.slices = (slice(self.start, self.stop, self.step),)
 
         # Create an instance of an HDF5 Table
@@ -622,11 +624,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             # If there is not a slices attribute, create it
             # This conversion made just in case indices are numpy scalars
             if self.start is not None:
-                self.start = long(self.start)
+                self.start = int(self.start)
             if self.stop is not None:
-                self.stop = long(self.stop)
+                self.stop = int(self.stop)
             if self.step is not None:
-                self.step = long(self.step)
+                self.step = int(self.step)
             self.slices = (slice(self.start, self.stop, self.step),)
 
         # Create an instance of an HDF5 Table

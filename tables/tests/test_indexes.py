@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import copy
 import tempfile
@@ -19,6 +20,8 @@ from tables.tests import common
 from tables.tests.common import verbose, allequal, heavy, TempFileMixin
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
+import six
+from six.moves import range
 
 
 # Sensible parameters for indexing with small blocksizes
@@ -68,7 +71,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             table.row.append()
         table.flush()
         # Index all entries:
-        for col in table.colinstances.itervalues():
+        for col in six.itervalues(table.colinstances):
             indexrows = col.create_index(_blocksizes=small_blocksizes)
         if verbose:
             print("Number of written rows:", self.nrows)
@@ -202,7 +205,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         if verbose:
             print("Selected values:", results)
         self.assertEqual(len(results), min(10, table.nrows) - 2)
-        self.assertEqual(results, range(2, min(10, table.nrows)))
+        self.assertEqual(results, list(range(2, min(10, table.nrows))))
 
     def test04_readIndex(self):
         """Checking reading an Index (float flavor)"""
@@ -228,7 +231,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Selected values:", results)
         self.assertEqual(len(results), min(10, table.nrows))
         self.assertEqual(results, [float(i) for i in
-                                   reversed(range(min(10, table.nrows)))])
+                                   reversed(list(range(min(10, table.nrows))))])
 
     def test05_getWhereList(self):
         """Checking reading an Index with get_where_list (string flavor)"""
@@ -612,7 +615,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             table.row.append()
         table.flush()
         # Index all entries:
-        for col in table.colinstances.itervalues():
+        for col in six.itervalues(table.colinstances):
             indexrows = col.create_index(_blocksizes=small_blocksizes)
             self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
@@ -659,7 +662,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             table.row.append()
         table.flush()
         # Index all entries:
-        for col in table.colinstances.itervalues():
+        for col in six.itervalues(table.colinstances):
             indexrows = col.create_index(_blocksizes=small_blocksizes)
             self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
@@ -1695,7 +1698,7 @@ class IndexPropsChangeTestCase(TempFileMixin, TestCase):
         table = self.h5file.create_table('/', 'test', self.MyDescription)
         table.autoindex = self.oldIndexProps.auto
         row = table.row
-        for i in xrange(100):
+        for i in range(100):
             row['icol'] = i % 25
             row.append()
         table.flush()
@@ -1796,7 +1799,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         table = self.h5file.create_table('/', 'table', self.MyDescription)
         row = table.row
         nrows = self.nrows
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['rcol'] = i
             row['icol'] = nrows - i
             row.append()
@@ -2363,7 +2366,7 @@ class ReadSortedIndexTestCase(TempFileMixin, TestCase):
         table = self.h5file.create_table('/', 'table', self.MyDescription)
         row = table.row
         nrows = self.nrows
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['rcol'] = i
             row['icol'] = nrows - i
             row.append()
@@ -2471,7 +2474,7 @@ class Issue156TestBase(common.TempFileMixin, TestCase):
         self.h5file.flush()
 
         # fill table with 10 random numbers
-        for k in xrange(10):
+        for k in range(10):
             row = table.row
             row['frame'] = numpy.random.random_integers(0, 2**16-1)
             row['Bar/code'] = numpy.random.random_integers(0, 2**16-1)
