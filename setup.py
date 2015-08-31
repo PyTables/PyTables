@@ -119,9 +119,6 @@ print("* Using Python %s" % sys.version.splitlines()[0])
 min_hdf5_version = None
 exec(open(os.path.join('tables', 'req_versions.py')).read())
 
-
-VERSION = open('VERSION').read().strip()
-
 # ----------------------------------------------------------------------
 
 debug = '--debug' in sys.argv
@@ -670,11 +667,6 @@ def get_cython_extfiles(extnames):
 
 cython_extfiles = get_cython_extfiles(cython_extnames)
 
-# Update the version.h file if this file is newer
-if newer('VERSION', 'src/version.h'):
-    open('src/version.h', 'w').write(
-        '#define PYTABLES_VERSION "%s"\n' % VERSION)
-
 # --------------------------------------------------------------------
 
 # Package information for ``setuptools``
@@ -683,6 +675,10 @@ setuptools_kwargs['zip_safe'] = False
 
 setuptools_kwargs['extras_require'] = {}
 setuptools_kwargs['install_requires'] = requirements
+setuptools_kwargs['use_scm_version'] = {
+    'write_to': 'tables/version.py'
+}
+setuptools_kwargs['setup_requires'] = ['setuptools_scm']
 # Detect packages automatically.
 setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
 # Entry points for automatic creation of scripts.
@@ -901,7 +897,6 @@ Operating System :: Unix
 
 setup(
     name=name,
-    version=VERSION,
     description='Hierarchical datasets for Python',
     long_description="""\
 PyTables is a package for managing hierarchical datasets and

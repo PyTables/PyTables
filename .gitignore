@@ -10,4 +10,4 @@ tables/*.c
 tables/*.so
 
 # specific files
-src/version.h
+tables/version.py

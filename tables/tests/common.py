@@ -89,9 +89,9 @@ def print_versions():
     """Print all the versions of software that PyTables relies on."""
 
     print('-=' * 38)
-    print("PyTables version:    %s" % tables.__version__)
+    print("PyTables version:    %s" % tables.version.version)
     print("HDF5 version:        %s" % tables.which_lib_version("hdf5")[1])
-    print("NumPy version:       %s" % numpy.__version__)
+    print("NumPy version:       %s" % numpy.version.version)
     tinfo = tables.which_lib_version("zlib")
     if numexpr.use_vml:
         # Get only the main version number and strip out all the rest
@@ -100,7 +100,7 @@ def print_versions():
         vml_avail = "using VML/MKL %s" % vml_version
     else:
         vml_avail = "not using Intel's VML/MKL"
-    print("Numexpr version:     %s (%s)" % (numexpr.__version__, vml_avail))
+    print("Numexpr version:     %s (%s)" % (numexpr.version.version, vml_avail))
     if tinfo is not None:
         print("Zlib version:        %s (%s)" % (tinfo[1],
                                                 "in Python interpreter"))
