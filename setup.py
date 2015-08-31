@@ -12,15 +12,14 @@ import ctypes
 import tempfile
 import textwrap
 import subprocess
-from os.path import exists, expanduser
+from os.path import expanduser
 import glob
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, find_packages
 import pkg_resources
 
-from distutils.core import Extension
-from distutils.dep_util import newer
+from setuptools import Extension
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
 import distutils.spawn
@@ -63,7 +62,6 @@ class BuildExtensions(build_ext):
         build_ext.run(self)
 
 
-cmdclass = {'build_ext': BuildExtensions}
 setuptools_kwargs = {}
 
 if sys.version_info >= (3,):
@@ -127,7 +125,6 @@ debug = '--debug' in sys.argv
 lib_dirs = []
 inc_dirs = ['c-blosc/hdf5']
 optional_libs = []
-data_files = []    # list of data files to add to packages (mainly for DLL's)
 
 default_header_dirs = None
 default_library_dirs = None
@@ -633,95 +630,6 @@ else:
 
 # ------------------------------------------------------------------------------
 
-cython_extnames = [
-    'utilsextension',
-    'hdf5extension',
-    'tableextension',
-    'linkextension',
-    '_comp_lzo',
-    '_comp_bzip2',
-    'lrucacheextension',
-    'indexesextension',
-]
-
-
-def get_cython_extfiles(extnames):
-    extdir = 'tables'
-    extfiles = {}
-
-    for extname in extnames:
-        extfile = os.path.join(extdir, extname)
-        extpfile = '%s.pyx' % extfile
-        extcfile = '%s.c' % extfile
-
-        if not exists(extcfile) or newer(extpfile, extcfile):
-            # This is the only place where Cython is needed, but every
-            # developer should have it installed, so it should not be
-            # a hard requisite
-            from Cython.Build import cythonize
-            cythonize(extpfile)
-        extfiles[extname] = extcfile
-
-    return extfiles
-
-
-cython_extfiles = get_cython_extfiles(cython_extnames)
-
-# --------------------------------------------------------------------
-
-# Package information for ``setuptools``
-# PyTables contains data files for tests.
-setuptools_kwargs['zip_safe'] = False
-
-setuptools_kwargs['extras_require'] = {}
-setuptools_kwargs['install_requires'] = requirements
-setuptools_kwargs['use_scm_version'] = {
-    'write_to': 'tables/version.py'
-}
-setuptools_kwargs['setup_requires'] = ['setuptools_scm']
-# Detect packages automatically.
-setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
-# Entry points for automatic creation of scripts.
-setuptools_kwargs['entry_points'] = {
-    'console_scripts': [
-        'ptdump = tables.scripts.ptdump:main',
-        'ptrepack = tables.scripts.ptrepack:main',
-        'pt2to3 = tables.scripts.pt2to3:main',
-        'pttree = tables.scripts.pttree:main',
-        ],
-    }
-
-# Test suites.
-setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
-setuptools_kwargs['scripts'] = []
-
-# Copy additional data for packages that need it.
-setuptools_kwargs['package_data'] = {
-    'tables.tests': ['*.h5', '*.mat'],
-    'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5']}
-
-
-# Having the Python version included in the package name makes managing a
-# system with multiple versions of Python much easier.
-
-def find_name(base='tables'):
-    '''If "--name-with-python-version" is on the command line then
-    append "-pyX.Y" to the base name'''
-    name = base
-    if '--name-with-python-version' in sys.argv:
-        name += '-py%i.%i' % (sys.version_info[0], sys.version_info[1])
-        sys.argv.remove('--name-with-python-version')
-    return name
-
-
-name = find_name()
-
-if os.name == "nt":
-    # Add DLL's to the final package for windows
-    data_files.extend([
-        ('Lib/site-packages/%s' % name, dll_files),
-    ])
-
 ADDLIBS = [hdf5_package.library_name]
 
 # List of Blosc file dependencies
@@ -784,119 +692,8 @@ for (package, complibs) in [(lzo_package, _comp_lzo_libs),
         complibs.extend([hdf5_package.library_name, package.library_name])
 
 
-extensions = [
-    Extension("tables.utilsextension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=[cython_extfiles['utilsextension'],
-                       "src/utils.c",
-                       "src/H5ARRAY.c",
-                       "src/H5ATTR.c",
-                       ] + blosc_files,
-              library_dirs=lib_dirs,
-              libraries=utilsExtension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.hdf5extension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=[cython_extfiles['hdf5extension'],
-                       "src/utils.c",
-                       "src/typeconv.c",
-                       "src/H5ARRAY.c",
-                       "src/H5ARRAY-opt.c",
-                       "src/H5VLARRAY.c",
-                       "src/H5ATTR.c",
-                       ] + blosc_files,
-              library_dirs=lib_dirs,
-              libraries=hdf5Extension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.tableextension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=[cython_extfiles['tableextension'],
-                       "src/utils.c",
-                       "src/typeconv.c",
-                       "src/H5TB-opt.c",
-                       "src/H5ATTR.c",
-                       ] + blosc_files,
-              library_dirs=lib_dirs,
-              libraries=tableExtension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables._comp_lzo",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=[cython_extfiles['_comp_lzo'],
-                       "src/H5Zlzo.c"],
-              library_dirs=lib_dirs,
-              libraries=_comp_lzo_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables._comp_bzip2",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=[cython_extfiles['_comp_bzip2'],
-                       "src/H5Zbzip2.c"],
-              library_dirs=lib_dirs,
-              libraries=_comp_bzip2_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.linkextension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=[cython_extfiles['linkextension']],
-              library_dirs=lib_dirs,
-              libraries=tableExtension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.lrucacheextension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=[cython_extfiles['lrucacheextension']],
-              library_dirs=lib_dirs,
-              libraries=lrucacheExtension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.indexesextension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=[cython_extfiles['indexesextension'],
-                       "src/H5ARRAY-opt.c",
-                       "src/idx-opt.c"],
-              library_dirs=lib_dirs,
-              libraries=indexesExtension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-]
-
-
-classifiers = """\
-Development Status :: 5 - Production/Stable
-Intended Audience :: Developers
-Intended Audience :: Information Technology
-Intended Audience :: Science/Research
-License :: OSI Approved :: BSD License
-Programming Language :: Python
-Programming Language :: Python :: 2
-Programming Language :: Python :: 3
-Topic :: Database
-Topic :: Software Development :: Libraries :: Python Modules
-Operating System :: Microsoft :: Windows
-Operating System :: Unix
-"""
-
 setup(
-    name=name,
+    name='tables',
     description='Hierarchical datasets for Python',
     long_description="""\
 PyTables is a package for managing hierarchical datasets and
@@ -906,20 +703,166 @@ NumPy package and features an object-oriented interface
 that, combined with C-code generated from Cython sources,
 makes of it a fast, yet extremely easy to use tool for
 interactively save and retrieve large amounts of data.
-
 """,
-    classifiers=[c for c in classifiers.split("\n") if c],
-    author=('Francesc Alted, Ivan Vilata,'
-            'Antonio Valentino, Anthony Scopatz et al.'),
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: BSD License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+        'Topic :: Database',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: Unix',
+    ],
+    author=[
+        'Francesc Alted, Ivan Vilata,'
+        'Antonio Valentino, Anthony Scopatz et al.'
+    ],
     author_email='pytables@pytables.org',
     maintainer='PyTables maintainers',
     maintainer_email='pytables@pytables.org',
     url='http://www.pytables.org/',
-    license='http://www.opensource.org/licenses/bsd-license.php',
-    download_url="http://sourceforge.net/projects/pytables/files/pytables/",
+    license='BSD',
     platforms=['any'],
-    ext_modules=extensions,
-    cmdclass=cmdclass,
-    data_files=data_files,
+    zip_safe=False,
+    install_requires=requirements,
+    use_scm_version={
+        'write_to': 'tables/version.py'
+    },
+    setup_requires=['setuptools_scm'],
+    packages=find_packages(exclude=['*.bench']),
+    entry_points={
+        'console.scripts': [
+            'ptdump = tables.scripts.ptdump:main',
+            'ptrepack = tables.scripts.ptrepack:main',
+            'pt2to3 = tables.scripts.pt2to3:main',
+            'pttree = tables.scripts.pttree:main',
+        ],
+    },
+    test_suite='tables.tests.test_all.suite',
+    package_data={
+        'tables.tests': ['*.h5', '*.mat'],
+        'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5']
+    },
+    ext_modules=[
+        Extension(
+            'tables.utilsextension',
+            include_dirs=inc_dirs,
+            define_macros=def_macros,
+            sources=[
+                'tables/utilsextension.pyx',
+                'src/utils.c',
+                'src/H5ARRAY.c',
+                'src/H5ATTR.c',
+            ] + blosc_files,
+            library_dirs=lib_dirs,
+            libraries=utilsExtension_libs,
+            extra_link_args=LFLAGS,
+            extra_compile_args=CFLAGS),
+
+        Extension(
+            'tables.hdf5extension',
+            include_dirs=inc_dirs,
+            define_macros=def_macros,
+            sources=[
+                'tables/hdf5extension.pyx',
+                'src/utils.c',
+                'src/typeconv.c',
+                'src/H5ARRAY.c',
+                'src/H5ARRAY-opt.c',
+                'src/H5VLARRAY.c',
+                'src/H5ATTR.c',
+            ] + blosc_files,
+            library_dirs=lib_dirs,
+            libraries=hdf5Extension_libs,
+            extra_link_args=LFLAGS,
+            extra_compile_args=CFLAGS),
+
+        Extension(
+            'tables.tableextension',
+            include_dirs=inc_dirs,
+            define_macros=def_macros,
+            sources=[
+                'tables/tableextension.pyx',
+                'src/utils.c',
+                'src/typeconv.c',
+                'src/H5TB-opt.c',
+                'src/H5ATTR.c',
+            ] + blosc_files,
+            library_dirs=lib_dirs,
+            libraries=tableExtension_libs,
+            extra_link_args=LFLAGS,
+            extra_compile_args=CFLAGS),
+
+        Extension(
+            'tables._comp_lzo',
+            include_dirs=inc_dirs,
+            define_macros=def_macros,
+            sources=[
+                'tables/_comp_lzo.pyx',
+                'src/H5Zlzo.c'
+            ],
+            library_dirs=lib_dirs,
+            libraries=_comp_lzo_libs,
+            extra_link_args=LFLAGS,
+            extra_compile_args=CFLAGS),
+
+        Extension(
+            'tables._comp_bzip2',
+            include_dirs=inc_dirs,
+            define_macros=def_macros,
+            sources=[
+                'tables/_comp_bzip2.pyx',
+                'src/H5Zbzip2.c'
+            ],
+            library_dirs=lib_dirs,
+            libraries=_comp_bzip2_libs,
+            extra_link_args=LFLAGS,
+            extra_compile_args=CFLAGS),
+
+        Extension(
+            'tables.linkextension',
+            include_dirs=inc_dirs,
+            define_macros=def_macros,
+            sources=[
+                'tables/linkextension.pyx'
+            ],
+            library_dirs=lib_dirs,
+            libraries=tableExtension_libs,
+            extra_link_args=LFLAGS,
+            extra_compile_args=CFLAGS),
+
+        Extension(
+            'tables.lrucacheextension',
+            include_dirs=inc_dirs,
+            define_macros=def_macros,
+            sources=[
+                'tables/lrucacheextension.pyx'
+            ],
+            library_dirs=lib_dirs,
+            libraries=lrucacheExtension_libs,
+            extra_link_args=LFLAGS,
+            extra_compile_args=CFLAGS),
+
+        Extension(
+            'tables.indexesextension',
+            include_dirs=inc_dirs,
+            define_macros=def_macros,
+            sources=[
+                'tables/indexesextension.pyx',
+                'src/H5ARRAY-opt.c',
+                'src/idx-opt.c'],
+            library_dirs=lib_dirs,
+            libraries=indexesExtension_libs,
+            extra_link_args=LFLAGS,
+            extra_compile_args=CFLAGS),
+    ],
+    cmdclass={
+        'build_ext': BuildExtensions
+    },
     **setuptools_kwargs
 )
