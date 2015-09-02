@@ -14,17 +14,16 @@
 from __future__ import absolute_import
 
 import sys
-
 import numpy
 
 from . import hdf5extension
-from .utils import (convert_to_np_atom, convert_to_np_atom2, idx2long,
-                          correct_byteorder, SizeType, is_idx, lazyattr)
-
-
 from .atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
 from .flavor import internal_to_flavor
 from .leaf import Leaf, calc_chunksize
+from .utils import (
+    convert_to_np_atom, convert_to_np_atom2, idx2long, correct_byteorder,
+    SizeType, is_idx, lazyattr)
+
 from six.moves import range
 from six.moves import zip
 import six
@@ -206,7 +205,6 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
     # Class identifier.
     _c_classid = 'VLARRAY'
 
-
     # Lazy read-only attributes
     # `````````````````````````
     @lazyattr
@@ -249,7 +247,6 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
             <http://code.activestate.com/recipes/577504/>`_.
         """
         return self._get_memory_size()
-
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -329,7 +326,7 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
-            if isinstance(chunkshape, (int, numpy.integer, int)):
+            if isinstance(chunkshape, (int, numpy.integer)):
                 chunkshape = (chunkshape,)
             try:
                 chunkshape = tuple(chunkshape)
@@ -501,7 +498,6 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
 
         return self.atom.enum
 
-
     def append(self, sequence):
         """Add a sequence of data to the end of the dataset.
 
@@ -608,7 +604,6 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
         self._row = -1   # Sentinel
         self._init = True  # Sentinel
         self.nrow = SizeType(self._start - self._step)    # row number
-
 
     def __next__(self):
         """Get the next element of the array during an iteration.
@@ -864,7 +859,6 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
             nrowscopied += 1
         object.nrows = nrowscopied
         return (object, nbytes)
-
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

@@ -182,7 +182,7 @@ class Expr(object):
 
         # Raise a ValueError in case we have unsupported objects
         for name, var in six.iteritems(vars_):
-            if type(var) in (int, int, float, str):
+            if type(var) in (int, float, str):
                 continue
             if not isinstance(var, (tb.Leaf, tb.Column)):
                 if hasattr(var, "dtype"):

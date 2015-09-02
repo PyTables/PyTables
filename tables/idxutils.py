@@ -18,7 +18,6 @@ import math
 import numpy
 
 
-
 # Hints for chunk/slice/block/superblock computations:
 # - The slicesize should not exceed 2**32 elements (because of
 # implementation reasons).  Such an extreme case would make the
@@ -135,7 +134,6 @@ def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
     # The size for different blocks information
     sizes = (superblocksize, blocksize, slicesize, chunksize)
     return sizes
-
 
 
 def ccs_ultralight(optlevel, chunksize, slicesize):
@@ -390,7 +388,6 @@ def inftype(dtype, itemsize, sign=+1):
         raise TypeError("Type %s is not supported" % dtype.name)
 
 
-
 def string_next_after(x, direction, itemsize):
     """Return the next representable neighbor of x in the appropriate
     direction."""
@@ -435,7 +432,6 @@ def string_next_after(x, direction, itemsize):
     return b"".join(xlist)
 
 
-
 def int_type_next_after(x, direction, itemsize):
     """Return the next representable neighbor of x in the appropriate
     direction."""
@@ -457,7 +453,6 @@ def int_type_next_after(x, direction, itemsize):
             return int(numpy.nextafter(x, x + 1)) + 1
 
 
-
 def bool_type_next_after(x, direction, itemsize):
     """Return the next representable neighbor of x in the appropriate
     direction."""
@@ -471,13 +466,12 @@ def bool_type_next_after(x, direction, itemsize):
         return True
 
 
-
 def nextafter(x, direction, dtype, itemsize):
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
     assert direction in [-1, 0, +1]
-    assert dtype.kind == "S" or type(x) in (bool, int, int, float)
+    assert dtype.kind == "S" or type(x) in (bool, int, float)
 
     if direction == 0:
         return x

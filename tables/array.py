@@ -566,7 +566,7 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
                     else:
                         list_seen = True
                 else:
-                    if (not isinstance(exp[0], (int, int, numpy.integer)) or
+                    if (not isinstance(exp[0], (int, numpy.integer)) or
                         (isinstance(exp[0], numpy.ndarray) and not
                             numpy.issubdtype(exp[0].dtype, numpy.integer))):
                         raise TypeError("Only integer coordinates allowed.")

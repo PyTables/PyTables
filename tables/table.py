@@ -33,16 +33,17 @@ from numexpr.expressions import functions as numexpr_functions
 from .flavor import flavor_of, array_as_internal, internal_to_flavor
 from .utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
 from .leaf import Leaf
-from .description import (
-    IsDescription, Description, Col, descr_from_dtype)
-from .exceptions import (NodeError, HDF5ExtError, PerformanceWarning,
-                               OldIndexWarning, NoSuchNodeError)
+from .description import (IsDescription, Description, Col, descr_from_dtype)
+from .exceptions import (
+    NodeError, HDF5ExtError, PerformanceWarning, OldIndexWarning,
+    NoSuchNodeError)
 from .utilsextension import get_nested_field
 
 from .path import join_path, split_path
 from .index import (
     OldIndex, default_index_filters, default_auto_index, Index, IndexesDescG,
     IndexesTableG)
+
 import six
 from six.moves import range
 from six.moves import zip
@@ -826,7 +827,7 @@ class Table(tableextension.Table, Leaf):
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
-            if isinstance(chunkshape, (int, numpy.integer, int)):
+            if isinstance(chunkshape, (int, numpy.integer)):
                 chunkshape = (chunkshape,)
             try:
                 chunkshape = tuple(chunkshape)
