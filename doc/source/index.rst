@@ -17,13 +17,27 @@ disk resources so that data takes much less space (specially if on-flight
 compression is used) than other solutions such as relational or object
 oriented databases.
 
-You can also, find more information by reading the PyTables :doc:`FAQ`.
+You can also find more information by reading the PyTables :doc:`FAQ`.
 
 PyTables development is a continuing effort and we are always looking for
 more developers, testers, and users.  If you are interested in being
 involved with this project, please contact us via `github`_ or the
 `mailing list`_.
 
+Since August 2015, PyTables is a `NumFOCUS project`_, which means that
+your donations are fiscally sponsored under the NumFOCUS umbrella.  Please
+consider donating by clicking on the button below:
+
+.. raw:: html
+
+   <div align="center">
+   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+   <input type="hidden" name="cmd" value="_s-xclick">
+   <input type="hidden" name="hosted_button_id" value="8DMYL28L52C3L">
+   <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+   <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+   </form>
+   </div>
 
 --------
 Contents
@@ -54,3 +68,4 @@ Helpful Links
 
 .. _github: https://github.com/PyTables/PyTables
 .. _`mailing list`: https://groups.google.com/group/pytables-users
+.. _`NumFOCUS project`: http://numfocus.org/projects
