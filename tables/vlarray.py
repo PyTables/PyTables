@@ -770,9 +770,9 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
             coords = [key]
             value = [value]
         elif isinstance(key, slice):
-            (start, stop, step) = self._process_range(
+            start, stop, step = self._process_range(
                 key.start, key.stop, key.step)
-            coords = list(range(start, stop, step))
+            coords = range(start, stop, step)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
             coords = self._point_selection(key)
