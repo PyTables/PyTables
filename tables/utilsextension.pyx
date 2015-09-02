@@ -38,7 +38,7 @@ from cpython.bytes cimport PyBytes_Check, PyBytes_FromStringAndSize
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 
 from numpy cimport (import_array, ndarray, dtype,
-  npy_int64, PyArray_DescrFromType, npy_intp,
+  npy_int64, PyArray_GETPTR1, PyArray_DescrFromType, npy_intp,
   NPY_BOOL, NPY_STRING, NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64,
   NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, NPY_FLOAT16, NPY_FLOAT32,
   NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128)
@@ -1126,22 +1126,25 @@ def enum_to_hdf5(object enum_atom, str byteorder):
     default_name = enum_atom._defname
     index_default = names.index(default_name)
     H5Tenum_insert(enum_id, default_name.encode('utf-8'),
-        &values.data[index_default])
+        PyArray_GETPTR1(values, index_default))
 
     for i, n in enumerate(names):
       # Skip the default value as we have already inserted it before
       if i == index_default:
         continue
 
-      if H5Tenum_insert(enum_id, n.encode('utf-8'), &values.data[i]) < 0:
+      if H5Tenum_insert(enum_id, n.encode('utf-8'),
+          PyArray_GETPTR1(values, i)) < 0:
         raise HDF5ExtError("failed to insert value into HDF5 enumerated type")
 
     # Return the new, open HDF5 enumerated type.
     return enum_id
 
-  finally:
+  except:
     if H5Tclose(enum_id) < 0:
       raise HDF5ExtError("failed to close HDF5 enumerated type")
+
+    raise
 
 
 def atom_to_hdf5_type(atom, str byteorder):
