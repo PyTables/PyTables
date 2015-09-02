@@ -1100,13 +1100,9 @@ def enum_to_hdf5(object enum_atom, str byteorder):
 
   """
 
-  cdef bytes   name
   cdef hid_t   base_id, enum_id
-  cdef long    bytestride, i
-  cdef void    *rbuffer
-  cdef void    *rbuf
-  cdef ndarray values
   cdef object  base_atom
+  cdef ndarray values, v
 
   # Get the base HDF5 type and create the enumerated type.
   base_atom = Atom.from_dtype(enum_atom.dtype.base)
@@ -1116,34 +1112,36 @@ def enum_to_hdf5(object enum_atom, str byteorder):
     enum_id = H5Tenum_create(base_id)
     if enum_id < 0:
       raise HDF5ExtError("failed to create HDF5 enumerated type")
+
   finally:
     if H5Tclose(base_id) < 0:
       raise HDF5ExtError("failed to close HDF5 base type")
 
-  # Set the name and value of each of the members.
-  names = enum_atom._names
-  values = enum_atom._values
-  bytestride = values.strides[0]
-  rbuffer = values.data
+  try:
+    # Set the name and value of each of the members.
+    names = enum_atom._names
+    values = enum_atom._values
 
-  i = names.index(enum_atom._defname)
-  idx = list(range(len(names)))
-  idx.pop(i)
-  idx.insert(0, i)
+    # This saves the default enum value first so that we can restore it
+    default_name = enum_atom._defname
+    index_default = names.index(default_name)
+    H5Tenum_insert(enum_id, default_name.encode('utf-8'),
+        &values.data[index_default])
 
-  for i in idx:
-    name = names[i].encode('utf-8')
-    rbuf = <void *>(<char *>rbuffer + bytestride * i)
-    if H5Tenum_insert(enum_id, name, rbuf) < 0:
-      e = HDF5ExtError("failed to insert value into HDF5 enumerated type")
-      if H5Tclose(enum_id) < 0:
-        raise HDF5ExtError("failed to close HDF5 enumerated type")
-      raise e
+    for i, n in enumerate(names):
+      # Skip the default value as we have already inserted it before
+      if i == index_default:
+        continue
 
-  # Return the new, open HDF5 enumerated type.
-  return enum_id
+      if H5Tenum_insert(enum_id, n.encode('utf-8'), &values.data[i]) < 0:
+        raise HDF5ExtError("failed to insert value into HDF5 enumerated type")
 
+    # Return the new, open HDF5 enumerated type.
+    return enum_id
 
+  finally:
+    if H5Tclose(enum_id) < 0:
+      raise HDF5ExtError("failed to close HDF5 enumerated type")
 
 
 def atom_to_hdf5_type(atom, str byteorder):
