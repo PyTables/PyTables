@@ -467,7 +467,7 @@ cdef class Table(Leaf):
     # Get the pointer to the buffer data area
     self.wbuf = recarr.data
 
-  def _append_records(self, int nrecords):
+  def _append_records(self, hsize_t nrecords):
     cdef int ret
     cdef hsize_t nrows
 

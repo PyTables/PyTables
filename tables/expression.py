@@ -28,7 +28,6 @@ from six.moves import range
 from six.moves import zip
 
 
-
 class Expr(object):
     """A class for evaluating expressions with arbitrary array-like objects.
 
@@ -258,7 +257,7 @@ class Expr(object):
 
         # Get the names of variables used in the expression.
         exprvars_cache = self._exprvars_cache
-        if not expression in exprvars_cache:
+        if expression not in exprvars_cache:
             # Protection against growing the cache too much
             if len(exprvars_cache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
@@ -311,7 +310,6 @@ class Expr(object):
             reqvars[var] = val
         return reqvars
 
-
     def set_inputs_range(self, start=None, stop=None, step=None):
         """Define a range for all inputs in expression.
 
@@ -327,7 +325,6 @@ class Expr(object):
         self.start = start
         self.stop = stop
         self.step = step
-
 
     def set_output(self, out, append_mode=False):
         """Set out as container for output as well as the append_mode.
@@ -361,7 +358,6 @@ class Expr(object):
                 "with an `append()` method (like the `EArray`)")
         self.append_mode = append_mode
 
-
     def set_output_range(self, start=None, stop=None, step=None):
         """Define a range for user-provided output object.
 
@@ -378,7 +374,6 @@ class Expr(object):
         self.o_start = start
         self.o_stop = stop
         self.o_step = step
-
 
     # Although the next code is similar to the method in `Leaf`, it
     # allows the use of pure NumPy objects.
@@ -473,7 +468,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             (start, stop, step) = slice(
                 self.start, self.stop, self.step).indices(shape[maindim])
             shape[maindim] = min(
-                shape[maindim], len(range(0, stop - start, step)))
+                shape[maindim], len(range(start, stop, step)))
             i_nrows = shape[maindim]
         else:
             start, stop, step = 0, 0, None

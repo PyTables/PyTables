@@ -1294,7 +1294,7 @@ class setOutputRangeTestCase(common.TempFileMixin, TestCase):
         expr.set_output_range(start, stop, step)
         expr.eval()
         r2 = eval("a-b-1")
-        r[start:stop:step] = r2[:len(range(0, stop - start, step))]
+        r[start:stop:step] = r2[:len(range(start, stop, step))]
         if common.verbose:
             print("Tested shape:", shape)
             print("Computed expression:", repr(r1[:]), r1.dtype)
@@ -1330,7 +1330,7 @@ class setOutputRangeTestCase(common.TempFileMixin, TestCase):
         r2 = eval("a-b-1")
         lsl = tuple([slice(None)] * self.maindim)
         # print "lsl-->", lsl + (slice(start,stop,step),)
-        l = len(range(0, stop - start, step))
+        l = len(range(start, stop, step))
         r.__setitem__(lsl + (slice(start, stop, step),),
                       r2.__getitem__(lsl + (slice(0, l),)))
         if common.verbose:

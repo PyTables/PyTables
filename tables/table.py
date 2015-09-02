@@ -112,11 +112,9 @@ def _index_name_of(node):
     return '_i_%s' % node._v_name
 
 
-
 def _index_pathname_of(node):
     nodeParentPath = split_path(node._v_pathname)[0]
     return join_path(nodeParentPath, _index_name_of(node))
-
 
 
 def _index_pathname_of_column(table, colpathname):
@@ -132,17 +130,13 @@ def _index_name_of_(nodeName):
     return '_i_%s' % nodeName
 
 
-
 def _index_pathname_of_(nodePath):
     nodeParentPath, nodeName = split_path(nodePath)
     return join_path(nodeParentPath, _index_name_of_(nodeName))
 
 
-
 def _index_pathname_of_column_(tablePath, colpathname):
     return join_path(_index_pathname_of_(tablePath), colpathname)
-
-
 
 
 def restorecache(self):
@@ -239,13 +233,11 @@ def _table__where_indexed(self, compiled, condition, condvars,
     return chunkmap
 
 
-
 def create_indexes_table(table):
     itgroup = IndexesTableG(
         table._v_parent, _index_name_of(table),
         "Indexes container for table " + table._v_pathname, new=True)
     return itgroup
-
 
 
 def create_indexes_descr(igroup, dname, iname, filters):
@@ -254,7 +246,6 @@ def create_indexes_descr(igroup, dname, iname, filters):
         "Indexes container for sub-description " + dname,
         filters=filters, new=True)
     return idgroup
-
 
 
 def _column__create_index(self, optlevel, kind, filters, tmp_dir,
@@ -349,7 +340,6 @@ def _column__create_index(self, optlevel, kind, filters, tmp_dir,
     # table.flush()
 
     return indexedrows
-
 
 
 class _ColIndexes(dict):
@@ -522,7 +512,6 @@ class Table(tableextension.Table, Leaf):
     # Class identifier.
     _c_classid = 'TABLE'
 
-
     # Properties
     # ~~~~~~~~~~
     @lazyattr
@@ -651,7 +640,6 @@ class Table(tableextension.Table, Leaf):
         # Update the cache in table instance as well
         self._autoindex = auto
 
-
     @property
     def indexedcolpathnames(self):
         """List of pathnames of indexed columns in the table."""
@@ -661,15 +649,14 @@ class Table(tableextension.Table, Leaf):
     def colindexes(self):
         """A dictionary with the indexes of the indexed columns."""
         return _ColIndexes(
-                ((_colpname, self.cols._f_col(_colpname).index)
-                    for _colpname in self.colpathnames
-                    if self.colindexed[_colpname]))
+            ((_colpname, self.cols._f_col(_colpname).index)
+                for _colpname in self.colpathnames
+                if self.colindexed[_colpname]))
 
     @property
     def _dirtyindexes(self):
         """Whether some index in table is dirty."""
         return self._condition_cache._nailcount > 0
-
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -980,7 +967,6 @@ very small/large chunksize, you may want to increase/decrease it."""
                 for colobj in self.description._f_walk('Col')
                 if colobj.type == type_]
 
-
     def _get_enum_map(self):
         """Return mapping from enumerated column names to `Enum` instances."""
 
@@ -989,7 +975,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             if colobj.kind == 'enum':
                 enumMap[colobj._v_pathname] = colobj.enum
         return enumMap
-
 
     def _g_create(self):
         """Create a new table on disk."""
@@ -1148,7 +1133,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Assign _v_dtype for this table
         self._v_dtype = self.description._v_dtype
 
-
     def _get_column_instance(self, colpathname):
         """Get the instance of the column with the given `colpathname`.
 
@@ -1162,7 +1146,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         except AttributeError:
             raise KeyError("table ``%s`` does not have a column named ``%s``"
                            % (self._v_pathname, colpathname))
-
 
     _check_column = _get_column_instance
 
@@ -1180,7 +1163,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._condition_cache.nail()
         self._enabled_indexing_in_queries = False
 
-
     def _enable_indexing_in_queries(self):
         """Allow queries to use indexing.
 
@@ -1192,7 +1174,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             return  # already enabled
         self._condition_cache.unnail()
         self._enabled_indexing_in_queries = True
-
 
     def _required_expr_vars(self, expression, uservars, depth=1):
         """Get the variables required by the `expression`.
@@ -1219,7 +1200,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         # Get the names of variables used in the expression.
         exprvarscache = self._exprvars_cache
-        if not expression in exprvarscache:
+        if expression not in exprvarscache:
             # Protection against growing the cache too much
             if len(exprvarscache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
@@ -1298,7 +1279,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             reqvars[var] = val
         return reqvars
 
-
     def _get_condition_key(self, condition, condvars):
         """Get the condition cache key for `condition` with `condvars`.
 
@@ -1330,7 +1310,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         condkey = (condition, colnames, varnames, colpaths, vartypes)
         return condkey
 
-
     def _compile_condition(self, condition, condvars):
         """Compile the `condition` and extract usable index conditions.
 
@@ -1354,7 +1333,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         (condition, colnames, varnames, colpaths, vartypes) = condkey
 
         # Extract more information from referenced columns.
-        typemap = dict(list(zip(varnames, vartypes)))  # start with normal variables
+
+        # start with normal variables
+        typemap = dict(list(zip(varnames, vartypes)))
         indexedcols = []
         for colname in colnames:
             col = condvars[colname]
@@ -1381,7 +1362,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         condcache[condkey] = compiled
         return compiled.with_replaced_vars(condvars)
 
-
     def will_query_use_indexing(self, condition, condvars=None):
         """Will a query for the condition use indexing?
 
@@ -1402,7 +1382,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Return the columns in indexed expressions
         idxcols = [condvars[var].pathname for var in compiled.index_variables]
         return frozenset(idxcols)
-
 
     def where(self, condition, condvars=None,
               start=None, stop=None, step=None):
@@ -1567,7 +1546,6 @@ very small/large chunksize, you may want to increase/decrease it."""
                     return self.read(cstart, cstop, field=field)
         return self.read_coordinates(coords, field)
 
-
     def append_where(self, dstTable, condition=None, condvars=None,
                      start=None, stop=None, step=None):
         """Append rows fulfilling the condition to the dstTable table.
@@ -1607,7 +1585,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         dstTable.flush()
         return nrows
 
-
     def get_where_list(self, condition, condvars=None, sort=False,
                        start=None, stop=None, step=None):
         """Get the row coordinates fulfilling the given condition.
@@ -1631,7 +1608,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         if sort:
             coords = numpy.sort(coords)
         return internal_to_flavor(coords, self.flavor)
-
 
     def itersequence(self, sequence):
         """Iterate over a sequence of row coordinates."""
@@ -1677,7 +1653,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise ValueError(
                 "Field `%s` must have associated a 'full' index "
                 "in table `%s`." % (sortby, self))
-
 
     def itersorted(self, sortby, checkCSI=False,
                    start=None, stop=None, step=None):
@@ -1736,7 +1711,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         index = self._check_sortby_csi(sortby, checkCSI)
         coords = index[start:stop:step]
         return self.read_coordinates(coords, field)
-
 
     def iterrows(self, start=None, stop=None, step=None):
         """Iterate over the table using a Row instance.
@@ -1829,7 +1803,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 return nra
             return numpy.empty(shape=0, dtype=dtype_field)
 
-        nrows = len(range(0, stop - start, step))
+        nrows = len(range(start, stop, step))
 
         if out is None:
             # Compute the shape of the resulting column object
@@ -1944,9 +1918,8 @@ very small/large chunksize, you may want to increase/decrease it."""
                    "flavor is 'numpy', currently is {0}").format(self.flavor)
             raise TypeError(msg)
 
-        #(start, stop, step) = self._process_range_read(start, stop, step,
-        (start, stop, step) = self._process_range(start, stop, step,
-                                                  warn_negstep=False)
+        start, stop, step = self._process_range(start, stop, step,
+                                                warn_negstep=False)
 
         arr = self._read(start, stop, step, field, out)
         return internal_to_flavor(arr, self.flavor)
@@ -1985,7 +1958,6 @@ very small/large chunksize, you may want to increase/decrease it."""
                 result = self._getemptyarray(self.coldtypes[field])
         return result
 
-
     def read_coordinates(self, coords, field=None):
         """Get a set of rows given their indexes as a (record) array.
 
@@ -2001,7 +1973,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._g_check_open()
         result = self._read_coordinates(coords, field)
         return internal_to_flavor(result, self.flavor)
-
 
     def get_enum(self, colname):
         """Get the enumerated type associated with the named column.
@@ -2021,7 +1992,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise TypeError(
                 "column ``%s`` of table ``%s`` is not of an enumerated type"
                 % (colname, self._v_pathname))
-
 
     def col(self, name):
         """Get a column from the table.
@@ -2190,7 +2160,6 @@ very small/large chunksize, you may want to increase/decrease it."""
                 # All the columns are dirty now
                 self._mark_columns_as_dirty(self.colpathnames)
 
-
     def append(self, rows):
         """Append a sequence of rows to the end of the table.
 
@@ -2272,7 +2241,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise ValueError("Object cannot be converted into a recarray "
                              "object compliant with table format '%s'. "
                              "The error was: <%s>" %
-                            (self.description._v_nested_descr, exc))
+                             (self.description._v_nested_descr, exc))
 
         return recarr
 
@@ -2310,7 +2279,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         return SizeType(lcoords)
 
-
     def modify_rows(self, start=None, stop=None, step=None, rows=None):
         """Modify a series of rows in the slice [start:stop:step].
 
@@ -2345,7 +2313,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(range(0, stop - start, step))
+        nrows = len(range(start, stop, step))
         if len(rows) != nrows:
             raise ValueError("The value has different elements than the "
                              "specified range")
@@ -2365,7 +2333,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._reindex(self.colpathnames)
 
         return SizeType(lenrows)
-
 
     def modify_column(self, start=None, stop=None, step=None,
                       column=None, colname=None):
@@ -2432,7 +2399,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(range(0, stop - start, step))
+        nrows = len(range(start, stop, step))
         if len(column) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2447,7 +2414,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._reindex([colname])
 
         return SizeType(nrows)
-
 
     def modify_columns(self, start=None, stop=None, step=None,
                        columns=None, names=None):
@@ -2508,7 +2474,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
-        nrows = len(range(0, stop - start, step))
+        nrows = len(range(start, stop, step))
         if len(recarray) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
@@ -2524,7 +2490,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._reindex(names)
 
         return SizeType(nrows)
-
 
     def flush_rows_to_index(self, _lastrow=True):
         """Add remaining rows in buffers to non-dirty indexes.
@@ -2549,7 +2514,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             self._unsaved_indexedrows -= rowsadded
             self._indexedrows += rowsadded
         return rowsadded
-
 
     def _add_rows_to_index(self, colname, start, nrows, lastrow, update):
         """Add more elements to the existing index."""
@@ -2579,7 +2543,6 @@ very small/large chunksize, you may want to increase/decrease it."""
                 update=update)
             indexedrows += self.nrows - startLR
         return indexedrows
-
 
     def remove_rows(self, start=None, stop=None, step=None):
         """Remove a range of rows in the table.
@@ -2637,7 +2600,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         return SizeType(nrows)
 
-
     def remove_row(self, n):
         """Removes a row from the table.
 
@@ -2678,7 +2640,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Update the new path in the Row instance, if cached.  Fixes #224.
         if 'row' in self.__dict__:
             self.__dict__['row'] = tableextension.Row(self)
-
 
     def _g_move(self, newparent, newname):
         """Move this node in the hierarchy.
@@ -2729,7 +2690,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         colindexed[colpathname] = isindexed
         self.indexed = max(colindexed.values())  # this is an OR :)
 
-
     def _mark_columns_as_dirty(self, colnames):
         """Mark column indexes in `colnames` as dirty."""
 
@@ -2741,7 +2701,6 @@ very small/large chunksize, you may want to increase/decrease it."""
                 if colindexed[colname]:
                     col = cols._g_col(colname)
                     col.index.dirty = True
-
 
     def _reindex(self, colnames):
         """Re-index columns in `colnames` if automatic indexing is true."""
@@ -2761,7 +2720,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             # The table caches for indexed queries are dirty now
             self._dirtycache = True
 
-
     def _do_reindex(self, dirty):
         """Common code for `reindex()` and `reindex_dirty()`."""
 
@@ -2777,7 +2735,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         return SizeType(indexedrows)
 
-
     def reindex(self):
         """Recompute all the existing indexes in the table.
 
@@ -2788,7 +2745,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         self._do_reindex(dirty=False)
-
 
     def reindex_dirty(self):
         """Recompute the existing indexes in table, *if* they are dirty.
@@ -2801,7 +2757,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         self._do_reindex(dirty=True)
-
 
     def _g_copy_rows(self, object, start, stop, step, sortby, checkCSI):
         "Copy rows from self to object"
@@ -2829,7 +2784,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             object.append(rows)
         object.flush()
 
-
     def _g_copy_rows_optim(self, object, start, stop, step):
         """Copy rows from self to object (optimized version)"""
 
@@ -2850,7 +2804,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             nrowsdest += nrows
         object._close_append()
 
-
     def _g_prop_indexes(self, other):
         """Generate index in `other` table for every indexed column here."""
 
@@ -2865,7 +2818,6 @@ very small/large chunksize, you may want to increase/decrease it."""
                         kind=oldcolindex.kind, optlevel=oldcolindex.optlevel,
                         filters=oldcolindex.filters, tmp_dir=None)
 
-
     def _g_copy_with_stats(self, group, name, start, stop, step,
                            title, filters, chunkshape, _log, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
@@ -2878,7 +2830,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         (start, stop, step) = self._process_range_read(
             start, stop, step, warn_negstep=sortby is None)
         # And the number of final rows
-        nrows = len(range(0, stop - start, step))
+        nrows = len(range(start, stop, step))
         # Create the new table and copy the selected data.
         newtable = Table(group, name, self.description, title=title,
                          filters=filters, expectedrows=nrows,
@@ -2890,7 +2842,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         if propindexes and self.indexed:
             self._g_prop_indexes(newtable)
         return (newtable, nbytes)
-
 
     # This overloading of copy is needed here in order to document
     # the additional keywords for the Table case.
@@ -2983,7 +2934,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             del mydict['_v_iobuf']
         if '_v_wdflts' in mydict:
             del mydict['_v_wdflts']
-
 
     def _f_close(self, flush=True):
         if not self._v_isopen:
@@ -3106,7 +3056,6 @@ class Cols(object):
         for colname in self._v_colnames:
             myDict[colname]._g_update_table_location(table)
 
-
     def __len__(self):
         """Get the number of top level columns in table."""
 
@@ -3131,8 +3080,8 @@ class Cols(object):
             raise TypeError("Parameter can only be an string. You passed "
                             "object: %s" % colname)
         if ((colname.find('/') > -1 and
-             not colname in self._v_colpathnames) and
-                not colname in self._v_colnames):
+             colname not in self._v_colpathnames) and
+                colname not in self._v_colnames):
             raise KeyError(("Cols accessor ``%s.cols%s`` does not have a "
                             "column named ``%s``")
                            % (self._v__tablePath, self._v_desc._v_pathname,
@@ -3364,7 +3313,6 @@ class Column(object):
         """The parent Table instance (see :ref:`TableClassDescr`)."""
         return self._table_file._get_node(self._table_path)
 
-
     @property
     def index(self):
         """The Index instance (see :ref:`IndexClassDescr`) associated with this
@@ -3375,7 +3323,6 @@ class Column(object):
         except NodeError:
             index = None  # The column is not indexed
         return index
-
 
     @lazyattr
     def _itemtype(self):
@@ -3417,7 +3364,6 @@ class Column(object):
 
         self._table_file = table._v_file
         self._table_path = table._v_pathname
-
 
     def __len__(self):
         """Get the number of elements in the column.
@@ -3638,7 +3584,6 @@ class Column(object):
                                         tmp_dir, _blocksizes, _verbose)
         return SizeType(idxrows)
 
-
     def create_csindex(self, filters=None, tmp_dir=None,
                        _blocksizes=None, _testmode=False, _verbose=False):
         """Create a completely sorted index (CSI) for this column.
@@ -3664,7 +3609,6 @@ class Column(object):
             kind='full', optlevel=9, filters=filters, tmp_dir=tmp_dir,
             _blocksizes=_blocksizes, _testmode=_testmode, _verbose=_verbose)
 
-
     def _do_reindex(self, dirty):
         """Common code for reindex() and reindex_dirty() codes."""
 
@@ -3689,7 +3633,6 @@ class Column(object):
         else:
             return SizeType(0)  # The column is not intended for indexing
 
-
     def reindex(self):
         """Recompute the index associated with this column.
 
@@ -3701,7 +3644,6 @@ class Column(object):
         """
 
         self._do_reindex(dirty=False)
-
 
     def reindex_dirty(self):
         """Recompute the associated index only if it is dirty.
@@ -3715,7 +3657,6 @@ class Column(object):
         """
 
         self._do_reindex(dirty=True)
-
 
     def remove_index(self):
         """Remove the index associated with this column.
@@ -3733,7 +3674,6 @@ class Column(object):
             index = self.index
             index._f_remove()
             self.table._set_column_indexing(self.pathname, False)
-
 
     def close(self):
         """Close this column."""

@@ -826,7 +826,7 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
     def _read(self, start, stop, step, out=None):
         """Read the array from disk without slice or flavor processing."""
 
-        nrowstoread = len(range(0, stop - start, step))
+        nrowstoread = len(range(start, stop, step))
         shape = list(self.shape)
         if shape:
             shape[self.maindim] = nrowstoread

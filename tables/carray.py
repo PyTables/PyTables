@@ -254,7 +254,7 @@ class CArray(Array):
         (start, stop, step) = self._process_range_read(start, stop, step)
         maindim = self.maindim
         shape = list(self.shape)
-        shape[maindim] = len(range(0, stop - start, step))
+        shape[maindim] = len(range(start, stop, step))
         # Now, fill the new carray with values from source
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__

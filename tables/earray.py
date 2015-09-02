@@ -222,7 +222,7 @@ class EArray(CArray):
         shape = list(self.shape)
         shape[maindim] = 0
         # The number of final rows
-        nrows = len(range(0, stop - start, step))
+        nrows = len(range(start, stop, step))
         # Build the new EArray object
         object = EArray(
             group, name, atom=self.atom, shape=shape, title=title,
