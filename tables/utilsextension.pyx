@@ -1102,7 +1102,7 @@ def enum_to_hdf5(object enum_atom, str byteorder):
 
   cdef hid_t   base_id, enum_id
   cdef object  base_atom
-  cdef ndarray values, v
+  cdef ndarray values
 
   # Get the base HDF5 type and create the enumerated type.
   base_atom = Atom.from_dtype(enum_atom.dtype.base)
