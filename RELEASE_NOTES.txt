@@ -14,6 +14,7 @@ Changes from 3.2.1.1 to 3.2.2
 Bug fixed
 ---------
 
+- Fix AssertionError in Row.__init_loop. See :issue:`477`.
 - Fix issues with Cython 0.23. See :issue:`481`.
 - Only run `tables.tests.test_basics.UnicodeFilename` if the filesystem
   encoding is utf-8. Closes :issue:`485`.
