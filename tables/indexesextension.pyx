@@ -443,7 +443,7 @@ cdef void _keysort_string(char* start1, size_t ss, char* start2, size_t ts, size
             swap_bytes(ipi, ipr-ts, ts)
 
             # push largest partition on stack and proceed with the other
-            if (pi - pl) > (pr - pi):
+            if (pi - pl) < (pr - pi):
                 sptr[0] = pi + ss
                 sptr[1] = pr
                 sptr += 2

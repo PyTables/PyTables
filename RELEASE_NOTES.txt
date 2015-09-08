@@ -21,6 +21,7 @@ Bug fixed
 - Fix missing missing PyErr_Clear. See :issue:`#486`.
 - Fix the C type of some numpy attributes. See :issue:`494`.
 - Cast selection indices to integer. See :issue:`496`.
+- Fix indexesextension._keysort_string. Closes :issue:`497` and :issue:`498`.
 
 
 Changes from 3.2.1 to 3.2.1.1
