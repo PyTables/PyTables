@@ -2577,6 +2577,19 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         result = table[np.array(self.expectedrows-1)]
         self.assertEqual(result["var2"], self.expectedrows - 1)
 
+    def test01f_singleItem(self):
+        """Checking __getitem__ method with single parameter (np.uint64)"""
+
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test01f_singleItem..." % self.__class__.__name__)
+
+        self.h5file = tables.open_file(self.h5fname, "r")
+        table = self.h5file.root.table0
+
+        result = table[np.uint64(2)]
+        self.assertEqual(result["var2"], 2)
+
     def test02_twoItems(self):
         """Checking __getitem__ method with start, stop parameters."""
 

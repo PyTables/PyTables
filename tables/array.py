@@ -12,6 +12,7 @@
 
 """Here is defined the Array class."""
 
+import operator
 import sys
 
 import numpy
@@ -394,6 +395,8 @@ class Array(hdf5extension.Array, Leaf):
                 raise IndexError("Too many indices for object '%s'" %
                                  self._v_pathname)
             elif is_idx(key):
+                key = operator.index(key)
+
                 # Protection for index out of range
                 if key >= self.shape[dim]:
                     raise IndexError("Index out of range")

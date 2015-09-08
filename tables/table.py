@@ -12,12 +12,14 @@
 
 """Here is defined the Table class."""
 
-import sys
 import math
-import warnings
+import operator
 import os.path
-from time import time
+import sys
+import warnings
+
 from functools import reduce as _reduce
+from time import time
 
 import numpy
 import numexpr
@@ -2145,6 +2147,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._g_check_open()
 
         if is_idx(key):
+            key = operator.index(key)
+
             # Index out of range protection
             if key >= self.nrows:
                 raise IndexError("Index out of range")
@@ -2214,6 +2218,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._v_file._check_writable()
 
         if is_idx(key):
+            key = operator.index(key)
+
             # Index out of range protection
             if key >= self.nrows:
                 raise IndexError("Index out of range")
@@ -3252,6 +3258,8 @@ class Cols(object):
         table = self._v_table
         nrows = table.nrows
         if is_idx(key):
+            key = operator.index(key)
+
             # Index out of range protection
             if key >= nrows:
                 raise IndexError("Index out of range")
@@ -3309,6 +3317,8 @@ class Cols(object):
         table = self._v_table
         nrows = table.nrows
         if is_idx(key):
+            key = operator.index(key)
+
             # Index out of range protection
             if key >= nrows:
                 raise IndexError("Index out of range")
@@ -3556,6 +3566,8 @@ class Column(object):
             key = key[0]
 
         if is_idx(key):
+            key = operator.index(key)
+
             # Index out of range protection
             if key >= table.nrows:
                 raise IndexError("Index out of range")
@@ -3628,6 +3640,8 @@ class Column(object):
             key = key[0]
 
         if is_idx(key):
+            key = operator.index(key)
+
             # Index out of range protection
             if key >= table.nrows:
                 raise IndexError("Index out of range")
