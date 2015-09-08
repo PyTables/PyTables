@@ -20,6 +20,7 @@ Bug fixed
   encoding is utf-8. Closes :issue:`485`.
 - Fix missing missing PyErr_Clear. See :issue:`#486`.
 - Fix the C type of some numpy attributes. See :issue:`494`.
+- Cast selection indices to integer. See :issue:`496`.
 
 
 Changes from 3.2.1 to 3.2.1.1
