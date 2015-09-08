@@ -687,39 +687,6 @@ def _create_numeric_class(baseclass, itemsize):
     return type('%sAtom' % prefix, (baseclass,), classdict)
 
 
-def _generate_integral_classes():
-    """Generate all integral classes."""
-
-    for baseclass in [IntAtom, UIntAtom]:
-        for itemsize in [1, 2, 4, 8]:
-            newclass = _create_numeric_class(baseclass, itemsize)
-            yield newclass
-
-
-def _generate_floating_classes():
-    """Generate all floating classes."""
-
-    itemsizes = [4, 8]
-
-    # numpy >= 1.6
-    if hasattr(numpy, 'float16'):
-        itemsizes.insert(0, 2)
-    if hasattr(numpy, 'float96'):
-        itemsizes.append(12)
-    if hasattr(numpy, 'float128'):
-        itemsizes.append(16)
-
-    for itemsize in itemsizes:
-        newclass = _create_numeric_class(FloatAtom, itemsize)
-        yield newclass
-
-
-# Create all numeric atom classes.
-#for _classgen in [_generate_integral_classes, _generate_floating_classes]:
-#    for _newclass in _classgen():
-#        exec('%s = _newclass' % _newclass.__name__)
-#del _classgen, _newclass
-
 Int8Atom = _create_numeric_class(IntAtom, 1)
 Int16Atom = _create_numeric_class(IntAtom, 2)
 Int32Atom = _create_numeric_class(IntAtom, 4)
