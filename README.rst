@@ -93,7 +93,7 @@ Installation
 
 1. Make sure you have HDF5 version 1.8.4 or above.
 
-   On OSX you can install HDF5 using [Homebrew](http://brew.sh)::
+   On OSX you can install HDF5 using `Homebrew <http://brew.sh>`_
 
        $ brew tap homebrew/science
        $ brew install hdf5
@@ -104,14 +104,13 @@ Installation
 
    If you have the HDF5 library in some non-standard location (that is: where
    the compiler and the linker can't find it) you can use the environment
-   variable `HDF5_DIR` to specify its location. See [the
-   manual](http://www.pytables.org/usersguide/installation.html) for more
-   details.
+   variable `HDF5_DIR` to specify its location. See `the manual
+   <http://www.pytables.org/usersguide/installation.html>`_ for more details.
 
 2. Make sure your python installation is in good health, that is you have the
-   package installer pip and it works ok. Check the [Python Packaging User
-   Guide](https://packaging.python.org/en/latest/installing.html) for further
-   instructions.
+   package installer pip and it works ok. Check the `Python Packaging User
+   Guide <https://packaging.python.org/en/latest/installing.html>`_ for
+   further instructions.
 
 3. Optionally, consider to install the LZO compression library and/or the
    bzip2 compression library.
