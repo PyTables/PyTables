@@ -1065,6 +1065,8 @@ is meant to be used in table iterators. Look at the next example::
     to be both convenient and efficient. Please make sure to use it
     extensively.
 
+*Caveat emptor*: Currently, :meth:`Row.update` will not work (your tables 
+will not be updated) if the loop is broken with ``break`` statement.
 
 Modifying data in arrays
 ~~~~~~~~~~~~~~~~~~~~~~~~
