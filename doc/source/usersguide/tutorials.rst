@@ -1065,8 +1065,10 @@ is meant to be used in table iterators. Look at the next example::
     to be both convenient and efficient. Please make sure to use it
     extensively.
 
-*Caveat emptor*: Currently, :meth:`Row.update` will not work (your tables 
-will not be updated) if the loop is broken with ``break`` statement.
+*Caveat emptor*: Currently, :meth:`Row.update` will not work (the table will
+not be updated) if the loop is broken with ``break`` statement. A possible
+workaround consists in manually flushing the row internal buffer by calling
+``row._flushModRows()`` just before the ``break`` statement.
 
 Modifying data in arrays
 ~~~~~~~~~~~~~~~~~~~~~~~~
