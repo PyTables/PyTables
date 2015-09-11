@@ -12,6 +12,7 @@ It also checks:
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 import hashlib
@@ -33,6 +34,7 @@ from tables.utils import quantize
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
+from six.moves import range
 
 
 hdf5_version = LooseVersion(hdf5_version)
@@ -284,7 +286,7 @@ class FiltersTreeTestCase(common.TempFileMixin, TestCase):
             # Get the record object associated with the new table
             d = table.row
             # Fill the table
-            for i in xrange(self.nrows):
+            for i in range(self.nrows):
                 d['var1'] = '%04d' % (self.nrows - i)
                 d['var2'] = i
                 d['var3'] = i * 2
@@ -691,7 +693,7 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
                 # Get the record object associated with the new table
                 d = table.row
                 # Fill the table
-                for i in xrange(self.nrows):
+                for i in range(self.nrows):
                     d['var1'] = '%04d' % (self.nrows - i)
                     d['var2'] = i
                     d['var3'] = i * 2
@@ -762,8 +764,8 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
 
         # Check that the copy has been done correctly
         dstgroup = self.h5file2.root
-        nodelist1 = srcgroup._v_children.keys()
-        nodelist2 = dstgroup._v_children.keys()
+        nodelist1 = list(srcgroup._v_children.keys())
+        nodelist2 = list(dstgroup._v_children.keys())
         # Sort the lists
         nodelist1.sort()
         nodelist2.sort()
@@ -1033,7 +1035,7 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
                 # Get the record object associated with the new table
                 d = table.row
                 # Fill the table
-                for i in xrange(self.nrows):
+                for i in range(self.nrows):
                     d['var1'] = '%04d' % (self.nrows - i)
                     d['var2'] = i
                     d['var3'] = i * 2
@@ -1112,8 +1114,8 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = srcgroup._v_children.keys()
-        nodelist2 = dstgroup._v_children.keys()
+        nodelist1 = list(srcgroup._v_children.keys())
+        nodelist2 = list(dstgroup._v_children.keys())
         # Sort the lists
         nodelist1.sort()
         nodelist2.sort()
@@ -1156,8 +1158,8 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = srcgroup._v_children.keys()
-        nodelist2 = dstgroup._v_children.keys()
+        nodelist1 = list(srcgroup._v_children.keys())
+        nodelist2 = list(dstgroup._v_children.keys())
 
         # Sort the lists
         nodelist1.sort()
@@ -1191,8 +1193,8 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = srcgroup._v_children.keys()
-        nodelist2 = dstgroup._v_children.keys()
+        nodelist1 = list(srcgroup._v_children.keys())
+        nodelist2 = list(dstgroup._v_children.keys())
 
         # Sort the lists
         nodelist1.sort()
@@ -1521,7 +1523,7 @@ class FilterTestCase(TestCase):
         if sys.version_info[0] > 2:
             return hex(int(n))
         else:
-            return hex(long(n)).rstrip('L')
+            return hex(int(n)).rstrip('L')
 
     def test_filter_pack_01(self):
         filter_ = Filters()
@@ -2238,7 +2240,7 @@ class InMemoryCoreDriverTestCase(TestCase):
         self.assertEqual(self.h5file.get_node_attr("/table", "TITLE"), "Table")
         self.assertEqual(self.h5file.root.array.read(), [1, 2])
 
-        self.h5file.create_array(self.h5file.root, 'array2', range(10000),
+        self.h5file.create_array(self.h5file.root, 'array2', list(range(10000)),
                                  title="Array2")
         self.h5file.root._v_attrs.testattr2 = 42
 
@@ -2268,7 +2270,7 @@ class InMemoryCoreDriverTestCase(TestCase):
         self.assertEqual(self.h5file.get_node_attr("/table", "TITLE"), "Table")
         self.assertEqual(self.h5file.root.array.read(), [1, 2])
 
-        data = range(2 * tables.parameters.DRIVER_CORE_INCREMENT)
+        data = list(range(2 * tables.parameters.DRIVER_CORE_INCREMENT))
         self.h5file.create_array(self.h5file.root, 'array2', data,
                                  title="Array2")
         self.h5file.root._v_attrs.testattr2 = 42
@@ -2357,7 +2359,7 @@ class InMemoryCoreDriverTestCase(TestCase):
         self.assertEqual(self.h5file.get_node_attr("/table", "TITLE"), "Table")
         self.assertEqual(self.h5file.root.array.read(), [1, 2])
 
-        data = range(2 * tables.parameters.DRIVER_CORE_INCREMENT)
+        data = list(range(2 * tables.parameters.DRIVER_CORE_INCREMENT))
         self.h5file.create_array(self.h5file.root, 'array2', data,
                                  title="Array2")
         self.h5file.root._v_attrs.testattr2 = 42

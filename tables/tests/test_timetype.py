@@ -13,6 +13,7 @@
 """Unit test for the Time datatypes."""
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import numpy
 
@@ -21,6 +22,7 @@ from tables.tests import common
 from tables.tests.common import allequal
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
+from six.moves import range
 
 
 class LeafCreationTestCase(common.TempFileMixin, TestCase):
@@ -208,7 +210,7 @@ class CompareTestCase(common.TempFileMixin, TestCase):
         # the I/O with multiple buffers.
         # nrows = 10
 
-        for i in xrange(nrows):
+        for i in range(nrows):
             j = i * 2
             vla.append((j + 0.012, j + 1 + 0.012))
         self._reopen()
@@ -263,7 +265,7 @@ class CompareTestCase(common.TempFileMixin, TestCase):
         # nrows = 10
 
         row = tbl.row
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['t32col'] = i
             j = i * 2
             row['t64col'] = (j + 0.012, j+1+0.012)
@@ -323,7 +325,7 @@ class CompareTestCase(common.TempFileMixin, TestCase):
         # the I/O with multiple buffers.
         # nrows = 10
 
-        for i in xrange(nrows):
+        for i in range(nrows):
             j = i * 2
             ea.append(((j + 0.012, j + 1 + 0.012),))
         self._reopen()
@@ -364,7 +366,7 @@ class UnalignedTestCase(common.TempFileMixin, TestCase):
         # nrows = 10
 
         row = tbl.row
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['i8col'] = i
             row['t32col'] = i
             j = i * 2

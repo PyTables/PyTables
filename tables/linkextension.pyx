@@ -12,7 +12,7 @@
 
 """Cython functions and classes for supporting links in HDF5."""
 
-from tables.exceptions import HDF5ExtError
+from .exceptions import HDF5ExtError
 
 from hdf5extension cimport Node
 from utilsextension cimport cstr_to_pystr

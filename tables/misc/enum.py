@@ -27,6 +27,8 @@ concrete values out of its enumerated type.  For that kind of use,
 standard variables and constants are more adequate.
 
 """
+from __future__ import absolute_import
+import six
 
 
 
@@ -124,10 +126,10 @@ class Enum(object):
             for (value, name) in enumerate(enum):  # values become 0, 1, 2...
                 self._check_and_set_pair(name, value)
         elif isinstance(enum, dict):
-            for (name, value) in enum.iteritems():
+            for (name, value) in six.iteritems(enum):
                 self._check_and_set_pair(name, value)
         elif isinstance(enum, Enum):
-            for (name, value) in enum._names.iteritems():
+            for (name, value) in six.iteritems(enum._names):
                 self._check_and_set_pair(name, value)
         else:
             raise TypeError("""\
@@ -140,7 +142,7 @@ sequences, mappings and other enumerations""")
         names = self._names
         values = self._values
 
-        if not isinstance(name, basestring):
+        if not isinstance(name, six.string_types):
             raise TypeError(
                 "name of enumerated value is not a string: %r" % (name,))
         if name.startswith('_'):
@@ -267,7 +269,7 @@ sequences, mappings and other enumerations""")
 
         """
 
-        if not isinstance(name, basestring):
+        if not isinstance(name, six.string_types):
             raise TypeError(
                 "name of enumerated value is not a string: %r" % (name,))
         return name in self._names
@@ -337,7 +339,7 @@ sequences, mappings and other enumerations""")
 
         """
 
-        for name_value in self._names.iteritems():
+        for name_value in six.iteritems(self._names):
             yield name_value
 
     def __eq__(self, other):

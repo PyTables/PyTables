@@ -11,19 +11,22 @@
 ########################################################################
 
 """Here is defined the VLArray class."""
+from __future__ import absolute_import
 
 import sys
-
 import numpy
 
-from tables import hdf5extension
-from tables.utils import (convert_to_np_atom, convert_to_np_atom2, idx2long,
-                          correct_byteorder, SizeType, is_idx, lazyattr)
+from . import hdf5extension
+from .atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
+from .flavor import internal_to_flavor
+from .leaf import Leaf, calc_chunksize
+from .utils import (
+    convert_to_np_atom, convert_to_np_atom2, idx2long, correct_byteorder,
+    SizeType, is_idx, lazyattr)
 
-
-from tables.atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
-from tables.flavor import internal_to_flavor
-from tables.leaf import Leaf, calc_chunksize
+from six.moves import range
+from six.moves import zip
+import six
 
 # default version for VLARRAY objects
 # obversion = "1.0"    # initial version
@@ -34,7 +37,7 @@ from tables.leaf import Leaf, calc_chunksize
 obversion = "1.4"    # Numeric and numarray flavors are gone.
 
 
-class VLArray(hdf5extension.VLArray, Leaf):
+class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
     """This class represents variable length (ragged) arrays in an HDF5 file.
 
     Instances of this class represent array objects in the object tree
@@ -202,7 +205,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
     # Class identifier.
     _c_classid = 'VLARRAY'
 
-
     # Lazy read-only attributes
     # `````````````````````````
     @lazyattr
@@ -245,7 +247,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
             <http://code.activestate.com/recipes/577504/>`_.
         """
         return self._get_memory_size()
-
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -325,7 +326,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
-            if isinstance(chunkshape, (int, numpy.integer, long)):
+            if isinstance(chunkshape, (int, numpy.integer)):
                 chunkshape = (chunkshape,)
             try:
                 chunkshape = tuple(chunkshape)
@@ -497,7 +498,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         return self.atom.enum
 
-
     def append(self, sequence):
         """Add a sequence of data to the end of the dataset.
 
@@ -605,8 +605,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self._init = True  # Sentinel
         self.nrow = SizeType(self._start - self._step)    # row number
 
-
-    def next(self):
+    def __next__(self):
         """Get the next element of the array during an iteration.
 
         The element is returned as a list of objects of the current
@@ -771,7 +770,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             coords = [key]
             value = [value]
         elif isinstance(key, slice):
-            (start, stop, step) = self._process_range(
+            start, stop, step = self._process_range(
                 key.start, key.stop, key.step)
             coords = range(start, stop, step)
         # Try with a boolean or point selection
@@ -821,7 +820,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """Read rows specified in `coords`."""
         rows = []
         for coord in coords:
-            rows.append(self.read(long(coord))[0])
+            rows.append(self.read(int(coord))[0])
         return rows
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
@@ -848,7 +847,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             atomsize = self.atom.base.size
         else:
             atomsize = self.atom.size
-        for start2 in xrange(start, stop, step * nrowsinbuf):
+        for start2 in range(start, stop, step * nrowsinbuf):
             # Save the records on disk
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
@@ -860,7 +859,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
             nrowscopied += 1
         object.nrows = nrowscopied
         return (object, nbytes)
-
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""

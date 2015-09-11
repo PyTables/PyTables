@@ -12,14 +12,16 @@
 ########################################################################
 
 """Here is defined the CArray class."""
+from __future__ import absolute_import
 
 import sys
 
 import numpy
 
-from tables.atom import Atom
-from tables.array import Array
-from tables.utils import correct_byteorder, SizeType
+from .atom import Atom
+from .array import Array
+from .utils import correct_byteorder, SizeType
+from six.moves import range
 
 
 # default version for CARRAY objects
@@ -252,7 +254,7 @@ class CArray(Array):
         (start, stop, step) = self._process_range_read(start, stop, step)
         maindim = self.maindim
         shape = list(self.shape)
-        shape[maindim] = len(xrange(0, stop - start, step))
+        shape[maindim] = len(range(start, stop, step))
         # Now, fill the new carray with values from source
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__
@@ -265,7 +267,7 @@ class CArray(Array):
                         title=title, filters=filters, chunkshape=chunkshape,
                         _log=_log)
         # Start the copy itself
-        for start2 in xrange(start, stop, step * nrowsinbuf):
+        for start2 in range(start, stop, step * nrowsinbuf):
             # Save the records on disk
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:

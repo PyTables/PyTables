@@ -29,6 +29,7 @@ See :ref:`filenode_usersguide` for instructions on use.
    compliant with the interfaces defined in the :mod:`io` module.
 
 """
+from __future__ import absolute_import
 
 import io
 import os
@@ -38,6 +39,7 @@ import warnings
 import numpy as np
 
 import tables
+import six
 
 
 NodeType = 'file'
@@ -49,7 +51,7 @@ NodeTypeVersions = [1, 2]
 
 # have a Python2/3 compatible way to check for string
 try:
-    string_types = basestring
+    string_types = six.string_types
 except NameError:
     string_types = str
 
@@ -360,7 +362,7 @@ class RawPyTablesIO(io.RawIOBase):
         self._checkClosed()
         self._checkWritable()
 
-        if isinstance(b, unicode):
+        if isinstance(b, six.text_type):
             raise TypeError("can't write str to binary stream")
 
         n = len(b)

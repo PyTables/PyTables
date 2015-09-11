@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
-import Queue
+import six.moves.queue
 import shutil
 import platform
 import tempfile
 import warnings
 import threading
 import subprocess
+import six
+from six.moves import range
+from six.moves import zip
 
 try:
     import multiprocessing as mp
@@ -153,7 +157,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
     def test00_newFile_unicode_filename(self):
         temp_dir = tempfile.mkdtemp()
         try:
-            h5fname = unicode(os.path.join(temp_dir, 'test.h5'))
+            h5fname = six.text_type(os.path.join(temp_dir, 'test.h5'))
             with tables.open_file(h5fname, 'w') as h5file:
                 self.assertTrue(h5file, tables.File)
         finally:
@@ -1402,13 +1406,13 @@ class ThreadingTestCase(common.TempFileMixin, TestCase):
                 q.put('OK')
 
         threads = []
-        q = Queue.Queue()
-        for i in xrange(10):
+        q = six.moves.queue.Queue()
+        for i in range(10):
             t = threading.Thread(target=run, args=(filename, q))
             t.start()
             threads.append(t)
 
-        for i in xrange(10):
+        for i in range(10):
             self.assertEqual(q.get(), 'OK')
 
         for t in threads:
@@ -1631,7 +1635,7 @@ class StateTestCase(common.TempFileMixin, TestCase):
         self.h5file.create_group('/', 'test1')
         self.h5file.create_group('/', 'test2')
         self.h5file.close()
-        self.assertRaises(ClosedFileError, self.h5file.walk_nodes().next)
+        self.assertRaises(ClosedFileError, next, self.h5file.walk_nodes())
 
     def test15_fileAttrClosed(self):
         """Test setting and deleting a node attribute in a closed file."""
@@ -2111,7 +2115,7 @@ class BloscSubprocess(TestCase):
         try:
             size = int(3e5)
             sa = numpy.fromiter(((i, i**2, i//3)
-                                 for i in xrange(size)), 'i4,i8,f8')
+                                 for i in range(size)), 'i4,i8,f8')
             with tables.open_file(h5fname, 'w') as h5file:
                 h5file.create_table(
                     h5file.root, 'table', sa,
@@ -2385,13 +2389,13 @@ class TestDescription(TestCase):
         # see gh-42
         # the name used is a valid ASCII identifier passed as unicode
         # string
-        d = {unicode('name'): tables.Int16Col()}
+        d = {six.text_type('name'): tables.Int16Col()}
         descr = Description(d)
         self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
         self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
         keys = []
-        for key in d.keys():
-            if isinstance(key, unicode):
+        for key in list(d.keys()):
+            if isinstance(key, six.text_type):
                 keys.append(key.encode())
             else:
                 keys.append(key)

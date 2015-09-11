@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 import warnings
 
 import tables
@@ -11,6 +12,7 @@ from tables.path import join_path
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
+from six.moves import range
 
 
 class BasicTestCase(common.TempFileMixin, TestCase):

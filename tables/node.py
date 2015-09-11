@@ -11,16 +11,18 @@
 ########################################################################
 
 """PyTables nodes."""
+from __future__ import absolute_import
 
 import warnings
 
-from tables.registry import class_name_dict, class_id_dict
-from tables.exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
+from .registry import class_name_dict, class_id_dict
+from .exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
                                PerformanceWarning)
-from tables.path import join_path, split_path, isvisiblepath
-from tables.utils import lazyattr
-from tables.undoredo import move_to_shadow
-from tables.attributeset import AttributeSet, NotLoggedAttributeSet
+from .path import join_path, split_path, isvisiblepath
+from .utils import lazyattr
+from .undoredo import move_to_shadow
+from .attributeset import AttributeSet, NotLoggedAttributeSet
+import six
 
 
 __docformat__ = 'reStructuredText'
@@ -91,7 +93,7 @@ class MetaNode(type):
                 class_id_dict[cid] = class_
 
 
-class Node(object):
+class Node(six.with_metaclass(MetaNode, object)):
     """Abstract base class for all PyTables nodes.
 
     This is the base class for *all* nodes in a PyTables hierarchy. It is an
@@ -145,9 +147,6 @@ class Node(object):
            The *_v_objectID* attribute has been renamed into *_v_object_id*.
 
     """
-
-    # This makes this class and all derived subclasses be handled by MetaNode.
-    __metaclass__ = MetaNode
 
     # By default, attributes accept Undo/Redo.
     _AttributeSet = AttributeSet

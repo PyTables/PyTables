@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 import time
@@ -14,6 +15,7 @@ from tables import StringCol, IntCol, Int16Col, FloatCol, Float32Col
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
+from six.moves import range
 
 
 # Test Record class
@@ -51,7 +53,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             # Get the record object associated with the new table
             d = table.row
             # Fill the table
-            for i in xrange(self.expectedrows):
+            for i in range(self.expectedrows):
                 d['var1'] = '%04d' % (self.expectedrows - i)
                 d['var2'] = i
                 d['var3'] = i % maxshort
@@ -439,8 +441,8 @@ class TreeTestCase(common.TempFileMixin, TestCase):
 
         self.h5file = tables.open_file(self.h5fname, "r")
 
-        self.assertRaises(TypeError,
-                          self.h5file.walk_nodes('/', 'NoSuchClass').next)
+        self.assertRaises(TypeError, next,
+                          self.h5file.walk_nodes('/', 'NoSuchClass'))
 
         groups = []
         tables1 = []

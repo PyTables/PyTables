@@ -11,15 +11,16 @@
 ########################################################################
 
 """Functionality related with filters in a PyTables file."""
+from __future__ import absolute_import
 
 # Imports
 # =======
 import warnings
 import numpy
 
-from tables import (
-    utilsextension, blosc_compressor_list, blosc_compcode_to_compname)
-from tables.exceptions import FiltersWarning
+from . import utilsextension, blosc_compressor_list, blosc_compcode_to_compname
+from .exceptions import FiltersWarning
+import six
 
 
 # Public variables
@@ -106,9 +107,9 @@ class Filters(object):
     This is a small example on using the Filters class::
 
         import numpy
-        from tables import *
+        import tables
 
-        fileh = open_file('test5.h5', mode='w')
+        fileh = tables.open_file('test5.h5', mode='w')
         atom = Float32Atom()
         filters = Filters(complevel=1, complib='blosc', fletcher32=True)
         arr = fileh.create_earray(fileh.root, 'earray', atom, (0,2),
@@ -169,7 +170,7 @@ class Filters(object):
 
         kwargs = dict(complevel=0, shuffle=False, fletcher32=False,  # all off
                       least_significant_digit=None, _new=False)
-        for (name, values) in filters_dict.iteritems():
+        for (name, values) in six.iteritems(filters_dict):
             if name == 'deflate':
                 name = 'zlib'
             if name in all_complibs:

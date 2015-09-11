@@ -11,13 +11,14 @@
 ########################################################################
 
 """Here is defined the UnImplemented class."""
+from __future__ import absolute_import
 
 import warnings
 
-from tables import hdf5extension
-from tables.utils import SizeType
-from tables.node import Node
-from tables.leaf import Leaf
+from . import hdf5extension
+from .utils import SizeType
+from .node import Node
+from .leaf import Leaf
 
 
 class UnImplemented(hdf5extension.UnImplemented, Leaf):

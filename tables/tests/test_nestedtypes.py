@@ -14,6 +14,7 @@
 """Test module for nested types under PyTables."""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import itertools
 
@@ -25,6 +26,8 @@ from tables.tests import common
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import Description
+import six
+from six.moves import range
 
 minRowIndex = 10
 
@@ -162,7 +165,7 @@ def areDescriptionsEqual(desc1, desc2):
     if len(cols1) != len(cols2):
         return False
 
-    for (colName, colobj1) in cols1.iteritems():
+    for (colName, colobj1) in six.iteritems(cols1):
         colobj2 = cols2[colName]
         if colName == '_v_pos':
             # The comparison may not be quite exhaustive!
@@ -379,7 +382,7 @@ class WriteTestCase(common.TempFileMixin, TestCase):
         # All but the last row match the condition.
         searchedCoords.sort()
         self.assertEqual(searchedCoords.tolist(),
-                         range(len(self._testAData) - 1),
+                         list(range(len(self._testAData) - 1)),
                          "Search returned incorrect results.")
 
     def test02b_whereAppend(self):
@@ -406,7 +409,7 @@ class WriteTestCase(common.TempFileMixin, TestCase):
         # All but the last row match the condition.
         searchedCoords.sort()
         self.assertEqual(searchedCoords.tolist(),
-                         range(len(self._testAData) - 1),
+                         list(range(len(self._testAData) - 1)),
                          "Search returned incorrect results.")
 
     def test03_colscond(self):
@@ -1380,7 +1383,7 @@ class SameNestedTestCase(common.TempFileMixin, TestCase):
             '/', 'test', desc, title=self._getMethodName())
 
         row = tbl.row
-        for i in xrange(1000):
+        for i in range(1000):
             row[i1] = i
             row[i2] = i * 2
             row.append()
@@ -1405,13 +1408,13 @@ class SameNestedTestCase(common.TempFileMixin, TestCase):
 
         if common.verbose:
             print("Retrieved values (i1):", i1res)
-            print("Should look like:", range(10))
+            print("Should look like:", list(range(10)))
             print("Retrieved values (i2):", i2res)
-            print("Should look like:", range(0, 10, 2))
+            print("Should look like:", list(range(0, 10, 2)))
 
-        self.assertEqual(i1res, range(10),
+        self.assertEqual(i1res, list(range(10)),
                          "Select for nested column (i1) doesn't match.")
-        self.assertEqual(i2res, range(0, 10, 2),
+        self.assertEqual(i2res, list(range(0, 10, 2)),
                          "Select for nested column (i2) doesn't match.")
 
     def test02b(self):
@@ -1435,7 +1438,7 @@ class SameNestedTestCase(common.TempFileMixin, TestCase):
             '/', 'test', desc, title=self._getMethodName())
 
         row = tbl.row
-        for i in xrange(1000):
+        for i in range(1000):
             row[i1] = i
             row[i2] = i * 2
             row.append()
@@ -1458,13 +1461,13 @@ class SameNestedTestCase(common.TempFileMixin, TestCase):
 
         if common.verbose:
             print("Retrieved values (i1):", i1res)
-            print("Should look like:", range(10))
+            print("Should look like:", list(range(10)))
             print("Retrieved values (i2):", i2res)
-            print("Should look like:", range(0, 10, 2))
+            print("Should look like:", list(range(0, 10, 2)))
 
-        self.assertEqual(i1res, range(10),
+        self.assertEqual(i1res, list(range(10)),
                          "Select for nested column (i1) doesn't match.")
-        self.assertEqual(i2res, range(0, 10, 2),
+        self.assertEqual(i2res, list(range(0, 10, 2)),
                          "Select for nested column (i2) doesn't match.")
 
 

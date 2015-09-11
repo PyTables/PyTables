@@ -11,31 +11,32 @@
 ########################################################################
 
 """Here is defined the Group class."""
+from __future__ import absolute_import
 
 import os
 import weakref
 import warnings
 
-import tables.misc.proxydict
-from tables import hdf5extension
-from tables import utilsextension
-from tables.registry import class_id_dict
-from tables.exceptions import (
-    NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning)
-from tables.filters import Filters
-from tables.registry import get_class_by_name
-from tables.path import check_name_validity, join_path, isvisiblename
-from tables.node import Node, NotLoggedMixin
-from tables.leaf import Leaf
-from tables.unimplemented import UnImplemented, Unknown
+from .misc.proxydict import ProxyDict
+from . import hdf5extension
+from . import utilsextension
+from .registry import class_id_dict
+from .exceptions import NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
+from .filters import Filters
+from .registry import get_class_by_name
+from .path import check_name_validity, join_path, isvisiblename
+from .node import Node, NotLoggedMixin
+from .leaf import Leaf
+from .unimplemented import UnImplemented, Unknown
 
-from tables.link import Link, SoftLink, ExternalLink
+from .link import Link, SoftLink, ExternalLink
+import six
 
 
 obversion = "1.0"
 
 
-class _ChildrenDict(tables.misc.proxydict.ProxyDict):
+class _ChildrenDict(ProxyDict):
     def _get_value_from_container(self, container, key):
         return container._f_get_child(key)
 
@@ -647,7 +648,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             (srcparent, dstparent) = parentstack.pop()
 
             if use_hardlinks:
-                for srcchild in srcparent._v_children.itervalues():
+                for srcchild in six.itervalues(srcparent._v_children):
                     addr, rc = srcchild._get_obj_info()
                     if rc > 1 and addr in address_map:
                         where, name = address_map[addr][0]
@@ -674,7 +675,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                                 (dstparent._v_pathname, srcchild.name)
                             ]
             else:
-                for srcchild in srcparent._v_children.itervalues():
+                for srcchild in six.itervalues(srcparent._v_children):
                     dstchild = srcchild._g_copy_as_child(dstparent, **kwargs)
                     if isinstance(srcchild, Group):
                         parentstack.append((srcchild, dstchild))
@@ -726,22 +727,22 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         if not classname:
             # Returns all the children alphanumerically sorted
-            names = sorted(self._v_children.iterkeys())
+            names = sorted(six.iterkeys(self._v_children))
             for name in names:
                 yield self._v_children[name]
         elif classname == 'Group':
             # Returns all the groups alphanumerically sorted
-            names = sorted(self._v_groups.iterkeys())
+            names = sorted(six.iterkeys(self._v_groups))
             for name in names:
                 yield self._v_groups[name]
         elif classname == 'Leaf':
             # Returns all the leaves alphanumerically sorted
-            names = sorted(self._v_leaves.iterkeys())
+            names = sorted(six.iterkeys(self._v_leaves))
             for name in names:
                 yield self._v_leaves[name]
         elif classname == 'Link':
             # Returns all the links alphanumerically sorted
-            names = sorted(self._v_links.iterkeys())
+            names = sorted(six.iterkeys(self._v_links))
             for name in names:
                 yield self._v_links[name]
         elif classname == 'IndexArray':
@@ -751,7 +752,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             class_ = get_class_by_name(classname)
 
             children = self._v_children
-            childnames = sorted(children.iterkeys())
+            childnames = sorted(six.iterkeys(children))
 
             for childname in childnames:
                 childnode = children[childname]
@@ -775,7 +776,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # Iterate over the descendants
         while stack:
             objgroup = stack.pop()
-            groupnames = sorted(objgroup._v_groups.iterkeys())
+            groupnames = sorted(six.iterkeys(objgroup._v_groups))
             # Sort the groups before delivering. This uses the groups names
             # for groups in tree (in order to sort() can classify them).
             for groupname in groupnames:
@@ -1028,7 +1029,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         if use_hardlinks:
             address_map = kwargs.setdefault('address_map', {})
 
-            for child in self._v_children.itervalues():
+            for child in six.itervalues(self._v_children):
                 addr, rc = child._get_obj_info()
                 if rc > 1 and addr in address_map:
                     where, name = address_map[addr][0]
@@ -1051,7 +1052,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                             (dstparent._v_pathname, child.name)
                         ]
         else:
-            for child in self._v_children.itervalues():
+            for child in six.itervalues(self._v_children):
                 child._f_copy(dstparent, None, overwrite, recursive, **kwargs)
 
 
@@ -1091,7 +1092,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         rep = [
             '%r (%s)' % (childname, child.__class__.__name__)
-            for (childname, child) in self._v_children.iteritems()
+            for (childname, child) in six.iteritems(self._v_children)
         ]
         childlist = '[%s]' % (', '.join(rep))
 
@@ -1254,7 +1255,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         # Remove action storage nodes.
-        for child in self._v_children.values():
+        for child in list(self._v_children.values()):
             child._g_remove(True, True)
 
         # Remove action storage attributes.

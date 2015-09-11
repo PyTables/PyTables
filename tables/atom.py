@@ -11,22 +11,24 @@
 ########################################################################
 
 """Atom classes for describing dataset contents."""
+from __future__ import absolute_import
 
 # Imports
 # =======
 import re
 import sys
 import inspect
-import cPickle
 
 import numpy
 
-from tables.utils import SizeType
-from tables.misc.enum import Enum
+from .utils import SizeType
+from .misc.enum import Enum
 
+import six.moves.cPickle
+import six
 
 import warnings
-from tables.exceptions import FlavorWarning
+from .exceptions import FlavorWarning
 
 # Public variables
 # ================
@@ -117,7 +119,7 @@ def _abstract_atom_init(deftype, defvalue):
 def _normalize_shape(shape):
     """Check that the `shape` is safe to be used and return it as a tuple."""
 
-    if isinstance(shape, (int, numpy.integer, long)):
+    if isinstance(shape, (int, numpy.integer, int)):
         if shape < 1:
             raise ValueError("shape value must be greater than 0: %d"
                              % shape)
@@ -128,7 +130,7 @@ def _normalize_shape(shape):
         raise TypeError("shape must be an integer or sequence: %r"
                         % (shape,))
 
-    ## XXX Get from HDF5 library if possible.
+    # XXX Get from HDF5 library if possible.
     # HDF5 does not support ranks greater than 32
     if len(shape) > 32:
         raise ValueError(
@@ -219,7 +221,7 @@ class MetaAtom(type):
 
 # Atom classes
 # ============
-class Atom(object):
+class Atom(six.with_metaclass(MetaAtom, object)):
     """Defines the type of atomic cells stored in a dataset.
 
     The meaning of *atomic* is that individual elements of a cell can
@@ -313,9 +315,6 @@ class Atom(object):
             True
 
     """
-
-    # Register data for all subclasses.
-    __metaclass__ = MetaAtom
 
     # Class methods
     # ~~~~~~~~~~~~~
@@ -749,10 +748,8 @@ class ComplexAtom(Atom):
         Atom.__init__(self, self.type, shape, dflt)
 
 
-class _ComplexErrorAtom(ComplexAtom):
+class _ComplexErrorAtom(six.with_metaclass(type, ComplexAtom)):
     """Reminds the user to stop using the old complex atom names."""
-
-    __metaclass__ = type  # do not register anything about this class
 
     def __init__(self, shape=(), dflt=ComplexAtom._defvalue):
         raise TypeError(
@@ -1088,7 +1085,7 @@ class VLStringAtom(_BufferedAtom):
     base = UInt8Atom()
 
     def _tobuffer(self, object_):
-        if not isinstance(object_, basestring):
+        if not isinstance(object_, six.string_types):
             raise TypeError("object is not a string: %r" % (object_,))
         return numpy.string_(object_)
 
@@ -1128,9 +1125,9 @@ class VLUnicodeAtom(_BufferedAtom):
         # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
         # array, we must override ``toarray()`` itself.
         def toarray(self, object_):
-            if not isinstance(object_, basestring):
+            if not isinstance(object_, six.string_types):
                 raise TypeError("object is not a string: %r" % (object_,))
-            ustr = unicode(object_)
+            ustr = six.text_type(object_)
             uarr = numpy.array(ustr, dtype='U')
             return numpy.ndarray(
                 buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
@@ -1139,7 +1136,7 @@ class VLUnicodeAtom(_BufferedAtom):
         # This works (and is used) only with UCS-4 builds of Python,
         # where the width of the internal representation of a
         # character matches that of the base atoms.
-        if not isinstance(object_, basestring):
+        if not isinstance(object_, six.string_types):
             raise TypeError("object is not a string: %r" % (object_,))
         return numpy.unicode_(object_)
 
@@ -1171,7 +1168,7 @@ class ObjectAtom(_BufferedAtom):
     base = UInt8Atom()
 
     def _tobuffer(self, object_):
-        return cPickle.dumps(object_, cPickle.HIGHEST_PROTOCOL)
+        return six.moves.cPickle.dumps(object_, six.moves.cPickle.HIGHEST_PROTOCOL)
 
     def fromarray(self, array):
         # We have to check for an empty array because of a possible
@@ -1179,4 +1176,4 @@ class ObjectAtom(_BufferedAtom):
         # record when in fact it is empty.
         if array.size == 0:
             return None
-        return cPickle.loads(array.tostring())
+        return six.moves.cPickle.loads(array.tostring())

@@ -17,6 +17,7 @@ This package contains some modules which provide a ``suite()`` function
 functionality.
 
 """
+from __future__ import absolute_import
 
 from tables.tests.common import print_versions
 from tables.tests.test_all import test, suite

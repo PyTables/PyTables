@@ -19,11 +19,13 @@ all the tests.
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 import gc
 
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
+import six
 
 
 class GarbageTestCase(TestCase):
@@ -46,7 +48,7 @@ class GarbageTestCase(TestCase):
                 else:
                     classCount[objClass] = 1
             incidence = ['``%s``: %d' % (cls, cnt)
-                         for (cls, cnt) in classCount.iteritems()]
+                         for (cls, cnt) in six.iteritems(classCount)]
             print("Class incidence:", ', '.join(incidence))
         self.fail("Possible leak: %d uncollected objects." % garbageLen)
 

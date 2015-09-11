@@ -15,6 +15,8 @@
 Pass the flag -h to this for help on usage.
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 import tables
 import numpy as np
@@ -22,6 +24,7 @@ import os
 import argparse
 from collections import defaultdict, deque
 import warnings
+from six.moves import zip
 
 
 def _get_parser():
@@ -111,7 +114,7 @@ def main():
 
     with tables.open_file(filename, 'r') as f:
         tree_str = get_tree_str(f, nodename, **args.__dict__)
-        print tree_str
+        print(tree_str)
 
     pass
 
@@ -208,7 +211,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
 
             # don't recurse down the same hardlinked branch multiple times!
             if ref_count[addr] == 1:
-                stack.extend(node._v_children.values())
+                stack.extend(list(node._v_children.values()))
                 hl_targets[addr] = path
 
             # if we've already visited this group's address, treat it as a leaf
@@ -316,8 +319,8 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                     # root is not in root._v_children
                     pretty[path].sort_by = 0
                 else:
-                    pretty[path].sort_by = parent._v_children.values(
-                                                                ).index(node)
+                    pretty[path].sort_by = list(parent._v_children.values(
+                                                                )).index(node)
 
             # exclude root node or we'll get infinite recursions (since '/' is
             # the parent of '/')

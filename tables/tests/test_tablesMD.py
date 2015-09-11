@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 
 import numpy as np
@@ -15,6 +16,7 @@ from tables.tests.common import allequal
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
+from six.moves import range
 
 
 # It is important that columns are ordered according to their names
@@ -90,7 +92,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         row = record[0]
         buflist = []
         # Fill the recarray
-        for i in xrange(self.expectedrows + 1):
+        for i in range(self.expectedrows + 1):
             tmplist = []
             # Both forms (list or chararray) works
             var0 = ['%04d' % (self.expectedrows - i)] * 2
@@ -145,7 +147,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                 row = table.row
 
                 # Fill the table
-                for i in xrange(self.expectedrows):
+                for i in range(self.expectedrows):
                     s = '%04d' % (self.expectedrows - i)
                     row['var0'] = s.encode('ascii')
                     row['var1'] = s.encode('ascii')
@@ -372,7 +374,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Record Format ==>", table.description._v_nested_formats)
             print("Record Size ==>", table.rowsize)
         # Append some rows
-        for i in xrange(self.appendrows):
+        for i in range(self.appendrows):
             s = '%04d' % (self.appendrows - i)
             row['var0'] = s.encode('ascii')
             row['var1'] = s.encode('ascii')
@@ -583,7 +585,7 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
             row = table.row
 
             # Fill the table
-            for i in xrange(self.expectedrows):
+            for i in range(self.expectedrows):
                 row['var1'] = '%04d' % (self.expectedrows - i)
                 row['var7'] = row['var1'][0][0][-1]
                 row['var2'] = i
@@ -615,7 +617,7 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
 
         table.nrowsinbuf = self.nrowsinbuf
         resrange = slice(self.start, self.stop, self.step).indices(table.nrows)
-        reslength = len(range(*resrange))
+        reslength = len(list(range(*resrange)))
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
@@ -681,10 +683,10 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
             print("Total number of selected records ==>", len(result))
             print("Selected records:\n", result)
             print("Selected records should look like:\n",
-                  range(startr, stopr, self.step))
+                  list(range(startr, stopr, self.step)))
             print("start, stop, step ==>", startr, stopr, self.step)
 
-        self.assertEqual(result, range(startr, stopr, self.step))
+        self.assertEqual(result, list(range(startr, stopr, self.step)))
         if not (self.checkrecarray or self.checkgetCol):
             if startr < stopr and 0 < self.step:
                 r = [r['var2'] for r in table.iterrows(self.start, self.stop,
@@ -693,10 +695,10 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
                 if self.nrows > self.expectedrows:
                     self.assertEqual(
                         r[0][0],
-                        range(self.start, self.stop, self.step)[-1])
+                        list(range(self.start, self.stop, self.step))[-1])
                 else:
                     self.assertEqual(r[0][0],
-                                     range(startr, stopr, self.step)[-1])
+                                     list(range(startr, stopr, self.step))[-1])
             elif startr > stopr and 0 > self.step:
                 r = [r['var2'] for r in table.iterrows(self.start, self.stop,
                                                        self.step)
@@ -704,11 +706,11 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
                 if self.nrows < self.expectedrows:
                     self.assertEqual(
                         r[0][0],
-                        range(self.start, self.stop or -1, self.step)[0])
+                        list(range(self.start, self.stop or -1, self.step))[0])
                 else:
                     self.assertEqual(
                         r[0][0],
-                        range(startr, stopr or -1, self.step)[0])
+                        list(range(startr, stopr or -1, self.step))[0])
 
         # Close the file
         self.h5file.close()
@@ -1222,7 +1224,7 @@ class DefaultValues(common.TempFileMixin, TestCase):
         # nrows = int(table.nrowsinbuf * 1.1)
         nrows = 5  # for test
         # Fill the table with nrows records
-        for i in xrange(nrows):
+        for i in range(nrows):
             if i == 3 or i == 4:
                 table.row['var2'] = ((2, 2), (2, 2))  # *-*
             # This injects the row values.
@@ -1283,7 +1285,7 @@ class ShapeTestCase(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'table', RecordT)
         row = table.row
         # Fill the table with some rows with default values
-        for i in xrange(1):
+        for i in range(1):
             row.append()
 
         # Flush the buffer for this table
@@ -2020,7 +2022,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
 
         # append new rows
         row = table.row
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['col1'] = i-1
             row['col2'] = 'a'+str(i-1)
             row['col3'] = -1.0
@@ -2038,7 +2040,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         r1 = records.array(None, shape=nrows,
                            formats=formats,
                            names="col1,col2,col3")
-        for i in xrange(nrows):
+        for i in range(nrows):
             r1['col1'][i] = i
             r1['col2'][i] = 'b'+str(i)
             r1['col3'][i] = 0.0
@@ -2065,7 +2067,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
 
         # append new rows
         row = table.row
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['col1'] = i-1
             row['col2'] = 'a'+str(i-1)
             row['col3'] = -1.0
@@ -2083,7 +2085,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         r1 = records.array(None, shape=nrows,
                            formats=formats,
                            names="col1,col2,col3")
-        for i in xrange(nrows):
+        for i in range(nrows):
             r1['col1'][i] = i-1
             r1['col2'][i] = 'a'+str(i-1)
             r1['col3'][i] = -1.0
@@ -2110,7 +2112,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
 
         # append new rows
         row = table.row
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['col1'] = i-1
             row['col2'] = 'a'+str(i-1)
             row['col3'] = -1.0
@@ -2129,7 +2131,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         r1 = records.array(None, shape=nrows,
                            formats=formats,
                            names="col1,col2,col3")
-        for i in xrange(nrows):
+        for i in range(nrows):
             r1['col1'][i] = i-1
             r1['col2'][i] = 'a'+str(i-1)
             r1['col3'][i] = -1.0
@@ -2161,7 +2163,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
 
         # append new rows
         row = table.row
-        for i in xrange(nrows):
+        for i in range(nrows):
             row['col1'] = i-1
             row['col2'] = 'a'+str(i-1)
             row['col3'] = -1.0
@@ -2179,7 +2181,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         r1 = records.array(None, shape=nrows,
                            formats=formats,
                            names="col1,col2,col3")
-        for i in xrange(nrows):
+        for i in range(nrows):
             if i % 10 > 0:
                 r1['col1'][i] = i-1
                 r1['col2'][i] = 'a'+str(i-1)

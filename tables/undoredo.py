@@ -28,8 +28,9 @@ Misc variables:
     The format of documentation strings in this module.
 
 """
+from __future__ import absolute_import
 
-from tables.path import split_path
+from .path import split_path
 
 
 __docformat__ = 'reStructuredText'

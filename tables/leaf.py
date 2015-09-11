@@ -11,19 +11,21 @@
 ########################################################################
 
 """Here is defined the Leaf class."""
+from __future__ import absolute_import
 
 import warnings
 import math
 
 import numpy
 
-from tables.flavor import (check_flavor, internal_flavor,
+from .flavor import (check_flavor, internal_flavor,
                            alias_map as flavor_alias_map)
-from tables.node import Node
-from tables.filters import Filters
-from tables.utils import byteorders, lazyattr, SizeType
-from tables.exceptions import PerformanceWarning
-from tables import utilsextension
+from .node import Node
+from .filters import Filters
+from .utils import byteorders, lazyattr, SizeType
+from .exceptions import PerformanceWarning
+from . import utilsextension
+from six.moves import range
 
 
 def csformula(expected_mb):
@@ -347,7 +349,7 @@ class Leaf(Node):
             chunkshape[maindim] = chunknitems // newchunknitems
         else:
             # No, so start trimming other dimensions as well
-            for j in xrange(len(chunkshape)):
+            for j in range(len(chunkshape)):
                 # Check whether trimming this dimension is enough
                 chunkshape[j] = 1
                 newchunknitems = numpy.prod(chunkshape, dtype=SizeType)
@@ -404,7 +406,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         #if stop is not None: stop = long(stop)
         #if step is not None: step = long(step)
 
-        return slice(start, stop, step).indices(long(nrows))
+        return slice(start, stop, step).indices(int(nrows))
 
     # This method is appropriate for calls to read() methods
     def _process_range_read(self, start, stop, step, warn_negstep=True):
