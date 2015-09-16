@@ -738,7 +738,7 @@ if 'BLOSC' not in optional_libs:
         finally:
             os.remove(fd.name)
 
-    try_flags = ["-march=native", "-msse2"]
+    try_flags = ["-msse2"]
     for ff in try_flags:
         if compiler_has_flags(compiler, [ff]):
             print("Setting compiler flag: " + ff)
