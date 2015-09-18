@@ -72,6 +72,14 @@ Changes from 3.2.1 to 3.2.1.1
 
 - Fix permission on distributed source distribution
 
+Other changes
+-------------
+
+- Minimum Cython_ version is now v0.21
+
+
+.. _Cython: http://cython.org
+
 
 Changes from 3.2.0 to 3.2.1
 ===========================
