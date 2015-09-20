@@ -20,7 +20,15 @@
 
 #if H5Epush_vers == 2
 /* 1.8.x */
-#define PUSH_ERR(func, minor, str...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str)
+#if defined(__GNUC__)
+#define PUSH_ERR(func, minor, str, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str, ##__VA_ARGS__)
+#elif defined(_MSC_VER)
+#define PUSH_ERR(func, minor, str, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str, __VA_ARGS__)
+#else
+/* This version is portable but it's better to use compiler-supported
+   approaches for handling the trailing comma issue when possible. */
+#define PUSH_ERR(func, minor, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, __VA_ARGS__)
+#endif	/* defined(__GNUC__) */
 #else
 /* 1.6.x */
 #define PUSH_ERR(func, minor, str) H5Epush(__FILE__, func, __LINE__, H5E_PLINE, minor, str)
