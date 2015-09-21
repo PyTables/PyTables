@@ -563,7 +563,7 @@ uninstall `Numeric`.
 .. _Blosc: http://blosc.pytables.org
 .. _`zlib`: http://zlib.net
 .. _numexpr: http://code.google.com/p/numexpr
-.. _`FAQ of h5py`: http://code.google.com/p/h5py/wiki/FAQ
+.. _`FAQ of h5py`: http://docs.h5py.org/en/latest/faq.html#what-s-the-difference-between-h5py-and-pytables
 .. _`issue tracker`: https://github.com/PyTables/PyTables/issues
 .. _GitHub: https://github.com
 .. _`HDF5 manual`: http://www.hdfgroup.org/HDF5/doc/RM/RM_H5T.html
