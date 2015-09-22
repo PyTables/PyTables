@@ -31,6 +31,28 @@ Other changes
 .. _Cython: http://cython.org
 
 
+Changes from 3.2.1.1 to 3.2.2
+=============================
+
+Bug fixed
+---------
+
+- Fix AssertionError in Row.__init_loop. See :issue:`477`.
+- Fix issues with Cython 0.23. See :issue:`481`.
+- Only run `tables.tests.test_basics.UnicodeFilename` if the filesystem
+  encoding is utf-8. Closes :issue:`485`.
+- Fix missing missing PyErr_Clear. See :issue:`#486`.
+- Fix the C type of some numpy attributes. See :issue:`494`.
+- Cast selection indices to integer. See :issue:`496`.
+- Fix indexesextension._keysort_string. Closes :issue:`497` and :issue:`498`.
+
+
+Changes from 3.2.1 to 3.2.1.1
+=============================
+
+- Fix permission on distributed source distribution
+
+
 Changes from 3.2.0 to 3.2.1
 ===========================
 

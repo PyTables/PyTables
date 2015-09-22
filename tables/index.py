@@ -14,13 +14,16 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
-import sys
-from time import time, clock
+
+import math
+import operator
 import os
 import os.path
+import sys
 import tempfile
-import math
 import warnings
+
+from time import time, clock
 
 import numpy
 
@@ -1774,6 +1777,8 @@ class Index(NotLoggedMixin, indexesextension.Index, Group):
         """
 
         if is_idx(key):
+            key = operator.index(key)
+
             if key < 0:
                 # To support negative values
                 key += self.nelements

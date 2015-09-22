@@ -13,6 +13,7 @@
 """Here is defined the VLArray class."""
 from __future__ import absolute_import
 
+import operator
 import sys
 import numpy
 
@@ -658,6 +659,8 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
 
         self._g_check_open()
         if is_idx(key):
+            key = operator.index(key)
+
             # Index out of range protection
             if key >= self.nrows:
                 raise IndexError("Index out of range")

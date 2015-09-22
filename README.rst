@@ -4,7 +4,7 @@
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
    :alt: Join the chat at https://gitter.im/PyTables/PyTables
-   :target: https://gitter.im/PyTables/PyTables?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+   :target: https://gitter.im/PyTables/PyTables
 
 .. image:: https://travis-ci.org/PyTables/PyTables.svg?branch=develop
    :target: https://travis-ci.org/PyTables/PyTables
@@ -95,59 +95,46 @@ and bzip2 compression libraries support you will also need recent
 versions of them. LZO and bzip2 compression libraries are, however,
 optional.
 
-We've tested this PyTables version with HDF5 1.8.4/1.8.12, NumPy
-1.7.1/1.8.0 and Numexpr 2.4, and you *need* to use these versions, or
-higher, to make use of PyTables.
-
 Installation
 ------------
 
-The Python Distutils are used to build and install PyTables, so it is
-fairly simple to get things ready to go. Following are very simple
-instructions on how to proceed. However, more detailed instructions,
-including a section on binary installation for Windows users, is
-available in Chapter 2 of the User's Manual (``doc/usersguide.pdf`` or
-http://pytables.github.io/usersguide/introduction.html).
+1. Make sure you have HDF5 version 1.8.4 or above.
 
-1. First, make sure that you have HDF5, NumPy and Numexpr installed
-   (you will need at least HDF5 >= 1.8.4, NumPy 1.7.1 and Numexpr
-   2.3).  If don't, get them from http://www.hdfgroup.org/HDF5/,
-   http://www.numpy.org and https://github.com/pydata/numexpr and
-   install them.
+   On OSX you can install HDF5 using `Homebrew <http://brew.sh>`_::
 
-   Optionally, consider to install the LZO compression library from
-   http://www.oberhumer.com/opensource/.  You can also install the
-   bzip2 compression library, available at http://www.bzip.org/.
+       $ brew tap homebrew/science
+       $ brew install hdf5
 
-2. From the main PyTables distribution directory run this command,
-   (plus any extra flags needed as discussed above)::
+   On ubuntu::
 
-    $ python setup.py build_ext --inplace
+       $ sudo apt-get install libhdf5-serial-dev
 
-3. To run the test suite, set the PYTHONPATH environment variable to
-   include the ``.`` directory, enter the Python interpreter and issue
-   the commands::
+   If you have the HDF5 library in some non-standard location (that is: where
+   the compiler and the linker can't find it) you can use the environment
+   variable `HDF5_DIR` to specify its location. See `the manual
+   <http://www.pytables.org/usersguide/installation.html>`_ for more details.
 
-    >>> import tables
-    >>> tables.test()
+2. Make sure your python installation is in good health, that is you have the
+   package installer pip and it works ok. Check the `Python Packaging User
+   Guide <https://packaging.python.org/en/latest/installing.html>`_ for
+   further instructions.
+
+3. Optionally, consider to install the LZO compression library and/or the
+   bzip2 compression library.
+
+4. Install!::
+
+       $ pip install tables
+
+5. To run the test suite run::
+
+       $ python -m tables.tests.test_all
 
    If there is some test that does not pass, please send the
    complete output for tests back to us.
 
-4. To install the entire PyTables Python package, run this command as
-   the root user (remember to add any extra flags needed)::
 
-    $ python setup.py install
-
-
-That's it!  Good luck, and let us know of any bugs, suggestions,
-gripes, kudos, etc. you may have.
-
-----
-
-  **Enjoy data!**
-
-  -- The PyTables Team
+**Enjoy data!** -- The PyTables Team
 
 .. Local Variables:
 .. mode: text

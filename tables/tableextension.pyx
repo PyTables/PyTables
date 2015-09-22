@@ -425,7 +425,8 @@ cdef class Table(Leaf):
     """
 
     cdef void *t64buf
-    cdef long byteoffset, bytestride, nelements
+    cdef long byteoffset
+    cdef npy_intp bytestride, nelements
 
     byteoffset = 0   # NumPy objects doesn't have an offset
     bytestride = nparr.strides[0]  # supports multi-dimensional recarray
@@ -698,6 +699,7 @@ cdef class Row:
 
   """
 
+  cdef npy_intp _stride
   cdef long _row, _unsaved_nrows, _mod_nrows
   cdef hsize_t start, absstep
   cdef long long stop, step, nextelement, _nrow, stopb  # has to be long long, not hsize_t, for negative step sizes
@@ -707,7 +709,7 @@ cdef class Row:
   cdef long long indexchunk
   cdef int     bufcounter, counter
   cdef int     exist_enum_cols
-  cdef int     _riterator, _stride, _rowsize, _write_to_seqcache
+  cdef int     _riterator, _rowsize, _write_to_seqcache
   cdef int     wherecond, indexed
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done, sss_on
