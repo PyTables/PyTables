@@ -168,18 +168,21 @@ def main():
             # case where filename == "filename:" instead of "filename:/"
             nodename = "/"
 
-    # Check whether the specified node is a group or a leaf
-    h5file = open_file(filename, 'r')
-    nodeobject = h5file.get_node(nodename)
-    if isinstance(nodeobject, Group):
-        # Close the file again and reopen using the root_uep
-        dump_group(nodeobject)
-    elif isinstance(nodeobject, Leaf):
-        # If it is not a Group, it must be a Leaf
-        dump_leaf(nodeobject)
-    else:
-        # This should never happen
-        print("Unrecognized object:", nodeobject)
+    try:
+        h5file = open_file(filename, 'r')
+    except Exception as e:
+        return 'Cannot open input file: ' + str(e)
 
-    # Close the file
-    h5file.close()
+    with h5file:
+        # Check whether the specified node is a group or a leaf
+        nodeobject = h5file.get_node(nodename)
+        if isinstance(nodeobject, Group):
+            # Close the file again and reopen using the root_uep
+            dump_group(nodeobject)
+        elif isinstance(nodeobject, Leaf):
+            # If it is not a Group, it must be a Leaf
+            dump_leaf(nodeobject)
+        else:
+            # This should never happen
+            print("Unrecognized object:", nodeobject)
+
