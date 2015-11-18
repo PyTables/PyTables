@@ -19,6 +19,7 @@ Pass the flag -h to this for help on usage.
 from __future__ import print_function
 
 import argparse
+import operator
 
 from tables.file import open_file
 from tables.group import Group
@@ -85,9 +86,12 @@ def dump_leaf(leaf):
 dumpLeaf = previous_api(dump_leaf)
 
 
-def dump_group(pgroup):
+def dump_group(pgroup, sort=False):
     node_kinds = pgroup._v_file._node_kinds[1:]
-    for group in pgroup._f_walk_groups():
+    what = pgroup._f_walk_groups()
+    if sort:
+        what = sorted(what, key=operator.attrgetter('_v_pathname'))
+    for group in what:
         print(str(group))
         if options.showattrs:
             print("  "+repr(group._v_attrs))
@@ -120,6 +124,10 @@ def _get_parser():
     parser.add_argument(
         '-a', '--showattrs', action='store_true',
         help='show attributes in nodes (only useful when -v or -d are active)',
+    )
+    parser.add_argument(
+        '-s', '--sort', action='store_true',
+        help='sort output by node name',
     )
     parser.add_argument(
         '-c', '--colinfo', action='store_true',
@@ -178,7 +186,7 @@ def main():
         nodeobject = h5file.get_node(nodename)
         if isinstance(nodeobject, Group):
             # Close the file again and reopen using the root_uep
-            dump_group(nodeobject)
+            dump_group(nodeobject, args.sort)
         elif isinstance(nodeobject, Leaf):
             # If it is not a Group, it must be a Leaf
             dump_leaf(nodeobject)
