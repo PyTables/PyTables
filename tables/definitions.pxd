@@ -50,6 +50,7 @@ cdef extern from "hdf5.h" nogil:
   ctypedef signed long long hssize_t
   ctypedef long long int64_t
   ctypedef long long haddr_t
+  ctypedef haddr_t hobj_ref_t
 
   ctypedef struct hvl_t:
     size_t len                 # Length of VL data (in base type units)
@@ -62,6 +63,34 @@ cdef extern from "hdf5.h" nogil:
   int H5FD_LOG_LOC_WRITE, H5FD_LOG_ALL
   int H5I_INVALID_HID
   int H5E_DEFAULT
+  int H5T_STD_REF_OBJ
+  int H5R_OBJ_REF_BUF_SIZE
+
+  # Library types
+  cdef enum H5I_type_t:
+    H5I_UNINIT      = -2  # uninitialized type
+    H5I_BADID       = -1  # invalid Type
+    H5I_FILE        = 1   # File objects
+    H5I_GROUP       = 0   # Group objects
+    H5I_DATATYPE    = 1   # Datatype objects
+    H5I_DATASPACE   = 2   # Dataspace objects
+    H5I_DATASET     = 3   # Dataset objects
+    H5I_ATTR        = 4   # Attribute objects
+    H5I_REFERENCE   = 5   # Reference objects
+    H5I_VFL         = 6   # virtual file layer
+    H5I_GENPROP_CLS = 7   # generic property list classes
+    H5I_GENPROP_LST = 8   # generic property lists
+    H5I_ERROR_CLASS = 9   # error classes
+    H5I_ERROR_MSG   = 10  # error messages
+    H5I_ERROR_STACK = 11  # error stacks
+    H5I_NTYPES            # Sentinel value - must be last
+
+  # Reference types
+  cdef enum H5R_type_t:
+    H5R_BADTYPE   = -1      # Invalid Reference Type
+    H5R_OBJECT    = 0       # Object reference
+    H5R_DATASET_REGION = 1  # Dataset Region Reference
+    H5R_MAXTYPE             # Sentinel value - must be last
 
   # The difference between a single file and a set of mounted files
   cdef enum H5F_scope_t:
@@ -356,6 +385,7 @@ cdef extern from "hdf5.h" nogil:
   hid_t  H5Tvlen_create(hid_t base_type_id)
   hid_t  H5Tcopy(hid_t type_id)
   herr_t H5Tclose(hid_t type_id)
+  htri_t H5Tequal(hid_t dtype_id1, hid_t dtype_id2)
 
   # Operations defined on string data types
   htri_t H5Tis_variable_str(hid_t dtype_id)
@@ -459,6 +489,13 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Zunregister(H5Z_filter_t id)
   #htri_t H5Zfilter_avail(H5Z_filter_t id)
   #herr_t H5Zget_filter_info(H5Z_filter_t, unsigned int*)
+
+  # Operations on the references
+  H5I_type_t H5Iget_type(hid_t id)
+  herr_t H5Rcreate(void *reference, hid_t loc_id, const char *name, H5R_type_t type, hid_t space_id)
+  hid_t H5Rdereference(hid_t dset, H5R_type_t rtype, void *reference)
+  int H5Rget_object_type(hid_t obj_id, void *reference)
+  herr_t H5Oclose( hid_t object_id )
 
 
 # Specific HDF5 functions for PyTables
