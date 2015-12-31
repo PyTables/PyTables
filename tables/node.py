@@ -14,6 +14,7 @@
 from __future__ import absolute_import
 
 import warnings
+impory functools
 
 from .registry import class_name_dict, class_id_dict
 from .exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
@@ -40,6 +41,7 @@ def _closedrepr(oldmethod):
 
     """
 
+    @functools.wraps(oldmethod)
     def newmethod(self):
         if not self._v_isopen:
             cmod = self.__class__.__module__
@@ -47,8 +49,7 @@ def _closedrepr(oldmethod):
             addr = hex(id(self))
             return '<closed %s.%s at %s>' % (cmod, cname, addr)
         return oldmethod(self)
-    newmethod.__name__ = oldmethod.__name__
-    newmethod.__doc__ = oldmethod.__doc__
+
     return newmethod
 
 
