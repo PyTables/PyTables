@@ -14,7 +14,7 @@
 from __future__ import absolute_import
 
 import warnings
-impory functools
+import functools
 
 from .registry import class_name_dict, class_id_dict
 from .exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
