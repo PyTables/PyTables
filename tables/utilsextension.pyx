@@ -1504,14 +1504,17 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
 
       # read entire dataset as numpy array
       stype_, shape_ = hdf5_to_np_ext_type(reftype_id, pure_numpy_types=True, atom=True)
-      dtype_ = numpy.dtype(stype_, shape_)
+      if stype_ == "_ref_":
+        dtype_ = numpy.dtype("O", shape_)
+      else:
+        dtype_ = numpy.dtype(stype_, shape_)
       shape = []
       for j from 0 <= j < rank:
         shape.append(<int>dims[j])
       shape = tuple(shape)
 
       nprefarr = numpy.empty(dtype=dtype_, shape=shape)
-      nparr[i] = nprefarr
+      nparr[i] = [nprefarr]  # box the array in a list to store it as one object
       if stype_ == "_ref_":
         newrefbuf = <hobj_ref_t *>malloc(nprefarr.size * item_size)
         rbuf = newrefbuf
