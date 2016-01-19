@@ -696,7 +696,7 @@ def which_lib_version(str name):
   as a string, and the version date as a string. If the library is not
   available, None is returned.
 
-  The currently supported library names are hdf5, zlib, lzo and bzip2. If
+  The currently supported library names are hdf5, zlib, lzo, bzip2, and blosc. If
   another name is given, a ValueError is raised.
 
   """
