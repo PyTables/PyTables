@@ -14,6 +14,9 @@ Improvements
 ------------
 
 - It is now possible to remove all rows from a table.
+- It is now possible to  read reference types by dereferencing them as
+  numpy array of objects (closes :issue:`518` and :issue:`519`).
+  Thanks to Ehsan Azar
 
 
 Bug fixed
