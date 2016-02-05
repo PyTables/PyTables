@@ -911,7 +911,7 @@ class EnumAtom(Atom):
     # ~~~~~~~~~~
     @property
     def itemsize(self):
-        "Size in bytes of a sigle item in the atom."
+        """Size in bytes of a single item in the atom."""
         return self.dtype.base.itemsize
 
     # Private methods
@@ -1009,6 +1009,30 @@ class EnumAtom(Atom):
     # def __hash__(self):
     #    return hash((self.__class__, self.enum, self.shape, self.dflt,
     #                 self.base))
+
+
+class ReferenceAtom(Atom):
+    """Defines an atom of type object to read references.
+    This atom is read-only.
+    """
+
+    kind = 'reference'
+    type = 'object'
+    _deftype = 'NoneType'
+    _defvalue = None
+
+    # Properties
+    # ~~~~~~~~~~
+    @property
+    def itemsize(self):
+        """Size in bytes of a single item in the atom."""
+        return self.dtype.base.itemsize
+
+    def __init__(self, shape=()):
+        Atom.__init__(self, self.type, shape, self._defvalue)
+
+    def __repr__(self):
+        return 'ReferenceAtom(shape=%s)' % (self.shape,)
 
 # Pseudo-atom classes
 # ===================

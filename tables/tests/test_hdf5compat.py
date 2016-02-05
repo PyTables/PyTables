@@ -314,6 +314,45 @@ class MatlabFileTestCase(common.TestFileMixin, TestCase):
         self.assertEqual(array.shape, (3, 1))
 
 
+class ObjectReferenceTestCase(common.TestFileMixin, TestCase):
+    h5fname = test_filename('test_ref_array1.mat')
+
+    def test_node_var(self):
+        array = self.h5file.get_node('/ANN/my_arr')
+        self.assertEqual(array.shape, (1, 3))
+
+    def test_ref_utf_str(self):
+        array = self.h5file.get_node('/ANN/my_arr')
+
+        self.assertTrue(common.areArraysEqual(
+                        array[0][0][0],
+                        numpy.array([0, 0],
+                                    dtype=numpy.uint64)))
+
+
+class ObjectReferenceRecursiveTestCase(common.TestFileMixin, TestCase):
+    h5fname = test_filename('test_ref_array2.mat')
+
+    def test_var(self):
+        array = self.h5file.get_node('/var')
+        self.assertEqual(array.shape, (3, 1))
+
+    def test_ref_str(self):
+        array = self.h5file.get_node('/var')
+
+        self.assertTrue(common.areArraysEqual(
+                        array[1][0][0],
+                        numpy.array([[116], [101], [115], [116]],
+                                    dtype=numpy.uint16)))
+
+    def test_double_ref(self):
+        array = self.h5file.get_node('/var')
+        self.assertTrue(common.areArraysEqual(
+                        array[2][0][0][1][0],
+                        numpy.array([[105], [110], [115], [105], [100], [101]],
+                                    dtype=numpy.uint16)))
+
+
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
@@ -334,6 +373,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ExtendibleTestCase))
         theSuite.addTest(unittest.makeSuite(SzipTestCase))
         theSuite.addTest(unittest.makeSuite(MatlabFileTestCase))
+        theSuite.addTest(unittest.makeSuite(ObjectReferenceTestCase))
+        theSuite.addTest(unittest.makeSuite(ObjectReferenceRecursiveTestCase))
 
     return theSuite
 

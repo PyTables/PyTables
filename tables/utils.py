@@ -41,7 +41,7 @@ SizeType = numpy.int64
 def correct_byteorder(ptype, byteorder):
     """Fix the byteorder depending on the PyTables types."""
 
-    if ptype in ['string', 'bool', 'int8', 'uint8']:
+    if ptype in ['string', 'bool', 'int8', 'uint8', 'object']:
         return "irrelevant"
     else:
         return byteorder
