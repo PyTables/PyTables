@@ -554,11 +554,6 @@ def _bisect_right(a, x, int hi):
 #===========================================================================
 
 
-
-cdef class Index:
-  pass
-
-
 cdef class CacheArray(Array):
   """Container for keeping index caches of 1st and 2nd level."""
 
