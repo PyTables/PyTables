@@ -5,44 +5,20 @@
 # License: BSD
 # Created: June 02, 2004
 # Author:  Francesc Alted - faltet@pytables.com
-#
-# $Source: /cvsroot/pytables/pytables/tables/indexes.py $
-# $Id$
+#          The PyTables Team
 #
 ########################################################################
 
-"""Here is defined the IndexArray class."""
 from __future__ import absolute_import
 
 from bisect import bisect_left, bisect_right
 
 from .node import NotLoggedMixin
-from .carray import CArray
 from .earray import EArray
-from . import indexesextension
+from .index_array_ext import IndexArray
+from .indexesextension import _bisect_left, _bisect_right
 
-
-# Declarations for inheriting
-
-
-class CacheArray(NotLoggedMixin, EArray, indexesextension.CacheArray):
-    """Container for keeping index caches of 1st and 2nd level."""
-
-    # Class identifier.
-    _c_classid = 'CACHEARRAY'
-
-
-
-class LastRowArray(NotLoggedMixin, CArray, indexesextension.LastRowArray):
-    """Container for keeping sorted and indices values of last row of an
-    index."""
-
-    # Class identifier.
-    _c_classid = 'LASTROWARRAY'
-
-
-
-class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
+class IndexArray(NotLoggedMixin, EArray, IndexArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
     All NumPy typecodes are supported except for complex datatypes.
@@ -161,7 +137,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             nchunk = bisect_left(bounds, item1)
             chunk = self._read_sorted_slice(nrow, chunksize * nchunk,
                                             chunksize * (nchunk + 1))
-            result1 = indexesextension._bisect_left(chunk, item1, chunksize)
+            result1 = _bisect_left(chunk, item1, chunksize)
             result1 += chunksize * nchunk
         # Lookup in the middle of slice for item2
         if result2 < 0:
@@ -170,7 +146,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
             if nchunk2 != nchunk:
                 chunk = self._read_sorted_slice(nrow, chunksize * nchunk2,
                                                 chunksize * (nchunk2 + 1))
-            result2 = indexesextension._bisect_right(chunk, item2, chunksize)
+            result2 = _bisect_right(chunk, item2, chunksize)
             result2 += chunksize * nchunk2
         return (result1, result2)
 
@@ -191,10 +167,3 @@ class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
   byteorder = %r""" % (self, self.atom, self.shape, self.nrows,
                        self.chunksize, self.slicesize, self.byteorder)
 
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

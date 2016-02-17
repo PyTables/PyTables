@@ -622,6 +622,9 @@ cython_extnames = [
     '_comp_bzip2',
     'lrucacheextension',
     'indexesextension',
+    'cache_array_ext',
+    'last_row_array_ext',
+    'index_array_ext'
 ]
 
 
@@ -858,6 +861,26 @@ extensions = [
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
+    Extension("tables.index_array_ext",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['index_array_ext']],
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
+
+    Extension("tables.cache_array_ext",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['cache_array_ext'], 'src/H5ARRAY-opt.c'],
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
+
+    Extension("tables.last_row_array_ext",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=[cython_extfiles['last_row_array_ext']],
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
 ]
 
 
