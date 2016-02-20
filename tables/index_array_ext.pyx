@@ -162,7 +162,7 @@ cdef class IndexArray(Array):
       vpointer = self.boundscache.getitem1_(nslot)
     else:
       # Bounds row is not in cache. Read it and put it in the LRU cache.
-      self.bounds_ext.read_slice(nrow, 0, nbounds, self.rbufbc)
+      self.bounds_ext.read_slice(nrow, 0, nbounds, self.bufferbc)
       self.boundscache.setitem_(nrow, self.rbufbc, 0)
       vpointer = self.rbufbc
     return vpointer

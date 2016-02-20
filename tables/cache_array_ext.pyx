@@ -13,12 +13,12 @@ cdef class CacheArray(Array):
   cdef initread(self, int nbounds):
      self.mem_space = h5s.create_simple((1, nbounds))
 
-  cdef read_slice(self, hsize_t nrow, hsize_t start, hsize_t stop, void *rbuf):
+  cdef read_slice(self, hsize_t nrow, hsize_t start, hsize_t stop, ndarray buf):
     # "Read an slice of bounds."
 
     if (H5ARRAYOread_readBoundsSlice(
       self.dataset_id, self.mem_space.id, self.type_id,
-      nrow, start, stop, rbuf) < 0):
+      nrow, start, stop, buf.data) < 0):
       raise HDF5ExtError("Problems reading the bounds array data.")
     return
 
