@@ -613,42 +613,8 @@ else:
 
 # ------------------------------------------------------------------------------
 
-cython_extnames = [
-    'utilsextension',
-    'hdf5extension',
-    'tableextension',
-    'linkextension',
-    '_comp_lzo',
-    '_comp_bzip2',
-    'lrucacheextension',
-    'indexesextension',
-    'cache_array_ext',
-    'last_row_array_ext',
-    'index_array_ext'
-]
-
-
-def get_cython_extfiles(extnames):
-    extdir = 'tables'
-    extfiles = {}
-
-    for extname in extnames:
-        extfile = os.path.join(extdir, extname)
-        extpfile = '%s.pyx' % extfile
-        extcfile = '%s.c' % extfile
-
-        if not exists(extcfile) or newer(extpfile, extcfile):
-            # This is the only place where Cython is needed, but every
-            # developer should have it installed, so it should not be
-            # a hard requisite
-            from Cython.Build import cythonize
-            cythonize(extpfile)
-        extfiles[extname] = extcfile
-
-    return extfiles
-
-
-cython_extfiles = get_cython_extfiles(cython_extnames)
+# TODO temporary
+from Cython.Build import cythonize
 
 # Update the version.h file if this file is newer
 if newer('VERSION', 'src/version.h'):
@@ -772,7 +738,7 @@ extensions = [
     Extension("tables.utilsextension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['utilsextension'],
+              sources=['tables/utilsextension.pyx',
                        "src/utils.c",
                        "src/H5ARRAY.c",
                        "src/H5ATTR.c",
@@ -785,7 +751,7 @@ extensions = [
     Extension("tables.hdf5extension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['hdf5extension'],
+              sources=['tables/hdf5extension.pyx',
                        "src/utils.c",
                        "src/typeconv.c",
                        "src/H5ARRAY.c",
@@ -801,7 +767,7 @@ extensions = [
     Extension("tables.tableextension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['tableextension'],
+              sources=['tables/tableextension.pyx',
                        "src/utils.c",
                        "src/typeconv.c",
                        "src/H5TB-opt.c",
@@ -815,7 +781,7 @@ extensions = [
     Extension("tables._comp_lzo",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['_comp_lzo'],
+              sources=['tables/_comp_lzo.pyx',
                        "src/H5Zlzo.c"],
               library_dirs=lib_dirs,
               libraries=_comp_lzo_libs,
@@ -825,7 +791,7 @@ extensions = [
     Extension("tables._comp_bzip2",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['_comp_bzip2'],
+              sources=['tables/_comp_bzip2.pyx',
                        "src/H5Zbzip2.c"],
               library_dirs=lib_dirs,
               libraries=_comp_bzip2_libs,
@@ -835,7 +801,7 @@ extensions = [
     Extension("tables.linkextension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['linkextension']],
+              sources=['tables/linkextension.pyx'],
               library_dirs=lib_dirs,
               libraries=tableExtension_libs,
               extra_link_args=LFLAGS,
@@ -844,7 +810,7 @@ extensions = [
     Extension("tables.lrucacheextension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['lrucacheextension']],
+              sources=['tables/lrucacheextension.pyx'],
               library_dirs=lib_dirs,
               libraries=lrucacheExtension_libs,
               extra_link_args=LFLAGS,
@@ -853,7 +819,7 @@ extensions = [
     Extension("tables.indexesextension",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['indexesextension'],
+              sources=['tables/indexesextension.pyx',
                        "src/H5ARRAY-opt.c",
                        "src/idx-opt.c"],
               library_dirs=lib_dirs,
@@ -864,23 +830,24 @@ extensions = [
     Extension("tables.index_array_ext",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['index_array_ext']],
+              sources=['tables/index_array_ext.pyx'],
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
     Extension("tables.cache_array_ext",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['cache_array_ext'], 'src/H5ARRAY-opt.c'],
+              sources=['tables/cache_array_ext.pyx', 'src/H5ARRAY-opt.c'],
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
     Extension("tables.last_row_array_ext",
               include_dirs=inc_dirs,
               define_macros=def_macros,
-              sources=[cython_extfiles['last_row_array_ext']],
+              sources=['tables/last_row_array_ext.pyx'],
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
+
 ]
 
 
@@ -922,7 +889,7 @@ interactively save and retrieve large amounts of data.
     url='http://www.pytables.org/',
     license='BSD 2-Clause',
     platforms=['any'],
-    ext_modules=extensions,
+    ext_modules=cythonize(extensions),
     cmdclass=cmdclass,
     data_files=data_files,
     **setuptools_kwargs
