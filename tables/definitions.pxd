@@ -14,6 +14,7 @@
 
 import sys
 
+# TODO check these
 cdef extern from *:
   ctypedef char const_char 'const char'
   #ctypedef long size_t

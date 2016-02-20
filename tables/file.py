@@ -32,7 +32,7 @@ import collections
 import numexpr
 import numpy
 
-from . import hdf5extension
+from .file_ext import File
 from . import utilsextension
 from . import parameters
 from .exceptions import (ClosedFileError, FileModeError, NodeError,
@@ -576,7 +576,7 @@ class NodeManager(object):
                 node._f_close()
 
 
-class File(hdf5extension.File, object):
+class File(File, object):
     """The in-memory representation of a PyTables file.
 
     An instance of this class is returned when a PyTables file is
