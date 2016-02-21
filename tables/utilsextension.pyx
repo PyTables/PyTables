@@ -23,18 +23,17 @@ except ImportError:
 
 import numpy
 
-from tables.description import Description, Col
-from tables.misc.enum import Enum
-from tables.exceptions import HDF5ExtError
-from tables.atom import Atom, EnumAtom, ReferenceAtom
+from .atom import Atom, EnumAtom, ReferenceAtom
+from .description import Description, Col
+from .exceptions import HDF5ExtError
+from .misc.enum import Enum
+from .utils import check_file_access, SizeType
 
-from tables.utils import check_file_access
-
-from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp, strncmp, strlen
-from cpython.bytes cimport PyBytes_Check, PyBytes_FromStringAndSize
+from cpython cimport PY_MAJOR_VERSION
+from cpython.bytes cimport PyBytes_Check
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 
 from numpy cimport (import_array, ndarray, dtype,
@@ -43,8 +42,8 @@ from numpy cimport (import_array, ndarray, dtype,
   NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, NPY_FLOAT16, NPY_FLOAT32,
   NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128)
 
-from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
-  H5ATTRfind_attribute, H5ATTRget_attribute_string, H5D_CHUNKED,
+from .definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
+  H5D_CHUNKED,
   H5D_layout_t, H5Dclose, H5Dget_type, H5Dopen, H5E_DEFAULT,
   H5E_WALK_DOWNWARD, H5E_auto_t, H5E_error_t, H5E_walk_t, H5Eget_msg,
   H5Eprint, H5Eset_auto, H5Ewalk, H5F_ACC_RDONLY, H5Fclose, H5Fis_hdf5,
@@ -73,7 +72,7 @@ from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   pt_H5free_memory, H5T_STD_REF_OBJ, H5Rdereference, H5R_OBJECT, H5I_DATASET, H5I_REFERENCE,
   H5Iget_type, hobj_ref_t, H5Oclose)
 
-
+from .attributes_ext cimport H5ATTRget_attribute_string, H5ATTRfind_attribute
 
 # Platform-dependent types
 if sys.byteorder == "little":
@@ -640,8 +639,6 @@ def is_hdf5_file(object filename):
   return ret > 0
 
 
-
-
 def is_pytables_file(object filename):
   """is_pytables_file(filename)
 
@@ -675,21 +672,16 @@ def is_pytables_file(object filename):
   return isptf
 
 
-
-
 def get_hdf5_version():
   """Get the underlying HDF5 library version"""
 
   return getHDF5VersionInfo()[1]
 
 
-
-
 def get_pytables_version():
   """Return this extension version."""
 
   return _getTablesVersion()
-
 
 
 def which_lib_version(str name):
@@ -1563,9 +1555,31 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
   # no error
   return 0
 
-## Local Variables:
-## mode: python
-## py-indent-offset: 2
-## tab-width: 2
-## fill-column: 78
-## End:
+
+cdef object getshape(int rank, hsize_t *dims):
+  """Return a shape (tuple) from a dims C array of rank dimensions."""
+
+  cdef int i
+  cdef object shape
+
+  shape = []
+  for i from 0 <= i < rank:
+    shape.append(SizeType(dims[i]))
+
+  return tuple(shape)
+
+
+cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
+  """Returns a malloced hsize_t dims from a npy_intp *pdims."""
+
+  cdef int i
+  cdef hsize_t *dims
+
+  dims = NULL
+  if rank > 0:
+    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+    for i from 0 <= i < rank:
+      dims[i] = pdims[i]
+  return dims
+
+

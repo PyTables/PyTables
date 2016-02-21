@@ -20,6 +20,7 @@ import six.moves.cPickle
 import numpy
 
 from . import hdf5extension
+from .attributeset_ext import AttributeSet
 from .utils import SizeType
 from .registry import class_name_dict
 from .exceptions import ClosedNodeError, PerformanceWarning
@@ -72,7 +73,7 @@ def issysattrname(name):
         return False
 
 
-class AttributeSet(hdf5extension.AttributeSet, object):
+class AttributeSet(AttributeSet, object):
     """Container for the HDF5 attributes of a Node.
 
     This class provides methods to create new HDF5 node attributes,

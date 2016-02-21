@@ -855,6 +855,13 @@ extensions = [
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
+    Extension("tables.attributeset_ext",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=['tables/attributeset_ext.pyx', 'src/H5ATTR.c'],
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
+
 ]
 
 
