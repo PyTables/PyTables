@@ -877,6 +877,13 @@ extensions = [
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
+    Extension("tables.group_ext",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=['tables/group_ext.pyx'],
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
+
 ]
 
 

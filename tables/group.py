@@ -17,21 +17,20 @@ import os
 import weakref
 import warnings
 
-from .misc.proxydict import ProxyDict
-from . import hdf5extension
-from . import utilsextension
-from .registry import class_id_dict
-from .exceptions import NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
-from .filters import Filters
-from .registry import get_class_by_name
-from .path import check_name_validity, join_path, isvisiblename
-from .node import Node, NotLoggedMixin
-from .leaf import Leaf
-from .unimplemented import UnImplemented, Unknown
-
-from .link import Link, SoftLink, ExternalLink
 import six
 
+from . import utilsextension
+from .exceptions import NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
+from .filters import Filters
+from .group_ext import Group
+from .leaf import Leaf
+from .link import Link, SoftLink, ExternalLink
+from .misc.proxydict import ProxyDict
+from .node import Node, NotLoggedMixin
+from .path import check_name_validity, join_path, isvisiblename
+from .registry import class_id_dict
+from .registry import get_class_by_name
+from .unimplemented import UnImplemented, Unknown
 
 obversion = "1.0"
 
@@ -41,8 +40,7 @@ class _ChildrenDict(ProxyDict):
         return container._f_get_child(key)
 
 
-
-class Group(hdf5extension.Group, Node):
+class Group(Group, Node):
     """Basic PyTables grouping structure.
 
     Instances of this class are grouping structures containing *child*
