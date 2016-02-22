@@ -11,6 +11,7 @@ import tempfile
 import warnings
 import threading
 import subprocess
+
 import six
 from six.moves import range
 from six.moves import zip
@@ -70,7 +71,7 @@ class OpenFileFailureTestCase(TestCase):
 
         # Try to open the dummy file
         try:
-            with self.assertRaises(tables.HDF5ExtError):
+            with self.assertRaises(OSError):
                 h5file = tables.open_file(h5fname)
                 h5file.close()
 
@@ -2145,102 +2146,6 @@ class BloscSubprocess(TestCase):
             os.remove(h5fname)
 
 
-class HDF5ErrorHandling(TestCase):
-    def setUp(self):
-        super(HDF5ErrorHandling, self).setUp()
-        self._old_policy = tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY
-
-    def tearDown(self):
-        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = self._old_policy
-        super(HDF5ErrorHandling, self).tearDown()
-
-    def test_silence_messages(self):
-        code = """
-import tables
-tables.silence_hdf5_messages(False)
-tables.silence_hdf5_messages()
-try:
-    tables.open_file(r'%s')
-except tables.HDF5ExtError, e:
-    pass
-"""
-
-        filename = tempfile.mktemp(prefix="hdf5-error-handling-", suffix=".py")
-        try:
-            with open(filename, 'w') as fp:
-                fp.write(code % filename)
-
-            p = subprocess.Popen([sys.executable, filename],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            (stdout, stderr) = p.communicate()
-
-            self.assertFalse("HDF5-DIAG" in stderr.decode('ascii'))
-        finally:
-            os.remove(filename)
-
-    def test_enable_messages(self):
-        code = """
-import tables
-tables.silence_hdf5_messages()
-tables.silence_hdf5_messages(False)
-try:
-    tables.open_file(r'%s')
-except tables.HDF5ExtError as e:
-    pass
-"""
-
-        filename = tempfile.mktemp(prefix="hdf5-error-handling-", suffix=".py")
-        try:
-            with open(filename, 'w') as fp:
-                fp.write(code % filename)
-
-            p = subprocess.Popen([sys.executable, filename],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-            (stdout, stderr) = p.communicate()
-
-            self.assertTrue("HDF5-DIAG" in stderr.decode('ascii'))
-        finally:
-            os.remove(filename)
-
-    def _raise_exterror(self):
-        h5fname = tempfile.mktemp(".h5")
-        open(h5fname, 'wb').close()
-
-        try:
-            h5file = tables.open_file(h5fname)
-            h5file.close()
-        finally:
-            os.remove(h5fname)
-
-    def test_h5_backtrace_quiet(self):
-        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = True
-
-        with self.assertRaises(tables.HDF5ExtError) as cm:
-            self._raise_exterror()
-
-        self.assertFalse(cm.exception.h5backtrace is None)
-
-    def test_h5_backtrace_verbose(self):
-        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
-
-        with self.assertRaises(tables.HDF5ExtError) as cm:
-            self._raise_exterror()
-
-        self.assertFalse(cm.exception.h5backtrace is None)
-        msg = str(cm.exception)
-        self.assertTrue(cm.exception.h5backtrace[-1][-1] in msg)
-
-    def test_h5_backtrace_ignore(self):
-        tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = False
-
-        with self.assertRaises(tables.HDF5ExtError) as cm:
-            self._raise_exterror()
-
-        self.assertTrue(cm.exception.h5backtrace is None)
-
-
 class TestDescription(TestCase):
     def test_isdescription_inheritance(self):
         # Regression test for gh-65
@@ -2494,7 +2399,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(FilePropertyTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBigEndian))
         theSuite.addTest(unittest.makeSuite(BloscSubprocess))
-        theSuite.addTest(unittest.makeSuite(HDF5ErrorHandling))
         theSuite.addTest(unittest.makeSuite(TestDescription))
         theSuite.addTest(unittest.makeSuite(TestAtom))
         theSuite.addTest(unittest.makeSuite(TestCol))

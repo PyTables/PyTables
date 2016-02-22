@@ -1873,13 +1873,13 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
     def test_openNewFileRW(self):
         self.assertFalse(os.path.isfile(self.h5fname))
-        self.assertRaises(tables.HDF5ExtError,
+        self.assertRaises(OSError,
                           tables.open_file, self.h5fname, mode="r+",
                           driver=self.DRIVER, driver_core_backing_store=False)
 
     def test_openNewFileR(self):
         self.assertFalse(os.path.isfile(self.h5fname))
-        self.assertRaises(tables.HDF5ExtError,
+        self.assertRaises(OSError,
                           tables.open_file, self.h5fname, mode="r",
                           driver=self.DRIVER, driver_core_backing_store=False)
 
@@ -2020,6 +2020,7 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
             self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
+@unittest.skip("FIXME Not yet implemented")
 class SplitDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_SPLIT"
     DRIVER_PARAMS = {
@@ -2145,6 +2146,7 @@ class StreamDriverTestCase(NotSpportedDriverTestCase):
     DRIVER = "H5FD_STREAM"
 
 
+@unittest.skip("FIXME Not yet implemented")
 @unittest.skipIf(hdf5_version < "1.8.9", 'HDF5 >= "1.8.9" required')
 class InMemoryCoreDriverTestCase(TestCase):
     DRIVER = "H5FD_CORE"
