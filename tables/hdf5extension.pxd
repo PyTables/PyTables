@@ -28,8 +28,3 @@ cdef class Leaf(Node):
   cdef _get_type_ids(self)
   cdef _convert_time64(self, ndarray nparr, int sense)
 
-cdef class Array(Leaf):
-  cdef int      rank
-  cdef hsize_t *maxdims
-  cdef hsize_t *dims_chunk
-

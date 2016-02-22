@@ -862,6 +862,21 @@ extensions = [
               extra_link_args=LFLAGS,
               extra_compile_args=CFLAGS),
 
+    Extension("tables.array_ext",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=['tables/array_ext.pyx'],
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
+
+
+    Extension("tables.vlarray_ext",
+              include_dirs=inc_dirs,
+              define_macros=def_macros,
+              sources=['tables/vlarray_ext.pyx'],
+              extra_link_args=LFLAGS,
+              extra_compile_args=CFLAGS),
+
 ]
 
 

@@ -1,7 +1,7 @@
 from numpy cimport ndarray
 
+from .array_ext cimport Array
 from .definitions cimport hid_t, hsize_t
-from .hdf5extension cimport Array
 
 cdef class CacheArray(Array):
   cdef hid_t ___NOTHING___

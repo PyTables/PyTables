@@ -17,7 +17,7 @@ import operator
 import sys
 import numpy
 
-from . import hdf5extension
+from .array_ext import Array
 from .filters import Filters
 from .flavor import flavor_of, array_as_internal, internal_to_flavor
 from .leaf import Leaf
@@ -38,7 +38,7 @@ import six
 obversion = "2.4"    # Numeric and numarray flavors are gone.
 
 
-class Array(hdf5extension.Array, Leaf, six.Iterator):
+class Array(Array, Leaf, six.Iterator):
     """This class represents homogeneous datasets in an HDF5 file.
 
     This class provides methods to write or read data to or from array objects

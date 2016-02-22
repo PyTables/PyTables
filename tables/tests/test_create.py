@@ -29,7 +29,7 @@ from tables import (
     Col, StringCol, IntCol, Int16Col, FloatCol, Float32Col,
 )
 from tables.parameters import MAX_COLUMNS
-from tables.hdf5extension import HAVE_DIRECT_DRIVER, HAVE_WINDOWS_DRIVER
+from tables.file_ext import HAVE_DIRECT_DRIVER, HAVE_WINDOWS_DRIVER, _supported_drivers
 from tables.utils import quantize
 from tables.tests import common
 from tables.tests.common import unittest
@@ -2074,7 +2074,7 @@ class NotSpportedDriverTestCase(TestCase):
         self.assertFalse(os.path.isfile(self.h5fname))
 
 
-if "H5FD_LOG" in tables.hdf5extension._supported_drivers:
+if "H5FD_LOG" in _supported_drivers:
     BaseLogDriverTestCase = DefaultDriverTestCase
 
 else:

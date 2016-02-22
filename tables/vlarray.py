@@ -17,7 +17,7 @@ import operator
 import sys
 import numpy
 
-from . import hdf5extension
+from .vlarray_ext import VLArray
 from .atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
 from .flavor import internal_to_flavor
 from .leaf import Leaf, calc_chunksize
@@ -38,7 +38,7 @@ import six
 obversion = "1.4"    # Numeric and numarray flavors are gone.
 
 
-class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
+class VLArray(VLArray, Leaf, six.Iterator):
     """This class represents variable length (ragged) arrays in an HDF5 file.
 
     Instances of this class represent array objects in the object tree

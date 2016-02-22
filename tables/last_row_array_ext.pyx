@@ -1,7 +1,7 @@
 from numpy cimport ndarray
 
+from .array_ext cimport Array
 from .definitions cimport hid_t, hsize_t, herr_t
-from .hdf5extension cimport Array
 from .index_array_ext cimport IndexArray
 
 from .exceptions import HDF5ExtError
