@@ -428,7 +428,7 @@ class NailedDict(object):
         # Protection against growing the cache too much
         if len(cache) > self.maxentries:
             # Remove a 10% of (arbitrary) elements from the cache
-            entries_to_remove = self.maxentries // 10
+            entries_to_remove = max(self.maxentries // 10, 1)
             for k in list(cache.keys())[:entries_to_remove]:
                 del cache[k]
         cache[key] = value
