@@ -331,8 +331,7 @@ naming* (h5file.root) instead of with an absolute path string ("/").
 
 Now, create the first of the two Array objects we've just mentioned::
 
-    >>> h5file.create_array(gcolumns, 'pressure', array(pressure),
-    "Pressure column selection")
+    >>> h5file.create_array(gcolumns, 'pressure', array(pressure), "Pressure column selection")
     /columns/pressure (Array(3,)) 'Pressure column selection'
       atom := Float64Atom(shape=(), dflt=0.0)
       maindim := 0
