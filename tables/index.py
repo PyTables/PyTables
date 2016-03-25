@@ -106,7 +106,7 @@ def _table_column_pathname_of_index(indexpathname):
 
 
 
-class Index(NotLoggedMixin, indexesextension.Index, Group):
+class Index(NotLoggedMixin, Group, indexesextension.Index):
     """Represents the index of a column in a table.
 
     This class is used to keep the indexing information for columns in a Table
