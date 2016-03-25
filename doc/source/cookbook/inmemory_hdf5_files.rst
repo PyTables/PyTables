@@ -121,7 +121,7 @@ The `ìmage` string can be passed around and can also be used to initialize a
 new HDF5 file descriptor::
 
     >>> import tables
-    >>> h5file = tables.open_file("in-memory-sample.h5", driver="H5DF_CORE",
+    >>> h5file = tables.open_file("in-memory-sample.h5", driver="H5FD_CORE",
                                   driver_core_image=image,
                                   driver_core_backing_store=0)
     >>> print(h5file.root.array)
