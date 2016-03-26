@@ -355,7 +355,7 @@ cdef class File:
       elif not PyBytes_Check(image):
         raise TypeError("The DRIVER_CORE_IMAGE must be a string of bytes")
       elif not H5_HAVE_IMAGE_FILE:
-        raise RuntimeError("Support for image files is only availabe in "
+        raise RuntimeError("Support for image files is only available in "
                            "HDF5 >= 1.8.9")
 
     # After the following check we can be quite sure
