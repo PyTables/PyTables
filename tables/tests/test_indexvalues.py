@@ -102,6 +102,8 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         if self.buffersize:
             # Change the buffersize by default
             table1.nrowsinbuf = self.buffersize
+            # Make sure nrowsinbuf is a multiple of chunkshape
+            table1.nrowsinbuf -= table1.nrowsinbuf % self.chunkshape
         # Index all entries:
         for col in table1.colinstances.itervalues():
             indexrows = col.create_index(
