@@ -724,7 +724,7 @@ cdef class Row:
   cdef object  wrec, wreccpy
   cdef object  wfields, rfields
   cdef object  coords
-  cdef object  condfunc, condargs
+  cdef object  condfunc, condargs, condkwargs
   cdef object  mod_elements, colenums
   cdef object  rfieldscache, wfieldscache
   cdef object  iterseq
@@ -857,7 +857,8 @@ cdef class Row:
 
     if table._where_condition:
       self.wherecond = 1
-      self.condfunc, self.condargs = table._where_condition
+      #self.condkwargs = {'ex_uses_vml': True}
+      self.condfunc, self.condargs, self.condkwargs = table._where_condition
       table._where_condition = None
 
     if table._use_index:
@@ -957,7 +958,7 @@ cdef class Row:
 
         self.table._convert_types(iobuf, len(iobuf), 1)
         self.indexvalid = call_on_recarr(
-          self.condfunc, self.condargs, iobuf)
+          self.condfunc, self.condargs, iobuf, **self.condkwargs)
         self.index_valid_data = <char *>self.indexvalid.data
         # Get the valid coordinates
         self.indexvalues = self.bufcoords[:recout][self.indexvalid]
@@ -1086,7 +1087,7 @@ cdef class Row:
 
         # Evaluate the condition on this table fragment.
         self.indexvalid = call_on_recarr(
-          self.condfunc, self.condargs, self.iobuf[:recout] )
+          self.condfunc, self.condargs, self.iobuf[:recout], **self.condkwargs)
         self.index_valid_data = <char *>self.indexvalid.data
 
         # Is there any interesting information in this buffer?
