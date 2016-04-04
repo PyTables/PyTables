@@ -27,6 +27,9 @@ Bug fixed
 - Fix segmentation fault in a number of test cases that use
   :class:`index.Index` (closes :issue:`532` and :issue:`533`).
   Thanks to Diane Trout.
+- Fixed the evaluation of transcendental functions when numexpr is
+  compiled with VML support (closes :issue:`534`, PR #536).
+  Thanks to Tom Kooij.
 
 
 Other changes
