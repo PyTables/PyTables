@@ -19,8 +19,8 @@ Improvements
   Thanks to Ehsan Azar
 
 
-Bug fixed
----------
+Bugs fixed
+----------
 
 - Only run `tables.tests.test_basics.UnicodeFilename` if the filesystem
   encoding is utf-8. Closes :issue:`485`.
@@ -29,6 +29,9 @@ Bug fixed
   Thanks to Diane Trout.
 - Fixed the evaluation of transcendental functions when numexpr is
   compiled with VML support (closes :issue:`534`, PR #536).
+  Thanks to Tom Kooij.
+- Make sure that index classes use buffersizes that are a multiple
+  of chunkshape[0] (closes :issue:`538`, PR #538).
   Thanks to Tom Kooij.
 
 
