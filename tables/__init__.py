@@ -61,10 +61,17 @@ if os.name == 'nt':
     # In order to improve diagnosis of a common Windows dependency
     # issue, we explicitly test that we can load the HDF5 dll before
     # loading tables.utilsextensions.
-    if not _load_library('hdf5dll.dll', ctypes.cdll.LoadLibrary):
+    import sys
+    hdf5_dlls = ['hdf5.dll', 'hdf5dll.dll']
+    if hasattr(sys, 'gettotalrefcount'):  # running with debug interpreter
+        hdf5_dlls = ['hdf5_D.dll', 'hdf5ddll.dll']
+    for dll in hdf5_dlls:
+        if _load_library(dll, ctypes.cdll.LoadLibrary):
+            break
+    else:
         raise ImportError(
-            'Could not load "hdf5dll.dll", please ensure'
-            ' that it can be found in the system path')
+            'Could not load any of %s, please ensure'
+            ' that it can be found in the system path' % hdf5_dlls)
 
     # Some PyTables binary distributions place the dependency DLLs in the
     # tables package directory.
