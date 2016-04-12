@@ -17,6 +17,8 @@ Improvements
 - It is now possible to  read reference types by dereferencing them as
   numpy array of objects (closes :issue:`518` and :issue:`519`).
   Thanks to Ehsan Azar
+- It is now also possible to use HDF5 with the new shared library naming
+  scheme (>= 1.8.10, hdf5.dll instead of hdf5dll.dll) on Windows (PR #540).
 
 
 Bugs fixed

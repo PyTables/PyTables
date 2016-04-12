@@ -14,7 +14,10 @@ extern "C" {
 /* Filter ID registered with the HDF Group */
 #define FILTER_BLOSC 32001
 
-/* Register the filter with the library */
+/* Registers the filter with the HDF5 library. */
+#if defined(_MSC_VER)
+__declspec(dllexport)
+#endif	/* defined(_MSC_VER) */
 int register_blosc(char **version, char **date);
 
 #ifdef __cplusplus

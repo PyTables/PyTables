@@ -317,7 +317,7 @@ class WindowsPackage(Package):
     _runtime_suffixes = ['.dll']
 
     # lookup in '.' seems necessary for LZO2
-    _component_dirs = ['include', 'lib', 'dll', '.']
+    _component_dirs = ['include', 'lib', 'dll', 'bin', '.']
 
     def find_runtime_path(self, locations=default_runtime_dirs):
         # An explicit path can not be provided for runtime libraries.
@@ -361,7 +361,7 @@ if os.name == 'posix':
 elif os.name == 'nt':
     _Package = WindowsPackage
     _platdep = {  # package tag -> platform-dependent components
-        'HDF5': ['hdf5dll', 'hdf5dll'],
+        'HDF5': ['hdf5', 'hdf5'],
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'],
@@ -373,8 +373,8 @@ elif os.name == 'nt':
     dll_files = ['\\windows\\system\\zlib1.dll',
                  '\\windows\\system\\szip.dll',
                  ]
-    if '--debug' in sys.argv:
-        _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
+    if debug:
+        _platdep['HDF5'] = ['hdf5_D', 'hdf5_D']
 
 hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
 hdf5_package.target_function = 'H5close'
@@ -395,6 +395,7 @@ def_macros = [('NDEBUG', 1)]
 if os.name == 'nt':
     def_macros.append(('WIN32', 1))
     def_macros.append(('_HDF5USEDLL_', 1))
+    def_macros.append(('H5_BUILT_AS_DYNAMIC_LIB', 1))
 
 # Allow setting the HDF5 dir and additional link flags either in
 # the environment or on the command line.
@@ -460,7 +461,10 @@ print('* USE_PKGCONFIG:', USE_PKGCONFIG)
 # variable to rebuild pytables
 if not HDF5_DIR and os.name == 'nt':
     import ctypes.util
-    libdir = ctypes.util.find_library('hdf5dll.dll')
+    if not debug:
+        libdir = ctypes.util.find_library('hdf5.dll') or ctypes.util.find_library('hdf5dll.dll') 
+    else:
+        libdir = ctypes.util.find_library('hdf5_D.dll') or ctypes.util.find_library('hdf5ddll.dll')
     # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.8.8\\bin\\hdf5dll.dll'
     if libdir:
         # Strip off the filename
@@ -524,6 +528,24 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
     (hdrdir, libdir, rundir) = package.find_directories(
         location, use_pkgconfig=USE_PKGCONFIG)
 
+    # check if HDF5 library uses old DLL naming scheme
+    if hdrdir and package.tag == 'HDF5':
+        hdf5_header = os.path.join(hdrdir, "H5public.h")
+        hdf5_version = get_hdf5_version(hdf5_header)
+        if hdf5_version < min_hdf5_version:
+            exit_with_error(
+                "Unsupported HDF5 version! HDF5 v%s+ required. "
+                "Found version v%s" % (
+                    '.'.join(map(str, min_hdf5_version)),
+                    '.'.join(map(str, hdf5_version))))
+        
+        if os.name == 'nt' and hdf5_version < (1, 8, 10):
+            hdf5_old_dll_name = 'hdf5dll' if not debug else 'hdf5ddll'
+            package.library_name = hdf5_old_dll_name
+            package.runtime_name = hdf5_old_dll_name
+            _platdep['HDF5'] = [hdf5_old_dll_name, hdf5_old_dll_name]
+            _, libdir, rundir = package.find_directories(location, use_pkgconfig=USE_PKGCONFIG)
+
     # check if the library is in the standard compiler paths
     if not libdir and package.target_function:
         libdir = compiler.has_function(package.target_function,
@@ -554,16 +576,6 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
     else:
         print("* Found %s headers at ``%s``, library at ``%s``."
               % (package.name, hdrdir, libdir))
-
-    if package.tag in ['HDF5']:
-        hdf5_header = os.path.join(hdrdir, "H5public.h")
-        hdf5_version = get_hdf5_version(hdf5_header)
-        if hdf5_version < min_hdf5_version:
-            exit_with_error(
-                "Unsupported HDF5 version! HDF5 v%s+ required. "
-                "Found version v%s" % (
-                    '.'.join(map(str, min_hdf5_version)),
-                    '.'.join(map(str, hdf5_version))))
 
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
