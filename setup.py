@@ -307,7 +307,7 @@ class PosixPackage(Package):
     _library_suffixes = ['.so', '.dylib', '.a']
     _runtime_prefixes = _library_prefixes
     _runtime_suffixes = ['.so', '.dylib']
-    _component_dirs = ['include', 'lib']
+    _component_dirs = ['include', 'lib', 'lib64']
 
 
 class WindowsPackage(Package):
