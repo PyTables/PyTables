@@ -1,37 +1,259 @@
-================================
- Release notes for c-blosc 1.4.4
-================================
+=================================
+ Release notes for C-Blosc 1.8.1
+=================================
 
 :Author: Francesc Alted
-:Contact: faltet@blosc.org
+:Contact: francesc@blosc.org
 :URL: http://www.blosc.org
 
 
-Changes from 1.4.3 to 1.4.4
+Changes from 1.8.0 to 1.8.1
 ===========================
 
-* New computation of blocksize to be in sync with c-blosc 1.6.1
+* Disable the use of __builtin_cpu_supports() for GCC 5.3.1
+  compatibility.  Details in:
+  https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/thread/ZM2L65WIZEEQHHLFERZYD5FAG7QY2OGB/
 
-* New parametrization of the hash table for blosclz (synced with c-blosc
-  1.6.1)
 
-
-Changes from 1.4.2 to 1.4.3
+Changes from 1.7.1 to 1.8.0
 ===========================
+
+* The code is (again) compatible with VS2008 and VS2010.  This is
+  important for compatibility with Python 2.6/2.7/3.3/3.4.
+
+* Introduced a new global lock during blosc_decompress() operation.
+  As the blosc_compress() was already guarded by a global lock, this
+  means that the compression/decompression is again thread safe.
+  However, when using C-Blosc from multi-threaded environments, it is
+  important to keep using the *_ctx() functions for performance
+  reasons.  NOTE: _ctx() functions will be replaced by more powerful
+  ones in C-Blosc 2.0.
+
+
+Changes from 1.7.0 to 1.7.1
+===========================
+
+* Fixed a bug preventing bitshuffle to work correctly on getitem().
+  Now, everything with bitshuffle seems to work correctly.
+
+* Fixed the thread initialization for blosc_decompress_ctx().  Issue
+  #158.  Thanks to Chris Webers.
+
+* Fixed a bug in the blocksize computation introduced in 1.7.0.  This
+  could have been creating segfaults.
+
+* Allow bitshuffle to run on 1-byte typesizes.
+
+* New parametrization of the blocksize to be independent of the
+  typesize.  This allows a smoother speed throughout all typesizes.
+
+* lz4 and lz4hc codecs upgraded to 1.7.2 (from 1.7.0).
+
+* When calling set_nthreads() but not actually changing the number of
+  threads in the internal pool does not teardown and setup it anymore.
+  PR #153.  Thanks to Santi Villalba.
+
+
+Changes from 1.6.1 to 1.7.0
+===========================
+
+* Added a new 'bitshuffle' filter so that the shuffle takes place at a
+  bit level and not just at a byte one, which is what it does the
+  previous 'shuffle' filter.
+
+  For activating this new bit-level filter you only have to pass the
+  symbol BLOSC_BITSHUFFLE to `blosc_compress()`.  For the previous
+  byte-level one, pass BLOSC_SHUFFLE.  For disabling the shuffle, pass
+  BLOSC_NOSHUFFLE.
+
+  This is a port of the existing filter in
+  https://github.com/kiyo-masui/bitshuffle.  Thanks to Kiyo Masui for
+  changing the license and allowing its inclusion here.
+
+* New acceleration mode for LZ4 and BloscLZ codecs that enters in
+  operation with complevel < 9.  This allows for an important boost in
+  speed with minimal compression ratio loss.  Francesc Alted.
+
+* LZ4 codec updated to 1.7.0 (r130).
+
+* PREFER_EXTERNAL_COMPLIBS cmake option has been removed and replaced
+  by the more fine grained PREFER_EXTERNAL_LZ4, PREFER_EXTERNAL_SNAPPY
+  and PREFER_EXTERNAL_ZLIB.  In order to allow the use of the new API
+  introduced in LZ4 1.7.0, PREFER_EXTERNAL_LZ4 has been set to OFF by
+  default, whereas PREFER_EXTERNAL_SNAPPY and PREFER_EXTERNAL_ZLIB
+  continues to be ON.
+
+* Implemented SSE2 shuffle support for buffers containing a number of
+  elements which is not a multiple of (typesize * vectorsize).  Jack
+  Pappas.
+
+* Added SSE2 shuffle/unshuffle routines for types larger than 16
+  bytes.  Jack Pappas.
+
+* 'test_basic' suite has been split in components for a much better
+  granularity on what's a possibly failing test.  Also, lots of new
+  tests have been added.  Jack Pappas.
+
+* Fixed compilation on non-Intel archs (tested on ARM).  Zbyszek
+  Szmek.
+
+* Modifyied cmake files in order to inform that AVX2 on Visual Studio
+  is supported only in 2013 update 2 and higher.
+
+* Added a replacement for stdbool.h for Visual Studio < 2013.
+
+* blosclz codec adds Win64/Intel as a platform supporting unaligned
+  addressing.  That leads to a speed-up of 2.2x in decompression.
+
+* New blosc_get_version_string() function for retrieving the version
+  of the c-blosc library.  Useful when linking with dynamic libraries
+  and one want to know its version.
+
+* New example (win-dynamic-linking.c) that shows how to link a Blosc
+  DLL dynamically in run-time (Windows only).
+
+* The `context.threads_started` is initialized now when decompressing.
+  This could cause crashes in case you decompressed before compressing
+  (e.g. directly deserializing blosc buffers).  @atchouprakov.
+
+* The HDF5 filter has been removed from c-blosc and moved into its own
+  repo at: https://github.com/Blosc/hdf5
+
+* The MS Visual Studio 2008 has been tested with c-blosc for ensuring
+  compatibility with extensions for Python 2.6 and up.
+
+
+Changes from 1.6.0 to 1.6.1
+===========================
+
+* Support for *runtime* detection of AVX2 and SSE2 SIMD instructions.
+  These changes make it possible to compile one single binary that
+  runs on a system that supports SSE2 or AVX2 (or neither), so the
+  redistribution problem is fixed (see #101).  Thanks to Julian Taylor
+  and Jack Pappas.
+
+* Added support for MinGW and TDM-GCC compilers for Windows.  Thanks
+  to yasushima-gd.
 
 * Fixed a bug in blosclz that could potentially overwrite an area
   beyond the output buffer.  See #113.
 
+* New computation for blocksize so that larger typesizes (> 8 bytes)
+  would benefit of much better compression ratios.  Speed is not
+  penalized too much.
 
-Changes from 1.4.1 to 1.4.2
+* New parametrization of the hash table for blosclz codec.  This
+  allows better compression in many scenarios, while slightly
+  increasing the speed.
+
+
+Changes from 1.5.4 to 1.6.0
 ===========================
 
-* The implementation of H5Epush function has been modified in
-  hdf5-1.8.15 and there is a fix for this.
+* Support for AVX2 is here!  The benchmarks with a 4-core Intel
+  Haswell machine tell that both compression and decompression are
+  accelerated around a 10%, reaching peaks of 9.6 GB/s during
+  compression and 26 GB/s during decompression (memcpy() speed for
+  this machine is 7.5 GB/s for writes and 11.7 GB/s for reads).  Many
+  thanks to @littlezhou for this nice work.
 
-* Use multithreaded or single-threaded code depending on Blosc version.
-  This is mainly useful for compiling HDF5 apps with non-included Blosc
-  libraries.
+* Support for HPET (high precision timers) for the `bench` program.
+  This is particularly important for microbenchmarks like bench is
+  doing; since they take so little time to run, the granularity of a
+  less-accurate timer may account for a significant portion of the
+  runtime of the benchmark itself, skewing the results.  Thanks to
+  Jack Pappas.
+
+
+Changes from 1.5.3 to 1.5.4
+===========================
+
+* Updated to LZ4 1.6.0 (r128).
+
+* Fix resource leak in t_blosc.  Jack Pappas.
+
+* Better checks during testing.  Jack Pappas.
+
+* Dynamically loadable HDF5 filter plugin. Kiyo Masui.
+
+
+Changes from 1.5.2 to 1.5.3
+===========================
+
+* Use llabs function (where available) instead of abs to avoid
+  truncating the result.  Jack Pappas.
+
+* Use C11 aligned_alloc when it's available.  Jack Pappas.
+
+* Use the built-in stdint.h with MSVC when available.  Jack Pappas.
+
+* Only define the __SSE2__ symbol when compiling with MS Visual C++
+  and targeting x64 or x86 with the correct /arch flag set. This
+  avoids re-defining the symbol which makes other compilers issue
+  warnings.  Jack Pappas.
+
+* Reinitializing Blosc during a call to set_nthreads() so as to fix
+  problems with contexts.  Francesc Alted.
+
+
+
+Changes from 1.5.1 to 1.5.2
+===========================
+
+* Using blosc_compress_ctx() / blosc_decompress_ctx() inside the HDF5
+  compressor for allowing operation in multiprocess scenarios.  See:
+  https://github.com/PyTables/PyTables/issues/412
+
+  The drawback of this quick fix is that the Blosc filter will be only
+  able to use a single thread until another solution can be devised.
+
+
+Changes from 1.5.0 to 1.5.1
+===========================
+
+* Updated to LZ4 1.5.0.  Closes #74.
+
+* Added the 'const' qualifier to non SSE2 shuffle functions. Closes #75.
+
+* Explicitly call blosc_init() in HDF5 blosc_filter.c, fixing a
+  segfault.
+
+* Quite a few improvements in cmake files for HDF5 support.  Thanks to
+  Dana Robinson (The HDF Group).
+
+* Variable 'class' caused problems compiling the HDF5 filter with g++.
+  Thanks to Laurent Chapon.
+
+* Small improvements on docstrings of c-blosc main functions.
+
+
+Changes from 1.4.1 to 1.5.0
+===========================
+
+* Added new calls for allowing Blosc to be used *simultaneously*
+  (i.e. lock free) from multi-threaded environments.  The new
+  functions are:
+
+  - blosc_compress_ctx(...)
+  - blosc_decompress_ctx(...)
+
+  See the new docstrings in blosc.h for how to use them.  The previous
+  API should be completely unaffected.  Thanks to Christopher Speller.
+
+* Optimized copies during BloscLZ decompression.  This can make BloscLZ
+  to decompress up to 1.5x faster in some situations.
+
+* LZ4 and LZ4HC compressors updated to version 1.3.1.
+
+* Added an examples directory on how to link apps with Blosc.
+
+* stdlib.h moved from blosc.c to blosc.h as suggested by Rob Lathm.
+
+* Fix a warning for {snappy,lz4}-free compilation.  Thanks to Andrew Schaaf.
+
+* Several improvements for CMakeLists.txt (cmake).
+
+* Fixing C99 compatibility warnings.  Thanks to Christopher Speller.
 
 
 Changes from 1.4.0 to 1.4.1
@@ -61,7 +283,7 @@ Changes from 1.3.5 to 1.3.6
 
 * Updated to LZ4 r118 due to a (highly unlikely) security hole.  For
   details see:
-
+ 
   http://fastcompression.blogspot.fr/2014/06/debunking-lz4-20-years-old-bug-myth.html
 
 
@@ -391,11 +613,3 @@ Changes from 0.8.0 to 0.9
   necessary on Mac because 16 bytes alignment is ensured by default.
   Thanks to Ivan Vilata.  Fixes #3.
 
-
-
-
-.. Local Variables:
-.. mode: rst
-.. coding: utf-8
-.. fill-column: 72
-.. End:

@@ -1,0 +1,37 @@
+# AppVeyor CI build configuration for c-blosc
+
+# Before cloning the repo, configure git to handle line endings correctly.
+init:
+  - git config --global core.autocrlf input
+
+# This is the build version displayed on AppVeyor's UI.
+# It's incrementally automatically like travis-ci but allows custom formatting.
+version: '{build}'
+
+environment:
+  matrix:
+    - GENERATOR: "Visual Studio 9 2008"
+      CONFIG: Release
+
+    - GENERATOR: "Visual Studio 9 2008 Win64"
+      CONFIG: Release
+
+    - GENERATOR: "Visual Studio 10 2010"
+      CONFIG: Release
+
+    - GENERATOR: "Visual Studio 10 2010 Win64"
+      CONFIG: Release
+
+    - GENERATOR: "Visual Studio 12 2013"
+      CONFIG: Release
+
+    - GENERATOR: "Visual Studio 12 Win64"
+      CONFIG: Release
+
+build_script:
+  - cmake "-G%GENERATOR%" -H. -B_builds
+  - cmake --build _builds --config "%CONFIG%"
+
+test_script:
+  - ps: cd _builds
+  - ctest -VV -C "%CONFIG%"
