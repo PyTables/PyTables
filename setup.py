@@ -755,16 +755,21 @@ if 'BLOSC' not in optional_libs:
         finally:
             os.remove(fd.name)
 
-    # Detection code for SSE2/AVX2 only works for gcc/clang, not for MSVC yet
     # SSE2
-    if ('sse2' in cpu_info['flags'] and
-        compiler_has_flags(compiler, ["-msse2"])):
+    if 'sse2' in cpu_info['flags']:
         print('SSE2 detected')
         CFLAGS.append('-DSHUFFLE_SSE2_ENABLED')
-        CFLAGS.append('-msse2')
+        if os.name == 'nt':
+            # Windows always should have support for SSE2
+            # (present in all x86/amd64 architectures since 2003)
+            def_macros += [('__SSE2__', 1)]
+        else:
+            # On UNIX, both gcc and clang understand -msse2
+            CFLAGS.append('-msse2')
         blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
                           if 'sse2' in f]
     # AVX2
+    # Detection code for AVX2 only works for gcc/clang, not for MSVC yet
     if ('avx2' in cpu_info['flags'] and
         compiler_has_flags(compiler, ["-mavx2"])):
         print('AVX2 detected')
