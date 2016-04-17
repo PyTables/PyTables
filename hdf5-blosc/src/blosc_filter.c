@@ -113,7 +113,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     size_t nelements = 8;
     unsigned int values[] = {0,0,0,0,0,0,0,0};
     hid_t super_type;
-    H5T_class_t class;
+    H5T_class_t classt;
 
     r = GET_FILTER(dcpl, FILTER_BLOSC, &flags, &nelements, values, 0, NULL);
     if(r<0) return -1;
@@ -134,8 +134,8 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     typesize = H5Tget_size(type);
     if (typesize==0) return -1;
     /* Get the size of the base type, even for ARRAY types */
-    class = H5Tget_class(type);
-    if (class == H5T_ARRAY) {
+    classt = H5Tget_class(type);
+    if (classt == H5T_ARRAY) {
       /* Get the array base component */
       super_type = H5Tget_super(type);
       basetypesize = H5Tget_size(super_type);
@@ -183,7 +183,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     int doshuffle = 1;             /* Shuffle default */
     int compcode;                  /* Blosc compressor */
     int code;
-    char *compname = "blosclz";
+    char *compname = "blosclz";    /* The compressor by default */
     char *complist;
     char errmsg[256];
 
@@ -242,10 +242,6 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         }
 
 #if ( (BLOSC_VERSION_MAJOR <= 1) && (BLOSC_VERSION_MINOR < 5) )
-	/* Select the correct compressor to use */
-        if (compname != NULL)
-	  blosc_set_compressor(compname);
-
         status = blosc_compress(clevel, doshuffle, typesize, nbytes,
                                 *buf, outbuf, nbytes);
 #else
@@ -289,7 +285,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         }
 
 #if ( (BLOSC_VERSION_MAJOR <= 1) && (BLOSC_VERSION_MINOR < 5) )
-        status = blosc_decompress(*buf, outbuf, outbuf_size);
+	status = blosc_decompress(*buf, outbuf, outbuf_size);
 #else
         /* Starting from Blosc 1.5 on, there is not an internal global
 	   lock anymore, so do not try to run in multithreading mode

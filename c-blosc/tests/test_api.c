@@ -1,10 +1,10 @@
 /*********************************************************************
-  Blosc - Blocked Suffling and Compression Library
+  Blosc - Blocked Shuffling and Compression Library
 
   Unit tests for Blosc API.
 
   Creation date: 2010-06-07
-  Author: Francesc Alted <francesc@blosc.io>
+  Author: Francesc Alted <francesc@blosc.org>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/
@@ -73,6 +73,7 @@ static char *all_tests() {
   return 0;
 }
 
+#define BUFFER_ALIGN_SIZE   8
 
 int main(int argc, char **argv) {
   char *result;
@@ -83,10 +84,10 @@ int main(int argc, char **argv) {
   blosc_set_nthreads(1);
 
   /* Initialize buffers */
-  src = malloc(size);
-  srccpy = malloc(size);
-  dest = malloc(size);
-  dest2 = malloc(size);
+  src = blosc_test_malloc(BUFFER_ALIGN_SIZE, size);
+  srccpy = blosc_test_malloc(BUFFER_ALIGN_SIZE, size);
+  dest = blosc_test_malloc(BUFFER_ALIGN_SIZE, size);
+  dest2 = blosc_test_malloc(BUFFER_ALIGN_SIZE, size);
   memset(src, 0, size);
   memcpy(srccpy, src, size);
 
@@ -106,7 +107,11 @@ int main(int argc, char **argv) {
   }
   printf("\tTests run: %d\n", tests_run);
 
-  free(src); free(srccpy); free(dest); free(dest2);
+  blosc_test_free(src);
+  blosc_test_free(srccpy);
+  blosc_test_free(dest);
+  blosc_test_free(dest2);
+
   blosc_destroy();
 
   return result != 0;
