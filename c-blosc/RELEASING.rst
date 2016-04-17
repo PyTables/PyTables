@@ -3,7 +3,7 @@ Releasing Blosc
 ================
 
 :Author: Francesc Alted
-:Contact: francesc@blosc.io
+:Contact: francesc@blosc.org
 :Date: 2014-01-15
 
 
@@ -21,12 +21,12 @@ Testing
 Create a new build/ directory, change into it and issue::
 
   $ cmake ..
-  $ make
-  $ make test
+  $ cmake --build .
+  $ ctest
 
 To actually test Blosc the hard way, look at the end of:
 
-http://blosc.org/trac/wiki/SyntheticBenchmarks
+http://blosc.org/synthetic-benchmarks.html
 
 where instructions on how to intensively test (and benchmark) Blosc
 are given.
@@ -47,13 +47,10 @@ Tagging
 Announcing
 ----------
 
-- Update the release notes in the github wiki:
-
-https://github.com/Blosc/c-blosc/wiki/Release-notes
-
 - Send an announcement to the blosc, pytables-dev, bcolz and
   comp.compression lists.  Use the ``ANNOUNCE.rst`` file as skeleton
   (possibly as the definitive version).
+
 
 Post-release actions
 --------------------
