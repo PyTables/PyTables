@@ -1016,8 +1016,7 @@ class File(hdf5extension.File, object):
             (not done by default).
         obj : python object
             The recarray to be saved.  Accepted types are NumPy record
-            arrays, as well as native Python sequences convertible to numpy
-            record arrays.
+            arrays.
 
             The *obj* parameter is optional and it can be provided in
             alternative to the *description* parameter.
