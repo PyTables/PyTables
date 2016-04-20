@@ -20,6 +20,7 @@ Improvements
 - It is now also possible to use HDF5 with the new shared library naming
   scheme (>= 1.8.10, hdf5.dll instead of hdf5dll.dll) on Windows (:issue:`540`).
 - Internal Blosc version updated to 1.8.1 (closes :issue:`541`)
+- Full BitShuffle support for new Blosc versions (>= 1.8).
 - Get rid of the `-native` compile flag (closes :issue:`503`)
 
 
