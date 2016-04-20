@@ -361,7 +361,11 @@ class Filters(object):
         self.bitshuffle = bitshuffle
         """Whether the *BitShuffle* filter is active or not."""
 
-        if (self.shuffle and self.bitshuffle):
+        if self.bitshuffle and not self.complib.startswith('blosc'):
+            raise ValueError(
+                "BitShuffle can only be used inside Blosc")
+
+        if self.shuffle and self.bitshuffle:
             raise ValueError(
                 "Shuffle and BitShuffle cannot be active at the same time")
 
