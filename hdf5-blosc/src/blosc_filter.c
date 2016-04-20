@@ -1,6 +1,6 @@
 /*
-    Copyright (C) 2010  Francesc Alted
-    http://blosc.pytables.org
+    Copyright (C) 2010-2016  Francesc Alted
+    http://blosc.org
     License: MIT (see LICENSE.txt)
 
     Filter program that allows the use of the Blosc filter in HDF5.
@@ -18,8 +18,6 @@
 #include "hdf5.h"
 #include "blosc_filter.h"
 
-#if H5Epush_vers == 2
-/* 1.8.x */
 #if defined(__GNUC__)
 #define PUSH_ERR(func, minor, str, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str, ##__VA_ARGS__)
 #elif defined(_MSC_VER)
@@ -29,26 +27,9 @@
    approaches for handling the trailing comma issue when possible. */
 #define PUSH_ERR(func, minor, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, __VA_ARGS__)
 #endif	/* defined(__GNUC__) */
-#else
-/* 1.6.x */
-#define PUSH_ERR(func, minor, str) H5Epush(__FILE__, func, __LINE__, H5E_PLINE, minor, str)
-#endif
 
-#if H5Pget_filter_by_id_vers == 2
-/* 1.8.x */
 #define GET_FILTER(a,b,c,d,e,f,g) H5Pget_filter_by_id(a,b,c,d,e,f,g,NULL)
-#else
-/* 1.6.x */
-#define GET_FILTER H5Pget_filter_by_id
-#endif
 
-#if H5Z_class_t_vers == 2
-/* 1.8.x where x >= 3 */
-#define H5Z_16API 0
-#else
-/* 1.6.x and 1.8.x with x < 3*/
-#define H5Z_16API 1
-#endif
 
 size_t blosc_filter(unsigned flags, size_t cd_nelmts,
                     const unsigned cd_values[], size_t nbytes,
@@ -62,15 +43,6 @@ int register_blosc(char **version, char **date){
 
     int retval;
 
-#if H5Z_16API
-    H5Z_class_t filter_class = {
-        (H5Z_filter_t)(FILTER_BLOSC),
-        "blosc",
-        NULL,
-        (H5Z_set_local_func_t)(blosc_set_local),
-        (H5Z_func_t)(blosc_filter)
-    };
-#else
     H5Z_class_t filter_class = {
         H5Z_CLASS_T_VERS,
         (H5Z_filter_t)(FILTER_BLOSC),
@@ -80,7 +52,6 @@ int register_blosc(char **version, char **date){
         (H5Z_set_local_func_t)(blosc_set_local),
         (H5Z_func_t)(blosc_filter)
     };
-#endif
 
     retval = H5Zregister(&filter_class);
     if(retval<0){
@@ -203,18 +174,10 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         complist = blosc_list_compressors();
 	code = blosc_compcode_to_compname(compcode, &compname);
 	if (code == -1) {
-#if H5Epush_vers == 2
             PUSH_ERR("blosc_filter", H5E_CALLBACK,
                      "this Blosc library does not have support for "
                      "the '%s' compressor, but only for: %s",
                      compname, complist);
-#else
-	    sprintf(errmsg, "this Blosc library does not have support for "
-                    "the '%s' compressor, but only for: %s",
-		    compname, complist);
-            PUSH_ERR("blosc_filter", H5E_CALLBACK, errmsg);
-            goto failed;
-#endif
 	}
     }
 
