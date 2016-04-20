@@ -57,3 +57,4 @@ Helpful Links
 
 .. _github: https://github.com/PyTables/PyTables
 .. _`mailing list`: https://groups.google.com/group/pytables-users
+.. _`NumFOCUS project`: http://www.numfocus.org/open-source-projects.html
