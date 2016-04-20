@@ -171,7 +171,7 @@ class Filters(object):
 
     .. attribute:: bitshuffle
 
-        Whether the *BitShuffle* filter is active or not.
+        Whether the *BitShuffle* filter is active or not (Blosc only).
 
     """
 
