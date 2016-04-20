@@ -22,6 +22,18 @@ resources so that they take much less space (between a factor 3 to 5,
 and more if the data is compressible) than other solutions, like for
 example, relational or object oriented databases.
 
+State-of-the-art compression
+----------------------------
+
+PyTables comes with out-of-box support for the `Blosc compressor
+<http://www.blosc.org>`_.  This allows for extremely high compression
+speed, while keeping decent compression ratios.  By doing so, I/O can
+be accelerated by a large extent, and you may end achieving higher
+performance than the bandwidth provided by your I/O subsystem.  See
+the `Tuning The Chunksize section of the Optimization Tips chapter
+<http://www.pytables.org/usersguide/optimization.html#fine-tuning-the-chunksize>`_
+of user documentation for some benchmarks.
+
 Not a RDBMS replacement
 -----------------------
 
@@ -52,40 +64,32 @@ Arrays
 
 There are other useful objects like arrays, enlargeable arrays or
 variable length arrays that can cope with different missions on your
-project. Also, quite a bit of effort has been invested to make
-browsing the hierarchical data structure a pleasant
-experience. PyTables implements a few easy-to-use methods for
-browsing. See the documentation (located in the ``doc/`` directory)
-for more details.
+project.
 
 Easy to use
 -----------
 
 One of the principal objectives of PyTables is to be user-friendly.
-To that end, special Python features like generators, slots and
-metaclasses in new-brand classes have been used. In addition,
-iterators has been implemented were context was appropriate so as to
-enable the interactive work to be as productive as possible. For these
-reasons, you will need to use Python 2.6 or higher to take advantage of
-PyTables.
+In addition, many different iterators have been implemented so as to
+enable the interactive work to be as productive as possible.
 
 Platforms
 ---------
 
 We are using Linux on top of Intel32 and Intel64 boxes as the main
 development platforms, but PyTables should be easy to compile/install
-on other UNIX or Windows machines.  Nonetheless, caveat emptor: more
-testing is needed to achieve complete portability, we'd appreciate
-input on how it compiles and installs on your platform.
+on other UNIX or Windows machines.
 
 Compiling
 ---------
 
 To compile PyTables you will need, at least, a recent version of HDF5
 (C flavor) library, the Zlib compression library and the NumPy and
-Numexpr packages. Besides, if you want to take advantage of the LZO
-and bzip2 compression libraries support you will also need recent
-versions of them. LZO and bzip2 compression libraries are, however,
+Numexpr packages. Besides, it comes with support for the Blosc, LZO
+and bzip2 compressor libraries. Blosc is mandatory, but PyTables comes
+with Blosc sources so, although it si recommended to have Blosc
+installed in your system, you don't absolutely need to install it
+separately.  LZO and bzip2 compression libraries are, however,
 optional.
 
 Installation
@@ -102,18 +106,20 @@ Installation
 
        $ sudo apt-get install libhdf5-serial-dev
 
-   If you have the HDF5 library in some non-standard location (that is: where
-   the compiler and the linker can't find it) you can use the environment
-   variable `HDF5_DIR` to specify its location. See `the manual
-   <http://www.pytables.org/usersguide/installation.html>`_ for more details.
+   If you have the HDF5 library in some non-standard location (that
+   is, where the compiler and the linker can't find it) you can use
+   the environment variable `HDF5_DIR` to specify its location. See
+   `the manual
+   <http://www.pytables.org/usersguide/installation.html>`_ for more
+   details.
 
-2. Make sure your python installation is in good health, that is you have the
-   package installer pip and it works ok. Check the `Python Packaging User
-   Guide <https://packaging.python.org/en/latest/installing.html>`_ for
-   further instructions.
+3. For stability (and performance too) reasons, it is strongly
+   recommended that you install the C-Blosc library separately,
+   although you might want PyTables to use its internal C-Blosc
+   sources.
 
-3. Optionally, consider to install the LZO compression library and/or the
-   bzip2 compression library.
+3. Optionally, consider to install the LZO compression library and/or
+   the bzip2 compression library.
 
 4. Install!::
 
