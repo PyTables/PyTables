@@ -204,7 +204,7 @@ cdef class Table(Leaf):
                                       self.nrows, self.chunkshape[0],
                                       fill_data,
                                       self.filters.complevel, encoded_complib,
-                                      self.filters.shuffle,
+                                      self.filters.shuffle_bitshuffle,
                                       self.filters.fletcher32,
                                       data)
     if self.dataset_id < 0:

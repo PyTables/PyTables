@@ -119,7 +119,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
 
     /* Limit large typesizes (they are pretty inneficient to shuffle
        and, in addition, Blosc does not handle typesizes larger than
-       blocksizes). */
+       256 bytes). */
     if (basetypesize > BLOSC_MAX_TYPESIZE) basetypesize = 1;
     values[2] = basetypesize;
 
@@ -166,7 +166,16 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         clevel = cd_values[4];        /* The compression level */
     }
     if (cd_nelmts >= 6) {
-        doshuffle = cd_values[5];     /* Shuffle? */
+        doshuffle = cd_values[5];  /* BLOSC_SHUFFLE, BLOSC_BITSHUFFLE */
+	/* bitshuffle is only meant for production in >= 1.8.0 */
+#if ( (BLOSC_VERSION_MAJOR <= 1) && (BLOSC_VERSION_MINOR < 8) )
+	if (doshuffle == BLOSC_BITSHUFFLE) {
+	  PUSH_ERR("blosc_filter", H5E_CALLBACK,
+		   "this Blosc library version does not have support for "
+		   "the bitshuffle filter.  Please update to >= 1.8");
+	  goto failed;
+	}
+#endif
     }
     if (cd_nelmts >= 7) {
         compcode = cd_values[6];     /* The Blosc compressor used */
@@ -178,6 +187,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
                      "this Blosc library does not have support for "
                      "the '%s' compressor, but only for: %s",
                      compname, complist);
+            goto failed;
 	}
     }
 
@@ -198,7 +208,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         outbuf_size = (*buf_size);
         outbuf = malloc(outbuf_size);
 
-        if(outbuf == NULL){
+        if (outbuf == NULL){
             PUSH_ERR("blosc_filter", H5E_CALLBACK,
                      "Can't allocate compression buffer");
             goto failed;

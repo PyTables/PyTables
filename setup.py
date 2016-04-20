@@ -623,11 +623,11 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
                 "Unsupported Blosc version installed! Blosc %s+ required. "
                 "Found version %s.  Using internal Blosc sources." % (
                     min_blosc_version, blosc_version))
-        if blosc_version < min_blosc_bitshuffle:
+        if blosc_version < min_blosc_bitshuffle_version:
             print_warning(
                 "This Blosc version does not support the BitShuffle filter. "
                 "Minimum desirable version is %s.  Found version: %s" % (
-                min_blosc_bitshuffle, blosc_version))
+                min_blosc_bitshuffle_version, blosc_version))
 
     if not rundir:
         loc = {

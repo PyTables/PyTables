@@ -14,7 +14,7 @@ from tables import (
 )
 from tables.tests import common
 from tables.tests.common import allequal
-from tables.tests.common import unittest
+from tables.tests.common import unittest, blosc_version
 from tables.tests.common import PyTablesTestCase as TestCase
 from six.moves import range
 
@@ -33,6 +33,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     compress = 0
     complib = "zlib"  # Default compression library
     shuffle = 0
+    bitshuffle = 0
     fletcher32 = 0
     reopen = 1  # Tells whether the file has to be reopened on each test or not
 
@@ -59,6 +60,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         filters = tables.Filters(complevel=self.compress,
                                  complib=self.complib,
                                  shuffle=self.shuffle,
+                                 bitshuffle=self.bitshuffle,
                                  fletcher32=self.fletcher32)
         carray = self.h5file.create_carray(group, 'carray1',
                                            atom=atom, shape=self.shape,
@@ -667,6 +669,21 @@ class BloscShuffleTestCase(BasicTestCase):
     chunkshape = (100, 100)
     start = 3
     stop = 10
+    step = 7
+
+
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf(blosc_version < common.min_blosc_bitshuffle_version,
+                 'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
+class BloscBitShuffleTestCase(BasicTestCase):
+    shape = (20, 30)
+    compress = 1
+    bitshuffle = 1
+    complib = "blosc"
+    chunkshape = (200, 100)
+    start = 2
+    stop = 11
     step = 7
 
 
@@ -2727,6 +2744,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ZlibShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(BloscComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscShuffleTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscBitShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(BloscFletcherTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBloscLZTestCase))
         theSuite.addTest(unittest.makeSuite(BloscLZ4TestCase))

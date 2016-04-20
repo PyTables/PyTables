@@ -22,6 +22,7 @@ import locale
 import platform
 import tempfile
 import warnings
+from distutils.version import LooseVersion
 
 from pkg_resources import resource_filename
 
@@ -38,6 +39,11 @@ import numexpr
 
 import tables
 from tables.utils import detect_number_of_cores
+from tables.req_versions import min_blosc_bitshuffle_version
+
+hdf5_version = LooseVersion(tables.hdf5_version)
+blosc_version = LooseVersion(tables.which_lib_version("blosc")[1])
+
 
 verbose = False
 """Show detailed output of the testing process."""
@@ -120,6 +126,10 @@ def print_versions():
             "%s (%s)" % (k, v[1]) for k, v in sorted(blosc_cinfo.items())
         ]
         print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
+        blosc_finfo = ['shuffle']
+        if tinfo[1] >= min_blosc_bitshuffle_version:
+            blosc_finfo.append('bitshuffle')
+        print("Blosc filters:       %s" % ', '.join(blosc_finfo))
     try:
         from Cython import __version__ as cython_version
         print('Cython version:      %s' % cython_version)

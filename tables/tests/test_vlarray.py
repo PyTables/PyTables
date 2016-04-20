@@ -14,7 +14,7 @@ from tables import (
 )
 from tables.tests import common
 from tables.tests.common import allequal
-from tables.tests.common import unittest, test_filename
+from tables.tests.common import unittest, test_filename, blosc_version
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.utils import byteorders
 from six.moves import range
@@ -28,6 +28,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     compress = 0
     complib = "zlib"
     shuffle = 0
+    bitshuffle = 0
     fletcher32 = 0
     flavor = "numpy"
 
@@ -44,6 +45,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         filters = tables.Filters(complevel=self.compress,
                                  complib=self.complib,
                                  shuffle=self.shuffle,
+                                 bitshuffle=self.bitshuffle,
                                  fletcher32=self.fletcher32)
         vlarray = self.h5file.create_vlarray(group, 'vlarray1',
                                              atom=Int32Atom(),
@@ -117,6 +119,10 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         if self.shuffle != vlarray.filters.shuffle and common.verbose:
             print("Error in shuffle. Class:", self.__class__.__name__)
             print("self, vlarray:", self.shuffle, vlarray.filters.shuffle)
+        self.assertEqual(self.shuffle, vlarray.filters.shuffle)
+        if self.bitshuffle != vlarray.filters.bitshuffle and common.verbose:
+            print("Error in shuffle. Class:", self.__class__.__name__)
+            print("self, vlarray:", self.bitshuffle, vlarray.filters.bitshuffle)
         self.assertEqual(self.shuffle, vlarray.filters.shuffle)
         if self.fletcher32 != vlarray.filters.fletcher32 and common.verbose:
             print("Error in fletcher32. Class:", self.__class__.__name__)
@@ -278,6 +284,14 @@ class BloscShuffleComprTestCase(BasicTestCase):
     shuffle = 1
     complib = "blosc"
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf(blosc_version < common.min_blosc_bitshuffle_version,
+                 'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
+class BloscBitShuffleComprTestCase(BasicTestCase):
+    compress = 9
+    bitshuffle = 1
+    complib = "blosc"
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
@@ -4342,6 +4356,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscShuffleComprTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscBitShuffleComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBloscLZComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscLZ4ComprTestCase))
         theSuite.addTest(unittest.makeSuite(BloscLZ4HCComprTestCase))

@@ -21,5 +21,5 @@ min_numpy_version = LooseVersion('1.7.1')
 min_numexpr_version = LooseVersion('2.5.2')
 min_hdf5_version = LooseVersion('1.8.4')
 min_blosc_version = LooseVersion("1.3.0")
-min_blosc_bitshuffle = LooseVersion("1.8.0")
+min_blosc_bitshuffle_version = LooseVersion("1.8.0")
 """The minumum Blosc version where BitShuffle can be used safely."""
