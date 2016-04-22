@@ -215,6 +215,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         }
 
 #if ( (BLOSC_VERSION_MAJOR <= 1) && ((BLOSC_VERSION_MINOR < 5) || (BLOSC_VERSION_MINOR >= 8 )) )
+        blosc_set_compressor(compname);
         status = blosc_compress(clevel, doshuffle, typesize, nbytes,
                                 *buf, outbuf, nbytes);
 #else
