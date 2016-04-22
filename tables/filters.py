@@ -367,8 +367,8 @@ class Filters(object):
                 "BitShuffle can only be used inside Blosc")
 
         if self.shuffle and self.bitshuffle:
-            raise ValueError(
-                "Shuffle and BitShuffle cannot be active at the same time")
+            # BitShuffle has priority in case both are specified
+            self.shuffle = False
 
         if self.bitshuffle and blosc_version < min_blosc_bitshuffle_version:
             raise ValueError(
