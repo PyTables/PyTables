@@ -24,6 +24,12 @@ more developers, testers, and users.  If you are interested in being
 involved with this project, please contact us via `github`_ or the
 `mailing list`_.
 
+.. image:: images/NumFocusSponsoredStamp.png
+   :alt: NumFocus Sponsored Stamp
+   :align: center
+   :width: 300
+   :target: http://www.numfocus.org
+
 Since August 2015, PyTables is a `NumFOCUS project`_, which means that
 your donations are fiscally sponsored under the NumFOCUS umbrella. Please
 consider donating to NumFOCUS.
