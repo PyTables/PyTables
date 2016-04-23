@@ -219,6 +219,9 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         status = blosc_compress(clevel, doshuffle, typesize, nbytes,
                                 *buf, outbuf, nbytes);
 #else
+        /* Probably the bug affecting blosc_decompress() (see below)
+	   was not applicable to blosc_compress(), but let's err on
+	   the safe side and use blosc_compress_ctx() before 1.8.0 */
         status = blosc_compress_ctx(clevel, doshuffle, typesize, nbytes,
                                     *buf, outbuf, nbytes, compname, 0, 1);
 #endif
