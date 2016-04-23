@@ -220,12 +220,14 @@ your machine. In general, it is a good idea to set this to the number of
 cores in your machine or, when your machine has many of them (e.g. > 8),
 perhaps stay at 8 at maximum.  In general, 4 threads is a good tradeoff."""
 
-MAX_BLOSC_THREADS = 1
+MAX_BLOSC_THREADS = 1    # 1 is safe for concurrency
 """The maximum number of threads that PyTables should use internally in
 Blosc.  If `None`, it is automatically set to the number of cores in
-your machine. In general, it is a good idea to set this to the number of
-cores in your machine or, when your machine has many of them (e.g. > 8),
-perhaps stay at 8 at maximum.  In general, 4 threads is a good tradeoff."""
+your machine.  For applications that use several PyTables instances
+concurrently and so as to avoid locking problems, the recommended value
+is 1.  In other cases a value of 2 or 4 could make sense.
+
+"""
 
 USER_BLOCK_SIZE = 0
 """Sets the user block size of a file.

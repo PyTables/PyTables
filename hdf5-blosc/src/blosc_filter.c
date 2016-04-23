@@ -219,12 +219,6 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         status = blosc_compress(clevel, doshuffle, typesize, nbytes,
                                 *buf, outbuf, nbytes);
 #else
-        /* From Blosc 1.5 to 1.8, there was a bug consiting in not
-	   holding not an internal global lock anymore during
-	   blosc_decompress(), creating problems when multiple
-	   instances of Blosc were launched, so do not try to run in
-	   multithreading mode so as to not interfering with other
-	   possible threads launched by the main Python application */
         status = blosc_compress_ctx(clevel, doshuffle, typesize, nbytes,
                                     *buf, outbuf, nbytes, compname, 0, 1);
 #endif
@@ -263,10 +257,12 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
 #if ( (BLOSC_VERSION_MAJOR <= 1) && ((BLOSC_VERSION_MINOR < 5) || (BLOSC_VERSION_MINOR >= 8 )) )
 	status = blosc_decompress(*buf, outbuf, outbuf_size);
 #else
-        /* Starting from Blosc 1.5 on, there is not an internal global
-	   lock anymore, so do not try to run in multithreading mode
-	   so as to not interfering with other possible threads
-	   launched by the main Python application */
+        /* From Blosc 1.5 to 1.8, there was a bug consiting in not
+	   holding not an internal global lock anymore during
+	   blosc_decompress(), creating problems when multiple
+	   instances of Blosc were launched, so do not try to run in
+	   multithreading mode so as to not interfering with other
+	   possible threads launched by the main Python application */
         status = blosc_decompress_ctx(*buf, outbuf, outbuf_size, 1);
 #endif
 

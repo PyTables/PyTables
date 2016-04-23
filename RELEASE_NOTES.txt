@@ -19,14 +19,17 @@ Improvements
   Thanks to Ehsan Azar
 - It is now also possible to use HDF5 with the new shared library naming
   scheme (>= 1.8.10, hdf5.dll instead of hdf5dll.dll) on Windows (:issue:`540`).
+- Get rid of the `-native` compile flag (closes :issue:`503`)
+- The default number of threads to run numexpr (MAX_NUMEXPR_THREADS)
+  internally has been raised from 2 to 4.  This is because we are in
+  2016 and 4 core configurations are becoming common.
 - Internal Blosc version updated to 1.8.1 (closes :issue:`541`)
 - Full BitShuffle support for new Blosc versions (>= 1.8).
-- Get rid of the `-native` compile flag (closes :issue:`503`)
-- The default number of threads to run Blosc and numexpr internally has
-  been raised from 2 to 4.  This is because we are in 2016 and 4 core
-  configurations are becoming common.  (Remember that you can always set
-  the MAX_NUMEXPR_THREADS and MAX_BLOSC_THREADS in your local
-  parameters).
+- In order to avoid locking issues when using PyTables concurrently in
+  several process, MAX_BLOSC_THREADS has been set to 1 by default.  If
+  you are running PyTables in one single process, you may want to
+  experiment if higher values (like 2 or 4) bring better performance for
+  you.
 
 
 Bugs fixed
