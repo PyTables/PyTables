@@ -260,7 +260,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
           goto failed;
         }
 
-#if ( (BLOSC_VERSION_MAJOR <= 1) && (BLOSC_VERSION_MINOR < 5) )
+#if ( (BLOSC_VERSION_MAJOR <= 1) && ((BLOSC_VERSION_MINOR < 5) || (BLOSC_VERSION_MINOR >= 8 )) )
 	status = blosc_decompress(*buf, outbuf, outbuf_size);
 #else
         /* Starting from Blosc 1.5 on, there is not an internal global
