@@ -32,14 +32,31 @@ to see the message usage:
 
 .. code-block:: bash
 
-    usage: ptdump [-d] [-v] [-a] [-c] [-i] [-R start,stop,step] [-h] file[:nodepath]
-        -d -- Dump data information on leaves
-        -v -- Dump more metainformation on nodes
-        -a -- Show attributes in nodes (only useful when -v or -d are active)
-        -c -- Show info of columns in tables (only useful when -v or -d are active)
-        -i -- Show info of indexed columns (only useful when -v or -d are active)
-        -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
-        -h -- Print help on usage
+    usage: ptdump [-h] [-v] [-d] [-a] [-s] [-c] [-i] [-R RANGE]
+                  filename[:nodepath]
+
+    The ptdump utility allows you look into the contents of your PyTables files.
+    It lets you see not only the data but also the metadata (that is, the
+    *structure* and additional information in the form of *attributes*).
+
+    positional arguments:
+      filename[:nodepath]   name of the HDF5 file to dump
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -v, --verbose         dump more metainformation on nodes
+      -d, --dump            dump data information on leaves
+      -a, --showattrs       show attributes in nodes (only useful when -v or -d
+                            are active)
+      -s, --sort            sort output by node name
+      -c, --colinfo         show info of columns in tables (only useful when -v or
+                            -d are active)
+      -i, --idxinfo         show info of indexed columns (only useful when -v or
+                            -d are active)
+      -R RANGE, --range RANGE
+                            select a RANGE of rows (in the form "start,stop,step")
+                            during the copy of *all* the leaves. Default values
+                            are "None,None,1", which means a copy of all the rows.
 
 Read on for a brief introduction to this utility.
 
@@ -194,48 +211,87 @@ to see the message usage:
 
 .. code-block:: bash
 
-    usage: ptrepack [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-create-sysattrs] [--dont-copy-userattrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--checkCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
-        -h -- Print usage message.
-        -v -- Show more information.
-        -o -- Overwrite destination file.
-        -R RANGE -- Select a RANGE of rows (in the form "start,stop,step")
-            during the copy of \*all* the leaves.  Default values are
-            "None,None,1", which means a copy of all the rows.
-        --non-recursive -- Do not do a recursive copy. Default is to do it.
-        --dest-title=title -- Title for the new file (if not specified,
-            the source is copied).
-        --dont-create-sysattrs -- Do not create sys attrs (default is to do it).
-        --dont-copy-userattrs -- Do not copy the user attrs (default is to do it).
-        --overwrite-nodes -- Overwrite destination nodes if they exist. Default is
-            to not overwrite them.
-        --complevel=(0-9) -- Set a compression level (0 for no compression, which
-            is the default).
-        --complib=lib -- Set the compression library to be used during the copy.
-            lib can be set to "zlib", "lzo", "bzip2" or "blosc".
-            Additional compressors for Blosc like "blosc:blosclz",
-            "blosc:lz4", "blosc:lz4hc", "blosc:snappy" and
-            "blosc:zlib", are supported too.  Defaults to "zlib".
-        --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
-            if complevel>0).
-        --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter
-            (not active by default).
-        --keep-source-filters -- Use the original filters in source files. The
-            default is not doing that if any of --complevel, --complib, --shuffle
-            or --fletcher32 option is specified.
-        --chunkshape=("keep"\|"auto"\|int|tuple) -- Set a chunkshape.  A value
-            of "auto" computes a sensible value for the chunkshape of the
-            leaves copied.  The default is to "keep" the original value.
-        --upgrade-flavors -- When repacking PyTables 1.x files, the flavor of
-            leaves will be unset. With this, such a leaves will be serialized
-            as objects with the internal flavor ('numpy' for 2.x series).
-        --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
-            default is to regenerate old indexes as they are found.
-        --sortby=column -- Do a table copy sorted by the index in "column".
-            For reversing the order, use a negative value in the "step" part of
-            "RANGE" (see "-R" flag).  Only applies to table objects.
-        --checkCSI -- Force the check for a CSI index for the --sortby column.
-        --propindexes -- Propagate the indexes existing in original tables.  The
-            default is to not propagate them.  Only applies to table objects.
+    usage: ptrepack [-h] [-v] [-o] [-R RANGE] [--non-recursive]
+                    [--dest-title TITLE] [--dont-create-sysattrs]
+                    [--dont-copy-userattrs] [--overwrite-nodes]
+                    [--complevel COMPLEVEL]
+                    [--complib {zlib,lzo,bzip2,blosc,blosc:blosclz,blosc:lz4,blosc:lz4hc,blosc:snappy,blosc:zlib}]
+                    [--shuffle {0,1}] [--bitshuffle {0,1}] [--fletcher32 {0,1}]
+                    [--keep-source-filters] [--chunkshape CHUNKSHAPE]
+                    [--upgrade-flavors] [--dont-regenerate-old-indexes]
+                    [--sortby COLUMN] [--checkCSI] [--propindexes]
+                    sourcefile:sourcegroup destfile:destgroup
+
+    This utility is very powerful and lets you copy any leaf, group or complete
+    subtree into another file. During the copy process you are allowed to change
+    the filter properties if you want so. Also, in the case of duplicated
+    pathnames, you can decide if you want to overwrite already existing nodes on
+    the destination file. Generally speaking, ptrepack can be useful in may
+    situations, like replicating a subtree in another file, change the filters in
+    objects and see how affect this to the compression degree or I/O performance,
+    consolidating specific data in repositories or even *importing* generic HDF5
+    files and create true PyTables counterparts.
+
+    positional arguments:
+      sourcefile:sourcegroup
+                            source file/group
+      destfile:destgroup    destination file/group
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -v, --verbose         show verbose information
+      -o, --overwrite       overwrite destination file
+      -R RANGE, --range RANGE
+                            select a RANGE of rows (in the form "start,stop,step")
+                            during the copy of *all* the leaves. Default values
+                            are "None,None,1", which means a copy of all the rows.
+      --non-recursive       do not do a recursive copy. Default is to do it
+      --dest-title TITLE    title for the new file (if not specified, the source
+                            is copied)
+      --dont-create-sysattrs
+                            do not create sys attrs (default is to do it)
+      --dont-copy-userattrs
+                            do not copy the user attrs (default is to do it)
+      --overwrite-nodes     overwrite destination nodes if they exist. Default is
+                            to not overwrite them
+      --complevel COMPLEVEL
+                            set a compression level (0 for no compression, which
+                            is the default)
+      --complib {zlib,lzo,bzip2,blosc,blosc:blosclz,blosc:lz4,blosc:lz4hc,blosc:snappy,blosc:zlib}
+                            set the compression library to be used during the
+                            copy. Defaults to zlib
+      --shuffle {0,1}       activate or not the shuffle filter (default is active
+                            if complevel > 0)
+      --bitshuffle {0,1}    activate or not the bitshuffle filter (not active by
+                            default)
+      --fletcher32 {0,1}    whether to activate or not the fletcher32 filter (not
+                            active by default)
+      --keep-source-filters
+                            use the original filters in source files. The default
+                            is not doing that if any of --complevel, --complib,
+                            --shuffle --bitshuffle or --fletcher32 option is
+                            specified
+      --chunkshape CHUNKSHAPE
+                            set a chunkshape. Possible options are: "keep" |
+                            "auto" | int | tuple. A value of "auto" computes a
+                            sensible value for the chunkshape of the leaves
+                            copied. The default is to "keep" the original value
+      --upgrade-flavors     when repacking PyTables 1.x or PyTables 2.x files, the
+                            flavor of leaves will be unset. With this, such a
+                            leaves will be serialized as objects with the internal
+                            flavor ('numpy' for 3.x series)
+      --dont-regenerate-old-indexes
+                            disable regenerating old indexes. The default is to
+                            regenerate old indexes as they are found
+      --sortby COLUMN       do a table copy sorted by the index in "column". For
+                            reversing the order, use a negative value in the
+                            "step" part of "RANGE" (see "-r" flag). Only applies
+                            to table objects
+      --checkCSI            Force the check for a CSI index for the --sortby
+                            column
+      --propindexes         propagate the indexes existing in original tables. The
+                            default is to not propagate them. Only applies to
+                            table objects
 
 Read on for a brief introduction to this utility.
 

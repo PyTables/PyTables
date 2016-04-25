@@ -169,7 +169,7 @@ Group and Table objects we have just created. If you want more information,
 just type the variable containing the File instance::
 
     >>> h5file
-    File(filename='tutorial1.h5', title='Test file', mode='w', root_uep='/', filters=Filters(complevel=0, shuffle=False, fletcher32=False))
+    File(filename='tutorial1.h5', title='Test file', mode='w', root_uep='/', filters=Filters(complevel=0, shuffle=False, bitshuffle=False, fletcher32=False))
     / (RootGroup) 'Test file'
     /detector (Group) 'Detector information'
     /detector/readout (Table(0,)) 'Readout example'

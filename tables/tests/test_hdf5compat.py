@@ -291,8 +291,8 @@ class SzipTestCase(common.TestFileMixin, TestCase):
         self.assertTrue('/dset_szip' in self.h5file)
 
         arr = self.h5file.get_node('/dset_szip')
-        filters = ("Filters(complib='szip', shuffle=False, fletcher32=False, "
-                   "least_significant_digit=None)")
+        filters = ("Filters(complib='szip', shuffle=False, bitshuffle=False, "
+                   "fletcher32=False, least_significant_digit=None)")
         self.assertEqual(repr(arr.filters), filters)
 
 

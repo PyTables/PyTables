@@ -18,13 +18,12 @@ import sys
 import hashlib
 import tempfile
 import warnings
-from distutils.version import LooseVersion
 
 import numpy
 
 import tables
 from tables import (
-    Group, Leaf, Table, Array, hdf5_version, Filters,
+    Group, Leaf, Table, Array, Filters,
     StringAtom, Int16Atom, Int64Atom, Float32Atom, Float64Atom,
     Col, StringCol, IntCol, Int16Col, FloatCol, Float32Col,
 )
@@ -32,12 +31,10 @@ from tables.parameters import MAX_COLUMNS
 from tables.hdf5extension import HAVE_DIRECT_DRIVER, HAVE_WINDOWS_DRIVER
 from tables.utils import quantize
 from tables.tests import common
-from tables.tests.common import unittest
+from tables.tests.common import unittest, hdf5_version, blosc_version
 from tables.tests.common import PyTablesTestCase as TestCase
 from six.moves import range
 
-
-hdf5_version = LooseVersion(hdf5_version)
 
 
 class Record(tables.IsDescription):
@@ -658,6 +655,16 @@ class FiltersCaseBloscZlib(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:zlib")
     gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zlib")
     open_kwargs = dict(filters=filters)
+
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf(blosc_version < common.min_blosc_bitshuffle_version,
+                 'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
+class FiltersCaseBloscBitShuffle(FiltersTreeTestCase):
+    filters = Filters(shuffle=False, complevel=1, complib="blosc:blosclz")
+    gfilters = Filters(complevel=5, shuffle=False, bitshuffle=True, complib="blosc:blosclz")
+    open_kwargs = dict(filters=filters)
+    print("version:", tables.which_lib_version("blosc")[1])
 
 
 class CopyGroupTestCase(common.TempFileMixin, TestCase):
@@ -2546,6 +2553,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4HC))
         theSuite.addTest(unittest.makeSuite(FiltersCaseBloscSnappy))
         theSuite.addTest(unittest.makeSuite(FiltersCaseBloscZlib))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscBitShuffle))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
         theSuite.addTest(unittest.makeSuite(CopyFileCase1))

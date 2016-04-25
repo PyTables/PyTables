@@ -785,6 +785,17 @@ deactivated when compression is off (which is the default, as you already
 should know). Of course, you can deactivate it if you want, but this is not
 recommended.
 
+.. note::
+
+   Since PyTables 3.3, a new *bitshuffle* filter for Blosc compressor
+   has been added.  Contrarily to *shuffle* that shuffles bytes,
+   *bitshuffle* shuffles the chunk data at bit level which **could**
+   improve compression ratios at the expense of some speed penalty.
+   Look at the :ref:`FiltersClassDescr` documentation on how to
+   activate bitshuffle and experiment with it so as to decide if it
+   can be useful for you.
+
+
 So, how does this mysterious filter exactly work? From the HDF5 reference
 manual::
 

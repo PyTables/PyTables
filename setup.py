@@ -97,7 +97,6 @@ if sys.version_info < min_python_version:
 print("* Using Python %s" % sys.version.splitlines()[0])
 
 # Minumum equired versions for numpy, numexpr and HDF5
-min_hdf5_version = None
 exec(open(os.path.join('tables', 'req_versions.py')).read())
 
 
@@ -349,7 +348,27 @@ def get_hdf5_version(headername):
     if (major_version == -1 or minor_version == -1 or
             release_version == -1):
         exit_with_error("Unable to detect HDF5 library version!")
-    return (major_version, minor_version, release_version)
+    return "%s.%s.%s" % (major_version, minor_version, release_version)
+
+# Get the Blosc version provided the 'blosc.h' header
+def get_blosc_version(headername):
+    major_version = -1
+    minor_version = -1
+    release_version = -1
+    for line in open(headername):
+        if 'BLOSC_VERSION_MAJOR' in line:
+            major_version = int(re.split("\s*", line)[2])
+        if 'BLOSC_VERSION_MINOR' in line:
+            minor_version = int(re.split("\s*", line)[2])
+        if 'BLOSC_VERSION_RELEASE' in line:
+            release_version = int(re.split("\s*", line)[2])
+        if (major_version != -1 and minor_version != -1 and
+                release_version != -1):
+            break
+    if (major_version == -1 or minor_version == -1 or
+            release_version == -1):
+        exit_with_error("Unable to detect Blosc library version!")
+    return "%s.%s.%s" % (major_version, minor_version, release_version)
 
 
 _cp = convert_path
@@ -538,12 +557,11 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
         hdf5_version = get_hdf5_version(hdf5_header)
         if hdf5_version < min_hdf5_version:
             exit_with_error(
-                "Unsupported HDF5 version! HDF5 v%s+ required. "
-                "Found version v%s" % (
-                    '.'.join(map(str, min_hdf5_version)),
-                    '.'.join(map(str, hdf5_version))))
+                "Unsupported HDF5 version! HDF5 %s+ required. "
+                "Found version %s" % (min_hdf5_version, hdf5_version))
 
-        if os.name == 'nt' and hdf5_version < (1, 8, 10):
+        if os.name == 'nt' and hdf5_version < "1.8.10":
+            # Change in DLL naming happened in 1.8.10
             hdf5_old_dll_name = 'hdf5dll' if not debug else 'hdf5ddll'
             package.library_name = hdf5_old_dll_name
             package.runtime_name = hdf5_old_dll_name
@@ -596,6 +614,21 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
         optional_libs.append(package.tag)
         def_macros.append(('HAVE_%s_LIB' % package.tag, 1))
 
+    if hdrdir and package.tag == 'BLOSC':
+        blosc_header = os.path.join(hdrdir, "blosc.h")
+        blosc_version = get_blosc_version(blosc_header)
+        if blosc_version < min_blosc_version:
+            optional_libs.pop()  # Remove Blosc from the discovered libs
+            print_warning(
+                "Unsupported Blosc version installed! Blosc %s+ required. "
+                "Found version %s.  Using internal Blosc sources." % (
+                    min_blosc_version, blosc_version))
+        if blosc_version < min_blosc_bitshuffle_version:
+            print_warning(
+                "This Blosc version does not support the BitShuffle filter. "
+                "Minimum desirable version is %s.  Found version: %s" % (
+                min_blosc_bitshuffle_version, blosc_version))
+
     if not rundir:
         loc = {
             'posix': "the default library paths.",
@@ -626,6 +659,7 @@ if lzo2_enabled:
     lzo_package = lzo2_package
 else:
     lzo_package = lzo1_package
+
 
 # ------------------------------------------------------------------------------
 

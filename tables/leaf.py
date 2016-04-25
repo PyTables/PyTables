@@ -295,6 +295,8 @@ class Leaf(Node):
         if self.filters.complevel:
             if self.filters.shuffle:
                 filters += ", shuffle"
+            if self.filters.bitshuffle:
+                filters += ", bitshuffle"
             filters += ", %s(%s)" % (self.filters.complib,
                                      self.filters.complevel)
         return "%s (%s%s%s) %r" % \
