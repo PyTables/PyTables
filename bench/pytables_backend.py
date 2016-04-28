@@ -19,7 +19,16 @@ class PyTables_DB(DB):
         self.filename += '-' + kind
         if docompress:
             self.filename += '-' + complib + str(docompress)
-        self.filename = datadir + '/' + self.filename + '.h5'
+        self.datadir = datadir
+        if not os.path.isdir(self.datadir):
+            if not os.path.isabs(self.datadir):
+                dir_path = os.path.join(os.getcwd(), self.datadir)
+            else:
+                dir_path = self.datadir
+            os.makedirs(dir_path)
+            self.datadir = dir_path
+            print("Created {}.".format(self.datadir))
+        self.filename = self.datadir + '/' + self.filename + '.h5'
         # The chosen filters
         self.filters = tables.Filters(complevel=self.docompress,
                                       complib=self.complib,
@@ -65,9 +74,12 @@ class PyTables_DB(DB):
 
     def index_col(self, con, column, kind, optlevel, verbose):
         col = getattr(con.root.table.cols, column)
+        tmp_dir = os.path.join(self.datadir, "scratch2")
+        if not os.path.isdir(tmp_dir):
+            os.makedirs(tmp_dir)
+            print("Created scratch space.")
         col.create_index(kind=kind, optlevel=optlevel, filters=self.filters,
-                         tmp_dir="/scratch2/faltet",
-                         _verbose=verbose, _blocksizes=None)
+                         tmp_dir=tmp_dir, _verbose=verbose, _blocksizes=None)
 #                       _blocksizes=(2**27, 2**22, 2**15, 2**7))
 #                       _blocksizes=(2**27, 2**22, 2**14, 2**6))
 #                       _blocksizes=(2**27, 2**20, 2**13, 2**5),
