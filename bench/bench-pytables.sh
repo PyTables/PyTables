@@ -15,7 +15,7 @@ for idxtype in ultralight light medium full; do
   for optimlvl in 0 3 6 9; do
     for compropt in '' '-z1 -lzlib' '-z1 -llzo' ; do
     #for compropt in '-z1 -llzo' ; do
-      rm -f data.nobackup/*  # Atencio: esta correctament posat?
+      rm -rf data.nobackup/*  # Atencio: esta correctament posat?
       #for mode in -c '-i -s float' ; do
       for mode in -c '-i' ; do
         for size in $sizes ; do
@@ -25,3 +25,4 @@ for idxtype in ultralight light medium full; do
     done
   done
 done
+rm -rf data.nobackup
