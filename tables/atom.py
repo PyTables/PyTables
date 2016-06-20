@@ -1119,7 +1119,8 @@ class VLStringAtom(_BufferedAtom):
     base = UInt8Atom()
 
     def _tobuffer(self, object_):
-        if not isinstance(object_, six.string_types):
+        if not isinstance(object_, six.string_types) and \
+                not isinstance(object_, six.binary_type):
             raise TypeError("object is not a string: %r" % (object_,))
         return numpy.string_(object_)
 
