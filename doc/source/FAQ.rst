@@ -562,7 +562,7 @@ uninstall `Numeric`.
 .. _bzip2: http://www.bzip.org
 .. _Blosc: http://blosc.pytables.org
 .. _`zlib`: http://zlib.net
-.. _numexpr: http://code.google.com/p/numexpr
+.. _numexpr: https://github.com/pydata/numexpr
 .. _`FAQ of h5py`: http://docs.h5py.org/en/latest/faq.html#what-s-the-difference-between-h5py-and-pytables
 .. _`issue tracker`: https://github.com/PyTables/PyTables/issues
 .. _GitHub: https://github.com
