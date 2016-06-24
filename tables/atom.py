@@ -1074,15 +1074,25 @@ class VLStringAtom(_BufferedAtom):
     it to one specific row*, i.e. the :meth:`VLArray.append` method only
     accepts one object when the base atom is of this type.
 
-    Like StringAtom, this class does not make assumptions on the encoding of
-    the string, and raw bytes are stored as is.  Unicode strings are supported
-    as long as no character is out of the ASCII set; otherwise, you will need
-    to *explicitly* convert them to strings before you can save them.  For full
-    Unicode support, using VLUnicodeAtom (see :ref:`VLUnicodeAtom`) is
+    This class stores bytestrings. It does not make assumptions on the
+    encoding of the string, and raw bytes are stored as is. To store a string
+    you will need to *explicitly* convert it to a bytestring before you can
+    save them::
+
+        >>> s = 'A unicode string: hbar = \u210f'
+        >>> bytestring = s.encode('utf-8')
+        >>> VLArray.append(bytestring)
+
+    and decode when reading::
+
+        >>> bytestring = VLArray[0]
+        >>> s = bytestring.decode('utf-8')
+
+    For full Unicode support, using VLUnicodeAtom (see :ref:`VLUnicodeAtom`) is
     recommended.
 
     Variable-length string atoms do not accept parameters and they cause the
-    reads of rows to always return Python strings.  You can regard vlstring
+    reads of rows to always return Python bytestrings.  You can regard vlstring
     atoms as an easy way to save generic variable length strings.
 
     """
