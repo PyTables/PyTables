@@ -39,7 +39,8 @@ Bugs fixed
 - Make sure that index classes use buffersizes that are a multiple
   of chunkshape[0] (closes :issue:`538`, PR #538).
   Thanks to Tom Kooij.
-
+- Ensure benchmark paths exist before benchmarks are executed (PR #544).
+  Thanks to rohitjamuar.
 
 Other changes
 -------------
