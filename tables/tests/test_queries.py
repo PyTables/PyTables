@@ -353,7 +353,8 @@ def create_test_method(type_, op, extracond, func=None):
     # Compute the value of bounds.
     condvars = {'bound': right_bound,
                 'lbound': left_bound,
-                'rbound': right_bound}
+                'rbound': right_bound,
+                'func_bound': func_bound}
     for (bname, bvalue) in condvars.iteritems():
         if type_ == 'string':
             bvalue = str_format % bvalue
