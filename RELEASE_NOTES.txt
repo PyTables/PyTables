@@ -15,8 +15,10 @@ Improvements
 
 - It is now possible to use HDF5 with the new shared library naming scheme
   (>= 1.8.10, hdf5.dll instead of hdf5dll.dll) on Windows (:issue:`540`).
-- ptdump sorts output by node name and does not print a backtrace if file
-  cannot be opened. Thanks to Zbigniew Jędrzejewski-Szmek
+  Thanks to Tadeu Manoel.
+- Now :program: `ptdump` sorts output by node name and does not print a
+  backtrace if file cannot be opened.
+  Thanks to Zbigniew Jędrzejewski-Szmek.
 
 
 Bugs fixed
@@ -25,7 +27,7 @@ Bugs fixed
 - Only run `tables.tests.test_basics.UnicodeFilename` if the filesystem
   encoding is utf-8. Closes :issue:`485`.
 - Add lib64 to posix search path. (closes :issue:`507`)
-  Thanks to Mehdi Sadeghi
+  Thanks to Mehdi Sadeghi.
 - Ensure cache entries are removed if fewer than 10 (closes :issue:`529`).
   Thanks to Graham Jones.
 - Fix segmentation fault in a number of test cases that use
