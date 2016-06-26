@@ -7,6 +7,46 @@
 
 .. py:currentmodule:: tables
 
+Changes from 3.2.2 to 3.2.3
+===========================
+
+Improvements
+------------
+
+- It is now possible to use HDF5 with the new shared library naming scheme
+  (>= 1.8.10, hdf5.dll instead of hdf5dll.dll) on Windows (:issue:`540`).
+- ptdump sorts output by node name and does not print a backtrace if file
+  cannot be opened. Thanks to Zbigniew Jędrzejewski-Szmek
+
+
+Bugs fixed
+----------
+
+- Only run `tables.tests.test_basics.UnicodeFilename` if the filesystem
+  encoding is utf-8. Closes :issue:`485`.
+- Add lib64 to posix search path. (closes :issue:`507`)
+  Thanks to Mehdi Sadeghi
+- Ensure cache entries are removed if fewer than 10 (closes :issue:`529`).
+  Thanks to Graham Jones.
+- Fix segmentation fault in a number of test cases that use
+  :class:`index.Index` (closes :issue:`532` and :issue:`533`).
+  Thanks to Diane Trout.
+- Fixed the evaluation of transcendental functions when numexpr is
+  compiled with VML support (closes :issue:`534`, PR #536).
+  Thanks to Tom Kooij.
+- Make sure that index classes use buffersizes that are a multiple
+  of chunkshape[0] (closes :issue:`538`, PR #538).
+  Thanks to Tom Kooij.
+
+
+Other changes
+-------------
+
+- Minimum Cython_ version is now v0.21
+
+
+.. _Cython: http://cython.org
+
 
 Changes from 3.2.1.1 to 3.2.2
 =============================
