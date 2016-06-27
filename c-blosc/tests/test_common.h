@@ -29,6 +29,11 @@
 #include <math.h>
 #include "../blosc/blosc.h"
 
+#if defined(_WIN32) && !defined(__MINGW32__)
+  /* MSVC does not have setenv */
+  #define setenv(name, value, overwrite) do {_putenv_s(name, value);} while(0)
+#endif
+
 
 /* This is MinUnit in action (http://www.jera.com/techinfo/jtns/jtn002.html) */
 #define mu_assert(message, test) do { if (!(test)) return message; } while (0)

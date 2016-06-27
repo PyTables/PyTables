@@ -5,13 +5,18 @@
 :Author: Francesc Alted
 :Contact: francesc@blosc.org
 :URL: http://www.blosc.org
+:Gitter: |gitter|
 :Travis CI: |travis|
 :Appveyor: |appveyor|
+
+.. |gitter| image:: https://badges.gitter.im/Blosc/c-blosc.svg
+        :alt: Join the chat at https://gitter.im/Blosc/c-blosc
+        :target: https://gitter.im/Blosc/c-blosc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 .. |travis| image:: https://travis-ci.org/Blosc/c-blosc.svg?branch=master
         :target: https://travis-ci.org/Blosc/c-blosc
 
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/gccmb03j8ghbj0ig/branch/master?svg=true
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/3mlyjc1ak0lbkmte?svg=true
         :target: https://ci.appveyor.com/project/FrancescAlted/c-blosc/branch/master
 
 

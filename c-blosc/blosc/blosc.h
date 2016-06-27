@@ -18,12 +18,12 @@ extern "C" {
 
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
-#define BLOSC_VERSION_MINOR    8    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  1    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_MINOR    9    /* for minor interface/format changes  */
+#define BLOSC_VERSION_RELEASE  2    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.8.1"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.9.2"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2016-04-08 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2016-06-08 #$"    /* date version */
 
 #define BLOSCLZ_VERSION_STRING "1.0.5"   /* the internal compressor version */
 
@@ -124,7 +124,7 @@ BLOSC_EXPORT void blosc_destroy(void);
 
 /**
   Compress a block of data in the `src` buffer and returns the size of
-  compressed block.  The size of `src` buffer is specified by
+  the compressed block.  The size of `src` buffer is specified by
   `nbytes`.  There is not a minimum for `src` buffer size (`nbytes`).
 
   `clevel` is the desired compression level and must be a number
@@ -156,6 +156,43 @@ BLOSC_EXPORT void blosc_destroy(void);
   A negative return value means that an internal error happened.  This
   should never happen.  If you see this, please report it back
   together with the buffer data causing this and compression settings.
+
+  Environment variables
+  ---------------------
+
+  blosc_compress() honors different environment variables to control
+  internal parameters without the need of doing that programatically.
+  Here are the ones supported:
+
+  BLOSC_CLEVEL=(INTEGER): This will overwrite the `clevel` parameter
+  before the compression process starts.
+
+  BLOSC_SHUFFLE=[NOSHUFFLE | SHUFFLE | BITSHUFFLE]: This will
+  overwrite the `doshuffle` parameter before the compression process
+  starts.
+
+  BLOSC_TYPESIZE=(INTEGER): This will overwrite the `typesize`
+  parameter before the compression process starts.
+
+  BLOSC_COMPRESSOR=[BLOSCLZ | LZ4 | LZ4HC | SNAPPY | ZLIB]: This will
+  call blosc_set_compressor(BLOSC_COMPRESSOR) before the compression
+  process starts.
+
+  BLOSC_NTHREADS=(INTEGER): This will call
+  blosc_set_nthreads(BLOSC_NTHREADS) before the compression process
+  starts.
+
+  BLOSC_BLOCKSIZE=(INTEGER): This will call
+  blosc_set_blocksize(BLOSC_BLOCKSIZE) before the compression process
+  starts.  *NOTE:* The blocksize is a critical parameter with
+  important restrictions in the allowed values, so use this with care.
+
+  BLOSC_NOLOCK=(ANY VALUE): This will call blosc_compress_ctx() under
+  the hood, with the `compressor`, `blocksize` and
+  `numinternalthreads` parameters set to the same as the last calls to
+  blosc_set_compressor(), blosc_set_blocksize() and
+  blosc_set_nthreads().  BLOSC_CLEVEL, BLOSC_SHUFFLE, BLOSC_TYPESIZE
+  environment vars will also be honored.
   */
 BLOSC_EXPORT int blosc_compress(int clevel, int doshuffle, size_t typesize,
 				size_t nbytes, const void *src, void *dest,
@@ -182,9 +219,9 @@ BLOSC_EXPORT int blosc_compress(int clevel, int doshuffle, size_t typesize,
   together with the buffer data causing this and compression settings.
 */
 BLOSC_EXPORT int blosc_compress_ctx(int clevel, int doshuffle, size_t typesize,
-				    size_t nbytes, const void* src, void* dest,
-				    size_t destsize, const char* compressor,
-				    size_t blocksize, int numinternalthreads);
+                                    size_t nbytes, const void* src, void* dest,
+                                    size_t destsize, const char* compressor,
+                                    size_t blocksize, int numinternalthreads);
 
 /**
   Decompress a block of compressed data in `src`, put the result in
@@ -198,6 +235,21 @@ BLOSC_EXPORT int blosc_compress_ctx(int clevel, int doshuffle, size_t typesize,
   If an error occurs, e.g. the compressed data is corrupted or the
   output buffer is not large enough, then 0 (zero) or a negative value
   will be returned instead.
+
+  Environment variables
+  ---------------------
+
+  blosc_decompress() honors different environment variables to control
+  internal parameters without the need of doing that programatically.
+  Here are the ones supported:
+
+  BLOSC_NTHREADS=(INTEGER): This will call
+  blosc_set_nthreads(BLOSC_NTHREADS) before the proper decompression
+  process starts.
+
+  BLOSC_NOLOCK=(ANY VALUE): This will call blosc_decompress_ctx()
+  under the hood, with the `numinternalthreads` parameter set to the
+  same value as the last call to blosc_set_nthreads().
 */
 BLOSC_EXPORT int blosc_decompress(const void *src, void *dest, size_t destsize);
 
@@ -220,7 +272,7 @@ BLOSC_EXPORT int blosc_decompress(const void *src, void *dest, size_t destsize);
   will be returned instead.
 */
 BLOSC_EXPORT int blosc_decompress_ctx(const void *src, void *dest,
-                                          size_t destsize, int numinternalthreads);
+                                      size_t destsize, int numinternalthreads);
 
 /**
   Get `nitems` (of typesize size) in `src` buffer starting in `start`.
@@ -234,6 +286,13 @@ BLOSC_EXPORT int blosc_getitem(const void *src, int start, int nitems, void *des
 
 
 /**
+  Returns the current number of threads that are used for
+  compression/decompression.
+  */
+BLOSC_EXPORT int blosc_get_nthreads(void);
+
+
+/**
   Initialize a pool of threads for compression/decompression.  If
   `nthreads` is 1, then the serial version is chosen and a possible
   previous existing pool is ended.  If this is not called, `nthreads`
@@ -242,6 +301,12 @@ BLOSC_EXPORT int blosc_getitem(const void *src, int start, int nitems, void *des
   Returns the previous number of threads.
   */
 BLOSC_EXPORT int blosc_set_nthreads(int nthreads);
+
+
+/**
+  Returns the current compressor that is used for compression.
+  */
+BLOSC_EXPORT char* blosc_get_compressor(void);
 
 
 /**
@@ -382,10 +447,16 @@ BLOSC_EXPORT char *blosc_cbuffer_complib(const void *cbuffer);
 
 *********************************************************************/
 
+/* Get the internal blocksize to be used during compression.  0 means
+   that an automatic blocksize is computed internally. */
+BLOSC_EXPORT int blosc_get_blocksize(void);
 
 /**
   Force the use of a specific blocksize.  If 0, an automatic
   blocksize will be used (the default).
+
+  The blocksize is a critical parameter with important restrictions in
+  the allowed values, so use this with care.
   */
 BLOSC_EXPORT void blosc_set_blocksize(size_t blocksize);
 
