@@ -1102,7 +1102,8 @@ class VLStringAtom(_BufferedAtom):
     base = UInt8Atom()
 
     def _tobuffer(self, object_):
-        if not isinstance(object_, basestring):
+        if not isinstance(object_, bytes) and \
+                not isinstance(object_, str):
             raise TypeError("object is not a string: %r" % (object_,))
         return numpy.string_(object_)
 
@@ -1142,7 +1143,7 @@ class VLUnicodeAtom(_BufferedAtom):
         # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
         # array, we must override ``toarray()`` itself.
         def toarray(self, object_):
-            if not isinstance(object_, basestring):
+            if not isinstance(object_, bytes):
                 raise TypeError("object is not a string: %r" % (object_,))
             ustr = unicode(object_)
             uarr = numpy.array(ustr, dtype='U')
