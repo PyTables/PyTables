@@ -1143,7 +1143,7 @@ class VLUnicodeAtom(_BufferedAtom):
         # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
         # array, we must override ``toarray()`` itself.
         def toarray(self, object_):
-            if not isinstance(object_, bytes):
+            if not isinstance(object_, basestring):
                 raise TypeError("object is not a string: %r" % (object_,))
             ustr = unicode(object_)
             uarr = numpy.array(ustr, dtype='U')
