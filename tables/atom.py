@@ -1081,12 +1081,7 @@ class VLStringAtom(_BufferedAtom):
 
         >>> s = 'A unicode string: hbar = \u210f'
         >>> bytestring = s.encode('utf-8')
-        >>> VLArray.append(bytestring)
-
-    and decode when reading::
-
-        >>> bytestring = VLArray[0]
-        >>> s = bytestring.decode('utf-8')
+        >>> VLArray.append(bytestring) # doctest: +SKIP
 
     For full Unicode support, using VLUnicodeAtom (see :ref:`VLUnicodeAtom`) is
     recommended.
