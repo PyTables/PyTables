@@ -554,8 +554,6 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
     (hdrdir, libdir, rundir) = package.find_directories(
         location, use_pkgconfig=USE_PKGCONFIG)
 
-<<<<<<< HEAD
-=======
     # check if HDF5 library uses old DLL naming scheme
     if hdrdir and package.tag == 'HDF5':
         hdf5_header = os.path.join(hdrdir, "H5public.h")
@@ -574,7 +572,6 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
             _platdep['HDF5'] = [hdf5_old_dll_name, hdf5_old_dll_name]
             _, libdir, rundir = package.find_directories(location, use_pkgconfig=USE_PKGCONFIG)
 
->>>>>>> ac4609f... Internal C-Blosc bumped to 1.8.1
     # check if the library is in the standard compiler paths
     if not libdir and package.target_function:
         libdir = compiler.has_function(package.target_function,

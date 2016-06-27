@@ -1,27 +1,29 @@
 /*
-    Copyright (C) 2014  Francesc Alted
+    Copyright (C) 2016  Francesc Alted
     http://blosc.org
     License: MIT (see LICENSE.txt)
 
-    Example program demonstrating use of the Blosc filter from C code.
+    Example program demonstrating that from 1.9.0 on, Blosc does not
+    need to be initialized (although it is recommended).
 
     To compile this program:
 
-    $ gcc simple.c -o simple -lblosc
+    $ gcc noinit.c -o noinit -lblosc
 
-    or, if you don't have the blosc library installed:
+    or, if you don't have the blosc library installed yet:
 
-    $ gcc -O3 -msse2 simple.c -I../blosc -o simple -L../build/blosc
+    $ gcc -O3 -msse2 noinit.c -I../blosc -o noinit -L../build/blosc
+    $ export LD_LIBRARY_PATH=../build/blosc
 
     Using MSVC on Windows:
 
-    $ cl /arch:SSE2 /Ox /Fesimple.exe /Iblosc examples\simple.c blosc\blosc.c blosc\blosclz.c blosc\shuffle.c blosc\shuffle-sse2.c blosc\shuffle-generic.c blosc\bitshuffle-generic.c blosc\bitshuffle-sse2.c
+    $ cl /arch:SSE2 /Ox /Fenoinit.exe /Iblosc examples\noinit.c blosc\blosc.c blosc\blosclz.c blosc\shuffle.c blosc\shuffle-sse2.c blosc\shuffle-generic.c blosc\bitshuffle-generic.c blosc\bitshuffle-sse2.c
 
     To run:
 
-    $ ./simple
-    Blosc version info: 1.4.2.dev ($Date:: 2014-07-08 #$)
-    Compression: 4000000 -> 158494 (25.2x)
+    $ ./noinit
+    Blosc version info: 1.8.2.dev ($Date:: 2016-04-08 #$)
+    Compression: 4000000 -> 158788 (25.2x)
     Decompression succesful!
     Succesful roundtrip!
 
@@ -48,8 +50,8 @@ int main(){
   printf("Blosc version info: %s (%s)\n",
 	 BLOSC_VERSION_STRING, BLOSC_VERSION_DATE);
 
-  /* Initialize the Blosc compressor */
-  blosc_init();
+  /* From 1.9 on, we don't need to initialize the Blosc compressor anymore */
+  /* blosc_init(); */
 
   /* Compress with clevel=5 and shuffle active  */
   csize = blosc_compress(5, 1, sizeof(float), isize, data, data_out, osize);
@@ -72,9 +74,6 @@ int main(){
   }
 
   printf("Decompression succesful!\n");
-
-  /* After using it, destroy the Blosc environment */
-  blosc_destroy();
 
   for(i=0;i<SIZE;i++){
     if(data[i] != data_dest[i]) {
