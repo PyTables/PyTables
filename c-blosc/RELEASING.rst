@@ -64,6 +64,11 @@ Post-release actions
 
   #XXX version-specific blurb XXX#
 
+- Commit the changes::
+
+    $ git commit -a -m"Post X.Y.Z release actions done"
+    $ git push
+
 
 That's all folks!
 

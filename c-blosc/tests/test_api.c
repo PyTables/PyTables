@@ -65,11 +65,36 @@ static char *test_cbuffer_complib() {
 }
 
 
+static char *test_nthreads() {
+  int nthreads;
+
+  nthreads = blosc_set_nthreads(4);
+  mu_assert("ERROR: set_nthreads incorrect", nthreads == 1);
+  nthreads = blosc_get_nthreads();
+  mu_assert("ERROR: get_nthreads incorrect", nthreads == 4);
+  return 0;
+}
+
+static char *test_blocksize() {
+  int blocksize;
+
+  blocksize = blosc_get_blocksize();
+  mu_assert("ERROR: get_blocksize incorrect", blocksize == 0);
+
+  blosc_set_blocksize(4096);
+  blocksize = blosc_get_blocksize();
+  mu_assert("ERROR: get_blocksize incorrect", blocksize == 4096);
+  return 0;
+}
+
+
 static char *all_tests() {
   mu_run_test(test_cbuffer_sizes);
   mu_run_test(test_cbuffer_metainfo);
   mu_run_test(test_cbuffer_versions);
   mu_run_test(test_cbuffer_complib);
+  mu_run_test(test_nthreads);
+  mu_run_test(test_blocksize);
   return 0;
 }
 

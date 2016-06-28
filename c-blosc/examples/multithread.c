@@ -11,12 +11,12 @@
 
     or, if you don't have the blosc library installed:
 
-    gcc -O3 -msse2 multithread.c ../blosc/*.c  -I../blosc -o multithread -lpthread
+    gcc -O3 -msse2 multithread.c ../blosc/!(*avx2*)*.c  -I../blosc -o multithread -lpthread
 
     Using MSVC on Windows:
 
     cl /Ox /Femultithread.exe /Iblosc multithread.c blosc\*.c
-    
+
     To run:
 
     $ ./multithread
