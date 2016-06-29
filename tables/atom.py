@@ -1167,7 +1167,7 @@ class VLUnicodeAtom(_BufferedAtom):
         elif isinstance(object_, bytes):
             warnings.warn("Storing bytestrings in VLUnicodeAtom is "
                           "deprecated.", DeprecationWarning)
-            return numpy.string_(object_)
+            return numpy.unicode_(object_)
         else:
             raise TypeError("object is not a string: %r" % (object_,))
 
