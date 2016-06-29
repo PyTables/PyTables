@@ -18,6 +18,7 @@ import re
 import sys
 import inspect
 import cPickle
+import warnings
 
 import numpy
 
@@ -1097,10 +1098,14 @@ class VLStringAtom(_BufferedAtom):
     base = UInt8Atom()
 
     def _tobuffer(self, object_):
-        if not isinstance(object_, bytes) and \
-                not isinstance(object_, unicode):
+        if isinstance(object_, bytes):
+            return numpy.string_(object_)
+        elif isinstance(object_, unicode):
+            warnings.warn("Storing non bytestrings in VLStringAtom is "
+                          "deprecated.", DeprecationWarning)
+            return numpy.string_(object_)
+        else:
             raise TypeError("object is not a string: %r" % (object_,))
-        return numpy.string_(object_)
 
     def fromarray(self, array):
         return array.tostring()
