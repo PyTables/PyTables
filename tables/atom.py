@@ -1143,20 +1143,33 @@ class VLUnicodeAtom(_BufferedAtom):
         # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
         # array, we must override ``toarray()`` itself.
         def toarray(self, object_):
-            if not isinstance(object_, basestring):
+            if isinstance(object_, unicode):
+                ustr = unicode(object_)
+                uarr = numpy.array(ustr, dtype='U')
+                return numpy.ndarray(
+                    buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
+            elif isinstance(object_, bytes):
+                warnings.warn("Storing bytestrings in VLUnicodeAtom is "
+                              "deprecated.", DeprecationWarning)
+                ustr = unicode(object_)
+                uarr = numpy.array(ustr, dtype='U')
+                return numpy.ndarray(
+                    buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
+            else:
                 raise TypeError("object is not a string: %r" % (object_,))
-            ustr = unicode(object_)
-            uarr = numpy.array(ustr, dtype='U')
-            return numpy.ndarray(
-                buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
 
     def _tobuffer(self, object_):
         # This works (and is used) only with UCS-4 builds of Python,
         # where the width of the internal representation of a
         # character matches that of the base atoms.
-        if not isinstance(object_, basestring):
+        if isinstance(object_, unicode):
+            return numpy.unicode_(object_)
+        elif isinstance(object_, bytes):
+            warnings.warn("Storing bytestrings in VLUnicodeAtom is "
+                          "deprecated.", DeprecationWarning)
+            return numpy.string_(object_)
+        else:
             raise TypeError("object is not a string: %r" % (object_,))
-        return numpy.unicode_(object_)
 
     def fromarray(self, array):
         length = len(array)
