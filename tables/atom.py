@@ -1098,14 +1098,12 @@ class VLStringAtom(_BufferedAtom):
     base = UInt8Atom()
 
     def _tobuffer(self, object_):
-        if isinstance(object_, bytes):
-            return numpy.string_(object_)
-        elif isinstance(object_, unicode):
+        if isinstance(object_, unicode):
             warnings.warn("Storing non bytestrings in VLStringAtom is "
                           "deprecated.", DeprecationWarning)
-            return numpy.string_(object_)
-        else:
+        elif not isinstance(object_, bytes):
             raise TypeError("object is not a string: %r" % (object_,))
+        return numpy.string_(object_)
 
     def fromarray(self, array):
         return array.tostring()
@@ -1143,33 +1141,26 @@ class VLUnicodeAtom(_BufferedAtom):
         # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
         # array, we must override ``toarray()`` itself.
         def toarray(self, object_):
-            if isinstance(object_, unicode):
-                ustr = unicode(object_)
-                uarr = numpy.array(ustr, dtype='U')
-                return numpy.ndarray(
-                    buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
-            elif isinstance(object_, bytes):
+            if isinstance(object_, bytes):
                 warnings.warn("Storing bytestrings in VLUnicodeAtom is "
                               "deprecated.", DeprecationWarning)
-                ustr = unicode(object_)
-                uarr = numpy.array(ustr, dtype='U')
-                return numpy.ndarray(
-                    buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
-            else:
+            elif not isinstance(object_, unicode):
                 raise TypeError("object is not a string: %r" % (object_,))
+            ustr = unicode(object_)
+            uarr = numpy.array(ustr, dtype='U')
+            return numpy.ndarray(
+                buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
 
     def _tobuffer(self, object_):
         # This works (and is used) only with UCS-4 builds of Python,
         # where the width of the internal representation of a
         # character matches that of the base atoms.
-        if isinstance(object_, unicode):
-            return numpy.unicode_(object_)
-        elif isinstance(object_, bytes):
+        if isinstance(object_, bytes):
             warnings.warn("Storing bytestrings in VLUnicodeAtom is "
                           "deprecated.", DeprecationWarning)
-            return numpy.unicode_(object_)
-        else:
+        elif not isinstance(object_, unicode):
             raise TypeError("object is not a string: %r" % (object_,))
+        return numpy.unicode_(object_)
 
     def fromarray(self, array):
         length = len(array)
