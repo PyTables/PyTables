@@ -1523,6 +1523,8 @@ class CompatibilityTestCase(common.TestFileMixin, TestCase):
 class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, TestCase):
     h5fname = TestCase._testFilename('issue_560.h5')
 
+    @unittest.skipIf(sys.version_info[0] == 3 and sys.version_info[1] < 4,
+                     'bug not fixed on python3<=3.3.')
     def test_pickled_datetime_object(self):
         # See also gh-560
         #
