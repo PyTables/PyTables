@@ -1,502 +1,445 @@
 /*********************************************************************
-  Blosc - Blocked Suffling and Compression Library
+  Blosc - Blocked Shuffling and Compression Library
 
-  Author: Francesc Alted <francesc@blosc.io>
+  Author: Francesc Alted <francesc@blosc.org>
   Creation date: 2009-05-20
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/
 
+#include "shuffle.h"
+#include "shuffle-common.h"
+#include "shuffle-generic.h"
+#include "bitshuffle-generic.h"
 #include <stdio.h>
 #include <string.h>
-#include "shuffle.h"
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-  #include <windows.h>
-  #include "win32/stdint-windows.h"
-  #define __SSE2__          /* Windows does not define this by default */
+/* Visual Studio < 2013 does not have stdbool.h so here it is a replacement: */
+#if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+/* have a C99 compiler */
+typedef _Bool bool;
 #else
-  #include <stdint.h>
-  #include <inttypes.h>
-#endif  /* _WIN32 */
+/* do not have a C99 compiler */
+typedef unsigned char bool;
+#endif
+static const bool false = 0;
+static const bool true = 1;
 
 
-/* The non-SSE2 versions of shuffle and unshuffle */
+#if !defined(__clang__) && defined(__GNUC__) && defined(__GNUC_MINOR__) && \
+    __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+#define HAVE_CPU_FEAT_INTRIN
+#endif
 
-/* Shuffle a block.  This can never fail. */
-static void _shuffle(size_t bytesoftype, size_t blocksize,
-	                 uint8_t* _src, uint8_t* _dest)
-{
-  size_t i, j, neblock, leftover;
+/*  Include hardware-accelerated shuffle/unshuffle routines based on
+    the target architecture. Note that a target architecture may support
+    more than one type of acceleration!*/
+#if defined(SHUFFLE_AVX2_ENABLED)
+  #include "shuffle-avx2.h"
+  #include "bitshuffle-avx2.h"
+#endif  /* defined(SHUFFLE_AVX2_ENABLED) */
 
-  /* Non-optimized shuffle */
-  neblock = blocksize / bytesoftype;  /* Number of elements in a block */
-  for (j = 0; j < bytesoftype; j++) {
-    for (i = 0; i < neblock; i++) {
-      _dest[j*neblock+i] = _src[i*bytesoftype+j];
-    }
+#if defined(SHUFFLE_SSE2_ENABLED)
+  #include "shuffle-sse2.h"
+  #include "bitshuffle-sse2.h"
+#endif  /* defined(SHUFFLE_SSE2_ENABLED) */
+
+
+/*  Define function pointer types for shuffle/unshuffle routines. */
+typedef void(*shuffle_func)(const size_t, const size_t, const uint8_t*, const uint8_t*);
+typedef void(*unshuffle_func)(const size_t, const size_t, const uint8_t*, const uint8_t*);
+typedef int64_t(*bitshuffle_func)(void*, void*, const size_t, const size_t, void*);
+typedef int64_t(*bitunshuffle_func)(void*, void*, const size_t, const size_t, void*);
+
+/* An implementation of shuffle/unshuffle routines. */
+typedef struct shuffle_implementation {
+  /* Name of this implementation. */
+  const char* name;
+  /* Function pointer to the shuffle routine for this implementation. */
+  shuffle_func shuffle;
+  /* Function pointer to the unshuffle routine for this implementation. */
+  unshuffle_func unshuffle;
+  /* Function pointer to the bitshuffle routine for this implementation. */
+  bitshuffle_func bitshuffle;
+  /* Function pointer to the bitunshuffle routine for this implementation. */
+  bitunshuffle_func bitunshuffle;
+} shuffle_implementation_t;
+
+typedef enum {
+  BLOSC_HAVE_NOTHING = 0,
+  BLOSC_HAVE_SSE2 = 1,
+  BLOSC_HAVE_AVX2 = 2
+} blosc_cpu_features;
+
+/*  Detect hardware and set function pointers to the best shuffle/unshuffle
+    implementations supported by the host processor. */
+#if defined(SHUFFLE_AVX2_ENABLED) || defined(SHUFFLE_SSE2_ENABLED)    /* Intel/i686 */
+
+/*  Disabled the __builtin_cpu_supports() call, as it has issues with
+    new versions of gcc (like 5.3.1 in forthcoming ubuntu/xenial:
+      "undefined symbol: __cpu_model"
+    For a similar report, see:
+    https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/thread/ZM2L65WIZEEQHHLFERZYD5FAG7QY2OGB/
+*/
+#if defined(HAVE_CPU_FEAT_INTRIN) && 0
+static blosc_cpu_features blosc_get_cpu_features(void) {
+  blosc_cpu_features cpu_features = BLOSC_HAVE_NOTHING;
+  if (__builtin_cpu_supports("sse2")) {
+    cpu_features |= BLOSC_HAVE_SSE2;
   }
-  leftover = blocksize % bytesoftype;
-  memcpy(_dest + neblock*bytesoftype, _src + neblock*bytesoftype, leftover);
+  if (__builtin_cpu_supports("avx2")) {
+    cpu_features |= BLOSC_HAVE_AVX2;
+  }
+  return cpu_features;
+}
+#else
+
+#if defined(_MSC_VER) && !defined(__clang__)
+  #include <intrin.h>     /* Needed for __cpuid */
+
+/*  _xgetbv is only supported by VS2010 SP1 and newer versions of VS. */
+#if _MSC_FULL_VER >= 160040219
+  #include <immintrin.h>  /* Needed for _xgetbv */
+#elif defined(_M_IX86)
+
+/*  Implement _xgetbv for VS2008 and VS2010 RTM with 32-bit (x86) targets. */
+
+static uint64_t _xgetbv(uint32_t xcr) {
+    uint32_t xcr0, xcr1;
+    __asm {
+        mov        ecx, xcr
+        _asm _emit 0x0f _asm _emit 0x01 _asm _emit 0xd0
+        mov        xcr0, eax
+        mov        xcr1, edx
+    }
+    return ((uint64_t)xcr1 << 32) | xcr0;
 }
 
-/* Unshuffle a block.  This can never fail. */
-static void _unshuffle(size_t bytesoftype, size_t blocksize,
-                       uint8_t* _src, uint8_t* _dest)
-{
-  size_t i, j, neblock, leftover;
+#elif defined(_M_X64)
 
-  /* Non-optimized unshuffle */
-  neblock = blocksize / bytesoftype;  /* Number of elements in a block */
-  for (i = 0; i < neblock; i++) {
-    for (j = 0; j < bytesoftype; j++) {
-      _dest[i*bytesoftype+j] = _src[j*neblock+i];
-    }
-  }
-  leftover = blocksize % bytesoftype;
-  memcpy(_dest+neblock*bytesoftype, _src+neblock*bytesoftype, leftover);
+/*  Implement _xgetbv for VS2008 and VS2010 RTM with 64-bit (x64) targets.
+    These compilers don't support any of the newer acceleration ISAs
+    (e.g., AVX2) supported by blosc, and all x64 hardware supports SSE2
+    which means we can get away with returning a hard-coded value from
+    this implementation of _xgetbv. */
+
+static inline uint64_t
+_xgetbv(uint32_t xcr) {
+    /* A 64-bit OS must have XMM save support. */
+    return xcr == 0 ? (1UL << 1) : 0UL;
 }
 
+#else
 
-#ifdef __SSE2__
+/* Hardware detection for any other MSVC targets (e.g., ARM)
+   isn't implemented at this time. */
+#error This version of c-blosc only supports x86 and x64 targets with MSVC.
 
-/* The SSE2 versions of shuffle and unshuffle */
+#endif /* _MSC_FULL_VER >= 160040219 */
+  
+#else
 
-#include <emmintrin.h>
+/*  Implement the __cpuid and __cpuidex intrinsics for GCC, Clang,
+    and others using inline assembly. */
+__attribute__((always_inline))
+static inline void
+__cpuidex(int32_t cpuInfo[4], int32_t function_id, int32_t subfunction_id) {
+  __asm__ __volatile__ (
+# if defined(__i386__) && defined (__PIC__)
+  /*  Can't clobber ebx with PIC running under 32-bit, so it needs to be manually restored.
+      https://software.intel.com/en-us/articles/how-to-detect-new-instruction-support-in-the-4th-generation-intel-core-processor-family
+  */
+    "movl %%ebx, %%edi\n\t"
+    "cpuid\n\t"
+    "xchgl %%ebx, %%edi":
+    "=D" (cpuInfo[1]),
+#else
+    "cpuid":
+    "=b" (cpuInfo[1]),
+#endif  /* defined(__i386) && defined(__PIC__) */
+    "=a" (cpuInfo[0]),
+    "=c" (cpuInfo[2]),
+    "=d" (cpuInfo[3]) :
+    "a" (function_id), "c" (subfunction_id)
+    );
+}
 
-/* The next is useful for debugging purposes */
-#if 0
-static void printxmm(__m128i xmm0)
-{
-  uint8_t buf[16];
+#define __cpuid(cpuInfo, function_id) __cpuidex(cpuInfo, function_id, 0)
 
-  ((__m128i *)buf)[0] = xmm0;
-  printf("%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x\n",
-          buf[0], buf[1], buf[2], buf[3],
-          buf[4], buf[5], buf[6], buf[7],
-          buf[8], buf[9], buf[10], buf[11],
-          buf[12], buf[13], buf[14], buf[15]);
+#define _XCR_XFEATURE_ENABLED_MASK 0
+
+/* Reads the content of an extended control register.
+   https://software.intel.com/en-us/articles/how-to-detect-new-instruction-support-in-the-4th-generation-intel-core-processor-family
+*/
+static inline uint64_t
+_xgetbv(uint32_t xcr) {
+  uint32_t eax, edx;
+  __asm__ __volatile__ (
+    /* "xgetbv"
+       This is specified as raw instruction bytes due to some older compilers
+       having issues with the mnemonic form.
+    */
+    ".byte 0x0f, 0x01, 0xd0":
+    "=a" (eax),
+    "=d" (edx) :
+    "c" (xcr)
+    );
+  return ((uint64_t)edx << 32) | eax;
+}
+
+#endif /* defined(_MSC_FULL_VER) */
+
+#ifndef _XCR_XFEATURE_ENABLED_MASK
+#define _XCR_XFEATURE_ENABLED_MASK 0x0
+#endif
+
+static blosc_cpu_features blosc_get_cpu_features(void) {
+  blosc_cpu_features result = BLOSC_HAVE_NOTHING;
+  int32_t max_basic_function_id;
+  /* Holds the values of eax, ebx, ecx, edx set by the `cpuid` instruction */
+  int32_t cpu_info[4];
+  int sse2_available;
+  int sse3_available;
+  int ssse3_available;
+  int sse41_available;
+  int sse42_available;
+  int xsave_available;
+  int xsave_enabled_by_os;
+  int avx2_available = 0;
+  int avx512bw_available = 0;
+  int xmm_state_enabled = 0;
+  int ymm_state_enabled = 0;
+  int zmm_state_enabled = 0;
+  uint64_t xcr0_contents;
+
+  /* Get the number of basic functions available. */
+  __cpuid(cpu_info, 0);
+  max_basic_function_id = cpu_info[0];
+
+  /* Check for SSE-based features and required OS support */
+  __cpuid(cpu_info, 1);
+  sse2_available = (cpu_info[3] & (1 << 26)) != 0;
+  sse3_available = (cpu_info[2] & (1 << 0)) != 0;
+  ssse3_available = (cpu_info[2] & (1 << 9)) != 0;
+  sse41_available = (cpu_info[2] & (1 << 19)) != 0;
+  sse42_available = (cpu_info[2] & (1 << 20)) != 0;
+
+  xsave_available = (cpu_info[2] & (1 << 26)) != 0;
+  xsave_enabled_by_os = (cpu_info[2] & (1 << 27)) != 0;
+
+  /* Check for AVX-based features, if the processor supports extended features. */
+  if (max_basic_function_id >= 7) {
+    __cpuid(cpu_info, 7);
+    avx2_available = (cpu_info[1] & (1 << 5)) != 0;
+    avx512bw_available = (cpu_info[1] & (1 << 30)) != 0;
+  }
+
+  /*  Even if certain features are supported by the CPU, they may not be supported
+      by the OS (in which case using them would crash the process or system).
+      If xsave is available and enabled by the OS, check the contents of the
+      extended control register XCR0 to see if the CPU features are enabled. */
+#if defined(_XCR_XFEATURE_ENABLED_MASK)
+  if (xsave_available && xsave_enabled_by_os && (
+      sse2_available || sse3_available || ssse3_available
+      || sse41_available || sse42_available
+      || avx2_available || avx512bw_available)) {
+    /* Determine which register states can be restored by the OS. */
+    xcr0_contents = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
+
+    xmm_state_enabled = (xcr0_contents & (1UL << 1)) != 0;
+    ymm_state_enabled = (xcr0_contents & (1UL << 2)) != 0;
+
+    /*  Require support for both the upper 256-bits of zmm0-zmm15 to be
+        restored as well as all of zmm16-zmm31 and the opmask registers. */
+    zmm_state_enabled = (xcr0_contents & 0x70) == 0x70;
+  }
+#endif /* defined(_XCR_XFEATURE_ENABLED_MASK) */
+
+#if defined(BLOSC_DUMP_CPU_INFO)
+  printf("Shuffle CPU Information:\n");
+  printf("SSE2 available: %s\n", sse2_available ? "True" : "False");
+  printf("SSE3 available: %s\n", sse3_available ? "True" : "False");
+  printf("SSSE3 available: %s\n", ssse3_available ? "True" : "False");
+  printf("SSE4.1 available: %s\n", sse41_available ? "True" : "False");
+  printf("SSE4.2 available: %s\n", sse42_available ? "True" : "False");
+  printf("AVX2 available: %s\n", avx2_available ? "True" : "False");
+  printf("AVX512BW available: %s\n", avx512bw_available ? "True" : "False");
+  printf("XSAVE available: %s\n", xsave_available ? "True" : "False");
+  printf("XSAVE enabled: %s\n", xsave_enabled_by_os ? "True" : "False");
+  printf("XMM state enabled: %s\n", xmm_state_enabled ? "True" : "False");
+  printf("YMM state enabled: %s\n", ymm_state_enabled ? "True" : "False");
+  printf("ZMM state enabled: %s\n", zmm_state_enabled ? "True" : "False");
+#endif /* defined(BLOSC_DUMP_CPU_INFO) */
+
+  /* Using the gathered CPU information, determine which implementation to use. */
+  /* technically could fail on sse2 cpu on os without xmm support, but that
+   * shouldn't exist anymore */
+  if (sse2_available) {
+    result |= BLOSC_HAVE_SSE2;
+  }
+  if (xmm_state_enabled && ymm_state_enabled && avx2_available) {
+    result |= BLOSC_HAVE_AVX2;
+  }
+  return result;
 }
 #endif
 
+#else   /* No hardware acceleration supported for the target architecture. */
+  #if defined(_MSC_VER)
+  #pragma message("Hardware-acceleration detection not implemented for the target architecture. Only the generic shuffle/unshuffle routines will be available.")
+  #else
+  #warning Hardware-acceleration detection not implemented for the target architecture. Only the generic shuffle/unshuffle routines will be available.
+  #endif
 
-/* Routine optimized for shuffling a buffer for a type size of 2 bytes. */
-static void
-shuffle2(uint8_t* dest, uint8_t* src, size_t size)
-{
-  size_t i, j, k;
-  size_t numof16belem;
-  __m128i xmm0[2], xmm1[2];
+static blosc_cpu_features blosc_get_cpu_features(void) {
+  return BLOSC_HAVE_NOTHING;
+}
 
-  numof16belem = size / (16*2);
-  for (i = 0, j = 0; i < numof16belem; i++, j += 16*2) {
-    /* Fetch and transpose bytes, words and double words in groups of
-       32 bytes */
-    for (k = 0; k < 2; k++) {
-      xmm0[k] = _mm_loadu_si128((__m128i*)(src+j+k*16));
-      xmm0[k] = _mm_shufflelo_epi16(xmm0[k], 0xd8);
-      xmm0[k] = _mm_shufflehi_epi16(xmm0[k], 0xd8);
-      xmm0[k] = _mm_shuffle_epi32(xmm0[k], 0xd8);
-      xmm1[k] = _mm_shuffle_epi32(xmm0[k], 0x4e);
-      xmm0[k] = _mm_unpacklo_epi8(xmm0[k], xmm1[k]);
-      xmm0[k] = _mm_shuffle_epi32(xmm0[k], 0xd8);
-      xmm1[k] = _mm_shuffle_epi32(xmm0[k], 0x4e);
-      xmm0[k] = _mm_unpacklo_epi16(xmm0[k], xmm1[k]);
-      xmm0[k] = _mm_shuffle_epi32(xmm0[k], 0xd8);
-    }
-    /* Transpose quad words */
-    for (k = 0; k < 1; k++) {
-      xmm1[k*2] = _mm_unpacklo_epi64(xmm0[k], xmm0[k+1]);
-      xmm1[k*2+1] = _mm_unpackhi_epi64(xmm0[k], xmm0[k+1]);
-    }
-    /* Store the result vectors */
-    for (k = 0; k < 2; k++) {
-      ((__m128i *)dest)[k*numof16belem+i] = xmm1[k];
-    }
+#endif
+
+static shuffle_implementation_t get_shuffle_implementation() {
+  blosc_cpu_features cpu_features = blosc_get_cpu_features();
+  shuffle_implementation_t impl_generic;
+
+#if defined(SHUFFLE_AVX2_ENABLED)
+  if (cpu_features & BLOSC_HAVE_AVX2) {
+    shuffle_implementation_t impl_avx2;
+    impl_avx2.name = "avx2";
+    impl_avx2.shuffle = (shuffle_func)shuffle_avx2;
+    impl_avx2.unshuffle = (unshuffle_func)unshuffle_avx2;
+    impl_avx2.bitshuffle = (bitshuffle_func)bshuf_trans_bit_elem_avx2;
+    impl_avx2.bitunshuffle = (bitunshuffle_func)bshuf_untrans_bit_elem_avx2;
+    return impl_avx2;
   }
+#endif  /* defined(SHUFFLE_AVX2_ENABLED) */
+
+#if defined(SHUFFLE_SSE2_ENABLED)
+  if (cpu_features & BLOSC_HAVE_SSE2) {
+    shuffle_implementation_t impl_sse2;
+    impl_sse2.name = "sse2";
+    impl_sse2.shuffle = (shuffle_func)shuffle_sse2;
+    impl_sse2.unshuffle = (unshuffle_func)unshuffle_sse2;
+    impl_sse2.bitshuffle = (bitshuffle_func)bshuf_trans_bit_elem_sse2;
+    impl_sse2.bitunshuffle = (bitunshuffle_func)bshuf_untrans_bit_elem_sse2;
+    return impl_sse2;
+  }
+#endif  /* defined(SHUFFLE_SSE2_ENABLED) */
+
+  /*  Processor doesn't support any of the hardware-accelerated implementations,
+      so use the generic implementation. */
+  impl_generic.name = "generic";
+  impl_generic.shuffle = (shuffle_func)shuffle_generic;
+  impl_generic.unshuffle = (unshuffle_func)unshuffle_generic;
+  impl_generic.bitshuffle = (bitshuffle_func)bshuf_trans_bit_elem_scal;
+  impl_generic.bitunshuffle = (bitunshuffle_func)bshuf_untrans_bit_elem_scal;
+  return impl_generic;
 }
 
 
-/* Routine optimized for shuffling a buffer for a type size of 4 bytes. */
-static void
-shuffle4(uint8_t* dest, uint8_t* src, size_t size)
-{
-  size_t i, j, k;
-  size_t numof16belem;
-  __m128i xmm0[4], xmm1[4];
+/*  Flag indicating whether the implementation has been initialized.
+    Zero means it hasn't been initialized, non-zero means it has. */
+static int32_t implementation_initialized;
 
-  numof16belem = size / (16*4);
-  for (i = 0, j = 0; i < numof16belem; i++, j += 16*4) {
-    /* Fetch and transpose bytes and words in groups of 64 bytes */
-    for (k = 0; k < 4; k++) {
-      xmm0[k] = _mm_loadu_si128((__m128i*)(src+j+k*16));
-      xmm1[k] = _mm_shuffle_epi32(xmm0[k], 0xd8);
-      xmm0[k] = _mm_shuffle_epi32(xmm0[k], 0x8d);
-      xmm0[k] = _mm_unpacklo_epi8(xmm1[k], xmm0[k]);
-      xmm1[k] = _mm_shuffle_epi32(xmm0[k], 0x04e);
-      xmm0[k] = _mm_unpacklo_epi16(xmm0[k], xmm1[k]);
-    }
-    /* Transpose double words */
-    for (k = 0; k < 2; k++) {
-      xmm1[k*2] = _mm_unpacklo_epi32(xmm0[k*2], xmm0[k*2+1]);
-      xmm1[k*2+1] = _mm_unpackhi_epi32(xmm0[k*2], xmm0[k*2+1]);
-    }
-    /* Transpose quad words */
-    for (k = 0; k < 2; k++) {
-      xmm0[k*2] = _mm_unpacklo_epi64(xmm1[k], xmm1[k+2]);
-      xmm0[k*2+1] = _mm_unpackhi_epi64(xmm1[k], xmm1[k+2]);
-    }
-    /* Store the result vectors */
-    for (k = 0; k < 4; k++) {
-      ((__m128i *)dest)[k*numof16belem+i] = xmm0[k];
-    }
+/*  The dynamically-chosen shuffle/unshuffle implementation.
+    This is only safe to use once `implementation_initialized` is set. */
+static shuffle_implementation_t host_implementation;
+
+/*  Initialize the shuffle implementation, if necessary. */
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+static
+#if defined(_MSC_VER)
+__forceinline
+#else
+inline
+#endif
+void init_shuffle_implementation() {
+  /* Initialization could (in rare cases) take place concurrently on
+     multiple threads, but it shouldn't matter because the
+     initialization should return the same result on each thread (so
+     the implementation will be the same). Since that's the case we
+     can avoid complicated synchronization here and get a small
+     performance benefit because we don't need to perform a volatile
+     load on the initialization variable each time this function is
+     called. */
+#if defined(__GNUC__) || defined(__clang__)
+  if (__builtin_expect(!implementation_initialized, 0)) {
+#else
+  if (!implementation_initialized) {
+#endif
+    /* Initialize the implementation. */
+    host_implementation = get_shuffle_implementation();
+
+    /*  Set the flag indicating the implementation has been initialized. */
+    implementation_initialized = 1;
   }
 }
 
+/*  Shuffle a block by dynamically dispatching to the appropriate
+    hardware-accelerated routine at run-time. */
+void
+shuffle(const size_t bytesoftype, const size_t blocksize,
+        const uint8_t* _src, const uint8_t* _dest) {
+  /* Initialize the shuffle implementation if necessary. */
+  init_shuffle_implementation();
 
-/* Routine optimized for shuffling a buffer for a type size of 8 bytes. */
-static void
-shuffle8(uint8_t* dest, uint8_t* src, size_t size)
-{
-  size_t i, j, k, l;
-  size_t numof16belem;
-  __m128i xmm0[8], xmm1[8];
-
-  numof16belem = size / (16*8);
-  for (i = 0, j = 0; i < numof16belem; i++, j += 16*8) {
-    /* Fetch and transpose bytes in groups of 128 bytes */
-    for (k = 0; k < 8; k++) {
-      xmm0[k] = _mm_loadu_si128((__m128i*)(src+j+k*16));
-      xmm1[k] = _mm_shuffle_epi32(xmm0[k], 0x4e);
-      xmm1[k] = _mm_unpacklo_epi8(xmm0[k], xmm1[k]);
-    }
-    /* Transpose words */
-    for (k = 0, l = 0; k < 4; k++, l +=2) {
-      xmm0[k*2] = _mm_unpacklo_epi16(xmm1[l], xmm1[l+1]);
-      xmm0[k*2+1] = _mm_unpackhi_epi16(xmm1[l], xmm1[l+1]);
-    }
-    /* Transpose double words */
-    for (k = 0, l = 0; k < 4; k++, l++) {
-      if (k == 2) l += 2;
-      xmm1[k*2] = _mm_unpacklo_epi32(xmm0[l], xmm0[l+2]);
-      xmm1[k*2+1] = _mm_unpackhi_epi32(xmm0[l], xmm0[l+2]);
-    }
-    /* Transpose quad words */
-    for (k = 0; k < 4; k++) {
-      xmm0[k*2] = _mm_unpacklo_epi64(xmm1[k], xmm1[k+4]);
-      xmm0[k*2+1] = _mm_unpackhi_epi64(xmm1[k], xmm1[k+4]);
-    }
-    /* Store the result vectors */
-    for (k = 0; k < 8; k++) {
-      ((__m128i *)dest)[k*numof16belem+i] = xmm0[k];
-    }
-  }
+  /*  The implementation is initialized.
+      Dispatch to it's shuffle routine. */
+  (host_implementation.shuffle)(bytesoftype, blocksize, _src, _dest);
 }
 
+/*  Unshuffle a block by dynamically dispatching to the appropriate
+    hardware-accelerated routine at run-time. */
+void
+unshuffle(const size_t bytesoftype, const size_t blocksize,
+          const uint8_t* _src, const uint8_t* _dest) {
+  /* Initialize the shuffle implementation if necessary. */
+  init_shuffle_implementation();
 
-/* Routine optimized for shuffling a buffer for a type size of 16 bytes. */
-static void
-shuffle16(uint8_t* dest, uint8_t* src, size_t size)
-{
-  size_t i, j, k, l;
-  size_t numof16belem;
-  __m128i xmm0[16], xmm1[16];
-
-  numof16belem = size / (16*16);
-  for (i = 0, j = 0; i < numof16belem; i++, j += 16*16) {
-    /* Fetch elements in groups of 256 bytes */
-    for (k = 0; k < 16; k++) {
-      xmm0[k] = _mm_loadu_si128((__m128i*)(src+j+k*16));
-    }
-    /* Transpose bytes */
-    for (k = 0, l = 0; k < 8; k++, l +=2) {
-      xmm1[k*2] = _mm_unpacklo_epi8(xmm0[l], xmm0[l+1]);
-      xmm1[k*2+1] = _mm_unpackhi_epi8(xmm0[l], xmm0[l+1]);
-    }
-    /* Transpose words */
-    for (k = 0, l = -2; k < 8; k++, l++) {
-      if ((k%2) == 0) l += 2;
-      xmm0[k*2] = _mm_unpacklo_epi16(xmm1[l], xmm1[l+2]);
-      xmm0[k*2+1] = _mm_unpackhi_epi16(xmm1[l], xmm1[l+2]);
-    }
-    /* Transpose double words */
-    for (k = 0, l = -4; k < 8; k++, l++) {
-      if ((k%4) == 0) l += 4;
-      xmm1[k*2] = _mm_unpacklo_epi32(xmm0[l], xmm0[l+4]);
-      xmm1[k*2+1] = _mm_unpackhi_epi32(xmm0[l], xmm0[l+4]);
-    }
-    /* Transpose quad words */
-    for (k = 0; k < 8; k++) {
-      xmm0[k*2] = _mm_unpacklo_epi64(xmm1[k], xmm1[k+8]);
-      xmm0[k*2+1] = _mm_unpackhi_epi64(xmm1[k], xmm1[k+8]);
-    }
-    /* Store the result vectors */
-    for (k = 0; k < 16; k++) {
-      ((__m128i *)dest)[k*numof16belem+i] = xmm0[k];
-    }
-  }
+  /*  The implementation is initialized.
+      Dispatch to it's unshuffle routine. */
+  (host_implementation.unshuffle)(bytesoftype, blocksize, _src, _dest);
 }
 
+/*  Bit-shuffle a block by dynamically dispatching to the appropriate
+    hardware-accelerated routine at run-time. */
+int
+bitshuffle(const size_t bytesoftype, const size_t blocksize,
+           const uint8_t* const _src, const uint8_t* _dest,
+           const uint8_t* _tmp) {
+  int size = blocksize / bytesoftype;
+  /* Initialize the shuffle implementation if necessary. */
+  init_shuffle_implementation();
 
-/* Shuffle a block.  This can never fail. */
-void shuffle(size_t bytesoftype, size_t blocksize,
-             uint8_t* _src, uint8_t* _dest) {
-  int unaligned_dest = (int)((uintptr_t)_dest % 16);
-  int multiple_of_block = (blocksize % (16 * bytesoftype)) == 0;
-  int too_small = (blocksize < 256);
-
-  if (unaligned_dest || !multiple_of_block || too_small) {
-    /* _dest buffer is not aligned, not multiple of the vectorization size
-     * or is too small.  Call the non-sse2 version. */
-    _shuffle(bytesoftype, blocksize, _src, _dest);
-    return;
-  }
-
-  /* Optimized shuffle */
-  /* The buffer must be aligned on a 16 bytes boundary, have a power */
-  /* of 2 size and be larger or equal than 256 bytes. */
-  if (bytesoftype == 4) {
-    shuffle4(_dest, _src, blocksize);
-  }
-  else if (bytesoftype == 8) {
-    shuffle8(_dest, _src, blocksize);
-  }
-  else if (bytesoftype == 16) {
-    shuffle16(_dest, _src, blocksize);
-  }
-  else if (bytesoftype == 2) {
-    shuffle2(_dest, _src, blocksize);
-  }
-  else {
-    /* Non-optimized shuffle */
-    _shuffle(bytesoftype, blocksize, _src, _dest);
-  }
+  if ((size % 8) == 0)
+    /* The number of elems is a multiple of 8 which is supported by
+       bitshuffle. */
+    return (int)(host_implementation.bitshuffle)((void*)_src, (void*)_dest,
+                                                 blocksize / bytesoftype,
+                                                 bytesoftype, (void*)_tmp);
+  else
+    memcpy((void*)_dest, (void*)_src, blocksize);
+  return size;
 }
 
+/*  Bit-unshuffle a block by dynamically dispatching to the appropriate
+    hardware-accelerated routine at run-time. */
+int
+bitunshuffle(const size_t bytesoftype, const size_t blocksize,
+             const uint8_t* const _src, const uint8_t* _dest,
+             const uint8_t* _tmp) {
+  int size = blocksize / bytesoftype;
+  /* Initialize the shuffle implementation if necessary. */
+  init_shuffle_implementation();
 
-/* Routine optimized for unshuffling a buffer for a type size of 2 bytes. */
-static void
-unshuffle2(uint8_t* dest, uint8_t* orig, size_t size)
-{
-  size_t i, k;
-  size_t neblock, numof16belem;
-  __m128i xmm1[2], xmm2[2];
-
-  neblock = size / 2;
-  numof16belem = neblock / 16;
-  for (i = 0, k = 0; i < numof16belem; i++, k += 2) {
-    /* Load the first 32 bytes in 2 XMM registrers */
-    xmm1[0] = ((__m128i *)orig)[0*numof16belem+i];
-    xmm1[1] = ((__m128i *)orig)[1*numof16belem+i];
-    /* Shuffle bytes */
-    /* Compute the low 32 bytes */
-    xmm2[0] = _mm_unpacklo_epi8(xmm1[0], xmm1[1]);
-    /* Compute the hi 32 bytes */
-    xmm2[1] = _mm_unpackhi_epi8(xmm1[0], xmm1[1]);
-    /* Store the result vectors in proper order */
-    ((__m128i *)dest)[k+0] = xmm2[0];
-    ((__m128i *)dest)[k+1] = xmm2[1];
-  }
+  if ((size % 8) == 0)
+    /* The number of elems is a multiple of 8 which is supported by
+       bitshuffle. */
+    return (int)(host_implementation.bitunshuffle)((void*)_src, (void*)_dest,
+                                                   blocksize / bytesoftype,
+                                                   bytesoftype, (void*)_tmp);
+  else
+    memcpy((void*)_dest, (void*)_src, blocksize);
+  return size;
 }
-
-
-/* Routine optimized for unshuffling a buffer for a type size of 4 bytes. */
-static void
-unshuffle4(uint8_t* dest, uint8_t* orig, size_t size)
-{
-  size_t i, j, k;
-  size_t neblock, numof16belem;
-  __m128i xmm0[4], xmm1[4];
-
-  neblock = size / 4;
-  numof16belem = neblock / 16;
-  for (i = 0, k = 0; i < numof16belem; i++, k += 4) {
-    /* Load the first 64 bytes in 4 XMM registrers */
-    for (j = 0; j < 4; j++) {
-      xmm0[j] = ((__m128i *)orig)[j*numof16belem+i];
-    }
-    /* Shuffle bytes */
-    for (j = 0; j < 2; j++) {
-      /* Compute the low 32 bytes */
-      xmm1[j] = _mm_unpacklo_epi8(xmm0[j*2], xmm0[j*2+1]);
-      /* Compute the hi 32 bytes */
-      xmm1[2+j] = _mm_unpackhi_epi8(xmm0[j*2], xmm0[j*2+1]);
-    }
-    /* Shuffle 2-byte words */
-    for (j = 0; j < 2; j++) {
-      /* Compute the low 32 bytes */
-      xmm0[j] = _mm_unpacklo_epi16(xmm1[j*2], xmm1[j*2+1]);
-      /* Compute the hi 32 bytes */
-      xmm0[2+j] = _mm_unpackhi_epi16(xmm1[j*2], xmm1[j*2+1]);
-    }
-    /* Store the result vectors in proper order */
-    ((__m128i *)dest)[k+0] = xmm0[0];
-    ((__m128i *)dest)[k+1] = xmm0[2];
-    ((__m128i *)dest)[k+2] = xmm0[1];
-    ((__m128i *)dest)[k+3] = xmm0[3];
-  }
-}
-
-
-/* Routine optimized for unshuffling a buffer for a type size of 8 bytes. */
-static void
-unshuffle8(uint8_t* dest, uint8_t* orig, size_t size)
-{
-  size_t i, j, k;
-  size_t neblock, numof16belem;
-  __m128i xmm0[8], xmm1[8];
-
-  neblock = size / 8;
-  numof16belem = neblock / 16;
-  for (i = 0, k = 0; i < numof16belem; i++, k += 8) {
-    /* Load the first 64 bytes in 8 XMM registrers */
-    for (j = 0; j < 8; j++) {
-      xmm0[j] = ((__m128i *)orig)[j*numof16belem+i];
-    }
-    /* Shuffle bytes */
-    for (j = 0; j < 4; j++) {
-      /* Compute the low 32 bytes */
-      xmm1[j] = _mm_unpacklo_epi8(xmm0[j*2], xmm0[j*2+1]);
-      /* Compute the hi 32 bytes */
-      xmm1[4+j] = _mm_unpackhi_epi8(xmm0[j*2], xmm0[j*2+1]);
-    }
-    /* Shuffle 2-byte words */
-    for (j = 0; j < 4; j++) {
-      /* Compute the low 32 bytes */
-      xmm0[j] = _mm_unpacklo_epi16(xmm1[j*2], xmm1[j*2+1]);
-      /* Compute the hi 32 bytes */
-      xmm0[4+j] = _mm_unpackhi_epi16(xmm1[j*2], xmm1[j*2+1]);
-    }
-    /* Shuffle 4-byte dwords */
-    for (j = 0; j < 4; j++) {
-      /* Compute the low 32 bytes */
-      xmm1[j] = _mm_unpacklo_epi32(xmm0[j*2], xmm0[j*2+1]);
-      /* Compute the hi 32 bytes */
-      xmm1[4+j] = _mm_unpackhi_epi32(xmm0[j*2], xmm0[j*2+1]);
-    }
-    /* Store the result vectors in proper order */
-    ((__m128i *)dest)[k+0] = xmm1[0];
-    ((__m128i *)dest)[k+1] = xmm1[4];
-    ((__m128i *)dest)[k+2] = xmm1[2];
-    ((__m128i *)dest)[k+3] = xmm1[6];
-    ((__m128i *)dest)[k+4] = xmm1[1];
-    ((__m128i *)dest)[k+5] = xmm1[5];
-    ((__m128i *)dest)[k+6] = xmm1[3];
-    ((__m128i *)dest)[k+7] = xmm1[7];
-  }
-}
-
-
-/* Routine optimized for unshuffling a buffer for a type size of 16 bytes. */
-static void
-unshuffle16(uint8_t* dest, uint8_t* orig, size_t size)
-{
-  size_t i, j, k;
-  size_t neblock, numof16belem;
-  __m128i xmm1[16], xmm2[16];
-
-  neblock = size / 16;
-  numof16belem = neblock / 16;
-  for (i = 0, k = 0; i < numof16belem; i++, k += 16) {
-    /* Load the first 128 bytes in 16 XMM registrers */
-    for (j = 0; j < 16; j++) {
-      xmm1[j] = ((__m128i *)orig)[j*numof16belem+i];
-    }
-    /* Shuffle bytes */
-    for (j = 0; j < 8; j++) {
-      /* Compute the low 32 bytes */
-      xmm2[j] = _mm_unpacklo_epi8(xmm1[j*2], xmm1[j*2+1]);
-      /* Compute the hi 32 bytes */
-      xmm2[8+j] = _mm_unpackhi_epi8(xmm1[j*2], xmm1[j*2+1]);
-    }
-    /* Shuffle 2-byte words */
-    for (j = 0; j < 8; j++) {
-      /* Compute the low 32 bytes */
-      xmm1[j] = _mm_unpacklo_epi16(xmm2[j*2], xmm2[j*2+1]);
-      /* Compute the hi 32 bytes */
-      xmm1[8+j] = _mm_unpackhi_epi16(xmm2[j*2], xmm2[j*2+1]);
-    }
-    /* Shuffle 4-byte dwords */
-    for (j = 0; j < 8; j++) {
-      /* Compute the low 32 bytes */
-      xmm2[j] = _mm_unpacklo_epi32(xmm1[j*2], xmm1[j*2+1]);
-      /* Compute the hi 32 bytes */
-      xmm2[8+j] = _mm_unpackhi_epi32(xmm1[j*2], xmm1[j*2+1]);
-    }
-    /* Shuffle 8-byte qwords */
-    for (j = 0; j < 8; j++) {
-      /* Compute the low 32 bytes */
-      xmm1[j] = _mm_unpacklo_epi64(xmm2[j*2], xmm2[j*2+1]);
-      /* Compute the hi 32 bytes */
-      xmm1[8+j] = _mm_unpackhi_epi64(xmm2[j*2], xmm2[j*2+1]);
-    }
-    /* Store the result vectors in proper order */
-    ((__m128i *)dest)[k+0] = xmm1[0];
-    ((__m128i *)dest)[k+1] = xmm1[8];
-    ((__m128i *)dest)[k+2] = xmm1[4];
-    ((__m128i *)dest)[k+3] = xmm1[12];
-    ((__m128i *)dest)[k+4] = xmm1[2];
-    ((__m128i *)dest)[k+5] = xmm1[10];
-    ((__m128i *)dest)[k+6] = xmm1[6];
-    ((__m128i *)dest)[k+7] = xmm1[14];
-    ((__m128i *)dest)[k+8] = xmm1[1];
-    ((__m128i *)dest)[k+9] = xmm1[9];
-    ((__m128i *)dest)[k+10] = xmm1[5];
-    ((__m128i *)dest)[k+11] = xmm1[13];
-    ((__m128i *)dest)[k+12] = xmm1[3];
-    ((__m128i *)dest)[k+13] = xmm1[11];
-    ((__m128i *)dest)[k+14] = xmm1[7];
-    ((__m128i *)dest)[k+15] = xmm1[15];
-  }
-}
-
-
-/* Unshuffle a block.  This can never fail. */
-void unshuffle(size_t bytesoftype, size_t blocksize,
-               uint8_t* _src, uint8_t* _dest) {
-  int unaligned_src = (int)((uintptr_t)_src % 16);
-  int unaligned_dest = (int)((uintptr_t)_dest % 16);
-  int multiple_of_block = (blocksize % (16 * bytesoftype)) == 0;
-  int too_small = (blocksize < 256);
-
-  if (unaligned_src || unaligned_dest || !multiple_of_block || too_small) {
-    /* _src or _dest buffer is not aligned, not multiple of the vectorization
-     * size or is not too small.  Call the non-sse2 version. */
-    _unshuffle(bytesoftype, blocksize, _src, _dest);
-    return;
-  }
-
-  /* Optimized unshuffle */
-  /* The buffers must be aligned on a 16 bytes boundary, have a power */
-  /* of 2 size and be larger or equal than 256 bytes. */
-  if (bytesoftype == 4) {
-    unshuffle4(_dest, _src, blocksize);
-  }
-  else if (bytesoftype == 8) {
-    unshuffle8(_dest, _src, blocksize);
-  }
-  else if (bytesoftype == 16) {
-    unshuffle16(_dest, _src, blocksize);
-  }
-  else if (bytesoftype == 2) {
-    unshuffle2(_dest, _src, blocksize);
-  }
-  else {
-    /* Non-optimized unshuffle */
-    _unshuffle(bytesoftype, blocksize, _src, _dest);
-  }
-}
-
-#else   /* no __SSE2__ available */
-
-void shuffle(size_t bytesoftype, size_t blocksize,
-             uint8_t* _src, uint8_t* _dest) {
-  _shuffle(bytesoftype, blocksize, _src, _dest);
-}
-
-void unshuffle(size_t bytesoftype, size_t blocksize,
-               uint8_t* _src, uint8_t* _dest) {
-  _unshuffle(bytesoftype, blocksize, _src, _dest);
-}
-
-#endif  /* __SSE2__ */

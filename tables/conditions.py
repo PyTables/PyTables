@@ -33,7 +33,7 @@ Functions:
 import re
 from numexpr.necompiler import typecode_to_kind
 from numexpr.necompiler import expressionToAST, typeCompileAst
-from numexpr.necompiler import stringToExpression, NumExpr
+from numexpr.necompiler import stringToExpression, NumExpr, getExprNames
 from numexpr.expressions import ExpressionNode
 from tables.utilsextension import get_nested_field
 from tables.utils import lazyattr
@@ -329,7 +329,7 @@ class CompiledCondition(object):
                 idxvars.append(idxvar)
         return frozenset(idxvars)
 
-    def __init__(self, func, params, idxexprs, strexpr):
+    def __init__(self, func, params, idxexprs, strexpr, **kwargs):
         self.function = func
         """The compiled function object corresponding to this condition."""
         self.parameters = params
@@ -338,6 +338,8 @@ class CompiledCondition(object):
         """A list of expressions in the form ``(var, (ops), (limits))``."""
         self.string_expression = strexpr
         """The indexable expression in string format."""
+        self.kwargs = kwargs
+        """NumExpr kwargs (used to pass ex_uses_vml to numexpr)"""
 
     def __repr__(self):
         return ("idxexprs: %s\nstrexpr: %s\nidxvars: %s"
@@ -366,7 +368,8 @@ class CompiledCondition(object):
             exprs2.append((var, ops, tuple(limit_values)))
         # Create a new container for the converted values
         newcc = CompiledCondition(
-            self.function, self.parameters, exprs2, self.string_expression)
+            self.function, self.parameters, exprs2, self.string_expression,
+            **self.kwargs)
         return newcc
 
 
@@ -428,13 +431,16 @@ def compile_condition(condition, typemap, indexedcols):
     except NotImplementedError as nie:
         # Try to make this Numexpr error less cryptic.
         raise _unsupported_operation_error(nie)
+
+    _, ex_uses_vml = getExprNames(condition, {})
+    kwargs = {'ex_uses_vml': ex_uses_vml}
+
     params = varnames
-
     # This is more comfortable to handle about than a tuple.
-    return CompiledCondition(func, params, idxexprs, strexpr)
+    return CompiledCondition(func, params, idxexprs, strexpr, **kwargs)
 
 
-def call_on_recarr(func, params, recarr, param2arg=None):
+def call_on_recarr(func, params, recarr, param2arg=None, **kwargs):
     """Call `func` with `params` over `recarr`.
 
     The `param2arg` function, when specified, is used to get an argument
@@ -453,4 +459,4 @@ def call_on_recarr(func, params, recarr, param2arg=None):
         if hasattr(arg, 'pathname'):  # looks like a column
             arg = get_nested_field(recarr, arg.pathname)
         args.append(arg)
-    return func(*args)
+    return func(*args, **kwargs)

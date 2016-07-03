@@ -570,9 +570,19 @@ class Atom(object):
 
         """
 
-        return dict((arg, getattr(self, arg))
-                    for arg in inspect.getargspec(self.__init__)[0]
-                    if arg != 'self')
+        # @COMPATIBILITY: inspect.getargspec has been deprecated since
+        #                 Python 3.5
+        try:
+            # inspect.signature is new in Python 3.5
+            signature = inspect.signature(self.__init__)
+        except AttributeError:
+            args = inspect.getargspec(self.__init__)[0]
+        else:
+            parameters = signature.parameters
+            args = [arg for arg, p in parameters.items()
+                if p.kind is p.POSITIONAL_OR_KEYWORD]
+
+        return dict((arg, getattr(self, arg)) for arg in args if arg != 'self')
 
     def _is_equal_to_atom(self, atom):
         """Is this object equal to the given `atom`?"""

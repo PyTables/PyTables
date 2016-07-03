@@ -1576,7 +1576,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             chunkmap = None  # default to an in-kernel query
 
         args = [condvars[param] for param in compiled.parameters]
-        self._where_condition = (compiled.function, args)
+        self._where_condition = (compiled.function, args, compiled.kwargs)
         row = tableextension.Row(self)
         if profile:
             show_stats("Exiting table._where", tref)

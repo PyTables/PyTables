@@ -1,30 +1,31 @@
 /*********************************************************************
-  Blosc - Blocked Suffling and Compression Library
+  Blosc - Blocked Shuffling and Compression Library
 
-  Author: Francesc Alted <francesc@blosc.io>
+  Author: Francesc Alted <francesc@blosc.org>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/
+#ifndef BLOSC_H
+#define BLOSC_H
 
 #include <limits.h>
+#include <stdlib.h>
+#include "blosc-export.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
-#ifndef BLOSC_H
-#define BLOSC_H
-
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
-#define BLOSC_VERSION_MINOR    4    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  4    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_MINOR    9    /* for minor interface/format changes  */
+#define BLOSC_VERSION_RELEASE  2    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.4.4"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.9.2"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2015-05-05 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2016-06-08 #$"    /* date version */
 
-#define BLOSCLZ_VERSION_STRING "1.0.2.1"   /* the internal compressor version */
+#define BLOSCLZ_VERSION_STRING "1.0.5"   /* the internal compressor version */
 
 /* The *_FORMAT symbols should be just 1-byte long */
 #define BLOSC_VERSION_FORMAT    2   /* Blosc format version, starting at 1 */
@@ -37,18 +38,24 @@ extern "C" {
    implementations */
 #define BLOSC_MAX_OVERHEAD BLOSC_MIN_HEADER_LENGTH
 
-/* Maximum buffer size to be compressed */
+/* Maximum source buffer size to be compressed */
 #define BLOSC_MAX_BUFFERSIZE (INT_MAX - BLOSC_MAX_OVERHEAD)
 
-/* Maximum typesize before considering buffer as a stream of bytes */
+/* Maximum typesize before considering source buffer as a stream of bytes */
 #define BLOSC_MAX_TYPESIZE 255         /* Cannot be larger than 255 */
 
 /* The maximum number of threads (for some static arrays) */
 #define BLOSC_MAX_THREADS 256
 
+/* Codes for shuffling (see blosc_compress) */
+#define BLOSC_NOSHUFFLE   0  /* no shuffle */
+#define BLOSC_SHUFFLE 1      /* byte-wise shuffle */
+#define BLOSC_BITSHUFFLE  2  /* bit-wise shuffle */
+
 /* Codes for internal flags (see blosc_cbuffer_metainfo) */
-#define BLOSC_DOSHUFFLE 0x1
-#define BLOSC_MEMCPYED  0x2
+#define BLOSC_DOSHUFFLE    0x1	/* byte-wise shuffle */
+#define BLOSC_MEMCPYED     0x2	/* plain copy */
+#define BLOSC_DOBITSHUFFLE 0x4  /* bit-wise shuffle */
 
 /* Codes for the different compressors shipped with Blosc */
 #define BLOSC_BLOSCLZ   0
@@ -64,7 +71,7 @@ extern "C" {
 #define BLOSC_SNAPPY_COMPNAME    "snappy"
 #define BLOSC_ZLIB_COMPNAME      "zlib"
 
-/* Codes for the different compression libraries shipped with Blosc */
+/* Codes for compression libraries shipped with Blosc (code must be < 8) */
 #define BLOSC_BLOSCLZ_LIB   0
 #define BLOSC_LZ4_LIB       1
 #define BLOSC_SNAPPY_LIB    2
@@ -76,7 +83,7 @@ extern "C" {
 #define BLOSC_SNAPPY_LIBNAME    "Snappy"
 #define BLOSC_ZLIB_LIBNAME      "Zlib"
 
-/* The codes for compressor formats shipped with Blosc (code must be < 8) */
+/* The codes for compressor formats shipped with Blosc */
 #define BLOSC_BLOSCLZ_FORMAT  BLOSC_BLOSCLZ_LIB
 #define BLOSC_LZ4_FORMAT      BLOSC_LZ4_LIB
     /* LZ4HC and LZ4 share the same format */
@@ -95,33 +102,38 @@ extern "C" {
 
 
 /**
-  Initialize the Blosc library. You must call this previous to any
-  other Blosc call, and make sure that you call this in a non-threaded
-  environment.  Other Blosc calls can be called in a threaded
-  environment, if desired.
+  Initialize the Blosc library environment.
+
+  You must call this previous to any other Blosc call, unless you want
+  Blosc to be used simultaneously in a multi-threaded environment, in
+  which case you should *exclusively* use the
+  blosc_compress_ctx()/blosc_decompress_ctx() pair (see below).
   */
-void blosc_init(void);
+BLOSC_EXPORT void blosc_init(void);
 
 
 /**
-  Destroy the Blosc library environment. You must call this after to
-  you are done with all the Blosc calls, and make sure that you call
-  this in a non-threaded environment.
+  Destroy the Blosc library environment.
+
+  You must call this after to you are done with all the Blosc calls,
+  unless you have not used blosc_init() before (see blosc_init()
+  above).
   */
-void blosc_destroy(void);
+BLOSC_EXPORT void blosc_destroy(void);
 
 
 /**
   Compress a block of data in the `src` buffer and returns the size of
-  compressed block.  The size of `src` buffer is specified by
+  the compressed block.  The size of `src` buffer is specified by
   `nbytes`.  There is not a minimum for `src` buffer size (`nbytes`).
 
   `clevel` is the desired compression level and must be a number
   between 0 (no compression) and 9 (maximum compression).
 
   `doshuffle` specifies whether the shuffle compression preconditioner
-  should be applied or not.  0 means not applying it and 1 means
-  applying it.
+  should be applied or not.  BLOSC_NOSHUFFLE means not applying it,
+  BLOSC_SHUFFLE means applying it at a byte level and BLOSC_BITSHUFFLE
+  at a bit level (slower but may achieve better entropy alignment).
 
   `typesize` is the number of bytes for the atomic type in binary
   `src` buffer.  This is mainly useful for the shuffle preconditioner.
@@ -144,10 +156,72 @@ void blosc_destroy(void);
   A negative return value means that an internal error happened.  This
   should never happen.  If you see this, please report it back
   together with the buffer data causing this and compression settings.
-  */
-int blosc_compress(int clevel, int doshuffle, size_t typesize, size_t nbytes,
-                   const void *src, void *dest, size_t destsize);
 
+  Environment variables
+  ---------------------
+
+  blosc_compress() honors different environment variables to control
+  internal parameters without the need of doing that programatically.
+  Here are the ones supported:
+
+  BLOSC_CLEVEL=(INTEGER): This will overwrite the `clevel` parameter
+  before the compression process starts.
+
+  BLOSC_SHUFFLE=[NOSHUFFLE | SHUFFLE | BITSHUFFLE]: This will
+  overwrite the `doshuffle` parameter before the compression process
+  starts.
+
+  BLOSC_TYPESIZE=(INTEGER): This will overwrite the `typesize`
+  parameter before the compression process starts.
+
+  BLOSC_COMPRESSOR=[BLOSCLZ | LZ4 | LZ4HC | SNAPPY | ZLIB]: This will
+  call blosc_set_compressor(BLOSC_COMPRESSOR) before the compression
+  process starts.
+
+  BLOSC_NTHREADS=(INTEGER): This will call
+  blosc_set_nthreads(BLOSC_NTHREADS) before the compression process
+  starts.
+
+  BLOSC_BLOCKSIZE=(INTEGER): This will call
+  blosc_set_blocksize(BLOSC_BLOCKSIZE) before the compression process
+  starts.  *NOTE:* The blocksize is a critical parameter with
+  important restrictions in the allowed values, so use this with care.
+
+  BLOSC_NOLOCK=(ANY VALUE): This will call blosc_compress_ctx() under
+  the hood, with the `compressor`, `blocksize` and
+  `numinternalthreads` parameters set to the same as the last calls to
+  blosc_set_compressor(), blosc_set_blocksize() and
+  blosc_set_nthreads().  BLOSC_CLEVEL, BLOSC_SHUFFLE, BLOSC_TYPESIZE
+  environment vars will also be honored.
+  */
+BLOSC_EXPORT int blosc_compress(int clevel, int doshuffle, size_t typesize,
+				size_t nbytes, const void *src, void *dest,
+				size_t destsize);
+
+
+/**
+  Context interface to blosc compression. This does not require a call
+  to blosc_init() and can be called from multithreaded applications
+  without the global lock being used, so allowing Blosc be executed
+  simultaneously in those scenarios.
+
+  It uses the same parameters than the blosc_compress() function plus:
+
+  `compressor`: the string representing the type of compressor to use.
+
+  `blocksize`: the requested size of the compressed blocks.  If 0, an
+   automatic blocksize will be used.
+
+  `numinternalthreads`: the number of threads to use internally.
+
+  A negative return value means that an internal error happened.  This
+  should never happen.  If you see this, please report it back
+  together with the buffer data causing this and compression settings.
+*/
+BLOSC_EXPORT int blosc_compress_ctx(int clevel, int doshuffle, size_t typesize,
+                                    size_t nbytes, const void* src, void* dest,
+                                    size_t destsize, const char* compressor,
+                                    size_t blocksize, int numinternalthreads);
 
 /**
   Decompress a block of compressed data in `src`, put the result in
@@ -161,9 +235,44 @@ int blosc_compress(int clevel, int doshuffle, size_t typesize, size_t nbytes,
   If an error occurs, e.g. the compressed data is corrupted or the
   output buffer is not large enough, then 0 (zero) or a negative value
   will be returned instead.
-  */
-int blosc_decompress(const void *src, void *dest, size_t destsize);
 
+  Environment variables
+  ---------------------
+
+  blosc_decompress() honors different environment variables to control
+  internal parameters without the need of doing that programatically.
+  Here are the ones supported:
+
+  BLOSC_NTHREADS=(INTEGER): This will call
+  blosc_set_nthreads(BLOSC_NTHREADS) before the proper decompression
+  process starts.
+
+  BLOSC_NOLOCK=(ANY VALUE): This will call blosc_decompress_ctx()
+  under the hood, with the `numinternalthreads` parameter set to the
+  same value as the last call to blosc_set_nthreads().
+*/
+BLOSC_EXPORT int blosc_decompress(const void *src, void *dest, size_t destsize);
+
+
+/**
+  Context interface to blosc decompression. This does not require a
+  call to blosc_init() and can be called from multithreaded
+  applications without the global lock being used, so allowing Blosc
+  be executed simultaneously in those scenarios.
+
+  It uses the same parameters than the blosc_decompress() function plus:
+
+  `numinternalthreads`: number of threads to use internally.
+
+  Decompression is memory safe and guaranteed not to write the `dest`
+  buffer more than what is specified in `destsize`.
+
+  If an error occurs, e.g. the compressed data is corrupted or the
+  output buffer is not large enough, then 0 (zero) or a negative value
+  will be returned instead.
+*/
+BLOSC_EXPORT int blosc_decompress_ctx(const void *src, void *dest,
+                                      size_t destsize, int numinternalthreads);
 
 /**
   Get `nitems` (of typesize size) in `src` buffer starting in `start`.
@@ -173,7 +282,14 @@ int blosc_decompress(const void *src, void *dest, size_t destsize);
   Returns the number of bytes copied to `dest` or a negative value if
   some error happens.
   */
-int blosc_getitem(const void *src, int start, int nitems, void *dest);
+BLOSC_EXPORT int blosc_getitem(const void *src, int start, int nitems, void *dest);
+
+
+/**
+  Returns the current number of threads that are used for
+  compression/decompression.
+  */
+BLOSC_EXPORT int blosc_get_nthreads(void);
 
 
 /**
@@ -184,7 +300,13 @@ int blosc_getitem(const void *src, int start, int nitems, void *dest);
 
   Returns the previous number of threads.
   */
-int blosc_set_nthreads(int nthreads);
+BLOSC_EXPORT int blosc_set_nthreads(int nthreads);
+
+
+/**
+  Returns the current compressor that is used for compression.
+  */
+BLOSC_EXPORT char* blosc_get_compressor(void);
 
 
 /**
@@ -196,7 +318,7 @@ int blosc_set_nthreads(int nthreads);
   for it in this build, it returns a -1.  Else it returns the code for
   the compressor (>=0).
   */
-int blosc_set_compressor(const char* compname);
+BLOSC_EXPORT int blosc_set_compressor(const char* compname);
 
 
 /**
@@ -206,7 +328,7 @@ int blosc_set_compressor(const char* compname);
   for it in this build, -1 is returned.  Else, the compressor code is
   returned.
  */
-int blosc_compcode_to_compname(int compcode, char **compname);
+BLOSC_EXPORT int blosc_compcode_to_compname(int compcode, char **compname);
 
 
 /**
@@ -215,7 +337,7 @@ int blosc_compcode_to_compname(int compcode, char **compname);
   If the compressor name is not recognized, or there is not support
   for it in this build, -1 is returned instead.
  */
-int blosc_compname_to_compcode(const char *compname);
+BLOSC_EXPORT int blosc_compname_to_compcode(const char *compname);
 
 
 /**
@@ -229,7 +351,14 @@ int blosc_compname_to_compcode(const char *compname);
 
   This function should always succeed.
   */
-char* blosc_list_compressors(void);
+BLOSC_EXPORT char* blosc_list_compressors(void);
+
+/**
+  Return the version of blosc in string format.
+
+  Useful for dynamic libraries.
+*/
+BLOSC_EXPORT char* blosc_get_version_string(void);
 
 
 /**
@@ -246,7 +375,7 @@ char* blosc_list_compressors(void);
   If the compressor is supported, it returns the code for the library
   (>=0).  If it is not supported, this function returns -1.
   */
-int blosc_get_complib_info(char *compname, char **complib, char **version);
+BLOSC_EXPORT int blosc_get_complib_info(char *compname, char **complib, char **version);
 
 
 /**
@@ -255,7 +384,7 @@ int blosc_get_complib_info(char *compname, char **complib, char **version);
   problems releasing the resources, it returns a negative number, else
   it returns 0.
   */
-int blosc_free_resources(void);
+BLOSC_EXPORT int blosc_free_resources(void);
 
 
 /**
@@ -269,8 +398,8 @@ int blosc_free_resources(void);
 
   This function should always succeed.
   */
-void blosc_cbuffer_sizes(const void *cbuffer, size_t *nbytes,
-                         size_t *cbytes, size_t *blocksize);
+BLOSC_EXPORT void blosc_cbuffer_sizes(const void *cbuffer, size_t *nbytes,
+				      size_t *cbytes, size_t *blocksize);
 
 
 /**
@@ -281,14 +410,15 @@ void blosc_cbuffer_sizes(const void *cbuffer, size_t *nbytes,
     * bit 0: whether the shuffle filter has been applied or not
     * bit 1: whether the internal buffer is a pure memcpy or not
 
-  You can use the `BLOSC_DOSHUFFLE` and `BLOSC_MEMCPYED` symbols for
-  extracting the interesting bits (e.g. ``flags & BLOSC_DOSHUFFLE``
-  says whether the buffer is shuffled or not).
+  You can use the `BLOSC_DOSHUFFLE`, `BLOSC_DOBITSHUFFLE` and
+  `BLOSC_MEMCPYED` symbols for extracting the interesting bits
+  (e.g. ``flags & BLOSC_DOSHUFFLE`` says whether the buffer is
+  byte-shuffled or not).
 
   This function should always succeed.
   */
-void blosc_cbuffer_metainfo(const void *cbuffer, size_t *typesize,
-                            int *flags);
+BLOSC_EXPORT void blosc_cbuffer_metainfo(const void *cbuffer, size_t *typesize,
+					 int *flags);
 
 
 /**
@@ -298,8 +428,8 @@ void blosc_cbuffer_metainfo(const void *cbuffer, size_t *typesize,
 
   This function should always succeed.
   */
-void blosc_cbuffer_versions(const void *cbuffer, int *version,
-                            int *versionlz);
+BLOSC_EXPORT void blosc_cbuffer_versions(const void *cbuffer, int *version,
+                                             int *versionlz);
 
 
 /**
@@ -307,7 +437,7 @@ void blosc_cbuffer_versions(const void *cbuffer, int *version,
 
   This function should always succeed.
   */
-char *blosc_cbuffer_complib(const void *cbuffer);
+BLOSC_EXPORT char *blosc_cbuffer_complib(const void *cbuffer);
 
 
 
@@ -317,12 +447,18 @@ char *blosc_cbuffer_complib(const void *cbuffer);
 
 *********************************************************************/
 
+/* Get the internal blocksize to be used during compression.  0 means
+   that an automatic blocksize is computed internally. */
+BLOSC_EXPORT int blosc_get_blocksize(void);
 
 /**
   Force the use of a specific blocksize.  If 0, an automatic
   blocksize will be used (the default).
+
+  The blocksize is a critical parameter with important restrictions in
+  the allowed values, so use this with care.
   */
-void blosc_set_blocksize(size_t blocksize);
+BLOSC_EXPORT void blosc_set_blocksize(size_t blocksize);
 
 #ifdef __cplusplus
 }

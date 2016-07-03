@@ -1,10 +1,10 @@
 /*********************************************************************
-  Blosc - Blocked Suffling and Compression Library
+  Blosc - Blocked Shuffling and Compression Library
 
   Unit tests for Blosc API.
 
   Creation date: 2010-06-07
-  Author: Francesc Alted <francesc@blosc.io>
+  Author: Francesc Alted <francesc@blosc.org>
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/
@@ -65,14 +65,40 @@ static char *test_cbuffer_complib() {
 }
 
 
+static char *test_nthreads() {
+  int nthreads;
+
+  nthreads = blosc_set_nthreads(4);
+  mu_assert("ERROR: set_nthreads incorrect", nthreads == 1);
+  nthreads = blosc_get_nthreads();
+  mu_assert("ERROR: get_nthreads incorrect", nthreads == 4);
+  return 0;
+}
+
+static char *test_blocksize() {
+  int blocksize;
+
+  blocksize = blosc_get_blocksize();
+  mu_assert("ERROR: get_blocksize incorrect", blocksize == 0);
+
+  blosc_set_blocksize(4096);
+  blocksize = blosc_get_blocksize();
+  mu_assert("ERROR: get_blocksize incorrect", blocksize == 4096);
+  return 0;
+}
+
+
 static char *all_tests() {
   mu_run_test(test_cbuffer_sizes);
   mu_run_test(test_cbuffer_metainfo);
   mu_run_test(test_cbuffer_versions);
   mu_run_test(test_cbuffer_complib);
+  mu_run_test(test_nthreads);
+  mu_run_test(test_blocksize);
   return 0;
 }
 
+#define BUFFER_ALIGN_SIZE   8
 
 int main(int argc, char **argv) {
   char *result;
@@ -83,10 +109,10 @@ int main(int argc, char **argv) {
   blosc_set_nthreads(1);
 
   /* Initialize buffers */
-  src = malloc(size);
-  srccpy = malloc(size);
-  dest = malloc(size);
-  dest2 = malloc(size);
+  src = blosc_test_malloc(BUFFER_ALIGN_SIZE, size);
+  srccpy = blosc_test_malloc(BUFFER_ALIGN_SIZE, size);
+  dest = blosc_test_malloc(BUFFER_ALIGN_SIZE, size);
+  dest2 = blosc_test_malloc(BUFFER_ALIGN_SIZE, size);
   memset(src, 0, size);
   memcpy(srccpy, src, size);
 
@@ -106,7 +132,11 @@ int main(int argc, char **argv) {
   }
   printf("\tTests run: %d\n", tests_run);
 
-  free(src); free(srccpy); free(dest); free(dest2);
+  blosc_test_free(src);
+  blosc_test_free(srccpy);
+  blosc_test_free(dest);
+  blosc_test_free(dest2);
+
   blosc_destroy();
 
   return result != 0;

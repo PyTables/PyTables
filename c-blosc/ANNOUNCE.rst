@@ -1,38 +1,34 @@
 ===============================================================
- Announcing c-blosc 1.4.4
- A blocking, shuffling and lossless compression library
+ Announcing c-blosc 1.9.2
+ A blocking, shuffling and lossless compression library for C
 ===============================================================
 
 What is new?
 ============
 
-* New computation of blocksize to be in sync with c-blosc 1.6.1.
-
-* New parametrization of the hash table for blosclz (synced with c-blosc
-  1.6.1)
+This is a maintenance release.  On it, a check on whether Blosc is
+actually initialized before blosc_init(), blosc_destroy() and
+blosc_free_resources() is done, so that the library is more resistant
+to different initialization cycles
+(e.g. https://github.com/stevengj/Blosc.jl/issues/19).
 
 For more info, please see the release notes in:
 
-https://github.com/Blosc/c-blosc/wiki/Release-notes
+https://github.com/Blosc/c-blosc/blob/master/RELEASE_NOTES.rst
 
 
 What is it?
 ===========
 
-Blosc (http://www.blosc.org) is a high performance compressor
+Blosc (http://www.blosc.org) is a high performance meta-compressor
 optimized for binary data.  It has been designed to transmit data to
 the processor cache faster than the traditional, non-compressed,
 direct memory fetch approach via a memcpy() OS call.
 
-Blosc is the first compressor (that I'm aware of) that is meant not
-only to reduce the size of large datasets on-disk or in-memory, but
-also to accelerate object manipulations that are memory-bound.
-
-Blosc has a Python wrapper called python-blosc
-(https://github.com/Blosc/python-blosc) with a high-performance
-interface to NumPy too.  There is also a handy command line for Blosc
-called Bloscpack (https://github.com/Blosc/bloscpack) that allows you to
-compress large binary datafiles on-disk.
+Blosc has internal support for different compressors like its internal
+BloscLZ, but also LZ4, LZ4HC, Snappy and Zlib.  This way these can
+automatically leverage the multithreading and pre-filtering
+(shuffling) capabilities that comes with Blosc.
 
 
 Download sources
@@ -61,9 +57,3 @@ http://groups.google.es/group/blosc
 
 Enjoy Data!
 
-
-.. Local Variables:
-.. mode: rst
-.. coding: utf-8
-.. fill-column: 70
-.. End:

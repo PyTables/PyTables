@@ -25,6 +25,8 @@ from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import verbosePrint as vprint
 from tables.tests.common import PyTablesTestCase as TestCase
+from numpy import (log10, exp, log, abs, sqrt, sin, cos, tan,
+                   arcsin, arccos, arctan)
 
 
 # Data parameters
@@ -67,6 +69,14 @@ type_info = {
     'string': ('S%s' % _strlen, numpy.string_),  # just for these tests
 }
 """NumPy and Numexpr type for each PyTables type that will be tested."""
+
+# globals dict for eval()
+func_info = {'log10': log10, 'log': log, 'exp': exp,
+             'abs': abs, 'sqrt': sqrt,
+             'sin': sin, 'cos': cos, 'tan': tan,
+             'arcsin': arcsin, 'arccos': arccos, 'arctan': arctan}
+"""functions and NumPy.ufunc() for each function that will be tested."""
+
 
 if hasattr(numpy, 'float16'):
     type_info['float16'] = (numpy.float16, float)
@@ -313,6 +323,8 @@ left_bound = row_period // 4
 """Operand of left side operator in comparisons with operator pairs."""
 right_bound = row_period * 3 // 4
 """Operand of right side operator in comparisons with operator pairs."""
+func_bound = 0.8  # must be <1 for trig functions to be able to fail
+"""Operand of right side operator in comparisons with functions. """
 extra_conditions = [
     '',                     # uses one index
     '& ((c_extra + 1) < 0)',  # uses one index
@@ -335,13 +347,14 @@ class TableDataTestCase(BaseTableQueryTestCase):
     _testfmt_heavy = 'test_h%04d'
 
 
-def create_test_method(type_, op, extracond):
+def create_test_method(type_, op, extracond, func=None):
     sctype = sctype_from_type[type_]
 
     # Compute the value of bounds.
     condvars = {'bound': right_bound,
                 'lbound': left_bound,
-                'rbound': right_bound}
+                'rbound': right_bound,
+                'func_bound': func_bound}
     for (bname, bvalue) in condvars.iteritems():
         if type_ == 'string':
             bvalue = str_format % bvalue
@@ -357,12 +370,14 @@ def create_test_method(type_, op, extracond):
         cond = colname
     elif op == '~':  # unary
         cond = '~(%s)' % colname
-    elif op == '<':  # binary variable-constant
+    elif op == '<' and func is None:  # binary variable-constant
         cond = '%s %s %s' % (colname, op, repr(condvars['bound']))
     elif isinstance(op, tuple):  # double binary variable-constant
         cond = ('(lbound %s %s) & (%s %s rbound)'
                 % (op[0], colname, colname, op[1]))
-    else:  # binary variable-variable
+    elif func is not None:
+        cond = '%s(%s) %s func_bound' % (func, colname, op)
+    else:  # function or binary variable-variable
         cond = '%s %s bound' % (colname, op)
     if extracond:
         cond = '(%s) %s' % (cond, extracond)
@@ -407,7 +422,7 @@ def create_test_method(type_, op, extracond):
                 pyvars['c_extra'] = row['c_extra']
                 pyvars['c_idxextra'] = row['c_idxextra']
                 try:
-                    isvalidrow = eval(pycond, {}, pyvars)
+                    isvalidrow = eval(pycond, func_info, pyvars)
                 except TypeError:
                     raise SilentlySkipTest(
                         "The Python type does not support the operation.")
@@ -463,33 +478,42 @@ def create_test_method(type_, op, extracond):
     test_method.__doc__ = "Testing ``%s``." % cond
     return test_method
 
+
+def add_test_method(type_, op, extracond='', func=None):
+    global testn
+    # Decide to which set the test belongs.
+    heavy = type_ in heavy_types or op in heavy_operators
+    if heavy:
+        testfmt = TableDataTestCase._testfmt_heavy
+        numfmt = ' [#H%d]'
+    else:
+        testfmt = TableDataTestCase._testfmt_light
+        numfmt = ' [#L%d]'
+    tmethod = create_test_method(type_, op, extracond, func)
+    # The test number is appended to the docstring to help
+    # identify failing methods in non-verbose mode.
+    tmethod.__name__ = testfmt % testn
+    # tmethod.__doc__ += numfmt % testn
+    tmethod.__doc__ += testfmt % testn
+    if sys.version_info[0] < 3:
+        imethod = types.MethodType(tmethod, None, TableDataTestCase)
+    else:
+        imethod = tmethod
+    setattr(TableDataTestCase, tmethod.__name__, imethod)
+    testn += 1
+
 # Create individual tests.  You may restrict which tests are generated
 # by replacing the sequences in the ``for`` statements.  For instance:
 testn = 0
 for type_ in type_info:  # for type_ in ['string']:
     for op in operators:  # for op in ['!=']:
-        # Decide to which set the test belongs.
-        heavy = type_ in heavy_types or op in heavy_operators
-        if heavy:
-            testfmt = TableDataTestCase._testfmt_heavy
-            numfmt = ' [#H%d]'
-        else:
-            testfmt = TableDataTestCase._testfmt_light
-            numfmt = ' [#L%d]'
         for extracond in extra_conditions:  # for extracond in ['']:
-            tmethod = create_test_method(type_, op, extracond)
-            # The test number is appended to the docstring to help
-            # identify failing methods in non-verbose mode.
-            tmethod.__name__ = testfmt % testn
-            # tmethod.__doc__ += numfmt % testn
-            tmethod.__doc__ += testfmt % testn
-            if sys.version_info[0] < 3:
-                imethod = types.MethodType(tmethod, None, TableDataTestCase)
-            else:
-                imethod = tmethod
-            setattr(TableDataTestCase, tmethod.__name__, imethod)
-            testn += 1
+            add_test_method(type_, op, extracond)
 
+for type_ in ['float32', 'float64']:
+    for func in func_info:  # i for func in ['log10']:
+        for op in operators:
+            add_test_method(type_, op, func=func)
 
 # Base classes for non-indexed queries.
 NX_BLOCK_SIZE1 = 128  # from ``interpreter.c`` in Numexpr

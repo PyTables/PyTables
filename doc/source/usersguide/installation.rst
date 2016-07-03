@@ -49,18 +49,18 @@ Prerequisites
 First, make sure that you have
 
 * Python_ >= 2.6 including Python 3.x (Python >= 2.7 is highly recommended)
-* HDF5_ >= 1.8.4 (>=1.8.7 is strongly recommended)
-* NumPy_ >= 1.7.1
-* Numexpr_ >= 2.4
-* Cython_ >= 0.14
-* c-blosc_ >= 1.4.1 (it is bundled with PyTables sources but the user can
+* HDF5_ >= 1.8.4 (>=1.8.15 is strongly recommended, HDF5 v1.10 not supported)
+* NumPy_ >= 1.8.1
+* Numexpr_ >= 2.5.2
+* Cython_ >= 0.21
+* c-blosc_ >= 1.4.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the :option:`--blosc` flag of the :file:`setup.py`)
 * argparse_ (only Python 2.6, it is used by the :program:`pt2to3` utility)
 * unittest2_ (only Python 2.6)
 
-installed (for testing purposes, we are using HDF5_ 1.8.12, NumPy_ 1.8.0
-and Numexpr_ 2.4.1 currently). If you don't, fetch and install them before
+installed (for testing purposes, we are using HDF5_ 1.8.15, NumPy_ 1.10.2
+and Numexpr_ 2.5.2 currently). If you don't, fetch and install them before
 proceeding.
 
 .. _Python: http://www.python.org
@@ -71,15 +71,6 @@ proceeding.
 .. _c-blosc: http://blosc.org
 .. _argparse: http://code.google.com/p/argparse
 .. _unittest2: http://pypi.python.org/pypi/unittest2
-
-.. note::
-
-    Currently PyTables does not use setuptools_ by default so do not expect
-    that the setup.py script automatically install all packages PyTables
-    depends on.
-
-.. _setuptools: https://pypi.python.org/pypi/setuptools
-.. _ctypes: https://pypi.python.org/pypi/ctypes
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
 instructions on how to install pre-compiled binaries if you are not willing
@@ -99,22 +90,22 @@ worry too much ;)
 
 **Unix**
 
-    setup.py will detect HDF5, LZO, or bzip2 libraries and include files under
-    :file:`/usr` or :file:`/usr/local`; this will cover most manual
-    installations as well as installations from packages.
-    If setup.py can not find libhdf5, libhdf5 (or liblzo, or libbz2 that you
-    may wish to use) or if you have several versions of a library installed
-    and want to use a particular one, then you can set the path to the
-    resource in the environment, by setting the values of the
-    :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`, :envvar:`BZIP2_DIR` or
-    :envvar:`BLOSC_DIR` environment variables to the path to the particular
-    resource. You may also specify the locations of the resource root
-    directories on the setup.py command line.  For example::
+    setup.py will detect HDF5, Blosc, LZO, or bzip2 libraries and include
+    files under :file:`/usr` or :file:`/usr/local`; this will cover most
+    manual installations as well as installations from packages.  If setup.py
+    can not find libhdf5, libhdf5 (or liblzo, or libbz2 that you may wish to
+    use) or if you have several versions of a library installed and want to
+    use a particular one, then you can set the path to the resource in the
+    environment, by setting the values of the :envvar:`HDF5_DIR`,
+    :envvar:`LZO_DIR`, :envvar:`BZIP2_DIR` or :envvar:`BLOSC_DIR` environment
+    variables to the path to the particular resource. You may also specify the
+    locations of the resource root directories on the setup.py command line.
+    For example::
 
         --hdf5=/stuff/hdf5-1.8.12
+        --blosc=/stuff/blosc-1.8.1
         --lzo=/stuff/lzo-2.02
         --bzip2=/stuff/bzip2-1.0.5
-        --blosc=/stuff/blosc-1.3.2
 
     If your HDF5 library was built as a shared library not in the runtime load
     path, then you can specify the additional linker flags needed to find the
@@ -131,27 +122,6 @@ worry too much ;)
     :envvar:`LIBS` environment variable::
 
         LIBS="hdf5-1.8.12 nsl"
-
-    Finally, you can give additional flags to your compiler by passing them to
-    the :option:`--cflags` flag::
-
-        --cflags="-w -O3 -msse2"
-
-    In the above case, a gcc compiler is used and you instructed it to
-    suppress all the warnings and set the level 3 of optimization.
-    Finally, if you are running Linux in 32-bit mode, and you know that your
-    CPU has support for SSE2 vector instructions, you may want to pass the
-    :option:`-msse2` flag that will accelerate Blosc operation.
-
-    .. hint::
-
-        some GNU/Linux distributions provide a packaged version of the HDF5
-        libraries with MPI support.  In this case you may need to specify
-        the path of the MPH headers as additional include directory.
-
-        On Ubuntu 12.04 the following command has been reported to work::
-
-          $ C_INCLUDE_PATH=/usr/lib/openmpi/include pip install --upgrade tables
 
     Starting from PyTables 3.2 can also query the *pkg-config* database to
     find the required packages. If available, pkg-config is used by default
@@ -181,18 +151,18 @@ worry too much ;)
     path to the particular resource.  For example::
 
         set HDF5_DIR=c:\\stuff\\hdf5-1.8.5-32bit-VS2008-IVF101\\release
+        set BLOSC_DIR=c:\\Program Files (x86)\\Blosc
         set LZO_DIR=c:\\Program Files (x86)\\GnuWin32
         set BZIP2_DIR=c:\\Program Files (x86)\\GnuWin32
-        set BLOSC_DIR=c:\\Program Files (x86)\\Blosc
 
     You may also specify the locations of the resource root directories on the
     setup.py command line.
     For example::
 
         --hdf5=c:\\stuff\\hdf5-1.8.5-32bit-VS2008-IVF101\\release
+        --blosc=c:\\Program Files (x86)\\Blosc
         --lzo=c:\\Program Files (x86)\\GnuWin32
         --bzip2=c:\\Program Files (x86)\\GnuWin32
-        --blosc=c:\\Program Files (x86)\\Blosc
 
 **Development version (Unix)**
 
@@ -462,13 +432,8 @@ platforms. You may also find it useful for instructions on how to install
 Windows prerequisites
 ~~~~~~~~~~~~~~~~~~~~~
 
-First, make sure that you have Python 2.6, NumPy 1.4.1 and Numexpr 2.0 or
-higher installed (PyTables binaries have been built using NumPy 1.7 and
-Numexpr 2.1).  The binaries already include DLLs for HDF5 (1.8.4, 1.8.9),
-zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2 (1.0.5) for
-Windows (2.8.0).
-The LZO DLL can't be included because of license issues (but read below for
-directives to install it if you want so).
+First, make sure that you have Python 2.6, NumPy 1.8.0 and Numexpr 2.5.2 or
+higher installed.
 
 To enable compression with the optional LZO library (see the
 :ref:`compressionIssues` for hints about how it may be used to improve
@@ -484,8 +449,8 @@ not exist yet, so if you want to install the DLL there, you should do so
 PyTables extensions.
 
 Please note that PyTables has internal machinery for dealing with uninstalled
-optional compression libraries, so, you don't need to install the LZO dynamic
-library if you don't want to.
+optional compression libraries, so, you don't need to install the LZO or bzip2
+dynamic libraries if you don't want to.
 
 
 PyTables package installation
@@ -514,4 +479,3 @@ and mail them to the developers so that the problem can be fixed in future
 releases.
 
 You can proceed now to the next chapter to see how to use PyTables.
-

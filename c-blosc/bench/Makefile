@@ -6,7 +6,7 @@ SOURCES = $(wildcard ../blosc/*.c)
 EXECUTABLE = bench
 
 # Support for internal LZ4 and LZ4HC
-LZ4_DIR = ../internal-complibs/lz4-r119
+LZ4_DIR = ../internal-complibs/lz4-1.7.0
 CFLAGS += -DHAVE_LZ4 -I$(LZ4_DIR)
 SOURCES += $(wildcard $(LZ4_DIR)/*.c)
 
