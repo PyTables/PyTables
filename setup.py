@@ -565,6 +565,12 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
                     '.'.join(map(str, min_hdf5_version)),
                     '.'.join(map(str, hdf5_version))))
 
+        if hdf5_version >= (1,10):
+            exit_with_error(
+                "HDF5 1.10 release not supported. HDF5 v1.8 release required. "
+                "Found version v%s" % (
+                    '.'.join(map(str, hdf5_version))))
+
         if os.name == 'nt' and hdf5_version < (1, 8, 10):
             hdf5_old_dll_name = 'hdf5dll' if not debug else 'hdf5ddll'
             package.library_name = hdf5_old_dll_name
