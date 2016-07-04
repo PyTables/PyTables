@@ -5,6 +5,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import sys
+import datetime
 from distutils.version import LooseVersion
 
 import numpy
@@ -1606,6 +1607,26 @@ class CompatibilityTestCase(common.TestFileMixin, TestCase):
             self.h5file.get_node_attr('/', 'py2_pickled_unicode'), u'abc')
 
 
+class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, TestCase):
+    h5fname = test_filename('issue_560.h5')
+
+    @unittest.skipIf(sys.version_info[0] == 3 and sys.version_info[1] < 4,
+                     'bug not fixed on python3<=3.3.')
+    def test_pickled_datetime_object(self):
+        # See also gh-560
+        #
+        # Objects (classes) that are pickled using python 2 may contain
+        # non-ascii characters in the pickled string. This will cause
+        # a UnicodeDecodeError when unpickling on python 3.
+        # Python 3.4 adds encoding='bytes' to fix this
+        # http://bugs.python.org/issue6784
+        # This is not limited to datetime.datetime()
+
+        self.assertIsInstance(
+            self.h5file.get_node_attr('/', 'py2_pickled_datetime'),
+            datetime.datetime)
+
+
 class SegFaultPythonTestCase(common.TempFileMixin, TestCase):
 
     def test00_segfault(self):
@@ -1748,6 +1769,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
         theSuite.addTest(unittest.makeSuite(CompatibilityTestCase))
+        theSuite.addTest(unittest.makeSuite(PicklePy2UnpicklePy3TestCase))
         theSuite.addTest(unittest.makeSuite(SegFaultPythonTestCase))
         theSuite.addTest(unittest.makeSuite(EmbeddedNullsTestCase))
         theSuite.addTest(unittest.makeSuite(VlenStrAttrTestCase))

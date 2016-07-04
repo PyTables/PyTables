@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import re
 import sys
 import inspect
+import warnings
 
 import numpy
 
@@ -1101,15 +1102,20 @@ class VLStringAtom(_BufferedAtom):
     it to one specific row*, i.e. the :meth:`VLArray.append` method only
     accepts one object when the base atom is of this type.
 
-    Like StringAtom, this class does not make assumptions on the encoding of
-    the string, and raw bytes are stored as is.  Unicode strings are supported
-    as long as no character is out of the ASCII set; otherwise, you will need
-    to *explicitly* convert them to strings before you can save them.  For full
-    Unicode support, using VLUnicodeAtom (see :ref:`VLUnicodeAtom`) is
+    This class stores bytestrings. It does not make assumptions on the
+    encoding of the string, and raw bytes are stored as is. To store a string
+    you will need to *explicitly* convert it to a bytestring before you can
+    save them::
+
+        >>> s = 'A unicode string: hbar = \u210f'
+        >>> bytestring = s.encode('utf-8')
+        >>> VLArray.append(bytestring) # doctest: +SKIP
+
+    For full Unicode support, using VLUnicodeAtom (see :ref:`VLUnicodeAtom`) is
     recommended.
 
     Variable-length string atoms do not accept parameters and they cause the
-    reads of rows to always return Python strings.  You can regard vlstring
+    reads of rows to always return Python bytestrings.  You can regard vlstring
     atoms as an easy way to save generic variable length strings.
 
     """
@@ -1119,7 +1125,10 @@ class VLStringAtom(_BufferedAtom):
     base = UInt8Atom()
 
     def _tobuffer(self, object_):
-        if not isinstance(object_, six.string_types):
+        if isinstance(object_, six.text_type):
+            warnings.warn("Storing non bytestrings in VLStringAtom is "
+                          "deprecated.", DeprecationWarning)
+        elif not isinstance(object_, bytes):
             raise TypeError("object is not a string: %r" % (object_,))
         return numpy.string_(object_)
 
@@ -1159,7 +1168,10 @@ class VLUnicodeAtom(_BufferedAtom):
         # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
         # array, we must override ``toarray()`` itself.
         def toarray(self, object_):
-            if not isinstance(object_, six.string_types):
+            if isinstance(object_, bytes):
+                warnings.warn("Storing bytestrings in VLUnicodeAtom is "
+                              "deprecated.", DeprecationWarning)
+            elif not isinstance(object_, six.text_type):
                 raise TypeError("object is not a string: %r" % (object_,))
             ustr = six.text_type(object_)
             uarr = numpy.array(ustr, dtype='U')
@@ -1170,7 +1182,10 @@ class VLUnicodeAtom(_BufferedAtom):
         # This works (and is used) only with UCS-4 builds of Python,
         # where the width of the internal representation of a
         # character matches that of the base atoms.
-        if not isinstance(object_, six.string_types):
+        if isinstance(object_, bytes):
+            warnings.warn("Storing bytestrings in VLUnicodeAtom is "
+                          "deprecated.", DeprecationWarning)
+        elif not isinstance(object_, six.text_type):
             raise TypeError("object is not a string: %r" % (object_,))
         return numpy.unicode_(object_)
 

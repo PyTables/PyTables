@@ -557,8 +557,16 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
         hdf5_version = get_hdf5_version(hdf5_header)
         if hdf5_version < min_hdf5_version:
             exit_with_error(
-                "Unsupported HDF5 version! HDF5 %s+ required. "
-                "Found version %s" % (min_hdf5_version, hdf5_version))
+                "Unsupported HDF5 version! HDF5 v%s+ required. "
+                "Found version v%s" % (
+                    '.'.join(map(str, min_hdf5_version)),
+                    '.'.join(map(str, hdf5_version))))
+
+        if hdf5_version >= (1,10):
+            exit_with_error(
+                "HDF5 1.10 release not supported. HDF5 v1.8 release required. "
+                "Found version v%s" % (
+                    '.'.join(map(str, hdf5_version))))
 
         if os.name == 'nt' and hdf5_version < "1.8.10":
             # Change in DLL naming happened in 1.8.10

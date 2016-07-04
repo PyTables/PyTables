@@ -26,8 +26,10 @@ from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import verbosePrint as vprint
 from tables.tests.common import PyTablesTestCase as TestCase
+
 import six
 from six.moves import range
+
 from numpy import (log10, exp, log, abs, sqrt, sin, cos, tan,
                    arcsin, arccos, arctan)
 

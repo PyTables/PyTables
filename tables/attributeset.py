@@ -330,7 +330,16 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             # Perhaps it would be better just an "except:" clause?
             # except (cPickle.UnpicklingError, ImportError):
             # Definitely (see SF bug #1254636)
+            except UnicodeDecodeError:
+                # Object maybe pickled on python 2 and unpickled on python 3.
+                # encoding='bytes' was added in python 3.4 to resolve this.
+                # Ref: http://bugs.python.org/issue6784
+                try:
+                    retval = six.moves.cPickle.loads(value, encoding='bytes')
+                except:
+                    retval = value
             except:
+                # catch other unpickling errors:
                 # ivb (2005-09-07): It is too hard to tell
                 # whether the unpickling failed
                 # because of the string not being a pickle one at all,
