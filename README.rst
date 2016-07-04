@@ -102,7 +102,8 @@ optional.
 Installation
 ------------
 
-1. Make sure you have HDF5 version 1.8.4 or above.
+1. Make sure you have HDF5 version 1.8.4 or above. HDF5 1.10.x is not
+supported.
 
    On OSX you can install HDF5 using `Homebrew <http://brew.sh>`_::
 
