@@ -23,6 +23,7 @@ from distutils.core import Extension
 from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
+from distutils.version import LooseVersion
 import distutils.spawn
 
 # We need to avoid importing numpy until we can be sure it's installed
@@ -348,7 +349,8 @@ def get_hdf5_version(headername):
     if (major_version == -1 or minor_version == -1 or
             release_version == -1):
         exit_with_error("Unable to detect HDF5 library version!")
-    return "%s.%s.%s" % (major_version, minor_version, release_version)
+    return LooseVersion("%s.%s.%s" % (major_version, minor_version,
+                                      release_version))
 
 # Get the Blosc version provided the 'blosc.h' header
 def get_blosc_version(headername):
@@ -558,15 +560,12 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
         if hdf5_version < min_hdf5_version:
             exit_with_error(
                 "Unsupported HDF5 version! HDF5 v%s+ required. "
-                "Found version v%s" % (
-                    '.'.join(map(str, min_hdf5_version)),
-                    '.'.join(map(str, hdf5_version))))
+                "Found version v%s" % (min_hdf5_version, hdf5_version))
 
-        if hdf5_version >= (1,10):
+        if hdf5_version >= "1.10":
             exit_with_error(
                 "HDF5 1.10 release not supported. HDF5 v1.8 release required. "
-                "Found version v%s" % (
-                    '.'.join(map(str, hdf5_version))))
+                "Found version v%s" % (hdf5_version))
 
         if os.name == 'nt' and hdf5_version < "1.8.10":
             # Change in DLL naming happened in 1.8.10
