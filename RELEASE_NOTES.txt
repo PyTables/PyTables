@@ -29,6 +29,13 @@ Improvements
   experiment if higher values (like 2 or 4) bring better performance for
   you.
 
+
+Changes from 3.2.3 to 3.2.3.1
+=============================
+
+Fixed issues with pip install.
+
+
 Changes from 3.2.2 to 3.2.3
 ===========================
 
