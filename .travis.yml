@@ -15,14 +15,16 @@ addons:
     - libhdf5-serial-dev
     - liblzo2-dev
 
-install:
+before_install:
   - pip install cython
-  - pip install .
+  - python setup.py sdist
+
+install:
+  - pip install dist/*.tar.gz
   - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
 
 script:
-  - mkdir clean_directory && cd clean_directory
-  - python -m tables.tests.test_all
+  - cd .. && python -m tables.tests.test_all
 
 notifications:
   webhooks:
