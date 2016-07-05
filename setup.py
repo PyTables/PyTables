@@ -19,7 +19,7 @@ import glob
 from setuptools import setup, find_packages
 import pkg_resources
 
-from distutils.core import Extension
+from setuptools import Extension
 from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
@@ -68,7 +68,6 @@ class BuildExtensions(build_ext):
         build_ext.run(self)
 
 
-cmdclass = {'build_ext': BuildExtensions}
 setuptools_kwargs = {}
 
 
@@ -111,7 +110,6 @@ debug = '--debug' in sys.argv
 lib_dirs = []
 inc_dirs = [os.path.join('hdf5-blosc', 'src')]
 optional_libs = []
-data_files = []    # list of data files to add to packages (mainly for DLL's)
 
 default_header_dirs = None
 default_library_dirs = None
@@ -179,6 +177,7 @@ def _find_file_path(name, locations, prefixes=[''], suffixes=['']):
 
 
 class Package(object):
+
     def __init__(self, name, tag, header_name, library_name,
                  target_function=None):
         self.name = name
@@ -353,6 +352,8 @@ def get_hdf5_version(headername):
                                       release_version))
 
 # Get the Blosc version provided the 'blosc.h' header
+
+
 def get_blosc_version(headername):
     major_version = -1
     minor_version = -1
@@ -487,9 +488,11 @@ print('* USE_PKGCONFIG:', USE_PKGCONFIG)
 if not HDF5_DIR and os.name == 'nt':
     import ctypes.util
     if not debug:
-        libdir = ctypes.util.find_library('hdf5.dll') or ctypes.util.find_library('hdf5dll.dll')
+        libdir = ctypes.util.find_library(
+            'hdf5.dll') or ctypes.util.find_library('hdf5dll.dll')
     else:
-        libdir = ctypes.util.find_library('hdf5_D.dll') or ctypes.util.find_library('hdf5ddll.dll')
+        libdir = ctypes.util.find_library(
+            'hdf5_D.dll') or ctypes.util.find_library('hdf5ddll.dll')
     # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.8.8\\bin\\hdf5dll.dll'
     if libdir:
         # Strip off the filename
@@ -573,7 +576,8 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
             package.library_name = hdf5_old_dll_name
             package.runtime_name = hdf5_old_dll_name
             _platdep['HDF5'] = [hdf5_old_dll_name, hdf5_old_dll_name]
-            _, libdir, rundir = package.find_directories(location, use_pkgconfig=USE_PKGCONFIG)
+            _, libdir, rundir = package.find_directories(
+                location, use_pkgconfig=USE_PKGCONFIG)
 
     # check if the library is in the standard compiler paths
     if not libdir and package.target_function:
@@ -634,7 +638,7 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
             print_warning(
                 "This Blosc version does not support the BitShuffle filter. "
                 "Minimum desirable version is %s.  Found version: %s" % (
-                min_blosc_bitshuffle_version, blosc_version))
+                    min_blosc_bitshuffle_version, blosc_version))
 
     if not rundir:
         loc = {
@@ -670,9 +674,6 @@ else:
 
 # ------------------------------------------------------------------------------
 
-# TODO temporary
-from Cython.Build import cythonize
-
 # Update the version.h file if this file is newer
 if newer('VERSION', 'src/version.h'):
     open('src/version.h', 'w').write(
@@ -695,8 +696,8 @@ setuptools_kwargs['entry_points'] = {
         'ptrepack = tables.scripts.ptrepack:main',
         'pt2to3 = tables.scripts.pt2to3:main',
         'pttree = tables.scripts.pttree:main',
-        ],
-    }
+    ],
+}
 
 # Test suites.
 setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
@@ -708,28 +709,8 @@ setuptools_kwargs['package_data'] = {
     'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5']}
 
 
-# Having the Python version included in the package name makes managing a
-# system with multiple versions of Python much easier.
-
-def find_name(base='tables'):
-    '''If "--name-with-python-version" is on the command line then
-    append "-pyX.Y" to the base name'''
-    name = base
-    if '--name-with-python-version' in sys.argv:
-        name += '-py%i.%i' % (sys.version_info[0], sys.version_info[1])
-        sys.argv.remove('--name-with-python-version')
-    return name
-
-
-name = find_name()
-
-if os.name == "nt":
-    # Add DLL's to the final package for windows
-    data_files.extend([
-        ('Lib/site-packages/%s' % name, dll_files),
-    ])
-
 ADDLIBS = [hdf5_package.library_name]
+
 
 # List of Blosc file dependencies
 blosc_sources = ["hdf5-blosc/src/blosc_filter.c"]
@@ -781,7 +762,7 @@ if 'BLOSC' not in optional_libs:
     # AVX2
     # Detection code for AVX2 only works for gcc/clang, not for MSVC yet
     if ('avx2' in cpu_info['flags'] and
-        compiler_has_flags(compiler, ["-mavx2"])):
+            compiler_has_flags(compiler, ["-mavx2"])):
         print('AVX2 detected')
         CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
         CFLAGS.append('-mavx2')
@@ -808,176 +789,11 @@ for (package, complibs) in [(lzo_package, _comp_lzo_libs),
         complibs.extend([hdf5_package.library_name, package.library_name])
 
 
-extensions = [
-    Extension("tables.utilsextension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/utilsextension.pyx',
-                       "src/utils.c",
-                       "src/H5ARRAY.c",
-                       "src/H5ATTR.c",
-                       ] + blosc_sources,
-              library_dirs=lib_dirs,
-              libraries=utilsExtension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.hdf5extension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/hdf5extension.pyx',
-                       "src/utils.c",
-                       "src/typeconv.c",
-                       "src/H5ARRAY.c",
-                       "src/H5ARRAY-opt.c",
-                       "src/H5VLARRAY.c",
-                       "src/H5ATTR.c",
-                       ] + blosc_sources,
-              library_dirs=lib_dirs,
-              libraries=hdf5Extension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.tableextension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/tableextension.pyx',
-                       "src/utils.c",
-                       "src/typeconv.c",
-                       "src/H5TB-opt.c",
-                       "src/H5ATTR.c",
-                       ] + blosc_sources,
-              library_dirs=lib_dirs,
-              libraries=tableExtension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables._comp_lzo",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/_comp_lzo.pyx',
-                       "src/H5Zlzo.c"],
-              library_dirs=lib_dirs,
-              libraries=_comp_lzo_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables._comp_bzip2",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/_comp_bzip2.pyx',
-                       "src/H5Zbzip2.c"],
-              library_dirs=lib_dirs,
-              libraries=_comp_bzip2_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.linkextension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/linkextension.pyx'],
-              library_dirs=lib_dirs,
-              libraries=tableExtension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.lrucacheextension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/lrucacheextension.pyx'],
-              library_dirs=lib_dirs,
-              libraries=lrucacheExtension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.indexesextension",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/indexesextension.pyx',
-                       "src/H5ARRAY-opt.c",
-                       "src/idx-opt.c"],
-              library_dirs=lib_dirs,
-              libraries=indexesExtension_libs,
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.index_array_ext",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/index_array_ext.pyx'],
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.cache_array_ext",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/cache_array_ext.pyx', 'src/H5ARRAY-opt.c'],
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.last_row_array_ext",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/last_row_array_ext.pyx'],
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.file_ext",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/file_ext.pyx'],
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.attributeset_ext",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/attributeset_ext.pyx', 'src/H5ATTR.c'],
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.array_ext",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/array_ext.pyx'],
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-
-    Extension("tables.vlarray_ext",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/vlarray_ext.pyx'],
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-    Extension("tables.group_ext",
-              include_dirs=inc_dirs,
-              define_macros=def_macros,
-              sources=['tables/group_ext.pyx'],
-              extra_link_args=LFLAGS,
-              extra_compile_args=CFLAGS),
-
-]
-
-
-classifiers = """\
-Development Status :: 5 - Production/Stable
-Intended Audience :: Developers
-Intended Audience :: Information Technology
-Intended Audience :: Science/Research
-License :: OSI Approved :: BSD License
-Programming Language :: Python
-Programming Language :: Python :: 2
-Programming Language :: Python :: 3
-Topic :: Database
-Topic :: Software Development :: Libraries :: Python Modules
-Operating System :: Microsoft :: Windows
-Operating System :: Unix
+classifiers = """
 """
 
 setup(
-    name=name,
+    name='tables',
     version=VERSION,
     description='Hierarchical datasets for Python',
     long_description="""\
@@ -990,17 +806,182 @@ makes of it a fast, yet extremely easy to use tool for
 interactively save and retrieve large amounts of data.
 
 """,
-    classifiers=[c for c in classifiers.split("\n") if c],
-    author=('Francesc Alted, Ivan Vilata,'
-            'Antonio Valentino, Anthony Scopatz et al.'),
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: BSD License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+        'Topic :: Database',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: Unix',
+    ],
+    author=[
+        'Francesc Alted, Ivan Vilata,'
+        'Antonio Valentino, Anthony Scopatz et al.'
+    ],
     author_email='pytables@pytables.org',
     maintainer='PyTables maintainers',
     maintainer_email='pytables@pytables.org',
     url='http://www.pytables.org/',
     license='BSD 2-Clause',
     platforms=['any'],
-    ext_modules=cythonize(extensions),
-    cmdclass=cmdclass,
-    data_files=data_files,
+    ext_modules=[
+        Extension("tables.utilsextension",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/utilsextension.pyx',
+                           "src/utils.c",
+                           "src/H5ARRAY.c",
+                           "src/H5ATTR.c",
+                           ] + blosc_sources,
+                  library_dirs=lib_dirs,
+                  libraries=utilsExtension_libs,
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.hdf5extension",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/hdf5extension.pyx',
+                           "src/utils.c",
+                           "src/typeconv.c",
+                           "src/H5ARRAY.c",
+                           "src/H5ARRAY-opt.c",
+                           "src/H5VLARRAY.c",
+                           "src/H5ATTR.c",
+                           ] + blosc_sources,
+                  library_dirs=lib_dirs,
+                  libraries=hdf5Extension_libs,
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.tableextension",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/tableextension.pyx',
+                           "src/utils.c",
+                           "src/typeconv.c",
+                           "src/H5TB-opt.c",
+                           "src/H5ATTR.c",
+                           ] + blosc_sources,
+                  library_dirs=lib_dirs,
+                  libraries=tableExtension_libs,
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables._comp_lzo",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/_comp_lzo.pyx',
+                           "src/H5Zlzo.c"],
+                  library_dirs=lib_dirs,
+                  libraries=_comp_lzo_libs,
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables._comp_bzip2",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/_comp_bzip2.pyx', "src/H5Zbzip2.c"],
+                  library_dirs=lib_dirs,
+                  libraries=_comp_bzip2_libs,
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.linkextension",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/linkextension.pyx'],
+                  library_dirs=lib_dirs,
+                  libraries=tableExtension_libs,
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.lrucacheextension",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/lrucacheextension.pyx'],
+                  library_dirs=lib_dirs,
+                  libraries=lrucacheExtension_libs,
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.indexesextension",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/indexesextension.pyx',
+                           "src/H5ARRAY-opt.c",
+                           "src/idx-opt.c"],
+                  library_dirs=lib_dirs,
+                  libraries=indexesExtension_libs,
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.index_array_ext",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/index_array_ext.pyx'],
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.cache_array_ext",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/cache_array_ext.pyx', 'src/H5ARRAY-opt.c'],
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.last_row_array_ext",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/last_row_array_ext.pyx'],
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.file_ext",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/file_ext.pyx'],
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.attributeset_ext",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/attributeset_ext.pyx', 'src/H5ATTR.c'],
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.array_ext",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/array_ext.pyx'],
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+
+        Extension("tables.vlarray_ext",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/vlarray_ext.pyx'],
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+        Extension("tables.group_ext",
+                  include_dirs=inc_dirs,
+                  define_macros=def_macros,
+                  sources=['tables/group_ext.pyx'],
+                  extra_link_args=LFLAGS,
+                  extra_compile_args=CFLAGS),
+
+    ],
+    cmdclass={
+        'build_ext': BuildExtensions
+    },
     **setuptools_kwargs
 )
