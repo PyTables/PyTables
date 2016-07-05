@@ -22,14 +22,14 @@ All entries are little endian.
 :versionlz:
     (``uint8``) Version of the internal compressor used.
 :flags and compressor enumeration:
-    (``bitfield``) The flags of the buffer 
+    (``bitfield``) The flags of the buffer
 
     :bit 0 (``0x01``):
-        Whether the shuffle filter has been applied or not.
+        Whether the byte-shuffle filter has been applied or not.
     :bit 1 (``0x02``):
         Whether the internal buffer is a pure memcpy or not.
     :bit 2 (``0x04``):
-        Reserved
+        Whether the bit-shuffle filter has been applied or not.
     :bit 3 (``0x08``):
         Reserved
     :bit 4 (``0x16``):

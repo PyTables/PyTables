@@ -16,6 +16,7 @@ The Filters class
 ..  These are defined in the class docstring.
     Filters instance variables
     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    .. autoattribute:: Filters.bitshuffle
     .. autoattribute:: Filters.fletcher32
     .. autoattribute:: Filters.complevel
     .. autoattribute:: Filters.complib

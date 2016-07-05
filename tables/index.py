@@ -2130,6 +2130,8 @@ class Index(NotLoggedMixin, Group):
         if self.filters.complevel:
             if self.filters.shuffle:
                 filters += ", shuffle"
+            if self.filters.bitshuffle:
+                filters += ", bitshuffle"
             filters += ", %s(%s)" % (self.filters.complib,
                                      self.filters.complevel)
         return "Index(%s, %s%s).is_csi=%s" % \

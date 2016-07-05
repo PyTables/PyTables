@@ -340,8 +340,12 @@ def _get_parser():
     )
     parser.add_argument(
         '--shuffle', type=int, choices=(0, 1),
-        help='''activate or not the shuffling filter (default is active if
+        help='''activate or not the shuffle filter (default is active if
         complevel > 0)''',
+    )
+    parser.add_argument(
+        '--bitshuffle', type=int, choices=(0, 1),
+        help='''activate or not the bitshuffle filter (not active by default)''',
     )
     parser.add_argument(
         '--fletcher32', type=int, choices=(0, 1),
@@ -352,7 +356,7 @@ def _get_parser():
         '--keep-source-filters', action='store_true', dest='keepfilters',
         help='''use the original filters in source files.
         The default is not doing that if any of --complevel, --complib,
-        --shuffle or --fletcher32 option is specified''',
+        --shuffle --bitshuffle or --fletcher32 option is specified''',
     )
     parser.add_argument(
         '--chunkshape', default='keep',
@@ -454,6 +458,7 @@ def main():
         args.complevel,
         args.complib,
         args.shuffle,
+        args.bitshuffle,
         args.fletcher32,
     )
     if (filter_params == (None,) * 4 or args.keepfilters):
@@ -466,12 +471,18 @@ def main():
                 args.shuffle = True
             else:
                 args.shuffle = False
+        if args.bitshuffle is None:
+            args.bitshuffle = False
+        if args.bitshuffle:
+            # Shuffle and bitshuffle are mutually exclusive
+            args.shuffle = False
         if args.complib is None:
             args.complib = "zlib"
         if args.fletcher32 is None:
             args.fletcher32 = False
         filters = Filters(complevel=args.complevel, complib=args.complib,
-                          shuffle=args.shuffle, fletcher32=args.fletcher32)
+                          shuffle=args.shuffle, bitshuffle=args.bitshuffle,
+                          fletcher32=args.fletcher32)
 
     # The start, stop and step params:
     start, stop, step = None, None, 1  # Defaults

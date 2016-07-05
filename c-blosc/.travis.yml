@@ -1,12 +1,23 @@
 language: c
+
+os:
+- linux
+- osx
+
 compiler:
   - gcc
   - clang
-install: sudo apt-get install libhdf5-serial-dev
-#install: sudo apt-get install libsnappy-dev zlib1g-dev libhdf5-serial-dev
-#install: sudo apt-get install liblz4-dev libsnappy-dev zlib1g-dev libhdf5-dev
+
+before_install: ./scripts/travis-before-install.sh
+
+#install: sudo apt-get install libsnappy-dev zlib1g-dev
+#install: sudo apt-get install liblz4-dev libsnappy-dev zlib1g-dev
+
 before_script:
   - mkdir build
   - cd build
-  - cmake -DBUILD_HDF5_FILTER=TRUE ..
-script: make && make test
+  - cmake ..
+
+script:
+  - cmake --build . --config Release
+  - ctest

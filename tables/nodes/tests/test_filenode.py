@@ -401,7 +401,7 @@ class ReadFileTestCase(TempFileMixin, TestCase):
         """Using a file node with Python Imaging Library."""
 
         try:
-            import Image
+            from PIL import Image
 
             Image.open(self.fnode)
         except ImportError:

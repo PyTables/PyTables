@@ -1,6 +1,6 @@
 /*
-    Copyright (C) 2010  Francesc Alted
-    http://blosc.pytables.org
+    Copyright (C) 2010-2016  Francesc Alted
+    http://blosc.org
     License: MIT (see LICENSE.txt)
 
     Filter program that allows the use of the Blosc filter in HDF5.
@@ -18,29 +18,18 @@
 #include "hdf5.h"
 #include "blosc_filter.h"
 
-#if H5Epush_vers == 2
-/* 1.8.x */
-#define PUSH_ERR(func, minor, str...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str)
+#if defined(__GNUC__)
+#define PUSH_ERR(func, minor, str, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str, ##__VA_ARGS__)
+#elif defined(_MSC_VER)
+#define PUSH_ERR(func, minor, str, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str, __VA_ARGS__)
 #else
-/* 1.6.x */
-#define PUSH_ERR(func, minor, str) H5Epush(__FILE__, func, __LINE__, H5E_PLINE, minor, str)
-#endif
+/* This version is portable but it's better to use compiler-supported
+   approaches for handling the trailing comma issue when possible. */
+#define PUSH_ERR(func, minor, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, __VA_ARGS__)
+#endif	/* defined(__GNUC__) */
 
-#if H5Pget_filter_by_id_vers == 2
-/* 1.8.x */
 #define GET_FILTER(a,b,c,d,e,f,g) H5Pget_filter_by_id(a,b,c,d,e,f,g,NULL)
-#else
-/* 1.6.x */
-#define GET_FILTER H5Pget_filter_by_id
-#endif
 
-#if H5Z_class_t_vers == 2
-/* 1.8.x where x >= 3 */
-#define H5Z_16API 0
-#else
-/* 1.6.x and 1.8.x with x < 3*/
-#define H5Z_16API 1
-#endif
 
 size_t blosc_filter(unsigned flags, size_t cd_nelmts,
                     const unsigned cd_values[], size_t nbytes,
@@ -54,15 +43,6 @@ int register_blosc(char **version, char **date){
 
     int retval;
 
-#if H5Z_16API
-    H5Z_class_t filter_class = {
-        (H5Z_filter_t)(FILTER_BLOSC),
-        "blosc",
-        NULL,
-        (H5Z_set_local_func_t)(blosc_set_local),
-        (H5Z_func_t)(blosc_filter)
-    };
-#else
     H5Z_class_t filter_class = {
         H5Z_CLASS_T_VERS,
         (H5Z_filter_t)(FILTER_BLOSC),
@@ -72,7 +52,6 @@ int register_blosc(char **version, char **date){
         (H5Z_set_local_func_t)(blosc_set_local),
         (H5Z_func_t)(blosc_filter)
     };
-#endif
 
     retval = H5Zregister(&filter_class);
     if(retval<0){
@@ -105,7 +84,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     size_t nelements = 8;
     unsigned int values[] = {0,0,0,0,0,0,0,0};
     hid_t super_type;
-    H5T_class_t class;
+    H5T_class_t classt;
 
     r = GET_FILTER(dcpl, FILTER_BLOSC, &flags, &nelements, values, 0, NULL);
     if(r<0) return -1;
@@ -126,8 +105,8 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     typesize = H5Tget_size(type);
     if (typesize==0) return -1;
     /* Get the size of the base type, even for ARRAY types */
-    class = H5Tget_class(type);
-    if (class == H5T_ARRAY) {
+    classt = H5Tget_class(type);
+    if (classt == H5T_ARRAY) {
       /* Get the array base component */
       super_type = H5Tget_super(type);
       basetypesize = H5Tget_size(super_type);
@@ -140,7 +119,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
 
     /* Limit large typesizes (they are pretty inneficient to shuffle
        and, in addition, Blosc does not handle typesizes larger than
-       blocksizes). */
+       256 bytes). */
     if (basetypesize > BLOSC_MAX_TYPESIZE) basetypesize = 1;
     values[2] = basetypesize;
 
@@ -175,7 +154,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     int doshuffle = 1;             /* Shuffle default */
     int compcode;                  /* Blosc compressor */
     int code;
-    char *compname = NULL;
+    char *compname = "blosclz";    /* The compressor by default */
     char *complist;
     char errmsg[256];
 
@@ -187,7 +166,16 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         clevel = cd_values[4];        /* The compression level */
     }
     if (cd_nelmts >= 6) {
-        doshuffle = cd_values[5];     /* Shuffle? */
+        doshuffle = cd_values[5];  /* BLOSC_SHUFFLE, BLOSC_BITSHUFFLE */
+	/* bitshuffle is only meant for production in >= 1.8.0 */
+#if ( (BLOSC_VERSION_MAJOR <= 1) && (BLOSC_VERSION_MINOR < 8) )
+	if (doshuffle == BLOSC_BITSHUFFLE) {
+	  PUSH_ERR("blosc_filter", H5E_CALLBACK,
+		   "this Blosc library version does not have support for "
+		   "the bitshuffle filter.  Please update to >= 1.8");
+	  goto failed;
+	}
+#endif
     }
     if (cd_nelmts >= 7) {
         compcode = cd_values[6];     /* The Blosc compressor used */
@@ -195,18 +183,11 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         complist = blosc_list_compressors();
 	code = blosc_compcode_to_compname(compcode, &compname);
 	if (code == -1) {
-#if H5Epush_vers == 2
             PUSH_ERR("blosc_filter", H5E_CALLBACK,
                      "this Blosc library does not have support for "
                      "the '%s' compressor, but only for: %s",
                      compname, complist);
-#else
-	    sprintf(errmsg, "this Blosc library does not have support for "
-                    "the '%s' compressor, but only for: %s",
-		    compname, complist);
-            PUSH_ERR("blosc_filter", H5E_CALLBACK, errmsg);
             goto failed;
-#endif
 	}
     }
 
@@ -227,24 +208,20 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         outbuf_size = (*buf_size);
         outbuf = malloc(outbuf_size);
 
-        if(outbuf == NULL){
+        if (outbuf == NULL){
             PUSH_ERR("blosc_filter", H5E_CALLBACK,
                      "Can't allocate compression buffer");
             goto failed;
         }
 
-#if ( (BLOSC_VERSION_MAJOR <= 1) && (BLOSC_VERSION_MINOR < 5) )
-	/* Select the correct compressor to use */
-        if (compname != NULL)
-	  blosc_set_compressor(compname);
-
+#if ( (BLOSC_VERSION_MAJOR <= 1) && ((BLOSC_VERSION_MINOR < 5) || (BLOSC_VERSION_MINOR >= 8 )) )
+        blosc_set_compressor(compname);
         status = blosc_compress(clevel, doshuffle, typesize, nbytes,
                                 *buf, outbuf, nbytes);
 #else
-        /* Starting from Blosc 1.5 on, there is not an internal global
-	   lock anymore, so do not try to run in multithreading mode
-	   so as to not interfering with other possible threads
-	   launched by the main Python application */
+        /* Probably the bug affecting blosc_decompress() (see below)
+	   was not applicable to blosc_compress(), but let's err on
+	   the safe side and use blosc_compress_ctx() before 1.8.0 */
         status = blosc_compress_ctx(clevel, doshuffle, typesize, nbytes,
                                     *buf, outbuf, nbytes, compname, 0, 1);
 #endif
@@ -280,13 +257,15 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
           goto failed;
         }
 
-#if ( (BLOSC_VERSION_MAJOR <= 1) && (BLOSC_VERSION_MINOR < 5) )
-        status = blosc_decompress(*buf, outbuf, outbuf_size);
+#if ( (BLOSC_VERSION_MAJOR <= 1) && ((BLOSC_VERSION_MINOR < 5) || (BLOSC_VERSION_MINOR >= 8 )) )
+	status = blosc_decompress(*buf, outbuf, outbuf_size);
 #else
-        /* Starting from Blosc 1.5 on, there is not an internal global
-	   lock anymore, so do not try to run in multithreading mode
-	   so as to not interfering with other possible threads
-	   launched by the main Python application */
+        /* From Blosc 1.5 to 1.8, there was a bug consiting in not
+	   holding not an internal global lock anymore during
+	   blosc_decompress(), creating problems when multiple
+	   instances of Blosc were launched, so do not try to run in
+	   multithreading mode so as to not interfering with other
+	   possible threads launched by the main Python application */
         status = blosc_decompress_ctx(*buf, outbuf, outbuf_size, 1);
 #endif
 

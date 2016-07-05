@@ -78,7 +78,7 @@ cdef class VLArray(Leaf):
                                     rank, dims, self.base_type_id,
                                     self.chunkshape[0], rbuf,
                                     self.filters.complevel, complib,
-                                    self.filters.shuffle,
+                                    self.filters.shuffle_bitshuffle,
                                     self.filters.fletcher32,
                                     rbuf)
     if dims:

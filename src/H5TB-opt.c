@@ -131,7 +131,7 @@ herr_t H5TBOmake_table( const char *table_title,
      return -1;
  }
  /* Then shuffle (blosc shuffles inplace) */
- if (shuffle && (strncmp(complib, "blosc", 5) != 0)) {
+ if ((shuffle && compress) && (strncmp(complib, "blosc", 5) != 0)) {
    if ( H5Pset_shuffle( plist_id) < 0 )
      return -1;
  }

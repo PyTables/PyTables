@@ -11,12 +11,12 @@
 
     or, if you don't have the blosc library installed:
 
-    gcc -O3 -msse2 multithread.c ../blosc/*.c  -I../blosc -o multithread -lpthread
+    gcc -O3 -msse2 multithread.c ../blosc/!(*avx2*)*.c  -I../blosc -o multithread -lpthread
 
     Using MSVC on Windows:
 
     cl /Ox /Femultithread.exe /Iblosc multithread.c blosc\*.c
-    
+
     To run:
 
     $ ./multithread
@@ -56,7 +56,7 @@ int main(){
 
   /* Register the filter with the library */
   printf("Blosc version info: %s (%s)\n",
-	 BLOSC_VERSION_STRING, BLOSC_VERSION_DATE);
+         BLOSC_VERSION_STRING, BLOSC_VERSION_DATE);
 
   /* Initialize the Blosc compressor */
   blosc_init();
@@ -83,18 +83,18 @@ int main(){
         return dsize;
     }
 
-    /* After using it, destroy the Blosc environment */
-    blosc_destroy();
-
     for(i=0;i<SIZE;i++){
       if(data[i] != data_dest[i]) {
-	printf("Decompressed data differs from original!\n");
-	return -1;
+        printf("Decompressed data differs from original!\n");
+        return -1;
       }
     }
 
     printf("Succesful roundtrip!\n");
   }
+
+  /* After using it, destroy the Blosc environment */
+  blosc_destroy();
 
   return 0;
 }

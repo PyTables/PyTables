@@ -169,7 +169,7 @@ Group and Table objects we have just created. If you want more information,
 just type the variable containing the File instance::
 
     >>> h5file
-    File(filename='tutorial1.h5', title='Test file', mode='w', root_uep='/', filters=Filters(complevel=0, shuffle=False, fletcher32=False))
+    File(filename='tutorial1.h5', title='Test file', mode='w', root_uep='/', filters=Filters(complevel=0, shuffle=False, bitshuffle=False, fletcher32=False))
     / (RootGroup) 'Test file'
     /detector (Group) 'Detector information'
     /detector/readout (Table(0,)) 'Readout example'
@@ -331,8 +331,7 @@ naming* (h5file.root) instead of with an absolute path string ("/").
 
 Now, create the first of the two Array objects we've just mentioned::
 
-    >>> h5file.create_array(gcolumns, 'pressure', array(pressure),
-    "Pressure column selection")
+    >>> h5file.create_array(gcolumns, 'pressure', array(pressure), "Pressure column selection")
     /columns/pressure (Array(3,)) 'Pressure column selection'
       atom := Float64Atom(shape=(), dflt=0.0)
       maindim := 0

@@ -69,7 +69,7 @@ cdef class Array(Leaf):
                                   self.rank, self.dims,
                                   self.extdim, self.disk_type_id, NULL, NULL,
                                   self.filters.complevel, complib,
-                                  self.filters.shuffle,
+                                  self.filters.shuffle_bitshuffle,
                                   self.filters.fletcher32,
                                   rbuf)
     if self.dataset_id < 0:
@@ -139,7 +139,7 @@ cdef class Array(Leaf):
       self.parent_id, encoded_name, version, self.rank,
       self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
       fill_data, self.filters.complevel, complib,
-      self.filters.shuffle, self.filters.fletcher32, rbuf)
+      self.filters.shuffle_bitshuffle, self.filters.fletcher32, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 

@@ -23,12 +23,17 @@ from distutils.core import Extension
 from distutils.dep_util import newer
 from distutils.util import convert_path
 from distutils.ccompiler import new_compiler
+from distutils.version import LooseVersion
 import distutils.spawn
 
 # We need to avoid importing numpy until we can be sure it's installed
 # This approach is based on this SO answer http://stackoverflow.com/a/21621689
 # This is also what pandas does.
 from setuptools.command.build_ext import build_ext
+
+# For guessing the capabilities of the CPU for C-Blosc
+import cpuinfo
+cpu_info = cpuinfo.get_cpu_info()
 
 # The name for the pkg-config utility
 PKG_CONFIG = 'pkg-config'
@@ -93,7 +98,6 @@ if sys.version_info < min_python_version:
 print("* Using Python %s" % sys.version.splitlines()[0])
 
 # Minumum equired versions for numpy, numexpr and HDF5
-min_hdf5_version = None
 exec(open(os.path.join('tables', 'req_versions.py')).read())
 
 
@@ -105,7 +109,7 @@ debug = '--debug' in sys.argv
 
 # Global variables
 lib_dirs = []
-inc_dirs = ['c-blosc/hdf5']
+inc_dirs = [os.path.join('hdf5-blosc', 'src')]
 optional_libs = []
 data_files = []    # list of data files to add to packages (mainly for DLL's)
 
@@ -307,7 +311,7 @@ class PosixPackage(Package):
     _library_suffixes = ['.so', '.dylib', '.a']
     _runtime_prefixes = _library_prefixes
     _runtime_suffixes = ['.so', '.dylib']
-    _component_dirs = ['include', 'lib']
+    _component_dirs = ['include', 'lib', 'lib64']
 
 
 class WindowsPackage(Package):
@@ -317,7 +321,7 @@ class WindowsPackage(Package):
     _runtime_suffixes = ['.dll']
 
     # lookup in '.' seems necessary for LZO2
-    _component_dirs = ['include', 'lib', 'dll', '.']
+    _component_dirs = ['include', 'lib', 'dll', 'bin', '.']
 
     def find_runtime_path(self, locations=default_runtime_dirs):
         # An explicit path can not be provided for runtime libraries.
@@ -345,7 +349,28 @@ def get_hdf5_version(headername):
     if (major_version == -1 or minor_version == -1 or
             release_version == -1):
         exit_with_error("Unable to detect HDF5 library version!")
-    return (major_version, minor_version, release_version)
+    return LooseVersion("%s.%s.%s" % (major_version, minor_version,
+                                      release_version))
+
+# Get the Blosc version provided the 'blosc.h' header
+def get_blosc_version(headername):
+    major_version = -1
+    minor_version = -1
+    release_version = -1
+    for line in open(headername):
+        if 'BLOSC_VERSION_MAJOR' in line:
+            major_version = int(re.split("\s*", line)[2])
+        if 'BLOSC_VERSION_MINOR' in line:
+            minor_version = int(re.split("\s*", line)[2])
+        if 'BLOSC_VERSION_RELEASE' in line:
+            release_version = int(re.split("\s*", line)[2])
+        if (major_version != -1 and minor_version != -1 and
+                release_version != -1):
+            break
+    if (major_version == -1 or minor_version == -1 or
+            release_version == -1):
+        exit_with_error("Unable to detect Blosc library version!")
+    return "%s.%s.%s" % (major_version, minor_version, release_version)
 
 
 _cp = convert_path
@@ -361,7 +386,7 @@ if os.name == 'posix':
 elif os.name == 'nt':
     _Package = WindowsPackage
     _platdep = {  # package tag -> platform-dependent components
-        'HDF5': ['hdf5dll', 'hdf5dll'],
+        'HDF5': ['hdf5', 'hdf5'],
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'],
@@ -373,8 +398,8 @@ elif os.name == 'nt':
     dll_files = ['\\windows\\system\\zlib1.dll',
                  '\\windows\\system\\szip.dll',
                  ]
-    if '--debug' in sys.argv:
-        _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
+    if debug:
+        _platdep['HDF5'] = ['hdf5_D', 'hdf5_D']
 
 hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
 hdf5_package.target_function = 'H5close'
@@ -395,6 +420,7 @@ def_macros = [('NDEBUG', 1)]
 if os.name == 'nt':
     def_macros.append(('WIN32', 1))
     def_macros.append(('_HDF5USEDLL_', 1))
+    def_macros.append(('H5_BUILT_AS_DYNAMIC_LIB', 1))
 
 # Allow setting the HDF5 dir and additional link flags either in
 # the environment or on the command line.
@@ -460,7 +486,10 @@ print('* USE_PKGCONFIG:', USE_PKGCONFIG)
 # variable to rebuild pytables
 if not HDF5_DIR and os.name == 'nt':
     import ctypes.util
-    libdir = ctypes.util.find_library('hdf5dll.dll')
+    if not debug:
+        libdir = ctypes.util.find_library('hdf5.dll') or ctypes.util.find_library('hdf5dll.dll')
+    else:
+        libdir = ctypes.util.find_library('hdf5_D.dll') or ctypes.util.find_library('hdf5ddll.dll')
     # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.8.8\\bin\\hdf5dll.dll'
     if libdir:
         # Strip off the filename
@@ -524,6 +553,28 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
     (hdrdir, libdir, rundir) = package.find_directories(
         location, use_pkgconfig=USE_PKGCONFIG)
 
+    # check if HDF5 library uses old DLL naming scheme
+    if hdrdir and package.tag == 'HDF5':
+        hdf5_header = os.path.join(hdrdir, "H5public.h")
+        hdf5_version = get_hdf5_version(hdf5_header)
+        if hdf5_version < min_hdf5_version:
+            exit_with_error(
+                "Unsupported HDF5 version! HDF5 v%s+ required. "
+                "Found version v%s" % (min_hdf5_version, hdf5_version))
+
+        if hdf5_version >= "1.10":
+            exit_with_error(
+                "HDF5 1.10 release not supported. HDF5 v1.8 release required. "
+                "Found version v%s" % (hdf5_version))
+
+        if os.name == 'nt' and hdf5_version < "1.8.10":
+            # Change in DLL naming happened in 1.8.10
+            hdf5_old_dll_name = 'hdf5dll' if not debug else 'hdf5ddll'
+            package.library_name = hdf5_old_dll_name
+            package.runtime_name = hdf5_old_dll_name
+            _platdep['HDF5'] = [hdf5_old_dll_name, hdf5_old_dll_name]
+            _, libdir, rundir = package.find_directories(location, use_pkgconfig=USE_PKGCONFIG)
+
     # check if the library is in the standard compiler paths
     if not libdir and package.target_function:
         libdir = compiler.has_function(package.target_function,
@@ -555,16 +606,6 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
         print("* Found %s headers at ``%s``, library at ``%s``."
               % (package.name, hdrdir, libdir))
 
-    if package.tag in ['HDF5']:
-        hdf5_header = os.path.join(hdrdir, "H5public.h")
-        hdf5_version = get_hdf5_version(hdf5_header)
-        if hdf5_version < min_hdf5_version:
-            exit_with_error(
-                "Unsupported HDF5 version! HDF5 v%s+ required. "
-                "Found version v%s" % (
-                    '.'.join(map(str, min_hdf5_version)),
-                    '.'.join(map(str, hdf5_version))))
-
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
     if libdir not in default_library_dirs and libdir not in ("", True):
@@ -579,6 +620,21 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
         # Keep record of the optional libraries found.
         optional_libs.append(package.tag)
         def_macros.append(('HAVE_%s_LIB' % package.tag, 1))
+
+    if hdrdir and package.tag == 'BLOSC':
+        blosc_header = os.path.join(hdrdir, "blosc.h")
+        blosc_version = get_blosc_version(blosc_header)
+        if blosc_version < min_blosc_version:
+            optional_libs.pop()  # Remove Blosc from the discovered libs
+            print_warning(
+                "Unsupported Blosc version installed! Blosc %s+ required. "
+                "Found version %s.  Using internal Blosc sources." % (
+                    min_blosc_version, blosc_version))
+        if blosc_version < min_blosc_bitshuffle_version:
+            print_warning(
+                "This Blosc version does not support the BitShuffle filter. "
+                "Minimum desirable version is %s.  Found version: %s" % (
+                min_blosc_bitshuffle_version, blosc_version))
 
     if not rundir:
         loc = {
@@ -610,6 +666,7 @@ if lzo2_enabled:
     lzo_package = lzo2_package
 else:
     lzo_package = lzo1_package
+
 
 # ------------------------------------------------------------------------------
 
@@ -675,17 +732,18 @@ if os.name == "nt":
 ADDLIBS = [hdf5_package.library_name]
 
 # List of Blosc file dependencies
-blosc_files = ["c-blosc/hdf5/blosc_filter.c"]
+blosc_sources = ["hdf5-blosc/src/blosc_filter.c"]
 if 'BLOSC' not in optional_libs:
     # Compiling everything from sources
     # Blosc + BloscLZ sources
-    blosc_files += glob.glob('c-blosc/blosc/*.c')
+    blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
+                      if 'avx2' not in f and 'sse2' not in f]
     # LZ4 sources
-    blosc_files += glob.glob('c-blosc/internal-complibs/lz4*/*.c')
+    blosc_sources += glob.glob('c-blosc/internal-complibs/lz4*/*.c')
     # Snappy sources
-    blosc_files += glob.glob('c-blosc/internal-complibs/snappy*/*.cc')
+    blosc_sources += glob.glob('c-blosc/internal-complibs/snappy*/*.cc')
     # Zlib sources
-    blosc_files += glob.glob('c-blosc/internal-complibs/zlib*/*.c')
+    blosc_sources += glob.glob('c-blosc/internal-complibs/zlib*/*.c')
     # Finally, add all the include dirs...
     inc_dirs += [os.path.join('c-blosc', 'blosc')]
     inc_dirs += glob.glob('c-blosc/internal-complibs/*')
@@ -707,12 +765,28 @@ if 'BLOSC' not in optional_libs:
         finally:
             os.remove(fd.name)
 
-    try_flags = ["-march=native", "-msse2"]
-    for ff in try_flags:
-        if compiler_has_flags(compiler, [ff]):
-            print("Setting compiler flag: " + ff)
-            CFLAGS.append(ff)
-            break
+    # SSE2
+    if 'sse2' in cpu_info['flags']:
+        print('SSE2 detected')
+        CFLAGS.append('-DSHUFFLE_SSE2_ENABLED')
+        if os.name == 'nt':
+            # Windows always should have support for SSE2
+            # (present in all x86/amd64 architectures since 2003)
+            def_macros += [('__SSE2__', 1)]
+        else:
+            # On UNIX, both gcc and clang understand -msse2
+            CFLAGS.append('-msse2')
+        blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
+                          if 'sse2' in f]
+    # AVX2
+    # Detection code for AVX2 only works for gcc/clang, not for MSVC yet
+    if ('avx2' in cpu_info['flags'] and
+        compiler_has_flags(compiler, ["-mavx2"])):
+        print('AVX2 detected')
+        CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
+        CFLAGS.append('-mavx2')
+        blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
+                          if 'avx2' in f]
 else:
     ADDLIBS += ['blosc']
 
@@ -742,7 +816,7 @@ extensions = [
                        "src/utils.c",
                        "src/H5ARRAY.c",
                        "src/H5ATTR.c",
-                       ] + blosc_files,
+                       ] + blosc_sources,
               library_dirs=lib_dirs,
               libraries=utilsExtension_libs,
               extra_link_args=LFLAGS,
@@ -758,7 +832,7 @@ extensions = [
                        "src/H5ARRAY-opt.c",
                        "src/H5VLARRAY.c",
                        "src/H5ATTR.c",
-                       ] + blosc_files,
+                       ] + blosc_sources,
               library_dirs=lib_dirs,
               libraries=hdf5Extension_libs,
               extra_link_args=LFLAGS,
@@ -772,7 +846,7 @@ extensions = [
                        "src/typeconv.c",
                        "src/H5TB-opt.c",
                        "src/H5ATTR.c",
-                       ] + blosc_files,
+                       ] + blosc_sources,
               library_dirs=lib_dirs,
               libraries=tableExtension_libs,
               extra_link_args=LFLAGS,
