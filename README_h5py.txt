@@ -9,3 +9,20 @@ file image API) so that should be done too.
 
 -- Andrea 24/3/16
 
+If you are experimenting with this take notice of this **important warning**
+
+The HDF5 uses global variables to maintain its state. In case PyTables and
+h5py get linked to two different copies of HDF5, all the handles returned by
+library call will mismatch and everything will crash and burn.
+
+This happens regurarly on OS X since h5py's wheel ships its own version of
+HDF5 while PyTables requires compiling from source (picking up the version
+installed in the system).
+
+You can assess the situation with otool on OSX (and similarly with ldd on
+linux):
+
+otool -L path/to/tables/*.so path/to/h5py/*.so
+
+-- Andrea 5/7/16
+
