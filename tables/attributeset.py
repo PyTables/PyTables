@@ -336,7 +336,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 try:
                     retval = cPickle.loads(value, encoding='latin1')
                 except TypeError:
-                    retval = cPickle.loads(value, encoding='bytes')
+                    try:
+                        retval = cPickle.loads(value, encoding='bytes')
+                    except:
+                        retval = value
                 except:
                     retval = value
             except:
