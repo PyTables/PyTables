@@ -253,8 +253,13 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
             return [expr]
 
     # Recursively get the expressions at the left and the right
-    lexpr = _get_idx_expr_recurse(left, indexedcols, idxexprs, strexpr)
+    lexpr = deepcopy(_get_idx_expr_recurse(left, indexedcols, idxexprs,
+                                           strexpr))
+    if len(lexpr) == 2 and lexpr != not_indexable:
+        idxexprs, strexpr = lexpr
     rexpr = _get_idx_expr_recurse(right, indexedcols, idxexprs, strexpr)
+    if len(rexpr) == 2 and rexpr != not_indexable:
+        idxexprs, strexpr = rexpr
 
     def add_expr(expr, idxexprs, strexpr):
         """Add a single expression to the list."""
