@@ -31,6 +31,7 @@ Functions:
 """
 
 import re
+from copy import deepcopy
 from numexpr.necompiler import typecode_to_kind
 from numexpr.necompiler import expressionToAST, typeCompileAst
 from numexpr.necompiler import stringToExpression, NumExpr, getExprNames
@@ -199,6 +200,10 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
             exprnode = idxcmp[0]
             idxcmp = _get_indexable_cmp(exprnode, indexedcols)
         return idxcmp, exprnode, invert
+
+    # deepcopy arguments for recursion to work
+    idxexprs = deepcopy(idxexprs)
+    strexpr = deepcopy(strexpr)
 
     # Indexable variable-constant comparison.
     idxcmp = _get_indexable_cmp(exprnode, indexedcols)
