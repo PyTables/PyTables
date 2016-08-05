@@ -1620,12 +1620,18 @@ class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, TestCase):
         # a UnicodeDecodeError when unpickling on python 3.
         # Python 3.4 adds encoding='bytes' to fix this
         # http://bugs.python.org/issue6784
-        # This is not limited to datetime.datetime()
+        # Objects pickled in the testfile have non-ascii chars in the 
+        # picklestring and will throw UnicodeDecodeError when unpickled
+        # on python 3.
 
+        # datetime will be unpickled with encoding='bytes'
         self.assertIsInstance(
             self.h5file.get_node_attr('/', 'py2_pickled_datetime'),
             datetime.datetime)
-
+        # dict will be unpickled with encoding='latin1'
+        d = self.h5file.get_node_attr('/', 'py2_pickled_dict')
+        self.assertIsInstance(d, dict)
+        self.assertEqual(d['s'], u'just a string')
 
 class SegFaultPythonTestCase(common.TempFileMixin, TestCase):
 

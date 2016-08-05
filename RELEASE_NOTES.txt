@@ -7,7 +7,7 @@
 
 .. py:currentmodule:: tables
 
-Changes from 3.2.1 to xxxxx
+Changes from 3.2.3.1 to xxxxx
 ===========================
 
 Improvements
@@ -28,6 +28,12 @@ Improvements
   you are running PyTables in one single process, you may want to
   experiment if higher values (like 2 or 4) bring better performance for
   you.
+
+Bugs fixed
+----------
+
+- On python 3 try 'latin1' encoding before 'bytes' encoding during unpickling
+  of node attributes pickled on python 2. Better fix for :issue:`560`.
 
 
 Changes from 3.2.3 to 3.2.3.1

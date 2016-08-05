@@ -333,9 +333,16 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             except UnicodeDecodeError:
                 # Object maybe pickled on python 2 and unpickled on python 3.
                 # encoding='bytes' was added in python 3.4 to resolve this.
+                # However 'bytes' mangles class attributes as they are
+                # unplicked as bytestrings. Hence try 'latin1' first.
                 # Ref: http://bugs.python.org/issue6784
                 try:
-                    retval = six.moves.cPickle.loads(value, encoding='bytes')
+                    retval = six.moves.cPickle.loads(value, encoding='latin1')
+                except TypeError:
+                    try:
+                        retval = six.moves._cPickle.loads(value, encoding='bytes')
+                    except:
+                        retval = value
                 except:
                     retval = value
             except:
