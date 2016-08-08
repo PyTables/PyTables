@@ -26,3 +26,17 @@ otool -L path/to/tables/*.so path/to/h5py/*.so
 
 -- Andrea 5/7/16
 
+
+Running tests
+=============
+
+There is a very simple test suite in tables/tests_h5py_backend that you can
+run via::
+
+  $ py.test tables/tests_h5py_backend
+
+Our first goal should be to pass these simple tests using the concrete implementation
+of the h5py backend.  Then we can concentrate in getting the regular test suite pass.
+
+-- Francesc 2016-08-08
+
