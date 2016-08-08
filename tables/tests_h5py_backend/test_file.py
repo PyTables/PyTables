@@ -4,6 +4,14 @@ import unittest
 
 import numpy as np
 import tables as tb
+import tables.backend_h5py as tbh
+import tables.core as tcore
+
+
+def open_file(filename, mode="r", title=""):
+    fo = tcore.PyTableFile(backend=tbh.File(filename, mode))
+    fo.attrs['TITLE'] = title
+    return fo
 
 
 class Record(tb.IsDescription):
@@ -18,7 +26,7 @@ class CreateFile(unittest.TestCase):
 
     def setUp(self):
         self.h5fname = tempfile.mktemp(prefix='test_createfile', suffix='.h5')
-        self.h5file = tb.open_file(self.h5fname, 'w', title='A test')
+        self.h5file = open_file(self.h5fname, 'w', title='A test')
         self.root = self.h5file.root
 
     def tearDown(self):

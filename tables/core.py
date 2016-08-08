@@ -1,17 +1,18 @@
 from tables import abc
+from tables import Description
 import numpy as np
 
 
 def description_to_dtype(desc):
     try:
-        return np.dtype(desc)
-    except:
         return desc._v_dtype
+    except AttributeError:
+        return np.dtype(desc, copy=True)
 
 
 def dispatch(value):
     """Wrap dataset for PyTables"""
-    pass
+    return value
 
 
 class PyTablesDataset(object):
@@ -65,9 +66,14 @@ class PyTablesTable(object):
         self[start:stop:step] = rows
 
 
-class PyTablesGroup:
+@forwarder(['attrs'], [])
+class PyTableNode:
+    @property
+    def backend(self):
+        return self._backend
+
     def __init__(self, *, backend):
-        self.backend = backend
+        self._backend = backend
 
     def __getitem__(self, item):
         value = self.backend[item]
@@ -75,6 +81,19 @@ class PyTablesGroup:
             return dispatch(value)
         # Group?
         return PyTablesGroup(backend=value)
+
+
+class PyTableFile(PyTableNode):
+    @property
+    def root(self):
+        return self['/']
+
+    def create_table(self, where, name, desc, *args, **kwargs):
+        desc = Description(desc.columns)
+        return where.create_table(name, desc, *args, **kwargs)
+
+
+class PyTablesGroup(PyTableNode):
 
     def open(self):
         return self.backend.open()

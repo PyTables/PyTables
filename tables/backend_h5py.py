@@ -37,3 +37,13 @@ class Dataset(h5py.Dataset, abc.Dataset):
     @property
     def parent(self):
         return Group(super().parent.id)
+
+
+class File(h5py.File):
+    def __getitem__(self, k):
+        ret = super().__getitem__(k)
+        if isinstance(ret, h5py.Group):
+            return Group(ret.id)
+        elif isinstance(ret, h5py.Dataset):
+            return Dataset(ret.id)
+        return ret
