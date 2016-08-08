@@ -66,7 +66,7 @@ class PyTablesTable(object):
         self[start:stop:step] = rows
 
 
-@forwarder(['attrs'], [])
+@forwarder(['attrs'], ['open', 'close'])
 class PyTableNode:
     @property
     def backend(self):
