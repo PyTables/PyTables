@@ -1,9 +1,10 @@
 """PyTables Abstract Base Classes."""
-from abc import abstractmethod, abstractproperty
-from collections.abc import MutableSequence, MutableMapping
+from abc import abstractmethod, abstractproperty, ABCMeta
+from collections.abc import MutableMapping
+import itertools
 
 
-class Dataset(MutableSequence):
+class Dataset(metaclass=ABCMeta):
 
     @abstractproperty
     def dtype(self):
@@ -30,8 +31,29 @@ class Dataset(MutableSequence):
         return None
 
     @abstractmethod
-    def iter_chunks(self):
+    def __getitem__(self, k):
         ...
+
+    @abstractmethod
+    def __delitem__(self, k):
+        ...
+
+    @abstractmethod
+    def __setitem__(self, k, v):
+        ...
+
+    def iter_chunks(self):
+        if self.chunk_shape is None:
+            yield self[:]
+            return
+        chunk_count = tuple(sz // ck + min(1, sz % ck)
+                            for sz, ck in
+                            zip(self.shape, self.chunk_shape))
+        print(chunk_count)
+        for chunk_id in itertools.product(*(range(cc) for cc in chunk_count)):
+            slc = tuple(slice(j*sz, (j+1)*sz)
+                        for j, sz in zip(chunk_id, self.chunk_shape))
+            yield self[slc]
 
 
 class Group(MutableMapping):
@@ -41,7 +63,8 @@ class Group(MutableMapping):
         ...
 
     @abstractmethod
-    def create_dataset(self, **kwargs):
+    def create_dataset(self, data, dtype, maxshape, chunk_shape,
+                       **kwargs):
         ...
 
     @abstractmethod
