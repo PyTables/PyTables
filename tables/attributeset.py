@@ -340,7 +340,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                     retval = six.moves.cPickle.loads(value, encoding='latin1')
                 except TypeError:
                     try:
-                        retval = six.moves._cPickle.loads(value, encoding='bytes')
+                        retval = six.moves.cPickle.loads(value, encoding='bytes')
                     except:
                         retval = value
                 except:
