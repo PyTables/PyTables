@@ -160,8 +160,8 @@ class PyTablesLeaf(PyTablesNode):
         return (start, stop, step)
 
 
-
-
+@forwarder(['attrs', 'shape', 'dtype'],
+           ['__len__', '__setitem__', '__getitem__'])
 class PyTablesArray(PyTablesLeaf):
     pass
 
@@ -299,8 +299,11 @@ class PyTableFile(PyTablesNode):
     def __iter__(self):
         return iter(self.root)
 
-    def create_group(self, where, name, title):
-        return where.create_group(name, title)
+    def create_array(self, where, *args, **kwargs):
+        return where.create_array(*args, **kwargs)
+
+    def create_group(self, where, *args, **kwargs):
+        return where.create_group(*args, **kwargs)
 
     def create_table(self, where, name, desc, *args, **kwargs):
         desc = Description(desc.columns)
@@ -336,7 +339,18 @@ class PyTablesGroup(PyTablesNode):
         for child in self.backend.values():
             yield child.name
 
-    def create_group(self, name, title):
+    def create_array(self, name, obj, title='', byte_order='I', **kwargs):
+        obj = np.asarray(obj)
+        dtype = obj.dtype.newbyteorder(byte_order)
+
+        dataset = self.backend.create_dataset(name, data=obj,
+                                              dtype=dtype,
+                                              **kwargs)
+        dataset.attrs['TITLE'] = title
+        dataset.attrs['CLASS'] = 'ARRAY'
+        return PyTablesArray(backend=dataset)
+
+    def create_group(self, name, title=''):
         g = PyTablesGroup(backend=self.backend.create_group(name))
         g.attrs['TITLE'] = title
         return g
