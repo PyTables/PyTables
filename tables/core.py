@@ -17,10 +17,6 @@ def dispatch(value):
     return value
 
 
-class PyTablesDataset(object):
-    pass
-
-
 def forwarder(forwarded_props, forwarded_methods,
               remapped_keys=None):
     def inner(cls):
@@ -160,3 +156,8 @@ class PyTablesGroup(PyTableNode):
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'TABLE'
         return PyTablesTable(backend=dataset)
+
+
+class PyTablesDataset(PyTableNode):
+    pass
+

@@ -9,7 +9,8 @@ import tables.core as tcore
 
 
 def open_file(filename, mode="r", title=""):
-    fo = tcore.PyTableFile(backend=tbh.File(filename, mode))
+    backend = tbh.open(filename, mode)
+    fo = tcore.PyTableFile(backend=backend)
     fo.attrs['TITLE'] = title
     return fo
 
