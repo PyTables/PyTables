@@ -18,6 +18,12 @@ def dispatch(value):
     return value
 
 
+def dflt_sub_chunk_selector(condition, chunk):
+    for r in chunk:
+        if condition(r):
+            yield r
+
+
 class PyTablesDataset(object):
     pass
 
@@ -97,7 +103,10 @@ class PyTablesTable(PyTablesLeaf):
     def __setitem__(self, k, v):
         self._backend[k] = v
 
-    def where(self, condition, condvars, start=None, stop=None, step=None):
+    def where(self, condition, condvars, start=None, stop=None, step=None, *,
+              sub_chunk_select=None):
+        if sub_chunk_select is None:
+            sub_chunk_select = dflt_sub_chunk_selector
         # Adjust the slice to be used.
         (start, stop, step) = self._process_range_read(start, stop, step)
         if start >= stop:  # empty range, reset conditions
@@ -108,9 +117,8 @@ class PyTablesTable(PyTablesLeaf):
         # TODO write code to get chunk selector from index
         selector = None
         for chunk in self.backend.iter_chunks(chunk_selector=selector):
-            for r in chunk:
-                if condition(r):
-                    yield r
+            yield from sub_chunk_select(condition, chunk)
+
 
     def _required_expr_vars(self, expression, uservars, depth=1):
         # Get the names of variables used in the expression.
