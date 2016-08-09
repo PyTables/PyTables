@@ -2,6 +2,48 @@ import numpy as np
 from tables import Description
 
 
+def forwarder(forwarded_props, forwarded_methods,
+              remapped_keys=None):
+    def inner(cls):
+        for k in forwarded_props:
+            def bound_getter(self, k=k):
+                return getattr(self._backend, k)
+            setattr(cls, k, property(bound_getter))
+        for k in forwarded_methods:
+            def make_bound(key):
+                def bound_method(self, *args, **kwargs):
+                    return getattr(self._backend, key)(*args, **kwargs)
+                return bound_method
+            setattr(cls, k, make_bound(k))
+
+        return cls
+    return inner
+
+
+class HasBackend:
+    @property
+    def backend(self):
+        return self._backend
+
+    def __init__(self, *, backend):
+        self._backend = backend
+
+
+class HasTitle:
+    @property
+    def title(self):
+        return self.backend.attrs.get('TITLE', None)
+
+    @title.setter
+    def title(self, title):
+        self.backend.attrs['TITLE'] = title
+
+
+@forwarder(['attrs'], ['open', 'close'])
+class PyTablesNode(HasTitle, HasBackend):
+    pass
+
+
 def description_to_dtype(desc):
     try:
         return desc._v_dtype
@@ -23,10 +65,6 @@ def dflt_sub_chunk_selector_factory(condition):
                 yield r
 
     return sub_chunk_select
-
-
-class PyTablesDataset(object):
-    pass
 
 
 class Row:
@@ -79,7 +117,7 @@ class Row:
         self.data[0][key] = value
 
 
-class PyTablesLeaf:
+class PyTablesLeaf(PyTablesNode):
     @property
     def shape(self):
         return self.backend.shape
@@ -122,53 +160,17 @@ class PyTablesLeaf:
         return (start, stop, step)
 
 
-def forwarder(forwarded_props, forwarded_methods,
-              remapped_keys=None):
-    def inner(cls):
-        for k in forwarded_props:
-            def bound_getter(self, k=k):
-                return getattr(self._backend, k)
-            setattr(cls, k, property(bound_getter))
-        for k in forwarded_methods:
-            def make_bound(key):
-                def bound_method(self, *args, **kwargs):
-                    return getattr(self._backend, key)(*args, **kwargs)
-                return bound_method
-            setattr(cls, k, make_bound(k))
-
-        return cls
-    return inner
 
 
-class HasBackend:
-    @property
-    def backend(self):
-        return self._backend
-
-    def __init__(self, *, backend):
-        self._backend = backend
-
-
-class HasTitle:
-    @property
-    def title(self):
-        return self.backend.attrs.get('TITLE', None)
-
-    @title.setter
-    def title(self, title):
-        self.backend.attrs['TITLE'] = title
-
-
-@forwarder(['attrs'], ['open', 'close'])
-class PyTableNode(HasTitle, HasBackend):
+class PyTablesArray(PyTablesLeaf):
     pass
 
 
 @forwarder(['attrs', 'shape', 'dtype'],
            ['__len__', '__setitem__', '__getitem__'])
 class PyTablesTable(PyTablesLeaf):
-    def __init__(self, backend):
-        self._backend = backend
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._exprvars_cache = {}
 
     def __getitem__(self, k):
@@ -289,7 +291,7 @@ class PyTablesTable(PyTablesLeaf):
         self[start:stop:step] = rows
 
 
-class PyTableFile(PyTableNode):
+class PyTableFile(PyTablesNode):
     @property
     def root(self):
         return PyTablesGroup(backend=self.backend['/'])
@@ -305,7 +307,7 @@ class PyTableFile(PyTableNode):
         return where.create_table(name, desc, *args, **kwargs)
 
 
-class PyTablesGroup(PyTableNode):
+class PyTablesGroup(PyTablesNode):
     def __getitem__(self, item):
         value = self.backend[item]
         if hasattr(value, 'dtype'):
