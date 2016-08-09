@@ -63,6 +63,10 @@ class Dataset(metaclass=ABCMeta):
                         for j, sz in zip(chunk_id, self.chunk_shape))
             yield self[slc]
 
+    def iter_with_selectors(self, *, chunk_selector, sub_chunk_selector):
+        for chunk in self.iter_chunks(chunk_selector=chunk_selector):
+            yield from sub_chunk_selector(chunk)
+
 
 class Group(MutableMapping):
 
