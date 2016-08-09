@@ -39,9 +39,16 @@ class HasTitle:
         self.backend.attrs['TITLE'] = title
 
 
-@forwarder(['attrs'], ['open', 'close'])
 class PyTablesNode(HasTitle, HasBackend):
-    pass
+    @property
+    def attrs(self):
+        return self.backend.attrs
+
+    def open(self):
+        return self.backend.open()
+
+    def close(self):
+        return self.backend.close()
 
 
 def all_row_selector(chunk_id, chunk):
@@ -148,12 +155,25 @@ class Row:
 
 class PyTablesLeaf(PyTablesNode):
     @property
+    def dtype(self):
+        return self.backend.dtype
+
+    @property
     def shape(self):
         return self.backend.shape
+
+    def __len__(self):
+        return self.backend.__len__()
 
     @property
     def nrows(self):
         return int(self.shape[self.maindim])
+
+    def __getitem__(self, item):
+        return self.backend.__getitem__(item)
+
+    def __setitem__(self, item, value):
+        return self.backend.__setitem__(item, value)
 
     @property
     def maindim(self):
@@ -189,14 +209,10 @@ class PyTablesLeaf(PyTablesNode):
         return (start, stop, step)
 
 
-@forwarder(['attrs', 'shape', 'dtype'],
-           ['__len__', '__setitem__', '__getitem__'])
 class PyTablesArray(PyTablesLeaf):
     pass
 
 
-@forwarder(['attrs', 'shape', 'dtype'],
-           ['__len__', '__setitem__', '__getitem__'])
 class PyTablesTable(PyTablesLeaf):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
