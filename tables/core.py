@@ -149,6 +149,8 @@ class Row:
         return item in self.dtype.names
 
     def __getitem__(self, key):
+        if isinstance(key, slice):
+            return tuple(self.data)[key]
         return self.data[key]
 
     def __setitem__(self, key, value):
@@ -303,10 +305,15 @@ class PyTablesTable(PyTablesLeaf):
         chk_sz, = self.chunk_shape
         dm = map(divmod, sequence, repeat(chk_sz))
         # TODO cache chunks?
+        row = Row(self)
         for k, g in groupby(dm, key=lambda x: x[0]):
             chunk = self[k*chk_sz: (k+1)*chk_sz]
             indx = [_[1] for _ in g]
-            yield from chunk[indx]
+            row.offset = chk_sz * k
+            row.read_src = chunk
+            for r in indx:
+                row.crow = r
+                yield row
 
     def itersorted(self, *args, **kwargs):
         raise NotImplementedError('requires index')
