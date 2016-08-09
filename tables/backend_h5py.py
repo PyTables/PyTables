@@ -2,7 +2,7 @@ import h5py
 from tables import abc
 
 
-class PTShim(abc.Group):
+class PTShim:
     def __getitem__(self, k):
         ret = super().__getitem__(k)
         if isinstance(ret, h5py.Group):
@@ -11,10 +11,10 @@ class PTShim(abc.Group):
             return Dataset(ret.id)
         return ret
 
-    def open():
+    def open(self):
         ...
 
-    def close():
+    def close(self):
         ...
 
     @property
@@ -26,8 +26,12 @@ class PTShim(abc.Group):
         ret = super().file
         return File(ret.id)
 
+    def create_dataset(self, name, *, chunk_shape=None, **kwargs):
+        kwargs['chunks'] = chunk_shape
+        return super().create_dataset(name, **kwargs)
 
-class Group(h5py.Group, PTShim):
+
+class Group(PTShim, h5py.Group, abc.Group):
     ...
 
 
@@ -53,5 +57,5 @@ class Dataset(h5py.Dataset, abc.Dataset):
         return File(ret.id)
 
 
-class File(h5py.File, PTShim):
+class File(PTShim, h5py.File):
     ...
