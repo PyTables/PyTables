@@ -16,6 +16,12 @@ def dispatch(value):
     return value
 
 
+def dflt_sub_chunk_selector(condition, chunk):
+    for r in chunk:
+        if condition(r):
+            yield r
+
+
 class PyTablesDataset(object):
     pass
 
@@ -118,28 +124,22 @@ class PyTablesTable(PyTablesLeaf):
     def __setitem__(self, k, v):
         self._backend[k] = v
 
-    def where(self, condition, condvars, start=None, stop=None, step=None):
+    def where(self, condition, condvars, start=None, stop=None, step=None, *,
+              sub_chunk_select=None):
+        if sub_chunk_select is None:
+            sub_chunk_select = dflt_sub_chunk_selector
         # Adjust the slice to be used.
         (start, stop, step) = self._process_range_read(start, stop, step)
         if start >= stop:  # empty range, reset conditions
             return iter([])
-        # Compile the condition and extract usable index conditions.
-        condvars = self._required_expr_vars(condition, condvars, depth=3)
-        compiled = self._compile_condition(condition, condvars)
+        # TODO write numexpr -> selector code
+        if not callable(condition):
+            raise NotImplementedError("non lambda selection not done yet")
+        # TODO write code to get chunk selector from index
+        selector = None
+        for chunk in self.backend.iter_chunks(chunk_selector=selector):
+            yield from sub_chunk_select(condition, chunk)
 
-        # Can we use indexes?
-        if compiled.index_expressions:
-            chunkmap = _table__where_indexed(
-                self, compiled, condition, condvars, start, stop, step)
-            if not isinstance(chunkmap, numpy.ndarray):
-                # If it is not a NumPy array it should be an iterator
-                # Reset conditions
-                self._use_index = False
-                self._where_condition = None
-                # ...and return the iterator
-                return chunkmap
-        else:
-            chunkmap = None  # default to an in-kernel query
 
     def _required_expr_vars(self, expression, uservars, depth=1):
         # Get the names of variables used in the expression.
@@ -158,7 +158,7 @@ class PyTablesTable(PyTablesLeaf):
         else:
             exprvars = exprvarscache[expression]
 
-        # Get the local and global variable mappings of the user frame
+        # Get the local and globbal variable mappings of the user frame
         # if no mapping has been explicitly given for user variables.
         user_locals, user_globals = {}, {}
         if uservars is None:
@@ -308,4 +308,3 @@ class PyTablesGroup(PyTableNode):
 
 class PyTablesDataset(PyTableNode):
     pass
-
