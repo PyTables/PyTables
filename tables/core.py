@@ -227,7 +227,7 @@ class PyTablesTable(PyTablesLeaf):
     def __getitem__(self, k):
         return np.rec.array(super().__getitem__(k))
 
-    def iter_rows(self, *, chunk_selector=None, row_selector=None):
+    def _iter_rows(self, *, chunk_selector=None, row_selector=None):
         if row_selector is None:
             row_selector = all_row_selector
 
@@ -257,8 +257,8 @@ class PyTablesTable(PyTablesLeaf):
 
         row_selector = row_selector_factory(condition)
 
-        yield from self.iter_rows(chunk_selector=chunk_selector,
-                                  row_selector=row_selector)
+        yield from self._iter_rows(chunk_selector=chunk_selector,
+                                   row_selector=row_selector)
 
     def append_where(self, dest, *args, **kwargs):
         # get the iterator for the condition
@@ -299,17 +299,23 @@ class PyTablesTable(PyTablesLeaf):
         self[start:stop:step] = rows
 
     def itersequence(self, sequence):
-        from itertools import groupby
-
-        sequence = np.asarray(sequence)
+        from itertools import groupby, repeat
         chk_sz, = self.chunk_shape
-
-        dm = zip(*divmod(sequence, chk_sz))
+        dm = map(divmod, sequence, repeat(chk_sz))
         # TODO cache chunks?
         for k, g in groupby(dm, key=lambda x: x[0]):
             chunk = self[k*chk_sz: (k+1)*chk_sz]
             indx = [_[1] for _ in g]
             yield from chunk[indx]
+
+    def itersorted(self, *args, **kwargs):
+        raise NotImplementedError('requires index')
+
+    def read_sorted(self, *args, **kwargs):
+        raise NotImplementedError('requires index')
+
+    def iterrows(self, start, stop, step):
+        yield from self.itersequence(range(start, stop, step))
 
 
 class PyTableFile(PyTablesNode):
