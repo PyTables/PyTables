@@ -2,7 +2,7 @@ import h5py
 from tables import abc
 
 
-class Group(h5py.Group, abc.Group):
+class PTShim(abc.Group):
     def __getitem__(self, k):
         ret = super().__getitem__(k)
         if isinstance(ret, h5py.Group):
@@ -21,6 +21,15 @@ class Group(h5py.Group, abc.Group):
     def parent(self):
         return Group(super().parent.id)
 
+    @property
+    def file(self):
+        ret = super().file
+        return File(ret.id)
+
+
+class Group(h5py.Group, PTShim):
+    ...
+
 
 class Dataset(h5py.Dataset, abc.Dataset):
     def __delitem__(self, k):
@@ -38,12 +47,11 @@ class Dataset(h5py.Dataset, abc.Dataset):
     def parent(self):
         return Group(super().parent.id)
 
+    @property
+    def file(self):
+        ret = super().file
+        return File(ret.id)
 
-class File(h5py.File):
-    def __getitem__(self, k):
-        ret = super().__getitem__(k)
-        if isinstance(ret, h5py.Group):
-            return Group(ret.id)
-        elif isinstance(ret, h5py.Dataset):
-            return Dataset(ret.id)
-        return ret
+
+class File(h5py.File, PTShim):
+    ...
