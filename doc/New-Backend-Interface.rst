@@ -5,22 +5,22 @@ A group of developers gathered in Perth to define
 a new way to access I/O that allows a new version
 of PyTables (4) to use different backends.  The main
 goal is to use this for interfacing h5py for HDF5
-access, but nothing prevents us to create interfaces
+access, but nothing prevents us from creating interfaces
 with other backends in the future.
 
 Interface
 =========
 
 The whole idea is to define a few abstract classes and
-then to provide concrete implementations for them.  The
-abstract classes that we found a minimal set are in:
+then to provide concrete implementations for them. The
+abstract classes that we found form a minimal set are in
 tables/abc.py
 
-The concrete implementation is in tables/backend_h5py,
-whereas the new high level interface in PyTables that uses
+The concrete implementation is in tables/backend_h5py.
+The new high level implementation in PyTables that uses
 the new interface is in tables/core.py.
 
-Implementation plan
+Implementation Plan
 ===================
 
 We are currently working towards implementing the fundamental
