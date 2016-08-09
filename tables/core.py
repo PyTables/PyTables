@@ -29,6 +29,56 @@ class PyTablesDataset(object):
     pass
 
 
+class Row:
+
+    def __init__(self, table):
+        self.table = table
+        self._nrow = -1
+        self._data = None
+
+    @property
+    def dtype(self):
+        return self.table.dtype
+
+    @property
+    def nrow(self):
+        return self._nrow
+
+    @nrow.setter
+    def nrow(self, value):
+        self._nrow = value
+        self._data = None
+
+    @property
+    def data(self):
+        if self._data is not None:
+            return self._data
+        if self.nrow >= 0:
+            self._data = self.table[self.nrow]
+        else:
+            self._data = np.empty(1, dtype=self.dtype)
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        self._data = value
+
+    def append(self):
+        self.table.append(self.data)
+
+    def update(self):
+        self.table[self.nrow] = self.data
+
+    def __contains__(self, item):
+        return item in self.dtype.names
+
+    def __getitem__(self, key):
+        return self.data[0][key]
+
+    def __setitem__(self, key, value):
+        self.data[0][key] = value
+
+
 class PyTablesLeaf:
     @property
     def shape(self):
