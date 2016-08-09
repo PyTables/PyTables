@@ -280,6 +280,13 @@ class PyTablesTable(PyTablesLeaf):
         return np.fromiter((r.data[field] for r in wh_itr),
                            dtype=self.dtype[field])
 
+    def get_where_list(self, *args, sort=False, **kwargs):
+        coords = np.fromiter((r.nrow for r in self.where(*args, **kwargs)),
+                             dtype='i8')
+        if sort:
+            coords.sort()
+        return coords
+
     def append(self, rows):
         rows = np.rec.array(rows, self.dtype)
         cur_count = len(self)
