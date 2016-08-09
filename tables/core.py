@@ -16,10 +16,13 @@ def dispatch(value):
     return value
 
 
-def dflt_sub_chunk_selector(condition, chunk):
-    for r in chunk:
-        if condition(r):
-            yield r
+def dflt_sub_chunk_selector_factory(condition):
+    def sub_chunk_select(chunk):
+        for r in chunk:
+            if condition(r):
+                yield r
+
+    return sub_chunk_select
 
 
 class PyTablesDataset(object):
@@ -118,12 +121,16 @@ class PyTablesTable(PyTablesLeaf):
         self._backend = backend
         self._exprvars_cache = {}
 
+    def __getitem__(self, k):
+        return np.rec.array(super().__getitem__(k))
+
     def where(self, condition, condvars, start=None, stop=None, step=None, *,
-              sub_chunk_select=None):
-        if sub_chunk_select is None:
-            sub_chunk_select = dflt_sub_chunk_selector
+              sub_chunk_selector_factory=None):
+
+        if sub_chunk_selector_factory is None:
+            sub_chunk_selector_factory = dflt_sub_chunk_selector_factory
         # Adjust the slice to be used.
-        (start, stop, step) = self._process_range_read(start, stop, step)
+        start, stop, step = self._process_range_read(start, stop, step)
         if start >= stop:  # empty range, reset conditions
             return iter([])
         # TODO write numexpr -> selector code
@@ -131,9 +138,11 @@ class PyTablesTable(PyTablesLeaf):
             raise NotImplementedError("non lambda selection not done yet")
         # TODO write code to get chunk selector from index
         selector = None
-        for chunk in self.backend.iter_chunks(chunk_selector=selector):
-            yield from sub_chunk_select(condition, chunk)
 
+        sub_chunk_select = sub_chunk_selector_factory(condition)
+
+        yield from self.backend.iter_with_selectors(
+            chunk_selector=selector, sub_chunk_selector=sub_chunk_select)
 
     def _required_expr_vars(self, expression, uservars, depth=1):
         # Get the names of variables used in the expression.
@@ -316,5 +325,3 @@ class PyTablesGroup(PyTableNode):
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'TABLE'
         return PyTablesTable(backend=dataset)
-
-
