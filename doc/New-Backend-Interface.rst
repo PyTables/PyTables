@@ -12,13 +12,17 @@ Interface
 =========
 
 The whole idea is to define a few abstract classes and
-then to provide concrete implementations for them. The
+then to provide concrete implementations for them.  For this, we
+have created a new
+`pt4 branch <https://github.com/PyTables/PyTables/tree/pt4>`_.  The
 abstract classes that we found form a minimal set are in
-tables/abc.py
+`tables/abc.py <https://github.com/PyTables/PyTables/blob/pt4/tables/abc.py>`_.
 
-The concrete implementation is in tables/backend_h5py.
+The concrete implementation for h5py is in `tables/backend_h5py.py
+<https://github.com/PyTables/PyTables/blob/pt4/tables/backend_h5py.py>`_.
 The new high level implementation in PyTables that uses
-the new interface is in tables/core.py.
+the new interface is in `tables/core.py
+<https://github.com/PyTables/PyTables/blob/pt4/tables/core.py>`_.
 
 Implementation Plan
 ===================
