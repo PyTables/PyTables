@@ -305,3 +305,8 @@ class PyTablesGroup(PyTableNode):
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'TABLE'
         return PyTablesTable(backend=dataset)
+
+
+class PyTablesDataset(PyTableNode):
+    pass
+

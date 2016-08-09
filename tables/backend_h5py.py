@@ -21,11 +21,6 @@ class PTShim:
     def parent(self):
         return Group(super().parent.id)
 
-    @property
-    def file(self):
-        ret = super().file
-        return File(ret.id)
-
     def create_dataset(self, name, *, chunk_shape=None, **kwargs):
         kwargs['chunks'] = chunk_shape
         return super().create_dataset(name, **kwargs)
@@ -51,11 +46,8 @@ class Dataset(h5py.Dataset, abc.Dataset):
     def parent(self):
         return Group(super().parent.id)
 
-    @property
-    def file(self):
-        ret = super().file
-        return File(ret.id)
 
+def open(*args, **kwargs):
+    f = h5py.File(*args, **kwargs)
+    return Group(f['/'].id)
 
-class File(PTShim, h5py.File):
-    ...
