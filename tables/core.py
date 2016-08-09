@@ -298,6 +298,19 @@ class PyTablesTable(PyTablesLeaf):
             return
         self[start:stop:step] = rows
 
+    def itersequence(self, sequence):
+        from itertools import groupby
+
+        sequence = np.asarray(sequence)
+        chk_sz, = self.chunk_shape
+
+        dm = zip(*divmod(sequence, chk_sz))
+        # TODO cache chunks?
+        for k, g in groupby(dm, key=lambda x: x[0]):
+            chunk = self[k*chk_sz: (k+1)*chk_sz]
+            indx = [_[1] for _ in g]
+            yield from chunk[indx]
+
 
 class PyTableFile(PyTablesNode):
     @property
