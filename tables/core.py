@@ -235,10 +235,15 @@ class PyTableFile(PyTableNode):
     def root(self):
         return PyTablesGroup(backend=self.backend['/'])
 
+    def __iter__(self):
+        return iter(self.root)
+
+    def create_group(self, where, name, title):
+        return where.create_group(name, title)
+
     def create_table(self, where, name, desc, *args, **kwargs):
         desc = Description(desc.columns)
         return where.create_table(name, desc, *args, **kwargs)
-
 
 
 class PyTablesGroup(PyTableNode):
@@ -261,6 +266,19 @@ class PyTablesGroup(PyTableNode):
     def filters(self, filters):
         # TODO how we persist this? JSON?
         self.backend.attrs['FILTERS'] = filters
+
+    @property
+    def _v_pathname(self):
+        return self.backend.name
+
+    def __iter__(self):
+        for child in self.backend.values():
+            yield child.name
+
+    def create_group(self, name, title):
+        g = PyTablesGroup(backend=self.backend.create_group(name))
+        g.attrs['TITLE'] = title
+        return g
 
     def create_table(self, name, description=None, title='',
                      filters=None, expectedrows=10000,
