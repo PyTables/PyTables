@@ -44,6 +44,10 @@ class PyTablesNode(HasTitle, HasBackend):
     pass
 
 
+def all_row_selector(chunk_id, chunk):
+    yield from range(len(chunk))
+
+
 def description_to_dtype(desc):
     try:
         return desc._v_dtype
@@ -58,21 +62,25 @@ def dispatch(value):
     return value
 
 
-def dflt_sub_chunk_selector_factory(condition):
-    def sub_chunk_select(chunk):
-        for r in chunk:
+def dflt_row_selector_factory(condition):
+    def row_selection(chunk):
+        for i, r in enumerate(chunk):
             if condition(r):
-                yield r
+                yield i
 
-    return sub_chunk_select
+    return row_selection
 
 
 class Row:
+    def fetch_all_fields(self):
+        raise NotImplementedError()
 
-    def __init__(self, table):
-        self.table = table
-        self._nrow = -1
+    def __init__(self, write_target):
+        self._read_src = None
+        self._crow = -1
         self._data = None
+        self._offset = 0
+        self.write_target = write_target
 
     @property
     def dtype(self):
@@ -80,19 +88,40 @@ class Row:
 
     @property
     def nrow(self):
-        return self._nrow
+        return self._crow + self._offset
 
-    @nrow.setter
-    def nrow(self, value):
-        self._nrow = value
+    @property
+    def crow(self):
+        return self._crow
+
+    @crow.setter
+    def crow(self, value):
+        self._crow = value
         self._data = None
+
+    @property
+    def offset(self):
+        return self._offset
+
+    @offset.setter
+    def offset(self, value):
+        self._offset = value
+        self._data = None
+
+    @property
+    def read_src(self):
+        return self._read_src
+
+    @read_src.setter
+    def read_src(self, value):
+        self._read_src = value
 
     @property
     def data(self):
         if self._data is not None:
             return self._data
         if self.nrow >= 0:
-            self._data = self.table[self.nrow]
+            self._data = self._read_src[self._crow]
         else:
             self._data = np.empty(1, dtype=self.dtype)
         return self._data
@@ -102,10 +131,10 @@ class Row:
         self._data = value
 
     def append(self):
-        self.table.append(self.data)
+        self.write_target.append(self.data)
 
     def update(self):
-        self.table[self.nrow] = self.data
+        self.write_target[self.nrow + self.offest] = self.data
 
     def __contains__(self, item):
         return item in self.dtype.names
@@ -175,6 +204,19 @@ class PyTablesTable(PyTablesLeaf):
 
     def __getitem__(self, k):
         return np.rec.array(super().__getitem__(k))
+
+    def iter_rows(self, *, chunk_selector=None, row_selector=None):
+        from tables.core import Row
+        if row_selector is None:
+            row_selector = all_row_selector
+
+        row = Row(self)
+        for (j, ), chunk in self.iter_chunks(chunk_selector=chunk_selector):
+            row.read_src = chunk
+            row.offset = j * self.chunk_shape[0]
+            for r in row_selector(j, chunk):
+                row.crow = r
+                yield row
 
     def where(self, condition, condvars, start=None, stop=None, step=None, *,
               sub_chunk_selector_factory=None):

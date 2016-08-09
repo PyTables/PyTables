@@ -48,7 +48,7 @@ class Dataset(metaclass=ABCMeta):
 
     def iter_chunks(self, *, chunk_selector=None):
         if self.chunk_shape is None:
-            yield self[:]
+            yield (1, ), self[:]
             return
         chunk_count = tuple(sz // ck + min(1, sz % ck)
                             for sz, ck in
@@ -61,12 +61,15 @@ class Dataset(metaclass=ABCMeta):
 
             slc = tuple(slice(j*sz, (j+1)*sz)
                         for j, sz in zip(chunk_id, self.chunk_shape))
-            yield self[slc]
+            yield chunk_id, self[slc]
 
     def iter_with_selectors(self, *, chunk_selector, sub_chunk_selector):
         for chunk in self.iter_chunks(chunk_selector=chunk_selector):
             yield from sub_chunk_selector(chunk)
 
+
+class Table(Dataset):
+    ...
 
 class Group(MutableMapping):
 
