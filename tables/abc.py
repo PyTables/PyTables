@@ -47,6 +47,10 @@ class Dataset(metaclass=ABCMeta):
     def __setitem__(self, k, v):
         ...
 
+    @abstractmethod
+    def flush(self):
+        ...
+
     def iter_chunks(self, *, chunk_selector=None):
         if self.chunk_shape is None:
             yield (1, ), np.rec.array(self[:])

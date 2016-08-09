@@ -25,6 +25,14 @@ class PTShim:
         kwargs['chunks'] = chunk_shape
         return super().create_dataset(name, **kwargs)
 
+    @property
+    def file(self):
+        ret = super().file
+        return File(ret.id)
+
+    def flush(self):
+        self.file.flush()
+
 
 class Group(PTShim, h5py.Group, abc.Group):
     ...
