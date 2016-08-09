@@ -118,12 +118,6 @@ class PyTablesTable(PyTablesLeaf):
         self._backend = backend
         self._exprvars_cache = {}
 
-    def __getitem__(self, k):
-        return self._backend[k]
-
-    def __setitem__(self, k, v):
-        self._backend[k] = v
-
     def where(self, condition, condvars, start=None, stop=None, step=None, *,
               sub_chunk_select=None):
         if sub_chunk_select is None:
@@ -306,5 +300,3 @@ class PyTablesGroup(PyTableNode):
         return PyTablesTable(backend=dataset)
 
 
-class PyTablesDataset(PyTableNode):
-    pass
