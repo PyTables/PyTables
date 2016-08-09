@@ -314,8 +314,37 @@ class PyTablesTable(PyTablesLeaf):
     def read_sorted(self, *args, **kwargs):
         raise NotImplementedError('requires index')
 
-    def iterrows(self, start, stop, step):
+    def iterrows(self, start=None, stop=None, step=None):
+        start, stop, step = self._process_range(start, stop, step,
+                                                warn_negstep=False)
         yield from self.itersequence(range(start, stop, step))
+
+    __iter__ = iterrows
+
+    def read(self, start=None, stop=None, step=None, field=None, out=None):
+        start, stop, step = self._process_range(start, stop, step,
+                                                warn_negstep=False)
+        if field is None:
+            dtype = self.dtype
+        else:
+            dtype = self.dtype[field]
+
+        seq = range(start, stop, step)
+        if out is None:
+            out = np.empty(len(seq), dtype=dtype)
+
+        for j, r in enumerate(self.itersequence(seq)):
+            if field is None:
+                out[j] = r
+            else:
+                out[j] = r[field]
+        return out
+
+    def read_coordinates(self, coords, field=None):
+        if field is None:
+            return np.fromiter(self.itersequence(coords), dtype=self.dtype)
+        return np.fromiter((r[field] for r in self.itersequence(coords)),
+                           dtype=self.dtype[field])
 
 
 class PyTableFile(PyTablesNode):
