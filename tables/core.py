@@ -347,7 +347,7 @@ class PyTablesTable(PyTablesLeaf):
                            dtype=self.dtype[field])
 
 
-class PyTableFile(PyTablesNode):
+class PyTablesFile(PyTablesNode):
     @property
     def root(self):
         return PyTablesGroup(backend=self.backend['/'])

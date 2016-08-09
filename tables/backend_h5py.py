@@ -60,5 +60,5 @@ class File(h5py.File, Group):
 
 
 def open(*args, **kwargs):
-    f = h5py.File(*args, **kwargs)
+    f = File(*args, **kwargs)
     return Group(f['/'].id)
