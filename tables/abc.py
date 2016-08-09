@@ -4,6 +4,10 @@ from collections.abc import MutableMapping
 import itertools
 
 
+def all_chunk_selector(x):
+    return True
+
+
 class Dataset(metaclass=ABCMeta):
 
     @abstractproperty
@@ -42,15 +46,19 @@ class Dataset(metaclass=ABCMeta):
     def __setitem__(self, k, v):
         ...
 
-    def iter_chunks(self):
+    def iter_chunks(self, *, chunk_selector=None):
         if self.chunk_shape is None:
             yield self[:]
             return
         chunk_count = tuple(sz // ck + min(1, sz % ck)
                             for sz, ck in
                             zip(self.shape, self.chunk_shape))
-        print(chunk_count)
+        if chunk_selector is None:
+            chunk_selector = all_chunk_selector
         for chunk_id in itertools.product(*(range(cc) for cc in chunk_count)):
+            if not chunk_selector(chunk_id):
+                continue
+
             slc = tuple(slice(j*sz, (j+1)*sz)
                         for j, sz in zip(chunk_id, self.chunk_shape))
             yield self[slc]
