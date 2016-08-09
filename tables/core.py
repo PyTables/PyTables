@@ -1,6 +1,6 @@
-from tables import abc
-from tables import Description
 import numpy as np
+from tables import Description
+
 
 def description_to_dtype(desc):
     try:
@@ -21,7 +21,6 @@ class PyTablesDataset(object):
 
 
 class PyTablesLeaf:
-
     @property
     def shape(self):
         return self.backend.shape
@@ -80,6 +79,30 @@ def forwarder(forwarded_props, forwarded_methods,
 
         return cls
     return inner
+
+
+class HasBackend:
+    @property
+    def backend(self):
+        return self._backend
+
+    def __init__(self, *, backend):
+        self._backend = backend
+
+
+class HasTitle:
+    @property
+    def title(self):
+        return self.backend.attrs.get('TITLE', None)
+
+    @title.setter
+    def title(self, title):
+        self.backend.attrs['TITLE'] = title
+
+
+@forwarder(['attrs'], ['open', 'close'])
+class PyTableNode(HasTitle, HasBackend):
+    pass
 
 
 @forwarder(['attrs', 'shape', 'dtype'],
@@ -213,22 +236,6 @@ class PyTablesTable(PyTablesLeaf):
         self[start:stop:step] = rows
 
 
-@forwarder(['attrs'], ['open', 'close'])
-class PyTableNode:
-    @property
-    def backend(self):
-        return self._backend
-
-    def __init__(self, *, backend):
-        self._backend = backend
-
-    def __getitem__(self, item):
-        value = self.backend[item]
-        if hasattr(value, 'dtype'):
-            return dispatch(value)
-        # Group?
-        return PyTablesGroup(backend=value)
-
 
 class PyTableFile(PyTableNode):
     @property
@@ -241,24 +248,16 @@ class PyTableFile(PyTableNode):
 
 
 class PyTablesGroup(PyTableNode):
-
-    def open(self):
-        return self.backend.open()
-
-    def close(self):
-        return self.backend.close()
+    def __getitem__(self, item):
+        value = self.backend[item]
+        if hasattr(value, 'dtype'):
+            return dispatch(value)
+        # Group?
+        return PyTablesGroup(backend=value)
 
     @property
     def parent(self):
         return PyTablesGroup(backend=self.backend.parent)
-
-    @property
-    def title(self):
-        return self.backend.attrs.get('TITLE', None)
-
-    @title.setter
-    def title(self, title):
-        self.backend.attrs['TITLE'] = title
 
     @property
     def filters(self):
