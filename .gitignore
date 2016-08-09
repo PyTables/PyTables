@@ -11,3 +11,9 @@ tables/*.so
 
 # specific files
 src/version.h
+
+# odds and ends
+a.out
+dist/
+tables.egg-info/
+tmp/
