@@ -12,6 +12,8 @@ def description_to_dtype(desc):
 
 def dispatch(value):
     """Wrap dataset for PyTables"""
+    if value.attrs['CLASS'] == 'TABLE':
+        return PyTablesTable(value)
     return value
 
 
@@ -153,7 +155,8 @@ class PyTablesGroup(PyTableNode):
         dataset = self.backend.create_dataset(name, data=obj,
                                               dtype=dtype,
                                               maxshape=(None,),
-                                              chunks=chunk_shape,
+                                              chunk_shape=chunk_shape,
                                               **kwargs)
         dataset.attrs['TITLE'] = title
+        dataset.attrs['CLASS'] = 'TABLE'
         return PyTablesTable(backend=dataset)
