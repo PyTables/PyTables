@@ -70,7 +70,7 @@ def dispatch(value):
 
 
 def dflt_row_selector_factory(condition):
-    def row_selection(chunk):
+    def row_selection(chunkid, chunk):
         for i, r in enumerate(chunk):
             if condition(r):
                 yield i
@@ -138,19 +138,21 @@ class Row:
         self._data = value
 
     def append(self):
-        self.write_target.append(self.data)
+        d = np.rec.array(self.data)
+        d.resize(1)
+        self.write_target.append(d)
 
     def update(self):
-        self.write_target[self.nrow + self.offest] = self.data
+        self.write_target[self.nrow] = self.data
 
     def __contains__(self, item):
         return item in self.dtype.names
 
     def __getitem__(self, key):
-        return self.data[0][key]
+        return self.data[key]
 
     def __setitem__(self, key, value):
-        self.data[0][key] = value
+        self.data[key] = value
 
 
 class PyTablesLeaf(PyTablesNode):
@@ -222,12 +224,12 @@ class PyTablesTable(PyTablesLeaf):
         return np.rec.array(super().__getitem__(k))
 
     def iter_rows(self, *, chunk_selector=None, row_selector=None):
-        from tables.core import Row
         if row_selector is None:
             row_selector = all_row_selector
 
         row = Row(self)
-        for (j, ), chunk in self.iter_chunks(chunk_selector=chunk_selector):
+        for (j, ), chunk in self.backend.iter_chunks(
+                chunk_selector=chunk_selector):
             row.read_src = chunk
             row.offset = j * self.chunk_shape[0]
             for r in row_selector(j, chunk):
@@ -235,10 +237,10 @@ class PyTablesTable(PyTablesLeaf):
                 yield row
 
     def where(self, condition, condvars, start=None, stop=None, step=None, *,
-              sub_chunk_selector_factory=None):
+              row_selector_factory=None):
 
-        if sub_chunk_selector_factory is None:
-            sub_chunk_selector_factory = dflt_sub_chunk_selector_factory
+        if row_selector_factory is None:
+            row_selector_factory = dflt_row_selector_factory
         # Adjust the slice to be used.
         start, stop, step = self._process_range_read(start, stop, step)
         if start >= stop:  # empty range, reset conditions
@@ -247,95 +249,12 @@ class PyTablesTable(PyTablesLeaf):
         if not callable(condition):
             raise NotImplementedError("non lambda selection not done yet")
         # TODO write code to get chunk selector from index
-        selector = None
+        chunk_selector = None
 
-        sub_chunk_select = sub_chunk_selector_factory(condition)
+        row_selector = row_selector_factory(condition)
 
-        yield from self.backend.iter_with_selectors(
-            chunk_selector=selector, sub_chunk_selector=sub_chunk_select)
-
-    def _required_expr_vars(self, expression, uservars, depth=1):
-        # Get the names of variables used in the expression.
-        exprvarscache = self._exprvars_cache
-        if expression not in exprvarscache:
-            # Protection against growing the cache too much
-            if len(exprvarscache) > 256:
-                # Remove 10 (arbitrary) elements from the cache
-                for k in list(exprvarscache.keys())[:10]:
-                    del exprvarscache[k]
-            cexpr = compile(expression, '<string>', 'eval')
-            exprvars = [var for var in cexpr.co_names
-                        if var not in ['None', 'False', 'True']
-                        and var not in numexpr_functions]
-            exprvarscache[expression] = exprvars
-        else:
-            exprvars = exprvarscache[expression]
-
-        # Get the local and globbal variable mappings of the user frame
-        # if no mapping has been explicitly given for user variables.
-        user_locals, user_globals = {}, {}
-        if uservars is None:
-            # We use specified depth to get the frame where the API
-            # callable using this method is called.  For instance:
-            #
-            # * ``table._required_expr_vars()`` (depth 0) is called by
-            # * ``table._where()`` (depth 1) is called by
-            # * ``table.where()`` (depth 2) is called by
-            # * user-space functions (depth 3)
-            user_frame = sys._getframe(depth)
-            user_locals = user_frame.f_locals
-            user_globals = user_frame.f_globals
-
-        colinstances = self.colinstances
-        tblfile, tblpath = self._v_file, self._v_pathname
-        # Look for the required variables first among the ones
-        # explicitly provided by the user, then among implicit columns,
-        # then among external variables (only if no explicit variables).
-        reqvars = {}
-        for var in exprvars:
-            # Get the value.
-            if uservars is not None and var in uservars:
-                val = uservars[var]
-            elif var in colinstances:
-                val = colinstances[var]
-            elif uservars is None and var in user_locals:
-                val = user_locals[var]
-            elif uservars is None and var in user_globals:
-                val = user_globals[var]
-            else:
-                raise NameError("name ``%s`` is not defined" % var)
-
-            # Check the value.
-            if hasattr(val, 'pathname'):  # non-nested column
-                if val.shape[1:] != ():
-                    raise NotImplementedError(
-                        "variable ``%s`` refers to "
-                        "a multidimensional column, "
-                        "not yet supported in conditions, sorry" % var)
-                if (val._table_file is not tblfile or
-                        val._table_path != tblpath):
-                    raise ValueError("variable ``%s`` refers to a column "
-                                     "which is not part of table ``%s``"
-                                     % (var, tblpath))
-                if val.dtype.str[1:] == 'u8':
-                    raise NotImplementedError(
-                        "variable ``%s`` refers to "
-                        "a 64-bit unsigned integer column, "
-                        "not yet supported in conditions, sorry; "
-                        "please use regular Python selections" % var)
-            elif hasattr(val, '_v_colpathnames'):  # nested column
-                raise TypeError(
-                    "variable ``%s`` refers to a nested column, "
-                    "not allowed in conditions" % var)
-            else:  # only non-column values are converted to arrays
-                # XXX: not 100% sure about this
-                if isinstance(val, six.text_type):
-                    val = numpy.asarray(val.encode('ascii'))
-                else:
-                    val = numpy.asarray(val)
-            reqvars[var] = val
-        return reqvars
-
+        yield from self.iter_rows(chunk_selector=chunk_selector,
+                                  row_selector=row_selector)
 
     def append(self, rows):
         rows = np.rec.array(rows, self.dtype)

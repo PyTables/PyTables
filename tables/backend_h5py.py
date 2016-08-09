@@ -47,7 +47,10 @@ class Dataset(h5py.Dataset, abc.Dataset):
         return Group(super().parent.id)
 
 
+class File(h5py.File, Group):
+    ...
+
+
 def open(*args, **kwargs):
     f = h5py.File(*args, **kwargs)
     return Group(f['/'].id)
-
