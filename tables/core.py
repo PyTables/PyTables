@@ -164,6 +164,10 @@ class PyTablesLeaf(PyTablesNode):
     def shape(self):
         return self.backend.shape
 
+    @property
+    def chunk_shape(self):
+        return self.backend.chunk_shape
+
     def __len__(self):
         return self.backend.__len__()
 
@@ -255,6 +259,26 @@ class PyTablesTable(PyTablesLeaf):
 
         yield from self.iter_rows(chunk_selector=chunk_selector,
                                   row_selector=row_selector)
+
+    def append_where(self, dest, *args, **kwargs):
+        # get the iterator for the condition
+        wh_itr = self.where(*args, **kwargs)
+        # get the first row
+        row = next(wh_itr)
+        # reset how the table that this will try to write to (this is exciting)
+        row.write_target = dest
+        # add the first result
+        row.append()
+        # add the rest of the results
+        for row in wh_itr:
+            row.append()
+
+    def read_where(self, *args, field=None, **kwargs):
+        wh_itr = self.where(*args, **kwargs)
+        if field is None:
+            return np.fromiter((r.data for r in wh_itr), dtype=self.dtype)
+        return np.fromiter((r.data[field] for r in wh_itr),
+                           dtype=self.dtype[field])
 
     def append(self, rows):
         rows = np.rec.array(rows, self.dtype)
