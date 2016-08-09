@@ -236,15 +236,15 @@ class PyTablesTable(PyTablesLeaf):
         self[start:stop:step] = rows
 
 
-
 class PyTableFile(PyTableNode):
     @property
     def root(self):
-        return self['/']
+        return PyTablesGroup(backend=self.backend['/'])
 
     def create_table(self, where, name, desc, *args, **kwargs):
         desc = Description(desc.columns)
         return where.create_table(name, desc, *args, **kwargs)
+
 
 
 class PyTablesGroup(PyTableNode):
