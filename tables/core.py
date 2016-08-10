@@ -353,6 +353,18 @@ class PyTablesTable(PyTablesLeaf):
         return np.fromiter((r[field] for r in self.itersequence(coords)),
                            dtype=self.dtype[field])
 
+    def remove_rows(self, start=None, stop=None, step=None):
+        old = len(self)
+        start, stop, step = self._process_range(start, stop, step)
+        del self.backend[start:stop:step]
+        return old - len(self)
+
+    def remove_row(self, n):
+        return self.remove_rows(start=n, stop=n+1)
+
+    def flush(self):
+        return self.backend.flush()
+
 
 class PyTablesFile(PyTablesNode):
     @property
