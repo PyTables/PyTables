@@ -9,6 +9,21 @@ def all_chunk_selector(x):
     return True
 
 
+def anti_slice(slc, ln):
+    indx = range(*slc.indices(ln))
+    indx_it = iter(indx)
+    back = next(indx_it)
+    if back != 0:
+        yield (0, back)
+    front = back + 1
+    for back in indx_it:
+        if front != back:
+            yield (front, back)
+        front = back + 1
+    if front < ln:
+        yield (front, ln)
+
+
 class Dataset(metaclass=ABCMeta):
 
     @abstractproperty

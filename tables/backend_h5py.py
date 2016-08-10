@@ -41,7 +41,15 @@ class Group(PTShim, h5py.Group, abc.Group):
 
 class Dataset(h5py.Dataset, abc.Dataset):
     def __delitem__(self, k):
-        raise NotImplementedError()
+        if isinstance(k, slice):
+            n = 0
+            for start, stop in abc.anti_slice(k, len(self)):
+                asl = stop - start
+                self[n:n+asl] = self[start:stop]
+                n += asl
+            self.resize((n,))
+        else:
+            raise KeyError('cannot remove key of type: {0}'.format(type(k)))
 
     @property
     def chunk_shape(self):
