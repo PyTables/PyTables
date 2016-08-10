@@ -1,5 +1,8 @@
 import numpy as np
 from tables import Description
+from tables.path import join_path, split_path
+from tables.table import _index_pathname_of_column_
+from tables.utils import is_idx
 
 
 def forwarder(forwarded_props, forwarded_methods,
@@ -221,10 +224,110 @@ class PyTablesArray(PyTablesLeaf):
     pass
 
 
+class Column:
+
+    def __init__(self, table, pathname, dtype):
+        self.table = table
+        self.name = split_path(pathname)[-1]
+        self.pathname = pathname
+        self.dtype = dtype
+
+    @propety
+    def indexpath(self):
+        return _index_pathname_of_column_(self.table.pathname, self.pathname)
+
+    @property
+    def index(self):
+        try:
+            return self.table.parentnode[self.indexpath]
+        except KeyError:
+            return None
+
+    @property
+    def shape(self):
+        return (self.table.nrows,) + self.dtype.shape
+
+    @property
+    def is_indexed(self):
+        return self.index is not None
+
+    def __getitem__(self, key):
+        table = self.table
+        if isinstance(key, tuple) and len(key) == 1:
+            key = key[0]
+        if is_idx(key):
+            key = operator.index(key)
+            # Index out of range protection
+            if key >= table.nrows:
+                raise IndexError("Index out of range")
+            if key < 0:
+                # To support negative values
+                key += table.nrows
+            return table.read(key, key + 1, 1, self.pathname)[0]
+        elif isinstance(key, slice):
+            return table.read(key.start, key.stop, key.step, self.pathname)
+        else:
+            raise TypeError(
+                "'%s' key type is not valid in this context" % key)
+
+    def __iter__(self):
+        """Iterate through all items in the column."""
+        table = self.table
+        for row in table.iterrows():
+            yield row[self.pathname]
+
+    def __setitem__(self, key, value):
+        table = self.table
+        table._v_file._check_writable()
+
+        # Generalized key support not there yet, but at least allow
+        # for a tuple with one single element (the main dimension).
+        # (key,) --> key
+        if isinstance(key, tuple) and len(key) == 1:
+            key = key[0]
+
+        if is_idx(key):
+            key = operator.index(key)
+
+            # Index out of range protection
+            if key >= table.nrows:
+                raise IndexError("Index out of range")
+            if key < 0:
+                # To support negative values
+                key += table.nrows
+            return table.modify_column(key, key + 1, 1,
+                                       [[value]], self.pathname)
+        elif isinstance(key, slice):
+            (start, stop, step) = table._process_range(
+                key.start, key.stop, key.step)
+            return table.modify_column(start, stop, step,
+                                       value, self.pathname)
+
+    def __str__(self):
+        """The string representation for this object."""
+        tablepathname = self.table.pathname
+        pathname = self.pathname.replace('/', '.')
+        classname = self.__class__.__name__
+        shape = self.shape
+        tcol = self.dtype
+        return "%s.cols.%s (%s%s, %s, idx=%s)" % \
+               (tablepathname, pathname, classname, shape, tcol, self.index)
+
+    def __repr__(self):
+        """A detailed string representation for this object."""
+        return str(self)
+
+
+
 class PyTablesTable(PyTablesLeaf):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._exprvars_cache = {}
+        self.colinstances = {}
+
+    @propety
+    def pathname(self):
+        return self.backend.name
 
     def __getitem__(self, k):
         return np.rec.array(super().__getitem__(k))
@@ -353,6 +456,9 @@ class PyTablesTable(PyTablesLeaf):
         return np.fromiter((r[field] for r in self.itersequence(coords)),
                            dtype=self.dtype[field])
 
+    def col(self, name):
+        return self.read(field=name)
+
     def remove_rows(self, start=None, stop=None, step=None):
         old = len(self)
         start, stop, step = self._process_range(start, stop, step)
@@ -364,6 +470,49 @@ class PyTablesTable(PyTablesLeaf):
 
     def flush(self):
         return self.backend.flush()
+
+    def copy(self, newparent=None, newname=None, overwrite=False,
+             createparents=False, **kwargs):
+        ...
+
+    def modify_column(self, start=None, stop=None, step=None,
+                      column=None, colname=None):
+        return self.modify_columns(start, stop, step, [column], [colname])
+
+    def modify_colums(self, start=None, stop=None, step=None,
+                      columns=None, names=None):
+        if step is None:
+            step = 1
+        if not isinstance(colname, str):
+            raise TypeError("The 'colname' parameter must be a string.")
+        if column is None:      # Nothing to be done
+            return 0
+        if start is None:
+            start = 0
+        if start < 0:
+            raise ValueError("'start' must have a positive value.")
+        if step < 1:
+            raise ValueError(
+                "'step' must have a value greater or equal than 1.")
+        objcols = [self.dtype[name] for name in names]
+        columns = np.asarray(columns, dtype=objcols)
+        if stop is None:
+            # compute the stop value. start + len(rows)*step does not work
+            stop = start + (len(column) - 1) * step + 1
+        (start, stop, step) = self._process_range(start, stop, step)
+        if stop > self.nrows:
+            raise IndexError("This modification will exceed the length of "
+                             "the table. Giving up.")
+        # Compute the number of rows to read.
+        nrows = len(range(0, stop - start, step))
+        if len(column) < nrows:
+            raise ValueError("The value has not enough elements to fill-in "
+                             "the specified range")
+        for row, v in zip(self.iterrows(start, stop, step), columns):
+            for name in names:
+                row[name] = v[name]
+            row.update()
+        return nrows
 
 
 class PyTablesFile(PyTablesNode):

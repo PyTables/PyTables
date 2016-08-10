@@ -42,6 +42,10 @@ class Dataset(metaclass=ABCMeta):
     def params(self):
         ...
 
+    @abstractproperty
+    def name(self):
+        ...
+
     @property
     def chunk_shape(self):
         return None
