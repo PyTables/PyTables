@@ -1,23 +1,22 @@
 import numpy as np
 from tables import Description
+from tables import IsDescription
 
 
-def forwarder(forwarded_props, forwarded_methods,
-              remapped_keys=None):
-    def inner(cls):
-        for k in forwarded_props:
-            def bound_getter(self, k=k):
-                return getattr(self._backend, k)
-            setattr(cls, k, property(bound_getter))
-        for k in forwarded_methods:
-            def make_bound(key):
-                def bound_method(self, *args, **kwargs):
-                    return getattr(self._backend, key)(*args, **kwargs)
-                return bound_method
-            setattr(cls, k, make_bound(k))
+def dtype_from(something):
+    if isinstance(something, np.dtype):
+        return something
 
-        return cls
-    return inner
+    if isinstance(something, np.ndarray):
+        return something.dtype
+
+    if isinstance(something, dict):
+        return Description(something)._v_dtype
+
+    if issubclass(something, IsDescription):
+        return Description(something().columns)._v_dtype
+
+    raise NotImplementedError()
 
 
 class HasBackend:
@@ -43,6 +42,8 @@ class PyTablesNode(HasTitle, HasBackend):
     @property
     def attrs(self):
         return self.backend.attrs
+
+    _v_attrs = attrs
 
     def open(self):
         return self.backend.open()
@@ -381,7 +382,6 @@ class PyTablesFile(PyTablesNode):
         return where.create_group(*args, **kwargs)
 
     def create_table(self, where, name, desc, *args, **kwargs):
-        desc = Description(desc.columns)
         return where.create_table(name, desc, *args, **kwargs)
 
 
@@ -435,11 +435,12 @@ class PyTablesGroup(PyTablesNode):
                      byte_order='I',
                      chunk_shape=None, obj=None, **kwargs):
         """ TODO write docs"""
+
         if obj is None and description is not None:
-            dtype = description_to_dtype(description)
+            dtype = dtype_from(description)
             obj = np.empty(shape=(0,), dtype=dtype)
         elif obj is not None and description is not None:
-            dtype = description_to_dtype(description)
+            dtype = dtype_from(description)
             obj = np.asarray(obj)
         elif description is None:
             obj = np.asarray(obj)
@@ -452,6 +453,7 @@ class PyTablesGroup(PyTablesNode):
         if chunk_shape is None:
             # chunk_shape = compute_chunk_shape_from_expected_rows(dtype, expectedrows)
             ...
+
         # TODO filters should inherit the ones defined at group level
         # filters = filters + self.attrs['FILTERS']
 

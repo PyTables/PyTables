@@ -2,29 +2,10 @@ import h5py
 from tables import abc
 
 
-class PTShim:
-    def __getitem__(self, k):
-        ret = super().__getitem__(k)
-        if isinstance(ret, h5py.Group):
-            return Group(ret.id)
-        elif isinstance(ret, h5py.Dataset):
-            return Dataset(ret.id)
-        return ret
-
-    def open(self):
-        ...
-
-    def close(self):
-        ...
-
+class Group(h5py.Group, abc.Group):
     @property
     def parent(self):
         return Group(super().parent.id)
-
-    def create_dataset(self, name, *, chunk_shape=None, **kwargs):
-        kwargs['chunks'] = chunk_shape
-        ret = super().create_dataset(name, **kwargs)
-        return Dataset(ret.id)
 
     @property
     def file(self):
@@ -34,9 +15,28 @@ class PTShim:
     def flush(self):
         self.file.flush()
 
+    def open(self):
+        ...
 
-class Group(PTShim, h5py.Group, abc.Group):
-    ...
+    def close(self):
+        ...
+
+    def __getitem__(self, k):
+        ret = super().__getitem__(k)
+        if isinstance(ret, h5py.Group):
+            return Group(ret.id)
+        elif isinstance(ret, h5py.Dataset):
+            return Dataset(ret.id)
+        raise NotImplementedError()
+
+    def create_group(self, name, **kwargs):
+        ret = super().create_group(name, **kwargs)
+        return Group(ret.id)
+
+    def create_dataset(self, name, *, chunk_shape=None, **kwargs):
+        kwargs['chunks'] = chunk_shape
+        ret = super().create_dataset(name, **kwargs)
+        return Dataset(ret.id)
 
 
 class Dataset(h5py.Dataset, abc.Dataset):
@@ -67,11 +67,6 @@ class Dataset(h5py.Dataset, abc.Dataset):
         self.file.flush()
 
 
-class File(Group, h5py.File):
-    def flush(self):
-        super().flush()
-
-
 def open(*args, **kwargs):
-    f = File(*args, **kwargs)
+    f = h5py.File(*args, **kwargs)
     return Group(f['/'].id)
