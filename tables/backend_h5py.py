@@ -1,16 +1,21 @@
+import os.path
 import h5py
 from tables import abc
 
 
+class Attributes(h5py.AttributeManager, abc.Attributes):
+    def __getattr__(self, item):
+        return self.__getitem__(item)
+
+
 class Group(h5py.Group, abc.Group):
+    @property
+    def name(self):
+        return os.path.basename(super().name)
+
     @property
     def parent(self):
         return Group(super().parent.id)
-
-    @property
-    def file(self):
-        ret = super().file
-        return File(ret.id)
 
     def flush(self):
         self.file.flush()
@@ -19,7 +24,8 @@ class Group(h5py.Group, abc.Group):
         ...
 
     def close(self):
-        ...
+        if self.name == '/':
+            self.file.close()
 
     def __getitem__(self, k):
         ret = super().__getitem__(k)
@@ -38,8 +44,15 @@ class Group(h5py.Group, abc.Group):
         ret = super().create_dataset(name, **kwargs)
         return Dataset(ret.id)
 
+    def remove_node(self, node):
+        self.__delitem__(node.backend.name)
+
 
 class Dataset(h5py.Dataset, abc.Dataset):
+    @property
+    def name(self):
+        return os.path.basename(super().name)
+
     def __delitem__(self, k):
         if isinstance(k, slice):
             n = 0

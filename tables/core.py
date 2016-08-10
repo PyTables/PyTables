@@ -1,4 +1,5 @@
 import numpy as np
+from tables import abc
 from tables import Description
 from tables.path import join_path, split_path
 from tables.table import _index_pathname_of_column_
@@ -41,11 +42,24 @@ class HasTitle:
         self.backend.attrs['TITLE'] = title
 
 
+class PyTablesAttributes(HasBackend):
+
+    def __getitem__(self, item):
+        return self.backend.__getitem__(item)
+
+    def __setitem__(self, item, value):
+        return self.backend.__setitem__(item, value)
+
+    def __getattr__(self, attr):
+        return self.__getitem__(attr)
+
+
 class PyTablesNode(HasTitle, HasBackend):
     @property
     def attrs(self):
-        return self.backend.attrs
+        return PyTablesAttributes(backend=self.backend.attrs)
 
+    # for backward compatibility
     _v_attrs = attrs
 
     def open(self):
@@ -226,7 +240,7 @@ class Column:
         self.pathname = pathname
         self.dtype = table.dtype[pathname]
 
-    @propety
+    @property
     def indexpath(self):
         return _index_pathname_of_column_(self.table.pathname, self.pathname)
 
@@ -341,7 +355,7 @@ class PyTablesTable(PyTablesLeaf):
         for colpathname in self.dtype.names:
             colinstances[colpathname] = cols[colpathname]
 
-    @propety
+    @property
     def pathname(self):
         return self.backend.name
 
@@ -531,13 +545,46 @@ class PyTablesTable(PyTablesLeaf):
         return nrows
 
 
-class PyTablesFile(PyTablesNode):
+class HasChildren:
+    def __iter__(self):
+        for child in self.backend.values():
+            yield child.name
+
+    def __getitem__(self, item):
+        value = self.backend[item]
+        if isinstance(value, abc.Group):
+            return PyTablesGroup(backend=value)
+
+        if isinstance(value, abc.Dataset):
+            if value.attrs['CLASS'] == 'TABLE':
+                return PyTablesTable(backend=value)
+            elif value.attrs['CLASS'] == 'ARRAY':
+                return PyTablesArray(backend=value)
+
+        raise NotImplementedError()
+
+    def __getattr__(self, attr):
+        return self.__getitem__(attr)
+
+    def rename_node(self, node, new_name):
+        self.backend.rename_node(node.name, new_name)
+
+    def remove_node(self, *args):
+        """ This method expects one argument (node) or two arguments (where, node) """
+        if len(args) == 1:
+            node, = args
+            self.backend.remove_node(node.name)
+        elif len(args) == 2:
+            where, name = args
+            where.remove_node(name)
+        else:
+            raise ValueError('This method expects one or two arguments')
+
+
+class PyTablesFile(HasChildren, PyTablesNode):
     @property
     def root(self):
         return PyTablesGroup(backend=self.backend['/'])
-
-    def __iter__(self):
-        return iter(self.root)
 
     def create_array(self, where, *args, **kwargs):
         return where.create_array(*args, **kwargs)
@@ -549,17 +596,7 @@ class PyTablesFile(PyTablesNode):
         return where.create_table(name, desc, *args, **kwargs)
 
 
-class PyTablesGroup(PyTablesNode):
-    def __getitem__(self, item):
-        value = self.backend[item]
-        if hasattr(value, 'dtype'):
-            return dispatch(value)
-        # Group?
-        return PyTablesGroup(backend=value)
-
-    def __getattr__(self, item):
-        return self.__getitem__(item)
-
+class PyTablesGroup(HasChildren, PyTablesNode):
     @property
     def parent(self):
         return PyTablesGroup(backend=self.backend.parent)
@@ -576,10 +613,6 @@ class PyTablesGroup(PyTablesNode):
     @property
     def _v_pathname(self):
         return self.backend.name
-
-    def __iter__(self):
-        for child in self.backend.values():
-            yield child.name
 
     def create_array(self, name, obj, title='', byte_order='I', **kwargs):
         obj = np.asarray(obj)
