@@ -220,11 +220,11 @@ class PyTablesArray(PyTablesLeaf):
 
 class Column:
 
-    def __init__(self, table, pathname, dtype):
+    def __init__(self, table, pathname):
         self.table = table
         self.name = split_path(pathname)[-1]
         self.pathname = pathname
-        self.dtype = dtype
+        self.dtype = table.dtype[pathname]
 
     @propety
     def indexpath(self):
@@ -312,12 +312,34 @@ class Column:
         return str(self)
 
 
+class Cols:
+
+    def __init__(self, table):
+        self.table = table
+        self.dtype = table.dtype
+        for name in self.dtype.names:
+            setattr(self, name, Column(table, name))
+        
+    def __len__(self):
+        return len(self.dtype)
+        
+    def __getitem__(self, k):
+        return self.table[k]
+
+    def __setitem__(self, k, v):
+        self.table[v] = v
+
 
 class PyTablesTable(PyTablesLeaf):
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._exprvars_cache = {}
         self.colinstances = {}
+        self.cols = Cols(self, self.description)
+        colinstances, cols = self.colinstances, self.cols
+        for colpathname in self.dtype.names:
+            colinstances[colpathname] = cols[colpathname]
 
     @propety
     def pathname(self):
@@ -338,7 +360,7 @@ class PyTablesTable(PyTablesLeaf):
             for r in row_selector(j, chunk):
                 row.crow = r
                 yield row
-
+-
     def where(self, condition, condvars, start=None, stop=None, step=None, *,
               row_selector_factory=None):
 
