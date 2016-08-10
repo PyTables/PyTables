@@ -25,6 +25,9 @@ def anti_slice(slc, ln):
 
 
 class Dataset(metaclass=ABCMeta):
+    @abstractproperty
+    def name(self):
+        ...
 
     @abstractproperty
     def dtype(self):
@@ -40,10 +43,6 @@ class Dataset(metaclass=ABCMeta):
 
     @abstractproperty
     def params(self):
-        ...
-
-    @abstractproperty
-    def name(self):
         ...
 
     @property
@@ -97,6 +96,9 @@ class Table(Dataset):
 
 
 class Group(MutableMapping):
+    @abstractproperty
+    def name(self):
+        ...
 
     @abstractproperty
     def attrs(self):

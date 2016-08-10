@@ -1,48 +1,8 @@
-import os
-import tempfile
+from common import TempFileMixin
 import unittest
 
 import numpy as np
 import tables as tb
-import tables.backend_h5py as tbh
-import tables.core as tcore
-
-
-
-class TempFileMixin(object):
-    open_mode = 'w'
-    open_kwargs = {}
-
-    def _getTempFileName(self):
-        return tempfile.mktemp(prefix='file', suffix='.h5')
-
-    def open_file(self, filename, mode="r", title="", **kwargs):
-        backend = tbh.open(filename, mode)
-        fo = tcore.PyTablesFile(backend=backend, **kwargs)
-        fo.attrs['TITLE'] = title
-        return fo
-
-    def setUp(self):
-        """Set ``h5file`` and ``h5fname`` instance attributes.
-
-        * ``h5fname``: the name of the temporary HDF5 file.
-        * ``h5file``: the writable, empty, temporary HDF5 file.
-
-        """
-
-        super().setUp()
-        self.h5fname = self._getTempFileName()
-        self.h5file = self.open_file(
-            self.h5fname, self.open_mode, title="", **self.open_kwargs)
-        self.root = self.h5file.root
-
-    def tearDown(self):
-        """Close ``h5file`` and remove ``h5fname``."""
-
-        self.h5file.close()
-        self.h5file = None
-        os.remove(self.h5fname)   # comment this for debugging purposes only
-        super().tearDown()
 
 
 class Record(tb.IsDescription):
