@@ -56,13 +56,6 @@ def all_row_selector(chunk_id, chunk):
     yield from range(len(chunk))
 
 
-def description_to_dtype(desc):
-    try:
-        return desc._v_dtype
-    except AttributeError:
-        return np.dtype(desc, copy=True)
-
-
 def dispatch(value):
     """Wrap dataset for PyTables"""
     if value.attrs['CLASS'] == 'TABLE':
@@ -392,6 +385,9 @@ class PyTablesGroup(PyTablesNode):
             return dispatch(value)
         # Group?
         return PyTablesGroup(backend=value)
+
+    def __getattr__(self, item):
+        return self.__getitem__(item)
 
     @property
     def parent(self):
