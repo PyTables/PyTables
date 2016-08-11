@@ -6,6 +6,7 @@ from tables.table import _index_pathname_of_column_
 from .leaf import Leaf
 import numexpr
 import sys
+from tables.description import descr_from_dtype, Description
 
 
 def all_row_selector(chunk_id, chunk):
@@ -49,7 +50,7 @@ def dflt_row_selector_factory(condition, depth=4):
 class RowAppender:
     def __init__(self, write_target):
         self.write_target = write_target
-        self._data = np.empty(1, dtype=self.dtype)
+        self._data = np.empty(1, dtype=self.dtype)[0]
 
     @property
     def dtype(self):
@@ -128,7 +129,7 @@ class Row(RowAppender):
         if self.nrow >= 0:
             self._data = self._read_src[self._crow]
         else:
-            self._data = np.empty(1, dtype=self.dtype)
+            self._data = np.empty(1, dtype=self.dtype)[0]
         return self._data
 
     def update(self):
@@ -230,7 +231,6 @@ class Column:
 
 
 class Cols:
-
     def __init__(self, table):
         self.table = table
         self.dtype = table.dtype
@@ -245,6 +245,9 @@ class Cols:
 
     def __setitem__(self, k, v):
         self.table[v] = v
+
+    def _f_col(self, colname):
+        return self[colname]
 
 
 class Table(Leaf):
@@ -262,6 +265,14 @@ class Table(Leaf):
     @property
     def pathname(self):
         return self.backend.name
+
+    @property
+    def description(self):
+        return descr_from_dtype(self.dtype)[0]
+
+    @property
+    def colnames(self):
+        return self.dtype.names
 
     def __getitem__(self, k):
         return np.rec.array(super().__getitem__(k))
