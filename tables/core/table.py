@@ -4,6 +4,7 @@ import operator
 from tables.utils import is_idx
 from tables.table import _index_pathname_of_column_
 from .leaf import Leaf
+
 import numexpr
 import sys
 from tables.description import descr_from_dtype, Description
@@ -267,7 +268,7 @@ class Cols:
 
 
 class Table(Leaf):
-
+    ndim = 1
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._exprvars_cache = {}
