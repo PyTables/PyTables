@@ -1,6 +1,13 @@
-import os.path
 import h5py
+import os.path
 from tables import abc
+
+
+def set_complex_names():
+    cfg = h5py.get_config()
+    cfg.complex_names = ('real', 'imag')
+
+set_complex_names()
 
 
 class Attributes(h5py.AttributeManager, abc.Attributes):
