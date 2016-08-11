@@ -404,10 +404,32 @@ class Table(Leaf):
         return coords
 
     def append(self, rows):
+        if not hasattr(self, 'append_buffer'):
+            self.append_buffer = np.empty(self.chunk_shape[0], self.dtype)
+            self.append_buffer_remainder = self.chunk_shape[0]
         rows = np.rec.array(rows, self.dtype)
-        cur_count = len(self)
-        self._backend.resize((cur_count + len(rows), ))
-        self[cur_count:] = rows
+        if len(rows) < self.append_buffer_remainder:
+            remainder = self.append_buffer_remainder
+            self.append_buffer[-remainder:len(rows)] = rows
+            self.append_buffer_remainder -= len(rows)
+        else:
+            # Append to the existing values in buffer and flush
+            remainder = self.append_buffer_remainder
+            self.append_buffer[-remainder:] = rows[:remainder]
+            buflen = len(self.append_buffer)
+            cur_count = len(self)
+            self._backend.resize((cur_count + buflen,))
+            self[cur_count:] = self.append_buffer
+            if len(rows) - remainder > buflen:
+                # Flush the remainder
+                cur_count = len(self)
+                self._backend.resize((cur_count + len(rows) - remainder,))
+                self[cur_count:] = rows[-remainder:]
+                self.append_buffer_remainder = buflen
+            else:
+                # Add the remainder to the buffer
+                self.append_buffer[:len(rows)-remainder] = rows[remainder:]
+                self.append_buffer_remainder = buflen - (len(rows) - remainder)
 
     def modify_rows(self, start=None, stop=None, step=None, rows=None):
         if rows is None:
@@ -480,6 +502,12 @@ class Table(Leaf):
         return self.remove_rows(start=n, stop=n+1)
 
     def flush(self):
+        print('flushing')
+        if hasattr(self, 'append_buffer'):
+            cur_count = len(self)
+            buflen = len(self.append_buffer) - self.append_buffer_remainder
+            self._backend.resize((cur_count + buflen,))
+            self[cur_count:] = self.append_buffer[:buflen]
         return self.backend.flush()
 
     def copy(self, newparent=None, newname=None, overwrite=False,
