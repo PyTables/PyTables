@@ -4,6 +4,8 @@ import operator
 from tables.utils import is_idx
 from tables.table import _index_pathname_of_column_
 from .leaf import Leaf
+import numexpr
+import sys
 
 
 def all_row_selector(chunk_id, chunk):
@@ -17,13 +19,31 @@ def dispatch(value):
     return value
 
 
-def dflt_row_selector_factory(condition):
+def dflt_row_selector_factory(condition, depth=4):
+    """Return a row selector depending on the format of condition."""
+
     def row_selection(chunkid, chunk):
         for i, r in enumerate(chunk):
             if condition(r):
                 yield i
 
-    return row_selection
+    def inkernel_row_selection(chunkid, chunk):
+        # Get a dictionary with the columns in chunk
+        cols = dict((name, chunk[name]) for name in chunk.dtype.names)
+        # Get locals and globals
+        frame = sys._getframe(depth)
+        cols.update(frame.f_locals)
+        cols.update(frame.f_globals)
+        # Evaluate the condition
+        out = numexpr.evaluate(condition, local_dict=cols)
+        for i, r in enumerate(out):
+            if r:
+                yield i
+
+    if callable(condition):
+        return row_selection
+    elif type(condition) == str:
+        return inkernel_row_selection
 
 
 class Row:
@@ -248,7 +268,7 @@ class Table(Leaf):
                 row.crow = r
                 yield row
 
-    def where(self, condition, condvars, start=None, stop=None, step=None, *,
+    def where(self, condition, condvars=None, start=None, stop=None, step=None, *,
               row_selector_factory=None):
 
         if row_selector_factory is None:
@@ -258,8 +278,8 @@ class Table(Leaf):
         if start >= stop:  # empty range, reset conditions
             return iter([])
         # TODO write numexpr -> selector code
-        if not callable(condition):
-            raise NotImplementedError("non lambda selection not done yet")
+        if not (callable(condition) or type(condition)):
+            raise NotImplementedError("condition must be either a callable or a string")
         # TODO write code to get chunk selector from index
         chunk_selector = None
 
