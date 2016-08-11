@@ -9,65 +9,15 @@ import tables as tb
 from .common import TempFileMixin
 
 
-class OpenFileTestCase(TempFileMixin, unittest.TestCase):
+def test_file_has_a_title(pytables_file):
+    assert pytables_file.title == 'test file'
 
-    def setUp(self):
-        super(OpenFileTestCase, self).setUp()
-        self.populateFile()
 
-    def populateFile(self):
-        root = self.h5file.root
+def test_array_has_a_class(array):
+    assert array.attrs.CLASS == 'ARRAY'
 
-        # Create an array
-        self.h5file.create_array(root, 'array', [1, 2], title="Array example")
-        self.h5file.create_table(root, 'table', {'var1': tb.IntCol()},
-                                 "Table example")
-        root._v_attrs.testattr = 41
 
-        # Create another array object
-        self.h5file.create_array(root, 'anarray', [1], "Array title")
-        self.h5file.create_table(root, 'atable', {'var1': tb.IntCol()},
-                                 "Table title")
-
-        # Create a group object
-        group = self.h5file.create_group(root, 'agroup', "Group title")
-        group._v_attrs.testattr = 42
-
-        # Create a some objects there
-        array1 = self.h5file.create_array(group, 'anarray1',
-                                          [1, 2, 3, 4, 5, 6, 7],
-                                          "Array title 1")
-        array1.attrs.testattr = 42
-        self.h5file.create_array(group, 'anarray2', [2], "Array title 2")
-        self.h5file.create_table(group, 'atable1', {
-                                 'var1': tb.IntCol()}, "Table title 1")
-        ra = np.rec.array([(1, 11, 'a')], formats='u1,f4,a1')
-        self.h5file.create_table(group, 'atable2', ra, "Table title 2")
-
-        # Create a lonely group in first level
-        self.h5file.create_group(root, 'agroup2', "Group title 2")
-
-        # Create a new group in the second level
-        group3 = self.h5file.create_group(group, 'agroup3', "Group title 3")
-
-        # Create a new group in the third level
-        self.h5file.create_group(group3, 'agroup4', "Group title 4")
-
-        # Create an array in the root with the same name as one in 'agroup'
-        self.h5file.create_array(root, 'anarray1', [1, 2],
-                                 title="Array example")
-
-    def test00_newFile(self):
-        """Checking creation of a new file."""
-
-        self.h5file.create_array(self.h5file.root, 'array_new', [1, 2],
-                                 title="Array example")
-
-        # Get the CLASS attribute of the arr object
-        class_ = self.h5file.root.array.attrs.CLASS
-
-        self.assertEqual(class_.capitalize(), "Array")
-
+class OpenFileTestCase(TempFileMixin):
     def test01_openFile(self):
         """Checking opening of an existing file."""
 
