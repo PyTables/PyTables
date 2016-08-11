@@ -134,5 +134,22 @@ class Group(MutableMapping):
         return
 
 
+class Resource(Group):
+
+    @abstractproperty
+    def name(self):
+        """Return a name that can be used to reopen"""
+        ...
+
+    @abstractmethod
+    def open(self, name, **kwargs):
+        """Open a resource e.g. a file"""
+        ...
+
+    @abstractmethod
+    def close(self):
+        ...
+
+
 class Attributes(MutableMapping):
     ...

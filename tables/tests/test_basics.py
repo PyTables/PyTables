@@ -13,37 +13,30 @@ def test_file_has_a_title(pytables_file):
     assert pytables_file.title == 'A test file'
 
 
-def test_array_has_a_class(array):
+def test_array_has_class_and_title(array):
+    assert array.title == 'Array example'
     assert array.attrs.CLASS == 'ARRAY'
 
 
+def test02_appendFile(pytables_file):
+    """Checking appending objects to an existing file."""
+
+    # Append a new array to the existing file
+    pytables_file.reopen(mode='r+')
+
+    pytables_file.create_array(pytables_file.root, 'array2', [3, 4], title='Title example 2')
+
+    # Open this file in read-only mode
+    pytables_file.reopen(mode='r')
+
+    # Get the CLASS attribute of the arr object
+    title = pytables_file.root.array2.attrs["TITLE"]
+
+    assert title == "Title example 2"
+
+
 class OpenFileTestCase(TempFileMixin):
-    def test01_openFile(self):
-        """Checking opening of an existing file."""
 
-        # Open the old HDF5 file
-        self._reopen()
-
-        # Get the CLASS attribute of the arr object
-        title = self.h5file.root.array.attrs["TITLE"]
-
-        self.assertEqual(title, "Array example")
-
-    def test02_appendFile(self):
-        """Checking appending objects to an existing file."""
-
-        # Append a new array to the existing file
-        self._reopen(mode="r+", )
-        self.h5file.create_array(self.h5file.root, 'array2', [3, 4],
-                                 title="Title example 2")
-
-        # Open this file in read-only mode
-        self._reopen()
-
-        # Get the CLASS attribute of the arr object
-        title = self.h5file.root.array2.attrs["TITLE"]
-
-        self.assertEqual(title, "Title example 2")
 
     def test02b_appendFile2(self):
         """Checking appending objects to an existing file ("a" version)"""

@@ -10,12 +10,34 @@ def set_complex_names():
 set_complex_names()
 
 
+class HasChildren:
+    def __getitem__(self, k):
+        ret = super().__getitem__(k)
+        if isinstance(ret, h5py.Group):
+            return Group(ret.id)
+        elif isinstance(ret, h5py.Dataset):
+            return Dataset(ret.id)
+        raise NotImplementedError()
+
+
 class Attributes(h5py.AttributeManager, abc.Attributes):
     def __getattr__(self, item):
         return self.__getitem__(item)
 
 
-class Group(h5py.Group, abc.Group):
+class Resource(HasChildren, h5py.File, abc.Resource):
+    def __init__(self, name, **kwargs):
+        self._name = name
+        self._kwargs = kwargs
+
+    def open(self, **kwargs):
+        if kwargs:
+            self._kwargs.update(kwargs)
+        super().__init__(self._name, **self._kwargs)
+        return self
+
+
+class Group(HasChildren, h5py.Group, abc.Group):
     @property
     def name(self):
         return os.path.basename(super().name)
@@ -33,14 +55,6 @@ class Group(h5py.Group, abc.Group):
     def close(self):
         if super().name == '/':
             self.file.close()
-
-    def __getitem__(self, k):
-        ret = super().__getitem__(k)
-        if isinstance(ret, h5py.Group):
-            return Group(ret.id)
-        elif isinstance(ret, h5py.Dataset):
-            return Dataset(ret.id)
-        raise NotImplementedError()
 
     def create_group(self, name, **kwargs):
         ret = super().create_group(name, **kwargs)
@@ -89,7 +103,3 @@ class Dataset(h5py.Dataset, abc.Dataset):
     def flush(self):
         self.file.flush()
 
-
-def open_backend(*args, **kwargs):
-    f = h5py.File(*args, **kwargs)
-    return Group(f['/'].id)

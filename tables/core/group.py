@@ -33,8 +33,7 @@ class HasChildren:
         value = self.backend[item]
         if isinstance(value, abc.Group):
             return Group(backend=value)
-
-        if isinstance(value, abc.Dataset):
+        elif isinstance(value, abc.Dataset):
             if value.attrs['CLASS'] == 'TABLE':
                 return Table(backend=value)
             elif value.attrs['CLASS'] == 'ARRAY':
@@ -145,6 +144,9 @@ class Group(HasChildren, Node):
 
 
 class File(HasChildren, Node):
+    def reopen(self, **kwargs):
+        self.backend.close()
+        self.backend.open(**kwargs)
 
     @property
     def root(self):

@@ -7,12 +7,12 @@ from tempfile import TemporaryDirectory
 @pytest.yield_fixture
 def pytables_file():
     with TemporaryDirectory(prefix='tables') as dir:
-        yield tb.open_file(os.path.join(dir, 'test.h5'), 'w', title='A test file')
+        yield tb.open_file(os.path.join(dir, 'test.h5'), mode='w', title='A test file')
 
 
 @pytest.fixture
 def array(pytables_file):
-    return pytables_file.create_array(pytables_file.root, 'array', [1, 2], title="Array example")
+    return pytables_file.create_array(pytables_file.root, 'array', [1, 2], title='Array example')
 
 
 @pytest.fixture
