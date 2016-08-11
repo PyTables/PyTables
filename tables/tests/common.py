@@ -409,6 +409,9 @@ class TempFileMixin(object):
     open_mode = 'w'
     open_kwargs = {}
 
+    def _getName(self):
+        return 'foo'
+
     def _getTempFileName(self):
         return tempfile.mktemp(prefix=self._getName(), suffix='.h5')
 
