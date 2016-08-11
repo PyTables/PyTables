@@ -7,4 +7,5 @@ def open_file(name, mode='r', title='', **kwargs):
     resource.open()
     if mode == 'w':
         resource.attrs['TITLE'] = title
-    return File(backend=resource)
+
+    return File(backend=resource, parent=None)

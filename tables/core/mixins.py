@@ -5,8 +5,14 @@ class HasBackend:
     def backend(self):
         return self._backend
 
-    def __init__(self, *, backend):
+    @property
+    def parent(self):
+        return self._parent
+
+    def __init__(self, *, backend, parent, **kwargs):
+        super().__init__(**kwargs)
         self._backend = backend
+        self._parent = parent
 
 
 class HasTitle:

@@ -33,12 +33,12 @@ class HasChildren:
     def __getitem__(self, item):
         value = self.backend[item]
         if isinstance(value, abc.Group):
-            return Group(backend=value)
+            return Group(backend=value, parent=self)
         elif isinstance(value, abc.Dataset):
             if value.attrs['CLASS'] == 'TABLE':
-                return Table(backend=value)
+                return Table(backend=value, parent=self)
             elif value.attrs['CLASS'] == 'ARRAY':
-                return Array(backend=value)
+                return Array(backend=value, parent=self)
 
         raise NotImplementedError()
 
@@ -76,7 +76,7 @@ class HasChildren:
 class Group(HasChildren, Node):
     @property
     def parent(self):
-        return Group(backend=self.backend.parent)
+        return self._parent
 
     @property
     def filters(self):
@@ -100,10 +100,10 @@ class Group(HasChildren, Node):
                                               **kwargs)
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'ARRAY'
-        return Array(backend=dataset)
+        return Array(backend=dataset, parent=self)
 
     def create_group(self, name, title=''):
-        g = Group(backend=self.backend.create_group(name))
+        g = Group(backend=self.backend.create_group(name), parent=self)
         g.attrs['TITLE'] = title
         return g
 
@@ -144,12 +144,12 @@ class Group(HasChildren, Node):
                                               **kwargs)
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'TABLE'
-        return Table(backend=dataset)
+        return Table(backend=dataset, parent=self)
 
 
 class File(HasChildren, Node):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         # TODO (re) make this configurable
         # node_cache_slots = params['NODE_CACHE_SLOTS']
         node_cache_slots = 10
@@ -167,7 +167,7 @@ class File(HasChildren, Node):
 
     @property
     def root(self):
-        return Group(backend=self.backend['/'])
+        return self['/']
 
     def create_array(self, where, *args, **kwargs):
         return where.create_array(*args, **kwargs)

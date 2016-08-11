@@ -8,7 +8,7 @@ class Node(HasTitle, HasBackend):
 
     @property
     def attrs(self):
-        return Attributes(backend=self.backend.attrs)
+        return Attributes(backend=self.backend.attrs, parent=self)
 
     # for backward compatibility
     _v_attrs = attrs
