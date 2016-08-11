@@ -10,7 +10,7 @@ from .common import TempFileMixin
 
 
 def test_file_has_a_title(pytables_file):
-    assert pytables_file.title == 'test file'
+    assert pytables_file.title == 'A test file'
 
 
 def test_array_has_a_class(array):
@@ -953,5 +953,3 @@ class OpenFileTestCase(TempFileMixin):
         # Get the file descriptor for this file
         fd = self.h5file.fileno()
         self.assertTrue(fd >= 0)
-
-
