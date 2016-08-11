@@ -300,9 +300,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     def test00_description(self):
         """Checking table description and descriptive fields."""
 
-        self.h5file = tables.open_file(self.h5fname)
-
-        tbl = self.h5file.get_node('/table0')
+        h5file = tables.open_file(self.h5fname)
+        tbl = h5file.get_node('/table0')
         desc = tbl.description
 
         if isinstance(self.record, dict):
@@ -543,8 +542,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tables.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        h5file = tables.open_file(self.h5fname, "r")
+        table = h5file.get_node("/table0")
 
         # Check that a TypeError is raised
         # self.assertRaises only work with functions
