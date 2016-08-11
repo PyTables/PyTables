@@ -53,8 +53,8 @@ class Group(HasChildren, h5py.Group, abc.Group):
         ...
 
     def close(self):
-        if super().name == '/':
-            self.file.close()
+        if self.id.valid:
+            self.id.close()
 
     def create_group(self, name, **kwargs):
         ret = super().create_group(name, **kwargs)
