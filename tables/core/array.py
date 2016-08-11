@@ -1,5 +1,5 @@
-from .leaf import PyTablesLeaf
+from .leaf import Leaf
 
 
-class PyTablesArray(PyTablesLeaf):
+class Array(Leaf):
     pass

@@ -1,7 +1,7 @@
-from .node import PyTablesNode
+from .node import Node
 
 
-class PyTablesLeaf(PyTablesNode):
+class Leaf(Node):
     @property
     def dtype(self):
         return self.backend.dtype

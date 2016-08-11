@@ -19,7 +19,7 @@ class HasTitle:
         self.backend.attrs['TITLE'] = title
 
 
-class PyTablesAttributes(HasBackend):
+class Attributes(HasBackend):
 
     def __getitem__(self, item):
         return self.backend.__getitem__(item)

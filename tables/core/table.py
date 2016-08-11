@@ -3,7 +3,7 @@ from tables.path import split_path
 import operator
 from tables.utils import is_idx
 from tables.table import _index_pathname_of_column_
-from .leaf import PyTablesLeaf
+from .leaf import Leaf
 
 
 def all_row_selector(chunk_id, chunk):
@@ -11,9 +11,9 @@ def all_row_selector(chunk_id, chunk):
 
 
 def dispatch(value):
-    """Wrap dataset for PyTables"""
+    """Wrap dataset for """
     if value.attrs['CLASS'] == 'TABLE':
-        return PyTablesTable(value)
+        return Table(value)
     return value
 
 
@@ -217,7 +217,7 @@ class Cols:
         self.table[v] = v
 
 
-class PyTablesTable(PyTablesLeaf):
+class Table(Leaf):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

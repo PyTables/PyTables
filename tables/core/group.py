@@ -1,6 +1,6 @@
-from .node import PyTablesNode
-from .table import PyTablesTable
-from .array import PyTablesArray
+from .node import Node
+from .table import Table
+from .array import Array
 from tables import abc
 from tables import Description
 from tables import IsDescription
@@ -32,13 +32,13 @@ class HasChildren:
     def __getitem__(self, item):
         value = self.backend[item]
         if isinstance(value, abc.Group):
-            return PyTablesGroup(backend=value)
+            return Group(backend=value)
 
         if isinstance(value, abc.Dataset):
             if value.attrs['CLASS'] == 'TABLE':
-                return PyTablesTable(backend=value)
+                return Table(backend=value)
             elif value.attrs['CLASS'] == 'ARRAY':
-                return PyTablesArray(backend=value)
+                return Array(backend=value)
 
         raise NotImplementedError()
 
@@ -46,7 +46,7 @@ class HasChildren:
         return self.__getitem__(attr)
 
     def rename_node(self, old, new_name):
-        if isinstance(old, PyTablesNode):
+        if isinstance(old, Node):
             self.backend.rename_node(old.name, new_name)
         elif isinstance(old, str):
             self.backend.rename_node(old, new_name)
@@ -55,7 +55,7 @@ class HasChildren:
     def remove_node(self, *args):
         """ This method expects one argument (node) or two arguments (where, node) """
         if len(args) == 1:
-            if isinstance(args[0], PyTablesNode):
+            if isinstance(args[0], Node):
                 node = args[0]
                 self.backend.remove_node(node.name)
             elif isinstance(args[0], str):
@@ -70,10 +70,10 @@ class HasChildren:
             raise ValueError('This method expects one or two arguments')
 
 
-class PyTablesGroup(HasChildren, PyTablesNode):
+class Group(HasChildren, Node):
     @property
     def parent(self):
-        return PyTablesGroup(backend=self.backend.parent)
+        return Group(backend=self.backend.parent)
 
     @property
     def filters(self):
@@ -97,10 +97,10 @@ class PyTablesGroup(HasChildren, PyTablesNode):
                                               **kwargs)
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'ARRAY'
-        return PyTablesArray(backend=dataset)
+        return Array(backend=dataset)
 
     def create_group(self, name, title=''):
-        g = PyTablesGroup(backend=self.backend.create_group(name))
+        g = Group(backend=self.backend.create_group(name))
         g.attrs['TITLE'] = title
         return g
 
@@ -141,13 +141,13 @@ class PyTablesGroup(HasChildren, PyTablesNode):
                                               **kwargs)
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'TABLE'
-        return PyTablesTable(backend=dataset)
+        return Table(backend=dataset)
 
 
-class PyTablesFile(HasChildren, PyTablesNode):
+class File(HasChildren, Node):
     @property
     def root(self):
-        return PyTablesGroup(backend=self.backend['/'])
+        return Group(backend=self.backend['/'])
 
     def create_array(self, where, *args, **kwargs):
         return where.create_array(*args, **kwargs)
