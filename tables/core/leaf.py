@@ -31,6 +31,9 @@ class Leaf(Node):
     def maindim(self):
         return 0
 
+    def get_attr(self, attr):
+        return self.attrs[attr]
+
     def _process_range(self, start, stop, step, dim=None, warn_negstep=True):
         # This method is appropriate for calls to __getitem__ methods
         if dim is None:
