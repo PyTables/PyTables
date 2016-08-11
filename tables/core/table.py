@@ -253,7 +253,7 @@ class Cols:
         self.table[v] = v
 
     def _f_col(self, colname):
-        return self[colname]
+        return getattr(self, colname)
 
 
 class Table(Leaf):
@@ -265,8 +265,48 @@ class Table(Leaf):
         self.cols = Cols(self)
         colinstances, cols = self.colinstances, self.cols
         for colpathname in self.dtype.names:
-            colinstances[colpathname] = cols[colpathname]
+            colinstances[colpathname] = cols._f_col(colpathname)
         self.row = RowAppender(self)
+
+        self.colpathnames = []
+        """A list containing the pathnames of *bottom-level* columns in the
+        table.
+
+        These are the leaf columns obtained when walking the
+        table description left-to-right, bottom-first.  Columns inside a
+        nested column have slashes (/) separating name components in
+        their pathname.
+        """
+        self.coldescrs = {}
+        """Maps the name of a column to its Col description (see
+        :ref:`ColClassDescr`)."""
+        self.coltypes = {}
+        """Maps the name of a column to its PyTables data type."""
+        self.coldtypes = {}
+        """Maps the name of a column to its NumPy data type."""
+        self.coldflts = {}
+        """Maps the name of a column to its default value."""
+        self.colindexed = {}
+        """Condition function and argument list for selection of values."""
+        self._seqcache_key = None
+        """The key under which to save a query's results (list of row indexes)
+        or None to not save."""
+
+        self.colpathnames = [
+            col._v_pathname for col in self.description._f_walk()
+            if not hasattr(col, '_v_names')]  # bottom-level
+
+        # Get info about columns
+        for colobj in self.description._f_walk(type="Col"):
+            colname = colobj._v_pathname
+            # Get the column types, types and defaults
+            self.coldescrs[colname] = colobj
+            self.coltypes[colname] = colobj.type
+            self.coldtypes[colname] = colobj.dtype
+            self.coldflts[colname] = colobj.dflt
+
+        # Assign _v_dtype for this table
+        self._v_dtype = self.description._v_dtype
 
     @property
     def pathname(self):
