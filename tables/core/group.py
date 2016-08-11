@@ -4,7 +4,8 @@ from .array import Array
 from tables import abc
 from tables import Description
 from tables import IsDescription
-
+from .. import lrucacheextension
+import weakref
 import numpy as np
 
 
@@ -42,7 +43,10 @@ class HasChildren:
         raise NotImplementedError()
 
     def __getattr__(self, attr):
-        return self.__getitem__(attr)
+        try:
+            return self.__getitem__(attr)
+        except KeyError:
+            raise AttributeError
 
     def rename_node(self, old, new_name):
         if isinstance(old, Node):
@@ -144,6 +148,13 @@ class Group(HasChildren, Node):
 
 
 class File(HasChildren, Node):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # TODO (re) make this configurable
+        # node_cache_slots = params['NODE_CACHE_SLOTS']
+        node_cache_slots = 10
+        self._node_manager = NodeManager(nslots=node_cache_slots)
+
     def __enter__(self):
         self.open()
 
@@ -169,3 +180,259 @@ class File(HasChildren, Node):
 
     def get_node(self, where):
         return self.root[where]
+
+
+# A dumb class that doesn't keep nothing at all
+class _NoCache(object):
+    def __len__(self):
+        return 0
+
+    def __contains__(self, key):
+        return False
+
+    def __iter__(self):
+        return iter([])
+
+    def __setitem__(self, key, value):
+        pass
+
+    __marker = object()
+
+    def pop(self, key, d=__marker):
+        if d is not self.__marker:
+            return d
+        raise KeyError(key)
+
+
+class _DictCache(dict):
+    def __init__(self, nslots):
+        if nslots < 1:
+            raise ValueError("Invalid number of slots: %d" % nslots)
+        self.nslots = nslots
+        super(_DictCache, self).__init__()
+
+    def __setitem__(self, key, value):
+        # Check if we are running out of space
+        if len(self) > self.nslots:
+            warnings.warn(
+                "the dictionary of node cache is exceeding the recommended "
+                "maximum number (%d); be ready to see PyTables asking for "
+                "*lots* of memory and possibly slow I/O." % (
+                    self.nslots), PerformanceWarning)
+        super(_DictCache, self).__setitem__(key, value)
+
+
+
+class NodeManager:
+    def __init__(self, nslots=64, node_factory=None):
+        super(NodeManager, self).__init__()
+
+        self.registry = weakref.WeakValueDictionary()
+
+        if nslots > 0:
+            cache = lrucacheextension.NodeCache(nslots)
+        elif nslots == 0:
+            cache = _NoCache()
+        else:
+            # nslots < 0
+            cache = _DictCache(-nslots)
+
+        self.cache = cache
+
+        # node_factory(node_path)
+        self.node_factory = node_factory
+
+    def register_node(self, node, key):
+        if key is None:
+            key = node._v_pathname
+
+        if key in self.registry:
+            if not self.registry[key]._v_isopen:
+                del self.registry[key]
+            elif self.registry[key] is not node:
+                raise RuntimeError('trying to register a node with an '
+                                   'existing key: ``%s``' % key)
+        else:
+            self.registry[key] = node
+
+    def cache_node(self, node, key=None):
+        if key is None:
+            key = node._v_pathname
+
+        self.register_node(node, key)
+        if key in self.cache:
+            oldnode = self.cache.pop(key)
+            if oldnode is not node and oldnode._v_isopen:
+                raise RuntimeError('trying to cache a node with an '
+                                   'existing key: ``%s``' % key)
+
+        self.cache[key] = node
+
+    def get_node(self, key):
+        node = self.cache.pop(key, None)
+        if node is not None:
+            if node._v_isopen:
+                self.cache_node(node, key)
+                return node
+            else:
+                # this should not happen
+                warnings.warn("a closed node found in the cache: ``%s``" % key)
+
+        if key in self.registry:
+            node = self.registry[key]
+            if node is None:
+                # this should not happen since WeakValueDictionary drops all
+                # dead weakrefs
+                warnings.warn("None is stored in the registry for key: "
+                              "``%s``" % key)
+            elif node._v_isopen:
+                self.cache_node(node, key)
+                return node
+            else:
+                # this should not happen
+                warnings.warn("a closed node found in the registry: "
+                              "``%s``" % key)
+                del self.registry[key]
+                node = None
+
+        if self.node_factory:
+            node = self.node_factory(key)
+            self.cache_node(node, key)
+
+        return node
+
+    def rename_node(self, oldkey, newkey):
+        for cache in (self.cache, self.registry):
+            if oldkey in cache:
+                node = cache.pop(oldkey)
+                cache[newkey] = node
+
+    def drop_from_cache(self, nodepath):
+        '''Remove the node from cache'''
+
+        # Remove the node from the cache.
+        self.cache.pop(nodepath, None)
+
+    def drop_node(self, node, check_unregistered=True):
+        """Drop the `node`.
+
+        Remove the node from the cache and, if it has no more references,
+        close it.
+
+        """
+
+        # Remove all references to the node.
+        nodepath = node._v_pathname
+
+        self.drop_from_cache(nodepath)
+
+        if nodepath in self.registry:
+            if not node._v_isopen:
+                del self.registry[nodepath]
+        elif check_unregistered:
+            # If the node is not in the registry (this should never happen)
+            # we close it forcibly since it is not ensured that the __del__
+            # method is called for object that are still alive when the
+            # interpreter is shut down
+            if node._v_isopen:
+                warnings.warn("dropping a node that is not in the registry: "
+                              "``%s``" % nodepath)
+
+                node._g_pre_kill_hook()
+                node._f_close()
+
+    def flush_nodes(self):
+        # Only iter on the nodes in the registry since nodes in the cahce
+        # should always have an entry in the registry
+        closed_keys = []
+        for path, node in list(self.registry.items()):
+            if not node._v_isopen:
+                closed_keys.append(path)
+            elif '/_i_' not in path:  # Indexes are not necessary to be flushed
+                if isinstance(node, Leaf):
+                    node.flush()
+
+        for path in closed_keys:
+            # self.cache.pop(path, None)
+            if path in self.cache:
+                warnings.warn("closed node the cache: ``%s``" % path)
+                self.cache.pop(path, None)
+            self.registry.pop(path)
+
+    @staticmethod
+    def _close_nodes(nodepaths, get_node):
+        for nodepath in nodepaths:
+            try:
+                node = get_node(nodepath)
+            except KeyError:
+                pass
+            else:
+                if not node._v_isopen or node._v__deleting:
+                    continue
+
+                try:
+                    # Avoid descendent nodes to also iterate over
+                    # their descendents, which are already to be
+                    # closed by this loop.
+                    if hasattr(node, '_f_get_child'):
+                        node._g_close()
+                    else:
+                        node._f_close()
+                    del node
+                except ClosedNodeError:
+                    #import traceback
+                    #type_, value, tb = sys.exc_info()
+                    #exception_dump = ''.join(
+                    #    traceback.format_exception(type_, value, tb))
+                    #warnings.warn(
+                    #    "A '%s' exception occurred trying to close a node "
+                    #    "that was supposed to be open.\n"
+                    #    "%s" % (type_.__name__, exception_dump))
+                    pass
+
+    def close_subtree(self, prefix='/'):
+        if not prefix.endswith('/'):
+            prefix = prefix + '/'
+
+        cache = self.cache
+        registry = self.registry
+
+        # Ensure tables are closed before their indices
+        paths = [
+            path for path in cache
+            if path.startswith(prefix) and '/_i_' not in path
+        ]
+        self._close_nodes(paths, cache.pop)
+
+        # Close everything else (i.e. indices)
+        paths = [path for path in cache if path.startswith(prefix)]
+        self._close_nodes(paths, cache.pop)
+
+        # Ensure tables are closed before their indices
+        paths = [
+            path for path in registry
+            if path.startswith(prefix) and '/_i_' not in path
+        ]
+        self._close_nodes(paths, registry.pop)
+
+        # Close everything else (i.e. indices)
+        paths = [path for path in registry if path.startswith(prefix)]
+        self._close_nodes(paths, registry.pop)
+
+    def shutdown(self):
+        registry = self.registry
+        cache = self.cache
+
+        #self.close_subtree('/')
+
+        keys = list(cache)  # copy
+        for key in keys:
+            node = cache.pop(key)
+            if node._v_isopen:
+                registry.pop(node._v_pathname, None)
+                node._f_close()
+
+        while registry:
+            key, node = registry.popitem()
+            if node._v_isopen:
+                node._f_close()
