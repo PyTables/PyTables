@@ -135,6 +135,9 @@ class Group(MutableMapping):
 
 
 class Resource(Group):
+    @abstractproperty
+    def params(self):
+        ...
 
     @abstractproperty
     def name(self):

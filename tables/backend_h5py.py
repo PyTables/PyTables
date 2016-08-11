@@ -36,6 +36,10 @@ class Resource(HasChildren, h5py.File, abc.Resource):
         super().__init__(self._name, **self._kwargs)
         return self
 
+    @property
+    def params(self):
+        return dict(self._kwargs)
+
 
 class Group(HasChildren, h5py.Group, abc.Group):
     @property
@@ -102,4 +106,3 @@ class Dataset(h5py.Dataset, abc.Dataset):
 
     def flush(self):
         self.file.flush()
-
