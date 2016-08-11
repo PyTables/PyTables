@@ -312,7 +312,7 @@ class Filters(object):
 
     def __init__(self, complevel=0, complib=default_complib,
                  shuffle=True, bitshuffle=False, fletcher32=False,
-                 least_significant_digit=None, _new=True):
+                 least_significant_digit=None, _new=True, **kwargs):
 
         if not (0 <= complevel <= 9):
             raise ValueError("compression level must be between 0 and 9")

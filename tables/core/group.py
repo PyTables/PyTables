@@ -5,6 +5,7 @@ from tables import abc
 from tables import Description
 from tables import IsDescription
 from .. import lrucacheextension
+from ..filters import Filters
 import weakref
 import numpy as np
 
@@ -80,7 +81,10 @@ class Group(HasChildren, Node):
 
     @property
     def filters(self):
-        return self.backend.attrs.get('FILTERS', None)
+        # TODO properly de-serialize
+        ret = self.backend.attrs.get('FILTERS', None)
+        if ret is None:
+            return self.parent.filters
 
     @filters.setter
     def filters(self, filters):
@@ -154,6 +158,8 @@ class File(HasChildren, Node):
         # node_cache_slots = params['NODE_CACHE_SLOTS']
         node_cache_slots = 10
         self._node_manager = NodeManager(nslots=node_cache_slots)
+        # TODO only show Filters the inputs it wants
+        self._filters = Filters(**self.backend.params)
 
     def __enter__(self):
         self.open()
@@ -220,7 +226,6 @@ class _DictCache(dict):
                 "*lots* of memory and possibly slow I/O." % (
                     self.nslots), PerformanceWarning)
         super(_DictCache, self).__setitem__(key, value)
-
 
 
 class NodeManager:
