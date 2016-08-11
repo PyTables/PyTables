@@ -24,7 +24,7 @@ class Group(h5py.Group, abc.Group):
         ...
 
     def close(self):
-        if self.name == '/':
+        if super().name == '/':
             self.file.close()
 
     def __getitem__(self, k):
@@ -44,8 +44,11 @@ class Group(h5py.Group, abc.Group):
         ret = super().create_dataset(name, **kwargs)
         return Dataset(ret.id)
 
-    def remove_node(self, node):
-        self.__delitem__(node.backend.name)
+    def rename_node(self, old_name, new_name):
+        self.move(old_name, new_name)
+
+    def remove_node(self, name):
+        self.__delitem__(name)
 
 
 class Dataset(h5py.Dataset, abc.Dataset):

@@ -56,6 +56,10 @@ class PyTablesAttributes(HasBackend):
 
 class PyTablesNode(HasTitle, HasBackend):
     @property
+    def name(self):
+        return self.backend.name
+
+    @property
     def attrs(self):
         return PyTablesAttributes(backend=self.backend.attrs)
 
@@ -333,10 +337,10 @@ class Cols:
         self.dtype = table.dtype
         for name in self.dtype.names:
             setattr(self, name, Column(table, name))
-        
+
     def __len__(self):
         return len(self.dtype)
-        
+
     def __getitem__(self, k):
         return self.table[k]
 
@@ -350,7 +354,7 @@ class PyTablesTable(PyTablesLeaf):
         super().__init__(**kwargs)
         self._exprvars_cache = {}
         self.colinstances = {}
-        self.cols = Cols(self, self.description)
+        self.cols = Cols(self)
         colinstances, cols = self.colinstances, self.cols
         for colpathname in self.dtype.names:
             colinstances[colpathname] = cols[colpathname]
@@ -374,7 +378,7 @@ class PyTablesTable(PyTablesLeaf):
             for r in row_selector(j, chunk):
                 row.crow = r
                 yield row
--
+
     def where(self, condition, condvars, start=None, stop=None, step=None, *,
               row_selector_factory=None):
 
@@ -566,14 +570,24 @@ class HasChildren:
     def __getattr__(self, attr):
         return self.__getitem__(attr)
 
-    def rename_node(self, node, new_name):
-        self.backend.rename_node(node.name, new_name)
+    def rename_node(self, old, new_name):
+        if isinstance(old, PyTablesNode):
+            self.backend.rename_node(old.name, new_name)
+        elif isinstance(old, str):
+            self.backend.rename_node(old, new_name)
+        raise NotImplementedError()
 
     def remove_node(self, *args):
         """ This method expects one argument (node) or two arguments (where, node) """
         if len(args) == 1:
-            node, = args
-            self.backend.remove_node(node.name)
+            if isinstance(args[0], PyTablesNode):
+                node = args[0]
+                self.backend.remove_node(node.name)
+            elif isinstance(args[0], str):
+                name = args[0]
+                self.backend.remove_node(name)
+            else:
+                raise NotImplementedError()
         elif len(args) == 2:
             where, name = args
             where.remove_node(name)
