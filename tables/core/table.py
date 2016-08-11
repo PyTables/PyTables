@@ -70,7 +70,12 @@ class RowAppender:
     def __getitem__(self, key):
         if isinstance(key, slice):
             return tuple(self.data)[key]
-        return self.data[key]
+        try:
+            return self.data[key]
+        except IndexError as e:
+            raise TypeError from e
+        except ValueError as e:
+            raise KeyError from e
 
     def __setitem__(self, key, value):
         self.data[key] = value
