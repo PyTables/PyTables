@@ -1,76 +1,9 @@
 import numpy as np
-from tables import abc
-from tables import Description
-from tables.path import join_path, split_path
-from tables.table import _index_pathname_of_column_
+from tables.path import split_path
+import operator
 from tables.utils import is_idx
-from tables import IsDescription
-
-
-def dtype_from(something):
-    if isinstance(something, np.dtype):
-        return something
-
-    if isinstance(something, np.ndarray):
-        return something.dtype
-
-    if isinstance(something, dict):
-        return Description(something)._v_dtype
-
-    if issubclass(something, IsDescription):
-        return Description(something().columns)._v_dtype
-
-    raise NotImplementedError()
-
-
-class HasBackend:
-    @property
-    def backend(self):
-        return self._backend
-
-    def __init__(self, *, backend):
-        self._backend = backend
-
-
-class HasTitle:
-    @property
-    def title(self):
-        return self.backend.attrs.get('TITLE', None)
-
-    @title.setter
-    def title(self, title):
-        self.backend.attrs['TITLE'] = title
-
-
-class PyTablesAttributes(HasBackend):
-
-    def __getitem__(self, item):
-        return self.backend.__getitem__(item)
-
-    def __setitem__(self, item, value):
-        return self.backend.__setitem__(item, value)
-
-    def __getattr__(self, attr):
-        return self.__getitem__(attr)
-
-
-class PyTablesNode(HasTitle, HasBackend):
-    @property
-    def name(self):
-        return self.backend.name
-
-    @property
-    def attrs(self):
-        return PyTablesAttributes(backend=self.backend.attrs)
-
-    # for backward compatibility
-    _v_attrs = attrs
-
-    def open(self):
-        return self.backend.open()
-
-    def close(self):
-        return self.backend.close()
+from tables.table import _index_pathname_of_column_
+from .leaf import PyTablesLeaf
 
 
 def all_row_selector(chunk_id, chunk):
@@ -170,70 +103,6 @@ class Row:
 
     def __setitem__(self, key, value):
         self.data[key] = value
-
-
-class PyTablesLeaf(PyTablesNode):
-    @property
-    def dtype(self):
-        return self.backend.dtype
-
-    @property
-    def shape(self):
-        return self.backend.shape
-
-    @property
-    def chunk_shape(self):
-        return self.backend.chunk_shape
-
-    def __len__(self):
-        return self.backend.__len__()
-
-    @property
-    def nrows(self):
-        return int(self.shape[self.maindim])
-
-    def __getitem__(self, item):
-        return self.backend.__getitem__(item)
-
-    def __setitem__(self, item, value):
-        return self.backend.__setitem__(item, value)
-
-    @property
-    def maindim(self):
-        return 0
-
-    def _process_range(self, start, stop, step, dim=None, warn_negstep=True):
-        # This method is appropriate for calls to __getitem__ methods
-        if dim is None:
-            nrows = self.nrows
-        else:
-            nrows = self.shape[dim]
-        if warn_negstep and step and step < 0:
-            raise ValueError("slice step cannot be negative")
-        return slice(start, stop, step).indices(nrows)
-
-    def _process_range_read(self, start, stop, step, warn_negstep=True):
-        # This method is appropriate for calls to read() methods
-        nrows = self.nrows
-        if start is not None and stop is None and step is None:
-            # Protection against start greater than available records
-            # nrows == 0 is a special case for empty objects
-            if nrows > 0 and start >= nrows:
-                raise IndexError("start of range (%s) is greater than "
-                                 "number of rows (%s)" % (start, nrows))
-            step = 1
-            if start == -1:  # corner case
-                stop = nrows
-            else:
-                stop = start + 1
-        # Finally, get the correct values (over the main dimension)
-        start, stop, step = self._process_range(start, stop, step,
-                                                warn_negstep=warn_negstep)
-        return (start, stop, step)
-
-
-class PyTablesArray(PyTablesLeaf):
-    pass
 
 
 class Column:
@@ -511,15 +380,17 @@ class PyTablesTable(PyTablesLeaf):
 
     def modify_column(self, start=None, stop=None, step=None,
                       column=None, colname=None):
+        if not isinstance(colname, str):
+            raise TypeError("The 'colname' parameter must be a string.")
+        if column is None:      # Nothing to be done
+            return 0
         return self.modify_columns(start, stop, step, [column], [colname])
 
     def modify_colums(self, start=None, stop=None, step=None,
                       columns=None, names=None):
         if step is None:
             step = 1
-        if not isinstance(colname, str):
-            raise TypeError("The 'colname' parameter must be a string.")
-        if column is None:      # Nothing to be done
+        if columns is None:      # Nothing to be done
             return 0
         if start is None:
             start = 0
@@ -532,14 +403,14 @@ class PyTablesTable(PyTablesLeaf):
         columns = np.asarray(columns, dtype=objcols)
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
-            stop = start + (len(column) - 1) * step + 1
+            stop = start + (len(self.table) - 1) * step + 1
         (start, stop, step) = self._process_range(start, stop, step)
         if stop > self.nrows:
             raise IndexError("This modification will exceed the length of "
                              "the table. Giving up.")
         # Compute the number of rows to read.
         nrows = len(range(0, stop - start, step))
-        if len(column) < nrows:
+        if len(self.table) < nrows:
             raise ValueError("The value has not enough elements to fill-in "
                              "the specified range")
         for row, v in zip(self.iterrows(start, stop, step), columns):
@@ -547,138 +418,3 @@ class PyTablesTable(PyTablesLeaf):
                 row[name] = v[name]
             row.update()
         return nrows
-
-
-class HasChildren:
-    def __iter__(self):
-        for child in self.backend.values():
-            yield child.name
-
-    def __getitem__(self, item):
-        value = self.backend[item]
-        if isinstance(value, abc.Group):
-            return PyTablesGroup(backend=value)
-
-        if isinstance(value, abc.Dataset):
-            if value.attrs['CLASS'] == 'TABLE':
-                return PyTablesTable(backend=value)
-            elif value.attrs['CLASS'] == 'ARRAY':
-                return PyTablesArray(backend=value)
-
-        raise NotImplementedError()
-
-    def __getattr__(self, attr):
-        return self.__getitem__(attr)
-
-    def rename_node(self, old, new_name):
-        if isinstance(old, PyTablesNode):
-            self.backend.rename_node(old.name, new_name)
-        elif isinstance(old, str):
-            self.backend.rename_node(old, new_name)
-        raise NotImplementedError()
-
-    def remove_node(self, *args):
-        """ This method expects one argument (node) or two arguments (where, node) """
-        if len(args) == 1:
-            if isinstance(args[0], PyTablesNode):
-                node = args[0]
-                self.backend.remove_node(node.name)
-            elif isinstance(args[0], str):
-                name = args[0]
-                self.backend.remove_node(name)
-            else:
-                raise NotImplementedError()
-        elif len(args) == 2:
-            where, name = args
-            where.remove_node(name)
-        else:
-            raise ValueError('This method expects one or two arguments')
-
-
-class PyTablesFile(HasChildren, PyTablesNode):
-    @property
-    def root(self):
-        return PyTablesGroup(backend=self.backend['/'])
-
-    def create_array(self, where, *args, **kwargs):
-        return where.create_array(*args, **kwargs)
-
-    def create_group(self, where, *args, **kwargs):
-        return where.create_group(*args, **kwargs)
-
-    def create_table(self, where, name, desc, *args, **kwargs):
-        return where.create_table(name, desc, *args, **kwargs)
-
-
-class PyTablesGroup(HasChildren, PyTablesNode):
-    @property
-    def parent(self):
-        return PyTablesGroup(backend=self.backend.parent)
-
-    @property
-    def filters(self):
-        return self.backend.attrs.get('FILTERS', None)
-
-    @filters.setter
-    def filters(self, filters):
-        # TODO how we persist this? JSON?
-        self.backend.attrs['FILTERS'] = filters
-
-    @property
-    def _v_pathname(self):
-        return self.backend.name
-
-    def create_array(self, name, obj, title='', byte_order='I', **kwargs):
-        obj = np.asarray(obj)
-        dtype = obj.dtype.newbyteorder(byte_order)
-
-        dataset = self.backend.create_dataset(name, data=obj,
-                                              dtype=dtype,
-                                              **kwargs)
-        dataset.attrs['TITLE'] = title
-        dataset.attrs['CLASS'] = 'ARRAY'
-        return PyTablesArray(backend=dataset)
-
-    def create_group(self, name, title=''):
-        g = PyTablesGroup(backend=self.backend.create_group(name))
-        g.attrs['TITLE'] = title
-        return g
-
-    def create_table(self, name, description=None, title='',
-                     filters=None, expectedrows=10000,
-                     byte_order='I',
-                     chunk_shape=None, obj=None, **kwargs):
-        """ TODO write docs"""
-
-        if obj is None and description is not None:
-            dtype = dtype_from(description)
-            obj = np.empty(shape=(0,), dtype=dtype)
-        elif obj is not None and description is not None:
-            dtype = dtype_from(description)
-            obj = np.asarray(obj)
-        elif description is None:
-            obj = np.asarray(obj)
-            dtype = obj.dtype
-        else:
-            raise Exception("BOOM")
-        # newbyteorder makes a copy
-        # dtype = dtype.newbyteorder(byte_order)
-
-        if chunk_shape is None:
-            # chunk_shape = compute_chunk_shape_from_expected_rows(dtype, expectedrows)
-            ...
-
-        # TODO filters should inherit the ones defined at group level
-        # filters = filters + self.attrs['FILTERS']
-
-        # here the backend creates a dataset
-
-        # TODO pass parameters kwargs?
-        dataset = self.backend.create_dataset(name, data=obj,
-                                              dtype=dtype,
-                                              maxshape=(None,),
-                                              chunk_shape=chunk_shape,
-                                              **kwargs)
-        dataset.attrs['TITLE'] = title
-        dataset.attrs['CLASS'] = 'TABLE'
-        return PyTablesTable(backend=dataset)
