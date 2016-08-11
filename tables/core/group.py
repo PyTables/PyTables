@@ -158,3 +158,6 @@ class File(HasChildren, Node):
 
     def create_table(self, where, name, desc, *args, **kwargs):
         return where.create_table(name, desc, *args, **kwargs)
+
+    def get_node(self, where):
+        return self.root[where]
