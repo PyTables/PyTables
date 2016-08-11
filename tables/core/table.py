@@ -85,10 +85,11 @@ class RowAppender:
         d.resize(1)
         self.write_target.append(d)
 
+    def fetch_all_fields(self):
+        return self.data
+
 
 class Row(RowAppender):
-    def fetch_all_fields(self):
-        raise NotImplementedError()
 
     def __init__(self, write_target):
         super().__init__(write_target)
