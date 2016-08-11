@@ -14,7 +14,7 @@ from tables import (
 )
 from tables.tests import common
 from tables.tests.common import allequal
-from tables.tests.common import unittest, test_filename, blosc_version
+from tables.tests.common import unittest, get_test_filename, blosc_version
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.utils import byteorders
 from six.moves import range
@@ -3902,7 +3902,7 @@ class ChunkshapeTestCase(common.TempFileMixin, TestCase):
 class VLUEndianTestCase(TestCase):
     def setUp(self):
         super(VLUEndianTestCase, self).setUp()
-        self.h5fname = test_filename('vlunicode_endian.h5')
+        self.h5fname = get_test_filename('vlunicode_endian.h5')
         self.h5file = tables.open_file(self.h5fname)
 
     def tearDown(self):

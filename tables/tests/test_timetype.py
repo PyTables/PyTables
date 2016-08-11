@@ -20,7 +20,7 @@ import numpy
 import tables
 from tables.tests import common
 from tables.tests.common import allequal
-from tables.tests.common import unittest, test_filename
+from tables.tests.common import unittest, get_test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 from six.moves import range
 
@@ -410,7 +410,7 @@ class BigEndianTestCase(TestCase):
 
     def setUp(self):
         super(BigEndianTestCase, self).setUp()
-        filename = test_filename('times-nested-be.h5')
+        filename = get_test_filename('times-nested-be.h5')
         self.h5file = tables.open_file(filename, 'r')
 
     def tearDown(self):

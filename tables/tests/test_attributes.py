@@ -17,7 +17,7 @@ from tables import (IsDescription, Int32Atom, StringCol, IntCol, Int16Col,
 from tables.exceptions import DataTypeWarning
 from tables.parameters import NODE_CACHE_SLOTS
 from tables.tests import common
-from tables.tests.common import unittest, test_filename
+from tables.tests.common import unittest, get_test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 from six.moves import range
 
@@ -1584,7 +1584,7 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
 
 
 class CompatibilityTestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename('issue_368.h5')
+    h5fname = get_test_filename('issue_368.h5')
 
     @unittest.skipIf(LooseVersion(numpy.__version__) < '1.9.0',
                      'requires numpy >= 1.9')
@@ -1608,7 +1608,7 @@ class CompatibilityTestCase(common.TestFileMixin, TestCase):
 
 
 class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename('issue_560.h5')
+    h5fname = get_test_filename('issue_560.h5')
 
     @unittest.skipIf(sys.version_info[0] == 3 and sys.version_info[1] < 4,
                      'bug not fixed on python3<=3.3.')
@@ -1677,7 +1677,7 @@ class EmbeddedNullsTestCase(common.TempFileMixin, TestCase):
 class VlenStrAttrTestCase(TestCase):
     def setUp(self):
         super(VlenStrAttrTestCase, self).setUp()
-        self.h5fname = test_filename('vlstr_attr.h5')
+        self.h5fname = get_test_filename('vlstr_attr.h5')
         self.h5file = tables.open_file(self.h5fname)
 
     def tearDown(self):
@@ -1714,7 +1714,7 @@ class VlenStrAttrTestCase(TestCase):
 
 
 class UnsupportedAttrTypeTestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename('attr-u16.h5')
+    h5fname = get_test_filename('attr-u16.h5')
 
     def test00_unsupportedType(self):
         """Checking file with unsupported type."""

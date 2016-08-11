@@ -17,7 +17,7 @@ from tables import Atom, ClosedNodeError, NoSuchNodeError
 from tables.utils import byteorders
 from tables.tests import common
 from tables.tests.common import allequal
-from tables.tests.common import unittest, test_filename
+from tables.tests.common import unittest, get_test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 from six.moves import range
 
@@ -2396,7 +2396,7 @@ class CopyNativeHDF5MDAtom(TestCase):
 
     def setUp(self):
         super(CopyNativeHDF5MDAtom, self).setUp()
-        filename = test_filename("array_mdatom.h5")
+        filename = get_test_filename("array_mdatom.h5")
         self.h5file = tables.open_file(filename, "r")
         self.arr = self.h5file.root.arr
         self.copy = tempfile.mktemp(".h5")

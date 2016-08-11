@@ -22,7 +22,7 @@ import numpy
 import tables
 from tables.tests import common
 from tables.tests.common import allequal
-from tables.tests.common import unittest, test_filename
+from tables.tests.common import unittest, get_test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 import six
 from six.moves import range
@@ -35,7 +35,7 @@ class EnumTestCase(common.TestFileMixin, TestCase):
 
     """
 
-    h5fname = test_filename('smpl_enum.h5')
+    h5fname = get_test_filename('smpl_enum.h5')
 
     def test(self):
         self.assertTrue('/EnumTest' in self.h5file)
@@ -86,37 +86,37 @@ class NumericTestCase(common.TestFileMixin, TestCase):
 
 
 class F64BETestCase(NumericTestCase):
-    h5fname = test_filename('smpl_f64be.h5')
+    h5fname = get_test_filename('smpl_f64be.h5')
     type = 'float64'
     byteorder = 'big'
 
 
 class F64LETestCase(NumericTestCase):
-    h5fname = test_filename('smpl_f64le.h5')
+    h5fname = get_test_filename('smpl_f64le.h5')
     type = 'float64'
     byteorder = 'little'
 
 
 class I64BETestCase(NumericTestCase):
-    h5fname = test_filename('smpl_i64be.h5')
+    h5fname = get_test_filename('smpl_i64be.h5')
     type = 'int64'
     byteorder = 'big'
 
 
 class I64LETestCase(NumericTestCase):
-    h5fname = test_filename('smpl_i64le.h5')
+    h5fname = get_test_filename('smpl_i64le.h5')
     type = 'int64'
     byteorder = 'little'
 
 
 class I32BETestCase(NumericTestCase):
-    h5fname = test_filename('smpl_i32be.h5')
+    h5fname = get_test_filename('smpl_i32be.h5')
     type = 'int32'
     byteorder = 'big'
 
 
 class I32LETestCase(NumericTestCase):
-    h5fname = test_filename('smpl_i32le.h5')
+    h5fname = get_test_filename('smpl_i32le.h5')
     type = 'int32'
     byteorder = 'little'
 
@@ -129,7 +129,7 @@ class ChunkedCompoundTestCase(common.TestFileMixin, TestCase):
 
     """
 
-    h5fname = test_filename('smpl_compound_chunked.h5')
+    h5fname = get_test_filename('smpl_compound_chunked.h5')
 
     def test(self):
         self.assertTrue('/CompoundChunked' in self.h5file)
@@ -183,7 +183,7 @@ class ContiguousCompoundTestCase(common.TestFileMixin, TestCase):
 
     """
 
-    h5fname = test_filename('non-chunked-table.h5')
+    h5fname = get_test_filename('non-chunked-table.h5')
 
     def test(self):
         self.assertTrue('/test_var/structure variable' in self.h5file)
@@ -220,7 +220,7 @@ class ContiguousCompoundTestCase(common.TestFileMixin, TestCase):
 class ContiguousCompoundAppendTestCase(common.TestFileMixin, TestCase):
     """Test for appending data to native contiguous compound datasets."""
 
-    h5fname = test_filename('non-chunked-table.h5')
+    h5fname = get_test_filename('non-chunked-table.h5')
 
     def test(self):
         self.assertTrue('/test_var/structure variable' in self.h5file)
@@ -252,7 +252,7 @@ class ExtendibleTestCase(common.TestFileMixin, TestCase):
 
     """
 
-    h5fname = test_filename('smpl_SDSextendible.h5')
+    h5fname = get_test_filename('smpl_SDSextendible.h5')
 
     def test(self):
         self.assertTrue('/ExtendibleArray' in self.h5file)
@@ -285,7 +285,7 @@ class ExtendibleTestCase(common.TestFileMixin, TestCase):
 class SzipTestCase(common.TestFileMixin, TestCase):
     """Test for native HDF5 files with datasets compressed with szip."""
 
-    h5fname = test_filename('test_szip.h5')
+    h5fname = get_test_filename('test_szip.h5')
 
     def test(self):
         self.assertTrue('/dset_szip' in self.h5file)
@@ -298,7 +298,7 @@ class SzipTestCase(common.TestFileMixin, TestCase):
 
 # this demonstrates github #203
 class MatlabFileTestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename('matlab_file.mat')
+    h5fname = get_test_filename('matlab_file.mat')
 
     def test_unicode(self):
         array = self.h5file.get_node(six.text_type('/'), six.text_type('a'))
@@ -315,7 +315,7 @@ class MatlabFileTestCase(common.TestFileMixin, TestCase):
 
 
 class ObjectReferenceTestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename('test_ref_array1.mat')
+    h5fname = get_test_filename('test_ref_array1.mat')
 
     def test_node_var(self):
         array = self.h5file.get_node('/ANN/my_arr')
@@ -331,7 +331,7 @@ class ObjectReferenceTestCase(common.TestFileMixin, TestCase):
 
 
 class ObjectReferenceRecursiveTestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename('test_ref_array2.mat')
+    h5fname = get_test_filename('test_ref_array2.mat')
 
     def test_var(self):
         array = self.h5file.get_node('/var')

@@ -13,7 +13,7 @@ import tables
 from tables.exceptions import FlavorWarning
 from tables.tests import common
 from tables.tests.common import allequal
-from tables.tests.common import unittest, test_filename
+from tables.tests.common import unittest, get_test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 from six.moves import range
 
@@ -30,7 +30,7 @@ class BackCompatTablesTestCase(TestCase):
         # Create an instance of an HDF5 Table
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)
-            h5file = tables.open_file(test_filename(self.h5fname), "r")
+            h5file = tables.open_file(get_test_filename(self.h5fname), "r")
 
         try:
             table = h5file.get_node("/tuple0")
@@ -80,7 +80,7 @@ class BackCompatAttrsTestCase(common.TestFileMixin, TestCase):
     FILENAME = "zerodim-attrs-%s.h5"
 
     def setUp(self):
-        self.h5fname = test_filename(self.FILENAME % self.format)
+        self.h5fname = get_test_filename(self.FILENAME % self.format)
         super(BackCompatAttrsTestCase, self).setUp()
 
     def test01_readAttr(self):
@@ -113,7 +113,7 @@ class Attrs_1_4(BackCompatAttrsTestCase):
 
 
 class VLArrayTestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename("flavored_vlarrays-format1.6.h5")
+    h5fname = get_test_filename("flavored_vlarrays-format1.6.h5")
 
     def test01_backCompat(self):
         """Checking backward compatibility with old flavors of VLArray."""
@@ -130,7 +130,7 @@ class VLArrayTestCase(common.TestFileMixin, TestCase):
 # and that its byteorder is correctly retrieved.
 class TimeTestCase(common.TestFileMixin, TestCase):
     # Open a PYTABLES_FORMAT_VERSION=1.x file
-    h5fname = test_filename("time-table-vlarray-1_x.h5")
+    h5fname = get_test_filename("time-table-vlarray-1_x.h5")
 
     def test00_table(self):
         """Checking backward compatibility with old TimeXX types (tables)."""
@@ -157,7 +157,7 @@ class OldFlavorsTestCase01(TestCase):
         """Checking opening of (X)Array (old 'numeric' flavor)"""
 
         # Open the HDF5 with old numeric flavor
-        h5fname = test_filename("oldflavor_numeric.h5")
+        h5fname = get_test_filename("oldflavor_numeric.h5")
         with tables.open_file(h5fname) as h5file:
 
             # Assert other properties in array
@@ -171,7 +171,7 @@ class OldFlavorsTestCase01(TestCase):
     def test02_copy(self):
         """Checking (X)Array.copy() method ('numetic' flavor)"""
 
-        srcfile = test_filename("oldflavor_numeric.h5")
+        srcfile = get_test_filename("oldflavor_numeric.h5")
         tmpfile = tempfile.mktemp(".h5")
         shutil.copy(srcfile, tmpfile)
         try:

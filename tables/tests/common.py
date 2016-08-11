@@ -151,7 +151,7 @@ def print_versions():
     sys.stdout.flush()
 
 
-def test_filename(filename):
+def get_test_filename(filename):
     return resource_filename('tables.tests', filename)
 
 
