@@ -426,7 +426,10 @@ class TempFileMixin(object):
     def tearDown(self):
         """Close ``h5file`` and remove ``h5fname``."""
 
-        self.h5file.close()
+        try:
+            self.h5file.close()
+        except ValueError:
+            pass
         self.h5file = None
         os.remove(self.h5fname)   # comment this for debugging purposes only
         super(TempFileMixin, self).tearDown()
