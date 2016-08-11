@@ -408,30 +408,36 @@ class Table(Leaf):
         if not hasattr(self, 'append_buffer'):
             self.append_buffer = np.empty(self.chunk_shape[0], self.dtype)
             self.append_buffer_remainder = self.chunk_shape[0]
-        rows = np.rec.array(rows, self.dtype)
-        # XXX FIXME
-#        if len(rows) < self.append_buffer_remainder:
-#            remainder = self.append_buffer_remainder
-#            self.append_buffer[-remainder:len(rows)] = rows
-#            self.append_buffer_remainder -= len(rows)
-#        else:
-#            # Append to the existing values in buffer and flush
-#            remainder = self.append_buffer_remainder
-#            self.append_buffer[-remainder:] = rows[:remainder]
-#            buflen = len(self.append_buffer)
-#            cur_count = len(self)
-#            self._backend.resize((cur_count + buflen,))
-#            self[cur_count:] = self.append_buffer
-#            if len(rows) - remainder > buflen:
-#                # Flush the remainder
-#                cur_count = len(self)
-#                self._backend.resize((cur_count + len(rows) - remainder,))
-#                self[cur_count:] = rows[-remainder:]
-#                self.append_buffer_remainder = buflen
-#            else:
-#                # Add the remainder to the buffer
-#                self.append_buffer[:len(rows)-remainder] = rows[remainder:]
-#                self.append_buffer_remainder = buflen - (len(rows) - remainder)
+        rows = np.array(rows, self.dtype)
+        # FIXME Remove the 3 lines below when flush actually works
+        cur_count = len(self)
+        self._backend.resize((cur_count + len(rows), ))
+        self[cur_count:] = rows
+
+        # FIXME Uncomment when flush actually works
+        # remainder = self.append_buffer_remainder
+        # lrows = len(rows)
+        # if lrows < remainder:
+        #     self.append_buffer[-remainder:lrows] = rows
+        #     self.append_buffer_remainder -= lrows
+        # else:
+        #     # Append to the existing values in buffer and flush
+        #     print(remainder)
+        #     self.append_buffer[-remainder:] = rows[:remainder]
+        #     buflen = len(self.append_buffer)
+        #     cur_count = len(self)
+        #     self._backend.resize((cur_count + buflen,))
+        #     self[cur_count:] = self.append_buffer
+        #     self.append_buffer_remainder = buflen
+        #     if lrows - remainder < buflen:
+        #         # Add the remainder to the buffer
+        #         self.append_buffer[:lrows-remainder] = rows[remainder:]
+        #         self.append_buffer_remainder -= (lrows - remainder)
+        #     else:
+        #         # Remaining rows do not fit in buffer, so flush it entirely
+        #         cur_count = len(self)
+        #         self._backend.resize((cur_count + lrows - remainder,))
+        #         self[cur_count:] = rows[remainder:]
 
     def modify_rows(self, start=None, stop=None, step=None, rows=None):
         if rows is None:
@@ -510,6 +516,7 @@ class Table(Leaf):
             buflen = len(self.append_buffer) - self.append_buffer_remainder
             self._backend.resize((cur_count + buflen,))
             self[cur_count:] = self.append_buffer[:buflen]
+            self.append_buffer_remainder = len(self.append_buffer)
         return self.backend.flush()
 
     def copy(self, newparent=None, newname=None, overwrite=False,
