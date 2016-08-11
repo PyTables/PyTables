@@ -46,20 +46,50 @@ def dflt_row_selector_factory(condition, depth=4):
         return inkernel_row_selection
 
 
-class Row:
+class RowAppender:
+    def __init__(self, write_target):
+        self.write_target = write_target
+        self._data = np.empty(1, dtype=self.dtype)
+
+    @property
+    def dtype(self):
+        return self.write_target.dtype
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        self._data = value
+
+    def __contains__(self, item):
+        return item in self.dtype.names
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            return tuple(self.data)[key]
+        return self.data[key]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def append(self):
+        d = np.rec.array(self.data)
+        d.resize(1)
+        self.write_target.append(d)
+
+
+class Row(RowAppender):
     def fetch_all_fields(self):
         raise NotImplementedError()
 
     def __init__(self, write_target):
+        super().__init__(write_target)
         self._read_src = None
         self._crow = -1
         self._data = None
         self._offset = 0
-        self.write_target = write_target
-
-    @property
-    def dtype(self):
-        return self.table.dtype
 
     @property
     def nrow(self):
@@ -101,28 +131,8 @@ class Row:
             self._data = np.empty(1, dtype=self.dtype)
         return self._data
 
-    @data.setter
-    def data(self, value):
-        self._data = value
-
-    def append(self):
-        d = np.rec.array(self.data)
-        d.resize(1)
-        self.write_target.append(d)
-
     def update(self):
         self.write_target[self.nrow] = self.data
-
-    def __contains__(self, item):
-        return item in self.dtype.names
-
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            return tuple(self.data)[key]
-        return self.data[key]
-
-    def __setitem__(self, key, value):
-        self.data[key] = value
 
 
 class Column:
@@ -247,6 +257,7 @@ class Table(Leaf):
         colinstances, cols = self.colinstances, self.cols
         for colpathname in self.dtype.names:
             colinstances[colpathname] = cols[colpathname]
+        self.row = RowAppender(self)
 
     @property
     def pathname(self):
