@@ -1,4 +1,4 @@
-from common import TempFileMixin
+from .common import TempFileMixin
 import unittest
 
 import numpy as np

@@ -6,7 +6,7 @@ import unittest
 import numpy as np
 import tables as tb
 
-from common import TempFileMixin
+from .common import TempFileMixin
 
 
 class OpenFileTestCase(TempFileMixin, unittest.TestCase):
@@ -67,33 +67,6 @@ class OpenFileTestCase(TempFileMixin, unittest.TestCase):
         class_ = self.h5file.root.array.attrs.CLASS
 
         self.assertEqual(class_.capitalize(), "Array")
-
-    def test00_newFile_unicode_filename(self):
-        temp_dir = tempfile.mkdtemp()
-        try:
-            h5fname = os.path.join(temp_dir, 'test.h5')
-            with tb.open_file(h5fname, 'w') as h5file:
-                self.assertTrue(h5file, tb.File)
-        finally:
-            shutil.rmtree(temp_dir)
-
-    def test00_newFile_numpy_str_filename(self):
-        temp_dir = tempfile.mkdtemp()
-        try:
-            h5fname = np.str_(os.path.join(temp_dir, 'test.h5'))
-            with tb.open_file(h5fname, 'w') as h5file:
-                self.assertTrue(h5file, tb.File)
-        finally:
-            shutil.rmtree(temp_dir)
-
-    def test00_newFile_numpy_unicode_filename(self):
-        temp_dir = tempfile.mkdtemp()
-        try:
-            h5fname = np.unicode_(os.path.join(temp_dir, 'test.h5'))
-            with tb.open_file(h5fname, 'w') as h5file:
-                self.assertTrue(h5file, tb.File)
-        finally:
-            shutil.rmtree(temp_dir)
 
     def test01_openFile(self):
         """Checking opening of an existing file."""

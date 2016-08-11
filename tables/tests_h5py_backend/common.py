@@ -1,16 +1,11 @@
 import os
-import tables.backend_h5py as tbh
-import tables.core as tcore
+from ..core import open_file
 import tempfile
 
 
 class TempFileMixin(object):
     open_mode = 'w'
     open_kwargs = {}
-
-    def open_file(self, filename, mode="r", title="", **kwargs):
-        backend = tbh.open(filename, mode)
-        return tcore.PyTablesFile(backend=backend, **kwargs)
 
     def setUp(self):
         """Set ``h5file`` and ``h5fname`` instance attributes.
@@ -22,7 +17,7 @@ class TempFileMixin(object):
 
         super().setUp()
         self.h5fname = tempfile.mktemp(prefix='file', suffix='.h5')
-        self.h5file = self.open_file(self.h5fname, self.open_mode)
+        self.h5file = open_file(self.h5fname, self.open_mode)
         self.root = self.h5file.root
 
     def tearDown(self):
@@ -42,4 +37,4 @@ class TempFileMixin(object):
         """
 
         self.h5file.close()
-        self.h5file = self.open_file(self.h5fname, mode, **kwargs)
+        self.h5file = open_file(self.h5fname, mode, **kwargs)

@@ -83,6 +83,6 @@ class Dataset(h5py.Dataset, abc.Dataset):
         self.file.flush()
 
 
-def open(*args, **kwargs):
+def open_backend(*args, **kwargs):
     f = h5py.File(*args, **kwargs)
     return Group(f['/'].id)
