@@ -145,6 +145,7 @@ class Group(HasChildren, Node):
 
 
 class File(HasChildren, Node):
+
     @property
     def root(self):
         return Group(backend=self.backend['/'])

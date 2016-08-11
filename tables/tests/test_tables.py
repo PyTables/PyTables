@@ -22,9 +22,6 @@ from tables.tests.common import allequal, areArraysEqual
 from tables.tests.common import unittest, hdf5_version, blosc_version
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
-import six
-from six.moves import range
-from six.moves import zip
 
 
 
@@ -228,7 +225,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                                              title=self.title,
                                              filters=filterprops,
                                              expectedrows=self.expectedrows,
-                                             byteorder=byteorder)
+                                             )
+                                             #byteorder=byteorder)
             if not self.recarrayinit:
                 # Get the row object associated with the new table
                 row = table.row
@@ -1569,7 +1567,7 @@ class DictWriteTestCase(BasicTestCase):
 @unittest.skipIf(sys.version_info >= (3,), 'requires Python 2')
 class DictWriteTestCase2(DictWriteTestCase):
     record = RecordDescriptionDict.copy()
-    record[six.text_type('var1')] = record.pop('var1')
+    record['var1'] = record.pop('var1')
 
 
 # Pure NumPy dtype
