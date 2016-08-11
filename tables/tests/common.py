@@ -409,12 +409,6 @@ class TempFileMixin(object):
     open_mode = 'w'
     open_kwargs = {}
 
-    def _getName(self):
-        return 'foo'
-
-    def _getTempFileName(self):
-        return tempfile.mktemp(prefix=self._getName(), suffix='.h5')
-
     def setUp(self):
         """Set ``h5file`` and ``h5fname`` instance attributes.
 
@@ -423,8 +417,8 @@ class TempFileMixin(object):
 
         """
 
-        super(TempFileMixin, self).setUp()
-        self.h5fname = self._getTempFileName()
+        super().setUp()
+        self.h5fname = tempfile.mktemp(prefix='test', suffix='.h5')
         self.h5file = tables.open_file(
             self.h5fname, self.open_mode, title=self._getName(),
             **self.open_kwargs)
