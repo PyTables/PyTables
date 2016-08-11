@@ -20,15 +20,22 @@ def dispatch(value):
     return value
 
 
-def dflt_row_selector_factory(condition, depth=4):
+def dflt_row_selector_factory(condition, *, start, stop, step,
+                              chnk_sz, depth=4):
     """Return a row selector depending on the format of condition."""
 
     def row_selection(chunkid, chunk):
+        offset = chnk_sz * chunkid
+
         for i, r in enumerate(chunk):
-            if condition(r):
+            nabs = i + offset
+            if not (nabs < stop):
+                return
+            if nabs >= start and ((nabs - start) % step == 0) and condition(r):
                 yield i
 
     def inkernel_row_selection(chunkid, chunk):
+        offset = chnk_sz * chunkid
         # Get a dictionary with the columns in chunk
         cols = dict((name, chunk[name]) for name in chunk.dtype.names)
         # Get locals and globals
@@ -38,7 +45,10 @@ def dflt_row_selector_factory(condition, depth=4):
         # Evaluate the condition
         out = numexpr.evaluate(condition, local_dict=cols)
         for i, r in enumerate(out):
-            if r:
+            nabs = i + offset
+            if not (nabs < stop):
+                return
+            if r and nabs >= start and ((nabs - start) % step == 0):
                 yield i
 
     if callable(condition):
@@ -336,8 +346,8 @@ class Table(Leaf):
                 row.crow = r
                 yield row
 
-    def where(self, condition, condvars=None, start=None, stop=None, step=None, *,
-              row_selector_factory=None):
+    def where(self, condition, condvars=None, start=None, stop=None,
+              step=None, *, row_selector_factory=None):
 
         if row_selector_factory is None:
             row_selector_factory = dflt_row_selector_factory
@@ -348,10 +358,20 @@ class Table(Leaf):
         # TODO write numexpr -> selector code
         if not (callable(condition) or type(condition)):
             raise NotImplementedError("condition must be either a callable or a string")
-        # TODO write code to get chunk selector from index
-        chunk_selector = None
 
-        row_selector = row_selector_factory(condition)
+        chk_sz, = self.chunk_shape
+        # TODO write code to get chunk selector from index
+        min_chunk = start // chk_sz
+        max_chunk = stop // chk_sz
+
+        def chunk_selector(j):
+            j, = j
+            if j < min_chunk or j > max_chunk:
+                return False
+            return True
+
+        row_selector = row_selector_factory(condition, start=start, stop=stop,
+                                            step=step, chnk_sz=chk_sz)
 
         yield from self._iter_rows(chunk_selector=chunk_selector,
                                    row_selector=row_selector)
