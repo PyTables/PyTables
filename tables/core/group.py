@@ -144,6 +144,12 @@ class Group(HasChildren, Node):
 
 
 class File(HasChildren, Node):
+    def __enter__(self):
+        self.open()
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.close()
+
     def reopen(self, **kwargs):
         self.backend.close()
         self.backend.open(**kwargs)
