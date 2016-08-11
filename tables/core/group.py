@@ -7,6 +7,7 @@ from tables import IsDescription
 from .. import lrucacheextension
 from ..filters import Filters
 import weakref
+import warnings
 import numpy as np
 
 
@@ -230,7 +231,7 @@ class _DictCache(dict):
 
 class NodeManager:
     def __init__(self, nslots=64, node_factory=None):
-        super(NodeManager, self).__init__()
+        super().__init__()
 
         self.registry = weakref.WeakValueDictionary()
 
@@ -347,7 +348,7 @@ class NodeManager:
                 node._f_close()
 
     def flush_nodes(self):
-        # Only iter on the nodes in the registry since nodes in the cahce
+        # Only iter on the nodes in the registry since nodes in the cache
         # should always have an entry in the registry
         closed_keys = []
         for path, node in list(self.registry.items()):
