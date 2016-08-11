@@ -125,7 +125,7 @@ from .filters import Filters
 
 # Import the user classes from the proper modules
 from .exceptions import *
-from .file import File, open_file, copy_file
+from .file import File, copy_file
 from .node import Node
 from .group import Group
 from .leaf import Leaf
@@ -138,6 +138,7 @@ from .unimplemented import UnImplemented, Unknown
 from .expression import Expr
 from .tests import print_versions, test
 
+from .core import open_file
 
 # List here only the objects we want to be publicly available
 __all__ = [
