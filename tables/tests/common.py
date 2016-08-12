@@ -444,7 +444,6 @@ class TempFileMixin(object):
 
         self.h5file.close()
         self.h5file = tables.open_file(self.h5fname, mode, **kwargs)
-        return True
 
 
 class ShowMemTime(PyTablesTestCase):
