@@ -45,10 +45,7 @@ class HasChildren:
         raise NotImplementedError()
 
     def __getattr__(self, attr):
-        try:
-            return self.__getitem__(attr)
-        except KeyError:
-            raise AttributeError
+        return self.__getitem__(attr)
 
     def rename_node(self, old, new_name):
         if isinstance(old, Node):
