@@ -22,7 +22,7 @@ The concrete implementation for h5py is in `tables/backend_h5py.py
 <https://github.com/PyTables/PyTables/blob/pt4/tables/backend_h5py.py>`_.
 The new high level implementation in PyTables that uses
 the new interface is in `tables/core.py
-<https://github.com/PyTables/PyTables/blob/pt4/tables/core.py>`_.
+<https://github.com/PyTables/PyTables/tree/pt4/tables/core>`_.
 
 Implementation Plan
 ===================
