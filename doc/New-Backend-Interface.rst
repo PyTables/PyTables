@@ -21,8 +21,8 @@ abstract classes that we found form a minimal set are in
 The concrete implementation for h5py is in `tables/backend_h5py.py
 <https://github.com/PyTables/PyTables/blob/pt4/tables/backend_h5py.py>`_.
 The new high level implementation in PyTables that uses
-the new interface is in `tables/core.py
-<https://github.com/PyTables/PyTables/tree/pt4/tables/core>`_.
+the new interface is in the `tables/core
+<https://github.com/PyTables/PyTables/tree/pt4/tables/core>`_ subpackage.
 
 Implementation Plan
 ===================
