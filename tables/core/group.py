@@ -35,6 +35,12 @@ class HasChildren:
             yield child.name
 
     def __getitem__(self, item):
+        # Try cache first
+        nmanager = self._file._node_manager
+        node = nmanager.get_node(item)
+        if node:
+            return node
+        # No luck, so use the backend to lookup the item
         value = self.backend[item]
         if isinstance(value, abc.Group):
             return Group(backend=value, parent=self)
@@ -86,10 +92,6 @@ class Group(HasChildren, Node):
     def filters(self, filters):
         # TODO how we persist this? JSON?
         self.backend.attrs['FILTERS'] = filters
-
-    @property
-    def _v_pathname(self):
-        return self.backend.name
 
     def create_array(self, name, obj, title='', byte_order='I', **kwargs):
         obj = np.asarray(obj)
