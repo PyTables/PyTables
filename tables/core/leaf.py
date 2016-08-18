@@ -62,3 +62,6 @@ class Leaf(Node):
         start, stop, step = self._process_range(start, stop, step,
                                                 warn_negstep=warn_negstep)
         return (start, stop, step)
+
+    def flush(self):
+        pass

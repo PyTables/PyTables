@@ -409,12 +409,13 @@ class Table(Leaf):
             self.append_buffer = np.empty(self.chunk_shape[0], self.dtype)
             self.append_buffer_remainder = self.chunk_shape[0]
         rows = np.array(rows, self.dtype)
+
         # FIXME Remove the 3 lines below when flush actually works
         cur_count = len(self)
         self._backend.resize((cur_count + len(rows), ))
         self[cur_count:] = rows
 
-        # FIXME Uncomment when flush actually works
+        # # FIXME Uncomment when flush actually works
         # remainder = self.append_buffer_remainder
         # lrows = len(rows)
         # if lrows < remainder:
@@ -510,13 +511,12 @@ class Table(Leaf):
         return self.remove_rows(start=n, stop=n+1)
 
     def flush(self):
-        print('flushing')
         if hasattr(self, 'append_buffer'):
             cur_count = len(self)
             buflen = len(self.append_buffer) - self.append_buffer_remainder
             self._backend.resize((cur_count + buflen,))
             self[cur_count:] = self.append_buffer[:buflen]
-            self.append_buffer_remainder = len(self.append_buffer)
+            del self.append_buffer
         return self.backend.flush()
 
     def copy(self, newparent=None, newname=None, overwrite=False,

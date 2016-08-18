@@ -105,4 +105,4 @@ class Dataset(h5py.Dataset, abc.Dataset):
         return Group(super().parent.id)
 
     def flush(self):
-        self.file.flush()
+        super().flush()

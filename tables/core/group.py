@@ -160,6 +160,11 @@ class File(HasChildren, Node):
         # Bootstrap the _file attribute for nodes
         self._file = self
 
+    def close(self):
+        # Flush the nodes prior to close
+        self._node_manager.flush_nodes()
+        super().close()
+
     def __enter__(self):
         self.open()
 
@@ -167,8 +172,13 @@ class File(HasChildren, Node):
         self.close()
 
     def reopen(self, **kwargs):
+        # Flush the nodes prior to close
+        self._node_manager.flush_nodes()
         self.backend.close()
         self.backend.open(**kwargs)
+
+    def __contains__(self, item):
+        return True if self[item] else False
 
     @property
     def root(self):

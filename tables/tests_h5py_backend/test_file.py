@@ -24,6 +24,10 @@ class CreateFile(TempFileMixin, unittest.TestCase):
         row = ('abcd', 0, 1)
         table.append([row] * 10)
 
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname)
+        table = self.h5file.root.atable
+
         assert len(table) == 10
 
     def test_create_group(self):
@@ -40,6 +44,7 @@ class ReadTable(TempFileMixin, unittest.TestCase):
                                               Record, "Table title")
         self.row = (b'abcd', 0, 1)
         self.table.append([self.row] * 10)
+        self.table.flush()
 
     def test_read_all(self):
         readout = self.table[:]
