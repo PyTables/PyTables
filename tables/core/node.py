@@ -5,6 +5,9 @@ class Node(HasTitle, HasBackend):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._filters = None
+        if self._parent is not None:
+            # Set the _file attr for nodes that are not File
+            self._file = self._parent._file
 
     @property
     def name(self):
@@ -33,3 +36,11 @@ class Node(HasTitle, HasBackend):
     @filters.setter
     def filters(self, value):
         self._filters = value
+
+    @property
+    def _v_parent(self):
+        return self._parent
+
+    @property
+    def _v_file(self):
+        return self._file

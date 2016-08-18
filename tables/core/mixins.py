@@ -14,7 +14,6 @@ class HasBackend:
         self._backend = backend
         self._parent = parent
 
-
 class HasTitle:
     @property
     def title(self):

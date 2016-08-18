@@ -76,10 +76,6 @@ class HasChildren:
 
 class Group(HasChildren, Node):
     @property
-    def parent(self):
-        return self._parent
-
-    @property
     def filters(self):
         # TODO properly de-serialize
         ret = self.backend.attrs.get('FILTERS', None)
@@ -98,7 +94,6 @@ class Group(HasChildren, Node):
     def create_array(self, name, obj, title='', byte_order='I', **kwargs):
         obj = np.asarray(obj)
         dtype = obj.dtype.newbyteorder(byte_order)
-
         dataset = self.backend.create_dataset(name, data=obj,
                                               dtype=dtype,
                                               **kwargs)
@@ -160,6 +155,8 @@ class File(HasChildren, Node):
         self._node_manager = NodeManager(nslots=node_cache_slots)
         # TODO only show Filters the inputs it wants
         self._filters = Filters(**self.backend.params)
+        # Bootstrap the _file attribute for nodes
+        self._file = self
 
     def __enter__(self):
         self.open()
