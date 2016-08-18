@@ -1,11 +1,13 @@
 from .node import Node
 from .table import Table
 from .array import Array
+from .leaf import Leaf
 from tables import abc
 from tables import Description
 from tables import IsDescription
 from .. import lrucacheextension
 from ..filters import Filters
+from ..exceptions import PerformanceWarning, ClosedFileError, ClosedNodeError
 import weakref
 import warnings
 import numpy as np
