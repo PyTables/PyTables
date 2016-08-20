@@ -1114,7 +1114,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         if self.h5file._node_manager.cache.nslots == 0:
             # Skip this test from here on because the second case
-            # won't work when thereis not a node cache.
+            # won't work when there is not a node cache.
             return
 
         # Second case: append to a dead (unreferenced) table.
