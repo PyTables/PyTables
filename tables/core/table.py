@@ -22,7 +22,7 @@ def dispatch(value):
 
 
 def dflt_row_selector_factory(condition, *, start, stop, step,
-                              chnk_sz, depth=4):
+                              chnk_sz, depth):
     """Return a row selector depending on the format of condition."""
 
     def row_selection(chunkid, chunk):
@@ -348,7 +348,7 @@ class Table(Leaf):
                 yield row
 
     def where(self, condition, condvars=None, start=None, stop=None,
-              step=None, *, row_selector_factory=None):
+              step=None, *, row_selector_factory=None, depth=3):
 
         if row_selector_factory is None:
             row_selector_factory = dflt_row_selector_factory
@@ -372,7 +372,7 @@ class Table(Leaf):
             return True
 
         row_selector = row_selector_factory(condition, start=start, stop=stop,
-                                            step=step, chnk_sz=chk_sz)
+                                            step=step, chnk_sz=chk_sz, depth=depth)
 
         yield from self._iter_rows(chunk_selector=chunk_selector,
                                    row_selector=row_selector)
