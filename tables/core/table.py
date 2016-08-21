@@ -59,8 +59,9 @@ def dflt_row_selector_factory(condition, *, start, stop, step,
 
 
 class RowAppender:
-    def __init__(self, write_target):
+    def __init__(self, write_target, bufferIO=False):
         self.write_target = write_target
+        self.bufferIO = bufferIO
         self._data = np.empty(1, dtype=self.dtype)[0]
 
     @property
@@ -94,7 +95,7 @@ class RowAppender:
     def append(self):
         d = np.rec.array(self.data)
         d.resize(1)
-        self.write_target.append(d)
+        self.write_target.append(d, bufferIO=self.bufferIO)
 
     def fetch_all_fields(self):
         return self.data
@@ -102,8 +103,8 @@ class RowAppender:
 
 class Row(RowAppender):
 
-    def __init__(self, write_target):
-        super().__init__(write_target)
+    def __init__(self, write_target, bufferIO=False):
+        super().__init__(write_target, bufferIO=bufferIO)
         self._read_src = None
         self._crow = -1
         self._data = None
@@ -404,17 +405,30 @@ class Table(Leaf):
             coords.sort()
         return coords
 
-    def append(self, rows):
+    def append(self, rows, bufferIO=False):
+        """Append `rows` to self.
+
+        Params
+        ------
+        rows : numpy strctured array, list of tuples
+          The data to be appended to self.
+
+        bufferIO : bool
+          Whether the I/O should use an intermediate buffer.
+          Use this for speed.
+        """
+        rows = np.array(rows, self.dtype)
+
+        if not bufferIO:
+            # Unbuffered output
+            cur_count = len(self)
+            self._backend.resize((cur_count + len(rows), ))
+            self[cur_count:] = rows
+            return
+
         if not hasattr(self, 'append_buffer'):
             self.append_buffer = np.empty(self.chunk_shape[0], self.dtype)
             self.append_buffer_remainder = self.chunk_shape[0]
-        rows = np.array(rows, self.dtype)
-
-        # FIXME Remove the lines below when node caches actually works
-        cur_count = len(self)
-        self._backend.resize((cur_count + len(rows), ))
-        self[cur_count:] = rows
-        return
 
         # Code for caching rows
         remainder = self.append_buffer_remainder
