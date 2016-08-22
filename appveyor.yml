@@ -40,7 +40,7 @@ install:
 build: false
 
 test_script:
-  - cmd: conda create -n buildenv hdf5 numexpr cython
+  - cmd: conda create --yes -n buildenv hdf5 numexpr cython
   - cmd: activate buildenv
   - cmd: set HDF5_DIR=%CONDA_PREFIX%\Library\
   - cmd: env
