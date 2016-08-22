@@ -6,6 +6,7 @@ doc/build/
 
 # File types
 *.pyc
+*.un~
 tables/*.c
 tables/*.so
 
