@@ -360,7 +360,7 @@ if os.name == 'posix':
 elif os.name == 'nt':
     _Package = WindowsPackage
     _platdep = {  # package tag -> platform-dependent components
-        'HDF5': ['hdf5dll', 'hdf5dll'],
+        'HDF5': ['hdf5', 'hdf5'],
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'],
@@ -369,9 +369,7 @@ elif os.name == 'nt':
 
     # Copy the next DLL's to binaries by default.
     # Update these paths for your own system!
-    dll_files = ['\\windows\\system\\zlib1.dll',
-                 '\\windows\\system\\szip.dll',
-                 ]
+    dll_files = []
     if '--debug' in sys.argv:
         _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
 
