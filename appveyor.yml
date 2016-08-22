@@ -35,11 +35,11 @@ install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
   - powershell .\\ci\\appveyor\\install.ps1
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%CONDA_PREFIX%;%PATH%"
 
 build: false
 
 test_script:
   - "%CMD_IN_ENV% conda install --yes hdf5 numexpr cython"
-  - "%CMD_IN_ENV% python setup.py build --hdf5=%PYTHON%"
+  - "%CMD_IN_ENV% python setup.py build --hdf5=%CONDA_PREFIX%\Library"
   - "%CMD_IN_ENV% python tables\\tests\\test_all.py --verbose"
