@@ -40,6 +40,9 @@ install:
 build: false
 
 test_script:
-  - "%CMD_IN_ENV% conda install --yes hdf5 numexpr cython"
-  - "%CMD_IN_ENV% python setup.py build --hdf5=%CONDA_PREFIX%\Library"
+  - cmd: conda create -n buildenv hdf5 numexpr cython
+  - cmd: activate buildenv
+  - cmd: set HDF5_DIR=%CONDA_PREFIX%\Library\
+  - cmd: env
+  - "%CMD_IN_ENV% python setup.py build"
   - "%CMD_IN_ENV% python tables\\tests\\test_all.py --verbose"
