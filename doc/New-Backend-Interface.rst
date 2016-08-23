@@ -78,3 +78,16 @@ Help wanted
 Despite the great start in Perth, there are still a lot of things to do,
 so if you think this is a good plan and would like to collaborate, you are
 welcome.  Just drop by the pytables-dev@googlegroups.com and say hi.
+
+Thanks
+======
+
+This first hackfest has been possible mainly thanks to fundings
+from Curtin Institute for Computation, but also from Cisco Systems, Inc., NumFocus
+and the University of California.
+
+Next hackfest
+=============
+
+In order to make more progress on this task, we would need more hackfests or similar, so
+if you want to fund them, please contact us at the pytables-dev@googlegroups.com.
