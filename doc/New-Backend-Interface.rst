@@ -86,8 +86,8 @@ This first hackfest has been possible mainly thanks to fundings
 from Curtin Institute for Computation, but also from Cisco Systems, Inc., NumFocus
 and the University of California.
 
-Next hackfest
-=============
+What's Next
+===========
 
 In order to make more progress on this task, we would need more hackfests or similar, so
-if you want to fund them, please contact us at the pytables-dev@googlegroups.com.
+if you want to fund them, please contact us at the pytables-dev@googlegroups.com list.
