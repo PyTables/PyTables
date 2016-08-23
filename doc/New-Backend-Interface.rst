@@ -1,7 +1,9 @@
 New Backend Interface for PyTables 4
 ====================================
 
-A group of developers gathered in Perth during the days of 8–11 August 2016
+A group of developers gathered (namely,
+Andrea Bedini, Anthony Scopatz, Thomas Caswell, Pablo Larraondo, Rui Yang and Francesc Alted)
+in Perth during the days of 8–11 August 2016
 to define a new way to access I/O that allows a new version
 of PyTables (4) to use different backends.  The main
 goal is to use this for interfacing h5py for HDF5
