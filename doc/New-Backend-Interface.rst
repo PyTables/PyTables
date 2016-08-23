@@ -1,8 +1,8 @@
 New Backend Interface for PyTables 4
 ====================================
 
-A group of developers gathered in Perth to define
-a new way to access I/O that allows a new version
+A group of developers gathered in Perth during the days of 8–11 August 2016
+to define a new way to access I/O that allows a new version
 of PyTables (4) to use different backends.  The main
 goal is to use this for interfacing h5py for HDF5
 access, but nothing prevents us from creating interfaces
@@ -41,8 +41,8 @@ The final phase will include the rest of the details, and more
 specifically making sure than the current test suite is passing.
 
 
-Work done in Perth hackfest
-===========================
+Work done during the Perth hackfest
+===================================
 
 During our meeting in Perth, we managed to make quite a good progress
 in implementing preliminary versions of the Table and Array interfaces on top of h5py.
@@ -51,17 +51,17 @@ object in PyTables: the Table class, and we are happy to report that all
 the basic tests (including in-kernel queries) are passing already.
 
 In regards of the Table object, we have implemented buffered I/O so that
-preliminary benchamrks are showing that appends and regular and in-kernel
+preliminary benchmarks are showing that appends and regular and in-kernel
 queries can reach a performance that is similar to the original PyTables.
 
-Other objects like Array are there, but they are far from passing a significant
-amount of tests.  And we did not started the job for CArray, EArray and VLArray
-yet.  Also, indexes need CArray and EArray, so we still need to implement them
+Other objects like Array are there, but they are still far from passing a significant
+amount of tests.  Besides, we did not started the job for CArray, EArray and VLArray
+yet.  As indexes need CArray and EArray, we still need to implement those
 before tackling the indexes port.
 
 Another important feature of PyTables, the node cache, is being rewritten in a
-much simplified way, and works for some simplistic situations, but there are still
-some significant corners that need quite a bit of work.
+much simplified way, and it already works for some simplistic situations,
+but there are still some significant corners that need quite a bit of work.
 
 Finally, it is important to remark that we decided to do a major rewrite of many features
 of PyTables (most specially the Table iterators, which are now much simplfied and
@@ -73,6 +73,6 @@ library.
 Help wanted
 ===========
 
-Despite the great start in Perth, there is still a lot of things to do,
-so if you think this is a good plan and want to collaborate, you are
+Despite the great start in Perth, there are still a lot of things to do,
+so if you think this is a good plan and would like to collaborate, you are
 welcome.  Just drop by the pytables-dev@googlegroups.com and say hi.
