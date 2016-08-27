@@ -7,9 +7,10 @@ class Node(HasTitle, HasBackend):
         super().__init__(**kwargs)
         self._filters = None
         self._isopen = True
-        if self._parent is not None:
+
+        if self.parent is not None:
             # Set the _file attr for nodes that are not File
-            self._file = self._parent._file
+            self._file = self.parent._file
             nmanager = self._file._node_manager
             node = nmanager.get_node(self._v_pathname)
             if not node:
@@ -22,9 +23,9 @@ class Node(HasTitle, HasBackend):
 
     @property
     def _v_pathname(self):
-        if self._parent:
-            if self._parent._v_pathname != '/':
-                return self._parent._v_pathname + '/' + self.name
+        if self.parent:
+            if self.parent._v_pathname != '/':
+                return self.parent._v_pathname + '/' + self.name
             else:
                 return '/' + self.name
         else:
@@ -62,7 +63,7 @@ class Node(HasTitle, HasBackend):
 
     @property
     def _v_parent(self):
-        return self._parent
+        return self.parent
 
     @property
     def _v_file(self):

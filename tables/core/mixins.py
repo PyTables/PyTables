@@ -21,4 +21,3 @@ class HasTitle:
     @title.setter
     def title(self, title):
         self.backend.attrs['TITLE'] = title
-
