@@ -60,7 +60,8 @@ class HasChildren:
             self.backend.rename_node(old.name, new_name)
         elif isinstance(old, str):
             self.backend.rename_node(old, new_name)
-        raise NotImplementedError()
+        else:
+            raise TypeError("Expecting either the name of the node to rename or the node itself")
 
     def remove_node(self, *args):
         """ This method expects one argument (node) or two arguments (where, node) """
@@ -72,7 +73,9 @@ class HasChildren:
                 name = args[0]
                 self.backend.remove_node(name)
             else:
-                raise NotImplementedError()
+                raise TypeError("Expecting either the name of the node "
+                        "to rename or the node itself when called with "
+                        "one argument")
         elif len(args) == 2:
             where, name = args
             where.remove_node(name)
