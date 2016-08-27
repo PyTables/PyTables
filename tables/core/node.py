@@ -1,4 +1,5 @@
-from .mixins import HasTitle, HasBackend, Attributes
+from .attributes import Attributes
+from .mixins import HasTitle, HasBackend
 
 
 class Node(HasTitle, HasBackend):
