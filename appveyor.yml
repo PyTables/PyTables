@@ -11,13 +11,13 @@ environment:
 #      PYTHON_VERSION: "2.7"
 #      PYTHON_ARCH: "32"
 #      CONDA_PY: "27"
-#      CONDA_NPY: "18"
+#      conda_npy: "18"
 
-    - PYTHON: "C:\\Python27_64"
-      PYTHON_VERSION: "2.7"
-      PYTHON_ARCH: "64"
-      CONDA_PY: "27"
-      CONDA_NPY: "18"
+#    - python: "c:\\python27_64"
+#      PYTHON_VERSION: "2.7"
+#      PYTHON_ARCH: "64"
+#      CONDA_PY: "27"
+#      CONDA_NPY: "18"
 
 #    - PYTHON: "C:\\Python34_32"
 #      PYTHON_VERSION: "3.4"
@@ -31,6 +31,12 @@ environment:
 #      CONDA_PY: "34"
 #      CONDA_NPY: "18"
 
+    - PYTHON: "C:\\Miniconda35-x64"
+      PYTHON_VERSION: "3.5"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "35"
+      CONDA_NPY: "111"
+
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
@@ -40,9 +46,9 @@ install:
 build: false
 
 test_script:
-  - cmd: conda create --yes -n buildenv hdf5 numexpr cython
+  - cmd: conda create --yes -n buildenv python=%PYTHON_VERSION% hdf5 numexpr cython
   - cmd: activate buildenv
   - cmd: set HDF5_DIR=%CONDA_PREFIX%\Library\
-  - cmd: env
+  - cmd: set LIBRARY_PREFIX=%CONDA_PREFIX%\Library\
   - "%CMD_IN_ENV% python setup.py build"
   - "%CMD_IN_ENV% python tables\\tests\\test_all.py --verbose"
