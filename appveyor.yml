@@ -40,7 +40,8 @@ environment:
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
-  - powershell .\\ci\\appveyor\\install.ps1
+  - powershell .\\ci\\appveyor\\install.ps1   
+  - powershell ./appveyor/missing-headers.ps1
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%CONDA_PREFIX%;%PATH%"
 
 build: false
