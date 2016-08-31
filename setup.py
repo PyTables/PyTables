@@ -395,8 +395,9 @@ elif os.name == 'nt':
 
     # Copy the next DLL's to binaries by default.
     # Update these paths for your own system!
-    dll_files = ['\\windows\\system\\zlib1.dll',
-                 '\\windows\\system\\szip.dll',
+    dll_files = [
+                 #'\\windows\\system\\zlib1.dll',
+                 #'\\windows\\system\\szip.dll',
                  ]
     if debug:
         _platdep['HDF5'] = ['hdf5_D', 'hdf5_D']

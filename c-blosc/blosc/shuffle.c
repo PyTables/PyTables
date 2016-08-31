@@ -123,10 +123,9 @@ static uint64_t _xgetbv(uint32_t xcr) {
     which means we can get away with returning a hard-coded value from
     this implementation of _xgetbv. */
 
-static inline uint64_t
-_xgetbv(uint32_t xcr) {
+static __inline uint64_t _xgetbv(uint32_t xcr) {
     /* A 64-bit OS must have XMM save support. */
-    return xcr == 0 ? (1UL << 1) : 0UL;
+    return (xcr == 0 ? (1UL << 1) : 0UL);
 }
 
 #else
