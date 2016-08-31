@@ -49,6 +49,7 @@ install:
   - cmd: set HDF5_DIR="%PYTHON%\\Library\\"
   - cmd: SET LIBRARY_PATH="%HDF5_DIR%\\lib"
   - "%CMD_IN_ENV% python setup.py sdist"
+  - "%CMD_IN_ENV% python setup.py bdist_wheel"
   # install from sdist
   - cmd: dir dist
   - cmd: set /p BUILD=<VERSION
