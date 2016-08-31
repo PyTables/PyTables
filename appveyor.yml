@@ -44,19 +44,18 @@ install:
   - powershell .\\ci\\appveyor\\install.ps1   
   - powershell ./appveyor/missing-headers.ps1
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
+  - cmd: conda install --yes numexpr cython hdf5
+  - cmd: SET CFLAGS=-DH5_BUILT_AS_DYNAMIC_LIB=1
+  - cmd: set HDF5_DIR="%PYTHON%\\Library\\"
+  - cmd: SET LIBRARY_PATH="%HDF5_DIR%\\lib"
+  - "%CMD_IN_ENV% python setup.py sdist"
+  # install from sdist
+  - cmd: dir dist
+  - cmd: set /p BUILD=<VERSION
+  - cmd: pip install dist\tables-%BUILD%.tar.gz
 
 build: false
 
 test_script:
-  #- cmd: conda create --yes -n buildenv python=%PYTHON_VERSION% numexpr cython
-  #- cmd: activate buildenv
-  - cmd: conda install --yes numexpr cython hdf5
-  # conda-forge has hdf5-1.8.17 with shared libs
-  #  - cmd: conda install --yes --channel conda-forge hdf5 
-  - cmd: SET CFLAGS=-DH5_BUILT_AS_DYNAMIC_LIB=1
-  - cmd: echo %PATH%
-  - cmd: env
-  - cmd: set HDF5_DIR="%PYTHON%\\Library\\"
-  - cmd: SET LIBRARY_PATH="%HDF5_DIR%\\lib"
-  - "%CMD_IN_ENV% python setup.py build"
+  - cmd: python -m tables.tests.test_all
   #- "%CMD_IN_ENV% python tables\\tests\\test_all.py --verbose"
