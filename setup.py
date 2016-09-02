@@ -780,7 +780,7 @@ if 'BLOSC' not in optional_libs:
     # Finally, add all the include dirs...
     inc_dirs += [os.path.join('c-blosc', 'blosc')]
     inc_dirs += glob.glob('c-blosc/internal-complibs/*')
-    inc_dirs += glog.glob('c-blosc/internal-complibs/zstd*/common')
+    inc_dirs += glob.glob('c-blosc/internal-complibs/zstd*/common')
     inc_dirs += glob.glob('c-blosc/internal-complibs/zstd*')
     # ...and the macros for all the compressors supported
     def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1),
