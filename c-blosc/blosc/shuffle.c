@@ -22,8 +22,6 @@ typedef _Bool bool;
 /* do not have a C99 compiler */
 typedef unsigned char bool;
 #endif
-static const bool false = 0;
-static const bool true = 1;
 
 
 #if !defined(__clang__) && defined(__GNUC__) && defined(__GNUC_MINOR__) && \
@@ -123,10 +121,9 @@ static uint64_t _xgetbv(uint32_t xcr) {
     which means we can get away with returning a hard-coded value from
     this implementation of _xgetbv. */
 
-static inline uint64_t
-_xgetbv(uint32_t xcr) {
+static __inline uint64_t _xgetbv(uint32_t xcr) {
     /* A 64-bit OS must have XMM save support. */
-    return xcr == 0 ? (1UL << 1) : 0UL;
+    return (xcr == 0 ? (1UL << 1) : 0UL);
 }
 
 #else
@@ -136,7 +133,7 @@ _xgetbv(uint32_t xcr) {
 #error This version of c-blosc only supports x86 and x64 targets with MSVC.
 
 #endif /* _MSC_FULL_VER >= 160040219 */
-  
+
 #else
 
 /*  Implement the __cpuid and __cpuidex intrinsics for GCC, Clang,

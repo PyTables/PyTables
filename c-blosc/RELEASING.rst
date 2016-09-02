@@ -15,6 +15,11 @@ Preliminaries
 
 - Check that *VERSION* symbols in blosc/blosc.h contains the correct info.
 
+- Commit the changes::
+
+    $ git commit -a -m"Getting ready for X.Y.Z release"
+
+
 Testing
 -------
 
@@ -39,8 +44,9 @@ Tagging
 
     $ git tag -a vX.Y.Z -m "Tagging version X.Y.Z"
 
-- Push the tag to the github repo::
+- Push the previous commits and tag to the github repo::
 
+    $ git push
     $ git push --tags
 
 
@@ -59,8 +65,7 @@ Post-release actions
   version to the next minor one (i.e. X.Y.Z --> X.Y.(Z+1).dev).
 
 - Create new headers for adding new features in ``RELEASE_NOTES.rst``
-  and empty the release-specific information in ``ANNOUNCE.rst`` and
-  add this place-holder instead:
+  and add this place-holder instead:
 
   #XXX version-specific blurb XXX#
 

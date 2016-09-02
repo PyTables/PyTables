@@ -39,12 +39,12 @@ instructions (SSE2, AVX2) and multi-threading capabilities of CPUs, in
 order to accelerate the compression / decompression process to a
 maximum.
 
-Blosc is actually a metacompressor, that meaning that it can use a
-range of compression libraries for performing the actual
+Blosc is actually a metacompressor, that meaning that it can use a range
+of compression libraries for performing the actual
 compression/decompression. Right now, it comes with integrated support
-for BloscLZ (the original one), LZ4, LZ4HC, Snappy and Zlib. Blosc
-comes with full sources for all compressors, so in case it does not
-find the libraries installed in your system, it will compile from the
+for BloscLZ (the original one), LZ4, LZ4HC, Snappy, Zlib and Zstd. Blosc
+comes with full sources for all compressors, so in case it does not find
+the libraries installed in your system, it will compile from the
 included sources and they will be integrated into the Blosc library
 anyway. That means that you can trust in having all supported
 compressors integrated in Blosc in all supported platforms.

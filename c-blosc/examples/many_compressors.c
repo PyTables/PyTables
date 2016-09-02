@@ -1,34 +1,30 @@
 /*
-    Copyright (C) 2014  Francesc Alted
-    http://blosc.org
-    License: MIT (see LICENSE.txt)
-
     Example program demonstrating use of the Blosc filter from C code.
 
     To compile this program:
 
-    gcc many_compressors.c -o many_compressors -lblosc -lpthread
-    
+    $ gcc many_compressors.c -o many_compressors -lblosc -lpthread
+
     or, if you don't have the blosc library installed:
 
-    gcc -O3 -msse2 many_compressors.c ../blosc/*.c -I../blosc \
+    $ gcc -O3 -msse2 many_compressors.c ../blosc/*.c -I../blosc \
         -o many_compressors -lpthread \
         -DHAVE_ZLIB -lz -DHAVE_LZ4 -llz4 -DHAVE_SNAPPY -lsnappy
 
     Using MSVC on Windows:
 
-    cl /Ox /Femany_compressors.exe /Iblosc many_compressors.c blosc\*.c
-    
+    $ cl /Ox /Femany_compressors.exe /Iblosc many_compressors.c blosc\*.c
+
     To run:
 
-    ./many_compressors
-    Blosc version info: 1.4.2.dev ($Date:: 2014-07-08 #$)
+    $ ./many_compressors
+    Blosc version info: 1.10.0.dev ($Date:: 2016-07-20 #$)
     Using 4 threads (previously using 1)
     Using blosclz compressor
-    Compression: 4000000 -> 158494 (25.2x)
+    Compression: 4000000 -> 158788 (25.2x)
     Succesful roundtrip!
     Using lz4 compressor
-    Compression: 4000000 -> 234238 (17.1x)
+    Compression: 4000000 -> 235419 (17.0x)
     Succesful roundtrip!
     Using lz4hc compressor
     Compression: 4000000 -> 38314 (104.4x)
@@ -38,6 +34,9 @@
     Succesful roundtrip!
     Using zlib compressor
     Compression: 4000000 -> 22103 (181.0x)
+    Succesful roundtrip!
+    Using zstd compressor
+    Compression: 4000000 -> 11813 (338.6x)
     Succesful roundtrip!
 
 */
@@ -56,7 +55,7 @@ int main(){
   int isize = SIZE*sizeof(float), osize = SIZE*sizeof(float);
   int dsize = SIZE*sizeof(float), csize;
   int nthreads, pnthreads, i;
-  char* compressors[] = {"blosclz", "lz4", "lz4hc", "snappy", "zlib"};
+  char* compressors[] = {"blosclz", "lz4", "lz4hc", "snappy", "zlib", "zstd"};
   int ccode, rcode;
 
   for(i=0; i<SIZE; i++){
@@ -75,7 +74,7 @@ int main(){
   printf("Using %d threads (previously using %d)\n", nthreads, pnthreads);
 
   /* Tell Blosc to use some number of threads */
-  for (ccode=0; ccode <= 4; ccode++) {
+  for (ccode=0; ccode <= 5; ccode++) {
 
     rcode = blosc_set_compressor(compressors[ccode]);
     if (rcode < 0) {

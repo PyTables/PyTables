@@ -1,16 +1,29 @@
 ===============================================================
- Announcing c-blosc 1.9.2
+ Announcing C-Blosc 1.11.0
  A blocking, shuffling and lossless compression library for C
 ===============================================================
 
 What is new?
 ============
 
-This is a maintenance release.  On it, a check on whether Blosc is
-actually initialized before blosc_init(), blosc_destroy() and
-blosc_free_resources() is done, so that the library is more resistant
-to different initialization cycles
-(e.g. https://github.com/stevengj/Blosc.jl/issues/19).
+The Zstd internal codec has been updated to 1.0.0 and it is now meant to
+be used in production! Also, the algorithm to compute the block size in
+which the buffers are split has been improved for both HCR codecs (High
+Compression Ratio codecs, i.e. LZ4HC, Zlib and Zstd) and LZ4, which
+seems happy to compress larger blocks. This new algorithm enable larger
+compression ratios as well as faster operation; it has been backported
+from C-Blosc2 and it is meant for production too.
+
+Also, since support for Zstd has been introduced the experience with it
+has been really pleasant. As an example, see how Blosc + Zstd can
+collaborate compressing images delivering pretty impressive compression
+ratios and extremely fast decompression:
+
+https://github.com/Cyan4973/zstd/issues/256
+
+There is also a blog about what you can expect of it in:
+
+http://blosc.org/blog/zstd-has-just-landed-in-blosc.html
 
 For more info, please see the release notes in:
 
@@ -56,4 +69,3 @@ http://groups.google.es/group/blosc
 
 
 Enjoy Data!
-

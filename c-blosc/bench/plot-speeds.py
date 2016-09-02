@@ -4,6 +4,7 @@ Invoke without parameters for usage hints.
 :Author: Francesc Alted
 :Date: 2010-06-01
 """
+from __future__ import print_function
 
 import matplotlib as mpl
 from pylab import *
@@ -37,7 +38,7 @@ def get_values(filename):
             (ratios, speedsw, speedsr) = ([], [], [])
             # Add a new entry for (ratios, speedw, speedr)
             values[nthreads] = (ratios, speedsw, speedsr)
-            #print "-->", nthreads, size, elsize, sbits
+            #print("-->", nthreads, size, elsize, sbits)
         elif line.startswith('memcpy(write):'):
             tmp = line.split(',')[1]
             memcpyw = float(tmp.split(' ')[1])
@@ -57,19 +58,18 @@ def get_values(filename):
             speedr = float(tmp.split(' ')[1])
             speedsr.append(speedr)
             if "OK" not in line:
-                print "WARNING!  OK not found in decomp line!"
+                print("WARNING!  OK not found in decomp line!")
 
     f.close()
     return nthreads, values
 
 
-def show_plot(plots, yaxis, legends, gtitle, xmax=None):
+def show_plot(plots, yaxis, legends, gtitle, xmax=None, ymax=None):
     xlabel('Compresssion ratio')
     ylabel('Speed (MB/s)')
     title(gtitle)
     xlim(0, xmax)
-    #ylim(0, 10000)
-    ylim(0, None)
+    ylim(0, ymax)
     grid(True)
 
 #     legends = [f[f.find('-'):f.index('.out')] for f in filenames]
@@ -82,7 +82,7 @@ def show_plot(plots, yaxis, legends, gtitle, xmax=None):
 
     #subplots_adjust(bottom=0.2, top=None, wspace=0.2, hspace=0.2)
     if outfile:
-        print "Saving plot to:", outfile
+        print("Saving plot to:", outfile)
         savefig(outfile, dpi=64)
     else:
         show()
@@ -117,6 +117,12 @@ if __name__ == '__main__':
                       '--xmax',
                       dest='xmax',
                       help='limit the x-axis',
+                      default=None)
+
+    parser.add_option('-y',
+                      '--ymax',
+                      dest='ymax',
+                      help='limit the y-axis',
                       default=None)
 
     parser.add_option('-r', '--report', action='store_true',
@@ -169,7 +175,7 @@ if __name__ == '__main__':
     plots = []
     legends = []
     nthreads, values = get_values(filename)
-    #print "Values:", values
+    #print("Values:", values)
 
     if options.limit:
         thread_range = eval(options.limit)
@@ -184,7 +190,7 @@ if __name__ == '__main__':
     gtitle = plot_title
 
     for nt in thread_range:
-        #print "Values for %s threads --> %s" % (nt, values[nt])
+        #print("Values for %s threads --> %s" % (nt, values[nt]))
         (ratios, speedw, speedr) = values[nt]
         if cspeed:
             speed = speedw
@@ -210,7 +216,8 @@ if __name__ == '__main__':
     plot_ = axhline(mean, linewidth=3, linestyle='-.', color='black')
     text(1.0, mean+50, message)
     plots.append(plot_)
-    show_plot(plots, yaxis, legends, gtitle, xmax=int(options.xmax) if
-            options.xmax else None)
+    show_plot(plots, yaxis, legends, gtitle,
+              xmax=int(options.xmax) if options.xmax else None,
+              ymax=int(options.ymax) if options.ymax else None)
 
 

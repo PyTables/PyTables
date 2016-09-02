@@ -27,6 +27,8 @@ int main(int argc, char *argv[]) {
   if (ret >= 0) printf("  %s: %s\n", name, version);
   ret = blosc_get_complib_info("zlib", &name, &version);
   if (ret >= 0) printf("  %s: %s\n", name, version);
+  ret = blosc_get_complib_info("zstd", &name, &version);
+  if (ret >= 0) printf("  %s: %s\n", name, version);
 
   return(0);
 }

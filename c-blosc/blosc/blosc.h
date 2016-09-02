@@ -18,12 +18,12 @@ extern "C" {
 
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
-#define BLOSC_VERSION_MINOR    9    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  2    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_MINOR    11   /* for minor interface/format changes  */
+#define BLOSC_VERSION_RELEASE  0    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.9.2"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.11.0"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2016-06-08 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2016-09-02 #$"    /* date version */
 
 #define BLOSCLZ_VERSION_STRING "1.0.5"   /* the internal compressor version */
 
@@ -49,7 +49,7 @@ extern "C" {
 
 /* Codes for shuffling (see blosc_compress) */
 #define BLOSC_NOSHUFFLE   0  /* no shuffle */
-#define BLOSC_SHUFFLE 1      /* byte-wise shuffle */
+#define BLOSC_SHUFFLE     1  /* byte-wise shuffle */
 #define BLOSC_BITSHUFFLE  2  /* bit-wise shuffle */
 
 /* Codes for internal flags (see blosc_cbuffer_metainfo) */
@@ -63,6 +63,7 @@ extern "C" {
 #define BLOSC_LZ4HC     2
 #define BLOSC_SNAPPY    3
 #define BLOSC_ZLIB      4
+#define BLOSC_ZSTD      5
 
 /* Names for the different compressors shipped with Blosc */
 #define BLOSC_BLOSCLZ_COMPNAME   "blosclz"
@@ -70,26 +71,29 @@ extern "C" {
 #define BLOSC_LZ4HC_COMPNAME     "lz4hc"
 #define BLOSC_SNAPPY_COMPNAME    "snappy"
 #define BLOSC_ZLIB_COMPNAME      "zlib"
+#define BLOSC_ZSTD_COMPNAME      "zstd"
 
 /* Codes for compression libraries shipped with Blosc (code must be < 8) */
 #define BLOSC_BLOSCLZ_LIB   0
 #define BLOSC_LZ4_LIB       1
 #define BLOSC_SNAPPY_LIB    2
 #define BLOSC_ZLIB_LIB      3
+#define BLOSC_ZSTD_LIB      4
 
 /* Names for the different compression libraries shipped with Blosc */
 #define BLOSC_BLOSCLZ_LIBNAME   "BloscLZ"
 #define BLOSC_LZ4_LIBNAME       "LZ4"
 #define BLOSC_SNAPPY_LIBNAME    "Snappy"
 #define BLOSC_ZLIB_LIBNAME      "Zlib"
+#define BLOSC_ZSTD_LIBNAME      "Zstd"
 
 /* The codes for compressor formats shipped with Blosc */
 #define BLOSC_BLOSCLZ_FORMAT  BLOSC_BLOSCLZ_LIB
 #define BLOSC_LZ4_FORMAT      BLOSC_LZ4_LIB
-    /* LZ4HC and LZ4 share the same format */
-#define BLOSC_LZ4HC_FORMAT    BLOSC_LZ4_LIB
+#define BLOSC_LZ4HC_FORMAT    BLOSC_LZ4_LIB /* LZ4HC and LZ4 share the same format */
 #define BLOSC_SNAPPY_FORMAT   BLOSC_SNAPPY_LIB
 #define BLOSC_ZLIB_FORMAT     BLOSC_ZLIB_LIB
+#define BLOSC_ZSTD_FORMAT     BLOSC_ZSTD_LIB
 
 
 /* The version formats for compressors shipped with Blosc */
@@ -99,6 +103,7 @@ extern "C" {
 #define BLOSC_LZ4HC_VERSION_FORMAT    1  /* LZ4HC and LZ4 share the same format */
 #define BLOSC_SNAPPY_VERSION_FORMAT   1
 #define BLOSC_ZLIB_VERSION_FORMAT     1
+#define BLOSC_ZSTD_VERSION_FORMAT     1
 
 
 /**
@@ -311,7 +316,7 @@ BLOSC_EXPORT char* blosc_get_compressor(void);
 
 /**
   Select the compressor to be used.  The supported ones are "blosclz",
-  "lz4", "lz4hc", "snappy" and "zlib".  If this function is not
+  "lz4", "lz4hc", "snappy", "zlib" and "ztsd".  If this function is not
   called, then "blosclz" will be used.
 
   In case the compressor is not recognized, or there is not support
@@ -343,8 +348,8 @@ BLOSC_EXPORT int blosc_compname_to_compcode(const char *compname);
 /**
   Get a list of compressors supported in the current build.  The
   returned value is a string with a concatenation of "blosclz", "lz4",
-  "lz4hc", "snappy" or "zlib" separated by commas, depending on which
-  ones are present in the build.
+  "lz4hc", "snappy", "zlib" or "zstd "separated by commas, depending
+  on which ones are present in the build.
 
   This function does not leak, so you should not free() the returned
   list.

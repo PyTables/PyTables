@@ -17,6 +17,8 @@
 #       do not include support for the Snappy library
 #   DEACTIVATE_ZLIB: default OFF
 #       do not include support for the Zlib library
+#   DEACTIVATE_ZSTD: default OFF
+#       do not include support for the Zstd library
 #   PREFER_EXTERNAL_LZ4: default OFF
 #       when found, use the installed LZ4 libs instead of included
 #       sources
@@ -25,6 +27,9 @@
 #       sources
 #   PREFER_EXTERNAL_ZLIB: default ON
 #       when found, use the installed zlib libs instead of included
+#       sources
+#   PREFER_EXTERNAL_ZSTD: default OFF
+#       when found, use the installed zstd libs instead of included
 #       sources
 #   TEST_INCLUDE_BENCH_SHUFFLE_1: default ON
 #       add a test that runs the benchmark program passing "shuffle" with 1
@@ -88,15 +93,19 @@ option(DEACTIVATE_AVX2
 option(DEACTIVATE_LZ4
     "Do not include support for the LZ4 library." OFF)
 option(DEACTIVATE_SNAPPY
-    "Do not include support for the SNAPPY library." OFF)
+    "Do not include support for the Snappy library." OFF)
 option(DEACTIVATE_ZLIB
-    "Do not include support for the ZLIB library." OFF)
+    "Do not include support for the Zlib library." OFF)
+option(DEACTIVATE_ZSTD
+    "Do not include support for the Zstd library." OFF)
 option(PREFER_EXTERNAL_LZ4
     "Find and use external LZ4 library instead of included sources." OFF)
 option(PREFER_EXTERNAL_SNAPPY
     "Find and use external Snappy library instead of included sources." ON)
 option(PREFER_EXTERNAL_ZLIB
-    "Find and use external zlib library instead of included sources." ON)
+    "Find and use external Zlib library instead of included sources." ON)
+option(PREFER_EXTERNAL_ZSTD
+    "Find and use external Zstd library instead of included sources." ON)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -139,6 +148,17 @@ if(NOT DEACTIVATE_ZLIB)
     set(HAVE_ZLIB TRUE)
 endif(NOT DEACTIVATE_ZLIB)
 
+if (NOT DEACTIVATE_ZSTD)
+    if (PREFER_EXTERNAL_ZSTD)
+        find_package(Zstd)
+    else ()
+        message(STATUS "Using ZSTD internal sources.")
+    endif (PREFER_EXTERNAL_ZSTD)
+    # HAVE_ZSTD will be set to true because even if the library is
+    # not found, we will use the included sources for it
+    set(HAVE_ZSTD TRUE)
+endif (NOT DEACTIVATE_ZSTD)
+
 # create the config.h file
 configure_file ("blosc/config.h.in"  "blosc/config.h" )
 
@@ -157,6 +177,11 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
         "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
+if(APPLE)
+  # enable @rpath in the install name for any shared library being built.  See #175.
+  set(CMAKE_MACOSX_RPATH TRUE)
+endif()
+
 # Based on the target system's processor and the compiler being used,
 # set build variables indicating which hardware features can be targeted
 # by the compiler. Note we DO NOT check which hardware features are supported
@@ -169,6 +194,8 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL i386 OR
    CMAKE_SYSTEM_PROCESSOR STREQUAL amd64 OR
    CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64)
     if(CMAKE_C_COMPILER_ID STREQUAL GNU)
+        # We need C99 (GNU99 more exactly)
+        SET(CMAKE_C_FLAGS "-std=gnu99")
         set(COMPILER_SUPPORT_SSE2 TRUE)
         if(CMAKE_C_COMPILER_VERSION VERSION_GREATER 4.7 OR CMAKE_C_COMPILER_VERSION VERSION_EQUAL 4.7)
             set(COMPILER_SUPPORT_AVX2 TRUE)
