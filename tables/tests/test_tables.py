@@ -1755,6 +1755,15 @@ class CompressBloscZlibTablesTestCase(BasicTestCase):
     shuffle = 1
     complib = "blosc:zlib"
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf('zstd' not in tables.blosc_compressor_list(), 'zstd required')
+class CompressBloscZstdTablesTestCase(BasicTestCase):
+    title = "CompressZstdTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc:zstd"
+
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class CompressLZOTablesTestCase(BasicTestCase):
@@ -6420,6 +6429,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CompressBloscLZ4HCTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressBloscSnappyTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressBloscZlibTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressBloscZstdTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressLZOShuffleTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressZLIBTablesTestCase))

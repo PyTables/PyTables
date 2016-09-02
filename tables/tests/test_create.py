@@ -658,6 +658,14 @@ class FiltersCaseBloscZlib(FiltersTreeTestCase):
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
+@unittest.skipIf('zstd' not in tables.blosc_compressor_list(), 'zstd required')
+class FiltersCaseBloscZstd(FiltersTreeTestCase):
+    filters = Filters(shuffle=False, complevel=1, complib="blosc:zstd")
+    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zstd")
+    open_kwargs = dict(filters=filters)
+
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
 @unittest.skipIf(blosc_version < common.min_blosc_bitshuffle_version,
                  'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
 class FiltersCaseBloscBitShuffle(FiltersTreeTestCase):
@@ -2553,6 +2561,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(FiltersCaseBloscLZ4HC))
         theSuite.addTest(unittest.makeSuite(FiltersCaseBloscSnappy))
         theSuite.addTest(unittest.makeSuite(FiltersCaseBloscZlib))
+        theSuite.addTest(unittest.makeSuite(FiltersCaseBloscZstd))
         theSuite.addTest(unittest.makeSuite(FiltersCaseBloscBitShuffle))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase2))

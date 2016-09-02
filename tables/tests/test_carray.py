@@ -771,6 +771,19 @@ class BloscZlibTestCase(BasicTestCase):
     stop = 10
     step = 7
 
+@unittest.skipIf(not common.blosc_avail,
+                 'BLOSC compression library not available')
+@unittest.skipIf('zstd' not in tables.blosc_compressor_list(), 'zstd required')
+class BloscZstdTestCase(BasicTestCase):
+    shape = (20, 30)
+    compress = 1
+    shuffle = 1
+    complib = "blosc:zstd"
+    chunkshape = (100, 100)
+    start = 3
+    stop = 10
+    step = 7
+
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
 class LZOComprTestCase(BasicTestCase):
@@ -2751,6 +2764,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BloscLZ4HCTestCase))
         theSuite.addTest(unittest.makeSuite(BloscSnappyTestCase))
         theSuite.addTest(unittest.makeSuite(BloscZlibTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscZstdTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))
