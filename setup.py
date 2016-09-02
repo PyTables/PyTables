@@ -783,7 +783,8 @@ if 'BLOSC' not in optional_libs:
     inc_dirs += glob('c-blosc/internal-complibs/zstd*/common')
     inc_dirs += glob('c-blosc/internal-complibs/zstd*')
     # ...and the macros for all the compressors supported
-    def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1), ('HAVE_ZSTD', 1)]
+    def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1),
+                   ('HAVE_ZSTD', 1)]
 
     # Add extra flags for optimizing shuffle in include Blosc
     def compiler_has_flags(compiler, flags):
