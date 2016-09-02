@@ -86,7 +86,7 @@ int main(){
     /* 0 to 3 (inclusive) param slots are reserved. */
     cd_values[4] = 4;       /* compression level */
     cd_values[5] = 1;       /* 0: shuffle not active, 1: shuffle active */
-    cd_values[6] = BLOSC_LZ4HC; /* the actual compressor to use */
+    cd_values[6] = BLOSC_BLOSCLZ; /* the actual compressor to use */
 
     /* Set the filter with 7 params */
     r = H5Pset_filter(plist, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 7, cd_values);
