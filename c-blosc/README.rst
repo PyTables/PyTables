@@ -71,12 +71,12 @@ actually work like so.
 Currently C-Blosc comes with support of BloscLZ, a compressor heavily
 based on FastLZ (http://fastlz.org/), LZ4 and LZ4HC
 (https://github.com/Cyan4973/lz4), Snappy
-(https://github.com/google/snappy) and Zlib (http://www.zlib.net/), as
-well as a highly optimized (it can use SSE2 or AVX2 instructions, if
-available) shuffle and bitshuffle filters (for info on how and why
-shuffling works, see slide 17 of
-http://www.slideshare.net/PyData/blosc-py-data-2014).  However,
-different compressors or filters may be added in the future.
+(https://github.com/google/snappy), Zlib (http://www.zlib.net/) and
+Zstd (http://www.zstd.net), as well as a highly optimized (it can use
+SSE2 or AVX2 instructions, if available) shuffle and bitshuffle filters
+(for info on how and why shuffling works, see slide 17 of
+http://www.slideshare.net/PyData/blosc-py-data-2014). However,
+additional compressors or filters may be added in the future.
 
 C-Blosc is in charge of coordinating the different compressor and
 filters so that they can leverage the blocking technique (described

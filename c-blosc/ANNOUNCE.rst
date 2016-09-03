@@ -1,18 +1,15 @@
 ===============================================================
- Announcing C-Blosc 1.11.0
+ Announcing C-Blosc 1.11.1
  A blocking, shuffling and lossless compression library for C
 ===============================================================
 
 What is new?
 ============
 
-The Zstd internal codec has been updated to 1.0.0 and it is now meant to
-be used in production! Also, the algorithm to compute the block size in
-which the buffers are split has been improved for both HCR codecs (High
-Compression Ratio codecs, i.e. LZ4HC, Zlib and Zstd) and LZ4, which
-seems happy to compress larger blocks. This new algorithm enable larger
-compression ratios as well as faster operation; it has been backported
-from C-Blosc2 and it is meant for production too.
+Fixed a bug introduced in 1.11.0 and discovered by pandas test suite.
+This basically prevented to decompress buffers compressed with previous
+versions of C-Blosc.See:
+https://github.com/Blosc/python-blosc/issues/115
 
 Also, since support for Zstd has been introduced the experience with it
 has been really pleasant. As an example, see how Blosc + Zstd can

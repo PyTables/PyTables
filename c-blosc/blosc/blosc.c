@@ -553,9 +553,7 @@ static int blosc_c(const struct blosc_context* context, int32_t blocksize,
                    const uint8_t *src, uint8_t *dest, uint8_t *tmp,
                    uint8_t *tmp2)
 {
-  int32_t compformat = (*(context->header_flags) & 0xe0) >> 5;
   int dont_split = (*(context->header_flags) & 0x10) >> 4;
-  uint8_t blosc_version_format = BLOSC_VERSION_FORMAT;
   int32_t j, neblock, nsplits;
   int32_t cbytes;                   /* number of compressed bytes in split */
   int32_t ctbytes = 0;              /* number of compressed bytes in block */
@@ -682,7 +680,6 @@ static int blosc_d(struct blosc_context* context, int32_t blocksize, int32_t lef
 {
   int32_t compformat = (*(context->header_flags) & 0xe0) >> 5;
   int dont_split = (*(context->header_flags) & 0x10) >> 4;
-  uint8_t blosc_version_format = context->src[0];
   int32_t j, neblock, nsplits;
   int32_t nbytes;                /* number of decompressed bytes in split */
   int32_t cbytes;                /* number of compressed bytes in split */
@@ -698,10 +695,11 @@ static int blosc_d(struct blosc_context* context, int32_t blocksize, int32_t lef
     _tmp = tmp;
   }
 
-  compformat = (*(context->header_flags) & 0xe0) >> 5;
-
   /* The number of splits for this block */
-  if (!dont_split && !leftoverblock) {
+  if (!dont_split &&
+      /* For compatibility with before the introduction of the split flag */
+      ((typesize <= MAX_SPLITS) && (blocksize/typesize) >= MIN_BUFFERSIZE) &&
+      !leftoverblock) {
     nsplits = typesize;
   }
   else {
@@ -1445,7 +1443,6 @@ int blosc_getitem(const void *src, int start, int nitems, void *dest)
   int32_t nblocks;                  /* number of total blocks in buffer */
   int32_t leftover;                 /* extra bytes at end of buffer */
   uint8_t *bstarts;                 /* start pointers for each block */
-  int tmp_init = 0;
   int32_t typesize, blocksize, nbytes, ctbytes;
   int32_t j, bsize, bsize2, leftoverblock;
   int32_t cbytes, startb, stopb;

@@ -7,6 +7,14 @@
 :URL: http://www.blosc.org
 
 
+Changes from 1.11.0 to 1.11.1
+=============================
+
+- Fixed a bug introduced in 1.11.0 and discovered by pandas test suite. This
+  basically prevented to decompress buffers compressed with previous versions of
+  C-Blosc. See: https://github.com/Blosc/python-blosc/issues/115
+
+
 Changes from 1.10.2 to 1.11.0
 =============================
 
