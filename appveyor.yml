@@ -40,6 +40,7 @@ install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
   - cmd: conda install --yes numexpr cython hdf5 bzip2
   - cmd: set HDF5_DIR="%PYTHON%\\Library\\"
+  - cmd: set BZIP2_DIR="%PYTHON%\\Library\\" 
   - cmd: SET LIBRARY_PATH="%HDF5_DIR%\\lib"
   # Make sure the wheel works:
   # Build wheel and install using pip. 
