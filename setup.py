@@ -395,8 +395,9 @@ elif os.name == 'nt':
 
     # Copy the next DLL's to binaries by default.
     try:
-        # If building on AppVeyor, include zlib from conda:
-        if os.environ['APPVEYOR']:
+        # We define BUILDWHEEL in appveyor.yml
+        # include zlib from conda:
+        if os.environ['APPVEYOR'] and os.environ['BUILDWHEEL']:
             # Conda HDF5 is linked to zlib.dll (from conda package zlib)
             # but szip.dll is not included in conda
             dll_files = [os.environ['PYTHON']+'\\Library\\bin\\zlib.dll']
