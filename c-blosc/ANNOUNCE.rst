@@ -1,16 +1,26 @@
 ===============================================================
- Announcing c-blosc 1.9.2
+ Announcing C-Blosc 1.11.1
  A blocking, shuffling and lossless compression library for C
 ===============================================================
 
 What is new?
 ============
 
-This is a maintenance release.  On it, a check on whether Blosc is
-actually initialized before blosc_init(), blosc_destroy() and
-blosc_free_resources() is done, so that the library is more resistant
-to different initialization cycles
-(e.g. https://github.com/stevengj/Blosc.jl/issues/19).
+Fixed a bug introduced in 1.11.0 and discovered by pandas test suite.
+This basically prevented to decompress buffers compressed with previous
+versions of C-Blosc.See:
+https://github.com/Blosc/python-blosc/issues/115
+
+Also, since support for Zstd has been introduced the experience with it
+has been really pleasant. As an example, see how Blosc + Zstd can
+collaborate compressing images delivering pretty impressive compression
+ratios and extremely fast decompression:
+
+https://github.com/Cyan4973/zstd/issues/256
+
+There is also a blog about what you can expect of it in:
+
+http://blosc.org/blog/zstd-has-just-landed-in-blosc.html
 
 For more info, please see the release notes in:
 
@@ -56,4 +66,3 @@ http://groups.google.es/group/blosc
 
 
 Enjoy Data!
-

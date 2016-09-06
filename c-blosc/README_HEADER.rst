@@ -32,13 +32,13 @@ All entries are little endian.
         Whether the bit-shuffle filter has been applied or not.
     :bit 3 (``0x08``):
         Reserved
-    :bit 4 (``0x16``):
-        Reserved
-    :bit 5 (``0x32``):
+    :bit 4 (``0x10``):
+        If set, the blocks will not be split in sub-blocks during compression.
+    :bit 5 (``0x20``):
         Part of the enumeration for compressors.
-    :bit 6 (``0x64``):
+    :bit 6 (``0x40``):
         Part of the enumeration for compressors.
-    :bit 7 (``0x64``):
+    :bit 7 (``0x80``):
         Part of the enumeration for compressors.
 
     The last three bits form an enumeration that allows to use alternative
@@ -52,6 +52,8 @@ All entries are little endian.
         ``snappy``
     :``3``:
         ``zlib``
+    :``4``:
+        ``zstd``
 
 :typesize:
     (``uint8``) Number of bytes for the atomic type.
@@ -61,4 +63,3 @@ All entries are little endian.
     (``uint32``) Size of internal blocks.
 :ctbytes:
     (``uint32``) Compressed size of the buffer.
-

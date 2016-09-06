@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O3 -msse2 -Wall -pthread
+CFLAGS=-O3 -Wall -pthread
 LDFLAGS=-pthread
 BLOSC_LIB= $(wildcard ../blosc/*.c)
 
@@ -31,6 +31,12 @@ LDFLAGS += -DHAVE_ZLIB -lz
 #ZLIB_DIR = ../internal-complibs/zlib-1.2.8
 #CFLAGS += -DHAVE_ZLIB -I$(ZLIB_DIR)
 #BLOSC_LIB += $(wildcard $(ZLIB_DIR)/*.c)
+
+
+# Support for internal Zstd
+ZSTD_DIR = ../internal-complibs/zstd-1.0.0
+CFLAGS += -DHAVE_ZSTD -I$(ZSTD_DIR) -I$(ZSTD_DIR)/common
+BLOSC_LIB += $(wildcard $(ZSTD_DIR)/*/*.c)
 
 
 .PHONY: all

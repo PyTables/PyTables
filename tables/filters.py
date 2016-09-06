@@ -74,13 +74,13 @@ class Filters(object):
         compression.
     complib : str
         Specifies the compression library to be used. Right now, 'zlib' (the
-        default), 'lzo', 'bzip2' and 'blosc' are supported.  Additional
-        compressors for Blosc like 'blosc:blosclz' ('blosclz' is the default
-        in case the additional compressor is not specified), 'blosc:lz4',
-        'blosc:lz4hc', 'blosc:snappy' and 'blosc:zlib' are supported too.
-        Specifying a compression library which is not available in the
-        system issues a FiltersWarning and sets the library to the default
-        one.
+        default), 'lzo', 'bzip2' and 'blosc' are supported. Additional
+        compressors for Blosc like 'blosc:blosclz' ('blosclz' is the default in
+        case the additional compressor is not specified), 'blosc:lz4',
+        'blosc:lz4hc', 'blosc:snappy', 'blosc:zlib' and 'blosc:zstd' are
+        supported too. Specifying a compression library which is not available
+        in the system issues a FiltersWarning and sets the library to the
+        default one.
     shuffle : bool
         Whether or not to use the *Shuffle* filter in the HDF5
         library. This is normally used to improve the compression

@@ -7,6 +7,70 @@
 :URL: http://www.blosc.org
 
 
+Changes from 1.11.0 to 1.11.1
+=============================
+
+- Fixed a bug introduced in 1.11.0 and discovered by pandas test suite. This
+  basically prevented to decompress buffers compressed with previous versions of
+  C-Blosc. See: https://github.com/Blosc/python-blosc/issues/115
+
+
+Changes from 1.10.2 to 1.11.0
+=============================
+
+- Internal Zstd codec upgraded to 1.0.0.
+
+- New block size computation inherited from C-Blosc2. Benchmarks are saying that
+  this benefits mainly to LZ4, LZ4HC, Zlib and Zstd codecs, both in speed and in
+  compression ratios (although YMMV for your case).
+
+- Added the @rpath flag in Mac OSX for shared libraries.  Fixes #175.
+
+- Added a fix for VS2008 discovered in: https://github.com/PyTables/PyTables/pull/569/files#diff-953cf824ebfea7208d2a2e312d9ccda2L126
+
+- License changed from MIT to 3-clause BSD style.
+
+
+Changes from 1.10.1 to 1.10.2
+=============================
+
+- Force the use of --std=gnu99 when using gcc.  Fixes #174.
+
+
+Changes from 1.10.0 to 1.10.1
+=============================
+
+- Removed an inconsistent check for C11 (__STDC_VERSION__ >= 201112L and
+  _ISOC11_SOURCE) as this seem to pose problems on compilers doing different
+  things in this check (e.g. clang). See
+  https://github.com/Blosc/bloscpack/issues/50.
+
+
+Changes from 1.9.3 to 1.10.0
+============================
+
+- Initial support for Zstandard (0.7.4). Zstandard (or Zstd for short) is a new
+  compression library that allows better compression than Zlib, but that works
+  typically faster (and some times much faster), making of it a good match for
+  Blosc.
+
+  Although the Zstd format is considered stable
+  (http://fastcompression.blogspot.com.es/2016_07_03_archive.html), its API is
+  maturing very fast, and despite passing the extreme test suite for C-Blosc,
+  this codec should be considered in beta for C-Blosc usage purposes. Please
+  test it and report back any possible issues you may get.
+
+
+Changes from 1.9.2 to 1.9.3
+===========================
+
+- Reverted a mistake introduced in 1.7.1.  At that time, bit-shuffling
+  was enabled for typesize == 1 (i.e. strings), but the change also
+  included byte-shuffling accidentally.  This only affected performance,
+  but in a quite bad way (a copy was needed).  This has been fixed and
+  byte-shuffling is not active when typesize == 1 anymore.
+
+
 Changes from 1.9.1 to 1.9.2
 ===========================
 
@@ -351,7 +415,7 @@ Changes from 1.3.5 to 1.3.6
 
 * Updated to LZ4 r118 due to a (highly unlikely) security hole.  For
   details see:
- 
+
   http://fastcompression.blogspot.fr/2014/06/debunking-lz4-20-years-old-bug-myth.html
 
 
@@ -680,4 +744,3 @@ Changes from 0.8.0 to 0.9
   MacOSX (for example, Tiger).  At nay rate, posix_memalign() is not
   necessary on Mac because 16 bytes alignment is ensured by default.
   Thanks to Ivan Vilata.  Fixes #3.
-

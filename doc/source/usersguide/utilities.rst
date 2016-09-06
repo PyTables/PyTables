@@ -215,7 +215,7 @@ to see the message usage:
                     [--dest-title TITLE] [--dont-create-sysattrs]
                     [--dont-copy-userattrs] [--overwrite-nodes]
                     [--complevel COMPLEVEL]
-                    [--complib {zlib,lzo,bzip2,blosc,blosc:blosclz,blosc:lz4,blosc:lz4hc,blosc:snappy,blosc:zlib}]
+                    [--complib {zlib,lzo,bzip2,blosc,blosc:blosclz,blosc:lz4,blosc:lz4hc,blosc:snappy,blosc:zlib,blosc:zstd}]
                     [--shuffle {0,1}] [--bitshuffle {0,1}] [--fletcher32 {0,1}]
                     [--keep-source-filters] [--chunkshape CHUNKSHAPE]
                     [--upgrade-flavors] [--dont-regenerate-old-indexes]
@@ -257,7 +257,7 @@ to see the message usage:
       --complevel COMPLEVEL
                             set a compression level (0 for no compression, which
                             is the default)
-      --complib {zlib,lzo,bzip2,blosc,blosc:blosclz,blosc:lz4,blosc:lz4hc,blosc:snappy,blosc:zlib}
+      --complib {zlib,lzo,bzip2,blosc,blosc:blosclz,blosc:lz4,blosc:lz4hc,blosc:snappy,blosc:zlib,blosc:zstd}
                             set the compression library to be used during the
                             copy. Defaults to zlib
       --shuffle {0,1}       activate or not the shuffle filter (default is active
@@ -500,5 +500,3 @@ and all sub-directories:
     (e.g. via :program:`pip`).
 
 .. _PEP 8: http://www.python.org/dev/peps/pep-0008/
-
-
