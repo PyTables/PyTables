@@ -394,10 +394,20 @@ elif os.name == 'nt':
     }
 
     # Copy the next DLL's to binaries by default.
-    # Update these paths for your own system!
-    dll_files = ['\\windows\\system\\zlib1.dll',
-                 '\\windows\\system\\szip.dll',
+    try:
+        # We define BUILDWHEEL in appveyor.yml
+        # include zlib from conda:
+        if os.environ['APPVEYOR'] and os.environ['BUILDWHEEL']:
+            # Conda HDF5 is linked to zlib.dll (from conda package zlib)
+            # but szip.dll is not included in conda
+            dll_files = [os.environ['PYTHON']+'\\Library\\bin\\zlib.dll']
+    except KeyError:
+        # Update these paths for your own system!
+        dll_files = [
+                 #'\\windows\\system\\zlib1.dll',
+                 #'\\windows\\system\\szip.dll',
                  ]
+
     if debug:
         _platdep['HDF5'] = ['hdf5_D', 'hdf5_D']
 

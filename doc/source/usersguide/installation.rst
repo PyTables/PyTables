@@ -423,16 +423,17 @@ Binary installation (Windows)
 -----------------------------
 
 This section is intended for installing precompiled binaries on Windows
-platforms. You may also find it useful for instructions on how to install
-*binary prerequisites* even if you want to compile PyTables itself on Windows.
-
+platforms. Binaries are distribution in wheel format, which can be downloaded
+and installed using pip as described above. You may also find it useful for
+instructions on how to install *binary prerequisites* even if you want to
+compile PyTables itself on Windows.
 
 .. _prerequisitesBinInst:
 
 Windows prerequisites
 ~~~~~~~~~~~~~~~~~~~~~
 
-First, make sure that you have Python 2.6, NumPy 1.8.0 and Numexpr 2.5.2 or
+First, make sure that you have Python 2.7, NumPy 1.8.0 and Numexpr 2.5.2 or
 higher installed.
 
 To enable compression with the optional LZO library (see the
@@ -456,11 +457,19 @@ dynamic libraries if you don't want to.
 PyTables package installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Download the tables-<version>.win32-py<version>.exe file and execute it.
+On PyPI wheels for 32 and 64-bit versions of Windows and are usually provided. They
+are automatically found and installed using pip::
 
-Binary packahes can be found e.g. at the `Unofficial Windows Binaries for
-Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs/#pytables>`_
-page.
+    $ pip install tables
+
+If a matching wheel cannot be found for your installation, third party built wheels
+can be found e.g. at the `Unofficial Windows Binaries for Python Extension Packages
+<http://www.lfd.uci.edu/~gohlke/pythonlibs/#pytables>`_ page. Download the wheel
+matching the version of python and either the 32 or 64-bit version and install
+using pip::
+
+    # python 3.5 64-bit:
+    $ pip install tables-3.3-cp35-cp35m-win_amd64.whl
 
 You can (and *you should*) test your installation by running the next
 commands::

@@ -1,0 +1,63 @@
+environment:
+
+  # Make setup.py include conda specific dll's in wheels
+  BUILDWHEEL: True
+
+  global:
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    # From: https://github.com/astropy/ci-helpers/blob/master/appveyor/windows_sdk.cmd
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci\\appveyor\\windows_sdk.cmd"
+
+  matrix:
+#    - PYTHON: "C:\\Miniconda"
+#      PYTHON_VERSION: "2.7"
+#      PYTHON_ARCH: "32"
+#      CONDA_PY: "27"
+#      conda_npy: "18"
+
+    - PYTHON: "C:\\Miniconda-x64"
+      PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "27"
+      CONDA_NPY: "18"
+
+#    - PYTHON: "C:\\Miniconda35"
+#      PYTHON_VERSION: "3.5"
+#      PYTHON_ARCH: "32"
+#      CONDA_PY: "35"
+#      CONDA_NPY: "111"
+
+    - PYTHON: "C:\\Miniconda35-x64"
+      PYTHON_VERSION: "3.5"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "35"
+      CONDA_NPY: "111"
+
+install:
+  # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
+  # as well as pip, conda-build, and the binstar CLI
+  - powershell .\\ci\\appveyor\\install.ps1   
+  - powershell .\\ci\\appveyor\\missing-headers.ps1
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
+  - cmd: conda install --yes numexpr cython hdf5 bzip2
+  - cmd: set HDF5_DIR="%PYTHON%\\Library\\"
+  - cmd: set BZIP2_DIR="%PYTHON%\\Library\\" 
+  - cmd: SET LIBRARY_PATH="%HDF5_DIR%\\lib"
+  # Make sure the wheel works:
+  # Build wheel and install using pip. 
+  - "%CMD_IN_ENV% python setup.py bdist_wheel"
+  - cmd: dir /B dist\*whl >WHEEL
+  - cmd: set /p WHEEL=<WHEEL
+  - cmd: pip install dist\%WHEEL%
+
+build: false
+
+test_script:
+  - cmd: cd ..
+  - cmd: python -m tables.tests.test_all
+
+artifacts:
+  # download wheels
+  - path: dist\*
