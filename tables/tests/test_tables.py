@@ -1419,8 +1419,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         nrows = table.nrows
         table.nrowsinbuf = 4  # small value of the buffer
-        # Delete 100 rows
-        table.remove_rows(0, 100)
+        # Delete all rows
+        table.remove_rows(0, self.expectedrows)
 
         # Re-read the records
         result2 = [r['var2'] for r in table.iterrows()]
