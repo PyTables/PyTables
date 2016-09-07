@@ -15,7 +15,7 @@ Python 3 at Last!
 
 The PyTables 3.x series now ships with full compatibility for Python 3.1+.
 Additionally, we plan on maintaining compatibility with Python 2.7 for the
-foreseeable future.  Python 2.6 is no longer under actively supported but
+foreseeable future.  Python 2.6 is no longer supported but
 may work in most cases.  Note that the entire 3.x series now relies on
 numexpr v2.1+, which itself is the first version of numexpr support both
 Python 2 & 3.
