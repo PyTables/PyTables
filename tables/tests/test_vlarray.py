@@ -1284,12 +1284,12 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         vlarray = self.h5file.create_vlarray(
             '/', "VLStringAtom", atom=VLStringAtom())
-        vlarray.append("asd")
-        vlarray.append("asd\xe4")
-        vlarray.append(u"aaana")
-        vlarray.append("")
+        vlarray.append(b"asd")
+        vlarray.append(b"asd\xe4")
+        vlarray.append(b"aaana")
+        vlarray.append(b"")
         # Check for ticket #62.
-        self.assertRaises(TypeError, vlarray.append, ["foo", "bar"])
+        self.assertRaises(TypeError, vlarray.append, [b"foo", b"bar"])
         # `VLStringAtom` makes no encoding assumptions.  See ticket #51.
         self.assertRaises(UnicodeEncodeError, vlarray.append, u"asd\xe4")
 
@@ -1306,10 +1306,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 4)
-        self.assertEqual(row[0], "asd")
-        self.assertEqual(row[1], "asd\xe4")
-        self.assertEqual(row[2], "aaana")
-        self.assertEqual(row[3], "")
+        self.assertEqual(row[0], b"asd")
+        self.assertEqual(row[1], b"asd\xe4")
+        self.assertEqual(row[2], b"aaana")
+        self.assertEqual(row[3], b"")
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 4)
         self.assertEqual(len(row[2]), 5)
@@ -1325,14 +1325,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         vlarray = self.h5file.create_vlarray(
             '/', "VLStringAtom", atom=VLStringAtom())
-        vlarray.append("asd")
-        vlarray.append(u"aaana")
+        vlarray.append(b"asd")
+        vlarray.append(b"aaana")
 
         # Modify values
-        vlarray[0] = "as4"
-        vlarray[1] = "aaanc"
-        self.assertRaises(ValueError, vlarray.__setitem__, 1, "shrt")
-        self.assertRaises(ValueError, vlarray.__setitem__, 1, "toolong")
+        vlarray[0] = b"as4"
+        vlarray[1] = b"aaanc"
+        self.assertRaises(ValueError, vlarray.__setitem__, 1, b"shrt")
+        self.assertRaises(ValueError, vlarray.__setitem__, 1, b"toolong")
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -3475,9 +3475,9 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_vlarray(
             self.h5file.root, 'array1', arr, "title array1")
         array1.flavor = "python"
-        array1.append("a string")
-        array1.append("")  # an empty row
-        array1.append("another string")
+        array1.append(b"a string")
+        array1.append(b"")  # an empty row
+        array1.append(b"another string")
 
         if self.close:
             if common.verbose:
