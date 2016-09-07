@@ -2476,8 +2476,8 @@ class Issue156TestBase(common.TempFileMixin, TestCase):
         # fill table with 10 random numbers
         for k in range(10):
             row = table.row
-            row['frame'] = numpy.random.random_integers(0, 2**16-1)
-            row['Bar/code'] = numpy.random.random_integers(0, 2**16-1)
+            row['frame'] = numpy.random.randint(0, 2**16-1)
+            row['Bar/code'] = numpy.random.randint(0, 2**16-1)
             row.append()
 
         self.h5file.flush()
