@@ -48,7 +48,7 @@ Prerequisites
 
 First, make sure that you have
 
-* Python_ >= 2.6 including Python 3.x (Python >= 2.7 is highly recommended)
+* Python_ >= 2.7 including Python 3.x
 * HDF5_ >= 1.8.4 (>=1.8.15 is strongly recommended, HDF5 v1.10 not supported)
 * NumPy_ >= 1.8.1
 * Numexpr_ >= 2.5.2
@@ -56,8 +56,6 @@ First, make sure that you have
 * c-blosc_ >= 1.4.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the :option:`--blosc` flag of the :file:`setup.py`)
-* argparse_ (only Python 2.6, it is used by the :program:`pt2to3` utility)
-* unittest2_ (only Python 2.6)
 
 installed (for testing purposes, we are using HDF5_ 1.8.15, NumPy_ 1.10.2
 and Numexpr_ 2.5.2 currently). If you don't, fetch and install them before
