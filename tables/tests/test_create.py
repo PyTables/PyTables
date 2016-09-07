@@ -2447,8 +2447,8 @@ class QuantizeTestCase(common.TempFileMixin, TestCase):
 
         self.data = numpy.linspace(-5., 5., 41)
         self.randomdata = numpy.random.random_sample(1000000)
-        self.randomints = numpy.random.random_integers(
-            -1000000, 1000000, 1000000).astype('int64')
+        self.randomints = numpy.random.randint(-1000000, 1000000, 1000000,
+                                               dtype='int64')
 
         self.populateFile()
         self.h5file.close()
