@@ -33,8 +33,11 @@ install:
   - powershell .\\ci\\appveyor\\install.ps1   
   - powershell .\\ci\\appveyor\\missing-headers.ps1
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
-  # make sure we install hdf5=1.8.17. Anaconda default is 1.8.16.
-  - cmd: conda install --yes numexpr cython hdf5=1.8.17 bzip2
+  # nomkl package forces numexpr and numpy with mkl.
+  #  saves large download and almost one minute build time.
+  - cmd: conda install --yes nomkl numexpr cython bzip2
+  # Install hdf5=1.8.17 from conda-forge. Anaconda default is 1.8.16.
+  - cmd: conda install -c conda-forge hdf5=1.8.17 
   - cmd: set HDF5_DIR="%PYTHON%\\Library\\"
   - cmd: set BZIP2_DIR="%PYTHON%\\Library\\" 
   - cmd: SET LIBRARY_PATH="%HDF5_DIR%\\lib"
