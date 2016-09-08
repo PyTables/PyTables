@@ -14,26 +14,18 @@ environment:
 #    - PYTHON: "C:\\Miniconda"
 #      PYTHON_VERSION: "2.7"
 #      PYTHON_ARCH: "32"
-#      CONDA_PY: "27"
-#      conda_npy: "18"
 
     - PYTHON: "C:\\Miniconda-x64"
       PYTHON_VERSION: "2.7"
       PYTHON_ARCH: "64"
-      CONDA_PY: "27"
-      CONDA_NPY: "18"
 
 #    - PYTHON: "C:\\Miniconda35"
 #      PYTHON_VERSION: "3.5"
 #      PYTHON_ARCH: "32"
-#      CONDA_PY: "35"
-#      CONDA_NPY: "111"
 
     - PYTHON: "C:\\Miniconda35-x64"
       PYTHON_VERSION: "3.5"
       PYTHON_ARCH: "64"
-      CONDA_PY: "35"
-      CONDA_NPY: "111"
 
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
@@ -41,7 +33,8 @@ install:
   - powershell .\\ci\\appveyor\\install.ps1   
   - powershell .\\ci\\appveyor\\missing-headers.ps1
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
-  - cmd: conda install --yes numexpr cython hdf5 bzip2
+  # make sure we install hdf5=1.8.17. Anaconda default is 1.8.16.
+  - cmd: conda install --yes numexpr cython hdf5=1.8.17 bzip2
   - cmd: set HDF5_DIR="%PYTHON%\\Library\\"
   - cmd: set BZIP2_DIR="%PYTHON%\\Library\\" 
   - cmd: SET LIBRARY_PATH="%HDF5_DIR%\\lib"
