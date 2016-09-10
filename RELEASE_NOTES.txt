@@ -35,6 +35,7 @@ Bugs fixed
 
 - On python 3 try 'latin1' encoding before 'bytes' encoding during unpickling
   of node attributes pickled on python 2. Better fix for :issue:`560`.
+- Fixed Windows 32 and 64-bit builds.
 
 
 Changes from 3.2.3 to 3.2.3.1
