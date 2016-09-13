@@ -19,7 +19,6 @@ PyTables
 
     release-notes/RELEASE_NOTES_v3.3.x
     release-notes/RELEASE_NOTES_v3.2.x
-    release-notes/RELEASE_NOTES_v3.2.x
     release-notes/RELEASE_NOTES_v3.1.x
     release-notes/RELEASE_NOTES_v3.0.x
     release-notes/RELEASE_NOTES_v2.4.x
