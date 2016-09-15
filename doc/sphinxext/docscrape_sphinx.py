@@ -1,8 +1,13 @@
-import re, inspect, textwrap, pydoc
+import re
+import inspect
+import textwrap
+import pydoc
 import sphinx
 from docscrape import NumpyDocString, FunctionDoc, ClassDoc
 
+
 class SphinxDocString(NumpyDocString):
+
     def __init__(self, docstring, config={}):
         self.use_plots = config.get('use_plots', False)
         NumpyDocString.__init__(self, docstring, config=config)
@@ -17,7 +22,7 @@ class SphinxDocString(NumpyDocString):
     def _str_indent(self, doc, indent=4):
         out = []
         for line in doc:
-            out += [' '*indent + line]
+            out += [' ' * indent + line]
         return out
 
     def _str_signature(self):
@@ -84,7 +89,7 @@ class SphinxDocString(NumpyDocString):
             if others:
                 maxlen_0 = max([len(x[0]) for x in others])
                 maxlen_1 = max([len(x[1]) for x in others])
-                hdr = "="*maxlen_0 + "  " + "="*maxlen_1 + "  " + "="*10
+                hdr = "=" * maxlen_0 + "  " + "=" * maxlen_1 + "  " + "=" * 10
                 fmt = '%%%ds  %%%ds  ' % (maxlen_0, maxlen_1)
                 n_indent = maxlen_0 + maxlen_1 + 4
                 out += [hdr]
@@ -186,25 +191,32 @@ class SphinxDocString(NumpyDocString):
         out += self._str_section('Notes')
         out += self._str_references()
         out += self._str_examples()
-        #for param_list in ('Attributes', 'Methods'):
+        # for param_list in ('Attributes', 'Methods'):
         #    out += self._str_member_list(param_list)
         out = self._str_indent(out, indent)
         return '\n'.join(out)
 
+
 class SphinxFunctionDoc(SphinxDocString, FunctionDoc):
+
     def __init__(self, obj, doc=None, config={}):
         self.use_plots = config.get('use_plots', False)
         FunctionDoc.__init__(self, obj, doc=doc, config=config)
 
+
 class SphinxClassDoc(SphinxDocString, ClassDoc):
+
     def __init__(self, obj, doc=None, func_doc=None, config={}):
         self.use_plots = config.get('use_plots', False)
         ClassDoc.__init__(self, obj, doc=doc, func_doc=None, config=config)
 
+
 class SphinxObjDoc(SphinxDocString):
+
     def __init__(self, obj, doc=None, config={}):
         self._f = obj
         SphinxDocString.__init__(self, doc, config=config)
+
 
 def get_doc_object(obj, what=None, doc=None, config={}):
     if what is None:

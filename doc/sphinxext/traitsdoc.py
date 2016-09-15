@@ -13,20 +13,23 @@ for Traits is required.
 .. [2] http://code.enthought.com/projects/traits/
 
 """
+from __future__ import absolute_import
 
 import inspect
 import os
 import pydoc
 
-import docscrape
-import docscrape_sphinx
-from docscrape_sphinx import SphinxClassDoc, SphinxFunctionDoc, SphinxDocString
+from . import docscrape
+from . import docscrape_sphinx
+from .docscrape_sphinx import SphinxClassDoc, SphinxFunctionDoc, SphinxDocString
 
-import numpydoc
+from . import numpydoc
 
-import comment_eater
+from . import comment_eater
+
 
 class SphinxTraitsDoc(SphinxClassDoc):
+
     def __init__(self, cls, modulename='', func_doc=SphinxFunctionDoc):
         if not inspect.isclass(cls):
             raise ValueError("Initialise using a class. Got %r" % cls)
@@ -70,7 +73,7 @@ class SphinxTraitsDoc(SphinxClassDoc):
             'Example': '',
             'Examples': '',
             'index': {}
-            }
+        }
 
         self._parse()
 
@@ -97,6 +100,7 @@ class SphinxTraitsDoc(SphinxClassDoc):
         out = self._str_indent(out, indent)
         return '\n'.join(out)
 
+
 def looks_like_issubclass(obj, classname):
     """ Return True if the object has a class or superclass with the given class
     name.
@@ -111,6 +115,7 @@ def looks_like_issubclass(obj, classname):
             return True
     return False
 
+
 def get_doc_object(obj, what=None, config=None):
     if what is None:
         if inspect.isclass(obj):
@@ -122,7 +127,8 @@ def get_doc_object(obj, what=None, config=None):
         else:
             what = 'object'
     if what == 'class':
-        doc = SphinxTraitsDoc(obj, '', func_doc=SphinxFunctionDoc, config=config)
+        doc = SphinxTraitsDoc(
+            obj, '', func_doc=SphinxFunctionDoc, config=config)
         if looks_like_issubclass(obj, 'HasTraits'):
             for name, trait, comment in comment_eater.get_class_traits(obj):
                 # Exclude private traits.
@@ -134,7 +140,7 @@ def get_doc_object(obj, what=None, config=None):
     else:
         return SphinxDocString(pydoc.getdoc(obj), config=config)
 
+
 def setup(app):
     # init numpydoc
     numpydoc.setup(app, get_doc_object)
-

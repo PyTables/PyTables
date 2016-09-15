@@ -16,12 +16,15 @@ files are modules, and therefore which module URIs will be passed to
 NOTE: this is a modified version of a script originally shipped with the
 PyMVPA project, which we've adapted for NIPY use.  PyMVPA is an MIT-licensed
 project."""
+from __future__ import print_function
 
 # Stdlib imports
 import os
 import re
 
 # Functions and classes
+
+
 class ApiDocWriter(object):
     ''' Class for automatic detection and parsing of API docs
     to Sphinx-parsable reST format'''
@@ -143,7 +146,7 @@ class ApiDocWriter(object):
         path = path.replace(self.package_name + os.path.sep, '')
         path = os.path.join(self.root_path, path)
         # XXX maybe check for extensions as well?
-        if os.path.exists(path + '.py'): # file
+        if os.path.exists(path + '.py'):  # file
             path += '.py'
         elif os.path.exists(os.path.join(path, '__init__.py')):
             path = os.path.join(path, '__init__.py')
@@ -168,7 +171,7 @@ class ApiDocWriter(object):
         functions, classes = self._parse_lines(f)
         f.close()
         return functions, classes
-    
+
     def _parse_lines(self, linesource):
         ''' Parse lines of text for functions and classes '''
         functions = []
@@ -206,17 +209,17 @@ class ApiDocWriter(object):
         # get the names of all classes and functions
         functions, classes = self._parse_module(uri)
         if not len(functions) and not len(classes):
-            print 'WARNING: Empty -', uri  # dbg
+            print('WARNING: Empty -', uri)  # dbg
             return ''
 
         # Make a shorter version of the uri that omits the package name for
-        # titles 
+        # titles
         uri_short = re.sub(r'^%s\.' % self.package_name, '', uri)
-        
+
         ad = '.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n'
 
         chap_title = uri_short
-        ad += (chap_title+'\n'+ self.rst_section_levels[1] * len(chap_title)
+        ad += (chap_title + '\n' + self.rst_section_levels[1] * len(chap_title)
                + '\n\n')
 
         # Set the chapter title to read 'module' for all modules except for the
@@ -245,7 +248,7 @@ class ApiDocWriter(object):
         for c in classes:
             ad += '\n:class:`' + c + '`\n' \
                   + self.rst_section_levels[multi_class + 2 ] * \
-                  (len(c)+9) + '\n\n'
+                  (len(c) + 9) + '\n\n'
             ad += '\n.. autoclass:: ' + c + '\n'
             # must NOT exclude from index to keep cross-refs working
             ad += '  :members:\n' \
@@ -291,7 +294,7 @@ class ApiDocWriter(object):
         elif match_type == 'package':
             patterns = self.package_skip_patterns
         else:
-            raise ValueError('Cannot interpret match type "%s"' 
+            raise ValueError('Cannot interpret match type "%s"'
                              % match_type)
         # Match to URI without package name
         L = len(self.package_name)
@@ -336,10 +339,10 @@ class ApiDocWriter(object):
             # Check directory names for packages
             root_uri = self._path2uri(os.path.join(self.root_path,
                                                    dirpath))
-            for dirname in dirnames[:]: # copy list - we modify inplace
+            for dirname in dirnames[:]:  # copy list - we modify inplace
                 package_uri = '.'.join((root_uri, dirname))
                 if (self._uri2path(package_uri) and
-                    self._survives_exclude(package_uri, 'package')):
+                        self._survives_exclude(package_uri, 'package')):
                     modules.append(package_uri)
                 else:
                     dirnames.remove(dirname)
@@ -348,10 +351,10 @@ class ApiDocWriter(object):
                 module_name = filename[:-3]
                 module_uri = '.'.join((root_uri, module_name))
                 if (self._uri2path(module_uri) and
-                    self._survives_exclude(module_uri, 'module')):
+                        self._survives_exclude(module_uri, 'module')):
                     modules.append(module_uri)
         return sorted(modules)
-    
+
     def write_modules_api(self, modules, outdir):
         # write the list
         written_modules = []
@@ -376,7 +379,7 @@ class ApiDocWriter(object):
         outdir : string
             Directory name in which to store files
             We create automatic filenames for each module
-            
+
         Returns
         -------
         None
@@ -390,7 +393,7 @@ class ApiDocWriter(object):
         # compose list of modules
         modules = self.discover_modules()
         self.write_modules_api(modules, outdir)
-        
+
     def write_index(self, outdir, froot='gen', relative_to=None):
         """Make a reST API index file from written files
 
@@ -412,7 +415,7 @@ class ApiDocWriter(object):
         if self.written_modules is None:
             raise ValueError('No modules written')
         # Get full filename path
-        path = os.path.join(outdir, froot+self.rst_extension)
+        path = os.path.join(outdir, froot + self.rst_extension)
         # Path written into index is relative to rootpath
         if relative_to is not None:
             relpath = outdir.replace(relative_to + os.path.sep, '')

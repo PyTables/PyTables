@@ -1,3 +1,4 @@
+from __future__ import print_function
 from tables import *
 import numarray
 
@@ -15,7 +16,7 @@ h5file = openFile("tutorial.h5", mode="w", title="Test file")
 group = h5file.createGroup("/", "detector", "Detector information")
 table = h5file.createTable(group, "readout", Particle, "Readout example")
 
-print h5file
+print(h5file)
 
 particle = table.row
 
@@ -36,6 +37,6 @@ table = h5file.root.detector.readout
 pressure = [x['pressure'] for x in table.iterrows() if x['TDCcount']>3 and
                                                        20<=x['pressure']<50]
 
-print pressure
+print(pressure)
 
 h5file.close()

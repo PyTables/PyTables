@@ -12,16 +12,18 @@
 """
 
 import sys
-import cStringIO
+from io import StringIO
 from compiler.ast import Const, Name, Tuple, Div, Mul, Sub, Add
 
+
 def unparse(ast, single_line_functions=False):
-    s = cStringIO.StringIO()
+    s = StringIO()
     UnparseCompilerAst(ast, s, single_line_functions)
     return s.getvalue().lstrip()
 
-op_precedence = { 'compiler.ast.Power':3, 'compiler.ast.Mul':2, 'compiler.ast.Div':2,
-                  'compiler.ast.Add':1, 'compiler.ast.Sub':1 }
+op_precedence = {'compiler.ast.Power': 3, 'compiler.ast.Mul': 2, 'compiler.ast.Div': 2,
+                 'compiler.ast.Add': 1, 'compiler.ast.Sub': 1}
+
 
 class UnparseCompilerAst:
     """ Methods in this class recursively traverse an AST and
@@ -33,7 +35,7 @@ class UnparseCompilerAst:
     # object interface.
     #########################################################################
 
-    def __init__(self, tree, file = sys.stdout, single_line_functions=False):
+    def __init__(self, tree, file=sys.stdout, single_line_functions=False):
         """ Unparser(tree, file=sys.stdout) -> None.
 
             Print the source for tree to file.
@@ -52,10 +54,10 @@ class UnparseCompilerAst:
 
     ### format, output, and dispatch methods ################################
 
-    def _fill(self, text = ""):
+    def _fill(self, text=""):
         "Indent a piece of text, according to the current indentation level"
         if self._do_indent:
-            self._write("\n"+"    "*self._indent + text)
+            self._write("\n" + "    " * self._indent + text)
         else:
             self._write(text)
 
@@ -78,11 +80,10 @@ class UnparseCompilerAst:
             for t in tree:
                 self._dispatch(t)
             return
-        meth = getattr(self, "_"+tree.__class__.__name__)
+        meth = getattr(self, "_" + tree.__class__.__name__)
         if tree.__class__.__name__ == 'NoneType' and not self._do_indent:
             return
         meth(tree)
-
 
     #########################################################################
     # compiler.ast unparsing methods.
@@ -98,16 +99,16 @@ class UnparseCompilerAst:
         self._write(" (")
         for i, node in enumerate(t.nodes):
             self._dispatch(node)
-            if i != len(t.nodes)-1:
+            if i != len(t.nodes) - 1:
                 self._write(") and (")
         self._write(")")
-               
+
     def _AssAttr(self, t):
         """ Handle assigning an attribute of an object
         """
         self._dispatch(t.expr)
-        self._write('.'+t.attrname)
- 
+        self._write('.' + t.attrname)
+
     def _Assign(self, t):
         """ Expression Assignment such as "a = 1".
 
@@ -145,36 +146,36 @@ class UnparseCompilerAst:
     def _AugAssign(self, t):
         """ +=,-=,*=,/=,**=, etc. operations
         """
-        
+
         self._fill()
         self._dispatch(t.node)
-        self._write(' '+t.op+' ')
+        self._write(' ' + t.op + ' ')
         self._dispatch(t.expr)
         if not self._do_indent:
             self._write(';')
-            
+
     def _Bitand(self, t):
         """ Bit and operation.
         """
-        
+
         for i, node in enumerate(t.nodes):
             self._write("(")
             self._dispatch(node)
             self._write(")")
-            if i != len(t.nodes)-1:
+            if i != len(t.nodes) - 1:
                 self._write(" & ")
-                
+
     def _Bitor(self, t):
         """ Bit or operation
         """
-        
+
         for i, node in enumerate(t.nodes):
             self._write("(")
             self._dispatch(node)
             self._write(")")
-            if i != len(t.nodes)-1:
+            if i != len(t.nodes) - 1:
                 self._write(" | ")
-                
+
     def _CallFunc(self, t):
         """ Function call.
         """
@@ -182,17 +183,23 @@ class UnparseCompilerAst:
         self._write("(")
         comma = False
         for e in t.args:
-            if comma: self._write(", ")
-            else: comma = True
+            if comma:
+                self._write(", ")
+            else:
+                comma = True
             self._dispatch(e)
         if t.star_args:
-            if comma: self._write(", ")
-            else: comma = True
+            if comma:
+                self._write(", ")
+            else:
+                comma = True
             self._write("*")
             self._dispatch(t.star_args)
         if t.dstar_args:
-            if comma: self._write(", ")
-            else: comma = True
+            if comma:
+                self._write(", ")
+            else:
+                comma = True
             self._write("**")
             self._dispatch(t.dstar_args)
         self._write(")")
@@ -216,11 +223,11 @@ class UnparseCompilerAst:
 
     def _Dict(self, t):
         self._write("{")
-        for  i, (k, v) in enumerate(t.items):
+        for i, (k, v) in enumerate(t.items):
             self._dispatch(k)
             self._write(": ")
             self._dispatch(v)
-            if i < len(t.items)-1:
+            if i < len(t.items) - 1:
                 self._write(", ")
         self._write("}")
 
@@ -248,22 +255,23 @@ class UnparseCompilerAst:
                 self._write(", ")
             self._write(name)
             if asname is not None:
-                self._write(" as "+asname)
-                
+                self._write(" as " + asname)
+
     def _Function(self, t):
         """ Handle function definitions
         """
         if t.decorators is not None:
             self._fill("@")
             self._dispatch(t.decorators)
-        self._fill("def "+t.name + "(")
-        defaults = [None] * (len(t.argnames) - len(t.defaults)) + list(t.defaults)
+        self._fill("def " + t.name + "(")
+        defaults = [None] * (len(t.argnames) -
+                             len(t.defaults)) + list(t.defaults)
         for i, arg in enumerate(zip(t.argnames, defaults)):
             self._write(arg[0])
             if arg[1] is not None:
                 self._write('=')
                 self._dispatch(arg[1])
-            if i < len(t.argnames)-1:
+            if i < len(t.argnames) - 1:
                 self._write(', ')
         self._write(")")
         if self._single_func:
@@ -282,12 +290,12 @@ class UnparseCompilerAst:
             self._write(')')
         else:
             self._dispatch(t.expr)
-            
-        self._write('.'+t.attrname)
-        
+
+        self._write('.' + t.attrname)
+
     def _If(self, t):
         self._fill()
-        
+
         for i, (compare, code) in enumerate(t.tests):
             if i == 0:
                 self._write("if ")
@@ -307,7 +315,7 @@ class UnparseCompilerAst:
             self._dispatch(t.else_)
             self._leave()
             self._write("\n")
-            
+
     def _IfExp(self, t):
         self._dispatch(t.then)
         self._write(" if ")
@@ -322,13 +330,13 @@ class UnparseCompilerAst:
         """ Handle "import xyz.foo".
         """
         self._fill("import ")
-        
+
         for i, (name, asname) in enumerate(t.names):
             if i != 0:
                 self._write(", ")
             self._write(name)
             if asname is not None:
-                self._write(" as "+asname)
+                self._write(" as " + asname)
 
     def _Keyword(self, t):
         """ Keyword value assignment within function calls and definitions.
@@ -336,12 +344,12 @@ class UnparseCompilerAst:
         self._write(t.name)
         self._write("=")
         self._dispatch(t.expr)
-        
+
     def _List(self, t):
         self._write("[")
-        for  i, node in enumerate(t.nodes):
+        for i, node in enumerate(t.nodes):
             self._dispatch(node)
-            if i < len(t.nodes)-1:
+            if i < len(t.nodes) - 1:
                 self._write(", ")
         self._write("]")
 
@@ -358,20 +366,20 @@ class UnparseCompilerAst:
 
     def _NoneType(self, t):
         self._write("None")
-        
+
     def _Not(self, t):
         self._write('not (')
         self._dispatch(t.expr)
         self._write(')')
-        
+
     def _Or(self, t):
         self._write(" (")
         for i, node in enumerate(t.nodes):
             self._dispatch(node)
-            if i != len(t.nodes)-1:
+            if i != len(t.nodes) - 1:
                 self._write(") or (")
         self._write(")")
-                
+
     def _Pass(self, t):
         self._write("pass\n")
 
@@ -383,8 +391,10 @@ class UnparseCompilerAst:
             self._write(", ")
         comma = False
         for node in t.nodes:
-            if comma: self._write(', ')
-            else: comma = True
+            if comma:
+                self._write(', ')
+            else:
+                comma = True
             self._dispatch(node)
 
     def _Power(self, t):
@@ -394,7 +404,7 @@ class UnparseCompilerAst:
         self._fill("return ")
         if t.value:
             if isinstance(t.value, Tuple):
-                text = ', '.join([ name.name for name in t.value.asList() ])
+                text = ', '.join([name.name for name in t.value.asList()])
                 self._write(text)
             else:
                 self._dispatch(t.value)
@@ -409,7 +419,7 @@ class UnparseCompilerAst:
         self._write(":")
         if t.upper:
             self._dispatch(t.upper)
-        #if t.step:
+        # if t.step:
         #    self._write(":")
         #    self._dispatch(t.step)
         self._write("]")
@@ -452,7 +462,7 @@ class UnparseCompilerAst:
             self._enter()
             self._dispatch(handler[2])
             self._leave()
-            
+
         if t.else_:
             self._fill("else")
             self._enter()
@@ -477,14 +487,14 @@ class UnparseCompilerAst:
             self._dispatch(last_element)
 
             self._write(")")
-            
+
     def _UnaryAdd(self, t):
         self._write("+")
         self._dispatch(t.expr)
-        
+
     def _UnarySub(self, t):
         self._write("-")
-        self._dispatch(t.expr)        
+        self._dispatch(t.expr)
 
     def _With(self, t):
         self._fill('with ')
@@ -496,7 +506,7 @@ class UnparseCompilerAst:
         self._dispatch(t.body)
         self._leave()
         self._write('\n')
-        
+
     def _int(self, t):
         self._write(repr(t))
 
@@ -505,7 +515,7 @@ class UnparseCompilerAst:
         has_paren = False
         left_class = str(t.left.__class__)
         if (left_class in op_precedence.keys() and
-            op_precedence[left_class] < op_precedence[str(t.__class__)]):
+                op_precedence[left_class] < op_precedence[str(t.__class__)]):
             has_paren = True
         if has_paren:
             self._write('(')
@@ -518,7 +528,7 @@ class UnparseCompilerAst:
         has_paren = False
         right_class = str(t.right.__class__)
         if (right_class in op_precedence.keys() and
-            op_precedence[right_class] < op_precedence[str(t.__class__)]):
+                op_precedence[right_class] < op_precedence[str(t.__class__)]):
             has_paren = True
         if has_paren:
             self._write('(')
@@ -533,7 +543,7 @@ class UnparseCompilerAst:
 
     def _str(self, t):
         self._write(repr(t))
-        
+
     def _tuple(self, t):
         self._write(str(t))
 
@@ -561,17 +571,17 @@ class UnparseCompilerAst:
 #            if a.asname:
 #                self._write(" as "+a.asname)
 #
-##    def _ImportFrom(self, t):
+# def _ImportFrom(self, t):
 ##        self._fill("from ")
-##        self._write(t.module)
+# self._write(t.module)
 ##        self._write(" import ")
-##        for i, a in enumerate(t.names):
-##            if i == 0:
+# for i, a in enumerate(t.names):
+# if i == 0:
 ##                self._write(", ")
-##            self._write(a.name)
-##            if a.asname:
+# self._write(a.name)
+# if a.asname:
 ##                self._write(" as "+a.asname)
-##        # XXX(jpe) what is level for?
+# XXX(jpe) what is level for?
 ##
 #
 #    def _Break(self, t):
@@ -788,29 +798,29 @@ class UnparseCompilerAst:
 #        self._write(".")
 #        self._write(t.attr)
 #
-##    def _Call(self, t):
-##        self._dispatch(t.func)
-##        self._write("(")
+# def _Call(self, t):
+# self._dispatch(t.func)
+# self._write("(")
 ##        comma = False
-##        for e in t.args:
+# for e in t.args:
 ##            if comma: self._write(", ")
-##            else: comma = True
-##            self._dispatch(e)
-##        for e in t.keywords:
+# else: comma = True
+# self._dispatch(e)
+# for e in t.keywords:
 ##            if comma: self._write(", ")
-##            else: comma = True
-##            self._dispatch(e)
-##        if t.starargs:
+# else: comma = True
+# self._dispatch(e)
+# if t.starargs:
 ##            if comma: self._write(", ")
-##            else: comma = True
-##            self._write("*")
-##            self._dispatch(t.starargs)
-##        if t.kwargs:
+# else: comma = True
+# self._write("*")
+# self._dispatch(t.starargs)
+# if t.kwargs:
 ##            if comma: self._write(", ")
-##            else: comma = True
-##            self._write("**")
-##            self._dispatch(t.kwargs)
-##        self._write(")")
+# else: comma = True
+# self._write("**")
+# self._dispatch(t.kwargs)
+# self._write(")")
 #
 #    # slice
 #    def _Index(self, t):
@@ -845,16 +855,13 @@ class UnparseCompilerAst:
 #            else: self._write(", ")
 #            self._write("**"+t.kwarg)
 #
-##    def _keyword(self, t):
-##        self._write(t.arg)
-##        self._write("=")
-##        self._dispatch(t.value)
+# def _keyword(self, t):
+# self._write(t.arg)
+# self._write("=")
+# self._dispatch(t.value)
 #
 #    def _Lambda(self, t):
 #        self._write("lambda ")
 #        self._dispatch(t.args)
 #        self._write(": ")
 #        self._dispatch(t.body)
-
-
-
