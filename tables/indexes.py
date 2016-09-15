@@ -20,6 +20,7 @@ from .node import NotLoggedMixin
 from .carray import CArray
 from .earray import EArray
 from . import indexesextension
+import six
 
 
 # Declarations for inheriting
@@ -32,7 +33,6 @@ class CacheArray(indexesextension.CacheArray, NotLoggedMixin, EArray):
     _c_classid = 'CACHEARRAY'
 
 
-
 class LastRowArray(indexesextension.LastRowArray, NotLoggedMixin, CArray):
     """Container for keeping sorted and indices values of last row of an
     index."""
@@ -41,7 +41,7 @@ class LastRowArray(indexesextension.LastRowArray, NotLoggedMixin, CArray):
     _c_classid = 'LASTROWARRAY'
 
 
-
+@six.python_2_unicode_compatible
 class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
@@ -72,7 +72,6 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
 
     # Class identifier.
     _c_classid = 'INDEXARRAY'
-
 
     # Properties
     # ~~~~~~~~~~
@@ -173,7 +172,6 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
             result2 = indexesextension._bisect_right(chunk, item2, chunksize)
             result2 += chunksize * nchunk2
         return (result1, result2)
-
 
     def __str__(self):
         "A compact representation of this class"
