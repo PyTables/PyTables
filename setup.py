@@ -32,8 +32,13 @@ import distutils.spawn
 from setuptools.command.build_ext import build_ext
 
 # For guessing the capabilities of the CPU for C-Blosc
-import cpuinfo
-cpu_info = cpuinfo.get_cpu_info()
+try:
+    import cpuinfo
+    cpu_info = cpuinfo.get_cpu_info()
+    cpu_flags = cpu_info['flags']
+except Exception as e:
+    print('cpuinfo failed, assuming no CPU features:', e)
+    cpu_flags = []
 
 # The name for the pkg-config utility
 PKG_CONFIG = 'pkg-config'
@@ -812,7 +817,7 @@ if 'BLOSC' not in optional_libs:
             os.remove(fd.name)
 
     # SSE2
-    if 'sse2' in cpu_info['flags']:
+    if 'sse2' in cpu_flags:
         print('SSE2 detected')
         CFLAGS.append('-DSHUFFLE_SSE2_ENABLED')
         if os.name == 'nt':
@@ -826,7 +831,7 @@ if 'BLOSC' not in optional_libs:
                           if 'sse2' in f]
     # AVX2
     # Detection code for AVX2 only works for gcc/clang, not for MSVC yet
-    if ('avx2' in cpu_info['flags'] and
+    if ('avx2' in cpu_flags and
         compiler_has_flags(compiler, ["-mavx2"])):
         print('AVX2 detected')
         CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
