@@ -725,10 +725,11 @@ if newer('VERSION', 'src/version.h'):
 # PyTables contains data files for tests.
 setuptools_kwargs['zip_safe'] = False
 
-setuptools_kwargs['extras_require'] = {}
 setuptools_kwargs['install_requires'] = requirements
+
 # Detect packages automatically.
 setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
+
 # Entry points for automatic creation of scripts.
 setuptools_kwargs['entry_points'] = {
     'console_scripts': [
@@ -991,5 +992,10 @@ interactively save and retrieve large amounts of data.
     ext_modules=extensions,
     cmdclass=cmdclass,
     data_files=data_files,
+    extra_require={
+        'doc': [
+            'sphinx >= 1.1',
+            'numpydoc',
+            'ipython' ]},
     **setuptools_kwargs
 )
