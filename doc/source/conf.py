@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.0'
+needs_sphinx = '1.1'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -10,7 +10,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
-    'sphinx.ext.pngmath',
+    'sphinx.ext.mathjax',
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.extlinks',
     'sphinx.ext.todo',
@@ -32,8 +32,8 @@ source_encoding = 'utf-8'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PyTables'
-copyright = u'2011-2014, PyTables maintainers'
+project = 'PyTables'
+copyright = '2011-2016, PyTables maintainers'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -42,6 +42,7 @@ copyright = u'2011-2014, PyTables maintainers'
 # The short X.Y version.
 VERSION = open('../../VERSION').read().strip()
 version = VERSION
+
 # The full version, including alpha/beta/rc tags.
 release = VERSION
 
