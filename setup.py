@@ -995,6 +995,7 @@ interactively save and retrieve large amounts of data.
     extra_require={
         'doc': [
             'sphinx >= 1.1',
+            'sphinx_rtd_theme',
             'numpydoc',
             'ipython' ]},
     **setuptools_kwargs
