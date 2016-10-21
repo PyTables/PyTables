@@ -63,7 +63,7 @@ useful:
   <http://www.pytables.org/docs/HDF_IX_Workshop.pdf>`_, held at San Francisco,
   USA (December 2005).
 * `I <http://www.pytables.org/docs/taller-sf1-color.pdf>`_ and
-  `II <http://www.pytables.org/docs/taller-sf2-color.pdf>`_ **Workshop in Free
+  `II <http://www.pytables.org/docs/taller-sf2-color.pdf>`_ (links broken) **Workshop in Free
   Software and Scientific Computing** given at the Universitat Jaume I,
   Castelló, Spain (October 2004). In Catalan.
 * `Presentation given at the "SciPy Workshop 2004"
