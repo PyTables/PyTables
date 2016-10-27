@@ -426,8 +426,8 @@ def main():
         )
 
     # Catch the files passed as the last arguments
-    src = args.src.split(':')
-    dst = args.dst.split(':')
+   src = pargs[0].rsplit(':', 1)
+   dst = pargs[1].rsplit(':', 1)
     if len(src) == 1:
         srcfile, srcnode = src[0], "/"
     else:
