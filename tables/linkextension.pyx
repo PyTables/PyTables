@@ -22,7 +22,7 @@ from libc.string cimport strlen
 from cpython cimport PY_MAJOR_VERSION
 from cpython.unicode cimport PyUnicode_DecodeUTF8
 from definitions cimport (H5P_DEFAULT,
-  const_char, hid_t, herr_t, hbool_t, int64_t, H5T_cset_t, haddr_t)
+    hid_t, herr_t, hbool_t, int64_t, H5T_cset_t, haddr_t)
 
 
 
@@ -74,7 +74,7 @@ cdef extern from "H5Lpublic.h" nogil:
 
   herr_t H5Lunpack_elink_val(
     char *ext_linkval, size_t link_size, unsigned *flags,
-    const_char **filename, const_char **obj_path)
+    const char **filename, const char **obj_path)
 
   herr_t H5Lcopy(
     hid_t src_loc_id, char *src_name, hid_t dest_loc_id, char *dest_name,
@@ -255,8 +255,8 @@ cdef class ExternalLink(Link):
       raise HDF5ExtError("failed to get target value")
 
     ret = H5Lunpack_elink_val(clinkval, val_size, &flags,
-                              <const_char **>&cfilename,
-                              <const_char **>&c_obj_path)
+                              <const char **>&cfilename,
+                              <const char **>&c_obj_path)
     if ret < 0:
       raise HDF5ExtError("failed to unpack external link value")
 

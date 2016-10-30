@@ -68,7 +68,7 @@ from cpython.bytes cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
 from cpython.unicode cimport PyUnicode_DecodeUTF8
 
 
-from definitions cimport (const_char, uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
+from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED,
   H5O_TYPE_UNKNOWN, H5O_TYPE_GROUP, H5O_TYPE_DATASET, H5O_TYPE_NAMED_DATATYPE,
   H5L_TYPE_ERROR, H5L_TYPE_HARD, H5L_TYPE_SOFT, H5L_TYPE_EXTERNAL,

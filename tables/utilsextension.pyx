@@ -201,7 +201,7 @@ cdef extern from "H5ARRAY.h" nogil:
 
 # @TODO: use the c_string_type and c_string_encoding global directives
 #        (new in cython 0.19)
-cdef str cstr_to_pystr(const_char* cstring):
+cdef str cstr_to_pystr(const char* cstring):
   if PY_MAJOR_VERSION > 2:
     pystring = PyUnicode_DecodeUTF8(cstring, strlen(cstring), NULL)
   else:
@@ -356,9 +356,7 @@ else:  # Unix systems
 #---------------------------------------------------------------------
 
 # Error handling helpers
-# XXX: silence warning about incompatible pointer types
-#ctypedef H5E_error_t* const_H5E_error_t_ptr "const H5E_error_t*"
-cdef herr_t e_walk_cb(unsigned n, H5E_error_t *err, void *data) with gil:
+cdef herr_t e_walk_cb(unsigned n, const H5E_error_t *err, void *data) with gil:
     cdef object bt = <object>data   # list
     #cdef char major_msg[256]
     #cdef char minor_msg[256]
@@ -799,7 +797,8 @@ def blosc_get_complib_info_():
 
   """
 
-  cdef char *complib, *version
+  cdef char *complib
+  cdef char *version
 
   cinfo = {}
   for name in blosc_list_compressors().split(b','):

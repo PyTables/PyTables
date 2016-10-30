@@ -15,8 +15,6 @@
 import sys
 
 cdef extern from *:
-  ctypedef char const_char 'const char'
-  #ctypedef long size_t
   ctypedef long uintptr_t
 
 # Standard C functions.
@@ -281,9 +279,9 @@ cdef extern from "hdf5.h" nogil:
     hid_t       maj_num     # major error ID
     hid_t       min_num     # minor error number
     unsigned    line        # line in file where error occurs
-    const_char  *func_name  # function in which error occurred
-    const_char  *file_name  # file in which error occurred
-    const_char  *desc       # optional supplied description
+    const char  *func_name  # function in which error occurred
+    const char  *file_name  # file in which error occurred
+    const char  *desc       # optional supplied description
 
   ctypedef herr_t (*H5E_walk_t)(unsigned n, H5E_error_t *err, void *data)
   ctypedef herr_t (*H5E_auto_t)(hid_t estack, void *data)
@@ -433,7 +431,7 @@ cdef extern from "hdf5.h" nogil:
   #                          size_t *block_size, size_t *cbuf_size)
   #herr_t H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
   #                          size_t block_size, size_t cbuf_size)
-  herr_t H5Pset_fapl_log(hid_t fapl_id, const_char *logfile,
+  herr_t H5Pset_fapl_log(hid_t fapl_id, const char *logfile,
                          unsigned long long flags, size_t buf_size)
   #herr_t H5Pset_fapl_windows(hid_t fapl_id)
   herr_t H5Pset_fapl_stdio(hid_t fapl_id)
@@ -446,7 +444,7 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Pset_fapl_family(hid_t fapl_id, hsize_t memb_size,
                             hid_t memb_fapl_id)
   #herr_t H5Pget_fapl_multi(hid_t fapl_id, H5FD_mem_t *memb_map,
-  #                         hid_t *memb_fapl, const_char **memb_name,
+  #                         hid_t *memb_fapl, const char **memb_name,
   #                         haddr_t *memb_addr, hbool_t *relax)
   herr_t H5Pset_fapl_multi(hid_t fapl_id, H5FD_mem_t *memb_map,
                            hid_t *memb_fapl, char **memb_name,
