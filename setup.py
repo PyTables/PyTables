@@ -723,7 +723,7 @@ cython_extfiles = get_cython_extfiles(cython_extnames)
 
 # Update the version.h file if this file is newer
 if newer('VERSION', 'src/version.h'):
-    with open('src/version.h', 'w') ad fd:
+    with open('src/version.h', 'w') as fd:
         fd.write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 
 # --------------------------------------------------------------------
