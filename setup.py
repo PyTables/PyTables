@@ -103,10 +103,12 @@ if sys.version_info < min_python_version:
 print("* Using Python %s" % sys.version.splitlines()[0])
 
 # Minumum equired versions for numpy, numexpr and HDF5
-exec(open(os.path.join('tables', 'req_versions.py')).read())
+with open(os.path.join('tables', 'req_versions.py')) as fd:
+    exec(fd.read())
 
 
-VERSION = open('VERSION').read().strip()
+with open('VERSION') as fd:
+    VERSION = fd.read().strip()
 
 # ----------------------------------------------------------------------
 
@@ -721,8 +723,8 @@ cython_extfiles = get_cython_extfiles(cython_extnames)
 
 # Update the version.h file if this file is newer
 if newer('VERSION', 'src/version.h'):
-    open('src/version.h', 'w').write(
-        '#define PYTABLES_VERSION "%s"\n' % VERSION)
+    with open('src/version.h', 'w') ad fd:
+        fd.write('#define PYTABLES_VERSION "%s"\n' % VERSION)
 
 # --------------------------------------------------------------------
 
