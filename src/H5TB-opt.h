@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-herr_t H5TBOmake_table( const char *table_title,
+hid_t H5TBOmake_table(  const char *table_title,
                         hid_t loc_id,
                         const char *dset_name,
                         char *version,

@@ -31,7 +31,7 @@
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ARRAYmake( hid_t loc_id,
+hid_t H5ARRAYmake(  hid_t loc_id,
                     const char *dset_name,
                     const char *obversion,
                     const int rank,
@@ -138,7 +138,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
        blosc_compcode = blosc_compname_to_compcode(blosc_compname);
        cd_values[6] = blosc_compcode;
        if ( H5Pset_filter( plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0 )
-	 return -1;
+         return -1;
      }
      /* The LZO compressor does accept parameters */
      else if (strcmp(complib, "lzo") == 0) {
