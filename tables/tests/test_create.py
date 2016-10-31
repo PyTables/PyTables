@@ -627,7 +627,7 @@ class FiltersCaseBloscLZ4(FiltersTreeTestCase):
     def setUp(self):
         self.filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4")
         self.gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4")
-        self.open_kwargs = dict(filters=filters)
+        self.open_kwargs = dict(filters=self.filters)
         super(FiltersCaseBloscLZ4, self).setUp()
 
 
@@ -640,7 +640,7 @@ class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
             shuffle=False, complevel=1, complib="blosc:lz4hc")
         self.gfilters = Filters(
             complevel=5, shuffle=True, complib="blosc:lz4hc")
-        self.open_kwargs = dict(filters=filters)
+        self.open_kwargs = dict(filters=self.filters)
         super(FiltersCaseBloscLZ4HC, self).setUp()
 
 
@@ -654,7 +654,7 @@ class FiltersCaseBloscSnappy(FiltersTreeTestCase):
             shuffle=False, complevel=1, complib="blosc:snappy")
         self.gfilters = Filters(
             complevel=5, shuffle=True, complib="blosc:snappy")
-        self.open_kwargs = dict(filters=filters)
+        self.open_kwargs = dict(filters=self.filters)
         super(FiltersCaseBloscSnappy, self).setUp()
 
 
@@ -665,7 +665,7 @@ class FiltersCaseBloscZlib(FiltersTreeTestCase):
     def setUp(self):
         self.filters = Filters(shuffle=False, complevel=1, complib="blosc:zlib")
         self.gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zlib")
-        self.open_kwargs = dict(filters=filters)
+        self.open_kwargs = dict(filters=self.filters)
         super(FiltersCaseBloscZlib, self).setUp()
 
 
@@ -676,7 +676,7 @@ class FiltersCaseBloscZstd(FiltersTreeTestCase):
     def setUp(self):
         self.filters = Filters(shuffle=False, complevel=1, complib="blosc:zstd")
         self.gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zstd")
-        self.open_kwargs = dict(filters=filters)
+        self.open_kwargs = dict(filters=self.filters)
         super(FiltersCaseBloscZstd, self).setUp()
 
 
