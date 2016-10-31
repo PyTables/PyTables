@@ -5,7 +5,7 @@
 VERSION = $(shell cat VERSION)
 SRCDIRS = src doc
 GENERATED = ANNOUNCE.txt
-PYTHON = python
+PYTHON = python3
 PYPLATFORM = $(shell $(PYTHON) -c "from distutils.util import get_platform; print(get_platform())")
 PYVER = $(shell $(PYTHON) -V 2>&1 | cut -c 8-10)
 PYBUILDDIR = $(PWD)/build/lib.$(PYPLATFORM)-$(PYVER)
