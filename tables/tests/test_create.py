@@ -624,18 +624,24 @@ class FiltersCaseBloscBloscLZ(FiltersTreeTestCase):
                  'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4(FiltersTreeTestCase):
-    filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4")
-    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4")
-    open_kwargs = dict(filters=filters)
+    def setUp(self):
+        self.filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4")
+        self.gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4")
+        self.open_kwargs = dict(filters=filters)
+        super(FiltersCaseBloscLZ4, self).setUp()
 
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
-    filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4hc")
-    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4hc")
-    open_kwargs = dict(filters=filters)
+    def setUp(self):
+        self.filters = Filters(
+            shuffle=False, complevel=1, complib="blosc:lz4hc")
+        self.gfilters = Filters(
+            complevel=5, shuffle=True, complib="blosc:lz4hc")
+        self.open_kwargs = dict(filters=filters)
+        super(FiltersCaseBloscLZ4HC, self).setUp()
 
 
 @unittest.skipIf(not common.blosc_avail,
@@ -643,26 +649,36 @@ class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
 @unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
                  'snappy required')
 class FiltersCaseBloscSnappy(FiltersTreeTestCase):
-    filters = Filters(shuffle=False, complevel=1, complib="blosc:snappy")
-    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:snappy")
-    open_kwargs = dict(filters=filters)
+    def setUp(self):
+        self.filters = Filters(
+            shuffle=False, complevel=1, complib="blosc:snappy")
+        self.gfilters = Filters(
+            complevel=5, shuffle=True, complib="blosc:snappy")
+        self.open_kwargs = dict(filters=filters)
+        super(FiltersCaseBloscSnappy, self).setUp()
 
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 @unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
 class FiltersCaseBloscZlib(FiltersTreeTestCase):
-    filters = Filters(shuffle=False, complevel=1, complib="blosc:zlib")
-    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zlib")
-    open_kwargs = dict(filters=filters)
+    def setUp(self):
+        self.filters = Filters(shuffle=False, complevel=1, complib="blosc:zlib")
+        self.gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zlib")
+        self.open_kwargs = dict(filters=filters)
+        super(FiltersCaseBloscZlib, self).setUp()
+
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 @unittest.skipIf('zstd' not in tables.blosc_compressor_list(), 'zstd required')
 class FiltersCaseBloscZstd(FiltersTreeTestCase):
-    filters = Filters(shuffle=False, complevel=1, complib="blosc:zstd")
-    gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zstd")
-    open_kwargs = dict(filters=filters)
+    def setUp(self):
+        self.filters = Filters(shuffle=False, complevel=1, complib="blosc:zstd")
+        self.gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zstd")
+        self.open_kwargs = dict(filters=filters)
+        super(FiltersCaseBloscZstd, self).setUp()
+
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
