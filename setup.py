@@ -343,16 +343,17 @@ def get_hdf5_version(headername):
     major_version = -1
     minor_version = -1
     release_version = -1
-    for line in open(headername):
-        if 'H5_VERS_MAJOR' in line:
-            major_version = int(re.split("\s*", line)[2])
-        if 'H5_VERS_MINOR' in line:
-            minor_version = int(re.split("\s*", line)[2])
-        if 'H5_VERS_RELEASE' in line:
-            release_version = int(re.split("\s*", line)[2])
-        if (major_version != -1 and minor_version != -1 and
-                release_version != -1):
-            break
+    with open(headername) as fd:
+        for line in fd:
+            if 'H5_VERS_MAJOR' in line:
+                major_version = int(re.split("\s*", line)[2])
+            if 'H5_VERS_MINOR' in line:
+                minor_version = int(re.split("\s*", line)[2])
+            if 'H5_VERS_RELEASE' in line:
+                release_version = int(re.split("\s*", line)[2])
+            if (major_version != -1 and minor_version != -1 and
+                    release_version != -1):
+                break
     if (major_version == -1 or minor_version == -1 or
             release_version == -1):
         exit_with_error("Unable to detect HDF5 library version!")
@@ -590,7 +591,8 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
             package.library_name = hdf5_old_dll_name
             package.runtime_name = hdf5_old_dll_name
             _platdep['HDF5'] = [hdf5_old_dll_name, hdf5_old_dll_name]
-            _, libdir, rundir = package.find_directories(location, use_pkgconfig=USE_PKGCONFIG)
+            _, libdir, rundir = package.find_directories(
+                location, use_pkgconfig=USE_PKGCONFIG)
 
     # check if the library is in the standard compiler paths
     if not libdir and package.target_function:
