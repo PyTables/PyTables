@@ -1,6 +1,8 @@
 environment:
-
-  # Make setup.py include conda specific dll's in wheels
+  PACKAGE_NAME: tables
+  BUILD_DEPENDS: "numpy>=1.8.0 numexpr>=2.5.2 six cython bzip2"
+  TEST_DEPENDS: "numpy>=1.8.0 numexpr>=2.5.2 six"
+  # Make setup.py include conda specific dll's in wheel
   BUILDWHEEL: True
 
   global:
@@ -18,6 +20,12 @@ environment:
     - PYTHON: "C:\\Miniconda-x64"
       PYTHON_VERSION: "2.7"
       PYTHON_ARCH: "64"
+      HDF5_VERSION: "1.8"
+
+    - PYTHON: "C:\\Miniconda-x64"
+      PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "64"
+      HDF5_VERSION: "1.10"
 
 #    - PYTHON: "C:\\Miniconda35"
 #      PYTHON_VERSION: "3.5"
@@ -26,32 +34,44 @@ environment:
     - PYTHON: "C:\\Miniconda35-x64"
       PYTHON_VERSION: "3.5"
       PYTHON_ARCH: "64"
+      HDF5_VERSION: "1.8"
+
+    - PYTHON: "C:\\Miniconda35-x64"
+      PYTHON_VERSION: "3.5"
+      PYTHON_ARCH: "64"
+      HDF5_VERSION: "1.10"
 
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
-  - powershell .\\ci\\appveyor\\install.ps1   
+  - powershell .\\ci\\appveyor\\install.ps1
   - powershell .\\ci\\appveyor\\missing-headers.ps1
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
-  - cmd: conda install --yes numexpr cython bzip2
-  # Install hdf5=1.8.17 from conda-forge. Anaconda default is 1.8.16.
-  - cmd: conda install --yes -c conda-forge hdf5=1.8.17 
-  - cmd: set HDF5_DIR="%PYTHON%\\Library\\"
-  - cmd: set BZIP2_DIR="%PYTHON%\\Library\\" 
-  - cmd: SET LIBRARY_PATH="%HDF5_DIR%\\lib"
-  # Make sure the wheel works:
-  # Build wheel and install using pip. 
-  - "%CMD_IN_ENV% python setup.py bdist_wheel"
-  - cmd: dir /B dist\*whl >WHEEL
-  - cmd: set /p WHEEL=<WHEEL
-  - cmd: pip install dist\%WHEEL%
+  - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
 
-build: false
+build_script:
+  - conda install --yes %BUILD_DEPENDS%
+
+  # Install HDF5 Library
+  # Add tomkooij channel for HDF5 v1.10 conda packages
+  - conda config --add channels http://conda.anaconda.org/tomkooij
+  - conda install --yes hdf5=%HDF5_VERSION%
+  - "set HDF5_DIR=%PYTHON%\\Library"
+  - "set BZIP2_DIR=%PYTHON%\\Library\\"
+  - "set LIBRARY_PATH=%HDF5_DIR%\\lib"
+
+  # Build wheel
+  - "%CMD_IN_ENV% python setup.py bdist_wheel"
 
 test_script:
-  - cmd: cd ..
-  - cmd: python -m tables.tests.test_all
+  # create test env
+  - conda create --yes -n test_env python=%PYTHON_VERSION% %TEST_DEPENDS%
+  - activate test_env
+
+  # install from wheel
+  - pip install --no-index --find-links dist/ %PACKAGE_NAME%
+
+  - cd ..
+  - python -m tables.tests.test_all
 
 artifacts:
-  # download wheels
-  - path: dist\*
+    - path: "dist\\*"
