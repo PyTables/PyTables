@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-herr_t H5VLARRAYmake( hid_t loc_id,
+hid_t H5VLARRAYmake(  hid_t loc_id,
                       const char *dset_name,
                       const char *obversion,
                       const int rank,

@@ -523,6 +523,7 @@ CFLAGS.append("-Isrc")
 # Force the 1.8.x HDF5 API even if the library as been compiled to use the
 # 1.6.x API by default
 CFLAGS.extend([
+    "-DH5_USE_18_API",
     "-DH5Acreate_vers=2",
     "-DH5Aiterate_vers=2",
     "-DH5Dcreate_vers=2",
@@ -579,11 +580,6 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
             exit_with_error(
                 "Unsupported HDF5 version! HDF5 v%s+ required. "
                 "Found version v%s" % (min_hdf5_version, hdf5_version))
-
-        if hdf5_version >= "1.10":
-            exit_with_error(
-                "HDF5 1.10 release not supported. HDF5 v1.8 release required. "
-                "Found version v%s" % (hdf5_version))
 
         if os.name == 'nt' and hdf5_version < "1.8.10":
             # Change in DLL naming happened in 1.8.10

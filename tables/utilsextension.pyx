@@ -1155,6 +1155,7 @@ def enum_to_hdf5(object enum_atom, str byteorder):
 
 def atom_to_hdf5_type(atom, str byteorder):
   cdef hid_t   tid = -1
+  cdef hid_t   tid2 = -1
   cdef hsize_t *dims = NULL
   cdef bytes   encoded_byteorder
   cdef char    *cbyteorder = NULL

@@ -49,7 +49,7 @@ Prerequisites
 First, make sure that you have
 
 * Python_ >= 2.7 including Python 3.x
-* HDF5_ >= 1.8.4 (>=1.8.15 is strongly recommended, HDF5 v1.10 not supported)
+* HDF5_ >= 1.8.4 (>=1.8.15 is strongly recommended)
 * NumPy_ >= 1.8.1
 * Numexpr_ >= 2.5.2
 * Cython_ >= 0.21
