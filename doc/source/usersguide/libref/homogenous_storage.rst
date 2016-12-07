@@ -32,7 +32,7 @@ Array methods
 
 .. automethod:: Array.iterrows
 
-.. automethod:: Array.next
+.. automethod:: Array.__next__
 
 .. automethod:: Array.read
 
@@ -105,7 +105,7 @@ VLArray methods
 
 .. automethod:: VLArray.iterrows
 
-.. automethod:: VLArray.next
+.. automethod:: VLArray.__next__
 
 .. automethod:: VLArray.read
 
