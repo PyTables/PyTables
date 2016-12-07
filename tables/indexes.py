@@ -25,7 +25,7 @@ from . import indexesextension
 # Declarations for inheriting
 
 
-class CacheArray(NotLoggedMixin, EArray, indexesextension.CacheArray):
+class CacheArray(indexesextension.CacheArray, NotLoggedMixin, EArray):
     """Container for keeping index caches of 1st and 2nd level."""
 
     # Class identifier.
@@ -33,7 +33,7 @@ class CacheArray(NotLoggedMixin, EArray, indexesextension.CacheArray):
 
 
 
-class LastRowArray(NotLoggedMixin, CArray, indexesextension.LastRowArray):
+class LastRowArray(indexesextension.LastRowArray, NotLoggedMixin, CArray):
     """Container for keeping sorted and indices values of last row of an
     index."""
 
@@ -42,7 +42,7 @@ class LastRowArray(NotLoggedMixin, CArray, indexesextension.LastRowArray):
 
 
 
-class IndexArray(NotLoggedMixin, EArray, indexesextension.IndexArray):
+class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
     All NumPy typecodes are supported except for complex datatypes.
