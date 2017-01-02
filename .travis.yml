@@ -4,6 +4,7 @@ python:
   - 2.7
   - 3.4
   - 3.5
+  - 3.6
 
 sudo: false
 
@@ -29,4 +30,3 @@ notifications:
     urls:
       - https://webhooks.gitter.im/e/58f8a9014ef02f6217ec
     on_success: change
-
