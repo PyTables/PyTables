@@ -67,8 +67,8 @@ build_script:
   # Add tomkooij channel for HDF5 v1.10 conda packages
   - conda config --add channels http://conda.anaconda.org/tomkooij
   - conda install --yes hdf5=%HDF5_VERSION%
-  - "set HDF5_DIR=%PYTHON%\\Library"
-  - "set BZIP2_DIR=%PYTHON%\\Library\\"
+  - "set HDF5_DIR=%CONDA_PREFIX%\\Library"
+  - "set BZIP2_DIR=%CONDA_PREFIX%\\Library\\"
   - "set LIBRARY_PATH=%HDF5_DIR%\\lib"
 
   # Build wheel
