@@ -41,6 +41,16 @@ environment:
       PYTHON_ARCH: "64"
       HDF5_VERSION: "1.10"
 
+    - PYTHON: "C:\\Miniconda35-x64"
+      PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "64"
+      HDF5_VERSION: "1.8"
+
+    - PYTHON: "C:\\Miniconda35-x64"
+      PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "64"
+      HDF5_VERSION: "1.10"
+
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
@@ -49,14 +59,16 @@ install:
   - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
 
 build_script:
-  - conda install --yes %BUILD_DEPENDS%
+  - conda config --add channels conda-forge
+  - conda create --yes -n build_env python=%PYTHON_VERSION% %BUILD_DEPENDS%
+  - activate build_env
 
   # Install HDF5 Library
   # Add tomkooij channel for HDF5 v1.10 conda packages
   - conda config --add channels http://conda.anaconda.org/tomkooij
   - conda install --yes hdf5=%HDF5_VERSION%
-  - "set HDF5_DIR=%PYTHON%\\Library"
-  - "set BZIP2_DIR=%PYTHON%\\Library\\"
+  - "set HDF5_DIR=%CONDA_PREFIX%\\Library"
+  - "set BZIP2_DIR=%CONDA_PREFIX%\\Library\\"
   - "set LIBRARY_PATH=%HDF5_DIR%\\lib"
 
   # Build wheel

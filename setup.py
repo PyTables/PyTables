@@ -408,7 +408,7 @@ elif os.name == 'nt':
         if os.environ['APPVEYOR'] and os.environ['BUILDWHEEL']:
             # Conda HDF5 is linked to zlib.dll (from conda package zlib)
             # but szip.dll is not included in conda
-            dll_files = [os.environ['PYTHON']+'\\Library\\bin\\zlib.dll']
+            dll_files = [os.environ['CONDA_PREFIX']+'\\Library\\bin\\zlib.dll']
     except KeyError:
         # Update these paths for your own system!
         dll_files = [
