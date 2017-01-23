@@ -10,9 +10,18 @@
 Changes from 3.3.0 to 3.3.X
 ===========================
 
+Improvements
+------------
+
 - Support for HDF5 v1.10.x (see :issue:`582`)
 - Fix compatibility with the upcoming Python 2.7.13, 3.5.3 and 3.6 versions.
   See also :issue:`590`
+
+Bugs fixed
+----------
+
+- Fix conversion of python 2 `long` type to `six.integer_types` in atom.py.
+  See also :issue:`598`. Thanks to Kyle Keppler for reporting.
 
 
 Changes from 3.2.3.1 to 3.3
@@ -44,4 +53,3 @@ Bugs fixed
 - On python 3 try 'latin1' encoding before 'bytes' encoding during unpickling
   of node attributes pickled on python 2. Better fix for :issue:`560`.
 - Fixed Windows 32 and 64-bit builds.
-
