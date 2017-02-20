@@ -120,7 +120,7 @@ def _abstract_atom_init(deftype, defvalue):
 def _normalize_shape(shape):
     """Check that the `shape` is safe to be used and return it as a tuple."""
 
-    if isinstance(shape, (int, numpy.integer, int)):
+    if isinstance(shape, (numpy.integer, six.integer_types)):
         if shape < 1:
             raise ValueError("shape value must be greater than 0: %d"
                              % shape)
