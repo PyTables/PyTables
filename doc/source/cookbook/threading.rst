@@ -181,7 +181,7 @@ the **drawback** that the user code have to be modified to replace
 :func:`open_file` and :meth:`File.close` calls with their safe version
 (:func:`synchronized_open_file` and :func:`synchronized_close_file`).
 
-Also, the solution showed in the example does not cover the entire PyTables
+Also, the solution shown in the example does not cover the entire PyTables
 API (e.g. although not recommended HDF5 files can be opened using the
 :class:`File` constructor) and makes it impossible to use *pythonic*
 constructs like the *with* statement::
@@ -248,7 +248,7 @@ themselves::
     _tables_file._open_files = ThreadsafeFileRegistry()
 
 
-At this point PyTables can be used transparently in example program presented
+At this point PyTables can be used transparently in the example program presented
 in the previous section.
 In particular the standard PyTables API (including *with* statements) can be
 used in the *thread function*::
