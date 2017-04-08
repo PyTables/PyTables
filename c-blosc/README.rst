@@ -51,7 +51,7 @@ compressors integrated in Blosc in all supported platforms.
 
 You can see some benchmarks about Blosc performance in [3]_
 
-Blosc is distributed using the MIT license, see LICENSES/BLOSC.txt for
+Blosc is distributed using the BSD license, see LICENSES/BLOSC.txt for
 details.
 
 .. [1] http://www.blosc.org
