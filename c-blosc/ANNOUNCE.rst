@@ -1,26 +1,19 @@
 ===============================================================
- Announcing C-Blosc 1.11.1
+ Announcing C-Blosc 1.11.3
  A blocking, shuffling and lossless compression library for C
 ===============================================================
 
 What is new?
 ============
 
-Fixed a bug introduced in 1.11.0 and discovered by pandas test suite.
-This basically prevented to decompress buffers compressed with previous
-versions of C-Blosc.See:
-https://github.com/Blosc/python-blosc/issues/115
+Fixed an important bug in bitshuffle filter for big endian machines.
+This prevented files written in bigendian machines to be read from
+little endian ones.  See issue https://github.com/Blosc/c-blosc/issues/181.
 
-Also, since support for Zstd has been introduced the experience with it
-has been really pleasant. As an example, see how Blosc + Zstd can
-collaborate compressing images delivering pretty impressive compression
-ratios and extremely fast decompression:
+Also, the internal Zstd codec has been updated to 1.1.3.
 
-https://github.com/Cyan4973/zstd/issues/256
-
-There is also a blog about what you can expect of it in:
-
-http://blosc.org/blog/zstd-has-just-landed-in-blosc.html
+Finally, the blocksize for compression level 8 has been made 2x larger.
+This should help specially Zstd codec to achieve better compression ratios.
 
 For more info, please see the release notes in:
 

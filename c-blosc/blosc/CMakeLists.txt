@@ -1,7 +1,7 @@
 # a simple way to detect that we are using CMAKE
 add_definitions(-DUSING_CMAKE)
 
-set(INTERNAL_LIBS ${CMAKE_SOURCE_DIR}/internal-complibs)
+set(INTERNAL_LIBS ${PROJECT_SOURCE_DIR}/internal-complibs)
 
 # Hide symbols by default unless they're specifically exported.
 # This makes it easier to keep the set of exported symbols the
@@ -9,41 +9,44 @@ set(INTERNAL_LIBS ${CMAKE_SOURCE_DIR}/internal-complibs)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 
 # includes
+set(BLOSC_INCLUDE_DIRS ${BLOSC_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
 if(NOT DEACTIVATE_LZ4)
     if (LZ4_FOUND)
-        include_directories( ${LZ4_INCLUDE_DIR} )
+        set(BLOSC_INCLUDE_DIRS ${BLOSC_INCLUDE_DIRS} ${LZ4_INCLUDE_DIR})
     else(LZ4_FOUND)
-        set(LZ4_LOCAL_DIR ${INTERNAL_LIBS}/lz4-1.7.2)
-        include_directories( ${LZ4_LOCAL_DIR} )
+        set(LZ4_LOCAL_DIR ${INTERNAL_LIBS}/lz4-1.7.5)
+        set(BLOSC_INCLUDE_DIRS ${BLOSC_INCLUDE_DIRS} ${LZ4_LOCAL_DIR})
     endif(LZ4_FOUND)
 endif(NOT DEACTIVATE_LZ4)
 
 if(NOT DEACTIVATE_SNAPPY)
     if (SNAPPY_FOUND)
-        include_directories( ${SNAPPY_INCLUDE_DIR} )
+        set(BLOSC_INCLUDE_DIRS ${BLOSC_INCLUDE_DIRS} ${SNAPPY_INCLUDE_DIR})
     else(SNAPPY_FOUND)
         set(SNAPPY_LOCAL_DIR ${INTERNAL_LIBS}/snappy-1.1.1)
-        include_directories( ${SNAPPY_LOCAL_DIR} )
+        set(BLOSC_INCLUDE_DIRS ${BLOSC_INCLUDE_DIRS} ${SNAPPY_LOCAL_DIR})
     endif(SNAPPY_FOUND)
 endif(NOT DEACTIVATE_SNAPPY)
 
 if(NOT DEACTIVATE_ZLIB)
     if (ZLIB_FOUND)
-        include_directories( ${ZLIB_INCLUDE_DIR} )
+        set(BLOSC_INCLUDE_DIRS ${BLOSC_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIR})
     else(ZLIB_FOUND)
         set(ZLIB_LOCAL_DIR ${INTERNAL_LIBS}/zlib-1.2.8)
-        include_directories( ${ZLIB_LOCAL_DIR} )
+        set(BLOSC_INCLUDE_DIRS ${BLOSC_INCLUDE_DIRS} ${ZLIB_LOCAL_DIR})
     endif(ZLIB_FOUND)
 endif(NOT DEACTIVATE_ZLIB)
 
 if (NOT DEACTIVATE_ZSTD)
     if (ZSTD_FOUND)
-        include_directories(${ZSTD_INCLUDE_DIR})
+        set(BLOSC_INCLUDE_DIRS ${BLOSC_INCLUDE_DIRS} ${ZSTD_INCLUDE_DIR})
     else (ZSTD_FOUND)
-        set(ZSTD_LOCAL_DIR ${INTERNAL_LIBS}/zstd-1.0.0)
-        include_directories(${ZSTD_LOCAL_DIR} ${ZSTD_LOCAL_DIR}/common)
+        set(ZSTD_LOCAL_DIR ${INTERNAL_LIBS}/zstd-1.1.3)
+        set(BLOSC_INCLUDE_DIRS ${BLOSC_INCLUDE_DIRS} ${ZSTD_LOCAL_DIR} ${ZSTD_LOCAL_DIR}/common)
     endif (ZSTD_FOUND)
 endif (NOT DEACTIVATE_ZSTD)
+
+include_directories(${BLOSC_INCLUDE_DIRS})
 
 # library sources
 set(SOURCES blosc.c blosclz.c shuffle-generic.c bitshuffle-generic.c)
@@ -115,16 +118,19 @@ if (NOT DEACTIVATE_ZSTD)
     endif (ZSTD_FOUND)
 endif (NOT DEACTIVATE_ZSTD)
 
+
 # targets
-add_library(blosc_shared SHARED ${SOURCES})
-set_target_properties(blosc_shared PROPERTIES OUTPUT_NAME blosc)
-set_target_properties(blosc_shared PROPERTIES
-        VERSION ${version_string}
-        SOVERSION 1  # Change this when an ABI change happens
-    )
-set_property(
-    TARGET blosc_shared
-    APPEND PROPERTY COMPILE_DEFINITIONS BLOSC_SHARED_LIBRARY)
+if (BUILD_SHARED)
+    add_library(blosc_shared SHARED ${SOURCES})
+    set_target_properties(blosc_shared PROPERTIES OUTPUT_NAME blosc)
+    set_target_properties(blosc_shared PROPERTIES
+            VERSION ${version_string}
+            SOVERSION 1  # Change this when an ABI change happens
+        )
+    set_property(
+        TARGET blosc_shared
+        APPEND PROPERTY COMPILE_DEFINITIONS BLOSC_SHARED_LIBRARY)
+endif()
 
 # Based on the target architecture and hardware features supported
 # by the C compiler, set hardware architecture optimization flags
@@ -182,9 +188,14 @@ if (BUILD_TESTS)
     endif()
 endif()
 
-target_link_libraries(blosc_shared ${LIBS})
+if (BUILD_SHARED)
+    target_link_libraries(blosc_shared ${LIBS})
+    target_include_directories(blosc_shared PUBLIC ${BLOSC_INCLUDE_DIRS})
+endif()
+
 if (BUILD_TESTS)
     target_link_libraries(blosc_shared_testing ${LIBS})
+    target_include_directories(blosc_shared_testing PUBLIC ${BLOSC_INCLUDE_DIRS})
 endif()
 
 if(BUILD_STATIC)
@@ -194,12 +205,14 @@ if(BUILD_STATIC)
         set_target_properties(blosc_static PROPERTIES PREFIX lib)
     endif()
     target_link_libraries(blosc_static ${LIBS})
+    target_include_directories(blosc_static PUBLIC ${BLOSC_INCLUDE_DIRS})
 endif(BUILD_STATIC)
-
 
 # install
-install(FILES blosc.h blosc-export.h DESTINATION include COMPONENT DEV)
-install(TARGETS blosc_shared DESTINATION ${lib_dir} COMPONENT LIB)
-if(BUILD_STATIC)
-    install(TARGETS blosc_static DESTINATION ${lib_dir} COMPONENT DEV)
-endif(BUILD_STATIC)
+if(BLOSC_INSTALL)
+    install(FILES blosc.h blosc-export.h DESTINATION include COMPONENT DEV)
+    install(TARGETS blosc_shared DESTINATION ${lib_dir} COMPONENT LIB)
+    if(BUILD_STATIC)
+        install(TARGETS blosc_static DESTINATION ${lib_dir} COMPONENT DEV)
+    endif(BUILD_STATIC)
+endif(BLOSC_INSTALL)
