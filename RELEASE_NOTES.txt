@@ -17,6 +17,7 @@ Improvements
 - Support for HDF5 v1.10.x (see :issue:`582`)
 - Fix compatibility with the upcoming Python 2.7.13, 3.5.3 and 3.6 versions.
   See also :issue:`590`
+- Internal Blosc version updated to 1.11.3
 - Gracefully handle cpuinfo failure. (PR #578)
   Thanks to Zbigniew Jędrzejewski-Szmek
 - Update internal py-cpuinfo to 3.3.0. Thanks to Gustavo Serra Scalet.

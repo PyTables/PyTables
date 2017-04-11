@@ -419,9 +419,10 @@ static int lz4hc_wrap_compress(const char* input, size_t input_length,
   int cbytes;
   if (input_length > (size_t)(2<<30))
     return -1;   /* input larger than 1 GB is not supported */
-  /* clevel for lz4hc goes up to 16, at least in LZ4 1.1.3 */
-  cbytes = LZ4_compressHC2_limitedOutput(input, output, (int)input_length,
-                                         (int)maxout, clevel*2-1);
+  /* clevel for lz4hc goes up to 12, at least in LZ4 1.7.5
+   * but levels larger than 9 does not buy much compression. */
+  cbytes = LZ4_compress_HC(input, output, (int)input_length, (int)maxout,
+                           clevel);
   return cbytes;
 }
 
@@ -499,6 +500,8 @@ static int zstd_wrap_compress(const char* input, size_t input_length,
                               char* output, size_t maxout, int clevel) {
   size_t code;
   clevel = (clevel < 9) ? clevel * 2 - 1 : ZSTD_maxCLevel();
+  /* Make the level 8 close enough to maxCLevel */
+  if (clevel == 8) clevel = ZSTD_maxCLevel() - 2;
   code = ZSTD_compress(
       (void*)output, maxout, (void*)input, input_length, clevel);
   if (ZSTD_isError(code)) {
@@ -945,8 +948,11 @@ static int32_t compute_blocksize(struct blosc_context* context, int32_t clevel,
     else if (clevel <= 6) {
       blocksize *= 2;
     }
-    else if (clevel < 9) {
+    else if (clevel == 7) {
       blocksize *= 4;
+    }
+    else if (clevel == 8) {
+      blocksize *= 8;
     }
     else {
       blocksize *= 16;
