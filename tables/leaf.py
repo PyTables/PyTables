@@ -25,6 +25,7 @@ from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
 from .exceptions import PerformanceWarning
 from . import utilsextension
+import six
 from six.moves import range
 
 
@@ -73,6 +74,7 @@ def calc_chunksize(expected_mb):
     return chunksize * 8
 
 
+@six.python_2_unicode_compatible
 class Leaf(Node):
     """Abstract base class for all PyTables leaves.
 

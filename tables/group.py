@@ -41,7 +41,7 @@ class _ChildrenDict(ProxyDict):
         return container._f_get_child(key)
 
 
-
+@six.python_2_unicode_compatible
 class Group(hdf5extension.Group, Node):
     """Basic PyTables grouping structure.
 
