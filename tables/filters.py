@@ -57,6 +57,7 @@ _bitshuffle_flag = 0x8
 
 # Classes
 # =======
+@six.python_2_unicode_compatible
 class Filters(object):
     """Container for filter properties.
 

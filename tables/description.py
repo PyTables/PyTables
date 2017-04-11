@@ -313,6 +313,7 @@ Time64Col = Col._subclass_from_prefix('Time64')
 
 # Table description classes
 # =========================
+@six.python_2_unicode_compatible
 class Description(object):
     """This class represents descriptions of the structure of tables.
 
