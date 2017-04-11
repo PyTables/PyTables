@@ -200,7 +200,7 @@ class SoftLink(linkextension.SoftLink, Link):
     # SoftLink rather than the target node
     _link_attrnames = ('target', 'dereference', 'is_dangling', 'copy', 'move',
                        'remove', 'rename', '__init__', '__str__', '__repr__',
-                       '__class__', '__dict__')
+                       '__unicode__', '__class__', '__dict__')
     _link_attrprefixes = ('_f_', '_c_', '_g_', '_v_')
 
 
