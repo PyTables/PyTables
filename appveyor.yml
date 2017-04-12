@@ -52,6 +52,11 @@ test_script:
   - cmd: cd ..
   - cmd: python -m tables.tests.test_all
 
+  - pt2to3 -h
+  - ptrepack -h
+  - ptdump -h
+  - pttree -h
+
 artifacts:
   # download wheels
   - path: dist\*
