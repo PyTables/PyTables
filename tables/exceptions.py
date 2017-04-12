@@ -23,6 +23,7 @@ import warnings
 import traceback
 
 
+@six.python_2_unicode_compatible
 class HDF5ExtError(RuntimeError):
     """A low level HDF5 operation failed.
 

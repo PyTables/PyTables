@@ -2991,6 +2991,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 (str(self), self.description, self.byteorder, self.chunkshape)
 
 
+@six.python_2_unicode_compatible
 class Cols(object):
     """Container for columns in a table or nested column.
 
@@ -3265,6 +3266,7 @@ class Cols(object):
         return out
 
 
+@six.python_2_unicode_compatible
 class Column(object):
     """Accessor for a non-nested column in a table.
 

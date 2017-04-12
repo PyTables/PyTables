@@ -17,7 +17,7 @@
   Note: Compiling this with VS2008 does not work well with cmake.  Here
   it is a way to compile the benchmark (with added support for LZ4):
 
-  > cl /DHAVE_LZ4 /arch:SSE2 /Ox /Febench.exe /Iblosc /Iinternal-complibs\lz4-1.7.2 bench\bench.c blosc\blosc.c blosc\blosclz.c blosc\shuffle.c blosc\shuffle-sse2.c blosc\shuffle-generic.c blosc\bitshuffle-generic.c blosc\bitshuffle-sse2.c internal-complibs\lz4-1.7.2\*.c
+  > cl /DHAVE_LZ4 /arch:SSE2 /Ox /Febench.exe /Iblosc /Iinternal-complibs\lz4-1.7.5 bench\bench.c blosc\blosc.c blosc\blosclz.c blosc\shuffle.c blosc\shuffle-sse2.c blosc\shuffle-generic.c blosc\bitshuffle-generic.c blosc\bitshuffle-sse2.c internal-complibs\lz4-1.7.5\*.c
 
   See LICENSES/BLOSC.txt for details about copyright and rights to use.
 **********************************************************************/
@@ -31,14 +31,14 @@
 #if defined(_WIN32)
   /* For QueryPerformanceCounter(), etc. */
   #include <windows.h>
-#elif defined(__MACH__)
+#elif defined(__MACH__) && defined(__APPLE__)
   #include <mach/clock.h>
   #include <mach/mach.h>
   #include <time.h>
   #include <sys/time.h>
 #elif defined(__unix__)
   #include <unistd.h>
-  #if defined(__linux__)
+  #if defined(__GLIBC__)
     #include <time.h>
   #else
     #include <sys/time.h>
@@ -89,7 +89,7 @@ double blosc_elapsed_usecs(blosc_timestamp_t start_time, blosc_timestamp_t end_t
 
 /* Set a timestamp value to the current time. */
 void blosc_set_timestamp(blosc_timestamp_t* timestamp) {
-#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+#if defined(__MACH__) && defined(__APPLE__) // OS X does not have clock_gettime, use clock_get_time
   clock_serv_t cclock;
   mach_timespec_t mts;
   host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);

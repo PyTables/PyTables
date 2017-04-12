@@ -72,6 +72,7 @@ def issysattrname(name):
         return False
 
 
+@six.python_2_unicode_compatible
 class AttributeSet(hdf5extension.AttributeSet, object):
     """Container for the HDF5 attributes of a Node.
 

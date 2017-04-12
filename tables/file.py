@@ -576,6 +576,7 @@ class NodeManager(object):
                 node._f_close()
 
 
+@six.python_2_unicode_compatible
 class File(hdf5extension.File, object):
     """The in-memory representation of a PyTables file.
 
