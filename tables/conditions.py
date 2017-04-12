@@ -32,6 +32,7 @@ Functions:
 from __future__ import absolute_import
 
 import re
+from copy import deepcopy
 from numexpr.necompiler import typecode_to_kind
 from numexpr.necompiler import expressionToAST, typeCompileAst
 from numexpr.necompiler import stringToExpression, NumExpr, getExprNames
@@ -204,6 +205,10 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
             idxcmp = _get_indexable_cmp(exprnode, indexedcols)
         return idxcmp, exprnode, invert
 
+    # deepcopy arguments for recursion to work
+    idxexprs = deepcopy(idxexprs)
+    strexpr = deepcopy(strexpr)
+
     # Indexable variable-constant comparison.
     idxcmp = _get_indexable_cmp(exprnode, indexedcols)
     idxcmp, exprnode, invert = fix_invert(idxcmp, exprnode, indexedcols)
@@ -252,8 +257,13 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
             return [expr]
 
     # Recursively get the expressions at the left and the right
-    lexpr = _get_idx_expr_recurse(left, indexedcols, idxexprs, strexpr)
+    lexpr = deepcopy(_get_idx_expr_recurse(left, indexedcols, idxexprs,
+                                           strexpr))
+    if len(lexpr) == 2 and lexpr != not_indexable:
+        idxexprs, strexpr = lexpr
     rexpr = _get_idx_expr_recurse(right, indexedcols, idxexprs, strexpr)
+    if len(rexpr) == 2 and rexpr != not_indexable:
+        idxexprs, strexpr = rexpr
 
     def add_expr(expr, idxexprs, strexpr):
         """Add a single expression to the list."""
