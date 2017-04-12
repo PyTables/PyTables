@@ -85,5 +85,10 @@ test_script:
   - cd ..
   - python -m tables.tests.test_all
 
+  - pt2to3 -h
+  - ptrepack -h
+  - ptdump -h
+  - pttree -h
+
 artifacts:
     - path: "dist\\*"
