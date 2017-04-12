@@ -63,7 +63,6 @@ def newdst_group(dstfileh, dstgroup, title, filters):
     return group
 
 
-
 def recreate_indexes(table, dstfileh, dsttable):
     listoldindexes = table._listoldindexes
     if listoldindexes != []:
@@ -82,7 +81,6 @@ def recreate_indexes(table, dstfileh, dsttable):
             colobj = dsttable.cols._f_col(colname)
             # We don't specify the filters for the indexes
             colobj.create_index(filters=None)
-
 
 
 def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
@@ -177,7 +175,6 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
     dstfileh.close()
 
 
-
 def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                   recursive, filters, copyuserattrs, overwritefile,
                   overwrtnodes, stats, start, stop, step,
@@ -269,7 +266,6 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
     # Close all the open files:
     srcfileh.close()
     dstfileh.close()
-
 
 
 def _get_parser():
@@ -426,8 +422,8 @@ def main():
         )
 
     # Catch the files passed as the last arguments
-   src = pargs[0].rsplit(':', 1)
-   dst = pargs[1].rsplit(':', 1)
+    src = args.src.split(':')
+    dst = args.dst.split(':')
     if len(src) == 1:
         srcfile, srcnode = src[0], "/"
     else:
