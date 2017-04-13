@@ -516,6 +516,12 @@ if not HDF5_DIR and os.name == 'nt':
         HDF5_DIR = os.path.dirname(libdir)
         print("* Found HDF5 using system PATH ('%s')" % libdir)
 
+# detect conda environment and set HDF5_DIR if not defined
+if not HDF5_DIR:
+    HDF5_DIR = os.environ.get('CONDA_PREFIX', '')
+    if HDF5_DIR:
+        print("* Found conda environment at '%s'" % HDF5_DIR)
+
 # The next flag for the C compiler is needed for finding the C headers for
 # the Cython extensions
 CFLAGS.append("-Isrc")
