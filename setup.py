@@ -611,8 +611,8 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
         continue  # do not use LZO 1 if LZO 2 is available
 
     if not location and CONDA_PREFIX:
-        if conda.env_has_package(package.name):
-            print("* Found package %s in conda env" % package.name)
+        if conda.env_has_package(package.name.lower()):
+            print("* Found package %s in conda env" % package.name.lower())
             location = CONDA_PREFIX
 
     (hdrdir, libdir, rundir) = package.find_directories(
