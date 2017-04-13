@@ -42,7 +42,7 @@ install:
   # as well as pip, conda-build, and the binstar CLI
   - powershell .\\ci\\appveyor\\install.ps1
   - powershell .\\ci\\appveyor\\missing-headers.ps1
-  - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
+  - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
 build_script:
   - conda config --add channels conda-forge
@@ -53,9 +53,9 @@ build_script:
   # Add tomkooij channel for HDF5 v1.10 conda packages
   - conda config --add channels http://conda.anaconda.org/tomkooij
   - conda install --yes hdf5=%HDF5_VERSION%
-  - "set HDF5_DIR=%CONDA_PREFIX%\\Library"
+
   - "set BZIP2_DIR=%CONDA_PREFIX%\\Library\\"
-  - "set LIBRARY_PATH=%HDF5_DIR%\\lib"
+  - "set LIBRARY_PATH=%CONDA_PREFIX%\\Library\\lib"
 
   # Build wheel
   - "%CMD_IN_ENV% python setup.py bdist_wheel"
