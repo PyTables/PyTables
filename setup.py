@@ -137,6 +137,7 @@ def add_from_flags(envname, flag_key, dirs):
         if flag.startswith(flag_key):
             dirs.append(flag[len(flag_key):])
 
+
 if os.name == 'posix':
     prefixes = ('/usr/local', '/sw', '/opt', '/opt/local', '/usr', '/')
 
@@ -198,7 +199,7 @@ class CondaApi(object):
         """return packages in conda env (conda list)"""
         if not self.packages:
             print('* Running ``conda list`` to get conda env package info.')
-            stdout, stderr =  self._run_conda(['list'])
+            stdout, stderr = self._run_conda(['list'])
             self.packages = stdout.decode('utf-8')
         return self.packages
 
@@ -389,6 +390,7 @@ def get_hdf5_version(headername):
     return LooseVersion("%s.%s.%s" % (major_version, minor_version,
                                       release_version))
 
+
 # Get the Blosc version provided the 'blosc.h' header
 def get_blosc_version(headername):
     major_version = -1
@@ -441,8 +443,8 @@ elif os.name == 'nt':
     except KeyError:
         # Update these paths for your own system!
         dll_files = [
-                 #'\\windows\\system\\zlib1.dll',
-                 #'\\windows\\system\\szip.dll',
+                 # '\\windows\\system\\zlib1.dll',
+                 # '\\windows\\system\\szip.dll',
                  ]
 
     if debug:
@@ -535,9 +537,11 @@ print('* USE_PKGCONFIG:', USE_PKGCONFIG)
 if not HDF5_DIR and os.name == 'nt':
     import ctypes.util
     if not debug:
-        libdir = ctypes.util.find_library('hdf5.dll') or ctypes.util.find_library('hdf5dll.dll')
+        libdir = (ctypes.util.find_library('hdf5.dll') or
+                  ctypes.util.find_library('hdf5dll.dll'))
     else:
-        libdir = ctypes.util.find_library('hdf5_D.dll') or ctypes.util.find_library('hdf5ddll.dll')
+        libdir = (ctypes.util.find_library('hdf5_D.dll') or
+                  ctypes.util.find_library('hdf5ddll.dll'))
     # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.8.8\\bin\\hdf5dll.dll'
     if libdir:
         # Strip off the filename
@@ -688,7 +692,7 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
             print_warning(
                 "This Blosc version does not support the BitShuffle filter. "
                 "Minimum desirable version is %s.  Found version: %s" % (
-                min_blosc_bitshuffle_version, blosc_version))
+                    min_blosc_bitshuffle_version, blosc_version))
 
     if not rundir:
         loc = {
@@ -871,12 +875,12 @@ if 'BLOSC' not in optional_libs:
     # AVX2
     # Detection code for AVX2 only works for gcc/clang, not for MSVC yet
     if ('avx2' in cpu_flags and
-        compiler_has_flags(compiler, ["-mavx2"])):
-        print('AVX2 detected')
-        CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
-        CFLAGS.append('-mavx2')
-        blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
-                          if 'avx2' in f]
+            compiler_has_flags(compiler, ["-mavx2"])):
+                print('AVX2 detected')
+                CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
+                CFLAGS.append('-mavx2')
+                blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
+                                  if 'avx2' in f]
 else:
     ADDLIBS += ['blosc']
 
@@ -1040,6 +1044,6 @@ interactively save and retrieve large amounts of data.
             'sphinx >= 1.1',
             'sphinx_rtd_theme',
             'numpydoc',
-            'ipython' ]},
+            'ipython']},
     **setuptools_kwargs
 )
