@@ -554,6 +554,8 @@ if not HDF5_DIR and os.name == 'nt':
 if CONDA_PREFIX:
     print('* Found conda env: ``%s``' % CONDA_PREFIX)
     conda = CondaApi()
+    if os.name == 'nt':
+        CONDA_PREFIX += '\\Library'
 
 # The next flag for the C compiler is needed for finding the C headers for
 # the Cython extensions
@@ -611,7 +613,7 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
     if not location and CONDA_PREFIX:
         if conda.env_has_package(package.name):
             print("* Found package %s in conda env" % package.name)
-            location = CONDA_PREFIX + '\\Library'
+            location = CONDA_PREFIX
 
     (hdrdir, libdir, rundir) = package.find_directories(
         location, use_pkgconfig=USE_PKGCONFIG)
