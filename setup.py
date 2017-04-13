@@ -185,6 +185,35 @@ def _find_file_path(name, locations, prefixes=[''], suffixes=['']):
     return None
 
 
+class CondaApi(object):
+
+    def __init__(self):
+        self.packages = ''
+
+    def env_has_package(self, package_name):
+        """return True is package_name in conda env"""
+        return package_name in self.get_packages()
+
+    def get_packages(self):
+        """return packages in conda env (conda list)"""
+        if not self.packages:
+            print('* Running ``conda list`` to get conda env package info.')
+            stdout, stderr =  self._run_conda(['list'])
+            self.packages = stdout.decode('utf-8')
+        return self.packages
+
+    def _run_conda(self, args):
+        cmd_list = ['conda']
+        cmd_list.extend(args)
+        try:
+            p = subprocess.Popen(cmd_list, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+        except OSError:
+            print('* Could not run ``conda``')
+            return None
+        return p.communicate()
+
+
 class Package(object):
     def __init__(self, name, tag, header_name, library_name,
                  target_function=None):
@@ -454,6 +483,7 @@ LFLAGS = os.environ.get('LFLAGS', '').split()
 # is not a good idea.
 CFLAGS = os.environ.get('CFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
+CONDA_PREFIX = os.environ.get('CONDA_PREFIX', '')
 # We start using pkg-config since some distributions are putting HDF5
 # (and possibly other libraries) in exotic locations.  See issue #442.
 if distutils.spawn.find_executable(PKG_CONFIG):
@@ -516,6 +546,10 @@ if not HDF5_DIR and os.name == 'nt':
         HDF5_DIR = os.path.dirname(libdir)
         print("* Found HDF5 using system PATH ('%s')" % libdir)
 
+if CONDA_PREFIX:
+    print('* Found conda env: ``%s``' % CONDA_PREFIX)
+    conda = CondaApi()
+
 # The next flag for the C compiler is needed for finding the C headers for
 # the Cython extensions
 CFLAGS.append("-Isrc")
@@ -568,6 +602,11 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
         print("* Skipping detection of %s since %s has already been found."
               % (lzo1_package.name, lzo2_package.name))
         continue  # do not use LZO 1 if LZO 2 is available
+
+    if not location and CONDA_PREFIX:
+        if conda.env_has_package(package.name):
+            print("* Found package %s in conda env" % package.name)
+            location = CONDA_PREFIX + '\\Library'
 
     (hdrdir, libdir, rundir) = package.find_directories(
         location, use_pkgconfig=USE_PKGCONFIG)
@@ -681,7 +720,6 @@ if lzo2_enabled:
     lzo_package = lzo2_package
 else:
     lzo_package = lzo1_package
-
 
 # ------------------------------------------------------------------------------
 
