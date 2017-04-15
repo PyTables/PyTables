@@ -422,14 +422,8 @@ def main():
         )
 
     # Catch the files passed as the last arguments
-    if 'win' in sys.platform():
-        # the file separator for windows is deemed ','
-        src = args.src.split(',')
-        dst = args.dst.split(',')
-    else:
-        # the file separator for osx, linux for  is deemed ':'
-        src = args.src.split(':')
-        dst = args.dst.split(':')
+    src = args.src.rsplit(':', 1)
+    dst = args.dst.rsplit(':', 1)
 
     if len(src) == 1:
         srcfile, srcnode = src[0], "/"

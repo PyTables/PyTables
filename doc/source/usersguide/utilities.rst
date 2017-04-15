@@ -235,11 +235,9 @@ to see the message usage:
     positional arguments:
       sourcefile:sourcegroup
                             source file/group
-                            file names/paths in sourcegroup are separated by ","
-                            on Windows systems and ":" on Linus/macOS systems.
+                            file names/paths in sourcegroup are separated by ":"
       destfile:destgroup    destination file/group
-                            file names/paths in destgroup are separated by ","
-                            on Windows systems and ":" on Linus/macOS systems.
+                            file names/paths in destgroup are separated by ":"
 
     optional arguments:
       -h, --help            show this help message and exit
