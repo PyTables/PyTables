@@ -104,6 +104,7 @@ optional.
 
 Installation
 ------------
+**Warning:  The the currrent release of PyTables is incompatible with cython 0.21.  See issues #386 and #387**
 
 1. Make sure you have HDF5 version 1.8.4 or above.
 
