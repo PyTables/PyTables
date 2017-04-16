@@ -78,7 +78,16 @@ class pttreeTestCase(TestCase):
         self.assertEqual(args, (src_fn, 'r'))
 
 
+def suite():
+    theSuite = unittest.TestSuite()
+
+    theSuite.addTest(unittest.makeSuite(ptrepackTestCase))
+    theSuite.addTest(unittest.makeSuite(ptdumpTestCase))
+    theSuite.addTest(unittest.makeSuite(pttreeTestCase))
+
+    return theSuite
+
 if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main()
+    unittest.main(defaultTest='suite')
