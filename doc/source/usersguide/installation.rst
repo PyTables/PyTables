@@ -189,7 +189,7 @@ worry too much ;)
     :envvar:`BLOSC_DIR` environment variables.
 
     When inside a conda environment *pkg-config* will not work. To disable
-    using the conda enviroment and fall back to *pkg-condig* use `--no-conda`::
+    using the conda enviroment and fall back to *pkg-config* use `--no-conda`::
 
           python setup.py install --no-conda
 
