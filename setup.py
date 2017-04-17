@@ -496,6 +496,7 @@ for arg in args:
         # sys.argv.remove(arg)
     elif arg.find('--use-pkgconfig') == 0:
         USE_PKGCONFIG = arg.split('=')[1]
+        CONDA_PREFIX = ''
         sys.argv.remove(arg)
     elif arg.find('--no-conda') == 0:
         CONDA_PREFIX = ''
