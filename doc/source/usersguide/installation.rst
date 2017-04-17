@@ -162,6 +162,39 @@ worry too much ;)
         --lzo=c:\\Program Files (x86)\\GnuWin32
         --bzip2=c:\\Program Files (x86)\\GnuWin32
 
+**Conda**
+
+    Pre-built packages for PyTables are available in the anaconda (default)
+    channel::
+
+        conda install pytables
+
+    The most recent version is usually available in the conda-forge
+    channel::
+
+        conda config --add channels conda-forge
+        conda install pytables
+
+    The HDF5 libraries and other helper packages are automatically found in
+    a conda environment. During installation setup.py uses the `CONDA_PREFIX`
+    environment variable to detect a conda enviroment. If detected it will
+    try to find all packages within this enviroment. PyTables needs at least
+    the hdf5 package:
+
+        conda install hdf5
+        python setup.py install
+
+    It is still possible to override package locations using the
+    :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`, :envvar:`BZIP2_DIR` or
+    :envvar:`BLOSC_DIR` environment variables.
+
+    When inside a conda environment *pkg-config* will not work. To disable
+    using the conda enviroment and fall back to *pkg-config* use `--no-conda`::
+
+          python setup.py install --no-conda
+
+    When the `--use-pkgconfig` flag is used, `--no-conda` is assumed.
+
 **Development version (Unix)**
 
     Installation of the development version is very similar to installation

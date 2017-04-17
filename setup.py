@@ -137,6 +137,7 @@ def add_from_flags(envname, flag_key, dirs):
         if flag.startswith(flag_key):
             dirs.append(flag[len(flag_key):])
 
+
 if os.name == 'posix':
     prefixes = ('/usr/local', '/sw', '/opt', '/opt/local', '/usr', '/')
 
@@ -360,6 +361,7 @@ def get_hdf5_version(headername):
     return LooseVersion("%s.%s.%s" % (major_version, minor_version,
                                       release_version))
 
+
 # Get the Blosc version provided the 'blosc.h' header
 def get_blosc_version(headername):
     major_version = -1
@@ -412,8 +414,8 @@ elif os.name == 'nt':
     except KeyError:
         # Update these paths for your own system!
         dll_files = [
-                 #'\\windows\\system\\zlib1.dll',
-                 #'\\windows\\system\\szip.dll',
+                 # '\\windows\\system\\zlib1.dll',
+                 # '\\windows\\system\\szip.dll',
                  ]
 
     if debug:
@@ -454,6 +456,7 @@ LFLAGS = os.environ.get('LFLAGS', '').split()
 # is not a good idea.
 CFLAGS = os.environ.get('CFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
+CONDA_PREFIX = os.environ.get('CONDA_PREFIX', '')
 # We start using pkg-config since some distributions are putting HDF5
 # (and possibly other libraries) in exotic locations.  See issue #442.
 if distutils.spawn.find_executable(PKG_CONFIG):
@@ -493,6 +496,10 @@ for arg in args:
         # sys.argv.remove(arg)
     elif arg.find('--use-pkgconfig') == 0:
         USE_PKGCONFIG = arg.split('=')[1]
+        CONDA_PREFIX = ''
+        sys.argv.remove(arg)
+    elif arg.find('--no-conda') == 0:
+        CONDA_PREFIX = ''
         sys.argv.remove(arg)
 
 USE_PKGCONFIG = True if USE_PKGCONFIG.upper() == 'TRUE' else False
@@ -505,9 +512,11 @@ print('* USE_PKGCONFIG:', USE_PKGCONFIG)
 if not HDF5_DIR and os.name == 'nt':
     import ctypes.util
     if not debug:
-        libdir = ctypes.util.find_library('hdf5.dll') or ctypes.util.find_library('hdf5dll.dll')
+        libdir = (ctypes.util.find_library('hdf5.dll') or
+                  ctypes.util.find_library('hdf5dll.dll'))
     else:
-        libdir = ctypes.util.find_library('hdf5_D.dll') or ctypes.util.find_library('hdf5ddll.dll')
+        libdir = (ctypes.util.find_library('hdf5_D.dll') or
+                  ctypes.util.find_library('hdf5ddll.dll'))
     # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.8.8\\bin\\hdf5dll.dll'
     if libdir:
         # Strip off the filename
@@ -515,6 +524,12 @@ if not HDF5_DIR and os.name == 'nt':
         # Strip off the 'bin' directory
         HDF5_DIR = os.path.dirname(libdir)
         print("* Found HDF5 using system PATH ('%s')" % libdir)
+
+
+if CONDA_PREFIX:
+    print('* Found conda env: ``%s``' % CONDA_PREFIX)
+    if os.name == 'nt':
+        CONDA_PREFIX += '\\Library'
 
 # The next flag for the C compiler is needed for finding the C headers for
 # the Cython extensions
@@ -568,6 +583,10 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
         print("* Skipping detection of %s since %s has already been found."
               % (lzo1_package.name, lzo2_package.name))
         continue  # do not use LZO 1 if LZO 2 is available
+
+    # if a package location is not specified, try to find it in conda env
+    if not location and CONDA_PREFIX:
+        location = CONDA_PREFIX
 
     (hdrdir, libdir, rundir) = package.find_directories(
         location, use_pkgconfig=USE_PKGCONFIG)
@@ -649,7 +668,7 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
             print_warning(
                 "This Blosc version does not support the BitShuffle filter. "
                 "Minimum desirable version is %s.  Found version: %s" % (
-                min_blosc_bitshuffle_version, blosc_version))
+                    min_blosc_bitshuffle_version, blosc_version))
 
     if not rundir:
         loc = {
@@ -681,7 +700,6 @@ if lzo2_enabled:
     lzo_package = lzo2_package
 else:
     lzo_package = lzo1_package
-
 
 # ------------------------------------------------------------------------------
 
@@ -833,12 +851,12 @@ if 'BLOSC' not in optional_libs:
     # AVX2
     # Detection code for AVX2 only works for gcc/clang, not for MSVC yet
     if ('avx2' in cpu_flags and
-        compiler_has_flags(compiler, ["-mavx2"])):
-        print('AVX2 detected')
-        CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
-        CFLAGS.append('-mavx2')
-        blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
-                          if 'avx2' in f]
+            compiler_has_flags(compiler, ["-mavx2"])):
+                print('AVX2 detected')
+                CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
+                CFLAGS.append('-mavx2')
+                blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
+                                  if 'avx2' in f]
 else:
     ADDLIBS += ['blosc']
 
@@ -1002,6 +1020,6 @@ interactively save and retrieve large amounts of data.
             'sphinx >= 1.1',
             'sphinx_rtd_theme',
             'numpydoc',
-            'ipython' ]},
+            'ipython']},
     **setuptools_kwargs
 )
