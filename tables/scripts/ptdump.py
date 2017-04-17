@@ -167,7 +167,7 @@ def main():
             args.dump = 1
 
     # Catch the files passed as the last arguments
-    src = args.src.split(':')
+    src = args.src.rsplit(':', 1)
     if len(src) == 1:
         filename, nodename = src[0], "/"
     else:
