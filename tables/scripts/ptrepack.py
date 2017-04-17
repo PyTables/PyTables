@@ -544,7 +544,10 @@ def main():
     cpu2 = time.clock()
     tcopy = round(t2 - t1, 3)
     cpucopy = round(cpu2 - cpu1, 3)
-    tpercent = int(round(cpucopy / tcopy, 2) * 100)
+    try:
+        tpercent = int(round(cpucopy / tcopy, 2) * 100)
+    except ZeroDivisionError:
+        tpercent = 'NaN'
 
     if verbose:
         ngroups = stats['groups']
