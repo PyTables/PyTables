@@ -1,7 +1,7 @@
 environment:
   PACKAGE_NAME: tables
   BUILD_DEPENDS: "numpy>=1.8.0 numexpr>=2.5.2 six cython bzip2"
-  TEST_DEPENDS: "numpy>=1.8.0 numexpr>=2.5.2 six"
+  TEST_DEPENDS: "numpy>=1.8.0 numexpr>=2.5.2 six mock"
   # Make setup.py include conda specific dll's in wheel
   BUILDWHEEL: True
 
