@@ -8,12 +8,17 @@
 .. py:currentmodule:: tables
 
 
-Changes from 3.4.1 to 3.4.x
+Changes from 3.4.1 to 3.4.2
 ===========================
 
+Improvements
+------------
+ - setup.py detects conda env and uses installed conda (hdf5, bzip2, lzo
+   and/or blosc) packages when building from source.
 
 Bugs fixed
 ----------
+ - Linux wheels now built against built-in blosc.
  - Fixed windows absolute paths in ptrepack, ptdump, ptree.
    :issue:`616`. Thanks to oscar6echo.
 
