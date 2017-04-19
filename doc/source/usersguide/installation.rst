@@ -179,7 +179,7 @@ worry too much ;)
     a conda environment. During installation setup.py uses the `CONDA_PREFIX`
     environment variable to detect a conda enviroment. If detected it will
     try to find all packages within this enviroment. PyTables needs at least
-    the hdf5 package:
+    the hdf5 package::
 
         conda install hdf5
         python setup.py install
