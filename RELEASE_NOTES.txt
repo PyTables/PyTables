@@ -7,6 +7,11 @@
 
 .. py:currentmodule:: tables
 
+Changes from 3.4.1 to 3.4.x
+===========================
+
+
+
 
 Changes from 3.4.1 to 3.4.2
 ===========================
