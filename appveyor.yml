@@ -1,7 +1,7 @@
 environment:
   PACKAGE_NAME: tables
   BUILD_DEPENDS: "numpy>=1.8.0 numexpr>=2.5.2 six cython bzip2"
-  TEST_DEPENDS: "numpy>=1.8.0 numexpr>=2.5.2 six"
+  TEST_DEPENDS: "numpy>=1.8.0 numexpr>=2.5.2 six mock"
   # Make setup.py include conda specific dll's in wheel
   BUILDWHEEL: True
 
@@ -22,31 +22,17 @@ environment:
       PYTHON_ARCH: "64"
       HDF5_VERSION: "1.8"
 
-    - PYTHON: "C:\\Miniconda-x64"
-      PYTHON_VERSION: "2.7"
-      PYTHON_ARCH: "64"
-      HDF5_VERSION: "1.10"
+# - PYTHON: "C:\\Miniconda-x64"
+#   PYTHON_VERSION: "2.7"
+#   PYTHON_ARCH: "64"
+#   HDF5_VERSION: "1.10"
 
-#    - PYTHON: "C:\\Miniconda35"
-#      PYTHON_VERSION: "3.5"
-#      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Miniconda35-x64"
-      PYTHON_VERSION: "3.5"
-      PYTHON_ARCH: "64"
-      HDF5_VERSION: "1.8"
-
-    - PYTHON: "C:\\Miniconda35-x64"
-      PYTHON_VERSION: "3.5"
-      PYTHON_ARCH: "64"
-      HDF5_VERSION: "1.10"
-
-    - PYTHON: "C:\\Miniconda35-x64"
+    - PYTHON: "C:\\Miniconda36-x64"
       PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "64"
       HDF5_VERSION: "1.8"
 
-    - PYTHON: "C:\\Miniconda35-x64"
+    - PYTHON: "C:\\Miniconda36-x64"
       PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "64"
       HDF5_VERSION: "1.10"
@@ -54,9 +40,9 @@ environment:
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
-  - powershell .\\ci\\appveyor\\install.ps1
+  #- powershell .\\ci\\appveyor\\install.ps1
   - powershell .\\ci\\appveyor\\missing-headers.ps1
-  - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Library\\bin;%PATH%"
+  - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
 build_script:
   - conda config --add channels conda-forge
@@ -67,9 +53,6 @@ build_script:
   # Add tomkooij channel for HDF5 v1.10 conda packages
   - conda config --add channels http://conda.anaconda.org/tomkooij
   - conda install --yes hdf5=%HDF5_VERSION%
-  - "set HDF5_DIR=%CONDA_PREFIX%\\Library"
-  - "set BZIP2_DIR=%CONDA_PREFIX%\\Library\\"
-  - "set LIBRARY_PATH=%HDF5_DIR%\\lib"
 
   # Build wheel
   - "%CMD_IN_ENV% python setup.py bdist_wheel"

@@ -103,7 +103,7 @@ def main():
     args = parser.parse_args()
 
     # Catch the files passed as the last arguments
-    src = args.__dict__.pop('src').split(':')
+    src = args.__dict__.pop('src').rsplit(':', 1)
     if len(src) == 1:
         filename, nodename = src[0], "/"
     else:

@@ -2,4 +2,4 @@
 # doc/source/usersguide/installation.rst
 numpy>=1.8.0
 numexpr>=2.5.2
-six
+six>=1.9.0

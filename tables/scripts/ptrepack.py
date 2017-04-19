@@ -422,8 +422,8 @@ def main():
         )
 
     # Catch the files passed as the last arguments
-    src = args.src.split(':')
-    dst = args.dst.split(':')
+    src = args.src.rsplit(':', 1)
+    dst = args.dst.rsplit(':', 1)
     if len(src) == 1:
         srcfile, srcnode = src[0], "/"
     else:
@@ -544,7 +544,10 @@ def main():
     cpu2 = time.clock()
     tcopy = round(t2 - t1, 3)
     cpucopy = round(cpu2 - cpu1, 3)
-    tpercent = int(round(cpucopy / tcopy, 2) * 100)
+    try:
+        tpercent = int(round(cpucopy / tcopy, 2) * 100)
+    except ZeroDivisionError:
+        tpercent = 'NaN'
 
     if verbose:
         ngroups = stats['groups']
