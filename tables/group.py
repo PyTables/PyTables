@@ -14,6 +14,7 @@
 from __future__ import absolute_import
 
 import os
+import re
 import weakref
 import warnings
 
@@ -34,6 +35,15 @@ import six
 
 
 obversion = "1.0"
+
+
+def _is_python_identifier(s):
+    """
+    >>> [_is_python_identifier(s) 
+    ...  for s in ['5good-deeds', '5good_deeds', '_good_deeds']]
+    [False, False, True]
+    """
+    return re.sub('\W|^(?=\d)','_', s)
 
 
 class _ChildrenDict(ProxyDict):
@@ -805,6 +815,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         except AttributeError as ae:
             hint = " (use ``node._f_remove()`` if you want to remove a node)"
             raise ae.__class__(str(ae) + hint)
+
+    def __dir__(self):
+        """Autocomplete only children named as valid python identifiers."""
+        subnods = [c for c in self._v_children if _is_python_identifier(c)]
+        return super(Group, self).__dir__() + subnods
 
     def __getattr__(self, name):
         """Get a Python attribute or child node called name.
