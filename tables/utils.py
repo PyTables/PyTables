@@ -18,6 +18,7 @@ import os
 import sys
 import warnings
 import subprocess
+import re
 from time import time
 
 import numpy
@@ -133,6 +134,17 @@ def convert_to_np_atom2(object, atom):
         nparr = nparr.byteswap()
 
     return nparr
+
+
+
+def is_python_identifier(s):
+    """Is string valid as python-identifier?
+
+    >>> [_is_python_identifier(s)
+    ...  for s in ['5good-deeds', '5good_deeds', '_good_deeds']]
+    [False, False, True]
+    """
+    return re.sub('\W|^(?=\d)','_', s)
 
 
 

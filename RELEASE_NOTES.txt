@@ -12,9 +12,9 @@ Changes from 3.4.2 to 3.4.x
 
 Improvements
 ------------
- - Autocomplete group-children that are named as valid python identifiers
-   on interactive python sessions. 
-   :issue:`624` thanks to ankostis.
+ - On interactive python sessions, group/attribute  `__dir__()` method
+   autocompletes children that are named as valid python identifiers.
+   :issue:`624` & :issue:`625` thanks to ankostis.
 
 
 Changes from 3.4.1 to 3.4.2

@@ -29,21 +29,13 @@ from .path import check_name_validity, join_path, isvisiblename
 from .node import Node, NotLoggedMixin
 from .leaf import Leaf
 from .unimplemented import UnImplemented, Unknown
+from .utils import is_python_identifier as _is_python_identifier  # not to polute ns
 
 from .link import Link, SoftLink, ExternalLink
 import six
 
 
 obversion = "1.0"
-
-
-def _is_python_identifier(s):
-    """
-    >>> [_is_python_identifier(s) 
-    ...  for s in ['5good-deeds', '5good_deeds', '_good_deeds']]
-    [False, False, True]
-    """
-    return re.sub('\W|^(?=\d)','_', s)
 
 
 class _ChildrenDict(ProxyDict):
