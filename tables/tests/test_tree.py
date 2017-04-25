@@ -499,6 +499,45 @@ class TreeTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("walk_nodes(pathname, classname) test passed")
 
+    def test05_dir(self):
+        """Checking Group.__dir__"""
+
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test05_dir..." % self.__class__.__name__)
+
+        self.h5file = tables.open_file(self.h5fname, "r")
+
+        """
+        h5file nodes:
+        '/table0', '/var1', '/var4'
+        '/group0/table1', '/group0/var1', '/group0/var4',
+        '/group0/group1/table2', '/group0/group1/var1', '/group0/group1/var4'
+        """
+        root_dir = dir(self.h5file.root)
+        self.assertIn('group0', root_dir)
+        self.assertIn('table0', root_dir)
+        self.assertIn('var1', root_dir)
+        self.assertNotIn('table1', root_dir)
+        self.assertNotIn('table2', root_dir)
+
+        root_group0_dir = dir(self.h5file.root.group0)
+        self.assertIn('group1', root_group0_dir)
+        self.assertIn('table1', root_group0_dir)
+        self.assertNotIn('table0', root_group0_dir)
+        self.assertNotIn('table2', root_group0_dir)
+
+        root_group0_group1_dir = dir(self.h5file.root.group0.group1)
+        self.assertIn('group2', root_group0_group1_dir)
+        self.assertIn('table2', root_group0_group1_dir)
+        self.assertNotIn('table0', root_group0_group1_dir)
+        self.assertNotIn('table1', root_group0_group1_dir)
+        self.assertNotIn('group0', root_group0_group1_dir)
+        self.assertNotIn('group1', root_group0_group1_dir)
+
+        if common.verbose:
+            print("Group.__dir__ test passed")
+
 
 class DeepTreeTestCase(common.TempFileMixin, TestCase):
     """Checks for deep hierarchy levels in PyTables trees."""
