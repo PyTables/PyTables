@@ -499,6 +499,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("walk_nodes(pathname, classname) test passed")
 
+    @unittest.skipIf(sys.version_info[0] < 3, "Special method `__dir__()` introduced in Python-3.")
     def test05_dir(self):
         """Checking Group.__dir__"""
 
@@ -515,6 +516,17 @@ class TreeTestCase(common.TempFileMixin, TestCase):
         '/group0/group1/table2', '/group0/group1/var1', '/group0/group1/var4'
         """
         root_dir = dir(self.h5file.root)
+        
+        ## Check some regular attributes.
+        #
+        self.assertIn('_v_children', root_dir)
+        self.assertIn('_v_attrs', root_dir)
+        self.assertIn('_g_get_child_group_class', root_dir)
+        self.assertIn('_g_get_child_group_class', root_dir)
+        self.assertIn('_f_close', root_dir)
+
+        ## Check children nodes.
+        #
         self.assertIn('group0', root_dir)
         self.assertIn('table0', root_dir)
         self.assertIn('var1', root_dir)
