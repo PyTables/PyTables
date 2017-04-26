@@ -69,23 +69,23 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.get_node_attr(self.root.atable, 'attr1'),
                          "a" * attrlength)
         self.assertEqual(self.h5file.get_node_attr(self.root.anarray, 'attr1'),
-                         "n" * attrlength) 
-        
+                         "n" * attrlength)
+
     def reopen(self):
         # Reopen
         if self.close:
             if common.verbose:
                 print("(closing file version)")
             self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
-            self.root = self.h5file.root  
-            
+            self.root = self.h5file.root
+
     def check_missing(self,name):
         self.reopen()
         self.assertFalse(name in self.root.agroup._v_attrs)
         self.assertFalse(name in self.root.atable.attrs)
-        self.assertFalse(name in self.root.anarray.attrs)       
-        
-                         
+        self.assertFalse(name in self.root.anarray.attrs)
+
+
     def check_name(self, name, val = ''):
         """Check validity of attribute name filtering"""
         self.check_missing(name)
@@ -103,7 +103,7 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         self.h5file.del_node_attr(self.root.atable, name)
         self.h5file.del_node_attr(self.root.anarray, name)
         self.check_missing(name)
-        
+
         # Using Node methods
         self.root.agroup._f_setattr(name, val)
         self.root.atable.set_attr(name, val)
@@ -112,16 +112,16 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         self.reopen()
         self.assertEqual(self.root.agroup._f_getattr(name), val)
         self.assertEqual(self.root.atable.get_attr(name), val)
-        self.assertEqual(self.root.anarray.get_attr(name), val)  
+        self.assertEqual(self.root.anarray.get_attr(name), val)
         self.root.agroup._f_delattr(name)
         self.root.atable.del_attr(name)
-        self.root.anarray.del_attr(name)      
+        self.root.anarray.del_attr(name)
         self.check_missing(name)
-        
+
         # Using AttributeSet methods
         setattr(self.root.agroup._v_attrs, name, val)
         setattr(self.root.atable.attrs, name, val)
-        setattr(self.root.anarray.attrs, name, val)        
+        setattr(self.root.anarray.attrs, name, val)
         # Check AttributeSet methods
         self.reopen()
         self.assertEqual(getattr(self.root.agroup._v_attrs, name), val)
@@ -131,21 +131,21 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         delattr(self.root.atable.attrs, name)
         delattr(self.root.anarray.attrs, name)
         self.check_missing(name)
-        
+
         # Using dict []
         self.root.agroup._v_attrs[name]=val
         self.root.atable.attrs[name]=val
         self.root.anarray.attrs[name]=val
         # Check dict []
-        self.reopen()  
+        self.reopen()
         self.assertEqual(self.root.agroup._v_attrs[name], val)
         self.assertEqual(self.root.atable.attrs[name], val)
-        self.assertEqual(self.root.anarray.attrs[name], val)  
+        self.assertEqual(self.root.anarray.attrs[name], val)
         del self.root.agroup._v_attrs[name]
         del self.root.atable.attrs[name]
         del self.root.anarray.attrs[name]
         self.check_missing(name)
-        
+
     def test01a_setAttributes(self):
         """Checking attribute names validity"""
         self.check_name('a')
@@ -601,6 +601,43 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         assert_array_equal(self.array.attrs['a'], data)
         assert_array_equal(self.array.attrs['b'], data.T)
         assert_array_equal(self.array.attrs['c'], data.T)  # AssertionError!
+
+    @unittest.skipIf(sys.version_info[0] < 3, "Special method `__dir__()` introduced in Python-3.")
+    def test12_dir(self):
+        """Checking AttributeSet.__dir__"""
+
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test12_dir..." % self.__class__.__name__)
+
+        attrset = self.group._v_attrs
+
+        user_attr = 'good_attr'
+        sys_attr = 'BETTER_ATTR'
+        bad_user = '5bad'
+        bad_sys = 'SYS%'
+        for a in [user_attr, sys_attr, bad_user, bad_sys]:
+            attrset[a] = 1
+
+        completions = dir(attrset)
+
+        ## Check some regular attributes.
+        #
+        self.assertIn('__class__', completions)
+        self.assertIn('_f_copy', completions)
+        self.assertEqual(completions.count('_f_copy'), 1)
+
+        ## Check SYS attrs.
+        #
+        self.assertNotIn(bad_sys, completions)
+        self.assertIn(sys_attr, completions)
+        self.assertEqual(completions.count(sys_attr), 1)
+
+        ## Check USER attrs.
+        #
+        self.assertIn(user_attr, completions)
+        self.assertNotIn(bad_user, completions)
+        self.assertEqual(completions.count(user_attr), 1)
 
 
 class NotCloseCreate(CreateTestCase):
@@ -1620,7 +1657,7 @@ class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, TestCase):
         # a UnicodeDecodeError when unpickling on python 3.
         # Python 3.4 adds encoding='bytes' to fix this
         # http://bugs.python.org/issue6784
-        # Objects pickled in the testfile have non-ascii chars in the 
+        # Objects pickled in the testfile have non-ascii chars in the
         # picklestring and will throw UnicodeDecodeError when unpickled
         # on python 3.
 

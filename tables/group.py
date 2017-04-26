@@ -37,15 +37,6 @@ import six
 obversion = "1.0"
 
 
-def _is_python_identifier(s):
-    """
-    >>> [_is_python_identifier(s) 
-    ...  for s in ['5good-deeds', '5good_deeds', '_good_deeds']]
-    [False, False, True]
-    """
-    return re.sub('\W|^(?=\d)','_', s)
-
-
 class _ChildrenDict(ProxyDict):
     def _get_value_from_container(self, container, key):
         return container._f_get_child(key)
@@ -111,11 +102,11 @@ class Group(hdf5extension.Group, Node):
     The following documentation includes methods that are automatically
     called when a Group instance is accessed in a special way.
 
-    For instance, this class defines the __setattr__, __getattr__, and
-    __delattr__ methods, and they set, get and delete *ordinary Python
-    attributes* as normally intended. In addition to that, __getattr__
-    allows getting *child nodes* by their name for the sake of easy
-    interaction on the command line, as long as there is no Python
+    For instance, this class defines the __setattr__, __getattr__,
+    __delattr__ and __dir__ methods, and they set, get and delete
+    *ordinary Python attributes* as normally intended. In addition to that,
+     __getattr__ allows getting *child nodes* by their name for the sake of
+     easy interaction on the command line, as long as there is no Python
     attribute with the same name. Groups also allow the interactive
     completion (when using readline) of the names of child nodes.
     For instance::
@@ -133,6 +124,9 @@ class Group(hdf5extension.Group, Node):
         del group.table              # delete a Python attribute
         table = group.table          # get the table child instance again
 
+    Additionally, on interactive python sessions you may get autocompletions
+    of children named as *valid python identifiers* by pressing the  `[Tab]`
+    key, or to use the dir() global function.
 
     .. rubric:: Group attributes
 
@@ -817,8 +811,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             raise ae.__class__(str(ae) + hint)
 
     def __dir__(self):
-        """Autocomplete only children named as valid python identifiers."""
-        subnods = [c for c in self._v_children if _is_python_identifier(c)]
+        """Autocomplete only children named as valid python identifiers.
+
+        Only PY3 supports this special method.
+        """
+        subnods = [c for c in self._v_children if c.isidentifier()]
         return super(Group, self).__dir__() + subnods
 
     def __getattr__(self, name):

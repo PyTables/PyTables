@@ -18,6 +18,7 @@ import os
 import sys
 import warnings
 import subprocess
+import re
 from time import time
 
 import numpy

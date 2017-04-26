@@ -151,9 +151,9 @@ class AttributeSet(hdf5extension.AttributeSet, object):
 
     .. rubric:: Notes on AttributeSet methods
 
-    Note that this class overrides the __getattr__(), __setattr__() and
-    __delattr__() special methods.  This allows you to read, assign or
-    delete attributes on disk by just using the next constructs::
+    Note that this class overrides the __getattr__(), __setattr__(),
+    __delattr__() and __dir__() special methods.  This allows you to
+    read, assign or delete attributes on disk by just using the next constructs::
 
         leaf.attrs.myattr = 'str attr'    # set a string (native support)
         leaf.attrs.myattr2 = 3            # set an integer (native support)
@@ -169,6 +169,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             print("name: %s, value: %s" % (name, node._v_attrs[name]))
 
     Use whatever idiom you prefer to access the attributes.
+
+    Finally, on interactive python sessions you may get autocompletions of
+    attributes named as *valid python identifiers* by pressing the  `[Tab]`
+    key, or to use the dir() global function.
 
     If an attribute is set on a target node that already has a large
     number of attributes, a PerformanceWarning will be issued.
@@ -282,6 +286,15 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             return self._v_attrnamessys[:]
         elif attrset == "all":
             return self._v_attrnames[:]
+
+    def __dir__(self):
+        """Autocomplete only children named as valid python identifiers.
+
+        Only PY3 supports this special method.
+        """
+        return list(set(c for c in
+                    super(AttributeSet, self).__dir__() + self._v_attrnames
+                    if c.isidentifier()))
 
     def __getattr__(self, name):
         """Get the attribute named "name"."""
