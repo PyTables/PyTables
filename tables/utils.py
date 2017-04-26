@@ -137,17 +137,6 @@ def convert_to_np_atom2(object, atom):
 
 
 
-def is_python_identifier(s):
-    """Is string valid as python-identifier?
-
-    >>> [_is_python_identifier(s)
-    ...  for s in ['5good-deeds', '5good_deeds', '_good_deeds']]
-    [False, False, True]
-    """
-    return re.sub('\W|^(?=\d)','_', s)
-
-
-
 def check_file_access(filename, mode='r'):
     """Check for file access in the specified `mode`.
 

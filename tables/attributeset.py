@@ -26,7 +26,6 @@ from .exceptions import ClosedNodeError, PerformanceWarning
 from .path import check_attribute_name
 from .undoredo import attr_to_shadow
 from .filters import Filters
-from .utils import is_python_identifier as _is_python_identifier  # not to polute ns
 
 from six.moves import map
 import six
@@ -289,8 +288,11 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             return self._v_attrnames[:]
 
     def __dir__(self):
-        """Autocomplete only children named as valid python identifiers."""
-        subnods = [c for c in self._v_attrnames if _is_python_identifier(c)]
+        """Autocomplete only children named as valid python identifiers.
+
+        Only PY3 supports this special method.
+        """
+        subnods = [c for c in self._v_attrnames if c.isidentifier()]
         return super(AttributeSet, self).__dir__() + subnods
 
     def __getattr__(self, name):

@@ -29,7 +29,6 @@ from .path import check_name_validity, join_path, isvisiblename
 from .node import Node, NotLoggedMixin
 from .leaf import Leaf
 from .unimplemented import UnImplemented, Unknown
-from .utils import is_python_identifier as _is_python_identifier  # not to polute ns
 
 from .link import Link, SoftLink, ExternalLink
 import six
@@ -812,8 +811,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             raise ae.__class__(str(ae) + hint)
 
     def __dir__(self):
-        """Autocomplete only children named as valid python identifiers."""
-        subnods = [c for c in self._v_children if _is_python_identifier(c)]
+        """Autocomplete only children named as valid python identifiers.
+
+        Only PY3 supports this special method.
+        """
+        subnods = [c for c in self._v_children if c.isidentifier()]
         return super(Group, self).__dir__() + subnods
 
     def __getattr__(self, name):
