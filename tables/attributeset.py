@@ -292,8 +292,9 @@ class AttributeSet(hdf5extension.AttributeSet, object):
 
         Only PY3 supports this special method.
         """
-        subnods = [c for c in self._v_attrnames if c.isidentifier()]
-        return super(AttributeSet, self).__dir__() + subnods
+        return list(set(c for c in
+                    super(AttributeSet, self).__dir__() + self._v_attrnames
+                    if c.isidentifier()))
 
     def __getattr__(self, name):
         """Get the attribute named "name"."""

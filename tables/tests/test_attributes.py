@@ -625,16 +625,19 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         #
         self.assertIn('__class__', completions)
         self.assertIn('_f_copy', completions)
+        self.assertEqual(completions.count('_f_copy'), 1)
 
         ## Check SYS attrs.
         #
         self.assertNotIn(bad_sys, completions)
         self.assertIn(sys_attr, completions)
+        self.assertEqual(completions.count(sys_attr), 1)
 
         ## Check USER attrs.
         #
         self.assertIn(user_attr, completions)
         self.assertNotIn(bad_user, completions)
+        self.assertEqual(completions.count(user_attr), 1)
 
 
 class NotCloseCreate(CreateTestCase):
