@@ -639,6 +639,10 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         self.assertNotIn(bad_user, completions)
         self.assertEqual(completions.count(user_attr), 1)
 
+        # Now check all for no duplicates.
+        self.assertSequenceEqual(sorted(set(completions)),
+                                 sorted(completions))
+
 
 class NotCloseCreate(CreateTestCase):
     close = False

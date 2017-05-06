@@ -516,7 +516,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
         '/group0/group1/table2', '/group0/group1/var1', '/group0/group1/var4'
         """
         root_dir = dir(self.h5file.root)
-        
+
         ## Check some regular attributes.
         #
         self.assertIn('_v_children', root_dir)
@@ -532,12 +532,16 @@ class TreeTestCase(common.TempFileMixin, TestCase):
         self.assertIn('var1', root_dir)
         self.assertNotIn('table1', root_dir)
         self.assertNotIn('table2', root_dir)
+        self.assertSequenceEqual(sorted(set(root_dir)),
+                                 sorted(root_dir))  # Check for no duplicates.
 
         root_group0_dir = dir(self.h5file.root.group0)
         self.assertIn('group1', root_group0_dir)
         self.assertIn('table1', root_group0_dir)
         self.assertNotIn('table0', root_group0_dir)
         self.assertNotIn('table2', root_group0_dir)
+        self.assertSequenceEqual(sorted(set(root_group0_dir)),
+                                 sorted(root_group0_dir))
 
         root_group0_group1_dir = dir(self.h5file.root.group0.group1)
         self.assertIn('group2', root_group0_group1_dir)
@@ -546,6 +550,8 @@ class TreeTestCase(common.TempFileMixin, TestCase):
         self.assertNotIn('table1', root_group0_group1_dir)
         self.assertNotIn('group0', root_group0_group1_dir)
         self.assertNotIn('group1', root_group0_group1_dir)
+        self.assertSequenceEqual(sorted(set(root_group0_group1_dir)),
+                                 sorted(root_group0_group1_dir))
 
         if common.verbose:
             print("Group.__dir__ test passed")

@@ -434,6 +434,16 @@ class Group(hdf5extension.Group, Node):
             return False
         return True
 
+    def __getitem__(self, childname):
+        """Return the (visible or hidden) child with that `name` ( a string).
+
+        Raise IndexError if child not exist.
+        """
+        try:
+            return self._f_get_child(childname)
+        except NoSuchNodeError:
+            raise IndexError(childname)
+
     def _f_walknodes(self, classname=None):
         """Iterate over descendant nodes.
 
@@ -827,6 +837,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         if name in self._c_lazy_children_attrs:
             self._g_add_children_names()
             return self.__dict__[name]
+        return self._f_get_child(name)
+
+    def __item__(self, name):
         return self._f_get_child(name)
 
     def __setattr__(self, name, value):

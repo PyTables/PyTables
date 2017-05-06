@@ -15,6 +15,9 @@ Improvements
  - On interactive python sessions, group/attribute  `__dir__()` method
    autocompletes children that are named as valid python identifiers.
    :issue:`624` & :issue:`625` thanks to ankostis.
+ - Implement `Group.__getitem__()` to have groups act as python-containers,
+   so code like this works: ``hfile.root['some child']``.
+   :issue:`628` thanks to ankostis.
 
 
 Changes from 3.4.1 to 3.4.2
