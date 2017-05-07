@@ -839,9 +839,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             return self.__dict__[name]
         return self._f_get_child(name)
 
-    def __item__(self, name):
-        return self._f_get_child(name)
-
     def __setattr__(self, name, value):
         """Set a Python attribute called name with the given value.
 
