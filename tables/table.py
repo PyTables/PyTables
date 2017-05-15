@@ -1480,9 +1480,9 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         """
 
-        return self._where(condition, condvars, start, stop, step)
+        return self._where(condition, condvars, start, stop, step, as_array=False)
 
-    def _where(self, condition, condvars, start=None, stop=None, step=None):
+    def _where(self, condition, condvars, start=None, stop=None, step=None, as_array=False):
         """Low-level counterpart of `self.where()`."""
 
         if profile:
@@ -1494,7 +1494,11 @@ very small/large chunksize, you may want to increase/decrease it."""
         if start >= stop:  # empty range, reset conditions
             self._use_index = False
             self._where_condition = None
-            return iter([])
+            return (
+                numpy.empty(0, dtype='int64')
+                if as_array else
+                iter([])
+            )
 
         # Compile the condition and extract usable index conditions.
         condvars = self._required_expr_vars(condition, condvars, depth=3)
@@ -1510,7 +1514,11 @@ very small/large chunksize, you may want to increase/decrease it."""
                 self._use_index = False
                 self._where_condition = None
                 # ...and return the iterator
-                return chunkmap
+                return (
+                    numpy.array([row.nrow for row in chunkmap], dtype='int64')
+                    if as_array else
+                    chunkmap
+                )
         else:
             chunkmap = None  # default to an in-kernel query
 
@@ -1519,7 +1527,13 @@ very small/large chunksize, you may want to increase/decrease it."""
         row = tableextension.Row(self)
         if profile:
             show_stats("Exiting table._where", tref)
-        return row._iter(start, stop, step, chunkmap=chunkmap)
+
+        return (row._read_where_coords if as_array else row._iter)(
+            start,
+            stop,
+            step,
+            chunkmap=chunkmap,
+        )
 
     def read_where(self, condition, condvars=None, field=None,
                    start=None, stop=None, step=None):
@@ -1535,17 +1549,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         self._g_check_open()
-        coords = [p.nrow for p in
-                  self._where(condition, condvars, start, stop, step)]
+        coords = self._where(condition, condvars, start, stop, step, as_array=True)
         self._where_condition = None  # reset the conditions
-        if len(coords) > 1:
-            cstart, cstop = coords[0], coords[-1] + 1
-            if cstop - cstart == len(coords):
-                # Chances for monotonically increasing row values. Refine.
-                inc_seq = numpy.alltrue(
-                    numpy.arange(cstart, cstop) == numpy.array(coords))
-                if inc_seq:
-                    return self.read(cstart, cstop, field=field)
         return self.read_coordinates(coords, field)
 
     def append_where(self, dstTable, condition=None, condvars=None,

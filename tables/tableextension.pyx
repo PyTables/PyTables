@@ -22,8 +22,11 @@ Functions:
 Misc variables:
 
 """
+cimport cython
 
 import sys
+cimport numpy as np
+import numpy as np
 import numpy
 from time import time
 
@@ -782,6 +785,41 @@ cdef class Row:
     """Return an iterator for traversiong the data in table."""
     self._init_loop(start, stop, step, coords, chunkmap)
     return iter(self)
+
+  def _read_where_coords(self,
+                         start=0,
+                         stop=0,
+                         step=1,
+                         chunkmap=None):
+    self._init_loop(start, stop, step, None, chunkmap)
+    cdef np.ndarray[np.int64_t] out = np.empty(self.nrows, dtype='int64')
+    cdef Py_ssize_t ix = 0
+    with cython.boundscheck(False), cython.wraparound(False):
+      try:
+        if self.indexed:
+          while True:
+            self.__next__indexed()
+            out[ix] = self._nrow
+            ix += 1
+        elif self.coords is not None:
+          while True:
+            self.__next__coords()
+            out[ix] = self._nrow
+            ix += 1
+        elif self.wherecond:
+          while True:
+            self.__next__inkernel()
+            out[ix] = self._nrow
+            ix += 1
+        else:
+          while True:
+            self.__next__general()
+            out[ix] = self._nrow
+            ix += 1
+      except StopIteration:
+        pass
+
+    return out[:ix]
 
   def __iter__(self):
     """Iterator that traverses all the data in the Table"""
