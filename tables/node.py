@@ -18,7 +18,7 @@ import functools
 
 from .registry import class_name_dict, class_id_dict
 from .exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
-                               PerformanceWarning)
+                         PerformanceWarning)
 from .path import join_path, split_path, isvisiblepath
 from .utils import lazyattr
 from .undoredo import move_to_shadow
@@ -145,7 +145,7 @@ class Node(six.with_metaclass(MetaNode, object)):
         A node identifier (may change from run to run).
 
         .. versionchanged:: 3.0
-           The *_v_objectID* attribute has been renamed into *_v_object_id*.
+           The *_v_objectID* attribute has been renamed into *_v_objectid*.
 
     """
 
@@ -192,7 +192,6 @@ class Node(six.with_metaclass(MetaNode, object)):
     # to be called.  See ticket #144 for more info.
     _v_isopen = False
     """Whehter this node is open or not."""
-
 
     # The ``_log`` argument is only meant to be used by ``_g_copy_as_child()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
@@ -284,7 +283,6 @@ class Node(six.with_metaclass(MetaNode, object)):
     def _g_log_create(self):
         self._v_file._log('CREATE', self._v_pathname)
 
-
     def __del__(self):
         # Closed `Node` instances can not be killed and revived.
         # Instead, accessing a closed and deleted (from memory, not
@@ -324,7 +322,6 @@ class Node(six.with_metaclass(MetaNode, object)):
         """Code to be called before killing the node."""
         pass
 
-
     def _g_create(self):
         """Create a new HDF5 node and return its object identifier."""
         raise NotImplementedError
@@ -343,7 +340,6 @@ class Node(six.with_metaclass(MetaNode, object)):
         if not self._v_isopen:
             raise ClosedNodeError("the node object is closed")
         assert self._v_file.isopen, "found an open node in a closed file"
-
 
     def _g_set_location(self, parentnode, name):
         """Set location-dependent attributes.
@@ -391,7 +387,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if self._v_pathname != '/':
             file_._node_manager.cache_node(self, self._v_pathname)
 
-
     def _g_update_location(self, newparentpath):
         """Update location-dependent attributes.
 
@@ -426,7 +421,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Tell dependent objects about the new location of this node.
         self._g_update_dependent()
 
-
     def _g_del_location(self):
         """Clear location-dependent attributes.
 
@@ -449,11 +443,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._v_name = None
         self._v_depth = None
 
-
     def _g_post_init_hook(self):
         """Code to be run after node creation and before creation logging."""
         pass
-
 
     def _g_update_dependent(self):
         """Update dependent objects after a location change.
@@ -465,7 +457,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         if '_v_attrs' in self.__dict__:
             self._v_attrs._g_update_node_location(self)
-
 
     def _f_close(self):
         """Close this node in the tree.
@@ -555,7 +546,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Log *before* moving to use the right shadow name.
         file_._log('REMOVE', oldpathname)
         move_to_shadow(file_, oldpathname)
-
 
     def _g_move(self, newparent, newname):
         """Move this node in the hierarchy.
@@ -695,7 +685,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_log_move(self, oldpathname):
         self._v_file._log('MOVE', oldpathname, self._v_pathname)
 
-
     def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         """Copy this node and return the new one.
 
@@ -725,7 +714,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         return self._g_copy(newparent, self._v_name,
                             recursive=False, _log=False, **kwargs)
-
 
     def _f_copy(self, newparent=None, newname=None,
                 overwrite=False, recursive=False, createparents=False,
@@ -829,7 +817,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_check_open()
         return isvisiblepath(self._v_pathname)
 
-
     def _g_check_group(self, node):
         # Node must be defined in order to define a Group.
         # However, we need to know Group here.
@@ -841,16 +828,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             raise TypeError("new parent node ``%s`` is not a group"
                             % node._v_pathname)
 
-
     def _g_check_not_contains(self, pathname):
         # The not-a-TARDIS test. ;)
         mypathname = self._v_pathname
         if (mypathname == '/'  # all nodes fall below the root group
-           or pathname == mypathname
-           or pathname.startswith(mypathname + '/')):
+            or pathname == mypathname
+                or pathname.startswith(mypathname + '/')):
             raise NodeError("can not move or recursively copy node ``%s`` "
                             "into itself" % mypathname)
-
 
     def _g_maybe_remove(self, parent, name, overwrite):
         if name in parent:
@@ -859,7 +844,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 destination group ``%s`` already has a node named ``%s``; \
 you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
             parent._f_get_child(name)._f_remove(True)
-
 
     def _g_check_name(self, name):
         """Check validity of name for this particular kind of node.
@@ -874,7 +858,6 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
             raise ValueError(
                 "node name starts with reserved prefix ``_i_``: %s" % name)
 
-
     # <attribute handling>
     def _f_getattr(self, name):
         """Get a PyTables attribute from this node.
@@ -886,7 +869,6 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
 
         return getattr(self._v_attrs, name)
 
-
     def _f_setattr(self, name, value):
         """Set a PyTables attribute for this node.
 
@@ -897,7 +879,6 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
 
         setattr(self._v_attrs, name, value)
 
-
     def _f_delattr(self, name):
         """Delete a PyTables attribute from this node.
 
@@ -907,7 +888,6 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         """
 
         delattr(self._v_attrs, name)
-
 
     # </attribute handling>
 
@@ -921,19 +901,16 @@ class NotLoggedMixin:
     def _g_log_create(self):
         pass
 
-
     def _g_log_move(self, oldpathname):
         pass
-
 
     def _g_remove_and_log(self, recursive, force):
         self._g_remove(recursive, force)
 
 
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:
+# Local Variables:
+# mode: python
+# py-indent-offset: 4
+# tab-width: 4
+# fill-column: 72
+# End:
