@@ -11,6 +11,10 @@ class Leaf(Node):
         return self.backend.shape
 
     @property
+    def size_on_disk(self):
+        return self.backend.get_storage_size()
+
+    @property
     def chunk_shape(self):
         return self.backend.chunk_shape
 
@@ -18,8 +22,16 @@ class Leaf(Node):
         return self.backend.__len__()
 
     @property
+    def ndim(self):
+        return len(self.shape)
+
+    @property
     def nrows(self):
-        return int(self.shape[self.maindim])
+        if len(self.shape) > 0:
+            return int(self.shape[self.maindim])
+        # Scalar dataset
+        else:
+            return 1
 
     def __getitem__(self, item):
         return self.backend.__getitem__(item)
@@ -65,3 +77,25 @@ class Leaf(Node):
 
     def flush(self):
         pass
+
+    def __str__(self):
+        """The string representation for this object is its pathname in the
+        HDF5 object tree plus some additional metainfo."""
+
+        # Get this class name
+        classname = self.__class__.__name__
+        # The title
+        title = self.title
+        # The filters
+        filters = ""
+        if self.filters.fletcher32:
+            filters += ", fletcher32"
+        if self.filters.complevel:
+            if self.filters.shuffle:
+                filters += ", shuffle"
+            if self.filters.bitshuffle:
+                filters += ", bitshuffle"
+            filters += ", %s(%s)" % (self.filters.complib,
+                                     self.filters.complevel)
+        return "%s (%s%s%s) %r" % \
+               (self._v_pathname, classname, self.shape, filters, title)

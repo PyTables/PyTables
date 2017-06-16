@@ -2,6 +2,7 @@ from __future__ import print_function
 import numpy as np
 import tables
 
+print(tables.__version__)
 # Open a new empty HDF5 file
 fileh = tables.open_file("array1.h5", mode="w")
 # Get the root group
@@ -11,7 +12,7 @@ root = fileh.root
 a = np.array([-1, 2, 4], np.int16)
 # Save it on the HDF5 file
 hdfarray = fileh.create_array(root, 'array_1', a, "Signed short array")
-
+print(hdfarray)
 # Create a scalar Array
 a = np.array(4, np.int16)
 # Save it on the HDF5 file
