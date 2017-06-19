@@ -11,11 +11,6 @@ class Node(HasTitle, HasBackend):
         if self.parent is not None:
             # Set the _file attr for nodes that are not File
             self._file = self.parent._file
-            nmanager = self._file._node_manager
-            node = nmanager.get_node(self._v_pathname)
-            if not node:
-                # Put this node in cache
-                nmanager.cache_node(self, self._v_pathname)
 
     @property
     def name(self):

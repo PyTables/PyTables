@@ -35,11 +35,6 @@ class HasChildren:
             yield child.name
 
     def __getitem__(self, item):
-        # Try cache first
-        nmanager = self._file._node_manager
-        node = nmanager.get_node(item)
-        if node:
-            return node
         # No luck, so use the backend to lookup the item
         value = self.backend[item]
         if isinstance(value, abc.Group):
@@ -61,7 +56,8 @@ class HasChildren:
         elif isinstance(old, str):
             self.backend.rename_node(old, new_name)
         else:
-            raise TypeError("Expecting either the name of the node to rename or the node itself")
+            raise TypeError(
+                "Expecting either the name of the node to rename or the node itself")
 
     def remove_node(self, *args):
         """ This method expects one argument (node) or two arguments (where, node) """
@@ -74,8 +70,8 @@ class HasChildren:
                 self.backend.remove_node(name)
             else:
                 raise TypeError("Expecting either the name of the node "
-                        "to rename or the node itself when called with "
-                        "one argument")
+                                "to rename or the node itself when called with "
+                                "one argument")
         elif len(args) == 2:
             where, name = args
             where.remove_node(name)
@@ -156,8 +152,6 @@ class File(HasChildren, Node):
         super().__init__(**kwargs)
         # TODO (re) make this configurable
         # node_cache_slots = params['NODE_CACHE_SLOTS']
-        node_cache_slots = 10
-        self._node_manager = NodeManager(nslots=node_cache_slots)
         # TODO only show Filters the inputs it wants
         self._filters = Filters(**self.backend.params)
         # Bootstrap the _file attribute for nodes
@@ -165,7 +159,7 @@ class File(HasChildren, Node):
 
     def close(self):
         # Flush the nodes prior to close
-        self._node_manager.flush_nodes()
+        self.backend.flush()
         super().close()
 
     def __enter__(self):
@@ -176,7 +170,7 @@ class File(HasChildren, Node):
 
     def reopen(self, **kwargs):
         # Flush the nodes prior to close
-        self._node_manager.flush_nodes()
+        self.bakend.flush()
         self.backend.close()
         self.backend.open(**kwargs)
 
@@ -399,9 +393,9 @@ class NodeManager:
                 except ClosedNodeError:
                     #import traceback
                     #type_, value, tb = sys.exc_info()
-                    #exception_dump = ''.join(
+                    # exception_dump = ''.join(
                     #    traceback.format_exception(type_, value, tb))
-                    #warnings.warn(
+                    # warnings.warn(
                     #    "A '%s' exception occurred trying to close a node "
                     #    "that was supposed to be open.\n"
                     #    "%s" % (type_.__name__, exception_dump))
@@ -440,7 +434,7 @@ class NodeManager:
         registry = self.registry
         cache = self.cache
 
-        #self.close_subtree('/')
+        # self.close_subtree('/')
 
         keys = list(cache)  # copy
         for key in keys:
