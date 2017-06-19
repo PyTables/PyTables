@@ -163,7 +163,7 @@ class File(HasChildren, Node):
         super().close()
 
     def __enter__(self):
-        self.open()
+        return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()

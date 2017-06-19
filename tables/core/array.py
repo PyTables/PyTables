@@ -9,7 +9,11 @@ class Array(Leaf):
     def __init__(self, _atom=None, **kwargs):
         super().__init__(**kwargs)
         self.atom = _atom
+        if _atom is None or _atom.shape == ():
+            self.atom = Atom.from_dtype(self.dtype)
         self.nrow = None
+        # Provisional for test
+        self.flavor = 'numpy'
         # TODO iterators?
 
     @property

@@ -257,7 +257,8 @@ class BasicTestCase(TestCase):
                 self.assertTrue(allequal(a, b))
         finally:
             # Then, delete the file
-            os.remove(filename)
+            # os.remove(filename) 
+            pass
 
     def setup00_char(self):
         """Data integrity during recovery (character objects)"""

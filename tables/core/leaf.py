@@ -3,6 +3,10 @@ from .node import Node
 
 class Leaf(Node):
     @property
+    def chunkshape(self):
+        return self.backend.chunks
+
+    @property
     def dtype(self):
         return self.backend.dtype
 
