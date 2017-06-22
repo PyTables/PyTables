@@ -1,5 +1,5 @@
 import sys
-import numpy
+import numpy as np
 from .leaf import Leaf
 from tables import Atom
 from tables.utils import byteorders
@@ -11,7 +11,7 @@ class Array(Leaf):
         self.atom = _atom
         if _atom is None or _atom.shape == ():
             if self.dtype == object:
-                self.atom = Atom.from_dtype(numpy.array(self[()]).dtype)
+                self.atom = Atom.from_dtype(np.array(self[()]).dtype)
             else:
                 self.atom = Atom.from_dtype(self.dtype)
         self.nrow = None
@@ -56,6 +56,9 @@ class Array(Leaf):
             arr = self[start:stop:step]
             nrowstoread = len(range(start, stop, step))
 
+        if (isinstance(arr, np.ndarray) and byteorders[arr.dtype.byteorder] != sys.byteorder):
+            arr = arr.byteswap(True)
+            arr.dtype = arr.dtype.newbyteorder()
         if out is not None:
             if self.flavor != 'numpy':
                 msg = ("Optional 'out' argument may only be supplied if array "
@@ -70,7 +73,7 @@ class Array(Leaf):
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
 
-            numpy.copyto(out, arr)
+            np.copyto(out, arr)
             return out
 
         return arr
@@ -81,7 +84,7 @@ class Array(Leaf):
         # Scalar dataset
         if self.shape == ():
             self.nrow = 0
-            yield numpy.array(self[()])
+            yield np.array(self[()])
         else:
             self.nrow = start
             for r in self[start:stop:step]:
