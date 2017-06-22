@@ -33,6 +33,12 @@ byteorders = {
     '|': 'irrelevant',
 }
 
+np_byteorders = {
+    'big': '>',
+    'little': '<',
+    'irrelevant': '|'
+}
+
 # The type used for size values: indexes, coordinates, dimension
 # lengths, row numbers, shapes, chunk shapes, byte counts...
 SizeType = numpy.int64

@@ -159,7 +159,6 @@ class BasicTestCase(TestCase):
                         self.assertEqual(abo, bbo)
                         if self.endiancheck:
                             self.assertNotEqual(bbo, sys.byteorder)
-
                 self.assertTrue(allequal(a, b))
         finally:
             # Then, delete the file

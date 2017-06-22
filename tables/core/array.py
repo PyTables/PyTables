@@ -10,7 +10,10 @@ class Array(Leaf):
         super().__init__(**kwargs)
         self.atom = _atom
         if _atom is None or _atom.shape == ():
-            self.atom = Atom.from_dtype(self.dtype)
+            if self.dtype == object:
+                self.atom = Atom.from_dtype(numpy.array(self[()]).dtype)
+            else:
+                self.atom = Atom.from_dtype(self.dtype)
         self.nrow = None
         # Provisional for test
         self.flavor = 'numpy'
@@ -42,18 +45,41 @@ class Array(Leaf):
 
         return self.atom.enum
 
-    def read(self, start=None, stop=None, step=None):
-        (start, stop, step) = self._process_range_read(start, stop, step)
-        if self.nrows == 1:
-            return numpy.array(self[()])
+    def read(self, start=None, stop=None, step=None, out=None):
+
+        # Scalar dataset
+        if self.shape == ():
+            arr = self[()]
+            nrowstoread = 1
         else:
-            return self[start:stop:step]
+            (start, stop, step) = self._process_range_read(start, stop, step)
+            arr = self[start:stop:step]
+            nrowstoread = len(range(start, stop, step))
+
+        if out is not None:
+            if self.flavor != 'numpy':
+                msg = ("Optional 'out' argument may only be supplied if array "
+                       "flavor is 'numpy', currently is {0}").format(self.flavor)
+                raise TypeError(msg)
+            bytes_required = self.rowsize * nrowstoread
+            # if buffer is too small, it will segfault
+            if bytes_required != out.nbytes:
+                raise ValueError(('output array size invalid, got {0} bytes, '
+                                  'need {1} bytes').format(out.nbytes,
+                                                           bytes_required))
+            if not out.flags['C_CONTIGUOUS']:
+                raise ValueError('output array not C contiguous')
+
+            numpy.copyto(out, arr)
+            return out
+
+        return arr
 
     def iterrows(self, start=None, stop=None, step=None):
         start, stop, step = self._process_range(start, stop, step,
                                                 warn_negstep=False)
         # Scalar dataset
-        if self.nrows == 1:
+        if self.shape == ():
             self.nrow = 0
             yield numpy.array(self[()])
         else:

@@ -1,7 +1,13 @@
 from .node import Node
+import numpy as np
+from tables.utils import byteorders
 
 
 class Leaf(Node):
+    @property
+    def byteorder(self):
+        return byteorders[self.dtype.byteorder]
+
     @property
     def chunkshape(self):
         return self.backend.chunks
@@ -23,7 +29,7 @@ class Leaf(Node):
         return self.backend.chunk_shape
 
     def __len__(self):
-        return self.backend.__len__()
+        return len(self.backend)
 
     @property
     def ndim(self):
@@ -35,7 +41,10 @@ class Leaf(Node):
             return int(self.shape[self.maindim])
         # Scalar dataset
         else:
-            return 1
+            if self.shape == ():
+                return 1
+            else:
+                return len(self)
 
     def __getitem__(self, item):
         return self.backend.__getitem__(item)

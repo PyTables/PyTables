@@ -5,12 +5,15 @@ from .leaf import Leaf
 from tables import abc
 from tables import Description
 from tables import IsDescription
+from tables.flavor import flavor_of, array_as_internal
+from tables.utils import np_byteorders, byteorders, correct_byteorder
 from .. import lrucacheextension
 from ..filters import Filters
 from ..exceptions import PerformanceWarning, ClosedFileError, ClosedNodeError
 import weakref
 import warnings
 import numpy as np
+import sys
 
 
 def dtype_from(something):
@@ -92,12 +95,46 @@ class Group(HasChildren, Node):
         # TODO how we persist this? JSON?
         self.backend.attrs['FILTERS'] = filters
 
-    def create_array(self, name, obj, title='', byte_order='I', **kwargs):
-        obj = np.asarray(obj)
-        dtype = obj.dtype.newbyteorder(byte_order)
+    def create_array(self, name, obj=None, title='', atom=None,
+                     byteorder=None, shape=None, **kwargs):
+        byteorder = correct_byteorder(type(obj), byteorder)
+        if byteorder is None:
+            _byteorder = np_byteorders['irrelevant']
+        else:
+            _byteorder = np_byteorders[byteorder]
+
+        if obj is None:
+            if atom is None or shape is None:
+                raise TypeError('if the obj parameter is not specified '
+                                '(or None) then both the atom and shape '
+                                'parametes should be provided.')
+            else:
+                # Making strides=(0,...) below is a trick to create the
+                # array fast and without memory consumption
+                dflt = np.zeros((), dtype=atom.dtype)
+                obj = np.ndarray(shape, dtype=atom.dtype, buffer=dflt,
+                                 strides=(0,) * len(shape))
+        else:
+            flavor = flavor_of(obj)
+            # use a temporary object because converting obj at this stage
+            # breaks some test. This is soultion performs a double,
+            # potentially expensive, conversion of the obj parameter.
+            _obj = array_as_internal(obj, flavor)
+            if shape is not None and shape != _obj.shape:
+                raise TypeError('the shape parameter do not match obj.shape')
+
+            if atom is not None and atom.dtype != _obj.dtype:
+                raise TypeError('the atom parameter is not consistent with '
+                                'the data type of the obj parameter')
+
+        if hasattr(obj, 'dtype') and _byteorder != '|':
+            if obj.dtype.byteorder != '|':
+                if byteorders[_byteorder] != byteorders[obj.dtype.byteorder]:
+                    obj = obj.byteswap(True)
+                    obj.dtype = obj.dtype.newbyteorder()
+
         dataset = self.backend.create_dataset(name, data=obj,
-                                              dtype=dtype,
-                                              **kwargs)
+                                              ** kwargs)
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'ARRAY'
         return Array(backend=dataset, parent=self)
@@ -108,8 +145,8 @@ class Group(HasChildren, Node):
         return g
 
     def create_table(self, name, description=None, title='',
+                     byteorder=None,
                      filters=None, expectedrows=10000,
-                     byte_order='I',
                      chunk_shape=None, obj=None, **kwargs):
         """ TODO write docs"""
 
