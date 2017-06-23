@@ -7,6 +7,7 @@ from tables import Description
 from tables import IsDescription
 from tables.flavor import flavor_of, array_as_internal
 from tables.utils import np_byteorders, byteorders, correct_byteorder
+from tables.exceptions import NoSuchNodeError
 from .. import lrucacheextension
 from ..filters import Filters
 from ..exceptions import PerformanceWarning, ClosedFileError, ClosedNodeError
@@ -218,17 +219,45 @@ class File(HasChildren, Node):
     def root(self):
         return self['/']
 
-    def create_array(self, where, *args, **kwargs):
+    def create_array(self, where, *args, createparents=False, **kwargs):
+        if not hasattr(where, 'create_array'):
+            where = self._get_or_create_path(where, createparents)
         return where.create_array(*args, **kwargs)
 
-    def create_group(self, where, *args, **kwargs):
+    def create_group(self, where, *args, createparents=False, **kwargs):
+        if not hasattr(where, 'create_group'):
+            where = self._get_or_create_path(where, createparents)
         return where.create_group(*args, **kwargs)
 
-    def create_table(self, where, name, desc, *args, **kwargs):
+    def create_table(self, where, name, desc, *args, createparents=False, **kwargs):
+        if not hasattr(where, 'create_table'):
+            where = self._get_or_create_path(where, createparents)
         return where.create_table(name, desc, *args, **kwargs)
 
     def get_node(self, where):
         return self.root[where]
+
+    def _get_or_create_path(self, path, create):
+        if create:
+            return self._create_path(path)
+        else:
+            return self.get_node(path)
+
+    def _create_path(self, path):
+        if not hasattr(path, 'split'):
+            raise TypeError("when creating parents, parent must be a path")
+
+        if path == '/':
+            return self.root
+
+        parent, create_group = self.root, self.create_group
+        for pcomp in path.split('/')[1:]:
+            try:
+                child = parent[pcomp]
+            except NoSuchNodeError:
+                child = create_group(parent, name=pcomp)
+            parent = child
+        return parent
 
 
 # A dumb class that doesn't keep nothing at all
