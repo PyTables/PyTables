@@ -74,10 +74,12 @@ class Array(Leaf):
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
 
-            if self.shape == ():
-                self.backend.read_direct(out)
-            else:
-                self.backend.read_direct(out, np.s_[start:stop:step], np.s_[0:nrowstoread])
+            # Check empty dataset
+            if self.nrows != 0:
+                if self.shape == ():
+                    self.backend.read_direct(out)
+                else:
+                    self.backend.read_direct(out, np.s_[start:stop:step], np.s_[0:nrowstoread])
             return out
 
         return arr
