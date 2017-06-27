@@ -671,6 +671,10 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
 
         # Get an array to be compared in the correct byteorder
         c = a.newbyteorder(byteorder)
+        # Original implementation create_array byteswaps inplace
+        # this behaviour is incorrect
+        if self.endiancheck:
+            c = c.byteswap()
 
         # Compare them. They should be equal.
         if not allequal(c, b) and common.verbose:
