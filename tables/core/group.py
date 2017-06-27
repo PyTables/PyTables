@@ -117,8 +117,8 @@ class Group(HasChildren, Node):
                                  strides=(0,) * len(shape))
         else:
             flavor = flavor_of(obj)
-            # use a temporary object because converting obj at this stage
-            # breaks some test. This is soultion performs a double,
+            # Use a temporary object because converting obj at this stage
+            # breaks some test. This fix performs a double,
             # potentially expensive, conversion of the obj parameter.
             _obj = array_as_internal(obj, flavor)
             if shape is not None and shape != _obj.shape:
@@ -131,7 +131,7 @@ class Group(HasChildren, Node):
         if hasattr(obj, 'dtype') and _byteorder != '|':
             if obj.dtype.byteorder != '|':
                 if byteorders[_byteorder] != byteorders[obj.dtype.byteorder]:
-                    obj = obj.byteswap(True)
+                    obj = obj.byteswap()
                     obj.dtype = obj.dtype.newbyteorder()
 
         dataset = self.backend.create_dataset(name, data=obj,

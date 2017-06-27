@@ -22,7 +22,7 @@ class Leaf(Node):
 
     @property
     def size_on_disk(self):
-        return self.backend.get_storage_size()
+        pass
 
     @property
     def chunk_shape(self):
@@ -41,10 +41,7 @@ class Leaf(Node):
             return int(self.shape[self.maindim])
         # Scalar dataset
         else:
-            if self.shape == ():
-                return 1
-            else:
-                return len(self)
+            return 1 if self.shape == () else len(self)
 
     def __getitem__(self, item):
         return self.backend.__getitem__(item)

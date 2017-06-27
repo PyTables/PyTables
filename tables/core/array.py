@@ -58,7 +58,8 @@ class Array(Leaf):
 
         if (isinstance(arr, np.ndarray) and byteorders[arr.dtype.byteorder] != sys.byteorder):
             arr = arr.byteswap(True)
-            arr.dtype = arr.dtype.newbyteorder()
+            arr.dtype = arr.dtype.newbyteorder('=')
+
         if out is not None:
             if self.flavor != 'numpy':
                 msg = ("Optional 'out' argument may only be supplied if array "
@@ -73,7 +74,10 @@ class Array(Leaf):
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
 
-            np.copyto(out, arr)
+            if self.shape == ():
+                self.backend.read_direct(out)
+            else:
+                self.backend.read_direct(out, np.s_[start:stop:step], np.s_[0:nrowstoread])
             return out
 
         return arr
