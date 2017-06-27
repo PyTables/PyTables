@@ -22,7 +22,7 @@ class Leaf(Node):
 
     @property
     def size_on_disk(self):
-        pass
+        return self.backend.size_on_disk
 
     @property
     def chunk_shape(self):

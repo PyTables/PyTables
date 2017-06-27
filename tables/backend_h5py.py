@@ -106,3 +106,7 @@ class Dataset(h5py.Dataset, abc.Dataset):
 
     def flush(self):
         super().flush()
+
+    @property
+    def size_on_disk(self):
+        return self.id.get_storage_size()
