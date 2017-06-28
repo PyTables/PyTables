@@ -1,5 +1,6 @@
 from .attributes import Attributes
 from .mixins import HasTitle, HasBackend
+from ..exceptions import ClosedNodeError
 
 
 class Node(HasTitle, HasBackend):
@@ -42,10 +43,6 @@ class Node(HasTitle, HasBackend):
         return self.backend.close()
 
     @property
-    def _v_isopen(self):
-        return self._isopen
-
-    @property
     def filters(self):
         if self._filters is not None:
             return self._filters
@@ -63,3 +60,18 @@ class Node(HasTitle, HasBackend):
     @property
     def _v_file(self):
         return self._file
+
+    @property
+    def _v_isopen(self):
+        return self._isopen
+
+    def _g_check_open(self):
+        """Check that the node is open.
+
+        If the node is closed, a `ClosedNodeError` is raised.
+
+        """
+
+        if not self._v_isopen:
+            raise ClosedNodeError("the node object is closed")
+        assert self._v_file._v_isopen, "found an open node in a closed file"

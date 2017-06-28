@@ -2,19 +2,20 @@ from .node import Node
 from .table import Table
 from .array import Array
 from .leaf import Leaf
-from tables import abc
-from tables import Description
-from tables import IsDescription
-from tables.flavor import flavor_of, array_as_internal
-from tables.utils import np_byteorders, byteorders, correct_byteorder
-from tables.exceptions import NoSuchNodeError
+from .. import abc
+from .. import Description
+from .. import IsDescription
+from ..flavor import flavor_of, array_as_internal
+from ..utils import np_byteorders, byteorders, correct_byteorder
 from .. import lrucacheextension
 from ..filters import Filters
-from ..exceptions import PerformanceWarning, ClosedFileError, ClosedNodeError
+from ..exceptions import PerformanceWarning, ClosedFileError, ClosedNodeError, NoSuchNodeError
+from ..path import join_path
+from ..registry import get_class_by_name
 import weakref
 import warnings
 import numpy as np
-import sys
+import six
 
 
 def dtype_from(something):
@@ -234,8 +235,70 @@ class File(HasChildren, Node):
             where = self._get_or_create_path(where, createparents)
         return where.create_table(name, desc, *args, **kwargs)
 
-    def get_node(self, where):
-        return self.root[where]
+    def get_node(self, where, name=None, classname=None):
+        """Get the node under where with the given name.
+
+        Parameters
+        ----------
+        where : str or Node
+            This can be a path string leading to a node or a Node instance (see
+            :ref:`NodeClassDescr`). If no name is specified, that node is
+            returned.
+
+            .. note::
+
+                If where is a Node instance from a different file than the one
+                on which this function is called, the returned node will also
+                be from that other file.
+
+        name : str, optional
+            If a name is specified, this must be a string with the name of
+            a node under where.  In this case the where argument can only
+            lead to a Group (see :ref:`GroupClassDescr`) instance (else a
+            TypeError is raised). The node called name under the group
+            where is returned.
+        classname : str, optional
+            If the classname argument is specified, it must be the name of
+            a class derived from Node (e.g. Table). If the node is found but it
+            is not an instance of that class, a NoSuchNodeError is also raised.
+
+        If the node to be returned does not exist, a NoSuchNodeError is
+        raised. Please note that hidden nodes are also considered.
+
+        """
+
+        self._check_open()
+
+        if isinstance(where, Group):
+            where._g_check_open()
+
+            node = where[name]
+        elif isinstance(where, (six.string_types, np.str_)):
+            if not where.startswith('/'):
+                raise NameError("``where`` must start with a slash ('/')")
+
+            basepath = where
+            nodepath = join_path(basepath, name or '') or '/'
+            node = self.root[nodepath]
+        else:
+            raise TypeError(
+                "``where`` must be a string or a node: %r" % (where,))
+
+        # Finally, check whether the desired node is an instance
+        # of the expected class.
+        if classname:
+            class_ = get_class_by_name(classname)
+            if not isinstance(node, class_):
+                npathname = node._v_pathname
+                nclassname = node.__class__.__name__
+                # This error message is right since it can never be shown
+                # for ``classname in [None, 'Node']``.
+                raise NoSuchNodeError(
+                    "could not find a ``%s`` node at ``%s``; "
+                    "instead, a ``%s`` node has been found there"
+                    % (classname, npathname, nclassname))
+
+        return node
 
     def _get_or_create_path(self, path, create):
         if create:
@@ -258,6 +321,16 @@ class File(HasChildren, Node):
                 child = create_group(parent, name=pcomp)
             parent = child
         return parent
+
+    def _check_open(self):
+        """Check the state of the file.
+
+        If the file is closed, a `ClosedFileError` is raised.
+
+        """
+
+        if not self._v_isopen:
+            raise ClosedFileError("the file object is closed")
 
 
 # A dumb class that doesn't keep nothing at all
