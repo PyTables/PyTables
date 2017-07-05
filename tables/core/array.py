@@ -98,3 +98,9 @@ class Array(Leaf):
                 yield r
 
     __iter__ = iterrows
+
+    def copy(self, where, name, createparents=True, copyuserattrs=True, **kwargs):
+        # TODO sort out how to handle copyuserattrs
+        if not hasattr(where, 'create_array'):
+            where = self.root._get_or_create_path(where, createparents)
+        return where.create_array(name, obj=self, **kwargs)

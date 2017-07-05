@@ -1,5 +1,9 @@
 class HasBackend:
     @property
+    def root(self):
+        return self._file
+
+    @property
     def backend(self):
         return self._backend
 

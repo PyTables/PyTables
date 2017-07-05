@@ -99,7 +99,7 @@ class Group(HasChildren, Node):
         # TODO how we persist this? JSON?
         self.backend.attrs['FILTERS'] = filters
 
-    def create_array(self, name, obj=None, title='',
+    def create_array(self, name, obj=None, title=None,
                      byteorder=None, atom=None, shape=None,
                      **kwargs):
         byteorder = correct_byteorder(type(obj), byteorder)
@@ -131,6 +131,8 @@ class Group(HasChildren, Node):
             if atom is not None and atom.dtype != _obj.dtype:
                 raise TypeError('the atom parameter is not consistent with '
                                 'the data type of the obj parameter')
+            if title is None and hasattr(obj, 'title'):
+                title = obj.title
 
         if hasattr(obj, 'dtype') and _byteorder != '|':
             if obj.dtype.byteorder != '|':
@@ -140,6 +142,9 @@ class Group(HasChildren, Node):
 
         dataset = self.backend.create_dataset(name, data=obj,
                                               ** kwargs)
+
+        if title is None:
+            title = ''
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'ARRAY'
         return Array(backend=dataset, parent=self)
