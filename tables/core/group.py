@@ -99,8 +99,9 @@ class Group(HasChildren, Node):
         # TODO how we persist this? JSON?
         self.backend.attrs['FILTERS'] = filters
 
-    def create_array(self, name, obj=None, title='', atom=None,
-                     byteorder=None, shape=None, **kwargs):
+    def create_array(self, name, obj=None, title='',
+                     byteorder=None, atom=None, shape=None,
+                     **kwargs):
         byteorder = correct_byteorder(type(obj), byteorder)
         if byteorder is None:
             _byteorder = np_byteorders['irrelevant']

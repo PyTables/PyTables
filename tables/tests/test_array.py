@@ -256,7 +256,7 @@ class BasicTestCase(TestCase):
                 self.assertTrue(allequal(a, b))
         finally:
             # Then, delete the file
-            os.remove(filename) 
+            os.remove(filename)
 
     def setup00_char(self):
         """Data integrity during recovery (character objects)"""
@@ -2495,8 +2495,9 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
 
     def test_positional_args_atom_shape(self):
         self.h5file.create_array(self.where, self.name, None, self.title,
-                                 self.byteorder, self.createparents,
-                                 self.atom, self.shape)
+                                 self.byteorder,
+                                 self.atom, self.shape,
+                                 createparents=self.createparents)
         self.h5file.close()
 
         self.h5file = tables.open_file(self.h5fname)
