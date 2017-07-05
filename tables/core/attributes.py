@@ -1,5 +1,6 @@
 from .mixins import HasBackend
 
+
 class Attributes(HasBackend):
 
     def __getitem__(self, item):
@@ -11,3 +12,14 @@ class Attributes(HasBackend):
     def __getattr__(self, attr):
         return self.__getitem__(attr)
 
+    def __setattr__(self, attr, value):
+        return self.__setitem__(attr, value)
+
+    def keys(self):
+        return self.backend.keys()
+
+    def items(self):
+        return self.backend.items()
+
+    def values(self):
+        return self.backend.values()

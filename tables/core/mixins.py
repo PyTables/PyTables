@@ -1,7 +1,11 @@
 class HasBackend:
     @property
     def root(self):
-        return self._file
+        child = obj = self
+        while obj is not None:
+            obj, child = obj.parent, obj
+
+        return child
 
     @property
     def backend(self):
