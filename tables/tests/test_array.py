@@ -431,7 +431,7 @@ class _BasicCase(object):
         for name in ('float16', 'float96', 'float128',
                      'complex192', 'complex256'):
             atomname = name.capitalize() + 'Atom'
-            if asattr(tables, atomname):
+            if hasattr(tables, atomname):
                 typecodes.append(name)
 
         for typecode in typecodes:
