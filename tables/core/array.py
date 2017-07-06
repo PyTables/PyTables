@@ -116,7 +116,10 @@ class Array(Leaf):
 
         if copyuserattrs:
             for k, v in self.attrs.items():
-                if k == 'title' and 'title' in kwargs:
+                if k.lower() == 'title' and 'title' in kwargs:
                     continue
                 ret.attrs[k] = v
         return ret
+
+    def truncate(self):
+        raise TypeError('can not truncate Arrays')
