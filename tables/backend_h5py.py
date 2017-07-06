@@ -1,6 +1,7 @@
 import h5py
 import os.path
-from tables import abc
+from . import abc
+from .exceptions import NoSuchNodeError
 
 
 def set_complex_names():
@@ -20,7 +21,10 @@ class HasChildren:
         raise NotImplementedError()
 
     def remove_node(self, name):
-        self.__delitem__(name)
+        try:
+            self.__delitem__(name)
+        except KeyError:
+            raise NoSuchNodeError
 
 
 class Attributes(h5py.AttributeManager, abc.Attributes):

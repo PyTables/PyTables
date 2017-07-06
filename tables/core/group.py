@@ -290,7 +290,7 @@ class File(HasChildren, Node):
 
         # Finally, check whether the desired node is an instance
         # of the expected class.
-        if classname:
+        if classname is not None:
             class_ = get_class_by_name(classname)
             if not isinstance(node, class_):
                 npathname = node._v_pathname
