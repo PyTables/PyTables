@@ -19,6 +19,9 @@ class HasChildren:
             return Dataset(ret.id)
         raise NotImplementedError()
 
+    def remove_node(self, name):
+        self.__delitem__(name)
+
 
 class Attributes(h5py.AttributeManager, abc.Attributes):
     def __getattr__(self, item):
@@ -71,9 +74,6 @@ class Group(HasChildren, h5py.Group, abc.Group):
 
     def rename_node(self, old_name, new_name):
         self.move(old_name, new_name)
-
-    def remove_node(self, name):
-        self.__delitem__(name)
 
 
 class Dataset(h5py.Dataset, abc.Dataset):

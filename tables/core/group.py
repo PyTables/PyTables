@@ -9,7 +9,8 @@ from ..flavor import flavor_of, array_as_internal
 from ..utils import np_byteorders, byteorders, correct_byteorder
 from .. import lrucacheextension
 from ..filters import Filters
-from ..exceptions import PerformanceWarning, ClosedFileError, ClosedNodeError, NoSuchNodeError
+from ..exceptions import (PerformanceWarning, ClosedFileError,
+                          ClosedNodeError, NoSuchNodeError)
 from ..path import join_path
 from ..registry import get_class_by_name
 import weakref
@@ -40,7 +41,6 @@ class HasChildren:
             yield child.name
 
     def __getitem__(self, item):
-        # No luck, so use the backend to lookup the item
         value = self.backend[item]
         if isinstance(value, abc.Group):
             return Group(backend=value, parent=self)
@@ -62,10 +62,12 @@ class HasChildren:
             self.backend.rename_node(old, new_name)
         else:
             raise TypeError(
-                "Expecting either the name of the node to rename or the node itself")
+                "Expecting either the name of the node to rename or "
+                "the node itself")
 
     def remove_node(self, *args):
-        """ This method expects one argument (node) or two arguments (where, node) """
+        """ This method expects one argument (node) or two arguments (where, node)
+        """
         if len(args) == 1:
             if isinstance(args[0], Node):
                 node = args[0]
@@ -75,8 +77,8 @@ class HasChildren:
                 self.backend.remove_node(name)
             else:
                 raise TypeError("Expecting either the name of the node "
-                                "to rename or the node itself when called with "
-                                "one argument")
+                                "to rename or the node itself when called "
+                                "with one argument")
         elif len(args) == 2:
             where, name = args
             where.remove_node(name)
@@ -97,8 +99,9 @@ class Group(HasChildren, Node):
         # TODO how we persist this? JSON?
         self.backend.attrs['FILTERS'] = filters
 
-    def create_array(self, name, obj=None, title='', atom=None,
-                     byteorder=None, shape=None, **kwargs):
+    def create_array(self, name, obj=None, title='',
+                     byteorder=None, atom=None, shape=None,
+                     **kwargs):
         byteorder = correct_byteorder(type(obj), byteorder)
         if byteorder is None:
             _byteorder = np_byteorders['irrelevant']
@@ -137,6 +140,7 @@ class Group(HasChildren, Node):
 
         dataset = self.backend.create_dataset(name, data=obj,
                                               ** kwargs)
+
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'ARRAY'
         return Array(backend=dataset, parent=self)

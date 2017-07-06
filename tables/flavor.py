@@ -239,6 +239,7 @@ all_flavors.append('numpy')  # this is the internal flavor
 
 all_flavors.append('python')  # this is always supported
 
+all_flavors.append('h5py')  # this new
 
 def _register_aliases():
     """Register aliases of *available* flavors."""
@@ -357,6 +358,14 @@ _numpy_desc = "NumPy array, record or scalar"
 def _is_numpy(array):
     return isinstance(array, (numpy.ndarray, numpy.generic))
 
+_h5py_aliases = []
+_h5py_desc = "h5py backed classes"
+
+
+def _is_h5py(array):
+    from .core.array import Array
+    return isinstance(array, Array)
+
 
 def _numpy_contiguous(convfunc):
     """Decorate `convfunc` to return a *contiguous* NumPy array.
@@ -377,32 +386,34 @@ def _numpy_contiguous(convfunc):
     return conv_to_numpy
 
 
+def __fix_np_unicode(nparr):
+    if nparr.dtype.kind == 'U':
+        # from Python 3 loads of common strings are disguised as Unicode
+        try:
+            # try to convert to basic 'S' type
+            return nparr.astype('S')
+        except UnicodeEncodeError:
+            # pass on true Unicode arrays downstream in case it can be
+            # handled in the future
+            pass
+    return nparr
+
+
 @_numpy_contiguous
 def _conv_numpy_to_numpy(array):
     # Passes contiguous arrays through and converts scalars into
     # scalar arrays.
-    nparr = numpy.asarray(array)
-    if nparr.dtype.kind == 'U':
-        # from Python 3 loads of common strings are disguised as Unicode
-        try:
-            # try to convert to basic 'S' type
-            return nparr.astype('S')
-        except UnicodeEncodeError:
-            pass  # pass on true Unicode arrays downstream in case it can be handled in the future
-    return nparr
+    return __fix_np_unicode(numpy.asarray(array))
+
+
+@_numpy_contiguous
+def _conv_h5py_to_numpy(array):
+    return __fix_np_unicode(array[:])
 
 
 @_numpy_contiguous
 def _conv_python_to_numpy(array):
-    nparr = numpy.array(array)
-    if nparr.dtype.kind == 'U':
-        # from Python 3 loads of common strings are disguised as Unicode
-        try:
-            # try to convert to basic 'S' type
-            return nparr.astype('S')
-        except UnicodeEncodeError:
-            pass  # pass on true Unicode arrays downstream in case it can be handled in the future
-    return nparr
+    return __fix_np_unicode(numpy.array(array))
 
 
 def _conv_numpy_to_python(array):

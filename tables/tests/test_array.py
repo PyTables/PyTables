@@ -25,7 +25,7 @@ from six.moves import range
 warnings.resetwarnings()
 
 
-class BasicTestCase(TestCase):
+class _BasicCase(object):
     """Basic test for all the supported typecodes present in numpy.
 
     All of them are included on pytables.
@@ -256,7 +256,7 @@ class BasicTestCase(TestCase):
                 self.assertTrue(allequal(a, b))
         finally:
             # Then, delete the file
-            os.remove(filename) 
+            os.remove(filename)
 
     def setup00_char(self):
         """Data integrity during recovery (character objects)"""
@@ -431,7 +431,7 @@ class BasicTestCase(TestCase):
         for name in ('float16', 'float96', 'float128',
                      'complex192', 'complex256'):
             atomname = name.capitalize() + 'Atom'
-            if hasattr(tables, atomname):
+            if asattr(tables, atomname):
                 typecodes.append(name)
 
         for typecode in typecodes:
@@ -456,7 +456,7 @@ class BasicTestCase(TestCase):
             self.write_read_atom_shape_args(b3)
 
 
-class Basic0DOneTestCase(BasicTestCase):
+class Basic0DOneTestCase(_BasicCase, TestCase):
     # Scalar case
     title = "Rank-0 case 1"
     tupleInt = 3
@@ -464,7 +464,7 @@ class Basic0DOneTestCase(BasicTestCase):
     endiancheck = True
 
 
-class Basic0DTwoTestCase(BasicTestCase):
+class Basic0DTwoTestCase(_BasicCase, TestCase):
     # Scalar case
     title = "Rank-0 case 2"
     tupleInt = 33
@@ -472,7 +472,7 @@ class Basic0DTwoTestCase(BasicTestCase):
     endiancheck = True
 
 
-class Basic1DZeroTestCase(BasicTestCase):
+class Basic1DZeroTestCase(_BasicCase, TestCase):
     # This test case is not supported by PyTables (HDF5 limitations)
     # 1D case
     title = "Rank-1 case 0"
@@ -481,7 +481,7 @@ class Basic1DZeroTestCase(BasicTestCase):
     endiancheck = False
 
 
-class Basic1DOneTestCase(BasicTestCase):
+class Basic1DOneTestCase(_BasicCase, TestCase):
     # 1D case
     title = "Rank-1 case 1"
     tupleInt = (3,)
@@ -489,7 +489,7 @@ class Basic1DOneTestCase(BasicTestCase):
     endiancheck = True
 
 
-class Basic1DTwoTestCase(BasicTestCase):
+class Basic1DTwoTestCase(_BasicCase, TestCase):
     # 1D case
     title = "Rank-1 case 2"
     tupleInt = (3, 4)
@@ -497,7 +497,7 @@ class Basic1DTwoTestCase(BasicTestCase):
     endiancheck = True
 
 
-class Basic1DThreeTestCase(BasicTestCase):
+class Basic1DThreeTestCase(_BasicCase, TestCase):
     # 1D case
     title = "Rank-1 case 3"
     tupleInt = (3, 4, 5)
@@ -505,7 +505,7 @@ class Basic1DThreeTestCase(BasicTestCase):
     endiancheck = True
 
 
-class Basic2DOneTestCase(BasicTestCase):
+class Basic2DOneTestCase(_BasicCase, TestCase):
     # 2D case
     title = "Rank-2 case 1"
     tupleInt = numpy.array(numpy.arange((4)**2))
@@ -515,7 +515,7 @@ class Basic2DOneTestCase(BasicTestCase):
     endiancheck = True
 
 
-class Basic2DTwoTestCase(BasicTestCase):
+class Basic2DTwoTestCase(_BasicCase, TestCase):
     # 2D case, with a multidimensional dtype
     title = "Rank-2 case 2"
     tupleInt = numpy.array(numpy.arange((4)), dtype=(numpy.int_, (4,)))
@@ -523,7 +523,7 @@ class Basic2DTwoTestCase(BasicTestCase):
     endiancheck = True
 
 
-class Basic10DTestCase(BasicTestCase):
+class Basic10DTestCase(_BasicCase, TestCase):
     # 10D case
     title = "Rank-10 test"
     tupleInt = numpy.array(numpy.arange((2)**10))
@@ -534,7 +534,7 @@ class Basic10DTestCase(BasicTestCase):
     endiancheck = True
 
 
-class Basic32DTestCase(BasicTestCase):
+class Basic32DTestCase(_BasicCase, TestCase):
     # 32D case (maximum)
     title = "Rank-32 test"
     tupleInt = numpy.array((32,))
@@ -635,7 +635,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.array.size_in_memory, 10 * 10 * 4)
 
 
-class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
+class _UnalignedAndComplexCase(common.TempFileMixin):
     """Basic test for all the supported typecodes present in numpy.
 
     Most of them are included on PyTables.
@@ -643,7 +643,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
     """
 
     def setUp(self):
-        super(UnalignedAndComplexTestCase, self).setUp()
+        super(_UnalignedAndComplexCase, self).setUp()
         self.root = self.h5file.root
 
     def write_read(self, testArray):
@@ -845,22 +845,22 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a, c))
 
 
-class ComplexNotReopenNotEndianTestCase(UnalignedAndComplexTestCase):
+class ComplexNotReopenNotEndianTestCase(_UnalignedAndComplexCase, TestCase):
     endiancheck = False
     reopen = False
 
 
-class ComplexReopenNotEndianTestCase(UnalignedAndComplexTestCase):
+class ComplexReopenNotEndianTestCase(_UnalignedAndComplexCase, TestCase):
     endiancheck = False
     reopen = True
 
 
-class ComplexNotReopenEndianTestCase(UnalignedAndComplexTestCase):
+class ComplexNotReopenEndianTestCase(_UnalignedAndComplexCase, TestCase):
     endiancheck = True
     reopen = False
 
 
-class ComplexReopenEndianTestCase(UnalignedAndComplexTestCase):
+class ComplexReopenEndianTestCase(_UnalignedAndComplexCase, TestCase):
     endiancheck = True
     reopen = True
 
@@ -990,7 +990,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
             print()  # This flush the stdout buffer
 
 
-class CopyTestCase(common.TempFileMixin, TestCase):
+class CopyCase(common.TempFileMixin):
 
     def test01_copy(self):
         """Checking Array.copy() method."""
@@ -1163,15 +1163,15 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(hasattr(array2.attrs, "attr2"), 0)
 
 
-class CloseCopyTestCase(CopyTestCase):
+class CloseCopyTestCase(CopyCase, TestCase):
     close = 1
 
 
-class OpenCopyTestCase(CopyTestCase):
+class OpenCopyTestCase(CopyCase, TestCase):
     close = 0
 
 
-class CopyIndexTestCase(common.TempFileMixin, TestCase):
+class CopyIndexCase(common.TempFileMixin):
 
     def test01_index(self):
         """Checking Array.copy() method with indexes."""
@@ -1249,79 +1249,79 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(r2.shape[0], array2.nrows)
 
 
-class CopyIndex1TestCase(CopyIndexTestCase):
+class CopyIndex1TestCase(CopyIndexCase, TestCase):
     start = 0
     stop = 7
     step = 1
 
 
-class CopyIndex2TestCase(CopyIndexTestCase):
+class CopyIndex2TestCase(CopyIndexCase, TestCase):
     start = 0
     stop = -1
     step = 1
 
 
-class CopyIndex3TestCase(CopyIndexTestCase):
+class CopyIndex3TestCase(CopyIndexCase, TestCase):
     start = 1
     stop = 7
     step = 1
 
 
-class CopyIndex4TestCase(CopyIndexTestCase):
+class CopyIndex4TestCase(CopyIndexCase, TestCase):
     start = 0
     stop = 6
     step = 1
 
 
-class CopyIndex5TestCase(CopyIndexTestCase):
+class CopyIndex5TestCase(CopyIndexCase, TestCase):
     start = 3
     stop = 7
     step = 1
 
 
-class CopyIndex6TestCase(CopyIndexTestCase):
+class CopyIndex6TestCase(CopyIndexCase, TestCase):
     start = 3
     stop = 6
     step = 2
 
 
-class CopyIndex7TestCase(CopyIndexTestCase):
+class CopyIndex7TestCase(CopyIndexCase, TestCase):
     start = 0
     stop = 7
     step = 10
 
 
-class CopyIndex8TestCase(CopyIndexTestCase):
+class CopyIndex8TestCase(CopyIndexCase, TestCase):
     start = 6
     stop = -1  # Negative values means starting from the end
     step = 1
 
 
-class CopyIndex9TestCase(CopyIndexTestCase):
+class CopyIndex9TestCase(CopyIndexCase, TestCase):
     start = 3
     stop = 4
     step = 1
 
 
-class CopyIndex10TestCase(CopyIndexTestCase):
+class CopyIndex10TestCase(CopyIndexCase, TestCase):
     start = 3
     stop = 4
     step = 2
 
 
-class CopyIndex11TestCase(CopyIndexTestCase):
+class CopyIndex11TestCase(CopyIndexCase, TestCase):
     start = -3
     stop = -1
     step = 2
 
 
-class CopyIndex12TestCase(CopyIndexTestCase):
+class CopyIndex12TestCase(CopyIndexCase, TestCase):
     start = -1   # Should point to the last element
     stop = None  # None should mean the last element (including it)
     step = 1
 
 
-class GetItemTestCase(common.TempFileMixin, TestCase):
+class GetItemCase(common.TempFileMixin):
 
     def test00_single(self):
         """Single element access (character types)"""
@@ -1509,7 +1509,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
 
 
-class GI1NATestCase(GetItemTestCase, TestCase):
+class GI1NATestCase(GetItemCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
@@ -1518,15 +1518,15 @@ class GI1NATestCase(GetItemTestCase, TestCase):
         ["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 
-class GI1NAOpenTestCase(GI1NATestCase):
+class GI1NAOpenTestCase(GI1NATestCase, TestCase):
     close = 0
 
 
-class GI1NACloseTestCase(GI1NATestCase):
+class GI1NACloseTestCase(GI1NATestCase, TestCase):
     close = 1
 
 
-class GI2NATestCase(GetItemTestCase):
+class GI2NATestCase(GetItemCase):
     # A more complex example
     title = "Rank-1,2 case 2"
     numericalList = numpy.array([3, 4])
@@ -1548,15 +1548,15 @@ class GI2NATestCase(GetItemTestCase):
          ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 
-class GI2NAOpenTestCase(GI2NATestCase):
+class GI2NAOpenTestCase(GI2NATestCase, TestCase):
     close = 0
 
 
-class GI2NACloseTestCase(GI2NATestCase):
+class GI2NACloseTestCase(GI2NATestCase, TestCase):
     close = 1
 
 
-class SetItemTestCase(common.TempFileMixin, TestCase):
+class SetItemCase(common.TempFileMixin):
 
     def test00_single(self):
         """Single element update (character types)"""
@@ -1823,7 +1823,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
 
 
-class SI1NATestCase(SetItemTestCase, TestCase):
+class SI1NATestCase(SetItemCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
@@ -1832,15 +1832,15 @@ class SI1NATestCase(SetItemTestCase, TestCase):
         ["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 
-class SI1NAOpenTestCase(SI1NATestCase):
+class SI1NAOpenTestCase(SI1NATestCase, TestCase):
     close = 0
 
 
-class SI1NACloseTestCase(SI1NATestCase):
+class SI1NACloseTestCase(SI1NATestCase, TestCase):
     close = 1
 
 
-class SI2NATestCase(SetItemTestCase):
+class SI2NATestCase(SetItemCase):
     # A more complex example
     title = "Rank-1,2 case 2"
     numericalList = numpy.array([3, 4])
@@ -1862,15 +1862,15 @@ class SI2NATestCase(SetItemTestCase):
          ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 
-class SI2NAOpenTestCase(SI2NATestCase):
+class SI2NAOpenTestCase(SI2NATestCase, TestCase):
     close = 0
 
 
-class SI2NACloseTestCase(SI2NATestCase):
+class SI2NACloseTestCase(SI2NATestCase, TestCase):
     close = 1
 
 
-class GeneratorTestCase(common.TempFileMixin, TestCase):
+class GeneratorCase(common.TempFileMixin):
 
     def test00a_single(self):
         """Testing generator access to Arrays, single elements (char)"""
@@ -1956,7 +1956,7 @@ class GeneratorTestCase(common.TempFileMixin, TestCase):
             self.assertTrue(allequal(ga[i], garr[i]))
 
 
-class GE1NATestCase(GeneratorTestCase):
+class GE1NATestCase(GeneratorCase):
     title = "Rank-1 case 1"
     numericalList = numpy.array([3])
     numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
@@ -1965,15 +1965,15 @@ class GE1NATestCase(GeneratorTestCase):
         ["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 
-class GE1NAOpenTestCase(GE1NATestCase):
+class GE1NAOpenTestCase(GE1NATestCase, TestCase):
     close = 0
 
 
-class GE1NACloseTestCase(GE1NATestCase):
+class GE1NACloseTestCase(GE1NATestCase, TestCase):
     close = 1
 
 
-class GE2NATestCase(GeneratorTestCase):
+class GE2NATestCase(GeneratorCase):
     # A more complex example
     title = "Rank-1,2 case 2"
     numericalList = numpy.array([3, 4])
@@ -1995,11 +1995,11 @@ class GE2NATestCase(GeneratorTestCase):
          ["a321", "s221", "d121", "g021", "b421", "5vvv21", "6zxzxs21"]], 'S')
 
 
-class GE2NAOpenTestCase(GE2NATestCase):
+class GE2NAOpenTestCase(GE2NATestCase, TestCase):
     close = 0
 
 
-class GE2NACloseTestCase(GE2NATestCase):
+class GE2NACloseTestCase(GE2NATestCase, TestCase):
     close = 1
 
 
@@ -2021,7 +2021,7 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
         self.assertRaises(TypeError, array1.truncate, 0)
 
 
-class PointSelectionTestCase(common.TempFileMixin, TestCase):
+class PointSelectionTestCase(common.TempFileMixin):
 
     def setUp(self):
         super(PointSelectionTestCase, self).setUp()
@@ -2185,7 +2185,7 @@ class PointSelection1(PointSelectionTestCase):
     ]
 
 
-class PointSelection2(PointSelectionTestCase):
+class PointSelection2(PointSelectionTestCase, TestCase):
     shape = (7, 3)
     working_keyset = [
         [(0, 0), (0, 1)],
@@ -2200,7 +2200,7 @@ class PointSelection2(PointSelectionTestCase):
     ]
 
 
-class PointSelection3(PointSelectionTestCase):
+class PointSelection3(PointSelectionTestCase, TestCase):
     shape = (4, 3, 2, 1)
     working_keyset = [
         [(0, 0), (0, 1), (0, 0), (0, 0)],
@@ -2213,7 +2213,7 @@ class PointSelection3(PointSelectionTestCase):
     ]
 
 
-class PointSelection4(PointSelectionTestCase):
+class PointSelection4(PointSelectionTestCase, TestCase):
     shape = (1, 3, 2, 5, 6)
     working_keyset = [
         [(0, 0), (0, 1), (0, 0), (0, 0), (0, 0)],
@@ -2226,7 +2226,7 @@ class PointSelection4(PointSelectionTestCase):
     ]
 
 
-class FancySelectionTestCase(common.TempFileMixin, TestCase):
+class FancySelectionTestCase(common.TempFileMixin):
 
     def setUp(self):
         super(FancySelectionTestCase, self).setUp()
@@ -2376,21 +2376,21 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
                 "NumPy array and PyTables modifications does not match.")
 
 
-class FancySelection1(FancySelectionTestCase):
+class FancySelection1(FancySelectionTestCase, TestCase):
     shape = (5, 3, 3)  # Minimum values
 
 
-class FancySelection2(FancySelectionTestCase):
+class FancySelection2(FancySelectionTestCase, TestCase):
     # shape = (5, 3, 3)  # Minimum values
     shape = (7, 3, 3)
 
 
-class FancySelection3(FancySelectionTestCase):
+class FancySelection3(FancySelectionTestCase, TestCase):
     # shape = (5, 3, 3)  # Minimum values
     shape = (7, 4, 5)
 
 
-class FancySelection4(FancySelectionTestCase):
+class FancySelection4(FancySelectionTestCase, TestCase):
     # shape = (5, 3, 3)  # Minimum values
     shape = (5, 3, 10)
 
@@ -2495,8 +2495,9 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
 
     def test_positional_args_atom_shape(self):
         self.h5file.create_array(self.where, self.name, None, self.title,
-                                 self.byteorder, self.createparents,
-                                 self.atom, self.shape)
+                                 self.byteorder,
+                                 self.atom, self.shape,
+                                 createparents=self.createparents)
         self.h5file.close()
 
         self.h5file = tables.open_file(self.h5fname)

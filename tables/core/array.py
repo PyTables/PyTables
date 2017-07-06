@@ -98,3 +98,28 @@ class Array(Leaf):
                 yield r
 
     __iter__ = iterrows
+
+    def copy(self, newparent=None, newname=None,
+             overwrite=False, createparents=True, *,
+             copyuserattrs=True,
+             **kwargs):
+
+        if not hasattr(newparent, 'create_array'):
+            newparent = self.root._get_or_create_path(newparent, createparents)
+        if not any(k in kwargs for k in {'start', 'stop', 'step'}):
+            ret = newparent.create_array(newname, obj=self, **kwargs)
+        else:
+            slc = slice(*(kwargs.pop(k, None)
+                          for k in ('start', 'stop', 'step')))
+            tmp_data = self[slc]
+            ret = newparent.create_array(newname, obj=tmp_data, **kwargs)
+
+        if copyuserattrs:
+            for k, v in self.attrs.items():
+                if k.lower() == 'title' and 'title' in kwargs:
+                    continue
+                ret.attrs[k] = v
+        return ret
+
+    def truncate(self):
+        raise TypeError('can not truncate Arrays')
