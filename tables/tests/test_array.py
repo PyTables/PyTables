@@ -2184,7 +2184,8 @@ class PointSelection1(PointSelectionTestCase):
         [(0, 0), (0, -5), (0, 0)]
     ]
 
-
+@unittest.skipIf(True,
+                 'h5py point selection not supported')
 class PointSelection2(PointSelectionTestCase, TestCase):
     shape = (7, 3)
     working_keyset = [
@@ -2199,7 +2200,8 @@ class PointSelection2(PointSelectionTestCase, TestCase):
         [(0, 0), (0, -5)],
     ]
 
-
+@unittest.skipIf(True,
+                 'h5py point selection not supported')
 class PointSelection3(PointSelectionTestCase, TestCase):
     shape = (4, 3, 2, 1)
     working_keyset = [
@@ -2212,7 +2214,8 @@ class PointSelection3(PointSelectionTestCase, TestCase):
         [(0, 0), (0, -4), (0, 0), (0, 0)],
     ]
 
-
+@unittest.skipIf(True,
+                 'h5py point selection not supported')
 class PointSelection4(PointSelectionTestCase, TestCase):
     shape = (1, 3, 2, 5, 6)
     working_keyset = [
@@ -2225,7 +2228,8 @@ class PointSelection4(PointSelectionTestCase, TestCase):
         [(0, 0), (0, -4), (0, 0), (0, 0), (0, 0)],
     ]
 
-
+@unittest.skipIf(True,
+                 'h5py fancy selection not supported')
 class FancySelectionTestCase(common.TempFileMixin):
 
     def setUp(self):
