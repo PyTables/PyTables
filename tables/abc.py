@@ -12,7 +12,10 @@ def all_chunk_selector(x):
 def anti_slice(slc, ln):
     indx = range(*slc.indices(ln))
     indx_it = iter(indx)
-    back = next(indx_it)
+    try:
+        back = next(indx_it)
+    except StopIteration:
+        return
     if back != 0:
         yield (0, back)
     front = back + 1
