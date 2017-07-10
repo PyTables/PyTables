@@ -1,8 +1,9 @@
 import sys
 import numpy as np
 from .leaf import Leaf
-from tables import Atom
-from tables.utils import byteorders
+from .. import Atom
+from ..utils import byteorders
+from ..exceptions import ClosedNodeError
 
 
 class Array(Leaf):
@@ -47,6 +48,8 @@ class Array(Leaf):
 
     def read(self, start=None, stop=None, step=None, out=None):
 
+        if not self._v_file._isopen or self._isopen:
+            raise ClosedNodeError
         # Scalar dataset
         if self.shape == ():
             arr = self[()]
