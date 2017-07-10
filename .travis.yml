@@ -13,7 +13,7 @@ addons:
     - liblzo2-dev
 
 install:
-  - pip install cython h5py
+  - pip install --no-binary h5py cython h5py
   - pip install .
 
 script:
