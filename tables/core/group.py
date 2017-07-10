@@ -89,6 +89,23 @@ class HasChildren:
         else:
             raise ValueError('This method expects one or two arguments')
 
+    def set_node_attr(self, where, attrname, attrvalue, name=None):
+        n = self.get_node(where, name=name)
+        n.attrs[attrname] = attrvalue
+
+    def get_node_attr(self, where, attrname, attrvalue, name=None):
+        n = self.get_node(where, name=name)
+        return n.attrs[attrname]
+
+    def get_node(self, where, name=None, classname=None):
+        if isinstance(where, Node):
+            node = where
+        else:
+            node = self[where]
+        if name is not None:
+            node = node[name]
+        return node
+
 
 class Group(HasChildren, Node):
     @property
