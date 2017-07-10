@@ -44,12 +44,12 @@ class Leaf(Node):
             return 1 if self.shape == () else len(self)
 
     def __getitem__(self, item):
-        if not self._v_file._isopen or self._isopen:
+        if not self._v_file._isopen:
             raise ClosedNodeError
         return self.backend.__getitem__(item)
 
     def __setitem__(self, item, value):
-        if not self._v_file._isopen or self._isopen:
+        if not self._v_file._isopen:
             raise ClosedNodeError
         return self.backend.__setitem__(item, value)
 

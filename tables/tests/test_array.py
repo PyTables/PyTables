@@ -2463,8 +2463,8 @@ class BroadcastTest(common.TempFileMixin, TestCase):
 
         dtype = numpy.dtype((numpy.int, element_shape))
         atom = Atom.from_dtype(dtype)
-        h5arr = self.h5file.create_carray(self.h5file.root, 'array',
-                                          atom, array_shape)
+        h5arr = self.h5file.create_array(self.h5file.root, 'array',
+                                          atom=atom, shape=array_shape)
 
         size = numpy.prod(element_shape)
         nparr = numpy.arange(size).reshape(element_shape)
