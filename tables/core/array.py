@@ -10,7 +10,7 @@ class Array(Leaf):
         super().__init__(**kwargs)
         self.atom = _atom
         if _atom is None or _atom.shape == ():
-            if self.dtype == object:
+            if self.dtype == np.dtype('O'):
                 self.atom = Atom.from_dtype(np.array(self[()]).dtype)
             else:
                 self.atom = Atom.from_dtype(self.dtype)

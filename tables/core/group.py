@@ -45,9 +45,13 @@ class HasChildren:
         if isinstance(value, abc.Group):
             return Group(backend=value, parent=self)
         elif isinstance(value, abc.Dataset):
-            if value.attrs['CLASS'] == 'TABLE':
+            try:
+                class_str = value.attrs['CLASS']
+            except KeyError:
+                class_str = value._infer_class()
+            if class_str == 'TABLE':
                 return Table(backend=value, parent=self)
-            elif value.attrs['CLASS'] == 'ARRAY':
+            elif class_str == 'ARRAY':
                 return Array(backend=value, parent=self)
 
         raise NotImplementedError()
@@ -132,13 +136,16 @@ class Group(HasChildren, Node):
                 raise TypeError('the atom parameter is not consistent with '
                                 'the data type of the obj parameter')
 
-        if hasattr(obj, 'dtype') and _byteorder != '|':
-            if obj.dtype.byteorder != '|':
+        dtype = None
+        if hasattr(obj, 'dtype'):
+            dtype = obj.dtype
+            if _byteorder != '|' and obj.dtype.byteorder != '|':
                 if byteorders[_byteorder] != byteorders[obj.dtype.byteorder]:
                     obj = obj.byteswap()
                     obj.dtype = obj.dtype.newbyteorder()
+                    dtype = obj.dtype
 
-        dataset = self.backend.create_dataset(name, data=obj,
+        dataset = self.backend.create_dataset(name, data=obj, dtype=dtype,
                                               ** kwargs)
 
         dataset.attrs['TITLE'] = title
