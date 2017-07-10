@@ -8,6 +8,7 @@ def set_complex_names():
     cfg = h5py.get_config()
     cfg.complex_names = ('real', 'imag')
 
+
 set_complex_names()
 
 
@@ -168,7 +169,3 @@ class Dataset(h5py.Dataset, abc.Dataset):
                 class_str = "VLARRAY"
         # Fallback
         return class_str
-
-
-
-

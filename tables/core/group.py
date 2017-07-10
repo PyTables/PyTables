@@ -241,7 +241,8 @@ class File(HasChildren, Node):
             where = self._get_or_create_path(where, createparents)
         return where.create_group(*args, **kwargs)
 
-    def create_table(self, where, name, desc, *args, createparents=False, **kwargs):
+    def create_table(self, where, name, desc, *args,
+                     createparents=False, **kwargs):
         if not hasattr(where, 'create_table'):
             where = self._get_or_create_path(where, createparents)
         return where.create_table(name, desc, *args, **kwargs)
