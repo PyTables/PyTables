@@ -21,7 +21,11 @@ install:
 script:
   - mkdir clean_directory && cd clean_directory
   - cd
-  - python -m tables.tests.test_all
+  # stash the results in a text file as it is over 4MB which makes
+  # travis choke!
+  - python -m tables.tests.test_all 2> test_results.txt
+  - tail test_results.txt
+  - nonsense
 
 notifications:
   webhooks:
