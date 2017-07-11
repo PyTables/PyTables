@@ -2054,6 +2054,8 @@ class PointSelectionTestCase(common.TempFileMixin):
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables selections does not match.")
 
+    @unittest.skipIf(True,
+                     'h5py point selection not supported')
     def test01b_read(self):
         """Test for point-selections (read, integer keys)."""
 
@@ -2082,6 +2084,8 @@ class PointSelectionTestCase(common.TempFileMixin):
             fkey = numpy.array(key, "f4")
             self.assertRaises((IndexError, TypeError), tbarr.__getitem__, fkey)
 
+    @unittest.skipIf(True,
+                     'h5py point selection not supported')
     def test01d_read(self):
         nparr = self.nparr
         tbarr = self.tbarr
@@ -2094,6 +2098,8 @@ class PointSelectionTestCase(common.TempFileMixin):
             npt.assert_array_equal(
                 a, b, "NumPy array and PyTables selections does not match.")
 
+    @unittest.skipIf(True,
+                     'h5py point selection not supported')
     def test01e_read(self):
         tbarr = self.tbarr
 
@@ -2121,6 +2127,8 @@ class PointSelectionTestCase(common.TempFileMixin):
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
+    @unittest.skipIf(True,
+                     'h5py point selection not supported')
     def test02b_write(self):
         """Test for point-selections (write, integer keys)."""
 
@@ -2139,6 +2147,8 @@ class PointSelectionTestCase(common.TempFileMixin):
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
+    @unittest.skipIf(True,
+                     'h5py point selection not supported')
     def test02c_write(self):
         """Test for point-selections (write, integer values, broadcast)."""
 
@@ -2185,8 +2195,6 @@ class PointSelection1(PointSelectionTestCase, TestCase):
     ]
 
 
-@unittest.skipIf(True,
-                 'h5py point selection not supported')
 class PointSelection2(PointSelectionTestCase, TestCase):
     shape = (7, 3)
     working_keyset = [
@@ -2202,8 +2210,6 @@ class PointSelection2(PointSelectionTestCase, TestCase):
     ]
 
 
-@unittest.skipIf(True,
-                 'h5py point selection not supported')
 class PointSelection3(PointSelectionTestCase, TestCase):
     shape = (4, 3, 2, 1)
     working_keyset = [
@@ -2216,8 +2222,7 @@ class PointSelection3(PointSelectionTestCase, TestCase):
         [(0, 0), (0, -4), (0, 0), (0, 0)],
     ]
 
-@unittest.skipIf(True,
-                 'h5py point selection not supported')
+
 class PointSelection4(PointSelectionTestCase, TestCase):
     shape = (1, 3, 2, 5, 6)
     working_keyset = [
@@ -2400,7 +2405,8 @@ class FancySelection4(FancySelectionTestCase, TestCase):
     # shape = (5, 3, 3)  # Minimum values
     shape = (5, 3, 10)
 
-
+@unittest.skipIf(True,
+                 'h5py does not support multidimensional dtype')
 class CopyNativeHDF5MDAtom(TestCase):
 
     def setUp(self):
