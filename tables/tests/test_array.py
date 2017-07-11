@@ -2158,7 +2158,7 @@ class PointSelectionTestCase(common.TempFileMixin):
                 "NumPy array and PyTables modifications does not match.")
 
 
-class PointSelection0(PointSelectionTestCase):
+class PointSelection0(PointSelectionTestCase, TestCase):
     shape = (3,)
     working_keyset = [
         [0, 1],
@@ -2171,7 +2171,7 @@ class PointSelection0(PointSelectionTestCase):
     ]
 
 
-class PointSelection1(PointSelectionTestCase):
+class PointSelection1(PointSelectionTestCase, TestCase):
     shape = (5, 3, 3)
     working_keyset = [
         [(0, 0), (0, 1), (0, 0)],
@@ -2183,6 +2183,7 @@ class PointSelection1(PointSelectionTestCase):
         [(0, 0), (0, -4), (0, 0)],
         [(0, 0), (0, -5), (0, 0)]
     ]
+
 
 @unittest.skipIf(True,
                  'h5py point selection not supported')
@@ -2199,6 +2200,7 @@ class PointSelection2(PointSelectionTestCase, TestCase):
         [(0, 0), (0, -4)],
         [(0, 0), (0, -5)],
     ]
+
 
 @unittest.skipIf(True,
                  'h5py point selection not supported')
