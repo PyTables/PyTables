@@ -1,6 +1,7 @@
 from .node import Node
 from .table import Table
 from .array import Array
+from .carray import CArray
 from .leaf import Leaf
 from .. import abc
 from .. import Description
@@ -53,6 +54,8 @@ class HasChildren:
                 return Table(backend=value, parent=self)
             elif class_str == 'ARRAY':
                 return Array(backend=value, parent=self)
+            elif class_str == 'CARRAY':
+                return CArray(backend=value, parent=self)
 
         raise NotImplementedError()
 
@@ -167,7 +170,12 @@ class Group(HasChildren, Node):
 
         dataset.attrs['TITLE'] = title
         dataset.attrs['CLASS'] = 'ARRAY'
-        return Array(backend=dataset, parent=self)
+        return Array(backend=dataset, parent=self, _atom=atom)
+
+    def create_carray(self, where, name, atom=None, shape=None, title="",
+                      filters=None, chunkshape=None,
+                      byteorder=None, createparents=False, obj=None):
+        pass
 
     def create_group(self, name, title=''):
         g = Group(backend=self.backend.create_group(name), parent=self)
@@ -250,6 +258,11 @@ class File(HasChildren, Node):
 
     def create_array(self, where, *args, createparents=False, **kwargs):
         if not hasattr(where, 'create_array'):
+            where = self._get_or_create_path(where, createparents)
+        return where.create_array(*args, **kwargs)
+
+    def create_carray(self, where, *args, createparents=False, **kwargs):
+        if not hasattr(where, 'create_carray'):
             where = self._get_or_create_path(where, createparents)
         return where.create_array(*args, **kwargs)
 
