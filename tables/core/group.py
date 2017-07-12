@@ -19,6 +19,12 @@ import warnings
 import numpy as np
 import six
 
+def _checkfilters(filters):
+    if not (filters is None or
+            isinstance(filters, Filters)):
+        raise TypeError("filter parameter has to be None or a Filter "
+                        "instance and the passed type is: '%s'" %
+                        type(filters))
 
 def dtype_from(something):
     if isinstance(something, np.dtype):
@@ -172,10 +178,65 @@ class Group(HasChildren, Node):
         dataset.attrs['CLASS'] = 'ARRAY'
         return Array(backend=dataset, parent=self, _atom=atom)
 
-    def create_carray(self, where, name, atom=None, shape=None, title="",
+    def create_carray(self, name, atom=None, shape=None, title="",
                       filters=None, chunkshape=None,
-                      byteorder=None, createparents=False, obj=None):
-        pass
+                      byteorder=None, obj=None, **kwargs):
+        if obj is not None:
+            flavor = flavor_of(obj)
+            obj = array_as_internal(obj, flavor)
+
+            if shape is not None and shape != obj.shape:
+                raise TypeError('the shape parameter do not match obj.shape')
+            else:
+                shape = obj.shape
+
+            if atom is not None and atom.dtype != obj.dtype:
+                raise TypeError('the atom parameter is not consistent with '
+                                'the data type of the obj parameter')
+        else:
+            if atom is None or shape is None:
+                raise TypeError('if the obj parameter is not specified '
+                                '(or None) then both the atom and shape '
+                                'parametes should be provided.')
+            else:
+                # Making strides=(0,...) below is a trick to create the
+                # array fast and without memory consumption
+                dflt = np.zeros((), dtype=atom.dtype)
+                obj = np.ndarray(shape, dtype=atom.dtype, buffer=dflt,
+                                 strides=(0,) * len(shape))
+
+        _checkfilters(filters)
+
+        byteorder = correct_byteorder(type(obj), byteorder)
+        if byteorder is None:
+            _byteorder = np_byteorders['irrelevant']
+        else:
+            _byteorder = np_byteorders[byteorder]
+
+        dtype = None
+        if hasattr(obj, 'dtype'):
+            dtype = obj.dtype
+            if _byteorder != '|' and obj.dtype.byteorder != '|':
+                if byteorders[_byteorder] != byteorders[obj.dtype.byteorder]:
+                    obj = obj.byteswap()
+                    obj.dtype = obj.dtype.newbyteorder()
+                    dtype = obj.dtype
+        if chunkshape is None:
+            chunkshape = True
+        maxshape = np.asarray([shape[i] if shape[i] >= chunkshape[i] else chunkshape[i]
+                               for i in range(len(shape))])
+        dataset = self.backend.create_dataset(name, data=obj, dtype=dtype, shape=shape,
+                                              compression=filters.get_h5py_compression,
+                                              compression_opts=filters.get_h5py_compression_opts(),
+                                              shuffle=filters.get_h5py_shuffle(),
+                                              fletcher32=filters.fletcher32,
+                                              chunks=chunkshape, maxshape=maxshape,
+                                              **kwargs)
+
+        dataset.attrs['TITLE'] = title
+        dataset.attrs['CLASS'] = 'CARRAY'
+
+        return CArray(backend=dataset, parent=self, atom=atom)
 
     def create_group(self, name, title=''):
         g = Group(backend=self.backend.create_group(name), parent=self)
@@ -264,7 +325,7 @@ class File(HasChildren, Node):
     def create_carray(self, where, *args, createparents=False, **kwargs):
         if not hasattr(where, 'create_carray'):
             where = self._get_or_create_path(where, createparents)
-        return where.create_array(*args, **kwargs)
+        return where.create_carray(*args, **kwargs)
 
     def create_group(self, where, *args, createparents=False, **kwargs):
         if not hasattr(where, 'create_group'):

@@ -19,7 +19,7 @@ from tables.tests.common import PyTablesTestCase as TestCase
 from six.moves import range
 
 
-class BasicTestCase(common.TempFileMixin, TestCase):
+class BasicCase(common.TempFileMixin):
     # Default values
     obj = None
     flavor = "numpy"
@@ -38,7 +38,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     reopen = 1  # Tells whether the file has to be reopened on each test or not
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super(BasicCase, self).setUp()
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
         self.populateFile()
@@ -379,7 +379,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(data, obj, self.flavor))
 
 
-class BasicWriteTestCase(BasicTestCase):
+class BasicWriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2,)
     chunkshape = (5,)
@@ -387,7 +387,7 @@ class BasicWriteTestCase(BasicTestCase):
     wslice = 1  # single element case
 
 
-class BasicWrite2TestCase(BasicTestCase):
+class BasicWrite2TestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2,)
     chunkshape = (5,)
@@ -396,7 +396,7 @@ class BasicWrite2TestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-class BasicWrite3TestCase(BasicTestCase):
+class BasicWrite3TestCase(BasicCase, TestCase):
     obj = [1, 2]
     type = numpy.asarray(obj).dtype.name
     shape = None
@@ -405,7 +405,7 @@ class BasicWrite3TestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-class BasicWrite4TestCase(BasicTestCase):
+class BasicWrite4TestCase(BasicCase, TestCase):
     obj = numpy.array([1, 2])
     type = obj.dtype.name
     shape = None
@@ -414,7 +414,7 @@ class BasicWrite4TestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-class BasicWrite5TestCase(BasicTestCase):
+class BasicWrite5TestCase(BasicCase, TestCase):
     obj = [[1, 2], [3, 4]]
     type = numpy.asarray(obj).dtype.name
     shape = None
@@ -423,7 +423,7 @@ class BasicWrite5TestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-class BasicWrite6TestCase(BasicTestCase):
+class BasicWrite6TestCase(BasicCase, TestCase):
     obj = [1, 2]
     type = numpy.asarray(obj).dtype.name
     shape = None
@@ -432,7 +432,7 @@ class BasicWrite6TestCase(BasicTestCase):
     reopen = 1  # This case does reopen files
 
 
-class BasicWrite7TestCase(BasicTestCase):
+class BasicWrite7TestCase(BasicCase, TestCase):
     obj = numpy.array([1, 2])
     type = obj.dtype.name
     shape = None
@@ -441,7 +441,7 @@ class BasicWrite7TestCase(BasicTestCase):
     reopen = 1  # This case does reopen files
 
 
-class BasicWrite8TestCase(BasicTestCase):
+class BasicWrite8TestCase(BasicCase, TestCase):
     obj = [[1, 2], [3, 4]]
     type = numpy.asarray(obj).dtype.name
     shape = None
@@ -450,7 +450,7 @@ class BasicWrite8TestCase(BasicTestCase):
     reopen = 1  # This case does reopen files
 
 
-class EmptyCArrayTestCase(BasicTestCase):
+class EmptyCArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 2)
     chunkshape = (5, 5)
@@ -459,7 +459,7 @@ class EmptyCArrayTestCase(BasicTestCase):
     step = 1
 
 
-class EmptyCArray2TestCase(BasicTestCase):
+class EmptyCArray2TestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 2)
     chunkshape = (5, 5)
@@ -470,7 +470,7 @@ class EmptyCArray2TestCase(BasicTestCase):
 
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
-class SlicesCArrayTestCase(BasicTestCase):
+class SlicesCArrayTestCase(BasicCase, TestCase):
     compress = 1
     complib = "lzo"
     type = 'int32'
@@ -479,7 +479,7 @@ class SlicesCArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(1, 3, 1))
 
 
-class EllipsisCArrayTestCase(BasicTestCase):
+class EllipsisCArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 2)
     chunkshape = (5, 5)
@@ -488,7 +488,7 @@ class EllipsisCArrayTestCase(BasicTestCase):
 
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
-class Slices2CArrayTestCase(BasicTestCase):
+class Slices2CArrayTestCase(BasicCase, TestCase):
     compress = 1
     complib = "lzo"
     type = 'int32'
@@ -497,7 +497,7 @@ class Slices2CArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(None, None, None), slice(1, 4, 2))
 
 
-class Ellipsis2CArrayTestCase(BasicTestCase):
+class Ellipsis2CArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 2, 4)
     chunkshape = (5, 5, 5)
@@ -505,7 +505,7 @@ class Ellipsis2CArrayTestCase(BasicTestCase):
 
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
-class Slices3CArrayTestCase(BasicTestCase):
+class Slices3CArrayTestCase(BasicCase, TestCase):
     compress = 1      # To show the chunks id DEBUG is on
     complib = "lzo"
     type = 'int32'
@@ -526,7 +526,7 @@ class Slices3CArrayTestCase(BasicTestCase):
     #           slice(0,100,1))  # N
 
 
-class Slices4CArrayTestCase(BasicTestCase):
+class Slices4CArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 2, 5, 6)
     chunkshape = (5, 5, 5, 5, 5, 5)
@@ -534,7 +534,7 @@ class Slices4CArrayTestCase(BasicTestCase):
               slice(0, 4, 2), slice(3, 5, 2), slice(2, 7, 1))
 
 
-class Ellipsis3CArrayTestCase(BasicTestCase):
+class Ellipsis3CArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 2)
     chunkshape = (5, 5, 5, 5)
@@ -542,7 +542,7 @@ class Ellipsis3CArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2), Ellipsis)
 
 
-class Ellipsis4CArrayTestCase(BasicTestCase):
+class Ellipsis4CArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 5)
     chunkshape = (5, 5, 5, 5)
@@ -550,14 +550,14 @@ class Ellipsis4CArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 
-class Ellipsis5CArrayTestCase(BasicTestCase):
+class Ellipsis5CArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 5)
     chunkshape = (5, 5, 5, 5)
     slices = (slice(1, 2, 1), slice(0, 4, None), Ellipsis)
 
 
-class Ellipsis6CArrayTestCase(BasicTestCase):
+class Ellipsis6CArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 5)
     chunkshape = (5, 5, 5, 5)
@@ -567,21 +567,21 @@ class Ellipsis6CArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(0, 4, None), 2, Ellipsis)
 
 
-class Ellipsis7CArrayTestCase(BasicTestCase):
+class Ellipsis7CArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 5)
     chunkshape = (5, 5, 5, 5)
     slices = (slice(1, 2, 1), slice(0, 4, None), slice(2, 3), Ellipsis)
 
 
-class MD3WriteTestCase(BasicTestCase):
+class MD3WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 2, 3)
     chunkshape = (4, 4, 4)
     step = 2
 
 
-class MD5WriteTestCase(BasicTestCase):
+class MD5WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 2, 3, 4, 5)  # ok
     # shape = (1, 1, 2, 1)  # Minimum shape that shows problems with HDF5 1.6.1
@@ -593,7 +593,7 @@ class MD5WriteTestCase(BasicTestCase):
     step = 10
 
 
-class MD6WriteTestCase(BasicTestCase):
+class MD6WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 3, 2, 5, 6)
     chunkshape = (1, 1, 1, 1, 5, 6)
@@ -602,7 +602,7 @@ class MD6WriteTestCase(BasicTestCase):
     step = 3
 
 
-class MD6WriteTestCase__(BasicTestCase):
+class MD6WriteTestCase__(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 2)
     chunkshape = (1, 1)
@@ -611,7 +611,7 @@ class MD6WriteTestCase__(BasicTestCase):
     step = 1
 
 
-class MD7WriteTestCase(BasicTestCase):
+class MD7WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 3, 4, 5, 2, 3)
     chunkshape = (10, 10, 10, 10, 10, 10, 10)
@@ -620,7 +620,7 @@ class MD7WriteTestCase(BasicTestCase):
     step = 2
 
 
-class MD10WriteTestCase(BasicTestCase):
+class MD10WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (1, 2, 3, 4, 5, 5, 4, 3, 2, 2)
     chunkshape = (5, 5, 5, 5, 5, 5, 5, 5, 5, 5)
@@ -629,7 +629,7 @@ class MD10WriteTestCase(BasicTestCase):
     step = 10
 
 
-class ZlibComprTestCase(BasicTestCase):
+class ZlibComprTestCase(BasicCase, TestCase):
     compress = 1
     complib = "zlib"
     start = 3
@@ -638,7 +638,7 @@ class ZlibComprTestCase(BasicTestCase):
     step = 10
 
 
-class ZlibShuffleTestCase(BasicTestCase):
+class ZlibShuffleTestCase(BasicCase, TestCase):
     shuffle = 1
     compress = 1
     complib = "zlib"
@@ -650,7 +650,7 @@ class ZlibShuffleTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class BloscComprTestCase(BasicTestCase):
+class BloscComprTestCase(BasicCase, TestCase):
     compress = 1  # sss
     complib = "blosc"
     chunkshape = (10, 10)
@@ -661,7 +661,7 @@ class BloscComprTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class BloscShuffleTestCase(BasicTestCase):
+class BloscShuffleTestCase(BasicCase, TestCase):
     shape = (20, 30)
     compress = 1
     shuffle = 1
@@ -676,7 +676,7 @@ class BloscShuffleTestCase(BasicTestCase):
                  'BLOSC compression library not available')
 @unittest.skipIf(blosc_version < common.min_blosc_bitshuffle_version,
                  'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
-class BloscBitShuffleTestCase(BasicTestCase):
+class BloscBitShuffleTestCase(BasicCase, TestCase):
     shape = (20, 30)
     compress = 1
     bitshuffle = 1
@@ -689,7 +689,7 @@ class BloscBitShuffleTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class BloscFletcherTestCase(BasicTestCase):
+class BloscFletcherTestCase(BasicCase, TestCase):
     # see gh-21
     shape = (200, 300)
     compress = 1
@@ -704,7 +704,7 @@ class BloscFletcherTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class BloscBloscLZTestCase(BasicTestCase):
+class BloscBloscLZTestCase(BasicCase, TestCase):
     shape = (20, 30)
     compress = 1
     shuffle = 1
@@ -718,7 +718,7 @@ class BloscBloscLZTestCase(BasicTestCase):
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
-class BloscLZ4TestCase(BasicTestCase):
+class BloscLZ4TestCase(BasicCase, TestCase):
     shape = (20, 30)
     compress = 1
     shuffle = 1
@@ -732,7 +732,7 @@ class BloscLZ4TestCase(BasicTestCase):
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
-class BloscLZ4HCTestCase(BasicTestCase):
+class BloscLZ4HCTestCase(BasicCase, TestCase):
     shape = (20, 30)
     compress = 1
     shuffle = 1
@@ -747,7 +747,7 @@ class BloscLZ4HCTestCase(BasicTestCase):
                  'BLOSC compression library not available')
 @unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
                  'snappy required')
-class BloscSnappyTestCase(BasicTestCase):
+class BloscSnappyTestCase(BasicCase, TestCase):
     shape = (20, 30)
     compress = 1
     shuffle = 1
@@ -761,7 +761,7 @@ class BloscSnappyTestCase(BasicTestCase):
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 @unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
-class BloscZlibTestCase(BasicTestCase):
+class BloscZlibTestCase(BasicCase, TestCase):
     shape = (20, 30)
     compress = 1
     shuffle = 1
@@ -773,7 +773,7 @@ class BloscZlibTestCase(BasicTestCase):
 
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
-class LZOComprTestCase(BasicTestCase):
+class LZOComprTestCase(BasicCase, TestCase):
     compress = 1  # sss
     complib = "lzo"
     chunkshape = (10, 10)
@@ -783,7 +783,7 @@ class LZOComprTestCase(BasicTestCase):
 
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
-class LZOShuffleTestCase(BasicTestCase):
+class LZOShuffleTestCase(BasicCase, TestCase):
     shape = (20, 30)
     compress = 1
     shuffle = 1
@@ -796,7 +796,7 @@ class LZOShuffleTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.bzip2_avail,
                  'BZIP2 compression library not available')
-class Bzip2ComprTestCase(BasicTestCase):
+class Bzip2ComprTestCase(BasicCase, TestCase):
     shape = (20, 30)
     compress = 1
     complib = "bzip2"
@@ -808,7 +808,7 @@ class Bzip2ComprTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.bzip2_avail,
                  'BZIP2 compression library not available')
-class Bzip2ShuffleTestCase(BasicTestCase):
+class Bzip2ShuffleTestCase(BasicCase, TestCase):
     shape = (20, 30)
     compress = 1
     shuffle = 1
@@ -819,7 +819,7 @@ class Bzip2ShuffleTestCase(BasicTestCase):
     step = 6
 
 
-class Fletcher32TestCase(BasicTestCase):
+class Fletcher32TestCase(BasicCase, TestCase):
     shape = (60, 50)
     compress = 0
     fletcher32 = 1
@@ -829,7 +829,7 @@ class Fletcher32TestCase(BasicTestCase):
     step = 7
 
 
-class AllFiltersTestCase(BasicTestCase):
+class AllFiltersTestCase(BasicCase, TestCase):
     compress = 1
     shuffle = 1
     fletcher32 = 1
@@ -840,7 +840,7 @@ class AllFiltersTestCase(BasicTestCase):
     step = 6
 
 
-class FloatTypeTestCase(BasicTestCase):
+class FloatTypeTestCase(BasicCase, TestCase):
     type = 'float64'
     shape = (2, 2)
     chunkshape = (5, 5)
@@ -849,7 +849,7 @@ class FloatTypeTestCase(BasicTestCase):
     step = 20
 
 
-class ComplexTypeTestCase(BasicTestCase):
+class ComplexTypeTestCase(BasicCase, TestCase):
     type = 'complex128'
     shape = (2, 2)
     chunkshape = (5, 5)
@@ -858,7 +858,7 @@ class ComplexTypeTestCase(BasicTestCase):
     step = 20
 
 
-class StringTestCase(BasicTestCase):
+class StringTestCase(BasicCase, TestCase):
     type = "string"
     length = 20
     shape = (2, 2)
@@ -870,7 +870,7 @@ class StringTestCase(BasicTestCase):
     slices = (slice(0, 1), slice(1, 2))
 
 
-class String2TestCase(BasicTestCase):
+class String2TestCase(BasicCase, TestCase):
     type = "string"
     length = 20
     shape = (2, 20)
@@ -880,7 +880,7 @@ class String2TestCase(BasicTestCase):
     step = 2
 
 
-class StringComprTestCase(BasicTestCase):
+class StringComprTestCase(BasicCase, TestCase):
     type = "string"
     length = 20
     shape = (20, 2, 10)
@@ -893,7 +893,7 @@ class StringComprTestCase(BasicTestCase):
     step = 20
 
 
-class Int8TestCase(BasicTestCase):
+class Int8TestCase(BasicCase, TestCase):
     type = "int8"
     shape = (2, 2)
     compress = 1
@@ -904,7 +904,7 @@ class Int8TestCase(BasicTestCase):
     step = 20
 
 
-class Int16TestCase(BasicTestCase):
+class Int16TestCase(BasicCase, TestCase):
     type = "int16"
     shape = (2, 2)
     compress = 1
@@ -915,7 +915,7 @@ class Int16TestCase(BasicTestCase):
     step = 1
 
 
-class Int32TestCase(BasicTestCase):
+class Int32TestCase(BasicCase, TestCase):
     type = "int32"
     shape = (2, 2)
     compress = 1
@@ -928,7 +928,7 @@ class Int32TestCase(BasicTestCase):
 
 @unittest.skipUnless(hasattr(tables, 'Float16Atom'),
                      'Float16Atom not available')
-class Float16TestCase(BasicTestCase):
+class Float16TestCase(BasicCase, TestCase):
     type = "float16"
     shape = (200,)
     compress = 1
@@ -939,7 +939,7 @@ class Float16TestCase(BasicTestCase):
     step = 20
 
 
-class Float32TestCase(BasicTestCase):
+class Float32TestCase(BasicCase, TestCase):
     type = "float32"
     shape = (200,)
     compress = 1
@@ -950,7 +950,7 @@ class Float32TestCase(BasicTestCase):
     step = 20
 
 
-class Float64TestCase(BasicTestCase):
+class Float64TestCase(BasicCase, TestCase):
     type = "float64"
     shape = (200,)
     compress = 1
@@ -963,7 +963,7 @@ class Float64TestCase(BasicTestCase):
 
 @unittest.skipUnless(hasattr(tables, 'Float96Atom'),
                      'Float96Atom not available')
-class Float96TestCase(BasicTestCase):
+class Float96TestCase(BasicCase, TestCase):
     type = "float96"
     shape = (200,)
     compress = 1
@@ -976,7 +976,7 @@ class Float96TestCase(BasicTestCase):
 
 @unittest.skipUnless(hasattr(tables, 'Float128Atom'),
                      'Float128Atom not available')
-class Float128TestCase(BasicTestCase):
+class Float128TestCase(BasicCase, TestCase):
     type = "float128"
     shape = (200,)
     compress = 1
@@ -987,7 +987,7 @@ class Float128TestCase(BasicTestCase):
     step = 20
 
 
-class Complex64TestCase(BasicTestCase):
+class Complex64TestCase(BasicCase, TestCase):
     type = "complex64"
     shape = (4,)
     compress = 1
@@ -998,7 +998,7 @@ class Complex64TestCase(BasicTestCase):
     step = 20
 
 
-class Complex128TestCase(BasicTestCase):
+class Complex128TestCase(BasicCase, TestCase):
     type = "complex128"
     shape = (20,)
     compress = 1
@@ -1011,7 +1011,7 @@ class Complex128TestCase(BasicTestCase):
 
 @unittest.skipUnless(hasattr(tables, 'Complex192Atom'),
                      'Complex192Atom not available')
-class Complex192TestCase(BasicTestCase):
+class Complex192TestCase(BasicCase, TestCase):
     type = "complex192"
     shape = (20,)
     compress = 1
@@ -1024,7 +1024,7 @@ class Complex192TestCase(BasicTestCase):
 
 @unittest.skipUnless(hasattr(tables, 'Complex256Atom'),
                      'Complex256Atom not available')
-class Complex256TestCase(BasicTestCase):
+class Complex256TestCase(BasicCase, TestCase):
     type = "complex256"
     shape = (20,)
     compress = 1
@@ -1035,7 +1035,7 @@ class Complex256TestCase(BasicTestCase):
     step = 20
 
 
-class ComprTestCase(BasicTestCase):
+class ComprTestCase(BasicCase, TestCase):
     type = "float64"
     compress = 1
     shuffle = 1

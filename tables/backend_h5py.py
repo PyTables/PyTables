@@ -72,8 +72,7 @@ class Group(HasChildren, h5py.Group, abc.Group):
         ret = super().create_group(name, **kwargs)
         return Group(ret.id)
 
-    def create_dataset(self, name, *, chunk_shape=None, **kwargs):
-        kwargs['chunks'] = chunk_shape
+    def create_dataset(self, name, **kwargs):
         ret = super().create_dataset(name, **kwargs)
         return Dataset(ret.id)
 
@@ -98,7 +97,7 @@ class Dataset(h5py.Dataset, abc.Dataset):
             raise KeyError('cannot remove key of type: {0}'.format(type(k)))
 
     @property
-    def chunk_shape(self):
+    def chunkshape(self):
         return self.chunks
 
     @property

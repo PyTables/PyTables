@@ -24,10 +24,6 @@ class Leaf(Node):
     def size_on_disk(self):
         return self.backend.size_on_disk
 
-    @property
-    def chunk_shape(self):
-        return self.backend.chunk_shape
-
     def __len__(self):
         return len(self.backend)
 

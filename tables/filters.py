@@ -37,6 +37,7 @@ __docformat__ = 'reStructuredText'
 all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc']
 all_complibs += ['blosc:%s' % cname for cname in blosc_compressor_list()]
 
+complibs_id = {'zlib': 'gzip', 'lzo': 305, 'bzip2': 307, 'blosc': 32001}
 
 """List of all compression libraries."""
 
@@ -187,6 +188,39 @@ class Filters(object):
             return 1
         if self.bitshuffle:
             return 2
+
+    @property
+    def get_h5py_compression(self):
+        if self.complib is None:
+            return None
+        return complibs_id[self.complib.split(':')[0]]
+
+    def get_h5py_compression_opts(self):
+        if self.complib is None:
+            return None
+        compression_opts = ()
+        if self.complib == 'zlib' or self.complib == 'bzip2':
+            compression_opts = (self.complevel,)
+        elif self.get_h5py_compression() == 'blosc':
+            codec = self.complib.split(':')[1]
+            if codec is None:
+                codec = 0
+            else:
+                codec = blosc_compressor_list.index(codec)
+                compression_opts = (0, 0, 0, 0,
+                                    self.complevel,
+                                    self.shuffle_bitshuffle,
+                                    codec)
+        return compression_opts
+
+    def get_h5py_shuffle(self):
+        if self.complib is None:
+            return False
+        if self.get_h5py_compression() == 'blosc':
+            return False
+        else:
+            return self.shuffle
+
 
     @classmethod
     def _from_leaf(class_, leaf):
