@@ -77,8 +77,8 @@ class Array(Leaf):
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
 
-            # Check empty dataset
-            if self.nrows != 0:
+            # Check empty dataset or selection
+            if self.nrows != 0 and nrowstoread != 0:
                 if self.shape == ():
                     self.backend.read_direct(out)
                 else:
