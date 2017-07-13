@@ -223,8 +223,10 @@ class Group(HasChildren, Node):
                     dtype = obj.dtype
         if chunkshape is None:
             chunkshape = True
-        maxshape = np.asarray([shape[i] if shape[i] >= chunkshape[i] else chunkshape[i]
-                               for i in range(len(shape))])
+            maxshape = shape
+        else:
+            maxshape = [shape[i] if shape[i] >= chunkshape[i] else chunkshape[i]
+                        for i in range(len(shape))]
         dataset = self.backend.create_dataset(name, data=obj, dtype=dtype, shape=shape,
                                               compression=filters.get_h5py_compression,
                                               compression_opts=filters.get_h5py_compression_opts(),
