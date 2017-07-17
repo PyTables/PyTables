@@ -180,6 +180,7 @@ class Group(HasChildren, Node):
                       filters=None, chunkshape=None,
                       byteorder=None, obj=None, **kwargs):
         if obj is not None:
+            dtype = None
             flavor = flavor_of(obj)
             obj = array_as_internal(obj, flavor)
 
@@ -199,9 +200,7 @@ class Group(HasChildren, Node):
             else:
                 # Making strides=(0,...) below is a trick to create the
                 # array fast and without memory consumption
-                dflt = np.zeros((), dtype=atom.dtype)
-                obj = np.ndarray(shape, dtype=atom.dtype, buffer=dflt,
-                                 strides=(0,) * len(shape))
+                dtype = atom.dtype
 
         _checkfilters(filters)
 
@@ -211,7 +210,6 @@ class Group(HasChildren, Node):
         else:
             _byteorder = np_byteorders[byteorder]
 
-        dtype = None
         if hasattr(obj, 'dtype'):
             dtype = obj.dtype
             if _byteorder != '|' and obj.dtype.byteorder != '|':
