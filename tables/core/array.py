@@ -7,8 +7,11 @@ from ..exceptions import ClosedNodeError
 
 
 class Array(Leaf):
-    def __init__(self, _atom=None, **kwargs):
+    def __init__(self, title='', _atom=None, new=False, **kwargs):
         super().__init__(**kwargs)
+        if new:
+            self.attrs['TITLE'] = title
+            self.attrs['CLASS'] = self.__class__.__name__.upper()
         self.atom = _atom
         if _atom is None or _atom.shape == ():
             if self.dtype == np.dtype('O'):

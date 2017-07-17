@@ -174,9 +174,7 @@ class Group(HasChildren, Node):
         dataset = self.backend.create_dataset(name, data=obj, dtype=dtype,
                                               ** kwargs)
 
-        dataset.attrs['TITLE'] = title
-        dataset.attrs['CLASS'] = 'ARRAY'
-        return Array(backend=dataset, parent=self, _atom=atom)
+        return Array(backend=dataset, parent=self, title=title, _atom=atom, new=True)
 
     def create_carray(self, name, atom=None, shape=None, title="",
                       filters=None, chunkshape=None,
@@ -235,10 +233,7 @@ class Group(HasChildren, Node):
                                               chunks=chunkshape, maxshape=maxshape,
                                               **kwargs)
 
-        dataset.attrs['TITLE'] = title
-        dataset.attrs['CLASS'] = 'CARRAY'
-
-        return CArray(backend=dataset, parent=self, atom=atom)
+        return CArray(backend=dataset, parent=self, title=title, atom=atom, new=True)
 
     def create_group(self, name, title=''):
         g = Group(backend=self.backend.create_group(name), parent=self)
