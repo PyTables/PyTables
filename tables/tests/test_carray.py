@@ -1103,7 +1103,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
         # partially filled chunks
         self.chunkshape = (1000, 10)
         # approximate size (in bytes) of non-data portion of hdf5 file
-        self.hdf_overhead = 6000
+        self.hdf_overhead = 9000
 
     def create_array(self, complevel):
         filters = tables.Filters(complevel=complevel, complib='blosc')
