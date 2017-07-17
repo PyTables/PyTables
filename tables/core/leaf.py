@@ -42,7 +42,11 @@ class Leaf(Node):
     def __getitem__(self, item):
         if not self._v_file._isopen:
             raise ClosedNodeError
-        return self.backend.__getitem__(item)
+        try:
+            return self.backend.__getitem__(item)
+        except ValueError:  # invalid selection
+            return self.backend.__getitem__(slice(0, 0, 1))
+
 
     def __setitem__(self, item, value):
         if not self._v_file._isopen:

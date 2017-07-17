@@ -229,8 +229,8 @@ class Group(HasChildren, Node):
                         for i in range(len(shape))]
         dataset = self.backend.create_dataset(name, data=obj, dtype=dtype, shape=shape,
                                               compression=filters.get_h5py_compression,
-                                              compression_opts=filters.get_h5py_compression_opts(),
-                                              shuffle=filters.get_h5py_shuffle(),
+                                              compression_opts=filters.get_h5py_compression_opts,
+                                              shuffle=filters.get_h5py_shuffle,
                                               fletcher32=filters.fletcher32,
                                               chunks=chunkshape, maxshape=maxshape,
                                               **kwargs)
@@ -297,8 +297,11 @@ class File(HasChildren, Node):
 
     def close(self):
         # Flush the nodes prior to close
-        self.backend.flush()
+        self.flush()
         super().close()
+
+    def flush(self):
+        self.backend.flush()
 
     def __enter__(self):
         return self
@@ -308,7 +311,7 @@ class File(HasChildren, Node):
 
     def reopen(self, **kwargs):
         # Flush the nodes prior to close
-        self.bakend.flush()
+        self.backend.flush()
         self.backend.close()
         self.backend.open(**kwargs)
 

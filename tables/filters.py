@@ -195,28 +195,32 @@ class Filters(object):
             return None
         return complibs_id[self.complib.split(':')[0]]
 
+    @property
     def get_h5py_compression_opts(self):
         if self.complib is None:
             return None
         compression_opts = ()
-        if self.complib == 'zlib' or self.complib == 'bzip2':
+        if self.complib == 'zlib':
+            compression_opts = self.complevel
+        elif self.complib == 'bzip2':
             compression_opts = (self.complevel,)
-        elif self.get_h5py_compression() == 'blosc':
-            codec = self.complib.split(':')[1]
-            if codec is None:
-                codec = 0
-            else:
-                codec = blosc_compressor_list.index(codec)
-                compression_opts = (0, 0, 0, 0,
-                                    self.complevel,
-                                    self.shuffle_bitshuffle,
-                                    codec)
+        elif self.get_h5py_compression == 32001:
+            try:
+                codec = self.complib.split(':')[1]
+            except IndexError:  # default codec
+                codec = 'blosclz'
+            codec = blosc_compressor_list().index(codec)
+            compression_opts = (0, 0, 0, 0,
+                                self.complevel,
+                                self.shuffle_bitshuffle,
+                                codec)
         return compression_opts
 
+    @property
     def get_h5py_shuffle(self):
         if self.complib is None:
             return False
-        if self.get_h5py_compression() == 'blosc':
+        if self.get_h5py_compression == 32001:
             return False
         else:
             return self.shuffle
