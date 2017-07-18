@@ -12,6 +12,7 @@
 
 """Cython utilities for PyTables and HDF5 library."""
 
+import os
 import sys
 import warnings
 
@@ -603,6 +604,9 @@ def encode_filename(object filename):
   """Return the encoded filename in the filesystem encoding."""
 
   cdef bytes encname
+
+  if hasattr(os, 'fspath'):
+    filename = os.fspath(filename)
 
   if isinstance(filename, (unicode, numpy.str_)):
 #  if type(filename) is unicode:
