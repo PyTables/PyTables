@@ -1987,6 +1987,51 @@ class UnicodeFilename(common.TempFileMixin, TestCase):
         group = self.h5file.create_group(root, 'vertex_data')
 
 
+@unittest.skipIf(sys.version_info < (3, 6),
+                 'PEP 519 was implemented in Python 3.6')
+class PathLikeFilename(common.TempFileMixin, TestCase):
+
+    def _getTempFileName(self):
+        from pathlib import Path
+        return Path(tempfile.mktemp(suffix='.h5'))
+
+    def setUp(self):
+        super(PathLikeFilename, self).setUp()
+
+        self.test = self.h5file.create_array('/', 'test', [1, 2])
+
+        # So as to check the reading
+        self._reopen()
+
+    def test01(self):
+        """Checking creating a file with a PathLike object as the filename."""
+
+        test = self.h5file.root.test
+        if common.verbose:
+            print("Filename:", self.h5fname)
+            print("Array:", test[:])
+            print("Should look like:", [1, 2])
+        self.assertEqual(test[:], [1, 2], "Values does not match.")
+
+    def test02(self):
+        """Checking  tables.is_hdf5_file with a PathLike object as the filename."""
+
+        self.h5file.close()
+        if common.verbose:
+            print("Filename:", self.h5fname)
+            print(" tables.is_hdf5_file?:", tables.is_hdf5_file(self.h5fname))
+        self.assertTrue(tables.is_hdf5_file(self.h5fname))
+
+    def test03(self):
+        """Checking is_pytables_file with a PathLike object as the filename."""
+
+        self.h5file.close()
+        if common.verbose:
+            print("Filename:", self.h5fname)
+            print("is_pytables_file?:", tables.is_pytables_file(self.h5fname))
+        self.assertNotEqual(tables.is_pytables_file(self.h5fname), False)
+
+
 class FilePropertyTestCase(TestCase):
     def setUp(self):
         super(FilePropertyTestCase, self).setUp()
@@ -2491,6 +2536,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
         theSuite.addTest(unittest.makeSuite(UnicodeFilename))
+        theSuite.addTest(unittest.makeSuite(PathLikeFilename))
         theSuite.addTest(unittest.makeSuite(FilePropertyTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBigEndian))
         theSuite.addTest(unittest.makeSuite(BloscSubprocess))
