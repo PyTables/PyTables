@@ -17,6 +17,14 @@ class Leaf(Node):
         return self.backend.dtype
 
     @property
+    def flavor(self):
+        return self._flavor
+
+    @flavor.setter
+    def flavor(self, value):
+        self._flavor = self.attrs['FLAVOR'] = value
+
+    @property
     def shape(self):
         return self.backend.shape
 
@@ -38,6 +46,10 @@ class Leaf(Node):
         # Scalar dataset
         else:
             return 1 if self.shape == () else len(self)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._flavor = None
 
     def __getitem__(self, item):
         if not self._v_file._isopen:

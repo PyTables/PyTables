@@ -181,6 +181,8 @@ class Group(HasChildren, Node):
                       byteorder=None, obj=None, **kwargs):
         if obj is not None:
             dtype = None
+            if hasattr(obj, 'chunkshape') and chunkshape is None:
+                chunkshape = obj.chunkshape
             flavor = flavor_of(obj)
             obj = array_as_internal(obj, flavor)
 

@@ -4,6 +4,7 @@ from .leaf import Leaf
 from .. import Atom
 from ..utils import byteorders
 from ..exceptions import ClosedNodeError
+from ..flavor import array_of_flavor
 
 
 class Array(Leaf):
@@ -12,6 +13,13 @@ class Array(Leaf):
         if new:
             self.attrs['TITLE'] = title
             self.attrs['CLASS'] = self.__class__.__name__.upper()
+            self.flavor = 'numpy'
+        else:
+            try:
+                self._flavor = self.attrs['FLAVOR']
+            except KeyError:
+                self._flavor = 'numpy'
+
         self.atom = _atom
         if _atom is None or _atom.shape == ():
             if self.dtype == np.dtype('O'):
@@ -20,7 +28,6 @@ class Array(Leaf):
                 self.atom = Atom.from_dtype(self.dtype)
         self.nrow = None
         # Provisional for test
-        self.flavor = 'numpy'
         self.extdim = -1
         # TODO iterators?
 
@@ -89,6 +96,8 @@ class Array(Leaf):
                     self.backend.read_direct(out, np.s_[start:stop:step], np.s_[0:nrowstoread])
             return out
 
+        arr = array_of_flavor(arr, self.flavor)
+
         return arr
 
     def iterrows(self, start=None, stop=None, step=None):
@@ -113,13 +122,17 @@ class Array(Leaf):
 
         if not hasattr(newparent, 'create_array'):
             newparent = self.root._get_or_create_path(newparent, createparents)
+        if self.__class__.__name__ == 'Array':
+            create_function = newparent.create_array
+        else:
+            create_function = newparent.create_carray
         if not any(k in kwargs for k in {'start', 'stop', 'step'}):
-            ret = newparent.create_array(newname, obj=self, **kwargs)
+            ret = create_function(newname, obj=self, **kwargs)
         else:
             slc = slice(*(kwargs.pop(k, None)
                           for k in ('start', 'stop', 'step')))
             tmp_data = self[slc]
-            ret = newparent.create_array(newname, obj=tmp_data, **kwargs)
+            ret = create_function(newname, obj=tmp_data, **kwargs)
 
         if copyuserattrs:
             for k, v in self.attrs.items():
