@@ -1,3 +1,4 @@
+import numpy as np
 from .node import Node
 from tables.utils import byteorders
 from ..exceptions import ClosedNodeError
@@ -66,7 +67,10 @@ class Leaf(Node):
         try:
             return self.backend.__setitem__(item, value)
         except TypeError:
+            if not hasattr(value, 'astype'):
+                value = np.asarray(value)
             return self.backend.__setitem__(item, value.astype(self.dtype))
+
 
     @property
     def maindim(self):

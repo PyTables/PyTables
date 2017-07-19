@@ -138,6 +138,8 @@ class Array(Leaf):
             for k, v in self.attrs.items():
                 if k.lower() == 'title' and 'title' in kwargs:
                     continue
+                if k.lower() == 'flavor':
+                    ret._flavor = v
                 ret.attrs[k] = v
         return ret
 
