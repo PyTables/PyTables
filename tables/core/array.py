@@ -21,6 +21,7 @@ class Array(Leaf):
         self.nrow = None
         # Provisional for test
         self.flavor = 'numpy'
+        self.extdim = -1
         # TODO iterators?
 
     @property
