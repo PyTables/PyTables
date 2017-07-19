@@ -179,6 +179,7 @@ class Group(HasChildren, Node):
     def create_carray(self, name, atom=None, shape=None, title="",
                       filters=None, chunkshape=None,
                       byteorder=None, obj=None, **kwargs):
+        fillvalue = None
         if obj is not None:
             dtype = None
             if hasattr(obj, 'chunkshape') and chunkshape is None:
@@ -202,7 +203,15 @@ class Group(HasChildren, Node):
             else:
                 # Making strides=(0,...) below is a trick to create the
                 # array fast and without memory consumption
-                dtype = atom.dtype
+                if len(atom.shape) > 0:
+                    aux = list(shape)
+                    for i in range(len(atom.shape)):
+                        aux.append(atom.shape[i])
+                    shape = tuple(aux)
+                dtype = atom.dtype.base
+                fillvalue = atom.dflt
+                atom.dflt = np.full(atom.shape, fillvalue, dtype)
+
 
         _checkfilters(filters)
         compression = None
@@ -240,7 +249,7 @@ class Group(HasChildren, Node):
                                               shuffle=shuffle,
                                               fletcher32=fletcher32,
                                               chunks=chunkshape, maxshape=maxshape,
-                                              **kwargs)
+                                              fillvalue=fillvalue, **kwargs)
 
         return CArray(backend=dataset, parent=self, title=title, atom=atom, new=True)
 
@@ -331,10 +340,14 @@ class File(HasChildren, Node):
             where = self._get_or_create_path(where, createparents)
         return where.create_array(*args, **kwargs)
 
-    def create_carray(self, where, *args, createparents=False, **kwargs):
+    def create_carray(self, where, name, atom=None, shape=None, title="",
+                      filters=None, chunkshape=None,
+                      byteorder=None, createparents=False, obj=None, **kwargs):
         if not hasattr(where, 'create_carray'):
             where = self._get_or_create_path(where, createparents)
-        return where.create_carray(*args, **kwargs)
+        return where.create_carray(name, atom, shape, title,
+                      filters, chunkshape,
+                      byteorder, obj, **kwargs)
 
     def create_group(self, where, *args, createparents=False, **kwargs):
         if not hasattr(where, 'create_group'):
