@@ -203,6 +203,15 @@ class Group(HasChildren, Node):
                 dtype = atom.dtype
 
         _checkfilters(filters)
+        compression = None
+        compression_opts = None
+        shuffle = None
+        fletcher32 = None
+        if filters is not None:
+            compression = filters.get_h5py_compression
+            compression_opts = filters.get_h5py_compression_opts
+            shuffle = filters.get_h5py_shuffle
+            fletcher32 = filters.fletcher32
 
         byteorder = correct_byteorder(type(obj), byteorder)
         if byteorder is None:
@@ -224,10 +233,10 @@ class Group(HasChildren, Node):
             maxshape = [shape[i] if shape[i] >= chunkshape[i] else chunkshape[i]
                         for i in range(len(shape))]
         dataset = self.backend.create_dataset(name, data=obj, dtype=dtype, shape=shape,
-                                              compression=filters.get_h5py_compression,
-                                              compression_opts=filters.get_h5py_compression_opts,
-                                              shuffle=filters.get_h5py_shuffle,
-                                              fletcher32=filters.fletcher32,
+                                              compression=compression,
+                                              compression_opts=compression_opts,
+                                              shuffle=shuffle,
+                                              fletcher32=fletcher32,
                                               chunks=chunkshape, maxshape=maxshape,
                                               **kwargs)
 
