@@ -1308,7 +1308,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
                         2], numpy.array([1, 1, 1], dtype='int32')))
 
 
-class CopyTestCase(common.TempFileMixin, TestCase):
+class CopyCase(common.TempFileMixin):
 
     def test01a_copy(self):
         """Checking CArray.copy() method."""
@@ -1811,15 +1811,15 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(hasattr(array2.attrs, "attr2"), 0)
 
 
-class CloseCopyTestCase(CopyTestCase):
+class CloseCopyTestCase(CopyCase, TestCase):
     close = 1
 
 
-class OpenCopyTestCase(CopyTestCase):
+class OpenCopyTestCase(CopyCase, TestCase):
     close = 0
 
 
-class CopyIndexTestCase(common.TempFileMixin, TestCase):
+class CopyIndexCase(common.TempFileMixin):
     nrowsinbuf = 2
 
     def test01_index(self):
@@ -1917,93 +1917,93 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(r2.shape[0], array2.nrows)
 
 
-class CopyIndex1TestCase(CopyIndexTestCase):
+class CopyIndex1TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 1
     start = 0
     stop = 7
     step = 1
 
 
-class CopyIndex2TestCase(CopyIndexTestCase):
+class CopyIndex2TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 2
     start = 0
     stop = -1
     step = 1
 
 
-class CopyIndex3TestCase(CopyIndexTestCase):
+class CopyIndex3TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 3
     start = 1
     stop = 7
     step = 1
 
 
-class CopyIndex4TestCase(CopyIndexTestCase):
+class CopyIndex4TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 4
     start = 0
     stop = 6
     step = 1
 
 
-class CopyIndex5TestCase(CopyIndexTestCase):
+class CopyIndex5TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 2
     start = 3
     stop = 7
     step = 1
 
 
-class CopyIndex6TestCase(CopyIndexTestCase):
+class CopyIndex6TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 2
     start = 3
     stop = 6
     step = 2
 
 
-class CopyIndex7TestCase(CopyIndexTestCase):
+class CopyIndex7TestCase(CopyIndexCase, TestCase):
     start = 0
     stop = 7
     step = 10
 
 
-class CopyIndex8TestCase(CopyIndexTestCase):
+class CopyIndex8TestCase(CopyIndexCase, TestCase):
     start = 6
     stop = -1  # Negative values means starting from the end
     step = 1
 
 
-class CopyIndex9TestCase(CopyIndexTestCase):
+class CopyIndex9TestCase(CopyIndexCase, TestCase):
     start = 3
     stop = 4
     step = 1
 
 
-class CopyIndex10TestCase(CopyIndexTestCase):
+class CopyIndex10TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 1
     start = 3
     stop = 4
     step = 2
 
 
-class CopyIndex11TestCase(CopyIndexTestCase):
+class CopyIndex11TestCase(CopyIndexCase, TestCase):
     start = -3
     stop = -1
     step = 2
 
 
-class CopyIndex12TestCase(CopyIndexTestCase):
+class CopyIndex12TestCase(CopyIndexCase, TestCase):
     start = -1   # Should point to the last element
     stop = None  # None should mean the last element (including it)
     step = 1
 
 
 # The next test should be run only in **heavy** mode
-class Rows64bitsTestCase(common.TempFileMixin, TestCase):
+class Rows64bitsCase(common.TempFileMixin):
     narows = 1000 * 1000   # each array will have 1 million entries
     # narows = 1000        # for testing only
     nanumber = 1000 * 3    # That should account for more than 2**31-1
 
     def setUp(self):
-        super(Rows64bitsTestCase, self).setUp()
+        super(Rows64bitsCase, self).setUp()
 
         # Create an CArray
         shape = (self.narows * self.nanumber,)
@@ -2074,11 +2074,11 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
                                  numpy.arange(start, stop, dtype='int8')))
 
 
-class Rows64bitsTestCase1(Rows64bitsTestCase):
+class Rows64bitsTestCase1(Rows64bitsCase, TestCase):
     close = 0
 
 
-class Rows64bitsTestCase2(Rows64bitsTestCase):
+class Rows64bitsTestCase2(Rows64bitsCase, TestCase):
     close = 1
 
 
@@ -2115,7 +2115,7 @@ class BigArrayTestCase(common.TempFileMixin, TestCase):
 
 
 # Test for default values when creating arrays.
-class DfltAtomTestCase(common.TempFileMixin, TestCase):
+class DfltAtomCase(common.TempFileMixin):
 
     def test00_dflt(self):
         "Check that Atom.dflt is honored (string version)."
@@ -2168,16 +2168,16 @@ class DfltAtomTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(values, numpy.ones((10, 10), "f8")*1.134))
 
 
-class DfltAtomNoReopen(DfltAtomTestCase):
+class DfltAtomNoReopen(DfltAtomCase, TestCase):
     reopen = False
 
 
-class DfltAtomReopen(DfltAtomTestCase):
+class DfltAtomReopen(DfltAtomCase, TestCase):
     reopen = True
 
 
 # Test for representation of defaults in atoms. Ticket #212.
-class AtomDefaultReprTestCase(common.TempFileMixin, TestCase):
+class AtomDefaultReprCase(common.TempFileMixin):
 
     def test00a_zeros(self):
         """Testing default values.  Zeros (scalar)."""
@@ -2275,11 +2275,11 @@ class AtomDefaultReprTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
 
 
-class AtomDefaultReprNoReopen(AtomDefaultReprTestCase):
+class AtomDefaultReprNoReopen(AtomDefaultReprCase, TestCase):
     reopen = False
 
 
-class AtomDefaultReprReopen(AtomDefaultReprTestCase):
+class AtomDefaultReprReopen(AtomDefaultReprCase, TestCase):
     reopen = True
 
 
@@ -2292,7 +2292,7 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
 
 
 # Test for dealing with multidimensional atoms
-class MDAtomTestCase(common.TempFileMixin, TestCase):
+class MDAtomCase(common.TempFileMixin):
 
     def test01a_assign(self):
         """Assign a row to a (unidimensional) CArray with a MD atom."""
@@ -2421,16 +2421,16 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(ca[:, :, 1, ...], a[:, :, 1, ...]))
 
 
-class MDAtomNoReopen(MDAtomTestCase):
+class MDAtomNoReopen(MDAtomCase, TestCase):
     reopen = False
 
 
-class MDAtomReopen(MDAtomTestCase):
+class MDAtomReopen(MDAtomCase, TestCase):
     reopen = True
 
 
 # Test for building very large MD atoms without defaults.  Ticket #211.
-class MDLargeAtomTestCase(common.TempFileMixin, TestCase):
+class MDLargeAtomCase(common.TempFileMixin):
 
     def test01_create(self):
         """Create a CArray with a very large MD atom."""
@@ -2448,11 +2448,11 @@ class MDLargeAtomTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(ca[0], numpy.zeros(N, 'i4')))
 
 
-class MDLargeAtomNoReopen(MDLargeAtomTestCase):
+class MDLargeAtomNoReopen(MDLargeAtomCase, TestCase):
     reopen = False
 
 
-class MDLargeAtomReopen(MDLargeAtomTestCase):
+class MDLargeAtomReopen(MDLargeAtomCase, TestCase):
     reopen = True
 
 
