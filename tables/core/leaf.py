@@ -51,7 +51,10 @@ class Leaf(Node):
     def __setitem__(self, item, value):
         if not self._v_file._isopen:
             raise ClosedNodeError
-        return self.backend.__setitem__(item, value)
+        try:
+            return self.backend.__setitem__(item, value)
+        except TypeError:
+            return self.backend.__setitem__(item, value.astype(self.dtype))
 
     @property
     def maindim(self):
