@@ -23,9 +23,9 @@ class Array(Leaf):
         self.atom = _atom
         if _atom is None or _atom.shape == ():
             if self.dtype == np.dtype('O'):
-                self.atom = Atom.from_dtype(np.array(self[()]).dtype)
+                self.atom = Atom.from_dtype(np.array(self[()]).dtype, dflt=self.backend.fillvalue)
             else:
-                self.atom = Atom.from_dtype(self.dtype)
+                self.atom = Atom.from_dtype(self.dtype, dflt=self.backend.fillvalue)
         self.nrow = None
         # Provisional for test
         self.extdim = -1

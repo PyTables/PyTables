@@ -210,7 +210,6 @@ class Group(HasChildren, Node):
                     shape = tuple(aux)
                 dtype = atom.dtype.base
                 fillvalue = atom.dflt
-                atom.dflt = np.full(atom.shape, fillvalue, dtype)
 
 
         _checkfilters(filters)

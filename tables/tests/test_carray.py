@@ -2193,7 +2193,7 @@ class AtomDefaultReprCase(common.TempFileMixin):
             print("First row-->", repr(ca[0]))
             print("Defaults-->", repr(ca.atom.dflt))
         self.assertTrue(allequal(ca[0], numpy.zeros(N, 'S3')))
-        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
+        self.assertTrue(allequal(ca.atom.dflt, b""))
 
     def test00b_zeros(self):
         """Testing default values.  Zeros (array)."""
@@ -2209,7 +2209,7 @@ class AtomDefaultReprCase(common.TempFileMixin):
             print("First row-->", ca[0])
             print("Defaults-->", ca.atom.dflt)
         self.assertTrue(allequal(ca[0], numpy.zeros(N, 'S3')))
-        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
+        self.assertTrue(allequal(ca.atom.dflt, b""))
 
     def test01a_values(self):
         """Testing default values.  Ones."""
@@ -2225,7 +2225,7 @@ class AtomDefaultReprCase(common.TempFileMixin):
             print("First row-->", ca[0])
             print("Defaults-->", ca.atom.dflt)
         self.assertTrue(allequal(ca[0], numpy.ones(N, 'i4')))
-        self.assertTrue(allequal(ca.atom.dflt, numpy.ones(N, 'i4')))
+        self.assertTrue(allequal(ca.atom.dflt, [1]))
 
     def test01b_values(self):
         """Testing default values.  Generic value."""
@@ -2242,7 +2242,7 @@ class AtomDefaultReprCase(common.TempFileMixin):
             print("First row-->", ca[0])
             print("Defaults-->", ca.atom.dflt)
         self.assertTrue(allequal(ca[0], numpy.ones(N, 'f4')*generic))
-        self.assertTrue(allequal(ca.atom.dflt, numpy.ones(N, 'f4')*generic))
+        self.assertTrue(allequal(ca.atom.dflt, atom.dflt))
 
     def test02a_None(self):
         """Testing default values.  None (scalar)."""
@@ -2257,7 +2257,7 @@ class AtomDefaultReprCase(common.TempFileMixin):
         if common.verbose:
             print("First row-->", repr(ca[0]))
             print("Defaults-->", repr(ca.atom.dflt))
-        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
+        self.assertTrue(allequal(ca.atom.dflt, atom.dflt))
 
     def test02b_None(self):
         """Testing default values.  None (array)."""
@@ -2272,7 +2272,7 @@ class AtomDefaultReprCase(common.TempFileMixin):
         if common.verbose:
             print("First row-->", ca[0])
             print("Defaults-->", ca.atom.dflt)
-        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
+        self.assertTrue(allequal(ca.atom.dflt, atom.dflt))
 
 
 class AtomDefaultReprNoReopen(AtomDefaultReprCase, TestCase):
