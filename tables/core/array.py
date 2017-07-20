@@ -96,7 +96,8 @@ class Array(Leaf):
                     self.backend.read_direct(out, np.s_[start:stop:step], np.s_[0:nrowstoread])
             return out
 
-        arr = array_of_flavor(arr, self.flavor)
+        if self.flavor != 'numpy':
+            arr = array_of_flavor(arr, self.flavor)
 
         return arr
 
