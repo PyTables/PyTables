@@ -64,5 +64,5 @@ class EArray(CArray):
             stop = start + nparr.size
             self.backend.resize(stop, axis=self.extdim)
             self[tuple(slice(None) if i != self.extdim
-                        else slice(start, stop) for i in range(len(self.shape)))]
+                        else slice(start, stop) for i in range(len(self.shape)))] = nparr
 

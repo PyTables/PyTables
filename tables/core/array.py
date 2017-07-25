@@ -109,7 +109,7 @@ class Array(Leaf):
             self.nrow = 0
             yield np.array(self[()])
         else:
-            self.nrow = start
+            self.nrow = start-step
             for r in self[start:stop:step]:
                 self.nrow += step
                 yield r
