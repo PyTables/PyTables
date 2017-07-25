@@ -48,6 +48,9 @@ class Resource(HasChildren, h5py.File, abc.Resource):
     def params(self):
         return dict(self._kwargs)
 
+    def _check_writable(self):
+        return self.mode == 'r+'
+
 
 class Group(HasChildren, h5py.Group, abc.Group):
     @property

@@ -2,6 +2,7 @@ from .node import Node
 from .table import Table
 from .array import Array
 from .carray import CArray
+from .earray import EArray
 from .leaf import Leaf
 from .. import abc
 from .. import Description
@@ -62,6 +63,8 @@ class HasChildren:
                 return Array(backend=value, parent=self)
             elif class_str == 'CARRAY':
                 return CArray(backend=value, parent=self)
+            elif class_str == 'EARRAY':
+                return EArray(backend=value, parent=self)
 
         raise NotImplementedError()
 
@@ -178,7 +181,8 @@ class Group(HasChildren, Node):
 
     def create_carray(self, name, atom=None, shape=None, title="",
                       filters=None, chunkshape=None,
-                      byteorder=None, obj=None, **kwargs):
+                      byteorder=None, obj=None, expectedrows=None,
+                      **kwargs):
         fillvalue = None
         if obj is not None:
             dtype = None
@@ -190,7 +194,11 @@ class Group(HasChildren, Node):
             if shape is not None and shape != obj.shape:
                 raise TypeError('the shape parameter do not match obj.shape')
             else:
-                shape = obj.shape
+                # EArray
+                if expectedrows is None:
+                    shape = obj.shape
+                else:
+                    shape = (0,) + obj.shape[1:]
 
             if atom is not None and atom.dtype != obj.dtype:
                 raise TypeError('the atom parameter is not consistent with '
@@ -201,8 +209,6 @@ class Group(HasChildren, Node):
                                 '(or None) then both the atom and shape '
                                 'parametes should be provided.')
             else:
-                # Making strides=(0,...) below is a trick to create the
-                # array fast and without memory consumption
                 if len(atom.shape) > 0:
                     aux = list(shape)
                     for i in range(len(atom.shape)):
@@ -238,9 +244,10 @@ class Group(HasChildren, Node):
                     dtype = obj.dtype
         if chunkshape is None:
             chunkshape = True
-            maxshape = shape
+            maxshape = tuple(None if e == 0 else e for e in shape)
         else:
-            maxshape = [shape[i] if shape[i] >= chunkshape[i] else chunkshape[i]
+            maxshape = [shape[i] if shape[i] is None or shape[i] >= chunkshape[i]
+                        else chunkshape[i]
                         for i in range(len(shape))]
         dataset = self.backend.create_dataset(name, data=obj, dtype=dtype, shape=shape,
                                               compression=compression,
@@ -249,8 +256,20 @@ class Group(HasChildren, Node):
                                               fletcher32=fletcher32,
                                               chunks=chunkshape, maxshape=maxshape,
                                               fillvalue=fillvalue, **kwargs)
+        if expectedrows is None:
+            return CArray(backend=dataset, parent=self, title=title, atom=atom, new=True)
+        else:
+            return EArray(expectedrows=expectedrows, backend=dataset, parent=self,
+                          title=title, atom=atom, new=True)
 
-        return CArray(backend=dataset, parent=self, title=title, atom=atom, new=True)
+    def create_earray(self, name, atom=None, shape=None, title="",
+                      filters=None, expectedrows=1000, chunkshape=None,
+                      byteorder=None, createparents=False, obj=None,
+                      **kwargs):
+        return self.create_carray(name, atom, shape, title, filters,
+                                  chunkshape, byteorder, obj,
+                                  expectedrows, **kwargs)
+
 
     def create_group(self, name, title=''):
         g = Group(backend=self.backend.create_group(name), parent=self)
@@ -309,7 +328,6 @@ class File(HasChildren, Node):
 
     def close(self):
         # Flush the nodes prior to close
-        self.flush()
         super().close()
 
     def flush(self):
@@ -346,6 +364,15 @@ class File(HasChildren, Node):
             where = self._get_or_create_path(where, createparents)
         return where.create_carray(name, atom, shape, title,
                       filters, chunkshape,
+                      byteorder, obj, **kwargs)
+
+    def create_earray(self, where, name, atom=None, shape=None, title="",
+                      filters=None, expectedrows=1000, chunkshape=None,
+                      byteorder=None, createparents=False, obj=None, **kwargs):
+        if not hasattr(where, 'create_carray'):
+            where = self._get_or_create_path(where, createparents)
+        return where.create_earray(name, atom, shape, title,
+                      filters, expectedrows, chunkshape,
                       byteorder, obj, **kwargs)
 
     def create_group(self, where, *args, createparents=False, **kwargs):
@@ -423,6 +450,10 @@ class File(HasChildren, Node):
                     % (classname, npathname, nclassname))
 
         return node
+
+    def _check_writable(self):
+        return self.backend._check_writable()
+
 
     def _get_or_create_path(self, path, create):
         if create:

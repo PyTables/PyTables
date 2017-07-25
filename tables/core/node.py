@@ -35,12 +35,14 @@ class Node(HasTitle, HasBackend):
     _v_attrs = attrs
 
     def open(self):
-        self._isopen = True
-        return self.backend.open()
+        if not self._v_isopen:
+            self._isopen = True
+            return self.backend.open()
 
     def close(self):
-        self._isopen = False
-        return self.backend.close()
+        if self._v_isopen:
+            self._isopen = False
+            return self.backend.close()
 
     @property
     def filters(self):
