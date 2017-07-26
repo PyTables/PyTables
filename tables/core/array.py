@@ -28,7 +28,8 @@ class Array(Leaf):
                 self.atom = Atom.from_dtype(self.dtype, dflt=self.backend.fillvalue)
         self.nrow = None
         # Provisional for test
-        self.extdim = -1
+        if not hasattr(self, 'extdim'):
+            self.extdim = -1
         # TODO iterators?
 
     @property
@@ -69,6 +70,11 @@ class Array(Leaf):
             (start, stop, step) = self._process_range_read(start, stop, step)
             arr = self[start:stop:step]
             nrowstoread = len(range(start, stop, step))
+            if arr.size == 0:
+                try:
+                    arr = np.reshape(arr, self.shape)
+                except ValueError:
+                    pass
 
         if (isinstance(arr, np.ndarray) and byteorders[arr.dtype.byteorder] != sys.byteorder):
             arr = arr.byteswap(True)

@@ -37,6 +37,18 @@ class Leaf(Node):
         return len(self.backend)
 
     @property
+    def maindim(self):
+        """The dimension along which iterators work.
+
+        Its value is 0 (i.e. the first dimension) when the dataset is not
+        extendable, and self.extdim (where available) for extendable ones.
+        """
+
+        if self.extdim < 0:
+            return 0  # choose the first dimension
+        return self.extdim
+
+    @property
     def ndim(self):
         return len(self.shape)
 
@@ -70,11 +82,6 @@ class Leaf(Node):
             if not hasattr(value, 'astype'):
                 value = np.asarray(value)
             return self.backend.__setitem__(item, value.astype(self.dtype))
-
-
-    @property
-    def maindim(self):
-        return 0
 
     def get_attr(self, attr):
         return self.attrs[attr]

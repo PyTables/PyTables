@@ -184,21 +184,25 @@ class Group(HasChildren, Node):
                       byteorder=None, obj=None, expectedrows=None,
                       **kwargs):
         fillvalue = None
+        dtype = None
+        extdim = 0
         if obj is not None:
-            dtype = None
             if hasattr(obj, 'chunkshape') and chunkshape is None:
                 chunkshape = obj.chunkshape
             flavor = flavor_of(obj)
             obj = array_as_internal(obj, flavor)
 
-            if shape is not None and shape != obj.shape:
-                raise TypeError('the shape parameter do not match obj.shape')
-            else:
-                # EArray
-                if expectedrows is None:
-                    shape = obj.shape
+            if expectedrows is None:
+                if shape is not None and shape != obj.shape:
+                    raise TypeError('the shape parameter do not match obj.shape')
                 else:
-                    shape = (0,) + obj.shape[1:]
+                    shape = obj.shape
+            else:  # EArray
+                earray_shape = (0,) + obj.shape[1:]
+                if shape is not None and shape != earray_shape:
+                    raise TypeError('the shape parameter is not compatible '
+                                    'with obj.shape.')
+                shape = obj.shape
 
             if atom is not None and atom.dtype != obj.dtype:
                 raise TypeError('the atom parameter is not consistent with '
@@ -216,6 +220,9 @@ class Group(HasChildren, Node):
                     shape = tuple(aux)
                 dtype = atom.dtype.base
                 fillvalue = atom.dflt
+
+        if shape is not None and 0 in shape:
+            extdim = shape.index(0)
 
 
         _checkfilters(filters)
@@ -244,11 +251,16 @@ class Group(HasChildren, Node):
                     dtype = obj.dtype
         if chunkshape is None:
             chunkshape = True
-            maxshape = tuple(None if e == 0 else e for e in shape)
+            maxshape = shape
         else:
             maxshape = [shape[i] if shape[i] is None or shape[i] >= chunkshape[i]
                         else chunkshape[i]
                         for i in range(len(shape))]
+        # EArray
+        if expectedrows is not None:
+            aux = list(shape)
+            aux[extdim] = None
+            maxshape = tuple(aux)
         dataset = self.backend.create_dataset(name, data=obj, dtype=dtype, shape=shape,
                                               compression=compression,
                                               compression_opts=compression_opts,
@@ -264,7 +276,7 @@ class Group(HasChildren, Node):
 
     def create_earray(self, name, atom=None, shape=None, title="",
                       filters=None, expectedrows=1000, chunkshape=None,
-                      byteorder=None, createparents=False, obj=None,
+                      byteorder=None, obj=None,
                       **kwargs):
         return self.create_carray(name, atom, shape, title, filters,
                                   chunkshape, byteorder, obj,

@@ -8,10 +8,10 @@ class EArray(CArray):
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the array."""
         if 'new' in kwargs and kwargs['new']:
-            zerodims = np.sum(np.array(self.shape) == 0)
+            zerodims = sum(x is None for x in self.backend.maxshape)
             if zerodims > 0:
                 if zerodims == 1:
-                    self.extdim = list(self.shape).index(0)
+                    self.extdim = list(self.backend.maxshape).index(None)
                 else:
                     raise NotImplementedError(
                         "Multiple enlargeable (0-)dimensions are not "
@@ -61,8 +61,9 @@ class EArray(CArray):
         # If the size of the nparr is zero, don't do anything else
         if nparr.size > 0:
             start = self.shape[self.extdim]
-            stop = start + nparr.size
+            stop = start + nparr.shape[self.extdim]
             self.backend.resize(stop, axis=self.extdim)
-            self[tuple(slice(None) if i != self.extdim
-                        else slice(start, stop) for i in range(len(self.shape)))] = nparr
+            slices = tuple(slice(None) if i != self.extdim
+                        else slice(start, stop) for i in range(len(self.shape)))
+            self[slices] = nparr
 
