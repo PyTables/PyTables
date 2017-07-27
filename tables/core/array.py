@@ -68,7 +68,9 @@ class Array(Leaf):
             nrowstoread = 1
         else:
             (start, stop, step) = self._process_range_read(start, stop, step)
-            arr = self[start:stop:step]
+            slices = tuple(slice(start, stop, step) if i == self.maindim else slice(None)
+                           for i in range(len(self.shape)))
+            arr = self[slices]
             nrowstoread = len(range(start, stop, step))
             if arr.size == 0:
                 try:
@@ -99,7 +101,9 @@ class Array(Leaf):
                 if self.shape == ():
                     self.backend.read_direct(out)
                 else:
-                    self.backend.read_direct(out, np.s_[start:stop:step], np.s_[0:nrowstoread])
+                    slices = tuple(slice(start, stop, step) if i == self.maindim else slice(None)
+                                   for i in range(len(self.shape)))
+                    self.backend.read_direct(out, np.s_[slices], np.s_[0:nrowstoread])
             return out
 
         if self.flavor != 'numpy':
@@ -116,7 +120,7 @@ class Array(Leaf):
             yield np.array(self[()])
         else:
             self.nrow = start-step
-            aux = np.moveaxis(self[()], self.extdim, 0)
+            aux = np.swapaxes(self[()], self.maindim, 0)
             for r in aux[start:stop:step]:
                 self.nrow += step
                 yield r
