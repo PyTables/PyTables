@@ -116,7 +116,8 @@ class Array(Leaf):
             yield np.array(self[()])
         else:
             self.nrow = start-step
-            for r in self[start:stop:step]:
+            aux = np.moveaxis(self[()], self.extdim, 0)
+            for r in aux[start:stop:step]:
                 self.nrow += step
                 yield r
 

@@ -269,9 +269,9 @@ class Group(HasChildren, Node):
                                               chunks=chunkshape, maxshape=maxshape,
                                               fillvalue=fillvalue, **kwargs)
         if expectedrows is None:
-            return CArray(backend=dataset, parent=self, title=title, atom=atom, new=True)
+            return CArray(filters=filters, backend=dataset, parent=self, title=title, atom=atom, new=True)
         else:
-            return EArray(expectedrows=expectedrows, backend=dataset, parent=self,
+            return EArray(filters=filters, expectedrows=expectedrows, backend=dataset, parent=self,
                           title=title, atom=atom, new=True)
 
     def create_earray(self, name, atom=None, shape=None, title="",

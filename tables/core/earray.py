@@ -4,7 +4,7 @@ from ..utils import convert_to_np_atom2
 
 class EArray(CArray):
     def __init__(self, expectedrows=None, **kwargs):
-        super(EArray, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the array."""
         if 'new' in kwargs and kwargs['new']:
