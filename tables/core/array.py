@@ -80,7 +80,7 @@ class Array(Leaf):
                 except ValueError:
                     pass
 
-        if (isinstance(arr, np.ndarray) and byteorders[arr.dtype.byteorder] != sys.byteorder):
+        if isinstance(arr, np.ndarray) and byteorders[arr.dtype.byteorder] != sys.byteorder:
             arr = arr.byteswap(True)
             arr.dtype = arr.dtype.newbyteorder('=')
 

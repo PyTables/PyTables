@@ -191,6 +191,8 @@ class Group(HasChildren, Node):
                 chunkshape = obj.chunkshape
             flavor = flavor_of(obj)
             obj = array_as_internal(obj, flavor)
+            if hasattr(obj, 'dtype'):
+                dtype = obj.dtype
 
             if expectedrows is None:
                 if shape is not None and shape != obj.shape:
@@ -242,13 +244,14 @@ class Group(HasChildren, Node):
         else:
             _byteorder = np_byteorders[byteorder]
 
-        if hasattr(obj, 'dtype'):
-            dtype = obj.dtype
-            if _byteorder != '|' and obj.dtype.byteorder != '|':
-                if byteorders[_byteorder] != byteorders[obj.dtype.byteorder]:
+        if _byteorder != '|' and dtype.byteorder != '|':
+            if byteorders[_byteorder] != byteorders[dtype.byteorder]:
+                if obj is not None:
                     obj = obj.byteswap()
                     obj.dtype = obj.dtype.newbyteorder()
                     dtype = obj.dtype
+                else:
+                    dtype = dtype.newbyteorder()
         if chunkshape is None:
             chunkshape = True
             maxshape = shape

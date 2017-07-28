@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from .node import Node
 from tables.utils import byteorders
@@ -68,9 +69,13 @@ class Leaf(Node):
         if not self._v_file._isopen:
             raise ClosedNodeError
         try:
-            return self.backend.__getitem__(item)
+            arr = self.backend.__getitem__(item)
         except ValueError:  # invalid selection
-            return self.backend.__getitem__(slice(0, 0, 1))
+            arr = self.backend.__getitem__(slice(0, 0, 1))
+        if isinstance(arr, np.ndarray) and byteorders[arr.dtype.byteorder] != sys.byteorder:
+            arr = arr.byteswap(True)
+            arr.dtype = arr.dtype.newbyteorder('=')
+        return arr
 
 
     def __setitem__(self, item, value):
