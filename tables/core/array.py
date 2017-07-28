@@ -140,8 +140,10 @@ class Array(Leaf):
             newparent = self.root._get_or_create_path(newparent, createparents)
         if self.__class__.__name__ == 'Array':
             create_function = newparent.create_array
-        else:
+        elif self.__class__.__name__ == 'CArray':
             create_function = newparent.create_carray
+        else:
+            create_function = newparent.create_earray
         if not any(k in kwargs for k in {'start', 'stop', 'step'}):
             ret = create_function(newname, obj=self, **kwargs)
         else:
