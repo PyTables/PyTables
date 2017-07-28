@@ -144,3 +144,20 @@ class Leaf(Node):
                                      self.filters.complevel)
         return "%s (%s%s%s) %r" % \
                (self._v_pathname, classname, self.shape, filters, title)
+
+    def truncate(self, size):
+        """Truncate the main dimension to be size rows.
+
+                If the main dimension previously was larger than this size, the extra
+                data is lost.  If the main dimension previously was shorter, it is
+                extended, and the extended part is filled with the default values.
+
+                The truncation operation can only be applied to *enlargeable* datasets,
+                else a TypeError will be raised.
+
+                """
+
+        # A non-enlargeable arrays (Array, CArray) cannot be truncated
+        if self.extdim < 0:
+            raise TypeError("non-enlargeable datasets cannot be truncated")
+        self.backend.resize(size, axis=self.maindim)

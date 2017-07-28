@@ -2169,7 +2169,7 @@ class CopyIndex12TestCase(CopyIndexCase, TestCase):
 class TruncateCase(common.TempFileMixin):
 
     def setUp(self):
-        super(TruncateTestCase, self).setUp()
+        super(TruncateCase, self).setUp()
 
         # Create an EArray
         atom = Int16Atom(dflt=3)

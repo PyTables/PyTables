@@ -160,6 +160,3 @@ class Array(Leaf):
                     ret._flavor = v
                 ret.attrs[k] = v
         return ret
-
-    def truncate(self):
-        raise TypeError('can not truncate Arrays')
