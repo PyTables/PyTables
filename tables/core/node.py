@@ -74,6 +74,5 @@ class Node(HasTitle, HasBackend):
 
         """
 
-        if not self._v_isopen:
+        if not self._v_isopen or not self._v_file._v_isopen:
             raise ClosedNodeError("the node object is closed")
-        assert self._v_file._v_isopen, "found an open node in a closed file"

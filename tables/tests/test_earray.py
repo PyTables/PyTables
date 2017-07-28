@@ -2278,7 +2278,7 @@ class Rows64bitsCase(common.TempFileMixin):
     nanumber = 1000 * 3    # That should account for more than 2**31-1
 
     def setUp(self):
-        super(Rows64bitsTestCase, self).setUp()
+        super(Rows64bitsCase, self).setUp()
 
         # Create an EArray
         array = self.h5file.create_earray(

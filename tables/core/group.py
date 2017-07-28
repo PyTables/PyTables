@@ -5,6 +5,7 @@ from .carray import CArray
 from .earray import EArray
 from .leaf import Leaf
 from .. import abc
+from ..atom import Atom
 from .. import Description
 from .. import IsDescription
 from ..flavor import flavor_of, array_as_internal
@@ -222,6 +223,7 @@ class Group(HasChildren, Node):
                     shape = tuple(aux)
                 dtype = atom.dtype.base
                 fillvalue = atom.dflt
+                atom = Atom.from_dtype(dtype, dflt=fillvalue)
 
         if shape is not None and 0 in shape:
             extdim = shape.index(0)
