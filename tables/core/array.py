@@ -74,7 +74,9 @@ class Array(Leaf):
             nrowstoread = len(range(start, stop, step))
             if arr.size == 0:
                 try:
-                    arr = np.reshape(arr, self.shape)
+                    aux = list(self.backend.maxshape)
+                    aux[aux.index(None)] = 0
+                    arr = np.reshape(arr, aux)
                 except ValueError:
                     pass
 
@@ -103,7 +105,9 @@ class Array(Leaf):
                 else:
                     slices = tuple(slice(start, stop, step) if i == self.maindim else slice(None)
                                    for i in range(len(self.shape)))
-                    self.backend.read_direct(out, np.s_[slices], np.s_[0:nrowstoread])
+                    slices2 = tuple(slice(0, nrowstoread, 1) if i == self.maindim else slice(None)
+                                   for i in range(len(self.shape)))
+                    self.backend.read_direct(out, np.s_[slices], np.s_[slices2])
             return out
 
         if self.flavor != 'numpy':
