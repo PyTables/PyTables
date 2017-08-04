@@ -24,7 +24,7 @@ class C:
     c = (3, 4.5)
 
 
-class BasicTestCase(common.TempFileMixin, TestCase):
+class BasicCase(common.TempFileMixin):
     compress = 0
     complib = "zlib"
     shuffle = 0
@@ -33,7 +33,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     flavor = "numpy"
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super(BasicCase, self).setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -256,22 +256,22 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(vlarray.get_row_size(4), 5 * vlarray.atom.size)
 
 
-class BasicNumPyTestCase(BasicTestCase):
+class BasicNumPyTestCase(BasicCase, TestCase):
     flavor = "numpy"
 
 
-class BasicPythonTestCase(BasicTestCase):
+class BasicPythonTestCase(BasicCase, TestCase):
     flavor = "python"
 
 
-class ZlibComprTestCase(BasicTestCase):
+class ZlibComprTestCase(BasicCase, TestCase):
     compress = 1
     complib = "zlib"
 
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class BloscComprTestCase(BasicTestCase):
+class BloscComprTestCase(BasicCase, TestCase):
     compress = 9
     shuffle = 0
     complib = "blosc"
@@ -279,7 +279,7 @@ class BloscComprTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class BloscShuffleComprTestCase(BasicTestCase):
+class BloscShuffleComprTestCase(BasicCase, TestCase):
     compress = 6
     shuffle = 1
     complib = "blosc"
@@ -288,14 +288,14 @@ class BloscShuffleComprTestCase(BasicTestCase):
                  'BLOSC compression library not available')
 @unittest.skipIf(blosc_version < common.min_blosc_bitshuffle_version,
                  'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
-class BloscBitShuffleComprTestCase(BasicTestCase):
+class BloscBitShuffleComprTestCase(BasicCase, TestCase):
     compress = 9
     bitshuffle = 1
     complib = "blosc"
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class BloscBloscLZComprTestCase(BasicTestCase):
+class BloscBloscLZComprTestCase(BasicCase, TestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:blosclz"
@@ -304,7 +304,7 @@ class BloscBloscLZComprTestCase(BasicTestCase):
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
-class BloscLZ4ComprTestCase(BasicTestCase):
+class BloscLZ4ComprTestCase(BasicCase, TestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:lz4"
@@ -313,7 +313,7 @@ class BloscLZ4ComprTestCase(BasicTestCase):
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 @unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
-class BloscLZ4HCComprTestCase(BasicTestCase):
+class BloscLZ4HCComprTestCase(BasicCase, TestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:lz4hc"
@@ -323,7 +323,7 @@ class BloscLZ4HCComprTestCase(BasicTestCase):
                  'BLOSC compression library not available')
 @unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
                  'snappy required')
-class BloscSnappyComprTestCase(BasicTestCase):
+class BloscSnappyComprTestCase(BasicCase, TestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:snappy"
@@ -332,41 +332,41 @@ class BloscSnappyComprTestCase(BasicTestCase):
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 @unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
-class BloscZlibComprTestCase(BasicTestCase):
+class BloscZlibComprTestCase(BasicCase, TestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:zlib"
 
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
-class LZOComprTestCase(BasicTestCase):
+class LZOComprTestCase(BasicCase, TestCase):
     compress = 1
     complib = "lzo"
 
 
 @unittest.skipIf(not common.bzip2_avail,
                  'BZIP2 compression library not available')
-class Bzip2ComprTestCase(BasicTestCase):
+class Bzip2ComprTestCase(BasicCase, TestCase):
     compress = 1
     complib = "bzip2"
 
 
-class ShuffleComprTestCase(BasicTestCase):
+class ShuffleComprTestCase(BasicCase, TestCase):
     compress = 1
     shuffle = 1
 
 
-class Fletcher32TestCase(BasicTestCase):
+class Fletcher32TestCase(BasicCase, TestCase):
     fletcher32 = 1
 
 
-class AllFiltersTestCase(BasicTestCase):
+class AllFiltersTestCase(BasicCase, TestCase):
     compress = 1
     shuffle = 1
     fletcher32 = 1
 
 
-class TypesTestCase(common.TempFileMixin, TestCase):
+class TypesCase(common.TempFileMixin):
     open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
@@ -1574,23 +1574,23 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 5)
 
 
-class TypesReopenTestCase(TypesTestCase):
+class TypesReopenTestCase(TypesCase, TestCase):
     title = "Reopen"
     reopen = True
 
 
-class TypesNoReopenTestCase(TypesTestCase):
+class TypesNoReopenTestCase(TypesCase, TestCase):
     title = "No reopen"
     reopen = False
 
 
-class MDTypesTestCase(common.TempFileMixin, TestCase):
+class MDTypesCase(common.TempFileMixin):
     open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(MDTypesTestCase, self).setUp()
+        super(MDTypesCase, self).setUp()
         self.rootgroup = self.h5file.root
 
     def test01_StringAtom(self):
@@ -1917,15 +1917,15 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
             self.assertEqual(len(row[1]), 1)
 
 
-class MDTypesNumPyTestCase(MDTypesTestCase):
+class MDTypesNumPyTestCase(MDTypesCase, TestCase):
     title = "MDTypes"
 
 
-class AppendShapeTestCase(common.TempFileMixin, TestCase):
+class AppendShapeCase(common.TempFileMixin):
     open_mode = "w"
 
     def setUp(self):
-        super(AppendShapeTestCase, self).setUp()
+        super(AppendShapeCase, self).setUp()
         self.rootgroup = self.h5file.root
 
     def test00_difinputs(self):
@@ -2092,21 +2092,21 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row), 2)
 
 
-class OpenAppendShapeTestCase(AppendShapeTestCase):
+class OpenAppendShapeTestCase(AppendShapeCase, TestCase):
     close = 0
 
 
-class CloseAppendShapeTestCase(AppendShapeTestCase):
+class CloseAppendShapeTestCase(AppendShapeCase, TestCase):
     close = 1
 
 
-class FlavorTestCase(common.TempFileMixin, TestCase):
+class FlavorCase(common.TempFileMixin):
     open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(FlavorTestCase, self).setUp()
+        super(FlavorCase, self).setUp()
         self.rootgroup = self.h5file.root
 
     def test01a_EmptyVLArray(self):
@@ -2397,11 +2397,11 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
                 self.assertEqual(row[2], arr3)
 
 
-class NumPyFlavorTestCase(FlavorTestCase):
+class NumPyFlavorTestCase(FlavorCase, TestCase):
     flavor = "numpy"
 
 
-class PythonFlavorTestCase(FlavorTestCase):
+class PythonFlavorTestCase(FlavorCase, TestCase):
     flavor = "python"
 
 
@@ -3400,7 +3400,7 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
             vlarray[10] = [1]*100
 
 
-class CopyTestCase(common.TempFileMixin, TestCase):
+class CopyCase(common.TempFileMixin):
     close = True
 
     def test01a_copy(self):
@@ -3730,15 +3730,15 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(array2.attrs.attr2, None)
 
 
-class CloseCopyTestCase(CopyTestCase):
+class CloseCopyTestCase(CopyCase, TestCase):
     close = 1
 
 
-class OpenCopyTestCase(CopyTestCase):
+class OpenCopyTestCase(CopyCase, TestCase):
     close = 0
 
 
-class CopyIndexTestCase(common.TempFileMixin, TestCase):
+class CopyIndexCase(common.TempFileMixin):
 
     def test01_index(self):
         """Checking VLArray.copy() method with indexes."""
@@ -3787,84 +3787,84 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(r2), array2.nrows)
 
 
-class CopyIndex1TestCase(CopyIndexTestCase):
+class CopyIndex1TestCase(CopyIndexCase, TestCase):
     close = 0
     start = 0
     stop = 7
     step = 1
 
 
-class CopyIndex2TestCase(CopyIndexTestCase):
+class CopyIndex2TestCase(CopyIndexCase, TestCase):
     close = 1
     start = 0
     stop = -1
     step = 1
 
 
-class CopyIndex3TestCase(CopyIndexTestCase):
+class CopyIndex3TestCase(CopyIndexCase, TestCase):
     close = 0
     start = 1
     stop = 7
     step = 1
 
 
-class CopyIndex4TestCase(CopyIndexTestCase):
+class CopyIndex4TestCase(CopyIndexCase, TestCase):
     close = 1
     start = 0
     stop = 6
     step = 1
 
 
-class CopyIndex5TestCase(CopyIndexTestCase):
+class CopyIndex5TestCase(CopyIndexCase, TestCase):
     close = 0
     start = 3
     stop = 7
     step = 1
 
 
-class CopyIndex6TestCase(CopyIndexTestCase):
+class CopyIndex6TestCase(CopyIndexCase, TestCase):
     close = 1
     start = 3
     stop = 6
     step = 2
 
 
-class CopyIndex7TestCase(CopyIndexTestCase):
+class CopyIndex7TestCase(CopyIndexCase, TestCase):
     close = 0
     start = 0
     stop = 7
     step = 10
 
 
-class CopyIndex8TestCase(CopyIndexTestCase):
+class CopyIndex8TestCase(CopyIndexCase, TestCase):
     close = 1
     start = 6
     stop = -1  # Negative values means starting from the end
     step = 1
 
 
-class CopyIndex9TestCase(CopyIndexTestCase):
+class CopyIndex9TestCase(CopyIndexCase, TestCase):
     close = 0
     start = 3
     stop = 4
     step = 1
 
 
-class CopyIndex10TestCase(CopyIndexTestCase):
+class CopyIndex10TestCase(CopyIndexCase, TestCase):
     close = 1
     start = 3
     stop = 4
     step = 2
 
 
-class CopyIndex11TestCase(CopyIndexTestCase):
+class CopyIndex11TestCase(CopyIndexCase, TestCase):
     close = 0
     start = -3
     stop = -1
     step = 2
 
 
-class CopyIndex12TestCase(CopyIndexTestCase):
+class CopyIndex12TestCase(CopyIndexCase, TestCase):
     close = 1
     start = -1   # Should point to the last element
     stop = None  # None should mean the last element (including it)
@@ -3918,10 +3918,10 @@ class VLUEndianTestCase(TestCase):
         self.assertEqual(ledata, u'para\u0140lel')
 
 
-class TruncateTestCase(common.TempFileMixin, TestCase):
+class TruncateCase(common.TempFileMixin):
 
     def setUp(self):
-        super(TruncateTestCase, self).setUp()
+        super(TruncateCase, self).setUp()
 
         # Create an VLArray
         arr = Int16Atom(dflt=3)
@@ -4020,11 +4020,11 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(array1[3], numpy.array([], dtype='Int16')))
 
 
-class TruncateOpenTestCase(TruncateTestCase):
+class TruncateOpenTestCase(TruncateCase, TestCase):
     close = 0
 
 
-class TruncateCloseTestCase(TruncateTestCase):
+class TruncateCloseTestCase(TruncateCase, TestCase):
     close = 1
 
 
