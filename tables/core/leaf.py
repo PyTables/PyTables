@@ -69,7 +69,16 @@ class Leaf(Node):
         if not self._v_file._isopen:
             raise ClosedNodeError
         try:
+            aux = False  # Used to fix basic point selection
+            if isinstance(item, np.ndarray) and item.size == 1:
+                if item.shape == ():
+                    item = item[()]
+                else:
+                    item = item[0]
+                    aux = True
             arr = self.backend.__getitem__(item)
+            if aux:
+                arr = np.array([arr])
         except ValueError:  # invalid selection
             arr = self.backend.__getitem__(slice(0, 0, 1))
         if isinstance(arr, np.ndarray) and byteorders[arr.dtype.byteorder] != sys.byteorder:
