@@ -22,10 +22,13 @@ class Array(Leaf):
 
         self.atom = _atom
         if _atom is None or _atom.shape == ():
-            if self.dtype == np.dtype('O'):
-                self.atom = Atom.from_dtype(np.array(self[()]).dtype, dflt=self.backend.fillvalue)
+            if not hasattr(self.dtype, 'metadata'):
+                if self.dtype == np.dtype('O'):
+                    self.atom = Atom.from_dtype(np.array(self[()]).dtype, dflt=self.backend.fillvalue)
+                else:
+                    self.atom = Atom.from_dtype(self.dtype, dflt=self.backend.fillvalue)
             else:
-                self.atom = Atom.from_dtype(self.dtype, dflt=self.backend.fillvalue)
+                self.atom = Atom.from_dtype(self.dtype.metadata['vlen'])
         self.nrow = None
         # Provisional for test
         if not hasattr(self, 'extdim'):

@@ -1,8 +1,10 @@
+import sys
 from .node import Node
 from .table import Table
 from .array import Array
 from .carray import CArray
 from .earray import EArray
+from .vlarray import VLArray
 from .leaf import Leaf
 from .. import abc
 from ..atom import Atom
@@ -19,6 +21,7 @@ from ..registry import get_class_by_name
 import weakref
 import warnings
 import numpy as np
+from h5py import special_dtype
 import six
 
 def _checkfilters(filters):
@@ -66,6 +69,8 @@ class HasChildren:
                 return CArray(backend=value, parent=self)
             elif class_str == 'EARRAY':
                 return EArray(backend=value, parent=self)
+            elif class_str == 'VLARRAY':
+                return VLArray(backend=value, parent=self)
 
         raise NotImplementedError()
 
@@ -287,6 +292,50 @@ class Group(HasChildren, Node):
                                   chunkshape, byteorder, obj,
                                   expectedrows, **kwargs)
 
+    def create_vlarray(self, name, atom=None, title="", filters=None,
+                       expectedrows=1000, chunkshape=None, byteorder=None,
+                       obj=None, **kwargs):
+
+        if obj is not None:
+            flavor = flavor_of(obj)
+            obj = array_as_internal(obj, flavor)
+
+            if atom is not None and atom.dtype != obj.dtype:
+                raise TypeError('the atom parameter is not consistent with '
+                                'the data type of the obj parameter')
+            if atom is None:
+                atom = Atom.from_dtype(obj.dtype)
+        elif atom is None:
+            raise ValueError('atom parameter cannot be None')
+
+
+        dtype = special_dtype(vlen=atom.dtype)
+        _checkfilters(filters)
+        compression = None
+        compression_opts = None
+        shuffle = None
+        fletcher32 = None
+        if filters is not None:
+            compression = filters.get_h5py_compression
+            compression_opts = filters.get_h5py_compression_opts
+            shuffle = filters.get_h5py_shuffle
+            fletcher32 = filters.fletcher32
+
+        dataset = self.backend.create_dataset(name, data=obj, dtype=dtype, shape=(0,),
+                                              compression=compression,
+                                              compression_opts=compression_opts,
+                                              shuffle=shuffle,
+                                              fletcher32=fletcher32,
+                                              chunks=True, maxshape=(None,),
+                                              **kwargs)
+        ptobj = VLArray(backend=dataset, parent=self, atom=atom, title=title, filters=filters,
+                        expectedrows=expectedrows, new=True)
+
+        if obj is not None:
+            ptobj.append(obj)
+
+        return ptobj
+
 
     def create_group(self, name, title=''):
         g = Group(backend=self.backend.create_group(name), parent=self)
@@ -332,6 +381,7 @@ class Group(HasChildren, Node):
         dataset.attrs['CLASS'] = 'TABLE'
         return Table(backend=dataset, parent=self)
 
+format_version = "2.1"  # Numeric and numarray flavors are gone.
 
 class File(HasChildren, Node):
     def __init__(self, **kwargs):
@@ -342,6 +392,7 @@ class File(HasChildren, Node):
         self._filters = Filters(**self.backend.params)
         # Bootstrap the _file attribute for nodes
         self._file = self
+
 
     def close(self):
         # Flush the nodes prior to close
@@ -386,11 +437,21 @@ class File(HasChildren, Node):
     def create_earray(self, where, name, atom=None, shape=None, title="",
                       filters=None, expectedrows=1000, chunkshape=None,
                       byteorder=None, createparents=False, obj=None, **kwargs):
-        if not hasattr(where, 'create_carray'):
+        if not hasattr(where, 'create_earray'):
             where = self._get_or_create_path(where, createparents)
         return where.create_earray(name, atom, shape, title,
                       filters, expectedrows, chunkshape,
                       byteorder, obj, **kwargs)
+
+    def create_vlarray(self, where, name, atom=None, title="",
+                       filters=None, expectedrows=None,
+                       chunkshape=None, byteorder=None,
+                       createparents=False, obj=None, **kwargs):
+        if not hasattr(where, 'create_vlarray'):
+            where = self._get_or_create_path(where, createparents)
+        return where.create_vlarray(name, atom, title, filters,
+                                    expectedrows, chunkshape,
+                                    byteorder, obj, **kwargs)
 
     def create_group(self, where, *args, createparents=False, **kwargs):
         if not hasattr(where, 'create_group'):
