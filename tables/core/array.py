@@ -4,7 +4,7 @@ from .leaf import Leaf
 from .. import Atom
 from ..utils import byteorders
 from ..exceptions import ClosedNodeError
-from ..flavor import array_of_flavor
+from ..flavor import array_of_flavor, internal_to_flavor
 
 
 class Array(Leaf):
@@ -114,7 +114,16 @@ class Array(Leaf):
             return out
 
         if self.flavor != 'numpy':
-            arr = array_of_flavor(arr, self.flavor)
+            if self.__class__.__name__ == 'VLArray':
+                atom = self.atom
+                if not hasattr(atom, 'size'):  # it is a pseudo-atom
+                    arr = [atom.fromarray(e) for e in arr]
+                else:
+                    # Convert the list to the right flavor
+                    flavor = self.flavor
+                    arr = [internal_to_flavor(e, flavor) for e in arr]
+            else:
+                arr = array_of_flavor(arr, self.flavor)
 
         return arr
 
