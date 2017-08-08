@@ -3,6 +3,7 @@ import numpy as np
 from .node import Node
 from tables.utils import byteorders
 from ..exceptions import ClosedNodeError
+from ..flavor import array_of_flavor, internal_to_flavor
 
 
 class Leaf(Node):
@@ -77,6 +78,14 @@ class Leaf(Node):
                     item = item[0]
                     aux = True
             arr = self.backend.__getitem__(item)
+            if self.flavor != 'numpy' and self.__class__.__name__ == 'VLArray':
+                atom = self.atom
+                if not hasattr(atom, 'size'):  # it is a pseudo-atom
+                    arr = [atom.fromarray(e) for e in arr]
+                else:
+                    # Convert the list to the right flavor
+                    flavor = self.flavor
+                    arr = [internal_to_flavor(e, flavor) for e in arr]
             if aux:
                 arr = np.array([arr])
         except ValueError:  # invalid selection

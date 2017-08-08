@@ -1,3 +1,4 @@
+import numpy as np
 from .earray import EArray
 from ..atom import VLStringAtom, VLUnicodeAtom, ObjectAtom
 from ..utils import convert_to_np_atom2
@@ -50,4 +51,5 @@ class VLArray(EArray):
             raise HDF5ExtError(
                 "Asking for a range of rows exceeding the available ones!.",
                 h5bt=False)
-        return self[row].size * self[row].dtype.itemsize
+        arr = np.asarray(self[row])
+        return arr.size * arr.dtype.itemsize

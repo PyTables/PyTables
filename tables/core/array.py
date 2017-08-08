@@ -22,7 +22,7 @@ class Array(Leaf):
 
         self.atom = _atom
         if _atom is None or _atom.shape == ():
-            if not hasattr(self.dtype, 'metadata'):
+            if self.__class__.__name__ != 'VLArray':
                 if self.dtype == np.dtype('O'):
                     self.atom = Atom.from_dtype(np.array(self[()]).dtype, dflt=self.backend.fillvalue)
                 else:
@@ -75,6 +75,7 @@ class Array(Leaf):
                            for i in range(len(self.shape)))
             arr = self[slices]
             nrowstoread = len(range(start, stop, step))
+            arr = np.asarray(arr)
             if arr.size == 0:
                 try:
                     aux = list(self.backend.maxshape)
@@ -121,7 +122,10 @@ class Array(Leaf):
                 else:
                     # Convert the list to the right flavor
                     flavor = self.flavor
-                    arr = [internal_to_flavor(e, flavor) for e in arr]
+                    if arr.size == 0:
+                        arr = [array_of_flavor(arr, flavor)]
+                    else:
+                        arr = [array_of_flavor(e, flavor) for e in arr]
             else:
                 arr = array_of_flavor(arr, self.flavor)
 
