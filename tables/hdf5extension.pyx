@@ -34,6 +34,8 @@ import warnings
 from collections import namedtuple
 
 ObjInfo = namedtuple('ObjInfo', ['addr', 'rc'])
+ObjTimestamps = namedtuple('ObjTimestamps', ['atime', 'mtime',
+                                             'ctime', 'btime'])
 
 
 from cpython cimport PY_MAJOR_VERSION
@@ -928,6 +930,18 @@ cdef class Node:
                          self. _v_pathname)
 
     return ObjInfo(oinfo.addr, oinfo.rc)
+
+  def _get_obj_timestamps(self):
+    cdef herr_t ret = 0
+    cdef H5O_info_t oinfo
+
+    ret = H5Oget_info(self._v_objectid, &oinfo)
+    if ret < 0:
+      raise HDF5ExtError("Unable to get object info for '%s'" %
+                         self. _v_pathname)
+
+    return ObjTimestamps(oinfo.atime, oinfo.mtime, oinfo.ctime,
+                         oinfo.btime)
 
 
 cdef class Group(Node):
