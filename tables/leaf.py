@@ -254,7 +254,8 @@ class Leaf(Node):
     # ~~~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  new=False, filters=None,
-                 byteorder=None, _log=True):
+                 byteorder=None, _log=True,
+                 track_times=True):
         self._v_new = new
         """Is this the first time the node has been created?"""
         self.nrowsinbuf = None
@@ -280,8 +281,11 @@ class Leaf(Node):
             self.byteorder = byteorder
             """The byte ordering of the leaf data *on disk*."""
 
+        self._want_track_times = track_times
+
         # Existing filters need not be read since `filters`
         # is a lazy property that automatically handles their loading.
+
 
         super(Leaf, self).__init__(parentnode, name, _log)
 

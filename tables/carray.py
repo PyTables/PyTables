@@ -79,6 +79,16 @@ class CArray(Array):
         or 'big'.  If this is not specified, the byteorder is that
         of the platform.
 
+    track_times
+        Whether time data associated with the leaf are recorded (object
+        access time, raw data modification time, metadata change time, object
+        birth time); default True.  Semantics of these times depend on their
+        implementation in the HDF5 library: refer to documentation of the
+        H5O_info_t data structure.  As of HDF5 1.8.15, only ctime (metadata
+        change time) is implemented.
+
+        .. versionadded:: 3.4
+
     Examples
     --------
 
@@ -134,7 +144,7 @@ class CArray(Array):
                  atom=None, shape=None,
                  title="", filters=None,
                  chunkshape=None, byteorder=None,
-                 _log=True):
+                 _log=True, track_times=True):
 
         self.atom = atom
         """An `Atom` instance representing the shape, type of the atomic
@@ -209,7 +219,7 @@ class CArray(Array):
 
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentnode, name, new, filters,
-                                    byteorder, _log)
+                                    byteorder, _log, track_times)
 
     def _g_create(self):
         """Create a new array in file (specific part)."""

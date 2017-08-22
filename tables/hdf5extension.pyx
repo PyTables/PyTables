@@ -119,7 +119,7 @@ cdef extern from "H5ARRAY.h" nogil:
                      int rank, hsize_t *dims, int extdim,
                      hid_t type_id, hsize_t *dims_chunk, void *fill_data,
                      int complevel, char  *complib, int shuffle,
-                     int fletcher32, void *data)
+                     int fletcher32, hbool_t track_times, void *data)
 
   herr_t H5ARRAYappend_records(hid_t dataset_id, hid_t type_id,
                                int rank, hsize_t *dims_orig,
@@ -154,7 +154,7 @@ cdef extern from "H5VLARRAY.h" nogil:
                         int rank, hsize_t *dims, hid_t type_id,
                         hsize_t chunk_size, void *fill_data, int complevel,
                         char *complib, int shuffle, int flecther32,
-                        void *data)
+                        hbool_t track_times, void *data)
 
   herr_t H5VLARRAYappend_records( hid_t dataset_id, hid_t type_id,
                                   int nobjects, hsize_t nrecords,
@@ -1291,6 +1291,7 @@ cdef class Array(Leaf):
                                   self.filters.complevel, complib,
                                   self.filters.shuffle_bitshuffle,
                                   self.filters.fletcher32,
+                                  self._want_track_times,
                                   rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
@@ -1359,7 +1360,8 @@ cdef class Array(Leaf):
       self.parent_id, encoded_name, version, self.rank,
       self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
       fill_data, self.filters.complevel, complib,
-      self.filters.shuffle_bitshuffle, self.filters.fletcher32, rbuf)
+        self.filters.shuffle_bitshuffle, self.filters.fletcher32,
+        self._want_track_times, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
@@ -1959,7 +1961,7 @@ cdef class VLArray(Leaf):
                                     self.filters.complevel, complib,
                                     self.filters.shuffle_bitshuffle,
                                     self.filters.fletcher32,
-                                    rbuf)
+                                    self._want_track_times, rbuf)
     if dims:
       free(<void *>dims)
     if self.dataset_id < 0:

@@ -27,6 +27,7 @@
  * Date: March 19, 2001
  *
  * Comments: Modified by F. Alted. November 07, 2003
+ *           Modified by A. Cobb. August 21, 2017 (track_times)
  *
  *-------------------------------------------------------------------------
  */
@@ -44,6 +45,7 @@ hid_t H5ARRAYmake(  hid_t loc_id,
                     char  *complib,
                     int   shuffle,
                     int   fletcher32,
+		    hbool_t track_times,
                     const void *data)
 {
 
@@ -79,9 +81,15 @@ hid_t H5ARRAYmake(  hid_t loc_id,
  if ( (space_id = H5Screate_simple( rank, dims, maxdims )) < 0 )
    return -1;
 
+ /* Create dataset creation property list with default values */
+ plist_id = H5Pcreate (H5P_DATASET_CREATE);
+
+ /* Enable or disable recording dataset times */
+ if ( H5Pset_obj_track_times( plist_id, track_times ) < 0 )
+   return -1;
+
  if (chunked) {
    /* Modify dataset creation properties, i.e. enable chunking  */
-   plist_id = H5Pcreate (H5P_DATASET_CREATE);
    if ( H5Pset_chunk ( plist_id, rank, dims_chunk ) < 0 )
      return -1;
 
@@ -165,7 +173,7 @@ hid_t H5ARRAYmake(  hid_t loc_id,
  else {         /* Not chunked case */
    /* Create the dataset. */
    if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id, space_id,
-                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT )) < 0 )
+                               H5P_DEFAULT, plist_id, H5P_DEFAULT )) < 0 )
      goto out;
  }
 

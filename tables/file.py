@@ -952,7 +952,7 @@ class File(hdf5extension.File, object):
     def create_table(self, where, name, description=None, title="",
                      filters=None, expectedrows=10000,
                      chunkshape=None, byteorder=None,
-                     createparents=False, obj=None):
+                     createparents=False, obj=None, track_times=True):
         """Create a new table with the given name in where location.
 
         Parameters
@@ -1026,6 +1026,16 @@ class File(hdf5extension.File, object):
 
             .. versionadded:: 3.0
 
+        track_times
+            Whether time data associated with the leaf are recorded (object
+            access time, raw data modification time, metadata change time,
+            object birth time); default True.  Semantics of these times
+            depend on their implementation in the HDF5 library: refer to
+            documentation of the H5O_info_t data structure.  As of HDF5
+            1.8.15, only ctime (metadata change time) is implemented.
+
+            .. versionadded:: 3.4
+
         See Also
         --------
         Table : for more information on tables
@@ -1052,7 +1062,8 @@ class File(hdf5extension.File, object):
         ptobj = Table(parentnode, name,
                       description=description, title=title,
                       filters=filters, expectedrows=expectedrows,
-                      chunkshape=chunkshape, byteorder=byteorder)
+                      chunkshape=chunkshape, byteorder=byteorder,
+                      track_times=track_times)
 
         if obj is not None:
             ptobj.append(obj)
@@ -1062,7 +1073,7 @@ class File(hdf5extension.File, object):
 
     def create_array(self, where, name, obj=None, title="",
                      byteorder=None, createparents=False,
-                     atom=None, shape=None):
+                     atom=None, shape=None, track_times=True):
         """Create a new array.
 
         Parameters
@@ -1109,6 +1120,16 @@ class File(hdf5extension.File, object):
 
             .. versionadded:: 3.0
 
+        track_times
+            Whether time data associated with the leaf are recorded (object
+            access time, raw data modification time, metadata change time,
+            object birth time); default True.  Semantics of these times
+            depend on their implementation in the HDF5 library: refer to
+            documentation of the H5O_info_t data structure.  As of HDF5
+            1.8.15, only ctime (metadata change time) is implemented.
+
+            .. versionadded:: 3.4
+
         See Also
         --------
         Array : for more information on arrays
@@ -1143,12 +1164,14 @@ class File(hdf5extension.File, object):
 
         parentnode = self._get_or_create_path(where, createparents)
         return Array(parentnode, name,
-                     obj=obj, title=title, byteorder=byteorder)
+                     obj=obj, title=title, byteorder=byteorder,
+                     track_times=track_times)
 
 
     def create_carray(self, where, name, atom=None, shape=None, title="",
                       filters=None, chunkshape=None,
-                      byteorder=None, createparents=False, obj=None):
+                      byteorder=None, createparents=False, obj=None,
+                      track_times=True):
         """Create a new chunked array.
 
         Parameters
@@ -1213,6 +1236,16 @@ class File(hdf5extension.File, object):
 
             .. versionadded:: 3.0
 
+        track_times
+            Whether time data associated with the leaf are recorded (object
+            access time, raw data modification time, metadata change time,
+            object birth time); default True.  Semantics of these times
+            depend on their implementation in the HDF5 library: refer to
+            documentation of the H5O_info_t data structure.  As of HDF5
+            1.8.15, only ctime (metadata change time) is implemented.
+
+            .. versionadded:: 3.4
+
         See Also
         --------
         CArray : for more information on chunked arrays
@@ -1238,7 +1271,8 @@ class File(hdf5extension.File, object):
         _checkfilters(filters)
         ptobj = CArray(parentnode, name,
                        atom=atom, shape=shape, title=title, filters=filters,
-                       chunkshape=chunkshape, byteorder=byteorder)
+                       chunkshape=chunkshape, byteorder=byteorder,
+                       track_times=track_times)
 
         if obj is not None:
             ptobj[...] = obj
@@ -1249,7 +1283,7 @@ class File(hdf5extension.File, object):
     def create_earray(self, where, name, atom=None, shape=None, title="",
                       filters=None, expectedrows=1000,
                       chunkshape=None, byteorder=None,
-                      createparents=False, obj=None):
+                      createparents=False, obj=None, track_times=True):
         """Create a new enlargeable array.
 
         Parameters
@@ -1316,6 +1350,16 @@ class File(hdf5extension.File, object):
 
             .. versionadded:: 3.0
 
+        track_times
+            Whether time data associated with the leaf are recorded (object
+            access time, raw data modification time, metadata change time,
+            object birth time); default True.  Semantics of these times
+            depend on their implementation in the HDF5 library: refer to
+            documentation of the H5O_info_t data structure.  As of HDF5
+            1.8.15, only ctime (metadata change time) is implemented.
+
+            .. versionadded:: 3.4
+
         See Also
         --------
         EArray : for more information on enlargeable arrays
@@ -1345,7 +1389,8 @@ class File(hdf5extension.File, object):
         ptobj = EArray(parentnode, name,
                        atom=atom, shape=shape, title=title,
                        filters=filters, expectedrows=expectedrows,
-                       chunkshape=chunkshape, byteorder=byteorder)
+                       chunkshape=chunkshape, byteorder=byteorder,
+                       track_times=track_times)
 
         if obj is not None:
             ptobj.append(obj)
@@ -1356,7 +1401,8 @@ class File(hdf5extension.File, object):
     def create_vlarray(self, where, name, atom=None, title="",
                        filters=None, expectedrows=None,
                        chunkshape=None, byteorder=None,
-                       createparents=False, obj=None):
+                       createparents=False, obj=None,
+                       track_times=True):
         """Create a new variable-length array.
 
         Parameters
@@ -1419,6 +1465,16 @@ class File(hdf5extension.File, object):
 
             .. versionadded:: 3.0
 
+        track_times
+            Whether time data associated with the leaf are recorded (object
+            access time, raw data modification time, metadata change time,
+            object birth time); default True.  Semantics of these times
+            depend on their implementation in the HDF5 library: refer to
+            documentation of the H5O_info_t data structure.  As of HDF5
+            1.8.15, only ctime (metadata change time) is implemented.
+
+            .. versionadded:: 3.4
+
         See Also
         --------
         VLArray : for more informationon variable-length arrays
@@ -1446,7 +1502,8 @@ class File(hdf5extension.File, object):
         ptobj = VLArray(parentnode, name,
                         atom=atom, title=title, filters=filters,
                         expectedrows=expectedrows,
-                        chunkshape=chunkshape, byteorder=byteorder)
+                        chunkshape=chunkshape, byteorder=byteorder,
+                        track_times=track_times)
 
         if obj is not None:
             ptobj.append(obj)

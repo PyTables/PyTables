@@ -84,6 +84,15 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
     byteorder
         The byteorder of the data *on disk*, specified as 'little' or 'big'.
         If this is not specified, the byteorder is that of the given `object`.
+    track_times
+        Whether time data associated with the leaf are recorded (object
+        access time, raw data modification time, metadata change time, object
+        birth time); default True.  Semantics of these times depend on their
+        implementation in the HDF5 library: refer to documentation of the
+        H5O_info_t data structure.  As of HDF5 1.8.15, only ctime (metadata
+        change time) is implemented.
+
+        .. versionadded:: 3.4
 
     """
 
@@ -129,7 +138,8 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
     # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  obj=None, title="",
-                 byteorder=None, _log=True, _atom=None):
+                 byteorder=None, _log=True, _atom=None,
+                 track_times=True):
 
         self._v_version = None
         """The object version of this array."""
@@ -184,7 +194,7 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
 
         # Ordinary arrays have no filters: leaf is created with default ones.
         super(Array, self).__init__(parentnode, name, new, Filters(),
-                                    byteorder, _log)
+                                    byteorder, _log, track_times)
 
     def _g_create(self):
         """Save a new array in file."""

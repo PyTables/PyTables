@@ -26,6 +26,9 @@
  * Programmer: F. Alted
  *
  * Date: November 08, 2003
+ *
+ * Comments: Modified by A. Cobb. August 21, 2017 (track_times)
+ *
  *-------------------------------------------------------------------------
  */
 
@@ -41,6 +44,7 @@ hid_t H5VLARRAYmake(  hid_t loc_id,
                       char  *complib,
                       int   shuffle,
                       int   fletcher32,
+                      hbool_t track_times,
                       const void *data)
 {
 
@@ -81,8 +85,14 @@ hid_t H5VLARRAYmake(  hid_t loc_id,
  /* The dataspace */
  space_id = H5Screate_simple( 1, dataset_dims, maxdims );
 
- /* Modify dataset creation properties, i.e. enable chunking  */
+ /* Dataset creation properties */
  plist_id = H5Pcreate (H5P_DATASET_CREATE);
+
+ /* Enable or disable recording dataset times */
+ if ( H5Pset_obj_track_times( plist_id, track_times ) < 0 )
+   return -1;
+
+ /* Modify dataset creation properties, i.e. enable chunking  */
  if ( H5Pset_chunk ( plist_id, 1, dims_chunk ) < 0 )
    return -1;
 
