@@ -82,13 +82,13 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle, H5Fget_filesize,
   H5Fget_create_plist,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
-  H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
+  H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, H5Dget_create_plist,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT, H5T_STRING, H5Tget_order,
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pget_userblock, H5Pset_userblock,
   H5Pset_fapl_sec2, H5Pset_fapl_log, H5Pset_fapl_stdio, H5Pset_fapl_core,
-  H5Pset_fapl_split,
+  H5Pset_fapl_split, H5Pget_obj_track_times,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5Oget_info, H5O_info_t,
@@ -1113,6 +1113,39 @@ cdef class Leaf(Node):
 
   def _get_storage_size(self):
       return H5Dget_storage_size(self.dataset_id)
+
+  def _get_obj_track_times(self):
+    """Get track_times boolean for dataset
+
+    Uses H5Pget_obj_track_times to determine if the dataset was
+    created with the track_times property.  If the leaf is not a
+    dataset, this will fail with HDF5ExtError.
+
+    The track times dataset creation property does not seem to survive
+    closing and reopening as of HDF5 1.8.17.  Currently, it may be
+    more accurate to test whether the ctime for the dataset is 0:
+    track_times = (leaf._get_obj_timestamps().ctime == 0)
+    """
+    cdef:
+      hbool_t track_times = True
+
+    if self.dataset_id < 0:
+      raise ValueError('Invalid dataset id %s' % self.dataset_id)
+
+    plist_id = H5Dget_create_plist(self.dataset_id)
+    if plist_id < 0:
+      raise HDF5ExtError("Could not get dataset creation property list "
+                         "from dataset id %s" % self.dataset_id)
+
+    try:
+      # Get track_times boolean for dataset
+      if H5Pget_obj_track_times(plist_id, &track_times) < 0:
+        raise HDF5ExtError("Could not get dataset track_times property "
+                           "from dataset id %s" % self.dataset_id)
+    finally:
+      H5Pclose(plist_id)
+
+    return bool(track_times)
 
   def _g_new(self, where, name, init):
     if init:
