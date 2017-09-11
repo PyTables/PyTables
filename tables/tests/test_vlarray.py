@@ -841,6 +841,8 @@ class TypesCase(common.TempFileMixin):
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
+    @unittest.skipIf(True,
+                     'differents byteordered arrays inside VLArray not supported in h5py')
     def test03d_IntAtom(self):
         """Checking updating vlarray with integer atoms (another byteorder)"""
 
@@ -1102,6 +1104,8 @@ class TypesCase(common.TempFileMixin):
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
+    @unittest.skipIf(True,
+                     'differents byteordered arrays inside VLArray not supported in h5py')
     def test04d_FloatAtom(self):
         """Checking updating vlarray with float atoms (another byteorder)"""
 
