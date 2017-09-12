@@ -562,11 +562,6 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
                 "Unsupported HDF5 version! HDF5 v%s+ required. "
                 "Found version v%s" % (min_hdf5_version, hdf5_version))
 
-        if hdf5_version >= "1.10":
-            exit_with_error(
-                "HDF5 1.10 release not supported. HDF5 v1.8 release required. "
-                "Found version v%s" % (hdf5_version))
-
         if os.name == 'nt' and hdf5_version < "1.8.10":
             # Change in DLL naming happened in 1.8.10
             hdf5_old_dll_name = 'hdf5dll' if not debug else 'hdf5ddll'
@@ -809,6 +804,7 @@ if 'BLOSC' not in optional_libs:
             CFLAGS.append('-msse2')
         blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
                           if 'sse2' in f]
+    CFLAGS.append('-DH5_USE_18_API')
     # AVX2
     # Detection code for AVX2 only works for gcc/clang, not for MSVC yet
     if ('avx2' in cpu_info['flags'] and

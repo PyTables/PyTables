@@ -17,7 +17,7 @@ from tables.tests.common import PyTablesTestCase as TestCase
 from six.moves import range
 
 
-class BasicTestCase(common.TempFileMixin, TestCase):
+class BasicCase(common.TempFileMixin):
     # Default values
     obj = None
     flavor = "numpy"
@@ -37,7 +37,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     reopen = 1  # Tells whether the file has to be reopened on each test or not
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super(BasicCase, self).setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -741,7 +741,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             self.assertEqual(len(self.shape), 1)
 
 
-class BasicWriteTestCase(BasicTestCase):
+class BasicWriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (0,)
     chunksize = 5
@@ -751,7 +751,7 @@ class BasicWriteTestCase(BasicTestCase):
     wslice = 1  # single element case
 
 
-class Basic2WriteTestCase(BasicTestCase):
+class Basic2WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     dtype = 'i4'
     shape = (0,)
@@ -762,7 +762,7 @@ class Basic2WriteTestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-class Basic3WriteTestCase(BasicTestCase):
+class Basic3WriteTestCase(BasicCase, TestCase):
     obj = [1, 2]
     type = numpy.asarray(obj).dtype.name
     dtype = numpy.asarray(obj).dtype.str
@@ -772,7 +772,7 @@ class Basic3WriteTestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-class Basic4WriteTestCase(BasicTestCase):
+class Basic4WriteTestCase(BasicCase, TestCase):
     obj = numpy.array([1, 2])
     type = obj.dtype.name
     dtype = obj.dtype.str
@@ -782,7 +782,7 @@ class Basic4WriteTestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-class Basic5WriteTestCase(BasicTestCase):
+class Basic5WriteTestCase(BasicCase, TestCase):
     obj = [1, 2]
     type = numpy.asarray(obj).dtype.name
     dtype = numpy.asarray(obj).dtype.str
@@ -792,7 +792,7 @@ class Basic5WriteTestCase(BasicTestCase):
     reopen = 1  # This case does reopen files
 
 
-class Basic6WriteTestCase(BasicTestCase):
+class Basic6WriteTestCase(BasicCase, TestCase):
     obj = numpy.array([1, 2])
     type = obj.dtype.name
     dtype = obj.dtype.str
@@ -802,7 +802,7 @@ class Basic6WriteTestCase(BasicTestCase):
     reopen = 1  # This case does reopen files
 
 
-class Basic7WriteTestCase(BasicTestCase):
+class Basic7WriteTestCase(BasicCase, TestCase):
     obj = [[1, 2], [3, 4]]
     type = numpy.asarray(obj).dtype.name
     dtype = numpy.asarray(obj).dtype.str
@@ -812,7 +812,7 @@ class Basic7WriteTestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-class Basic8WriteTestCase(BasicTestCase):
+class Basic8WriteTestCase(BasicCase, TestCase):
     obj = [[1, 2], [3, 4]]
     type = numpy.asarray(obj).dtype.name
     dtype = numpy.asarray(obj).dtype.str
@@ -822,7 +822,7 @@ class Basic8WriteTestCase(BasicTestCase):
     reopen = 1  # This case does reopen files
 
 
-class EmptyEArrayTestCase(BasicTestCase):
+class EmptyEArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     dtype = numpy.dtype('int32')
     shape = (2, 0)
@@ -833,7 +833,7 @@ class EmptyEArrayTestCase(BasicTestCase):
     step = 1
 
 
-class NP_EmptyEArrayTestCase(BasicTestCase):
+class NP_EmptyEArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     dtype = numpy.dtype('()int32')
     shape = (2, 0)
@@ -841,7 +841,7 @@ class NP_EmptyEArrayTestCase(BasicTestCase):
     nappends = 0
 
 
-class Empty2EArrayTestCase(BasicTestCase):
+class Empty2EArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     dtype = 'int32'
     shape = (2, 0)
@@ -854,7 +854,7 @@ class Empty2EArrayTestCase(BasicTestCase):
 
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
-class SlicesEArrayTestCase(BasicTestCase):
+class SlicesEArrayTestCase(BasicCase, TestCase):
     compress = 1
     complib = "lzo"
     type = 'int32'
@@ -866,7 +866,7 @@ class SlicesEArrayTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class Slices2EArrayTestCase(BasicTestCase):
+class Slices2EArrayTestCase(BasicCase, TestCase):
     compress = 1
     complib = "blosc"
     type = 'int32'
@@ -876,7 +876,7 @@ class Slices2EArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(None, None, None), slice(1, 4, 2))
 
 
-class EllipsisEArrayTestCase(BasicTestCase):
+class EllipsisEArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 0)
     chunksize = 5
@@ -885,7 +885,7 @@ class EllipsisEArrayTestCase(BasicTestCase):
     slices = (Ellipsis, slice(1, 2, 1))
 
 
-class Ellipsis2EArrayTestCase(BasicTestCase):
+class Ellipsis2EArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 0, 4)
     chunksize = 5
@@ -895,7 +895,7 @@ class Ellipsis2EArrayTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class Slices3EArrayTestCase(BasicTestCase):
+class Slices3EArrayTestCase(BasicCase, TestCase):
     compress = 1      # To show the chunks id DEBUG is on
     complib = "blosc"
     type = 'int32'
@@ -917,7 +917,7 @@ class Slices3EArrayTestCase(BasicTestCase):
     #           slice(0,100,1))  # N
 
 
-class Slices4EArrayTestCase(BasicTestCase):
+class Slices4EArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 0, 5, 6)
     chunksize = 5
@@ -926,7 +926,7 @@ class Slices4EArrayTestCase(BasicTestCase):
               slice(0, 4, 2), slice(3, 5, 2), slice(2, 7, 1))
 
 
-class Ellipsis3EArrayTestCase(BasicTestCase):
+class Ellipsis3EArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
@@ -935,7 +935,7 @@ class Ellipsis3EArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(0, 4, None), slice(1, 4, 2), Ellipsis)
 
 
-class Ellipsis4EArrayTestCase(BasicTestCase):
+class Ellipsis4EArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
@@ -944,7 +944,7 @@ class Ellipsis4EArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 
-class Ellipsis5EArrayTestCase(BasicTestCase):
+class Ellipsis5EArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
@@ -952,7 +952,7 @@ class Ellipsis5EArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(0, 4, None), Ellipsis)
 
 
-class Ellipsis6EArrayTestCase(BasicTestCase):
+class Ellipsis6EArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
@@ -963,7 +963,7 @@ class Ellipsis6EArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(0, 4, None), 2, Ellipsis)
 
 
-class Ellipsis7EArrayTestCase(BasicTestCase):
+class Ellipsis7EArrayTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
@@ -971,14 +971,14 @@ class Ellipsis7EArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(0, 4, None), slice(2, 3), Ellipsis)
 
 
-class MD3WriteTestCase(BasicTestCase):
+class MD3WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 0, 3)
     chunksize = 4
     step = 2
 
 
-class MD5WriteTestCase(BasicTestCase):
+class MD5WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 0, 3, 4, 5)  # ok
     # shape = (1, 1, 0, 1)  # Minimum shape that shows problems with HDF5 1.6.1
@@ -991,7 +991,7 @@ class MD5WriteTestCase(BasicTestCase):
     step = 10
 
 
-class MD6WriteTestCase(BasicTestCase):
+class MD6WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 3, 0, 5, 6)
     chunksize = 1
@@ -1001,7 +1001,7 @@ class MD6WriteTestCase(BasicTestCase):
     step = 3
 
 
-class NP_MD6WriteTestCase(BasicTestCase):
+class NP_MD6WriteTestCase(BasicCase, TestCase):
     "Testing NumPy scalars as indexes"
     type = 'int32'
     shape = (2, 3, 3, 0, 5, 6)
@@ -1009,7 +1009,7 @@ class NP_MD6WriteTestCase(BasicTestCase):
     nappends = 10
 
 
-class MD6WriteTestCase__(BasicTestCase):
+class MD6WriteTestCase__(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 0)
     chunksize = 1
@@ -1019,7 +1019,7 @@ class MD6WriteTestCase__(BasicTestCase):
     step = 1
 
 
-class MD7WriteTestCase(BasicTestCase):
+class MD7WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (2, 3, 3, 4, 5, 0, 3)
     chunksize = 10
@@ -1029,7 +1029,7 @@ class MD7WriteTestCase(BasicTestCase):
     step = 2
 
 
-class MD10WriteTestCase(BasicTestCase):
+class MD10WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (1, 2, 3, 4, 5, 5, 4, 3, 2, 0)
     chunksize = 5
@@ -1039,14 +1039,14 @@ class MD10WriteTestCase(BasicTestCase):
     step = 10
 
 
-class NP_MD10WriteTestCase(BasicTestCase):
+class NP_MD10WriteTestCase(BasicCase, TestCase):
     type = 'int32'
     shape = (1, 2, 3, 4, 5, 5, 4, 3, 2, 0)
     chunksize = 5
     nappends = 10
 
 
-class ZlibComprTestCase(BasicTestCase):
+class ZlibComprTestCase(BasicCase, TestCase):
     compress = 1
     complib = "zlib"
     start = 3
@@ -1055,7 +1055,7 @@ class ZlibComprTestCase(BasicTestCase):
     step = 10
 
 
-class ZlibShuffleTestCase(BasicTestCase):
+class ZlibShuffleTestCase(BasicCase, TestCase):
     shuffle = 1
     compress = 1
     complib = "zlib"
@@ -1067,7 +1067,7 @@ class ZlibShuffleTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class BloscComprTestCase(BasicTestCase):
+class BloscComprTestCase(BasicCase, TestCase):
     compress = 1  # sss
     complib = "blosc"
     chunksize = 10
@@ -1079,7 +1079,7 @@ class BloscComprTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
-class BloscShuffleTestCase(BasicTestCase):
+class BloscShuffleTestCase(BasicCase, TestCase):
     compress = 1
     shuffle = 1
     complib = "blosc"
@@ -1091,7 +1091,7 @@ class BloscShuffleTestCase(BasicTestCase):
 
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
-class LZOComprTestCase(BasicTestCase):
+class LZOComprTestCase(BasicCase, TestCase):
     compress = 1  # sss
     complib = "lzo"
     chunksize = 10
@@ -1102,7 +1102,7 @@ class LZOComprTestCase(BasicTestCase):
 
 
 @unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
-class LZOShuffleTestCase(BasicTestCase):
+class LZOShuffleTestCase(BasicCase, TestCase):
     compress = 1
     shuffle = 1
     complib = "lzo"
@@ -1115,7 +1115,7 @@ class LZOShuffleTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.bzip2_avail,
                  'BZIP2 compression library not available')
-class Bzip2ComprTestCase(BasicTestCase):
+class Bzip2ComprTestCase(BasicCase, TestCase):
     compress = 1
     complib = "bzip2"
     chunksize = 100
@@ -1127,7 +1127,7 @@ class Bzip2ComprTestCase(BasicTestCase):
 
 @unittest.skipIf(not common.bzip2_avail,
                  'BZIP2 compression library not available')
-class Bzip2ShuffleTestCase(BasicTestCase):
+class Bzip2ShuffleTestCase(BasicCase, TestCase):
     compress = 1
     shuffle = 1
     complib = "bzip2"
@@ -1138,7 +1138,7 @@ class Bzip2ShuffleTestCase(BasicTestCase):
     step = 6
 
 
-class Fletcher32TestCase(BasicTestCase):
+class Fletcher32TestCase(BasicCase, TestCase):
     compress = 0
     fletcher32 = 1
     chunksize = 50
@@ -1148,7 +1148,7 @@ class Fletcher32TestCase(BasicTestCase):
     step = 7
 
 
-class AllFiltersTestCase(BasicTestCase):
+class AllFiltersTestCase(BasicCase, TestCase):
     compress = 1
     shuffle = 1
     fletcher32 = 1
@@ -1165,7 +1165,7 @@ class AllFiltersTestCase(BasicTestCase):
 #     step = 2
 
 
-class FloatTypeTestCase(BasicTestCase):
+class FloatTypeTestCase(BasicCase, TestCase):
     type = 'float64'
     dtype = 'float64'
     shape = (2, 0)
@@ -1176,7 +1176,7 @@ class FloatTypeTestCase(BasicTestCase):
     step = 20
 
 
-class ComplexTypeTestCase(BasicTestCase):
+class ComplexTypeTestCase(BasicCase, TestCase):
     type = 'complex128'
     dtype = 'complex128'
     shape = (2, 0)
@@ -1187,7 +1187,7 @@ class ComplexTypeTestCase(BasicTestCase):
     step = 20
 
 
-class StringTestCase(BasicTestCase):
+class StringTestCase(BasicCase, TestCase):
     type = "string"
     length = 20
     shape = (2, 0)
@@ -1200,7 +1200,7 @@ class StringTestCase(BasicTestCase):
     slices = (slice(0, 1), slice(1, 2))
 
 
-class String2TestCase(BasicTestCase):
+class String2TestCase(BasicCase, TestCase):
     type = "string"
     length = 20
     shape = (0,)
@@ -1212,7 +1212,7 @@ class String2TestCase(BasicTestCase):
     step = 2
 
 
-class StringComprTestCase(BasicTestCase):
+class StringComprTestCase(BasicCase, TestCase):
     type = "string"
     length = 20
     shape = (20, 0, 10)
@@ -1622,7 +1622,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(native, swapped))
 
 
-class CopyTestCase(common.TempFileMixin, TestCase):
+class CopyCase(common.TempFileMixin):
 
     def test01_copy(self):
         """Checking EArray.copy() method."""
@@ -1990,15 +1990,15 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(hasattr(array2.attrs, "attr2"), 0)
 
 
-class CloseCopyTestCase(CopyTestCase):
+class CloseCopyTestCase(CopyCase, TestCase):
     close = 1
 
 
-class OpenCopyTestCase(CopyTestCase):
+class OpenCopyTestCase(CopyCase, TestCase):
     close = 0
 
 
-class CopyIndexTestCase(common.TempFileMixin, TestCase):
+class CopyIndexCase(common.TempFileMixin):
     nrowsinbuf = 2
 
     def test01_index(self):
@@ -2087,89 +2087,89 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(r2.shape[0], array2.nrows)
 
 
-class CopyIndex1TestCase(CopyIndexTestCase):
+class CopyIndex1TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 1
     start = 0
     stop = 7
     step = 1
 
 
-class CopyIndex2TestCase(CopyIndexTestCase):
+class CopyIndex2TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 2
     start = 0
     stop = -1
     step = 1
 
 
-class CopyIndex3TestCase(CopyIndexTestCase):
+class CopyIndex3TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 3
     start = 1
     stop = 7
     step = 1
 
 
-class CopyIndex4TestCase(CopyIndexTestCase):
+class CopyIndex4TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 4
     start = 0
     stop = 6
     step = 1
 
 
-class CopyIndex5TestCase(CopyIndexTestCase):
+class CopyIndex5TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 2
     start = 3
     stop = 7
     step = 1
 
 
-class CopyIndex6TestCase(CopyIndexTestCase):
+class CopyIndex6TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 2
     start = 3
     stop = 6
     step = 2
 
 
-class CopyIndex7TestCase(CopyIndexTestCase):
+class CopyIndex7TestCase(CopyIndexCase, TestCase):
     start = 0
     stop = 7
     step = 10
 
 
-class CopyIndex8TestCase(CopyIndexTestCase):
+class CopyIndex8TestCase(CopyIndexCase, TestCase):
     start = 6
     stop = -1  # Negative values means starting from the end
     step = 1
 
 
-class CopyIndex9TestCase(CopyIndexTestCase):
+class CopyIndex9TestCase(CopyIndexCase, TestCase):
     start = 3
     stop = 4
     step = 1
 
 
-class CopyIndex10TestCase(CopyIndexTestCase):
+class CopyIndex10TestCase(CopyIndexCase, TestCase):
     nrowsinbuf = 1
     start = 3
     stop = 4
     step = 2
 
 
-class CopyIndex11TestCase(CopyIndexTestCase):
+class CopyIndex11TestCase(CopyIndexCase, TestCase):
     start = -3
     stop = -1
     step = 2
 
 
-class CopyIndex12TestCase(CopyIndexTestCase):
+class CopyIndex12TestCase(CopyIndexCase, TestCase):
     start = -1   # Should point to the last element
     stop = None  # None should mean the last element (including it)
     step = 1
 
 
-class TruncateTestCase(common.TempFileMixin, TestCase):
+class TruncateCase(common.TempFileMixin):
 
     def setUp(self):
-        super(TruncateTestCase, self).setUp()
+        super(TruncateCase, self).setUp()
 
         # Create an EArray
         atom = Int16Atom(dflt=3)
@@ -2262,23 +2262,23 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
                                                          dtype='Int16')))
 
 
-class TruncateOpenTestCase(TruncateTestCase):
+class TruncateOpenTestCase(TruncateCase, TestCase):
     close = 0
 
 
-class TruncateCloseTestCase(TruncateTestCase):
+class TruncateCloseTestCase(TruncateCase, TestCase):
     close = 1
 
 
 # The next test should be run only in **common.heavy** mode
-class Rows64bitsTestCase(common.TempFileMixin, TestCase):
+class Rows64bitsCase(common.TempFileMixin):
     open_mode = 'a'
     narows = 1000 * 1000   # each numpy object will have 1 million entries
     # narows = 1000   # for testing only
     nanumber = 1000 * 3    # That should account for more than 2**31-1
 
     def setUp(self):
-        super(Rows64bitsTestCase, self).setUp()
+        super(Rows64bitsCase, self).setUp()
 
         # Create an EArray
         array = self.h5file.create_earray(
@@ -2343,11 +2343,11 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
                                  numpy.arange(start, stop, dtype='Int8')))
 
 
-class Rows64bitsTestCase1(Rows64bitsTestCase):
+class Rows64bitsTestCase1(Rows64bitsCase, TestCase):
     close = 0
 
 
-class Rows64bitsTestCase2(Rows64bitsTestCase):
+class Rows64bitsTestCase2(Rows64bitsCase, TestCase):
     close = 1
 
 
@@ -2383,7 +2383,7 @@ class ZeroSizedTestCase(common.TempFileMixin, TestCase):
 
 
 # Test for dealing with multidimensional atoms
-class MDAtomTestCase(common.TempFileMixin, TestCase):
+class MDAtomCase(common.TempFileMixin):
 
     def test01a_append(self):
         """Append a row to a (unidimensional) EArray with a MD tables.Atom."""
@@ -2514,11 +2514,11 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(ea[:, :, 2, ...], a.reshape((2, 3, 2, 4))*3))
 
 
-class MDAtomNoReopen(MDAtomTestCase):
+class MDAtomNoReopen(MDAtomCase, TestCase):
     reopen = False
 
 
-class MDAtomReopen(MDAtomTestCase):
+class MDAtomReopen(MDAtomCase, TestCase):
     reopen = True
 
 

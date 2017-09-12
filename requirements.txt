@@ -3,3 +3,4 @@
 numpy>=1.8.0
 numexpr>=2.5.2
 six
+h5py>=2.7

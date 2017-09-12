@@ -45,6 +45,7 @@ class BallExt(tables.IsDescription):
     ballTime = tables.Time32Col()
     ballColor = tables.EnumCol(colors, 'black', base='uint8')
 
+
 COMMENT("Create a table of ball extractions.")
 tbl = h5f.create_table(
     '/', 'extractions', BallExt, title="Random ball extractions")

@@ -1543,7 +1543,6 @@ class File(hdf5extension.File, object):
 
         return node
 
-
     def get_node(self, where, name=None, classname=None):
         """Get the node under where with the given name.
 

@@ -1,17 +1,35 @@
+import sys
 from .node import Node
 from .table import Table
 from .array import Array
+from .carray import CArray
+from .earray import EArray
+from .vlarray import VLArray
 from .leaf import Leaf
-from tables import abc
-from tables import Description
-from tables import IsDescription
+from .. import abc
+from ..atom import Atom
+from .. import Description
+from .. import IsDescription
+from ..flavor import flavor_of, array_as_internal
+from ..utils import np_byteorders, byteorders, correct_byteorder
 from .. import lrucacheextension
 from ..filters import Filters
-from ..exceptions import PerformanceWarning, ClosedFileError, ClosedNodeError
+from ..exceptions import (PerformanceWarning, ClosedFileError,
+                          ClosedNodeError, NoSuchNodeError)
+from ..path import join_path
+from ..registry import get_class_by_name
 import weakref
 import warnings
 import numpy as np
+from h5py import special_dtype
+import six
 
+def _checkfilters(filters):
+    if not (filters is None or
+            isinstance(filters, Filters)):
+        raise TypeError("filter parameter has to be None or a Filter "
+                        "instance and the passed type is: '%s'" %
+                        type(filters))
 
 def dtype_from(something):
     if isinstance(something, np.dtype):
@@ -35,20 +53,24 @@ class HasChildren:
             yield child.name
 
     def __getitem__(self, item):
-        # Try cache first
-        nmanager = self._file._node_manager
-        node = nmanager.get_node(item)
-        if node:
-            return node
-        # No luck, so use the backend to lookup the item
         value = self.backend[item]
         if isinstance(value, abc.Group):
             return Group(backend=value, parent=self)
         elif isinstance(value, abc.Dataset):
-            if value.attrs['CLASS'] == 'TABLE':
+            try:
+                class_str = value.attrs['CLASS']
+            except KeyError:
+                class_str = value._infer_class()
+            if class_str == 'TABLE':
                 return Table(backend=value, parent=self)
-            elif value.attrs['CLASS'] == 'ARRAY':
+            elif class_str == 'ARRAY':
                 return Array(backend=value, parent=self)
+            elif class_str == 'CARRAY':
+                return CArray(backend=value, parent=self)
+            elif class_str == 'EARRAY':
+                return EArray(backend=value, parent=self)
+            elif class_str == 'VLARRAY':
+                return VLArray(backend=value, parent=self)
 
         raise NotImplementedError()
 
@@ -61,10 +83,13 @@ class HasChildren:
         elif isinstance(old, str):
             self.backend.rename_node(old, new_name)
         else:
-            raise TypeError("Expecting either the name of the node to rename or the node itself")
+            raise TypeError(
+                "Expecting either the name of the node to rename or "
+                "the node itself")
 
     def remove_node(self, *args):
-        """ This method expects one argument (node) or two arguments (where, node) """
+        """ This method expects one argument (node) or two arguments (where, node)
+        """
         if len(args) == 1:
             if isinstance(args[0], Node):
                 node = args[0]
@@ -74,13 +99,30 @@ class HasChildren:
                 self.backend.remove_node(name)
             else:
                 raise TypeError("Expecting either the name of the node "
-                        "to rename or the node itself when called with "
-                        "one argument")
+                                "to rename or the node itself when called "
+                                "with one argument")
         elif len(args) == 2:
             where, name = args
             where.remove_node(name)
         else:
             raise ValueError('This method expects one or two arguments')
+
+    def set_node_attr(self, where, attrname, attrvalue, name=None):
+        n = self.get_node(where, name=name)
+        n.attrs[attrname] = attrvalue
+
+    def get_node_attr(self, where, attrname, attrvalue, name=None):
+        n = self.get_node(where, name=name)
+        return n.attrs[attrname]
+
+    def get_node(self, where, name=None, classname=None):
+        if isinstance(where, Node):
+            node = where
+        else:
+            node = self[where]
+        if name is not None:
+            node = node[name]
+        return node
 
 
 class Group(HasChildren, Node):
@@ -96,15 +138,222 @@ class Group(HasChildren, Node):
         # TODO how we persist this? JSON?
         self.backend.attrs['FILTERS'] = filters
 
-    def create_array(self, name, obj, title='', byte_order='I', **kwargs):
-        obj = np.asarray(obj)
-        dtype = obj.dtype.newbyteorder(byte_order)
-        dataset = self.backend.create_dataset(name, data=obj,
-                                              dtype=dtype,
+    def create_array(self, name, obj=None, title='',
+                     byteorder=None, atom=None, shape=None,
+                     **kwargs):
+        byteorder = correct_byteorder(type(obj), byteorder)
+        if byteorder is None:
+            _byteorder = np_byteorders['irrelevant']
+        else:
+            _byteorder = np_byteorders[byteorder]
+
+        if obj is None:
+            if atom is None or shape is None:
+                raise TypeError('if the obj parameter is not specified '
+                                '(or None) then both the atom and shape '
+                                'parametes should be provided.')
+            else:
+                # Making strides=(0,...) below is a trick to create the
+                # array fast and without memory consumption
+                dflt = np.zeros((), dtype=atom.dtype)
+                obj = np.ndarray(shape, dtype=atom.dtype, buffer=dflt,
+                                 strides=(0,) * len(shape))
+        else:
+            flavor = flavor_of(obj)
+            # Use a temporary object because converting obj at this stage
+            # breaks some test. This fix performs a double,
+            # potentially expensive, conversion of the obj parameter.
+            _obj = array_as_internal(obj, flavor)
+            if shape is not None and shape != _obj.shape:
+                raise TypeError('the shape parameter do not match obj.shape')
+
+            if atom is not None and atom.dtype != _obj.dtype:
+                raise TypeError('the atom parameter is not consistent with '
+                                'the data type of the obj parameter')
+
+        dtype = None
+        if hasattr(obj, 'dtype'):
+            dtype = obj.dtype
+            if _byteorder != '|' and obj.dtype.byteorder != '|':
+                if byteorders[_byteorder] != byteorders[obj.dtype.byteorder]:
+                    obj = obj.byteswap()
+                    obj.dtype = obj.dtype.newbyteorder()
+                    dtype = obj.dtype
+
+        dataset = self.backend.create_dataset(name, data=obj, dtype=dtype,
+                                              ** kwargs)
+
+        return Array(backend=dataset, parent=self, title=title, _atom=atom, new=True)
+
+    def create_carray(self, name, atom=None, shape=None, title="",
+                      filters=None, chunkshape=None,
+                      byteorder=None, obj=None, expectedrows=None,
+                      **kwargs):
+        fillvalue = None
+        dtype = None
+        extdim = 0
+        if obj is not None:
+            if hasattr(obj, 'chunkshape') and chunkshape is None:
+                chunkshape = obj.chunkshape
+            flavor = flavor_of(obj)
+            obj = array_as_internal(obj, flavor)
+            if hasattr(obj, 'dtype'):
+                dtype = obj.dtype
+
+            if expectedrows is None:
+                if shape is not None and shape != obj.shape:
+                    raise TypeError('the shape parameter do not match obj.shape')
+                else:
+                    shape = obj.shape
+            else:  # EArray
+                earray_shape = (0,) + obj.shape[1:]
+                if shape is not None and shape != earray_shape:
+                    raise TypeError('the shape parameter is not compatible '
+                                    'with obj.shape.')
+                shape = obj.shape
+
+            if atom is not None and atom.dtype != obj.dtype:
+                raise TypeError('the atom parameter is not consistent with '
+                                'the data type of the obj parameter')
+        else:
+            if atom is None or shape is None:
+                raise TypeError('if the obj parameter is not specified '
+                                '(or None) then both the atom and shape '
+                                'parametes should be provided.')
+            else:
+                if len(atom.shape) > 0:
+                    aux = list(shape)
+                    for i in range(len(atom.shape)):
+                        aux.append(atom.shape[i])
+                    shape = tuple(aux)
+                dtype = atom.dtype.base
+                fillvalue = atom.dflt
+                atom = Atom.from_dtype(dtype, dflt=fillvalue)
+
+        if shape is not None and 0 in shape:
+            extdim = shape.index(0)
+
+
+        _checkfilters(filters)
+        compression = None
+        compression_opts = None
+        shuffle = None
+        fletcher32 = None
+        if filters is not None:
+            compression = filters.get_h5py_compression
+            compression_opts = filters.get_h5py_compression_opts
+            shuffle = filters.get_h5py_shuffle
+            fletcher32 = filters.fletcher32
+
+        byteorder = correct_byteorder(type(obj), byteorder)
+        if byteorder is None:
+            _byteorder = np_byteorders['irrelevant']
+        else:
+            _byteorder = np_byteorders[byteorder]
+
+        if _byteorder != '|' and dtype.byteorder != '|':
+            if byteorders[_byteorder] != byteorders[dtype.byteorder]:
+                if obj is not None:
+                    obj = obj.byteswap()
+                    obj.dtype = obj.dtype.newbyteorder()
+                    dtype = obj.dtype
+                else:
+                    dtype = dtype.newbyteorder()
+        if chunkshape is None:
+            chunkshape = True
+            maxshape = shape
+        else:
+            maxshape = [shape[i] if shape[i] is None or shape[i] >= chunkshape[i]
+                        else chunkshape[i]
+                        for i in range(len(shape))]
+        # EArray
+        if expectedrows is not None:
+            aux = list(shape)
+            aux[extdim] = None
+            maxshape = tuple(aux)
+        dataset = self.backend.create_dataset(name, data=obj, dtype=dtype, shape=shape,
+                                              compression=compression,
+                                              compression_opts=compression_opts,
+                                              shuffle=shuffle,
+                                              fletcher32=fletcher32,
+                                              chunks=chunkshape, maxshape=maxshape,
+                                              fillvalue=fillvalue, **kwargs)
+        if expectedrows is None:
+            return CArray(filters=filters, backend=dataset, parent=self, title=title, atom=atom, new=True)
+        else:
+            return EArray(filters=filters, expectedrows=expectedrows, backend=dataset, parent=self,
+                          title=title, atom=atom, new=True)
+
+    def create_earray(self, name, atom=None, shape=None, title="",
+                      filters=None, expectedrows=1000, chunkshape=None,
+                      byteorder=None, obj=None,
+                      **kwargs):
+        return self.create_carray(name, atom, shape, title, filters,
+                                  chunkshape, byteorder, obj,
+                                  expectedrows, **kwargs)
+
+    def create_vlarray(self, name, atom=None, title="", filters=None,
+                       expectedrows=1000, chunkshape=None, byteorder=None,
+                       obj=None, **kwargs):
+
+        if obj is not None:
+            flavor = flavor_of(obj)
+            obj = array_as_internal(obj, flavor)
+
+            if atom is not None and atom.dtype != obj.dtype:
+                raise TypeError('the atom parameter is not consistent with '
+                                'the data type of the obj parameter')
+            if atom is None:
+                atom = Atom.from_dtype(obj.dtype)
+        elif atom is None:
+            raise ValueError('atom parameter cannot be None')
+
+        if hasattr(atom, 'dtype'):
+            vlen = atom.dtype
+        byteorder = correct_byteorder(type(obj), byteorder)
+        if byteorder is None:
+            _byteorder = np_byteorders['irrelevant']
+        else:
+            _byteorder = np_byteorders[byteorder]
+
+        if _byteorder != '|' and vlen.byteorder != '|':
+            if byteorders[_byteorder] != byteorders[vlen.byteorder]:
+                vlen = vlen.newbyteorder()
+                if obj is not None:
+                    obj = obj.byteswap()
+                    obj.dtype = obj.dtype.newbyteorder()
+
+        if not hasattr(atom, 'size'):
+            dtype = special_dtype(vlen=bytes)
+        else:
+            dtype = special_dtype(vlen=vlen)
+
+        _checkfilters(filters)
+        compression = None
+        compression_opts = None
+        shuffle = None
+        fletcher32 = None
+        if filters is not None:
+            compression = filters.get_h5py_compression
+            compression_opts = filters.get_h5py_compression_opts
+            shuffle = filters.get_h5py_shuffle
+            fletcher32 = filters.fletcher32
+
+        dataset = self.backend.create_dataset(name, data=obj, dtype=dtype, shape=(0,),
+                                              compression=compression,
+                                              compression_opts=compression_opts,
+                                              shuffle=shuffle,
+                                              fletcher32=fletcher32,
+                                              chunks=True, maxshape=(None,),
                                               **kwargs)
-        dataset.attrs['TITLE'] = title
-        dataset.attrs['CLASS'] = 'ARRAY'
-        return Array(backend=dataset, parent=self)
+        ptobj = VLArray(backend=dataset, parent=self, atom=atom, title=title, filters=filters,
+                        expectedrows=expectedrows, new=True)
+
+        if obj is not None:
+            ptobj.append(obj)
+
+        return ptobj
+
 
     def create_group(self, name, title=''):
         g = Group(backend=self.backend.create_group(name), parent=self)
@@ -112,8 +361,8 @@ class Group(HasChildren, Node):
         return g
 
     def create_table(self, name, description=None, title='',
+                     byteorder=None,
                      filters=None, expectedrows=10000,
-                     byte_order='I',
                      chunk_shape=None, obj=None, **kwargs):
         """ TODO write docs"""
 
@@ -150,33 +399,35 @@ class Group(HasChildren, Node):
         dataset.attrs['CLASS'] = 'TABLE'
         return Table(backend=dataset, parent=self)
 
+format_version = "2.1"  # Numeric and numarray flavors are gone.
 
 class File(HasChildren, Node):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # TODO (re) make this configurable
         # node_cache_slots = params['NODE_CACHE_SLOTS']
-        node_cache_slots = 10
-        self._node_manager = NodeManager(nslots=node_cache_slots)
         # TODO only show Filters the inputs it wants
         self._filters = Filters(**self.backend.params)
         # Bootstrap the _file attribute for nodes
         self._file = self
 
+
     def close(self):
         # Flush the nodes prior to close
-        self._node_manager.flush_nodes()
         super().close()
 
+    def flush(self):
+        self.backend.flush()
+
     def __enter__(self):
-        self.open()
+        return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
 
     def reopen(self, **kwargs):
         # Flush the nodes prior to close
-        self._node_manager.flush_nodes()
+        self.backend.flush()
         self.backend.close()
         self.backend.open(**kwargs)
 
@@ -187,17 +438,150 @@ class File(HasChildren, Node):
     def root(self):
         return self['/']
 
-    def create_array(self, where, *args, **kwargs):
+    def create_array(self, where, *args, createparents=False, **kwargs):
+        if not hasattr(where, 'create_array'):
+            where = self._get_or_create_path(where, createparents)
         return where.create_array(*args, **kwargs)
 
-    def create_group(self, where, *args, **kwargs):
+    def create_carray(self, where, name, atom=None, shape=None, title="",
+                      filters=None, chunkshape=None,
+                      byteorder=None, createparents=False, obj=None, **kwargs):
+        if not hasattr(where, 'create_carray'):
+            where = self._get_or_create_path(where, createparents)
+        return where.create_carray(name, atom, shape, title,
+                      filters, chunkshape,
+                      byteorder, obj, **kwargs)
+
+    def create_earray(self, where, name, atom=None, shape=None, title="",
+                      filters=None, expectedrows=1000, chunkshape=None,
+                      byteorder=None, createparents=False, obj=None, **kwargs):
+        if not hasattr(where, 'create_earray'):
+            where = self._get_or_create_path(where, createparents)
+        return where.create_earray(name, atom, shape, title,
+                      filters, expectedrows, chunkshape,
+                      byteorder, obj, **kwargs)
+
+    def create_vlarray(self, where, name, atom=None, title="",
+                       filters=None, expectedrows=None,
+                       chunkshape=None, byteorder=None,
+                       createparents=False, obj=None, **kwargs):
+        if not hasattr(where, 'create_vlarray'):
+            where = self._get_or_create_path(where, createparents)
+        return where.create_vlarray(name, atom, title, filters,
+                                    expectedrows, chunkshape,
+                                    byteorder, obj, **kwargs)
+
+    def create_group(self, where, *args, createparents=False, **kwargs):
+        if not hasattr(where, 'create_group'):
+            where = self._get_or_create_path(where, createparents)
         return where.create_group(*args, **kwargs)
 
-    def create_table(self, where, name, desc, *args, **kwargs):
+    def create_table(self, where, name, desc, *args,
+                     createparents=False, **kwargs):
+        if not hasattr(where, 'create_table'):
+            where = self._get_or_create_path(where, createparents)
         return where.create_table(name, desc, *args, **kwargs)
 
-    def get_node(self, where):
-        return self.root[where]
+    def get_node(self, where, name=None, classname=None):
+        """Get the node under where with the given name.
+
+        Parameters
+        ----------
+        where : str or Node
+            This can be a path string leading to a node or a Node instance (see
+            :ref:`NodeClassDescr`). If no name is specified, that node is
+            returned.
+
+            .. note::
+
+                If where is a Node instance from a different file than the one
+                on which this function is called, the returned node will also
+                be from that other file.
+
+        name : str, optional
+            If a name is specified, this must be a string with the name of
+            a node under where.  In this case the where argument can only
+            lead to a Group (see :ref:`GroupClassDescr`) instance (else a
+            TypeError is raised). The node called name under the group
+            where is returned.
+        classname : str, optional
+            If the classname argument is specified, it must be the name of
+            a class derived from Node (e.g. Table). If the node is found but it
+            is not an instance of that class, a NoSuchNodeError is also raised.
+
+        If the node to be returned does not exist, a NoSuchNodeError is
+        raised. Please note that hidden nodes are also considered.
+
+        """
+
+        self._check_open()
+
+        if isinstance(where, Group):
+            where._g_check_open()
+
+            node = where[name]
+        elif isinstance(where, (six.string_types, np.str_)):
+            if not where.startswith('/'):
+                raise NameError("``where`` must start with a slash ('/')")
+
+            basepath = where
+            nodepath = join_path(basepath, name or '') or '/'
+            node = self.root[nodepath]
+        else:
+            raise TypeError(
+                "``where`` must be a string or a node: %r" % (where,))
+
+        # Finally, check whether the desired node is an instance
+        # of the expected class.
+        if classname is not None:
+            class_ = get_class_by_name(classname)
+            if not isinstance(node, class_):
+                npathname = node._v_pathname
+                nclassname = node.__class__.__name__
+                # This error message is right since it can never be shown
+                # for ``classname in [None, 'Node']``.
+                raise NoSuchNodeError(
+                    "could not find a ``%s`` node at ``%s``; "
+                    "instead, a ``%s`` node has been found there"
+                    % (classname, npathname, nclassname))
+
+        return node
+
+    def _check_writable(self):
+        return self.backend._check_writable()
+
+
+    def _get_or_create_path(self, path, create):
+        if create:
+            return self._create_path(path)
+        else:
+            return self.get_node(path)
+
+    def _create_path(self, path):
+        if not hasattr(path, 'split'):
+            raise TypeError("when creating parents, parent must be a path")
+
+        if path == '/':
+            return self.root
+
+        parent, create_group = self.root, self.create_group
+        for pcomp in path.split('/')[1:]:
+            try:
+                child = parent[pcomp]
+            except NoSuchNodeError:
+                child = create_group(parent, name=pcomp)
+            parent = child
+        return parent
+
+    def _check_open(self):
+        """Check the state of the file.
+
+        If the file is closed, a `ClosedFileError` is raised.
+
+        """
+
+        if not self._v_isopen:
+            raise ClosedFileError("the file object is closed")
 
 
 # A dumb class that doesn't keep nothing at all
@@ -399,9 +783,9 @@ class NodeManager:
                 except ClosedNodeError:
                     #import traceback
                     #type_, value, tb = sys.exc_info()
-                    #exception_dump = ''.join(
+                    # exception_dump = ''.join(
                     #    traceback.format_exception(type_, value, tb))
-                    #warnings.warn(
+                    # warnings.warn(
                     #    "A '%s' exception occurred trying to close a node "
                     #    "that was supposed to be open.\n"
                     #    "%s" % (type_.__name__, exception_dump))
@@ -440,7 +824,7 @@ class NodeManager:
         registry = self.registry
         cache = self.cache
 
-        #self.close_subtree('/')
+        # self.close_subtree('/')
 
         keys = list(cache)  # copy
         for key in keys:

@@ -19,7 +19,7 @@ import math
 import numpy
 
 from .flavor import (check_flavor, internal_flavor,
-                           alias_map as flavor_alias_map)
+                     alias_map as flavor_alias_map)
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
@@ -759,9 +759,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._f_close(flush)
 
 
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:
+# Local Variables:
+# mode: python
+# py-indent-offset: 4
+# tab-width: 4
+# fill-column: 72
+# End:

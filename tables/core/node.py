@@ -1,5 +1,6 @@
 from .attributes import Attributes
 from .mixins import HasTitle, HasBackend
+from ..exceptions import ClosedNodeError
 
 
 class Node(HasTitle, HasBackend):
@@ -11,11 +12,6 @@ class Node(HasTitle, HasBackend):
         if self.parent is not None:
             # Set the _file attr for nodes that are not File
             self._file = self.parent._file
-            nmanager = self._file._node_manager
-            node = nmanager.get_node(self._v_pathname)
-            if not node:
-                # Put this node in cache
-                nmanager.cache_node(self, self._v_pathname)
 
     @property
     def name(self):
@@ -39,16 +35,14 @@ class Node(HasTitle, HasBackend):
     _v_attrs = attrs
 
     def open(self):
-        self._isopen = True
-        return self.backend.open()
+        if not self._v_isopen:
+            self._isopen = True
+            return self.backend.open()
 
     def close(self):
-        self._isopen = False
-        return self.backend.close()
-
-    @property
-    def _v_isopen(self):
-        return self._isopen
+        if self._v_isopen:
+            self._isopen = False
+            return self.backend.close()
 
     @property
     def filters(self):
@@ -68,3 +62,17 @@ class Node(HasTitle, HasBackend):
     @property
     def _v_file(self):
         return self._file
+
+    @property
+    def _v_isopen(self):
+        return self._isopen
+
+    def _g_check_open(self):
+        """Check that the node is open.
+
+        If the node is closed, a `ClosedNodeError` is raised.
+
+        """
+
+        if not self._v_isopen or not self._v_file._v_isopen:
+            raise ClosedNodeError("the node object is closed")
