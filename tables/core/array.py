@@ -1,10 +1,10 @@
 import sys
 import numpy as np
 from .leaf import Leaf
-from .. import Atom
+from .. import Atom, VLStringAtom
 from ..utils import byteorders
 from ..exceptions import ClosedNodeError
-from ..flavor import array_of_flavor, internal_to_flavor
+from ..flavor import array_of_flavor
 
 
 class Array(Leaf):
@@ -28,7 +28,11 @@ class Array(Leaf):
                 else:
                     self.atom = Atom.from_dtype(self.dtype, dflt=self.backend.fillvalue)
             else:
-                self.atom = Atom.from_dtype(self.dtype.metadata['vlen'])
+                if _atom is None:
+                    if self.dtype == bytes:
+                        self.atom = VLStringAtom()
+                    else:
+                        self.atom = Atom.from_dtype(self.dtype)
         self.nrow = None
         # Provisional for test
         if not hasattr(self, 'extdim'):
@@ -115,19 +119,7 @@ class Array(Leaf):
             return out
 
         if self.flavor != 'numpy':
-            if self.__class__.__name__ == 'VLArray':
-                atom = self.atom
-                if not hasattr(atom, 'size'):  # it is a pseudo-atom
-                    arr = [atom.fromarray(e) for e in arr]
-                else:
-                    # Convert the list to the right flavor
-                    flavor = self.flavor
-                    if arr.size == 0:
-                        arr = [array_of_flavor(arr, flavor)]
-                    else:
-                        arr = [array_of_flavor(e, flavor) for e in arr]
-            else:
-                arr = array_of_flavor(arr, self.flavor)
+            arr = array_of_flavor(arr, self.flavor)
 
         return arr
 

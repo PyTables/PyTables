@@ -17,6 +17,10 @@ class Leaf(Node):
 
     @property
     def dtype(self):
+        if self.__class__.__name__ == 'VLArray':
+            vlen_dtype = self.backend._check_dtype()
+            if vlen_dtype is not None:
+                return vlen_dtype
         return self.backend.dtype
 
     @property

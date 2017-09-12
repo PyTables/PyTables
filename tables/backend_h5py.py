@@ -118,6 +118,9 @@ class Dataset(h5py.Dataset, abc.Dataset):
     def size_on_disk(self):
         return self.id.get_storage_size()
 
+    def _check_dtype(self):
+        return h5py.h5t.check_dtype(vlen=self.dtype)
+
     def _infer_class(self):
         class_str = 'UNSUPPORTED' # default value
         class_id = self.id.get_type().get_class()

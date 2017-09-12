@@ -1,8 +1,10 @@
+import sys
 import numpy as np
 from .earray import EArray
 from ..atom import VLStringAtom, VLUnicodeAtom, ObjectAtom
-from ..utils import convert_to_np_atom2
+from ..utils import convert_to_np_atom2, byteorders
 from ..exceptions import HDF5ExtError
+from ..flavor import array_of_flavor, internal_to_flavor
 
 
 class VLArray(EArray):
@@ -26,7 +28,8 @@ class VLArray(EArray):
 
         # Prepare the sequence to convert it into a NumPy object
         atom = self.atom
-        if not hasattr(atom, 'size'):  # it is a pseudo-atom
+        if (not hasattr(atom, 'size') and
+                not isinstance(atom, VLStringAtom)):  # it is a pseudo-atom
             sequence = atom.toarray(sequence)
             statom = atom.base
         else:
@@ -36,15 +39,31 @@ class VLArray(EArray):
                 raise TypeError("argument is not a sequence")
             statom = atom
 
-        if len(sequence) > 0:
-            # The sequence needs to be copied to make the operation safe
-            # to in-place conversion.
-            nparr = convert_to_np_atom2(sequence, statom)
+        if not isinstance(atom, VLStringAtom):
+            if len(sequence) > 0:
+                # The sequence needs to be copied to make the operation safe
+                # to in-place conversion.
+                nparr = convert_to_np_atom2(sequence, statom)
+            else:
+                nparr = []
         else:
-            nparr = []
+            nparr = np.string_(sequence)
 
         self.backend.resize(self.shape[self.extdim] + 1, axis=self.extdim)
         self[-1] = nparr
+
+    def read(self, start=None, stop=None, step=1):
+        arr = super().read(start, stop, step)
+        atom = self.atom
+        if hasattr(atom, 'size'):  # it is a pseudo-atom
+            # Convert the list to the right flavor
+            arr = [array_of_flavor(e, self.flavor) for e in arr]
+        for e in arr:
+            if hasattr(e, 'dtype') and byteorders[e.dtype.byteorder] != sys.byteorder:
+                e = e.byteswap(True)
+                e.dtype = e.dtype.newbyteorder('=')
+
+        return arr
 
     def get_row_size(self, row):
         if row >= self.nrows:

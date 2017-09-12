@@ -308,8 +308,26 @@ class Group(HasChildren, Node):
         elif atom is None:
             raise ValueError('atom parameter cannot be None')
 
+        if hasattr(atom, 'dtype'):
+            vlen = atom.dtype
+        byteorder = correct_byteorder(type(obj), byteorder)
+        if byteorder is None:
+            _byteorder = np_byteorders['irrelevant']
+        else:
+            _byteorder = np_byteorders[byteorder]
 
-        dtype = special_dtype(vlen=atom.dtype)
+        if _byteorder != '|' and vlen.byteorder != '|':
+            if byteorders[_byteorder] != byteorders[vlen.byteorder]:
+                vlen = vlen.newbyteorder()
+                if obj is not None:
+                    obj = obj.byteswap()
+                    obj.dtype = obj.dtype.newbyteorder()
+
+        if not hasattr(atom, 'size'):
+            dtype = special_dtype(vlen=bytes)
+        else:
+            dtype = special_dtype(vlen=vlen)
+
         _checkfilters(filters)
         compression = None
         compression_opts = None
