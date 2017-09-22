@@ -22,5 +22,3 @@ Project pointers
   (going to be closed)
 * Development version of the
   `HTML documentation <http://pytables.github.io/latest/index.html>`_
-* `Old trac site <http://www.pytables.org/trac-bck>`_
-
