@@ -542,7 +542,7 @@ uninstall `Numeric`.
 .. _`Python language`: http://www.python.org
 .. _NumPy: http://www.numpy.org
 .. _`users mailing list`: https://groups.google.com/group/pytables-users
-.. _`archives of the user's list`: http://sourceforge.net/mailarchive/forum.php?forum_id=13760
+.. _`archives of the user's list`: https://sourceforge.net/p/pytables/mailman/pytables-users/
 .. _`Gmane archives`: http://www.mail-archive.com/pytables-users@lists.sourceforge.net/
 .. _`R&D 100 Award`: http://www.hdfgroup.org/HDF5/RD100-2002/
 .. _ViTables: http://vitables.org
