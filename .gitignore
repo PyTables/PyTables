@@ -11,3 +11,7 @@ tables/*.so
 
 # specific files
 src/version.h
+
+
+tmp/*
+*.egg-info/*
