@@ -956,7 +956,8 @@ cdef class Row:
         # Evaluate the condition on this table fragment.
         iobuf = iobuf[:recout]
 
-        self.table._convert_types(iobuf, len(iobuf), 1)
+        if len(iobuf) > 0:
+          self.table._convert_types(iobuf, len(iobuf), 1)
         self.indexvalid = call_on_recarr(
           self.condfunc, self.condargs, iobuf, **self.condkwargs)
         self.index_valid_data = <char *>self.indexvalid.data
