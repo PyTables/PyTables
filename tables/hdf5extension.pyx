@@ -34,6 +34,8 @@ import warnings
 from collections import namedtuple
 
 ObjInfo = namedtuple('ObjInfo', ['addr', 'rc'])
+ObjTimestamps = namedtuple('ObjTimestamps', ['atime', 'mtime',
+                                             'ctime', 'btime'])
 
 
 from cpython cimport PY_MAJOR_VERSION
@@ -80,13 +82,13 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle, H5Fget_filesize,
   H5Fget_create_plist,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
-  H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type,
+  H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, H5Dget_create_plist,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
   H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT, H5T_STRING, H5Tget_order,
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pget_userblock, H5Pset_userblock,
   H5Pset_fapl_sec2, H5Pset_fapl_log, H5Pset_fapl_stdio, H5Pset_fapl_core,
-  H5Pset_fapl_split,
+  H5Pset_fapl_split, H5Pget_obj_track_times,
   H5Sselect_all, H5Sselect_elements, H5Sselect_hyperslab,
   H5Screate_simple, H5Sclose,
   H5Oget_info, H5O_info_t,
@@ -117,7 +119,7 @@ cdef extern from "H5ARRAY.h" nogil:
                      int rank, hsize_t *dims, int extdim,
                      hid_t type_id, hsize_t *dims_chunk, void *fill_data,
                      int complevel, char  *complib, int shuffle,
-                     int fletcher32, void *data)
+                     int fletcher32, hbool_t track_times, void *data)
 
   herr_t H5ARRAYappend_records(hid_t dataset_id, hid_t type_id,
                                int rank, hsize_t *dims_orig,
@@ -152,7 +154,7 @@ cdef extern from "H5VLARRAY.h" nogil:
                         int rank, hsize_t *dims, hid_t type_id,
                         hsize_t chunk_size, void *fill_data, int complevel,
                         char *complib, int shuffle, int flecther32,
-                        void *data)
+                        hbool_t track_times, void *data)
 
   herr_t H5VLARRAYappend_records( hid_t dataset_id, hid_t type_id,
                                   int nobjects, hsize_t nrecords,
@@ -929,6 +931,18 @@ cdef class Node:
 
     return ObjInfo(oinfo.addr, oinfo.rc)
 
+  def _get_obj_timestamps(self):
+    cdef herr_t ret = 0
+    cdef H5O_info_t oinfo
+
+    ret = H5Oget_info(self._v_objectid, &oinfo)
+    if ret < 0:
+      raise HDF5ExtError("Unable to get object info for '%s'" %
+                         self. _v_pathname)
+
+    return ObjTimestamps(oinfo.atime, oinfo.mtime, oinfo.ctime,
+                         oinfo.btime)
+
 
 cdef class Group(Node):
   cdef hid_t   group_id
@@ -1100,6 +1114,39 @@ cdef class Leaf(Node):
   def _get_storage_size(self):
       return H5Dget_storage_size(self.dataset_id)
 
+  def _get_obj_track_times(self):
+    """Get track_times boolean for dataset
+
+    Uses H5Pget_obj_track_times to determine if the dataset was
+    created with the track_times property.  If the leaf is not a
+    dataset, this will fail with HDF5ExtError.
+
+    The track times dataset creation property does not seem to survive
+    closing and reopening as of HDF5 1.8.17.  Currently, it may be
+    more accurate to test whether the ctime for the dataset is 0:
+    track_times = (leaf._get_obj_timestamps().ctime == 0)
+    """
+    cdef:
+      hbool_t track_times = True
+
+    if self.dataset_id < 0:
+      raise ValueError('Invalid dataset id %s' % self.dataset_id)
+
+    plist_id = H5Dget_create_plist(self.dataset_id)
+    if plist_id < 0:
+      raise HDF5ExtError("Could not get dataset creation property list "
+                         "from dataset id %s" % self.dataset_id)
+
+    try:
+      # Get track_times boolean for dataset
+      if H5Pget_obj_track_times(plist_id, &track_times) < 0:
+        raise HDF5ExtError("Could not get dataset track_times property "
+                           "from dataset id %s" % self.dataset_id)
+    finally:
+      H5Pclose(plist_id)
+
+    return bool(track_times)
+
   def _g_new(self, where, name, init):
     if init:
       # Put this info to 0 just when the class is initialized
@@ -1244,6 +1291,7 @@ cdef class Array(Leaf):
                                   self.filters.complevel, complib,
                                   self.filters.shuffle_bitshuffle,
                                   self.filters.fletcher32,
+                                  self._want_track_times,
                                   rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
@@ -1312,7 +1360,8 @@ cdef class Array(Leaf):
       self.parent_id, encoded_name, version, self.rank,
       self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
       fill_data, self.filters.complevel, complib,
-      self.filters.shuffle_bitshuffle, self.filters.fletcher32, rbuf)
+        self.filters.shuffle_bitshuffle, self.filters.fletcher32,
+        self._want_track_times, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
@@ -1912,7 +1961,7 @@ cdef class VLArray(Leaf):
                                     self.filters.complevel, complib,
                                     self.filters.shuffle_bitshuffle,
                                     self.filters.fletcher32,
-                                    rbuf)
+                                    self._want_track_times, rbuf)
     if dims:
       free(<void *>dims)
     if self.dataset_id < 0:

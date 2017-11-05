@@ -459,6 +459,7 @@ cdef extern from "hdf5.h" nogil:
   herr_t H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
   herr_t H5Pget_userblock(hid_t plist, hsize_t *size)
   herr_t H5Pset_userblock(hid_t plist, hsize_t size)
+  herr_t H5Pget_obj_track_times(hid_t ocpl_id, hbool_t *track_times)
 
   # Error Handling Interface
   #herr_t H5Eget_auto(hid_t estack_id, H5E_auto_t *func, void** data)
