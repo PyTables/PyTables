@@ -722,7 +722,7 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
         # truncate data if least_significant_digit filter is set
         # TODO: add the least_significant_digit attribute to the array on disk
         if (self.filters.least_significant_digit is not None and
-                not numpy.issubdtype(nparr.dtype, int)):
+                not numpy.issubdtype(nparr.dtype, numpy.signedinteger)):
             nparr = quantize(nparr, self.filters.least_significant_digit)
 
         try:
