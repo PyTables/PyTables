@@ -2903,16 +2903,16 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing row
         table[2] = (456, 'db2', 1.2)
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [456, b'db2', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (456, b'db2', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -2935,16 +2935,16 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing row
         table[2] = (456, 'db2', 1.2)
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [456, b'db2', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (456, b'db2', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -2967,17 +2967,17 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify two existing rows
-        rows = records.array([[457, b'db1', 1.2]], formats="i4,a3,f8")
+        rows = records.array([(457, b'db1', 1.2)], formats="i4,a3,f8")
         table[1:3:2] = rows
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [457, b'db1', 1.2],
-                            [457, b'db1', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
+                            (457, b'db1', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3000,19 +3000,19 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify two existing rows
-        rows = records.array([[457, b'db1', 1.2], [5, b'de1', 1.3]],
+        rows = records.array([(457, b'db1', 1.2), (5, b'de1', 1.3)],
                              formats="i4,a3,f8")
         # table.modify_rows(start=1, rows=rows)
         table[1:3] = rows
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [457, b'db1', 1.2],
-                            [5, b'de1', 1.3], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
+                            (5, b'de1', 1.3), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3035,19 +3035,19 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify two existing rows
-        rows = records.array([[457, b'db1', 1.2], [6, b'de2', 1.3]],
+        rows = records.array([(457, b'db1', 1.2), (6, b'de2', 1.3)],
                              formats="i4,a3,f8")
         # table[1:4:2] = rows
         table[1::2] = rows
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [457, b'db1', 1.2],
-                            [457, b'db1', 1.2], [6, b'de2', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
+                            (457, b'db1', 1.2), (6, b'de2', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3070,16 +3070,16 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3]],
+        r = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3)],
                           formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         table.cols.col1[1] = -1
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [-1, b'ded', 1.3],
-                            [457, b'db1', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (-1, b'ded', 1.3),
+                            (457, b'db1', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3102,16 +3102,16 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         table.cols.col1[1:4] = [2, 3, 4]
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [3, b'db1', 1.2], [4, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (3, b'db1', 1.2), (4, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3134,10 +3134,10 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         with self.assertRaises(NotImplementedError):
@@ -3172,15 +3172,15 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          1, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          1, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify just one existing column
         table.cols.col1[1:4:2] = [2, 3]
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [457, b'db1', 1.2], [3, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (457, b'db1', 1.2), (3, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3203,16 +3203,16 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         table.cols.col1[1:4:3] = [2]
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [457, b'db1', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (457, b'db1', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3235,19 +3235,19 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Try to modify beyond the extend
         # This will silently exclude the non-fitting rows
-        rows = records.array([[457, b'db1', 1.2], [6, b'de2', 1.3]],
+        rows = records.array([(457, b'db1', 1.2), (6, b'de2', 1.3)],
                              formats="i4,a3,f8")
         table[1::2] = rows
         # How it should look like
-        r1 = records.array([[456, b'dbe', 1.2], [457, b'db1', 1.2],
-                            [457, b'db1', 1.2], [6, b'de2', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
+                            (457, b'db1', 1.2), (6, b'de2', 1.3)],
                            formats="i4,a3,f8")
 
         # Read the modified table
@@ -3292,18 +3292,18 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing row
         for row in table.iterrows(2, 3):
-            (row['col1'], row['col2'], row['col3']) = [456, 'db2', 1.2]
+            (row['col1'], row['col2'], row['col3']) = (456, 'db2', 1.2)
             row.update()
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [456, b'db2', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (456, b'db2', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3326,21 +3326,21 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify two existing rows
         for row in table.iterrows(1, 3, 2):
             if row.nrow == 1:
-                (row['col1'], row['col2'], row['col3']) = [457, 'db1', 1.2]
+                (row['col1'], row['col2'], row['col3']) = (457, 'db1', 1.2)
             elif row.nrow == 3:
-                (row['col1'], row['col2'], row['col3']) = [6, 'de2', 1.3]
+                (row['col1'], row['col2'], row['col3']) = (6, 'de2', 1.3)
             row.update()
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [457, b'db1', 1.2],
-                            [457, b'db1', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
+                            (457, b'db1', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3363,21 +3363,21 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify two existing rows
         for row in table.iterrows(1, 3):
             if row.nrow == 1:
-                (row['col1'], row['col2'], row['col3']) = [457, 'db1', 1.2]
+                (row['col1'], row['col2'], row['col3']) = (457, 'db1', 1.2)
             elif row.nrow == 2:
-                (row['col1'], row['col2'], row['col3']) = [5, 'de1', 1.3]
+                (row['col1'], row['col2'], row['col3']) = (5, 'de1', 1.3)
             row.update()
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [457, b'db1', 1.2],
-                            [5, b'de1', 1.3], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
+                            (5, b'de1', 1.3), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3400,21 +3400,21 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify two existing rows
         for row in table.iterrows(1, stop=4, step=2):
             if row.nrow == 1:
-                (row['col1'], row['col2'], row['col3']) = [457, 'db1', 1.2]
+                (row['col1'], row['col2'], row['col3']) = (457, 'db1', 1.2)
             elif row.nrow == 3:
-                (row['col1'], row['col2'], row['col3']) = [6, 'de2', 1.3]
+                (row['col1'], row['col2'], row['col3']) = (6, 'de2', 1.3)
             row.update()
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [457, b'db1', 1.2],
-                            [457, b'db1', 1.2], [6, b'de2', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
+                            (457, b'db1', 1.2), (6, b'de2', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3437,18 +3437,18 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3]],
+        r = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3)],
                           formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         for row in table.iterrows(1, 2):
             row['col1'] = -1
             row.update()
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [-1, b'ded', 1.3],
-                            [457, b'db1', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (-1, b'ded', 1.3),
+                            (457, b'db1', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3471,18 +3471,18 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         for row in table.iterrows(1, 4):
             row['col1'] = row.nrow + 1
             row.update()
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [3, b'db1', 1.2], [4, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (3, b'db1', 1.2), (4, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3505,18 +3505,18 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          1, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          1, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify just rows with col1 < 456
         for row in table.where('col1 < 456'):
             row['col1'] = 2
             row['col2'] = 'ada'
             row.update()
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ada', 1.3],
-                            [457, b'db1', 1.2], [2, b'ada', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ada', 1.3),
+                            (457, b'db1', 1.2), (2, b'ada', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3748,8 +3748,8 @@ class RecArrayIO(common.TempFileMixin, TestCase):
             print("Running %s.test00..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'de', 1.3]], names='col1,col2,col3')
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'de', 1.3)], names='col1,col2,col3')
 
         # Save it in a table:
         self.h5file.create_table(self.h5file.root, 'recarray', r)
@@ -3768,8 +3768,8 @@ class RecArrayIO(common.TempFileMixin, TestCase):
             print("Running %s.test01..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'de', 1.3]], names='col1,col2,col3')
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'de', 1.3)], names='col1,col2,col3')
 
         # Get an offsetted bytearray
         r1 = r[1:]
@@ -3849,13 +3849,13 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Create the complete table
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [457, b'db1', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (457, b'db1', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the original table
@@ -3880,17 +3880,17 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         self._reopen()
 
         table = self.h5file.root.recarray
         # Create the complete table
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [457, b'db1', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (457, b'db1', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
 
@@ -3923,8 +3923,8 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         # Modify just one existing rows
         table.modify_rows(start=1, rows=[(456, 'db1', 1.2)])
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [456, b'db1', 1.2],
-                            [457, b'db1', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (456, b'db1', 1.2),
+                            (457, b'db1', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
 
@@ -3950,16 +3950,16 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify just one existing rows
-        table.modify_rows(start=2, rows=records.array([[456, 'db2', 1.2]],
+        table.modify_rows(start=2, rows=records.array([(456, 'db2', 1.2)],
                                                       formats="i4,a3,f8"))
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [456, b'db2', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (456, b'db2', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -3984,15 +3984,15 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify two existing rows
         table.modify_rows(start=1, rows=[(457, 'db1', 1.2), (5, 'de1', 1.3)])
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [457, b'db1', 1.2],
-                            [5, b'de1', 1.3], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
+                            (5, b'de1', 1.3), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4017,17 +4017,17 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify two existing rows
-        rows = records.array([[457, b'db1', 1.2], [5, b'de1', 1.3]],
+        rows = records.array([(457, b'db1', 1.2), (5, b'de1', 1.3)],
                              formats="i4,a3,f8")
         table.modify_rows(start=1, rows=rows)
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [457, b'db1', 1.2],
-                            [5, b'de1', 1.3], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
+                            (5, b'de1', 1.3), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4052,12 +4052,12 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify two existing rows
-        rows = records.array([[457, b'db1', 1.2], [5, b'de1', 1.3]],
+        rows = records.array([(457, b'db1', 1.2), (5, b'de1', 1.3)],
                              formats="i4,a3,f8")
         self.assertRaises(ValueError, table.modify_rows,
                           start=1, stop=2, rows=rows)
@@ -4073,16 +4073,16 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         table.modify_columns(start=1, columns=[[2, 3, 4]], names=["col1"])
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [3, b'db1', 1.2], [4, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (3, b'db1', 1.2), (4, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4108,16 +4108,16 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         table.modify_column(start=1, column=[2, 3, 4], colname="col1")
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [3, b'db1', 1.2], [4, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (3, b'db1', 1.2), (4, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4142,17 +4142,17 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         columns = records.fromarrays(np.array([[2, 3, 4]]), formats="i4")
         table.modify_columns(start=1, columns=columns, names=["col1"])
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [3, b'db1', 1.2], [4, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (3, b'db1', 1.2), (4, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4178,17 +4178,17 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         columns = records.fromarrays(np.array([[2, 3, 4]]), formats="i4")
         table.modify_column(start=1, column=columns, colname="col1")
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'ded', 1.3],
-                            [3, b'db1', 1.2], [4, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
+                            (3, b'db1', 1.2), (4, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4214,18 +4214,18 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         # columns = records.fromarrays(np.array([[4]]), formats="i4")
         # table.modify_columns(start=1, columns=columns, names=["col1"])
         table.modify_columns(start=1, columns=[[4]], names=["col1"])
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [4, b'ded', 1.3],
-                            [457, b'db1', 1.2], [5, b'de1', 1.3]],
+        r1 = records.array([(456, b'dbe', 1.2), (4, b'ded', 1.3),
+                            (457, b'db1', 1.2), (5, b'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4250,17 +4250,17 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify a couple of columns
         columns = [["aaa", "bbb", "ccc"], [1.2, .1, .3]]
         table.modify_columns(start=1, columns=columns, names=["col2", "col3"])
         # Create the modified recarray
-        r1 = records.array([[456, b'dbe', 1.2], [2, b'aaa', 1.2],
-                            [457, b'bbb', .1], [5, b'ccc', .3]],
+        r1 = records.array([(456, b'dbe', 1.2), (2, b'aaa', 1.2),
+                            (457, b'bbb', .1), (5, b'ccc', .3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
 
@@ -4286,18 +4286,18 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify a couple of columns
-        columns = records.array([["aaa", 1.2], ["bbb", .1], ["ccc", .3]],
+        columns = records.array([("aaa", 1.2), ("bbb", .1), ("ccc", .3)],
                                 formats="a3,f8")
         table.modify_columns(start=1, columns=columns, names=["col2", "col3"])
         # Create the modified recarray
-        r1 = records.array([[456, 'dbe', 1.2], [2, 'aaa', 1.2],
-                            [457, 'bbb', .1], [5, 'ccc', .3]],
+        r1 = records.array([(456, 'dbe', 1.2), (2, 'aaa', 1.2),
+                            (457, 'bbb', .1), (5, 'ccc', .3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4322,18 +4322,18 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify a couple of columns
-        columns = records.array([["aaa", 1.2], ["bbb", .1]],
+        columns = records.array([("aaa", 1.2), ("bbb", .1)],
                                 formats="a3,f8")
         table.modify_columns(start=1, step=2, columns=columns,
                              names=["col2", "col3"])
         # Create the modified recarray
-        r1 = records.array([[456, 'dbe', 1.2], [2, 'aaa', 1.2],
-                            [457, 'db1', 1.2], [5, 'bbb', .1]],
+        r1 = records.array([(456, 'dbe', 1.2), (2, 'aaa', 1.2),
+                            (457, 'db1', 1.2), (5, 'bbb', .1)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4358,19 +4358,19 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify a couple of columns
-        columns = records.array([["aaa", 1.3], ["bbb", .1]],
+        columns = records.array([("aaa", 1.3), ("bbb", .1)],
                                 formats="a3,f8")
         table.modify_columns(start=0, step=2, columns=columns,
                              names=["col2", "col3"])
         # Create the modified recarray
-        r1 = records.array([[456, 'aaa', 1.3], [2, 'ded', 1.3],
-                            [457, 'bbb', .1], [5, 'de1', 1.3]],
+        r1 = records.array([(456, 'aaa', 1.3), (2, 'ded', 1.3),
+                            (457, 'bbb', .1), (5, 'de1', 1.3)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4396,10 +4396,10 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         columns = table.read_coordinates([0, 3])
 
@@ -4411,8 +4411,8 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table.modify_coordinates([0, 3], columns)
 
         # Create the modified recarray
-        r1 = records.array([[55, b'dbe', 1.9], [2, b'ded', 1.3],
-                            [457, b'db1', 1.2], [56, b'de1', 1.8]],
+        r1 = records.array([(55, b'dbe', 1.9), (2, b'ded', 1.3),
+                            (457, b'db1', 1.2), (56, b'de1', 1.8)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4437,10 +4437,10 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'ded', 1.3]], formats="i4,a3,f8")
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'ded', 1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457, b'db1', 1.2], [5, b'de1', 1.3]])
+        table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         columns = table[[0, 3]]
 
@@ -4452,8 +4452,8 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         table[[0, 3]] = columns
 
         # Create the modified recarray
-        r1 = records.array([[55, b'dbe', 1.9], [2, b'ded', 1.3],
-                            [457, b'db1', 1.2], [56, b'de1', 1.8]],
+        r1 = records.array([(55, b'dbe', 1.9), (2, b'ded', 1.3),
+                            (457, b'db1', 1.2), (56, b'de1', 1.8)],
                            formats="i4,a3,f8",
                            names="col1,col2,col3")
         # Read the modified table
@@ -4503,8 +4503,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_copy..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'de', 1.3]], names='col1,col2,col3')
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'de', 1.3)], names='col1,col2,col3')
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4570,8 +4570,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02_copy..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'de', 1.3]], names='col1,col2,col3')
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'de', 1.3)], names='col1,col2,col3')
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4696,8 +4696,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test04_copy..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'de', 1.3]], names='col1,col2,col3')
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'de', 1.3)], names='col1,col2,col3')
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4757,8 +4757,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test05_copy..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'de', 1.3]], names='col1,col2,col3')
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'de', 1.3)], names='col1,col2,col3')
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4824,8 +4824,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test05b_copy..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([[456, b'dbe', 1.2], [
-                          2, b'de', 1.3]], names='col1,col2,col3')
+        r = records.array([(456, b'dbe', 1.2), (
+                          2, b'de', 1.3)], names='col1,col2,col3')
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -5096,7 +5096,7 @@ class LargeRowSize(common.TempFileMixin, TestCase):
         """Checking saving a Table with a moderately large rowsize"""
 
         # Create a recarray
-        r = records.array([[np.arange(100)]*2])
+        r = records.array([(np.arange(100))*2])
 
         # Save it in a table:
         self.h5file.create_table(self.h5file.root, 'largerow', r)
@@ -5177,7 +5177,7 @@ class DefaultValues(common.TempFileMixin, TestCase):
             values.append(1.-0.j)
             formats.append('c32')
 
-        r = records.array([values]*nrows, formats=','.join(formats))
+        r = records.array([tuple(values)]*nrows, formats=','.join(formats))
 
         # Assign the value exceptions
         r["f1"][3] = 2
@@ -5251,7 +5251,7 @@ class DefaultValues(common.TempFileMixin, TestCase):
             values.append(1.-0.j)
             formats.append('c32')
 
-        r = records.array([values]*nrows, formats=','.join(formats))
+        r = records.array([tuple(values)]*nrows, formats=','.join(formats))
 
         # Assign the value exceptions
         r["f1"][3] = 2
