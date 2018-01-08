@@ -824,8 +824,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking setting Int attributes (scalar, NumPy case)"""
 
         # 'UInt64' not supported on Win
-        checktypes = ['Int8', 'Int16', 'Int32', 'Int64',
-                      'UInt8', 'UInt16', 'UInt32']
+        checktypes = ['int8', 'int16', 'int32', 'int64',
+                      'uint8', 'uint16', 'uint32']
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype, numpy.array(1, dtype=dtype))
@@ -851,8 +851,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking setting Int attributes (unidimensional NumPy case)"""
 
         # 'UInt64' not supported on Win
-        checktypes = ['Int8', 'Int16', 'Int32', 'Int64',
-                      'UInt8', 'UInt16', 'UInt32']
+        checktypes = ['int8', 'int16', 'int32', 'int64',
+                      'uint8', 'uint16', 'uint32']
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype, numpy.array([1, 2], dtype=dtype))
@@ -876,8 +876,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking setting Int attributes (unidimensional, non-contiguous)"""
 
         # 'UInt64' not supported on Win
-        checktypes = ['Int8', 'Int16', 'Int32', 'Int64',
-                      'UInt8', 'UInt16', 'UInt32']
+        checktypes = ['int8', 'int16', 'int32', 'int64',
+                      'uint8', 'uint16', 'uint32']
 
         for dtype in checktypes:
             arr = numpy.array([1, 2, 3, 4], dtype=dtype)[::2]
@@ -902,8 +902,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking setting Int attributes (bidimensional NumPy case)"""
 
         # 'UInt64' not supported on Win
-        checktypes = ['Int8', 'Int16', 'Int32', 'Int64',
-                      'UInt8', 'UInt16', 'UInt32']
+        checktypes = ['int8', 'int16', 'int32', 'int64',
+                      'uint8', 'uint16', 'uint32']
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype,
@@ -955,7 +955,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test02b_setFloatAttributes(self):
         """Checking setting Float attributes (scalar, NumPy case)"""
 
-        checktypes = ['Float32', 'Float64']
+        checktypes = ['float32', 'float64']
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype,
@@ -982,7 +982,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test02c_setFloatAttributes(self):
         """Checking setting Float attributes (unidimensional NumPy case)"""
 
-        checktypes = ['Float32', 'Float64']
+        checktypes = ['float32', 'float64']
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype,
@@ -1009,7 +1009,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking setting Float attributes (unidimensional,
         non-contiguous)"""
 
-        checktypes = ['Float32', 'Float64']
+        checktypes = ['float32', 'float64']
 
         for dtype in checktypes:
             arr = numpy.array([1.1, 2.1, 3.1, 4.1], dtype=dtype)[1::2]
@@ -1035,7 +1035,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test02e_setFloatAttributes(self):
         """Checking setting Int attributes (bidimensional NumPy case)"""
 
-        checktypes = ['Float32', 'Float64']
+        checktypes = ['float32', 'float64']
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype,
@@ -1268,7 +1268,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test05c_setComplexAttributes(self):
         """Checking setting Complex attributes (unidimensional NumPy case)"""
 
-        checktypes = ['Complex32', 'Complex64']
+        checktypes = ['complex64', 'complex128']
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype,
@@ -1294,7 +1294,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test05d_setComplexAttributes(self):
         """Checking setting Int attributes (bidimensional NumPy case)"""
 
-        checktypes = ['Complex32', 'Complex64']
+        checktypes = ['complex64', 'complex128']
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype,

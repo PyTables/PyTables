@@ -655,13 +655,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with integer atoms."""
 
         ttypes = [
-            "Int8",
-            "UInt8",
-            "Int16",
-            "UInt16",
-            "Int32",
-            "UInt32",
-            "Int64",
+            "int8",
+            "uint8",
+            "int16",
+            "uint16",
+            "int32",
+            "uint32",
+            "int64",
             #"UInt64",  # Unavailable in some platforms
         ]
         if common.verbose:
@@ -699,13 +699,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with integer atoms (byteorder swapped)"""
 
         ttypes = {
-            "Int8": numpy.int8,
-            "UInt8": numpy.uint8,
-            "Int16": numpy.int16,
-            "UInt16": numpy.uint16,
-            "Int32": numpy.int32,
-            "UInt32": numpy.uint32,
-            "Int64": numpy.int64,
+            "int8": numpy.int8,
+            "uint8": numpy.uint8,
+            "int16": numpy.int16,
+            "uint16": numpy.uint16,
+            "int32": numpy.int32,
+            "uint32": numpy.uint32,
+            "int64": numpy.int64,
             #"UInt64": numpy.int64,  # Unavailable in some platforms
         }
         if common.verbose:
@@ -749,13 +749,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking updating vlarray with integer atoms."""
 
         ttypes = [
-            "Int8",
-            "UInt8",
-            "Int16",
-            "UInt16",
-            "Int32",
-            "UInt32",
-            "Int64",
+            "int8",
+            "uint8",
+            "int16",
+            "uint16",
+            "int32",
+            "uint32",
+            "int64",
             #"UInt64",  # Unavailable in some platforms
         ]
         if common.verbose:
@@ -797,13 +797,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking updating vlarray with integer atoms (byteorder swapped)"""
 
         ttypes = {
-            "Int8": numpy.int8,
-            "UInt8": numpy.uint8,
-            "Int16": numpy.int16,
-            "UInt16": numpy.uint16,
-            "Int32": numpy.int32,
-            "UInt32": numpy.uint32,
-            "Int64": numpy.int64,
+            "int8": numpy.int8,
+            "uint8": numpy.uint8,
+            "int16": numpy.int16,
+            "uint16": numpy.uint16,
+            "int32": numpy.int32,
+            "uint32": numpy.uint32,
+            "int64": numpy.int64,
             #"UInt64": numpy.int64,  # Unavailable in some platforms
         }
         if common.verbose:
@@ -853,13 +853,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking updating vlarray with integer atoms (another byteorder)"""
 
         ttypes = {
-            "Int8": numpy.int8,
-            "UInt8": numpy.uint8,
-            "Int16": numpy.int16,
-            "UInt16": numpy.uint16,
-            "Int32": numpy.int32,
-            "UInt32": numpy.uint32,
-            "Int64": numpy.int64,
+            "int8": numpy.int8,
+            "uint8": numpy.uint8,
+            "int16": numpy.int16,
+            "uint16": numpy.uint16,
+            "int32": numpy.int32,
+            "uint32": numpy.uint32,
+            "int64": numpy.int64,
             #"UInt64": numpy.int64,  # Unavailable in some platforms
         }
         if common.verbose:
@@ -916,8 +916,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with floating point atoms."""
 
         ttypes = [
-            "Float32",
-            "Float64",
+            "float32",
+            "float64",
         ]
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + 'Atom'
@@ -959,8 +959,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with float atoms (byteorder swapped)"""
 
         ttypes = {
-            "Float32": numpy.float32,
-            "Float64": numpy.float64,
+            "float32": numpy.float32,
+            "float64": numpy.float64,
         }
         if hasattr(tables, "Float16Atom"):
             ttypes["float16"] = numpy.float16
@@ -1010,8 +1010,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking updating vlarray with floating point atoms."""
 
         ttypes = [
-            "Float32",
-            "Float64",
+            "float32",
+            "float64",
         ]
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + 'Atom'
@@ -1057,8 +1057,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking updating vlarray with float atoms (byteorder swapped)"""
 
         ttypes = {
-            "Float32": numpy.float32,
-            "Float64": numpy.float64,
+            "float32": numpy.float32,
+            "float64": numpy.float64,
         }
         if hasattr(tables, "Float16Atom"):
             ttypes["float16"] = numpy.float16
@@ -1114,8 +1114,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking updating vlarray with float atoms (another byteorder)"""
 
         ttypes = {
-            "Float32": numpy.float32,
-            "Float64": numpy.float64,
+            "float32": numpy.float32,
+            "float64": numpy.float64,
         }
         if hasattr(tables, "Float16Atom"):
             ttypes["float16"] = numpy.float16
@@ -1175,14 +1175,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with numerical complex atoms."""
 
         ttypes = [
-            "Complex32",
-            "Complex64",
+            "complex64",
+            "complex128",
         ]
 
         if hasattr(tables, "Complex192Atom"):
-            ttypes.append("Complex96")
+            ttypes.append("complex192")
         if hasattr(tables, "Complex256Atom"):
-            ttypes.append("Complex128")
+            ttypes.append("complex256")
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1222,14 +1222,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking modifying vlarray with numerical complex atoms."""
 
         ttypes = [
-            "Complex32",
-            "Complex64",
+            "complex64",
+            "complex128",
         ]
 
         if hasattr(tables, "Complex192Atom"):
-            ttypes.append("Complex96")
+            ttypes.append("complex192")
         if hasattr(tables, "Complex256Atom"):
-            ttypes.append("Complex128")
+            ttypes.append("complex256")
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1835,13 +1835,13 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with MD integer atoms."""
 
         ttypes = [
-            "Int8",
-            "UInt8",
-            "Int16",
-            "UInt16",
-            "Int32",
-            "UInt32",
-            "Int64",
+            "int8",
+            "uint8",
+            "int16",
+            "uint16",
+            "int32",
+            "uint32",
+            "int64",
             #"UInt64",  # Unavailable in some platforms
         ]
         root = self.rootgroup
@@ -1878,20 +1878,20 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with MD floating point atoms."""
 
         ttypes = [
-            "Float32",
-            "Float64",
-            "Complex32",
-            "Complex64",
+            "float32",
+            "float64",
+            "complex64",
+            "complex128",
         ]
 
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + "Atom"
             if hasattr(tables, atomname):
-                ttypes.append(name.capitalize())
+                ttypes.append(name)
         for itemsize in (192, 256):
             atomname = "Complex%dAtom" % itemsize
             if hasattr(tables, atomname):
-                ttypes.append("Complex%d" % (itemsize // 2))
+                ttypes.append("complex%d" % (itemsize))
 
         root = self.rootgroup
         if common.verbose:
@@ -2220,13 +2220,13 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with different flavors (integer versions)"""
 
         ttypes = [
-            "Int8",
-            "UInt8",
-            "Int16",
-            "UInt16",
-            "Int32",
-            "UInt32",
-            "Int64",
+            "int8",
+            "uint8",
+            "int16",
+            "uint16",
+            "int32",
+            "uint32",
+            "int64",
             # Not checked because some platforms does not support it
             #"UInt64",
         ]
@@ -2280,13 +2280,13 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray flavors (integer versions and closed file)"""
 
         ttypes = [
-            "Int8",
-            "UInt8",
-            "Int16",
-            "UInt16",
-            "Int32",
-            "UInt32",
-            "Int64",
+            "int8",
+            "uint8",
+            "int16",
+            "uint16",
+            "int32",
+            "uint32",
+            "int64",
             # Not checked because some platforms does not support it
             #"UInt64",
         ]
@@ -2343,21 +2343,21 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with different flavors (floating point versions)"""
 
         ttypes = [
-            "Float32",
-            "Float64",
-            "Complex32",
-            "Complex64",
+            "float32",
+            "float64",
+            "complex64",
+            "complex128",
         ]
 
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + "Atom"
             if hasattr(tables, atomname):
-                ttypes.append(name.capitalize())
+                ttypes.append(name)
 
         for itemsize in (192, 256):
             atomname = "Complex%dAtom" % itemsize
             if hasattr(tables, atomname):
-                ttypes.append("Complex%d" % (itemsize // 2))
+                ttypes.append("complex%d" % (itemsize))
 
         root = self.rootgroup
         if common.verbose:
@@ -3937,8 +3937,8 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
             self.h5file.root, 'array1', arr, "title array1")
 
         # Add a couple of rows
-        array1.append(numpy.array([456, 2], dtype='Int16'))
-        array1.append(numpy.array([3], dtype='Int16'))
+        array1.append(numpy.array([456, 2], dtype='int16'))
+        array1.append(numpy.array([3], dtype='int16'))
 
     def test00_truncate(self):
         """Checking VLArray.truncate() method (truncating to 0 rows)"""
@@ -3977,7 +3977,7 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
 
         self.assertEqual(array1.nrows, 1)
         self.assertTrue(
-            allequal(array1[0], numpy.array([456, 2], dtype='Int16')))
+            allequal(array1[0], numpy.array([456, 2], dtype='int16')))
 
     def test02_truncate(self):
         """Checking VLArray.truncate() method (truncating to == self.nrows)"""
@@ -3997,8 +3997,8 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
 
         self.assertEqual(array1.nrows, 2)
         self.assertTrue(
-            allequal(array1[0], numpy.array([456, 2], dtype='Int16')))
-        self.assertTrue(allequal(array1[1], numpy.array([3], dtype='Int16')))
+            allequal(array1[0], numpy.array([456, 2], dtype='int16')))
+        self.assertTrue(allequal(array1[1], numpy.array([3], dtype='int16')))
 
     def test03_truncate(self):
         """Checking VLArray.truncate() method (truncating to > self.nrows)"""
@@ -4020,12 +4020,12 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
 
         # Check the original values
         self.assertTrue(
-            allequal(array1[0], numpy.array([456, 2], dtype='Int16')))
-        self.assertTrue(allequal(array1[1], numpy.array([3], dtype='Int16')))
+            allequal(array1[0], numpy.array([456, 2], dtype='int16')))
+        self.assertTrue(allequal(array1[1], numpy.array([3], dtype='int16')))
 
         # Check that the added rows are empty
-        self.assertTrue(allequal(array1[2], numpy.array([], dtype='Int16')))
-        self.assertTrue(allequal(array1[3], numpy.array([], dtype='Int16')))
+        self.assertTrue(allequal(array1[2], numpy.array([], dtype='int16')))
+        self.assertTrue(allequal(array1[3], numpy.array([], dtype='int16')))
 
 
 class TruncateOpenTestCase(TruncateTestCase):

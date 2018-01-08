@@ -1430,7 +1430,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
                                            title="array of ints")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
-            1, 1, 1), (3, 3, 3)], dtype='Int32')
+            1, 1, 1), (3, 3, 3)], dtype='int32')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1462,7 +1462,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
                                            title="array of floats")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
-            1, 1, 1), (3, 3, 3)], dtype='Float64')
+            1, 1, 1), (3, 3, 3)], dtype='float64')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1496,7 +1496,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
                                            byteorder=byteorder)
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
-            1, 1, 1), (3, 3, 3)], dtype='Int32')
+            1, 1, 1), (3, 3, 3)], dtype='int32')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1532,7 +1532,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
         earray = self.h5file.get_node("/EAtom")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
-            1, 1, 1), (3, 3, 3)], dtype='Int32')
+            1, 1, 1), (3, 3, 3)], dtype='int32')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1566,7 +1566,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
                                            byteorder=byteorder)
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
-            1, 1, 1), (3, 3, 3)], dtype='Float64')
+            1, 1, 1), (3, 3, 3)], dtype='float64')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1602,7 +1602,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
         earray = self.h5file.get_node("/EAtom")
         # Add a native ordered array
         a = numpy.array([(0, 0, 0), (1, 0, 3), (
-            1, 1, 1), (3, 3, 3)], dtype='Float64')
+            1, 1, 1), (3, 3, 3)], dtype='float64')
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1636,7 +1636,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_earray(self.h5file.root, 'array1',
                                            atom=atom, shape=(0, 2),
                                            title="title array1")
-        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='int16'))
 
         if self.close:
             if common.verbose:
@@ -1687,7 +1687,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_earray(self.h5file.root, 'array1',
                                            atom=atom, shape=(0, 2),
                                            title="title array1")
-        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='int16'))
 
         if self.close:
             if common.verbose:
@@ -1881,7 +1881,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_earray(self.h5file.root, 'array1',
                                            atom=atom, shape=(0, 2),
                                            title="title array1")
-        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1919,7 +1919,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_earray(self.h5file.root, 'array1',
                                            atom=atom, shape=(0, 2),
                                            title="title array1")
-        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1960,7 +1960,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_earray(self.h5file.root, 'array1',
                                            atom=atom, shape=(0, 2),
                                            title="title array1")
-        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -2177,7 +2177,7 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
                                            atom=atom, shape=(0, 2),
                                            title="title array1")
         # Add a couple of rows
-        array1.append(numpy.array([[456, 2], [3, 457]], dtype='Int16'))
+        array1.append(numpy.array([[456, 2], [3, 457]], dtype='int16'))
 
     def test00_truncate(self):
         """Checking EArray.truncate() method (truncating to 0 rows)"""
@@ -2196,7 +2196,7 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
             print("array1-->", array1.read())
 
         self.assertTrue(allequal(
-            array1[:], numpy.array([], dtype='Int16').reshape(0, 2)))
+            array1[:], numpy.array([], dtype='int16').reshape(0, 2)))
 
     def test01_truncate(self):
         """Checking EArray.truncate() method (truncating to 1 rows)"""
@@ -2215,7 +2215,7 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
             print("array1-->", array1.read())
 
         self.assertTrue(allequal(
-            array1.read(), numpy.array([[456, 2]], dtype='Int16')))
+            array1.read(), numpy.array([[456, 2]], dtype='int16')))
 
     def test02_truncate(self):
         """Checking EArray.truncate() method (truncating to == self.nrows)"""
@@ -2235,7 +2235,7 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
 
         self.assertTrue(
             allequal(array1.read(),
-                     numpy.array([[456, 2], [3, 457]], dtype='Int16')))
+                     numpy.array([[456, 2], [3, 457]], dtype='int16')))
 
     def test03_truncate(self):
         """Checking EArray.truncate() method (truncating to > self.nrows)"""
@@ -2256,10 +2256,10 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(array1.nrows, 4)
         # Check the original values
         self.assertTrue(allequal(array1[:2], numpy.array([[456, 2], [3, 457]],
-                                                         dtype='Int16')))
+                                                         dtype='int16')))
         # Check that the added rows have the default values
         self.assertTrue(allequal(array1[2:], numpy.array([[3, 3], [3, 3]],
-                                                         dtype='Int16')))
+                                                         dtype='int16')))
 
 
 class TruncateOpenTestCase(TruncateTestCase):
@@ -2290,7 +2290,7 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
             expectedrows=self.narows * self.nanumber)
 
         # Fill the array
-        na = numpy.arange(self.narows, dtype='Int8')
+        na = numpy.arange(self.narows, dtype='int8')
         for i in range(self.nanumber):
             array.append(na)
 
@@ -2325,7 +2325,7 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
                 stop -= 256
             start = stop - 10
             print("Should look like-->", numpy.arange(start, stop,
-                                                      dtype='Int8'))
+                                                      dtype='int8'))
 
         nrows = self.narows * self.nanumber
         # check nrows
@@ -2333,14 +2333,14 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
         # Check shape
         self.assertEqual(array.shape, (nrows,))
         # check the 10 first elements
-        self.assertTrue(allequal(array[:10], numpy.arange(10, dtype='Int8')))
+        self.assertTrue(allequal(array[:10], numpy.arange(10, dtype='int8')))
         # check the 10 last elements
         stop = self.narows % 256
         if stop > 127:
             stop -= 256
         start = stop - 10
         self.assertTrue(allequal(array[-10:],
-                                 numpy.arange(start, stop, dtype='Int8')))
+                                 numpy.arange(start, stop, dtype='int8')))
 
 
 class Rows64bitsTestCase1(Rows64bitsTestCase):
