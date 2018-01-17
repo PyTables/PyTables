@@ -277,7 +277,7 @@ class AtomTestCase(TestCase):
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_dtype_04(self):
-        atom1 = Atom.from_dtype(numpy.dtype('Float64'))
+        atom1 = Atom.from_dtype(numpy.dtype('float64'))
         atom2 = Float64Atom(shape=(), dflt=0.0)
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))

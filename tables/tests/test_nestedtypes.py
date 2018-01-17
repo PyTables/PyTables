@@ -75,23 +75,23 @@ class TestTDescr(t.IsDescription):
 
 # The corresponding nested array description:
 testADescr = [
-    ('x', '(2,)Int32'),
+    ('x', '(2,)int32'),
     ('Info', [
-        ('value', 'Complex64'),
-        ('y2', 'Float64'),
+        ('value', 'complex128'),
+        ('y2', 'float64'),
         ('Info2', [
             ('name', 'a2'),
-            ('value', '(2,)Complex64'),
-            ('y3', '(2,)Float64'),
-            ('z3', '(2,)Int32')]),
+            ('value', '(2,)complex128'),
+            ('y3', '(2,)float64'),
+            ('z3', '(2,)int32')]),
         ('name', 'a2'),
-        ('z2', 'UInt8')]),
+        ('z2', 'uint8')]),
     ('color', 'a2'),
     ('info', [
         ('Name', 'a2'),
-        ('Value', 'Complex64')]),
-    ('y', '(2,2)Float64'),
-    ('z', 'UInt8')]
+        ('Value', 'complex128')]),
+    ('y', '(2,2)float64'),
+    ('z', 'uint8')]
 
 # The corresponding nested array description (brief version):
 testADescr2 = [
