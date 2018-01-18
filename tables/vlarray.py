@@ -833,7 +833,7 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
         """Read rows specified in `coords`."""
         rows = []
         for coord in coords:
-            rows.append(self.read(int(coord))[0])
+            rows.append(self.read(int(coord), int(coord) + 1, 1)[0])
         return rows
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
