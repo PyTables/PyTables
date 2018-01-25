@@ -161,7 +161,7 @@ static char *test_bitshuffle() {
   cbytes2 = blosc_compress(clevel, doshuffle, typesize, size, src,
                            dest, size + 16);
   mu_assert("ERROR: BLOSC_SHUFFLE=BITSHUFFLE does not work correctly",
-            cbytes2 < cbytes);
+            cbytes2 < cbytes * 1.5);
 
   /* Reset env var */
   unsetenv("BLOSC_SHUFFLE");

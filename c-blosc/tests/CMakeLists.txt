@@ -71,7 +71,7 @@ foreach(source ${SOURCES})
                         "${CMAKE_CURRENT_BINARY_DIR}/libblosc_testing.dll")
     endif()
 
-    target_link_libraries(${target} blosc_testing)
+    target_link_libraries(${target} blosc_shared_testing)
     add_dependencies(${target} blosc_shared_testing)
 
     # If there's a CSV file present for this test, read it to get the list

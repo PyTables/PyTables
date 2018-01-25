@@ -7,6 +7,70 @@
 :URL: http://www.blosc.org
 
 
+Changes from 1.13.2 to 1.13.3
+=============================
+
+  #XXX version-specific blurb XXX#
+
+
+Changes from 1.13.1 to 1.13.2
+=============================
+
+- C-Blosc can be compiled on CentOS 6 now.
+
+- LZ4 internal codec upgraded to 1.8.1.
+
+
+Changes from 1.13.0 to 1.13.1
+=============================
+
+- Fixed a bug uncovered by the python-blosc test suite: when a buffer is
+  to be copied, then we should reserve space for the header, not block pointers.
+
+
+Changes from 1.12.1 to 1.13.0
+=============================
+
+- Serious optimization of memory copy functions (see new `blosc/fastcopy.c`).
+  This benefits the speed of all the codecs, but specially the BloscLZ one.
+
+- As a result of the above, the BloscLZ codec received a new adjustment of
+  knobs so that you should expect better compression ratios with it too.
+
+- LZ4 internal sources have been updated to 1.8.0.
+
+- Zstd internal sources have been updated to 1.3.3.
+
+
+Changes from 1.12.0 to 1.12.1
+=============================
+
+- Backported BloscLZ parameters that were fine-tuned for C-Blosc2.
+  You should expect better compression ratios and faster operation,
+  specially on modern CPUs.  See:
+  http://blosc.org/posts/blosclz-tuning/
+
+
+Changes from 1.11.3 to 1.12.0
+=============================
+
+- Snappy, Zlib and Zstd codecs are compiled internally now, even if they are
+  installed in the machine.  This has been done in order to avoid
+  problems in machines having the shared libraries for the codecs
+  accessible but not the includes (typical in Windows boxes).  Also,
+  the Zstd codec runs much faster when compiled internally.  The
+  previous behaviour can be restored by activating the cmake options
+  PREFER_EXTERNAL_SNAPPY, PREFER_EXTERNAL_ZLIB and PREFER_EXTERNAL_ZSTD.
+
+- Zstd internal sources have been updated to 1.3.0.
+
+
+Changes from 1.11.3 to 1.11.4
+=============================
+
+- Internal Zstd codec updated to 1.1.4.
+
+
 Changes from 1.11.2 to 1.11.3
 =============================
 

@@ -24,10 +24,10 @@
 #   PREFER_EXTERNAL_LZ4: default OFF
 #       when found, use the installed LZ4 libs instead of included
 #       sources
-#   PREFER_EXTERNAL_SNAPPY: default ON
+#   PREFER_EXTERNAL_SNAPPY: default OFF
 #       when found, use the installed Snappy libs instead of included
 #       sources
-#   PREFER_EXTERNAL_ZLIB: default ON
+#   PREFER_EXTERNAL_ZLIB: default OFF
 #       when found, use the installed zlib libs instead of included
 #       sources
 #   PREFER_EXTERNAL_ZSTD: default OFF
@@ -108,11 +108,11 @@ option(DEACTIVATE_ZSTD
 option(PREFER_EXTERNAL_LZ4
     "Find and use external LZ4 library instead of included sources." OFF)
 option(PREFER_EXTERNAL_SNAPPY
-    "Find and use external Snappy library instead of included sources." ON)
+    "Find and use external Snappy library instead of included sources." OFF)
 option(PREFER_EXTERNAL_ZLIB
-    "Find and use external Zlib library instead of included sources." ON)
+    "Find and use external Zlib library instead of included sources." OFF)
 option(PREFER_EXTERNAL_ZSTD
-    "Find and use external Zstd library instead of included sources." ON)
+    "Find and use external Zstd library instead of included sources." OFF)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -337,7 +337,7 @@ if (NOT BLOSC_IS_SUBPROJECT)
     set(CPACK_PACKAGE_VERSION_MINOR ${BLOSC_VERSION_MINOR})
     set(CPACK_PACKAGE_VERSION_PATCH ${BLOSC_VERSION_PATCH})
     set(CPACK_PACKAGE_VERSION ${BLOSC_STRING_VERSION})
-    set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.rst")
+    set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
         "A blocking, shuffling and lossless compression library")
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSES/BLOSC.txt")
