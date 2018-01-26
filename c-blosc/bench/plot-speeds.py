@@ -29,9 +29,9 @@ def get_values(filename):
             tmp = line.split('-->')[1]
             nthreads, size, elsize, sbits, codec, shuffle = [i for i in tmp.split(', ')]
             nthreads, size, elsize, sbits = map(int, (nthreads, size, elsize, sbits))
-            values["size"] = size * NCHUNKS / MB_;
-            values["elsize"] = elsize;
-            values["sbits"] = sbits;
+            values["size"] = size * NCHUNKS / MB_
+            values["elsize"] = elsize
+            values["sbits"] = sbits
             values["codec"] = codec
             values["shuffle"] = shuffle
             # New run for nthreads
@@ -214,7 +214,7 @@ if __name__ == '__main__':
         mean = np.mean(values["memcpyr"])
         message = "memcpy (read from memory)"
     plot_ = axhline(mean, linewidth=3, linestyle='-.', color='black')
-    text(1.0, mean+50, message)
+    text(4.0, mean+400, message)
     plots.append(plot_)
     show_plot(plots, yaxis, legends, gtitle,
               xmax=int(options.xmax) if options.xmax else None,

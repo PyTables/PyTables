@@ -41,7 +41,7 @@ extern "C" {
 */
 
 int blosclz_compress(const int opt_level, const void* input, int length,
-                     void* output, int maxout, int accel);
+                     void* output, int maxout);
 
 /**
   Decompress a block of compressed data and returns the size of the
