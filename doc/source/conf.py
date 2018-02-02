@@ -135,6 +135,7 @@ latex_elements = {
 
     # Additional stuff for the LaTeX preamble.
     'preamble': r'''\usepackage{bookmark,hyperref}
+\usepackage[para]{threeparttable}
 \DeclareUnicodeCharacter{210F}{$\hbar$}''',
 }
 
