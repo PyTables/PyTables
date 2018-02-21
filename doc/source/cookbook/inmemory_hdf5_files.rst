@@ -59,7 +59,7 @@ saved to disk when the file descriptor is closed, so a new
 :file:`new_sample.h5` file is created and all data are transferred to disk.
 
 Again this can be time a time expensive action depending on the amount of
-data in the HDF5 file and depending on how fast is the disk I/O.
+data in the HDF5 file and depending on how fast the disk I/O is.
 
 Saving data to disk is the default behavior for the CORE driver in PyTables.
 
