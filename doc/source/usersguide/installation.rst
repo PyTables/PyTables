@@ -14,13 +14,14 @@ package from sources you can go on reading to the next section.
 
 However, if you want to go straight to binaries that 'just work' for the main
 platforms (Linux, Mac OSX and Windows), you might want to use the excellent
-Anaconda_ or Canopy_ distributions.  PyTables usually distributes its own
+Anaconda_, ActivePython_, Canopy_ distributions.  PyTables usually distributes its own
 Windows binaries too; go :ref:`binaryInstallationDescr` for instructions.
 Finally `Christoph Gohlke`_ also maintains an excellent suite of a variety of
 binary packages for Windows at his site.
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _Canopy: https://www.enthought.com/products/canopy/
+.. _ActivePython: https://www.activestate.com/activepython/downloads
 .. _`Christoph Gohlke`: http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
 
