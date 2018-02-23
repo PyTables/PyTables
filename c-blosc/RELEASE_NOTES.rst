@@ -7,6 +7,90 @@
 :URL: http://www.blosc.org
 
 
+Changes from 1.13.7 to 1.14.0
+=============================
+
+- New split mode that favors forward compatibility.  That means that,
+  from now on, all the buffers created starting with blosc 1.14.0 will
+  be forward compatible with any previous versions of the library --at
+  least until 1.3.0, when support for multi-codec was introduced.
+
+  So as to select the split mode, a new API function has been introduced:
+  https://github.com/Blosc/c-blosc/blob/master/blosc/blosc.h#L500
+  Also, the BLOSC_SPLITMODE environment variable is honored when using
+  the `blosc_compress()` function.  See
+  https://github.com/Blosc/c-blosc/blob/master/blosc/blosc.h#L209
+
+  There is a dedicated blog entry about this at:
+  http://blosc.org/posts/new-forward-compat-policy/
+  More info in PR #216.
+
+  Caveat Emptor: Note that Blosc versions from 1.11.0 to 1.14.0 *might*
+  generate buffers that cannot be read with versions < 1.11.0, so if
+  forward compatibility is important to you, an upgrade to 1.14.0 is recommended.
+
+- All warnings during cmake build stage are enabled by default now.
+  PR #218.  Thanks to kalvdans.
+
+- Better checks on versions of formats inside Blosc.  PR #219.  Thanks
+  to kalvdans.
+
+- The BLOSC_PRINT_SHUFFLE_ACCEL environment variable is honored now.
+  This is useful for determining *at runtime* whether the different SIMD
+  capabilities (only for Intel processors) are available to Blosc to get
+  better performance during shuffle/bitshuffle operation.  As an example,
+  here it is the normal output for the simple.c example::
+
+    $ ./simple
+    Blosc version info: 1.14.0.dev ($Date:: 2018-02-15 #$)
+    Compression: 4000000 -> 41384 (96.7x)
+    Decompression succesful!
+    Succesful roundtrip!
+
+  and here with the BLOSC_PRINT_SHUFFLE_ACCEL environment variable set::
+
+    $ BLOSC_PRINT_SHUFFLE_ACCEL= ./simple
+    Blosc version info: 1.14.0.dev ($Date:: 2018-02-15 #$)
+    Shuffle CPU Information:
+    SSE2 available: True
+    SSE3 available: True
+    SSSE3 available: True
+    SSE4.1 available: True
+    SSE4.2 available: True
+    AVX2 available: True
+    AVX512BW available: False
+    XSAVE available: True
+    XSAVE enabled: True
+    XMM state enabled: True
+    YMM state enabled: True
+    ZMM state enabled: False
+    Compression: 4000000 -> 41384 (96.7x)
+    Decompression succesful!
+    Succesful roundtrip!
+
+  Blosc only currently leverages the SSE2 and AVX2 instruction sets, but
+  it can recognize all of the above.  This is useful mainly for debugging.
+
+
+Changes from 1.13.6 to 1.13.7
+=============================
+
+- More tests for binaries in https://bintray.com/blosc/Conan.
+
+
+Changes from 1.13.5 to 1.13.6
+=============================
+
+- More tests for binaries in https://bintray.com/blosc/Conan.
+
+
+Changes from 1.13.4 to 1.13.5
+=============================
+
+- New conan binaries publicly accessible in https://bintray.com/blosc/Conan.
+  Still experimental, but feedback is appreciated.
+
+
 Changes from 1.13.3 to 1.13.4
 =============================
 

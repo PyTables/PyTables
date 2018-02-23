@@ -23,8 +23,8 @@ size_t size = 8 * 1000 * 1000;  /* must be divisible by typesize */
 
 
 /* Check compressor */
-static char *test_compressor() {
-  char* compressor;
+static const char *test_compressor(void) {
+  const char* compressor;
 
   /* Before any blosc_compress() the compressor must be blosclz */
   compressor = blosc_get_compressor();
@@ -50,8 +50,8 @@ static char *test_compressor() {
 
 
 /* Check compressing + decompressing */
-static char *test_compress_decompress() {
-  char* compressor;
+static const char *test_compress_decompress(void) {
+  const char* compressor;
 
   /* Activate the BLOSC_COMPRESSOR variable */
   setenv("BLOSC_COMPRESSOR", "lz4", 0);
@@ -84,7 +84,7 @@ static char *test_compress_decompress() {
 
 
 /* Check compression level */
-static char *test_clevel() {
+static const char *test_clevel(void) {
   int cbytes2;
 
   /* Get a compressed buffer */
@@ -104,7 +104,7 @@ static char *test_clevel() {
 }
 
 /* Check noshuffle */
-static char *test_noshuffle() {
+static const char *test_noshuffle(void) {
   int cbytes2;
 
   /* Get a compressed buffer */
@@ -126,7 +126,7 @@ static char *test_noshuffle() {
 
 
 /* Check regular shuffle */
-static char *test_shuffle() {
+static const char *test_shuffle(void) {
   int cbytes2;
 
   /* Get a compressed buffer */
@@ -147,7 +147,7 @@ static char *test_shuffle() {
 }
 
 /* Check bitshuffle */
-static char *test_bitshuffle() {
+static const char *test_bitshuffle(void) {
   int cbytes2;
 
   /* Get a compressed buffer */
@@ -170,7 +170,7 @@ static char *test_bitshuffle() {
 
 
 /* Check typesize */
-static char *test_typesize() {
+static const char *test_typesize(void) {
   int cbytes2;
 
   /* Get a compressed buffer */
@@ -189,8 +189,46 @@ static char *test_typesize() {
   return 0;
 }
 
+/* Check splitmode */
+static char *test_splitmode() {
+  int cbytes2;
 
-static char *all_tests() {
+  /* Get a compressed buffer */
+  cbytes = blosc_compress(clevel, doshuffle, typesize, size, src,
+                          dest, size + 16);
+  mu_assert("ERROR: cbytes is not correct", cbytes < size);
+
+  /* Deactivate the split */
+  blosc_set_splitmode(BLOSC_NEVER_SPLIT);
+  cbytes2 = blosc_compress(clevel, doshuffle, typesize, size, src,
+                           dest, size + 16);
+  mu_assert("ERROR: blosc_set_splitmode does not work correctly", cbytes2 > cbytes);
+  /* Reset the splitmode */
+  blosc_set_splitmode(BLOSC_FORWARD_COMPAT_SPLIT);
+
+  return 0;
+}
+
+/* Check splitmode with an environment variable */
+static char *test_splitmode_envvar() {
+  int cbytes2;
+
+  /* Get a compressed buffer */
+  cbytes = blosc_compress(clevel, doshuffle, typesize, size, src,
+                          dest, size + 16);
+  mu_assert("ERROR: cbytes is not correct", cbytes < size);
+
+  /* Deactivate the split */
+  setenv("BLOSC_SPLITMODE", "NEVER", 0);
+  cbytes2 = blosc_compress(clevel, doshuffle, typesize, size, src,
+                           dest, size + 16);
+  mu_assert("ERROR: BLOSC_SPLITMODE envvar does not work correctly", cbytes2 > cbytes);
+
+  return 0;
+}
+
+
+static const char *all_tests(void) {
   mu_run_test(test_compressor);
   mu_run_test(test_compress_decompress);
   mu_run_test(test_clevel);
@@ -198,6 +236,8 @@ static char *all_tests() {
   mu_run_test(test_shuffle);
   mu_run_test(test_bitshuffle);
   mu_run_test(test_typesize);
+  mu_run_test(test_splitmode);
+  mu_run_test(test_splitmode_envvar);
 
   return 0;
 }
@@ -206,7 +246,7 @@ static char *all_tests() {
 
 int main(int argc, char **argv) {
   int64_t *_src;
-  char *result;
+  const char *result;
   size_t i;
 
   printf("STARTING TESTS for %s", argv[0]);

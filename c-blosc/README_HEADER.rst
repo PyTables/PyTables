@@ -31,7 +31,7 @@ All entries are little endian.
     :bit 2 (``0x04``):
         Whether the bit-shuffle filter has been applied or not.
     :bit 3 (``0x08``):
-        Reserved
+        Reserved, must be zero.
     :bit 4 (``0x10``):
         If set, the blocks will not be split in sub-blocks during compression.
     :bit 5 (``0x20``):

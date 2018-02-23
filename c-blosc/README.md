@@ -26,7 +26,7 @@ instructions (SSE2, AVX2) and multi-threading capabilities of CPUs, in
 order to accelerate the compression / decompression process to a
 maximum.
 
-See some [benchmarks](http://blosc.org/synthetic-benchmarks.html) about Blosc performance.
+See some [benchmarks](http://blosc.org/pages/synthetic-benchmarks/) about Blosc performance.
 
 Blosc is distributed using the BSD license, see LICENSES/BLOSC.txt for
 details.

@@ -18,12 +18,6 @@
 
 #if defined(SHUFFLE_AVX2_ENABLED)
   #include "../blosc/shuffle-avx2.h"
-#else
-  #if defined(_MSC_VER)
-  #pragma message("AVX2 shuffle tests not enabled.")
-  #else
-  #warning AVX2 shuffle tests not enabled.
-  #endif
 #endif  /* defined(SHUFFLE_AVX2_ENABLED) */
 
 

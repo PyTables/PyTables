@@ -442,7 +442,6 @@ int blosclz_decompress(const void* input, int length, void* output, int maxout) 
   const uint8_t* ip = (const uint8_t*)input;
   const uint8_t* ip_limit = ip + length;
   uint8_t* op = (uint8_t*)output;
-  uint8_t* op_limit = op + maxout;
   int32_t ctrl = (*ip++) & 31;
   int32_t loop = 1;
 

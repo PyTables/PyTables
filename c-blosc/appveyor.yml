@@ -1,36 +1,34 @@
-# AppVeyor CI build configuration for c-blosc
+build: false
 
-# Before cloning the repo, configure git to handle line endings correctly.
-init:
-    - git config --global core.autocrlf input
-
-version: '{build}'
 
 environment:
-    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_env.cmd"
-    VS150COMNTOOLS: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\"
-    
+    PYTHON: "C:\\Python27"
+    PYTHON_VERSION: "2.7.8"
+    PYTHON_ARCH: "32"
+
+    CONAN_USERNAME: "francescalted"
+    CONAN_LOGIN_USERNAME: "francescalted"
+    CONAN_CHANNEL: "stable"
+    CONAN_UPLOAD: "https://api.bintray.com/conan/blosc/Conan"
+
 
     matrix:
-        - GENERATOR: "Visual Studio 10 2010"
-          CONFIG: Release
+        - MINGW_CONFIGURATIONS: "4.9@x86_64@seh@posix, 5@x86_64@seh@posix, 6@x86_64@seh@posix, 7@x86_64@seh@posix"
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+          CONAN_VISUAL_VERSIONS: 12
+          CONAN_RUN_TESTS: "1"
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+          CONAN_VISUAL_VERSIONS: 14
+          CONAN_RUN_TESTS: "1"
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          CONAN_VISUAL_VERSIONS: 15
+          CONAN_RUN_TESTS: "1"
 
-        - GENERATOR: "Visual Studio 10 2010 Win64"
-          CONFIG: Release
-
-        - GENERATOR: "Visual Studio 12 2013"
-          CONFIG: Release
-
-        - GENERATOR: "Visual Studio 12 Win64"
-          CONFIG: Release
-
-        - GENERATOR: "Visual Studio 14 2015 Win64"
-          CONFIG: Release
-
-build_script:
-  - cmake "-G%GENERATOR%" -H. -B_builds
-  - cmake --build _builds --config "%CONFIG%"
+install:
+  - set PATH=%PATH%;%PYTHON%/Scripts/
+  - pip.exe install conan --upgrade
+  - pip.exe install conan_package_tools
 
 test_script:
-  - ps: cd _builds
-  - ctest -VV -C "%CONFIG%"
+  - python build.py
+
