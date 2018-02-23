@@ -353,10 +353,8 @@ static inline unsigned char *chunk_memcpy_32_unrolled(unsigned char *out, const 
 static inline unsigned char *chunk_memcpy_unaligned(unsigned char *out, const unsigned char *from, unsigned len) {
 #if defined(__AVX2__)
   unsigned sz = sizeof(__m256i);
-  __m256i chunk;
 #elif defined(__SSE2__)
   unsigned sz = sizeof(__m128i);
-  __m128i chunk;
 #endif
   unsigned rem = len % sz;
   unsigned ilen;

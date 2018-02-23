@@ -23,7 +23,7 @@ size_t size = 4 * 1000 * 1000;             /* must be divisible by 4 */
 
 
 /* Check just compressing */
-static char *test_compress() {
+static const char *test_compress(void) {
   int nthreads;
 
   /* Before any blosc_compress() or blosc_decompress() the number of
@@ -44,7 +44,7 @@ static char *test_compress() {
 
 
 /* Check compressing + decompressing */
-static char *test_compress_decompress() {
+static const char *test_compress_decompress(void) {
   int nthreads;
 
   nthreads = blosc_get_nthreads();
@@ -69,7 +69,7 @@ static char *test_compress_decompress() {
 }
 
 
-static char *all_tests() {
+static const char *all_tests(void) {
   mu_run_test(test_compress);
   mu_run_test(test_compress_decompress);
 
@@ -80,9 +80,8 @@ static char *all_tests() {
 
 int main(int argc, char **argv) {
   int32_t *_src;
-  char *result;
+  const char *result;
   size_t i;
-  int pid, nchildren = 4;
 
   printf("STARTING TESTS for %s", argv[0]);
 

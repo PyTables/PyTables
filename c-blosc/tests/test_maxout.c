@@ -23,7 +23,7 @@ size_t size = 1000;             /* must be divisible by 4 */
 
 
 /* Check maxout with maxout < size */
-static char *test_maxout_less() {
+static const char *test_maxout_less(void) {
 
   /* Get a compressed buffer */
   cbytes = blosc_compress(clevel, doshuffle, typesize, size, src, dest, size+15);
@@ -34,7 +34,7 @@ static char *test_maxout_less() {
 
 
 /* Check maxout with maxout < size (memcpy version) */
-static char *test_maxout_less_memcpy() {
+static const char *test_maxout_less_memcpy(void) {
 
   /* Get a compressed buffer */
   cbytes = blosc_compress(0, doshuffle, typesize, size, src, dest, size+15);
@@ -45,7 +45,7 @@ static char *test_maxout_less_memcpy() {
 
 
 /* Check maxout with maxout == size */
-static char *test_maxout_equal() {
+static const char *test_maxout_equal(void) {
 
   /* Get a compressed buffer */
   cbytes = blosc_compress(clevel, doshuffle, typesize, size, src, dest, size+16);
@@ -60,7 +60,7 @@ static char *test_maxout_equal() {
 
 
 /* Check maxout with maxout == size (memcpy version) */
-static char *test_maxout_equal_memcpy() {
+static const char *test_maxout_equal_memcpy(void) {
 
   /* Get a compressed buffer */
   cbytes = blosc_compress(0, doshuffle, typesize, size, src, dest, size+16);
@@ -75,7 +75,7 @@ static char *test_maxout_equal_memcpy() {
 
 
 /* Check maxout with maxout > size */
-static char *test_maxout_great() {
+static const char *test_maxout_great(void) {
   /* Get a compressed buffer */
   cbytes = blosc_compress(clevel, doshuffle, typesize, size, src, dest, size+17);
   mu_assert("ERROR: cbytes is not correct", cbytes == size+16);
@@ -89,7 +89,7 @@ static char *test_maxout_great() {
 
 
 /* Check maxout with maxout > size (memcpy version) */
-static char *test_maxout_great_memcpy() {
+static const char *test_maxout_great_memcpy(void) {
   /* Get a compressed buffer */
   cbytes = blosc_compress(0, doshuffle, typesize, size, src, dest, size+17);
   mu_assert("ERROR: cbytes is not correct", cbytes == size+16);
@@ -102,7 +102,7 @@ static char *test_maxout_great_memcpy() {
 }
 
 
-static char *all_tests() {
+static const char *all_tests(void) {
   mu_run_test(test_maxout_less);
   mu_run_test(test_maxout_less_memcpy);
   mu_run_test(test_maxout_equal);
@@ -117,7 +117,7 @@ static char *all_tests() {
 
 int main(int argc, char **argv) {
   int32_t *_src;
-  char *result;
+  const char *result;
   size_t i;
 
   printf("STARTING TESTS for %s", argv[0]);
