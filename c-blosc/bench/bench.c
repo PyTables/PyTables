@@ -36,7 +36,7 @@
   #include <mach/mach.h>
   #include <time.h>
   #include <sys/time.h>
-#elif defined(__unix__)
+#elif defined(__unix__) || defined(__HAIKU__)
   #include <unistd.h>
   #if defined(__GLIBC__)
     #include <time.h>

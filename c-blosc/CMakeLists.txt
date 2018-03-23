@@ -282,6 +282,11 @@ if(WIN32)
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/blosc")
 endif(WIN32)
 
+if(HAIKU)
+    # Haiku have posix_memalign, required by test_common.h
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_POSIX_C_SOURCE=200112L")
+endif(HAIKU)
+
 if (NOT DEFINED BLOSC_IS_SUBPROJECT)
   if ("^${CMAKE_SOURCE_DIR}$" STREQUAL "^${PROJECT_SOURCE_DIR}$")
     set (BLOSC_IS_SUBPROJECT FALSE)

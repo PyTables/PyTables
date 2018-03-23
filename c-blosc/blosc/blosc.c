@@ -1402,8 +1402,6 @@ int blosc_run_decompression_with_context(struct blosc_context* context,
                                          int numinternalthreads)
 {
   uint8_t version;
-  uint8_t versionlz;
-  uint32_t ctbytes;
   int32_t ntbytes;
 
   context->compress = 0;

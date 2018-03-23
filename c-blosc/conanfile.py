@@ -58,8 +58,8 @@ class CbloscConan(ConanFile):
         if self.options.shared:
             self.copy("*/blosc.lib", dst="lib", keep_path=False)
             self.copy("*blosc.dll", dst="bin", keep_path=False)
-            self.copy("*blosc.*dylib*", dst="lib", keep_path=False)
-            self.copy("*blosc.so*", dst="lib", keep_path=False)
+            self.copy("*blosc.*dylib*", dst="lib", keep_path=False, symlinks=True)
+            self.copy("*blosc.so*", dst="lib", keep_path=False, symlinks=True)
             self.copy("*libblosc.dll.a", dst="lib", keep_path=False) # Mingw
         else:
             self.copy("*libblosc.lib", dst="lib", src="", keep_path=False)

@@ -14,14 +14,21 @@
 #include <string.h>
 
 #if defined(_WIN32) && !defined(__MINGW32__)
-#include <windows.h>
+  #include <windows.h>
   /* stdint.h only available in VS2010 (VC++ 16.0) and newer */
   #if defined(_MSC_VER) && _MSC_VER < 1600
     #include "win32/stdint-windows.h"
   #else
     #include <stdint.h>
   #endif
+#else
+  #include <stdint.h>
 #endif  /* _WIN32 */
+
+#ifdef __HAIKU__
+/* int32_t declared here */
+#include <stdint.h>
+#endif
 
 #define SIZE (1000 * 1000)
 
@@ -34,6 +41,7 @@ int main(int argc, char *argv[]) {
   size_t osize = SIZE * sizeof(int32_t);
   int dsize = SIZE * sizeof(int32_t);
   int csize;
+  long fsize;
   int i;
 
   FILE *f;
@@ -77,7 +85,7 @@ int main(int argc, char *argv[]) {
     /* Read from argv[2] into data_out. */
     f = fopen(argv[2], "rb");
     fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
+    fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
     if (fread(data_out, 1, (size_t) fsize, f) == fsize) {
       printf("Checking %s\n", argv[2]);

@@ -29,8 +29,8 @@
 #include <math.h>
 #include "../blosc/blosc.h"
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-  /* MSVC does not have setenv */
+#if defined(_WIN32)
+  /* MSVC and MinGW do not have setenv */
   #define setenv(name, value, overwrite) do {_putenv_s(name, value);} while(0)
 #endif
 
