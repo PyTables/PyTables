@@ -18,7 +18,7 @@ The HDF5 driver that one intend to use to open/create a file can be specified
 using the *driver* keyword argument of the :func:`tables.open_file` function::
 
     >>> import tables
-    >>> h5file = tables.open_file("sample.h", driver="H5FD_CORE")
+    >>> h5file = tables.open_file("sample.h5", driver="H5FD_CORE")
 
 The content of the :file`sample.h5` is opened for reading. It is loaded into
 memory and all reading operations are performed without disk I/O overhead.
