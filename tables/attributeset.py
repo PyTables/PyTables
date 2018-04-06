@@ -331,7 +331,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 retval = numpy.array(retval)
             except ImportError:
                 retval = None  # signal error avoiding exception
-        elif maybe_pickled and name == 'FILTERS' and format_version < (2, 0):
+        elif maybe_pickled and name == 'FILTERS' and format_version is not None and format_version < (2, 0):
             # This is a big hack, but we don't have other way to recognize
             # pickled filters of PyTables 1.x files.
             value = _old_filters_re.sub(_new_filters_sub, value, 1)
@@ -373,7 +373,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             # Additional check for allowing a workaround for #307
             if isinstance(retval, six.text_type) and retval == u'':
                 retval = numpy.array(retval)[()]
-        elif name == 'FILTERS' and format_version >= (2, 0):
+        elif name == 'FILTERS' and format_version is not None and format_version >= (2, 0):
             retval = Filters._unpack(value)
         elif name == 'TITLE' and not isinstance(value, str):
             if sys.version_info[0] < 3:
