@@ -417,7 +417,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             elif name == "NROWS":
                 stvalue = numpy.array(value, dtype=SizeType)
                 value = stvalue[()]
-            elif name == "FILTERS" and self._v__format_version >= (2, 0):
+            elif name == "FILTERS" and self._v__format_version is not None and self._v__format_version >= (2, 0):
                 stvalue = value._pack()
                 # value will remain as a Filters instance here
         # Convert value from a Python scalar into a NumPy scalar
