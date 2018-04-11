@@ -578,7 +578,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         if i_nrows == 0:
             # No elements to compute
-            if start == stop and self.start is not None:
+            if start >= stop and self.start is not None:
                 return out
             else:
                 return self._single_row_out
