@@ -149,6 +149,25 @@ class ExprTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(common.areArraysEqual(r1, r2),
                         "Evaluate is returning a wrong value.")
 
+    def test02_out(self):
+        """Checking that expression is correctly evaluated when slice is
+        outside of data samples (`out` param)"""
+        expr = tables.Expr(self.expr, self.vars)
+        # maybe it's better to use the leading dimemsion instead?
+        maxshape = max(self.shape)
+        start, stop, step = (maxshape + 1, maxshape + 2, None)
+        expr.set_inputs_range(start, stop, step)
+        r1 = expr.eval()
+        # create an empty array with the same dtype and shape
+        zeros = np.zeros(shape=self.shape, dtype=r1.dtype)
+        r2 = zeros[start:stop:step]
+        self.assertListEqual(r1.tolist(), r2.tolist())
+        if common.verbose:
+            print("Computed expression:", repr(r1))
+            print("Should look like:", repr(r2))
+        self.assertTrue(common.areArraysEqual(r1, r2),
+                        "Evaluate is returning a wrong value.")
+
 
 class ExprNumPy(ExprTestCase):
     kind = "NumPy"
