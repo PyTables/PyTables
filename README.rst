@@ -10,7 +10,7 @@
    :target: https://travis-ci.org/PyTables/PyTables
 
 .. image:: https://ci.appveyor.com/api/projects/status/github/PyTables/PyTables?branch=develop&svg=true
-   :target: https://ci.appveyor.com/project/PyTablesBot/pytables
+   :target: https://ci.appveyor.com/project/PyTablesCI/pytables
 
 .. image:: https://codeclimate.com/github/PyTables/PyTables/badges/gpa.svg
    :target: https://codeclimate.com/github/PyTables/PyTables
