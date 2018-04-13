@@ -1,16 +1,16 @@
 ===============================================================
- Announcing C-Blosc 1.14.2
+ Announcing C-Blosc 1.14.3
  A blocking, shuffling and lossless compression library for C
 ===============================================================
 
 What is new?
 ============
 
-Reverted the $Configuration var in CMake configuration for Windows so
-as to restore the compatibility with MS VisualStudio compilers.
-
-This is the only important change in this release, so Unix users should
-not bother to upgrade to this version.
+The main change for this release is that the pthreads library is
+not needed on any Windows build anymore.  Thanks to Steven G. Johnson.
+Also, the internal Zstd sources have been updated to 1.3.4; expect
+an important performance boost (can be up to 10%, specially for low
+compression levels).
 
 For more info, please see the release notes in:
 

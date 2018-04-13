@@ -56,7 +56,8 @@
   #include <inttypes.h>
 #endif  /* _WIN32 */
 
-#if defined(_WIN32) && !defined(__GNUC__)
+/* Include the win32/pthread.h library for all the Windows builds. See #224. */
+#if defined(_WIN32)
   #include "win32/pthread.h"
   #include "win32/pthread.c"
 #else
@@ -1523,7 +1524,7 @@ int blosc_getitem(const void *src, int start, int nitems, void *dest)
   int32_t nblocks;                  /* number of total blocks in buffer */
   int32_t leftover;                 /* extra bytes at end of buffer */
   uint8_t *bstarts;                 /* start pointers for each block */
-  int32_t typesize, blocksize, nbytes, ctbytes;
+  int32_t typesize, blocksize, nbytes;
   int32_t j, bsize, bsize2, leftoverblock;
   int32_t cbytes, startb, stopb;
   int stop = start + nitems;
@@ -1541,7 +1542,6 @@ int blosc_getitem(const void *src, int start, int nitems, void *dest)
   typesize = (int32_t)_src[3];              /* typesize */
   nbytes = sw32_(_src + 4);                 /* buffer size */
   blocksize = sw32_(_src + 8);              /* block size */
-  ctbytes = sw32_(_src + 12);               /* compressed buffer size */
 
   if (version != BLOSC_VERSION_FORMAT)
     return -9;
