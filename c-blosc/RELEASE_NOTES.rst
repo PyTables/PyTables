@@ -7,6 +7,22 @@
 :URL: http://www.blosc.org
 
 
+Changes from 1.14.2 to 1.14.3
+=============================
+
+- Use win32/pthread.c on all Windows builds, even those with GNU compilers.
+  Rational: although MinGW provides a more full-featured pthreads replacement,
+  it doesn't seem to accomplish anything here since the functionality in
+  win32/pthread.c is sufficient for Blosc. Furthermore, using the MinGW
+  pthreads adds an additional library dependency to libblosc that is
+  annoying for binary distribution. For example, it got in the way of
+  distributing cross-compiled Windows binaries for use with Julia, since they
+  want the resulting libblosc.dll to be usable on any Windows machine even
+  where MinGW is not installed.  See PR #224.  Thanks to Steven G. Johnson.
+
+- Zstd internal sources have been updated to 1.3.4.
+
+
 Changes from 1.14.1 to 1.14.2
 =============================
 
