@@ -7,7 +7,7 @@
 
 .. py:currentmodule:: tables
 
-Changes from 3.4.2 to 3.4.x
+Changes from 3.4.2 to 3.4.3
 ===========================
 
 Improvements
@@ -18,6 +18,30 @@ Improvements
  - Implement `Group.__getitem__()` to have groups act as python-containers,
    so code like this works: ``hfile.root['some child']``.
    :issue:`628` thanks to ankostis.
+ - Enable building with Intel compiler (icc/icpc).
+   Thanks to rohit-jamuar.
+ - PEP 519 support, using new `os.fspath` method.
+   Thanks to mruffalo.
+ - Optional disable recording of ctime (metadata creation time) when
+   creating datasets that makes possible to get bitwise identical output
+   from repeated runs.
+   Thanks to alex-cobb.
+ - Prevent from reading all rows for each coord in a VLArray when
+   indexing using a list .
+   Thanks to igormq.
+ - Internal Blosc version updated to 1.14.3
+
+Bugs fixed
+----------
+ - Fixed division by zero when using `_convert_time64()` with an empty
+   nparr array.
+   :issue:`653`. Thanks to alobbs.
+ - Fixed deprecation warnings with numpy 1.14.
+   Thanks to oleksandr-pavlyk.
+ - Skip DLL check when running from a frozen app.
+   :issue:`675`. Thanks to jwiggins.
+ - Fixed behaviour with slices out of range.
+   :issue:`651`. Thanks to jackdbd.
 
 
 Changes from 3.4.1 to 3.4.2
