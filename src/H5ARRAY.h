@@ -26,6 +26,7 @@ hid_t H5ARRAYmake(  hid_t loc_id,
                     char  *complib,
                     int   shuffle,
                     int   fletcher32,
+                    hbool_t track_times,
                     const void *data);
 
 herr_t H5ARRAYappend_records( hid_t dataset_id,

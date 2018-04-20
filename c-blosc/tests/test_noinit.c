@@ -26,7 +26,7 @@ size_t size = 4 * 1000 * 1000;             /* must be divisible by 4 */
 
 
 /* Check just compressing */
-static char *test_compress() {
+static const char *test_compress(void) {
 
   /* Get a compressed buffer */
   cbytes = blosc_compress(clevel, doshuffle, typesize, size, src,
@@ -38,7 +38,7 @@ static char *test_compress() {
 
 
 /* Check compressing + decompressing */
-static char *test_compress_decompress() {
+static const char *test_compress_decompress(void) {
 
   /* Get a compressed buffer */
   cbytes = blosc_compress(clevel, doshuffle, typesize, size, src,
@@ -53,7 +53,7 @@ static char *test_compress_decompress() {
 }
 
 
-static char *all_tests() {
+static const char *all_tests(void) {
   mu_run_test(test_compress);
   mu_run_test(test_compress_decompress);
 
@@ -64,15 +64,15 @@ static char *all_tests() {
 
 int main(int argc, char **argv) {
   int32_t *_src;
-  char *result;
+  const char *result;
   size_t i;
-  int pid, nchildren = 4;
+  int nchildren = 4;
 
   printf("STARTING TESTS for %s\n", argv[0]);
 
   /* Launch several subprocesses */
   for (i = 1; i <= nchildren; i++) {
-    pid = fork();
+    fork();
   }
 
   blosc_set_nthreads(4);

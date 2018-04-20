@@ -1036,8 +1036,6 @@ specifically 256 and 1024. You can see the results in
 
 .. raw:: latex
 
-    \\
-    \\
     \begin{threeparttable}
     \capstart\caption{Retrieval speed and memory consumption depending on the number of nodes in LRU cache.}
 
@@ -1055,8 +1053,6 @@ specifically 256 and 1024. You can see the results in
     \end{tabulary}
 
     \end{threeparttable}
-    \\
-    \\
 
 
 From the data in :ref:`table <optimization_table_1>`, one can see that when

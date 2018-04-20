@@ -1,19 +1,16 @@
 ===============================================================
- Announcing C-Blosc 1.11.3
+ Announcing C-Blosc 1.14.3
  A blocking, shuffling and lossless compression library for C
 ===============================================================
 
 What is new?
 ============
 
-Fixed an important bug in bitshuffle filter for big endian machines.
-This prevented files written in bigendian machines to be read from
-little endian ones.  See issue https://github.com/Blosc/c-blosc/issues/181.
-
-Also, the internal Zstd codec has been updated to 1.1.3.
-
-Finally, the blocksize for compression level 8 has been made 2x larger.
-This should help specially Zstd codec to achieve better compression ratios.
+The main change for this release is that the pthreads library is
+not needed on any Windows build anymore.  Thanks to Steven G. Johnson.
+Also, the internal Zstd sources have been updated to 1.3.4; expect
+an important performance boost (can be up to 10%, specially for low
+compression levels).
 
 For more info, please see the release notes in:
 
@@ -29,7 +26,7 @@ the processor cache faster than the traditional, non-compressed,
 direct memory fetch approach via a memcpy() OS call.
 
 Blosc has internal support for different compressors like its internal
-BloscLZ, but also LZ4, LZ4HC, Snappy and Zlib.  This way these can
+BloscLZ, but also LZ4, LZ4HC, Snappy, Zlib and Zstd.  This way these can
 automatically leverage the multithreading and pre-filtering
 (shuffling) capabilities that comes with Blosc.
 
@@ -37,15 +34,11 @@ automatically leverage the multithreading and pre-filtering
 Download sources
 ================
 
-Please go to main web site:
-
-http://www.blosc.org/
-
-and proceed from there.  The github repository is over here:
+The github repository is over here:
 
 https://github.com/Blosc
 
-Blosc is distributed using the MIT license, see LICENSES/BLOSC.txt for
+Blosc is distributed using the BSD license, see LICENSES/BLOSC.txt for
 details.
 
 

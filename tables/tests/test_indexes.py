@@ -1226,7 +1226,7 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
             unsavedindexedrows = table._unsaved_indexedrows
 
         # Now, modify just one row:
-        table.modify_rows(3, None, 1, [["asa", 0, 3, 3.1]])
+        table.modify_rows(3, None, 1, [("asa", 0, 3, 3.1)])
         if self.reopen:
             self._reopen(mode='a')
             table = self.h5file.root.table

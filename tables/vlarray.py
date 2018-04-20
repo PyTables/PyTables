@@ -108,6 +108,16 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
         The byteorder of the data *on disk*, specified as 'little' or 'big'.
         If this is not specified, the byteorder is that of the platform.
 
+    track_times
+        Whether time data associated with the leaf are recorded (object
+        access time, raw data modification time, metadata change time, object
+        birth time); default True.  Semantics of these times depend on their
+        implementation in the HDF5 library: refer to documentation of the
+        H5O_info_t data structure.  As of HDF5 1.8.15, only ctime (metadata
+        change time) is implemented.
+
+        .. versionadded:: 3.4
+
     .. versionchanged:: 3.0
        The *expectedsizeinMB* parameter has been replaced by *expectedrows*.
 
@@ -254,7 +264,7 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
     def __init__(self, parentnode, name, atom=None, title="",
                  filters=None, expectedrows=None,
                  chunkshape=None, byteorder=None,
-                 _log=True):
+                 _log=True, track_times=True):
 
         self._v_version = None
         """The object version of this array."""
@@ -341,7 +351,7 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         super(VLArray, self).__init__(parentnode, name, new, filters,
-                                      byteorder, _log)
+                                      byteorder, _log, track_times)
 
     def _g_post_init_hook(self):
         super(VLArray, self)._g_post_init_hook()
@@ -823,7 +833,7 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
         """Read rows specified in `coords`."""
         rows = []
         for coord in coords:
-            rows.append(self.read(int(coord))[0])
+            rows.append(self.read(int(coord), int(coord) + 1, 1)[0])
         return rows
 
     def _g_copy_with_stats(self, group, name, start, stop, step,

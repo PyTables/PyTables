@@ -433,6 +433,15 @@ class Table(tableextension.Table, Leaf):
         this is not specified, the byteorder is that of the platform, unless
         you passed a recarray as the `description`, in which case the recarray
         byteorder will be chosen.
+    track_times
+        Whether time data associated with the leaf are recorded (object
+        access time, raw data modification time, metadata change time, object
+        birth time); default True.  Semantics of these times depend on their
+        implementation in the HDF5 library: refer to documentation of the
+        H5O_info_t data structure.  As of HDF5 1.8.15, only ctime (metadata
+        change time) is implemented.
+
+        .. versionadded:: 3.4
 
     Notes
     -----
@@ -665,7 +674,7 @@ class Table(tableextension.Table, Leaf):
     def __init__(self, parentnode, name,
                  description=None, title="", filters=None,
                  expectedrows=None, chunkshape=None,
-                 byteorder=None, _log=True):
+                 byteorder=None, _log=True, track_times=True):
 
         self._v_new = new = description is not None
         """Is this the first time the node has been created?"""
@@ -830,7 +839,7 @@ class Table(tableextension.Table, Leaf):
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         super(Table, self).__init__(parentnode, name, new, filters,
-                                    byteorder, _log)
+                                    byteorder, _log, track_times)
 
     def _g_post_init_hook(self):
         # We are putting here the index-related issues

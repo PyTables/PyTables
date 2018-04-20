@@ -18,14 +18,14 @@ extern "C" {
 
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
-#define BLOSC_VERSION_MINOR    11   /* for minor interface/format changes  */
+#define BLOSC_VERSION_MINOR    14   /* for minor interface/format changes  */
 #define BLOSC_VERSION_RELEASE  3    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.11.3"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.14.3"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2017-03-09 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2018-04-06 #$"    /* date version */
 
-#define BLOSCLZ_VERSION_STRING "1.0.5"   /* the internal compressor version */
+#define BLOSCLZ_VERSION_STRING "1.1.0"   /* the internal compressor version */
 
 /* The *_FORMAT symbols should be just 1-byte long */
 #define BLOSC_VERSION_FORMAT    2   /* Blosc format version, starting at 1 */
@@ -105,6 +105,13 @@ extern "C" {
 #define BLOSC_ZLIB_VERSION_FORMAT     1
 #define BLOSC_ZSTD_VERSION_FORMAT     1
 
+/* Split mode for blocks.  NEVER and ALWAYS are for experimenting with best compression ratio,
+ * AUTO for optimal behaviour (based on experiments), and FORWARD_COMPAT provides
+ * best forward compatibility */
+#define BLOSC_ALWAYS_SPLIT 1
+#define BLOSC_NEVER_SPLIT 2
+#define BLOSC_AUTO_SPLIT 3
+#define BLOSC_FORWARD_COMPAT_SPLIT 4
 
 /**
   Initialize the Blosc library environment.
@@ -135,24 +142,24 @@ BLOSC_EXPORT void blosc_destroy(void);
   `clevel` is the desired compression level and must be a number
   between 0 (no compression) and 9 (maximum compression).
 
-  `doshuffle` specifies whether the shuffle compression preconditioner
+  `doshuffle` specifies whether the shuffle compression filters
   should be applied or not.  BLOSC_NOSHUFFLE means not applying it,
   BLOSC_SHUFFLE means applying it at a byte level and BLOSC_BITSHUFFLE
   at a bit level (slower but may achieve better entropy alignment).
 
   `typesize` is the number of bytes for the atomic type in binary
-  `src` buffer.  This is mainly useful for the shuffle preconditioner.
-  For implementation reasons, only a 1 < typesize < 256 will allow the
-  shuffle filter to work.  When typesize is not in this range, shuffle
+  `src` buffer.  This is mainly useful for the shuffle filters.
+  For implementation reasons, only a 1 < `typesize` < 256 will allow the
+  shuffle filter to work.  When `typesize` is not in this range, shuffle
   will be silently disabled.
 
   The `dest` buffer must have at least the size of `destsize`.  Blosc
   guarantees that if you set `destsize` to, at least,
-  (`nbytes`+BLOSC_MAX_OVERHEAD), the compression will always succeed.
+  (`nbytes` + BLOSC_MAX_OVERHEAD), the compression will always succeed.
   The `src` buffer and the `dest` buffer can not overlap.
 
   Compression is memory safe and guaranteed not to write the `dest`
-  buffer more than what is specified in `destsize`.
+  buffer beyond what is specified in `destsize`.
 
   If `src` buffer cannot be compressed into `destsize`, the return
   value is zero and you should discard the contents of the `dest`
@@ -198,6 +205,11 @@ BLOSC_EXPORT void blosc_destroy(void);
   blosc_set_compressor(), blosc_set_blocksize() and
   blosc_set_nthreads().  BLOSC_CLEVEL, BLOSC_SHUFFLE, BLOSC_TYPESIZE
   environment vars will also be honored.
+
+  BLOSC_SPLITMODE=[ FORWARD_COMPAT | AUTO | ALWAYS | NEVER ]:
+  This will call blosc_set_splitmode() with the different supported values.
+  See blosc_set_splitmode() docstrings for more info on each mode.
+
   */
 BLOSC_EXPORT int blosc_compress(int clevel, int doshuffle, size_t typesize,
 				size_t nbytes, const void *src, void *dest,
@@ -235,7 +247,7 @@ BLOSC_EXPORT int blosc_compress_ctx(int clevel, int doshuffle, size_t typesize,
   The `src` buffer and the `dest` buffer can not overlap.
 
   Decompression is memory safe and guaranteed not to write the `dest`
-  buffer more than what is specified in `destsize`.
+  buffer beyond what is specified in `destsize`.
 
   If an error occurs, e.g. the compressed data is corrupted or the
   output buffer is not large enough, then 0 (zero) or a negative value
@@ -309,15 +321,15 @@ BLOSC_EXPORT int blosc_set_nthreads(int nthreads);
 
 
 /**
-  Returns the current compressor that is used for compression.
+  Returns the current compressor that is being used for compression.
   */
-BLOSC_EXPORT char* blosc_get_compressor(void);
+BLOSC_EXPORT const char* blosc_get_compressor(void);
 
 
 /**
   Select the compressor to be used.  The supported ones are "blosclz",
   "lz4", "lz4hc", "snappy", "zlib" and "ztsd".  If this function is not
-  called, then "blosclz" will be used.
+  called, then "blosclz" will be used by default.
 
   In case the compressor is not recognized, or there is not support
   for it in this build, it returns a -1.  Else it returns the code for
@@ -333,7 +345,7 @@ BLOSC_EXPORT int blosc_set_compressor(const char* compname);
   for it in this build, -1 is returned.  Else, the compressor code is
   returned.
  */
-BLOSC_EXPORT int blosc_compcode_to_compname(int compcode, char **compname);
+BLOSC_EXPORT int blosc_compcode_to_compname(int compcode, const char **compname);
 
 
 /**
@@ -356,21 +368,19 @@ BLOSC_EXPORT int blosc_compname_to_compcode(const char *compname);
 
   This function should always succeed.
   */
-BLOSC_EXPORT char* blosc_list_compressors(void);
+BLOSC_EXPORT const char* blosc_list_compressors(void);
 
 /**
-  Return the version of blosc in string format.
+  Return the version of the C-Blosc library in string format.
 
   Useful for dynamic libraries.
 */
-BLOSC_EXPORT char* blosc_get_version_string(void);
+BLOSC_EXPORT const char* blosc_get_version_string(void);
 
 
 /**
   Get info from compression libraries included in the current build.
   In `compname` you pass the compressor name that you want info from.
-  In `complib` and `version` you get the compression library name and
-  version (if available) as output.
 
   In `complib` and `version` you get a pointer to the compressor
   library name and the version in string format respectively.  After
@@ -380,7 +390,7 @@ BLOSC_EXPORT char* blosc_get_version_string(void);
   If the compressor is supported, it returns the code for the library
   (>=0).  If it is not supported, this function returns -1.
   */
-BLOSC_EXPORT int blosc_get_complib_info(char *compname, char **complib, char **version);
+BLOSC_EXPORT int blosc_get_complib_info(const char *compname, char **complib, char **version);
 
 
 /**
@@ -401,40 +411,46 @@ BLOSC_EXPORT int blosc_free_resources(void);
   You only need to pass the first BLOSC_MIN_HEADER_LENGTH bytes of a
   compressed buffer for this call to work.
 
-  This function should always succeed.
+  If the format is not supported by the library, all output arguments will be
+  filled with zeros.
   */
 BLOSC_EXPORT void blosc_cbuffer_sizes(const void *cbuffer, size_t *nbytes,
 				      size_t *cbytes, size_t *blocksize);
 
 
 /**
-  Return information about a compressed buffer, namely the type size
+  Return meta-information about a compressed buffer, namely the type size
   (`typesize`), as well as some internal `flags`.
 
-  The `flags` is a set of bits, where the currently used ones are:
+  The `flags` is a set of bits, where the used ones are:
     * bit 0: whether the shuffle filter has been applied or not
     * bit 1: whether the internal buffer is a pure memcpy or not
+    * bit 2: whether the bit shuffle filter has been applied or not
 
   You can use the `BLOSC_DOSHUFFLE`, `BLOSC_DOBITSHUFFLE` and
   `BLOSC_MEMCPYED` symbols for extracting the interesting bits
   (e.g. ``flags & BLOSC_DOSHUFFLE`` says whether the buffer is
   byte-shuffled or not).
 
-  This function should always succeed.
+  You only need to pass the first BLOSC_MIN_HEADER_LENGTH bytes of a
+  compressed buffer for this call to work.
+
+  If the format is not supported by the library, all output arguments will be
+  filled with zeros.
   */
 BLOSC_EXPORT void blosc_cbuffer_metainfo(const void *cbuffer, size_t *typesize,
-					 int *flags);
+					                               int *flags);
 
 
 /**
   Return information about a compressed buffer, namely the internal
   Blosc format version (`version`) and the format for the internal
-  Lempel-Ziv compressor used (`versionlz`).
+  compressor used (`compversion`).
 
   This function should always succeed.
   */
 BLOSC_EXPORT void blosc_cbuffer_versions(const void *cbuffer, int *version,
-                                             int *versionlz);
+                                         int *compversion);
 
 
 /**
@@ -442,7 +458,7 @@ BLOSC_EXPORT void blosc_cbuffer_versions(const void *cbuffer, int *version,
 
   This function should always succeed.
   */
-BLOSC_EXPORT char *blosc_cbuffer_complib(const void *cbuffer);
+BLOSC_EXPORT const char *blosc_cbuffer_complib(const void *cbuffer);
 
 
 
@@ -452,8 +468,10 @@ BLOSC_EXPORT char *blosc_cbuffer_complib(const void *cbuffer);
 
 *********************************************************************/
 
-/* Get the internal blocksize to be used during compression.  0 means
-   that an automatic blocksize is computed internally. */
+/**
+  Get the internal blocksize to be used during compression.  0 means
+  that an automatic blocksize is computed internally (the default).
+  */
 BLOSC_EXPORT int blosc_get_blocksize(void);
 
 /**
@@ -464,6 +482,27 @@ BLOSC_EXPORT int blosc_get_blocksize(void);
   the allowed values, so use this with care.
   */
 BLOSC_EXPORT void blosc_set_blocksize(size_t blocksize);
+
+/**
+  Set the split mode.
+
+  This function can take the next values:
+  *  BLOSC_FORWARD_COMPAT_SPLIT
+  *  BLOSC_AUTO_SPLIT
+  *  BLOSC_NEVER_SPLIT
+  *  BLOSC_ALWAYS_SPLIT
+
+  BLOSC_FORWARD_COMPAT offers reasonably forward compatibility,
+  BLOSC_AUTO_SPLIT is for nearly optimal results (based on heuristics),
+  BLOSC_NEVER_SPLIT and BLOSC_ALWAYS_SPLIT are for the user experimenting
+  when trying to get best compression ratios and/or speed.
+
+  If not called, the default mode is BLOSC_FORWARD_COMPAT_SPLIT.
+
+  This function should always succeed.
+ */
+BLOSC_EXPORT void blosc_set_splitmode(int splitmode);
+
 
 #ifdef __cplusplus
 }

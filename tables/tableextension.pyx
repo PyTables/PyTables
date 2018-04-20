@@ -46,7 +46,7 @@ from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp, strlen
 from numpy cimport (import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM, \
   npy_intp)
-from definitions cimport (hid_t, herr_t, hsize_t, htri_t,
+from definitions cimport (hid_t, herr_t, hsize_t, htri_t, hbool_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, H5T_COMPOUND, H5Tget_order,
   H5Fflush, H5Dget_create_plist, H5T_ORDER_LE,
@@ -76,7 +76,7 @@ cdef extern from "H5TB-opt.h" nogil:
                           hid_t mem_type_id, hsize_t nrecords,
                           hsize_t chunk_size, void *fill_data, int compress,
                           char *complib, int shuffle, int fletcher32,
-                          void *data )
+                          hbool_t track_times, void *data )
 
   herr_t H5TBOread_records( hid_t dataset_id, hid_t mem_type_id,
                             hsize_t start, hsize_t nrecords, void *data )
@@ -206,7 +206,7 @@ cdef class Table(Leaf):
                                       self.filters.complevel, encoded_complib,
                                       self.filters.shuffle_bitshuffle,
                                       self.filters.fletcher32,
-                                      data)
+                                      self._want_track_times, data)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the table")
 
@@ -956,7 +956,8 @@ cdef class Row:
         # Evaluate the condition on this table fragment.
         iobuf = iobuf[:recout]
 
-        self.table._convert_types(iobuf, len(iobuf), 1)
+        if len(iobuf) > 0:
+          self.table._convert_types(iobuf, len(iobuf), 1)
         self.indexvalid = call_on_recarr(
           self.condfunc, self.condargs, iobuf, **self.condkwargs)
         self.index_valid_data = <char *>self.indexvalid.data

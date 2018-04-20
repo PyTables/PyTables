@@ -36,7 +36,7 @@
   #include <mach/mach.h>
   #include <time.h>
   #include <sys/time.h>
-#elif defined(__unix__)
+#elif defined(__unix__) || defined(__HAIKU__)
   #include <unistd.h>
   #if defined(__GLIBC__)
     #include <time.h>
@@ -190,6 +190,7 @@ void do_bench(char *compressor, char *shuffle, int nthreads, int size, int elsiz
   else if (strcmp(shuffle, "noshuffle") == 0) {
       doshuffle = BLOSC_NOSHUFFLE;
     }
+  else abort();
 
   blosc_set_nthreads(nthreads);
   if(blosc_set_compressor(compressor) < 0){
@@ -201,7 +202,9 @@ void do_bench(char *compressor, char *shuffle, int nthreads, int size, int elsiz
   /* Initialize buffers */
   srccpy = malloc(size);
   retcode = posix_memalign( (void **)(&src), 32, size);
+  if (retcode) abort();
   retcode = posix_memalign( (void **)(&dest2), 32, size);
+  if (retcode) abort();
 
   /* zero src to initialize byte on it, and not only multiples of 4 */
   memset(src, 0, size);
@@ -209,6 +212,7 @@ void do_bench(char *compressor, char *shuffle, int nthreads, int size, int elsiz
   memcpy(srccpy, src, size);
   for (j = 0; j < nchunks; j++) {
      retcode = posix_memalign( (void **)(&dest[j]), 32, size+BLOSC_MAX_OVERHEAD);
+     if (retcode) abort();
   }
 
   fprintf(ofile, "--> %d, %d, %d, %d, %s, %s\n", nthreads, size, elsize, rshift, compressor, shuffle);

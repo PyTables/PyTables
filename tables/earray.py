@@ -94,6 +94,16 @@ class EArray(CArray):
         'big'. If this is not specified, the byteorder is that of the
         platform.
 
+    track_times
+        Whether time data associated with the leaf are recorded (object
+        access time, raw data modification time, metadata change time, object
+        birth time); default True.  Semantics of these times depend on their
+        implementation in the HDF5 library: refer to documentation of the
+        H5O_info_t data structure.  As of HDF5 1.8.15, only ctime (metadata
+        change time) is implemented.
+
+        .. versionadded:: 3.4
+
     Examples
     --------
 
@@ -138,7 +148,7 @@ class EArray(CArray):
                  atom=None, shape=None, title="",
                  filters=None, expectedrows=None,
                  chunkshape=None, byteorder=None,
-                 _log=True):
+                 _log=True, track_times=True):
 
         # Specific of EArray
         if expectedrows is None:
@@ -148,7 +158,8 @@ class EArray(CArray):
 
         # Call the parent (CArray) init code
         super(EArray, self).__init__(parentnode, name, atom, shape, title,
-                                     filters, chunkshape, byteorder, _log)
+                                     filters, chunkshape, byteorder, _log,
+                                     track_times)
 
     # Public and private methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~

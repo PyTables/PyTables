@@ -41,7 +41,7 @@ static void printymm(__m256i ymm0)
 
 /* GCC doesn't include the split load/store intrinsics
    needed for the tiled shuffle, so define them here. */
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__ICC)
 static inline __m256i
 __attribute__((__always_inline__))
 _mm256_loadu2_m128i(const __m128i* const hiaddr, const __m128i* const loaddr)

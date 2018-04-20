@@ -67,6 +67,7 @@
  *    F. Alted
  *
  * Modifications:
+ *  * Modified by A. Cobb. August 21, 2017 (track_times)
  *
  *-------------------------------------------------------------------------
  */
@@ -85,6 +86,7 @@ hid_t H5TBOmake_table(  const char *table_title,
                         char *complib,
                         int shuffle,
                         int fletcher32,
+			hbool_t track_times,
                         const void *data )
 {
 
@@ -105,8 +107,14 @@ hid_t H5TBOmake_table(  const char *table_title,
  if ( (space_id = H5Screate_simple( 1, dims, maxdims )) < 0 )
   return -1;
 
- /* Modify dataset creation properties, i.e. enable chunking  */
+ /* Dataset creation properties */
  plist_id = H5Pcreate (H5P_DATASET_CREATE);
+
+ /* Enable or disable recording dataset times */
+ if ( H5Pset_obj_track_times( plist_id, track_times ) < 0 )
+   return -1;
+
+ /* Modify dataset creation properties, i.e. enable chunking  */
  if ( H5Pset_chunk ( plist_id, 1, dims_chunk ) < 0 )
   return -1;
 

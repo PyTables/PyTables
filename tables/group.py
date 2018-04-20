@@ -14,6 +14,7 @@
 from __future__ import absolute_import
 
 import os
+import re
 import weakref
 import warnings
 
@@ -101,11 +102,11 @@ class Group(hdf5extension.Group, Node):
     The following documentation includes methods that are automatically
     called when a Group instance is accessed in a special way.
 
-    For instance, this class defines the __setattr__, __getattr__, and
-    __delattr__ methods, and they set, get and delete *ordinary Python
-    attributes* as normally intended. In addition to that, __getattr__
-    allows getting *child nodes* by their name for the sake of easy
-    interaction on the command line, as long as there is no Python
+    For instance, this class defines the __setattr__, __getattr__,
+    __delattr__ and __dir__ methods, and they set, get and delete
+    *ordinary Python attributes* as normally intended. In addition to that,
+     __getattr__ allows getting *child nodes* by their name for the sake of
+     easy interaction on the command line, as long as there is no Python
     attribute with the same name. Groups also allow the interactive
     completion (when using readline) of the names of child nodes.
     For instance::
@@ -123,6 +124,9 @@ class Group(hdf5extension.Group, Node):
         del group.table              # delete a Python attribute
         table = group.table          # get the table child instance again
 
+    Additionally, on interactive python sessions you may get autocompletions
+    of children named as *valid python identifiers* by pressing the  `[Tab]`
+    key, or to use the dir() global function.
 
     .. rubric:: Group attributes
 
@@ -429,6 +433,16 @@ class Group(hdf5extension.Group, Node):
         except NoSuchNodeError:
             return False
         return True
+
+    def __getitem__(self, childname):
+        """Return the (visible or hidden) child with that `name` ( a string).
+
+        Raise IndexError if child not exist.
+        """
+        try:
+            return self._f_get_child(childname)
+        except NoSuchNodeError:
+            raise IndexError(childname)
 
     def _f_walknodes(self, classname=None):
         """Iterate over descendant nodes.
@@ -805,6 +819,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         except AttributeError as ae:
             hint = " (use ``node._f_remove()`` if you want to remove a node)"
             raise ae.__class__(str(ae) + hint)
+
+    def __dir__(self):
+        """Autocomplete only children named as valid python identifiers.
+
+        Only PY3 supports this special method.
+        """
+        subnods = [c for c in self._v_children if c.isidentifier()]
+        return super(Group, self).__dir__() + subnods
 
     def __getattr__(self, name):
         """Get a Python attribute or child node called name.

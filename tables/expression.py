@@ -39,6 +39,12 @@ class Expr(object):
     but in addition to NumPy objects, it also accepts disk-based homogeneous
     arrays, like the Array, CArray, EArray and Column PyTables objects.
 
+    .. warning::
+
+        Expr class only offers a subset of the Numexpr features due to the
+        complexity of implement some of them when dealing with huge amount of
+        data.
+
     All the internal computations are performed via the Numexpr package,
     so all the broadcast and upcasting rules of Numexpr applies here too.
     These rules are very similar to the NumPy ones, but with some exceptions
@@ -46,6 +52,7 @@ class Expr(object):
     disk-based arrays.  Be sure to read the documentation of the Expr
     constructor and methods as well as that of Numexpr, if you want to fully
     grasp these particularities.
+
 
     Parameters
     ----------
@@ -578,7 +585,10 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         if i_nrows == 0:
             # No elements to compute
-            return self._single_row_out
+            if start >= stop and self.start is not None:
+                return out
+            else:
+                return self._single_row_out
 
         # Create a key that selects every element in inputs and output
         # (including the main dimension)

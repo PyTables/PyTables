@@ -113,7 +113,7 @@ Creating a PyTables file from scratch
 
 Use the top-level :func:`open_file` function to create a PyTables file::
 
-    >>> h5file = open_file("tutorial1.h5", mode = "w", title = "Test file")
+    >>> h5file = open_file("tutorial1.h5", mode="w", title="Test file")
 
 :func:`open_file` is one of the objects imported by the
 ```from tables import *``` statement. Here, we are saying that we want to

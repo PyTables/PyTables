@@ -18,7 +18,7 @@ The HDF5 driver that one intend to use to open/create a file can be specified
 using the *driver* keyword argument of the :func:`tables.open_file` function::
 
     >>> import tables
-    >>> h5file = tables.open_file("sample.h", driver="H5FD_CORE")
+    >>> h5file = tables.open_file("sample.h5", driver="H5FD_CORE")
 
 The content of the :file`sample.h5` is opened for reading. It is loaded into
 memory and all reading operations are performed without disk I/O overhead.
@@ -59,7 +59,7 @@ saved to disk when the file descriptor is closed, so a new
 :file:`new_sample.h5` file is created and all data are transferred to disk.
 
 Again this can be time a time expensive action depending on the amount of
-data in the HDF5 file and depending on how fast is the disk I/O.
+data in the HDF5 file and depending on how fast the disk I/O is.
 
 Saving data to disk is the default behavior for the CORE driver in PyTables.
 

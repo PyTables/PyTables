@@ -17,6 +17,7 @@ hid_t H5TBOmake_table(  const char *table_title,
                         char *complib,
                         int shuffle,
                         int fletcher32,
+			hbool_t track_times,
                         const void *data );
 
 herr_t H5TBOread_records( hid_t dataset_id,

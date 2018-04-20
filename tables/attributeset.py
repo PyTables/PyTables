@@ -151,9 +151,9 @@ class AttributeSet(hdf5extension.AttributeSet, object):
 
     .. rubric:: Notes on AttributeSet methods
 
-    Note that this class overrides the __getattr__(), __setattr__() and
-    __delattr__() special methods.  This allows you to read, assign or
-    delete attributes on disk by just using the next constructs::
+    Note that this class overrides the __getattr__(), __setattr__(),
+    __delattr__() and __dir__() special methods.  This allows you to
+    read, assign or delete attributes on disk by just using the next constructs::
 
         leaf.attrs.myattr = 'str attr'    # set a string (native support)
         leaf.attrs.myattr2 = 3            # set an integer (native support)
@@ -169,6 +169,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             print("name: %s, value: %s" % (name, node._v_attrs[name]))
 
     Use whatever idiom you prefer to access the attributes.
+
+    Finally, on interactive python sessions you may get autocompletions of
+    attributes named as *valid python identifiers* by pressing the  `[Tab]`
+    key, or to use the dir() global function.
 
     If an attribute is set on a target node that already has a large
     number of attributes, a PerformanceWarning will be issued.
@@ -283,6 +287,15 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         elif attrset == "all":
             return self._v_attrnames[:]
 
+    def __dir__(self):
+        """Autocomplete only children named as valid python identifiers.
+
+        Only PY3 supports this special method.
+        """
+        return list(set(c for c in
+                    super(AttributeSet, self).__dir__() + self._v_attrnames
+                    if c.isidentifier()))
+
     def __getattr__(self, name):
         """Get the attribute named "name"."""
 
@@ -318,7 +331,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 retval = numpy.array(retval)
             except ImportError:
                 retval = None  # signal error avoiding exception
-        elif maybe_pickled and name == 'FILTERS' and format_version < (2, 0):
+        elif maybe_pickled and name == 'FILTERS' and format_version is not None and format_version < (2, 0):
             # This is a big hack, but we don't have other way to recognize
             # pickled filters of PyTables 1.x files.
             value = _old_filters_re.sub(_new_filters_sub, value, 1)
@@ -360,7 +373,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             # Additional check for allowing a workaround for #307
             if isinstance(retval, six.text_type) and retval == u'':
                 retval = numpy.array(retval)[()]
-        elif name == 'FILTERS' and format_version >= (2, 0):
+        elif name == 'FILTERS' and format_version is not None and format_version >= (2, 0):
             retval = Filters._unpack(value)
         elif name == 'TITLE' and not isinstance(value, str):
             if sys.version_info[0] < 3:
@@ -404,7 +417,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             elif name == "NROWS":
                 stvalue = numpy.array(value, dtype=SizeType)
                 value = stvalue[()]
-            elif name == "FILTERS" and self._v__format_version >= (2, 0):
+            elif name == "FILTERS" and self._v__format_version is not None and self._v__format_version >= (2, 0):
                 stvalue = value._pack()
                 # value will remain as a Filters instance here
         # Convert value from a Python scalar into a NumPy scalar

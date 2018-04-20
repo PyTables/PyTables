@@ -15,7 +15,7 @@
 #ifndef BITSHUFFLE_GENERIC_H
 #define BITSHUFFLE_GENERIC_H
 
-#include "shuffle-common.h"
+#include "blosc-common.h"
 #include <stdlib.h>
 
 #ifdef __cplusplus

@@ -22,10 +22,13 @@ from __future__ import absolute_import
 
 
 import os
+import sys
+
 
 # On Windows, pre-load the HDF5 DLLs into the process via Ctypes
 # to improve diagnostics and avoid issues when loading DLLs during runtime.
-if os.name == 'nt':
+# However, if running from a frozen app (via PyInstaller), skip the check.
+if os.name == 'nt' and not getattr(sys, 'frozen', False):
     import ctypes
 
     def _load_library(dllname, loadfunction, dllpaths=('', )):

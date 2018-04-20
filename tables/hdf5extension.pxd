@@ -11,7 +11,7 @@
 ########################################################################
 
 from numpy cimport ndarray
-from definitions cimport hid_t, hsize_t
+from definitions cimport hid_t, hsize_t, hbool_t
 
 
 # Declaration of instance variables for shared classes
