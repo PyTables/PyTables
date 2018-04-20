@@ -54,7 +54,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'PyTables'
-copyright = '2011-2017, PyTables maintainers'
+copyright = '2011-2018, PyTables maintainers'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
