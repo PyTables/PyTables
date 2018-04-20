@@ -5110,18 +5110,7 @@ class LargeRowSize(common.TempFileMixin, TestCase):
         """Checking saving a Table with an extremely large rowsize"""
 
         # Create a recarray
-        r = records.array([[np.arange(40000)]*4])   # 640 KB
-
-        # Save it in a table:
-#         try:
-#             fileh.create_table(fileh.root, 'largerow', r)
-#         except ValueError:
-#             if common.verbose:
-#                 (type, value, traceback) = sys.exc_info()
-#               print "\nGreat!, the next ValueError was catched!"
-#                 print value
-#         else:
-#             self.fail("expected a ValueError")
+        r = np.zeros(10, dtype=np.dtype('(300,100)i4,(400,400)f8'))   # 1.4 MB rowsize
         # From PyTables 1.3 on, we allow row sizes equal or larger than 640 KB
         self.h5file.create_table(self.h5file.root, 'largerow', r)
 
