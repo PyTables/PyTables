@@ -1034,7 +1034,7 @@ class File(hdf5extension.File, object):
             documentation of the H5O_info_t data structure.  As of HDF5
             1.8.15, only ctime (metadata change time) is implemented.
 
-            .. versionadded:: 3.4
+            .. versionadded:: 3.4.3
 
         See Also
         --------
@@ -1128,7 +1128,7 @@ class File(hdf5extension.File, object):
             documentation of the H5O_info_t data structure.  As of HDF5
             1.8.15, only ctime (metadata change time) is implemented.
 
-            .. versionadded:: 3.4
+            .. versionadded:: 3.4.3
 
         See Also
         --------
@@ -1244,7 +1244,7 @@ class File(hdf5extension.File, object):
             documentation of the H5O_info_t data structure.  As of HDF5
             1.8.15, only ctime (metadata change time) is implemented.
 
-            .. versionadded:: 3.4
+            .. versionadded:: 3.4.3
 
         See Also
         --------
@@ -1358,7 +1358,7 @@ class File(hdf5extension.File, object):
             documentation of the H5O_info_t data structure.  As of HDF5
             1.8.15, only ctime (metadata change time) is implemented.
 
-            .. versionadded:: 3.4
+            .. versionadded:: 3.4.3
 
         See Also
         --------
@@ -1473,7 +1473,7 @@ class File(hdf5extension.File, object):
             documentation of the H5O_info_t data structure.  As of HDF5
             1.8.15, only ctime (metadata change time) is implemented.
 
-            .. versionadded:: 3.4
+            .. versionadded:: 3.4.3
 
         See Also
         --------
