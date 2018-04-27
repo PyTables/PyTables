@@ -818,6 +818,13 @@ ADDLIBS = [hdf5_package.library_name]
 # List of Blosc file dependencies
 blosc_sources = ["hdf5-blosc/src/blosc_filter.c"]
 if 'BLOSC' not in optional_libs:
+    if not os.environ.get('PYTABLES_NO_EMBEDDED_LIBS', None) is None:
+        exit_with_error(
+            "Unable to find the blosc library. "
+            "The embedded copy of the blosc sources can't be used because "
+            "the PYTABLES_NO_EMBEDDED_LIBS environment variable has been "
+            "specified).")
+
     # Compiling everything from sources
     # Blosc + BloscLZ sources
     blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
