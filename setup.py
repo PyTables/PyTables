@@ -358,11 +358,11 @@ def get_hdf5_version(headername):
     with open(headername) as fd:
         for line in fd:
             if 'H5_VERS_MAJOR' in line:
-                major_version = int(re.split("\s*", line)[2])
+                major_version = int(re.split("\s+", line)[2])
             if 'H5_VERS_MINOR' in line:
-                minor_version = int(re.split("\s*", line)[2])
+                minor_version = int(re.split("\s+", line)[2])
             if 'H5_VERS_RELEASE' in line:
-                release_version = int(re.split("\s*", line)[2])
+                release_version = int(re.split("\s+", line)[2])
             if (major_version != -1 and minor_version != -1 and
                     release_version != -1):
                 break
@@ -380,11 +380,11 @@ def get_blosc_version(headername):
     release_version = -1
     for line in open(headername):
         if 'BLOSC_VERSION_MAJOR' in line:
-            major_version = int(re.split("\s*", line)[2])
+            major_version = int(re.split("\s+", line)[2])
         if 'BLOSC_VERSION_MINOR' in line:
-            minor_version = int(re.split("\s*", line)[2])
+            minor_version = int(re.split("\s+", line)[2])
         if 'BLOSC_VERSION_RELEASE' in line:
-            release_version = int(re.split("\s*", line)[2])
+            release_version = int(re.split("\s+", line)[2])
         if (major_version != -1 and minor_version != -1 and
                 release_version != -1):
             break
