@@ -201,7 +201,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                 else:
                     tmplist.append(1 + float(i)*1j)
 
-            buflist.append(tmplist)
+            buflist.append(tuple(tmplist))
 
         self.record = records.array(buflist, dtype=record.dtype,
                                     shape=self.expectedrows)
