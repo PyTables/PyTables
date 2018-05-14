@@ -371,7 +371,7 @@ following:
 Here's an example of a BibTeX entry::
 
     @Misc{,
-      author =    {Francesc Alted and Ivan Vilata and others},
+      author =    {PyTables Developers Team},
       title =     {{PyTables}: Hierarchical Datasets in {Python}},
       year =      {2002--},
       url = "http://www.pytables.org/"
