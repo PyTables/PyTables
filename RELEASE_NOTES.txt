@@ -7,9 +7,26 @@
 
 .. py:currentmodule:: tables
 
-Changes from 3.4.3 to 3.4.x
+Changes from 3.4.3 to 3.4.4
 ===========================
 
+Improvements
+------------
+ - Environment variable to control the use of embedded libraries.
+   Thanks to avalentino.
+ - Include citation in repository.
+   :issue:`690`. Thanks to katrinleinweber.
+
+Bugs fixed
+----------
+ - Fixed import error with numexpr 2.6.5.dev0
+   :issue:`685`. Thanks to cgohlke.
+ - Fixed linter warnings.
+   Thanks to avalentino.
+ - Fixed for re.split() is version detection.
+   :issue:`687`. Thanks to mingwandroid.
+ - Fixed test failures with Python 2.7 and NumPy 1.14.3
+   :issue:`688` & :issue:`689`. Thanks to oleksandr-pavlyk.
 
 
 Changes from 3.4.2 to 3.4.3
