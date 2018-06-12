@@ -102,9 +102,14 @@ if sys.version_info < min_python_version:
     exit_with_error("You need Python 2.6 or greater to install PyTables!")
 print("* Using Python %s" % sys.version.splitlines()[0])
 
-# Minumum equired versions for numpy, numexpr and HDF5
+# Minimum required versions for numpy, numexpr and HDF5
 with open(os.path.join('tables', 'req_versions.py')) as fd:
-    exec(fd.read())
+    _min_versions = {}
+    exec(fd.read(), _min_versions)
+
+    min_hdf5_version = _min_versions['min_hdf5_version']
+    min_blosc_version = _min_versions['min_blosc_version']
+    min_blosc_bitshuffle_version = _min_versions['min_blosc_bitshuffle_version']
 
 
 with open('VERSION') as fd:
@@ -176,7 +181,7 @@ if sys.platform.lower().startswith('darwin'):
     lib_dirs.extend(default_library_dirs)
 
 
-def _find_file_path(name, locations, prefixes=[''], suffixes=['']):
+def _find_file_path(name, locations, prefixes=('',), suffixes=('',)):
     for prefix in prefixes:
         for suffix in suffixes:
             for location in locations:
@@ -186,7 +191,13 @@ def _find_file_path(name, locations, prefixes=[''], suffixes=['']):
     return None
 
 
-class Package(object):
+class BasePackage(object):
+    _library_prefixes = []
+    _library_suffixes = []
+    _runtime_prefixes = []
+    _runtime_suffixes = []
+    _component_dirs = []
+
     def __init__(self, name, tag, header_name, library_name,
                  target_function=None):
         self.name = name
@@ -314,7 +325,7 @@ class Package(object):
         return tuple(directories)
 
 
-class PosixPackage(Package):
+class PosixPackage(BasePackage):
     _library_prefixes = ['lib']
     _library_suffixes = ['.so', '.dylib', '.a']
     _runtime_prefixes = _library_prefixes
@@ -322,7 +333,7 @@ class PosixPackage(Package):
     _component_dirs = ['include', 'lib', 'lib64']
 
 
-class WindowsPackage(Package):
+class WindowsPackage(BasePackage):
     _library_prefixes = ['']
     _library_suffixes = ['.lib']
     _runtime_prefixes = ['']
@@ -347,11 +358,11 @@ def get_hdf5_version(headername):
     with open(headername) as fd:
         for line in fd:
             if 'H5_VERS_MAJOR' in line:
-                major_version = int(re.split("\s*", line)[2])
+                major_version = int(re.split("\s+", line)[2])
             if 'H5_VERS_MINOR' in line:
-                minor_version = int(re.split("\s*", line)[2])
+                minor_version = int(re.split("\s+", line)[2])
             if 'H5_VERS_RELEASE' in line:
-                release_version = int(re.split("\s*", line)[2])
+                release_version = int(re.split("\s+", line)[2])
             if (major_version != -1 and minor_version != -1 and
                     release_version != -1):
                 break
@@ -369,11 +380,11 @@ def get_blosc_version(headername):
     release_version = -1
     for line in open(headername):
         if 'BLOSC_VERSION_MAJOR' in line:
-            major_version = int(re.split("\s*", line)[2])
+            major_version = int(re.split("\s+", line)[2])
         if 'BLOSC_VERSION_MINOR' in line:
-            minor_version = int(re.split("\s*", line)[2])
+            minor_version = int(re.split("\s+", line)[2])
         if 'BLOSC_VERSION_RELEASE' in line:
-            release_version = int(re.split("\s*", line)[2])
+            release_version = int(re.split("\s+", line)[2])
         if (major_version != -1 and minor_version != -1 and
                 release_version != -1):
             break
@@ -393,6 +404,7 @@ if os.name == 'posix':
         'BZ2': ['bz2'],
         'BLOSC': ['blosc'],
     }
+
 elif os.name == 'nt':
     _Package = WindowsPackage
     _platdep = {  # package tag -> platform-dependent components
@@ -420,6 +432,12 @@ elif os.name == 'nt':
 
     if debug:
         _platdep['HDF5'] = ['hdf5_D', 'hdf5_D']
+
+else:
+    _Package = None
+    _platdep = {}
+    exit_with_error('Unsupported OS: %s' % os.name)
+
 
 hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
 hdf5_package.target_function = 'H5close'
@@ -760,8 +778,8 @@ setuptools_kwargs['entry_points'] = {
         'ptrepack = tables.scripts.ptrepack:main',
         'pt2to3 = tables.scripts.pt2to3:main',
         'pttree = tables.scripts.pttree:main',
-        ],
-    }
+    ],
+}
 
 # Test suites.
 setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
@@ -770,15 +788,16 @@ setuptools_kwargs['scripts'] = []
 # Copy additional data for packages that need it.
 setuptools_kwargs['package_data'] = {
     'tables.tests': ['*.h5', '*.mat'],
-    'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5']}
+    'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5'],
+}
 
 
 # Having the Python version included in the package name makes managing a
 # system with multiple versions of Python much easier.
 
 def find_name(base='tables'):
-    '''If "--name-with-python-version" is on the command line then
-    append "-pyX.Y" to the base name'''
+    """If "--name-with-python-version" is on the command line then
+    append "-pyX.Y" to the base name"""
     name = base
     if '--name-with-python-version' in sys.argv:
         name += '-py%i.%i' % (sys.version_info[0], sys.version_info[1])
@@ -799,6 +818,13 @@ ADDLIBS = [hdf5_package.library_name]
 # List of Blosc file dependencies
 blosc_sources = ["hdf5-blosc/src/blosc_filter.c"]
 if 'BLOSC' not in optional_libs:
+    if not os.environ.get('PYTABLES_NO_EMBEDDED_LIBS', None) is None:
+        exit_with_error(
+            "Unable to find the blosc library. "
+            "The embedded copy of the blosc sources can't be used because "
+            "the PYTABLES_NO_EMBEDDED_LIBS environment variable has been "
+            "specified).")
+
     # Compiling everything from sources
     # Blosc + BloscLZ sources
     blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')

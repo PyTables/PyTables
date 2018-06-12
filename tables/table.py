@@ -29,8 +29,7 @@ from . import tableextension
 from .lrucacheextension import ObjectCache, NumCache
 from .atom import Atom
 from .conditions import compile_condition
-from numexpr.necompiler import (
-    getType as numexpr_getType, double, is_cpu_amd_intel)
+from numexpr.necompiler import getType as numexpr_getType, double
 from numexpr.expressions import functions as numexpr_functions
 from .flavor import flavor_of, array_as_internal, internal_to_flavor
 from .utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
@@ -441,7 +440,7 @@ class Table(tableextension.Table, Leaf):
         H5O_info_t data structure.  As of HDF5 1.8.15, only ctime (metadata
         change time) is implemented.
 
-        .. versionadded:: 3.4
+        .. versionadded:: 3.4.3
 
     Notes
     -----
