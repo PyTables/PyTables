@@ -102,7 +102,9 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5_HAVE_DIRECT_DRIVER, pt_H5Pset_fapl_direct,
   H5_HAVE_WINDOWS_DRIVER, pt_H5Pset_fapl_windows,
   H5_HAVE_IMAGE_FILE, pt_H5Pset_file_image, pt_H5Fget_file_image,
-  H5Tget_size, hobj_ref_t)
+  H5Tget_size, hobj_ref_t,
+  RVinit, H5Pset_fapl_rest_vol)
+
 
 cdef int H5T_CSET_DEFAULT = 16
 
@@ -320,6 +322,8 @@ cdef class File:
     cdef bytes encname
     #cdef bytes logfile_name
 
+    RVinit();
+
     # Check if we can handle the driver
     driver = params["DRIVER"]
     if driver is not None and driver not in _supported_drivers:
@@ -368,7 +372,8 @@ cdef class File:
     else:
       backing_store = params.get("DRIVER_CORE_BACKING_STORE", 1)
       if driver != "H5FD_CORE" or backing_store:
-        check_file_access(name, pymode)
+        #check_file_access(name, pymode)
+        pass
 
     # Should a new file be created?
     if image:
@@ -465,6 +470,8 @@ cdef class File:
       H5Pclose(access_plist)
       raise e
 
+    #encname = b"/home/faltet/" + encname
+    H5Pset_fapl_rest_vol(access_plist);
     if pymode == 'r':
       self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)
     elif pymode == 'r+':

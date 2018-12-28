@@ -189,9 +189,11 @@ hid_t H5TBOmake_table(  const char *table_title,
  }
 
  /* Create the dataset. */
+ printf("About to create... %s\n", dset_name);
  if ( (dataset_id = H5Dcreate( loc_id, dset_name, type_id, space_id,
                                H5P_DEFAULT, plist_id, H5P_DEFAULT )) < 0 )
   goto out;
+ printf("pepe!\n");
 
  /* Only write if there is something to write */
  if ( data )

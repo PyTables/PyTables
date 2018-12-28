@@ -34,7 +34,6 @@ cdef extern from "numpy/arrayobject.h":
 
 #-----------------------------------------------------------------------------
 
-
 # Structs and types from HDF5
 cdef extern from "hdf5.h" nogil:
 
@@ -492,6 +491,13 @@ cdef extern from "hdf5.h" nogil:
   hid_t H5Rdereference(hid_t dset, H5R_type_t rtype, void *reference)
   int H5Rget_object_type(hid_t obj_id, void *reference)
   herr_t H5Oclose( hid_t object_id )
+
+
+# Functions from REST VOL package
+cdef extern from "rest_vol_public.h" nogil:
+    herr_t RVinit()
+    herr_t RVterm()
+    herr_t H5Pset_fapl_rest_vol(hid_t fapl_id)
 
 
 # Specific HDF5 functions for PyTables

@@ -199,6 +199,7 @@ cdef class Table(Leaf):
       data = NULL
 
     class_ = self._c_classid.encode('utf-8')
+    print("-->", encoded_name)
     self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, encoded_name,
                                       cobversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
