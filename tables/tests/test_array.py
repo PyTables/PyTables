@@ -22,7 +22,7 @@ from tables.tests.common import PyTablesTestCase as TestCase
 from six.moves import range
 
 
-warnings.resetwarnings()
+#warnings.resetwarnings()
 
 
 class BasicTestCase(TestCase):
