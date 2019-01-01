@@ -356,14 +356,14 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
     def test_str(self):
         s = str(self.h5file)
-        self.assertEqual(len(re.findall('\(SoftLink\)', s)), 3)
-        self.assertEqual(len(re.findall('\(dangling\)', s)), 0)
+        self.assertEqual(len(re.findall(r'\(SoftLink\)', s)), 3)
+        self.assertEqual(len(re.findall(r'\(dangling\)', s)), 0)
 
     def test_str_with_dangling_link(self):
         self.h5file.root.group1.arr2.remove()
         s = str(self.h5file)
-        self.assertEqual(len(re.findall('\(SoftLink\)', s)), 3)
-        self.assertEqual(len(re.findall('\(dangling\)', s)), 1)
+        self.assertEqual(len(re.findall(r'\(SoftLink\)', s)), 3)
+        self.assertEqual(len(re.findall(r'\(dangling\)', s)), 1)
 
 
 # Test for external links

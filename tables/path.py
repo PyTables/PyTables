@@ -109,13 +109,13 @@ def check_attribute_name(name):
         warnings.warn("object name is not a valid Python identifier: %r; "
                       "it does not match the pattern ``%s``; %s"
                       % (name, _python_id_re.pattern, _warnInfo),
-                      NaturalNameWarning)
+                      NaturalNameWarning, stacklevel=2)
         return
 
     # However, Python identifiers and keywords have the same form.
     if keyword.iskeyword(name):
         warnings.warn("object name is a Python keyword: %r; %s"
-                      % (name, _warnInfo), NaturalNameWarning)
+                      % (name, _warnInfo), NaturalNameWarning, stacklevel=2)
         return
 
     # Still, names starting with reserved prefixes are not allowed.

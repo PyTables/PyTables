@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import sys
 import datetime
+import warnings
 from distutils.version import LooseVersion
 
 import numpy
@@ -148,10 +149,12 @@ class CreateTestCase(common.TempFileMixin, TestCase):
 
     def test01a_setAttributes(self):
         """Checking attribute names validity"""
-        self.check_name('a')
-        self.check_name('a:b')
-        self.check_name('/a/b')
-        self.check_name('.')
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', tables.NaturalNameWarning)
+            self.check_name('a')
+            self.check_name('a:b')
+            self.check_name('/a/b')
+            self.check_name('.')
         self.assertRaises(ValueError, self.check_name, '')
         self.assertRaises(ValueError, self.check_name, '__members__')
         self.assertRaises(TypeError, self.check_name, 0)
@@ -614,10 +617,15 @@ class CreateTestCase(common.TempFileMixin, TestCase):
 
         user_attr = 'good_attr'
         sys_attr = 'BETTER_ATTR'
+        for a in [user_attr, sys_attr]:
+            attrset[a] = 1
+
         bad_user = '5bad'
         bad_sys = 'SYS%'
-        for a in [user_attr, sys_attr, bad_user, bad_sys]:
-            attrset[a] = 1
+        for a in [bad_user, bad_sys]:
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore', tables.NaturalNameWarning)
+                attrset[a] = 1
 
         completions = dir(attrset)
 

@@ -362,7 +362,7 @@ class Atom(six.with_metaclass(MetaAtom, object)):
             >>> import numpy
             >>> Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
             Int16Atom(shape=(2, 2), dflt=0)
-            >>> Atom.from_dtype(numpy.dtype('Float64'))
+            >>> Atom.from_dtype(numpy.dtype('float64'))
             Float64Atom(shape=(), dflt=0.0)
 
         Note: for easier use in Python 3, where all strings lead to the

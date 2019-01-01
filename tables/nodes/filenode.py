@@ -802,7 +802,7 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
 
 def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
                        create_target=False):
-    """Read a filenode from a PyTables file and write its contents to a file.
+    r"""Read a filenode from a PyTables file and write its contents to a file.
 
     .. versionadded:: 3.2
 

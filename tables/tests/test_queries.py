@@ -16,6 +16,7 @@ from __future__ import absolute_import
 import re
 import sys
 import types
+import warnings
 import functools
 
 import numpy
@@ -427,7 +428,12 @@ def create_test_method(type_, op, extracond, func=None):
                 pyvars['c_extra'] = row['c_extra']
                 pyvars['c_idxextra'] = row['c_idxextra']
                 try:
-                    isvalidrow = eval(pycond, func_info, pyvars)
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings(
+                            'ignore',
+                            'invalid value encountered in arc(cos|sin)',
+                            RuntimeWarning)
+                        isvalidrow = eval(pycond, func_info, pyvars)
                 except TypeError:
                     raise SilentlySkipTest(
                         "The Python type does not support the operation.")
