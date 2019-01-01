@@ -10,6 +10,9 @@
 Changes from 3.4.4 to 3.4.x
 ===========================
 
+* Improve compatibility with numpy 1.16.
+* Improve detection of the LZO2 library at build time.
+* Suppress several warnings.
 
 
 Changes from 3.4.3 to 3.4.4
