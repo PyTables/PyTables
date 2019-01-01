@@ -111,6 +111,9 @@ from utilsextension cimport malloc_dims, get_native_type, cstr_to_pystr, load_re
 
 #-------------------------------------------------------------------
 
+cdef extern from "Python.h":
+
+    object PyByteArray_FromStringAndSize(char *s, Py_ssize_t len)
 
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
 cdef extern from "H5ARRAY.h" nogil:
@@ -2141,8 +2144,8 @@ cdef class VLArray(Leaf):
         # Create a buffer to keep this info. It is important to do a
         # copy, because we will dispose the buffer memory later on by
         # calling the H5Dvlen_reclaim. PyBytes_FromStringAndSize does this.
-        buf = PyBytes_FromStringAndSize(<char *>rdata[i].p,
-                                        vllen*self._atomicsize)
+        buf = PyByteArray_FromStringAndSize(<char *>rdata[i].p,
+                                            vllen*self._atomicsize)
       else:
         # Case where there is info with zero lentgh
         buf = None
