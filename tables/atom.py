@@ -28,7 +28,6 @@ from .misc.enum import Enum
 import six.moves.cPickle
 import six
 
-import warnings
 from .exceptions import FlavorWarning
 
 # Public variables
