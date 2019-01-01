@@ -144,14 +144,14 @@ class ExceptionTestCase(TestCase):
             print('\n', '-=' * 30)
             print("Running test for %s" % (self.title))
         a = self.charList
-        with self.assertRaises(ValueError):
+        with self.assertRaises((ValueError, TypeError)):
             WriteRead(self.h5fname, a)
 
     def test01_types(self):
         """Non supported lists object (numerical types)"""
 
         a = self.numericalList
-        with self.assertRaises(ValueError):
+        with self.assertRaises((ValueError, TypeError)):
             WriteRead(self.h5fname, a)
 
 

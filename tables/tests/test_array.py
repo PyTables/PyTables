@@ -2005,7 +2005,7 @@ class NonHomogeneousTestCase(common.TempFileMixin, TestCase):
         """Test for creation of non-homogeneous arrays."""
 
         # This checks ticket #12.
-        self.assertRaises(ValueError,
+        self.assertRaises((ValueError, TypeError),
                           self.h5file.create_array, '/', 'test', [1, [2, 3]])
         self.assertRaises(NoSuchNodeError, self.h5file.remove_node, '/test')
 
