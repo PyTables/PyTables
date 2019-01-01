@@ -606,8 +606,11 @@ for (package, location) in [(hdf5_package, HDF5_DIR),
     if not location and CONDA_PREFIX:
         location = CONDA_PREFIX
 
+    # looking for lzo/lzo1x.h but pkgconfig already returns '/usr/include/lzo'
+    use_pkgconfig = USE_PKGCONFIG if package.tag != 'LZO2' else False
+
     (hdrdir, libdir, rundir) = package.find_directories(
-        location, use_pkgconfig=USE_PKGCONFIG)
+        location, use_pkgconfig=use_pkgconfig)
 
     # check if HDF5 library uses old DLL naming scheme
     if hdrdir and package.tag == 'HDF5':
