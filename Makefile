@@ -15,25 +15,35 @@ OPT = PYTHONPATH=$(PYBUILDDIR)
 .PHONY:		all dist build check heavycheck clean distclean html
 
 all:		$(GENERATED) build
-	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
+	$(MAKE) -C src $(OPT) $@
+	$(MAKE) -C doc $(OPT) html
+	$(RM) -r doc/html
+	mv doc/build/html doc/html
 
 dist:		all
 	$(PYTHON) setup.py sdist
 	cd dist && md5sum tables-$(VERSION).tar.gz > pytables-$(VERSION).md5 && cd -
 	cp RELEASE_NOTES.txt dist/RELEASE_NOTES-$(VERSION).txt
-	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
+	$(MAKE) -C doc $(OPT) latexpdf
+	$(RM) doc/usersguide-*.pdf
+	mv doc/build/latex/usersguide-$(VERSION).pdf doc
+	cp doc/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
+	tar cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz doc/html
 
 clean:
-	rm -rf MANIFEST build dist tmp tables/__pycache__
-	rm -rf bench/*.h5 bench/*.prof
-	rm -rf examples/*.h5 examples/raw
-	rm -f $(GENERATED) tables/*.so a.out
+	$(RM) -r MANIFEST build dist tmp tables/__pycache__
+	$(RM) bench/*.h5 bench/*.prof
+	$(RM) -r examples/*.h5 examples/raw
+	$(RM) -r *.egg-info
+	$(RM) $(GENERATED) tables/*.so a.out
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
 
 distclean:	clean
 	$(MAKE) -C src $(OPT) $@
-	rm -f tables/_comp_*.c tables/*extension.c
+	$(RM) tables/_comp_*.c tables/*extension.c
+	$(RM) doc/usersguide-*.pdf
+	$(RM) -r doc/html
 	#git clean -fdx
 
 html: build
