@@ -2084,6 +2084,8 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
         tbarr = self.tbarr
 
         for key in self.working_keyset:
+            if nparr.ndim > 1:
+                key = tuple(key)
             if common.verbose:
                 print("Selection to test:", key)
             a = nparr[key]

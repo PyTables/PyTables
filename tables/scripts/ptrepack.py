@@ -23,7 +23,10 @@ import time
 import os.path
 import argparse
 import warnings
-
+try:
+    from time import process_time as cputime
+except ImportError:
+    from time import clock as cputime
 
 from tables.file import open_file
 from tables.group import Group
@@ -492,7 +495,7 @@ def main():
 
     # Some timing
     t1 = time.time()
-    cpu1 = time.clock()
+    cpu1 = cputime()
     # Copy the file
     if verbose:
         print("+=+" * 20)
@@ -541,7 +544,7 @@ def main():
 
     # Gather some statistics
     t2 = time.time()
-    cpu2 = time.clock()
+    cpu2 = cputime ()
     tcopy = round(t2 - t1, 3)
     cpucopy = round(cpu2 - cpu1, 3)
     try:

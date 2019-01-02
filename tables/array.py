@@ -801,7 +801,7 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
             k[idx] = neworder.argsort()
             # Apparently, a copy is not needed here, but doing it
             # for symmetry with the `_write_selection()` method.
-            nparr = nparr[k].copy()
+            nparr = nparr[tuple(k)].copy()
         return nparr
 
     def _write_slice(self, startl, stopl, stepl, shape, nparr):
@@ -833,7 +833,7 @@ class Array(hdf5extension.Array, Leaf, six.Iterator):
             k[idx] = neworder
             # For a reason a don't understand well, we need a copy of
             # the reordered array
-            nparr = nparr[k].copy()
+            nparr = nparr[tuple(k)].copy()
         self._g_write_selection(selection, nparr)
 
     def _read(self, start, stop, step, out=None):

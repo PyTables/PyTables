@@ -482,7 +482,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             slice_obj = [slice(None)] * len(earray.shape)
             #slice_obj[earray.maindim] = slice(self.start, stop, self.step)
             slice_obj[earray.maindim] = slice(self.start, self.stop, self.step)
-            row = row[slice_obj].copy()
+            row = row[tuple(slice_obj)].copy()
             earray.read(self.start, self.stop, self.step, out=row)
         except IndexError:
             row = numpy.empty(shape=self.shape, dtype=self.dtype)
