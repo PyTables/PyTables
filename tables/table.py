@@ -2622,6 +2622,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         n : int
             The index of the row to remove.
 
+
         .. versionadded:: 3.0
 
         Examples

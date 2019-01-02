@@ -83,10 +83,6 @@ class Group(hdf5extension.Group, Node):
     ----------
     parentnode
         The parent :class:`Group` object.
-
-        .. versionchanged:: 3.0
-           Renamed from *parentNode* to *parentnode*
-
     name : str
         The name of this node in its parent group.
     title
@@ -97,6 +93,9 @@ class Group(hdf5extension.Group, Node):
         A Filters instance
 
 
+    .. versionchanged:: 3.0
+       *parentNode* renamed into *parentnode*
+
     Notes
     -----
     The following documentation includes methods that are automatically
@@ -105,8 +104,8 @@ class Group(hdf5extension.Group, Node):
     For instance, this class defines the __setattr__, __getattr__,
     __delattr__ and __dir__ methods, and they set, get and delete
     *ordinary Python attributes* as normally intended. In addition to that,
-     __getattr__ allows getting *child nodes* by their name for the sake of
-     easy interaction on the command line, as long as there is no Python
+    __getattr__ allows getting *child nodes* by their name for the sake of
+    easy interaction on the command line, as long as there is no Python
     attribute with the same name. Groups also allow the interactive
     completion (when using readline) of the names of child nodes.
     For instance::

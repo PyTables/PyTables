@@ -432,7 +432,7 @@ utils/ directory).
     /detector (Group) 'Detector information'
     /detector/readout (Table(10,)) 'Readout example'
 
-You can pass the :option:`-v` or :option:`-d` options to ptdump if you want
+You can pass the `-v` or `-d` options to ptdump if you want
 more verbosity. Try them out!
 
 Also, in :ref:`Figure 1 <tutorial1-1-tableview>`, you can admire how the

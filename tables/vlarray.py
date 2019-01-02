@@ -73,10 +73,6 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
     ----------
     parentnode
         The parent :class:`Group` object.
-
-        .. versionchanged:: 3.0
-           Renamed from *parentNode* to *parentnode*.
-
     name : str
         The name of this node in its parent group.
     atom
@@ -117,6 +113,10 @@ class VLArray(hdf5extension.VLArray, Leaf, six.Iterator):
         change time) is implemented.
 
         .. versionadded:: 3.4.3
+
+
+    .. versionchanged:: 3.0
+       *parentNode* renamed into *parentnode*.
 
     .. versionchanged:: 3.0
        The *expectedsizeinMB* parameter has been replaced by *expectedrows*.

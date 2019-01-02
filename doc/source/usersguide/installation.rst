@@ -56,7 +56,7 @@ First, make sure that you have
 * Cython_ >= 0.21
 * c-blosc_ >= 1.4.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
-  variable or the :option:`--blosc` flag of the :file:`setup.py`)
+  variable or the `--blosc` flag of the :file:`setup.py`)
 
 installed (for testing purposes, we are using HDF5_ 1.8.15, NumPy_ 1.10.2
 and Numexpr_ 2.5.2 currently). If you don't, fetch and install them before
@@ -279,7 +279,7 @@ you can proceed with the PyTables package itself.
    However, before installation, the former is recommended because it is
    more flexible, as you can see below.
    If you would like to see verbose output from the tests simply add the
-   :option:`-v` flag and/or the word verbose to the first of the command lines
+   `-v` flag and/or the word verbose to the first of the command lines
    above. You can also run only the tests in a particular test module.
    For example, to execute just the test_types test suite, you only have to
    specify it::
@@ -313,7 +313,7 @@ you can proceed with the PyTables package itself.
       $ python tables/tests/test_<module>.py -v verbose
 
    and, very important, obtain your PyTables version information by using the
-   :option:`--print-versions` flag (see above) and send back both outputs to
+   `--print-versions` flag (see above) and send back both outputs to
    developers so that we may continue improving PyTables.
    If you run into problems because Python can not load the HDF5 library or
    other shared libraries.
@@ -349,11 +349,11 @@ you can proceed with the PyTables package itself.
 
    Of course, you will need super-user privileges if you want to install
    PyTables on a system-protected area. You can select, though, a different
-   place to install the package using the :option:`--prefix` flag::
+   place to install the package using the `--prefix` flag::
 
       $ python setup.py install --prefix="/home/myuser/mystuff"
 
-   Have in mind, however, that if you use the :option:`--prefix` flag to
+   Have in mind, however, that if you use the `--prefix` flag to
    install in a non-standard place, you should properly setup your
    :envvar:`PYTHONPATH` environment variable, so that the Python interpreter
    would be able to find your new PyTables installation.

@@ -457,7 +457,7 @@ files, you have several possibilities:
      for leaf in h5file.walkNodes(classname='Leaf'):
          del leaf.flavor
 
-* Use the :program:'ptrepack` utility with the flag :option:`--upgrade-flavors`
+* Use the :program:'ptrepack` utility with the flag `--upgrade-flavors`
   so as to convert all flavors in old files to the default (effectively by
   removing the `FLAVOR` attribute).
 * Remove the `numarray` (and/or `Numeric`) package from your system.
