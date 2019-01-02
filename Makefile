@@ -32,7 +32,7 @@ clean:
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
 
 distclean:	clean
-	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
+	$(MAKE) -C src $(OPT) $@
 	rm -f tables/_comp_*.c tables/*extension.c
 	#git clean -fdx
 
