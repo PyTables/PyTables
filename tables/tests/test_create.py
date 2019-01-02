@@ -688,7 +688,7 @@ class FiltersCaseBloscBitShuffle(FiltersTreeTestCase):
     filters = Filters(shuffle=False, complevel=1, complib="blosc:blosclz")
     gfilters = Filters(complevel=5, shuffle=False, bitshuffle=True, complib="blosc:blosclz")
     open_kwargs = dict(filters=filters)
-    print("version:", tables.which_lib_version("blosc")[1])
+    # print("version:", tables.which_lib_version("blosc")[1])
 
 
 class CopyGroupTestCase(common.TempFileMixin, TestCase):
