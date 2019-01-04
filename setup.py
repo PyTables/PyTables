@@ -881,14 +881,15 @@ if __name__ == '__main__':
             blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
                             if 'sse2' in f]
         # AVX2
-        # Detection code for AVX2 only works for gcc/clang, not for MSVC yet
-        if ('avx2' in cpu_flags and
-                compiler_has_flags(compiler, ["-mavx2"])):
-                    print('AVX2 detected')
-                    CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
-                    CFLAGS.append('-mavx2')
-                    blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
-                                    if 'avx2' in f]
+        if 'avx2' in cpu_flags:
+            print('AVX2 detected')
+            if os.name == 'nt' and compiler_has_flags(compiler, ['/arch:AVX2']):
+                def_macros += [('__AVX2__', 1)]
+            elif compiler_has_flags(compiler, ["-mavx2"]):
+                CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
+                CFLAGS.append('-mavx2')
+                blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
+                                if 'avx2' in f]
     else:
         ADDLIBS += ['blosc']
 
@@ -1055,6 +1056,6 @@ if __name__ == '__main__':
                 'ipython']},
         **setuptools_kwargs
     )
-    
+
 elif __name__ == '__mp_main__':
     pass
