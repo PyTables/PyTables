@@ -14,6 +14,7 @@ import textwrap
 import subprocess
 from os.path import exists, expanduser
 import glob
+import platform
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, find_packages
@@ -883,7 +884,10 @@ if __name__ == '__main__':
         # AVX2
         if 'avx2' in cpu_flags:
             print('AVX2 detected')
-            if os.name == 'nt' and compiler_has_flags(compiler, ['/arch:AVX2']):
+            if (os.name == 'nt' and 
+                    LooseVersion(platform.python_version()) >= LooseVersion('3.5.0')):
+                # Neither MSVC2008 for Python 2.7 or MSVC2010 for Python 3.4 have 
+                # sufficient AVX2 support
                 def_macros += [('__AVX2__', 1)]
             elif compiler_has_flags(compiler, ["-mavx2"]):
                 CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
