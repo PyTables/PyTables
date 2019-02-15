@@ -1841,7 +1841,7 @@ PyTables provides the Enum (see :ref:`EnumClassDescr`) class to provide
 support for enumerated types. Each instance of Enum is an enumerated type (or
 *enumeration*). For example, let us create an enumeration of colors
 
-All these examples can be found in :file:`examples/enum.py`::
+All these examples can be found in :file:`examples/play-with-enums.py`::
 
     >>> import tables
     >>> colorList = ['red', 'green', 'blue', 'white', 'black']
