@@ -45,6 +45,7 @@ else:
     import pickle
 
 import numpy
+cimport numpy
 
 from tables.exceptions import HDF5ExtError, DataTypeWarning
 
@@ -322,7 +323,7 @@ cdef class File:
     cdef bytes encname
     #cdef bytes logfile_name
 
-    RVinit();
+    RVinit()
 
     # Check if we can handle the driver
     driver = params["DRIVER"]
@@ -471,7 +472,7 @@ cdef class File:
       raise e
 
     #encname = b"/home/faltet/" + encname
-    H5Pset_fapl_rest_vol(access_plist);
+    H5Pset_fapl_rest_vol(access_plist)
     if pymode == 'r':
       self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)
     elif pymode == 'r+':
