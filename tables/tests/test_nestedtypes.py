@@ -1494,12 +1494,13 @@ class NestedTypesWithGaps(common.TestFileMixin, TestCase):
         tbl = self.h5file.get_node('/nestedtype')
         type_descr = repr(tbl.description)
         if common.verbose:
-            print("Type size with no gaps:", tbl.description._v_itemsize)
-            print("And should be: 13")
+            print("Type size with gaps:", tbl.description._v_itemsize)
+            print("And should be: 16")
             print("Representation of the nested type:\n", type_descr)
             print("And should be:\n", self.correct_descr)
+            print("Here are the offsets: ", tbl.description._v_offsets)
 
-        self.assertEqual(tbl.description._v_itemsize, 13)
+        self.assertEqual(tbl.description._v_itemsize, 16)
         self.assertEqual(type_descr, self.correct_descr)
 
         if common.verbose:
@@ -1513,8 +1514,6 @@ def suite():
     niter = 1
     # common.heavy = 1  # uncomment this only for testing purposes
 
-    # theSuite.addTest(unittest.makeSuite(DescriptionTestCase))
-    # theSuite.addTest(unittest.makeSuite(WriteReopen))
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(DescriptionTestCase))
         theSuite.addTest(unittest.makeSuite(CreateTestCase))

@@ -536,6 +536,7 @@ class Description(object):
             newdict['_v_offsets'] = []
 
         pos = 0
+        nested = False
         # Get properties for compound types
         for k in keys:
             if validate:
@@ -580,17 +581,10 @@ class Description(object):
             else:  # A description
                 nestedFormats.append(object._v_nested_formats)
                 nestedDType.append((kk, object._v_dtype))
+                nested = True
 
         # Assign the format list to _v_nested_formats
         newdict['_v_nested_formats'] = nestedFormats
-        # Compute the dtype with offsets or without
-        #print("offsets ->", cols_offsets, nestedDType, self._v_nestedlvl)
-        if valid_offsets:
-            dtype = numpy.dtype({'names': newdict['_v_names'], 'formats': nestedFormats, 'offsets': cols_offsets})
-        else:
-            dtype = numpy.dtype(nestedDType)
-        newdict['_v_dtype'] = dtype
-        newdict['_v_itemsize'] = dtype.itemsize
 
         if self._v_nestedlvl == 0:
             # Get recursively nested _v_nested_names and _v_nested_descr attrs
@@ -602,6 +596,17 @@ class Description(object):
                 raise ValueError(
                     "Using a ``_v_byteorder`` in the description is obsolete. "
                     "Use the byteorder parameter in the constructor instead.")
+
+        # Compute the dtype with offsets or without
+        # print("offsets ->", cols_offsets, nestedDType, nested)
+        if valid_offsets and not nested:
+            # TODO: support offsets with nested types
+            dtype = numpy.dtype({'names': newdict['_v_names'], 'formats': nestedFormats, 'offsets': cols_offsets})
+        else:
+            dtype = numpy.dtype(nestedDType)
+        newdict['_v_dtype'] = dtype
+        newdict['_v_itemsize'] = dtype.itemsize
+
 
     def _g_set_nested_names_descr(self):
         """Computes the nested names and descriptions for nested datatypes."""
