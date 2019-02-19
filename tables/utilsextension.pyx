@@ -64,6 +64,7 @@ from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   H5Tenum_insert, H5Tget_array_dims, H5Tget_array_ndims, H5Tget_class,
   H5Tget_member_name, H5Tget_member_type, H5Tget_member_value,
   H5Tget_native_type, H5Tget_nmembers, H5Tget_offset, H5Tget_order,
+  H5Tget_member_offset,
   H5Tget_precision, H5Tget_sign, H5Tget_size, H5Tget_super, H5Tinsert,
   H5Tis_variable_str, H5Tpack, H5Tset_precision, H5Tset_size, H5Tvlen_create,
   H5Zunregister, FILTER_BLOSC,
@@ -1175,6 +1176,7 @@ def hdf5_to_np_nested_type(hid_t type_id):
   """Given a HDF5 `type_id`, return a dtype string representation of it."""
 
   cdef hid_t   member_type_id
+  cdef hid_t   member_offset
   cdef hsize_t nfields
   cdef int     i
   cdef char    *c_colname
@@ -1193,15 +1195,17 @@ def hdf5_to_np_nested_type(hid_t type_id):
 
     # Get the member type
     member_type_id = H5Tget_member_type(type_id, i)
+    member_offset = H5Tget_member_offset(type_id, i)
 
     # Get the HDF5 class
     class_id = H5Tget_class(member_type_id)
     if class_id == H5T_COMPOUND and not is_complex(member_type_id):
       desc[colname] = hdf5_to_np_nested_type(member_type_id)
-      desc[colname]["_v_pos"] = i  # Remember the position
+      desc[colname]["_v_pos"] = i
+      desc[colname]["_v_offset"] = member_offset
     else:
       atom = atom_from_hdf5_type(member_type_id, pure_numpy_types=True)
-      desc[colname] = Col.from_atom(atom, pos=i)
+      desc[colname] = Col.from_atom(atom, pos=i, _offset=member_offset)
 
     # Release resources
     H5Tclose(member_type_id)
@@ -1258,13 +1262,10 @@ def hdf5_to_np_ext_type(hid_t type_id, pure_numpy_types=True, atom=False):
       if atom:
         raise TypeError("the HDF5 class ``%s`` is not supported yet"
                         % hdf5_class_to_string[class_id])
-      # Recursively remove possible padding on type_id.
-      native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
-      desc = Description(hdf5_to_np_nested_type(native_type_id))
+      desc = Description(hdf5_to_np_nested_type(type_id))
       # stype here is not exactly a string, but the NumPy dtype factory
       # will deal with this.
       stype = desc._v_dtype
-      H5Tclose(native_type_id)
   elif class_id == H5T_STRING:
     if H5Tis_variable_str(type_id):
       raise TypeError("variable length strings are not supported yet")

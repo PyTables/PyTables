@@ -1464,7 +1464,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test07a_setRecArrayAttributes(self):
         """Checking setting RecArray (NumPy) attributes."""
 
-        dt = numpy.dtype('i4,f8')
+        dt = numpy.dtype('i4,f8', align=self.aligned)
         # Set some attrs
         self.array.attrs.pq = numpy.zeros(2, dt)
         self.array.attrs.qr = numpy.ones((2, 2), dt)
@@ -1524,7 +1524,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking setting multidim nested RecArray (NumPy) attributes."""
 
         # Build a nested dtype
-        dt = numpy.dtype([('f1', [('f1', 'i2', (2,)), ('f2', 'f8')])])
+        dt = numpy.dtype([('f1', [('f1', 'i2', (2,)), ('f2', 'f8')])], align=True)
 
         # Set some attrs
         self.array.attrs.pq = numpy.zeros(2, dt)
@@ -1554,11 +1554,23 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
 
 class NotCloseTypesTestCase(TypesTestCase):
-    close = 0
+    close = False
+    aligned = False
 
 
 class CloseTypesTestCase(TypesTestCase):
-    close = 1
+    close = True
+    aligned = False
+
+
+class AlignedTypesTestCase(TypesTestCase):
+    close = False
+    aligned = True
+
+
+class CloseAlignedTypesTestCase(TypesTestCase):
+    close = True
+    aligned = True
 
 
 class NoSysAttrsTestCase(common.TempFileMixin, TestCase):
@@ -1821,6 +1833,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(DictCacheCloseCreate))
         theSuite.addTest(unittest.makeSuite(NotCloseTypesTestCase))
         theSuite.addTest(unittest.makeSuite(CloseTypesTestCase))
+        theSuite.addTest(unittest.makeSuite(AlignedTypesTestCase))
+        theSuite.addTest(unittest.makeSuite(CloseAlignedTypesTestCase))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
         theSuite.addTest(unittest.makeSuite(CompatibilityTestCase))

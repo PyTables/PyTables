@@ -529,7 +529,7 @@ class Description(object):
         keys = [name for (pos, name) in cols_with_pos] + cols_no_pos
 
         # Set offsets only in case all the cols have a position and an offset
-        if (len(keys) == len(cols_with_pos) and len(keys) == len(cols_offsets)):
+        if (len(cols_offsets) > 1 and len(keys) == len(cols_with_pos) and len(keys) == len(cols_offsets)):
             newdict['_v_offsets'] = cols_offsets
             valid_offsets = True
         else:
@@ -583,8 +583,8 @@ class Description(object):
 
         # Assign the format list to _v_nested_formats
         newdict['_v_nested_formats'] = nestedFormats
-        # print("NestedFormats -> ", newdict['_v_names'], nestedFormats, cols_offsets, valid_offsets)
         # Compute the dtype with offsets or without
+        #print("offsets ->", cols_offsets, nestedDType, self._v_nestedlvl)
         if valid_offsets:
             dtype = numpy.dtype({'names': newdict['_v_names'], 'formats': nestedFormats, 'offsets': cols_offsets})
         else:
