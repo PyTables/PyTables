@@ -391,6 +391,7 @@ cdef extern from "hdf5.h" nogil:
   hid_t  H5Tget_member_type(hid_t type_id, unsigned membno)
   hid_t  H5Tget_native_type(hid_t type_id, H5T_direction_t direction)
   herr_t H5Tget_member_value(hid_t type_id, int membno, void *value)
+  size_t H5Tget_member_offset(hid_t type_id, unsigned memb_no)
   int    H5Tget_offset(hid_t type_id)
   herr_t H5Tinsert(hid_t parent_id, char *name, size_t offset,
                    hid_t member_id)

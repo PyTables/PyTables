@@ -55,7 +55,7 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t, hbool_t,
   H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose,
   H5T_class_t, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose,
   H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, H5Tget_native_type,
-  H5Tget_member_value, H5Tinsert, H5Tget_class, H5Tget_super, H5Tget_offset,
+  H5Tget_member_offset, H5Tinsert, H5Tget_class, H5Tget_super, H5Tget_offset,
   H5T_cset_t, H5T_CSET_ASCII, H5T_CSET_UTF8,
   H5ATTRset_attribute_string, H5ATTRset_attribute,
   get_len_of_range, get_order, set_order, is_complex,
@@ -263,7 +263,7 @@ cdef class Table(Leaf):
                      object colpath, object field_byteorders):
     """Open a nested type and return a nested dictionary as description."""
 
-    cdef hid_t   member_type_id, native_member_type_id
+    cdef hid_t   member_type_id, native_member_type_id, member_offset
     cdef hsize_t nfields
     cdef hsize_t dims[1]
     cdef size_t  itemsize
@@ -281,29 +281,32 @@ cdef class Table(Leaf):
     # Get the number of members
     nfields = H5Tget_nmembers(type_id)
     # Iterate thru the members
-    for i from 0 <= i < nfields:
+    for i in range(nfields):
       # Get the member name
       c_colname = H5Tget_member_name(type_id, i)
       colname = cstr_to_pystr(c_colname)
 
       # Get the member type
       member_type_id = H5Tget_member_type(type_id, i)
+      # Get the member offset
+      member_offset = H5Tget_member_offset(type_id, i)
       # Get the HDF5 class
       class_id = H5Tget_class(member_type_id)
       if class_id == H5T_COMPOUND and not is_complex(member_type_id):
         colpath2 = join_path(colpath, colname)
-        # Create the native data in-memory (without gaps!)
+        # Create the native data in-memory
         itemsize = H5Tget_size(member_type_id)
         native_member_type_id = H5Tcreate(H5T_COMPOUND, itemsize)
         desc[colname], itemsize = self.get_nested_type(
           member_type_id, native_member_type_id, colpath2, field_byteorders)
-        desc[colname]["_v_pos"] = i  # Remember the position
+        desc[colname]["_v_pos"] = i
+        desc[colname]["_v_offset"] = member_offset
       else:
         # Get the member format and the corresponding Col object
         try:
           native_member_type_id = get_native_type(member_type_id)
           atom = atom_from_hdf5_type(native_member_type_id)
-          colobj = Col.from_atom(atom, pos=i)
+          colobj = Col.from_atom(atom, pos=i, _offset=member_offset)
           itemsize = H5Tget_size(native_member_type_id)
         except TypeError, te:
           # Re-raise TypeError again with more info
@@ -327,7 +330,7 @@ cdef class Table(Leaf):
             field_byteorders.append(byteorder2)
 
       # Insert the native member
-      H5Tinsert(native_type_id, c_colname, offset, native_member_type_id)
+      H5Tinsert(native_type_id, c_colname, member_offset, native_member_type_id)
       # Update the offset
       offset = offset + itemsize
       # Release resources
@@ -352,12 +355,6 @@ cdef class Table(Leaf):
       else:
         byteorder = "irrelevant"
       self.byteorder = byteorder
-    # Correct the type size in case the memory type size is less
-    # than the type in-disk (probably due to reading native HDF5
-    # files written with tools allowing field padding)
-    # Solves bug #23
-    if H5Tget_size(native_type_id) > offset:
-      H5Tset_size(native_type_id, offset)
 
     return desc, offset
 
@@ -407,7 +404,7 @@ cdef class Table(Leaf):
     type_size = H5Tget_size(self.disk_type_id)
     # Create the native data in-memory
     self.type_id = H5Tcreate(H5T_COMPOUND, type_size)
-    # Fill-up the (nested) native type (removing the gaps!) and description
+    # Fill-up the (nested) native type and description
     desc, _ = self.get_nested_type(self.disk_type_id, self.type_id, "", [])
     if desc == {}:
       raise HDF5ExtError("Problems getting desciption for table %s", self.name)

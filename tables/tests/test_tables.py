@@ -1677,6 +1677,33 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
                                    names=names)
 
 
+class RecArrayAlignedWriteTestCase(BasicTestCase):
+    title = "RecArrayThreeWrite"
+    expectedrows = 100
+    recarrayinit = 1
+    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
+
+    if hasattr(tables, 'Float16Col'):
+        formats.append('f2')
+        names.append('var11')
+    if hasattr(tables, 'Float96Col'):
+        formats.append('f12')
+        names.append('var12')
+    if hasattr(tables, 'Float128Col'):
+        formats.append('f16')
+        names.append('var13')
+    if hasattr(tables, 'Complex192Col'):
+        formats.append('c24')
+        names.append('var14')
+    if hasattr(tables, 'Complex256Col'):
+        formats.append('c32')
+        names.append('var15')
+
+    recordtemplate = records.array(None, shape=1, formats=','.join(formats),
+                                   names=names, aligned=True)
+
+
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 class CompressBloscTablesTestCase(BasicTestCase):
@@ -6407,6 +6434,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(RecArrayAlignedWriteTestCase))
         theSuite.addTest(unittest.makeSuite(CompressBloscTablesTestCase))
         theSuite.addTest(unittest.makeSuite(
             CompressBloscShuffleTablesTestCase))

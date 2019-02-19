@@ -541,12 +541,12 @@ class Table(tableextension.Table, Leaf):
 
     @property
     def shape(self):
-        "The shape of this table."
+        """The shape of this table."""
         return (self.nrows,)
 
     @property
     def rowsize(self):
-        "The size in bytes of each row in the table."
+        """The size in bytes of each row in the table."""
         return self.description._v_dtype.itemsize
 
     @property

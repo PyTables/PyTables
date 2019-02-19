@@ -501,6 +501,17 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
         shape=1)
 
 
+class RecArrayAlignedWriteTestCase(BasicTestCase):
+    title = "RecArrayThreeWrite"
+    expectedrows = 100
+    recarrayinit = 1
+    recordtemplate = np.rec.array(
+        None,
+        formats="(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,2f8,4f4,i2,a1",
+        names='var0,var1,var1_,var2,var3,var4,var5,var6,var7',
+        shape=1, aligned=True)
+
+
 @unittest.skipIf(not common.blosc_avail,
                  'BLOSC compression library not available')
 class CompressBloscTablesTestCase(BasicTestCase):
@@ -2237,6 +2248,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(RecArrayAlignedWriteTestCase))
         theSuite.addTest(unittest.makeSuite(CompressZLIBTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(unittest.makeSuite(IterRangeTestCase))
