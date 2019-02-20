@@ -530,6 +530,9 @@ class Description(object):
 
         # Set offsets only in case all the cols have a position and an offset
         if (len(cols_offsets) > 1 and len(keys) == len(cols_with_pos) and len(keys) == len(cols_offsets)):
+            # We have to sort the offsets too, as they must follow the column order.
+            # As the offsets and the pos should be place in the same order, a single sort is enough here.
+            cols_offsets.sort()
             newdict['_v_offsets'] = cols_offsets
             valid_offsets = True
         else:
@@ -598,7 +601,7 @@ class Description(object):
                     "Use the byteorder parameter in the constructor instead.")
 
         # Compute the dtype with offsets or without
-        # print("offsets ->", cols_offsets, nestedDType, nested)
+        # print("offsets ->", cols_offsets, nestedDType, nested, valid_offsets)
         if valid_offsets and not nested:
             # TODO: support offsets with nested types
             dtype = numpy.dtype({'names': newdict['_v_names'], 'formats': nestedFormats, 'offsets': cols_offsets})
