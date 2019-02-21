@@ -1,5 +1,5 @@
 =======================================
- Release notes for PyTables 3.4 series
+ Release notes for PyTables 3.5 series
 =======================================
 
 :Author: PyTables Developers
@@ -7,12 +7,23 @@
 
 .. py:currentmodule:: tables
 
-Changes from 3.4.4 to 3.4.x
+
+Changes from 3.4.4 to 3.5.0
 ===========================
 
-* Improve compatibility with numpy 1.16.
-* Improve detection of the LZO2 library at build time.
-* Suppress several warnings.
+Improvements
+------------
+ - When copying data from native HDF5 files with padding in compound types,
+   the padding is not removed now by default.  This allows for better
+   compatibility with existing HDF5 applications that expect the padding
+   to stay there.  The previous behaviour (i.e. getting rid of paddings) can
+   be replicated by passing the new `allow_padding` parameter when opening
+   a file.  For some examples, see the new `examples/tables-with-padding.py`
+   and `examples/attrs-with-padding.py`.  For details on the implementation
+   see PR #720.
+ - Improve compatibility with numpy 1.16.
+ - Improve detection of the LZO2 library at build time.
+ - Suppress several warnings.
 
 
 Changes from 3.4.3 to 3.4.4
