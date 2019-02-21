@@ -2143,7 +2143,7 @@ cdef class VLArray(Leaf):
       if vllen > 0:
         # Create a buffer to keep this info. It is important to do a
         # copy, because we will dispose the buffer memory later on by
-        # calling the H5Dvlen_reclaim. PyBytes_FromStringAndSize does this.
+        # calling the H5Dvlen_reclaim. PyByteArray_FromStringAndSize does this.
         buf = PyByteArray_FromStringAndSize(<char *>rdata[i].p,
                                             vllen*self._atomicsize)
       else:
