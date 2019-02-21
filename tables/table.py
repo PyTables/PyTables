@@ -778,12 +778,12 @@ class Table(tableextension.Table, Leaf):
         # Try purely descriptive description objects.
         if new and isinstance(description, dict):
             # Dictionary case
-            self.description = Description(description)
+            self.description = Description(description, ptparams=parentnode._v_file.params)
         elif new and (type(description) == type(IsDescription)
                       and issubclass(description, IsDescription)):
             # IsDescription subclass case
             descr = description()
-            self.description = Description(descr.columns)
+            self.description = Description(descr.columns, ptparams=parentnode._v_file.params)
         elif new and isinstance(description, Description):
             # It is a Description instance already
             self.description = description
@@ -793,7 +793,7 @@ class Table(tableextension.Table, Leaf):
             # Try NumPy dtype instances
             if isinstance(description, numpy.dtype):
                 self.description, self._rabyteorder = \
-                    descr_from_dtype(description)
+                    descr_from_dtype(description, ptparams=parentnode._v_file.params)
 
         # No description yet?
         if new and self.description is None:
@@ -813,7 +813,7 @@ class Table(tableextension.Table, Leaf):
                 if nrows > 0:
                     self._v_recarray = nparray
                 self.description, self._rabyteorder = \
-                    descr_from_dtype(nparray.dtype)
+                    descr_from_dtype(nparray.dtype, ptparams=parentnode._v_file.params)
 
         # No description yet?
         if new and self.description is None:
@@ -1056,7 +1056,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         # 2. Create an instance description to host the record fields.
         validate = not self._v_file._isPTFile  # only for non-PyTables files
-        self.description = Description(description, validate=validate)
+        self.description = Description(description, validate=validate, ptparams=self._v_file.params)
 
         # 3. Compute or get chunk shape and buffer size parameters.
         if chunksize == 0:

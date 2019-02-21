@@ -441,19 +441,19 @@ class Description(object):
         A list of offsets for all the columns.  If the list is empty, means that
         there are no padding in the data structure.  However, the support for
         offsets is currently limited to flat tables; for nested tables, the
-        potential padding is removed (exactly the same as in pre-3.5 versions),
-        and this variable is set to empty.
+        potential padding is always removed (exactly the same as in pre-3.5
+        versions), and this variable is set to empty.
 
         .. versionadded:: 3.5
            Previous to this version all the compound types were converted
            internally to 'packed' types, i.e. with no padding between the
            component types.  Starting with 3.5, the holes in native HDF5
-           types (non-nested) are respected and replicated during dataset
+           types (non-nested) are honored and replicated during dataset
            and attribute copies.
     """
 
 
-    def __init__(self, classdict, nestedlvl=-1, validate=True):
+    def __init__(self, classdict, nestedlvl=-1, validate=True, ptparams=None):
 
         if not classdict:
             raise ValueError("cannot create an empty data type")
@@ -511,7 +511,7 @@ class Description(object):
             # provided by the user will remain unchanged even if we
             # tamper with the values of ``_v_pos`` here.
             if columns is not None:
-                descr = Description(copy.copy(columns), self._v_nestedlvl)
+                descr = Description(copy.copy(columns), self._v_nestedlvl, ptparams=ptparams)
             classdict[name] = descr
 
             pos = getattr(descr, '_v_pos', None)
@@ -580,15 +580,27 @@ class Description(object):
                 nestedDType.append((kk, object._v_dtype))
                 nested = True
 
-        # Set offsets only in case all the cols have a position and an offset
-        if (len(cols_offsets) > 1 and
+        # Useful for debugging purposes
+        # import traceback
+        # if ptparams is None:
+        #     print("*** print_stack:")
+        #     traceback.print_stack()
+
+        # Check whether we are gonna use padding or not.  Two possibilities:
+        #   1) Make padding True by default (except if ALLOW_PADDING is set to False)
+        #   2) Make padding False by default (except if ALLOW_PADDING is set to True)
+        # Currently we choose 1) because it favours honoring padding even on unhandled situations (should be very few).
+        # However, for development, option 2) is recommended as it catches most of the unhandled situations.
+        allow_padding = False if ptparams is not None and not ptparams['ALLOW_PADDING'] else True
+        # allow_padding = True if ptparams is not None and ptparams['ALLOW_PADDING'] else False
+        if (allow_padding and
+                len(cols_offsets) > 1 and
                 len(keys) == len(cols_with_pos) and
                 len(keys) == len(cols_offsets) and
                 not nested):  # TODO: support offsets with nested types
             # We have to sort the offsets too, as they must follow the column order.
             # As the offsets and the pos should be place in the same order, a single sort is enough here.
             cols_offsets.sort()
-            newdict['_v_offsets'] = cols_offsets
             valid_offsets = True
         else:
             newdict['_v_offsets'] = []
@@ -616,6 +628,7 @@ class Description(object):
             dtype = numpy.dtype(nestedDType)
         newdict['_v_dtype'] = dtype
         newdict['_v_itemsize'] = dtype.itemsize
+        newdict['_v_offsets'] = [dtype.fields[name][1] for name in dtype.names]
 
 
     def _g_set_nested_names_descr(self):
@@ -823,7 +836,7 @@ class IsDescription(six.with_metaclass(MetaIsDescription, object)):
     """
 
 
-def descr_from_dtype(dtype_):
+def descr_from_dtype(dtype_, ptparams=None):
     """Get a description instance and byteorder from a (nested) NumPy dtype."""
 
     fields = {}
@@ -846,7 +859,7 @@ def descr_from_dtype(dtype_):
             if dtype.shape != ():
                 warnings.warn(
                     "nested descriptions will be converted to scalar")
-            col, _ = descr_from_dtype(dtype.base)
+            col, _ = descr_from_dtype(dtype.base, ptparams=ptparams)
             col._v_pos = offset
             col._v_offset = offset
         else:
@@ -855,10 +868,10 @@ def descr_from_dtype(dtype_):
                 "are not supported yet, sorry" % dtype)
         fields[name] = col
 
-    return Description(fields), fbyteorder
+    return Description(fields, ptparams=ptparams), fbyteorder
 
 
-def dtype_from_descr(descr, byteorder=None):
+def dtype_from_descr(descr, byteorder=None, ptparams=None):
     """Get a (nested) NumPy dtype from a description instance and byteorder.
 
     The descr parameter can be a Description or IsDescription
@@ -867,12 +880,12 @@ def dtype_from_descr(descr, byteorder=None):
     """
 
     if isinstance(descr, dict):
-        descr = Description(descr)
+        descr = Description(descr, ptparams=ptparams)
     elif (type(descr) == type(IsDescription)
           and issubclass(descr, IsDescription)):
-        descr = Description(descr().columns)
+        descr = Description(descr().columns, ptparams=ptparams)
     elif isinstance(descr, IsDescription):
-        descr = Description(descr.columns)
+        descr = Description(descr.columns, ptparams=ptparams)
     elif not isinstance(descr, Description):
         raise ValueError('invalid description: %r' % descr)
 

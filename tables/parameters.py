@@ -239,6 +239,18 @@ to 512 or greater (512, 1024, 2048, etc.).
 
 """
 
+ALLOW_PADDING = True
+"""Allow padding in compound data types.
+
+Starting on version 3.5 padding is honored during copies, or when tables
+are created from NumPy structured arrays with padding (e.g. `align=True`).
+If you actually want to get rid of any possible padding in new
+datasets/attributes (i.e. the previous behaviour), set this to `False`.
+
+.. versionadded:: 3.5
+
+"""
+
 
 # HDF5 driver management
 # ----------------------

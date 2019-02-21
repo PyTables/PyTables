@@ -132,6 +132,10 @@ Miscellaneous
 
 .. autodata:: MAX_BLOSC_THREADS
 
+.. autodata:: USER_BLOCK_SIZE
+
+.. autodata:: ALLOW_PADDING
+
 
 HDF5 driver management
 ~~~~~~~~~~~~~~~~~~~~~~

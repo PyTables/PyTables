@@ -678,7 +678,7 @@ cdef class AttributeSet:
       #value = numpy.ascontiguousarray(value)
       value = value.copy()
       if value.dtype.kind == 'V':
-        description, rabyteorder = descr_from_dtype(value.dtype)
+        description, rabyteorder = descr_from_dtype(value.dtype, ptparams=node._v_file.params)
         byteorder = byteorders[rabyteorder]
         type_id = create_nested_type(description, byteorder)
       else:
@@ -810,7 +810,7 @@ cdef class AttributeSet:
 
       # Get the NumPy dtype from the type_id
       try:
-        stype_, shape_ = hdf5_to_np_ext_type(type_id, pure_numpy_types=True)
+        stype_, shape_ = hdf5_to_np_ext_type(type_id, pure_numpy_types=True, ptparams=node._v_file.params)
         dtype_ = numpy.dtype(stype_, shape_)
       except TypeError:
         if class_id == H5T_STRING and H5Tis_variable_str(type_id):

@@ -1215,7 +1215,7 @@ def hdf5_to_np_nested_type(hid_t type_id):
 
 
 
-def hdf5_to_np_ext_type(hid_t type_id, pure_numpy_types=True, atom=False):
+def hdf5_to_np_ext_type(hid_t type_id, pure_numpy_types=True, atom=False, ptparams=None):
   """Map the atomic HDF5 type to a string repr of NumPy extended codes.
 
   If `pure_numpy_types` is true, detected HDF5 types that does not match pure
@@ -1262,7 +1262,7 @@ def hdf5_to_np_ext_type(hid_t type_id, pure_numpy_types=True, atom=False):
       if atom:
         raise TypeError("the HDF5 class ``%s`` is not supported yet"
                         % hdf5_class_to_string[class_id])
-      desc = Description(hdf5_to_np_nested_type(type_id))
+      desc = Description(hdf5_to_np_nested_type(type_id), ptparams=ptparams)
       # stype here is not exactly a string, but the NumPy dtype factory
       # will deal with this.
       stype = desc._v_dtype

@@ -260,7 +260,7 @@ cdef class Table(Leaf):
 
 
   cdef get_nested_type(self, hid_t type_id, hid_t native_type_id,
-                     object colpath, object field_byteorders):
+                       object colpath, object field_byteorders):
     """Open a nested type and return a nested dictionary as description."""
 
     cdef hid_t   member_type_id, native_member_type_id, member_offset
