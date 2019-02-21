@@ -4531,7 +4531,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
 
         # Create a recarray
         r = records.array([(456, b'dbe', 1.2), (2, b'de', 1.3)],
-                          names='col1,col2,col3', aligned=self.aligned)
+                          names='col1,col2,col3', formats=('i4,S3,f8'),
+                          aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4580,11 +4581,11 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
         if self.aligned:
-            self.assertEqual(table1.description._v_offsets, [0, 8, 16])
-            self.assertEqual(table1.description._v_itemsize, 24)
+            self.assertEqual(table1.description._v_offsets, [0, 4, 8])
+            self.assertEqual(table1.description._v_itemsize, 16)
         else:
-            self.assertEqual(table1.description._v_offsets, [0, 8, 11])
-            self.assertEqual(table1.description._v_itemsize, 19)
+            self.assertEqual(table1.description._v_offsets, [0, 4, 7])
+            self.assertEqual(table1.description._v_itemsize, 15)
         self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
         self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
 
@@ -4607,7 +4608,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
 
         # Create a recarray
         r = records.array([(b'dbe', 456, 1.2), (b'de', 2, 1.3)],
-                          names='col1,col2,col3', aligned=self.aligned)
+                          names='col1,col2,col3', formats="S3,i4,f8",
+                          aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4653,11 +4655,11 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
         if self.aligned:
-            self.assertEqual(table1.description._v_offsets, [0, 8, 16])
-            self.assertEqual(table1.description._v_itemsize, 24)
+            self.assertEqual(table1.description._v_offsets, [0, 4, 8])
+            self.assertEqual(table1.description._v_itemsize, 16)
         else:
-            self.assertEqual(table1.description._v_offsets, [0, 3, 11])
-            self.assertEqual(table1.description._v_itemsize, 19)
+            self.assertEqual(table1.description._v_offsets, [0, 3, 7])
+            self.assertEqual(table1.description._v_itemsize, 15)
         self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
         self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
 
@@ -4752,7 +4754,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
 
         # Create a recarray
         r = records.array([(1.2, b'dbe', 456), (1.3, b'de', 2)],
-                          names='col1,col2,col3', aligned=self.aligned)
+                          names='col1,col2,col3', formats="f8,S3,i4",
+                          aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4799,11 +4802,11 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
         if self.aligned:
-            self.assertEqual(table1.description._v_offsets, [0, 8, 16])
-            self.assertEqual(table1.description._v_itemsize, 24)
+            self.assertEqual(table1.description._v_offsets, [0, 8, 12])
+            self.assertEqual(table1.description._v_itemsize, 16)
         else:
             self.assertEqual(table1.description._v_offsets, [0, 8, 11])
-            self.assertEqual(table1.description._v_itemsize, 19)
+            self.assertEqual(table1.description._v_itemsize, 15)
         self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
         self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
 
@@ -4821,8 +4824,9 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test05_copy..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([(456, b'dbe', 1.2), (
-                          2, b'de', 1.3)], names='col1,col2,col3', aligned=self.aligned)
+        r = records.array([(456, b'dbe', 1.2), (2, b'de', 1.3)],
+                          names='col1,col2,col3', formats='i8,S3,f8',
+                          aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4897,8 +4901,9 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test05b_copy..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([(456, b'dbe', 1.2), (
-                          2, b'de', 1.3)], names='col1,col2,col3', aligned=self.aligned)
+        r = records.array([(456, b'dbe', 1.2), (2, b'de', 1.3)],
+                          names='col1,col2,col3', formats='i8,S3,f4',
+                          aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4949,11 +4954,11 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
         if self.aligned:
-            self.assertEqual(table1.description._v_offsets, [0, 8, 16])
-            self.assertEqual(table1.description._v_itemsize, 24)
+            self.assertEqual(table1.description._v_offsets, [0, 8, 12])
+            self.assertEqual(table1.description._v_itemsize, 16)
         else:
             self.assertEqual(table1.description._v_offsets, [0, 8, 11])
-            self.assertEqual(table1.description._v_itemsize, 19)
+            self.assertEqual(table1.description._v_itemsize, 15)
         self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
         self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
 
