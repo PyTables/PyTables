@@ -4530,8 +4530,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_copy..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([(456, b'dbe', 1.2), (
-                          2, b'de', 1.3)], names='col1,col2,col3')
+        r = records.array([(456, b'dbe', 1.2), (2, b'de', 1.3)],
+                          names='col1,col2,col3', aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4578,6 +4578,15 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table1.coldtypes, table2.coldtypes)
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
+        # Check alignment
+        if self.aligned:
+            self.assertEqual(table1.description._v_offsets, [0, 8, 16])
+            self.assertEqual(table1.description._v_itemsize, 24)
+        else:
+            self.assertEqual(table1.description._v_offsets, [0, 8, 11])
+            self.assertEqual(table1.description._v_itemsize, 19)
+        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
 
         # This could be not the same when re-opening the file
         # self.assertEqual(table1.description._v_ColObjects,
@@ -4597,8 +4606,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02_copy..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([(456, b'dbe', 1.2), (
-                          2, b'de', 1.3)], names='col1,col2,col3')
+        r = records.array([(b'dbe', 456, 1.2), (b'de', 2, 1.3)],
+                          names='col1,col2,col3', aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4642,6 +4651,15 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table1.coldtypes, table2.coldtypes)
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
+        # Check alignment
+        if self.aligned:
+            self.assertEqual(table1.description._v_offsets, [0, 8, 16])
+            self.assertEqual(table1.description._v_itemsize, 24)
+        else:
+            self.assertEqual(table1.description._v_offsets, [0, 3, 11])
+            self.assertEqual(table1.description._v_itemsize, 19)
+        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4663,7 +4681,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
 #         r=records.array(b'aaaabbbbccccddddeeeeffffgggg'*20000,
 #                         formats='2i2,i4, (2,3)u2, (1,)f4, f8',shape=700)
         r = records.array(b'aaaabbbbccccddddeeeeffffgggg' * 200,
-                          formats='2i2,i4, (2,3)u2, (1,)f4, f8', shape=7)
+                          formats='2i2,i4, (2,3)u2, (1,)f4, f8', shape=7,
+                          aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4707,6 +4726,15 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table1.coldtypes, table2.coldtypes)
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
+        # Check alignment
+        if self.aligned:
+            self.assertEqual(table1.description._v_offsets, [0, 4, 8, 20, 24])
+            self.assertEqual(table1.description._v_itemsize, 32)
+        else:
+            self.assertEqual(table1.description._v_offsets, [0, 4, 8, 20, 24])
+            self.assertEqual(table1.description._v_itemsize, 32)
+        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
 
         # Leaf attributes
         self.assertEqual("title table2", table2.title)
@@ -4723,8 +4751,8 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test04_copy..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array([(456, b'dbe', 1.2), (
-                          2, b'de', 1.3)], names='col1,col2,col3')
+        r = records.array([(1.2, b'dbe', 456), (1.3, b'de', 2)],
+                          names='col1,col2,col3', aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4769,6 +4797,15 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table1.coldtypes, table2.coldtypes)
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
+        # Check alignment
+        if self.aligned:
+            self.assertEqual(table1.description._v_offsets, [0, 8, 16])
+            self.assertEqual(table1.description._v_itemsize, 24)
+        else:
+            self.assertEqual(table1.description._v_offsets, [0, 8, 11])
+            self.assertEqual(table1.description._v_itemsize, 19)
+        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4785,7 +4822,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
 
         # Create a recarray
         r = records.array([(456, b'dbe', 1.2), (
-                          2, b'de', 1.3)], names='col1,col2,col3')
+                          2, b'de', 1.3)], names='col1,col2,col3', aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4833,6 +4870,15 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table1.coldtypes, table2.coldtypes)
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
+        # Check alignment
+        if self.aligned:
+            self.assertEqual(table1.description._v_offsets, [0, 8, 16])
+            self.assertEqual(table1.description._v_itemsize, 24)
+        else:
+            self.assertEqual(table1.description._v_offsets, [0, 8, 11])
+            self.assertEqual(table1.description._v_itemsize, 19)
+        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4852,7 +4898,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
 
         # Create a recarray
         r = records.array([(456, b'dbe', 1.2), (
-                          2, b'de', 1.3)], names='col1,col2,col3')
+                          2, b'de', 1.3)], names='col1,col2,col3', aligned=self.aligned)
         # Save it in a table:
         table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
                                           "title table1")
@@ -4901,6 +4947,15 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table1.coldtypes, table2.coldtypes)
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
+        # Check alignment
+        if self.aligned:
+            self.assertEqual(table1.description._v_offsets, [0, 8, 16])
+            self.assertEqual(table1.description._v_itemsize, 24)
+        else:
+            self.assertEqual(table1.description._v_offsets, [0, 8, 11])
+            self.assertEqual(table1.description._v_itemsize, 19)
+        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4908,18 +4963,28 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(1, table2.filters.shuffle)
         self.assertEqual(table1.filters.fletcher32, table2.filters.fletcher32)
         # User attributes
-#       self.assertEqual(table2.attrs.attr1, None)
-#       self.assertEqual(table2.attrs.attr2, None)
         self.assertEqual(hasattr(table2.attrs, "attr1"), 0)
         self.assertEqual(hasattr(table2.attrs, "attr2"), 0)
 
 
 class CloseCopyTestCase(CopyTestCase):
-    close = 1
+    close = True
+    aligned = False
 
 
 class OpenCopyTestCase(CopyTestCase):
-    close = 0
+    close = False
+    aligned = False
+
+
+class AlignedCloseCopyTestCase(CopyTestCase):
+    close = True
+    aligned = True
+
+
+class AlignedOpenCopyTestCase(CopyTestCase):
+    close = False
+    aligned = True
 
 
 class CopyIndexTestCase(common.TempFileMixin, TestCase):
@@ -6474,6 +6539,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayIO2))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(AlignedOpenCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(AlignedCloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
