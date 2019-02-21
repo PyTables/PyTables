@@ -4580,7 +4580,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned:
+        if self.aligned and self.open_kwargs['allow_padding'] == True:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
@@ -4654,7 +4654,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned:
+        if self.aligned and self.open_kwargs['allow_padding'] == True:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
@@ -4729,7 +4729,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned:
+        if self.aligned and self.open_kwargs['allow_padding'] == True:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8, 20, 24])
             self.assertEqual(table1.description._v_itemsize, 32)
         else:
@@ -4801,7 +4801,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned:
+        if self.aligned and self.open_kwargs['allow_padding'] == True:
             self.assertEqual(table1.description._v_offsets, [0, 8, 12])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
@@ -4875,7 +4875,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned:
+        if self.aligned and self.open_kwargs['allow_padding'] == True:
             self.assertEqual(table1.description._v_offsets, [0, 8, 16])
             self.assertEqual(table1.description._v_itemsize, 24)
         else:
@@ -4953,7 +4953,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned:
+        if self.aligned and self.open_kwargs['allow_padding'] == True:
             self.assertEqual(table1.description._v_offsets, [0, 8, 12])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
@@ -4975,21 +4975,30 @@ class CopyTestCase(common.TempFileMixin, TestCase):
 class CloseCopyTestCase(CopyTestCase):
     close = True
     aligned = False
+    open_kwargs = {'allow_padding': False}
 
 
 class OpenCopyTestCase(CopyTestCase):
     close = False
     aligned = False
+    open_kwargs = {'allow_padding': True}
 
 
 class AlignedCloseCopyTestCase(CopyTestCase):
     close = True
     aligned = True
+    open_kwargs = {'allow_padding': False}
 
 
 class AlignedOpenCopyTestCase(CopyTestCase):
     close = False
     aligned = True
+    open_kwargs = {'allow_padding': True}
+
+class AlignedNoPaddingOpenCopyTestCase(CopyTestCase):
+    close = False
+    aligned = True
+    open_kwargs = {'allow_padding': False}
 
 
 class CopyIndexTestCase(common.TempFileMixin, TestCase):
@@ -6546,6 +6555,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(AlignedOpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(AlignedCloseCopyTestCase))
+        theSuite.addTest(unittest.makeSuite(AlignedNoPaddingOpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
