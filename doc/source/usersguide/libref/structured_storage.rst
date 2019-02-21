@@ -140,6 +140,7 @@ The Description class
     .. autoattribute:: Description._v_pathname
     .. autoattribute:: Description._v_pathnames
     .. autoattribute:: Description._v_types
+    .. autoattribute:: Description._v_offsets
 
 
 Description methods

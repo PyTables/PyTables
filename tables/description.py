@@ -439,13 +439,17 @@ class Description(object):
     .. attribute:: _v_offsets
 
         A list of offsets for all the columns.  If the list is empty, means that
-        there are no 'holes' in the data structure.
+        there are no padding in the data structure.  However, the support for
+        offsets is currently limited to flat tables; for nested tables, the
+        potential padding is removed (exactly the same as in pre-3.5 versions),
+        and this variable is set to empty.
 
         .. versionadded:: 3.5
-           Previous to this version all the compound types where converted
+           Previous to this version all the compound types were converted
            internally to 'packed' types, i.e. with no padding between the
            component types.  Starting with 3.5, the holes in native HDF5
-           types are respected and replicated in dataset copies.
+           types (non-nested) are respected and replicated during dataset
+           and attribute copies.
     """
 
 
@@ -528,16 +532,6 @@ class Description(object):
         cols_no_pos.sort()
         keys = [name for (pos, name) in cols_with_pos] + cols_no_pos
 
-        # Set offsets only in case all the cols have a position and an offset
-        if (len(cols_offsets) > 1 and len(keys) == len(cols_with_pos) and len(keys) == len(cols_offsets)):
-            # We have to sort the offsets too, as they must follow the column order.
-            # As the offsets and the pos should be place in the same order, a single sort is enough here.
-            cols_offsets.sort()
-            newdict['_v_offsets'] = cols_offsets
-            valid_offsets = True
-        else:
-            newdict['_v_offsets'] = []
-
         pos = 0
         nested = False
         # Get properties for compound types
@@ -586,6 +580,19 @@ class Description(object):
                 nestedDType.append((kk, object._v_dtype))
                 nested = True
 
+        # Set offsets only in case all the cols have a position and an offset
+        if (len(cols_offsets) > 1 and
+                len(keys) == len(cols_with_pos) and
+                len(keys) == len(cols_offsets) and
+                not nested):  # TODO: support offsets with nested types
+            # We have to sort the offsets too, as they must follow the column order.
+            # As the offsets and the pos should be place in the same order, a single sort is enough here.
+            cols_offsets.sort()
+            newdict['_v_offsets'] = cols_offsets
+            valid_offsets = True
+        else:
+            newdict['_v_offsets'] = []
+
         # Assign the format list to _v_nested_formats
         newdict['_v_nested_formats'] = nestedFormats
 
@@ -602,7 +609,7 @@ class Description(object):
 
         # Compute the dtype with offsets or without
         # print("offsets ->", cols_offsets, nestedDType, nested, valid_offsets)
-        if valid_offsets and not nested:
+        if valid_offsets:
             # TODO: support offsets with nested types
             dtype = numpy.dtype({'names': newdict['_v_names'], 'formats': nestedFormats, 'offsets': cols_offsets})
         else:
