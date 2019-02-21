@@ -681,6 +681,8 @@ cdef class AttributeSet:
         description, rabyteorder = descr_from_dtype(value.dtype, ptparams=node._v_file.params)
         byteorder = byteorders[rabyteorder]
         type_id = create_nested_type(description, byteorder)
+        # Make sure the value is consistent with offsets of the description
+        value = value.astype(description._v_dtype)
       else:
         # Get the associated native HDF5 type of the scalar type
         baseatom = Atom.from_dtype(value.dtype.base)

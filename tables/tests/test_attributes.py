@@ -691,6 +691,7 @@ class DictCacheCloseCreate(CreateTestCase):
 class TypesTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
+        self.open_kwargs = {'allow_padding': self.allow_padding}
         super(TypesTestCase, self).setUp()
         self.root = self.h5file.root
 
@@ -1552,25 +1553,69 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         assert_array_equal(self.array.attrs.rs, numpy.array(
             [(([1, 3], 2),)], dt))
 
+    def test08_setRecArrayNotAllowPadding(self):
+        """Checking setting aligned RecArray (NumPy) attributes with `allow_aligned` param set to False when reopen."""
+
+        dt = numpy.dtype('i4,f8', align=self.aligned)
+        # Set some attrs
+        self.array.attrs.pq = numpy.zeros(2, dt)
+        self.array.attrs.qr = numpy.ones((2, 2), dt)
+        self.array.attrs.rs = numpy.array([(1, 2.)], dt)
+
+        # Check the results
+        if common.verbose:
+            print("pq -->", self.array.attrs.pq)
+            print("qr -->", self.array.attrs.qr)
+            print("rs -->", self.array.attrs.rs)
+
+        if self.close:
+            if common.verbose:
+                print("(closing file version)")
+            self._reopen(mode='r+', allow_align=False)
+            self.root = self.h5file.root
+            self.array = self.h5file.root.anarray
+
+        self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
+        self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
+        self.assertTrue(isinstance(self.array.attrs.rs, numpy.ndarray))
+        assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
+        assert_array_equal(self.array.attrs.qr, numpy.ones((2, 2), dt))
+        assert_array_equal(self.array.attrs.rs, numpy.array([(1, 2.)], dt))
+
 
 class NotCloseTypesTestCase(TypesTestCase):
-    close = False
+    allow_padding = False
     aligned = False
+    close = False
+
+
+class NoCloseAlignedTypesTestCase(TypesTestCase):
+    allow_padding = True
+    aligned = True
+    close = False
+
+
+class CloseNotAlignedPaddedTypesTestCase(TypesTestCase):
+    allow_padding = False
+    aligned = False
+    close = True
 
 
 class CloseTypesTestCase(TypesTestCase):
-    close = True
+    allow_padding = True
     aligned = False
-
-
-class AlignedTypesTestCase(TypesTestCase):
-    close = False
-    aligned = True
+    close = True
 
 
 class CloseAlignedTypesTestCase(TypesTestCase):
-    close = True
+    allow_padding = False
     aligned = True
+    close = True
+
+class CloseAlignedPaddedTypesTestCase(TypesTestCase):
+    allow_padding = True
+    aligned = True
+    close = True
 
 
 class NoSysAttrsTestCase(common.TempFileMixin, TestCase):
@@ -1833,8 +1878,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(DictCacheCloseCreate))
         theSuite.addTest(unittest.makeSuite(NotCloseTypesTestCase))
         theSuite.addTest(unittest.makeSuite(CloseTypesTestCase))
-        theSuite.addTest(unittest.makeSuite(AlignedTypesTestCase))
+        theSuite.addTest(unittest.makeSuite(CloseNotAlignedPaddedTypesTestCase))
+        theSuite.addTest(unittest.makeSuite(NoCloseAlignedTypesTestCase))
         theSuite.addTest(unittest.makeSuite(CloseAlignedTypesTestCase))
+        theSuite.addTest(unittest.makeSuite(CloseAlignedPaddedTypesTestCase))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
         theSuite.addTest(unittest.makeSuite(CompatibilityTestCase))
