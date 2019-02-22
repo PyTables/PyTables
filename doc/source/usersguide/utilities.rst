@@ -287,11 +287,15 @@ to see the message usage:
                             reversing the order, use a negative value in the
                             "step" part of "RANGE" (see "-r" flag). Only applies
                             to table objects
-      --checkCSI            Force the check for a CSI index for the --sortby
+      --checkCSI            force the check for a CSI index for the --sortby
                             column
       --propindexes         propagate the indexes existing in original tables. The
                             default is to not propagate them. Only applies to
                             table objects
+      --dont-allow-padding  remove the possible padding in compound types in
+                            source files. The default is to propagate it. Only
+                            applies to table objects
+
 
 Read on for a brief introduction to this utility.
 

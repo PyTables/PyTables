@@ -14,7 +14,7 @@ padded_struct['int'] = np.arange(N, dtype='i4')
 padded_struct['double'] = np.arange(N, dtype='f8')
 
 # Create a file with padding (the default)
-fileh = tables.open_file("table-with-padding.h5", mode="w", pytables_sys_attrs=False)
+fileh = tables.open_file("tables-with-padding.h5", mode="w", pytables_sys_attrs=False)
 table = fileh.create_table(fileh.root, 'table', padded_struct, "A table with padding")
 print("table *with* padding -->", table)
 print("table.description --> ", table.description)
@@ -24,7 +24,7 @@ print("table.descrition._v_itemsize-->", table.description._v_itemsize)
 fileh.close()
 
 # Create another file without padding
-fileh = tables.open_file("table-without-padding.h5", mode="w", pytables_sys_attrs=False, allow_padding=False)
+fileh = tables.open_file("tables-without-padding.h5", mode="w", pytables_sys_attrs=False, allow_padding=False)
 table = fileh.create_table(fileh.root, 'table', padded_struct, "A table without padding")
 print("\ntable *without* padding -->", table)
 print("table.description --> ", table.description)
@@ -35,7 +35,7 @@ fileh.close()
 
 print("\n   ***After closing***\n")
 
-fileh = tables.open_file("table-with-padding.h5", mode="r")
+fileh = tables.open_file("tables-with-padding.h5", mode="r")
 table = fileh.root.table
 print("table *with* padding -->", table)
 print("table.description --> ", table.description)
@@ -44,7 +44,7 @@ print("table.descrition._v_itemsize-->", table.description._v_itemsize)
 
 fileh.close()
 
-fileh = tables.open_file("table-without-padding.h5", mode="r")
+fileh = tables.open_file("tables-without-padding.h5", mode="r")
 table = fileh.root.table
 print("\ntable *without* padding -->", table)
 print("table.description --> ", table.description)

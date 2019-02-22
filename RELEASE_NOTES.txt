@@ -20,7 +20,10 @@ Improvements
    be replicated by passing the new `allow_padding` parameter when opening
    a file.  For some examples, see the new `examples/tables-with-padding.py`
    and `examples/attrs-with-padding.py`.  For details on the implementation
-   see PR #720.
+   see :issue:`720`.
+ - Added a new flag `--dont-allow-padding` in `ptrepack` utility so as to
+   replicate the previous behaviour of removing padding during file copies.
+   The default is to honor the original padding in copies.
  - Improve compatibility with numpy 1.16.
  - Improve detection of the LZO2 library at build time.
  - Suppress several warnings.
