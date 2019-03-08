@@ -20,14 +20,15 @@
 
 #include <assert.h>
 #include "blosc-common.h"
+#include "blosc-comp-features.h"
 
 
-static inline unsigned char *copy_1_bytes(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_1_bytes(unsigned char *out, const unsigned char *from) {
   *out++ = *from;
   return out;
 }
 
-static inline unsigned char *copy_2_bytes(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_2_bytes(unsigned char *out, const unsigned char *from) {
 #if defined(BLOSC_STRICT_ALIGN)
   uint16_t chunk;
   memcpy(&chunk, from, 2);
@@ -38,12 +39,12 @@ static inline unsigned char *copy_2_bytes(unsigned char *out, const unsigned cha
   return out + 2;
 }
 
-static inline unsigned char *copy_3_bytes(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_3_bytes(unsigned char *out, const unsigned char *from) {
   out = copy_1_bytes(out, from);
   return copy_2_bytes(out, from + 1);
 }
 
-static inline unsigned char *copy_4_bytes(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_4_bytes(unsigned char *out, const unsigned char *from) {
 #if defined(BLOSC_STRICT_ALIGN)
   uint32_t chunk;
   memcpy(&chunk, from, 4);
@@ -54,22 +55,22 @@ static inline unsigned char *copy_4_bytes(unsigned char *out, const unsigned cha
   return out + 4;
 }
 
-static inline unsigned char *copy_5_bytes(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_5_bytes(unsigned char *out, const unsigned char *from) {
   out = copy_1_bytes(out, from);
   return copy_4_bytes(out, from + 1);
 }
 
-static inline unsigned char *copy_6_bytes(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_6_bytes(unsigned char *out, const unsigned char *from) {
   out = copy_2_bytes(out, from);
   return copy_4_bytes(out, from + 2);
 }
 
-static inline unsigned char *copy_7_bytes(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_7_bytes(unsigned char *out, const unsigned char *from) {
   out = copy_3_bytes(out, from);
   return copy_4_bytes(out, from + 3);
 }
 
-static inline unsigned char *copy_8_bytes(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_8_bytes(unsigned char *out, const unsigned char *from) {
 #if defined(BLOSC_STRICT_ALIGN)
   uint64_t chunk;
   memcpy(&chunk, from, 8);
@@ -81,7 +82,7 @@ static inline unsigned char *copy_8_bytes(unsigned char *out, const unsigned cha
 }
 
 
-static inline unsigned char *copy_16_bytes(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_16_bytes(unsigned char *out, const unsigned char *from) {
 #if defined(__SSE2__)
   __m128i chunk;
   chunk = _mm_loadu_si128((__m128i*)from);
@@ -101,7 +102,7 @@ static inline unsigned char *copy_16_bytes(unsigned char *out, const unsigned ch
   return out;
 }
 
-static inline unsigned char *copy_32_bytes(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_32_bytes(unsigned char *out, const unsigned char *from) {
 #if defined(__AVX2__)
   __m256i chunk;
   chunk = _mm256_loadu_si256((__m256i*)from);
@@ -134,16 +135,16 @@ static inline unsigned char *copy_32_bytes(unsigned char *out, const unsigned ch
 }
 
 #if defined(__AVX2__)
-static inline unsigned char *copy_32_bytes_aligned(unsigned char *out, const unsigned char *from) {
+static BLOSC_INLINE unsigned char *copy_32_bytes_aligned(unsigned char *out, const unsigned char *from) {
   __m256i chunk;
   chunk = _mm256_load_si256((__m256i*)from);
   _mm256_storeu_si256((__m256i*)out, chunk);
   return out + 32;
 }
-#endif  // __AVX2__
+#endif  /* __AVX2__ */
 
 /* Copy LEN bytes (7 or fewer) from FROM into OUT. Return OUT + LEN. */
-static inline unsigned char *copy_bytes(unsigned char *out, const unsigned char *from, unsigned len) {
+static BLOSC_INLINE unsigned char *copy_bytes(unsigned char *out, const unsigned char *from, unsigned len) {
   assert(len < 8);
 
 #ifdef BLOSC_STRICT_ALIGN
@@ -176,7 +177,7 @@ static inline unsigned char *copy_bytes(unsigned char *out, const unsigned char 
 }
 
 /* Byte by byte semantics: copy LEN bytes from FROM and write them to OUT. Return OUT + LEN. */
-static inline unsigned char *chunk_memcpy(unsigned char *out, const unsigned char *from, unsigned len) {
+static BLOSC_INLINE unsigned char *chunk_memcpy(unsigned char *out, const unsigned char *from, unsigned len) {
   unsigned sz = sizeof(uint64_t);
   unsigned rem = len % sz;
   unsigned by8;
@@ -243,7 +244,7 @@ static inline unsigned char *chunk_memcpy(unsigned char *out, const unsigned cha
 }
 
 /* 16-byte version of chunk_memcpy() */
-static inline unsigned char *chunk_memcpy_16(unsigned char *out, const unsigned char *from, unsigned len) {
+static BLOSC_INLINE unsigned char *chunk_memcpy_16(unsigned char *out, const unsigned char *from, unsigned len) {
   unsigned sz = 16;
   unsigned rem = len % sz;
   unsigned ilen;
@@ -267,7 +268,7 @@ static inline unsigned char *chunk_memcpy_16(unsigned char *out, const unsigned 
 }
 
 /* 32-byte version of chunk_memcpy() */
-static inline unsigned char *chunk_memcpy_32(unsigned char *out, const unsigned char *from, unsigned len) {
+static BLOSC_INLINE unsigned char *chunk_memcpy_32(unsigned char *out, const unsigned char *from, unsigned len) {
   unsigned sz = 32;
   unsigned rem = len % sz;
   unsigned ilen;
@@ -291,7 +292,7 @@ static inline unsigned char *chunk_memcpy_32(unsigned char *out, const unsigned 
 }
 
 /* 32-byte *unrolled* version of chunk_memcpy() */
-static inline unsigned char *chunk_memcpy_32_unrolled(unsigned char *out, const unsigned char *from, unsigned len) {
+static BLOSC_INLINE unsigned char *chunk_memcpy_32_unrolled(unsigned char *out, const unsigned char *from, unsigned len) {
   unsigned sz = 32;
   unsigned rem = len % sz;
   unsigned by8;
@@ -360,7 +361,7 @@ static inline unsigned char *chunk_memcpy_32_unrolled(unsigned char *out, const 
 
 /* SSE2/AVX2 *unaligned* version of chunk_memcpy() */
 #if defined(__SSE2__) || defined(__AVX2__)
-static inline unsigned char *chunk_memcpy_unaligned(unsigned char *out, const unsigned char *from, unsigned len) {
+static BLOSC_INLINE unsigned char *chunk_memcpy_unaligned(unsigned char *out, const unsigned char *from, unsigned len) {
 #if defined(__AVX2__)
   unsigned sz = sizeof(__m256i);
 #elif defined(__SSE2__)
@@ -394,12 +395,12 @@ static inline unsigned char *chunk_memcpy_unaligned(unsigned char *out, const un
 
   return out;
 }
-#endif // __SSE2__ || __AVX2__
+#endif /* __SSE2__ || __AVX2__ */
 
 
 #if defined(__SSE2__) || defined(__AVX2__)
 /* SSE2/AVX2 *aligned* version of chunk_memcpy() */
-static inline unsigned char *chunk_memcpy_aligned(unsigned char *out, const unsigned char *from, unsigned len) {
+static BLOSC_INLINE unsigned char *chunk_memcpy_aligned(unsigned char *out, const unsigned char *from, unsigned len) {
 #if defined(__AVX2__)
   unsigned sz = sizeof(__m256i);
   __m256i chunk;
@@ -448,11 +449,11 @@ static inline unsigned char *chunk_memcpy_aligned(unsigned char *out, const unsi
 
   return out;
 }
-#endif // __AVX2__ || __SSE2__
+#endif /* __AVX2__ || __SSE2__ */
 
 
 /* Byte by byte semantics: copy LEN bytes from FROM and write them to OUT. Return OUT + LEN. */
-unsigned char *fastcopy(unsigned char *out, const unsigned char *from, unsigned len) {
+unsigned char *blosc_internal_fastcopy(unsigned char *out, const unsigned char *from, unsigned len) {
   switch (len) {
     case 32:
       return copy_32_bytes(out, from);
@@ -477,14 +478,14 @@ unsigned char *fastcopy(unsigned char *out, const unsigned char *from, unsigned 
     return chunk_memcpy_16(out, from, len);
   }
   return chunk_memcpy_unaligned(out, from, len);
-#endif  // !__AVX2__
-#endif  // __SSE2__
+#endif  /* !__AVX2__ */
+#endif  /* __SSE2__ */
   return chunk_memcpy(out, from, len);
 }
 
 
 /* Same as fastcopy() but without overwriting origin or destination when they overlap */
-unsigned char* safecopy(unsigned char *out, const unsigned char *from, unsigned len) {
+unsigned char* blosc_internal_safecopy(unsigned char *out, const unsigned char *from, unsigned len) {
 #if defined(__AVX2__)
   unsigned sz = sizeof(__m256i);
 #elif defined(__SSE2__)
@@ -499,6 +500,6 @@ unsigned char* safecopy(unsigned char *out, const unsigned char *from, unsigned 
     return out;
   }
   else {
-    return fastcopy(out, from, len);
+    return blosc_internal_fastcopy(out, from, len);
   }
 }

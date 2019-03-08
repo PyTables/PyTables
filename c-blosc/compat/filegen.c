@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
     /* Write data_out to argv[3] */
     f = fopen(argv[3], "wb+");
-    if (fwrite(data_out, 1, (size_t) csize, f) == SIZE) {
+    if (fwrite(data_out, 1, (size_t) csize, f) == csize) {
       printf("Wrote %s\n", argv[3]);
     } else {
       printf("Write failed");

@@ -57,6 +57,13 @@ int blosclz_compress(const int opt_level, const void* input, int length,
 
 int blosclz_decompress(const void* input, int length, void* output, int maxout);
 
+/**
+  Same as above, except that it is not safe to run on invalid/untrusted input,
+  and may be slightly faster.
+ */
+int blosclz_decompress_unsafe(const void* input, int length, void* output,
+                              int maxout);
+
 #if defined (__cplusplus)
 }
 #endif

@@ -48,18 +48,18 @@ static int test_shuffle_roundtrip_sse2(size_t type_size, size_t num_elements,
   {
     case 0:
       /* sse2/sse2 */
-      shuffle_sse2(type_size, buffer_size, original, shuffled);
-      unshuffle_sse2(type_size, buffer_size, shuffled, unshuffled);
+      blosc_internal_shuffle_sse2(type_size, buffer_size, original, shuffled);
+      blosc_internal_unshuffle_sse2(type_size, buffer_size, shuffled, unshuffled);
       break;
     case 1:
       /* generic/sse2 */
-      shuffle_generic(type_size, buffer_size, original, shuffled);
-      unshuffle_sse2(type_size, buffer_size, shuffled, unshuffled);
+      blosc_internal_shuffle_generic(type_size, buffer_size, original, shuffled);
+      blosc_internal_unshuffle_sse2(type_size, buffer_size, shuffled, unshuffled);
       break;
     case 2:
       /* sse2/generic */
-      shuffle_sse2(type_size, buffer_size, original, shuffled);
-      unshuffle_generic(type_size, buffer_size, shuffled, unshuffled);
+      blosc_internal_shuffle_sse2(type_size, buffer_size, original, shuffled);
+      blosc_internal_unshuffle_generic(type_size, buffer_size, shuffled, unshuffled);
       break;
     default:
       fprintf(stderr, "Invalid test type specified (%d).", test_type);

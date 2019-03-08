@@ -21,12 +21,6 @@
   #else
     #include <stdint.h>
   #endif
-
-  /* Use inlined functions for supported systems */
-  #if defined(_MSC_VER) && !defined(__cplusplus)   /* Visual Studio */
-    #define inline __inline  /* Visual C is not C99, but supports some kind of inline */
-  #endif
-
 #else
   #include <stdint.h>
 #endif  /* _WIN32 */

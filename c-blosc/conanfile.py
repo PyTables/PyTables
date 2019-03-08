@@ -11,7 +11,7 @@ class CbloscConan(ConanFile):
     options = {"shared": [True, False]}
     default_options = "shared=False"
     generators = "cmake"
-    exports_sources = "*", "!test_package/*", "!appveyor*", "!.*.yml", "!*.py", "!.*"
+    exports_sources = "*", "!test_package/*", "!appveyor*", "!.*.yml", "!bench/plot-speeds.py", "!build.py", "!.*"
 
     @property
     def run_tests(self):
@@ -48,7 +48,8 @@ class CbloscConan(ConanFile):
                 prefix = "LD_LIBRARY_PATH=%s" % outdir
             else:
                 return
-            self.run("%s ctest %s" % (prefix, test_args))
+            with tools.environment_append({'CTEST_OUTPUT_ON_FAILURE': '1'}):
+                self.run("%s ctest %s" % (prefix, test_args))
 
     def package(self):
         self.copy("blosc.h", dst="include", src="blosc")

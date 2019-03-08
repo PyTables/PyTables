@@ -89,4 +89,24 @@ extern int pthread_create(pthread_t *thread, const void *unused,
 
 extern int win32_pthread_join(pthread_t *thread, void **value_ptr);
 
+/**
+ * pthread_once implementation based on the MS Windows One-Time Initialization
+ * (https://docs.microsoft.com/en-us/windows/desktop/Sync/one-time-initialization)
+ * APIs.
+ */
+typedef INIT_ONCE pthread_once_t;
+#define PTHREAD_ONCE_INIT INIT_ONCE_STATIC_INIT
+#define pthread_once blosc_internal_pthread_once /* Avoid symbol conflicts */
+static int blosc_internal_pthread_once(pthread_once_t* once_control,
+																			 void (*init_routine)(void)) {
+  BOOL pending;
+  InitOnceBeginInitialize(once_control, /*dwFlags=*/0, /*fPending=*/&pending,
+                          NULL);
+  if (pending == TRUE) {
+    init_routine();
+    InitOnceComplete(once_control, /*dwFlags=*/0, /*lpContext=*/NULL);
+  }
+  return 0;
+}
+
 #endif /* PTHREAD_H */

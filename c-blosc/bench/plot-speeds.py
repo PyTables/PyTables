@@ -27,13 +27,18 @@ def get_values(filename):
     for line in f:
         if line.startswith('-->'):
             tmp = line.split('-->')[1]
-            nthreads, size, elsize, sbits, codec, shuffle = [i for i in tmp.split(', ')]
+            parts = tmp.split(', ')
+            nthreads, size, elsize, sbits, codec, shuffle = parts[:6]
+            safe = 'unsafe'
+            if len(parts) > 6:
+                safe = parts[6]
             nthreads, size, elsize, sbits = map(int, (nthreads, size, elsize, sbits))
             values["size"] = size * NCHUNKS / MB_
             values["elsize"] = elsize
             values["sbits"] = sbits
             values["codec"] = codec
             values["shuffle"] = shuffle
+            values["safe"] = safe
             # New run for nthreads
             (ratios, speedsw, speedsr) = ([], [], [])
             # Add a new entry for (ratios, speedw, speedr)
@@ -185,7 +190,7 @@ if __name__ == '__main__':
     if options.title:
         plot_title = options.title
     else:
-        plot_title += " (%(size).1f MB, %(elsize)d bytes, %(sbits)d bits), %(codec)s %(shuffle)s" % values
+        plot_title += " (%(size).1f MB, %(elsize)d bytes, %(sbits)d bits), %(codec)s %(shuffle)s %(safe)s" % values
 
     gtitle = plot_title
 
@@ -219,5 +224,3 @@ if __name__ == '__main__':
     show_plot(plots, yaxis, legends, gtitle,
               xmax=int(options.xmax) if options.xmax else None,
               ymax=int(options.ymax) if options.ymax else None)
-
-

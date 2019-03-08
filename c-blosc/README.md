@@ -1,11 +1,11 @@
 # Blosc: A blocking, shuffling and lossless compression library
 | Author | Contact | URL |
 |--------|---------|-----|
-| Francesc Alted | francesc@blosc.org | http://www.blosc.org | 
+| Blosc Development Team | blosc@blosc.org | http://www.blosc.org | 
 
-| Gitter | Travis CI | Appveyor |
-|--------|-----------|----------|
-| [![Build Status](https://badges.gitter.im/Blosc/c-blosc.svg)](https://gitter.im/Blosc/c-blosc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) | [![Build Status](https://travis-ci.org/Blosc/c-blosc.svg?branch=master)](https://travis-ci.org/Blosc/c-blosc) | [![Build Status](https://ci.appveyor.com/api/projects/status/3mlyjc1ak0lbkmte?svg=true)](https://ci.appveyor.com/project/FrancescAlted/c-blosc/branch/master) |
+| Gitter | Travis CI | Appveyor | NumFOCUS |
+|--------|-----------|----------|----------|
+| [![Build Status](https://badges.gitter.im/Blosc/c-blosc.svg)](https://gitter.im/Blosc/c-blosc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) | [![Build Status](https://travis-ci.org/Blosc/c-blosc.svg?branch=master)](https://travis-ci.org/Blosc/c-blosc) | [![Build Status](https://ci.appveyor.com/api/projects/status/3mlyjc1ak0lbkmte?svg=true)](https://ci.appveyor.com/project/FrancescAlted/c-blosc/branch/master) | [![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](http://numfocus.org) |
 
 
 ## What is it?

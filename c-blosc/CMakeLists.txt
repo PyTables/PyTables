@@ -11,6 +11,8 @@
 #       build test programs and generates the "test" target
 #   BUILD_BENCHMARKS: default ON
 #       build the benchmark program
+#   DEACTIVATE_SSE2: default OFF
+#       do not attempt to build with SSE2 instructions
 #   DEACTIVATE_AVX2: default OFF
 #       do not attempt to build with AVX2 instructions
 #   DEACTIVATE_LZ4: default OFF
@@ -21,6 +23,8 @@
 #       do not include support for the Zlib library
 #   DEACTIVATE_ZSTD: default OFF
 #       do not include support for the Zstd library
+#   DEACTIVATE_SYMBOLS_CHECK: default ON
+#       do not check for symbols in shared or static libraries
 #   PREFER_EXTERNAL_LZ4: default OFF
 #       when found, use the installed LZ4 libs instead of included
 #       sources
@@ -95,8 +99,10 @@ option(BUILD_TESTS
     "Build test programs form the blosc compression library" ON)
 option(BUILD_BENCHMARKS
     "Build benchmark programs form the blosc compression library" ON)
+option(DEACTIVATE_SSE2
+        "Do not attempt to build with SSE2 instructions" OFF)
 option(DEACTIVATE_AVX2
-    "Do not attempt to build with AVX2 instructions" OFF)
+        "Do not attempt to build with AVX2 instructions" OFF)
 option(DEACTIVATE_LZ4
     "Do not include support for the LZ4 library." OFF)
 option(DEACTIVATE_SNAPPY
@@ -104,7 +110,9 @@ option(DEACTIVATE_SNAPPY
 option(DEACTIVATE_ZLIB
     "Do not include support for the Zlib library." OFF)
 option(DEACTIVATE_ZSTD
-    "Do not include support for the Zstd library." OFF)
+        "Do not include support for the Zstd library." OFF)
+option(DEACTIVATE_SYMBOLS_CHECK
+        "Do not check for symbols in shared or static libraries." ON)
 option(PREFER_EXTERNAL_LZ4
     "Find and use external LZ4 library instead of included sources." OFF)
 option(PREFER_EXTERNAL_SNAPPY
@@ -243,6 +251,11 @@ else()
     # If the target system processor isn't recognized, emit a warning message to alert the user
     # that hardware-acceleration support won't be available but allow configuration to proceed.
     message(WARNING "Unrecognized system processor ${CMAKE_SYSTEM_PROCESSOR}. Cannot determine which hardware features (${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}) supports, so hardware-accelerated implementations will not be available.")
+endif()
+
+# disable SSE2 if specified (useful for cross-compiling, see #236)
+if(DEACTIVATE_SSE2)
+    set(COMPILER_SUPPORT_SSE2 FALSE)
 endif()
 
 # disable AVX2 if specified

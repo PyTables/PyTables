@@ -15,6 +15,9 @@ environment:
     matrix:
         - MINGW_CONFIGURATIONS: "4.9@x86_64@seh@posix, 5@x86_64@seh@posix, 6@x86_64@seh@posix, 7@x86_64@seh@posix"
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+          CONAN_VISUAL_VERSIONS: 9
+          CONAN_RUN_TESTS: "1"
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
           CONAN_VISUAL_VERSIONS: 12
           CONAN_RUN_TESTS: "1"
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
@@ -25,9 +28,10 @@ environment:
           CONAN_RUN_TESTS: "1"
 
 install:
+  - ps: if($env:CONAN_VISUAL_VERSIONS -eq "9") { .\appveyor\vs2008_x86-64_patch\setup_x64.bat }
   - set PATH=%PATH%;%PYTHON%/Scripts/
   - pip.exe install conan --upgrade
-  - pip.exe install conan_package_tools
+  - pip.exe install conan_package_tools==0.19.3
 
 test_script:
   - python build.py

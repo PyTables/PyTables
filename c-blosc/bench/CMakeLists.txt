@@ -13,22 +13,14 @@ endif(UNIX AND NOT APPLE AND NOT HAIKU)
 target_link_libraries(bench blosc_shared)
 
 # have to copy blosc dlls on Windows
-if(MSVC)
+if(MSVC OR MINGW)
     add_custom_command(
         TARGET      bench
         POST_BUILD
         COMMAND     ${CMAKE_COMMAND}
         ARGS        -E copy_if_different
-                    "${PROJECT_BINARY_DIR}/blosc/\$\(Configuration\)/blosc.dll"
-                    "${CMAKE_CURRENT_BINARY_DIR}/\$\(Configuration\)/blosc.dll")
-elseif(MINGW)
-    add_custom_command(
-        TARGET      bench
-        POST_BUILD
-        COMMAND     ${CMAKE_COMMAND}
-        ARGS        -E copy_if_different
-                    "${PROJECT_BINARY_DIR}/blosc/libblosc.dll"
-                    "${CMAKE_CURRENT_BINARY_DIR}/libblosc.dll")
+                    "$<TARGET_FILE:blosc_shared>"
+                    "$<TARGET_FILE_DIR:bench>/$<TARGET_FILE_NAME:blosc_shared>")
 endif()
 
 # tests

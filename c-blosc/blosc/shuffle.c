@@ -10,7 +10,14 @@
 #include "shuffle.h"
 #include "shuffle-generic.h"
 #include "bitshuffle-generic.h"
+#include "blosc-comp-features.h"
 #include <stdio.h>
+
+#if defined(_WIN32)
+#include "win32/pthread.h"
+#else
+#include <pthread.h>
+#endif
 
 /* Visual Studio < 2013 does not have stdbool.h so here it is a replacement: */
 #if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
@@ -96,11 +103,12 @@ static blosc_cpu_features blosc_get_cpu_features(void) {
 /*  _xgetbv is only supported by VS2010 SP1 and newer versions of VS. */
 #if _MSC_FULL_VER >= 160040219
   #include <immintrin.h>  /* Needed for _xgetbv */
+  #define blosc_internal_xgetbv _xgetbv
 #elif defined(_M_IX86)
 
 /*  Implement _xgetbv for VS2008 and VS2010 RTM with 32-bit (x86) targets. */
 
-static uint64_t _xgetbv(uint32_t xcr) {
+static uint64_t blosc_internal_xgetbv(uint32_t xcr) {
     uint32_t xcr0, xcr1;
     __asm {
         mov        ecx, xcr
@@ -119,7 +127,7 @@ static uint64_t _xgetbv(uint32_t xcr) {
     which means we can get away with returning a hard-coded value from
     this implementation of _xgetbv. */
 
-static __inline uint64_t _xgetbv(uint32_t xcr) {
+static __inline uint64_t blosc_internal_xgetbv(uint32_t xcr) {
     /* A 64-bit OS must have XMM save support. */
     return (xcr == 0 ? (1UL << 1) : 0UL);
 }
@@ -132,13 +140,15 @@ static __inline uint64_t _xgetbv(uint32_t xcr) {
 
 #endif /* _MSC_FULL_VER >= 160040219 */
 
+#define blosc_internal_cpuid __cpuid
+
 #else
 
 /*  Implement the __cpuid and __cpuidex intrinsics for GCC, Clang,
     and others using inline assembly. */
 __attribute__((always_inline))
 static inline void
-__cpuidex(int32_t cpuInfo[4], int32_t function_id, int32_t subfunction_id) {
+blosc_internal_cpuidex(int32_t cpuInfo[4], int32_t function_id, int32_t subfunction_id) {
   __asm__ __volatile__ (
 # if defined(__i386__) && defined (__PIC__)
   /*  Can't clobber ebx with PIC running under 32-bit, so it needs to be manually restored.
@@ -159,7 +169,7 @@ __cpuidex(int32_t cpuInfo[4], int32_t function_id, int32_t subfunction_id) {
     );
 }
 
-#define __cpuid(cpuInfo, function_id) __cpuidex(cpuInfo, function_id, 0)
+#define blosc_internal_cpuid(cpuInfo, function_id) blosc_internal_cpuidex(cpuInfo, function_id, 0)
 
 #define _XCR_XFEATURE_ENABLED_MASK 0
 
@@ -167,7 +177,7 @@ __cpuidex(int32_t cpuInfo[4], int32_t function_id, int32_t subfunction_id) {
    https://software.intel.com/en-us/articles/how-to-detect-new-instruction-support-in-the-4th-generation-intel-core-processor-family
 */
 static inline uint64_t
-_xgetbv(uint32_t xcr) {
+blosc_internal_xgetbv(uint32_t xcr) {
   uint32_t eax, edx;
   __asm__ __volatile__ (
     /* "xgetbv"
@@ -209,11 +219,11 @@ static blosc_cpu_features blosc_get_cpu_features(void) {
   char* envvar;
 
   /* Get the number of basic functions available. */
-  __cpuid(cpu_info, 0);
+  blosc_internal_cpuid(cpu_info, 0);
   max_basic_function_id = cpu_info[0];
 
   /* Check for SSE-based features and required OS support */
-  __cpuid(cpu_info, 1);
+  blosc_internal_cpuid(cpu_info, 1);
   sse2_available = (cpu_info[3] & (1 << 26)) != 0;
   sse3_available = (cpu_info[2] & (1 << 0)) != 0;
   ssse3_available = (cpu_info[2] & (1 << 9)) != 0;
@@ -225,7 +235,7 @@ static blosc_cpu_features blosc_get_cpu_features(void) {
 
   /* Check for AVX-based features, if the processor supports extended features. */
   if (max_basic_function_id >= 7) {
-    __cpuid(cpu_info, 7);
+    blosc_internal_cpuid(cpu_info, 7);
     avx2_available = (cpu_info[1] & (1 << 5)) != 0;
     avx512bw_available = (cpu_info[1] & (1 << 30)) != 0;
   }
@@ -240,7 +250,7 @@ static blosc_cpu_features blosc_get_cpu_features(void) {
       || sse41_available || sse42_available
       || avx2_available || avx512bw_available)) {
     /* Determine which register states can be restored by the OS. */
-    xcr0_contents = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
+    xcr0_contents = blosc_internal_xgetbv(_XCR_XFEATURE_ENABLED_MASK);
 
     xmm_state_enabled = (xcr0_contents & (1UL << 1)) != 0;
     ymm_state_enabled = (xcr0_contents & (1UL << 2)) != 0;
@@ -302,10 +312,10 @@ static shuffle_implementation_t get_shuffle_implementation(void) {
   if (cpu_features & BLOSC_HAVE_AVX2) {
     shuffle_implementation_t impl_avx2;
     impl_avx2.name = "avx2";
-    impl_avx2.shuffle = (shuffle_func)shuffle_avx2;
-    impl_avx2.unshuffle = (unshuffle_func)unshuffle_avx2;
-    impl_avx2.bitshuffle = (bitshuffle_func)bshuf_trans_bit_elem_avx2;
-    impl_avx2.bitunshuffle = (bitunshuffle_func)bshuf_untrans_bit_elem_avx2;
+    impl_avx2.shuffle = (shuffle_func)blosc_internal_shuffle_avx2;
+    impl_avx2.unshuffle = (unshuffle_func)blosc_internal_unshuffle_avx2;
+    impl_avx2.bitshuffle = (bitshuffle_func)blosc_internal_bshuf_trans_bit_elem_avx2;
+    impl_avx2.bitunshuffle = (bitunshuffle_func)blosc_internal_bshuf_untrans_bit_elem_avx2;
     return impl_avx2;
   }
 #endif  /* defined(SHUFFLE_AVX2_ENABLED) */
@@ -314,10 +324,10 @@ static shuffle_implementation_t get_shuffle_implementation(void) {
   if (cpu_features & BLOSC_HAVE_SSE2) {
     shuffle_implementation_t impl_sse2;
     impl_sse2.name = "sse2";
-    impl_sse2.shuffle = (shuffle_func)shuffle_sse2;
-    impl_sse2.unshuffle = (unshuffle_func)unshuffle_sse2;
-    impl_sse2.bitshuffle = (bitshuffle_func)bshuf_trans_bit_elem_sse2;
-    impl_sse2.bitunshuffle = (bitunshuffle_func)bshuf_untrans_bit_elem_sse2;
+    impl_sse2.shuffle = (shuffle_func)blosc_internal_shuffle_sse2;
+    impl_sse2.unshuffle = (unshuffle_func)blosc_internal_unshuffle_sse2;
+    impl_sse2.bitshuffle = (bitshuffle_func)blosc_internal_bshuf_trans_bit_elem_sse2;
+    impl_sse2.bitunshuffle = (bitunshuffle_func)blosc_internal_bshuf_untrans_bit_elem_sse2;
     return impl_sse2;
   }
 #endif  /* defined(SHUFFLE_SSE2_ENABLED) */
@@ -325,21 +335,24 @@ static shuffle_implementation_t get_shuffle_implementation(void) {
   /*  Processor doesn't support any of the hardware-accelerated implementations,
       so use the generic implementation. */
   impl_generic.name = "generic";
-  impl_generic.shuffle = (shuffle_func)shuffle_generic;
-  impl_generic.unshuffle = (unshuffle_func)unshuffle_generic;
-  impl_generic.bitshuffle = (bitshuffle_func)bshuf_trans_bit_elem_scal;
-  impl_generic.bitunshuffle = (bitunshuffle_func)bshuf_untrans_bit_elem_scal;
+  impl_generic.shuffle = (shuffle_func)blosc_internal_shuffle_generic;
+  impl_generic.unshuffle = (unshuffle_func)blosc_internal_unshuffle_generic;
+  impl_generic.bitshuffle = (bitshuffle_func)blosc_internal_bshuf_trans_bit_elem_scal;
+  impl_generic.bitunshuffle = (bitunshuffle_func)blosc_internal_bshuf_untrans_bit_elem_scal;
   return impl_generic;
 }
 
 
-/*  Flag indicating whether the implementation has been initialized.
-    Zero means it hasn't been initialized, non-zero means it has. */
-static int32_t implementation_initialized;
+/*  Flag indicating whether the implementation has been initialized. */
+static pthread_once_t implementation_initialized = PTHREAD_ONCE_INIT;
 
 /*  The dynamically-chosen shuffle/unshuffle implementation.
     This is only safe to use once `implementation_initialized` is set. */
 static shuffle_implementation_t host_implementation;
+
+static void set_host_implementation(void) {
+  host_implementation = get_shuffle_implementation();
+}
 
 /*  Initialize the shuffle implementation, if necessary. */
 #if defined(__GNUC__) || defined(__clang__)
@@ -349,35 +362,17 @@ static
 #if defined(_MSC_VER)
 __forceinline
 #else
-inline
+BLOSC_INLINE
 #endif
 void init_shuffle_implementation(void) {
-  /* Initialization could (in rare cases) take place concurrently on
-     multiple threads, but it shouldn't matter because the
-     initialization should return the same result on each thread (so
-     the implementation will be the same). Since that's the case we
-     can avoid complicated synchronization here and get a small
-     performance benefit because we don't need to perform a volatile
-     load on the initialization variable each time this function is
-     called. */
-#if defined(__GNUC__) || defined(__clang__)
-  if (__builtin_expect(!implementation_initialized, 0)) {
-#else
-  if (!implementation_initialized) {
-#endif
-    /* Initialize the implementation. */
-    host_implementation = get_shuffle_implementation();
-
-    /*  Set the flag indicating the implementation has been initialized. */
-    implementation_initialized = 1;
-  }
+  pthread_once(&implementation_initialized, &set_host_implementation);
 }
 
 /*  Shuffle a block by dynamically dispatching to the appropriate
     hardware-accelerated routine at run-time. */
 void
-shuffle(const size_t bytesoftype, const size_t blocksize,
-        const uint8_t* _src, const uint8_t* _dest) {
+blosc_internal_shuffle(const size_t bytesoftype, const size_t blocksize,
+                       const uint8_t* _src, const uint8_t* _dest) {
   /* Initialize the shuffle implementation if necessary. */
   init_shuffle_implementation();
 
@@ -389,8 +384,8 @@ shuffle(const size_t bytesoftype, const size_t blocksize,
 /*  Unshuffle a block by dynamically dispatching to the appropriate
     hardware-accelerated routine at run-time. */
 void
-unshuffle(const size_t bytesoftype, const size_t blocksize,
-          const uint8_t* _src, const uint8_t* _dest) {
+blosc_internal_unshuffle(const size_t bytesoftype, const size_t blocksize,
+                         const uint8_t* _src, const uint8_t* _dest) {
   /* Initialize the shuffle implementation if necessary. */
   init_shuffle_implementation();
 
@@ -402,9 +397,9 @@ unshuffle(const size_t bytesoftype, const size_t blocksize,
 /*  Bit-shuffle a block by dynamically dispatching to the appropriate
     hardware-accelerated routine at run-time. */
 int
-bitshuffle(const size_t bytesoftype, const size_t blocksize,
-           const uint8_t* const _src, const uint8_t* _dest,
-           const uint8_t* _tmp) {
+blosc_internal_bitshuffle(const size_t bytesoftype, const size_t blocksize,
+                          const uint8_t* const _src, const uint8_t* _dest,
+                          const uint8_t* _tmp) {
   int size = blocksize / bytesoftype;
   /* Initialize the shuffle implementation if necessary. */
   init_shuffle_implementation();
@@ -423,9 +418,9 @@ bitshuffle(const size_t bytesoftype, const size_t blocksize,
 /*  Bit-unshuffle a block by dynamically dispatching to the appropriate
     hardware-accelerated routine at run-time. */
 int
-bitunshuffle(const size_t bytesoftype, const size_t blocksize,
-             const uint8_t* const _src, const uint8_t* _dest,
-             const uint8_t* _tmp) {
+blosc_internal_bitunshuffle(const size_t bytesoftype, const size_t blocksize,
+                            const uint8_t* const _src, const uint8_t* _dest,
+                            const uint8_t* _tmp) {
   int size = blocksize / bytesoftype;
   /* Initialize the shuffle implementation if necessary. */
   init_shuffle_implementation();

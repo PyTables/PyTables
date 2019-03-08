@@ -638,14 +638,14 @@ unshuffle16_tiled_avx2(uint8_t* const dest, const uint8_t* const src,
 
 /* Shuffle a block.  This can never fail. */
 void
-shuffle_avx2(const size_t bytesoftype, const size_t blocksize,
-             const uint8_t* const _src, uint8_t* const _dest) {
+blosc_internal_shuffle_avx2(const size_t bytesoftype, const size_t blocksize,
+                            const uint8_t* const _src, uint8_t* const _dest) {
   const size_t vectorized_chunk_size = bytesoftype * sizeof(__m256i);
 
   /* If the block size is too small to be vectorized,
      use the generic implementation. */
   if (blocksize < vectorized_chunk_size) {
-    shuffle_generic(bytesoftype, blocksize, _src, _dest);
+    blosc_internal_shuffle_generic(bytesoftype, blocksize, _src, _dest);
     return;
   }
 
@@ -681,7 +681,7 @@ shuffle_avx2(const size_t bytesoftype, const size_t blocksize,
     }
     else {
       /* Non-optimized shuffle */
-      shuffle_generic(bytesoftype, blocksize, _src, _dest);
+      blosc_internal_shuffle_generic(bytesoftype, blocksize, _src, _dest);
       /* The non-optimized function covers the whole buffer,
          so we're done processing here. */
       return;
@@ -698,14 +698,14 @@ shuffle_avx2(const size_t bytesoftype, const size_t blocksize,
 
 /* Unshuffle a block.  This can never fail. */
 void
-unshuffle_avx2(const size_t bytesoftype, const size_t blocksize,
-               const uint8_t* const _src, uint8_t* const _dest) {
+blosc_internal_unshuffle_avx2(const size_t bytesoftype, const size_t blocksize,
+                              const uint8_t* const _src, uint8_t* const _dest) {
   const size_t vectorized_chunk_size = bytesoftype * sizeof(__m256i);
 
   /* If the block size is too small to be vectorized,
      use the generic implementation. */
   if (blocksize < vectorized_chunk_size) {
-    unshuffle_generic(bytesoftype, blocksize, _src, _dest);
+    blosc_internal_unshuffle_generic(bytesoftype, blocksize, _src, _dest);
     return;
   }
 
@@ -741,7 +741,7 @@ unshuffle_avx2(const size_t bytesoftype, const size_t blocksize,
     }
     else {
       /* Non-optimized unshuffle */
-      unshuffle_generic(bytesoftype, blocksize, _src, _dest);
+      blosc_internal_unshuffle_generic(bytesoftype, blocksize, _src, _dest);
       /* The non-optimized function covers the whole buffer,
          so we're done processing here. */
       return;

@@ -10,7 +10,7 @@
 
 
 /* Transpose bytes within elements, starting partway through input. */
-int64_t bshuf_trans_byte_elem_remainder(const void* in, void* out, const size_t size,
+int64_t blosc_internal_bshuf_trans_byte_elem_remainder(const void* in, void* out, const size_t size,
          const size_t elem_size, const size_t start) {
 
     char* in_b = (char*) in;
@@ -41,16 +41,16 @@ int64_t bshuf_trans_byte_elem_remainder(const void* in, void* out, const size_t 
 
 
 /* Transpose bytes within elements. */
-int64_t bshuf_trans_byte_elem_scal(const void* in, void* out, const size_t size,
+int64_t blosc_internal_bshuf_trans_byte_elem_scal(const void* in, void* out, const size_t size,
 				   const size_t elem_size) {
 
-    return bshuf_trans_byte_elem_remainder(in, out, size, elem_size, 0);
+    return blosc_internal_bshuf_trans_byte_elem_remainder(in, out, size, elem_size, 0);
 }
 
 
 /* Transpose bits within bytes. */
-int64_t bshuf_trans_bit_byte_remainder(const void* in, void* out, const size_t size,
-         const size_t elem_size, const size_t start_byte) {
+int64_t blosc_internal_bshuf_trans_bit_byte_remainder(const void* in, void* out, const size_t size,
+                                                      const size_t elem_size, const size_t start_byte) {
 
     const uint64_t* in_b = (const uint64_t*) in;
     uint8_t* out_b = (uint8_t*) out;
@@ -86,15 +86,14 @@ int64_t bshuf_trans_bit_byte_remainder(const void* in, void* out, const size_t s
 
 
 /* Transpose bits within bytes. */
-int64_t bshuf_trans_bit_byte_scal(const void* in, void* out, const size_t size,
+static int64_t bshuf_trans_bit_byte_scal(const void* in, void* out, const size_t size,
          const size_t elem_size) {
 
-    return bshuf_trans_bit_byte_remainder(in, out, size, elem_size, 0);
+    return blosc_internal_bshuf_trans_bit_byte_remainder(in, out, size, elem_size, 0);
 }
 
-
 /* General transpose of an array, optimized for large element sizes. */
-int64_t bshuf_trans_elem(const void* in, void* out, const size_t lda,
+int64_t blosc_internal_bshuf_trans_elem(const void* in, void* out, const size_t lda,
         const size_t ldb, const size_t elem_size) {
 
     char* in_b = (char*) in;
@@ -111,30 +110,30 @@ int64_t bshuf_trans_elem(const void* in, void* out, const size_t lda,
 
 
 /* Transpose rows of shuffled bits (size / 8 bytes) within groups of 8. */
-int64_t bshuf_trans_bitrow_eight(const void* in, void* out, const size_t size,
+int64_t blosc_internal_bshuf_trans_bitrow_eight(const void* in, void* out, const size_t size,
          const size_t elem_size) {
 
     size_t nbyte_bitrow = size / 8;
 
     CHECK_MULT_EIGHT(size);
 
-    return bshuf_trans_elem(in, out, 8, elem_size, nbyte_bitrow);
+    return blosc_internal_bshuf_trans_elem(in, out, 8, elem_size, nbyte_bitrow);
 }
 
 
 /* Transpose bits within elements. */
-int64_t bshuf_trans_bit_elem_scal(const void* in, void* out, const size_t size,
-                                  const size_t elem_size, void* tmp_buf) {
+int64_t blosc_internal_bshuf_trans_bit_elem_scal(const void* in, void* out, const size_t size,
+                                                 const size_t elem_size, void* tmp_buf) {
 
     int64_t count;
 
     CHECK_MULT_EIGHT(size);
 
-    count = bshuf_trans_byte_elem_scal(in, out, size, elem_size);
+    count = blosc_internal_bshuf_trans_byte_elem_scal(in, out, size, elem_size);
     CHECK_ERR(count);
     count = bshuf_trans_bit_byte_scal(out, tmp_buf, size, elem_size);
     CHECK_ERR(count);
-    count = bshuf_trans_bitrow_eight(tmp_buf, out, size, elem_size);
+    count = blosc_internal_bshuf_trans_bitrow_eight(tmp_buf, out, size, elem_size);
 
     return count;
 }
@@ -142,7 +141,7 @@ int64_t bshuf_trans_bit_elem_scal(const void* in, void* out, const size_t size,
 
 /* For data organized into a row for each bit (8 * elem_size rows), transpose
  * the bytes. */
-int64_t bshuf_trans_byte_bitrow_scal(const void* in, void* out, const size_t size,
+static int64_t bshuf_trans_byte_bitrow_scal(const void* in, void* out, const size_t size,
          const size_t elem_size) {
     char* in_b = (char*) in;
     char* out_b = (char*) out;
@@ -165,7 +164,7 @@ int64_t bshuf_trans_byte_bitrow_scal(const void* in, void* out, const size_t siz
 
 
 /* Shuffle bits within the bytes of eight element blocks. */
-int64_t bshuf_shuffle_bit_eightelem_scal(const void* in, void* out, \
+int64_t blosc_internal_bshuf_shuffle_bit_eightelem_scal(const void* in, void* out,
         const size_t size, const size_t elem_size) {
 
     const char *in_b;
@@ -206,8 +205,8 @@ int64_t bshuf_shuffle_bit_eightelem_scal(const void* in, void* out, \
 
 
 /* Untranspose bits within elements. */
-int64_t bshuf_untrans_bit_elem_scal(const void* in, void* out, const size_t size,
-                                    const size_t elem_size, void* tmp_buf) {
+int64_t blosc_internal_bshuf_untrans_bit_elem_scal(const void* in, void* out, const size_t size,
+                                                   const size_t elem_size, void* tmp_buf) {
 
     int64_t count;
 
@@ -215,7 +214,7 @@ int64_t bshuf_untrans_bit_elem_scal(const void* in, void* out, const size_t size
 
     count = bshuf_trans_byte_bitrow_scal(in, tmp_buf, size, elem_size);
     CHECK_ERR(count);
-    count =  bshuf_shuffle_bit_eightelem_scal(tmp_buf, out, size, elem_size);
+    count =  blosc_internal_bshuf_shuffle_bit_eightelem_scal(tmp_buf, out, size, elem_size);
 
     return count;
 }
