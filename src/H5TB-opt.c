@@ -86,7 +86,7 @@ hid_t H5TBOmake_table(  const char *table_title,
                         char *complib,
                         int shuffle,
                         int fletcher32,
-			hbool_t track_times,
+                        hbool_t track_times,
                         const void *data )
 {
 
@@ -196,10 +196,9 @@ hid_t H5TBOmake_table(  const char *table_title,
  /* Only write if there is something to write */
  if ( data )
  {
-
- /* Write data to the dataset. */
- if ( H5Dwrite( dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
-  goto out;
+   /* Write data to the dataset. */
+   if ( H5Dwrite( dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+     goto out;
 
  }
 

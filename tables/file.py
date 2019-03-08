@@ -1046,9 +1046,9 @@ class File(hdf5extension.File, object):
             if not isinstance(obj, numpy.ndarray):
                 raise TypeError('invalid obj parameter %r' % obj)
 
-            descr, _ = descr_from_dtype(obj.dtype)
+            descr, _ = descr_from_dtype(obj.dtype, ptparams=self.params)
             if (description is not None and
-                    dtype_from_descr(description) != obj.dtype):
+                    dtype_from_descr(description, ptparams=self.params) != obj.dtype):
                 raise TypeError('the desctiption parameter is not consistent '
                                 'with the data type of the obj parameter')
             elif description is None:

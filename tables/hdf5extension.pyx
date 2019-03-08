@@ -77,14 +77,14 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5T_class_t, H5T_sign_t, H5T_NATIVE_INT,
   H5T_cset_t, H5T_CSET_ASCII, H5T_CSET_UTF8,
   H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR,
-  H5P_DEFAULT, H5P_FILE_ACCESS, H5P_FILE_CREATE,
+  H5P_DEFAULT, H5P_FILE_ACCESS, H5P_FILE_CREATE, H5T_DIR_DEFAULT,
   H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB,
   H5Fcreate, H5Fopen, H5Fclose, H5Fflush, H5Fget_vfd_handle, H5Fget_filesize,
   H5Fget_create_plist,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, H5Dget_create_plist,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
-  H5Tclose, H5Tis_variable_str, H5Tget_sign,
+  H5Tget_native_type, H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT, H5T_STRING, H5Tget_order,
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pget_userblock, H5Pset_userblock,
   H5Pset_fapl_sec2, H5Pset_fapl_log, H5Pset_fapl_stdio, H5Pset_fapl_core,
@@ -678,9 +678,11 @@ cdef class AttributeSet:
       #value = numpy.ascontiguousarray(value)
       value = value.copy()
       if value.dtype.kind == 'V':
-        description, rabyteorder = descr_from_dtype(value.dtype)
+        description, rabyteorder = descr_from_dtype(value.dtype, ptparams=node._v_file.params)
         byteorder = byteorders[rabyteorder]
         type_id = create_nested_type(description, byteorder)
+        # Make sure the value is consistent with offsets of the description
+        value = value.astype(description._v_dtype)
       else:
         # Get the associated native HDF5 type of the scalar type
         baseatom = Atom.from_dtype(value.dtype.base)
@@ -810,7 +812,7 @@ cdef class AttributeSet:
 
       # Get the NumPy dtype from the type_id
       try:
-        stype_, shape_ = hdf5_to_np_ext_type(type_id, pure_numpy_types=True)
+        stype_, shape_ = hdf5_to_np_ext_type(type_id, pure_numpy_types=True, ptparams=node._v_file.params)
         dtype_ = numpy.dtype(stype_, shape_)
       except TypeError:
         if class_id == H5T_STRING and H5Tis_variable_str(type_id):
@@ -842,7 +844,7 @@ cdef class AttributeSet:
 
           # Important to release attr_value, because it has been malloc'ed!
           for i in range(nelements):
-            free(str_values[i]);
+            free(str_values[i])
           free(str_values)
 
           return retvalue
@@ -856,20 +858,15 @@ cdef class AttributeSet:
         self._v_unimplemented.append(attrname)
         return None
 
-    # Get the native type (so that it is HDF5 who is the responsible to deal
-    # with non-native byteorders on-disk)
-    native_type_id = get_native_type(type_id)
-
     # Get the container for data
     ndvalue = numpy.empty(dtype=dtype_, shape=shape)
     # Get the pointer to the buffer data area
     rbuf = ndvalue.data
     # Actually read the attribute from disk
-    ret = H5ATTRget_attribute(dset_id, cattrname, native_type_id, rbuf)
+    ret = H5ATTRget_attribute(dset_id, cattrname, type_id, rbuf)
     if ret < 0:
       raise HDF5ExtError("Attribute %s exists in node %s, but can't get it." %
                          (attrname, self.name))
-    H5Tclose(native_type_id)
     H5Tclose(type_id)
 
     if rank > 0:    # multidimensional case

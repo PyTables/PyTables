@@ -106,7 +106,7 @@ class Col(six.with_metaclass(type, atom.Atom)):
         return cname[:cname.rfind('Col')]
 
     @classmethod
-    def from_atom(class_, atom, pos=None):
+    def from_atom(class_, atom, pos=None, _offset=None):
         """Create a Col definition from a PyTables atom.
 
         An optional position may be specified as the pos argument.
@@ -116,7 +116,7 @@ class Col(six.with_metaclass(type, atom.Atom)):
         prefix = atom.prefix()
         kwargs = atom._get_init_args()
         colclass = class_._class_from_prefix[prefix]
-        return colclass(pos=pos, **kwargs)
+        return colclass(pos=pos, _offset=_offset, **kwargs)
 
     @classmethod
     def from_sctype(class_, sctype, shape=(), dflt=None, pos=None):
@@ -133,7 +133,7 @@ class Col(six.with_metaclass(type, atom.Atom)):
         return class_.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_dtype(class_, dtype, dflt=None, pos=None):
+    def from_dtype(class_, dtype, dflt=None, pos=None, _offset=None):
         """Create a `Col` definition from a NumPy `dtype`.
 
         Optional default value and position may be specified as the
@@ -145,7 +145,7 @@ class Col(six.with_metaclass(type, atom.Atom)):
         """
 
         newatom = atom.Atom.from_dtype(dtype, dflt)
-        return class_.from_atom(newatom, pos=pos)
+        return class_.from_atom(newatom, pos=pos, _offset=_offset)
 
     @classmethod
     def from_type(class_, type, shape=(), dflt=None, pos=None):
@@ -195,6 +195,7 @@ class Col(six.with_metaclass(type, atom.Atom)):
 
             def __init__(self, *args, **kwargs):
                 pos = kwargs.pop('pos', None)
+                offset = kwargs.pop('_offset', None)
                 class_from_prefix = self._class_from_prefix
                 atombase.__init__(self, *args, **kwargs)
                 # The constructor of an abstract atom may have changed
@@ -204,6 +205,7 @@ class Col(six.with_metaclass(type, atom.Atom)):
                     colclass = class_from_prefix[self.prefix()]
                     self.__class__ = colclass
                 self._v_pos = pos
+                self._v_offset = offset
 
             __eq__ = same_position(atombase.__eq__)
             _is_equal_to_atom = same_position(atombase._is_equal_to_atom)
@@ -341,7 +343,7 @@ class Description(object):
         Description - see :ref:`DescriptionClassDescr` instances).
 
         .. versionchanged:: 3.0
-           The *_v_colObjects* attobute has been renamed into
+           The *_v_colObjects* attribute has been renamed into
            *_v_colobjects*.
 
     .. attribute:: _v_dflts
@@ -434,10 +436,24 @@ class Description(object):
         from the associated table or nested column to their respective PyTables
         types.
 
+    .. attribute:: _v_offsets
+
+        A list of offsets for all the columns.  If the list is empty, means that
+        there are no padding in the data structure.  However, the support for
+        offsets is currently limited to flat tables; for nested tables, the
+        potential padding is always removed (exactly the same as in pre-3.5
+        versions), and this variable is set to empty.
+
+        .. versionadded:: 3.5
+           Previous to this version all the compound types were converted
+           internally to 'packed' types, i.e. with no padding between the
+           component types.  Starting with 3.5, the holes in native HDF5
+           types (non-nested) are honored and replicated during dataset
+           and attribute copies.
     """
 
 
-    def __init__(self, classdict, nestedlvl=-1, validate=True):
+    def __init__(self, classdict, nestedlvl=-1, validate=True, ptparams=None):
 
         if not classdict:
             raise ValueError("cannot create an empty data type")
@@ -460,6 +476,8 @@ class Description(object):
 
         cols_with_pos = []  # colum (position, name) pairs
         cols_no_pos = []  # just column names
+        cols_offsets = []  # the offsets of the columns
+        valid_offsets = False  # by default there a no valid offsets
 
         # Check for special variables and convert column descriptions
         for (name, descr) in six.iteritems(classdict):
@@ -493,7 +511,7 @@ class Description(object):
             # provided by the user will remain unchanged even if we
             # tamper with the values of ``_v_pos`` here.
             if columns is not None:
-                descr = Description(copy.copy(columns), self._v_nestedlvl)
+                descr = Description(copy.copy(columns), self._v_nestedlvl, ptparams=ptparams)
             classdict[name] = descr
 
             pos = getattr(descr, '_v_pos', None)
@@ -501,17 +519,21 @@ class Description(object):
                 cols_no_pos.append(name)
             else:
                 cols_with_pos.append((pos, name))
+            offset = getattr(descr, '_v_offset', None)
+            if offset is not None:
+                cols_offsets.append(offset)
 
         # Sort field names:
         #
         # 1. Fields with explicit positions, according to their
         #    positions (and their names if coincident).
-        # 2. Fields with no position, in alfabetical order.
+        # 2. Fields with no position, in alphabetical order.
         cols_with_pos.sort()
         cols_no_pos.sort()
         keys = [name for (pos, name) in cols_with_pos] + cols_no_pos
 
         pos = 0
+        nested = False
         # Get properties for compound types
         for k in keys:
             if validate:
@@ -556,12 +578,36 @@ class Description(object):
             else:  # A description
                 nestedFormats.append(object._v_nested_formats)
                 nestedDType.append((kk, object._v_dtype))
+                nested = True
+
+        # Useful for debugging purposes
+        # import traceback
+        # if ptparams is None:
+        #     print("*** print_stack:")
+        #     traceback.print_stack()
+
+        # Check whether we are gonna use padding or not.  Two possibilities:
+        #   1) Make padding True by default (except if ALLOW_PADDING is set to False)
+        #   2) Make padding False by default (except if ALLOW_PADDING is set to True)
+        # Currently we choose 1) because it favours honoring padding even on unhandled situations (should be very few).
+        # However, for development, option 2) is recommended as it catches most of the unhandled situations.
+        allow_padding = False if ptparams is not None and not ptparams['ALLOW_PADDING'] else True
+        # allow_padding = True if ptparams is not None and ptparams['ALLOW_PADDING'] else False
+        if (allow_padding and
+                len(cols_offsets) > 1 and
+                len(keys) == len(cols_with_pos) and
+                len(keys) == len(cols_offsets) and
+                not nested):  # TODO: support offsets with nested types
+            # We have to sort the offsets too, as they must follow the column order.
+            # As the offsets and the pos should be place in the same order, a single sort is enough here.
+            cols_offsets.sort()
+            valid_offsets = True
+        else:
+            newdict['_v_offsets'] = []
 
         # Assign the format list to _v_nested_formats
         newdict['_v_nested_formats'] = nestedFormats
-        newdict['_v_dtype'] = numpy.dtype(nestedDType)
-        # _v_itemsize is derived from the _v_dtype that already computes this
-        newdict['_v_itemsize'] = newdict['_v_dtype'].itemsize
+
         if self._v_nestedlvl == 0:
             # Get recursively nested _v_nested_names and _v_nested_descr attrs
             self._g_set_nested_names_descr()
@@ -572,6 +618,18 @@ class Description(object):
                 raise ValueError(
                     "Using a ``_v_byteorder`` in the description is obsolete. "
                     "Use the byteorder parameter in the constructor instead.")
+
+        # Compute the dtype with offsets or without
+        # print("offsets ->", cols_offsets, nestedDType, nested, valid_offsets)
+        if valid_offsets:
+            # TODO: support offsets with nested types
+            dtype = numpy.dtype({'names': newdict['_v_names'], 'formats': nestedFormats, 'offsets': cols_offsets})
+        else:
+            dtype = numpy.dtype(nestedDType)
+        newdict['_v_dtype'] = dtype
+        newdict['_v_itemsize'] = dtype.itemsize
+        newdict['_v_offsets'] = [dtype.fields[name][1] for name in dtype.names]
+
 
     def _g_set_nested_names_descr(self):
         """Computes the nested names and descriptions for nested datatypes."""
@@ -778,13 +836,13 @@ class IsDescription(six.with_metaclass(MetaIsDescription, object)):
     """
 
 
-def descr_from_dtype(dtype_):
+def descr_from_dtype(dtype_, ptparams=None):
     """Get a description instance and byteorder from a (nested) NumPy dtype."""
 
     fields = {}
     fbyteorder = '|'
     for name in dtype_.names:
-        dtype, pos = dtype_.fields[name][:2]
+        dtype, offset = dtype_.fields[name][:2]
         kind = dtype.base.kind
         byteorder = dtype.base.byteorder
         if byteorder in '><=':
@@ -795,24 +853,25 @@ def descr_from_dtype(dtype_):
             fbyteorder = byteorder
         # Non-nested column
         if kind in 'biufSUc':
-            col = Col.from_dtype(dtype, pos=pos)
+            col = Col.from_dtype(dtype, pos=offset, _offset=offset)
         # Nested column
         elif kind == 'V' and dtype.shape in [(), (1,)]:
             if dtype.shape != ():
                 warnings.warn(
                     "nested descriptions will be converted to scalar")
-            col, _ = descr_from_dtype(dtype.base)
-            col._v_pos = pos
+            col, _ = descr_from_dtype(dtype.base, ptparams=ptparams)
+            col._v_pos = offset
+            col._v_offset = offset
         else:
             raise NotImplementedError(
                 "structured arrays with columns with type description ``%s`` "
                 "are not supported yet, sorry" % dtype)
         fields[name] = col
 
-    return Description(fields), fbyteorder
+    return Description(fields, ptparams=ptparams), fbyteorder
 
 
-def dtype_from_descr(descr, byteorder=None):
+def dtype_from_descr(descr, byteorder=None, ptparams=None):
     """Get a (nested) NumPy dtype from a description instance and byteorder.
 
     The descr parameter can be a Description or IsDescription
@@ -821,12 +880,12 @@ def dtype_from_descr(descr, byteorder=None):
     """
 
     if isinstance(descr, dict):
-        descr = Description(descr)
+        descr = Description(descr, ptparams=ptparams)
     elif (type(descr) == type(IsDescription)
           and issubclass(descr, IsDescription)):
-        descr = Description(descr().columns)
+        descr = Description(descr().columns, ptparams=ptparams)
     elif isinstance(descr, IsDescription):
-        descr = Description(descr.columns)
+        descr = Description(descr.columns, ptparams=ptparams)
     elif not isinstance(descr, Description):
         raise ValueError('invalid description: %r' % descr)
 

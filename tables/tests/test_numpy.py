@@ -1222,11 +1222,11 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
 
 
 class TableNativeFlavorOpenTestCase(TableNativeFlavorTestCase):
-    close = 0
+    close = False
 
 
 class TableNativeFlavorCloseTestCase(TableNativeFlavorTestCase):
-    close = 1
+    close = True
 
 
 class AttributesTestCase(common.TempFileMixin, TestCase):

@@ -89,9 +89,9 @@ def recreate_indexes(table, dstfileh, dsttable):
 def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
               filters, copyuserattrs, overwritefile, overwrtnodes, stats,
               start, stop, step, chunkshape, sortby, check_CSI,
-              propindexes, upgradeflavors):
+              propindexes, upgradeflavors, allow_padding):
     # Open the source file
-    srcfileh = open_file(srcfile, 'r')
+    srcfileh = open_file(srcfile, 'r', allow_padding=allow_padding)
     # Get the source node (that should exist)
     srcnode = srcfileh.get_node(srcnode)
 
@@ -110,7 +110,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
         dstleaf = srcnode.name
     # Check whether the destination group exists or not
     if os.path.isfile(dstfile) and not overwritefile:
-        dstfileh = open_file(dstfile, 'a', pytables_sys_attrs=createsysattrs)
+        dstfileh = open_file(dstfile, 'a', pytables_sys_attrs=createsysattrs, allow_padding=allow_padding)
         try:
             dstgroup = dstfileh.get_node(dstgroup)
         except:
@@ -136,7 +136,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
     else:
         # The destination file does not exist or will be overwritten.
         dstfileh = open_file(dstfile, 'w', title=title, filters=filters,
-                             pytables_sys_attrs=createsysattrs)
+                             pytables_sys_attrs=createsysattrs, allow_padding=allow_padding)
         dstgroup = newdst_group(dstfileh, dstgroup, title="", filters=filters)
 
     # Finally, copy srcnode to dstnode
@@ -182,17 +182,17 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                   recursive, filters, copyuserattrs, overwritefile,
                   overwrtnodes, stats, start, stop, step,
                   chunkshape, sortby, check_CSI, propindexes,
-                  upgradeflavors, use_hardlinks=True):
+                  upgradeflavors, allow_padding, use_hardlinks=True):
     """Copy the children from source group to destination group"""
     # Open the source file with srcgroup as root_uep
-    srcfileh = open_file(srcfile, 'r', root_uep=srcgroup)
+    srcfileh = open_file(srcfile, 'r', root_uep=srcgroup, allow_padding=allow_padding)
     #  Assign the root to srcgroup
     srcgroup = srcfileh.root
 
     created_dstgroup = False
     # Check whether the destination group exists or not
     if os.path.isfile(dstfile) and not overwritefile:
-        dstfileh = open_file(dstfile, 'a', pytables_sys_attrs=createsysattrs)
+        dstfileh = open_file(dstfile, 'a', pytables_sys_attrs=createsysattrs, allow_padding=allow_padding)
         try:
             dstgroup = dstfileh.get_node(dstgroup)
         except NoSuchNodeError:
@@ -219,7 +219,7 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
     else:
         # The destination file does not exist or will be overwritten.
         dstfileh = open_file(dstfile, 'w', title=title, filters=filters,
-                             pytables_sys_attrs=createsysattrs)
+                             pytables_sys_attrs=createsysattrs, allow_padding=allow_padding)
         dstgroup = newdst_group(dstfileh, dstgroup, title="", filters=filters)
         created_dstgroup = True
 
@@ -384,12 +384,18 @@ def _get_parser():
     )
     parser.add_argument(
         '--checkCSI', action='store_true',
-        help='Force the check for a CSI index for the --sortby column',
+        help='force the check for a CSI index for the --sortby column',
     )
     parser.add_argument(
         '--propindexes', action='store_true',
         help='''propagate the indexes existing in original tables. The default
         is to not propagate them.  Only applies to table objects''',
+    )
+    parser.add_argument(
+        '--dont-allow-padding', action='store_true',
+        dest="dont_allow_padding",
+        help='''remove the possible padding in compound types in source files.
+        The default is to propagate it.  Only applies to table objects''',
     )
     parser.add_argument(
         'src', metavar='sourcefile:sourcegroup', help='source file/group',
@@ -510,8 +516,9 @@ def main():
                                                 dstfile, dstnode))
         print("+=+" * 20)
 
+    allow_padding = not args.dont_allow_padding
     # Check whether the specified source node is a group or a leaf
-    h5srcfile = open_file(srcfile, 'r')
+    h5srcfile = open_file(srcfile, 'r', allow_padding=allow_padding)
     srcnodeobject = h5srcfile.get_node(srcnode)
 
     # Close the file again
@@ -528,6 +535,7 @@ def main():
             sortby=args.sortby, check_CSI=args.checkCSI,
             propindexes=args.propindexes,
             upgradeflavors=args.upgradeflavors,
+            allow_padding=allow_padding,
             use_hardlinks=True)
     else:
         # If not a Group, it should be a Leaf
@@ -540,7 +548,9 @@ def main():
             chunkshape=args.chunkshape,
             sortby=args.sortby, check_CSI=args.checkCSI,
             propindexes=args.propindexes,
-            upgradeflavors=args.upgradeflavors)
+            upgradeflavors=args.upgradeflavors,
+            allow_padding=allow_padding,
+        )
 
     # Gather some statistics
     t2 = time.time()
