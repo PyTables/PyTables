@@ -34,7 +34,7 @@ etc. on entire chunks.
 HDF5 keeps a B-tree in memory that is used to map chunk structures on disk.
 The more chunks that are allocated for a dataset the larger the B-tree.
 Large B-trees take memory and cause file storage overhead as well as more
-disk I/O and higher contention forthe metadata cache.  Consequently, it's
+disk I/O and higher contention for the metadata cache.  Consequently, it's
 important to balance between memory and I/O overhead (small B-trees) and time
 to access data (big B-trees).
 
@@ -53,13 +53,11 @@ parameter.
 Informing PyTables about expected number of rows in tables or arrays
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PyTables can determine a sensible chunk size to your dataset size if you
-helps it by providing an estimation of the final number of rows for an
+help it by providing an estimation of the final number of rows for an
 extensible leaf [1]_.  You should provide this information at leaf creation
-time by passing this value to the expectedrows argument of the
+time by passing this value to the ``expectedrows`` argument of the
 :meth:`File.create_table` method or :meth:`File.create_earray` method (see
-:ref:`EArrayClassDescr`). For VLArray leaves, you must pass the expected size
-in MBytes by using the argument expectedsizein MB of
-:meth:`File.create_vlarray` (see :ref:`VLArrayClassDescr`) instead.
+:ref:`EArrayClassDescr`).
 
 When your leaf size is bigger than 10 MB (take this figure only as a
 reference, not strictly), by providing this guess you will be optimizing the
