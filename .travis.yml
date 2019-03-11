@@ -20,7 +20,6 @@ before_install:
 
 install:
   - pip install dist/*.tar.gz
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
 
 script:
   - cd .. && python -m tables.tests.test_all
