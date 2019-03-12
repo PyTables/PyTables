@@ -12,10 +12,6 @@
 .. image:: https://ci.appveyor.com/api/projects/status/github/PyTables/PyTables?branch=master&svg=true
    :target: https://ci.appveyor.com/project/PyTablesCI/pytables
 
-.. image:: https://codeclimate.com/github/PyTables/PyTables/badges/gpa.svg
-   :target: https://codeclimate.com/github/PyTables/PyTables
-   :alt: Code Climate
-
 :URL: http://www.pytables.org/
 
 
