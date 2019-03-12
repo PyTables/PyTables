@@ -1,14 +1,16 @@
 language: python
+sudo: false
 
 python:
   - 2.7
   - 3.5
   - 3.6
-  - 3.7
-    dist: xenial
-    sudo: true
-
-sudo: false
+# Enable 3.7 without globally enabling sudo and dist: xenial for other build jobs
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
 
 addons:
   apt_packages:
