@@ -6,10 +6,10 @@
    :alt: Join the chat at https://gitter.im/PyTables/PyTables
    :target: https://gitter.im/PyTables/PyTables
 
-.. image:: https://travis-ci.org/PyTables/PyTables.svg?branch=develop
+.. image:: https://travis-ci.org/PyTables/PyTables.svg?branch=master
    :target: https://travis-ci.org/PyTables/PyTables
 
-.. image:: https://ci.appveyor.com/api/projects/status/github/PyTables/PyTables?branch=develop&svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/github/PyTables/PyTables?branch=master&svg=true
    :target: https://ci.appveyor.com/project/PyTablesCI/pytables
 
 .. image:: https://codeclimate.com/github/PyTables/PyTables/badges/gpa.svg
