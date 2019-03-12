@@ -105,7 +105,6 @@ Installation
 
    On OSX you can install HDF5 using `Homebrew <http://brew.sh>`_::
 
-       $ brew tap homebrew/science
        $ brew install hdf5
 
    On ubuntu::
