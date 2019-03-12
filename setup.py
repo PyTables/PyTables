@@ -835,7 +835,7 @@ if __name__ == '__main__':
         # Compiling everything from sources
         # Blosc + BloscLZ sources
         blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
-                        if 'avx2' not in f and 'sse2' not in f]
+                          if 'avx2' not in f and 'sse2' not in f]
         # LZ4 sources
         blosc_sources += glob.glob('c-blosc/internal-complibs/lz4*/*.c')
         # Snappy sources
@@ -851,7 +851,7 @@ if __name__ == '__main__':
         inc_dirs += glob.glob('c-blosc/internal-complibs/zstd*')
         # ...and the macros for all the compressors supported
         def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1),
-                    ('HAVE_ZSTD', 1)]
+                       ('HAVE_ZSTD', 1)]
 
         # Add extra flags for optimizing shuffle in include Blosc
         def compiler_has_flags(compiler, flags):
@@ -880,7 +880,7 @@ if __name__ == '__main__':
                 # On UNIX, both gcc and clang understand -msse2
                 CFLAGS.append('-msse2')
             blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
-                            if 'sse2' in f]
+                              if 'sse2' in f]
         # AVX2
         if 'avx2' in cpu_flags:
             print('AVX2 detected')
@@ -892,8 +892,8 @@ if __name__ == '__main__':
             elif compiler_has_flags(compiler, ["-mavx2"]):
                 CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
                 CFLAGS.append('-mavx2')
-                blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
-                                if 'avx2' in f]
+            blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
+                              if 'avx2' in f]
     else:
         ADDLIBS += ['blosc']
 
