@@ -33,7 +33,7 @@ import distutils.spawn
 from setuptools.command.build_ext import build_ext
 
 if __name__ == '__main__':
-    # `cpuinfo.py` uses multiprocessing to check CPUID flags. On Windows, the 
+    # `cpuinfo.py` uses multiprocessing to check CPUID flags. On Windows, the
     # entire setup script needs to be protected as a result
     # For guessing the capabilities of the CPU for C-Blosc
     try:
@@ -886,7 +886,7 @@ if __name__ == '__main__':
             print('AVX2 detected')
             if os.name == 'nt':
                 if LooseVersion(platform.python_version()) >= LooseVersion('3.5.0'):
-                    # Neither MSVC2008 for Python 2.7 or MSVC2010 for Python 3.4 have 
+                    # Neither MSVC2008 for Python 2.7 or MSVC2010 for Python 3.4 have
                     # sufficient AVX2 support
                     def_macros += [('__AVX2__', 1)]
             elif compiler_has_flags(compiler, ["-mavx2"]):
