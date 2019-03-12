@@ -37,6 +37,16 @@ environment:
       PYTHON_ARCH: "64"
       HDF5_VERSION: "1.10"
 
+    - PYTHON: "C:\\Miniconda37-x64"
+      PYTHON_VERSION: "3.7"
+      PYTHON_ARCH: "64"
+      HDF5_VERSION: "1.8"
+
+    - PYTHON: "C:\\Miniconda37-x64"
+      PYTHON_VERSION: "3.7"
+      PYTHON_ARCH: "64"
+      HDF5_VERSION: "1.10"
+
 install:
   # this installs the appropriate Miniconda (Py2/Py3, 32/64 bit),
   # as well as pip, conda-build, and the binstar CLI
