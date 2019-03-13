@@ -7,6 +7,7 @@ import sys
 import tempfile
 from itertools import groupby
 import struct
+import platform
 
 import numpy as np
 from numpy import rec as records
@@ -28,9 +29,13 @@ from six.moves import range
 from six.moves import zip
 
 
-# To know whether the platform is 32 or 64 bit
+# To know whether the interpreter is 32 or 64 bit
 def is_python_64bit():
     return struct.calcsize("P") == 8
+
+# To know whether the os platform is 32 or 64 bit
+def is_os_64bit():
+    return platform.machine().endswith('64')
 
 
 # Test Record class
@@ -4881,7 +4886,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
         if self.aligned and self.open_kwargs['allow_padding'] == True:
-            if is_python_64bit():
+            if is_os_64bit():
                 self.assertEqual(table1.description._v_offsets, [0, 8, 16])
                 self.assertEqual(table1.description._v_itemsize, 24)
             else:
