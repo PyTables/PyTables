@@ -1015,34 +1015,33 @@ if __name__ == '__main__':
 
 
     classifiers = """\
-    Development Status :: 5 - Production/Stable
-    Intended Audience :: Developers
-    Intended Audience :: Information Technology
-    Intended Audience :: Science/Research
-    License :: OSI Approved :: BSD License
-    Programming Language :: Python
-    Programming Language :: Python :: 2
-    Programming Language :: Python :: 3
-    Topic :: Database
-    Topic :: Software Development :: Libraries :: Python Modules
-    Operating System :: Microsoft :: Windows
-    Operating System :: Unix
-    """
+Development Status :: 5 - Production/Stable
+Intended Audience :: Developers
+Intended Audience :: Information Technology
+Intended Audience :: Science/Research
+License :: OSI Approved :: BSD License
+Programming Language :: Python
+Programming Language :: Python :: 2
+Programming Language :: Python :: 3
+Topic :: Database
+Topic :: Software Development :: Libraries :: Python Modules
+Operating System :: Microsoft :: Windows
+Operating System :: Unix
+"""
 
     setup(
         name=name,
         version=VERSION,
         description='Hierarchical datasets for Python',
         long_description="""\
-    PyTables is a package for managing hierarchical datasets and
-    designed to efficently cope with extremely large amounts of
-    data. PyTables is built on top of the HDF5 library and the
-    NumPy package and features an object-oriented interface
-    that, combined with C-code generated from Cython sources,
-    makes of it a fast, yet extremely easy to use tool for
-    interactively save and retrieve large amounts of data.
-
-    """,
+PyTables is a package for managing hierarchical datasets and
+designed to efficently cope with extremely large amounts of
+data. PyTables is built on top of the HDF5 library and the
+NumPy package and features an object-oriented interface
+that, combined with C-code generated from Cython sources,
+makes of it a fast, yet extremely easy to use tool for
+interactively save and retrieve large amounts of data.
+""",
         classifiers=[c for c in classifiers.split("\n") if c],
         author=('Francesc Alted, Ivan Vilata,'
                 'Antonio Valentino, Anthony Scopatz et al.'),
