@@ -4889,9 +4889,6 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             if is_python_64bit():
                 self.assertEqual(table1.description._v_offsets, [0, 8, 16])
                 self.assertEqual(table1.description._v_itemsize, 24)
-            else:
-                self.assertEqual(table1.description._v_offsets, [0, 8, 12])
-                self.assertEqual(table1.description._v_itemsize, 20)
         else:
             self.assertEqual(table1.description._v_offsets, [0, 8, 11])
             self.assertEqual(table1.description._v_itemsize, 19)
