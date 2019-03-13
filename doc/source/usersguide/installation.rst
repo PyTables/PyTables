@@ -51,8 +51,8 @@ First, make sure that you have
 
 * Python_ >= 2.7 including Python 3.x
 * HDF5_ >= 1.8.4 (>=1.8.15 is strongly recommended)
-* NumPy_ >= 1.8.1
-* Numexpr_ >= 2.5.2
+* NumPy_ >= 1.9.3
+* Numexpr_ >= 2.6.2
 * Cython_ >= 0.21
 * c-blosc_ >= 1.4.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment

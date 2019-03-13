@@ -17,8 +17,8 @@ from distutils.version import LooseVersion
 #**********************************************************************
 
 # Minimum recommended versions for mandatory packages
-min_numpy_version = LooseVersion('1.8.0')
-min_numexpr_version = LooseVersion('2.5.2')
+min_numpy_version = LooseVersion('1.9.3')
+min_numexpr_version = LooseVersion('2.6.2')
 min_hdf5_version = LooseVersion('1.8.4')
 min_blosc_version = LooseVersion("1.4.1")
 min_blosc_bitshuffle_version = LooseVersion("1.8.0")
