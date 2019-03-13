@@ -234,6 +234,16 @@ you can proceed with the PyTables package itself.
 
       $ python setup.py build --hdf5=$HOME/hdf5-1.8.15pre7
 
+   .. note::
+
+       AVX2 support is detected automatically for your machine and, if found,
+       it is enabled by default.  In some situations you may want to disable
+       AVX2 explicitly (maybe your binaries have to be exported and run on
+       machines that do not have AVX2 support).  In that case, define the
+       DISABLE_AVX2 environment variable::
+
+          $ DISABLE_AVX2=True python setup.py build  # for bash and its variants
+
 #. To run the test suite, execute any of these commands.
 
    **Unix**
