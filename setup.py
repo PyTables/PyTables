@@ -889,11 +889,13 @@ if __name__ == '__main__':
                     # Neither MSVC2008 for Python 2.7 or MSVC2010 for Python 3.4 have
                     # sufficient AVX2 support
                     def_macros += [('__AVX2__', 1)]
+                    blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
+                                      if 'avx2' in f]
             elif compiler_has_flags(compiler, ["-mavx2"]):
                 CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
                 CFLAGS.append('-mavx2')
-            blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
-                              if 'avx2' in f]
+                blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
+                                  if 'avx2' in f]
     else:
         ADDLIBS += ['blosc']
 
