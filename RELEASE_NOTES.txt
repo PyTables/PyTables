@@ -8,6 +8,12 @@
 .. py:currentmodule:: tables
 
 
+Changes from 3.5.0 to 3.5.1
+===========================
+
+- Maintenance release to fix how PyPi repo is handling wheel versions.
+
+
 Changes from 3.4.4 to 3.5.0
 ===========================
 
