@@ -3,4 +3,3 @@
 numpy>=1.9.3
 numexpr>=2.6.2
 six>=1.9.0
-mock>=2.0

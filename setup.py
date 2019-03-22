@@ -1060,6 +1060,7 @@ interactively save and retrieve large amounts of data.
                 'sphinx_rtd_theme',
                 'numpydoc',
                 'ipython']},
+        tests_require = ['mock>=2.0'],
         **setuptools_kwargs
     )
 
