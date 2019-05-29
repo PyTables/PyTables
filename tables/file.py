@@ -2849,7 +2849,7 @@ class File(hdf5extension.File, object):
 
         # Update alive and dead descendents.
         for cache in [self._node_manager.cache, self._node_manager.registry]:
-            for nodepath in cache:
+            for nodepath in list(cache):
                 if nodepath.startswith(oldprefix) and nodepath != oldprefix:
                     nodesuffix = nodepath[oldprefix_len:]
                     newnodepath = join_path(newpath, nodesuffix)
