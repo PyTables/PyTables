@@ -593,7 +593,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             idx = numpy.empty(len(arr), "uint%d" % (indsize * 8))
             lbucket = self.lbucket
             # Fill the idx with the bucket indices
-            offset = lbucket - ((nrow * (slicesize % lbucket)) % lbucket)
+            offset = int(lbucket - ((nrow * (slicesize % lbucket)) % lbucket))
             idx[0:offset] = 0
             for i in range(offset, slicesize, lbucket):
                 idx[i:i + lbucket] = (i + lbucket - 1) // lbucket
@@ -1226,7 +1226,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
                 ul = self.nelementsILR // cs
                 bounds = numpy.concatenate((bounds, self.bebounds[:ul]))
             sbounds_idx = bounds.argsort(kind=defsort)
-            offset = nblock * nsb
+            offset = int(nblock * nsb)
             # Swap sorted and indices following the new order
             self.get_neworder(sbounds_idx, sorted, tmp_sorted, sortedLR,
                               nslices, offset, self.dtype)
