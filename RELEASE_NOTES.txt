@@ -8,6 +8,13 @@
 .. py:currentmodule:: tables
 
 
+Changes from 3.5.2 to 3.5.3
+===========================
+
+ # Put here the notes for 3.5.3 ...
+
+
+
 Changes from 3.5.1 to 3.5.2
 ===========================
 
