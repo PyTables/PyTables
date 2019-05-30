@@ -32,7 +32,7 @@ involved with this project, please contact us via `github`_ or the
 
 Since August 2015, PyTables is a `NumFOCUS project`_, which means that
 your donations are fiscally sponsored under the NumFOCUS umbrella.  Please
-consider donating to NumFOCUS.
+consider `donating to NumFOCUS`_.
 
 
 --------
@@ -65,3 +65,4 @@ Helpful Links
 .. _github: https://github.com/PyTables/PyTables
 .. _`mailing list`: https://groups.google.com/group/pytables-users
 .. _`NumFOCUS project`: http://www.numfocus.org/open-source-projects.html
+.. _`donating to NumFOCUS`: https://numfocus.salsalabs.org/donate-to-pytables/index.html
