@@ -265,14 +265,14 @@ def testMethod(file, usearray, testwrite, testread, complib, complevel,
         print("Compression library:", complib)
     if testwrite:
         t1 = time.time()
-        cpu1 = time.clock()
+        cpu1 = time.perf_counter()
         if usearray:
             (rowsw, rowsz) = createFileArr(file, ngroups, ntables, nrows)
         else:
             (rowsw, rowsz) = createFile(file, ngroups, ntables, nrows,
                                         complevel, complib, recsize)
         t2 = time.time()
-        cpu2 = time.clock()
+        cpu2 = time.perf_counter()
         tapprows = round(t2 - t1, 3)
         cpuapprows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpuapprows / tapprows, 2) * 100)
@@ -284,14 +284,14 @@ def testMethod(file, usearray, testwrite, testread, complib, complevel,
 
     if testread:
         t1 = time.time()
-        cpu1 = time.clock()
+        cpu1 = time.perf_counter()
         if usearray:
             (rowsr, rowsz, bufsz) = readFileArr(file,
                                                 ngroups, recsize, verbose)
         else:
             (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
         t2 = time.time()
-        cpu2 = time.clock()
+        cpu2 = time.perf_counter()
         treadrows = round(t2 - t1, 3)
         cpureadrows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpureadrows / treadrows, 2) * 100)

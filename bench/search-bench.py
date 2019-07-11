@@ -92,7 +92,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
                                None, nrows)
 
     t1 = time.time()
-    cpu1 = time.clock()
+    cpu1 = time.perf_counter()
     nrowsbuf = table.nrowsinbuf
     minimum = 0
     maximum = nrows
@@ -115,7 +115,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     table.flush()
     rowswritten += nrows
     time1 = time.time() - t1
-    tcpu1 = time.clock() - cpu1
+    tcpu1 = time.perf_counter() - cpu1
     print("Time for filling:", round(time1, 3),
           "Krows/s:", round(nrows / 1000. / time1, 3), end=' ')
     fileh.close()
@@ -127,14 +127,14 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     rowsize = table.rowsize
     if index:
         t1 = time.time()
-        cpu1 = time.clock()
+        cpu1 = time.perf_counter()
         # Index all entries
         if not heavy:
             indexrows = table.cols.var1.create_index(filters=filters)
         for colname in ['var2', 'var3']:
             table.colinstances[colname].create_index(filters=filters)
         time2 = time.time() - t1
-        tcpu2 = time.clock() - cpu1
+        tcpu2 = time.perf_counter() - cpu1
         print("Time for indexing:", round(time2, 3),
               "iKrows/s:", round(indexrows / 1000. / time2, 3), end=' ')
     else:
@@ -250,7 +250,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
         # The interval for look values at. This is aproximately equivalent to
         # the number of elements to select
         rnd = numpy.random.randint(table.nrows)
-        cpu1 = time.clock()
+        cpu1 = time.perf_counter()
         t1 = time.time()
         if atom == "string":
             val = str(rnd)[-4:]
@@ -284,17 +284,17 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
         if i == 0:
             # First iteration
             time1 = time.time() - t1
-            tcpu1 = time.clock() - cpu1
+            tcpu1 = time.perf_counter() - cpu1
         else:
             if indexmode == "indexed":
                 # if indexed, wait until the 5th iteration (in order to
                 # insure that the index is effectively cached) to take times
                 if i >= 5:
                     time2 += time.time() - t1
-                    tcpu2 += time.clock() - cpu1
+                    tcpu2 += time.perf_counter() - cpu1
             else:
                 time2 += time.time() - t1
-                tcpu2 += time.clock() - cpu1
+                tcpu2 += time.perf_counter() - cpu1
 
     if riter > 1:
         if indexmode == "indexed" and riter >= 5:

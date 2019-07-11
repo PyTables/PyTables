@@ -123,7 +123,7 @@ CREATE INDEX ivar3 ON small(var3);
         # Insert rows
         SQL = "insert into small values(NULL, %s)" % place_holders
         time1 = time.time()
-        cpu1 = time.clock()
+        cpu1 = time.perf_counter()
         # This way of filling is to copy the PyTables benchmark
         nrowsbuf = 1000
         minimum = 0
@@ -149,7 +149,7 @@ CREATE INDEX ivar3 ON small(var3);
                 cursor.execute(SQL, fields)
             conn.commit()
         t1 = round(time.time() - time1, 5)
-        tcpu1 = round(time.clock() - cpu1, 5)
+        tcpu1 = round(time.perf_counter() - cpu1, 5)
         rowsecf = nrows / t1
         size1 = os.stat(dbfile)[6]
         print("******** Results for writing nrows = %s" % (nrows), "*********")
@@ -160,7 +160,7 @@ CREATE INDEX ivar3 ON small(var3);
     # Indexem
     if indexmode == "indexed":
         time1 = time.time()
-        cpu1 = time.clock()
+        cpu1 = time.perf_counter()
         if not heavy:
             cursor.execute("CREATE INDEX ivar1 ON small(var1)")
             conn.commit()
@@ -169,7 +169,7 @@ CREATE INDEX ivar3 ON small(var3);
         cursor.execute("CREATE INDEX ivar3 ON small(var3)")
         conn.commit()
         t2 = round(time.time() - time1, 5)
-        tcpu2 = round(time.clock() - cpu1, 5)
+        tcpu2 = round(time.perf_counter() - cpu1, 5)
         rowseci = nrows / t2
         print(("Index time:", t2, ", IKRows/s:",
               round((nrows / 10. ** 3) / t2, 3),))
@@ -284,7 +284,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         for i in range(riter):
             rnd = random.randrange(nrows)
             time1 = time.time()
-            cpu1 = time.clock()
+            cpu1 = time.perf_counter()
             if atom == "string":
                 #cursor.execute(SQL1, "1111")
                 cursor.execute(SQL1, str(rnd)[-4:])
@@ -299,7 +299,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
                     "atom must take a value in ['string','int','float']")
             if i == 0:
                 t1 = time.time() - time1
-                tcpu1 = time.clock() - cpu1
+                tcpu1 = time.perf_counter() - cpu1
             else:
                 if indexmode == "indexed":
                     # if indexed, wait until the 5th iteration to take
@@ -307,10 +307,10 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
                     # effectively cached)
                     if i >= 5:
                         time2 += time.time() - time1
-                        cpu2 += time.clock() - cpu1
+                        cpu2 += time.perf_counter() - cpu1
                 else:
                     time2 += time.time() - time1
-                    time2 += time.clock() - cpu1
+                    time2 += time.perf_counter() - cpu1
         if riter > 1:
             if indexmode == "indexed" and riter >= 5:
                 correction = 5

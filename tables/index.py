@@ -23,7 +23,7 @@ import sys
 import tempfile
 import warnings
 
-from time import time, clock
+from time import time, perf_counter
 
 import numpy
 
@@ -847,7 +847,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
         if self.verbose:
             t1 = time()
-            c1 = clock()
+            c1 = perf_counter()
         ss = self.slicesize
         tmp = self.tmp
         ranges = tmp.ranges[:]
@@ -953,7 +953,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         self.compute_overlaps(self.tmp, "do_complete_sort()", self.verbose)
         if self.verbose:
             t = round(time() - t1, 4)
-            c = round(clock() - c1, 4)
+            c = round(perf_counter() - c1, 4)
             print("time: %s. clock: %s" % (t, c))
 
     def swap(self, what, mode=None):
@@ -968,7 +968,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
         if self.verbose:
             t1 = time()
-            c1 = clock()
+            c1 = perf_counter()
         if what == "chunks":
             self.swap_chunks(mode)
         elif what == "slices":
@@ -982,7 +982,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         rmult = len(mult.nonzero()[0]) / float(len(mult))
         if self.verbose:
             t = round(time() - t1, 4)
-            c = round(clock() - c1, 4)
+            c = round(perf_counter() - c1, 4)
             print("time: %s. clock: %s" % (t, c))
         # Check that entropy is actually decreasing
         if what == "chunks" and self.last_tover > 0. and self.last_nover > 0:
