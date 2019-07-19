@@ -263,7 +263,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
 
         # Get the node again, as this can trigger errors in some situations
         anarray1 = self.h5file.root.anarray1
-        self.assertTrue(anarray1 is not None)
+        self.assertIsNotNone(anarray1)
 
         self.assertEqual(title, "Array title 1")
 
@@ -561,7 +561,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
 
         # Load intermediate groups and keep a nested one alive.
         g = self.h5file.root.agroup.agroup3.agroup4
-        self.assertTrue(g is not None)
+        self.assertIsNotNone(g)
         self.h5file.rename_node('/', name='agroup', newname='agroup_')
 
         # see ticket #126
@@ -898,11 +898,11 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
 
         self.assertTrue(new_node is dstNode)
         dstChild1 = dstNode.anarray1
-        self.assertTrue(dstChild1 is not None)
+        self.assertIsNotNone(dstChild1)
         dstChild2 = dstNode.anarray2
-        self.assertTrue(dstChild2 is not None)
+        self.assertIsNotNone(dstChild2)
         dstChild3 = dstNode.agroup3
-        self.assertTrue(dstChild3 is not None)
+        self.assertIsNotNone(dstChild3)
 
     def test13e_copyRootRecursive(self):
         """Recursively copying the root group into the root of another file."""
@@ -955,7 +955,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
 
         self._reopen(mode="r+", node_cache_slots=self.node_cache_slots)
         agroup2 = self.h5file.root
-        self.assertTrue(agroup2 is not None)
+        self.assertIsNotNone(agroup2)
 
         # h5file.root => h5file.root
         self.assertRaises(IOError, self.h5file.copy_node,
@@ -1274,7 +1274,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print()
             print("\nPyTables format version number ==> %s" % version)
-        self.assertTrue(version is None)
+        self.assertIsNone(version)
 
     def test04_openGenericHDF5File(self):
         """Checking opening of a generic HDF5 file."""
@@ -2265,7 +2265,7 @@ except tables.HDF5ExtError as e:
         with self.assertRaises(tables.HDF5ExtError) as cm:
             self._raise_exterror()
 
-        self.assertFalse(cm.exception.h5backtrace is None)
+        self.assertIsNotNone(cm.exception.h5backtrace)
 
     def test_h5_backtrace_verbose(self):
         tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
@@ -2273,7 +2273,7 @@ except tables.HDF5ExtError as e:
         with self.assertRaises(tables.HDF5ExtError) as cm:
             self._raise_exterror()
 
-        self.assertFalse(cm.exception.h5backtrace is None)
+        self.assertIsNotNone(cm.exception.h5backtrace)
         msg = str(cm.exception)
         self.assertTrue(cm.exception.h5backtrace[-1][-1] in msg)
 
@@ -2283,7 +2283,7 @@ except tables.HDF5ExtError as e:
         with self.assertRaises(tables.HDF5ExtError) as cm:
             self._raise_exterror()
 
-        self.assertTrue(cm.exception.h5backtrace is None)
+        self.assertIsNone(cm.exception.h5backtrace)
 
 
 class TestDescription(TestCase):

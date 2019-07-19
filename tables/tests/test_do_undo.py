@@ -900,7 +900,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.create_array('/', 'newarray1', [1])
 
         mid = self.h5file.mark()
-        self.assertTrue(mid is not None)
+        self.assertIsNotNone(mid)
         self._do_reopen()
         self.h5file.undo()
 
@@ -1540,10 +1540,10 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
         # Check that table2 does not exist in the object tree
         self.assertTrue("/table" in self.h5file)
         table = self.h5file.root.table
-        self.assertTrue(table.cols.var1.index is not None)
-        self.assertTrue(table.cols.var2.index is not None)
-        self.assertTrue(table.cols.var3.index is not None)
-        self.assertTrue(table.cols.var4.index is None)
+        self.assertIsNotNone(table.cols.var1.index)
+        self.assertIsNotNone(table.cols.var2.index)
+        self.assertIsNotNone(table.cols.var3.index)
+        self.assertIsNone(table.cols.var4.index)
         self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
@@ -1558,13 +1558,13 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/table2" in self.h5file)
         self.assertEqual(self.h5file.root.table2.title, "Indexed")
         table = self.h5file.root.table2
-        self.assertTrue(table.cols.var1.index is not None)
-        self.assertTrue(table.cols.var2.index is not None)
-        self.assertTrue(table.cols.var3.index is not None)
+        self.assertIsNotNone(table.cols.var1.index)
+        self.assertIsNotNone(table.cols.var2.index)
+        self.assertIsNotNone(table.cols.var3.index)
         self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
-        self.assertTrue(table.cols.var4.index is None)
+        self.assertIsNone(table.cols.var4.index)
 
 
 class MoveNodeTestCase(common.TempFileMixin, TestCase):
@@ -1759,10 +1759,10 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/table" in self.h5file)
         self.assertTrue("/agroup2/table2" not in self.h5file)
         table = self.h5file.root.table
-        self.assertTrue(table.cols.var1.index is not None)
-        self.assertTrue(table.cols.var2.index is not None)
-        self.assertTrue(table.cols.var3.index is not None)
-        self.assertTrue(table.cols.var4.index is None)
+        self.assertIsNotNone(table.cols.var1.index)
+        self.assertIsNotNone(table.cols.var2.index)
+        self.assertIsNotNone(table.cols.var3.index)
+        self.assertIsNone(table.cols.var4.index)
         self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
@@ -1776,13 +1776,13 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/agroup2/table2" in self.h5file)
         self.assertEqual(self.h5file.root.agroup2.table2.title, "Indexed")
         table = self.h5file.root.agroup2.table2
-        self.assertTrue(table.cols.var1.index is not None)
-        self.assertTrue(table.cols.var2.index is not None)
-        self.assertTrue(table.cols.var3.index is not None)
+        self.assertIsNotNone(table.cols.var1.index)
+        self.assertIsNotNone(table.cols.var2.index)
+        self.assertIsNotNone(table.cols.var3.index)
         self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
-        self.assertTrue(table.cols.var4.index is None)
+        self.assertIsNone(table.cols.var4.index)
 
 
 class RemoveNodeTestCase(common.TempFileMixin, TestCase):
@@ -1892,10 +1892,10 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
         # Check that table2 does not exist in the object tree
         self.assertTrue("/table" in self.h5file)
         table = self.h5file.root.table
-        self.assertTrue(table.cols.var1.index is not None)
-        self.assertTrue(table.cols.var2.index is not None)
-        self.assertTrue(table.cols.var3.index is not None)
-        self.assertTrue(table.cols.var4.index is None)
+        self.assertIsNotNone(table.cols.var1.index)
+        self.assertIsNotNone(table.cols.var2.index)
+        self.assertIsNotNone(table.cols.var3.index)
+        self.assertIsNone(table.cols.var4.index)
         self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
@@ -2055,21 +2055,21 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         table = self.h5file.root.agroup.agroup3.table
         self.assertEqual(table.title, "Indexed")
-        self.assertTrue(table.cols.var1.index is not None)
-        self.assertTrue(table.cols.var2.index is not None)
-        self.assertTrue(table.cols.var3.index is not None)
+        self.assertIsNotNone(table.cols.var1.index)
+        self.assertIsNotNone(table.cols.var2.index)
+        self.assertIsNotNone(table.cols.var3.index)
         self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
-        self.assertTrue(table.cols.var4.index is None)
+        self.assertIsNone(table.cols.var4.index)
 
         # Now undo the past operation
         self.h5file.undo()
         table = self.h5file.root.table
-        self.assertTrue(table.cols.var1.index is not None)
-        self.assertTrue(table.cols.var2.index is not None)
-        self.assertTrue(table.cols.var3.index is not None)
-        self.assertTrue(table.cols.var4.index is None)
+        self.assertIsNotNone(table.cols.var1.index)
+        self.assertIsNotNone(table.cols.var2.index)
+        self.assertIsNotNone(table.cols.var3.index)
+        self.assertIsNone(table.cols.var4.index)
         self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
@@ -2085,13 +2085,13 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.assertTrue("/agroup/agroup3/table" in self.h5file)
         table = self.h5file.root.agroup.agroup3.table
         self.assertEqual(table.title, "Indexed")
-        self.assertTrue(table.cols.var1.index is not None)
-        self.assertTrue(table.cols.var2.index is not None)
-        self.assertTrue(table.cols.var3.index is not None)
+        self.assertIsNotNone(table.cols.var1.index)
+        self.assertIsNotNone(table.cols.var2.index)
+        self.assertIsNotNone(table.cols.var3.index)
         self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
-        self.assertTrue(table.cols.var4.index is None)
+        self.assertIsNone(table.cols.var4.index)
 
     def test01_copyGroup(self):
         """Copying a group (recursively)."""

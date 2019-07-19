@@ -37,11 +37,11 @@ class HardLinkTestCase(common.TempFileMixin, TestCase):
         group1 = self.h5file.create_group('/', 'group1')
         arr2 = self.h5file.create_array(group1, 'arr2', [1, 2, 3])
         lgroup1 = self.h5file.create_hard_link('/', 'lgroup1', '/group1')
-        self.assertTrue(lgroup1 is not None)
+        self.assertIsNotNone(lgroup1)
         larr1 = self.h5file.create_hard_link(group1, 'larr1', '/arr1')
-        self.assertTrue(larr1 is not None)
+        self.assertIsNotNone(larr1)
         larr2 = self.h5file.create_hard_link('/', 'larr2', arr2)
-        self.assertTrue(larr2 is not None)
+        self.assertIsNotNone(larr2)
 
     def test00_create(self):
         """Creating hard links."""
@@ -116,11 +116,11 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         group1 = self.h5file.create_group('/', 'group1')
         arr2 = self.h5file.create_array(group1, 'arr2', [1, 2, 3])
         lgroup1 = self.h5file.create_soft_link('/', 'lgroup1', '/group1')
-        self.assertTrue(lgroup1 is not None)
+        self.assertIsNotNone(lgroup1)
         larr1 = self.h5file.create_soft_link(group1, 'larr1', '/arr1')
-        self.assertTrue(larr1 is not None)
+        self.assertIsNotNone(larr1)
         larr2 = self.h5file.create_soft_link('/', 'larr2', arr2)
-        self.assertTrue(larr2 is not None)
+        self.assertIsNotNone(larr2)
 
     def test00_create(self):
         """Creating soft links."""
@@ -400,19 +400,19 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
 
         # The external file
         extarr1 = self.exth5file.create_array('/', 'arr1', [1, 2])
-        self.assertTrue(extarr1 is not None)
+        self.assertIsNotNone(extarr1)
         extgroup1 = self.exth5file.create_group('/', 'group1')
         extarr2 = self.exth5file.create_array(extgroup1, 'arr2', [1, 2, 3])
 
         # Create external links
         lgroup1 = self.h5file.create_external_link(
             '/', 'lgroup1', '%s:/group1' % self.extfname)
-        self.assertTrue(lgroup1 is not None)
+        self.assertIsNotNone(lgroup1)
         larr1 = self.h5file.create_external_link(
             group1, 'larr1', '%s:/arr1' % self.extfname)
-        self.assertTrue(larr1 is not None)
+        self.assertIsNotNone(larr1)
         larr2 = self.h5file.create_external_link('/', 'larr2', extarr2)
-        self.assertTrue(larr2 is not None)
+        self.assertIsNotNone(larr2)
 
         # Re-open the external file in 'r'ead-only mode
         self.exth5file.close()
@@ -560,16 +560,16 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
         """Checking `umount()` method."""
 
         link = self.h5file.root.lgroup1
-        self.assertTrue(link.extfile is None)
+        self.assertIsNone(link.extfile)
 
         # Dereference a external node (and hence, 'mount' a file)
         enode = link()
-        self.assertTrue(enode is not None)
-        self.assertTrue(link.extfile is not None)
+        self.assertIsNotNone(enode)
+        self.assertIsNotNone(link.extfile)
 
         # Umount the link
         link.umount()
-        self.assertTrue(link.extfile is None)
+        self.assertIsNone(link.extfile)
 
     def test10_copy_link_to_file(self):
         """Checking copying a link to another file."""

@@ -586,7 +586,7 @@ class ExprError(common.TempFileMixin, TestCase):
         vars_ = {"a": a, "b": self.b, "c": self.c, }
         expr = tables.Expr(expr, vars_)
         r1 = expr.eval()
-        self.assertTrue(r1 is not None)
+        self.assertIsNotNone(r1)
         # But a nested column should not
         a = t.cols.col2
         vars_ = {"a": a, "b": self.b, "c": self.c, }
@@ -618,11 +618,11 @@ class BroadcastTestCase(common.TempFileMixin, TestCase):
         else:
             a1 = self.h5file.create_earray(
                 root, 'a1', atom=tables.Int32Col(), shape=a.shape)
-        self.assertTrue(a1 is not None)
+        self.assertIsNotNone(a1)
         b1 = self.h5file.create_array(root, 'b1', b)
-        self.assertTrue(b1 is not None)
+        self.assertIsNotNone(b1)
         c1 = self.h5file.create_array(root, 'c1', c)
-        self.assertTrue(c1 is not None)
+        self.assertIsNotNone(c1)
         # The expression
         expr = tables.Expr("2 * a1 + b1-c1")
         r1 = expr.eval()
@@ -694,11 +694,11 @@ class DiffLengthTestCase(common.TempFileMixin, TestCase):
                 shape[0] = minlen
         # Build arrays with the new shapes as inputs
         a = np.arange(np.prod(shapes[0]), dtype="i4").reshape(shapes[0])
-        self.assertTrue(a is not None)
+        self.assertIsNotNone(a)
         b = np.arange(np.prod(shapes[1]), dtype="i4").reshape(shapes[1])
-        self.assertTrue(b is not None)
+        self.assertIsNotNone(b)
         c = np.arange(np.prod(shapes[2]), dtype="i4").reshape(shapes[2])
-        self.assertTrue(c is not None)
+        self.assertIsNotNone(c)
         r2 = eval("2 * a + b-c")
         if common.verbose:
             print("Tested shapes:", self.shape1, self.shape2, self.shape3)
@@ -749,9 +749,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         b = np.array([False, True, False])
         root = self.h5file.root
         a1 = self.h5file.create_array(root, 'a1', a)
-        self.assertTrue(a1 is not None)
+        self.assertIsNotNone(a1)
         b1 = self.h5file.create_array(root, 'b1', b)
-        self.assertTrue(b1 is not None)
+        self.assertIsNotNone(b1)
         expr = tables.Expr("a | b")
         r1 = expr.eval()
         r2 = eval("a | b")
@@ -879,9 +879,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         b = np.array(['a', 'bdcd', 'ccdc'], 'S')
         root = self.h5file.root
         a1 = self.h5file.create_array(root, 'a1', a)
-        self.assertTrue(a1 is not None)
+        self.assertIsNotNone(a1)
         b1 = self.h5file.create_array(root, 'b1', b)
-        self.assertTrue(b1 is not None)
+        self.assertIsNotNone(b1)
         expr = tables.Expr("(a1 > b'a') | ( b1 > b'b')")
         r1 = expr.eval()
         r2 = eval("(a > b'a') | ( b > b'b')")
@@ -903,9 +903,9 @@ class FunctionsTestCase(common.TempFileMixin, TestCase):
         b = np.array([.3, .4, .5])
         root = self.h5file.root
         a1 = self.h5file.create_array(root, 'a1', a)
-        self.assertTrue(a1 is not None)
+        self.assertIsNotNone(a1)
         b1 = self.h5file.create_array(root, 'b1', b)
-        self.assertTrue(b1 is not None)
+        self.assertIsNotNone(b1)
         # The expression
         expr = tables.Expr("sin(a1) * sqrt(b1)")
         r1 = expr.eval()
@@ -1303,9 +1303,9 @@ class setOutputRangeTestCase(common.TempFileMixin, TestCase):
         r = a.copy()
         root = self.h5file.root
         a1 = self.h5file.create_array(root, 'a1', a)
-        self.assertTrue(a1 is not None)
+        self.assertIsNotNone(a1)
         b1 = self.h5file.create_array(root, 'b1', b)
-        self.assertTrue(b1 is not None)
+        self.assertIsNotNone(b1)
         r1 = self.h5file.create_array(root, 'r1', r)
         # The expression
         expr = tables.Expr("a1-b1-1")
@@ -1440,11 +1440,11 @@ class VeryLargeInputsTestCase(common.TempFileMixin, TestCase):
         a = self.h5file.create_carray(root, 'a',
                                       atom=tables.Float64Atom(dflt=3),
                                       shape=shape, filters=filters)
-        self.assertTrue(a is not None)
+        self.assertIsNotNone(a)
         b = self.h5file.create_carray(root, 'b',
                                       atom=tables.Float64Atom(dflt=2),
                                       shape=shape, filters=filters)
-        self.assertTrue(b is not None)
+        self.assertIsNotNone(b)
         r1 = self.h5file.create_carray(root, 'r1',
                                        atom=tables.Float64Atom(dflt=3),
                                        shape=shape, filters=filters)
@@ -1482,11 +1482,11 @@ class VeryLargeInputsTestCase(common.TempFileMixin, TestCase):
         a = self.h5file.create_carray(root, 'a',
                                       atom=tables.Int32Atom(dflt=1),
                                       shape=shape, filters=filters)
-        self.assertTrue(a is not None)
+        self.assertIsNotNone(a)
         b = self.h5file.create_carray(root, 'b',
                                       atom=tables.Int32Atom(dflt=2),
                                       shape=shape, filters=filters)
-        self.assertTrue(b is not None)
+        self.assertIsNotNone(b)
         r1 = self.h5file.create_carray(root, 'r1',
                                        atom=tables.Int32Atom(dflt=3),
                                        shape=shape, filters=filters)

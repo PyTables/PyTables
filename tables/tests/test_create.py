@@ -234,7 +234,7 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         # Now, create a table with this record object
         # This way of creating node objects has been deprecated
         table = Table(recordDict, "MetaRecord instance")
-        self.assertTrue(table is not None)
+        self.assertIsNotNone(table)
 
         # Attach the table to object tree
         # Here, ValueError should be raised!
@@ -2446,7 +2446,7 @@ class InMemoryCoreDriverTestCase(TestCase):
         # ensure that the __str__ method works even if there is no phisical
         # file on disk (in which case the os.stat operation for date retrieval
         # fails)
-        self.assertTrue(str(self.h5file) is not None)
+        self.assertIsNotNone(str(self.h5file))
 
         self.h5file.close()
         self.assertFalse(os.path.exists(self.h5fname))
