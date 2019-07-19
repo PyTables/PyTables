@@ -723,7 +723,7 @@ class ReadTestCase(common.TempFileMixin, TestCase):
             template % {'value': v, 'default': d}
             for v, d in itertools.product(enums, defaults)
         ]
-        self.assertTrue(tblrepr in values)
+        self.assertIn(tblrepr, values)
 
     def test00b_repr(self):
         """Checking representation of a root Column."""

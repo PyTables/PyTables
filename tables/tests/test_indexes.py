@@ -602,7 +602,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.remove_node("/table")
         if verbose:
             print("After deletion")
-        self.assertTrue("table" not in self.h5file.root)
+        self.assertNotIn("table", self.h5file.root)
 
         # re-create the table and the index again
         table = self.h5file.create_table("/", 'table', TDescr, "New table",
@@ -646,7 +646,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.remove_node("/table")
         if verbose:
             print("After deletion")
-        self.assertTrue("table" not in self.h5file.root)
+        self.assertNotIn("table", self.h5file.root)
 
         # close and reopen the file
         self._reopen(mode="r+")
@@ -2500,7 +2500,7 @@ class Issue156TestBase(common.TempFileMixin, TestCase):
             new_node.col(self.sort_field) ==
             sorted(oldNode.col(self.sort_field))))
         # check index is available
-        self.assertTrue(self.sort_field in new_node.colindexes)
+        self.assertIn(self.sort_field, new_node.colindexes)
         # check CSI was propagated
         self.assertTrue(new_node.colindexes[self.sort_field].is_csi)
 

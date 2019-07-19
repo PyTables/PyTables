@@ -82,9 +82,9 @@ class CreateTestCase(common.TempFileMixin, TestCase):
 
     def check_missing(self,name):
         self.reopen()
-        self.assertFalse(name in self.root.agroup._v_attrs)
-        self.assertFalse(name in self.root.atable.attrs)
-        self.assertFalse(name in self.root.anarray.attrs)
+        self.assertNotIn(name, self.root.agroup._v_attrs)
+        self.assertNotIn(name, self.root.atable.attrs)
+        self.assertNotIn(name, self.root.anarray.attrs)
 
 
     def check_name(self, name, val = ''):
@@ -572,7 +572,7 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         attrs = self.group._v_attrs
         attrs.pq = "1"
         del attrs['pq']
-        self.assertTrue('pq' not in attrs._f_list())
+        self.assertNotIn('pq', attrs._f_list())
 
     def test11d_KeyError(self):
         """Checking that KeyError is raised in __getitem__/__delitem__."""

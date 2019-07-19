@@ -463,7 +463,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
         # Now overwrite the destination node.
         anarray = self.h5file.root.anarray
         self.h5file.rename_node(anarray, 'array', overwrite=True)
-        self.assertTrue('/anarray' not in self.h5file)
+        self.assertNotIn('/anarray', self.h5file)
         self.assertIs(self.h5file.root.array, anarray)
 
     def test08b_renameToNotValidNaturalName(self):
@@ -565,12 +565,12 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
         self.h5file.rename_node('/', name='agroup', newname='agroup_')
 
         # see ticket #126
-        self.assertTrue('/agroup_/agroup4' not in self.h5file)
+        self.assertNotIn('/agroup_/agroup4', self.h5file)
 
-        self.assertTrue('/agroup' not in self.h5file)
+        self.assertNotIn('/agroup', self.h5file)
         for newpath in ['/agroup_', '/agroup_/agroup3',
                         '/agroup_/agroup3/agroup4']:
-            self.assertTrue(newpath in self.h5file)
+            self.assertIn(newpath, self.h5file)
             self.assertEqual(
                 newpath, self.h5file.get_node(newpath)._v_pathname)
 
@@ -918,9 +918,9 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
             dstNode = h5file2.root
 
             self.assertIs(new_node, dstNode)
-            self.assertTrue("/agroup" in h5file2)
-            self.assertTrue("/agroup/anarray1" in h5file2)
-            self.assertTrue("/agroup/agroup3" in h5file2)
+            self.assertIn("/agroup", h5file2)
+            self.assertIn("/agroup/anarray1", h5file2)
+            self.assertIn("/agroup/agroup3", h5file2)
 
         finally:
             h5file2.close()
@@ -942,9 +942,9 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
             dstNode = h5file2.root.agroup2
 
             self.assertIs(new_node, dstNode)
-            self.assertTrue("/agroup2/agroup" in h5file2)
-            self.assertTrue("/agroup2/agroup/anarray1" in h5file2)
-            self.assertTrue("/agroup2/agroup/agroup3" in h5file2)
+            self.assertIn("/agroup2/agroup", h5file2)
+            self.assertIn("/agroup2/agroup/anarray1", h5file2)
+            self.assertIn("/agroup2/agroup/agroup3", h5file2)
 
         finally:
             h5file2.close()
@@ -1162,8 +1162,8 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
 
         for node in [self.h5file.root.agroup, self.h5file.root.anarray]:
             node._f_close()
-            self.assertTrue('closed' in str(node))
-            self.assertTrue('closed' in repr(node))
+            self.assertIn('closed', str(node))
+            self.assertIn('closed', repr(node))
 
     def test19_fileno(self):
         """Checking that the 'fileno()' method works."""
@@ -1745,8 +1745,8 @@ class StateTestCase(common.TempFileMixin, TestCase):
         # should have been automatically closed when removed.
         self.assertRaises(ClosedNodeError, array._f_remove)
 
-        self.assertTrue('/group/array' not in self.h5file)  # just in case
-        self.assertTrue('/group' not in self.h5file)  # just in case
+        self.assertNotIn('/group/array', self.h5file)  # just in case
+        self.assertNotIn('/group', self.h5file)  # just in case
 
     def test21_attrsOfNode(self):
         """Test manipulating the attributes of a closed node."""
@@ -2220,7 +2220,7 @@ except tables.HDF5ExtError, e:
                                  stderr=subprocess.PIPE)
             (stdout, stderr) = p.communicate()
 
-            self.assertFalse("HDF5-DIAG" in stderr.decode('ascii'))
+            self.assertNotIn("HDF5-DIAG", stderr.decode('ascii'))
         finally:
             os.remove(filename)
 
@@ -2245,7 +2245,7 @@ except tables.HDF5ExtError as e:
                                  stderr=subprocess.PIPE)
             (stdout, stderr) = p.communicate()
 
-            self.assertTrue("HDF5-DIAG" in stderr.decode('ascii'))
+            self.assertIn("HDF5-DIAG", stderr.decode('ascii'))
         finally:
             os.remove(filename)
 
@@ -2275,7 +2275,7 @@ except tables.HDF5ExtError as e:
 
         self.assertIsNotNone(cm.exception.h5backtrace)
         msg = str(cm.exception)
-        self.assertTrue(cm.exception.h5backtrace[-1][-1] in msg)
+        self.assertIn(cm.exception.h5backtrace[-1][-1], msg)
 
     def test_h5_backtrace_ignore(self):
         tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = False
@@ -2295,14 +2295,14 @@ class TestDescription(TestCase):
         class TestDesc(TestDescParent):
             pass
 
-        self.assertTrue('c' in TestDesc.columns)
+        self.assertIn('c', TestDesc.columns)
 
     def test_descr_from_dtype(self):
         t = numpy.dtype([('col1', 'int16'), ('col2', float)])
         descr, byteorder = descr_from_dtype(t)
 
-        self.assertTrue('col1' in descr._v_colobjects)
-        self.assertTrue('col2' in descr._v_colobjects)
+        self.assertIn('col1', descr._v_colobjects)
+        self.assertIn('col2', descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
         self.assertIsInstance(descr._v_colobjects['col1'], Col)
         self.assertIsInstance(descr._v_colobjects['col2'], Col)
@@ -2333,8 +2333,8 @@ class TestDescription(TestCase):
         descr, byteorder = descr_from_dtype(d_comp)
 
         self.assertTrue(descr._v_is_nested)
-        self.assertTrue('time' in descr._v_colobjects)
-        self.assertTrue('value' in descr._v_colobjects)
+        self.assertIn('time', descr._v_colobjects)
+        self.assertIn('value', descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
         self.assertIsInstance(descr._v_colobjects['time'], Col)
         self.assertTrue(isinstance(descr._v_colobjects['value'],
@@ -2356,8 +2356,8 @@ class TestDescription(TestCase):
             descr, byteorder = descr_from_dtype(d_comp)
 
         self.assertTrue(descr._v_is_nested)
-        self.assertTrue('time' in descr._v_colobjects)
-        self.assertTrue('value' in descr._v_colobjects)
+        self.assertIn('time', descr._v_colobjects)
+        self.assertIn('value', descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
         self.assertIsInstance(descr._v_colobjects['time'], Col)
         self.assertTrue(isinstance(descr._v_colobjects['value'],

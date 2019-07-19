@@ -302,7 +302,7 @@ class BasicTestCase(TestCase):
                 else:
                     # If a is not a python string, then it should be a list
                     # or ndarray
-                    self.assertTrue(type(b) in [list, numpy.ndarray])
+                    self.assertIn(type(b), [list, numpy.ndarray])
         finally:
             # Then, delete the file
             os.remove(filename)
@@ -610,7 +610,7 @@ class ReadOutArgumentTests(common.TempFileMixin, TestCase):
         try:
             disk_array.read(0, self.size, 1, out_buffer)
         except ValueError as exc:
-            self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertIn('output array size invalid, got', str(exc))
 
     def test_buffer_too_large(self):
         array, disk_array = self.create_array()
@@ -620,7 +620,7 @@ class ReadOutArgumentTests(common.TempFileMixin, TestCase):
         try:
             disk_array.read(0, self.size, 1, out_buffer)
         except ValueError as exc:
-            self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertIn('output array size invalid, got', str(exc))
 
 
 class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):

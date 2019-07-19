@@ -67,7 +67,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that otherarray does not exist in the object tree
-        self.assertTrue("/otherarray" not in self.h5file)
+        self.assertNotIn("/otherarray", self.h5file)
         self.assertEqual(self.h5file._curaction, 0)
         self.assertEqual(self.h5file._curmark, 0)
 
@@ -78,7 +78,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Object tree after redo:", self.h5file)
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/otherarray" in self.h5file)
+        self.assertIn("/otherarray", self.h5file)
         self.assertEqual(self.h5file.root.otherarray.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray.title, "Another array")
         self.assertEqual(self.h5file._curaction, 1)
@@ -101,8 +101,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Now undo the past operations
         self._do_reopen()
         self.h5file.undo()
-        self.assertTrue("/otherarray" not in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
+        self.assertNotIn("/otherarray", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
         self.assertEqual(self.h5file._curaction, 0)
         self.assertEqual(self.h5file._curmark, 0)
 
@@ -110,8 +110,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/otherarray" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
+        self.assertIn("/otherarray", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
         self.assertEqual(self.h5file.root.otherarray.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.h5file.root.otherarray.title, "Another array")
@@ -141,8 +141,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # Unwind just one mark
         self.h5file.undo()
-        self.assertTrue("/otherarray" in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
+        self.assertIn("/otherarray", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
         self.assertEqual(self.h5file._curaction, 2)
         self.assertEqual(self.h5file._curmark, 1)
 
@@ -150,21 +150,21 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
         self.assertEqual(self.h5file._curaction, 0)
         self.assertEqual(self.h5file._curmark, 0)
-        self.assertTrue("/otherarray" not in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
+        self.assertNotIn("/otherarray", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
 
         # Redo until the next mark
         self.h5file.redo()
-        self.assertTrue("/otherarray" in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
+        self.assertIn("/otherarray", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
         self._do_reopen()
         self.assertEqual(self.h5file._curaction, 2)
         self.assertEqual(self.h5file._curmark, 1)
 
         # Redo until the end
         self.h5file.redo()
-        self.assertTrue("/otherarray" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
+        self.assertIn("/otherarray", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
         self.assertEqual(self.h5file.root.otherarray.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.h5file.root.otherarray.title, "Another array")
@@ -200,58 +200,58 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # Unwind just one mark
         self.h5file.undo()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
-        self.assertTrue("/otherarray4" in self.h5file)
-        self.assertTrue("/otherarray5" not in self.h5file)
-        self.assertTrue("/otherarray6" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
+        self.assertIn("/otherarray4", self.h5file)
+        self.assertNotIn("/otherarray5", self.h5file)
+        self.assertNotIn("/otherarray6", self.h5file)
 
         # Unwind another mark
         self.h5file.undo()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
-        self.assertTrue("/otherarray5" not in self.h5file)
-        self.assertTrue("/otherarray6" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
+        self.assertNotIn("/otherarray5", self.h5file)
+        self.assertNotIn("/otherarray6", self.h5file)
 
         # Unwind all marks
         self.h5file.undo()
-        self.assertTrue("/otherarray1" not in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
-        self.assertTrue("/otherarray5" not in self.h5file)
-        self.assertTrue("/otherarray6" not in self.h5file)
+        self.assertNotIn("/otherarray1", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
+        self.assertNotIn("/otherarray5", self.h5file)
+        self.assertNotIn("/otherarray6", self.h5file)
 
         # Redo until the next mark
         self._do_reopen()
         self.h5file.redo()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
-        self.assertTrue("/otherarray5" not in self.h5file)
-        self.assertTrue("/otherarray6" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
+        self.assertNotIn("/otherarray5", self.h5file)
+        self.assertNotIn("/otherarray6", self.h5file)
 
         # Redo until the next mark
         self.h5file.redo()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
-        self.assertTrue("/otherarray4" in self.h5file)
-        self.assertTrue("/otherarray5" not in self.h5file)
-        self.assertTrue("/otherarray6" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
+        self.assertIn("/otherarray4", self.h5file)
+        self.assertNotIn("/otherarray5", self.h5file)
+        self.assertNotIn("/otherarray6", self.h5file)
 
         # Redo until the end
         self.h5file.redo()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
-        self.assertTrue("/otherarray4" in self.h5file)
-        self.assertTrue("/otherarray5" in self.h5file)
-        self.assertTrue("/otherarray6" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
+        self.assertIn("/otherarray4", self.h5file)
+        self.assertIn("/otherarray5", self.h5file)
+        self.assertIn("/otherarray6", self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.h5file.root.otherarray3.read(), [5, 6])
@@ -289,10 +289,10 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # Unwind the previous mark
         self.h5file.undo()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Put a mark in the middle of stack
         if common.verbose:
@@ -301,40 +301,40 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self._do_reopen()
         self.h5file.create_array('/', 'otherarray5', [7, 8], "Another array 5")
         self.h5file.create_array('/', 'otherarray6', [8, 9], "Another array 6")
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
-        self.assertTrue("/otherarray5" in self.h5file)
-        self.assertTrue("/otherarray6" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
+        self.assertIn("/otherarray5", self.h5file)
+        self.assertIn("/otherarray6", self.h5file)
 
         # Unwind previous mark
         self.h5file.undo()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
-        self.assertTrue("/otherarray5" not in self.h5file)
-        self.assertTrue("/otherarray6" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
+        self.assertNotIn("/otherarray5", self.h5file)
+        self.assertNotIn("/otherarray6", self.h5file)
 
         # Redo until the last mark
         self.h5file.redo()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
-        self.assertTrue("/otherarray5" in self.h5file)
-        self.assertTrue("/otherarray6" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
+        self.assertIn("/otherarray5", self.h5file)
+        self.assertIn("/otherarray6", self.h5file)
 
         # Redo until the next mark (non-existent, so no action)
         self._do_reopen()
         self.h5file.redo()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
-        self.assertTrue("/otherarray5" in self.h5file)
-        self.assertTrue("/otherarray6" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
+        self.assertIn("/otherarray5", self.h5file)
+        self.assertIn("/otherarray6", self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.h5file.root.otherarray5.read(), [7, 8])
@@ -370,11 +370,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.create_array('/', 'otherarray3', [5, 6], "Another array 3")
 
         # Check objects
-        self.assertTrue("/otherarray1" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray1.title, "Another array 1")
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
         self.assertEqual(self.h5file.root.otherarray3.read(), [5, 6])
         self.assertEqual(self.h5file.root.otherarray3.title, "Another array 3")
 
@@ -407,20 +407,20 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self._do_reopen()
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
-        self.assertTrue("/otherarray4" in self.h5file)
+        self.assertIn("/otherarray4", self.h5file)
 
         # Now undo the past operation
         self.h5file.undo()
 
         # Check objects
-        self.assertTrue("/otherarray1" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray1.title, "Another array 1")
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
         self.assertEqual(self.h5file.root.otherarray3.read(), [5, 6])
         self.assertEqual(self.h5file.root.otherarray3.title, "Another array 3")
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
     def test05c_destructive(self):
         """Checking with a destructive action during undo (III)"""
@@ -451,7 +451,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.mark()
         self._do_reopen()
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
-        self.assertTrue("/otherarray4" in self.h5file)
+        self.assertIn("/otherarray4", self.h5file)
 
         # Now unwind twice
         self.h5file.undo()
@@ -459,10 +459,10 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check objects
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
     def test05d_destructive(self):
         """Checking with a destructive action during undo (IV)"""
@@ -492,17 +492,17 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Put a mark
         self.h5file.mark()
         self.h5file.create_array('/', 'otherarray4', [6, 7], "Another array 4")
-        self.assertTrue("/otherarray4" in self.h5file)
+        self.assertIn("/otherarray4", self.h5file)
 
         # Now, go to the first mark
         self._do_reopen()
         self.h5file.undo(0)
 
         # Check objects
-        self.assertTrue("/otherarray1" not in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertNotIn("/otherarray1", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
     def test05e_destructive(self):
         """Checking with a destructive action during undo (V)"""
@@ -534,9 +534,9 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self._do_reopen()
 
         # Check objects
-        self.assertTrue("/otherarray1" not in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
+        self.assertNotIn("/otherarray1", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
 
     def test05f_destructive(self):
         """Checking with a destructive creation of existing node during undo"""
@@ -550,13 +550,13 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.create_array('/', 'newarray', [1])
         self.h5file.undo()
         self._do_reopen()
-        self.assertTrue('/newarray' not in self.h5file)
+        self.assertNotIn('/newarray', self.h5file)
         newarr = self.h5file.create_array('/', 'newarray', [1])
         self.h5file.undo()
-        self.assertTrue('/newarray' not in self.h5file)
+        self.assertNotIn('/newarray', self.h5file)
         self._do_reopen()
         self.h5file.redo()
-        self.assertTrue('/newarray' in self.h5file)
+        self.assertIn('/newarray', self.h5file)
         if not self._reopen_flag:
             self.assertIs(self.h5file.root.newarray, newarr)
 
@@ -578,8 +578,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Now undo the past operations
         self._do_reopen()
         self.h5file.undo(0)
-        self.assertTrue("/otherarray" not in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
+        self.assertNotIn("/otherarray", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
 
     def test07_totalrewind(self):
         """Checking do/undo (total rewind)"""
@@ -604,8 +604,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.redo(-1)
 
         # Check that objects has come back to life in a sane state
-        self.assertTrue("/otherarray" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
+        self.assertIn("/otherarray", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
         self.assertEqual(self.h5file.root.otherarray.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.h5file.root.otherarray.title, "Another array")
@@ -633,32 +633,32 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Now go to mark "first"
         self.h5file.undo("first")
         self._do_reopen()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Go to mark "third"
         self.h5file.redo("third")
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Now go to mark "second"
         self.h5file.undo("second")
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Go to the end
         self._do_reopen()
         self.h5file.redo(-1)
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
-        self.assertTrue("/otherarray4" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
+        self.assertIn("/otherarray4", self.h5file)
 
         # Check that objects has come back to life in a sane state
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
@@ -685,16 +685,16 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # Now undo the past operations
         self.h5file.undo(initmid)
-        self.assertTrue("/otherarray" not in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
+        self.assertNotIn("/otherarray", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
 
         # Redo all the operations
         self.h5file.redo(-1)
         self._do_reopen()
 
         # Check that objects has come back to life in a sane state
-        self.assertTrue("/otherarray" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
+        self.assertIn("/otherarray", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
         self.assertEqual(self.h5file.root.otherarray.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.h5file.root.otherarray.title, "Another array")
@@ -736,10 +736,10 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             self.h5file.redo("second")
 
         # Final checks
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
     def test10_goto(self):
         """Checking mark names (goto)"""
@@ -764,35 +764,35 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # Now go to mark "first"
         self.h5file.goto("first")
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Go to mark "third"
         self.h5file.goto("third")
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Now go to mark "second"
         self._do_reopen()
         self.h5file.goto("second")
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Go to the end
         self.h5file.goto(-1)
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
-        self.assertTrue("/otherarray4" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
+        self.assertIn("/otherarray4", self.h5file)
 
         # Check that objects has come back to life in a sane state
-        self.assertTrue("/otherarray2" in self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.h5file.root.otherarray3.read(), [5, 6])
@@ -821,43 +821,43 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Now go to mark "first"
         self.h5file.goto(1)
         self._do_reopen()
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Go to beginning
         self.h5file.goto(0)
-        self.assertTrue("/otherarray1" not in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertNotIn("/otherarray1", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Go to mark "third"
         self._do_reopen()
         self.h5file.goto(3)
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Now go to mark "second"
         self.h5file.goto(2)
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
-        self.assertTrue("/otherarray4" not in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
+        self.assertNotIn("/otherarray4", self.h5file)
 
         # Go to the end
         self._do_reopen()
         self.h5file.goto(-1)
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
-        self.assertTrue("/otherarray4" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
+        self.assertIn("/otherarray4", self.h5file)
 
         # Check that objects has come back to life in a sane state
-        self.assertTrue("/otherarray2" in self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.read(), [3, 4])
         self.assertEqual(self.h5file.root.otherarray2.read(), [4, 5])
         self.assertEqual(self.h5file.root.otherarray3.read(), [5, 6])
@@ -908,7 +908,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.get_current_mark(), 0)
 
         # So /newarray1 should not be there.
-        self.assertTrue('/newarray1' not in self.h5file)
+        self.assertNotIn('/newarray1', self.h5file)
 
     def test13_severalEnableDisable(self):
         """Checking that successive enable/disable Undo works"""
@@ -927,7 +927,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.get_current_mark(), 0)
 
         # So /newarray1 should still be there.
-        self.assertTrue('/newarray1' not in self.h5file)
+        self.assertNotIn('/newarray1', self.h5file)
 
         # Close this do/undo session
         self.h5file.disable_undo()
@@ -946,10 +946,10 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.get_current_mark(), mid)
 
         # So /newarray2 and /newarray3 should still be there.
-        self.assertTrue('/newarray1' not in self.h5file)
-        self.assertTrue('/newarray2' in self.h5file)
-        self.assertTrue('/newarray3' in self.h5file)
-        self.assertTrue('/newarray4' not in self.h5file)
+        self.assertNotIn('/newarray1', self.h5file)
+        self.assertIn('/newarray2', self.h5file)
+        self.assertIn('/newarray3', self.h5file)
+        self.assertNotIn('/newarray4', self.h5file)
 
         # Close this do/undo session
         self._do_reopen()
@@ -961,16 +961,16 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.create_array('/', 'newarray4', [1])
 
         # So /newarray2 and /newarray3 should still be there.
-        self.assertTrue('/newarray1' in self.h5file)
-        self.assertTrue('/newarray2' in self.h5file)
-        self.assertTrue('/newarray3' in self.h5file)
-        self.assertTrue('/newarray4' in self.h5file)
+        self.assertIn('/newarray1', self.h5file)
+        self.assertIn('/newarray2', self.h5file)
+        self.assertIn('/newarray3', self.h5file)
+        self.assertIn('/newarray4', self.h5file)
         self.h5file.undo()
         self._do_reopen()
-        self.assertTrue('/newarray1' not in self.h5file)
-        self.assertTrue('/newarray2' in self.h5file)
-        self.assertTrue('/newarray3' in self.h5file)
-        self.assertTrue('/newarray4' not in self.h5file)
+        self.assertNotIn('/newarray1', self.h5file)
+        self.assertIn('/newarray2', self.h5file)
+        self.assertIn('/newarray3', self.h5file)
+        self.assertNotIn('/newarray4', self.h5file)
 
         # Close this do/undo session
         self.h5file.disable_undo()
@@ -1027,13 +1027,13 @@ class CreateArrayTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that otherarray does not exist in the object tree
-        self.assertTrue("/otherarray1" not in self.h5file)
+        self.assertNotIn("/otherarray1", self.h5file)
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/otherarray1" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.title, "Another array 1")
         self.assertEqual(self.h5file.root.otherarray1.read(), [1, 2])
 
@@ -1055,15 +1055,15 @@ class CreateArrayTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that otherarray does not exist in the object tree
-        self.assertTrue("/otherarray1" not in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
+        self.assertNotIn("/otherarray1", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.title, "Another array 1")
         self.assertEqual(self.h5file.root.otherarray2.title, "Another array 2")
         self.assertEqual(self.h5file.root.otherarray1.read(), [1, 2])
@@ -1088,17 +1088,17 @@ class CreateArrayTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that otherarray does not exist in the object tree
-        self.assertTrue("/otherarray1" not in self.h5file)
-        self.assertTrue("/otherarray2" not in self.h5file)
-        self.assertTrue("/otherarray3" not in self.h5file)
+        self.assertNotIn("/otherarray1", self.h5file)
+        self.assertNotIn("/otherarray2", self.h5file)
+        self.assertNotIn("/otherarray3", self.h5file)
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/otherarray2" in self.h5file)
-        self.assertTrue("/otherarray3" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/otherarray2", self.h5file)
+        self.assertIn("/otherarray3", self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.title, "Another array 1")
         self.assertEqual(self.h5file.root.otherarray2.title, "Another array 2")
         self.assertEqual(self.h5file.root.otherarray3.title, "Another array 3")
@@ -1127,17 +1127,17 @@ class CreateArrayTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that otherarray does not exist in the object tree
-        self.assertTrue("/otherarray1" not in self.h5file)
-        self.assertTrue("/agroup/otherarray2" not in self.h5file)
-        self.assertTrue("/agroup/agroup3/otherarray3" not in self.h5file)
+        self.assertNotIn("/otherarray1", self.h5file)
+        self.assertNotIn("/agroup/otherarray2", self.h5file)
+        self.assertNotIn("/agroup/agroup3/otherarray3", self.h5file)
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/otherarray1" in self.h5file)
-        self.assertTrue("/agroup/otherarray2" in self.h5file)
-        self.assertTrue("/agroup/agroup3/otherarray3" in self.h5file)
+        self.assertIn("/otherarray1", self.h5file)
+        self.assertIn("/agroup/otherarray2", self.h5file)
+        self.assertIn("/agroup/agroup3/otherarray3", self.h5file)
         self.assertEqual(self.h5file.root.otherarray1.title, "Another array 1")
         self.assertEqual(self.h5file.root.agroup.otherarray2.title,
                          "Another array 2")
@@ -1194,13 +1194,13 @@ class CreateGroupTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that othergroup1 does not exist in the object tree
-        self.assertTrue("/othergroup1" not in self.h5file)
+        self.assertNotIn("/othergroup1", self.h5file)
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that othergroup1 has come back to life in a sane state
-        self.assertTrue("/othergroup1" in self.h5file)
+        self.assertIn("/othergroup1", self.h5file)
         self.assertEqual(self.h5file.root.othergroup1._v_title,
                          "Another group 1")
 
@@ -1222,15 +1222,15 @@ class CreateGroupTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that othergroup does not exist in the object tree
-        self.assertTrue("/othergroup1" not in self.h5file)
-        self.assertTrue("/othergroup2" not in self.h5file)
+        self.assertNotIn("/othergroup1", self.h5file)
+        self.assertNotIn("/othergroup2", self.h5file)
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that othergroup* has come back to life in a sane state
-        self.assertTrue("/othergroup1" in self.h5file)
-        self.assertTrue("/othergroup2" in self.h5file)
+        self.assertIn("/othergroup1", self.h5file)
+        self.assertIn("/othergroup2", self.h5file)
         self.assertEqual(self.h5file.root.othergroup1._v_title,
                          "Another group 1")
         self.assertEqual(self.h5file.root.othergroup2._v_title,
@@ -1255,17 +1255,17 @@ class CreateGroupTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that othergroup* does not exist in the object tree
-        self.assertTrue("/othergroup1" not in self.h5file)
-        self.assertTrue("/othergroup2" not in self.h5file)
-        self.assertTrue("/othergroup3" not in self.h5file)
+        self.assertNotIn("/othergroup1", self.h5file)
+        self.assertNotIn("/othergroup2", self.h5file)
+        self.assertNotIn("/othergroup3", self.h5file)
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that othergroup* has come back to life in a sane state
-        self.assertTrue("/othergroup1" in self.h5file)
-        self.assertTrue("/othergroup2" in self.h5file)
-        self.assertTrue("/othergroup3" in self.h5file)
+        self.assertIn("/othergroup1", self.h5file)
+        self.assertIn("/othergroup2", self.h5file)
+        self.assertIn("/othergroup3", self.h5file)
         self.assertEqual(self.h5file.root.othergroup1._v_title,
                          "Another group 1")
         self.assertEqual(self.h5file.root.othergroup2._v_title,
@@ -1294,8 +1294,8 @@ class CreateGroupTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that othergroup* does not exist in the object tree
-        self.assertTrue("/othergroup1" not in self.h5file)
-        self.assertTrue("/othergroup1/othergroup2" not in self.h5file)
+        self.assertNotIn("/othergroup1", self.h5file)
+        self.assertNotIn("/othergroup1/othergroup2", self.h5file)
         self.assertTrue(
             "/othergroup1/othergroup2/othergroup3" not in self.h5file)
 
@@ -1303,9 +1303,9 @@ class CreateGroupTestCase(common.TempFileMixin, TestCase):
         self.h5file.redo()
 
         # Check that othergroup* has come back to life in a sane state
-        self.assertTrue("/othergroup1" in self.h5file)
-        self.assertTrue("/othergroup1/othergroup2" in self.h5file)
-        self.assertTrue("/othergroup1/othergroup2/othergroup3" in self.h5file)
+        self.assertIn("/othergroup1", self.h5file)
+        self.assertIn("/othergroup1/othergroup2", self.h5file)
+        self.assertIn("/othergroup1/othergroup2/othergroup3", self.h5file)
         self.assertEqual(self.h5file.root.othergroup1._v_title,
                          "Another group 1")
         self.assertEqual(self.h5file.root.othergroup1.othergroup2._v_title,
@@ -1401,16 +1401,16 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that it does not exist in the object tree
-        self.assertTrue("/agroup2" in self.h5file)
-        self.assertTrue("/agroup3" not in self.h5file)
+        self.assertIn("/agroup2", self.h5file)
+        self.assertNotIn("/agroup3", self.h5file)
         self.assertEqual(self.h5file.root.agroup2._v_title, "Group title 2")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/agroup2" not in self.h5file)
-        self.assertTrue("/agroup3" in self.h5file)
+        self.assertNotIn("/agroup2", self.h5file)
+        self.assertIn("/agroup3", self.h5file)
         self.assertEqual(self.h5file.root.agroup3._v_title, "Group title 2")
 
     def test01(self):
@@ -1430,27 +1430,27 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that it does not exist in the object tree
-        self.assertTrue("/agroup" in self.h5file)
-        self.assertTrue("/agroup3" not in self.h5file)
+        self.assertIn("/agroup", self.h5file)
+        self.assertNotIn("/agroup3", self.h5file)
 
         # Check that children are reachable
-        self.assertTrue("/agroup/anarray1" in self.h5file)
-        self.assertTrue("/agroup/anarray2" in self.h5file)
-        self.assertTrue("/agroup/agroup3" in self.h5file)
+        self.assertIn("/agroup/anarray1", self.h5file)
+        self.assertIn("/agroup/anarray2", self.h5file)
+        self.assertIn("/agroup/agroup3", self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/agroup" not in self.h5file)
-        self.assertTrue("/agroup3" in self.h5file)
+        self.assertNotIn("/agroup", self.h5file)
+        self.assertIn("/agroup3", self.h5file)
         self.assertEqual(self.h5file.root.agroup3._v_title, "Group title")
 
         # Check that children are reachable
-        self.assertTrue("/agroup3/anarray1" in self.h5file)
-        self.assertTrue("/agroup3/anarray2" in self.h5file)
-        self.assertTrue("/agroup3/agroup3" in self.h5file)
+        self.assertIn("/agroup3/anarray1", self.h5file)
+        self.assertIn("/agroup3/anarray2", self.h5file)
+        self.assertIn("/agroup3/agroup3", self.h5file)
 
     def test01b(self):
         """Checking rename_node (over Groups with children 2)"""
@@ -1470,27 +1470,27 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that it does not exist in the object tree
-        self.assertTrue("/agroup" in self.h5file)
-        self.assertTrue("/agroup4" not in self.h5file)
+        self.assertIn("/agroup", self.h5file)
+        self.assertNotIn("/agroup4", self.h5file)
 
         # Check that children are reachable
-        self.assertTrue("/agroup/anarray1" in self.h5file)
-        self.assertTrue("/agroup/anarray2" in self.h5file)
-        self.assertTrue("/agroup/agroup3" in self.h5file)
+        self.assertIn("/agroup/anarray1", self.h5file)
+        self.assertIn("/agroup/anarray2", self.h5file)
+        self.assertIn("/agroup/agroup3", self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/agroup" not in self.h5file)
-        self.assertTrue("/agroup4" in self.h5file)
+        self.assertNotIn("/agroup", self.h5file)
+        self.assertIn("/agroup4", self.h5file)
         self.assertEqual(self.h5file.root.agroup4._v_title, "Group title")
 
         # Check that children are reachable
-        self.assertTrue("/agroup4/anarray1" in self.h5file)
-        self.assertTrue("/agroup4/anarray2" in self.h5file)
-        self.assertTrue("/agroup4/agroup3" in self.h5file)
+        self.assertIn("/agroup4/anarray1", self.h5file)
+        self.assertIn("/agroup4/anarray2", self.h5file)
+        self.assertIn("/agroup4/agroup3", self.h5file)
 
     def test02(self):
         """Checking rename_node (over Leaves)"""
@@ -1509,16 +1509,16 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that otherarray does not exist in the object tree
-        self.assertTrue("/anarray" in self.h5file)
-        self.assertTrue("/anarray2" not in self.h5file)
+        self.assertIn("/anarray", self.h5file)
+        self.assertNotIn("/anarray2", self.h5file)
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/anarray" not in self.h5file)
-        self.assertTrue("/anarray2" in self.h5file)
+        self.assertNotIn("/anarray", self.h5file)
+        self.assertIn("/anarray2", self.h5file)
         self.assertEqual(self.h5file.root.anarray2.title, "Array title")
 
     def test03(self):
@@ -1538,7 +1538,7 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that table2 does not exist in the object tree
-        self.assertTrue("/table" in self.h5file)
+        self.assertIn("/table", self.h5file)
         table = self.h5file.root.table
         self.assertIsNotNone(table.cols.var1.index)
         self.assertIsNotNone(table.cols.var2.index)
@@ -1547,15 +1547,15 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table.cols.var1.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var2.index.nelements, minRowIndex)
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
-        self.assertTrue("/table2" not in self.h5file)
+        self.assertNotIn("/table2", self.h5file)
         self.assertEqual(self.h5file.root.table.title, "Indexed")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that table2 has come back to life in a sane state
-        self.assertTrue("/table" not in self.h5file)
-        self.assertTrue("/table2" in self.h5file)
+        self.assertNotIn("/table", self.h5file)
+        self.assertIn("/table2", self.h5file)
         self.assertEqual(self.h5file.root.table2.title, "Indexed")
         table = self.h5file.root.table2
         self.assertIsNotNone(table.cols.var1.index)
@@ -1615,16 +1615,16 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that it does not exist in the object tree
-        self.assertTrue("/anarray" in self.h5file)
-        self.assertTrue("/agroup/agroup3/anarray" not in self.h5file)
+        self.assertIn("/anarray", self.h5file)
+        self.assertNotIn("/agroup/agroup3/anarray", self.h5file)
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/anarray" not in self.h5file)
-        self.assertTrue("/agroup/agroup3/anarray" in self.h5file)
+        self.assertNotIn("/anarray", self.h5file)
+        self.assertIn("/agroup/agroup3/anarray", self.h5file)
         self.assertEqual(self.h5file.root.agroup.agroup3.anarray.title,
                          "Array title")
 
@@ -1645,28 +1645,28 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that it does not exist in the object tree
-        self.assertTrue("/agroup" in self.h5file)
-        self.assertTrue("/agroup2/agroup3" not in self.h5file)
+        self.assertIn("/agroup", self.h5file)
+        self.assertNotIn("/agroup2/agroup3", self.h5file)
 
         # Check that children are reachable
-        self.assertTrue("/agroup/anarray1" in self.h5file)
-        self.assertTrue("/agroup/anarray2" in self.h5file)
-        self.assertTrue("/agroup/agroup3" in self.h5file)
+        self.assertIn("/agroup/anarray1", self.h5file)
+        self.assertIn("/agroup/anarray2", self.h5file)
+        self.assertIn("/agroup/agroup3", self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/agroup" not in self.h5file)
-        self.assertTrue("/agroup2/agroup3" in self.h5file)
+        self.assertNotIn("/agroup", self.h5file)
+        self.assertIn("/agroup2/agroup3", self.h5file)
         self.assertEqual(self.h5file.root.agroup2.agroup3._v_title,
                          "Group title")
 
         # Check that children are reachable
-        self.assertTrue("/agroup2/agroup3/anarray1" in self.h5file)
-        self.assertTrue("/agroup2/agroup3/anarray2" in self.h5file)
-        self.assertTrue("/agroup2/agroup3/agroup3" in self.h5file)
+        self.assertIn("/agroup2/agroup3/anarray1", self.h5file)
+        self.assertIn("/agroup2/agroup3/anarray2", self.h5file)
+        self.assertIn("/agroup2/agroup3/agroup3", self.h5file)
 
     def test01b(self):
         """Checking move_node (over Groups with children 2)"""
@@ -1686,28 +1686,28 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that it does not exist in the object tree
-        self.assertTrue("/agroup" in self.h5file)
-        self.assertTrue("/agroup2/agroup4" not in self.h5file)
+        self.assertIn("/agroup", self.h5file)
+        self.assertNotIn("/agroup2/agroup4", self.h5file)
 
         # Check that children are reachable
-        self.assertTrue("/agroup/anarray1" in self.h5file)
-        self.assertTrue("/agroup/anarray2" in self.h5file)
-        self.assertTrue("/agroup/agroup3" in self.h5file)
+        self.assertIn("/agroup/anarray1", self.h5file)
+        self.assertIn("/agroup/anarray2", self.h5file)
+        self.assertIn("/agroup/agroup3", self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/agroup" not in self.h5file)
-        self.assertTrue("/agroup2/agroup4" in self.h5file)
+        self.assertNotIn("/agroup", self.h5file)
+        self.assertIn("/agroup2/agroup4", self.h5file)
         self.assertEqual(self.h5file.root.agroup2.agroup4._v_title,
                          "Group title")
 
         # Check that children are reachable
-        self.assertTrue("/agroup2/agroup4/anarray1" in self.h5file)
-        self.assertTrue("/agroup2/agroup4/anarray2" in self.h5file)
-        self.assertTrue("/agroup2/agroup4/agroup3" in self.h5file)
+        self.assertIn("/agroup2/agroup4/anarray1", self.h5file)
+        self.assertIn("/agroup2/agroup4/anarray2", self.h5file)
+        self.assertIn("/agroup2/agroup4/agroup3", self.h5file)
 
     def test02(self):
         """Checking move_node (over Leaves)"""
@@ -1726,16 +1726,16 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that otherarray does not exist in the object tree
-        self.assertTrue("/anarray" in self.h5file)
-        self.assertTrue("/agroup2/anarray2" not in self.h5file)
+        self.assertIn("/anarray", self.h5file)
+        self.assertNotIn("/agroup2/anarray2", self.h5file)
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that otherarray has come back to life in a sane state
-        self.assertTrue("/anarray" not in self.h5file)
-        self.assertTrue("/agroup2/anarray2" in self.h5file)
+        self.assertNotIn("/anarray", self.h5file)
+        self.assertIn("/agroup2/anarray2", self.h5file)
         self.assertEqual(
             self.h5file.root.agroup2.anarray2.title, "Array title")
 
@@ -1756,8 +1756,8 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that table2 does not exist in the object tree
-        self.assertTrue("/table" in self.h5file)
-        self.assertTrue("/agroup2/table2" not in self.h5file)
+        self.assertIn("/table", self.h5file)
+        self.assertNotIn("/agroup2/table2", self.h5file)
         table = self.h5file.root.table
         self.assertIsNotNone(table.cols.var1.index)
         self.assertIsNotNone(table.cols.var2.index)
@@ -1772,8 +1772,8 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.redo()
 
         # Check that table2 has come back to life in a sane state
-        self.assertTrue("/table" not in self.h5file)
-        self.assertTrue("/agroup2/table2" in self.h5file)
+        self.assertNotIn("/table", self.h5file)
+        self.assertIn("/agroup2/table2", self.h5file)
         self.assertEqual(self.h5file.root.agroup2.table2.title, "Indexed")
         table = self.h5file.root.agroup2.table2
         self.assertIsNotNone(table.cols.var1.index)
@@ -1833,14 +1833,14 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that it does exist in the object tree
-        self.assertTrue("/anarray" in self.h5file)
+        self.assertIn("/anarray", self.h5file)
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that array has gone again
-        self.assertTrue("/anarray" not in self.h5file)
+        self.assertNotIn("/anarray", self.h5file)
 
     def test00b(self):
         """Checking remove_node (over several Leaves)"""
@@ -1860,8 +1860,8 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that arrays has come into life
-        self.assertTrue("/anarray" in self.h5file)
-        self.assertTrue("/agroup/anarray2" in self.h5file)
+        self.assertIn("/anarray", self.h5file)
+        self.assertIn("/agroup/anarray2", self.h5file)
         self.assertEqual(self.h5file.root.anarray.title, "Array title")
         self.assertEqual(
             self.h5file.root.agroup.anarray2.title, "Array title 2")
@@ -1870,8 +1870,8 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.redo()
 
         # Check that arrays has disappeared again
-        self.assertTrue("/anarray" not in self.h5file)
-        self.assertTrue("/agroup/anarray2" not in self.h5file)
+        self.assertNotIn("/anarray", self.h5file)
+        self.assertNotIn("/agroup/anarray2", self.h5file)
 
     def test00c(self):
         """Checking remove_node (over Tables)"""
@@ -1890,7 +1890,7 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that table2 does not exist in the object tree
-        self.assertTrue("/table" in self.h5file)
+        self.assertIn("/table", self.h5file)
         table = self.h5file.root.table
         self.assertIsNotNone(table.cols.var1.index)
         self.assertIsNotNone(table.cols.var2.index)
@@ -1905,7 +1905,7 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.redo()
 
         # Check that table2 has come back to life in a sane state
-        self.assertTrue("/table" not in self.h5file)
+        self.assertNotIn("/table", self.h5file)
 
     def test01(self):
         """Checking remove_node (over Groups with children)"""
@@ -1924,20 +1924,20 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that parent and children has come into life in a sane state
-        self.assertTrue("/agroup" in self.h5file)
-        self.assertTrue("/agroup/anarray1" in self.h5file)
-        self.assertTrue("/agroup/anarray2" in self.h5file)
-        self.assertTrue("/agroup/agroup3" in self.h5file)
+        self.assertIn("/agroup", self.h5file)
+        self.assertIn("/agroup/anarray1", self.h5file)
+        self.assertIn("/agroup/anarray2", self.h5file)
+        self.assertIn("/agroup/agroup3", self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that parent and children are not reachable
-        self.assertTrue("/agroup" not in self.h5file)
-        self.assertTrue("/agroup/anarray1" not in self.h5file)
-        self.assertTrue("/agroup/anarray2" not in self.h5file)
-        self.assertTrue("/agroup/agroup3" not in self.h5file)
+        self.assertNotIn("/agroup", self.h5file)
+        self.assertNotIn("/agroup/anarray1", self.h5file)
+        self.assertNotIn("/agroup/anarray2", self.h5file)
+        self.assertNotIn("/agroup/agroup3", self.h5file)
 
     def test01b(self):
         """Checking remove_node (over Groups with children 2)"""
@@ -1957,26 +1957,26 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that they does exist in the object tree
-        self.assertTrue("/agroup" in self.h5file)
-        self.assertTrue("/agroup2" in self.h5file)
+        self.assertIn("/agroup", self.h5file)
+        self.assertIn("/agroup2", self.h5file)
 
         # Check that children are reachable
-        self.assertTrue("/agroup/anarray1" in self.h5file)
-        self.assertTrue("/agroup/anarray2" in self.h5file)
-        self.assertTrue("/agroup/agroup3" in self.h5file)
+        self.assertIn("/agroup/anarray1", self.h5file)
+        self.assertIn("/agroup/anarray2", self.h5file)
+        self.assertIn("/agroup/agroup3", self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that groups does not exist again
-        self.assertTrue("/agroup" not in self.h5file)
-        self.assertTrue("/agroup2" not in self.h5file)
+        self.assertNotIn("/agroup", self.h5file)
+        self.assertNotIn("/agroup2", self.h5file)
 
         # Check that children are not reachable
-        self.assertTrue("/agroup/anarray1" not in self.h5file)
-        self.assertTrue("/agroup/anarray2" not in self.h5file)
-        self.assertTrue("/agroup/agroup3" not in self.h5file)
+        self.assertNotIn("/agroup/anarray1", self.h5file)
+        self.assertNotIn("/agroup/anarray2", self.h5file)
+        self.assertNotIn("/agroup/agroup3", self.h5file)
 
 
 class CopyNodeTestCase(common.TempFileMixin, TestCase):
@@ -2027,13 +2027,13 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that the copied node does not exist in the object tree.
-        self.assertTrue('/agroup/agroup3/anarray' not in self.h5file)
+        self.assertNotIn('/agroup/agroup3/anarray', self.h5file)
 
         # Redo the copy.
         self.h5file.redo()
 
         # Check that the copied node exists again in the object tree.
-        self.assertTrue('/agroup/agroup3/anarray' in self.h5file)
+        self.assertIn('/agroup/agroup3/anarray', self.h5file)
         self.assertIs(self.h5file.root.agroup.agroup3.anarray, new_node)
 
     def test00b_copyTable(self):
@@ -2051,7 +2051,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         table = self.h5file.copy_node(
             '/table', '/agroup/agroup3', propindexes=True)
         warnings.filterwarnings("default", category=UserWarning)
-        self.assertTrue("/agroup/agroup3/table" in self.h5file)
+        self.assertIn("/agroup/agroup3/table", self.h5file)
 
         table = self.h5file.root.agroup.agroup3.table
         self.assertEqual(table.title, "Indexed")
@@ -2075,14 +2075,14 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(table.cols.var3.index.nelements, minRowIndex)
 
         # Check that the copied node does not exist in the object tree.
-        self.assertTrue("/agroup/agroup3/table" not in self.h5file)
+        self.assertNotIn("/agroup/agroup3/table", self.h5file)
 
         # Redo the operation
         self.h5file.redo()
 
         # Check that table has come back to life in a sane state
-        self.assertTrue("/table" in self.h5file)
-        self.assertTrue("/agroup/agroup3/table" in self.h5file)
+        self.assertIn("/table", self.h5file)
+        self.assertIn("/agroup/agroup3/table", self.h5file)
         table = self.h5file.root.agroup.agroup3.table
         self.assertEqual(table.title, "Indexed")
         self.assertIsNotNone(table.cols.var1.index)
@@ -2111,19 +2111,19 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that the copied node does not exist in the object tree.
-        self.assertTrue('/acopy' not in self.h5file)
-        self.assertTrue('/acopy/anarray1' not in self.h5file)
-        self.assertTrue('/acopy/anarray2' not in self.h5file)
-        self.assertTrue('/acopy/agroup3' not in self.h5file)
+        self.assertNotIn('/acopy', self.h5file)
+        self.assertNotIn('/acopy/anarray1', self.h5file)
+        self.assertNotIn('/acopy/anarray2', self.h5file)
+        self.assertNotIn('/acopy/agroup3', self.h5file)
 
         # Redo the copy.
         self.h5file.redo()
 
         # Check that the copied node exists again in the object tree.
-        self.assertTrue('/acopy' in self.h5file)
-        self.assertTrue('/acopy/anarray1' in self.h5file)
-        self.assertTrue('/acopy/anarray2' in self.h5file)
-        self.assertTrue('/acopy/agroup3' in self.h5file)
+        self.assertIn('/acopy', self.h5file)
+        self.assertIn('/acopy/anarray1', self.h5file)
+        self.assertIn('/acopy/anarray2', self.h5file)
+        self.assertIn('/acopy/agroup3', self.h5file)
         self.assertIs(self.h5file.root.acopy, new_node)
 
     def test02_copyLeafOverwrite(self):
@@ -2174,17 +2174,17 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that the copied nodes do not exist in the object tree.
-        self.assertTrue('/agroup2/anarray1' not in self.h5file)
-        self.assertTrue('/agroup2/anarray2' not in self.h5file)
-        self.assertTrue('/agroup2/agroup3' not in self.h5file)
+        self.assertNotIn('/agroup2/anarray1', self.h5file)
+        self.assertNotIn('/agroup2/anarray2', self.h5file)
+        self.assertNotIn('/agroup2/agroup3', self.h5file)
 
         # Redo the copy.
         self.h5file.redo()
 
         # Check that the copied nodes exist again in the object tree.
-        self.assertTrue('/agroup2/anarray1' in self.h5file)
-        self.assertTrue('/agroup2/anarray2' in self.h5file)
-        self.assertTrue('/agroup2/agroup3' in self.h5file)
+        self.assertIn('/agroup2/anarray1', self.h5file)
+        self.assertIn('/agroup2/anarray2', self.h5file)
+        self.assertIn('/agroup2/agroup3', self.h5file)
 
 
 class ComplexTestCase(common.TempFileMixin, TestCase):
@@ -2248,24 +2248,24 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
 
         # Undo the actions
         self.h5file.undo()
-        self.assertTrue('/anarray4' not in self.h5file)
-        self.assertTrue('/anarray3' not in self.h5file)
-        self.assertTrue('/agroup/agroup3/anarray3' not in self.h5file)
-        self.assertTrue('/agroup3' not in self.h5file)
-        self.assertTrue('/anarray4' not in self.h5file)
-        self.assertTrue('/anarray' in self.h5file)
+        self.assertNotIn('/anarray4', self.h5file)
+        self.assertNotIn('/anarray3', self.h5file)
+        self.assertNotIn('/agroup/agroup3/anarray3', self.h5file)
+        self.assertNotIn('/agroup3', self.h5file)
+        self.assertNotIn('/anarray4', self.h5file)
+        self.assertIn('/anarray', self.h5file)
 
         # Redo the actions
         self.h5file.redo()
 
         # Check that the copied node exists again in the object tree.
-        self.assertTrue('/agroup/agroup3/anarray3' in self.h5file)
-        self.assertTrue('/agroup/anarray3' in self.h5file)
-        self.assertTrue('/agroup3/agroup3/anarray3' in self.h5file)
-        self.assertTrue('/agroup3/anarray3' not in self.h5file)
+        self.assertIn('/agroup/agroup3/anarray3', self.h5file)
+        self.assertIn('/agroup/anarray3', self.h5file)
+        self.assertIn('/agroup3/agroup3/anarray3', self.h5file)
+        self.assertNotIn('/agroup3/anarray3', self.h5file)
         self.assertIs(self.h5file.root.agroup.anarray3, new_node)
-        self.assertTrue('/anarray' not in self.h5file)
-        self.assertTrue('/anarray4' not in self.h5file)
+        self.assertNotIn('/anarray', self.h5file)
+        self.assertNotIn('/anarray4', self.h5file)
 
     def test01(self):
         """Test with multiple generations (Leaf case)"""
@@ -2344,7 +2344,7 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
 
         # Check that /agroup is in the state before enabling do/undo
         self.assertEqual(self.h5file.root.agroup2._v_title, "Group title 2")
-        self.assertTrue('/agroup2' in self.h5file)
+        self.assertIn('/agroup2', self.h5file)
 
         # Redo the actions
         self.h5file.redo()
@@ -2387,18 +2387,18 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that /agroup is in the state before enabling do/undo
-        self.assertTrue('/agroup' in self.h5file)
+        self.assertIn('/agroup', self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title")
-        self.assertTrue('/agroup/anarray1' in self.h5file)
-        self.assertTrue('/agroup/anarray2' in self.h5file)
-        self.assertTrue('/agroup/agroup3' in self.h5file)
-        self.assertTrue('/agroup/agroup5' not in self.h5file)
+        self.assertIn('/agroup/anarray1', self.h5file)
+        self.assertIn('/agroup/anarray2', self.h5file)
+        self.assertIn('/agroup/agroup3', self.h5file)
+        self.assertNotIn('/agroup/agroup5', self.h5file)
 
         # Redo the actions
         self.h5file.redo()
-        self.assertTrue('/agroup' in self.h5file)
+        self.assertIn('/agroup', self.h5file)
         self.assertEqual(self.h5file.root.agroup._v_title, "Group title 4")
-        self.assertTrue('/agroup/agroup5' in self.h5file)
+        self.assertIn('/agroup/agroup5', self.h5file)
         self.assertEqual(
             self.h5file.root.agroup.agroup5._v_title, "Group title 5")
 
@@ -2428,13 +2428,13 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
 
         # Check that /agroup is in the state before enabling do/undo
-        self.assertTrue('/agroup3' not in self.h5file)
+        self.assertNotIn('/agroup3', self.h5file)
 
         # Redo the actions
         self.h5file.redo()
         self.assertEqual(self.h5file.root.agroup3._v_title, "Group title 4")
-        self.assertTrue('/agroup3' in self.h5file)
-        self.assertTrue('/agroup/agroup4' not in self.h5file)
+        self.assertIn('/agroup3', self.h5file)
+        self.assertNotIn('/agroup/agroup4', self.h5file)
 
 
 class AttributesTestCase(common.TempFileMixin, TestCase):
@@ -2464,12 +2464,12 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
 
         self.h5file.enable_undo()
         setattr(attrs, 'attr_0', 0)
-        self.assertTrue('attr_0' in attrs)
+        self.assertIn('attr_0', attrs)
         self.assertEqual(attrs.attr_0, 0)
         self.h5file.undo()
-        self.assertTrue('attr_0' not in attrs)
+        self.assertNotIn('attr_0', attrs)
         self.h5file.redo()
-        self.assertTrue('attr_0' in attrs)
+        self.assertIn('attr_0', attrs)
         self.assertEqual(attrs.attr_0, 0)
 
     def test01_setAttrExisting(self):
@@ -2485,13 +2485,13 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
 
         self.h5file.enable_undo()
         setattr(attrs, 'attr_1', 11)
-        self.assertTrue('attr_1' in attrs)
+        self.assertIn('attr_1', attrs)
         self.assertEqual(attrs.attr_1, 11)
         self.h5file.undo()
-        self.assertTrue('attr_1' in attrs)
+        self.assertIn('attr_1', attrs)
         self.assertEqual(attrs.attr_1, 10)
         self.h5file.redo()
-        self.assertTrue('attr_1' in attrs)
+        self.assertIn('attr_1', attrs)
         self.assertEqual(attrs.attr_1, 11)
 
     def test02_delAttr(self):
@@ -2506,12 +2506,12 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
 
         self.h5file.enable_undo()
         delattr(attrs, 'attr_1')
-        self.assertTrue('attr_1' not in attrs)
+        self.assertNotIn('attr_1', attrs)
         self.h5file.undo()
-        self.assertTrue('attr_1' in attrs)
+        self.assertIn('attr_1', attrs)
         self.assertEqual(attrs.attr_1, 10)
         self.h5file.redo()
-        self.assertTrue('attr_1' not in attrs)
+        self.assertNotIn('attr_1', attrs)
 
     def test03_copyNodeAttrs(self):
         """Copying an attribute set"""
@@ -2537,8 +2537,8 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo()
         self.assertEqual(rattrs.attr_0, 0)
         self.assertEqual(rattrs.attr_1, 100)
-        self.assertTrue('attr_2' not in rattrs)
-        self.assertTrue('attr_3' not in rattrs)
+        self.assertNotIn('attr_2', rattrs)
+        self.assertNotIn('attr_3', rattrs)
         self.h5file.redo()
         self.assertEqual(rattrs.attr_0, 0)
         self.assertEqual(rattrs.attr_1, 10)
@@ -2561,10 +2561,10 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
         arr = self.h5file.create_array('/', 'array', [1])
         arr.attrs.attr_1 = 12
         self.h5file.undo()
-        self.assertTrue('attr_1' in self.h5file.root.array.attrs)
+        self.assertIn('attr_1', self.h5file.root.array.attrs)
         self.assertEqual(self.h5file.root.array.attrs.attr_1, 10)
         self.h5file.redo()
-        self.assertTrue('attr_1' in self.h5file.root.array.attrs)
+        self.assertIn('attr_1', self.h5file.root.array.attrs)
         self.assertEqual(self.h5file.root.array.attrs.attr_1, 12)
 
 
@@ -2584,17 +2584,17 @@ class NotLoggedTestCase(common.TempFileMixin, TestCase):
         arr = self.NotLoggedArray(self.h5file.root, 'test',
                                   [1], self._getMethodName())
         self.h5file.undo()
-        self.assertTrue('/test' in self.h5file)
+        self.assertIn('/test', self.h5file)
 
         # Node movement is not undone.
         arr.move('/tgroup')
         self.h5file.undo()
-        self.assertTrue('/tgroup/test' in self.h5file)
+        self.assertIn('/tgroup/test', self.h5file)
 
         # Node removal is not undone.
         arr.remove()
         self.h5file.undo()
-        self.assertTrue('/tgroup/test' not in self.h5file)
+        self.assertNotIn('/tgroup/test', self.h5file)
 
     def test01_attributes(self):
         """Performing attribute operations on a not logged node."""
@@ -2655,10 +2655,10 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
         def doit(newpath):
             self.h5file.create_array(newpath, 'array', [1], createparents=True)
-            self.assertTrue(join_path(newpath, 'array') in self.h5file)
+            self.assertIn(join_path(newpath, 'array'), self.h5file)
 
         def post(newpath):
-            self.assertTrue(join_path(newpath, 'array') not in self.h5file)
+            self.assertNotIn(join_path(newpath, 'array'), self.h5file)
         self.basetest(doit, pre, post)
 
     def test01_move(self):
@@ -2669,12 +2669,12 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
         def doit(newpath):
             self.h5file.move_node('/array', newpath, createparents=True)
-            self.assertTrue('/array' not in self.h5file)
-            self.assertTrue(join_path(newpath, 'array') in self.h5file)
+            self.assertNotIn('/array', self.h5file)
+            self.assertIn(join_path(newpath, 'array'), self.h5file)
 
         def post(newpath):
-            self.assertTrue('/array' in self.h5file)
-            self.assertTrue(join_path(newpath, 'array') not in self.h5file)
+            self.assertIn('/array', self.h5file)
+            self.assertNotIn(join_path(newpath, 'array'), self.h5file)
         self.basetest(doit, pre, post)
 
     def test02_copy(self):
@@ -2685,10 +2685,10 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
         def doit(newpath):
             self.h5file.copy_node('/array', newpath, createparents=True)
-            self.assertTrue(join_path(newpath, 'array') in self.h5file)
+            self.assertIn(join_path(newpath, 'array'), self.h5file)
 
         def post(newpath):
-            self.assertTrue(join_path(newpath, 'array') not in self.h5file)
+            self.assertNotIn(join_path(newpath, 'array'), self.h5file)
         self.basetest(doit, pre, post)
 
     def test03_copyChildren(self):
@@ -2701,12 +2701,12 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
         def doit(newpath):
             self.h5file.copy_children('/group', newpath, createparents=True)
-            self.assertTrue(join_path(newpath, 'array1') in self.h5file)
-            self.assertTrue(join_path(newpath, 'array2') in self.h5file)
+            self.assertIn(join_path(newpath, 'array1'), self.h5file)
+            self.assertIn(join_path(newpath, 'array2'), self.h5file)
 
         def post(newpath):
-            self.assertTrue(join_path(newpath, 'array1') not in self.h5file)
-            self.assertTrue(join_path(newpath, 'array2') not in self.h5file)
+            self.assertNotIn(join_path(newpath, 'array1'), self.h5file)
+            self.assertNotIn(join_path(newpath, 'array2'), self.h5file)
         self.basetest(doit, pre, post)
 
 
