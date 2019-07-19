@@ -746,9 +746,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.bool_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.bool_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.bool_))
+        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.bool_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.bool_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.bool_)
         self.assertEqual(self.root.anarray.attrs.pq, True)
         self.assertEqual(self.root.anarray.attrs.qr, False)
         self.assertEqual(self.root.anarray.attrs.rs, True)
