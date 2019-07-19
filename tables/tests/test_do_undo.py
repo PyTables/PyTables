@@ -558,7 +558,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.redo()
         self.assertTrue('/newarray' in self.h5file)
         if not self._reopen_flag:
-            self.assertTrue(self.h5file.root.newarray is newarr)
+            self.assertIs(self.h5file.root.newarray, newarr)
 
     def test06_totalunwind(self):
         """Checking do/undo (total unwind)"""
@@ -2034,7 +2034,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         # Check that the copied node exists again in the object tree.
         self.assertTrue('/agroup/agroup3/anarray' in self.h5file)
-        self.assertTrue(self.h5file.root.agroup.agroup3.anarray is new_node)
+        self.assertIs(self.h5file.root.agroup.agroup3.anarray, new_node)
 
     def test00b_copyTable(self):
         """Checking copy_node (over Tables)"""
@@ -2124,7 +2124,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.assertTrue('/acopy/anarray1' in self.h5file)
         self.assertTrue('/acopy/anarray2' in self.h5file)
         self.assertTrue('/acopy/agroup3' in self.h5file)
-        self.assertTrue(self.h5file.root.acopy is new_node)
+        self.assertIs(self.h5file.root.acopy, new_node)
 
     def test02_copyLeafOverwrite(self):
         """Copying a leaf, overwriting destination."""
@@ -2147,14 +2147,14 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
 
         # Check that the copied node does not exist in the object tree.
         # Check that the overwritten node exists again in the object tree.
-        self.assertTrue(self.h5file.root.agroup is oldNode)
+        self.assertIs(self.h5file.root.agroup, oldNode)
 
         # Redo the copy.
         self.h5file.redo()
 
         # Check that the copied node exists again in the object tree.
         # Check that the overwritten node does not exist in the object tree.
-        self.assertTrue(self.h5file.root.agroup is new_node)
+        self.assertIs(self.h5file.root.agroup, new_node)
 
     def test03_copyChildren(self):
         """Copying the children of a group"""
@@ -2263,7 +2263,7 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
         self.assertTrue('/agroup/anarray3' in self.h5file)
         self.assertTrue('/agroup3/agroup3/anarray3' in self.h5file)
         self.assertTrue('/agroup3/anarray3' not in self.h5file)
-        self.assertTrue(self.h5file.root.agroup.anarray3 is new_node)
+        self.assertIs(self.h5file.root.agroup.anarray3, new_node)
         self.assertTrue('/anarray' not in self.h5file)
         self.assertTrue('/anarray4' not in self.h5file)
 

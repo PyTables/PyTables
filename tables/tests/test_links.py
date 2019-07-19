@@ -284,11 +284,11 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         lgroup2 = self.h5file.create_soft_link(
             '/', 'lgroup2', '/lgroup1')
         # Dereference it once:
-        self.assertTrue(lgroup2() is self.h5file.get_node('/lgroup1'))
+        self.assertIs(lgroup2(), self.h5file.get_node('/lgroup1'))
         if common.verbose:
             print("First dereference is correct:", lgroup2())
         # Dereference it twice:
-        self.assertTrue(lgroup2()() is self.h5file.get_node('/group1'))
+        self.assertIs(lgroup2()(), self.h5file.get_node('/group1'))
         if common.verbose:
             print("Second dereference is correct:", lgroup2()())
 
