@@ -1062,9 +1062,9 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
             self.assertEqual(table.cols.var3.index, None)
             self.assertEqual(table.cols.var4.index, None)
         else:
-            self.assertTrue(isinstance(table.cols.var1.index, Index))
-            self.assertTrue(isinstance(table.cols.var2.index, Index))
-            self.assertTrue(isinstance(table.cols.var3.index, Index))
+            self.assertIsInstance(table.cols.var1.index, Index)
+            self.assertIsInstance(table.cols.var2.index, Index)
+            self.assertIsInstance(table.cols.var3.index, Index)
             self.assertEqual(table.cols.var4.index, None)
 
     def test03_counters(self):
