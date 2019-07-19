@@ -168,20 +168,20 @@ class TreeTestCase(common.TempFileMixin, TestCase):
 
         # This tree ways of get_node usage should return a table instance
         table = self.h5file.get_node("/group0/table1")
-        self.assertTrue(isinstance(table, Table))
+        self.assertIsInstance(table, Table)
         table = self.h5file.get_node("/group0", "table1")
-        self.assertTrue(isinstance(table, Table))
+        self.assertIsInstance(table, Table)
         table = self.h5file.get_node(self.h5file.root.group0, "table1")
-        self.assertTrue(isinstance(table, Table))
+        self.assertIsInstance(table, Table)
 
         # This should return an array instance
         arr = self.h5file.get_node("/group0/var1")
-        self.assertTrue(isinstance(arr, Array))
-        self.assertTrue(isinstance(arr, Leaf))
+        self.assertIsInstance(arr, Array)
+        self.assertIsInstance(arr, Leaf)
 
         # And this a Group
         group = self.h5file.get_node("/group0", "group1", "Group")
-        self.assertTrue(isinstance(group, Group))
+        self.assertIsInstance(group, Group)
 
     def test02_listNodes(self):
         """Checking the File.list_nodes() method"""

@@ -41,7 +41,7 @@ class EnumTestCase(common.TestFileMixin, TestCase):
         self.assertTrue('/EnumTest' in self.h5file)
 
         arr = self.h5file.get_node('/EnumTest')
-        self.assertTrue(isinstance(arr, tables.Array))
+        self.assertIsInstance(arr, tables.Array)
 
         enum = arr.get_enum()
         expectedEnum = tables.Enum(['RED', 'GREEN', 'BLUE', 'WHITE', 'BLACK'])
@@ -68,7 +68,7 @@ class NumericTestCase(common.TestFileMixin, TestCase):
         self.assertTrue('/TestArray' in self.h5file)
 
         arr = self.h5file.get_node('/TestArray')
-        self.assertTrue(isinstance(arr, tables.Array))
+        self.assertIsInstance(arr, tables.Array)
 
         self.assertEqual(arr.atom.type, self.type)
         self.assertEqual(arr.byteorder, self.byteorder)
@@ -135,7 +135,7 @@ class ChunkedCompoundTestCase(common.TestFileMixin, TestCase):
         self.assertTrue('/CompoundChunked' in self.h5file)
 
         tbl = self.h5file.get_node('/CompoundChunked')
-        self.assertTrue(isinstance(tbl, tables.Table))
+        self.assertIsInstance(tbl, tables.Table)
 
         self.assertEqual(
             tbl.colnames,
@@ -189,7 +189,7 @@ class ContiguousCompoundTestCase(common.TestFileMixin, TestCase):
         self.assertTrue('/test_var/structure variable' in self.h5file)
 
         tbl = self.h5file.get_node('/test_var/structure variable')
-        self.assertTrue(isinstance(tbl, tables.Table))
+        self.assertIsInstance(tbl, tables.Table)
 
         self.assertEqual(
             tbl.colnames,
@@ -258,7 +258,7 @@ class ExtendibleTestCase(common.TestFileMixin, TestCase):
         self.assertTrue('/ExtendibleArray' in self.h5file)
 
         arr = self.h5file.get_node('/ExtendibleArray')
-        self.assertTrue(isinstance(arr, tables.EArray))
+        self.assertIsInstance(arr, tables.EArray)
 
         self.assertEqual(arr.byteorder, 'big')
         self.assertEqual(arr.atom.type, 'int32')

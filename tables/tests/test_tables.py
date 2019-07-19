@@ -4522,7 +4522,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         for (cpathname, col1) in six.iteritems(cinst1):
             self.assertTrue(cpathname in cinst2)
             col2 = cinst2[cpathname]
-            self.assertTrue(isinstance(col1, type(col2)))
+            self.assertIsInstance(col1, type(col2))
             if isinstance(col1, Column):
                 self.assertEqual(col1.name, col2.name)
                 self.assertEqual(col1.pathname, col2.pathname)

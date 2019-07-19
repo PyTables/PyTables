@@ -1318,7 +1318,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         with tables.open_file(h5fname) as h5file:
             with self.assertWarns(UserWarning):
                 node = h5file.get_node('/CompoundChunked')
-            self.assertTrue(isinstance(node, UnImplemented))
+            self.assertIsInstance(node, UnImplemented)
 
     def test04c_UnImplementedScalar(self):
         """Checking opening of HDF5 files containing scalar dataset of
@@ -1327,7 +1327,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         with tables.open_file(test_filename("scalar.h5")) as h5file:
             with self.assertWarns(UserWarning):
                 node = h5file.get_node('/variable length string')
-            self.assertTrue(isinstance(node, UnImplemented))
+            self.assertIsInstance(node, UnImplemented)
 
     def test05_copyUnimplemented(self):
         """Checking that an UnImplemented object cannot be copied."""
@@ -2304,8 +2304,8 @@ class TestDescription(TestCase):
         self.assertTrue('col1' in descr._v_colobjects)
         self.assertTrue('col2' in descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
-        self.assertTrue(isinstance(descr._v_colobjects['col1'], Col))
-        self.assertTrue(isinstance(descr._v_colobjects['col2'], Col))
+        self.assertIsInstance(descr._v_colobjects['col1'], Col)
+        self.assertIsInstance(descr._v_colobjects['col2'], Col)
         self.assertEqual(descr._v_colobjects['col1'].dtype, numpy.int16)
         self.assertEqual(descr._v_colobjects['col2'].dtype, float)
 
@@ -2336,7 +2336,7 @@ class TestDescription(TestCase):
         self.assertTrue('time' in descr._v_colobjects)
         self.assertTrue('value' in descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
-        self.assertTrue(isinstance(descr._v_colobjects['time'], Col))
+        self.assertIsInstance(descr._v_colobjects['time'], Col)
         self.assertTrue(isinstance(descr._v_colobjects['value'],
                                    tables.Description))
         self.assertEqual(descr._v_colobjects['time'].dtype, numpy.float64)
@@ -2359,7 +2359,7 @@ class TestDescription(TestCase):
         self.assertTrue('time' in descr._v_colobjects)
         self.assertTrue('value' in descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
-        self.assertTrue(isinstance(descr._v_colobjects['time'], Col))
+        self.assertIsInstance(descr._v_colobjects['time'], Col)
         self.assertTrue(isinstance(descr._v_colobjects['value'],
                                    tables.Description))
         self.assertEqual(descr._v_colobjects['time'].dtype, numpy.float64)
@@ -2425,7 +2425,7 @@ class TestDescription(TestCase):
         d = {'name': tables.Int16Col()}
         descr = Description(d)
         self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
-        self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
+        self.assertIsInstance(descr._v_dtype, numpy.dtype)
         self.assertTrue(sorted(descr._v_dtype.fields.keys()),
                         sorted(d.keys()))
 
@@ -2437,7 +2437,7 @@ class TestDescription(TestCase):
         d = {six.text_type('name'): tables.Int16Col()}
         descr = Description(d)
         self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
-        self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
+        self.assertIsInstance(descr._v_dtype, numpy.dtype)
         keys = []
         for key in list(d.keys()):
             if isinstance(key, six.text_type):

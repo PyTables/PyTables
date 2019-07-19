@@ -71,10 +71,10 @@ class CreateTestCase(common.TempFileMixin, TestCase):
     def test00_isClass(self):
         """Testing table creation."""
 
-        self.assertTrue(isinstance(self.table, Table))
-        self.assertTrue(isinstance(self.array, Array))
-        self.assertTrue(isinstance(self.array, Leaf))
-        self.assertTrue(isinstance(self.group, Group))
+        self.assertIsInstance(self.table, Table)
+        self.assertIsInstance(self.array, Array)
+        self.assertIsInstance(self.array, Leaf)
+        self.assertIsInstance(self.group, Group)
 
     def test01_overwriteNode(self):
         """Checking protection against node overwriting."""
@@ -1624,7 +1624,7 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(os.path.isfile(self.h5fname))
 
     def test_newFile(self):
-        self.assertTrue(isinstance(self.h5file, tables.File))
+        self.assertIsInstance(self.h5file, tables.File)
         self.assertIsFile()
 
     def test_readFile(self):
@@ -1643,10 +1643,10 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
 
         self.assertEqual(self.h5file.get_node_attr(root, "testattr"), 41)
 
-        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertIsInstance(root.array, tables.Array)
         self.assertEqual(root.array._v_title, "array")
 
-        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
         self.assertTrue("var1" in root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
@@ -1667,10 +1667,10 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
 
         self.assertEqual(self.h5file.get_node_attr(root, "testattr"), 41)
 
-        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertIsInstance(root.array, tables.Array)
         self.assertEqual(root.array._v_title, "array")
 
-        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
         self.assertTrue("var1" in root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
@@ -1690,18 +1690,18 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.get_node_attr(root, "testattr"), 41)
         self.assertEqual(self.h5file.get_node_attr(root, "testattr2"), 42)
 
-        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertIsInstance(root.array, tables.Array)
         self.assertEqual(root.array._v_title, "array")
 
-        self.assertTrue(isinstance(root.array2, tables.Array))
+        self.assertIsInstance(root.array2, tables.Array)
         self.assertEqual(root.array2._v_title, "array2")
 
-        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
         self.assertTrue("var1" in root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
-        self.assertTrue(isinstance(root.table2, tables.Table))
+        self.assertIsInstance(root.table2, tables.Table)
         self.assertEqual(root.table2._v_title, "table2")
         self.assertTrue("var2" in root.table2.colnames)
         self.assertEqual(root.table2.cols.var2.dtype, tables.FloatCol().dtype)
@@ -1722,10 +1722,10 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
 
         self.assertEqual(self.h5file.get_node_attr(root, "testattr"), 41)
 
-        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertIsInstance(root.array, tables.Array)
         self.assertEqual(root.array._v_title, "array")
 
-        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
         self.assertTrue("var1" in root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
@@ -1744,18 +1744,18 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.get_node_attr(root, "testattr"), 41)
         self.assertEqual(self.h5file.get_node_attr(root, "testattr2"), 42)
 
-        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertIsInstance(root.array, tables.Array)
         self.assertEqual(root.array._v_title, "array")
 
-        self.assertTrue(isinstance(root.array2, tables.Array))
+        self.assertIsInstance(root.array2, tables.Array)
         self.assertEqual(root.array2._v_title, "array2")
 
-        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
         self.assertTrue("var1" in root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
-        self.assertTrue(isinstance(root.table2, tables.Table))
+        self.assertIsInstance(root.table2, tables.Table)
         self.assertEqual(root.table2._v_title, "table2")
         self.assertTrue("var2" in root.table2.colnames)
         self.assertEqual(root.table2.cols.var2.dtype, tables.FloatCol().dtype)
@@ -1863,10 +1863,10 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
         self.assertEqual(self.h5file.get_node_attr(root, "testattr"), 41)
 
-        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertIsInstance(root.array, tables.Array)
         self.assertEqual(root.array._v_title, "array")
 
-        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
         self.assertTrue("var1" in root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
@@ -1890,10 +1890,10 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
         self.assertEqual(self.h5file.get_node_attr(root, "testattr"), 41)
 
-        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertIsInstance(root.array, tables.Array)
         self.assertEqual(root.array._v_title, "array")
 
-        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
         self.assertTrue("var1" in root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
@@ -1937,10 +1937,10 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
         self.assertEqual(self.h5file.get_node_attr(root, "testattr"), 41)
 
-        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertIsInstance(root.array, tables.Array)
         self.assertEqual(root.array._v_title, "array")
 
-        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
         self.assertTrue("var1" in root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
@@ -1975,10 +1975,10 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
         self.assertEqual(self.h5file.get_node_attr(root, "testattr"), 41)
 
-        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertIsInstance(root.array, tables.Array)
         self.assertEqual(root.array._v_title, "array")
 
-        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
         self.assertTrue("var1" in root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
@@ -2011,10 +2011,10 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
         self.assertEqual(self.h5file.get_node_attr(root, "testattr"), 41)
 
-        self.assertTrue(isinstance(root.array, tables.Array))
+        self.assertIsInstance(root.array, tables.Array)
         self.assertEqual(root.array._v_title, "array")
 
-        self.assertTrue(isinstance(root.table, tables.Table))
+        self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
         self.assertTrue("var1" in root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)

@@ -774,7 +774,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             a1 = self.h5file.create_array(root, 'a1', a)
             b1 = self.h5file.create_array(root, 'b1', b)
             two = np.int32(2)
-            self.assertTrue(isinstance(two, np.integer))
+            self.assertIsInstance(two, np.integer)
             expr = tables.Expr("two * a1-b1")
             r1 = expr.eval()
             a = np.array([1, 2, 3], 'int32')

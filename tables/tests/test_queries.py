@@ -739,7 +739,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         def where_with_locals():
             bound = 'foo'  # this wouldn't cause an error
             # silence pyflakes warnings
-            self.assertTrue(isinstance(bound, str))
+            self.assertIsInstance(bound, str)
             self.table.where('c_string > bound', {'bound': 0})
         self.assertRaises(NotImplementedError, where_with_locals)
 
@@ -747,7 +747,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
             global _gvar
             _gvar = 'foo'  # this wouldn't cause an error
             # silence pyflakes warnings
-            self.assertTrue(isinstance(_gvar, str))
+            self.assertIsInstance(_gvar, str)
             try:
                 self.table.where('c_string > _gvar', {'_gvar': 0})
             finally:
