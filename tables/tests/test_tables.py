@@ -1966,7 +1966,7 @@ class NonNestedTableReadTestCase(common.TempFileMixin, TestCase):
         try:
             self.table.read(out=output)
         except TypeError as exc:
-            self.assertTrue("Optional 'out' argument may only be" in str(exc))
+            self.assertIn("Optional 'out' argument may only be", str(exc))
 
     def test_read_all_out_arg(self):
         output = np.empty(self.shape, self.dtype)
@@ -2034,7 +2034,7 @@ class NonNestedTableReadTestCase(common.TempFileMixin, TestCase):
         try:
             self.table.read(out=output)
         except ValueError as exc:
-            self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertIn('output array size invalid, got', str(exc))
 
     def test_specified_field_buffer_too_small(self):
         output = np.empty((99, ), 'i4')
@@ -2043,7 +2043,7 @@ class NonNestedTableReadTestCase(common.TempFileMixin, TestCase):
         try:
             self.table.read(field='f5', out=output)
         except ValueError as exc:
-            self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertIn('output array size invalid, got', str(exc))
 
     def test_all_fields_buffer_too_large(self):
         output = np.empty((101, ), self.dtype)
@@ -2051,7 +2051,7 @@ class NonNestedTableReadTestCase(common.TempFileMixin, TestCase):
         try:
             self.table.read(out=output)
         except ValueError as exc:
-            self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertIn('output array size invalid, got', str(exc))
 
 
 class TableReadByteorderTestCase(common.TempFileMixin, TestCase):
@@ -2116,7 +2116,7 @@ class TableReadByteorderTestCase(common.TempFileMixin, TestCase):
         try:
             self.table.read(out=output)
         except ValueError as exc:
-            self.assertTrue("array must be in system's byteorder" in str(exc))
+            self.assertIn("array must be in system's byteorder", str(exc))
 
     def test_table_other_byteorder_out_argument_other_byteorder(self):
         self.create_table(self.other_byteorder)
@@ -2127,7 +2127,7 @@ class TableReadByteorderTestCase(common.TempFileMixin, TestCase):
         try:
             self.table.read(out=output)
         except ValueError as exc:
-            self.assertTrue("array must be in system's byteorder" in str(exc))
+            self.assertIn("array must be in system's byteorder", str(exc))
 
 
 class BasicRangeTestCase(common.TempFileMixin, TestCase):
@@ -4517,7 +4517,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         for (cpathname, col1) in cinst1.items():
             self.assertTrue(cpathname in cinst2)
             col2 = cinst2[cpathname]
-            self.assertTrue(isinstance(col1, type(col2)))
+            self.assertIsInstance(col1, type(col2))
             if isinstance(col1, Column):
                 self.assertEqual(col1.name, col2.name)
                 self.assertEqual(col1.pathname, col2.pathname)
@@ -6237,8 +6237,8 @@ class RowContainsTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("row -->", row[:])
         for item in (1, 2, 3):
-            self.assertTrue(item in row)
-        self.assertTrue(4 not in row)
+            self.assertIn(item, row)
+        self.assertNotIn(4, row)
 
 
 class AccessClosedTestCase(common.TempFileMixin, TestCase):

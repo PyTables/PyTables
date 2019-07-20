@@ -258,7 +258,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
 
         # Get the node again, as this can trigger errors in some situations
         anarray1 = self.h5file.root.anarray1
-        self.assertTrue(anarray1 is not None)
+        self.assertIsNotNone(anarray1)
 
         self.assertEqual(title, "Array title 1")
 
@@ -458,8 +458,8 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
         # Now overwrite the destination node.
         anarray = self.h5file.root.anarray
         self.h5file.rename_node(anarray, 'array', overwrite=True)
-        self.assertTrue('/anarray' not in self.h5file)
-        self.assertTrue(self.h5file.root.array is anarray)
+        self.assertNotIn('/anarray', self.h5file)
+        self.assertIs(self.h5file.root.array, anarray)
 
     def test08b_renameToNotValidNaturalName(self):
         """Checking renaming a node to a non-valid natural name"""
@@ -556,16 +556,16 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
 
         # Load intermediate groups and keep a nested one alive.
         g = self.h5file.root.agroup.agroup3.agroup4
-        self.assertTrue(g is not None)
+        self.assertIsNotNone(g)
         self.h5file.rename_node('/', name='agroup', newname='agroup_')
 
         # see ticket #126
-        self.assertTrue('/agroup_/agroup4' not in self.h5file)
+        self.assertNotIn('/agroup_/agroup4', self.h5file)
 
-        self.assertTrue('/agroup' not in self.h5file)
+        self.assertNotIn('/agroup', self.h5file)
         for newpath in ['/agroup_', '/agroup_/agroup3',
                         '/agroup_/agroup3/agroup4']:
-            self.assertTrue(newpath in self.h5file)
+            self.assertIn(newpath, self.h5file)
             self.assertEqual(
                 newpath, self.h5file.get_node(newpath)._v_pathname)
 
@@ -725,7 +725,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
                               overwrite=True)
         dstNode = self.h5file.root.table
 
-        self.assertTrue(srcNode is dstNode)
+        self.assertIs(srcNode, dstNode)
 
     def test11_moveGroup(self):
         """Checking moving a Group and access it after a close/open."""
@@ -822,7 +822,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
                               overwrite=True)
         dstNode = self.h5file.root.agroup
 
-        self.assertTrue(srcNode is dstNode)
+        self.assertIs(srcNode, dstNode)
 
     def test12a_moveNodeOverItself(self):
         """Checking moving a node over itself."""
@@ -834,7 +834,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
         self.h5file.move_node(srcNode, self.h5file.root, 'array')
         dstNode = self.h5file.root.array
 
-        self.assertTrue(srcNode is dstNode)
+        self.assertIs(srcNode, dstNode)
 
     def test12b_moveGroupIntoItself(self):
         """Checking moving a group into itself."""
@@ -855,7 +855,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
                                          self.h5file.root.agroup2)
         dstNode = self.h5file.root.agroup2.array
 
-        self.assertTrue(new_node is dstNode)
+        self.assertIs(new_node, dstNode)
 
     def test13b_copyGroup(self):
         """Copying a group."""
@@ -867,7 +867,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
                                          self.h5file.root.agroup)
         dstNode = self.h5file.root.agroup.agroup2
 
-        self.assertTrue(new_node is dstNode)
+        self.assertIs(new_node, dstNode)
 
     def test13c_copyGroupSelf(self):
         """Copying a group into itself."""
@@ -879,7 +879,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
                                          self.h5file.root.agroup2)
         dstNode = self.h5file.root.agroup2.agroup2
 
-        self.assertTrue(new_node is dstNode)
+        self.assertIs(new_node, dstNode)
 
     def test13d_copyGroupRecursive(self):
         """Recursively copying a group."""
@@ -891,13 +891,13 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
             self.h5file.root.agroup, self.h5file.root.agroup2, recursive=True)
         dstNode = self.h5file.root.agroup2.agroup
 
-        self.assertTrue(new_node is dstNode)
+        self.assertIs(new_node, dstNode)
         dstChild1 = dstNode.anarray1
-        self.assertTrue(dstChild1 is not None)
+        self.assertIsNotNone(dstChild1)
         dstChild2 = dstNode.anarray2
-        self.assertTrue(dstChild2 is not None)
+        self.assertIsNotNone(dstChild2)
         dstChild3 = dstNode.agroup3
-        self.assertTrue(dstChild3 is not None)
+        self.assertIsNotNone(dstChild3)
 
     def test13e_copyRootRecursive(self):
         """Recursively copying the root group into the root of another file."""
@@ -912,10 +912,10 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
                 self.h5file.root, h5file2.root, recursive=True)
             dstNode = h5file2.root
 
-            self.assertTrue(new_node is dstNode)
-            self.assertTrue("/agroup" in h5file2)
-            self.assertTrue("/agroup/anarray1" in h5file2)
-            self.assertTrue("/agroup/agroup3" in h5file2)
+            self.assertIs(new_node, dstNode)
+            self.assertIn("/agroup", h5file2)
+            self.assertIn("/agroup/anarray1", h5file2)
+            self.assertIn("/agroup/agroup3", h5file2)
 
         finally:
             h5file2.close()
@@ -936,10 +936,10 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
                 self.h5file.root, h5file2.root.agroup2, recursive=True)
             dstNode = h5file2.root.agroup2
 
-            self.assertTrue(new_node is dstNode)
-            self.assertTrue("/agroup2/agroup" in h5file2)
-            self.assertTrue("/agroup2/agroup/anarray1" in h5file2)
-            self.assertTrue("/agroup2/agroup/agroup3" in h5file2)
+            self.assertIs(new_node, dstNode)
+            self.assertIn("/agroup2/agroup", h5file2)
+            self.assertIn("/agroup2/agroup/anarray1", h5file2)
+            self.assertIn("/agroup2/agroup/agroup3", h5file2)
 
         finally:
             h5file2.close()
@@ -950,7 +950,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
 
         self._reopen(mode="r+", node_cache_slots=self.node_cache_slots)
         agroup2 = self.h5file.root
-        self.assertTrue(agroup2 is not None)
+        self.assertIsNotNone(agroup2)
 
         # h5file.root => h5file.root
         self.assertRaises(IOError, self.h5file.copy_node,
@@ -975,7 +975,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
                                          newname='agroup', overwrite=True)
         dstNode = self.h5file.root.agroup
 
-        self.assertTrue(new_node is dstNode)
+        self.assertIs(new_node, dstNode)
 
     def test14b2_copyNodeExistingOverwrite(self):
         """Copying over an existing node in other file, overwriting it."""
@@ -995,7 +995,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
                                              overwrite=True, recursive=True)
             dstNode = h5file2.root
 
-            self.assertTrue(new_node is dstNode)
+            self.assertIs(new_node, dstNode)
         finally:
             h5file2.close()
             os.remove(h5fname2)
@@ -1039,7 +1039,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
         self.h5file.move_node(srcNode, self.h5file.root.agroup, 'array')
         dstNode = self.h5file.root.agroup.array
 
-        self.assertTrue(srcNode is dstNode)
+        self.assertIs(srcNode, dstNode)
 
     def test15b_oneStepCopy(self):
         """Copying and renaming a node in a single action."""
@@ -1051,7 +1051,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
             self.h5file.root.anarray1, self.h5file.root.agroup, 'array')
         dstNode = self.h5file.root.agroup.array
 
-        self.assertTrue(new_node is dstNode)
+        self.assertIs(new_node, dstNode)
 
     def test16a_fullCopy(self):
         """Copying full data and user attributes."""
@@ -1064,7 +1064,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
             srcNode, newname='groupcopy', recursive=True)
         dstNode = self.h5file.root.groupcopy
 
-        self.assertTrue(new_node is dstNode)
+        self.assertIs(new_node, dstNode)
         self.assertEqual(srcNode._v_attrs.testattr, dstNode._v_attrs.testattr)
         self.assertEqual(
             srcNode.anarray1.attrs.testattr, dstNode.anarray1.attrs.testattr)
@@ -1083,7 +1083,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
             start=0, stop=5, step=2)
         dstNode = self.h5file.root.groupcopy
 
-        self.assertTrue(new_node is dstNode)
+        self.assertIs(new_node, dstNode)
         self.assertFalse(hasattr(dstNode._v_attrs, 'testattr'))
         self.assertFalse(hasattr(dstNode.anarray1.attrs, 'testattr'))
         self.assertEqual(srcNode.anarray1.read()[
@@ -1105,7 +1105,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
                 srcNode, h5file2.root, newname='groupcopy', recursive=True)
             dstNode = h5file2.root.groupcopy
 
-            self.assertTrue(new_node is dstNode)
+            self.assertIs(new_node, dstNode)
             self.assertEqual(srcNode._v_attrs.testattr,
                              dstNode._v_attrs.testattr)
             self.assertEqual(
@@ -1157,8 +1157,8 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
 
         for node in [self.h5file.root.agroup, self.h5file.root.anarray]:
             node._f_close()
-            self.assertTrue('closed' in str(node))
-            self.assertTrue('closed' in repr(node))
+            self.assertIn('closed', str(node))
+            self.assertIn('closed', repr(node))
 
     def test19_fileno(self):
         """Checking that the 'fileno()' method works."""
@@ -1269,7 +1269,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print()
             print("\nPyTables format version number ==> %s" % version)
-        self.assertTrue(version is None)
+        self.assertIsNone(version)
 
     def test04_openGenericHDF5File(self):
         """Checking opening of a generic HDF5 file."""
@@ -1313,7 +1313,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         with tables.open_file(h5fname) as h5file:
             with self.assertWarns(UserWarning):
                 node = h5file.get_node('/CompoundChunked')
-            self.assertTrue(isinstance(node, UnImplemented))
+            self.assertIsInstance(node, UnImplemented)
 
     def test04c_UnImplementedScalar(self):
         """Checking opening of HDF5 files containing scalar dataset of
@@ -1322,7 +1322,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         with tables.open_file(test_filename("scalar.h5")) as h5file:
             with self.assertWarns(UserWarning):
                 node = h5file.get_node('/variable length string')
-            self.assertTrue(isinstance(node, UnImplemented))
+            self.assertIsInstance(node, UnImplemented)
 
     def test05_copyUnimplemented(self):
         """Checking that an UnImplemented object cannot be copied."""
@@ -1427,13 +1427,13 @@ class PythonAttrsTestCase(common.TempFileMixin, TestCase):
         attr = 'foobar'
         self.assertWarns(NaturalNameWarning, setattr, root, 'test', attr)
 
-        self.assertTrue(root.test is attr)
-        self.assertTrue(root._f_get_child('test') is child)
+        self.assertIs(root.test, attr)
+        self.assertIs(root._f_get_child('test'), child)
 
         # Now bring ``/test`` again to light.
         del root.test
 
-        self.assertTrue(root.test is child)
+        self.assertIs(root.test, child)
 
         # Now there is no *attribute* named ``test``.
         self.assertRaises(AttributeError,
@@ -1452,13 +1452,13 @@ class PythonAttrsTestCase(common.TempFileMixin, TestCase):
                          h5file.create_array, root, 'test', [1])
         child = h5file.get_node('/test')
 
-        self.assertTrue(root.test is attr)
-        self.assertTrue(root._f_get_child('test') is child)
+        self.assertIs(root.test, attr)
+        self.assertIs(root._f_get_child('test'), child)
 
         # Now bring ``/test`` again to light.
         del root.test
 
-        self.assertTrue(root.test is child)
+        self.assertIs(root.test, child)
 
         # Now there is no *attribute* named ``test``.
         self.assertRaises(AttributeError, delattr, root, 'test')
@@ -1476,8 +1476,8 @@ class PythonAttrsTestCase(common.TempFileMixin, TestCase):
         array2.array1 = array1
 
         # Check the assignments.
-        self.assertTrue(array1.array2 is array2)
-        self.assertTrue(array2.array1 is array1)
+        self.assertIs(array1.array2, array2)
+        self.assertIs(array2.array1, array1)
         self.assertRaises(NoSuchNodeError,  # ``/array1`` is not a group
                           h5file.get_node, '/array1/array2')
         self.assertRaises(NoSuchNodeError,  # ``/array2`` is not a group
@@ -1497,10 +1497,10 @@ class PythonAttrsTestCase(common.TempFileMixin, TestCase):
         self.assertWarns(NaturalNameWarning, setattr, root, 'array', array)
 
         # Check the assignments.
-        self.assertTrue(root.arrayAlias is array)
-        self.assertTrue(root.array is array)
+        self.assertIs(root.arrayAlias, array)
+        self.assertIs(root.array, array)
         self.assertRaises(NoSuchNodeError, h5file.get_node, '/arrayAlias')
-        self.assertTrue(h5file.get_node('/array') is array)
+        self.assertIs(h5file.get_node('/array'), array)
 
         # Remove the attribute overshadowing the child.
         del root.array
@@ -1695,16 +1695,16 @@ class StateTestCase(common.TempFileMixin, TestCase):
             self.fail("closed parent group has not been reopened")
 
         # Already open nodes should be closed now, but not the new ones.
-        self.assertTrue(g2._v_isopen is False,
+        self.assertIs(g2._v_isopen, False,
                         "open child of closed group has not been closed")
-        self.assertTrue(g2_._v_isopen is True,
+        self.assertIs(g2_._v_isopen, True,
                         "open child of closed group has not been closed")
 
         # And existing closed ones should remain closed, but not the new ones.
         g1_ = self.h5file.get_node('/g1')
-        self.assertTrue(g1._v_isopen is False,
+        self.assertIs(g1._v_isopen, False,
                         "already closed group is not closed anymore")
-        self.assertTrue(g1_._v_isopen is True,
+        self.assertIs(g1_._v_isopen, True,
                         "newly opened group is still closed")
 
     def test19b_getNode(self):
@@ -1740,8 +1740,8 @@ class StateTestCase(common.TempFileMixin, TestCase):
         # should have been automatically closed when removed.
         self.assertRaises(ClosedNodeError, array._f_remove)
 
-        self.assertTrue('/group/array' not in self.h5file)  # just in case
-        self.assertTrue('/group' not in self.h5file)  # just in case
+        self.assertNotIn('/group/array', self.h5file)  # just in case
+        self.assertNotIn('/group', self.h5file)  # just in case
 
     def test21_attrsOfNode(self):
         """Test manipulating the attributes of a closed node."""
@@ -2215,7 +2215,7 @@ except tables.HDF5ExtError, e:
                                  stderr=subprocess.PIPE)
             (stdout, stderr) = p.communicate()
 
-            self.assertFalse("HDF5-DIAG" in stderr.decode('ascii'))
+            self.assertNotIn("HDF5-DIAG", stderr.decode('ascii'))
         finally:
             os.remove(filename)
 
@@ -2240,7 +2240,7 @@ except tables.HDF5ExtError as e:
                                  stderr=subprocess.PIPE)
             (stdout, stderr) = p.communicate()
 
-            self.assertTrue("HDF5-DIAG" in stderr.decode('ascii'))
+            self.assertIn("HDF5-DIAG", stderr.decode('ascii'))
         finally:
             os.remove(filename)
 
@@ -2260,7 +2260,7 @@ except tables.HDF5ExtError as e:
         with self.assertRaises(tables.HDF5ExtError) as cm:
             self._raise_exterror()
 
-        self.assertFalse(cm.exception.h5backtrace is None)
+        self.assertIsNotNone(cm.exception.h5backtrace)
 
     def test_h5_backtrace_verbose(self):
         tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
@@ -2268,9 +2268,9 @@ except tables.HDF5ExtError as e:
         with self.assertRaises(tables.HDF5ExtError) as cm:
             self._raise_exterror()
 
-        self.assertFalse(cm.exception.h5backtrace is None)
+        self.assertIsNotNone(cm.exception.h5backtrace)
         msg = str(cm.exception)
-        self.assertTrue(cm.exception.h5backtrace[-1][-1] in msg)
+        self.assertIn(cm.exception.h5backtrace[-1][-1], msg)
 
     def test_h5_backtrace_ignore(self):
         tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = False
@@ -2278,7 +2278,7 @@ except tables.HDF5ExtError as e:
         with self.assertRaises(tables.HDF5ExtError) as cm:
             self._raise_exterror()
 
-        self.assertTrue(cm.exception.h5backtrace is None)
+        self.assertIsNone(cm.exception.h5backtrace)
 
 
 class TestDescription(TestCase):
@@ -2290,17 +2290,17 @@ class TestDescription(TestCase):
         class TestDesc(TestDescParent):
             pass
 
-        self.assertTrue('c' in TestDesc.columns)
+        self.assertIn('c', TestDesc.columns)
 
     def test_descr_from_dtype(self):
         t = numpy.dtype([('col1', 'int16'), ('col2', float)])
         descr, byteorder = descr_from_dtype(t)
 
-        self.assertTrue('col1' in descr._v_colobjects)
-        self.assertTrue('col2' in descr._v_colobjects)
+        self.assertIn('col1', descr._v_colobjects)
+        self.assertIn('col2', descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
-        self.assertTrue(isinstance(descr._v_colobjects['col1'], Col))
-        self.assertTrue(isinstance(descr._v_colobjects['col2'], Col))
+        self.assertIsInstance(descr._v_colobjects['col1'], Col)
+        self.assertIsInstance(descr._v_colobjects['col2'], Col)
         self.assertEqual(descr._v_colobjects['col1'].dtype, numpy.int16)
         self.assertEqual(descr._v_colobjects['col2'].dtype, float)
 
@@ -2328,10 +2328,10 @@ class TestDescription(TestCase):
         descr, byteorder = descr_from_dtype(d_comp)
 
         self.assertTrue(descr._v_is_nested)
-        self.assertTrue('time' in descr._v_colobjects)
-        self.assertTrue('value' in descr._v_colobjects)
+        self.assertIn('time', descr._v_colobjects)
+        self.assertIn('value', descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
-        self.assertTrue(isinstance(descr._v_colobjects['time'], Col))
+        self.assertIsInstance(descr._v_colobjects['time'], Col)
         self.assertTrue(isinstance(descr._v_colobjects['value'],
                                    tables.Description))
         self.assertEqual(descr._v_colobjects['time'].dtype, numpy.float64)
@@ -2351,10 +2351,10 @@ class TestDescription(TestCase):
             descr, byteorder = descr_from_dtype(d_comp)
 
         self.assertTrue(descr._v_is_nested)
-        self.assertTrue('time' in descr._v_colobjects)
-        self.assertTrue('value' in descr._v_colobjects)
+        self.assertIn('time', descr._v_colobjects)
+        self.assertIn('value', descr._v_colobjects)
         self.assertEqual(len(descr._v_colobjects), 2)
-        self.assertTrue(isinstance(descr._v_colobjects['time'], Col))
+        self.assertIsInstance(descr._v_colobjects['time'], Col)
         self.assertTrue(isinstance(descr._v_colobjects['value'],
                                    tables.Description))
         self.assertEqual(descr._v_colobjects['time'].dtype, numpy.float64)
@@ -2420,7 +2420,7 @@ class TestDescription(TestCase):
         d = {'name': tables.Int16Col()}
         descr = Description(d)
         self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
-        self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
+        self.assertIsInstance(descr._v_dtype, numpy.dtype)
         self.assertTrue(sorted(descr._v_dtype.fields.keys()),
                         sorted(d.keys()))
 
@@ -2432,7 +2432,7 @@ class TestDescription(TestCase):
         d = {str('name'): tables.Int16Col()}
         descr = Description(d)
         self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
-        self.assertTrue(isinstance(descr._v_dtype, numpy.dtype))
+        self.assertIsInstance(descr._v_dtype, numpy.dtype)
         keys = []
         for key in list(d.keys()):
             if isinstance(key, str):

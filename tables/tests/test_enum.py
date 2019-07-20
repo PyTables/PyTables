@@ -100,7 +100,7 @@ class CreateColTestCase(TestCase):
             template % ', '.join(items) for items in itertools.permutations(
                 ("'blue': 2", "'green': 1", "'red': 0"))
         ]
-        self.assertTrue(repr(enumcol) in permitations)
+        self.assertIn(repr(enumcol), permitations)
 
     def test99a_nonIntEnum(self):
         """Describing an enumerated column of floats (not implemented)."""

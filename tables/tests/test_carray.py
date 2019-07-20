@@ -1101,7 +1101,7 @@ class ReadOutArgumentTests(common.TempFileMixin, TestCase):
         try:
             disk_array.read(0, self.size, 1, out_buffer)
         except ValueError as exc:
-            self.assertTrue('output array size invalid, got' in str(exc))
+            self.assertIn('output array size invalid, got', str(exc))
 
 
 class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):

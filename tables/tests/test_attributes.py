@@ -79,9 +79,9 @@ class CreateTestCase(common.TempFileMixin, TestCase):
 
     def check_missing(self,name):
         self.reopen()
-        self.assertFalse(name in self.root.agroup._v_attrs)
-        self.assertFalse(name in self.root.atable.attrs)
-        self.assertFalse(name in self.root.anarray.attrs)
+        self.assertNotIn(name, self.root.agroup._v_attrs)
+        self.assertNotIn(name, self.root.atable.attrs)
+        self.assertNotIn(name, self.root.anarray.attrs)
 
 
     def check_name(self, name, val = ''):
@@ -569,7 +569,7 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         attrs = self.group._v_attrs
         attrs.pq = "1"
         del attrs['pq']
-        self.assertTrue('pq' not in attrs._f_list())
+        self.assertNotIn('pq', attrs._f_list())
 
     def test11d_KeyError(self):
         """Checking that KeyError is raised in __getitem__/__delitem__."""
@@ -743,9 +743,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.bool_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.bool_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.bool_))
+        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.bool_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.bool_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.bool_)
         self.assertEqual(self.root.anarray.attrs.pq, True)
         self.assertEqual(self.root.anarray.attrs.qr, False)
         self.assertEqual(self.root.anarray.attrs.rs, True)
@@ -819,9 +819,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.int_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.int_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.int_))
+        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.int_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.int_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.int_)
         self.assertEqual(self.root.anarray.attrs.pq, 1)
         self.assertEqual(self.root.anarray.attrs.qr, 2)
         self.assertEqual(self.root.anarray.attrs.rs, 3)
@@ -951,9 +951,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.float_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.float_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.float_))
+        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.float_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.float_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.float_)
         self.assertTrue(self.root.anarray.attrs.pq, 1.0)
         self.assertTrue(self.root.anarray.attrs.qr, 2.0)
         self.assertTrue(self.root.anarray.attrs.rs, 3.0)
@@ -1110,9 +1110,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.str_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.str_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.str_))
+        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.str_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.str_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.str_)
         self.assertEqual(self.root.anarray.attrs.pq, 'foo')
         self.assertEqual(self.root.anarray.attrs.qr, 'bar')
         self.assertEqual(self.root.anarray.attrs.rs, 'baz')
@@ -1237,9 +1237,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.root.anarray.attrs.pq, numpy.complex_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.qr, numpy.complex_))
-        self.assertTrue(isinstance(self.root.anarray.attrs.rs, numpy.complex_))
+        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.complex_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.complex_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.complex_)
         self.assertEqual(self.root.anarray.attrs.pq, 1.0 + 2j)
         self.assertEqual(self.root.anarray.attrs.qr, 2.0 + 3j)
         self.assertEqual(self.root.anarray.attrs.rs, 3.0 + 4j)
@@ -1348,9 +1348,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.array.attrs.pq, numpy.unicode_))
-        self.assertTrue(isinstance(self.array.attrs.qr, numpy.unicode_))
-        self.assertTrue(isinstance(self.array.attrs.rs, numpy.unicode_))
+        self.assertIsInstance(self.array.attrs.pq, numpy.unicode_)
+        self.assertIsInstance(self.array.attrs.qr, numpy.unicode_)
+        self.assertIsInstance(self.array.attrs.rs, numpy.unicode_)
         self.assertEqual(self.array.attrs.pq, u'para\u0140lel')
         self.assertEqual(self.array.attrs.qr, u'')
         self.assertEqual(self.array.attrs.rs, u'baz')
@@ -1481,9 +1481,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
-        self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
-        self.assertTrue(isinstance(self.array.attrs.rs, numpy.ndarray))
+        self.assertIsInstance(self.array.attrs.pq, numpy.ndarray)
+        self.assertIsInstance(self.array.attrs.qr, numpy.ndarray)
+        self.assertIsInstance(self.array.attrs.rs, numpy.ndarray)
         assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
         assert_array_equal(self.array.attrs.qr, numpy.ones((2, 2), dt))
         assert_array_equal(self.array.attrs.rs, numpy.array([(1, 2.)], dt))
@@ -1511,9 +1511,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
-        self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
-        self.assertTrue(isinstance(self.array.attrs.rs, numpy.ndarray))
+        self.assertIsInstance(self.array.attrs.pq, numpy.ndarray)
+        self.assertIsInstance(self.array.attrs.qr, numpy.ndarray)
+        self.assertIsInstance(self.array.attrs.rs, numpy.ndarray)
         assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
         assert_array_equal(self.array.attrs.qr, numpy.ones((2, 2), dt))
         assert_array_equal(self.array.attrs.rs, numpy.array([((1, 2),)], dt))
@@ -1542,9 +1542,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
-        self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
-        self.assertTrue(isinstance(self.array.attrs.rs, numpy.ndarray))
+        self.assertIsInstance(self.array.attrs.pq, numpy.ndarray)
+        self.assertIsInstance(self.array.attrs.qr, numpy.ndarray)
+        self.assertIsInstance(self.array.attrs.rs, numpy.ndarray)
         assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
         assert_array_equal(self.array.attrs.qr, numpy.ones((2, 2), dt))
         assert_array_equal(self.array.attrs.rs, numpy.array(
@@ -1572,9 +1572,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertTrue(isinstance(self.array.attrs.pq, numpy.ndarray))
-        self.assertTrue(isinstance(self.array.attrs.qr, numpy.ndarray))
-        self.assertTrue(isinstance(self.array.attrs.rs, numpy.ndarray))
+        self.assertIsInstance(self.array.attrs.pq, numpy.ndarray)
+        self.assertIsInstance(self.array.attrs.qr, numpy.ndarray)
+        self.assertIsInstance(self.array.attrs.rs, numpy.ndarray)
         assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
         assert_array_equal(self.array.attrs.qr, numpy.ones((2, 2), dt))
         assert_array_equal(self.array.attrs.rs, numpy.array([(1, 2.)], dt))

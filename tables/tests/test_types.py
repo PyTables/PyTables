@@ -166,7 +166,7 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
         dtype = "float16"
         if hasattr(numpy, dtype):
             ds = getattr(self.h5file.root, dtype)
-            self.assertFalse(isinstance(ds, tables.UnImplemented))
+            self.assertNotIsInstance(ds, tables.UnImplemented)
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
             self.assertEqual(ds.dtype, dtype)
             self.assertTrue(common.allequal(
@@ -174,12 +174,12 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
         else:
             with self.assertWarns(UserWarning):
                 ds = getattr(self.h5file.root, dtype)
-            self.assertTrue(isinstance(ds, tables.UnImplemented))
+            self.assertIsInstance(ds, tables.UnImplemented)
 
     def test02_read_float32(self):
         dtype = "float32"
         ds = getattr(self.h5file.root, dtype)
-        self.assertFalse(isinstance(ds, tables.UnImplemented))
+        self.assertNotIsInstance(ds, tables.UnImplemented)
         self.assertEqual(ds.shape, (self.nrows, self.ncols))
         self.assertEqual(ds.dtype, dtype)
         self.assertTrue(common.allequal(
@@ -188,7 +188,7 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
     def test03_read_float64(self):
         dtype = "float64"
         ds = getattr(self.h5file.root, dtype)
-        self.assertFalse(isinstance(ds, tables.UnImplemented))
+        self.assertNotIsInstance(ds, tables.UnImplemented)
         self.assertEqual(ds.shape, (self.nrows, self.ncols))
         self.assertEqual(ds.dtype, dtype)
         self.assertTrue(common.allequal(
@@ -198,7 +198,7 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
         dtype = "longdouble"
         if hasattr(tables, "Float96Atom") or hasattr(tables, "Float128Atom"):
             ds = getattr(self.h5file.root, dtype)
-            self.assertFalse(isinstance(ds, tables.UnImplemented))
+            self.assertNotIsInstance(ds, tables.UnImplemented)
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
             self.assertEqual(ds.dtype, dtype)
             self.assertTrue(common.allequal(
@@ -214,7 +214,7 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
             try:
                 with self.assertWarns(UserWarning):
                     ds = getattr(self.h5file.root, dtype)
-                self.assertTrue(isinstance(ds, tables.UnImplemented))
+                self.assertIsInstance(ds, tables.UnImplemented)
             except AssertionError:
                 from tables.utilsextension import _broken_hdf5_long_double
                 if not _broken_hdf5_long_double():
@@ -226,7 +226,7 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
         try:
             with self.assertWarns(UserWarning):
                 ds = self.h5file.root.quadprecision
-            self.assertTrue(isinstance(ds, tables.UnImplemented))
+            self.assertIsInstance(ds, tables.UnImplemented)
         except AssertionError:
             # NOTE: it would be nice to have some sort of message that warns
             #       against the potential precision loss: the quad-precision
@@ -242,7 +242,7 @@ class AtomTestCase(TestCase):
         atom2 = atom1.copy()
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
-        self.assertFalse(atom1 is atom2)
+        self.assertIsNot(atom1, atom2)
 
     def test_init_parameters_02(self):
         atom1 = StringAtom(itemsize=12)

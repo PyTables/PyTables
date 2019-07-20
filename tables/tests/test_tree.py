@@ -165,20 +165,20 @@ class TreeTestCase(common.TempFileMixin, TestCase):
 
         # This tree ways of get_node usage should return a table instance
         table = self.h5file.get_node("/group0/table1")
-        self.assertTrue(isinstance(table, Table))
+        self.assertIsInstance(table, Table)
         table = self.h5file.get_node("/group0", "table1")
-        self.assertTrue(isinstance(table, Table))
+        self.assertIsInstance(table, Table)
         table = self.h5file.get_node(self.h5file.root.group0, "table1")
-        self.assertTrue(isinstance(table, Table))
+        self.assertIsInstance(table, Table)
 
         # This should return an array instance
         arr = self.h5file.get_node("/group0/var1")
-        self.assertTrue(isinstance(arr, Array))
-        self.assertTrue(isinstance(arr, Leaf))
+        self.assertIsInstance(arr, Array)
+        self.assertIsInstance(arr, Leaf)
 
         # And this a Group
         group = self.h5file.get_node("/group0", "group1", "Group")
-        self.assertTrue(isinstance(group, Group))
+        self.assertIsInstance(group, Group)
 
     def test02_listNodes(self):
         """Checking the File.list_nodes() method"""
@@ -609,8 +609,8 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
 
                 # Check the contents
                 self.assertEqual(group.array[:], [1, 1])
-                self.assertTrue("array2" in group)
-                self.assertTrue("group2_"+str(depth) in group)
+                self.assertIn("array2", group)
+                self.assertIn("group2_"+str(depth), group)
 
                 # Iterate over the next group
                 group = h5file.get_node(group, 'group' + str(depth))
@@ -922,7 +922,7 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
 
         for group in self.h5file.walk_groups('/'):
             pathname = group._v_pathname
-            self.assertTrue(pathname not in hidden,
+            self.assertNotIn(pathname, hidden,
                             "Walked across hidden group ``%s``." % pathname)
 
     def test03_walkNodes(self):
@@ -932,7 +932,7 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
 
         for node in self.h5file.walk_nodes('/'):
             pathname = node._v_pathname
-            self.assertTrue(pathname not in hidden,
+            self.assertNotIn(pathname, hidden,
                             "Walked across hidden node ``%s``." % pathname)
 
     def test04_listNodesVisible(self):
@@ -942,7 +942,7 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
 
         for node in self.h5file.list_nodes('/g'):
             pathname = node._v_pathname
-            self.assertTrue(pathname not in hidden,
+            self.assertNotIn(pathname, hidden,
                             "Listed hidden node ``%s``." % pathname)
 
     def test04b_listNodesVisible(self):
@@ -952,7 +952,7 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
 
         for node in self.h5file.iter_nodes('/g'):
             pathname = node._v_pathname
-            self.assertTrue(pathname not in hidden,
+            self.assertNotIn(pathname, hidden,
                             "Listed hidden node ``%s``." % pathname)
 
     def test05_listNodesHidden(self):
@@ -966,7 +966,7 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
             pathname = node._v_pathname
             if pathname == node_to_find:
                 found_node = True
-            self.assertTrue(pathname in hidden,
+            self.assertIn(pathname, hidden,
                             "Listed hidden node ``%s``." % pathname)
 
         self.assertTrue(found_node,
@@ -983,7 +983,7 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
             pathname = node._v_pathname
             if pathname == node_to_find:
                 found_node = True
-            self.assertTrue(pathname in hidden,
+            self.assertIn(pathname, hidden,
                             "Listed hidden node ``%s``." % pathname)
 
         self.assertTrue(found_node,
@@ -1012,9 +1012,9 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
     def test08_remove(self):
         """Removing a visible group with hidden children."""
 
-        self.assertTrue('/g/_p_a' in self.h5file)
+        self.assertIn('/g/_p_a', self.h5file)
         self.h5file.root.g._f_remove(recursive=True)
-        self.assertFalse('/g/_p_a' in self.h5file)
+        self.assertNotIn('/g/_p_a', self.h5file)
 
 
 class CreateParentsTestCase(common.TempFileMixin, TestCase):
@@ -1051,17 +1051,17 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
         self.assertRaises(tables.NodeError, self.h5file.move_node,
                           '/group', '/group/foo/bar',
                           createparents=True)
-        self.assertFalse('/group/foo' in self.h5file)
+        self.assertNotIn('/group/foo', self.h5file)
         self.assertRaises(tables.NodeError, self.h5file.copy_node,
                           '/group', '/group/foo/bar',
                           recursive=True, createparents=True)
-        self.assertFalse('/group/foo' in self.h5fname)
+        self.assertNotIn('/group/foo', self.h5fname)
 
     def test02_filters(self):
         """Propagating the filters of created parent groups."""
 
         self.h5file.create_group('/group/foo/bar', 'baz', createparents=True)
-        self.assertTrue('/group/foo/bar/baz' in self.h5file)
+        self.assertIn('/group/foo/bar/baz', self.h5file)
         for group in self.h5file.walk_groups('/group'):
             self.assertEqual(self.filters, group._v_filters)
 
