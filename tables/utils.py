@@ -12,8 +12,6 @@
 
 """Utility functions."""
 
-from __future__ import print_function
-from __future__ import absolute_import
 import os
 import sys
 import warnings
@@ -24,7 +22,6 @@ from time import time
 import numpy
 
 from .flavor import array_of_flavor
-import six
 
 # The map between byteorders in NumPy and PyTables
 byteorders = {
@@ -51,7 +48,7 @@ def correct_byteorder(ptype, byteorder):
 def is_idx(index):
     """Checks if an object can work as an index or not."""
 
-    if type(index) in six.integer_types:
+    if type(index) is int:
         return True
     elif hasattr(index, "__index__"):  # Only works on Python 2.5 (PEP 357)
         # Exclude the array([idx]) as working as an index.  Fixes #303.
@@ -321,7 +318,7 @@ def log_instance_creation(instance, name=None):
 
 def string_to_classes(s):
     if s == '*':
-        c = sorted(six.iterkeys(tracked_classes))
+        c = sorted(tracked_classes.keys())
         return c
     else:
         return s.split()
@@ -356,7 +353,7 @@ def dump_logged_instances(classes, file=sys.stdout):
             obj = ref()
             if obj is not None:
                 file.write('    %s:\n' % obj)
-                for key, value in six.iteritems(obj.__dict__):
+                for key, value in obj.__dict__.items():
                     file.write('        %20s : %s\n' % (key, value))
 
 

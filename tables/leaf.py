@@ -11,7 +11,6 @@
 ########################################################################
 
 """Here is defined the Leaf class."""
-from __future__ import absolute_import
 
 import warnings
 import math
@@ -25,8 +24,6 @@ from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
 from .exceptions import PerformanceWarning
 from . import utilsextension
-import six
-from six.moves import range
 
 
 def csformula(expected_mb):
@@ -74,7 +71,6 @@ def calc_chunksize(expected_mb):
     return chunksize * 8
 
 
-@six.python_2_unicode_compatible
 class Leaf(Node):
     """Abstract base class for all PyTables leaves.
 

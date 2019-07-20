@@ -12,7 +12,6 @@
 ########################################################################
 
 """Here is defined the CArray class."""
-from __future__ import absolute_import
 
 import sys
 
@@ -21,7 +20,6 @@ import numpy
 from .atom import Atom
 from .array import Array
 from .utils import correct_byteorder, SizeType
-from six.moves import range
 
 
 # default version for CARRAY objects

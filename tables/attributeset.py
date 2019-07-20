@@ -11,12 +11,11 @@
 ########################################################################
 
 """Here is defined the AttributeSet class."""
-from __future__ import absolute_import
 
 import re
 import sys
 import warnings
-import six.moves.cPickle
+import pickle
 import numpy
 
 from . import hdf5extension
@@ -27,8 +26,6 @@ from .path import check_attribute_name
 from .undoredo import attr_to_shadow
 from .filters import Filters
 
-from six.moves import map
-import six
 
 
 # System attributes
@@ -72,7 +69,6 @@ def issysattrname(name):
         return False
 
 
-@six.python_2_unicode_compatible
 class AttributeSet(hdf5extension.AttributeSet, object):
     """Container for the HDF5 attributes of a Node.
 
@@ -327,7 +323,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             # This format was used during the first 1.2 releases, just
             # for string defaults.
             try:
-                retval = six.moves.cPickle.loads(value)
+                retval = pickle.loads(value)
                 retval = numpy.array(retval)
             except ImportError:
                 retval = None  # signal error avoiding exception
@@ -335,10 +331,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             # This is a big hack, but we don't have other way to recognize
             # pickled filters of PyTables 1.x files.
             value = _old_filters_re.sub(_new_filters_sub, value, 1)
-            retval = six.moves.cPickle.loads(value)  # pass unpickling errors through
+            retval = pickle.loads(value)  # pass unpickling errors through
         elif maybe_pickled:
             try:
-                retval = six.moves.cPickle.loads(value)
+                retval = pickle.loads(value)
             # except cPickle.UnpicklingError:
             # It seems that pickle may raise other errors than UnpicklingError
             # Perhaps it would be better just an "except:" clause?
@@ -351,10 +347,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 # unplicked as bytestrings. Hence try 'latin1' first.
                 # Ref: http://bugs.python.org/issue6784
                 try:
-                    retval = six.moves.cPickle.loads(value, encoding='latin1')
+                    retval = pickle.loads(value, encoding='latin1')
                 except TypeError:
                     try:
-                        retval = six.moves.cPickle.loads(value, encoding='bytes')
+                        retval = pickle.loads(value, encoding='bytes')
                     except:
                         retval = value
                 except:
@@ -371,7 +367,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 # explaining how the user can tell where the problem was.
                 retval = value
             # Additional check for allowing a workaround for #307
-            if isinstance(retval, six.text_type) and retval == u'':
+            if isinstance(retval, str) and retval == u'':
                 retval = numpy.array(retval)[()]
         elif name == 'FILTERS' and format_version is not None and format_version >= (2, 0):
             retval = Filters._unpack(value)
@@ -381,7 +377,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 retval = value
             else:
                 retval = value.decode('utf-8')
-        elif (issysattrname(name) and isinstance(value, (bytes, six.text_type)) and
+        elif (issysattrname(name) and isinstance(value, (bytes, str)) and
               not isinstance(value, str) and not _field_fill_re.match(name)):
             # system attributes should always be str
             if sys.version_info[0] < 3:
@@ -424,10 +420,10 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         # (only in case it has not been converted yet)
         # Fixes ticket #59
         if (stvalue is value and
-                type(value) in (bool, bytes, int, float, complex, six.text_type,
+                type(value) in (bool, bytes, int, float, complex, str,
                                 numpy.unicode_)):
             # Additional check for allowing a workaround for #307
-            if isinstance(value, six.text_type) and len(value) == 0:
+            if isinstance(value, str) and len(value) == 0:
                 stvalue = numpy.array(u'')
             else:
                 stvalue = numpy.array(value)

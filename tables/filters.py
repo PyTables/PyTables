@@ -11,7 +11,6 @@
 ########################################################################
 
 """Functionality related with filters in a PyTables file."""
-from __future__ import absolute_import
 
 # Imports
 # =======
@@ -20,7 +19,6 @@ import numpy
 
 from . import utilsextension, blosc_compressor_list, blosc_compcode_to_compname
 from .exceptions import FiltersWarning
-import six
 from distutils.version import LooseVersion
 
 import tables
@@ -57,7 +55,6 @@ _bitshuffle_flag = 0x8
 
 # Classes
 # =======
-@six.python_2_unicode_compatible
 class Filters(object):
     """Container for filter properties.
 
@@ -202,7 +199,7 @@ class Filters(object):
         kwargs = dict(complevel=0, shuffle=False, bitshuffle=False,
                       fletcher32=False, least_significant_digit=None,
                       _new=False)
-        for (name, values) in six.iteritems(filters_dict):
+        for (name, values) in filters_dict.items():
             if name == 'deflate':
                 name = 'zlib'
             if name in all_complibs:

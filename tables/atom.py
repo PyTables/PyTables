@@ -11,7 +11,6 @@
 ########################################################################
 
 """Atom classes for describing dataset contents."""
-from __future__ import absolute_import
 
 # Imports
 # =======
@@ -25,8 +24,7 @@ import numpy
 from .utils import SizeType
 from .misc.enum import Enum
 
-import six.moves.cPickle
-import six
+import pickle
 
 from .exceptions import FlavorWarning
 
@@ -119,7 +117,7 @@ def _abstract_atom_init(deftype, defvalue):
 def _normalize_shape(shape):
     """Check that the `shape` is safe to be used and return it as a tuple."""
 
-    if isinstance(shape, (numpy.integer, six.integer_types)):
+    if isinstance(shape, (numpy.integer, int)):
         if shape < 1:
             raise ValueError("shape value must be greater than 0: %d"
                              % shape)
@@ -221,7 +219,7 @@ class MetaAtom(type):
 
 # Atom classes
 # ============
-class Atom(six.with_metaclass(MetaAtom, object)):
+class Atom(metaclass=MetaAtom):
     """Defines the type of atomic cells stored in a dataset.
 
     The meaning of *atomic* is that individual elements of a cell can
@@ -758,7 +756,7 @@ class ComplexAtom(Atom):
         Atom.__init__(self, self.type, shape, dflt)
 
 
-class _ComplexErrorAtom(six.with_metaclass(type, ComplexAtom)):
+class _ComplexErrorAtom(ComplexAtom, metaclass=type):
     """Reminds the user to stop using the old complex atom names."""
 
     def __init__(self, shape=(), dflt=ComplexAtom._defvalue):
@@ -1124,7 +1122,7 @@ class VLStringAtom(_BufferedAtom):
     base = UInt8Atom()
 
     def _tobuffer(self, object_):
-        if isinstance(object_, six.text_type):
+        if isinstance(object_, str):
             warnings.warn("Storing non bytestrings in VLStringAtom is "
                           "deprecated.", DeprecationWarning)
         elif not isinstance(object_, bytes):
@@ -1170,9 +1168,9 @@ class VLUnicodeAtom(_BufferedAtom):
             if isinstance(object_, bytes):
                 warnings.warn("Storing bytestrings in VLUnicodeAtom is "
                               "deprecated.", DeprecationWarning)
-            elif not isinstance(object_, six.text_type):
+            elif not isinstance(object_, str):
                 raise TypeError("object is not a string: %r" % (object_,))
-            ustr = six.text_type(object_)
+            ustr = str(object_)
             uarr = numpy.array(ustr, dtype='U')
             return numpy.ndarray(
                 buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
@@ -1184,7 +1182,7 @@ class VLUnicodeAtom(_BufferedAtom):
         if isinstance(object_, bytes):
             warnings.warn("Storing bytestrings in VLUnicodeAtom is "
                           "deprecated.", DeprecationWarning)
-        elif not isinstance(object_, six.text_type):
+        elif not isinstance(object_, str):
             raise TypeError("object is not a string: %r" % (object_,))
         return numpy.unicode_(object_)
 
@@ -1216,7 +1214,7 @@ class ObjectAtom(_BufferedAtom):
     base = UInt8Atom()
 
     def _tobuffer(self, object_):
-        return six.moves.cPickle.dumps(object_, six.moves.cPickle.HIGHEST_PROTOCOL)
+        return pickle.dumps(object_, pickle.HIGHEST_PROTOCOL)
 
     def fromarray(self, array):
         # We have to check for an empty array because of a possible
@@ -1224,4 +1222,4 @@ class ObjectAtom(_BufferedAtom):
         # record when in fact it is empty.
         if array.size == 0:
             return None
-        return six.moves.cPickle.loads(array.tostring())
+        return pickle.loads(array.tostring())

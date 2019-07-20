@@ -45,14 +45,12 @@ Variables
     friendlier interfaces to flavor conversion.
 
 """
-from __future__ import absolute_import
 
 # Imports
 # =======
 import warnings
 
 from .exceptions import FlavorError, FlavorWarning
-import six
 
 
 # Public variables
@@ -296,7 +294,7 @@ def _deregister_aliases(flavor):
     """Deregister aliases of a given `flavor` (no checks)."""
 
     rm_aliases = []
-    for (an_alias, a_flavor) in six.iteritems(alias_map):
+    for (an_alias, a_flavor) in alias_map.items():
         if a_flavor == flavor:
             rm_aliases.append(an_alias)
     for an_alias in rm_aliases:

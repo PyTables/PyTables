@@ -11,7 +11,6 @@
 ########################################################################
 
 """PyTables nodes."""
-from __future__ import absolute_import
 
 import warnings
 import functools
@@ -23,7 +22,6 @@ from .path import join_path, split_path, isvisiblepath
 from .utils import lazyattr
 from .undoredo import move_to_shadow
 from .attributeset import AttributeSet, NotLoggedAttributeSet
-import six
 
 
 __docformat__ = 'reStructuredText'
@@ -94,7 +92,7 @@ class MetaNode(type):
                 class_id_dict[cid] = class_
 
 
-class Node(six.with_metaclass(MetaNode, object)):
+class Node(metaclass=MetaNode):
     """Abstract base class for all PyTables nodes.
 
     This is the base class for *all* nodes in a PyTables hierarchy. It is an

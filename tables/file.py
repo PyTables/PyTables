@@ -20,8 +20,6 @@ nodes.
 
 """
 
-from __future__ import print_function
-from __future__ import absolute_import
 import os
 import sys
 import time
@@ -61,9 +59,6 @@ from .atom import Atom
 
 from .link import SoftLink, ExternalLink
 
-import six
-from six.moves import map
-from six.moves import range
 
 
 
@@ -576,7 +571,6 @@ class NodeManager(object):
                 node._f_close()
 
 
-@six.python_2_unicode_compatible
 class File(hdf5extension.File, object):
     """The in-memory representation of a PyTables file.
 
@@ -759,14 +753,14 @@ class File(hdf5extension.File, object):
                              "'r', 'r+', 'a' and 'w'" % mode)
 
         # Get all the parameters in parameter file(s)
-        params = dict([(k, v) for k, v in six.iteritems(parameters.__dict__)
+        params = dict([(k, v) for k, v in parameters.__dict__.items()
                        if k.isupper() and not k.startswith('_')])
         # Update them with possible keyword arguments
         if [k for k in kwargs if k.isupper()]:
             warnings.warn("The use of uppercase keyword parameters is "
                           "deprecated", DeprecationWarning)
 
-        kwargs = dict([(k.upper(), v) for k, v in six.iteritems(kwargs)])
+        kwargs = dict([(k.upper(), v) for k, v in kwargs.items()])
         params.update(kwargs)
 
         # If MAX_ * _THREADS is not set yet, set it to the number of cores
@@ -1642,7 +1636,7 @@ class File(hdf5extension.File, object):
             basepath = where._v_pathname
             nodepath = join_path(basepath, name or '') or '/'
             node = where._v_file._get_node(nodepath)
-        elif isinstance(where, (six.string_types, numpy.str_)):
+        elif isinstance(where, (str, numpy.str_)):
             if not where.startswith('/'):
                 raise NameError("``where`` must start with a slash ('/')")
 
@@ -2462,7 +2456,7 @@ class File(hdf5extension.File, object):
             markid = mark
         elif isinstance(mark, str):
             if mark not in self._markers:
-                lmarkers = sorted(six.iterkeys(self._markers))
+                lmarkers = sorted(self._markers.keys())
                 raise UndoRedoError("The mark that you have specified has not "
                                     "been found in the internal marker list: "
                                     "%r" % lmarkers)

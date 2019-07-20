@@ -11,8 +11,6 @@
 ########################################################################
 
 """Declare exceptions and warnings that are specific to PyTables."""
-from __future__ import absolute_import
-import six
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
@@ -23,7 +21,6 @@ import warnings
 import traceback
 
 
-@six.python_2_unicode_compatible
 class HDF5ExtError(RuntimeError):
     """A low level HDF5 operation failed.
 
@@ -164,7 +161,7 @@ class HDF5ExtError(RuntimeError):
                 "End of HDF5 error back trace"
             ])
 
-            if len(self.args) == 1 and isinstance(self.args[0], six.string_types):
+            if len(self.args) == 1 and isinstance(self.args[0], str):
                 msg = super(HDF5ExtError, self).__str__()
                 msg = "%s\n\n%s" % (bt, msg)
             elif self.h5backtrace[-1][-1]:

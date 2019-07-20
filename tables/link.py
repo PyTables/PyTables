@@ -26,7 +26,6 @@ Functions:
 Misc variables:
 
 """
-from __future__ import absolute_import
 
 import os
 import tables
@@ -34,7 +33,6 @@ from . import linkextension
 from .node import Node
 from .utils import lazyattr
 from .attributeset import AttributeSet
-import six
 import tables.file
 
 
@@ -139,7 +137,6 @@ class Link(Node):
         return str(self)
 
 
-@six.python_2_unicode_compatible
 class SoftLink(linkextension.SoftLink, Link):
     """Represents a soft link (aka symbolic link).
 
@@ -325,7 +322,6 @@ class SoftLink(linkextension.SoftLink, Link):
                                       self.target, dangling)
 
 
-@six.python_2_unicode_compatible
 class ExternalLink(linkextension.ExternalLink, Link):
     """Represents an external link.
 

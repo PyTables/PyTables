@@ -11,7 +11,6 @@
 ########################################################################
 
 """Here is defined the Table class."""
-from __future__ import absolute_import
 
 import math
 import operator
@@ -45,9 +44,6 @@ from .index import (
     OldIndex, default_index_filters, default_auto_index, Index, IndexesDescG,
     IndexesTableG)
 
-import six
-from six.moves import range
-from six.moves import zip
 
 profile = False
 # profile = True  # Uncomment for profiling
@@ -166,7 +162,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
 
     # Get the values in expression that are not columns
     values = []
-    for key, value in six.iteritems(condvars):
+    for key, value in condvars.items():
         if isinstance(value, numpy.ndarray):
             values.append((key, value.item()))
     # Build a key for the sequence cache
@@ -349,7 +345,7 @@ class _ColIndexes(dict):
     def __repr__(self):
         """Gives a detailed Description column representation."""
 
-        rep = ['  \"%s\": %s' % (k, self[k]) for k in six.iterkeys(self)]
+        rep = ['  \"%s\": %s' % (k, self[k]) for k in self.keys()]
         return '{\n  %s}' % (',\n  '.join(rep))
 
 
@@ -570,14 +566,14 @@ class Table(tableextension.Table, Leaf):
 
         # First, do a check to see whether we need to set default values
         # different from 0 or not.
-        for coldflt in six.itervalues(self.coldflts):
+        for coldflt in self.coldflts.values():
             if isinstance(coldflt, numpy.ndarray) or coldflt:
                 break
         else:
             # No default different from 0 found.  Returning None.
             return None
         wdflts = self._get_container(1)
-        for colname, coldflt in six.iteritems(self.coldflts):
+        for colname, coldflt in self.coldflts.items():
             ra = get_nested_field(wdflts, colname)
             ra[:] = coldflt
         return wdflts
@@ -1282,7 +1278,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                     "not allowed in conditions" % var)
             else:  # only non-column values are converted to arrays
                 # XXX: not 100% sure about this
-                if isinstance(val, six.text_type):
+                if isinstance(val, str):
                     val = numpy.asarray(val.encode('ascii'))
                 else:
                     val = numpy.asarray(val)
@@ -1302,7 +1298,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         colnames, varnames = [], []
         # Column paths and types for each of the previous variable.
         colpaths, vartypes = [], []
-        for (var, val) in six.iteritems(condvars):
+        for (var, val) in condvars.items():
             if hasattr(val, 'pathname'):  # column
                 colnames.append(var)
                 colpaths.append(val.pathname)
@@ -2519,7 +2515,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Update the number of unsaved indexed rows
             start = self._indexedrows
             nrows = self._unsaved_indexedrows
-            for (colname, colindexed) in six.iteritems(self.colindexed):
+            for (colname, colindexed) in self.colindexed.items():
                 if colindexed:
                     col = self.cols._g_col(colname)
                     if nrows > 0 and not col.index.dirty:
@@ -2739,7 +2735,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Common code for `reindex()` and `reindex_dirty()`."""
 
         indexedrows = 0
-        for (colname, colindexed) in six.iteritems(self.colindexed):
+        for (colname, colindexed) in self.colindexed.items():
             if colindexed:
                 indexcol = self.cols._g_col(colname)
                 indexedrows = indexcol._do_reindex(dirty)
@@ -3000,7 +2996,6 @@ very small/large chunksize, you may want to increase/decrease it."""
                 (str(self), self.description, self.byteorder, self.chunkshape)
 
 
-@six.python_2_unicode_compatible
 class Cols(object):
     """Container for columns in a table or nested column.
 
@@ -3275,7 +3270,6 @@ class Cols(object):
         return out
 
 
-@six.python_2_unicode_compatible
 class Column(object):
     """Accessor for a non-nested column in a table.
 
@@ -3589,7 +3583,7 @@ class Column(object):
         kinds = ['ultralight', 'light', 'medium', 'full']
         if kind not in kinds:
             raise ValueError("Kind must have any of these values: %s" % kinds)
-        if (not isinstance(optlevel, six.integer_types) or
+        if (not isinstance(optlevel, int) or
                 (optlevel < 0 or optlevel > 9)):
             raise ValueError("Optimization level must be an integer in the "
                              "range 0-9")

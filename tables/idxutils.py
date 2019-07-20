@@ -11,9 +11,7 @@
 ########################################################################
 
 """Utilities to be used mainly by the Index class."""
-from __future__ import absolute_import
 
-import six
 import sys
 import math
 import numpy
@@ -472,7 +470,7 @@ def nextafter(x, direction, dtype, itemsize):
     direction."""
 
     assert direction in [-1, 0, +1]
-    assert dtype.kind == "S" or type(x) in (bool, float) + six.integer_types
+    assert dtype.kind == "S" or type(x) in (bool, float, int)
 
     if direction == 0:
         return x

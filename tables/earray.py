@@ -11,13 +11,11 @@
 ########################################################################
 
 """Here is defined the EArray class."""
-from __future__ import absolute_import
 
 import numpy
 
 from .utils import convert_to_np_atom2, SizeType
 from .carray import CArray
-from six.moves import range
 
 
 # default version for EARRAY objects
