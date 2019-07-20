@@ -1,19 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import absolute_import
 import os
 import sys
-import six.moves.queue
 import shutil
 import platform
 import tempfile
 import warnings
 import threading
 import subprocess
-import six
-from six.moves import range
-from six.moves import zip
+import queue
 
 try:
     import multiprocessing as mp
@@ -157,7 +152,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
     def test00_newFile_unicode_filename(self):
         temp_dir = tempfile.mkdtemp()
         try:
-            h5fname = six.text_type(os.path.join(temp_dir, 'test.h5'))
+            h5fname = str(os.path.join(temp_dir, 'test.h5'))
             with tables.open_file(h5fname, 'w') as h5file:
                 self.assertTrue(h5file, tables.File)
         finally:
@@ -1406,7 +1401,7 @@ class ThreadingTestCase(common.TempFileMixin, TestCase):
                 q.put('OK')
 
         threads = []
-        q = six.moves.queue.Queue()
+        q = queue.Queue()
         for i in range(10):
             t = threading.Thread(target=run, args=(filename, q))
             t.start()
@@ -2434,13 +2429,13 @@ class TestDescription(TestCase):
         # see gh-42
         # the name used is a valid ASCII identifier passed as unicode
         # string
-        d = {six.text_type('name'): tables.Int16Col()}
+        d = {str('name'): tables.Int16Col()}
         descr = Description(d)
         self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
         self.assertIsInstance(descr._v_dtype, numpy.dtype)
         keys = []
         for key in list(d.keys()):
-            if isinstance(key, six.text_type):
+            if isinstance(key, str):
                 keys.append(key.encode())
             else:
                 keys.append(key)

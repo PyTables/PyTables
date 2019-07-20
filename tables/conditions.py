@@ -29,7 +29,6 @@ Functions:
     Evaluate a function over a structured array.
 
 """
-from __future__ import absolute_import
 
 import re
 from numexpr.necompiler import typecode_to_kind
@@ -40,7 +39,6 @@ from numexpr.expressions import ExpressionNode
 from .utilsextension import get_nested_field
 from .utils import lazyattr
 
-from six.moves import zip
 
 _no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")
 # E.g. "gt" and "bfc" from "couldn't find matching opcode for 'gt_bfc'".

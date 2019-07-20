@@ -12,8 +12,6 @@
 
 """Here is defined the Index class."""
 
-from __future__ import print_function
-from __future__ import absolute_import
 
 import math
 import operator
@@ -45,8 +43,6 @@ from .utilsextension import (nan_aware_gt, nan_aware_ge,
                                    nan_aware_lt, nan_aware_le,
                                    bisect_left, bisect_right)
 from .lrucacheextension import ObjectCache
-import six
-from six.moves import range
 
 
 
@@ -106,7 +102,6 @@ def _table_column_pathname_of_index(indexpathname):
     return (tablepathname, colpathname)
 
 
-@six.python_2_unicode_compatible
 class Index(NotLoggedMixin, Group, indexesextension.Index):
     """Represents the index of a column in a table.
 

@@ -99,10 +99,10 @@ if __name__ == '__main__':
 
 
     # The minimum required versions
-    min_python_version = (2, 6)
+    min_python_version = (3, 4)
     # Check for Python
     if sys.version_info < min_python_version:
-        exit_with_error("You need Python 2.6 or greater to install PyTables!")
+        exit_with_error("You need Python 3.4 or greater to install PyTables!")
     print("* Using Python %s" % sys.version.splitlines()[0])
 
     # Minimum required versions for numpy, numexpr and HDF5
@@ -885,8 +885,7 @@ if __name__ == '__main__':
             print('AVX2 detected and enabled')
             if os.name == 'nt':
                 if LooseVersion(platform.python_version()) >= LooseVersion('3.5.0'):
-                    # Neither MSVC2008 for Python 2.7 or MSVC2010 for Python 3.4 have
-                    # sufficient AVX2 support
+                    # MSVC2010 for Python 3.4 does not have sufficient AVX2 support
                     def_macros += [('__AVX2__', 1)]
                     CFLAGS.append('-DSHUFFLE_AVX2_ENABLED')
                     blosc_sources += [f for f in glob.glob('c-blosc/blosc/*.c')
@@ -1020,7 +1019,6 @@ Intended Audience :: Information Technology
 Intended Audience :: Science/Research
 License :: OSI Approved :: BSD License
 Programming Language :: Python
-Programming Language :: Python :: 2
 Programming Language :: Python :: 3
 Topic :: Database
 Topic :: Software Development :: Libraries :: Python Modules

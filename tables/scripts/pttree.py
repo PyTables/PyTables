@@ -24,7 +24,6 @@ import os
 import argparse
 from collections import defaultdict, deque
 import warnings
-from six.moves import zip
 
 
 def _get_parser():

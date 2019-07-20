@@ -11,11 +11,7 @@
 ########################################################################
 
 """Proxy dictionary for objects stored in a container."""
-from __future__ import absolute_import
-
 import weakref
-import six
-
 
 
 class ProxyDict(dict):
@@ -49,32 +45,32 @@ class ProxyDict(dict):
     def __str__(self):
         # C implementation does not use `self.__getitem__()`. :(
         itemFormat = '%r: %r'
-        itemReprs = [itemFormat % item for item in six.iteritems(self)]
+        itemReprs = [itemFormat % item for item in self.items()]
         return '{%s}' % ', '.join(itemReprs)
 
     def values(self):
         # C implementation does not use `self.__getitem__()`. :(
         valueList = []
-        for key in six.iterkeys(self):
+        for key in self.keys():
             valueList.append(self[key])
         return valueList
 
     def itervalues(self):
         # C implementation does not use `self.__getitem__()`. :(
-        for key in six.iterkeys(self):
+        for key in self.keys():
             yield self[key]
         raise StopIteration
 
     def items(self):
         # C implementation does not use `self.__getitem__()`. :(
         itemList = []
-        for key in six.iterkeys(self):
+        for key in self.keys():
             itemList.append((key, self[key]))
         return itemList
 
     def iteritems(self):
         # C implementation does not use `self.__getitem__()`. :(
-        for key in six.iterkeys(self):
+        for key in self.keys():
             yield (key, self[key])
         raise StopIteration
 

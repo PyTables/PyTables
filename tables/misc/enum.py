@@ -27,9 +27,6 @@ concrete values out of its enumerated type.  For that kind of use,
 standard variables and constants are more adequate.
 
 """
-from __future__ import absolute_import
-import six
-
 
 
 __docformat__ = 'reStructuredText'
@@ -126,10 +123,10 @@ class Enum(object):
             for (value, name) in enumerate(enum):  # values become 0, 1, 2...
                 self._check_and_set_pair(name, value)
         elif isinstance(enum, dict):
-            for (name, value) in six.iteritems(enum):
+            for (name, value) in enum.items():
                 self._check_and_set_pair(name, value)
         elif isinstance(enum, Enum):
-            for (name, value) in six.iteritems(enum._names):
+            for (name, value) in enum._names.items():
                 self._check_and_set_pair(name, value)
         else:
             raise TypeError("""\
@@ -142,7 +139,7 @@ sequences, mappings and other enumerations""")
         names = self._names
         values = self._values
 
-        if not isinstance(name, six.string_types):
+        if not isinstance(name, str):
             raise TypeError(
                 "name of enumerated value is not a string: %r" % (name,))
         if name.startswith('_'):
@@ -162,7 +159,6 @@ sequences, mappings and other enumerations""")
         names[name] = value
         values[value] = name
         self.__dict__[name] = value
-
 
     def __getitem__(self, name):
         """Get the concrete value of the enumerated value with that name.
@@ -269,7 +265,7 @@ sequences, mappings and other enumerations""")
 
         """
 
-        if not isinstance(name, six.string_types):
+        if not isinstance(name, str):
             raise TypeError(
                 "name of enumerated value is not a string: %r" % (name,))
         return name in self._names
@@ -339,7 +335,7 @@ sequences, mappings and other enumerations""")
 
         """
 
-        for name_value in six.iteritems(self._names):
+        for name_value in self._names.items():
             yield name_value
 
     def __eq__(self, other):
@@ -451,7 +447,6 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-
 
 
 ## Local Variables:

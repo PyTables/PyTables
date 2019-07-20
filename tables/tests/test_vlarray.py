@@ -1,7 +1,5 @@
 # -*- coding: latin-1 -*-
 
-from __future__ import print_function
-from __future__ import absolute_import
 import sys
 
 import numpy
@@ -17,7 +15,6 @@ from tables.tests.common import allequal
 from tables.tests.common import unittest, test_filename, blosc_version
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.utils import byteorders
-from six.moves import range
 
 
 class C:

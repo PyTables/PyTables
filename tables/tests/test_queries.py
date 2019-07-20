@@ -11,7 +11,6 @@
 ########################################################################
 
 """Test module for queries on datasets."""
-from __future__ import absolute_import
 
 import re
 import sys
@@ -28,8 +27,6 @@ from tables.tests.common import unittest
 from tables.tests.common import verbosePrint as vprint
 from tables.tests.common import PyTablesTestCase as TestCase
 
-import six
-from six.moves import range
 
 from numpy import (log10, exp, log, abs, sqrt, sin, cos, tan,
                    arcsin, arccos, arctan)
@@ -96,10 +93,10 @@ if hasattr(numpy, 'float16'):
 #    type_info['complex256'] = (numpy.complex256, complex)
 
 sctype_from_type = dict((type_, info[0])
-                        for (type_, info) in six.iteritems(type_info))
+                        for (type_, info) in type_info.items())
 """Maps PyTables types to NumPy scalar types."""
 nxtype_from_type = dict((type_, info[1])
-                        for (type_, info) in six.iteritems(type_info))
+                        for (type_, info) in type_info.items())
 """Maps PyTables types to Numexpr types."""
 
 heavy_types = frozenset(['uint8', 'int16', 'uint16', 'float32', 'complex64'])
@@ -119,7 +116,7 @@ def append_columns(classdict, shape=()):
 
     """
     heavy = common.heavy
-    for (itype, type_) in enumerate(sorted(six.iterkeys(type_info))):
+    for (itype, type_) in enumerate(sorted(type_info.keys())):
         if not heavy and type_ in heavy_types:
             continue  # skip heavy type in non-heavy mode
         colpos = itype + 1
@@ -218,7 +215,7 @@ def fill_table(table, shape, nrows):
     row, value = table.row, 0
     for nrow in range(nrows):
         data = numpy.arange(value, value + size).reshape(shape)
-        for (type_, sctype) in six.iteritems(sctype_from_type):
+        for (type_, sctype) in sctype_from_type.items():
             if not heavy and type_ in heavy_types:
                 continue  # skip heavy type in non-heavy mode
             colname = 'c_%s' % type_
@@ -361,7 +358,7 @@ def create_test_method(type_, op, extracond, func=None):
                 'lbound': left_bound,
                 'rbound': right_bound,
                 'func_bound': func_bound}
-    for (bname, bvalue) in six.iteritems(condvars):
+    for (bname, bvalue) in condvars.items():
         if type_ == 'string':
             bvalue = str_format % bvalue
         bvalue = nxtype_from_type[type_](bvalue)

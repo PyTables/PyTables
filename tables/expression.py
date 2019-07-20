@@ -12,8 +12,6 @@
 
 """Here is defined the Expr class."""
 
-from __future__ import print_function
-from __future__ import absolute_import
 import sys
 import warnings
 
@@ -23,9 +21,6 @@ from numexpr.necompiler import getContext, getExprNames, getType, NumExpr
 from numexpr.expressions import functions as numexpr_functions
 from .exceptions import PerformanceWarning
 from .parameters import IO_BUFFER_SIZE, BUFFER_TIMES
-import six
-from six.moves import range
-from six.moves import zip
 
 
 class Expr(object):
@@ -187,7 +182,7 @@ class Expr(object):
         self.names, _ = getExprNames(expr, context)
 
         # Raise a ValueError in case we have unsupported objects
-        for name, var in six.iteritems(vars_):
+        for name, var in vars_.items():
             if type(var) in (int, float, str):
                 continue
             if not isinstance(var, (tb.Leaf, tb.Column)):
@@ -202,7 +197,7 @@ class Expr(object):
         # NumPy arrays to be copied? (we don't need to worry about
         # PyTables objects, as the reads always return contiguous and
         # aligned objects, or at least I think so).
-        for name, var in six.iteritems(vars_):
+        for name, var in vars_.items():
             if isinstance(var, np.ndarray):
                 # See numexpr.necompiler.evaluate for a rational
                 # of the code below

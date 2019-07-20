@@ -11,8 +11,6 @@ It also checks:
 
 """
 
-from __future__ import print_function
-from __future__ import absolute_import
 import os
 import sys
 import hashlib
@@ -33,7 +31,6 @@ from tables.utils import quantize
 from tables.tests import common
 from tables.tests.common import unittest, hdf5_version, blosc_version
 from tables.tests.common import PyTablesTestCase as TestCase
-from six.moves import range
 
 
 

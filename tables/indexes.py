@@ -12,7 +12,6 @@
 ########################################################################
 
 """Here is defined the IndexArray class."""
-from __future__ import absolute_import
 
 from bisect import bisect_left, bisect_right
 
@@ -20,7 +19,6 @@ from .node import NotLoggedMixin
 from .carray import CArray
 from .earray import EArray
 from . import indexesextension
-import six
 
 
 # Declarations for inheriting
@@ -41,7 +39,6 @@ class LastRowArray(indexesextension.LastRowArray, NotLoggedMixin, CArray):
     _c_classid = 'LASTROWARRAY'
 
 
-@six.python_2_unicode_compatible
 class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 

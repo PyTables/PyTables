@@ -2,8 +2,6 @@
 
 """This test unit checks node attributes that are persistent (AttributeSet)."""
 
-from __future__ import print_function
-from __future__ import absolute_import
 import sys
 import datetime
 import warnings
@@ -20,7 +18,6 @@ from tables.parameters import NODE_CACHE_SLOTS
 from tables.tests import common
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
-from six.moves import range
 
 
 class Record(IsDescription):

@@ -11,9 +11,7 @@
 ########################################################################
 
 """Here is defined the UnImplemented class."""
-from __future__ import absolute_import
 
-import six
 import warnings
 
 from . import hdf5extension
@@ -115,7 +113,6 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
 
 
 # Classes reported as H5G_UNKNOWN by HDF5
-@six.python_2_unicode_compatible
 class Unknown(Node):
     """This class represents nodes reported as *unknown* by the underlying
     HDF5 library.

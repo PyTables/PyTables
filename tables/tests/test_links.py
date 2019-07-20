@@ -12,8 +12,6 @@
 
 """Test module for diferent kind of links under PyTables."""
 
-from __future__ import print_function
-from __future__ import absolute_import
 import os
 import re
 import tempfile
@@ -22,7 +20,6 @@ import tables
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
-from six.moves import range
 
 
 # Test for hard links

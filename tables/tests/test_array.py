@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import absolute_import
 
 import os
 import sys
@@ -19,7 +17,6 @@ from tables.tests import common
 from tables.tests.common import allequal
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
-from six.moves import range
 
 
 #warnings.resetwarnings()
