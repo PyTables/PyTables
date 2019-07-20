@@ -954,9 +954,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         self.assertIsInstance(self.root.anarray.attrs.pq, numpy.float_)
         self.assertIsInstance(self.root.anarray.attrs.qr, numpy.float_)
         self.assertIsInstance(self.root.anarray.attrs.rs, numpy.float_)
-        self.assertTrue(self.root.anarray.attrs.pq, 1.0)
-        self.assertTrue(self.root.anarray.attrs.qr, 2.0)
-        self.assertTrue(self.root.anarray.attrs.rs, 3.0)
+        self.assertEqual(self.root.anarray.attrs.pq, 1.0)
+        self.assertEqual(self.root.anarray.attrs.qr, 2.0)
+        self.assertEqual(self.root.anarray.attrs.rs, 3.0)
 
     def test02b_setFloatAttributes(self):
         """Checking setting Float attributes (scalar, NumPy case)"""

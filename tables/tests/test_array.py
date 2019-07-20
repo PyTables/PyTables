@@ -324,7 +324,7 @@ class BasicTestCase(TestCase):
                                       lambda: fileh.root.somearray.read(out=b))
                 else:
                     fileh.root.somearray.read(out=b)
-                self.assertTrue(type(b), numpy.ndarray)
+                self.assertIsInstance(b, numpy.ndarray)
         finally:
             # Then, delete the file
             os.remove(filename)
@@ -363,7 +363,7 @@ class BasicTestCase(TestCase):
                                       lambda: fileh.root.somearray.read(out=b))
                 else:
                     fileh.root.somearray.read(out=b)
-                self.assertTrue(type(b), numpy.ndarray)
+                self.assertIsInstance(b, numpy.ndarray)
         finally:
             # Then, delete the file
             os.remove(filename)

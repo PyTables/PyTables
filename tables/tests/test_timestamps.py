@@ -117,7 +117,7 @@ class TimestampTestCase(TrackTimesMixin, common.TempFileMixin, TestCase):
                 else:
                     self.assertNotEqual(timestamps.ctime, 0)
                     tracked_ctimes.append(timestamps.ctime)
-            self.assertTrue(tracked_ctimes[1] >= tracked_ctimes[0])
+            self.assertGreaterEqual(tracked_ctimes[1], tracked_ctimes[0])
 
 
 class BitForBitTestCase(TrackTimesMixin, common.TempFileMixin, TestCase):

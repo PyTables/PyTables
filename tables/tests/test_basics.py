@@ -1170,7 +1170,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
         fd = self.h5file.fileno()
         if common.verbose:
             print("Value of fileno():", fd)
-        self.assertTrue(fd >= 0)
+        self.assertGreaterEqual(fd, 0)
 
 
 class NodeCacheOpenFile(OpenFileTestCase):
@@ -1226,7 +1226,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
 
         # When file is not an HDF5 format, always returns 0 or
         # negative value
-        self.assertTrue(version <= 0)
+        self.assertLessEqual(version, 0)
 
     def test01x_isHDF5File_nonexistent(self):
         """Identifying a nonexistent HDF5 file."""
@@ -1257,7 +1257,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print()
             print("\nPyTables format version number ==> %s" % version)
-        self.assertTrue(version >= "1.0")
+        self.assertGreaterEqual(version, "1.0")
 
     def test03_isPyTablesFile(self):
         """Checking is_pytables_file function (FALSE case)"""
@@ -1907,9 +1907,10 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
 
         try:
             tables.flavor.restrict_flavors(keep=[])
-            self.assertTrue(len(tables.flavor.alias_map) < len(alias_map))
-            self.assertTrue(len(
-                tables.flavor.converter_map) < len(converter_map))
+            self.assertLess(len(tables.flavor.alias_map), len(alias_map))
+            self.assertLess(
+                len(tables.flavor.converter_map),
+                len(converter_map))
         finally:
             tables.flavor.all_flavors[:] = all_flavors[:]
             tables.flavor.alias_map.update(alias_map)
@@ -2052,7 +2053,7 @@ class FilePropertyTestCase(TestCase):
 
         fs_filesize = os.stat(self.h5fname)[6]
 
-        self.assertTrue(h5_filesize >= datasize)
+        self.assertGreaterEqual(h5_filesize, datasize)
         self.assertEqual(h5_filesize, fs_filesize)
 
     def test01_null_userblock_size(self):

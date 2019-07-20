@@ -3192,7 +3192,7 @@ class LastRowReuseBuffers(TestCase):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertTrue(len(idx) > 0,
+            self.assertGreater(len(idx), 0,
                             "idx--> %s %s %s %s" % (idx, i, nrow, value))
             self.assertTrue(
                 nrow in idx,
@@ -3211,7 +3211,7 @@ class LastRowReuseBuffers(TestCase):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertTrue(len(idx) > 0,
+            self.assertGreater(len(idx), 0,
                             "idx--> %s %s %s %s" % (idx, i, nrow, value))
             self.assertTrue(
                 nrow in idx,
@@ -3230,7 +3230,7 @@ class LastRowReuseBuffers(TestCase):
             nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertTrue(len(idx) > 0,
+            self.assertGreater(len(idx), 0,
                             "idx--> %s %s %s %s" % (idx, i, nrow, value))
             self.assertTrue(
                 nrow in idx,

@@ -1911,7 +1911,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
         self.assertEqual(r1.tostring(), r2.tostring())
-        self.assertTrue(table.nrows, 4)
+        self.assertEqual(table.nrows, 4)
 
     def test05(self):
         """Checking modifying one column (single element, Row.update)"""

@@ -1922,7 +1922,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(
             abs(self.table.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertEqual(self.table.size_in_memory, 10 * 1000 * 10 * 4)
-        self.assertTrue(self.table.size_on_disk < self.table.size_in_memory)
+        self.assertLess(self.table.size_on_disk, self.table.size_in_memory)
 
 
 class NonNestedTableReadTestCase(common.TempFileMixin, TestCase):
