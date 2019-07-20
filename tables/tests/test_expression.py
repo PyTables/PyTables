@@ -12,8 +12,6 @@
 
 """Test module for evaluating expressions under PyTables."""
 
-from __future__ import print_function
-from __future__ import absolute_import
 
 import numpy as np
 
@@ -21,8 +19,6 @@ import tables
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
-import six
-from six.moves import range
 
 # An example of record
 
@@ -38,7 +34,7 @@ class Record(tables.IsDescription):
 # Helper functions
 def get_sliced_vars(npvars, start, stop, step):
     npvars_ = {}
-    for name, var in six.iteritems(npvars):
+    for name, var in npvars.items():
         if hasattr(var, "__len__"):
             npvars_[name] = var[start:stop:step]
         else:
@@ -50,7 +46,7 @@ def get_sliced_vars2(npvars, start, stop, step, shape, maindim):
     npvars_ = {}
     slices = [slice(None) for dim in shape]
     slices[maindim] = slice(start, stop, step)
-    for name, var in six.iteritems(npvars):
+    for name, var in npvars.items():
         npvars_[name] = var.__getitem__(tuple(slices))
     return npvars_
 

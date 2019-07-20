@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import absolute_import
 import os
 import sys
 import tempfile
@@ -24,9 +22,6 @@ from tables.tests.common import allequal, areArraysEqual
 from tables.tests.common import unittest, hdf5_version, blosc_version
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
-import six
-from six.moves import range
-from six.moves import zip
 
 
 # To know whether the interpreter is 32 or 64 bit
@@ -1579,7 +1574,7 @@ class DictWriteTestCase(BasicTestCase):
 @unittest.skipIf(sys.version_info >= (3,), 'requires Python 2')
 class DictWriteTestCase2(DictWriteTestCase):
     record = RecordDescriptionDict.copy()
-    record[six.text_type('var1')] = record.pop('var1')
+    record['var1'] = record.pop('var1')
 
 
 # Pure NumPy dtype
@@ -4519,7 +4514,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
 
         cinst1, cinst2 = table1.colinstances, table2.colinstances
         self.assertEqual(len(cinst1), len(cinst2))
-        for (cpathname, col1) in six.iteritems(cinst1):
+        for (cpathname, col1) in cinst1.items():
             self.assertTrue(cpathname in cinst2)
             col2 = cinst2[cpathname]
             self.assertTrue(isinstance(col1, type(col2)))

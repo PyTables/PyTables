@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import absolute_import
 import os
 import copy
 import tempfile
@@ -20,8 +18,6 @@ from tables.tests import common
 from tables.tests.common import verbose, allequal, heavy, TempFileMixin
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
-import six
-from six.moves import range
 
 
 # Sensible parameters for indexing with small blocksizes
@@ -71,7 +67,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             table.row.append()
         table.flush()
         # Index all entries:
-        for col in six.itervalues(table.colinstances):
+        for col in table.colinstances.values():
             indexrows = col.create_index(_blocksizes=small_blocksizes)
         if verbose:
             print("Number of written rows:", self.nrows)
@@ -615,7 +611,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             table.row.append()
         table.flush()
         # Index all entries:
-        for col in six.itervalues(table.colinstances):
+        for col in table.colinstances.values():
             indexrows = col.create_index(_blocksizes=small_blocksizes)
             self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index
@@ -662,7 +658,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             table.row.append()
         table.flush()
         # Index all entries:
-        for col in six.itervalues(table.colinstances):
+        for col in table.colinstances.values():
             indexrows = col.create_index(_blocksizes=small_blocksizes)
             self.assertTrue(indexrows is not None)
         idxcol = table.cols.var1.index

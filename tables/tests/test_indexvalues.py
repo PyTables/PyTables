@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import absolute_import
 import os
 import random
 import tempfile
@@ -15,8 +13,6 @@ from tables.tests import common
 from tables.tests.common import verbose, heavy
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
-import six
-from six.moves import range
 
 
 # An alias for frozenset
@@ -108,7 +104,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
             # Make sure nrowsinbuf is a multiple of chunkshape
             table1.nrowsinbuf -= table1.nrowsinbuf % self.chunkshape
         # Index all entries:
-        for col in six.itervalues(table1.colinstances):
+        for col in table1.colinstances.values():
             indexrows = col.create_index(
                 kind=self.kind, _blocksizes=self.blocksizes)
         if verbose:

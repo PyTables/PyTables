@@ -1,10 +1,11 @@
 import sys
+from io import StringIO
+
 try:
     from unittest.mock import patch
 except ImportError:
     from mock import patch
 
-import six
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
@@ -44,7 +45,7 @@ class ptdumpTestCase(TestCase):
     """Test ptdump"""
 
     @patch.object(ptdump, 'open_file')
-    @patch('sys.stdout', new_callable=six.StringIO)
+    @patch('sys.stdout', new_callable=StringIO)
     def test_paths_windows(self, _, mock_open_file):
         """Checking handling of windows filenames: test gh-616"""
 
@@ -66,7 +67,7 @@ class pttreeTestCase(TestCase):
 
     @patch.object(pttree.tables, 'open_file')
     @patch.object(pttree, 'get_tree_str')
-    @patch('sys.stdout', new_callable=six.StringIO)
+    @patch('sys.stdout', new_callable=StringIO)
     def test_paths_windows(self, _, mock_get_tree_str, mock_open_file):
         """Checking handling of windows filenames: test gh-616"""
 

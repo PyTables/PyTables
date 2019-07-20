@@ -13,8 +13,6 @@
 
 """Test module for nested types under PyTables."""
 
-from __future__ import print_function
-from __future__ import absolute_import
 import sys
 import itertools
 
@@ -26,8 +24,6 @@ from tables.tests import common
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import Description
-import six
-from six.moves import range
 
 minRowIndex = 10
 
@@ -165,7 +161,7 @@ def areDescriptionsEqual(desc1, desc2):
     if len(cols1) != len(cols2):
         return False
 
-    for (colName, colobj1) in six.iteritems(cols1):
+    for (colName, colobj1) in cols1.items():
         colobj2 = cols2[colName]
         if colName == '_v_pos':
             # The comparison may not be quite exhaustive!

@@ -11,7 +11,6 @@
 ########################################################################
 
 """Test module for enumerated types under PyTables."""
-from __future__ import absolute_import
 
 import operator
 import itertools
@@ -20,7 +19,6 @@ import tables
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
-from six.moves import range
 
 
 class CreateColTestCase(TestCase):

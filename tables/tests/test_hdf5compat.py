@@ -11,7 +11,6 @@
 ########################################################################
 
 """Test module for compatibility with plain HDF files."""
-from __future__ import absolute_import
 
 import os
 import shutil
@@ -24,8 +23,6 @@ from tables.tests import common
 from tables.tests.common import allequal
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
-import six
-from six.moves import range
 
 
 class EnumTestCase(common.TestFileMixin, TestCase):
@@ -301,7 +298,7 @@ class MatlabFileTestCase(common.TestFileMixin, TestCase):
     h5fname = test_filename('matlab_file.mat')
 
     def test_unicode(self):
-        array = self.h5file.get_node(six.text_type('/'), six.text_type('a'))
+        array = self.h5file.get_node('/', 'a')
         self.assertEqual(array.shape, (3, 1))
 
     # in Python 3 this will be the same as the test above

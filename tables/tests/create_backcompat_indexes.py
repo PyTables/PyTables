@@ -1,11 +1,9 @@
-from __future__ import absolute_import
 # -*- coding: utf-8 -*-
 
 # Script for creating different kind of indexes in a small space as possible.
 # This is intended for testing purposes.
 
 import tables
-from six.moves import range
 
 
 class Descr(tables.IsDescription):

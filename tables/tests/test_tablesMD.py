@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import absolute_import
 import sys
 
 import numpy as np
@@ -16,7 +14,6 @@ from tables.tests.common import allequal
 from tables.tests.common import unittest
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
-from six.moves import range
 
 
 # It is important that columns are ordered according to their names

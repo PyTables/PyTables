@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import absolute_import
 
 from tables.tests import common
 from tables.tests.common import verbose
 from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
-from six.moves import range
 
 
 # Check indexes from PyTables version 2.0
