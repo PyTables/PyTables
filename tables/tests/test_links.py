@@ -315,11 +315,11 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         larr1 = self.h5file.get_node('/lgroup1/larr1')
         arr1 = self.h5file.get_node('/arr1')
         # get
-        self.assertTrue(larr1.shape == (2,))
-        self.assertTrue(larr1[:] == [1, 2])
+        self.assertEqual(larr1.shape, (2,))
+        self.assertEqual(larr1[:], [1, 2])
         # set
         larr1[0] = -1
-        self.assertTrue(arr1[:] == [-1, 2])
+        self.assertEqual(arr1[:], [-1, 2])
 
     def test12_access_child_node_attributes(self):
         """Check get/set attributes via link-->target.child.attribute"""
@@ -327,10 +327,10 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         lgroup1 = self.h5file.get_node('/lgroup1')
         arr2 = self.h5file.get_node('/group1/arr2')
         # get child attribute
-        self.assertTrue(lgroup1.arr2[:] == [1, 2, 3])
+        self.assertEqual(lgroup1.arr2[:], [1, 2, 3])
         # set child attribute
         lgroup1.arr2[0] = -1
-        self.assertTrue(arr2[:] == [-1, 2, 3])
+        self.assertEqual(arr2[:], [-1, 2, 3])
 
     def test13_direct_attribute_access_via_chained_softlinks(self):
         """Check get/set access via link2-->link1-->target.child.attribute"""
@@ -340,10 +340,10 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         # multiple chained links
         l_lgroup1 = self.h5file.create_soft_link('/', 'l_lgroup1', '/lgroup1')
         # get child attribute
-        self.assertTrue(l_lgroup1.arr2[:] == [1, 2, 3])
+        self.assertEqual(l_lgroup1.arr2[:], [1, 2, 3])
         # set child attribute
         l_lgroup1.arr2[0] = -1
-        self.assertTrue(arr2[:] == [-1, 2, 3])
+        self.assertEqual(arr2[:], [-1, 2, 3])
 
     def test14_child_of_softlink_to_group(self):
         """Create an array whose parent is a softlink to another group"""
@@ -352,7 +352,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         lgroup1 = self.h5file.get_node('/lgroup1')
         new_arr = self.h5file.create_array(lgroup1, 'new_arr', obj=[1, 2, 3])
         new_arr2 = self.h5file.get_node('/group1/new_arr')
-        self.assertTrue(new_arr2[:] == [1, 2, 3])
+        self.assertEqual(new_arr2[:], [1, 2, 3])
 
     def test_str(self):
         s = str(self.h5file)
