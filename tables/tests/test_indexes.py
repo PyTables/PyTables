@@ -2580,7 +2580,7 @@ class TestIndexingNans(TempFileMixin, TestCase):
 
         # retrieve
         result = table.read_where('(values >= 0)')
-        self.assertTrue(len(result) == 4)
+        self.assertEqual(len(result), 4)
 
     def test_issue_327(self):
         table = self.h5file.create_table('/', 'table', dict(
@@ -2601,7 +2601,7 @@ class TestIndexingNans(TempFileMixin, TestCase):
         table.cols.values2.create_index()
 
         results2 = table.read_where('(values2 > 0)')
-        self.assertTrue(len(results2), 4)
+        self.assertEqual(len(results2), 4)
 
         results = table.read_where('(values > 0)')
         self.assertEqual(len(results), 2)
@@ -2626,7 +2626,7 @@ class TestIndexingNans(TempFileMixin, TestCase):
         table.cols.values2.create_index(_blocksizes=small_blocksizes)
 
         results2 = table.read_where('(values2 > 0)')
-        self.assertTrue(len(results2), 400)
+        self.assertEqual(len(results2), 400)
 
         results = table.read_where('(values > 0)')
         self.assertEqual(len(results), 200)
@@ -2651,7 +2651,7 @@ class TestIndexingNans(TempFileMixin, TestCase):
         table.cols.values2.create_csindex(_blocksizes=small_blocksizes)
 
         results2 = table.read_where('(values2 > 0)')
-        self.assertTrue(len(results2), 100*4)
+        self.assertEqual(len(results2), 100*4)
 
         results = table.read_where('(values > 0)')
         self.assertEqual(len(results), 100*2)

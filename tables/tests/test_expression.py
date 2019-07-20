@@ -998,7 +998,7 @@ class MaindimTestCase(common.TempFileMixin, TestCase):
         shape2[0] = 0
         a1 = self.h5file.create_earray(
             root, 'a1', atom=tables.Int32Col(), shape=shape)
-        self.assertTrue(a1.maindim, self.maindim)
+        self.assertEqual(a1.maindim, self.maindim)
         b1 = self.h5file.create_earray(
             root, 'b1', atom=tables.Int32Col(), shape=shape2)
         self.assertEqual(b1.maindim, 0)
@@ -1035,7 +1035,7 @@ class MaindimTestCase(common.TempFileMixin, TestCase):
         shape2[0] = 0
         a1 = self.h5file.create_earray(
             root, 'a1', atom=tables.Int32Col(), shape=shape)
-        self.assertTrue(a1.maindim, self.maindim)
+        self.assertEqual(a1.maindim, self.maindim)
         b1 = self.h5file.create_earray(
             root, 'b1', atom=tables.Int32Col(), shape=shape)
         c1 = self.h5file.create_earray(
@@ -1073,7 +1073,7 @@ class MaindimTestCase(common.TempFileMixin, TestCase):
         shape2[0] = 0
         a1 = self.h5file.create_earray(
             root, 'a1', atom=tables.Int32Col(), shape=shape)
-        self.assertTrue(a1.maindim, self.maindim)
+        self.assertEqual(a1.maindim, self.maindim)
         b1 = self.h5file.create_earray(
             root, 'b1', atom=tables.Int32Col(), shape=shape)
         c1 = self.h5file.create_earray(
