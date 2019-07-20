@@ -245,7 +245,7 @@ if __name__ == "__main__":
         print("Compression library:", complib)
     if testwrite:
         t1 = time.time()
-        cpu1 = time.clock()
+        cpu1 = time.perf_counter()
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
         if usearray:
@@ -254,7 +254,7 @@ if __name__ == "__main__":
             (rowsw, rowsz) = createFile(file, ngroups, ntables, nrows,
                                         complevel, complib, recsize)
         t2 = time.time()
-        cpu2 = time.clock()
+        cpu2 = time.perf_counter()
         tapprows = round(t2 - t1, 3)
         cpuapprows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpuapprows / tapprows, 2) * 100)
@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
     if testread:
         t1 = time.time()
-        cpu1 = time.clock()
+        cpu1 = time.perf_counter()
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
         if usearray:
@@ -275,7 +275,7 @@ if __name__ == "__main__":
         else:
             (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
         t2 = time.time()
-        cpu2 = time.clock()
+        cpu2 = time.perf_counter()
         treadrows = round(t2 - t1, 3)
         cpureadrows = round(cpu2 - cpu1, 3)
         tpercent = int(round(cpureadrows / treadrows, 2) * 100)

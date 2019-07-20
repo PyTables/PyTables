@@ -239,16 +239,16 @@ if __name__ == "__main__":
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
-    t1 = time.clock()
+    t1 = time.perf_counter()
     psyco.bind(createFile)
     (rowsw, rowsz) = createFile(file, iterations, recsize, verbose)
-    t2 = time.clock()
+    t2 = time.perf_counter()
     tapprows = round(t2 - t1, 3)
 
-    t1 = time.clock()
+    t1 = time.perf_counter()
     psyco.bind(readFile)
     readFile(file, recsize, verbose)
-    t2 = time.clock()
+    t2 = time.perf_counter()
     treadrows = round(t2 - t1, 3)
 
     print("Rows written:", rowsw, " Row size:", rowsz)
