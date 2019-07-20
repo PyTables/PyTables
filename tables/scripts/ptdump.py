@@ -27,8 +27,6 @@ from tables.group import Group
 from tables.leaf import Leaf
 from tables.table import Table, Column
 from tables.unimplemented import UnImplemented
-import six
-from six.moves import range
 
 # default options
 options = argparse.Namespace(
@@ -158,7 +156,7 @@ def main():
     args = parser.parse_args(namespace=options)
 
     # Get the options
-    if isinstance(args.rng, six.string_types):
+    if isinstance(args.rng, str):
         try:
             options.rng = eval("slice(" + args.rng + ")")
         except Exception:

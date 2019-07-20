@@ -19,7 +19,6 @@ import os
 import re
 import sys
 import argparse
-import six
 
 old2newnames = dict([
     # from __init__.py
@@ -467,7 +466,7 @@ old2newnames = dict([
     #('_v_expectedsizeinMB', '_v_expected_mb'),          # --> expectedrows
 ])
 
-new2oldnames = dict([(v, k) for k, v in six.iteritems(old2newnames)])
+new2oldnames = dict([(v, k) for k, v in old2newnames.items()])
 
 # Note that it is tempting to use the ast module here, but then this
 # breaks transforming cython files.  So instead we are going to do the

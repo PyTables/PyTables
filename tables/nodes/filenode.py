@@ -39,7 +39,6 @@ import warnings
 import numpy as np
 
 import tables
-import six
 
 
 NodeType = 'file'
@@ -47,13 +46,6 @@ NodeType = 'file'
 
 NodeTypeVersions = [1, 2]
 """Supported values for NODE_TYPE_VERSION node system attribute."""
-
-
-# have a Python2/3 compatible way to check for string
-try:
-    string_types = six.string_types
-except NameError:
-    string_types = str
 
 
 class RawPyTablesIO(io.RawIOBase):
@@ -362,7 +354,7 @@ class RawPyTablesIO(io.RawIOBase):
         self._checkClosed()
         self._checkWritable()
 
-        if isinstance(b, six.text_type):
+        if isinstance(b, str):
             raise TypeError("can't write str to binary stream")
 
         n = len(b)
@@ -752,7 +744,7 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
     if name is None:
         if isinstance(where, tables.group.Group):
             name = os.path.split(filename)[1]
-        if isinstance(where, string_types):
+        if isinstance(where, str):
             if where.endswith("/"):
                 name = os.path.split(filename)[1]
             else:
