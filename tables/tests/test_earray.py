@@ -1276,7 +1276,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(
             abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)
-        self.assertTrue(self.array.size_on_disk < self.array.size_in_memory)
+        self.assertLess(self.array.size_on_disk, self.array.size_in_memory)
 
 
 class OffsetStrideTestCase(common.TempFileMixin, TestCase):

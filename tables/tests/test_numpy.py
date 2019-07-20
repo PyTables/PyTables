@@ -286,12 +286,12 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
                     # Special expection. We have no way to distinguish between
                     # "l" and "i" typecode, and we can consider them the same
                     # to all practical effects
-                    self.assertTrue(b.dtype.char == "l" or b.dtype.char == "i")
+                    self.assertIn(b.dtype.char, ("l", "i"))
                 elif (a.dtype.char == "I" or a.dtype.char == "L"):
                     # Special expection. We have no way to distinguish between
                     # "L" and "I" typecode, and we can consider them the same
                     # to all practical effects
-                    self.assertTrue(b.dtype.char == "L" or b.dtype.char == "I")
+                    self.assertIn(b.dtype.char, ("L", "I"))
                 else:
                     self.assertTrue(allequal(a, b, "numpy"))
             elif np.dtype('l').itemsize == 8:
@@ -299,12 +299,12 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
                     # Special expection. We have no way to distinguish between
                     # "q" and "l" typecode in 64-bit platforms, and we can
                     # consider them the same to all practical effects
-                    self.assertTrue(b.dtype.char == "l" or b.dtype.char == "q")
+                    self.assertIn(b.dtype.char, ("l", "q"))
                 elif (a.dtype.char == "Q" or a.dtype.char == "L"):
                     # Special expection. We have no way to distinguish between
                     # "Q" and "L" typecode in 64-bit platforms, and we can
                     # consider them the same to all practical effects
-                    self.assertTrue(b.dtype.char == "L" or b.dtype.char == "Q")
+                    self.assertIn(b.dtype.char, ("L", "Q"))
                 else:
                     self.assertTrue(allequal(a, b, "numpy"))
 
@@ -370,7 +370,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
                 # Special expection. We have no way to distinguish between
                 # "l" and "i" typecode, and we can consider them the same
                 # to all practical effects
-                self.assertTrue(b.dtype.char == "l" or b.dtype.char == "i")
+                self.assertIn(b.dtype.char, ("l", "i"))
             else:
                 self.assertEqual(a.dtype.char, b.dtype.char)
 
