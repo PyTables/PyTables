@@ -725,7 +725,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
         def where_with_locals():
             c_int32 = self.table.cols.c_bool  # this wouldn't cause an error
-            self.assertTrue(c_int32 is not None)
+            self.assertIsNotNone(c_int32)
             self.table.where('c_int32')
         self.assertRaises(TypeError, where_with_locals)
 
@@ -767,7 +767,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         # Second scope: local variables.
         def where_whith_locals():
             col = self.table.cols.c_int32
-            self.assertTrue(col is not None)
+            self.assertIsNotNone(col)
             self.table.where('col')
         self.assertRaises(TypeError, where_whith_locals)
 
@@ -776,7 +776,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
             global _gvar
             _gvar = self.table.cols.c_int32
             # silence pyflakes warnings
-            self.assertTrue(_gvar is not None)
+            self.assertIsNotNone(_gvar)
             try:
                 self.table.where('_gvar')
             finally:

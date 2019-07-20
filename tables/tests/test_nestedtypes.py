@@ -474,7 +474,7 @@ class WriteTestCase(common.TempFileMixin, TestCase):
         raColumn = raTable[nColumn]
         (raColumn[0], raColumn[-1]) = (raColumn[-1].copy(), raColumn[0].copy())
         newdtype = numpy.dtype([(nColumn, raTable.dtype.fields[nColumn][0])])
-        self.assertTrue(newdtype is not None)
+        self.assertIsNotNone(newdtype)
 
         # Write the resulting column and re-read the whole table.
         tbl.modify_columns(names=[nColumn], columns=raColumn)
@@ -573,7 +573,7 @@ class WriteTestCase(common.TempFileMixin, TestCase):
         tbl.flush()
         coltoindex = tbl.cols._f_col(self._testCondCol)
         indexrows = coltoindex.create_index()
-        self.assertTrue(indexrows is not None)
+        self.assertIsNotNone(indexrows)
 
         if self.reopen:
             self._reopen()
@@ -723,7 +723,7 @@ class ReadTestCase(common.TempFileMixin, TestCase):
             template % {'value': v, 'default': d}
             for v, d in itertools.product(enums, defaults)
         ]
-        self.assertTrue(tblrepr in values)
+        self.assertIn(tblrepr, values)
 
     def test00b_repr(self):
         """Checking representation of a root Column."""

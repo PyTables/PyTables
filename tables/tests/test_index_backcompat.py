@@ -46,7 +46,7 @@ class IndexesTestCase(common.TestFileMixin, TestCase):
         # Do some selections and check the results
         # First selection
         t1var1 = table1.cols.var1
-        self.assertTrue(t1var1 is not None)
+        self.assertIsNotNone(t1var1)
         results1 = [p["var1"] for p in
                     table1.where('(il<=t1var1)&(t1var1<=sl)')]
         results2 = [p["var1"] for p in table2 if il <= p["var1"] <= sl]
@@ -71,7 +71,7 @@ class IndexesTestCase(common.TestFileMixin, TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        self.assertTrue(t1var2 is not None)
+        self.assertIsNotNone(t1var2)
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
         if verbose:
@@ -98,7 +98,7 @@ class IndexesTestCase(common.TestFileMixin, TestCase):
 
         # Do some selections and check the results
         t1col = table1.cols.var3
-        self.assertTrue(t1col is not None)
+        self.assertIsNotNone(t1col)
 
         # First selection
         results1 = [p["var3"] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
@@ -130,7 +130,7 @@ class IndexesTestCase(common.TestFileMixin, TestCase):
 
         # Do some selections and check the results
         t1col = table1.cols.var4
-        self.assertTrue(t1col is not None)
+        self.assertIsNotNone(t1col)
 
         # First selection
         results1 = [p["var4"] for p in table1.where('(il<=t1col)&(t1col<=sl)')]

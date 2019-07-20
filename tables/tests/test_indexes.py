@@ -360,24 +360,24 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Before deletion")
             print("var1 column:", table.cols.var1)
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
 
         # delete the index
         table.cols.var1.remove_index()
         if verbose:
             print("After deletion")
             print("var1 column:", table.cols.var1)
-        self.assertTrue(table.cols.var1.index is None)
+        self.assertIsNone(table.cols.var1.index)
         self.assertEqual(table.colindexed["var1"], 0)
 
         # re-create the index again
         indexrows = table.cols.var1.create_index(_blocksizes=small_blocksizes)
-        self.assertTrue(indexrows is not None)
+        self.assertIsNotNone(indexrows)
         idxcol = table.cols.var1.index
         if verbose:
             print("After re-creation")
             print("var1 column:", table.cols.var1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(table.colindexed["var1"], 1)
 
     def test09b_removeIndex(self):
@@ -395,7 +395,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         if verbose:
             print("Before deletion")
             print("var1 index column:", table.cols.var1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(table.colindexed["var1"], 1)
         # delete the index
         table.cols.var1.remove_index()
@@ -408,17 +408,17 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         if verbose:
             print("After deletion")
             print("var1 column:", table.cols.var1)
-        self.assertTrue(table.cols.var1.index is None)
+        self.assertIsNone(table.cols.var1.index)
         self.assertEqual(table.colindexed["var1"], 0)
 
         # re-create the index again
         indexrows = table.cols.var1.create_index(_blocksizes=small_blocksizes)
-        self.assertTrue(indexrows is not None)
+        self.assertIsNotNone(indexrows)
         idxcol = table.cols.var1.index
         if verbose:
             print("After re-creation")
             print("var1 column:", table.cols.var1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(table.colindexed["var1"], 1)
 
     def test10a_moveIndex(self):
@@ -436,7 +436,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Before move")
             print("var1 column:", idxcol)
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
 
         # Create a new group called "agroup"
         agroup = self.h5file.create_group("/", "agroup")
@@ -446,7 +446,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         if verbose:
             print("After move")
             print("var1 column:", idxcol)
-        self.assertTrue(table.cols.var1.index is not None)
+        self.assertIsNotNone(table.cols.var1.index)
         self.assertEqual(table.colindexed["var1"], 1)
 
         # Some sanity checks
@@ -473,7 +473,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         if verbose:
             print("Before move")
             print("var1 index column:", idxcol)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(table.colindexed["var1"], 1)
         # Create a new group called "agroup"
         agroup = self.h5file.create_group("/", "agroup")
@@ -489,7 +489,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         if verbose:
             print("After move")
             print("var1 column:", idxcol)
-        self.assertTrue(table.cols.var1.index is not None)
+        self.assertIsNotNone(table.cols.var1.index)
         self.assertEqual(table.colindexed["var1"], 1)
 
         # Some sanity checks
@@ -518,7 +518,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Before move")
             print("var1 column:", idxcol)
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
 
         # Create a new group called "agroup"
         agroup = self.h5file.create_group("/", "agroup")
@@ -528,7 +528,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         if verbose:
             print("After move")
             print("var1 column:", idxcol)
-        self.assertTrue(table.cols.var1.index is not None)
+        self.assertIsNotNone(table.cols.var1.index)
         self.assertEqual(table.colindexed["var1"], 1)
 
         # Some sanity checks
@@ -557,7 +557,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Before move")
             print("var1 column:", idxcol)
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
 
         # Create a new group called "agroup"
         agroup = self.h5file.create_group("/", "agroup")
@@ -567,7 +567,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         if verbose:
             print("After move")
             print("var1 column:", idxcol)
-        self.assertTrue(table.cols.var1.index is not None)
+        self.assertIsNotNone(table.cols.var1.index)
         self.assertEqual(table.colindexed["var1"], 1)
 
         # Some sanity checks
@@ -596,13 +596,13 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Before deletion")
             print("var1 column:", table.cols.var1)
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
 
         # delete the table
         self.h5file.remove_node("/table")
         if verbose:
             print("After deletion")
-        self.assertTrue("table" not in self.h5file.root)
+        self.assertNotIn("table", self.h5file.root)
 
         # re-create the table and the index again
         table = self.h5file.create_table("/", 'table', TDescr, "New table",
@@ -617,12 +617,12 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Index all entries:
         for col in six.itervalues(table.colinstances):
             indexrows = col.create_index(_blocksizes=small_blocksizes)
-            self.assertTrue(indexrows is not None)
+            self.assertIsNotNone(indexrows)
         idxcol = table.cols.var1.index
         if verbose:
             print("After re-creation")
             print("var1 column:", table.cols.var1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(table.colindexed["var1"], 1)
 
     def test11b_removeTableWithIndex(self):
@@ -640,13 +640,13 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Before deletion")
             print("var1 column:", table.cols.var1)
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
 
         # delete the table
         self.h5file.remove_node("/table")
         if verbose:
             print("After deletion")
-        self.assertTrue("table" not in self.h5file.root)
+        self.assertNotIn("table", self.h5file.root)
 
         # close and reopen the file
         self._reopen(mode="r+")
@@ -664,12 +664,12 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Index all entries:
         for col in six.itervalues(table.colinstances):
             indexrows = col.create_index(_blocksizes=small_blocksizes)
-            self.assertTrue(indexrows is not None)
+            self.assertIsNotNone(indexrows)
         idxcol = table.cols.var1.index
         if verbose:
             print("After re-creation")
             print("var1 column:", table.cols.var1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(table.colindexed["var1"], 1)
 
     # Test provided by Andrew Straw
@@ -831,11 +831,11 @@ class DeepTableIndexTestCase(common.TempFileMixin, TestCase):
         table.flush()
         # Index some column
         indexrows = table.cols.var1.create_index()
-        self.assertTrue(indexrows is not None)
+        self.assertIsNotNone(indexrows)
         idxcol = table.cols.var1.index
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(idxcol.nelements, self.nrows)
 
     def test01b(self):
@@ -856,7 +856,7 @@ class DeepTableIndexTestCase(common.TempFileMixin, TestCase):
 
         # Index some column
         indexrows = table.cols.var1.create_index()
-        self.assertTrue(indexrows is not None)
+        self.assertIsNotNone(indexrows)
         idxcol = table.cols.var1.index
 
         # Close and re-open this file
@@ -866,7 +866,7 @@ class DeepTableIndexTestCase(common.TempFileMixin, TestCase):
         idxcol = table.cols.var1.index
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(idxcol.nelements, self.nrows)
 
     def test02(self):
@@ -888,12 +888,12 @@ class DeepTableIndexTestCase(common.TempFileMixin, TestCase):
 
         # Index some column
         indexrows = table.cols.var1.create_index()
-        self.assertTrue(indexrows is not None)
+        self.assertIsNotNone(indexrows)
         idxcol = table.cols.var1.index
 
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(idxcol.nelements, self.nrows)
 
     def test02b(self):
@@ -916,7 +916,7 @@ class DeepTableIndexTestCase(common.TempFileMixin, TestCase):
 
         # Index some column
         indexrows = table.cols.var1.create_index()
-        self.assertTrue(indexrows is not None)
+        self.assertIsNotNone(indexrows)
         idxcol = table.cols.var1.index
 
         # Close and re-open this file
@@ -927,7 +927,7 @@ class DeepTableIndexTestCase(common.TempFileMixin, TestCase):
 
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(idxcol.nelements, self.nrows)
 
     def test03(self):
@@ -949,12 +949,12 @@ class DeepTableIndexTestCase(common.TempFileMixin, TestCase):
 
         # Index some column
         indexrows = table.cols.var1.create_index()
-        self.assertTrue(indexrows is not None)
+        self.assertIsNotNone(indexrows)
         idxcol = table.cols.var1.index
 
         # Some sanity checks
         self.assertEqual(table.colindexed["var1"], 1)
-        self.assertTrue(idxcol is not None)
+        self.assertIsNotNone(idxcol)
         self.assertEqual(idxcol.nelements, self.nrows)
 
 
@@ -1014,24 +1014,24 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
             self.assertEqual(table.indexed, 1)
         if self.iprops is DefaultProps:
             self.assertEqual(table.colindexed["var1"], 0)
-            self.assertTrue(table.cols.var1.index is None)
+            self.assertIsNone(table.cols.var1.index)
             self.assertEqual(table.colindexed["var2"], 0)
-            self.assertTrue(table.cols.var2.index is None)
+            self.assertIsNone(table.cols.var2.index)
             self.assertEqual(table.colindexed["var3"], 0)
-            self.assertTrue(table.cols.var3.index is None)
+            self.assertIsNone(table.cols.var3.index)
             self.assertEqual(table.colindexed["var4"], 0)
-            self.assertTrue(table.cols.var4.index is None)
+            self.assertIsNone(table.cols.var4.index)
         else:
             # Check that the var1, var2 and var3 (and only these)
             # has been indexed
             self.assertEqual(table.colindexed["var1"], 1)
-            self.assertTrue(table.cols.var1.index is not None)
+            self.assertIsNotNone(table.cols.var1.index)
             self.assertEqual(table.colindexed["var2"], 1)
-            self.assertTrue(table.cols.var2.index is not None)
+            self.assertIsNotNone(table.cols.var2.index)
             self.assertEqual(table.colindexed["var3"], 1)
-            self.assertTrue(table.cols.var3.index is not None)
+            self.assertIsNotNone(table.cols.var3.index)
             self.assertEqual(table.colindexed["var4"], 0)
-            self.assertTrue(table.cols.var4.index is None)
+            self.assertIsNone(table.cols.var4.index)
 
     def test02_attrs(self):
         """Checking indexing attributes (part2)"""
@@ -1117,7 +1117,7 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
         # No unindexated rows should remain
         index = table.cols.var1.index
         if self.iprops is DefaultProps:
-            self.assertTrue(index is None)
+            self.assertIsNone(index)
         else:
             indexedrows = index.nelements
             self.assertEqual(table._indexedrows, index.nelements)
@@ -1347,9 +1347,9 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
-            self.assertTrue(indexedrows is not None)
+            self.assertIsNotNone(indexedrows)
             unsavedindexedrows = table._unsaved_indexedrows
-            self.assertTrue(unsavedindexedrows is not None)
+            self.assertIsNotNone(unsavedindexedrows)
 
         # Now, modify a couple of rows:
         table.modify_columns(1, columns=[["asa", "asb"], [1., 2.]],
@@ -1395,9 +1395,9 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
-            self.assertTrue(indexedrows is not None)
+            self.assertIsNotNone(indexedrows)
             unsavedindexedrows = table._unsaved_indexedrows
-            self.assertTrue(unsavedindexedrows is not None)
+            self.assertIsNotNone(unsavedindexedrows)
 
         # Now, remove some rows to make columns dirty
         # table.remove_rows(3,5)
@@ -1423,10 +1423,10 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
             self.assertTrue(table2.indexed)
         if self.iprops is DefaultProps:
             # No index: the index should not exist
-            self.assertTrue(index1 is None)
-            self.assertTrue(index2 is None)
+            self.assertIsNone(index1)
+            self.assertIsNone(index2)
         elif self.iprops is NoAutoProps:
-            self.assertTrue(index2 is not None)
+            self.assertIsNotNone(index2)
 
         # Check the dirty flag for indexes
         if verbose:
@@ -1452,9 +1452,9 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
-            self.assertTrue(indexedrows is not None)
+            self.assertIsNotNone(indexedrows)
             unsavedindexedrows = table._unsaved_indexedrows
-            self.assertTrue(unsavedindexedrows is not None)
+            self.assertIsNotNone(unsavedindexedrows)
 
         # Now, remove some rows to make columns dirty
         # table.remove_rows(3,5)
@@ -1490,9 +1490,9 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
-            self.assertTrue(indexedrows is not None)
+            self.assertIsNotNone(indexedrows)
             unsavedindexedrows = table._unsaved_indexedrows
-            self.assertTrue(unsavedindexedrows is not None)
+            self.assertIsNotNone(unsavedindexedrows)
 
         # Now, remove some rows to make columns dirty
         # table.remove_rows(3,5)
@@ -1526,9 +1526,9 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
         # Non indexated rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
-            self.assertTrue(indexedrows is not None)
+            self.assertIsNotNone(indexedrows)
             unsavedindexedrows = table._unsaved_indexedrows
-            self.assertTrue(unsavedindexedrows is not None)
+            self.assertIsNotNone(unsavedindexedrows)
 
         # Now, modify an indexed column and an unindexed one
         # to make the "var1" dirty
@@ -2500,7 +2500,7 @@ class Issue156TestBase(common.TempFileMixin, TestCase):
             new_node.col(self.sort_field) ==
             sorted(oldNode.col(self.sort_field))))
         # check index is available
-        self.assertTrue(self.sort_field in new_node.colindexes)
+        self.assertIn(self.sort_field, new_node.colindexes)
         # check CSI was propagated
         self.assertTrue(new_node.colindexes[self.sort_field].is_csi)
 

@@ -493,7 +493,7 @@ class BigEndianTestCase(TestCase):
         # Check the written data.
         tbl = self.h5file.root.tbl
         dummy = tbl.cols.nested.t64[:]
-        self.assertTrue(dummy is not None)
+        self.assertIsNotNone(dummy)
         t64 = tbl.cols.nested.t64[:]
 
         # Generate the expected Time64 array.

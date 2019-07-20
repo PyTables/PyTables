@@ -245,7 +245,7 @@ class AtomTestCase(TestCase):
         atom2 = atom1.copy()
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
-        self.assertFalse(atom1 is atom2)
+        self.assertIsNot(atom1, atom2)
 
     def test_init_parameters_02(self):
         atom1 = StringAtom(itemsize=12)

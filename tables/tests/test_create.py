@@ -234,7 +234,7 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         # Now, create a table with this record object
         # This way of creating node objects has been deprecated
         table = Table(recordDict, "MetaRecord instance")
-        self.assertTrue(table is not None)
+        self.assertIsNotNone(table)
 
         # Attach the table to object tree
         # Here, ValueError should be raised!
@@ -1648,7 +1648,7 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
 
         self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
-        self.assertTrue("var1" in root.table.colnames)
+        self.assertIn("var1", root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
     def test_openFileA(self):
@@ -1672,7 +1672,7 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
 
         self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
-        self.assertTrue("var1" in root.table.colnames)
+        self.assertIn("var1", root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
         # write new data
@@ -1698,12 +1698,12 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
 
         self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
-        self.assertTrue("var1" in root.table.colnames)
+        self.assertIn("var1", root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
         self.assertIsInstance(root.table2, tables.Table)
         self.assertEqual(root.table2._v_title, "table2")
-        self.assertTrue("var2" in root.table2.colnames)
+        self.assertIn("var2", root.table2.colnames)
         self.assertEqual(root.table2.cols.var2.dtype, tables.FloatCol().dtype)
 
     def test_openFileRW(self):
@@ -1727,7 +1727,7 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
 
         self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
-        self.assertTrue("var1" in root.table.colnames)
+        self.assertIn("var1", root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
         # write new data
@@ -1752,12 +1752,12 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
 
         self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
-        self.assertTrue("var1" in root.table.colnames)
+        self.assertIn("var1", root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
         self.assertIsInstance(root.table2, tables.Table)
         self.assertEqual(root.table2._v_title, "table2")
-        self.assertTrue("var2" in root.table2.colnames)
+        self.assertIn("var2", root.table2.colnames)
         self.assertEqual(root.table2.cols.var2.dtype, tables.FloatCol().dtype)
 
 
@@ -1868,7 +1868,7 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
         self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
-        self.assertTrue("var1" in root.table.colnames)
+        self.assertIn("var1", root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
         self.h5file.close()     # flush
@@ -1895,7 +1895,7 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
         self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
-        self.assertTrue("var1" in root.table.colnames)
+        self.assertIn("var1", root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
         self.h5file.close()     # flush
@@ -1942,7 +1942,7 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
         self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
-        self.assertTrue("var1" in root.table.colnames)
+        self.assertIn("var1", root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
     def _get_digest(self, filename):
@@ -1980,7 +1980,7 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
         self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
-        self.assertTrue("var1" in root.table.colnames)
+        self.assertIn("var1", root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
         # write new data
@@ -2016,7 +2016,7 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
 
         self.assertIsInstance(root.table, tables.Table)
         self.assertEqual(root.table._v_title, "table")
-        self.assertTrue("var1" in root.table.colnames)
+        self.assertIn("var1", root.table.colnames)
         self.assertEqual(root.table.cols.var1.dtype, tables.IntCol().dtype)
 
         # write new data
@@ -2446,7 +2446,7 @@ class InMemoryCoreDriverTestCase(TestCase):
         # ensure that the __str__ method works even if there is no phisical
         # file on disk (in which case the os.stat operation for date retrieval
         # fails)
-        self.assertTrue(str(self.h5file) is not None)
+        self.assertIsNotNone(str(self.h5file))
 
         self.h5file.close()
         self.assertFalse(os.path.exists(self.h5fname))

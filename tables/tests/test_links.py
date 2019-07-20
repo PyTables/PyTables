@@ -37,11 +37,11 @@ class HardLinkTestCase(common.TempFileMixin, TestCase):
         group1 = self.h5file.create_group('/', 'group1')
         arr2 = self.h5file.create_array(group1, 'arr2', [1, 2, 3])
         lgroup1 = self.h5file.create_hard_link('/', 'lgroup1', '/group1')
-        self.assertTrue(lgroup1 is not None)
+        self.assertIsNotNone(lgroup1)
         larr1 = self.h5file.create_hard_link(group1, 'larr1', '/arr1')
-        self.assertTrue(larr1 is not None)
+        self.assertIsNotNone(larr1)
         larr2 = self.h5file.create_hard_link('/', 'larr2', arr2)
-        self.assertTrue(larr2 is not None)
+        self.assertIsNotNone(larr2)
 
     def test00_create(self):
         """Creating hard links."""
@@ -75,14 +75,14 @@ class HardLinkTestCase(common.TempFileMixin, TestCase):
 
         # First delete the initial link
         self.h5file.root.arr1.remove()
-        self.assertTrue('/arr1' not in self.h5file)
+        self.assertNotIn('/arr1', self.h5file)
         # The second link should still be there
         if common.verbose:
             print("Remaining link:", self.h5file.root.group1.larr1)
-        self.assertTrue('/group1/larr1' in self.h5file)
+        self.assertIn('/group1/larr1', self.h5file)
         # Remove the second link
         self.h5file.root.group1.larr1.remove()
-        self.assertTrue('/group1/larr1' not in self.h5file)
+        self.assertNotIn('/group1/larr1', self.h5file)
 
     def test03_removeGroup(self):
         """Removing a hard link to a Group."""
@@ -91,15 +91,15 @@ class HardLinkTestCase(common.TempFileMixin, TestCase):
             print("Original object tree:", self.h5file)
         # First delete the initial link
         self.h5file.root.group1._f_remove(force=True)
-        self.assertTrue('/group1' not in self.h5file)
+        self.assertNotIn('/group1', self.h5file)
         # The second link should still be there
         if common.verbose:
             print("Remaining link:", self.h5file.root.lgroup1)
             print("Object tree:", self.h5file)
-        self.assertTrue('/lgroup1' in self.h5file)
+        self.assertIn('/lgroup1', self.h5file)
         # Remove the second link
         self.h5file.root.lgroup1._g_remove(recursive=True)
-        self.assertTrue('/lgroup1' not in self.h5file)
+        self.assertNotIn('/lgroup1', self.h5file)
         if common.verbose:
             print("Final object tree:", self.h5file)
 
@@ -116,11 +116,11 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         group1 = self.h5file.create_group('/', 'group1')
         arr2 = self.h5file.create_array(group1, 'arr2', [1, 2, 3])
         lgroup1 = self.h5file.create_soft_link('/', 'lgroup1', '/group1')
-        self.assertTrue(lgroup1 is not None)
+        self.assertIsNotNone(lgroup1)
         larr1 = self.h5file.create_soft_link(group1, 'larr1', '/arr1')
-        self.assertTrue(larr1 is not None)
+        self.assertIsNotNone(larr1)
         larr2 = self.h5file.create_soft_link('/', 'larr2', arr2)
-        self.assertTrue(larr2 is not None)
+        self.assertIsNotNone(larr2)
 
     def test00_create(self):
         """Creating soft links."""
@@ -148,14 +148,14 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
         # First delete the referred link
         self.h5file.root.arr1.remove()
-        self.assertTrue('/arr1' not in self.h5file)
+        self.assertNotIn('/arr1', self.h5file)
         # The soft link should still be there (but dangling)
         if common.verbose:
             print("Dangling link:", self.h5file.root.group1.larr1)
-        self.assertTrue('/group1/larr1' in self.h5file)
+        self.assertIn('/group1/larr1', self.h5file)
         # Remove the soft link itself
         self.h5file.root.group1.larr1.remove()
-        self.assertTrue('/group1/larr1' not in self.h5file)
+        self.assertNotIn('/group1/larr1', self.h5file)
 
     def test03_copy(self):
         """Copying a soft link."""
@@ -164,10 +164,10 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         root = self.h5file.root
         lgroup1 = root.lgroup1
         lgroup2 = lgroup1.copy('/', 'lgroup2')
-        self.assertTrue('/lgroup1' in self.h5file)
-        self.assertTrue('/lgroup2' in self.h5file)
-        self.assertTrue('lgroup2' in root._v_children)
-        self.assertTrue('lgroup2' in root._v_links)
+        self.assertIn('/lgroup1', self.h5file)
+        self.assertIn('/lgroup2', self.h5file)
+        self.assertIn('lgroup2', root._v_children)
+        self.assertIn('lgroup2', root._v_links)
         if common.verbose:
             print("Copied link:", lgroup2)
         # Remove the first link
@@ -183,10 +183,10 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         lgroup1 = root.lgroup1
         lgroup2 = lgroup1.copy('/', 'lgroup2')
         lgroup2 = lgroup1.copy('/', 'lgroup2', overwrite=True)
-        self.assertTrue('/lgroup1' in self.h5file)
-        self.assertTrue('/lgroup2' in self.h5file)
-        self.assertTrue('lgroup2' in root._v_children)
-        self.assertTrue('lgroup2' in root._v_links)
+        self.assertIn('/lgroup1', self.h5file)
+        self.assertIn('/lgroup2', self.h5file)
+        self.assertIn('lgroup2', root._v_children)
+        self.assertIn('lgroup2', root._v_links)
         if common.verbose:
             print("Copied link:", lgroup2)
         # Remove the first link
@@ -204,8 +204,8 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         lgroup2 = self.h5file.root.group2.lgroup2
         if common.verbose:
             print("Moved link:", lgroup2)
-        self.assertTrue('/lgroup1' not in self.h5file)
-        self.assertTrue('/group2/lgroup2' in self.h5file)
+        self.assertNotIn('/lgroup1', self.h5file)
+        self.assertIn('/group2/lgroup2', self.h5file)
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.group2.lgroup2())
 
@@ -218,8 +218,8 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         lgroup2 = self.h5file.root.lgroup2
         if common.verbose:
             print("Moved link:", lgroup2)
-        self.assertTrue('/lgroup1' not in self.h5file)
-        self.assertTrue('/lgroup2' in self.h5file)
+        self.assertNotIn('/lgroup1', self.h5file)
+        self.assertIn('/lgroup2', self.h5file)
         self._checkEqualityGroup(self.h5file.root.group1,
                                  self.h5file.root.lgroup2())
 
@@ -233,7 +233,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
             '/group1', 'lgroup3', 'group3')
         if common.verbose:
             print("Relative path link:", lgroup3)
-        self.assertTrue('/group1/lgroup3' in self.h5file)
+        self.assertIn('/group1/lgroup3', self.h5file)
         self._checkEqualityGroup(self.h5file.root.group1.group3,
                                  self.h5file.root.group1.lgroup3())
 
@@ -247,7 +247,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
             '/group1', 'lgroup3', './group3')
         if common.verbose:
             print("Relative path link:", lgroup3)
-        self.assertTrue('/group1/lgroup3' in self.h5file)
+        self.assertIn('/group1/lgroup3', self.h5file)
         self._checkEqualityGroup(self.h5file.root.group1.group3,
                                  self.h5file.root.group1.lgroup3())
 
@@ -284,11 +284,11 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         lgroup2 = self.h5file.create_soft_link(
             '/', 'lgroup2', '/lgroup1')
         # Dereference it once:
-        self.assertTrue(lgroup2() is self.h5file.get_node('/lgroup1'))
+        self.assertIs(lgroup2(), self.h5file.get_node('/lgroup1'))
         if common.verbose:
             print("First dereference is correct:", lgroup2())
         # Dereference it twice:
-        self.assertTrue(lgroup2()() is self.h5file.get_node('/group1'))
+        self.assertIs(lgroup2()(), self.h5file.get_node('/group1'))
         if common.verbose:
             print("Second dereference is correct:", lgroup2()())
 
@@ -301,9 +301,9 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         h5f.create_group('/', 'group1')
         lgroup1 = self.h5file.root.lgroup1
         lgroup1_ = lgroup1.copy(h5f.root, 'lgroup1')
-        self.assertTrue('/lgroup1' in self.h5file)
-        self.assertTrue('/lgroup1' in h5f)
-        self.assertTrue(lgroup1_ in h5f)
+        self.assertIn('/lgroup1', self.h5file)
+        self.assertIn('/lgroup1', h5f)
+        self.assertIn(lgroup1_, h5f)
         if common.verbose:
             print("Copied link:", lgroup1_, 'in:', lgroup1_._v_file.filename)
         h5f.close()
@@ -315,11 +315,11 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         larr1 = self.h5file.get_node('/lgroup1/larr1')
         arr1 = self.h5file.get_node('/arr1')
         # get
-        self.assertTrue(larr1.shape == (2,))
-        self.assertTrue(larr1[:] == [1, 2])
+        self.assertEqual(larr1.shape, (2,))
+        self.assertEqual(larr1[:], [1, 2])
         # set
         larr1[0] = -1
-        self.assertTrue(arr1[:] == [-1, 2])
+        self.assertEqual(arr1[:], [-1, 2])
 
     def test12_access_child_node_attributes(self):
         """Check get/set attributes via link-->target.child.attribute"""
@@ -327,10 +327,10 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         lgroup1 = self.h5file.get_node('/lgroup1')
         arr2 = self.h5file.get_node('/group1/arr2')
         # get child attribute
-        self.assertTrue(lgroup1.arr2[:] == [1, 2, 3])
+        self.assertEqual(lgroup1.arr2[:], [1, 2, 3])
         # set child attribute
         lgroup1.arr2[0] = -1
-        self.assertTrue(arr2[:] == [-1, 2, 3])
+        self.assertEqual(arr2[:], [-1, 2, 3])
 
     def test13_direct_attribute_access_via_chained_softlinks(self):
         """Check get/set access via link2-->link1-->target.child.attribute"""
@@ -340,10 +340,10 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         # multiple chained links
         l_lgroup1 = self.h5file.create_soft_link('/', 'l_lgroup1', '/lgroup1')
         # get child attribute
-        self.assertTrue(l_lgroup1.arr2[:] == [1, 2, 3])
+        self.assertEqual(l_lgroup1.arr2[:], [1, 2, 3])
         # set child attribute
         l_lgroup1.arr2[0] = -1
-        self.assertTrue(arr2[:] == [-1, 2, 3])
+        self.assertEqual(arr2[:], [-1, 2, 3])
 
     def test14_child_of_softlink_to_group(self):
         """Create an array whose parent is a softlink to another group"""
@@ -352,7 +352,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
         lgroup1 = self.h5file.get_node('/lgroup1')
         new_arr = self.h5file.create_array(lgroup1, 'new_arr', obj=[1, 2, 3])
         new_arr2 = self.h5file.get_node('/group1/new_arr')
-        self.assertTrue(new_arr2[:] == [1, 2, 3])
+        self.assertEqual(new_arr2[:], [1, 2, 3])
 
     def test_str(self):
         s = str(self.h5file)
@@ -400,19 +400,19 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
 
         # The external file
         extarr1 = self.exth5file.create_array('/', 'arr1', [1, 2])
-        self.assertTrue(extarr1 is not None)
+        self.assertIsNotNone(extarr1)
         extgroup1 = self.exth5file.create_group('/', 'group1')
         extarr2 = self.exth5file.create_array(extgroup1, 'arr2', [1, 2, 3])
 
         # Create external links
         lgroup1 = self.h5file.create_external_link(
             '/', 'lgroup1', '%s:/group1' % self.extfname)
-        self.assertTrue(lgroup1 is not None)
+        self.assertIsNotNone(lgroup1)
         larr1 = self.h5file.create_external_link(
             group1, 'larr1', '%s:/arr1' % self.extfname)
-        self.assertTrue(larr1 is not None)
+        self.assertIsNotNone(larr1)
         larr2 = self.h5file.create_external_link('/', 'larr2', extarr2)
-        self.assertTrue(larr2 is not None)
+        self.assertIsNotNone(larr2)
 
         # Re-open the external file in 'r'ead-only mode
         self.exth5file.close()
@@ -448,16 +448,16 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
 
         # First delete the referred link
         self.exth5file.root.arr1.remove()
-        self.assertTrue('/arr1' not in self.exth5file)
+        self.assertNotIn('/arr1', self.exth5file)
 
         # The external link should still be there (but dangling)
         if common.verbose:
             print("Dangling link:", self.h5file.root.group1.larr1)
-        self.assertTrue('/group1/larr1' in self.h5file)
+        self.assertIn('/group1/larr1', self.h5file)
 
         # Remove the external link itself
         self.h5file.root.group1.larr1.remove()
-        self.assertTrue('/group1/larr1' not in self.h5file)
+        self.assertNotIn('/group1/larr1', self.h5file)
 
     def test03_copy(self):
         """Copying an external link."""
@@ -466,10 +466,10 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
         root = self.h5file.root
         lgroup1 = root.lgroup1
         lgroup2 = lgroup1.copy('/', 'lgroup2')
-        self.assertTrue('/lgroup1' in self.h5file)
-        self.assertTrue('/lgroup2' in self.h5file)
-        self.assertTrue('lgroup2' in root._v_children)
-        self.assertTrue('lgroup2' in root._v_links)
+        self.assertIn('/lgroup1', self.h5file)
+        self.assertIn('/lgroup2', self.h5file)
+        self.assertIn('lgroup2', root._v_children)
+        self.assertIn('lgroup2', root._v_links)
         if common.verbose:
             print("Copied link:", lgroup2)
 
@@ -486,10 +486,10 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
         lgroup1 = root.lgroup1
         lgroup2 = lgroup1.copy('/', 'lgroup2')
         lgroup2 = lgroup1.copy('/', 'lgroup2', overwrite=True)
-        self.assertTrue('/lgroup1' in self.h5file)
-        self.assertTrue('/lgroup2' in self.h5file)
-        self.assertTrue('lgroup2' in root._v_children)
-        self.assertTrue('lgroup2' in root._v_links)
+        self.assertIn('/lgroup1', self.h5file)
+        self.assertIn('/lgroup2', self.h5file)
+        self.assertIn('lgroup2', root._v_children)
+        self.assertIn('lgroup2', root._v_links)
         if common.verbose:
             print("Copied link:", lgroup2)
 
@@ -508,8 +508,8 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
         lgroup2 = self.h5file.root.group2.lgroup2
         if common.verbose:
             print("Moved link:", lgroup2)
-        self.assertTrue('/lgroup1' not in self.h5file)
-        self.assertTrue('/group2/lgroup2' in self.h5file)
+        self.assertNotIn('/lgroup1', self.h5file)
+        self.assertIn('/group2/lgroup2', self.h5file)
         self._checkEqualityGroup(self.exth5file.root.group1,
                                  self.h5file.root.group2.lgroup2())
 
@@ -522,8 +522,8 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
         lgroup2 = self.h5file.root.lgroup2
         if common.verbose:
             print("Moved link:", lgroup2)
-        self.assertTrue('/lgroup1' not in self.h5file)
-        self.assertTrue('/lgroup2' in self.h5file)
+        self.assertNotIn('/lgroup1', self.h5file)
+        self.assertIn('/lgroup2', self.h5file)
         self._checkEqualityGroup(self.exth5file.root.group1,
                                  self.h5file.root.lgroup2())
 
@@ -560,16 +560,16 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
         """Checking `umount()` method."""
 
         link = self.h5file.root.lgroup1
-        self.assertTrue(link.extfile is None)
+        self.assertIsNone(link.extfile)
 
         # Dereference a external node (and hence, 'mount' a file)
         enode = link()
-        self.assertTrue(enode is not None)
-        self.assertTrue(link.extfile is not None)
+        self.assertIsNotNone(enode)
+        self.assertIsNotNone(link.extfile)
 
         # Umount the link
         link.umount()
-        self.assertTrue(link.extfile is None)
+        self.assertIsNone(link.extfile)
 
     def test10_copy_link_to_file(self):
         """Checking copying a link to another file."""
@@ -581,9 +581,9 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
                 h5file2.create_group('/', 'group1')
                 lgroup1 = self.h5file.root.lgroup1
                 lgroup1_ = lgroup1.copy(h5file2.root, 'lgroup1')
-                self.assertTrue('/lgroup1' in self.h5file)
-                self.assertTrue('/lgroup1' in h5file2)
-                self.assertTrue(lgroup1_ in h5file2)
+                self.assertIn('/lgroup1', self.h5file)
+                self.assertIn('/lgroup1', h5file2)
+                self.assertIn(lgroup1_, h5file2)
                 if common.verbose:
                     print("Copied link:", lgroup1_, 'in:',
                           lgroup1_._v_file.filename)
