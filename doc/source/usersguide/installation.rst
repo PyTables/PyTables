@@ -49,7 +49,7 @@ Prerequisites
 
 First, make sure that you have
 
-* Python_ >= 2.7 including Python 3.x
+* Python_ >= 3 (PyTables-3.5 was the last release with Python 2.7 support)
 * HDF5_ >= 1.8.4 (>=1.8.15 is strongly recommended)
 * NumPy_ >= 1.9.3
 * Numexpr_ >= 2.6.2
@@ -475,7 +475,7 @@ compile PyTables itself on Windows.
 Windows prerequisites
 ~~~~~~~~~~~~~~~~~~~~~
 
-First, make sure that you have Python 2.7, NumPy 1.8.0 and Numexpr 2.5.2 or
+First, make sure that you have Python 3, NumPy 1.8.0 and Numexpr 2.5.2 or
 higher installed.
 
 To enable compression with the optional LZO library (see the
