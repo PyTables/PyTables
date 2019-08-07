@@ -86,8 +86,7 @@ _nxtype_from_nptype = {
     numpy.bytes_: bytes,
 }
 
-if sys.version_info[0] > 2:
-    _nxtype_from_nptype[numpy.str_] = str
+_nxtype_from_nptype[numpy.str_] = str
 
 if hasattr(numpy, 'float16'):
     _nxtype_from_nptype[numpy.float16] = float    # XXX: check

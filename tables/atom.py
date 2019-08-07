@@ -1156,24 +1156,23 @@ class VLUnicodeAtom(_BufferedAtom):
     type = 'vlunicode'
     base = UInt32Atom()
 
-    if sys.version_info[0] > 2 or sys.maxunicode <= 0xffff:
-        # numpy.unicode_ no more implements the buffer interface in Python 3
-        #
-        # When the Python build is UCS-2, we need to promote the
-        # Unicode string to UCS-4.  We *must* use a 0-d array since
-        # NumPy scalars inherit the UCS-2 encoding from Python (see
-        # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
-        # array, we must override ``toarray()`` itself.
-        def toarray(self, object_):
-            if isinstance(object_, bytes):
-                warnings.warn("Storing bytestrings in VLUnicodeAtom is "
-                              "deprecated.", DeprecationWarning)
-            elif not isinstance(object_, str):
-                raise TypeError("object is not a string: %r" % (object_,))
-            ustr = str(object_)
-            uarr = numpy.array(ustr, dtype='U')
-            return numpy.ndarray(
-                buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
+    # numpy.unicode_ no more implements the buffer interface in Python 3
+    #
+    # When the Python build is UCS-2, we need to promote the
+    # Unicode string to UCS-4.  We *must* use a 0-d array since
+    # NumPy scalars inherit the UCS-2 encoding from Python (see
+    # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
+    # array, we must override ``toarray()`` itself.
+    def toarray(self, object_):
+        if isinstance(object_, bytes):
+            warnings.warn("Storing bytestrings in VLUnicodeAtom is "
+                          "deprecated.", DeprecationWarning)
+        elif not isinstance(object_, str):
+            raise TypeError("object is not a string: %r" % (object_,))
+        ustr = str(object_)
+        uarr = numpy.array(ustr, dtype='U')
+        return numpy.ndarray(
+            buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
 
     def _tobuffer(self, object_):
         # This works (and is used) only with UCS-4 builds of Python,

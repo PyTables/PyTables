@@ -1548,10 +1548,7 @@ class FilterTestCase(TestCase):
 
     @staticmethod
     def _hexl(n):
-        if sys.version_info[0] > 2:
-            return hex(int(n))
-        else:
-            return hex(int(n)).rstrip('L')
+        return hex(int(n))
 
     def test_filter_pack_01(self):
         filter_ = Filters()
@@ -1766,11 +1763,7 @@ class Sec2DriverTestCase(DefaultDriverTestCase):
     def test_get_file_image(self):
         image = self.h5file.get_file_image()
         self.assertGreater(len(image), 0)
-        if sys.version_info[0] < 3:
-            self.assertEqual([ord(i) for i in image[
-                             :4]], [137, 72, 68, 70])
-        else:
-            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
+        self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
 @unittest.skipIf(hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
@@ -1781,11 +1774,7 @@ class StdioDriverTestCase(DefaultDriverTestCase):
     def test_get_file_image(self):
         image = self.h5file.get_file_image()
         self.assertGreater(len(image), 0)
-        if sys.version_info[0] < 3:
-            self.assertEqual([ord(i) for i in image[
-                             :4]], [137, 72, 68, 70])
-        else:
-            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
+        self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
 @unittest.skipIf(hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
@@ -1796,11 +1785,7 @@ class CoreDriverTestCase(DefaultDriverTestCase):
     def test_get_file_image(self):
         image = self.h5file.get_file_image()
         self.assertGreater(len(image), 0)
-        if sys.version_info[0] < 3:
-            self.assertEqual([ord(i) for i in image[
-                             :4]], [137, 72, 68, 70])
-        else:
-            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
+        self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
 class CoreDriverNoBackingStoreTestCase(TestCase):
@@ -2041,11 +2026,7 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
         image = self.h5file.get_file_image()
 
         self.assertGreater(len(image), 0)
-        if sys.version_info[0] < 3:
-            self.assertEqual([ord(i) for i in image[
-                             :4]], [137, 72, 68, 70])
-        else:
-            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
+        self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
 class SplitDriverTestCase(DefaultDriverTestCase):
@@ -2211,19 +2192,13 @@ class InMemoryCoreDriverTestCase(TestCase):
     def test_newFileW(self):
         image = self._create_image(self.h5fname, mode='w')
         self.assertGreater(len(image), 0)
-        if sys.version_info[0] < 3:
-            self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
-        else:
-            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
+        self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
         self.assertFalse(os.path.exists(self.h5fname))
 
     def test_newFileA(self):
         image = self._create_image(self.h5fname, mode='a')
         self.assertGreater(len(image), 0)
-        if sys.version_info[0] < 3:
-            self.assertEqual([ord(i) for i in image[:4]], [137, 72, 68, 70])
-        else:
-            self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
+        self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
         self.assertFalse(os.path.exists(self.h5fname))
 
     def test_openFileR(self):

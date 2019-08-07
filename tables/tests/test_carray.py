@@ -2109,14 +2109,10 @@ class BigArrayTestCase(common.TempFileMixin, TestCase):
         try:
             self.assertEqual(len(self.h5file.root.array), self.shape[0])
         except OverflowError:
-            # In python 2.4 calling "len(self.h5file.root.array)" raises
-            # an OverflowError also on 64bit platforms::
-            #   OverflowError: __len__() should return 0 <= outcome < 2**31
-            if sys.version_info[:2] > (2, 4):
-                # This can't be avoided in 32-bit platforms.
-                self.assertTrue(self.shape[0] > numpy.iinfo(int).max,
-                                "Array length overflowed but ``int`` "
-                                "is wide enough.")
+            # This can't be avoided in 32-bit platforms.
+            self.assertTrue(self.shape[0] > numpy.iinfo(int).max,
+                            "Array length overflowed but ``int`` "
+                            "is wide enough.")
 
     def test01_shape_reopen(self):
         """Check that the shape doesn't overflow after reopening."""

@@ -553,12 +553,8 @@ class Description(object):
 
             if not isinstance(k, str):
                 # numpy only accepts "str" for field names
-                if sys.version_info[0] < 3:
-                    # Python 2.x: unicode --> str
-                    kk = k.encode()  # use the default encoding
-                else:
-                    # Python 3.x: bytes --> str (unicode)
-                    kk = k.decode()
+                # Python 3.x: bytes --> str (unicode)
+                kk = k.decode()
             else:
                 kk = k
 

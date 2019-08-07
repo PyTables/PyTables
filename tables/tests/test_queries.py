@@ -503,11 +503,7 @@ def add_test_method(type_, op, extracond='', func=None):
     tmethod.__name__ = testfmt % testn
     # tmethod.__doc__ += numfmt % testn
     tmethod.__doc__ += testfmt % testn
-    if sys.version_info[0] < 3:
-        imethod = types.MethodType(tmethod, None, TableDataTestCase)
-    else:
-        imethod = tmethod
-    setattr(TableDataTestCase, tmethod.__name__, imethod)
+    setattr(TableDataTestCase, tmethod.__name__, tmethod)
     testn += 1
 
 # Create individual tests.  You may restrict which tests are generated
@@ -694,11 +690,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
         NIE = NotImplementedError
         self.assertRaises(NIE, self.table.where, 'c_complex128 > 0j')
-        if sys.version_info[0] < 3:
-            self.assertRaises(NIE, self.table.where, 'c_string + "a" > "abc"')
-        else:
-            self.assertRaises(NIE, self.table.where,
-                              'c_string + b"a" > b"abc"')
+        self.assertRaises(NIE, self.table.where, 'c_string + b"a" > b"abc"')
 
     def test_not_boolean(self):
         """Using a non-boolean condition."""
