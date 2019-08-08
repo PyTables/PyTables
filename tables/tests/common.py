@@ -24,13 +24,7 @@ from distutils.version import LooseVersion
 
 from pkg_resources import resource_filename
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    if sys.version_info < (2, 7):
-        raise
-    else:
-        import unittest
+import unittest
 
 import numpy
 import numexpr

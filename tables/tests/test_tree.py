@@ -496,7 +496,6 @@ class TreeTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("walk_nodes(pathname, classname) test passed")
 
-    @unittest.skipIf(sys.version_info[0] < 3, "Special method `__dir__()` introduced in Python-3.")
     def test05_dir(self):
         """Checking Group.__dir__"""
 

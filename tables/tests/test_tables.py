@@ -1571,12 +1571,6 @@ class DictWriteTestCase(BasicTestCase):
     step = 3
 
 
-@unittest.skipIf(sys.version_info >= (3,), 'requires Python 2')
-class DictWriteTestCase2(DictWriteTestCase):
-    record = RecordDescriptionDict.copy()
-    record['var1'] = record.pop('var1')
-
-
 # Pure NumPy dtype
 class NumPyDTWriteTestCase(BasicTestCase):
     title = "NumPyDTWriteTestCase"
@@ -6521,7 +6515,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(OldRecordBasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(DictWriteTestCase))
-        theSuite.addTest(unittest.makeSuite(DictWriteTestCase2))
         theSuite.addTest(unittest.makeSuite(NumPyDTWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))

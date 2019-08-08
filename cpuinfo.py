@@ -46,8 +46,6 @@ except ImportError as err:
 	except ImportError as err:
 		pass
 
-PY2 = sys.version_info[0] == 2
-
 # Load hacks for Windows
 if platform.system().lower() == 'windows':
 	# Monkey patch multiprocessing's Popen to fork properly on Windows Pyinstaller
@@ -247,16 +245,14 @@ def run_and_get_stdout(command, pipe_command=None):
 	if not pipe_command:
 		p1 = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 		output = p1.communicate()[0]
-		if not PY2:
-			output = output.decode(encoding='UTF-8')
+		output = output.decode(encoding='UTF-8')
 		return p1.returncode, output
 	else:
 		p1 = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 		p2 = subprocess.Popen(pipe_command, stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		p1.stdout.close()
 		output = p2.communicate()[0]
-		if not PY2:
-			output = output.decode(encoding='UTF-8')
+		output = output.decode(encoding='UTF-8')
 		return p2.returncode, output
 
 

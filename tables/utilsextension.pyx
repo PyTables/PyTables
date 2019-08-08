@@ -270,10 +270,7 @@ cdef register_blosc_():
   compinfo = (version, date)
   free(version)
   free(date)
-  if sys.version_info[0] > 2:
-    return compinfo[0].decode('ascii'), compinfo[1].decode('ascii')
-  else:
-    return compinfo
+  return compinfo[0].decode('ascii'), compinfo[1].decode('ascii')
 
 blosc_version = register_blosc_()
 

@@ -69,7 +69,6 @@ proceeding.
 .. _Cython: http://www.cython.org
 .. _c-blosc: http://blosc.org
 .. _argparse: http://code.google.com/p/argparse
-.. _unittest2: http://pypi.python.org/pypi/unittest2
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
 instructions on how to install pre-compiled binaries if you are not willing

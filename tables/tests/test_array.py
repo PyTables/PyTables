@@ -2249,10 +2249,9 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
 
         # Using booleans instead of ints is deprecated since numpy 1.8
         # Tests for keys that have to support the __index__ attribute
-        #if (sys.version_info[0] >= 2 and sys.version_info[1] >= 5):
-        #    self.working_keyset.append(
-        #        (False, True),  # equivalent to (0,1) ;-)
-        #    )
+        #self.working_keyset.append(
+        #    (False, True),  # equivalent to (0,1) ;-)
+        #)
 
         # Valid selections for NumPy, but not for PyTables (yet)
         # The next should raise an IndexError

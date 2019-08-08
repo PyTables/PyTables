@@ -2425,23 +2425,6 @@ class TestDescription(TestCase):
         self.assertTrue(sorted(descr._v_dtype.fields.keys()),
                         sorted(d.keys()))
 
-    @unittest.skipIf(sys.version_info >= (3,), 'requires Python 2')
-    def test_unicode_names(self):
-        # see gh-42
-        # the name used is a valid ASCII identifier passed as unicode
-        # string
-        d = {str('name'): tables.Int16Col()}
-        descr = Description(d)
-        self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
-        self.assertIsInstance(descr._v_dtype, numpy.dtype)
-        keys = []
-        for key in list(d.keys()):
-            if isinstance(key, str):
-                keys.append(key.encode())
-            else:
-                keys.append(key)
-        self.assertTrue(sorted(descr._v_dtype.fields.keys()), sorted(keys))
-
 
 class TestAtom(TestCase):
     def test_atom_attributes01(self):
