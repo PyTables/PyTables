@@ -2,4 +2,3 @@
 # doc/source/usersguide/installation.rst
 numpy>=1.9.3
 numexpr>=2.6.2
-mock>=2.0
