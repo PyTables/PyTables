@@ -405,9 +405,14 @@ cdef class Table(Leaf):
     # Create the native data in-memory
     self.type_id = H5Tcreate(H5T_COMPOUND, type_size)
     # Fill-up the (nested) native type and description
-    desc, _ = self.get_nested_type(self.disk_type_id, self.type_id, "", [])
+    desc, offset = self.get_nested_type(self.disk_type_id, self.type_id, "", [])
+
     if desc == {}:
       raise HDF5ExtError("Problems getting desciption for table %s", self.name)
+
+    if offset < type_size:
+        # Trailing padding, set the itemsize to the correct type_size
+        desc['_v_itemsize'] = type_size
 
     # Return the object ID and the description
     return (self.dataset_id, desc, SizeType(chunksize[0]))
