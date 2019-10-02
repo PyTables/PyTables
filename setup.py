@@ -126,7 +126,6 @@ if __name__ == '__main__':
     lib_dirs = []
     inc_dirs = [os.path.join('hdf5-blosc', 'src')]
     optional_libs = []
-    data_files = []    # list of data files to add to packages (mainly for DLL's)
 
     default_header_dirs = None
     default_library_dirs = None
@@ -809,11 +808,13 @@ if __name__ == '__main__':
     setuptools_kwargs['scripts'] = []
 
     # Copy additional data for packages that need it.
-    setuptools_kwargs['package_data'] = {
+    package_data = {
         'tables.tests': ['*.h5', '*.mat'],
         'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5'],
     }
-
+    if os.name == 'nt':
+        # add hdf5.dll to egg or wheel
+        package_data['tables'] = ['*.dll']
 
     # Having the Python version included in the package name makes managing a
     # system with multiple versions of Python much easier.
@@ -829,12 +830,6 @@ if __name__ == '__main__':
 
 
     name = find_name()
-
-    if os.name == "nt":
-        # Add DLL's to the final package for windows
-        data_files.extend([
-            ('Lib/site-packages/%s' % name, dll_files),
-        ])
 
     ADDLIBS = [hdf5_package.library_name]
 
@@ -1067,7 +1062,7 @@ interactively save and retrieve large amounts of data.
         platforms=['any'],
         ext_modules=extensions,
         cmdclass=cmdclass,
-        data_files=data_files,
+        package_data=package_data,
         extra_require={
             'doc': [
                 'sphinx >= 1.1',
