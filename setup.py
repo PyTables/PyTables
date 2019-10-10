@@ -700,29 +700,29 @@ if __name__ == '__main__':
                 'nt': "any of the directories in %%PATH%%.",
             }[os.name]
 
-            if os.name == "nt":
-                if "bdist_wheel" in sys.argv or "bdist_egg" in sys.argv:
-                    exit_with_error(
-                        "Could not find the %s runtime." % package.name,
-                        "The %(name)s shared library was *not* found in %(loc)s "
-                        "Cannot build wheel or egg without the runtime."
-                        % dict(name=package.name, loc=loc)
-                    )
-                elif "develop" in sys.argv or "install" in sys.argv:
-                    # for python >= 3.8 on Windows we need to install the DLLs
-                    # alongside of the python package for DLL import to work
-                    exit_with_error(
-                        "Could not find the %s runtime." % package.name,
-                        "The %(name)s shared library was *not* found in %(loc)s "
-                        "Runtime must be installed alongside of the tables package."
-                        % dict(name=package.name, loc=loc)
-                    )
-            print_warning(
-                "Could not find the %s runtime." % package.name,
-                "The %(name)s shared library was *not* found in %(loc)s "
-                "In case of runtime problems, please remember to install it."
-                % dict(name=package.name, loc=loc)
-            )
+            if "bdist_wheel" in sys.argv:
+                exit_with_error(
+                    "Could not find the %s runtime." % package.name,
+                    "The %(name)s shared library was *not* found in %(loc)s "
+                    "Cannot build wheel without the runtime."
+                    % dict(name=package.name, loc=loc)
+                )
+            elif "install" in sys.argv and os.name == "nt":
+                # for python >= 3.8 on Windows we need to install the DLLs
+                # alongside of the python package for DLL import to work
+                exit_with_error(
+                    "Could not find the %s runtime." % package.name,
+                    "The %(name)s shared library was *not* found in %(loc)s "
+                    "Runtime must be installed alongside of the tables package."
+                    % dict(name=package.name, loc=loc)
+                )
+            else:
+                print_warning(
+                    "Could not find the %s runtime." % package.name,
+                    "The %(name)s shared library was *not* found in %(loc)s "
+                    "In case of runtime problems, please remember to install it."
+                    % dict(name=package.name, loc=loc)
+                )
 
         if os.name == "nt":
             # LZO DLLs cannot be copied to the binary package for license reasons
