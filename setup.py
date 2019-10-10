@@ -700,7 +700,7 @@ if __name__ == '__main__':
                 'nt': "any of the directories in %%PATH%%.",
             }[os.name]
 
-            if "bdist_wheel" in sys.argv:
+            if "bdist_wheel" in sys.argv and os.name == 'nt':
                 exit_with_error(
                     "Could not find the %s runtime." % package.name,
                     "The %(name)s shared library was *not* found in %(loc)s "
