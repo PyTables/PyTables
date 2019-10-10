@@ -36,14 +36,18 @@ if os.name == 'nt' and not getattr(sys, 'frozen', False):
         By default, try to load the DLL from the current package
         directory first, then from the Windows DLL search path.
 
+        Python >= 3.8 no longer searches PATH for DLLs. Skip PATH modification
+        on Python >= 3.8.
+
         """
         try:
             dllpaths = (os.path.abspath(
                 os.path.dirname(__file__)), ) + dllpaths
         except NameError:
             pass  # PyPy and frozen distributions have no __file__ attribute
+        oldenv = None
         for path in dllpaths:
-            if path:
+            if path and sys.version_info < (3, 8):
                 # Temporarily add the path to the PATH environment variable
                 # so Windows can find additional DLL dependencies.
                 try:
@@ -71,9 +75,12 @@ if os.name == 'nt' and not getattr(sys, 'frozen', False):
         if _load_library(dll, ctypes.cdll.LoadLibrary):
             break
     else:
+        if sys.version_info < (3, 8):
+            dll_loc = 'can be found in the system path'
+        else:
+            dll_loc = 'is installed in the package folder'
         raise ImportError(
-            'Could not load any of %s, please ensure'
-            ' that it can be found in the system path' % hdf5_dlls)
+            'Could not load any of %s, please ensure that it %s.' % (hdf5_dlls, dll_loc))
 
     # Some PyTables binary distributions place the dependency DLLs in the
     # tables package directory.

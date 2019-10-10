@@ -707,15 +707,6 @@ if __name__ == '__main__':
                     "Cannot build wheel without the runtime."
                     % dict(name=package.name, loc=loc)
                 )
-            elif "install" in sys.argv and os.name == "nt":
-                # for python >= 3.8 on Windows we need to install the DLLs
-                # alongside of the python package for DLL import to work
-                exit_with_error(
-                    "Could not find the %s runtime." % package.name,
-                    "The %(name)s shared library was *not* found in %(loc)s "
-                    "Runtime must be installed alongside of the tables package."
-                    % dict(name=package.name, loc=loc)
-                )
             else:
                 print_warning(
                     "Could not find the %s runtime." % package.name,
