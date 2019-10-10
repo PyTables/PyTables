@@ -61,7 +61,7 @@ class RecordDT(tables.IsDescription):
     var4 = Col.from_dtype(np.dtype("2f8"), dflt=3.1)
     var5 = Col.from_dtype(np.dtype("f4"), dflt=4.2)
     var6 = Col.from_dtype(np.dtype("()u2"), dflt=5)
-    var7 = Col.from_dtype(np.dtype("1S1"), dflt=b"e")   # no shape
+    var7 = Col.from_dtype(np.dtype("S1"), dflt=b"e")   # no shape
 
 
 class BasicTestCase(common.TempFileMixin, TestCase):
