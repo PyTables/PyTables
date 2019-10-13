@@ -414,6 +414,7 @@ cdef class Table(Leaf):
       # Trailing padding, set the itemsize to the correct type_size (see #765)
       desc['_v_itemsize'] = type_size
 
+
     # Return the object ID and the description
     return (self.dataset_id, desc, SizeType(chunksize[0]))
 
