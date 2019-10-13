@@ -25,6 +25,38 @@ from tables.tests.common import unittest, test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
+class PaddedArrayTestCase(common.TestFileMixin, TestCase):
+    """Test for H5T_COMPOUND (Table) datatype with padding.
+
+    Regression test for issue gh-734
+
+    itemsize.h5 was created with h5py with the array `expectedData` (see below)
+    in the table `/Test`:
+    'A' and 'B' are 4 + 4 bytes, with 8 bytes padding.
+
+    $ h5ls -v itemsize.h5
+    Test                     Dataset {3/3}
+    Location:  1:800
+    Links:     1
+    Storage:   48 logical bytes, 48 allocated bytes, 100.00% utilization
+    Type:      struct {
+                   "A"                +0    native unsigned int
+                   "B"                +4    native unsigned int
+               } 16 bytes
+
+    """
+    h5fname = test_filename('itemsize.h5')
+
+    def test(self):
+        arr = self.h5file.get_node('/Test')
+        data = arr.read()
+        expectedData = numpy.array(
+                [(1, 11), (2, 12), (3, 13)],
+                dtype={'names': ['A', 'B'], 'formats': ['<u4', '<u4'],
+                       'offsets': [0, 4], 'itemsize': 16})
+        self.assertTrue(common.areArraysEqual(data, expectedData))
+
+
 class EnumTestCase(common.TestFileMixin, TestCase):
     """Test for enumerated datatype.
 
@@ -357,6 +389,7 @@ def suite():
     niter = 1
 
     for i in range(niter):
+        theSuite.addTest(unittest.makeSuite(PaddedArrayTestCase))
         theSuite.addTest(unittest.makeSuite(EnumTestCase))
         theSuite.addTest(unittest.makeSuite(F64BETestCase))
         theSuite.addTest(unittest.makeSuite(F64LETestCase))
