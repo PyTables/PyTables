@@ -502,7 +502,7 @@ class WriteTestCase(common.TempFileMixin, TestCase):
         raCols = numpy.rec.fromarrays([
             self._testAData['x'].copy(),
             self._testAData['color'].copy()],
-            dtype=[('x', '(2,)i4'), ('color', '1a2')])
+            dtype=[('x', '(2,)i4'), ('color', 'a2')])
             # descr=tbl.description._v_nested_descr[0:2])
             # or...
             # names=tbl.description._v_nested_names[0:2],

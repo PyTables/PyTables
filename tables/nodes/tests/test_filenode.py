@@ -928,7 +928,6 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         Closes 'fnode' and 'h5file'; removes 'h5fname'.
 
         """
-
         if os.access(self.testfname, os.R_OK):
             os.remove(self.testfname)
         if os.access(self.testh5fname, os.R_OK):
@@ -954,8 +953,10 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         with open(self.testfname, "rb") as fd:
             self.assertEqual(fd.read(), self.data)
         # make sure extracting to an existing file doesn't work ...
-        self.assertRaises(IOError, filenode.read_from_filenode,
-                          self.testh5fname, self.testfname, "/test1")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.assertRaises(IOError, filenode.read_from_filenode,
+                              self.testh5fname, self.testfname, "/test1")
         # except overwrite is True.  And try reading with a name
         filenode.read_from_filenode(self.testh5fname, self.testfname, "/",
                                     name="test2", overwrite=True)
@@ -965,6 +966,7 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         # cleanup
         os.remove(self.testfname)
         os.remove(self.testh5fname)
+
 
     def test02_WriteToHDF5File(self):
         # write contents of datafname to h5 testfile

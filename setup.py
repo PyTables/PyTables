@@ -761,7 +761,7 @@ if __name__ == '__main__':
                 # developer should have it installed, so it should not be
                 # a hard requisite
                 from Cython.Build import cythonize
-                cythonize(extpfile)
+                cythonize(extpfile, language_level = "2")
             extfiles[extname] = extcfile
 
         return extfiles
