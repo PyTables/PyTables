@@ -411,8 +411,9 @@ cdef class Table(Leaf):
       raise HDF5ExtError("Problems getting desciption for table %s", self.name)
 
     if offset < type_size:
-        # Trailing padding, set the itemsize to the correct type_size
-        desc['_v_itemsize'] = type_size
+      # Trailing padding, set the itemsize to the correct type_size (see #765)
+      desc['_v_itemsize'] = type_size
+
 
     # Return the object ID and the description
     return (self.dataset_id, desc, SizeType(chunksize[0]))
