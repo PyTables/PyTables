@@ -614,7 +614,11 @@ class Description(object):
         # print("offsets ->", cols_offsets, nestedDType, nested, valid_offsets)
         if valid_offsets:
             # TODO: support offsets with nested types
-            dtype = numpy.dtype({'names': newdict['_v_names'], 'formats': nestedFormats, 'offsets': cols_offsets})
+            itemsize = newdict.get('_v_itemsize', None)
+            if itemsize is not None:
+              dtype = numpy.dtype({'names': newdict['_v_names'], 'formats': nestedFormats, 'offsets': cols_offsets, 'itemsize': itemsize})
+            else:
+              dtype = numpy.dtype({'names': newdict['_v_names'], 'formats': nestedFormats, 'offsets': cols_offsets})
         else:
             dtype = numpy.dtype(nestedDType)
         newdict['_v_dtype'] = dtype
