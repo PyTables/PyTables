@@ -68,7 +68,7 @@ if os.name == 'nt' and not getattr(sys, 'frozen', False):
     # issue, we explicitly test that we can load the HDF5 dll before
     # loading tables.utilsextensions.
     import sys
-    hdf5_dlls = ['hdf5.dll', 'hdf5dll.dll']
+    hdf5_dlls = ['hdf5.dll', 'hdf5dll.dll', 'pytables_hdf5.dll']
     if hasattr(sys, 'gettotalrefcount'):  # running with debug interpreter
         hdf5_dlls = ['hdf5_D.dll', 'hdf5ddll.dll']
     for dll in hdf5_dlls:

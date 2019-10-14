@@ -3,8 +3,6 @@
 
 """Setup script for the tables package"""
 
-from __future__ import print_function
-
 import os
 import sys
 import ctypes
@@ -419,19 +417,17 @@ if __name__ == '__main__':
         }
 
         # Copy the next DLL's to binaries by default.
-        try:
-            # We define BUILDWHEEL in appveyor.yml
-            # include zlib from conda:
-            if os.environ['APPVEYOR'] and os.environ['BUILDWHEEL']:
-                # Conda HDF5 is linked to zlib.dll (from conda package zlib)
-                # but szip.dll is not included in conda
-                dll_files = [os.environ['CONDA_PREFIX']+'\\Library\\bin\\zlib.dll']
-        except KeyError:
-            # Update these paths for your own system!
-            dll_files = [
+        dll_files = [
                     # '\\windows\\system\\zlib1.dll',
                     # '\\windows\\system\\szip.dll',
                     ]
+
+        if os.environ.get('HDF5_USE_PREFIX', None):
+            # This is used on CI systems to link against HDF5 library
+            # The vendored `hdf5.dll` in a wheel is renamed to: `pytables_hdf5.dll`
+            # This should prevent DLL Hell.
+            print('* HDF5_USE_PREFIX: Trying to build against pytables_hdf5.dll')
+            _platdep['HDF5'] = ['pytables_hdf5', 'pytables_hdf5']
 
         if debug:
             _platdep['HDF5'] = ['hdf5_D', 'hdf5_D']
