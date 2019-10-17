@@ -1051,6 +1051,7 @@ interactively save and retrieve large amounts of data.
         maintainer_email='pytables@pytables.org',
         url='http://www.pytables.org/',
         license='BSD 2-Clause',
+        python_requires='>=3.5',
         platforms=['any'],
         ext_modules=extensions,
         cmdclass=cmdclass,
