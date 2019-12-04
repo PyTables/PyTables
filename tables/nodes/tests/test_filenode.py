@@ -18,8 +18,6 @@ import shutil
 import tempfile
 import warnings
 
-from pkg_resources import resource_filename
-
 from ... import open_file, file, NoSuchNodeError
 from ...nodes import filenode
 from ...tests.common import (
@@ -28,6 +26,7 @@ from ...tests.common import (
 
 
 def test_file(name):
+    from pkg_resources import resource_filename
     return resource_filename('tables.nodes.tests', name)
 
 
