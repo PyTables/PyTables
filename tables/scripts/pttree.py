@@ -175,7 +175,10 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
         ref_idx[path] = ref_count[addr]
         hl_addresses[path] = addr
 
-        if isinstance(node, tables.Leaf):
+        if isinstance(node, tables.UnImplemented):
+            leaves.append(node)
+
+        elif isinstance(node, tables.Leaf):
 
             # only count the size of a hardlinked leaf the first time it is
             # visited
@@ -201,7 +204,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
 
                 except NotImplementedError as e:
                     # size_on_disk is not implemented for VLArrays
-                    warnings.warn(e.message)
+                    warnings.warn(str(e))
 
             # push leaf nodes onto the stack for the next pass
             leaves.append(node)
