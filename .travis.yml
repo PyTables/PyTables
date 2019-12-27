@@ -1,3 +1,6 @@
+arch:
+    - amd64
+    - arm64
 language: python
 dist: xenial
 
