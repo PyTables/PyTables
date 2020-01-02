@@ -59,7 +59,6 @@ class ProxyDict(dict):
         # C implementation does not use `self.__getitem__()`. :(
         for key in self.keys():
             yield self[key]
-        raise StopIteration
 
     def items(self):
         # C implementation does not use `self.__getitem__()`. :(
@@ -72,7 +71,6 @@ class ProxyDict(dict):
         # C implementation does not use `self.__getitem__()`. :(
         for key in self.keys():
             yield (key, self[key])
-        raise StopIteration
 
     def _get_container(self):
         container = self.containerref()

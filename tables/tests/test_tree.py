@@ -517,6 +517,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
         #
         self.assertIn('_v_children', root_dir)
         self.assertIn('_v_attrs', root_dir)
+        self.assertIn('_v_groups', root_dir)
         self.assertIn('_g_get_child_group_class', root_dir)
         self.assertIn('_g_get_child_group_class', root_dir)
         self.assertIn('_f_close', root_dir)
@@ -551,6 +552,35 @@ class TreeTestCase(common.TempFileMixin, TestCase):
 
         if common.verbose:
             print("Group.__dir__ test passed")
+
+    def test06_v_groups(self):
+        """Checking Group._v_groups"""
+
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test06_v_groups..." % self.__class__.__name__)
+
+        self.h5file = tables.open_file(self.h5fname, "r")
+
+        """
+        h5file nodes:
+        '/table0', '/var1', '/var4'
+        '/group0/table1', '/group0/var1', '/group0/var4',
+        '/group0/group1/table2', '/group0/group1/var1', '/group0/group1/var4'
+        """
+        self.assertIsInstance(self.h5file.root._v_groups, dict)
+        group_names = {'group0'}
+        names = set(k for k, v in self.h5file.root._v_groups.iteritems())
+        self.assertEqual(group_names, names)
+        groups = list(self.h5file.root._v_groups.itervalues())
+        self.assertEqual(len(groups), len(group_names))
+
+        for group in groups:
+            with self.subTest(name=group._v_name):
+                self.assertIn(group._v_name, group_names)
+
+        if common.verbose:
+            print("Group._v_groups test passed")
 
 
 class DeepTreeTestCase(common.TempFileMixin, TestCase):
