@@ -22,8 +22,6 @@ import tempfile
 import warnings
 from distutils.version import LooseVersion
 
-from pkg_resources import resource_filename
-
 import unittest
 
 import numpy
@@ -144,6 +142,7 @@ def print_versions():
 
 
 def test_filename(filename):
+    from pkg_resources import resource_filename
     return resource_filename('tables.tests', filename)
 
 
