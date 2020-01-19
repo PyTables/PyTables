@@ -721,6 +721,13 @@ if __name__ == '__main__':
                 if rundir is not None:
                     dll_files.append(os.path.join(rundir, dll_file))
 
+        if os.name == 'nt' and package.tag in ['HDF5']:
+            # hdf5.dll usually depends on zlib.dll
+            z_lib_path = ctypes.util.find_library('zlib.dll')
+            if z_lib_path:
+                print('* Adding zlib.dll (hdf5 dependency): ``%s``' % z_lib_path)
+                dll_files.append(z_lib_path)
+
         if package.tag == 'LZO2':
             lzo2_enabled = True
 
@@ -1029,7 +1036,6 @@ Topic :: Software Development :: Libraries :: Python Modules
 Operating System :: Microsoft :: Windows
 Operating System :: Unix
 """
-
     setup(
         name=name,
         version=VERSION,
