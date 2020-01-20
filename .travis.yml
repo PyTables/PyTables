@@ -34,6 +34,32 @@ script:
   - ptdump -h
   - pttree -h
 
+before_deploy:
+  - pip install sphinx sphinx_rtd_theme ipython
+  - cd $TRAVIS_BUILD_DIR
+  - echo "3.6.1" > VERSION  # WIP remove me
+  - cd doc
+  - make html
+  - touch build/html/.nojekyll
+  - echo "www.pytables.org" > build/html/CNAME
+  - mkdir build/html/docs  # keep folders in history
+  - mkdir build/html/irc  # keep folders in history
+  - mkdir build/html/irc/2011  # keep folders in history
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  local_dir: doc/build/html
+  repo: PyTables/pytables.github.com
+  target_branch: master
+  keep_history: true  # important! keep docs/pdfs that are not part of this repo
+  verbose: true
+  on:
+    branch: master
+    python: 3.7
+    #tags: true
+
 notifications:
   webhooks:
     urls:
