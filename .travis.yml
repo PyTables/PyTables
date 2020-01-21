@@ -36,15 +36,10 @@ script:
 
 before_deploy:
   - pip install sphinx sphinx_rtd_theme ipython
-  - cd $TRAVIS_BUILD_DIR
-  - echo "3.6.1" > VERSION  # WIP remove me
-  - cd doc
+  - cd $TRAVIS_BUILD_DIR/doc
   - make html
   - touch build/html/.nojekyll
   - echo "www.pytables.org" > build/html/CNAME
-  - mkdir build/html/docs  # keep folders in history
-  - mkdir build/html/irc  # keep folders in history
-  - mkdir build/html/irc/2011  # keep folders in history
 
 deploy:
   provider: pages
@@ -58,7 +53,7 @@ deploy:
   on:
     branch: master
     python: 3.7
-    #tags: true
+    tags: true
 
 notifications:
   webhooks:
