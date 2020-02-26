@@ -301,7 +301,7 @@ if __name__ == '__main__':
 
             directories = [None, None, None]  # headers, libraries, runtime
             for idx, (name, find_path, default_dirs) in enumerate(dirdata):
-                path = find_path(locations or pkgconfig_dirs[idx] or default_dirs)
+                path = find_path(pkgconfig_dirs[idx] or locations or default_dirs)
                 if path:
                     if path is True:
                         directories[idx] = True
