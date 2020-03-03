@@ -42,7 +42,8 @@ static const char *test_forksafe(void) {
 
   int success = 0;
   int status = 0;
-  for(float sec = 0; sec < 1; ) {
+  float sec = 0;
+  while (sec < 1) {
     if(waitpid(newpid, &status, WNOHANG) != 0) {
       success = 1;
       break;

@@ -1,13 +1,13 @@
 ===============================================================
- Announcing C-Blosc 1.16.3
+ Announcing C-Blosc 1.17.1
  A blocking, shuffling and lossless compression library for C
 ===============================================================
 
 What is new?
 ============
 
-This is maintenance release that fixes some warnings in GCC/Clang and
-allows the build for clang with -march=haswell.
+A maintenance release where LZ4 and Zstd internal codecs have been updated
+to latest versions.
 
 For more info, please see the release notes in:
 
