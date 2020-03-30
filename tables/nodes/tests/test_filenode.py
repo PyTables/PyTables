@@ -410,6 +410,9 @@ class ReadFileTestCase(TempFileMixin, TestCase):
             self.fail(
                 "PIL was not able to create an image from the file node.")
 
+    def test_fileno(self):
+        self.assertIsNot(self.fnode.fileno(), None)
+
 
 class ReadlineTestCase(TempFileMixin, TestCase):
     """Base class for text line-reading test cases.

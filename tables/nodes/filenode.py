@@ -147,7 +147,7 @@ class RawPyTablesIO(io.RawIOBase):
         """
 
         self._checkClosed()
-        self._node._v_file.fileno()
+        return self._node._v_file.fileno()
 
     #def close(self) -> None:
     def close(self):
