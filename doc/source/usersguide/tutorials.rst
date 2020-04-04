@@ -1293,7 +1293,7 @@ get the following error.
 
 .. code-block:: bash
 
-    $ python tutorial2.py
+    $ python3 tutorial2.py
     Traceback (most recent call last):
       File "tutorial2.py", line 60, in <module>
         particle['pressure'] = array(i*arange(2*3)).reshape((2,4))  # Incorrect
@@ -1324,7 +1324,7 @@ another error.
 
 .. code-block:: bash
 
-    $ python tutorial2.py
+    $ python3 tutorial2.py
     Traceback (most recent call last):
       File "tutorial2.py", line 73, in ?
         event['xcoor'] = float(i**2)     # Wrong spelling
@@ -1349,7 +1349,7 @@ Finally, the last issue which we will find here is a TypeError exception.
 
 .. code-block:: bash
 
-    $ python tutorial2.py
+    $ python3 tutorial2.py
     Traceback (most recent call last):
       File "tutorial2.py", line 75, in ?
         event['ADCcount'] = "sss"          # Wrong type

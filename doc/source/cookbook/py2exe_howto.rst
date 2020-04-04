@@ -51,7 +51,7 @@ folders inside the *dist* folder.
 
 Below you can see how to start the build process (`python setup.py py2exe`)::
 
-    c:pytables_test> python setup.py py2exe
+    c:pytables_test> python3 setup.py py2exe
     ...
     BUILDING EXECUTABLE
     ...
@@ -82,4 +82,3 @@ DONE!
 .. target-notes::
 
 .. _py2exe: http://www.py2exe.org
-

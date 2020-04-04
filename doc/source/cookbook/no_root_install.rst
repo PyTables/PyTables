@@ -78,7 +78,7 @@ Installing NumArray
 * Build and install the Python module into our software folder (it will
   actually end up in `~/software/lib/python`::
 
-    python setup.py install --home=~/software
+    python3 setup.py install --home=~/software
 
   We will also need to copy the header files of NumArray so PyTables can use
   them later on for compilation.
@@ -112,7 +112,7 @@ can optionally use it.
     cd numpy-1.0
 * Build and install the Python module into our software folder::
 
-    python setup.py install --home=~/software
+    python3 setup.py install --home=~/software
 
 
 Python wrapper script
@@ -131,7 +131,7 @@ help a bit.
     export PYTHONPATH=~/software/lib/python
     export HDF5_DIR=~/software/hdf5
     export LD_LIBRARY_PATH=~/software/lib/python/tables:~/software/hdf5/lib
-    python $*
+    python3 $*
 
 * Make the script executable::
 
@@ -231,4 +231,3 @@ Enjoy working with PyTables!
 .. target-notes::
 
 .. _HDF5: http://www.hdfgroup.org/HDF5
-

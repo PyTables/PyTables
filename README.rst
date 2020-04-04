@@ -107,7 +107,7 @@ Installation
 
        $ brew install hdf5
 
-   On ubuntu::
+   On debian bases distributions::
 
        $ sudo apt-get install libhdf5-serial-dev
 
@@ -128,11 +128,11 @@ Installation
 
 4. Install!::
 
-       $ pip install tables
+       $ python3 -m pip install tables
 
 5. To run the test suite run::
 
-       $ python -m tables.tests.test_all
+       $ python3 -m tables.tests.test_all
 
    If there is some test that does not pass, please send the
    complete output for tests back to us.
