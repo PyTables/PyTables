@@ -296,7 +296,7 @@ It will help you understand the relationships of in-memory PyTables objects.
 
 .. _objecttree:
 
-.. figure:: images/objecttree.*
+.. figure:: images/objecttree.png
     :width: 100%
     :align: center
 
