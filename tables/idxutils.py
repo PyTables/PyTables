@@ -96,7 +96,7 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
     if nlowerblocks > 2**20:
         # Protection against too large number of compound blocks
         nlowerblocks = 2**20
-    size = lowercompoundsize * nlowerblocks
+    size = int(lowercompoundsize * nlowerblocks)
     # We *need* superblocksize to be an exact multiple of the actual
     # compoundblock size (a ceil must be performed here!)
     size = ((size // compoundsize) + 1) * compoundsize
