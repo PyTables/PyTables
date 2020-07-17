@@ -2794,7 +2794,7 @@ class File(hdf5extension.File, object):
         except OSError:
             # in-memory file
             date = ""
-        astring = self.filename + ' (File) ' + repr(self.title) + '\n'
+        astring = str(self.filename) + ' (File) ' + repr(self.title) + '\n'
 #         astring += 'root_uep :=' + repr(self.root_uep) + '; '
 #         astring += 'format_version := ' + self.format_version + '\n'
 #         astring += 'filters :=' + repr(self.filters) + '\n'

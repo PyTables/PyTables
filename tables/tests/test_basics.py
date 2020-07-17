@@ -2027,6 +2027,9 @@ class PathLikeFilename(common.TempFileMixin, TestCase):
             print("is_pytables_file?:", tables.is_pytables_file(self.h5fname))
         self.assertNotEqual(tables.is_pytables_file(self.h5fname), False)
 
+    def test04_str(self):
+        str(self.h5file)
+
 
 class FilePropertyTestCase(TestCase):
     def setUp(self):
