@@ -1026,7 +1026,7 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         # Read it again
         r2 = self.h5file.root.recarray.read()
 
-        self.assertEqual(r.tostring(), r2.tostring())
+        self.assertEqual(r.tobytes(), r2.tobytes())
 
     def test01(self):
         """Checking saving a recarray with an offset in its buffer"""
@@ -1052,7 +1052,7 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         # Read it again
         r2 = self.h5file.root.recarray.read()
 
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
 
     def test02(self):
         """Checking saving a slice of a large recarray"""
@@ -1078,7 +1078,7 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         # Read it again
         r2 = self.h5file.root.recarray.read()
 
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
 
     def test03(self):
         """Checking saving a slice of an strided recarray"""
@@ -1107,7 +1107,7 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         # Read it again
         r2 = self.h5file.root.recarray.read()
 
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
 
     def test08a(self):
         """Checking modifying one column (single column version, list)"""
@@ -1141,7 +1141,7 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test08b(self):
@@ -1178,7 +1178,7 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test08b2(self):
@@ -1216,7 +1216,7 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
 
@@ -1270,8 +1270,8 @@ class DefaultValues(common.TempFileMixin, TestCase):
             print("Record values:")
             print(r)
 
-        # Both checks do work, however, tostring() seems more stringent.
-        self.assertEqual(r.tostring(), r2.tostring())
+        # Both checks do work, however, tobytes() seems more stringent.
+        self.assertEqual(r.tobytes(), r2.tobytes())
         # self.assertTrue(common.areArraysEqual(r,r2))
 
 
@@ -1404,7 +1404,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test01b(self):
@@ -1437,7 +1437,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test02(self):
@@ -1472,7 +1472,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test03(self):
@@ -1509,7 +1509,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test04(self):
@@ -1545,7 +1545,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test05(self):
@@ -1578,7 +1578,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test06a(self):
@@ -1610,7 +1610,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test06b(self):
@@ -1662,7 +1662,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test08(self):
@@ -1695,7 +1695,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test09(self):
@@ -1730,7 +1730,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
 
@@ -1796,7 +1796,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test02(self):
@@ -1834,7 +1834,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test03(self):
@@ -1872,7 +1872,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test04(self):
@@ -1910,7 +1910,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test05(self):
@@ -1945,7 +1945,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test06(self):
@@ -1980,7 +1980,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test07(self):
@@ -2017,7 +2017,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test08(self):
@@ -2062,7 +2062,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, nrows)
 
     def test08b(self):
@@ -2107,7 +2107,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, nrows)
 
     def test09(self):
@@ -2158,7 +2158,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, nrows)
 
     def test09b(self):
@@ -2208,7 +2208,7 @@ class UpdateRowTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original table-->", repr(r2))
             print("Should look like-->", repr(r1))
-        self.assertEqual(r1.tostring(), r2.tostring())
+        self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, nrows)
 
 

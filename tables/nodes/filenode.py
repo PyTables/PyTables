@@ -255,7 +255,7 @@ class RawPyTablesIO(io.RawIOBase):
             n = stop - start
 
         # XXX This ought to work with anything that supports the buffer API
-        b[:n] = self._node.read(start, stop).tostring()
+        b[:n] = self._node.read(start, stop).tobytes()
 
         self._pos += n
 

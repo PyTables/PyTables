@@ -1130,7 +1130,7 @@ class VLStringAtom(_BufferedAtom):
         return numpy.string_(object_)
 
     def fromarray(self, array):
-        return array.tostring()
+        return array.tobytes()
 
 
 class VLUnicodeAtom(_BufferedAtom):
@@ -1221,4 +1221,4 @@ class ObjectAtom(_BufferedAtom):
         # record when in fact it is empty.
         if array.size == 0:
             return None
-        return pickle.loads(array.tostring())
+        return pickle.loads(array.tobytes())
