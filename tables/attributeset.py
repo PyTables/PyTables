@@ -370,7 +370,12 @@ class AttributeSet(hdf5extension.AttributeSet, object):
             if isinstance(retval, str) and retval == u'':
                 retval = numpy.array(retval)[()]
         elif name == 'FILTERS' and format_version is not None and format_version >= (2, 0):
-            retval = Filters._unpack(value)
+            try:
+                retval = Filters._unpack(value)
+            except ValueError:
+                sys.stderr.write('Failed parsing FILTERS key\n')
+                sys.stderr.flush()
+                retval = None
         elif name == 'TITLE' and not isinstance(value, str):
             retval = value.decode('utf-8')
         elif (issysattrname(name) and isinstance(value, (bytes, str)) and
