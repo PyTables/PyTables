@@ -2063,7 +2063,7 @@ NestedDescr is the root class with two *substructures* in it: info1 and info2. N
 
 
 Creating nested tables
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 Now that we have defined our nested structure, let's create a *nested* table,
 that is a table with columns which contain subcolumns::
 
