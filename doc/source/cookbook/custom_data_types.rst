@@ -34,12 +34,12 @@ Submitted by Kevin R. Thornton.
                      title="", filters=None,
                      expectedrows=EXPECTED_ROWS_TABLE,
                      chunkshape=None, byteorder=None, _log=True):
-            super(DerivedFromTable, self).__init__(parentNode, name,
-                                              description=description, title=title,
-                                              filters=filters,
-                                              expectedrows=expectedrows,
-                                              chunkshape=chunkshape, byteorder=byteorder,
-                                              _log=_log)
+            super().__init__(parentNode, name,
+                             description=description, title=title,
+                             filters=filters,
+                             expectedrows=expectedrows,
+                             chunkshape=chunkshape, byteorder=byteorder,
+                             _log=_log)
 
         def read(self, start=None, stop=None, step=None, field=None):
             print("HERE!")

@@ -232,7 +232,7 @@ class Group(hdf5extension.Group, Node):
         """
 
         # Finally, set up this object as a node.
-        super(Group, self).__init__(parentnode, name, _log)
+        super().__init__(parentnode, name, _log)
 
     def _g_post_init_hook(self):
         if self._v_new:
@@ -279,7 +279,7 @@ class Group(hdf5extension.Group, Node):
             self._v_unknown.containerref = selfref
             self._v_hidden.containerref = selfref
 
-        super(Group, self).__del__()
+        super().__del__()
 
     def _g_get_child_group_class(self, childname):
         """Get the class of a not-yet-loaded group child.
@@ -591,7 +591,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
     def _g_move(self, newparent, newname):
         # Move the node to the new location.
         oldpath = self._v_pathname
-        super(Group, self)._g_move(newparent, newname)
+        super()._g_move(newparent, newname)
         newpath = self._v_pathname
 
         # Update location information in children.  This node shouldn't
@@ -811,7 +811,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         """
 
         try:
-            super(Group, self).__delattr__(name)  # nothing particular
+            super().__delattr__(name)  # nothing particular
         except AttributeError as ae:
             hint = " (use ``node._f_remove()`` if you want to remove a node)"
             raise ae.__class__(str(ae) + hint)
@@ -822,7 +822,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         Only PY3 supports this special method.
         """
         subnods = [c for c in self._v_children if c.isidentifier()]
-        return super(Group, self).__dir__() + subnods
+        return super().__dir__() + subnods
 
     def __getattr__(self, name):
         """Get a Python attribute or child node called name.
@@ -882,7 +882,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                 "to access the child node"
                 % (self._v_pathname, name), NaturalNameWarning)
 
-        super(Group, self).__setattr__(name, value)
+        super().__setattr__(name, value)
 
     def _f_flush(self):
         """Flush this Group."""
@@ -906,7 +906,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             self._g_close_group()
 
         # Close myself as a node.
-        super(Group, self)._f_close()
+        super()._f_close()
 
     def _f_close(self):
         """Close this group and all its descendents.
@@ -957,7 +957,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             self._g_close_descendents()
 
         # Remove the node itself from the hierarchy.
-        super(Group, self)._g_remove(recursive, force)
+        super()._g_remove(recursive, force)
 
     def _f_copy(self, newparent=None, newname=None,
                 overwrite=False, recursive=False, createparents=False,
@@ -991,7 +991,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         """
 
-        return super(Group, self)._f_copy(
+        return super()._f_copy(
             newparent, newname,
             overwrite, recursive, createparents, **kwargs)
 

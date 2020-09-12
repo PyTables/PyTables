@@ -1154,7 +1154,7 @@ cdef class Leaf(Node):
       self.type_id = -1
       self.base_type_id = -1
       self.disk_type_id = -1
-    super(Leaf, self)._g_new(where, name, init)
+    super()._g_new(where, name, init)
 
   cdef _get_type_ids(self):
     """Get the disk and native HDF5 types associated with this leaf.

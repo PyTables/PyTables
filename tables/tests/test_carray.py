@@ -35,7 +35,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     reopen = 1  # Tells whether the file has to be reopened on each test or not
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super().setUp()
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
         self.populateFile()
@@ -1062,7 +1062,7 @@ class ComprTestCase(BasicTestCase):
 class ReadOutArgumentTests(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(ReadOutArgumentTests, self).setUp()
+        super().setUp()
         self.size = 1000
         self.filters = tables.Filters(complevel=1, complib='blosc')
 
@@ -1107,7 +1107,7 @@ class ReadOutArgumentTests(common.TempFileMixin, TestCase):
 class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(SizeOnDiskInMemoryPropertyTestCase, self).setUp()
+        super().setUp()
         self.array_size = (10000, 10)
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
@@ -1170,7 +1170,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(OffsetStrideTestCase, self).setUp()
+        super().setUp()
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
 
@@ -2013,7 +2013,7 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
     nanumber = 1000 * 3    # That should account for more than 2**31-1
 
     def setUp(self):
-        super(Rows64bitsTestCase, self).setUp()
+        super().setUp()
 
         # Create an CArray
         shape = (self.narows * self.nanumber,)
@@ -2096,7 +2096,7 @@ class BigArrayTestCase(common.TempFileMixin, TestCase):
     shape = (3000000000,)  # more than 2**31-1
 
     def setUp(self):
-        super(BigArrayTestCase, self).setUp()
+        super().setUp()
         # This should be fast since disk space isn't actually allocated,
         # so this case is OK for non-heavy test runs.
         self.h5file.create_carray('/', 'array',
@@ -2465,7 +2465,7 @@ class MDLargeAtomReopen(MDLargeAtomTestCase):
 class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(AccessClosedTestCase, self).setUp()
+        super().setUp()
         self.array = self.h5file.create_carray(self.h5file.root, 'array',
                                                atom=Int32Atom(),
                                                shape=(10, 10))

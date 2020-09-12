@@ -324,7 +324,7 @@ cdef class ObjectCache(BaseCache):
 
     """
 
-    super(ObjectCache, self).__init__(nslots, name)
+    super().__init__(nslots, name)
     self.cachesize = 0
     self.maxcachesize = maxcachesize
     # maxobjsize will be the same as the maximum cache size
@@ -501,7 +501,7 @@ cdef class NumCache(BaseCache):
     if nslots >= 1<<16:
       # nslots can't be higher than 2**16. Will silently trunk the number.
       nslots = <long>((1<<16)-1)  # Cast makes cython happy here
-    super(NumCache, self).__init__(nslots, name)
+    super().__init__(nslots, name)
     self.itemsize = dtype.itemsize
     self.__dict = {}
     # The cache object where all data will go

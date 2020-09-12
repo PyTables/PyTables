@@ -155,9 +155,8 @@ class EArray(CArray):
         """The expected number of rows to be stored in the array."""
 
         # Call the parent (CArray) init code
-        super(EArray, self).__init__(parentnode, name, atom, shape, title,
-                                     filters, chunkshape, byteorder, _log,
-                                     track_times)
+        super().__init__(parentnode, name, atom, shape, title, filters,
+                         chunkshape, byteorder, _log, track_times)
 
     # Public and private methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~

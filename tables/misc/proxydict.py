@@ -37,7 +37,7 @@ class ProxyDict(dict):
 
     def __setitem__(self, key, value):
         # Values are not actually stored to avoid extra references.
-        super(ProxyDict, self).__setitem__(key, None)
+        super().__setitem__(key, None)
 
     def __repr__(self):
         return object.__repr__(self)

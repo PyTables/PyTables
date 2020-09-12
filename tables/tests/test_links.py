@@ -26,7 +26,7 @@ from tables.tests.common import PyTablesTestCase as TestCase
 class HardLinkTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(HardLinkTestCase, self).setUp()
+        super().setUp()
         self._createFile()
 
     def _createFile(self):
@@ -105,7 +105,7 @@ class HardLinkTestCase(common.TempFileMixin, TestCase):
 class SoftLinkTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(SoftLinkTestCase, self).setUp()
+        super().setUp()
         self._createFile()
 
     def _createFile(self):
@@ -369,7 +369,7 @@ class SoftLinkTestCase(common.TempFileMixin, TestCase):
 class ExternalLinkTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(ExternalLinkTestCase, self).setUp()
+        super().setUp()
 
         self.extfname = tempfile.mktemp(".h5")
         self.exth5file = tables.open_file(self.extfname, "w")
@@ -380,7 +380,7 @@ class ExternalLinkTestCase(common.TempFileMixin, TestCase):
 
         extfname = self.extfname
         self.exth5file.close()
-        super(ExternalLinkTestCase, self).tearDown()
+        super().tearDown()
 
         #open_files = tables.file._open_files
         #if self.extfname in open_files:

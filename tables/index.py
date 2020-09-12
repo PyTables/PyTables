@@ -392,13 +392,13 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         self._openFile = open_file
         """The `open_file()` function, to avoid a circular import."""
 
-        super(Index, self).__init__(parentnode, name, title, new, filters)
+        super().__init__(parentnode, name, title, new, filters)
 
     def _g_post_init_hook(self):
         if self._v_new:
             # The version for newly created indexes
             self._v_version = obversion
-        super(Index, self)._g_post_init_hook()
+        super()._g_post_init_hook()
 
         # Index arrays must only be created for new indexes
         if not self._v_new:
@@ -2115,7 +2115,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
         # Index removal is always recursive,
         # no matter what `recursive` says.
-        super(Index, self)._f_remove(True)
+        super()._f_remove(True)
 
     def __str__(self):
         """This provides a more compact representation than __repr__"""

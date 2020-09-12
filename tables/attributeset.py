@@ -289,7 +289,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
         Only PY3 supports this special method.
         """
         return list(set(c for c in
-                    super(AttributeSet, self).__dir__() + self._v_attrnames
+                    super().__dir__() + self._v_attrnames
                     if c.isidentifier()))
 
     def __getattr__(self, name):

@@ -44,7 +44,7 @@ class FileAccess(multiprocessing.Process):
         self.write_queue = write_queue
         self.shutdown = shutdown
         self.block_period = .01
-        super(FileAccess, self).__init__()
+        super().__init__()
 
     def run(self):
         self.h5_file = tables.open_file(self.h5_path, 'r+')
@@ -104,7 +104,7 @@ class DataProcessor(multiprocessing.Process):
         self.proc_num = proc_num
         self.array_size = array_size
         self.output_file = output_file
-        super(DataProcessor, self).__init__()
+        super().__init__()
 
     def run(self):
         self.output_file = open(self.output_file, 'w')

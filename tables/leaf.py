@@ -283,7 +283,7 @@ class Leaf(Node):
         # is a lazy property that automatically handles their loading.
 
 
-        super(Leaf, self).__init__(parentnode, name, _log)
+        super().__init__(parentnode, name, _log)
 
     def __len__(self):
         """Return the length of the main dimension of the leaf data.
@@ -327,7 +327,7 @@ class Leaf(Node):
 
         """
 
-        super(Leaf, self)._g_post_init_hook()
+        super()._g_post_init_hook()
         if self._v_new:  # set flavor of new node
             if self._flavor is None:
                 self._flavor = internal_flavor
@@ -763,7 +763,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._g_close()
 
         # Close myself as a node.
-        super(Leaf, self)._f_close()
+        super()._f_close()
 
     def close(self, flush=True):
         """Close this node in the tree.

@@ -343,7 +343,7 @@ class _DictCache(dict):
         if nslots < 1:
             raise ValueError("Invalid number of slots: %d" % nslots)
         self.nslots = nslots
-        super(_DictCache, self).__init__()
+        super().__init__()
 
     def __setitem__(self, key, value):
         # Check if we are running out of space
@@ -353,12 +353,12 @@ class _DictCache(dict):
                 "maximum number (%d); be ready to see PyTables asking for "
                 "*lots* of memory and possibly slow I/O." % (
                     self.nslots), PerformanceWarning)
-        super(_DictCache, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
 
 class NodeManager(object):
     def __init__(self, nslots=64, node_factory=None):
-        super(NodeManager, self).__init__()
+        super().__init__()
 
         self.registry = weakref.WeakValueDictionary()
 

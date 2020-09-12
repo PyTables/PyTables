@@ -136,7 +136,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     maxshort = 1 << 15
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -1870,7 +1870,7 @@ class BigTablesTestCase(BasicTestCase):
 
 class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(SizeOnDiskInMemoryPropertyTestCase, self).setUp()
+        super().setUp()
 
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
@@ -1921,7 +1921,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
 
 class NonNestedTableReadTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(NonNestedTableReadTestCase, self).setUp()
+        super().setUp()
 
         self.dtype = np.format_parser(['i4'] * 10, [], []).dtype
         self.table = self.h5file.create_table('/', 'table', self.dtype)
@@ -2050,7 +2050,7 @@ class NonNestedTableReadTestCase(common.TempFileMixin, TestCase):
 
 class TableReadByteorderTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(TableReadByteorderTestCase, self).setUp()
+        super().setUp()
         self.system_byteorder = sys.byteorder
         self.other_byteorder = {
             'little': 'big', 'big': 'little'}[sys.byteorder]
@@ -2142,7 +2142,7 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
     checkgetCol = 0
 
     def setUp(self):
-        super(BasicRangeTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -2614,7 +2614,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
     checkgetCol = 0
 
     def setUp(self):
-        super(GetItemTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -5402,7 +5402,7 @@ class LengthTestCase(common.TempFileMixin, TestCase):
     nrows = 20
 
     def setUp(self):
-        super(LengthTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -5477,7 +5477,7 @@ class WhereAppendTestCase(common.TempFileMixin, TestCase):
         v2 = StringCol(itemsize=8)
 
     def setUp(self):
-        super(WhereAppendTestCase, self).setUp()
+        super().setUp()
 
         tbl = self.h5file.create_table('/', 'test', self.SrcTblDesc)
         row = tbl.row
@@ -5644,7 +5644,7 @@ class WhereAppendTestCase(common.TempFileMixin, TestCase):
 
 class DerivedTableTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(DerivedTableTestCase, self).setUp()
+        super().setUp()
         self.h5file.create_table('/', 'original', Record)
 
     def test00(self):
@@ -5658,7 +5658,7 @@ class DerivedTableTestCase(common.TempFileMixin, TestCase):
 
 class ChunkshapeTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(ChunkshapeTestCase, self).setUp()
+        super().setUp()
         self.h5file.create_table('/', 'table', Record, chunkshape=13)
 
     def test00(self):
@@ -5683,7 +5683,7 @@ class ChunkshapeTestCase(common.TempFileMixin, TestCase):
 # Test for appending zero-sized recarrays
 class ZeroSizedTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(ZeroSizedTestCase, self).setUp()
+        super().setUp()
 
         # Create a Table
         t = self.h5file.create_table('/', 'table',
@@ -5708,7 +5708,7 @@ class ZeroSizedTestCase(common.TempFileMixin, TestCase):
 # len(datatype) > boundary_alignment is fullfilled.
 class IrregularStrideTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(IrregularStrideTestCase, self).setUp()
+        super().setUp()
 
         class IRecord(tables.IsDescription):
             c1 = Int32Col(pos=1)
@@ -5736,7 +5736,7 @@ class IrregularStrideTestCase(common.TempFileMixin, TestCase):
 
 class Issue262TestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(Issue262TestCase, self).setUp()
+        super().setUp()
 
         class IRecord(tables.IsDescription):
             c1 = Int32Col(pos=1)
@@ -5823,7 +5823,7 @@ class Issue262TestCase(common.TempFileMixin, TestCase):
 
 class TruncateTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(TruncateTestCase, self).setUp()
+        super().setUp()
 
         table = self.h5file.create_table('/', 'table', self.IRecord)
         # Fill just a couple of rows
@@ -5951,7 +5951,7 @@ class TruncateClose2(TruncateTestCase):
 
 class PointSelectionTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(PointSelectionTestCase, self).setUp()
+        super().setUp()
 
         N = 100
 
@@ -6154,7 +6154,7 @@ class MDLargeColReopen(MDLargeColTestCase):
 # See ticket #264.
 class ExhaustedIter(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(ExhaustedIter, self).setUp()
+        super().setUp()
 
         class Observations(tables.IsDescription):
             market_id = IntCol(pos=0)
@@ -6237,7 +6237,7 @@ class RowContainsTestCase(common.TempFileMixin, TestCase):
 
 class AccessClosedTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(AccessClosedTestCase, self).setUp()
+        super().setUp()
         self.table = self.h5file.create_table(
             self.h5file.root, 'table', Record)
 
@@ -6300,7 +6300,7 @@ class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
 class ColumnIterationTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(ColumnIterationTestCase, self).setUp()
+        super().setUp()
         self.buffer_size = self.h5file.params['IO_BUFFER_SIZE']
 
     def create_non_nested_table(self, nrows, dtype):

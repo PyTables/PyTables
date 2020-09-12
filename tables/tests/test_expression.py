@@ -58,7 +58,7 @@ class ExprTestCase(common.TempFileMixin, TestCase):
     shape = (10, 20)
 
     def setUp(self):
-        super(ExprTestCase, self).setUp()
+        super().setUp()
 
         # The expression
         self.expr = "2 * a*b + c"
@@ -189,7 +189,7 @@ class ExprColumn(ExprTestCase):
 class MixedContainersTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(MixedContainersTestCase, self).setUp()
+        super().setUp()
 
         # The expression
         self.expr = "2 * a*b + c**2+d**2+e-f+g"
@@ -528,7 +528,7 @@ class ExprError(common.TempFileMixin, TestCase):
     shape = (10,)
 
     def setUp(self):
-        super(ExprError, self).setUp()
+        super().setUp()
 
         # Define the NumPy variables to be used in expression
         N = np.prod(self.shape)
@@ -1162,7 +1162,7 @@ class AppendModeFalse(AppendModeTestCase):
 class iterTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(iterTestCase, self).setUp()
+        super().setUp()
         shape = list(self.shape)
         # Build input arrays
         a = np.arange(np.prod(shape), dtype="i4").reshape(shape)

@@ -89,7 +89,7 @@ class Link(Node):
         self.target = target
         """The path string to the pointed node."""
 
-        super(Link, self).__init__(parentnode, name, _log)
+        super().__init__(parentnode, name, _log)
 
     # Public and tailored versions for copy, move, rename and remove methods
     def copy(self, newparent=None, newname=None,
@@ -349,7 +349,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
         """The external file handler, if the link has been dereferenced.
         In case the link has not been dereferenced yet, its value is
         None."""
-        super(ExternalLink, self).__init__(parentnode, name, target, _log)
+        super().__init__(parentnode, name, target, _log)
 
     def _get_filename_node(self):
         """Return the external filename and nodepath from `self.target`."""
@@ -411,7 +411,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
         """Especific close for external links."""
 
         self.umount()
-        super(ExternalLink, self)._f_close()
+        super()._f_close()
 
     def __str__(self):
         """Return a short string representation of the link.

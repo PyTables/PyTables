@@ -40,7 +40,7 @@ def create_file(array_size):
 class PipeReceive(multiprocessing.Process):
 
     def __init__(self, receiver_pipe, result_send):
-        super(PipeReceive, self).__init__()
+        super().__init__()
         self.receiver_pipe = receiver_pipe
         self.result_send = result_send
 
@@ -84,7 +84,7 @@ def read_and_send_pipe(send_type, array_size):
 class MemmapReceive(multiprocessing.Process):
 
     def __init__(self, path_recv, result_send):
-        super(MemmapReceive, self).__init__()
+        super().__init__()
         self.path_recv = path_recv
         self.result_send = result_send
 
@@ -136,7 +136,7 @@ def read_and_send_memmap(send_type, array_size):
 class SocketReceive(multiprocessing.Process):
 
     def __init__(self, socket_family, address, result_send, array_nbytes):
-        super(SocketReceive, self).__init__()
+        super().__init__()
         self.socket_family = socket_family
         self.address = address
         self.result_send = result_send

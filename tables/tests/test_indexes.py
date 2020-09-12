@@ -41,7 +41,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     ss = small_blocksizes[2]
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super().setUp()
 
         self.rootgroup = self.h5file.root
         self.populateFile()
@@ -973,7 +973,7 @@ class AutomaticIndexingTestCase(common.TempFileMixin, TestCase):
     small_blocksizes = (16, 8, 4, 2)
 
     def setUp(self):
-        super(AutomaticIndexingTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         title = "This is the IndexArray title"
@@ -1689,7 +1689,7 @@ class IndexPropsChangeTestCase(TempFileMixin, TestCase):
     newIndexProps = IndexProps(auto=False, filters=tables.Filters(complevel=9))
 
     def setUp(self):
-        super(IndexPropsChangeTestCase, self).setUp()
+        super().setUp()
 
         table = self.h5file.create_table('/', 'test', self.MyDescription)
         table.autoindex = self.oldIndexProps.auto
@@ -1717,7 +1717,7 @@ class IndexFiltersTestCase(TempFileMixin, TestCase):
     """Test case for setting index filters."""
 
     def setUp(self):
-        super(IndexFiltersTestCase, self).setUp()
+        super().setUp()
         description = {'icol': IntCol()}
         self.table = self.h5file.create_table('/', 'test', description)
 
@@ -1791,7 +1791,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         icol = IntCol(pos=2)
 
     def setUp(self):
-        super(CompletelySortedIndexTestCase, self).setUp()
+        super().setUp()
         table = self.h5file.create_table('/', 'table', self.MyDescription)
         row = table.row
         nrows = self.nrows
@@ -2357,7 +2357,7 @@ class ReadSortedIndexTestCase(TempFileMixin, TestCase):
         icol = IntCol(pos=2)
 
     def setUp(self):
-        super(ReadSortedIndexTestCase, self).setUp()
+        super().setUp()
 
         table = self.h5file.create_table('/', 'table', self.MyDescription)
         row = table.row
@@ -2454,7 +2454,7 @@ class Issue156TestBase(common.TempFileMixin, TestCase):
     sort_field = None
 
     def setUp(self):
-        super(Issue156TestBase, self).setUp()
+        super().setUp()
 
         # create nested table
         class Foo(tables.IsDescription):
@@ -2529,7 +2529,7 @@ class Issue119Time32ColTestCase(common.TempFileMixin, TestCase):
     ]
 
     def setUp(self):
-        super(Issue119Time32ColTestCase, self).setUp()
+        super().setUp()
 
         class Descr(tables.IsDescription):
             when = self.col_typ(pos=1)

@@ -30,7 +30,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     flavor = "numpy"
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -1359,7 +1359,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         vlarray = self.h5file.create_vlarray(
             '/', "Object", atom=ObjectAtom())
-        vlarray.append([[1, 2, 3], "aaa", u"aaaççç"])
+        vlarray.append([[1, 2, 3], "aaa", u"aaaï¿½ï¿½ï¿½"])
         vlarray.append([3, 4, C()])
         vlarray.append(42)
 
@@ -1376,7 +1376,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
-        self.assertEqual(row[0], [[1, 2, 3], "aaa", u"aaaççç"])
+        self.assertEqual(row[0], [[1, 2, 3], "aaa", u"aaaï¿½ï¿½ï¿½"])
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [3, 4])
@@ -1396,14 +1396,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         vlarray = self.h5file.create_vlarray('/', "Object", atom=ObjectAtom())
         # When updating an object, this seems to change the number
         # of bytes that pickle.dumps generates
-        # vlarray.append(([1,2,3], "aaa", u"aaaççç"))
-        vlarray.append(([1, 2, 3], "aaa", u"çç4"))
+        # vlarray.append(([1,2,3], "aaa", u"aaaï¿½ï¿½ï¿½"))
+        vlarray.append(([1, 2, 3], "aaa", u"ï¿½ï¿½4"))
         # vlarray.append([3,4, C()])
         vlarray.append([3, 4, [24]])
 
         # Modify the rows
-        # vlarray[0] = ([1,2,4], "aa4", u"aaaçç4")
-        vlarray[0] = ([1, 2, 4], "aa4", u"çç5")
+        # vlarray[0] = ([1,2,4], "aa4", u"aaaï¿½ï¿½4")
+        vlarray[0] = ([1, 2, 4], "aa4", u"ï¿½ï¿½5")
         # vlarray[1] = (3,4, C())
         vlarray[1] = [4, 4, [24]]
 
@@ -1420,7 +1420,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], ([1, 2, 4], "aa4", u"çç5"))
+        self.assertEqual(row[0], ([1, 2, 4], "aa4", u"ï¿½ï¿½5"))
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [4, 4])
@@ -1595,7 +1595,7 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(MDTypesTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
 
     def test01_StringAtom(self):
@@ -1930,7 +1930,7 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
     open_mode = "w"
 
     def setUp(self):
-        super(AppendShapeTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
 
     def test00_difinputs(self):
@@ -2111,7 +2111,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(FlavorTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
 
     def test01a_EmptyVLArray(self):
@@ -2417,7 +2417,7 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(ReadRangeTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
         self.populateFile()
         self._reopen()
@@ -2823,7 +2823,7 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(GetItemRangeTestCase, self).setUp()
+        super().setUp()
 
         self.rootgroup = self.h5file.root
         self.populateFile()
@@ -3150,7 +3150,7 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(SetRangeTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
         self.populateFile()
         self._reopen(mode='a')
@@ -3879,7 +3879,7 @@ class CopyIndex12TestCase(CopyIndexTestCase):
 class ChunkshapeTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(ChunkshapeTestCase, self).setUp()
+        super().setUp()
         atom = Int32Atom(shape=(2,))
         self.h5file.create_vlarray('/', 'vlarray', atom=atom,
                                    title="t array1",
@@ -3906,13 +3906,13 @@ class ChunkshapeTestCase(common.TempFileMixin, TestCase):
 
 class VLUEndianTestCase(TestCase):
     def setUp(self):
-        super(VLUEndianTestCase, self).setUp()
+        super().setUp()
         self.h5fname = test_filename('vlunicode_endian.h5')
         self.h5file = tables.open_file(self.h5fname)
 
     def tearDown(self):
         self.h5file.close()
-        super(VLUEndianTestCase, self).tearDown()
+        super().tearDown()
 
     def test(self):
         """Accessing ``vlunicode`` data of a different endianness."""
@@ -3926,7 +3926,7 @@ class VLUEndianTestCase(TestCase):
 class TruncateTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(TruncateTestCase, self).setUp()
+        super().setUp()
 
         # Create an VLArray
         arr = Int16Atom(dflt=3)
@@ -4036,7 +4036,7 @@ class TruncateCloseTestCase(TruncateTestCase):
 class PointSelectionTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(PointSelectionTestCase, self).setUp()
+        super().setUp()
 
         # The next are valid selections for both NumPy and PyTables
         self.working_keyset = [
@@ -4169,7 +4169,7 @@ class SizeOnDiskPropertyTestCase(common.TempFileMixin, TestCase):
 
 class AccessClosedTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(AccessClosedTestCase, self).setUp()
+        super().setUp()
         self.array = self.h5file.create_vlarray(
             self.h5file.root, 'array', atom=StringAtom(8))
         self.array.append([str(i) for i in range(5, 5005, 100)])

@@ -346,11 +346,11 @@ class VLArray(hdf5extension.VLArray, Leaf):
                                  % (chunkshape,))
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
-        super(VLArray, self).__init__(parentnode, name, new, filters,
+        super().__init__(parentnode, name, new, filters,
                                       byteorder, _log, track_times)
 
     def _g_post_init_hook(self):
-        super(VLArray, self)._g_post_init_hook()
+        super()._g_post_init_hook()
         self.nrowsinbuf = 100  # maybe enough for most applications
 
     # This is too specific for moving it into Leaf
