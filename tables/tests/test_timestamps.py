@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """This test unit checks control of dataset timestamps with track_times.
 
 """

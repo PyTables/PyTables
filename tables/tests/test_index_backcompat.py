@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from tables.tests import common
 from tables.tests.common import verbose
 from tables.tests.common import unittest, test_filename
