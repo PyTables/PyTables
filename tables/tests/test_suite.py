@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Test suite consisting of all testcases."""
 
 import sys

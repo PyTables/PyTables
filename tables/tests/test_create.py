@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """This test unit checks object creation funtions, like open_file,
 create_table, create_array or create_group.
 
