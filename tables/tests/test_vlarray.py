@@ -1288,7 +1288,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         # Check for ticket #62.
         self.assertRaises(TypeError, vlarray.append, [b"foo", b"bar"])
         # `VLStringAtom` makes no encoding assumptions.  See ticket #51.
-        self.assertRaises(UnicodeEncodeError, vlarray.append, u"asd\xe4")
+        self.assertRaises(UnicodeEncodeError, vlarray.append, "asd\xe4")
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1359,7 +1359,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         vlarray = self.h5file.create_vlarray(
             '/', "Object", atom=ObjectAtom())
-        vlarray.append([[1, 2, 3], "aaa", u"aaa���"])
+        vlarray.append([[1, 2, 3], "aaa", "aaa���"])
         vlarray.append([3, 4, C()])
         vlarray.append(42)
 
@@ -1376,7 +1376,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
-        self.assertEqual(row[0], [[1, 2, 3], "aaa", u"aaa���"])
+        self.assertEqual(row[0], [[1, 2, 3], "aaa", "aaa���"])
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [3, 4])
@@ -1396,14 +1396,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         vlarray = self.h5file.create_vlarray('/', "Object", atom=ObjectAtom())
         # When updating an object, this seems to change the number
         # of bytes that pickle.dumps generates
-        # vlarray.append(([1,2,3], "aaa", u"aaa���"))
-        vlarray.append(([1, 2, 3], "aaa", u"��4"))
+        # vlarray.append(([1,2,3], "aaa", "aaa���"))
+        vlarray.append(([1, 2, 3], "aaa", "��4"))
         # vlarray.append([3,4, C()])
         vlarray.append([3, 4, [24]])
 
         # Modify the rows
-        # vlarray[0] = ([1,2,4], "aa4", u"aaa��4")
-        vlarray[0] = ([1, 2, 4], "aa4", u"��5")
+        # vlarray[0] = ([1,2,4], "aa4", "aaa��4")
+        vlarray[0] = ([1, 2, 4], "aa4", "��5")
         # vlarray[1] = (3,4, C())
         vlarray[1] = [4, 4, [24]]
 
@@ -1420,7 +1420,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], ([1, 2, 4], "aa4", u"��5"))
+        self.assertEqual(row[0], ([1, 2, 4], "aa4", "��5"))
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [4, 4])
@@ -1510,9 +1510,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         vlarray = self.h5file.create_vlarray(
             '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
         vlarray.append("asd")
-        vlarray.append(u"asd\u0140")
-        vlarray.append(u"aaana")
-        vlarray.append(u"")
+        vlarray.append("asd\u0140")
+        vlarray.append("aaana")
+        vlarray.append("")
         # Check for ticket #62.
         self.assertRaises(TypeError, vlarray.append, ["foo", "bar"])
         # `VLUnicodeAtom` makes no encoding assumptions.
@@ -1531,10 +1531,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 4)
-        self.assertEqual(row[0], u"asd")
-        self.assertEqual(row[1], u"asd\u0140")
-        self.assertEqual(row[2], u"aaana")
-        self.assertEqual(row[3], u"")
+        self.assertEqual(row[0], "asd")
+        self.assertEqual(row[1], "asd\u0140")
+        self.assertEqual(row[2], "aaana")
+        self.assertEqual(row[3], "")
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 4)
         self.assertEqual(len(row[2]), 5)
@@ -1551,11 +1551,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         vlarray = self.h5file.create_vlarray(
             '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
         vlarray.append("asd")
-        vlarray.append(u"aaan\xe4")
+        vlarray.append("aaan\xe4")
 
         # Modify values
-        vlarray[0] = u"as\xe4"
-        vlarray[1] = u"aaan\u0140"
+        vlarray[0] = "as\xe4"
+        vlarray[1] = "aaan\u0140"
         self.assertRaises(ValueError, vlarray.__setitem__, 1, "shrt")
         self.assertRaises(ValueError, vlarray.__setitem__, 1, "toolong")
 
@@ -1573,8 +1573,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("Second row in vlarray ==>", repr(row[1]))
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], u"as\xe4")
-        self.assertEqual(row[1], u"aaan\u0140")
+        self.assertEqual(row[0], "as\xe4")
+        self.assertEqual(row[1], "aaan\u0140")
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 5)
 
@@ -3919,8 +3919,8 @@ class VLUEndianTestCase(TestCase):
 
         bedata = self.h5file.root.vlunicode_big[0]
         ledata = self.h5file.root.vlunicode_little[0]
-        self.assertEqual(bedata, u'para\u0140lel')
-        self.assertEqual(ledata, u'para\u0140lel')
+        self.assertEqual(bedata, 'para\u0140lel')
+        self.assertEqual(ledata, 'para\u0140lel')
 
 
 class TruncateTestCase(common.TempFileMixin, TestCase):

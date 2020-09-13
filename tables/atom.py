@@ -1186,7 +1186,7 @@ class VLUnicodeAtom(_BufferedAtom):
     def fromarray(self, array):
         length = len(array)
         if length == 0:
-            return u''  # ``array.view('U0')`` raises a `TypeError`
+            return ''  # ``array.view('U0')`` raises a `TypeError`
         return array.view('U%d' % length).item()
 
 

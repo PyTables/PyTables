@@ -365,7 +365,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                 # explaining how the user can tell where the problem was.
                 retval = value
             # Additional check for allowing a workaround for #307
-            if isinstance(retval, str) and retval == u'':
+            if isinstance(retval, str) and retval == '':
                 retval = numpy.array(retval)[()]
         elif name == 'FILTERS' and format_version is not None and format_version >= (2, 0):
             retval = Filters._unpack(value)
@@ -415,7 +415,7 @@ class AttributeSet(hdf5extension.AttributeSet, object):
                                 numpy.unicode_)):
             # Additional check for allowing a workaround for #307
             if isinstance(value, str) and len(value) == 0:
-                stvalue = numpy.array(u'')
+                stvalue = numpy.array('')
             else:
                 stvalue = numpy.array(value)
             value = stvalue[()]
