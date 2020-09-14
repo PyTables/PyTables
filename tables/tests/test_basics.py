@@ -1921,7 +1921,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
 @unittest.skipIf(sys.getfilesystemencoding() != 'utf-8',
                  'need utf-8 file-system encoding')
 class UnicodeFilename(common.TempFileMixin, TestCase):
-    unicode_prefix = u'para\u0140lel'
+    unicode_prefix = 'para\u0140lel'
 
     def _getTempFileName(self):
         return tempfile.mktemp(prefix=self.unicode_prefix, suffix='.h5')
@@ -1973,7 +1973,7 @@ class UnicodeFilename(common.TempFileMixin, TestCase):
         self.h5file = tables.open_file(self.h5fname, "a")
         root = self.h5file.root
         group = self.h5file.create_group(root, 'face_data')
-        array_name = u'data at 40\N{DEGREE SIGN}C'
+        array_name = 'data at 40\N{DEGREE SIGN}C'
         data = numpy.sinh(numpy.linspace(-1.4, 1.4, 500))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', NaturalNameWarning)

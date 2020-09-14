@@ -645,7 +645,7 @@ class MonoReadlineTestCase(ReadlineTestCase):
 #        self.assertRaises(
 #            ValueError, setattr, self.fnode, 'line_separator', b'x' * 1024)
 #        self.assertRaises(
-#            TypeError, setattr, self.fnode, 'line_separator', u'x')
+#            TypeError, setattr, self.fnode, 'line_separator', 'x')
 
 
 class AttrsTestCase(TempFileMixin, TestCase):

@@ -1325,9 +1325,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test06a_setUnicodeAttributes(self):
         """Checking setting unicode attributes (scalar case)"""
 
-        self.array.attrs.pq = u'para\u0140lel'
-        self.array.attrs.qr = u''                 # check #213 or gh-64
-        self.array.attrs.rs = u'baz'
+        self.array.attrs.pq = 'para\u0140lel'
+        self.array.attrs.qr = ''                 # check #213 or gh-64
+        self.array.attrs.rs = 'baz'
 
         # Check the results
         if common.verbose:
@@ -1349,14 +1349,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         self.assertIsInstance(self.array.attrs.pq, numpy.unicode_)
         self.assertIsInstance(self.array.attrs.qr, numpy.unicode_)
         self.assertIsInstance(self.array.attrs.rs, numpy.unicode_)
-        self.assertEqual(self.array.attrs.pq, u'para\u0140lel')
-        self.assertEqual(self.array.attrs.qr, u'')
-        self.assertEqual(self.array.attrs.rs, u'baz')
+        self.assertEqual(self.array.attrs.pq, 'para\u0140lel')
+        self.assertEqual(self.array.attrs.qr, '')
+        self.assertEqual(self.array.attrs.rs, 'baz')
 
     def test06b_setUnicodeAttributes(self):
         """Checking setting unicode attributes (unidimensional 1-elem case)"""
 
-        self.array.attrs.pq = numpy.array([u'para\u0140lel'])
+        self.array.attrs.pq = numpy.array(['para\u0140lel'])
 
         # Check the results
         if common.verbose:
@@ -1370,7 +1370,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.array = self.h5file.root.anarray
 
         assert_array_equal(self.array.attrs.pq,
-                           numpy.array([u'para\u0140lel']))
+                           numpy.array(['para\u0140lel']))
 
     def test06c_setUnicodeAttributes(self):
         """Checking setting unicode attributes (empty unidimensional
@@ -1378,8 +1378,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         # The next raises a `TypeError` when unpickled. See:
         # http://projects.scipy.org/numpy/ticket/1037
-        # self.array.attrs.pq = numpy.array([u''])
-        self.array.attrs.pq = numpy.array([u''], dtype="U1")
+        # self.array.attrs.pq = numpy.array([''])
+        self.array.attrs.pq = numpy.array([''], dtype="U1")
 
         # Check the results
         if common.verbose:
@@ -1395,12 +1395,12 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("pq -->", repr(self.array.attrs.pq))
 
         assert_array_equal(self.array.attrs.pq,
-                           numpy.array([u''], dtype="U1"))
+                           numpy.array([''], dtype="U1"))
 
     def test06d_setUnicodeAttributes(self):
         """Checking setting unicode attributes (unidimensional 2-elem case)"""
 
-        self.array.attrs.pq = numpy.array([u'para\u0140lel', u'bar3'])
+        self.array.attrs.pq = numpy.array(['para\u0140lel', 'bar3'])
 
         # Check the results
         if common.verbose:
@@ -1414,7 +1414,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.array = self.h5file.root.anarray
 
         assert_array_equal(self.array.attrs.pq,
-                           numpy.array([u'para\u0140lel', u'bar3']))
+                           numpy.array(['para\u0140lel', 'bar3']))
 
     def test06e_setUnicodeAttributes(self):
         """Checking setting unicode attributes (empty unidimensional
@@ -1439,8 +1439,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test06f_setUnicodeAttributes(self):
         """Checking setting unicode attributes (bidimensional 4-elem case)"""
 
-        self.array.attrs.pq = numpy.array([[u'para\u0140lel', 'foo2'],
-                                           ['foo3', u'para\u0140lel4']])
+        self.array.attrs.pq = numpy.array([['para\u0140lel', 'foo2'],
+                                           ['foo3', 'para\u0140lel4']])
 
         # Check the results
         if common.verbose:
@@ -1454,8 +1454,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.array = self.h5file.root.anarray
 
         assert_array_equal(self.array.attrs.pq,
-                           numpy.array([[u'para\u0140lel', 'foo2'],
-                                        ['foo3', u'para\u0140lel4']]))
+                           numpy.array([['para\u0140lel', 'foo2'],
+                                        ['foo3', 'para\u0140lel4']]))
 
     def test07a_setRecArrayAttributes(self):
         """Checking setting RecArray (NumPy) attributes."""
@@ -1705,7 +1705,7 @@ class CompatibilityTestCase(common.TestFileMixin, TestCase):
         # behaviour of PyTables.
 
         self.assertEqual(
-            self.h5file.get_node_attr('/', 'py2_pickled_unicode'), u'abc')
+            self.h5file.get_node_attr('/', 'py2_pickled_unicode'), 'abc')
 
 
 class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, TestCase):
@@ -1732,7 +1732,7 @@ class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, TestCase):
         # dict will be unpickled with encoding='latin1'
         d = self.h5file.get_node_attr('/', 'py2_pickled_dict')
         self.assertIsInstance(d, dict)
-        self.assertEqual(d['s'], u'just a string')
+        self.assertEqual(d['s'], 'just a string')
 
 class SegFaultPythonTestCase(common.TempFileMixin, TestCase):
 
@@ -1755,7 +1755,7 @@ class EmbeddedNullsTestCase(common.TempFileMixin, TestCase):
     # See laso gh-371 (https://github.com/PyTables/PyTables/issues/371)
 
     def test_unicode(self):
-        value = u"string with a null byte \x00 in it"
+        value = "string with a null byte \x00 in it"
 
         self.h5file.root._v_attrs.name = value
         self.assertEqual(self.h5file.root._v_attrs.name, value)

@@ -903,7 +903,7 @@ def read_f_attr(hid_t file_id, str attr_name):
     size = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
     if size == 0:
       if cset == H5T_CSET_UTF8:
-        retvalue = numpy.unicode_(u'')
+        retvalue = numpy.unicode_('')
       else:
         retvalue = numpy.bytes_(b'')
     else:
