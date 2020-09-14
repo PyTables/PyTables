@@ -581,7 +581,7 @@ cdef class CacheArray(Array):
     return
 
   def _g_close(self):
-    super(Array, self)._g_close()
+    super()._g_close()
     # Release specific resources of this class
     if self.mem_space_id > 0:
       H5Sclose(self.mem_space_id)
@@ -1484,7 +1484,7 @@ cdef class IndexArray(Array):
 
 
   def _g_close(self):
-    super(Array, self)._g_close()
+    super()._g_close()
     # Release specific resources of this class
     if self.mem_space_id > 0:
       H5Sclose(self.mem_space_id)

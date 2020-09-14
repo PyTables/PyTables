@@ -8,7 +8,7 @@ from tables.tests.common import PyTablesTestCase as TestCase
 class IndexesTestCase(common.TestFileMixin, TestCase):
 
     def setUp(self):
-        super(IndexesTestCase, self).setUp()
+        super().setUp()
         self.table1 = self.h5file.root.table1
         self.table2 = self.h5file.root.table2
         self.il = 0

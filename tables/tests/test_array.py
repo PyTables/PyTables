@@ -541,7 +541,7 @@ class Basic32DTestCase(BasicTestCase):
 class ReadOutArgumentTests(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(ReadOutArgumentTests, self).setUp()
+        super().setUp()
         self.size = 1000
 
     def create_array(self):
@@ -620,7 +620,7 @@ class ReadOutArgumentTests(common.TempFileMixin, TestCase):
 class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(SizeOnDiskInMemoryPropertyTestCase, self).setUp()
+        super().setUp()
         self.array_size = (10, 10)
         self.array = self.h5file.create_array(
             '/', 'somearray', numpy.zeros(self.array_size, 'i4'))
@@ -638,7 +638,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
     """
 
     def setUp(self):
-        super(UnalignedAndComplexTestCase, self).setUp()
+        super().setUp()
         self.root = self.h5file.root
 
     def write_read(self, testArray):
@@ -2015,7 +2015,7 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
 class PointSelectionTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(PointSelectionTestCase, self).setUp()
+        super().setUp()
         # Limits for selections
         self.limits = [
             (0, 1),  # just one element
@@ -2222,7 +2222,7 @@ class PointSelection4(PointSelectionTestCase):
 class FancySelectionTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(FancySelectionTestCase, self).setUp()
+        super().setUp()
 
         M, N, O = self.shape
 
@@ -2390,7 +2390,7 @@ class FancySelection4(FancySelectionTestCase):
 class CopyNativeHDF5MDAtom(TestCase):
 
     def setUp(self):
-        super(CopyNativeHDF5MDAtom, self).setUp()
+        super().setUp()
         filename = test_filename("array_mdatom.h5")
         self.h5file = tables.open_file(filename, "r")
         self.arr = self.h5file.root.arr
@@ -2402,7 +2402,7 @@ class CopyNativeHDF5MDAtom(TestCase):
         self.h5file.close()
         self.copyh.close()
         os.remove(self.copy)
-        super(CopyNativeHDF5MDAtom, self).tearDown()
+        super().tearDown()
 
     def test01_copy(self):
         """Checking that native MD atoms are copied as-is"""
@@ -2423,7 +2423,7 @@ class CopyNativeHDF5MDAtom(TestCase):
 class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(AccessClosedTestCase, self).setUp()
+        super().setUp()
 
         a = numpy.zeros((10, 10))
         self.array = self.h5file.create_array(self.h5file.root, 'array', a)

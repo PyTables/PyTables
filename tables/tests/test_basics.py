@@ -37,7 +37,7 @@ from tables.tests.common import PyTablesTestCase as TestCase
 
 class OpenFileFailureTestCase(TestCase):
     def setUp(self):
-        super(OpenFileFailureTestCase, self).setUp()
+        super().setUp()
 
         import tables.file
 
@@ -91,7 +91,7 @@ class OpenFileFailureTestCase(TestCase):
 class OpenFileTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(OpenFileTestCase, self).setUp()
+        super().setUp()
         self.populateFile()
 
     def populateFile(self):
@@ -1188,7 +1188,7 @@ class DictNodeCacheOpenFile(OpenFileTestCase):
 
 class CheckFileTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(CheckFileTestCase, self).setUp()
+        super().setUp()
 
         # Create a regular (text) file
         self.txtfile = tempfile.mktemp(".h5")
@@ -1199,7 +1199,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.txtfile)
-        super(CheckFileTestCase, self).tearDown()
+        super().tearDown()
 
     def test00_isHDF5File(self):
         """Checking  tables.is_hdf5_file function (TRUE case)"""
@@ -1369,7 +1369,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
                  'FILE_OPEN_POLICY = "strict"')
 class ThreadingTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(ThreadingTestCase, self).setUp()
+        super().setUp()
         self.h5file.create_carray('/', 'test_array', tables.Int64Atom(),
                                   (200, 300))
         self.h5file.close()
@@ -1810,13 +1810,13 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
     scalar_data = numpy.int32(10)
 
     def _reopen(self, mode='r'):
-        super(FlavorTestCase, self)._reopen(mode)
+        super()._reopen(mode)
         self.array = self.h5file.get_node('/array')
         self.scalar = self.h5file.get_node('/scalar')
         return True
 
     def setUp(self):
-        super(FlavorTestCase, self).setUp()
+        super().setUp()
         self.array = self.h5file.create_array('/', 'array', self.array_data)
         self.scalar = self.h5file.create_array('/', 'scalar', self.scalar_data)
 
@@ -1927,7 +1927,7 @@ class UnicodeFilename(common.TempFileMixin, TestCase):
         return tempfile.mktemp(prefix=self.unicode_prefix, suffix='.h5')
 
     def setUp(self):
-        super(UnicodeFilename, self).setUp()
+        super().setUp()
 
         self.test = self.h5file.create_array('/', 'test', [1, 2])
 
@@ -1990,7 +1990,7 @@ class PathLikeFilename(common.TempFileMixin, TestCase):
         return Path(tempfile.mktemp(suffix='.h5'))
 
     def setUp(self):
-        super(PathLikeFilename, self).setUp()
+        super().setUp()
 
         self.test = self.h5file.create_array('/', 'test', [1, 2])
 
@@ -2031,7 +2031,7 @@ class PathLikeFilename(common.TempFileMixin, TestCase):
 
 class FilePropertyTestCase(TestCase):
     def setUp(self):
-        super(FilePropertyTestCase, self).setUp()
+        super().setUp()
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = None
 
@@ -2041,7 +2041,7 @@ class FilePropertyTestCase(TestCase):
 
         if os.path.exists(self.h5fname):
             os.remove(self.h5fname)
-        super(FilePropertyTestCase, self).tearDown()
+        super().tearDown()
 
     def test_get_filesize(self):
         data = numpy.zeros((2000, 2000))
@@ -2189,12 +2189,12 @@ class BloscSubprocess(TestCase):
 
 class HDF5ErrorHandling(TestCase):
     def setUp(self):
-        super(HDF5ErrorHandling, self).setUp()
+        super().setUp()
         self._old_policy = tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY
 
     def tearDown(self):
         tables.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = self._old_policy
-        super(HDF5ErrorHandling, self).tearDown()
+        super().tearDown()
 
     def test_silence_messages(self):
         code = """

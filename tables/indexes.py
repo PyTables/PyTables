@@ -102,7 +102,7 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
             shape = None
             chunkshape = None
 
-        super(IndexArray, self).__init__(
+        super().__init__(
             parentnode, name, atom, shape, title, filters,
             chunkshape=chunkshape, byteorder=byteorder)
 

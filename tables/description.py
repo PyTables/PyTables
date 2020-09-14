@@ -222,7 +222,7 @@ class Col(atom.Atom, metaclass=type):
     # ~~~~~~~~~~~~~~~
     def __repr__(self):
         # Reuse the atom representation.
-        atomrepr = super(Col, self).__repr__()
+        atomrepr = super().__repr__()
         lpar = atomrepr.index('(')
         rpar = atomrepr.rindex(')')
         atomargs = atomrepr[lpar + 1:rpar]

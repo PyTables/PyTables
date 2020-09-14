@@ -29,7 +29,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
     appendrows = 5
 
     def setUp(self):
-        super(TreeTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of HDF5 Table
         self.populateFile()
@@ -585,7 +585,7 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
     """Checks for deep hierarchy levels in PyTables trees."""
 
     def setUp(self):
-        super(DeepTreeTestCase, self).setUp()
+        super().setUp()
 
         # Here we put a more conservative limit to deal with more platforms
         # With maxdepth = 64 this test would take less than 40 MB
@@ -855,7 +855,7 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
     """Check for hidden groups, leaves and hierarchies."""
 
     def setUp(self):
-        super(HiddenTreeTestCase, self).setUp()
+        super().setUp()
 
         self.visible = []  # list of visible object paths
         self.hidden = []  # list of hidden object paths
@@ -1055,7 +1055,7 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
     filters = tables.Filters(complevel=4)  # simply non-default
 
     def setUp(self):
-        super(CreateParentsTestCase, self).setUp()
+        super().setUp()
         self.h5file.create_array('/', 'array', [1])
         self.h5file.create_group('/', 'group', filters=self.filters)
 

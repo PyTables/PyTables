@@ -65,7 +65,7 @@ if platform.system().lower() == 'windows':
 				# to get --onefile mode working.
 				os.putenv('_MEIPASS2', sys._MEIPASS)
 			try:
-				super(_Popen, self).__init__(*args, **kw)
+				super().__init__(*args, **kw)
 			finally:
 				if hasattr(sys, 'frozen'):
 					# On some platforms (e.g. AIX) 'os.unsetenv()' is not

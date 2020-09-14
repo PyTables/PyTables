@@ -228,7 +228,7 @@ def areArraysEqual(arr1, arr2):
 
 class PyTablesTestCase(unittest.TestCase):
     def tearDown(self):
-        super(PyTablesTestCase, self).tearDown()
+        super().tearDown()
         for key in self.__dict__:
             if self.__dict__[key].__class__.__name__ not in ('instancemethod'):
                 self.__dict__[key] = None
@@ -296,7 +296,7 @@ class TestFileMixin(object):
     open_kwargs = {}
 
     def setUp(self):
-        super(TestFileMixin, self).setUp()
+        super().setUp()
         self.h5file = tables.open_file(
             self.h5fname, title=self._getName(), **self.open_kwargs)
 
@@ -304,7 +304,7 @@ class TestFileMixin(object):
         """Close ``h5file``."""
 
         self.h5file.close()
-        super(TestFileMixin, self).tearDown()
+        super().tearDown()
 
 
 class TempFileMixin(object):
@@ -322,7 +322,7 @@ class TempFileMixin(object):
 
         """
 
-        super(TempFileMixin, self).setUp()
+        super().setUp()
         self.h5fname = self._getTempFileName()
         self.h5file = tables.open_file(
             self.h5fname, self.open_mode, title=self._getName(),
@@ -334,7 +334,7 @@ class TempFileMixin(object):
         self.h5file.close()
         self.h5file = None
         os.remove(self.h5fname)   # comment this for debugging purposes only
-        super(TempFileMixin, self).tearDown()
+        super().tearDown()
 
     def _reopen(self, mode='r', **kwargs):
         """Reopen ``h5file`` in the specified ``mode``.

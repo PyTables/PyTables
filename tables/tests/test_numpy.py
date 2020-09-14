@@ -410,7 +410,7 @@ class TableReadTestCase(common.TempFileMixin, TestCase):
     nrows = 100
 
     def setUp(self):
-        super(TableReadTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         table = self.h5file.create_table(self.h5file.root, 'table', Record)
@@ -612,7 +612,7 @@ class TableNativeFlavorTestCase(common.TempFileMixin, TestCase):
     nrows = 100
 
     def setUp(self):
-        super(TableNativeFlavorTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         table = self.h5file.create_table(self.h5file.root, 'table', TestTDescr,
@@ -1226,7 +1226,7 @@ class TableNativeFlavorCloseTestCase(TableNativeFlavorTestCase):
 
 class AttributesTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(AttributesTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         self.h5file.create_group(self.h5file.root, 'group')
@@ -1295,7 +1295,7 @@ class AttributesCloseTestCase(AttributesTestCase):
 
 class StrlenTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(StrlenTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         group = self.h5file.create_group(self.h5file.root, 'group')

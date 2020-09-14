@@ -364,7 +364,7 @@ class CacheDict(dict):
 
     def __init__(self, maxentries):
         self.maxentries = maxentries
-        super(CacheDict, self).__init__(self)
+        super().__init__(self)
 
     def __setitem__(self, key, value):
         # Protection against growing the cache too much
@@ -372,8 +372,8 @@ class CacheDict(dict):
             # Remove a 10% of (arbitrary) elements from the cache
             entries_to_remove = self.maxentries / 10
             for k in list(self.keys())[:entries_to_remove]:
-                super(CacheDict, self).__delitem__(k)
-        super(CacheDict, self).__setitem__(key, value)
+                super().__delitem__(k)
+        super().__setitem__(key, value)
 
 
 class NailedDict(object):

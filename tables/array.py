@@ -187,8 +187,8 @@ class Array(hdf5extension.Array, Leaf):
         """The index of the enlargeable dimension."""
 
         # Ordinary arrays have no filters: leaf is created with default ones.
-        super(Array, self).__init__(parentnode, name, new, Filters(),
-                                    byteorder, _log, track_times)
+        super().__init__(parentnode, name, new, Filters(), byteorder, _log,
+                         track_times)
 
     def _g_create(self):
         """Save a new array in file."""

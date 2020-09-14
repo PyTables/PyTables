@@ -76,7 +76,7 @@ class BackCompatAttrsTestCase(common.TestFileMixin, TestCase):
 
     def setUp(self):
         self.h5fname = test_filename(self.FILENAME % self.format)
-        super(BackCompatAttrsTestCase, self).setUp()
+        super().setUp()
 
     def test01_readAttr(self):
         """Checking backward compatibility of old formats for attributes."""

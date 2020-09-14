@@ -62,7 +62,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         """The endianness of data in memory ('big', 'little' or
         'irrelevant')."""
 
-        super(UnImplemented, self).__init__(parentnode, name)
+        super().__init__(parentnode, name)
 
     def _g_open(self):
         (self.shape, self.byteorder, object_id) = self._open_unimplemented()
@@ -128,7 +128,7 @@ class Unknown(Node):
         """Create the `Unknown` instance."""
 
         self._v_new = False
-        super(Unknown, self).__init__(parentnode, name)
+        super().__init__(parentnode, name)
 
     def _g_new(self, parentnode, name, init=False):
         pass

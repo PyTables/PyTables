@@ -48,7 +48,7 @@ class CreateTestCase(common.TempFileMixin, TestCase):
     compress = 0
 
     def setUp(self):
-        super(CreateTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of HDF5 Table
         self.root = self.h5file.root
@@ -264,7 +264,7 @@ class FiltersTreeTestCase(common.TempFileMixin, TestCase):
     nrows = 10
 
     def setUp(self):
-        super(FiltersTreeTestCase, self).setUp()
+        super().setUp()
         self.populateFile()
 
     def populateFile(self):
@@ -623,7 +623,7 @@ class FiltersCaseBloscLZ4(FiltersTreeTestCase):
         self.filters = Filters(shuffle=False, complevel=1, complib="blosc:lz4")
         self.gfilters = Filters(complevel=5, shuffle=True, complib="blosc:lz4")
         self.open_kwargs = dict(filters=self.filters)
-        super(FiltersCaseBloscLZ4, self).setUp()
+        super().setUp()
 
 
 @unittest.skipIf(not common.blosc_avail,
@@ -636,7 +636,7 @@ class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
         self.gfilters = Filters(
             complevel=5, shuffle=True, complib="blosc:lz4hc")
         self.open_kwargs = dict(filters=self.filters)
-        super(FiltersCaseBloscLZ4HC, self).setUp()
+        super().setUp()
 
 
 @unittest.skipIf(not common.blosc_avail,
@@ -650,7 +650,7 @@ class FiltersCaseBloscSnappy(FiltersTreeTestCase):
         self.gfilters = Filters(
             complevel=5, shuffle=True, complib="blosc:snappy")
         self.open_kwargs = dict(filters=self.filters)
-        super(FiltersCaseBloscSnappy, self).setUp()
+        super().setUp()
 
 
 @unittest.skipIf(not common.blosc_avail,
@@ -661,7 +661,7 @@ class FiltersCaseBloscZlib(FiltersTreeTestCase):
         self.filters = Filters(shuffle=False, complevel=1, complib="blosc:zlib")
         self.gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zlib")
         self.open_kwargs = dict(filters=self.filters)
-        super(FiltersCaseBloscZlib, self).setUp()
+        super().setUp()
 
 
 @unittest.skipIf(not common.blosc_avail,
@@ -672,7 +672,7 @@ class FiltersCaseBloscZstd(FiltersTreeTestCase):
         self.filters = Filters(shuffle=False, complevel=1, complib="blosc:zstd")
         self.gfilters = Filters(complevel=5, shuffle=True, complib="blosc:zstd")
         self.open_kwargs = dict(filters=self.filters)
-        super(FiltersCaseBloscZstd, self).setUp()
+        super().setUp()
 
 
 @unittest.skipIf(not common.blosc_avail,
@@ -691,7 +691,7 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
     nrows = 10
 
     def setUp(self):
-        super(CopyGroupTestCase, self).setUp()
+        super().setUp()
 
         # Create a temporary file
         self.h5fname2 = tempfile.mktemp(".h5")
@@ -766,7 +766,7 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
             self.h5file2.close()
         os.remove(self.h5fname2)
 
-        super(CopyGroupTestCase, self).tearDown()
+        super().tearDown()
 
     def test00_nonRecursive(self):
         """Checking non-recursive copy of a Group"""
@@ -1034,7 +1034,7 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
     nrows = 10
 
     def setUp(self):
-        super(CopyFileTestCase, self).setUp()
+        super().setUp()
 
         # Create a temporary file
         self.h5fname2 = tempfile.mktemp(".h5")
@@ -1111,7 +1111,7 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         if hasattr(self, 'h5fname2') and os.path.exists(self.h5fname2):
             os.remove(self.h5fname2)
 
-        super(CopyFileTestCase, self).tearDown()
+        super().tearDown()
 
     def test00_overwrite(self):
         """Checking copy of a File (overwriting file)"""
@@ -1397,7 +1397,7 @@ class GroupFiltersTestCase(common.TempFileMixin, TestCase):
     filters = tables.Filters(complevel=4)  # something non-default
 
     def setUp(self):
-        super(GroupFiltersTestCase, self).setUp()
+        super().setUp()
 
         atom, shape = tables.IntAtom(), (1, 1)
         create_group = self.h5file.create_group
@@ -1603,7 +1603,7 @@ class DefaultDriverTestCase(common.TempFileMixin, TestCase):
     open_kwargs = dict(driver=DRIVER, **DRIVER_PARAMS)
 
     def setUp(self):
-        super(DefaultDriverTestCase, self).setUp()
+        super().setUp()
 
         # Create an HDF5 file and contents
         root = self.h5file.root
@@ -1790,7 +1790,7 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
     DRIVER = "H5FD_CORE"
 
     def setUp(self):
-        super(CoreDriverNoBackingStoreTestCase, self).setUp()
+        super().setUp()
 
         self.h5fname = tempfile.mktemp(suffix=".h5")
         self.h5file = None
@@ -1807,7 +1807,7 @@ class CoreDriverNoBackingStoreTestCase(TestCase):
         if os.path.isfile(self.h5fname):
             os.remove(self.h5fname)
 
-        super(CoreDriverNoBackingStoreTestCase, self).tearDown()
+        super().tearDown()
 
     def test_newFile(self):
         """Ensure that nothing is written to file."""
@@ -2039,7 +2039,7 @@ class SplitDriverTestCase(DefaultDriverTestCase):
         return tempfile.mktemp(prefix=self._getName())
 
     def setUp(self):
-        super(SplitDriverTestCase, self).setUp()
+        super().setUp()
 
         self.h5fnames = [self.h5fname + self.DRIVER_PARAMS[k] for k in
                          ("driver_split_meta_ext", "driver_split_raw_ext")]
@@ -2049,7 +2049,7 @@ class SplitDriverTestCase(DefaultDriverTestCase):
         for fname in self.h5fnames:
             if os.path.isfile(fname):
                 os.remove(fname)
-        #super(SplitDriverTestCase, self).tearDown()
+        #super().tearDown()
         TestCase.tearDown(self)
 
     def assertIsFile(self):
@@ -2063,7 +2063,7 @@ class NotSpportedDriverTestCase(TestCase):
     EXCEPTION = ValueError
 
     def setUp(self):
-        super(NotSpportedDriverTestCase, self).setUp()
+        super().setUp()
         self.h5fname = tempfile.mktemp(suffix=".h5")
 
     def tearDown(self):
@@ -2073,7 +2073,7 @@ class NotSpportedDriverTestCase(TestCase):
                 h5file.close()
         if os.path.exists(self.h5fname):
             os.remove(self.h5fname)
-        super(NotSpportedDriverTestCase, self).tearDown()
+        super().tearDown()
 
     def test_newFile(self):
         self.assertRaises(self.EXCEPTION, tables.open_file, self.h5fname,
@@ -2098,12 +2098,12 @@ class LogDriverTestCase(BaseLogDriverTestCase):
             "driver_log_file": tempfile.mktemp(suffix=".log")
         }
 
-        super(LogDriverTestCase, self).setUp()
+        super().setUp()
 
     def tearDown(self):
         if os.path.exists(self.DRIVER_PARAMS["driver_log_file"]):
             os.remove(self.DRIVER_PARAMS["driver_log_file"])
-        super(LogDriverTestCase, self).tearDown()
+        super().tearDown()
 
 
 if HAVE_DIRECT_DRIVER:
@@ -2157,7 +2157,7 @@ class InMemoryCoreDriverTestCase(TestCase):
     DRIVER = "H5FD_CORE"
 
     def setUp(self):
-        super(InMemoryCoreDriverTestCase, self).setUp()
+        super().setUp()
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = None
 
@@ -2168,7 +2168,7 @@ class InMemoryCoreDriverTestCase(TestCase):
 
         if os.path.isfile(self.h5fname):
             os.remove(self.h5fname)
-        super(InMemoryCoreDriverTestCase, self).tearDown()
+        super().tearDown()
 
     def _create_image(self, filename="in-memory", title="Title", mode='w'):
         h5file = tables.open_file(filename, mode=mode, title=title,
@@ -2429,7 +2429,7 @@ class QuantizeTestCase(common.TempFileMixin, TestCase):
     appendrows = 5
 
     def setUp(self):
-        super(QuantizeTestCase, self).setUp()
+        super().setUp()
 
         self.data = numpy.linspace(-5., 5., 41)
         self.randomdata = numpy.random.random_sample(1000000)

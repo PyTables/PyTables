@@ -295,7 +295,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
                 "Indexing columns of this type is not supported yet.")
 
     def setUp(self):
-        super(BaseTableQueryTestCase, self).setUp()
+        super().setUp()
         self.table = self.h5file.create_table(
             '/', 'test', self.tableDescription, expectedrows=self.nrows)
         fill_table(self.table, self.shape, self.nrows)
@@ -793,7 +793,7 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
     indexed = True
 
     def setUp(self):
-        super(IndexedTableUsage, self).setUp()
+        super().setUp()
         self.table.cols.c_bool.create_index(_blocksizes=small_blocksizes)
         self.table.cols.c_int32.create_index(_blocksizes=small_blocksizes)
         self.will_query_use_indexing = self.table.will_query_use_indexing

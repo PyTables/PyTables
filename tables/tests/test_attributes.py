@@ -28,7 +28,7 @@ class Record(IsDescription):
 
 class CreateTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
-        super(CreateTestCase, self).setUp()
+        super().setUp()
         self.root = self.h5file.root
 
         # Create a table object
@@ -687,7 +687,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
         self.open_kwargs = {'allow_padding': self.allow_padding}
-        super(TypesTestCase, self).setUp()
+        super().setUp()
         self.root = self.h5file.root
 
         # Create an array object
@@ -1617,7 +1617,7 @@ class NoSysAttrsTestCase(common.TempFileMixin, TestCase):
     open_kwargs = dict(pytables_sys_attrs=False)
 
     def setUp(self):
-        super(NoSysAttrsTestCase, self).setUp()
+        super().setUp()
         self.root = self.h5file.root
 
         # Create a table object
@@ -1777,13 +1777,13 @@ class EmbeddedNullsTestCase(common.TempFileMixin, TestCase):
 
 class VlenStrAttrTestCase(TestCase):
     def setUp(self):
-        super(VlenStrAttrTestCase, self).setUp()
+        super().setUp()
         self.h5fname = test_filename('vlstr_attr.h5')
         self.h5file = tables.open_file(self.h5fname)
 
     def tearDown(self):
         self.h5file.close()
-        super(VlenStrAttrTestCase, self).tearDown()
+        super().tearDown()
 
     def test01_vlen_str_scalar(self):
         """Checking file with variable length string attributes."""

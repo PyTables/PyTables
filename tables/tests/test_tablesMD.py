@@ -75,7 +75,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     maxshort = 1 << 15
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -572,7 +572,7 @@ class BasicRangeTestCase(common.TempFileMixin, TestCase):
     checkgetCol = 0
 
     def setUp(self):
-        super(BasicRangeTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -1284,7 +1284,7 @@ class RecordT(tables.IsDescription):
 class ShapeTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(ShapeTestCase, self).setUp()
+        super().setUp()
         self.populateFile()
 
     def populateFile(self):
@@ -1366,7 +1366,7 @@ class ShapeTestCase2(ShapeTestCase):
 class SetItemTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(SetItemTestCase, self).setUp()
+        super().setUp()
 
         # Create a new table:
         self.table = self.h5file.create_table(self.h5file.root,
@@ -1755,7 +1755,7 @@ class SetItemTestCase4(SetItemTestCase):
 class UpdateRowTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(UpdateRowTestCase, self).setUp()
+        super().setUp()
 
         # Create a new table:
         self.table = self.h5file.create_table(self.h5file.root,

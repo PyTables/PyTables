@@ -42,7 +42,7 @@ class RangeTestCase(common.TempFileMixin, TestCase):
     compress = 0
 
     def setUp(self):
-        super(RangeTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
 
         # Create a table
@@ -155,7 +155,7 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
     ncols = 6
 
     def setUp(self):
-        super(ReadFloatTestCase, self).setUp()
+        super().setUp()
         x = numpy.arange(self.ncols)
         y = numpy.arange(self.nrows)
         y.shape = (self.nrows, 1)

@@ -78,7 +78,7 @@ class TimestampTestCase(TrackTimesMixin, common.TempFileMixin, TestCase):
     nrows = 10
 
     def setUp(self):
-        super(TimestampTestCase, self).setUp()
+        super().setUp()
         self.populateFile()
 
     def populateFile(self):

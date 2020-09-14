@@ -32,7 +32,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     reopen = 1  # Tells whether the file has to be reopened on each test or not
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -1224,7 +1224,7 @@ class StringComprTestCase(BasicTestCase):
 class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(SizeOnDiskInMemoryPropertyTestCase, self).setUp()
+        super().setUp()
 
         self.array_size = (0, 10)
         # set chunkshape so it divides evenly into array_size, to avoid
@@ -1280,7 +1280,7 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(OffsetStrideTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
 
     def test01a_String(self):
@@ -2164,7 +2164,7 @@ class CopyIndex12TestCase(CopyIndexTestCase):
 class TruncateTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(TruncateTestCase, self).setUp()
+        super().setUp()
 
         # Create an EArray
         atom = Int16Atom(dflt=3)
@@ -2273,7 +2273,7 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
     nanumber = 1000 * 3    # That should account for more than 2**31-1
 
     def setUp(self):
-        super(Rows64bitsTestCase, self).setUp()
+        super().setUp()
 
         # Create an EArray
         array = self.h5file.create_earray(
@@ -2351,7 +2351,7 @@ class ZeroSizedTestCase(common.TempFileMixin, TestCase):
     open_mode = 'a'
 
     def setUp(self):
-        super(ZeroSizedTestCase, self).setUp()
+        super().setUp()
 
         # Create an EArray
         ea = self.h5file.create_earray('/', 'test',
@@ -2520,7 +2520,7 @@ class MDAtomReopen(MDAtomTestCase):
 class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
-        super(AccessClosedTestCase, self).setUp()
+        super().setUp()
         self.array = self.h5file.create_earray(self.h5file.root, 'array',
                                                atom=Int32Atom(), shape=(0, 10))
         self.array.append(numpy.zeros((10, 10)))

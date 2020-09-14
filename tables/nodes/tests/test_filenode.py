@@ -80,7 +80,7 @@ class ClosedFileTestCase(TempFileMixin, TestCase):
 
         """
 
-        super(ClosedFileTestCase, self).setUp()
+        super().setUp()
         self.fnode = filenode.new_node(self.h5file, where='/', name='test')
         self.fnode.close()
 
@@ -92,7 +92,7 @@ class ClosedFileTestCase(TempFileMixin, TestCase):
         """
 
         self.fnode = None
-        super(ClosedFileTestCase, self).tearDown()
+        super().tearDown()
 
     # All these tests mey seem odd, but Python (2.3) files
     # do test whether the file is not closed regardless of their mode.
@@ -184,7 +184,7 @@ class WriteFileTestCase(TempFileMixin, TestCase):
 
         """
 
-        super(WriteFileTestCase, self).setUp()
+        super().setUp()
         self.fnode = filenode.new_node(self.h5file, where='/', name='test')
         self.datafname = test_file(self.datafname)
 
@@ -197,7 +197,7 @@ class WriteFileTestCase(TempFileMixin, TestCase):
 
         self.fnode.close()
         self.fnode = None
-        super(WriteFileTestCase, self).tearDown()
+        super().tearDown()
 
     def test00_WriteFile(self):
         """Writing a whole file node."""
@@ -275,7 +275,7 @@ class OpenFileTestCase(TempFileMixin, TestCase):
 
         """
 
-        super(OpenFileTestCase, self).setUp()
+        super().setUp()
         fnode = filenode.new_node(self.h5file, where='/', name='test')
         fnode.close()
 
@@ -348,7 +348,7 @@ class ReadFileTestCase(TempFileMixin, TestCase):
         self.datafname = test_file(self.datafname)
         self.datafile = open(self.datafname, 'rb')
 
-        super(ReadFileTestCase, self).setUp()
+        super().setUp()
 
         fnode = filenode.new_node(self.h5file, where='/', name='test')
         copyFileToFile(self.datafile, fnode)
@@ -370,7 +370,7 @@ class ReadFileTestCase(TempFileMixin, TestCase):
         self.datafile.close()
         self.datafile = None
 
-        super(ReadFileTestCase, self).tearDown()
+        super().tearDown()
 
     def test00_CompareFile(self):
         """Reading and comparing a whole file node."""
@@ -429,7 +429,7 @@ class ReadlineTestCase(TempFileMixin, TestCase):
 
         """
 
-        super(ReadlineTestCase, self).setUp()
+        super().setUp()
 
         linesep = self.line_separator
 
@@ -457,7 +457,7 @@ class ReadlineTestCase(TempFileMixin, TestCase):
 
         self.fnode.close()
         self.fnode = None
-        super(ReadlineTestCase, self).tearDown()
+        super().tearDown()
 
     def test00_Readline(self):
         """Reading individual lines."""
@@ -606,7 +606,7 @@ class MonoReadlineTestCase(ReadlineTestCase):
 #          * 'h5file', the writable, temporary HDF5 file with a '/test' node
 #          * 'fnode', the writable file node in '/test'
 #        """
-#        super(LineSeparatorTestCase, self).setUp()
+#        super().setUp()
 #        self.fnode = filenode.new_node(self.h5file, where='/', name='test')
 #
 #    def tearDown(self):
@@ -616,7 +616,7 @@ class MonoReadlineTestCase(ReadlineTestCase):
 #        """
 #        self.fnode.close()
 #        self.fnode = None
-#        super(LineSeparatorTestCase, self).tearDown()
+#        super().tearDown()
 #
 #    def test00_DefaultLineSeparator(self):
 #        "Default line separator."
@@ -661,7 +661,7 @@ class AttrsTestCase(TempFileMixin, TestCase):
 
         """
 
-        super(AttrsTestCase, self).setUp()
+        super().setUp()
         self.fnode = filenode.new_node(self.h5file, where='/', name='test')
 
     def tearDown(self):
@@ -673,7 +673,7 @@ class AttrsTestCase(TempFileMixin, TestCase):
 
         self.fnode.close()
         self.fnode = None
-        super(AttrsTestCase, self).tearDown()
+        super().tearDown()
 
     # This no longer works since type and type version attributes
     # are now system attributes.  ivb(2004-12-29)
@@ -763,7 +763,7 @@ class ClosedH5FileTestCase(TempFileMixin, TestCase):
 
         """
 
-        super(ClosedH5FileTestCase, self).setUp()
+        super().setUp()
         self.fnode = filenode.new_node(self.h5file, where='/', name='test')
         self.h5file.close()
 
@@ -786,7 +786,7 @@ class ClosedH5FileTestCase(TempFileMixin, TestCase):
             warnings.filterwarnings('default', category=UserWarning)
 
         self.fnode = None
-        super(ClosedH5FileTestCase, self).tearDown()
+        super().tearDown()
 
     def test00_Write(self):
         """Writing to a file node in a closed PyTables file."""
@@ -818,7 +818,7 @@ class OldVersionTestCase(TestCase):
 
         """
 
-        super(OldVersionTestCase, self).setUp()
+        super().setUp()
         self.h5fname = tempfile.mktemp(suffix='.h5')
 
         self.oldh5fname = test_file(self.oldh5fname)
@@ -839,7 +839,7 @@ class OldVersionTestCase(TestCase):
         self.h5file.close()
         self.h5file = None
         os.remove(self.h5fname)
-        super(OldVersionTestCase, self).tearDown()
+        super().tearDown()
 
     def test00_Read(self):
         """Reading an old version file node."""
@@ -914,7 +914,7 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
 
         """
 
-        super(DirectReadWriteTestCase, self).setUp()
+        super().setUp()
         self.datafname = test_file(self.datafname)
         self.testfname = tempfile.mktemp()
         self.testh5fname = tempfile.mktemp(suffix=".h5")
@@ -933,7 +933,7 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         if os.access(self.testh5fname, os.R_OK):
             os.remove(self.testh5fname)
         shutil.rmtree(self.testdir)
-        super(DirectReadWriteTestCase, self).tearDown()
+        super().tearDown()
 
     def test01_WriteToFilename(self):
         # write contents of datafname to h5 testfile

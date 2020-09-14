@@ -21,7 +21,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             self._reopen('r+')
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -981,7 +981,7 @@ class CreateArrayTestCase(common.TempFileMixin, TestCase):
     """Test for create_array operations"""
 
     def setUp(self):
-        super(CreateArrayTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -1148,7 +1148,7 @@ class CreateGroupTestCase(common.TempFileMixin, TestCase):
     """Test for create_group operations"""
 
     def setUp(self):
-        super(CreateGroupTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -1352,7 +1352,7 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
     """Test for rename_node operations"""
 
     def setUp(self):
-        super(RenameNodeTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -1566,7 +1566,7 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
     """Tests for move_node operations"""
 
     def setUp(self):
-        super(MoveNodeTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -1784,7 +1784,7 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
     """Test for remove_node operations"""
 
     def setUp(self):
-        super(RemoveNodeTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -1978,7 +1978,7 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
     """Tests for copy_node and copy_children operations"""
 
     def setUp(self):
-        super(CopyNodeTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -2186,7 +2186,7 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
     """Tests for a mix of all operations"""
 
     def setUp(self):
-        super(ComplexTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -2436,7 +2436,7 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
     """Tests for operation on attributes"""
 
     def setUp(self):
-        super(AttributesTestCase, self).setUp()
+        super().setUp()
 
         # Create an array.
         array = self.h5file.create_array('/', 'array', [1, 2])
@@ -2618,7 +2618,7 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
     """Test the ``createparents`` flag."""
 
     def setUp(self):
-        super(CreateParentsTestCase, self).setUp()
+        super().setUp()
         g1 = self.h5file.create_group('/', 'g1')
         self.h5file.create_group(g1, 'g2')
 

@@ -57,7 +57,7 @@ class RawPyTablesIO(io.RawIOBase):
     ]
 
     def __init__(self, node, mode=None):
-        super(RawPyTablesIO, self).__init__()
+        super().__init__()
 
         self._check_node(node)
         self._check_attributes(node)
@@ -160,7 +160,7 @@ class RawPyTablesIO(io.RawIOBase):
                 warnings.warn("host PyTables file is already closed!")
 
         try:
-            super(RawPyTablesIO, self).close()
+            super().close()
         finally:
             # Release node object to allow closing the file.
             self._node = None
@@ -384,7 +384,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         """
 
-        super(RawPyTablesIO, self)._checkClosed()
+        super()._checkClosed()
         if getattr(self._node, '_v_file', None) is None:
             raise ValueError("host PyTables file is already closed!")
 

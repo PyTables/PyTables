@@ -830,8 +830,8 @@ class Table(tableextension.Table, Leaf):
                                  % (chunkshape,))
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
-        super(Table, self).__init__(parentnode, name, new, filters,
-                                    byteorder, _log, track_times)
+        super().__init__(parentnode, name, new, filters, byteorder, _log,
+                         track_times)
 
     def _g_post_init_hook(self):
         # We are putting here the index-related issues
@@ -841,7 +841,7 @@ class Table(tableextension.Table, Leaf):
         # First, get back the flavor of input data (if any) for
         # `Leaf._g_post_init_hook()`.
         self._flavor, self._descflavor = self._descflavor, None
-        super(Table, self)._g_post_init_hook()
+        super()._g_post_init_hook()
 
         # Create a cols accessor.
         self.cols = Cols(self, self.description)
@@ -2640,7 +2640,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         self.remove_rows(start=n, stop=n + 1)
 
     def _g_update_dependent(self):
-        super(Table, self)._g_update_dependent()
+        super()._g_update_dependent()
 
         # Update the new path in columns
         self.cols._g_update_table_location(self)
@@ -2659,7 +2659,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         itgpathname = _index_pathname_of(self)
 
         # First, move the table to the new location.
-        super(Table, self)._g_move(newparent, newname)
+        super()._g_move(newparent, newname)
 
         # Then move the associated index group (if any).
         try:
@@ -2683,7 +2683,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             self.indexed = False   # there are indexes no more
 
         # Remove the leaf itself from the hierarchy.
-        super(Table, self)._g_remove(recursive, force)
+        super()._g_remove(recursive, force)
 
     def _set_column_indexing(self, colpathname, indexed):
         """Mark the referred column as indexed or non-indexed."""
@@ -2882,7 +2882,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         """
 
-        return super(Table, self).copy(
+        return super().copy(
             newparent, newname, overwrite, createparents, **kwargs)
 
     def flush(self):
@@ -2903,7 +2903,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 # Finally, re-index any dirty column
                 self.reindex_dirty()
 
-        super(Table, self).flush()
+        super().flush()
 
     def _g_pre_kill_hook(self):
         """Code to be called before killing the node."""
@@ -2968,7 +2968,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             cols._g_close()
 
         # Close myself as a leaf.
-        super(Table, self)._f_close(False)
+        super()._f_close(False)
 
     def __repr__(self):
         """This provides column metainfo in addition to standard __str__"""

@@ -45,7 +45,7 @@ def WriteRead(filename, testTuple):
 
 class BasicTestCase(TestCase):
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super().setUp()
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = None
 
@@ -54,7 +54,7 @@ class BasicTestCase(TestCase):
             self.h5file.close()
         if os.path.exists(self.h5fname):
             os.remove(self.h5fname)
-        super(BasicTestCase, self).tearDown()
+        super().tearDown()
 
     def test00_char(self):
         """Data integrity during recovery (character types)"""
@@ -121,7 +121,7 @@ class Basic10DTestCase(BasicTestCase):
 
 class ExceptionTestCase(TestCase):
     def setUp(self):
-        super(ExceptionTestCase, self).setUp()
+        super().setUp()
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = None
 
@@ -130,7 +130,7 @@ class ExceptionTestCase(TestCase):
             self.h5file.close()
         if os.path.exists(self.h5fname):
             os.remove(self.h5fname)
-        super(ExceptionTestCase, self).tearDown()
+        super().tearDown()
 
     def test00_char(self):
         """Non suppported lists objects (character objects)"""

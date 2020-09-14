@@ -44,7 +44,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     reopen = False
 
     def setUp(self):
-        super(SelectValuesTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         if verbose:
@@ -3166,7 +3166,7 @@ class LastRowReuseBuffers(TestCase):
         id1 = tables.Int16Col()
 
     def setUp(self):
-        super(LastRowReuseBuffers, self).setUp()
+        super().setUp()
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = None
 
@@ -3175,7 +3175,7 @@ class LastRowReuseBuffers(TestCase):
             self.h5file.close()
         if os.path.exists(self.h5fname):
             os.remove(self.h5fname)
-        super(LastRowReuseBuffers, self).tearDown()
+        super().tearDown()
 
     def test00_lrucache(self):
         self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=64)

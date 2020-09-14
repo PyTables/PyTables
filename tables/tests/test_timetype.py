@@ -80,7 +80,7 @@ class OpenTestCase(common.TempFileMixin, TestCase):
     myTime64Atom = tables.Time64Atom(shape=(2, 1))
 
     def setUp(self):
-        super(OpenTestCase, self).setUp()
+        super().setUp()
 
         # Create test Table.
         self.h5file.create_table('/', 'table', self.MyTimeRow)
@@ -404,13 +404,13 @@ class BigEndianTestCase(TestCase):
     """Tests for reading big-endian time values in arrays and nested tables."""
 
     def setUp(self):
-        super(BigEndianTestCase, self).setUp()
+        super().setUp()
         filename = test_filename('times-nested-be.h5')
         self.h5file = tables.open_file(filename, 'r')
 
     def tearDown(self):
         self.h5file.close()
-        super(BigEndianTestCase, self).tearDown()
+        super().tearDown()
 
     def test00a_Read32Array(self):
         """Checking Time32 type in arrays."""
