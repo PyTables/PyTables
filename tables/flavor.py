@@ -365,7 +365,7 @@ if NumpyVersion(numpy.__version__) >= NumpyVersion('1.19.0'):
 
         return array
 else:
-    toarryay = numpy.array
+    toarray = numpy.array
 
 
 def _is_numpy(array):
