@@ -1140,7 +1140,7 @@ class File(hdf5extension.File, object):
         else:
             flavor = flavor_of(obj)
             # use a temporary object because converting obj at this stage
-            # breaks some test. This is soultion performs a double,
+            # breaks some test. This is solution performs a double,
             # potentially expensive, conversion of the obj parameter.
             _obj = array_as_internal(obj, flavor)
 
