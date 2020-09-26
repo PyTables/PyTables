@@ -14,7 +14,6 @@ import os
 import sys
 import warnings
 import subprocess
-import re
 from time import time
 
 import numpy
@@ -454,7 +453,6 @@ def detect_number_of_cores():
     return 1  # Default
 
 
-
 # Main part
 # =========
 def _test():
@@ -462,6 +460,7 @@ def _test():
 
     import doctest
     doctest.testmod()
+
 
 if __name__ == '__main__':
     _test()
