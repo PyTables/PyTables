@@ -15,8 +15,8 @@ import math
 
 import numpy
 
-from .flavor import (check_flavor, internal_flavor,
-                           alias_map as flavor_alias_map)
+from .flavor import (check_flavor, internal_flavor, toarray,
+                     alias_map as flavor_alias_map)
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
@@ -539,7 +539,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Try to convert key to a numpy array.  If not possible,
             # a TypeError will be issued (to be catched later on).
             try:
-                key = numpy.array(key)
+                key = toarray(key)
             except ValueError:
                 raise TypeError("Invalid index or slice: %r" % (key,))
         elif not isinstance(key, numpy.ndarray):

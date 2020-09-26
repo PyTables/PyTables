@@ -350,6 +350,24 @@ _numpy_aliases = []
 _numpy_desc = "NumPy array, record or scalar"
 
 
+from numpy.lib import NumpyVersion
+
+
+if NumpyVersion(numpy.__version__) >= NumpyVersion('1.19.0'):
+    def toarray(array, *args, **kwargs):
+        with warnings.catch_warnings():
+            warnings.simplefilter('error')
+            try:
+                array = numpy.array(array, *args, **kwargs)
+            except numpy.VisibleDeprecationWarning:
+                raise ValueError(
+                    'cannot guess the desired dtype from the input')
+
+        return array
+else:
+    toarryay = numpy.array
+
+
 def _is_numpy(array):
     return isinstance(array, (numpy.ndarray, numpy.generic))
 
@@ -390,7 +408,7 @@ def _conv_numpy_to_numpy(array):
 
 @_numpy_contiguous
 def _conv_python_to_numpy(array):
-    nparr = numpy.array(array)
+    nparr = toarray(array)
     if nparr.dtype.kind == 'U':
         # from Python 3 loads of common strings are disguised as Unicode
         try:
