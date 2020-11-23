@@ -1,0 +1,79 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH pttree 1 "May 15, 2013"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+pttree \- prints a quick overview of the contents of PyTables HDF5 files.
+.SH SYNOPSIS
+.B pttree
+[ OPTIONS ]
+.RB filename[:nodepath]
+.br
+.SH DESCRIPTION
+.B pttree
+is designed to give a quick overview of the contents of a PyTables
+HDF5 file by printing a depth-indented list of nodes, similar to the output of
+the Unix `tree` function. It can also display the size, shape and compression
+states of individual nodes, as well as summary information for the whole file.
+For a more verbose output (including metadata), see `ptdump`.
+
+.SH OPTIONS
+A summary of options is included below.
+.TP
+.B \-L MAX_DEPTH, \--max-level MAX_DEPTH
+maximum branch depth of tree to display (-1 == no limit)
+.TP
+.B \-S SORT_BY, \--sort-by SORT_BY
+artificially order nodes, can be either "size", "name" or "none"
+.TP
+.B \--print-size
+print size of each node/branch
+.TP
+.B \--no-print-size
+.TP
+.B \--print-shape
+print shape of each node
+.TP
+.B \--no-print-shape
+.TP
+.B \--print-compression
+print compression library(level) for each compressed node
+.TP
+.B \--no-print-compression
+.TP
+.B \--print-percent
+print size of each node as a % of the total tree size on disk
+.TP
+.B \--no-print-percent
+.TP
+.B \--use-si-units
+report sizes in SI units (1 MB == 10^6 B)
+.TP
+.B \--use-binary-units
+report sizes in binary units (1 MiB == 2^20 B)
+.TP
+.B \-h
+Print help on usage.
+
+.br
+
+.SH SEE ALSO
+.BR ptdump (1).
+.br
+These utilities are documented fully by
+.IR "PyTables user's manual".
+.SH AUTHOR
+This manual page was written by Antonio Valentino <antonio.valentino@tiscali.it>.

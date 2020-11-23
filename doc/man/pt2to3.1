@@ -1,0 +1,55 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH PT2TO3 1 "May 15, 2013"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+pt2to3 \- PyTables 2.x \-> 3.x API transition tool.
+.SH SYNOPSIS
+.B pt2to3
+[ OPTIONS ]
+.RB filename
+.br
+.SH DESCRIPTION
+This tool displays to standard out, so it is common to pipe this to another
+file: $ pt2to3 oldfile.py > newfile.py.
+
+.SH OPTIONS
+A summary of options is included below.
+.TP
+.B \-r, \--reverse
+Reverts changes, going from 3.x \-> 2.x.
+.TP
+.B \-p, \--no-ignore-previous
+Ignores previous_api() calls.
+.TP
+.B \-o OUTPUT
+Output file to write to..
+.TP
+.B \-i, \--inplace
+Overwrites the file in-place.
+.TP
+.B \-h
+Print help on usage.
+
+.br
+
+.SH SEE ALSO
+.BR ptrepack (1), ptdump (1).
+.br
+These utilities are documented fully by
+.IR "PyTables user's manual".
+.SH AUTHOR
+This manual page was written by Antonio Valentino <antonio.valentino@tiscali.it>.

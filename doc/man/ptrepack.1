@@ -1,0 +1,107 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH PTREPACK 1 "July 7, 2007"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+ptrepack \- Copy any PyTables Leaf, Group or complete subtree into another file.
+.SH SYNOPSIS
+.B ptrepack
+.RB \-h
+.RB \-v
+.RB \-o
+.RB \-R
+.IR start,stop,step
+.RB \-\-non\-recursive
+.RB \-\-dest-title=title
+.RB \-\-dont\-copyuser\-attrs
+.RB \-\-overwrite\-nodes
+.RB \-\-complevel=(0\-9)
+.RB \-\-complib=lib
+.RB \-\-shuffle=(0|1)
+.RB \-\-fletcher32=(0|1)
+.RB \-\-keep\-source\-filters
+.RB \-\-upgrade\-flavors
+.RB \-\-dont\-regenerate\-old\-indexes
+.RB sourcefile:sourcegroup
+.RB destfile:destgroup
+.br
+.SH DESCRIPTION
+Copy any Leaf, Group or complete subtree from a PyTables file into another file.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+.B \-h
+Prints a help text.
+.TP
+.B \-v
+Show more information.
+.TP
+.B \-o
+Overwrite destination file.
+.TP
+.BI \-R\ RANGE
+Select a RANGE of rows in the form \fIstart,stop,step\fR during the copy of
+\fIall\fR the leaves.
+.TP
+.BI \-\-non\-recursive
+Do not do a recursive copy. Default is to do it.
+.TP
+.BI \-\-dest\-title=title
+Title for the new file (if not specified, the source is copied).
+.TP
+.BI \-\-dont\-copy\-userattrs
+Do not copy the user attrs (default is to do it).
+.TP
+.BI \-\-overwrite\-nodes
+Overwrite destination nodes if they exist. Default is not to overwrite
+them.
+.TP
+.BI \-\-complevel=(0-9)
+Set a compression level (0 for no compression, which is the default).
+.TP
+.BI \-\-complib=lib
+Set the compression library to be used during the copy. \fIlib\fR can
+be set to "zlib", "lzo", "ucl" or "bzip2". Defaults to "zlib".
+.TP
+.BI \-\-shuffle=(0|1)
+Activate or not the shuffling filter (default is active if complevel>0).
+.TP
+.BI \-\-fletcher32=(0|1)
+Whether to activate or not the fletcher32 filter (not active by default).
+.TP
+.BI  \-\-keep\-source\-filters
+Use the original filters in source files. The default is not doing that
+if any of \-\-complevel, \-\-complib, \-\-shuffle or \-\-fletcher32
+option is specified.
+.TP
+.BI  \-\-upgrade\-flavors
+When repacking PyTables 1.x files, the flavor of leaves will be
+unset. With this, such a leaves will be serialized as objects with the
+internal flavor ("numpy" for 2.x series).
+.TP
+.BI  \-\-dont\-regenerate\-old\-indexes
+Disable regenerating old indexes. The default is to regenerate old
+indexes as they are found.
+
+.br
+
+.SH SEE ALSO
+.BR ptdump (1).
+.br
+These utilities are documented fully by
+.IR "PyTables user's manual".
+.SH AUTHOR
+This manual page was written by Francesc Altet <faltet@carabos.com>.

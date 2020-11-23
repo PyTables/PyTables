@@ -1,0 +1,63 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH PTDUMP 1 "July 7, 2007"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+ptdump \- Lets you dig into the contents of a \fIPyTables\fR file.
+.SH SYNOPSIS
+.B ptdump
+.RB [\| \-dvacih \|]
+.RB [\| \-R \| \  start,stop,step]
+.RB file[:nodepath]
+.br
+.SH DESCRIPTION
+Allows you look into the contents of your \fIPyTables\fR files. It lets
+you see not only the data but also the metadata (that is, the structure
+and additional information in the form of attributes).
+
+.SH OPTIONS
+A summary of options is included below.
+.TP
+.B \-d
+Dump data information on leaves.
+.TP
+.B \-v
+Dump more metainformation on nodes.
+.TP
+.B \-a
+Show attributes in nodes (only useful when \-v or \-d are active).
+.TP
+.B \-c
+Show info of columns in tables (only useful when \-v or \-d are active).
+.TP
+.B \-i
+Show info of indexed column (only useful when \-v or \-d are active).
+.TP
+.BI \-R\  start,stop,step
+Select a range of rows in the form "start,stop,step" for \fIall\fR leaves.
+.TP
+.B \-h
+Print help on usage.
+
+.br
+
+.SH SEE ALSO
+.BR ptrepack (1).
+.br
+These utilities are documented fully by
+.IR "PyTables user's manual".
+.SH AUTHOR
+This manual page was written by Francesc Altet <faltet@carabos.com>.
