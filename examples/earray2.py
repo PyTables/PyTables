@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Small example that shows how to work with extendeable arrays of different
 types, strings included."""

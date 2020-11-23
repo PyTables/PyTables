@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Small example that shows how to work with variable length arrays of
 different types, UNICODE strings and general Python objects included."""

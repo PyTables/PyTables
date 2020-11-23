@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Example that shows how to easily save a variable number of atoms with a
 VLArray."""
