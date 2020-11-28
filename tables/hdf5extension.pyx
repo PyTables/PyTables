@@ -35,12 +35,7 @@ ObjInfo = namedtuple('ObjInfo', ['addr', 'rc'])
 ObjTimestamps = namedtuple('ObjTimestamps', ['atime', 'mtime',
                                              'ctime', 'btime'])
 
-
-from cpython cimport PY_MAJOR_VERSION
-if PY_MAJOR_VERSION < 3:
-    import cPickle as pickle
-else:
-    import pickle
+import pickle
 
 import numpy
 
@@ -240,11 +235,11 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
     else:
       retvalue = PyBytes_FromStringAndSize(attr_value, size)
       # AV: oct 2012
-      # since now we use the string size got form HDF5 we have to stip
+      # since now we use the string size got form HDF5 we have to strip
       # trailing zeros used for padding.
       # The entire process is quite odd but due to a bug (??) in the way
       # numpy arrays are pickled in python 3 we can't assume that
-      # strlen(attr_value) is the actual length of the attibute
+      # strlen(attr_value) is the actual length of the attribute
       # and numpy.bytes_(attr_value) can give a truncated pickle string
       retvalue = retvalue.rstrip(b'\x00')
       retvalue = numpy.bytes_(retvalue)
@@ -1295,8 +1290,7 @@ cdef class Array(Leaf):
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
-      if PY_MAJOR_VERSION > 2:
-        cset = H5T_CSET_UTF8
+      cset = H5T_CSET_UTF8
       # Set the conforming array attributes
       H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
                                  len(class_), cset)
@@ -1967,8 +1961,7 @@ cdef class VLArray(Leaf):
     self.nrecords = 0  # Initialize the number of records saved
 
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
-      if PY_MAJOR_VERSION > 2:
-        cset = H5T_CSET_UTF8
+      cset = H5T_CSET_UTF8
       # Set the conforming array attributes
       H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,
                                  len(class_), cset)

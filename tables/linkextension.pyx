@@ -17,7 +17,6 @@ from utilsextension cimport cstr_to_pystr
 
 from libc.stdlib cimport malloc, free
 from libc.string cimport strlen
-from cpython cimport PY_MAJOR_VERSION
 from cpython.unicode cimport PyUnicode_DecodeUTF8
 from definitions cimport (H5P_DEFAULT,
     hid_t, herr_t, hbool_t, int64_t, H5T_cset_t, haddr_t)
@@ -192,10 +191,7 @@ cdef class SoftLink(Link):
     if ret < 0:
       raise HDF5ExtError("failed to get target value")
 
-    if PY_MAJOR_VERSION > 2:
-      self.target = PyUnicode_DecodeUTF8(clinkval, strlen(clinkval), NULL)
-    else:
-      self.target = clinkval
+    self.target = PyUnicode_DecodeUTF8(clinkval, strlen(clinkval), NULL)
 
     # Release resources
     free(clinkval)

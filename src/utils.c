@@ -4,9 +4,7 @@
 #include "H5Zlzo.h"                /* Import FILTER_LZO */
 #include "H5Zbzip2.h"              /* Import FILTER_BZIP2 */
 
-#if PY_MAJOR_VERSION > 2
 #define PyString_FromString PyUnicode_FromString
-#endif
 
 #ifndef NPY_COMPLEX192
 typedef npy_cdouble npy_complex192;

@@ -38,7 +38,7 @@ from utilsextension cimport get_native_type, cstr_to_pystr
 
 # numpy functions & objects
 from hdf5extension cimport Leaf
-from cpython cimport PY_MAJOR_VERSION, PyErr_Clear
+from cpython cimport PyErr_Clear
 from libc.stdio cimport snprintf
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp, strlen
@@ -209,8 +209,7 @@ cdef class Table(Leaf):
       raise HDF5ExtError("Problems creating the table")
 
     if self._v_file.params['PYTABLES_SYS_ATTRS']:
-      if PY_MAJOR_VERSION > 2:
-        cset = H5T_CSET_UTF8
+      cset = H5T_CSET_UTF8
       # Set the conforming table attributes
       # Attach the CLASS attribute
       ret = H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_,

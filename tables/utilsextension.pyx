@@ -29,7 +29,6 @@ from tables.atom import Atom, EnumAtom, ReferenceAtom
 
 from tables.utils import check_file_access
 
-from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp, strncmp, strlen
@@ -201,13 +200,9 @@ cdef extern from "H5ARRAY.h" nogil:
 
 # @TODO: use the c_string_type and c_string_encoding global directives
 #        (new in cython 0.19)
+# TODO: drop
 cdef str cstr_to_pystr(const char* cstring):
-  if PY_MAJOR_VERSION > 2:
-    pystring = PyUnicode_DecodeUTF8(cstring, strlen(cstring), NULL)
-  else:
-    pystring = bytes(<char*>cstring)
-
-  return pystring
+  return cstring.decode('utf-8')
 
 
 #----------------------------------------------------------------------
@@ -598,9 +593,7 @@ def is_pytables_file(object filename):
     H5Fclose(file_id)
 
     # system attributes should always be str
-    if PY_MAJOR_VERSION < 3 and PyUnicode_Check(isptf):
-        isptf = isptf.encode()
-    elif PY_MAJOR_VERSION > 2 and PyBytes_Check(isptf):
+    if PyBytes_Check(isptf):
         isptf = isptf.decode('utf-8')
 
   return isptf
