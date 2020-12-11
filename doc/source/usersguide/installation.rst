@@ -49,7 +49,7 @@ Prerequisites
 
 First, make sure that you have
 
-* Python_ >= 3.4 (PyTables-3.5 was the last release with Python 2.7 support)
+* Python_ >= 3.5 (PyTables-3.5 was the last release with Python 2.7 support)
 * HDF5_ >= 1.8.4 (>=1.8.15 is strongly recommended)
 * NumPy_ >= 1.9.3
 * Numexpr_ >= 2.6.2

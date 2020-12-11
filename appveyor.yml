@@ -21,6 +21,14 @@ environment:
       PYTHON_VERSION: "3.7"
       PYTHON_ARCH: "64"
 
+    - PYTHON: "C:\\Miniconda38-x64"
+      PYTHON_VERSION: "3.8"
+      PYTHON_ARCH: "64"
+
+    - PYTHON: "C:\\Miniconda39-x64"
+      PYTHON_VERSION: "3.9"
+      PYTHON_ARCH: "64"
+
 install:
   - powershell .\\ci\\appveyor\\missing-headers.ps1
   - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
