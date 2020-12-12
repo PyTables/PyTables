@@ -12,23 +12,20 @@ PYBUILDDIR = $(PWD)/build/lib.$(PYPLATFORM)-$(PYVER)
 OPT = PYTHONPATH=$(PYBUILDDIR)
 
 
-.PHONY:		all dist build check heavycheck clean distclean html
+.PHONY: all dist build check heavycheck clean distclean html
 
-all:		$(GENERATED) build
-	$(MAKE) -C src $(OPT) $@
-	$(MAKE) -C doc $(OPT) html
-	$(RM) -r doc/html
-	mv doc/build/html doc/html
+all: $(GENERATED) build html
 
-dist:		all
+dist: all latex
 	$(PYTHON) setup.py sdist
-	cd dist && md5sum tables-$(VERSION).tar.gz > pytables-$(VERSION).md5 && cd -
 	cp RELEASE_NOTES.txt dist/RELEASE_NOTES-$(VERSION).txt
-	$(MAKE) -C doc $(OPT) latexpdf
-	$(RM) doc/usersguide-*.pdf
-	mv doc/build/latex/usersguide-$(VERSION).pdf doc
 	cp doc/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
 	tar cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz doc/html
+	cd dist && \
+	md5sum -b tables-$(VERSION).tar.gz RELEASE_NOTES-$(VERSION).txt \
+	pytablesmanual-$(VERSION).pdf \
+	pytablesmanual-$(VERSION)-html.tar.gz > pytables-$(VERSION).md5 && \
+	cd -
 
 clean:
 	$(RM) -r MANIFEST build dist tmp tables/__pycache__
@@ -48,8 +45,15 @@ distclean:	clean
 
 html: build
 	$(MAKE) -C doc $(OPT) html
+	$(RM) -r doc/html
+	cp -R doc/build/html doc/html
 
-%:		%.in VERSION
+latex:
+	$(MAKE) -C doc $(OPT) latexpdf
+	$(RM) doc/usersguide-*.pdf
+	cp doc/build/latex/usersguide-$(VERSION).pdf doc
+
+%: %.in VERSION
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
 
 build:
