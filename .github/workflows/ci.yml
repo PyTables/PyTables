@@ -1,6 +1,6 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -31,3 +31,14 @@ jobs:
     - name: Source distibution
       run: |
         python setup.py sdist
+    - name: Installation
+      run: |
+        pip install dist/*.tar.gz
+    - name: 'Run test'
+      run: |
+        cd .. && python -m tables.tests.test_all
+        pt2to3 -h
+        ptrepack -h
+        ptdump -h
+        pttree -h
+
