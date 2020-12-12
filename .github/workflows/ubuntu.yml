@@ -1,0 +1,31 @@
+name: ubuntu
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install APT packages
+      run: |
+        sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
+        sudo apt install python3-all-dev cython3 python3-setuptools python3-six python3-numpy python3-numexpr
+        sudo apt install python3-numpydoc python3-sphinx python3-sphinx-rtd-theme python3-ipython
+        sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
+    - name: Build PyTables
+      run: make build
+      env:
+        PYTABLES_NO_EMBEDDED_LIBS: TRUE
+    - name: Build HTML documentation
+      run: make html
+    - name: Build LaTeX documentation
+      run: make html
+    - name: Source distribution
+      run: make dist
+    - name: Test
+      run: make check
