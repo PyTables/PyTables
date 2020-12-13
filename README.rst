@@ -6,6 +6,9 @@
    :alt: Join the chat at https://gitter.im/PyTables/PyTables
    :target: https://gitter.im/PyTables/PyTables
 
+.. image:: https://github.com/PyTables/PyTables/workflows/CI/badge.svg
+   :target: https://github.com/PyTables/PyTables/actions?query=workflow%3ACI
+
 .. image:: https://travis-ci.org/PyTables/PyTables.svg?branch=master
    :target: https://travis-ci.org/PyTables/PyTables
 
