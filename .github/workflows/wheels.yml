@@ -1,0 +1,96 @@
+name: Wheels
+
+# Publish when a (published) GitHub Release is created.
+on:
+  push:
+    branches:
+      - master
+      - 'releases/**'
+    tags:
+      - v*
+  release:
+    types:
+      - published
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.7'
+
+      - name: Install cibuildwheel
+        run: |
+          python -m pip install --upgrade cibuildwheel
+
+      - name: Build wheels
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_SKIP: "cp27-* pp*"
+          CIBW_BEFORE_ALL_LINUX: "yum install -y epel-release && yum install -y hdf5-devel zlib-devel bzip2-devel lzo-devel"
+          CIBW_BEFORE_BUILD: "pip install numpy numexpr cython"
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.7'
+
+      - name: Install APT packages
+        if: contains(${{ matrix.os }}, 'ubuntu')
+        run: |
+          sudo apt install libbz2-dev libhdf5-serial-dev liblzo2-dev
+          sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade setuptools pip wheel
+          python -m pip install -r requirements.txt
+          python -m pip install cython
+          python -m pip install sphinx>=1.1 sphinx_rtd_theme numpydoc ipython
+
+      - name: Build sdist
+        run: make PYTHON=python dist
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: dist/*
+
+#  upload_pypi:
+#    needs: [build_wheels, build_sdist]
+#    runs-on: ubuntu-latest
+#    # upload to PyPI on every tag starting with 'v'
+#    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+#    # alternatively, to publish when a GitHub Release is created, use the following rule:
+#    # if: github.event_name == 'release' && github.event.action == 'published'
+#    steps:
+#      - uses: actions/download-artifact@v2
+#        with:
+#          name: artifact
+#          path: dist
+#
+#      - uses: pypa/gh-action-pypi-publish@master
+#        with:
+#          user: __token__
+#          password: ${{ secrets.pypi_password }}
+#          # To test: repository_url: https://test.pypi.org/legacy/
