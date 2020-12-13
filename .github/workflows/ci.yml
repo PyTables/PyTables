@@ -28,7 +28,7 @@ jobs:
         python -m pip install -r requirements.txt
         python -m pip install cython
         # python -m pip install sphinx>=1.1 sphinx_rtd_theme numpydoc ipython
-    - name: Source distibution
+    - name: Source distribution
       run: |
         python setup.py sdist
     - name: Installation
