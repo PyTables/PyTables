@@ -18,6 +18,7 @@ from tables.utils import SizeType, byteorders
 from tables.tests import common
 from tables.tests.common import allequal, areArraysEqual
 from tables.tests.common import unittest, hdf5_version, blosc_version
+from tables.tests.common import test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype
 
@@ -1547,6 +1548,15 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(obj.shape, (self.expectedrows,))
         self.assertEqual(obj.ndim, 1)
         self.assertEqual(obj.nrows, self.expectedrows)
+
+    def test07_out_of_order_members(self):
+        # If members are stored 'out of order' make sure they are loaded correctly
+        self.h5file = tables.open_file(test_filename("out_of_order_types.h5"))
+        row = self.h5file.get_node('/group/table')[0]
+
+        self.assertEqual(row[0], b'*'*14)
+        self.assertEqual(row[1], b'-'*9)
+        self.assertEqual(row[2], b'.'*4)
 
 
 class BasicWriteTestCase(BasicTestCase):

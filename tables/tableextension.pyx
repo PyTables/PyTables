@@ -277,8 +277,18 @@ cdef class Table(Leaf):
     desc = {}
     # Get the number of members
     nfields = H5Tget_nmembers(type_id)
-    # Iterate thru the members
+
+    # Iterate through fields to get the correct order that elements may appear in
+    # The object type can be stored not in order, so order based on the offset in the data
+    position_order = []
     for i in range(nfields):
+      member_offset = H5Tget_member_offset(type_id, i)
+      position_order.append((member_offset, i))
+
+    position_order.sort()
+
+    # Iterate thru the members
+    for pos, i in enumerate([x[1] for x in position_order]):
       # Get the member name
       c_colname = H5Tget_member_name(type_id, i)
       colname = cstr_to_pystr(c_colname)
@@ -296,14 +306,14 @@ cdef class Table(Leaf):
         native_member_type_id = H5Tcreate(H5T_COMPOUND, itemsize)
         desc[colname], itemsize = self.get_nested_type(
           member_type_id, native_member_type_id, colpath2, field_byteorders)
-        desc[colname]["_v_pos"] = i
+        desc[colname]["_v_pos"] = pos
         desc[colname]["_v_offset"] = member_offset
       else:
         # Get the member format and the corresponding Col object
         try:
           native_member_type_id = get_native_type(member_type_id)
           atom = atom_from_hdf5_type(native_member_type_id)
-          colobj = Col.from_atom(atom, pos=i, _offset=member_offset)
+          colobj = Col.from_atom(atom, pos=pos, _offset=member_offset)
           itemsize = H5Tget_size(native_member_type_id)
         except TypeError, te:
           # Re-raise TypeError again with more info
