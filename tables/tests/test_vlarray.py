@@ -1357,7 +1357,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         vlarray = self.h5file.create_vlarray(
             '/', "Object", atom=ObjectAtom())
-        vlarray.append([[1, 2, 3], "aaa", "aaa���"])
+        vlarray.append([[1, 2, 3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"])
         vlarray.append([3, 4, C()])
         vlarray.append(42)
 
@@ -1374,7 +1374,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
-        self.assertEqual(row[0], [[1, 2, 3], "aaa", "aaa���"])
+        self.assertEqual(row[0], [[1, 2, 3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"])
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [3, 4])
@@ -1394,14 +1394,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         vlarray = self.h5file.create_vlarray('/', "Object", atom=ObjectAtom())
         # When updating an object, this seems to change the number
         # of bytes that pickle.dumps generates
-        # vlarray.append(([1,2,3], "aaa", "aaa���"))
-        vlarray.append(([1, 2, 3], "aaa", "��4"))
+        # vlarray.append(([1,2,3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"))
+        vlarray.append(([1, 2, 3], "aaa", "\xef\xbf\xbd\xef\xbf\xbd4"))
         # vlarray.append([3,4, C()])
         vlarray.append([3, 4, [24]])
 
         # Modify the rows
-        # vlarray[0] = ([1,2,4], "aa4", "aaa��4")
-        vlarray[0] = ([1, 2, 4], "aa4", "��5")
+        # vlarray[0] = ([1,2,4], "aa4", "aaa\xef\xbf\xbd\xef\xbf\xbd4")
+        vlarray[0] = ([1, 2, 4], "aa4", "\xef\xbf\xbd\xef\xbf\xbd5")
         # vlarray[1] = (3,4, C())
         vlarray[1] = [4, 4, [24]]
 
@@ -1418,7 +1418,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], ([1, 2, 4], "aa4", "��5"))
+        self.assertEqual(row[0], ([1, 2, 4], "aa4", "\xef\xbf\xbd\xef\xbf\xbd5"))
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [4, 4])
