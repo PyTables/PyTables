@@ -843,8 +843,8 @@ class Array(hdf5extension.Array, Leaf):
             bytes_required = self.rowsize * nrowstoread
             # if buffer is too small, it will segfault
             if bytes_required != out.nbytes:
-                raise ValueError(('output array size invalid, got {0} bytes, '
-                                  'need {1} bytes').format(out.nbytes,
+                raise ValueError(('output array size invalid, got {} bytes, '
+                                  'need {} bytes').format(out.nbytes,
                                                            bytes_required))
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
@@ -892,7 +892,7 @@ class Array(hdf5extension.Array, Leaf):
         self._g_check_open()
         if out is not None and self.flavor != 'numpy':
             msg = ("Optional 'out' argument may only be supplied if array "
-                   "flavor is 'numpy', currently is {0}").format(self.flavor)
+                   "flavor is 'numpy', currently is {}").format(self.flavor)
             raise TypeError(msg)
         (start, stop, step) = self._process_range_read(start, stop, step)
         arr = self._read(start, stop, step, out)
@@ -923,12 +923,12 @@ class Array(hdf5extension.Array, Leaf):
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return """%s
-  atom := %r
-  maindim := %r
-  flavor := %r
-  byteorder := %r
-  chunkshape := %r""" % (self, self.atom, self.maindim,
+        return """{}
+  atom := {!r}
+  maindim := {!r}
+  flavor := {!r}
+  byteorder := {!r}
+  chunkshape := {!r}""".format(self, self.atom, self.maindim,
                          self.flavor, self.byteorder,
                          self.chunkshape)
 

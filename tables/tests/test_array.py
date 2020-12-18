@@ -513,7 +513,7 @@ class Basic2DOneTestCase(BasicTestCase):
 class Basic2DTwoTestCase(BasicTestCase):
     # 2D case, with a multidimensional dtype
     title = "Rank-2 case 2"
-    tupleInt = numpy.array(numpy.arange((4)), dtype=(numpy.int_, (4,)))
+    tupleInt = numpy.array(numpy.arange(4), dtype=(numpy.int_, (4,)))
     tupleChar = numpy.array(["abc"]*3, dtype=("S3", (3,)))
     endiancheck = True
 

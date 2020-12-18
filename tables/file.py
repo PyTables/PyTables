@@ -81,7 +81,7 @@ compatible_formats = []  # Old format versions we can read
                          # Empty means that we support all the old formats
 
 
-class _FileRegistry(object):
+class _FileRegistry:
     def __init__(self):
         self._name_mapping = collections.defaultdict(set)
         self._handlers = set()
@@ -315,7 +315,7 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
 
 
 # A dumb class that doesn't keep nothing at all
-class _NoCache(object):
+class _NoCache:
     def __len__(self):
         return 0
 
@@ -354,7 +354,7 @@ class _DictCache(dict):
         super().__setitem__(key, value)
 
 
-class NodeManager(object):
+class NodeManager:
     def __init__(self, nslots=64, node_factory=None):
         super().__init__()
 
@@ -569,7 +569,7 @@ class NodeManager(object):
                 node._f_close()
 
 
-class File(hdf5extension.File, object):
+class File(hdf5extension.File):
     """The in-memory representation of a PyTables file.
 
     An instance of this class is returned when a PyTables file is
@@ -751,14 +751,14 @@ class File(hdf5extension.File, object):
                              "'r', 'r+', 'a' and 'w'" % mode)
 
         # Get all the parameters in parameter file(s)
-        params = dict([(k, v) for k, v in parameters.__dict__.items()
-                       if k.isupper() and not k.startswith('_')])
+        params = {k: v for k, v in parameters.__dict__.items()
+                       if k.isupper() and not k.startswith('_')}
         # Update them with possible keyword arguments
         if [k for k in kwargs if k.isupper()]:
             warnings.warn("The use of uppercase keyword parameters is "
                           "deprecated", DeprecationWarning)
 
-        kwargs = dict([(k.upper(), v) for k, v in kwargs.items()])
+        kwargs = {k.upper(): v for k, v in kwargs.items()}
         params.update(kwargs)
 
         # If MAX_ * _THREADS is not set yet, set it to the number of cores
@@ -1640,7 +1640,7 @@ class File(hdf5extension.File, object):
             node = self._get_node(nodepath)
         else:
             raise TypeError(
-                "``where`` must be a string or a node: %r" % (where,))
+                "``where`` must be a string or a node: {!r}".format(where))
 
         # Finally, check whether the desired node is an instance
         # of the expected class.
@@ -1777,7 +1777,7 @@ class File(hdf5extension.File, object):
                                            recursive=recursive, **kwargs)
                 return npobj
             else:
-                raise IOError(
+                raise OSError(
                     "You cannot copy a root group over the same file")
         return obj._f_copy(newparent, newname,
                            overwrite, recursive, createparents, **kwargs)
@@ -1962,7 +1962,7 @@ class File(hdf5extension.File, object):
 
         # Check that we are not treading our own shoes
         if os.path.abspath(self.filename) == os.path.abspath(dstfilename):
-            raise IOError("You cannot copy a file over itself")
+            raise OSError("You cannot copy a file over itself")
 
         # Compute default arguments.
         # These are *not* passed on.
@@ -1977,7 +1977,7 @@ class File(hdf5extension.File, object):
         title = kwargs.pop('title', self.title)
 
         if os.path.isfile(dstfilename) and not overwrite:
-            raise IOError(("file ``%s`` already exists; "
+            raise OSError(("file ``%s`` already exists; "
                            "you may want to use the ``overwrite`` "
                            "argument") % dstfilename)
 
@@ -2111,12 +2111,10 @@ class File(hdf5extension.File, object):
         elif class_ is Node:  # all nodes
             yield self.get_node(where)
             for group in self.walk_groups(where):
-                for leaf in self.iter_nodes(group):
-                    yield leaf
+                yield from self.iter_nodes(group)
         else:  # only nodes of the named type
             for group in self.walk_groups(where):
-                for leaf in self.iter_nodes(group, classname):
-                    yield leaf
+                yield from self.iter_nodes(group, classname)
 
 
     def walk_groups(self, where="/"):
@@ -2168,7 +2166,7 @@ class File(hdf5extension.File, object):
     def _check_group(self, node):
         # `node` must already be a node.
         if not isinstance(node, Group):
-            raise TypeError("node ``%s`` is not a group" % (node._v_pathname,))
+            raise TypeError("node ``{}`` is not a group".format(node._v_pathname))
 
 
     # <Undo/Redo support>

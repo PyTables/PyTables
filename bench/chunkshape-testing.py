@@ -2,7 +2,6 @@
 
 """Simple benchmark for testing chunkshapes and nrowsinbuf."""
 
-from __future__ import print_function
 import numpy
 import tables
 from time import time

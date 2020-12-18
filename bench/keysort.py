@@ -1,4 +1,3 @@
-from __future__ import print_function
 from tables.indexesextension import keysort
 import numpy
 from time import time
@@ -27,7 +26,7 @@ for dtype1 in ('S6', 'b1',
         t1 = time()
         keysort(a, b)
         tks = time() - t1
-        print("keysort time-->", tks, "    %.2fx" % (tref / tks,))
+        print("keysort time-->", tks, "    {:.2f}x".format(tref / tks))
         assert numpy.alltrue(a == e)
         #assert numpy.alltrue(b == d)
         assert numpy.alltrue(f == d)

@@ -1,5 +1,4 @@
 # This is an example on how to use complex columns
-from __future__ import print_function
 import tables
 
 

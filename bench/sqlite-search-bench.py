@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from __future__ import print_function
 import sqlite
 import random
 import time
@@ -319,8 +318,8 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
             t2 = time2 / (riter - correction)
             tcpu2 = cpu2 / (riter - correction)
 
-        print(("*** Query results for atom = %s, nrows = %s, "
-              "indexmode = %s ***" % (atom, nrows, indexmode)))
+        print("*** Query results for atom = %s, nrows = %s, "
+              "indexmode = %s ***" % (atom, nrows, indexmode))
         print("Query time:", round(t1, 5), ", cached time:", round(t2, 5))
         print("MRows/s:", round((nrows / 10. ** 6) / t1, 3), end=' ')
         if t2 > 0:

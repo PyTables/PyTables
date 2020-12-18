@@ -81,7 +81,7 @@ if __name__ == '__main__':
     def _print_admonition(kind, head, body):
         tw = textwrap.TextWrapper(initial_indent='   ', subsequent_indent='   ')
 
-        print(".. %s:: %s" % (kind.upper(), head))
+        print(".. {}:: {}".format(kind.upper(), head))
         for line in tw.wrap(body):
             print(line)
 
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         return None
 
 
-    class BasePackage(object):
+    class BasePackage:
         _library_prefixes = []
         _library_suffixes = []
         _runtime_prefixes = []
@@ -369,7 +369,7 @@ if __name__ == '__main__':
         if (major_version == -1 or minor_version == -1 or
                 release_version == -1):
             exit_with_error("Unable to detect HDF5 library version!")
-        return LooseVersion("%s.%s.%s" % (major_version, minor_version,
+        return LooseVersion("{}.{}.{}".format(major_version, minor_version,
                                         release_version))
 
 
@@ -391,7 +391,7 @@ if __name__ == '__main__':
         if (major_version == -1 or minor_version == -1 or
                 release_version == -1):
             exit_with_error("Unable to detect Blosc library version!")
-        return "%s.%s.%s" % (major_version, minor_version, release_version)
+        return "{}.{}.{}".format(major_version, minor_version, release_version)
 
 
     _cp = convert_path

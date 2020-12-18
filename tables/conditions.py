@@ -312,7 +312,7 @@ def _get_idx_expr(expr, indexedcols):
     return _get_idx_expr_recurse(expr, indexedcols, [], [''])
 
 
-class CompiledCondition(object):
+class CompiledCondition:
     """Container for a compiled condition."""
 
     # Lazy attributes

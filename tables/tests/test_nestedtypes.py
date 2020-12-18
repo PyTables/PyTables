@@ -866,13 +866,13 @@ class ColsTestCase(common.TempFileMixin, TestCase):
         except AssertionError:
             self.assertEqual(repr(tbl.cols),
                              """/test.cols (Cols), 6 columns
-  x (Column(0, 2), ('%s', (2,)))
+  x (Column(0, 2), ('{}', (2,)))
   Info (Cols(), Description)
   color (Column(0,), |S2)
   info (Cols(), Description)
-  y (Column(0, 2, 2), ('%s', (2, 2)))
+  y (Column(0, 2, 2), ('{}', (2, 2)))
   z (Column(0,), uint8)
-""" % (numpy.int32(0).dtype.str, numpy.float64(0).dtype.str))
+""".format(numpy.int32(0).dtype.str, numpy.float64(0).dtype.str))
 
     def test00b_repr(self):
         """Checking string representation of nested Cols."""

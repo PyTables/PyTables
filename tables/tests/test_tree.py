@@ -568,7 +568,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
         """
         self.assertIsInstance(self.h5file.root._v_groups, dict)
         group_names = {'group0'}
-        names = set(k for k, v in self.h5file.root._v_groups.iteritems())
+        names = {k for k, v in self.h5file.root._v_groups.iteritems()}
         self.assertEqual(group_names, names)
         groups = list(self.h5file.root._v_groups.itervalues())
         self.assertEqual(len(groups), len(group_names))

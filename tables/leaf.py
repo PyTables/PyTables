@@ -311,7 +311,7 @@ class Leaf(Node):
                 filters += ", shuffle"
             if self.filters.bitshuffle:
                 filters += ", bitshuffle"
-            filters += ", %s(%s)" % (self.filters.complib,
+            filters += ", {}({})".format(self.filters.complib,
                                      self.filters.complevel)
         return "%s (%s%s%s) %r" % \
                (self._v_pathname, classname, self.shape, filters, title)
@@ -535,15 +535,15 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         if type(key) in (list, tuple):
             if isinstance(key, tuple) and len(key) > len(self.shape):
-                raise IndexError("Invalid index or slice: %r" % (key,))
+                raise IndexError("Invalid index or slice: {!r}".format(key))
             # Try to convert key to a numpy array.  If not possible,
             # a TypeError will be issued (to be catched later on).
             try:
                 key = toarray(key)
             except ValueError:
-                raise TypeError("Invalid index or slice: %r" % (key,))
+                raise TypeError("Invalid index or slice: {!r}".format(key))
         elif not isinstance(key, numpy.ndarray):
-            raise TypeError("Invalid index or slice: %r" % (key,))
+            raise TypeError("Invalid index or slice: {!r}".format(key))
 
         # Protection against empty keys
         if len(key) == 0:

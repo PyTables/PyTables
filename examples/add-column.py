@@ -1,6 +1,5 @@
 "Example showing how to add a column on a existing column"
 
-from __future__ import print_function
 import tables
 
 

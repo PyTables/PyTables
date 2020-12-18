@@ -1,4 +1,3 @@
-from __future__ import print_function
 from pylab import *
 
 linewidth = 2
@@ -208,7 +207,7 @@ if __name__ == '__main__':
         plegend = filename[filename.find('-'):filename.index('.out')]
         plegend = plegend.replace('-', ' ')
         xval, yval = get_values(filename)
-        print("Values for %s --> %s, %s" % (filename, xval, yval))
+        print("Values for {} --> {}, {}".format(filename, xval, yval))
         if "PyTables" in filename or "pytables" in filename:
             plot = loglog(xval, yval, linewidth=2)
             #plot = semilogx(xval, yval, linewidth=2)

@@ -23,7 +23,7 @@ class Record(tables.IsDescription):
     var3 = Int16Col()             # short integer
 
 
-class TrackTimesMixin(object):
+class TrackTimesMixin:
     def _add_datasets(self, group, j, track_times):
         # Create a table
         table = self.h5file.create_table(group, 'table{}'.format(j),

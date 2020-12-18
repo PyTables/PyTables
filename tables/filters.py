@@ -53,7 +53,7 @@ _bitshuffle_flag = 0x8
 
 # Classes
 # =======
-class Filters(object):
+class Filters:
     """Container for filter properties.
 
     This class is meant to serve as a container that keeps information about
@@ -389,7 +389,7 @@ class Filters(object):
         args.append('fletcher32=%s' % self.fletcher32)
         args.append(
             'least_significant_digit=%s' % self.least_significant_digit)
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(args))
+        return '{}({})'.format(self.__class__.__name__, ', '.join(args))
 
     def __str__(self):
         return repr(self)

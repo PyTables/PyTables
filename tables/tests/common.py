@@ -95,23 +95,23 @@ def print_versions():
         vml_avail = "using VML/MKL %s" % vml_version
     else:
         vml_avail = "not using Intel's VML/MKL"
-    print("Numexpr version:     %s (%s)" % (numexpr.__version__, vml_avail))
+    print("Numexpr version:     {} ({})".format(numexpr.__version__, vml_avail))
     if tinfo is not None:
-        print("Zlib version:        %s (%s)" % (tinfo[1],
+        print("Zlib version:        {} ({})".format(tinfo[1],
                                                 "in Python interpreter"))
     tinfo = tables.which_lib_version("lzo")
     if tinfo is not None:
-        print("LZO version:         %s (%s)" % (tinfo[1], tinfo[2]))
+        print("LZO version:         {} ({})".format(tinfo[1], tinfo[2]))
     tinfo = tables.which_lib_version("bzip2")
     if tinfo is not None:
-        print("BZIP2 version:       %s (%s)" % (tinfo[1], tinfo[2]))
+        print("BZIP2 version:       {} ({})".format(tinfo[1], tinfo[2]))
     tinfo = tables.which_lib_version("blosc")
     if tinfo is not None:
         blosc_date = tinfo[2].split()[1]
-        print("Blosc version:       %s (%s)" % (tinfo[1], blosc_date))
+        print("Blosc version:       {} ({})".format(tinfo[1], blosc_date))
         blosc_cinfo = tables.blosc_get_complib_info()
         blosc_cinfo = [
-            "%s (%s)" % (k, v[1]) for k, v in sorted(blosc_cinfo.items())
+            "{} ({})".format(k, v[1]) for k, v in sorted(blosc_cinfo.items())
         ]
         print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
         blosc_finfo = ['shuffle']
@@ -248,8 +248,8 @@ class PyTablesTestCase(unittest.TestCase):
             name = self._getName()
             methodName = self._getMethodName()
 
-            title = "Running %s.%s" % (name, methodName)
-            print('%s\n%s' % (title, '-' * len(title)))
+            title = "Running {}.{}".format(name, methodName)
+            print('{}\n{}'.format(title, '-' * len(title)))
 
     # COMPATIBILITY: assertWarns is new in Python 3.2
     if not hasattr(unittest.TestCase, 'assertWarns'):
@@ -291,7 +291,7 @@ class PyTablesTestCase(unittest.TestCase):
             "node1 and node2 does not have the same values.")
 
 
-class TestFileMixin(object):
+class TestFileMixin:
     h5fname = None
     open_kwargs = {}
 
@@ -307,7 +307,7 @@ class TestFileMixin(object):
         super().tearDown()
 
 
-class TempFileMixin(object):
+class TempFileMixin:
     open_mode = 'w'
     open_kwargs = {}
 
@@ -372,9 +372,9 @@ class ShowMemTime(PyTablesTestCase):
                 vmlib = int(line.split()[1])
         print("\nWallClock time:", time.time() - self.tref)
         print("Memory usage: ******* %s *******" % self._getName())
-        print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
-        print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
-        print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
+        print("VmSize: {:>7} kB\tVmRSS: {:>7} kB".format(vmsize, vmrss))
+        print("VmData: {:>7} kB\tVmStk: {:>7} kB".format(vmdata, vmstk))
+        print("VmExe:  {:>7} kB\tVmLib: {:>7} kB".format(vmexe, vmlib))
 
 
 ## Local Variables:

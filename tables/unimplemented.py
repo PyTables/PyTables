@@ -102,12 +102,12 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         return None  # Can you see it?
 
     def __repr__(self):
-        return """%s
+        return """{}
   NOTE: <The UnImplemented object represents a PyTables unimplemented
-         dataset present in the '%s' HDF5 file.  If you want to see this
+         dataset present in the '{}' HDF5 file.  If you want to see this
          kind of HDF5 dataset implemented in PyTables, please contact the
          developers.>
-""" % (str(self), self._v_file.filename)
+""".format(str(self), self._v_file.filename)
 
 
 # Classes reported as H5G_UNKNOWN by HDF5
@@ -146,7 +146,7 @@ class Unknown(Node):
     def __str__(self):
         pathname = self._v_pathname
         classname = self.__class__.__name__
-        return "%s (%s)" % (pathname, classname)
+        return "{} ({})".format(pathname, classname)
 
     def __repr__(self):
         return """%s

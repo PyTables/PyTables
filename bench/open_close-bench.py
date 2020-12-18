@@ -4,7 +4,6 @@ This uses the HotShot profiler.
 
 """
 
-from __future__ import print_function
 import os
 import sys
 import getopt
@@ -39,9 +38,9 @@ def show_stats(explain, tref):
     sout.close()
     print("WallClock time:", time.time() - tref)
     print("Memory usage: ******* %s *******" % explain)
-    print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
-    print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
-    print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
+    print("VmSize: {:>7} kB\tVmRSS: {:>7} kB".format(vmsize, vmrss))
+    print("VmData: {:>7} kB\tVmStk: {:>7} kB".format(vmdata, vmstk))
+    print("VmExe:  {:>7} kB\tVmLib: {:>7} kB".format(vmexe, vmlib))
 
 
 def check_open_close():
@@ -213,7 +212,7 @@ if __name__ == '__main__':
     if all_system_checks:
         args.remove('-S')  # We don't want -S in the options list again
         for opt in options:
-            opts = "%s \-s %s %s" % (progname, opt, " ".join(args))
+            opts = r"{} \-s {} {}".format(progname, opt, " ".join(args))
             # print "opts-->", opts
             os.system("python2.4 %s" % opts)
     else:

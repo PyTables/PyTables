@@ -27,9 +27,9 @@ def show_mem(explain):
                 vmlib = int(line.split()[1])
 
     print("\nMemory usage: ******* %s *******" % explain)
-    print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
-    print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
-    print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
+    print("VmSize: {:>7} kB\tVmRSS: {:>7} kB".format(vmsize, vmrss))
+    print("VmData: {:>7} kB\tVmStk: {:>7} kB".format(vmdata, vmstk))
+    print("VmExe:  {:>7} kB\tVmLib: {:>7} kB".format(vmexe, vmlib))
     print("WallClock time:", time.time() - tref, end=' ')
     print("  Delta time:", time.time() - trel)
     trel = time.time()

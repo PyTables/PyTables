@@ -1,4 +1,3 @@
-from __future__ import print_function
 import time
 
 import numpy as np
@@ -32,7 +31,7 @@ def create_table(output_path):
 
 
 def copy1(input_path, output_path):
-    print("copying data from %s to %s..." % (input_path, output_path))
+    print("copying data from {} to {}...".format(input_path, output_path))
     input_file = tables.open_file(input_path, mode="r")
     output_file = tables.open_file(output_path, mode="w")
 
@@ -43,14 +42,14 @@ def copy1(input_path, output_path):
 
 
 def copy2(input_path, output_path):
-    print("copying data from %s to %s..." % (input_path, output_path))
+    print("copying data from {} to {}...".format(input_path, output_path))
     input_file = tables.open_file(input_path, mode="r")
     input_file.copy_file(output_path, overwrite=True)
     input_file.close()
 
 
 def copy3(input_path, output_path):
-    print("copying data from %s to %s..." % (input_path, output_path))
+    print("copying data from {} to {}...".format(input_path, output_path))
     input_file = tables.open_file(input_path, mode="r")
     output_file = tables.open_file(output_path, mode="w")
     table = input_file.root.test
@@ -60,7 +59,7 @@ def copy3(input_path, output_path):
 
 
 def copy4(input_path, output_path, complib='zlib', complevel=0):
-    print("copying data from %s to %s..." % (input_path, output_path))
+    print("copying data from {} to {}...".format(input_path, output_path))
     input_file = tables.open_file(input_path, mode="r")
     output_file = tables.open_file(output_path, mode="w")
 
@@ -83,7 +82,7 @@ def copy4(input_path, output_path, complib='zlib', complevel=0):
 
 
 def copy5(input_path, output_path, complib='zlib', complevel=0):
-    print("copying data from %s to %s..." % (input_path, output_path))
+    print("copying data from {} to {}...".format(input_path, output_path))
     input_file = tables.open_file(input_path, mode="r")
     output_file = tables.open_file(output_path, mode="w")
 

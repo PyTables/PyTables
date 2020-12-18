@@ -1,7 +1,6 @@
 # Testbed to perform experiments in order to determine best values for
 # the node numbers in LRU cache. Arrays version.
 
-from __future__ import print_function
 from time import time
 import tables
 

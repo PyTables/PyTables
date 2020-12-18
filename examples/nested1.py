@@ -1,7 +1,6 @@
 # Example to show how nested types can be dealed with PyTables
 # F. Alted 2005/05/27
 
-from __future__ import print_function
 import random
 import tables
 

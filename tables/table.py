@@ -285,7 +285,7 @@ def _column__create_index(self, optlevel, kind, filters, tmp_dir,
             else:
                 dname += '/' + iname
             try:
-                idgroup = get_node('%s/%s' % (itgroup._v_pathname, dname))
+                idgroup = get_node('{}/{}'.format(itgroup._v_pathname, dname))
             except NoSuchNodeError:
                 idgroup = create_indexes_descr(idgroup, dname, iname, filters)
 
@@ -342,7 +342,7 @@ class _ColIndexes(dict):
     def __repr__(self):
         """Gives a detailed Description column representation."""
 
-        rep = ['  \"%s\": %s' % (k, self[k]) for k in self.keys()]
+        rep = ['  \"{}\": {}'.format(k, self[k]) for k in self.keys()]
         return '{\n  %s}' % (',\n  '.join(rep))
 
 
@@ -652,9 +652,9 @@ class Table(tableextension.Table, Leaf):
     def colindexes(self):
         """A dictionary with the indexes of the indexed columns."""
         return _ColIndexes(
-            ((_colpname, self.cols._f_col(_colpname).index)
+            (_colpname, self.cols._f_col(_colpname).index)
                 for _colpname in self.colpathnames
-                if self.colindexed[_colpname]))
+                if self.colindexed[_colpname])
 
     @property
     def _dirtyindexes(self):
@@ -853,7 +853,7 @@ class Table(tableextension.Table, Leaf):
 
         if self._v_new:
             # Columns are never indexed on creation.
-            self.colindexed = dict((cpn, False) for cpn in self.colpathnames)
+            self.colindexed = {cpn: False for cpn in self.colpathnames}
             return
 
         # The following code is only for opened tables.
@@ -1388,7 +1388,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def where(self, condition, condvars=None,
               start=None, stop=None, step=None):
-        """Iterate over values fulfilling a condition.
+        r"""Iterate over values fulfilling a condition.
 
         This method returns a Row iterator (see :ref:`RowClassDescr`) which
         only selects rows in the table that satisfy the given condition (an
@@ -1616,8 +1616,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Iterate over a sequence of row coordinates."""
 
         if not hasattr(sequence, '__getitem__'):
-            raise TypeError(("Wrong 'sequence' parameter type. Only sequences "
-                             "are suported."))
+            raise TypeError("Wrong 'sequence' parameter type. Only sequences "
+                             "are suported.")
         # start, stop and step are necessary for the new iterator for
         # coordinates, and perhaps it would be useful to add them as
         # parameters in the future (not now, because I've just removed
@@ -1793,8 +1793,8 @@ very small/large chunksize, you may want to increase/decrease it."""
                     select_field = field
                     field = None
                 else:
-                    raise KeyError(("Field {0} not found in table "
-                                    "{1}").format(field, self))
+                    raise KeyError(("Field {} not found in table "
+                                    "{}").format(field, self))
             else:
                 # The column hangs directly from the top
                 dtype_field = self.coldtypes[field]
@@ -1820,15 +1820,15 @@ very small/large chunksize, you may want to increase/decrease it."""
             # there is no fast way to byteswap, since different columns may
             # have different byteorders
             if not out.dtype.isnative:
-                raise ValueError(("output array must be in system's byteorder "
-                                  "or results will be incorrect"))
+                raise ValueError("output array must be in system's byteorder "
+                                  "or results will be incorrect")
             if field:
                 bytes_required = dtype_field.itemsize * nrows
             else:
                 bytes_required = self.rowsize * nrows
             if bytes_required != out.nbytes:
-                raise ValueError(('output array size invalid, got {0} bytes, '
-                                  'need {1} bytes').format(out.nbytes,
+                raise ValueError(('output array size invalid, got {} bytes, '
+                                  'need {} bytes').format(out.nbytes,
                                                            bytes_required))
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
@@ -1918,7 +1918,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         if out is not None and self.flavor != 'numpy':
             msg = ("Optional 'out' argument may only be supplied if array "
-                   "flavor is 'numpy', currently is {0}").format(self.flavor)
+                   "flavor is 'numpy', currently is {}").format(self.flavor)
             raise TypeError(msg)
 
         start, stop, step = self._process_range(start, stop, step,
@@ -2078,7 +2078,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
             return self._read_coordinates(key, None)
         else:
-            raise IndexError("Invalid index or slice: %r" % (key,))
+            raise IndexError("Invalid index or slice: {!r}".format(key))
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in the table.
@@ -2148,7 +2148,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
             return self.modify_coordinates(key, value)
         else:
-            raise IndexError("Invalid index or slice: %r" % (key,))
+            raise IndexError("Invalid index or slice: {!r}".format(key))
 
     def _save_buffered_rows(self, wbufRA, lenrows):
         """Update the indexes after a flushing of rows."""
@@ -2451,8 +2451,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         if start < 0:
             raise ValueError("'start' must have a positive value.")
         if step < 1:
-            raise ValueError(("'step' must have a value greater or "
-                              "equal than 1."))
+            raise ValueError("'step' must have a value greater or "
+                              "equal than 1.")
         descr = []
         for colname in names:
             objcol = self._get_column_instance(colname)
@@ -2993,7 +2993,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 (str(self), self.description, self.byteorder, self.chunkshape)
 
 
-class Cols(object):
+class Cols:
     """Container for columns in a table or nested column.
 
     This class is used as an *accessor* to the columns in a table or nested
@@ -3164,7 +3164,7 @@ class Cols(object):
                 else:
                     return get_nested_field(crecarray, colgroup)  # numpy case
         else:
-            raise TypeError("invalid index or slice: %r" % (key,))
+            raise TypeError("invalid index or slice: {!r}".format(key))
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in a table or nested column.
@@ -3208,7 +3208,7 @@ class Cols(object):
             (start, stop, step) = table._process_range(
                 key.start, key.stop, key.step)
         else:
-            raise TypeError("invalid index or slice: %r" % (key,))
+            raise TypeError("invalid index or slice: {!r}".format(key))
 
         # Actually modify the correct columns
         colgroup = self._v_desc._v_pathname
@@ -3263,11 +3263,11 @@ class Cols(object):
                 tcol = "Description"
                 # Description doesn't have a shape currently
                 shape = ()
-            out += "  %s (%s%s, %s)" % (name, classname, shape, tcol) + "\n"
+            out += "  {} ({}{}, {})".format(name, classname, shape, tcol) + "\n"
         return out
 
 
-class Column(object):
+class Column:
     """Accessor for a non-nested column in a table.
 
     Each instance of this class is associated with one *non-nested* column of a
@@ -3469,8 +3469,7 @@ class Column(object):
             buf_slice = buf[0:end_row - start_row]
             table.read(start_row, end_row, 1, field=self.pathname,
                        out=buf_slice)
-            for row in buf_slice:
-                yield row
+            yield from buf_slice
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in a column.

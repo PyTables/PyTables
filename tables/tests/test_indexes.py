@@ -952,7 +952,7 @@ class DeepTableIndexTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(idxcol.nelements, self.nrows)
 
 
-class IndexProps(object):
+class IndexProps:
     def __init__(self, auto=default_auto_index, filters=default_index_filters):
         self.auto = auto
         self.filters = filters
@@ -1757,8 +1757,8 @@ class IndexFiltersTestCase(TempFileMixin, TestCase):
         icol.reindex()
         ni = icol.index
         if verbose:
-            print("Old parameters: %s, %s, %s" % (kind, optlevel, filters))
-            print("New parameters: %s, %s, %s" % (
+            print("Old parameters: {}, {}, {}".format(kind, optlevel, filters))
+            print("New parameters: {}, {}, {}".format(
                 ni.kind, ni.optlevel, ni.filters))
         self.assertEqual(ni.kind, kind)
         self.assertEqual(ni.optlevel, optlevel)
