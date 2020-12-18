@@ -4,7 +4,6 @@ Invoke without parameters for usage hints.
 :Author: Francesc Alted
 :Date: 2010-06-01
 """
-from __future__ import print_function
 
 import matplotlib as mpl
 from pylab import *

@@ -3,7 +3,6 @@
 # since it contains some statements that raise exceptions.
 # To run it, paste it as the input of ``python``.
 
-from __future__ import print_function
 
 
 def COMMENT(string):

@@ -14,8 +14,6 @@ Pass the flag -h to this for help on usage.
 
 """
 
-from __future__ import print_function
-from __future__ import absolute_import
 import sys
 import time
 import os.path
@@ -149,7 +147,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
         (type_, value, traceback) = sys.exc_info()
         print("Problems doing the copy from '%s:%s' to '%s:%s'" %
               (srcfile, srcnode, dstfile, dstnode))
-        print("The error was --> %s: %s" % (type_, value))
+        print(f"The error was --> {type_}: {value}")
         print("The destination file looks like:\n", dstfileh)
         # Close all the open files:
         srcfileh.close()
@@ -238,7 +236,7 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
         (type_, value, traceback) = sys.exc_info()
         print("Problems doing the copy from '%s:%s' to '%s:%s'" %
               (srcfile, srcgroup, dstfile, dstgroup))
-        print("The error was --> %s: %s" % (type_, value))
+        print(f"The error was --> {type_}: {value}")
         print("The destination file looks like:\n", dstfileh)
         # Close all the open files:
         srcfileh.close()
@@ -510,7 +508,7 @@ def main():
             print("Forcing a CSI creation:", args.checkCSI)
         if args.propindexes:
             print("Recreating indexes in copied table(s)")
-        print("Start copying %s:%s to %s:%s" % (srcfile, srcnode,
+        print("Start copying {}:{} to {}:{}".format(srcfile, srcnode,
                                                 dstfile, dstnode))
         print("+=+" * 20)
 
@@ -579,7 +577,7 @@ def main():
         else:
             print("User attrs not copied")
         print("KBytes copied:", round(nbytescopied / 1024., 3))
-        print("Time copying: %s s (real) %s s (cpu)  %s%%" % (
+        print("Time copying: {} s (real) {} s (cpu)  {}%".format(
             tcopy, cpucopy, tpercent))
         print("Copied nodes/sec: ", round((nnodes) / float(tcopy), 1))
         print("Copied KB/s :", int(nbytescopied / (tcopy * 1024)))

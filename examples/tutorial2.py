@@ -5,7 +5,6 @@ Example to be used in the second tutorial in the User's Guide.
 
 """
 
-from __future__ import print_function
 import tables
 import numpy as np
 

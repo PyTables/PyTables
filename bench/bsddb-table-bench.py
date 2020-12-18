@@ -4,7 +4,6 @@
 # If you get it working again, please drop me a line
 # F. Alted 2004-01-27
 
-from __future__ import print_function
 import sys
 import struct
 import cPickle

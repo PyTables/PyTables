@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
 
 # Copyright (c) 2014-2018, Matthew Brennan Jones <matthew.brennan.jones@gmail.com>
 # Py-cpuinfo gets CPU info with pure Python 2 & 3
@@ -79,7 +78,7 @@ if platform.system().lower() == 'windows':
 
 	forking.Popen = _Popen
 
-class DataSource(object):
+class DataSource:
 	bits = platform.architecture()[0]
 	cpu_count = multiprocessing.cpu_count()
 	is_windows = platform.system().lower() == 'windows'
@@ -328,7 +327,7 @@ def _get_hz_string_from_brand(processor_brand):
 def to_friendly_hz(ticks, scale):
 	# Get the raw Hz as a string
 	left, right = to_raw_hz(ticks, scale)
-	ticks = '{0}.{1}'.format(left, right)
+	ticks = f'{left}.{right}'
 
 	# Get the location of the dot, and remove said dot
 	dot_index = ticks.index('.')
@@ -348,11 +347,11 @@ def to_friendly_hz(ticks, scale):
 		scale = 3
 
 	# Get the Hz with the dot at the new scaled point
-	ticks = '{0}.{1}'.format(ticks[:-scale-1], ticks[-scale-1:])
+	ticks = '{}.{}'.format(ticks[:-scale-1], ticks[-scale-1:])
 
 	# Format the ticks to have 4 numbers after the decimal
 	# and remove any superfluous zeroes.
-	ticks = '{0:.4f} {1}'.format(float(ticks), symbol)
+	ticks = '{:.4f} {}'.format(float(ticks), symbol)
 	ticks = ticks.rstrip('0')
 
 	return ticks
@@ -364,32 +363,32 @@ def to_raw_hz(ticks, scale):
 	ticks = ticks.replace('.', '')
 	ticks = ticks.ljust(scale + old_index+1, '0')
 	new_index = old_index + scale
-	ticks = '{0}.{1}'.format(ticks[:new_index], ticks[new_index:])
+	ticks = '{}.{}'.format(ticks[:new_index], ticks[new_index:])
 	left, right = ticks.split('.')
 	left, right = int(left), int(right)
 	return (left, right)
 
 def to_hz_string(ticks):
 	# Convert to string
-	ticks = '{0}'.format(ticks)
+	ticks = f'{ticks}'
 
 	# Add decimal if missing
 	if '.' not in ticks:
-		ticks = '{0}.0'.format(ticks)
+		ticks = f'{ticks}.0'
 
 	# Remove trailing zeros
 	ticks = ticks.rstrip('0')
 
 	# Add one trailing zero for empty right side
 	if ticks.endswith('.'):
-		ticks = '{0}0'.format(ticks)
+		ticks = f'{ticks}0'
 
 	return ticks
 
 def to_friendly_bytes(input):
 	if not input:
 		return input
-	input = "{0}".format(input)
+	input = f"{input}"
 
 	formats = {
 		r"^[0-9]+B$" : 'B',
@@ -400,7 +399,7 @@ def to_friendly_bytes(input):
 
 	for pattern, friendly_size in formats.items():
 		if re.match(pattern, input):
-			return "{0} {1}".format(input[ : -1].strip(), friendly_size)
+			return "{} {}".format(input[ : -1].strip(), friendly_size)
 
 	return input
 
@@ -546,7 +545,7 @@ def parse_arch(raw_arch_string):
 	raw_arch_string = raw_arch_string.lower()
 
 	# X86
-	if re.match('^i\d86$|^x86$|^x86_32$|^i86pc$|^ia32$|^ia-32$|^bepc$', raw_arch_string):
+	if re.match(r'^i\d86$|^x86$|^x86_32$|^i86pc$|^ia32$|^ia-32$|^bepc$', raw_arch_string):
 		arch = 'X86_32'
 		bits = 32
 	elif re.match('^x64$|^x86_64$|^x86_64t$|^i686-64$|^amd64$|^ia64$|^ia-64$', raw_arch_string):
@@ -585,7 +584,7 @@ def is_bit_set(reg, bit):
 	return is_set
 
 
-class CPUID(object):
+class CPUID:
 	def __init__(self):
 		self.prochandle = None
 
@@ -2100,8 +2099,8 @@ def get_cpu_info():
 	arch, bits = parse_arch(DataSource.raw_arch_string)
 
 	friendly_maxsize = { 2**31-1: '32 bit', 2**63-1: '64 bit' }.get(sys.maxsize) or 'unknown bits'
-	friendly_version = "{0}.{1}.{2}.{3}.{4}".format(*sys.version_info)
-	PYTHON_VERSION = "{0} ({1})".format(friendly_version, friendly_maxsize)
+	friendly_version = "{}.{}.{}.{}.{}".format(*sys.version_info)
+	PYTHON_VERSION = f"{friendly_version} ({friendly_maxsize})"
 
 	info = {
 		'python_version' : PYTHON_VERSION,
@@ -2165,34 +2164,34 @@ def main():
 
 	info = get_cpu_info()
 	if info:
-		print('Python Version: {0}'.format(info.get('python_version', '')))
-		print('Cpuinfo Version: {0}'.format(info.get('cpuinfo_version', '')))
-		print('Vendor ID: {0}'.format(info.get('vendor_id', '')))
-		print('Hardware Raw: {0}'.format(info.get('hardware', '')))
-		print('Brand: {0}'.format(info.get('brand', '')))
-		print('Hz Advertised: {0}'.format(info.get('hz_advertised', '')))
-		print('Hz Actual: {0}'.format(info.get('hz_actual', '')))
-		print('Hz Advertised Raw: {0}'.format(info.get('hz_advertised_raw', '')))
-		print('Hz Actual Raw: {0}'.format(info.get('hz_actual_raw', '')))
-		print('Arch: {0}'.format(info.get('arch', '')))
-		print('Bits: {0}'.format(info.get('bits', '')))
-		print('Count: {0}'.format(info.get('count', '')))
+		print('Python Version: {}'.format(info.get('python_version', '')))
+		print('Cpuinfo Version: {}'.format(info.get('cpuinfo_version', '')))
+		print('Vendor ID: {}'.format(info.get('vendor_id', '')))
+		print('Hardware Raw: {}'.format(info.get('hardware', '')))
+		print('Brand: {}'.format(info.get('brand', '')))
+		print('Hz Advertised: {}'.format(info.get('hz_advertised', '')))
+		print('Hz Actual: {}'.format(info.get('hz_actual', '')))
+		print('Hz Advertised Raw: {}'.format(info.get('hz_advertised_raw', '')))
+		print('Hz Actual Raw: {}'.format(info.get('hz_actual_raw', '')))
+		print('Arch: {}'.format(info.get('arch', '')))
+		print('Bits: {}'.format(info.get('bits', '')))
+		print('Count: {}'.format(info.get('count', '')))
 
-		print('Raw Arch String: {0}'.format(info.get('raw_arch_string', '')))
+		print('Raw Arch String: {}'.format(info.get('raw_arch_string', '')))
 
-		print('L1 Data Cache Size: {0}'.format(info.get('l1_data_cache_size', '')))
-		print('L1 Instruction Cache Size: {0}'.format(info.get('l1_instruction_cache_size', '')))
-		print('L2 Cache Size: {0}'.format(info.get('l2_cache_size', '')))
-		print('L2 Cache Line Size: {0}'.format(info.get('l2_cache_line_size', '')))
-		print('L2 Cache Associativity: {0}'.format(info.get('l2_cache_associativity', '')))
-		print('L3 Cache Size: {0}'.format(info.get('l3_cache_size', '')))
-		print('Stepping: {0}'.format(info.get('stepping', '')))
-		print('Model: {0}'.format(info.get('model', '')))
-		print('Family: {0}'.format(info.get('family', '')))
-		print('Processor Type: {0}'.format(info.get('processor_type', '')))
-		print('Extended Model: {0}'.format(info.get('extended_model', '')))
-		print('Extended Family: {0}'.format(info.get('extended_family', '')))
-		print('Flags: {0}'.format(', '.join(info.get('flags', ''))))
+		print('L1 Data Cache Size: {}'.format(info.get('l1_data_cache_size', '')))
+		print('L1 Instruction Cache Size: {}'.format(info.get('l1_instruction_cache_size', '')))
+		print('L2 Cache Size: {}'.format(info.get('l2_cache_size', '')))
+		print('L2 Cache Line Size: {}'.format(info.get('l2_cache_line_size', '')))
+		print('L2 Cache Associativity: {}'.format(info.get('l2_cache_associativity', '')))
+		print('L3 Cache Size: {}'.format(info.get('l3_cache_size', '')))
+		print('Stepping: {}'.format(info.get('stepping', '')))
+		print('Model: {}'.format(info.get('model', '')))
+		print('Family: {}'.format(info.get('family', '')))
+		print('Processor Type: {}'.format(info.get('processor_type', '')))
+		print('Extended Model: {}'.format(info.get('extended_model', '')))
+		print('Extended Family: {}'.format(info.get('extended_family', '')))
+		print('Flags: {}'.format(', '.join(info.get('flags', ''))))
 	else:
 		sys.stderr.write("Failed to find cpu info\n")
 		sys.exit(1)

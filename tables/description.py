@@ -227,14 +227,14 @@ class Col(atom.Atom, metaclass=type):
         rpar = atomrepr.rindex(')')
         atomargs = atomrepr[lpar + 1:rpar]
         classname = self.__class__.__name__
-        return '%s(%s, pos=%s)' % (classname, atomargs, self._v_pos)
+        return f'{classname}({atomargs}, pos={self._v_pos})'
 
     # Private methods
     # ~~~~~~~~~~~~~~~
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments."""
 
-        kwargs = dict((arg, getattr(self, arg)) for arg in ('shape', 'dflt'))
+        kwargs = {arg: getattr(self, arg) for arg in ('shape', 'dflt')}
         kwargs['pos'] = getattr(self, '_v_pos', None)
         return kwargs
 
@@ -309,7 +309,7 @@ Time64Col = Col._subclass_from_prefix('Time64')
 
 # Table description classes
 # =========================
-class Description(object):
+class Description:
     """This class represents descriptions of the structure of tables.
 
     An instance of this class is automatically bound to Table (see
@@ -660,7 +660,7 @@ class Description(object):
         def join_paths(path1, path2):
             if not path1:
                 return path2
-            return '%s/%s' % (path1, path2)
+            return f'{path1}/{path2}'
 
         # The top of the stack always has a nested description
         # and a list of its child columns

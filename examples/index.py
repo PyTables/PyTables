@@ -1,4 +1,3 @@
-from __future__ import print_function
 import random
 import tables
 print('tables.__version__', tables.__version__)

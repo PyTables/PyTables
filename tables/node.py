@@ -43,7 +43,7 @@ def _closedrepr(oldmethod):
             cmod = self.__class__.__module__
             cname = self.__class__.__name__
             addr = hex(id(self))
-            return '<closed %s.%s at %s>' % (cmod, cname, addr)
+            return f'<closed {cmod}.{cname} at {addr}>'
         return oldmethod(self)
 
     return newmethod
@@ -73,7 +73,7 @@ class MetaNode(type):
         return type.__new__(class_, name, bases, dict_)
 
     def __init__(class_, name, bases, dict_):
-        super(MetaNode, class_).__init__(name, bases, dict_)
+        super().__init__(name, bases, dict_)
 
         # Always register into class name dictionary.
         class_name_dict[class_.__name__] = class_
@@ -852,8 +852,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if name in parent:
             if not overwrite:
                 raise NodeError("""\
-destination group ``%s`` already has a node named ``%s``; \
-you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
+destination group ``{}`` already has a node named ``{}``; \
+you may want to use the ``overwrite`` argument""".format(parent._v_pathname, name))
             parent._f_get_child(name)._f_remove(True)
 
 

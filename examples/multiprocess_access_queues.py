@@ -1,7 +1,6 @@
 """Example showing how to access a PyTables file from multiple processes using
 queues."""
 
-from __future__ import print_function
 import sys
 
 if sys.version < '3':
@@ -63,7 +62,7 @@ class FileAccess(multiprocessing.Process):
                 # look up the appropriate result_queue for this data processor
                 # instance
                 result_queue = self.result_queues[proc_num]
-                print('processor {0} reading from row {1}'.format(proc_num,
+                print('processor {} reading from row {}'.format(proc_num,
                                                                   row_num))
                 result_queue.put(self.read_data(row_num))
                 another_loop = True
@@ -176,8 +175,8 @@ if __name__ == '__main__':
     print()
     for output_file in output_files:
         print()
-        print('contents of log file {0}'.format(output_file))
-        print(open(output_file, 'r').read())
+        print(f'contents of log file {output_file}')
+        print(open(output_file).read())
         os.remove(output_file)
 
     os.remove('test.h5')

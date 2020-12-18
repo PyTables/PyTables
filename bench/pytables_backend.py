@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 import tables
 from indexed_search import DB
@@ -27,7 +26,7 @@ class PyTables_DB(DB):
                 dir_path = self.datadir
             os.makedirs(dir_path)
             self.datadir = dir_path
-            print("Created {}.".format(self.datadir))
+            print(f"Created {self.datadir}.")
         self.filename = self.datadir + '/' + self.filename + '.h5'
         # The chosen filters
         self.filters = tables.Filters(complevel=self.docompress,

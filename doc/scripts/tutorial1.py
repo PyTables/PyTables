@@ -6,7 +6,6 @@ with any HDF5 generic utility.
 """
 
 
-from __future__ import print_function
 import os
 import traceback
 
@@ -239,7 +238,7 @@ tutsep()
 print("Table variable names with their type and shape:")
 tutsep()
 for name in table.colnames:
-    print(name, ':= %s, %s' % (table.coltypes[name], table.colshapes[name]))
+    print(name, ':= {}, {}'.format(table.coltypes[name], table.colshapes[name]))
 
 tutprint(table.__doc__)
 

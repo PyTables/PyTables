@@ -6,7 +6,6 @@
 # 2005-03-09
 ###########################################################################
 
-from __future__ import print_function
 import numpy
 from time import time
 import tables
@@ -14,7 +13,7 @@ import tables
 verbose = 0
 
 
-class BasicBenchmark(object):
+class BasicBenchmark:
 
     def __init__(self, filename, testname, vecsize, nobjects, niter):
 

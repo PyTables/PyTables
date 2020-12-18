@@ -49,7 +49,7 @@ class CbloscConan(ConanFile):
             else:
                 return
             with tools.environment_append({'CTEST_OUTPUT_ON_FAILURE': '1'}):
-                self.run("%s ctest %s" % (prefix, test_args))
+                self.run(f"{prefix} ctest {test_args}")
 
     def package(self):
         self.copy("blosc.h", dst="include", src="blosc")

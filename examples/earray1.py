@@ -1,4 +1,3 @@
-from __future__ import print_function
 import tables
 import numpy
 
@@ -11,6 +10,6 @@ array_c.append(numpy.array(['a' * 6, 'b' * 8, 'c' * 10], dtype='S8'))
 
 # Read the string ``EArray`` we have created on disk.
 for s in array_c:
-    print('array_c[%s] => %r' % (array_c.nrow, s))
+    print(f'array_c[{array_c.nrow}] => {s!r}')
 # Close the file.
 fileh.close()

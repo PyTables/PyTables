@@ -316,7 +316,7 @@ class SoftLink(linkextension.SoftLink, Link):
             dangling = " (dangling)"
         else:
             dangling = ""
-        return "%s%s (%s) -> %s%s" % (closed, self._v_pathname, classname,
+        return "{}{} ({}) -> {}{}".format(closed, self._v_pathname, classname,
                                       self.target, dangling)
 
 
@@ -426,7 +426,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
         """
 
         classname = self.__class__.__name__
-        return "%s (%s) -> %s" % (self._v_pathname, classname, self.target)
+        return f"{self._v_pathname} ({classname}) -> {self.target}"
 
 
 ## Local Variables:

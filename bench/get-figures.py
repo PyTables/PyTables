@@ -1,4 +1,3 @@
-from __future__ import print_function
 from pylab import *
 
 linewidth = 2
@@ -266,7 +265,7 @@ if __name__ == '__main__':
         #plegend = plegend.replace('zlib1', '')
         if filename.find('PyTables') != -1:
             xval, yval = get_values(filename)
-            print("Values for %s --> %s, %s" % (filename, xval, yval))
+            print(f"Values for {filename} --> {xval}, {yval}")
             if xval != []:
                 plot = loglog(xval, yval)
                 #plot = semilogx(xval, yval)
@@ -276,7 +275,7 @@ if __name__ == '__main__':
                 legends.append(plegend)
         else:
             xval, yval = get_values(filename)
-            print("Values for %s --> %s, %s" % (filename, xval, yval))
+            print(f"Values for {filename} --> {xval}, {yval}")
             plots.append(loglog(xval, yval, linewidth=3, color='m'))
             #plots.append(semilogx(xval, yval, linewidth=linewidth, color='m'))
             legends.append(plegend)

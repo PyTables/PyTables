@@ -1,6 +1,5 @@
 """Checks the exported symbols."""
 
-from __future__ import print_function, unicode_literals
 
 import argparse
 import re
@@ -61,7 +60,7 @@ def check_symbols(path):
       del symbol_type
       if re.match(allowed_symbols_pattern, name):
         continue
-      print('ERROR: Found unexpected symbol in %s: %s' % (filename, name))
+      print(f'ERROR: Found unexpected symbol in {filename}: {name}')
       failed = True
   return not failed
 

@@ -130,7 +130,7 @@ def _normalize_shape(shape):
     # HDF5 does not support ranks greater than 32
     if len(shape) > 32:
         raise ValueError(
-            "shapes with rank > 32 are not supported: %r" % (shape,))
+            f"shapes with rank > 32 are not supported: {shape!r}")
 
     return tuple(SizeType(s) for s in shape)
 
@@ -188,7 +188,7 @@ class MetaAtom(type):
     """
 
     def __init__(class_, name, bases, dict_):
-        super(MetaAtom, class_).__init__(name, bases, dict_)
+        super().__init__(name, bases, dict_)
 
         kind = dict_.get('kind')
         itemsize = dict_.get('itemsize')
@@ -343,7 +343,7 @@ class Atom(metaclass=MetaAtom):
         if (not isinstance(sctype, type)
            or not issubclass(sctype, numpy.generic)):
             if sctype not in numpy.sctypeDict:
-                raise ValueError("unknown NumPy scalar type: %r" % (sctype,))
+                raise ValueError(f"unknown NumPy scalar type: {sctype!r}")
             sctype = numpy.sctypeDict[sctype]
         return class_.from_dtype(numpy.dtype((sctype, shape)), dflt)
 
@@ -415,7 +415,7 @@ class Atom(metaclass=MetaAtom):
         """
 
         if type not in all_types:
-            raise ValueError("unknown type: %r" % (type,))
+            raise ValueError(f"unknown type: {type!r}")
         kind, itemsize = split_type(type)
         return class_.from_kind(kind, itemsize, shape, dflt)
 
@@ -456,7 +456,7 @@ class Atom(metaclass=MetaAtom):
 
         kwargs = {'shape': shape}
         if kind not in atom_map:
-            raise ValueError("unknown kind: %r" % (kind,))
+            raise ValueError(f"unknown kind: {kind!r}")
         # This incompatibility detection may get out-of-date and is
         # too hard-wired, but I couldn't come up with something
         # smarter.  -- Ivan (2007-02-08)
@@ -534,10 +534,10 @@ class Atom(metaclass=MetaAtom):
         as NumPy objects."""
 
     def __repr__(self):
-        args = 'shape=%s, dflt=%r' % (self.shape, self.dflt)
+        args = f'shape={self.shape}, dflt={self.dflt!r}'
         if not hasattr(self.__class__.itemsize, '__int__'):  # non-fixed
-            args = 'itemsize=%s, %s' % (self.itemsize, args)
-        return '%s(%s)' % (self.__class__.__name__, args)
+            args = f'itemsize={self.itemsize}, {args}'
+        return f'{self.__class__.__name__}({args})'
 
     __eq__ = _cmp_dispatcher('_is_equal_to_atom')
 
@@ -601,7 +601,7 @@ class Atom(metaclass=MetaAtom):
             args = [arg for arg, p in parameters.items()
                 if p.kind is p.POSITIONAL_OR_KEYWORD]
 
-        return dict((arg, getattr(self, arg)) for arg in args if arg != 'self')
+        return {arg: getattr(self, arg) for arg in args if arg != 'self'}
 
     def _is_equal_to_atom(self, atom):
         """Is this object equal to the given `atom`?"""
@@ -1028,7 +1028,7 @@ class ReferenceAtom(Atom):
         Atom.__init__(self, self.type, shape, self._defvalue)
 
     def __repr__(self):
-        return 'ReferenceAtom(shape=%s)' % (self.shape,)
+        return f'ReferenceAtom(shape={self.shape})'
 
 # Pseudo-atom classes
 # ===================
@@ -1049,7 +1049,7 @@ class ReferenceAtom(Atom):
 # serialization and string management.
 
 
-class PseudoAtom(object):
+class PseudoAtom:
     """Pseudo-atoms can only be used in ``VLArray`` nodes.
 
     They can be recognised because they also have `kind`, `type` and
@@ -1124,7 +1124,7 @@ class VLStringAtom(_BufferedAtom):
             warnings.warn("Storing non bytestrings in VLStringAtom is "
                           "deprecated.", DeprecationWarning)
         elif not isinstance(object_, bytes):
-            raise TypeError("object is not a string: %r" % (object_,))
+            raise TypeError(f"object is not a string: {object_!r}")
         return numpy.string_(object_)
 
     def fromarray(self, array):
@@ -1166,7 +1166,7 @@ class VLUnicodeAtom(_BufferedAtom):
             warnings.warn("Storing bytestrings in VLUnicodeAtom is "
                           "deprecated.", DeprecationWarning)
         elif not isinstance(object_, str):
-            raise TypeError("object is not a string: %r" % (object_,))
+            raise TypeError(f"object is not a string: {object_!r}")
         ustr = str(object_)
         uarr = numpy.array(ustr, dtype='U')
         return numpy.ndarray(
@@ -1180,7 +1180,7 @@ class VLUnicodeAtom(_BufferedAtom):
             warnings.warn("Storing bytestrings in VLUnicodeAtom is "
                           "deprecated.", DeprecationWarning)
         elif not isinstance(object_, str):
-            raise TypeError("object is not a string: %r" % (object_,))
+            raise TypeError(f"object is not a string: {object_!r}")
         return numpy.unicode_(object_)
 
     def fromarray(self, array):

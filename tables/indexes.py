@@ -175,13 +175,13 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     def __repr__(self):
         """A verbose representation of this class."""
 
-        return """%s
-  atom = %r
-  shape = %s
-  nrows = %s
-  chunksize = %s
-  slicesize = %s
-  byteorder = %r""" % (self, self.atom, self.shape, self.nrows,
+        return """{}
+  atom = {!r}
+  shape = {}
+  nrows = {}
+  chunksize = {}
+  slicesize = {}
+  byteorder = {!r}""".format(self, self.atom, self.shape, self.nrows,
                        self.chunksize, self.slicesize, self.byteorder)
 
 

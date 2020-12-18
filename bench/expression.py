@@ -1,4 +1,3 @@
-from __future__ import print_function
 from time import time
 import os.path
 
@@ -160,8 +159,8 @@ if __name__ == "__main__":
         elif option[0] == '-z':
             complib = option[1]
             if complib not in ('blosc', 'lzo', 'zlib'):
-                print(("complib must be 'lzo' or 'zlib' "
-                       "and you passed: '%s'" % complib))
+                print("complib must be 'lzo' or 'zlib' "
+                       "and you passed: '%s'" % complib)
                 sys.exit(1)
 
     # If not a backend selected, abort

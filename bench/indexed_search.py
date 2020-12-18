@@ -1,4 +1,3 @@
-from __future__ import print_function
 from time import time
 import subprocess
 import random
@@ -40,7 +39,7 @@ def get_nrows(nrows_str):
             "value of nrows must end with either 'k', 'm' or 'g' suffixes.")
 
 
-class DB(object):
+class DB:
 
     def __init__(self, nrows, rng, userandom):
         global step, scale
@@ -96,11 +95,11 @@ class DB(object):
             # print "Times for warm cache:\n", wtimes
             print("Histogram for warm cache: %s\n%s" %
                   numpy.histogram(wtimes))
-        print("%s1st query time for %s:" % (r, colname),
+        print(f"{r}1st query time for {colname}:",
               round(qtime1, prec))
-        print("%sQuery time for %s (cold cache):" % (r, colname),
+        print(f"{r}Query time for {colname} (cold cache):",
               round(cmean, prec), "+-", round(cstd, prec))
-        print("%sQuery time for %s (warm cache):" % (r, colname),
+        print(f"{r}Query time for {colname} (warm cache):",
               round(wmean, prec), "+-", round(wstd, prec))
 
     def print_db_sizes(self, init, filled, indexed):

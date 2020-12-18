@@ -258,7 +258,7 @@ class ContiguousCompoundAppendTestCase(common.TestFileMixin, TestCase):
         # Reopen in 'a'ppend mode
         try:
             self.h5file = tables.open_file(h5fname_copy, 'a')
-        except IOError:
+        except OSError:
             # Problems for opening (probably not permisions to write the file)
             return
         tbl = self.h5file.get_node('/test_var/structure variable')

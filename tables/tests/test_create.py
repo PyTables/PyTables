@@ -806,8 +806,8 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print(("Running %s.test01_nonRecursiveAttrs..." %
-                   self.__class__.__name__))
+            print("Running %s.test01_nonRecursiveAttrs..." %
+                   self.__class__.__name__)
 
         # Copy a group non-recursively with attrs
         srcgroup = self.h5file.root.group0.group1
@@ -842,9 +842,9 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
 
             # These lists should already be ordered
             if common.verbose:
-                print("srcattrskeys for node %s: %s" % (srcnode._v_name,
+                print("srcattrskeys for node {}: {}".format(srcnode._v_name,
                                                         srcattrskeys))
-                print("dstattrskeys for node %s: %s" % (dstnode._v_name,
+                print("dstattrskeys for node {}: {}".format(dstnode._v_name,
                                                         dstattrskeys))
             self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
@@ -922,8 +922,8 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print(("Running %s.test03_RecursiveFilters..." %
-                   self.__class__.__name__))
+            print("Running %s.test03_RecursiveFilters..." %
+                   self.__class__.__name__)
 
         # Create the destination node
         group = self.h5file2.root
@@ -1248,9 +1248,9 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
 
             # These lists should already be ordered
             if common.verbose:
-                print("srcattrskeys for node %s: %s" % (srcnode._v_name,
+                print("srcattrskeys for node {}: {}".format(srcnode._v_name,
                                                         srcattrskeys))
-                print("dstattrskeys for node %s: %s" % (dstnode._v_name,
+                print("dstattrskeys for node {}: {}".format(dstnode._v_name,
                                                         dstattrskeys))
             self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
@@ -1297,9 +1297,9 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
             dstattrskeys = dstattrs._f_list("all")
             # These lists should already be ordered
             if common.verbose:
-                print("srcattrskeys for node %s: %s" % (srcnode._v_name,
+                print("srcattrskeys for node {}: {}".format(srcnode._v_name,
                                                         srcattrskeys))
-                print("dstattrskeys for node %s: %s" % (dstnode._v_name,
+                print("dstattrskeys for node {}: {}".format(dstnode._v_name,
                                                         dstattrskeys))
 
             # Filters may differ, do not take into account

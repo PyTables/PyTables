@@ -90,17 +90,17 @@ if hasattr(numpy, 'float16'):
 # if hasattr(numpy, 'complex256'):
 #    type_info['complex256'] = (numpy.complex256, complex)
 
-sctype_from_type = dict((type_, info[0])
-                        for (type_, info) in type_info.items())
+sctype_from_type = {type_: info[0]
+                        for (type_, info) in type_info.items()}
 """Maps PyTables types to NumPy scalar types."""
-nxtype_from_type = dict((type_, info[1])
-                        for (type_, info) in type_info.items())
+nxtype_from_type = {type_: info[1]
+                        for (type_, info) in type_info.items()}
 """Maps PyTables types to Numexpr types."""
 
 heavy_types = frozenset(['uint8', 'int16', 'uint16', 'float32', 'complex64'])
 """PyTables types to be tested only in heavy mode."""
 
-enum = tables.Enum(dict(('n%d' % i, i) for i in range(_maxnvalue)))
+enum = tables.Enum({'n%d' % i: i for i in range(_maxnvalue)})
 """Enumerated type to be used in tests."""
 
 
@@ -278,7 +278,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
             return
         try:
             kind = self.kind
-            vprint("* Indexing ``%s`` columns. Type: %s." % (colname, kind))
+            vprint(f"* Indexing ``{colname}`` columns. Type: {kind}.")
             for acolname in [colname, ncolname, extracolname]:
                 acolumn = self.table.colinstances[acolname]
                 acolumn.create_index(
@@ -372,16 +372,16 @@ def create_test_method(type_, op, extracond, func=None):
     elif op == '~':  # unary
         cond = '~(%s)' % colname
     elif op == '<' and func is None:  # binary variable-constant
-        cond = '%s %s %s' % (colname, op, repr(condvars['bound']))
+        cond = '{} {} {}'.format(colname, op, repr(condvars['bound']))
     elif isinstance(op, tuple):  # double binary variable-constant
         cond = ('(lbound %s %s) & (%s %s rbound)'
                 % (op[0], colname, colname, op[1]))
     elif func is not None:
-        cond = '%s(%s) %s func_bound' % (func, colname, op)
+        cond = f'{func}({colname}) {op} func_bound'
     else:  # function or binary variable-variable
-        cond = '%s %s bound' % (colname, op)
+        cond = f'{colname} {op} bound'
     if extracond:
-        cond = '(%s) %s' % (cond, extracond)
+        cond = f'({cond}) {extracond}'
 
     def ignore_skipped(oldmethod):
         @functools.wraps(oldmethod)
@@ -551,7 +551,7 @@ def niclassdata():
     for size in table_sizes:
         heavy = size in heavy_table_sizes
         for ndim in table_ndims:
-            classname = '%s%sTDTestCase' % (size[0], ndim[0])
+            classname = '{}{}TDTestCase'.format(size[0], ndim[0])
             cbasenames = ('%sNITableMixin' % size, '%sTableMixin' % ndim,
                           'TableDataTestCase')
             classdict = dict(heavy=heavy)

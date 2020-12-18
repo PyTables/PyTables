@@ -129,7 +129,7 @@ def main():
             thread.join()
 
     # print results
-    print('Mean: {}'.format(mean_))
+    print(f'Mean: {mean_}')
 
 
 if __name__ == '__main__':

@@ -1,6 +1,5 @@
 # Copy this file into the clipboard and paste into 'script -c python'.
 
-from __future__ import print_function
 from tables.nodes import FileNode
 
 

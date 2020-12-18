@@ -12,7 +12,6 @@
 are PEP 8 compliant.
 
 """
-from __future__ import absolute_import
 import os
 import re
 import sys
@@ -464,7 +463,7 @@ old2newnames = dict([
     #('_v_expectedsizeinMB', '_v_expected_mb'),          # --> expectedrows
 ])
 
-new2oldnames = dict([(v, k) for k, v in old2newnames.items()])
+new2oldnames = {v: k for k, v in old2newnames.items()}
 
 # Note that it is tempting to use the ast module here, but then this
 # breaks transforming cython files.  So instead we are going to do the
@@ -473,12 +472,12 @@ new2oldnames = dict([(v, k) for k, v in old2newnames.items()])
 
 def make_subs(ns):
     names = new2oldnames if ns.reverse else old2newnames
-    s = '(?<=\W)({0})(?=\W)'.format('|'.join(list(names.keys())))
+    s = r'(?<=\W)({})(?=\W)'.format('|'.join(list(names.keys())))
     if ns.ignore_previous:
-        s += '(?!\s*?=\s*?previous_api(_property)?\()'
-        s += '(?!\* to \*\w+\*)'
-        s += '(?!\* parameter has been renamed into \*\w+\*\.)'
-        s += '(?! is pending deprecation, import \w+ instead\.)'
+        s += r'(?!\s*?=\s*?previous_api(_property)?\()'
+        s += r'(?!\* to \*\w+\*)'
+        s += r'(?!\* parameter has been renamed into \*\w+\*\.)'
+        s += r'(?! is pending deprecation, import \w+ instead\.)'
     subs = re.compile(s, flags=re.MULTILINE)
 
     def repl(m):
@@ -506,8 +505,8 @@ def main():
     ns = parser.parse_args()
 
     if not os.path.isfile(ns.filename):
-        sys.exit('file {0!r} not found'.format(ns.filename))
-    with open(ns.filename, 'r') as f:
+        sys.exit(f'file {ns.filename!r} not found')
+    with open(ns.filename) as f:
         src = f.read()
 
     subs, repl = make_subs(ns)

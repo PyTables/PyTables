@@ -12,9 +12,6 @@
 # another, and then modified by incrementing each array element.  This is meant
 # to simulate retrieving data and then modifying it.
 
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 import multiprocessing
 import os
@@ -33,7 +30,7 @@ def create_file(array_size):
     array = np.ones(array_size, dtype='i8')
     with tables.open_file('test.h5', 'w') as fobj:
         array = fobj.create_array('/', 'test', array)
-        print('file created, size: {0} MB'.format(array.size_on_disk / 1e6))
+        print('file created, size: {} MB'.format(array.size_on_disk / 1e6))
 
 
 # process to receive an array using a multiprocessing.Pipe connection

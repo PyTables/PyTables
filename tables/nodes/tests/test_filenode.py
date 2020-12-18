@@ -9,7 +9,6 @@
 ########################################################################
 
 """Unit test for the filenode module."""
-from __future__ import absolute_import
 
 import os
 import shutil
@@ -404,7 +403,7 @@ class ReadFileTestCase(TempFileMixin, TestCase):
         except ImportError:
             # PIL not available, nothing to do.
             pass
-        except IOError:
+        except OSError:
             self.fail(
                 "PIL was not able to create an image from the file node.")
 

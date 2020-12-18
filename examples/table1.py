@@ -1,4 +1,3 @@
-from __future__ import print_function
 import tables
 
 
@@ -56,7 +55,7 @@ print()
 
 table = fileh.root.newgroup.table
 print("Object:", table)
-print("Table name: %s. Table title: %s" % (table.name, table.title))
+print(f"Table name: {table.name}. Table title: {table.title}")
 print("Rows saved on table: %d" % (table.nrows))
 
 print("Variable names on table with their type:")

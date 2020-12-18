@@ -7,7 +7,6 @@ Issue "python stress-test3.py" without parameters for a help on usage.
 
 """
 
-from __future__ import print_function
 import gc
 import sys
 import time

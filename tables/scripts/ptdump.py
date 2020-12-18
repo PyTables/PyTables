@@ -14,8 +14,6 @@ Pass the flag -h to this for help on usage.
 
 """
 
-from __future__ import print_function
-from __future__ import absolute_import
 
 import argparse
 import operator
@@ -66,7 +64,7 @@ def dump_leaf(leaf):
             print("[SCALAR] %s" % (leaf[()]))
         else:
             for i in range(start, stop, step):
-                print("[%s] %s" % (i, leaf[i]))
+                print("[{}] {}".format(i, leaf[i]))
 
     if isinstance(leaf, Table) and options.colinfo:
         # Show info of columns
