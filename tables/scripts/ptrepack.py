@@ -19,10 +19,7 @@ import time
 import os.path
 import argparse
 import warnings
-try:
-    from time import process_time as cputime
-except ImportError:
-    from time import clock as cputime
+from time import process_time as cputime
 
 from tables.file import open_file
 from tables.group import Group

@@ -374,15 +374,9 @@ class ReadFileTestCase(TempFileMixin, TestCase):
     def test00_CompareFile(self):
         """Reading and comparing a whole file node."""
 
-        # Try to use hashlib (included from Python 2.5 on)
-        try:
-            import hashlib
-            dfiledigest = hashlib.md5(self.datafile.read()).digest()
-            fnodedigest = hashlib.md5(self.fnode.read()).digest()
-        except ImportError:
-            import md5
-            dfiledigest = md5.new(self.datafile.read()).digest()
-            fnodedigest = md5.new(self.fnode.read()).digest()
+        import hashlib
+        dfiledigest = hashlib.md5(self.datafile.read()).digest()
+        fnodedigest = hashlib.md5(self.fnode.read()).digest()
 
         self.assertEqual(
             dfiledigest, fnodedigest,
