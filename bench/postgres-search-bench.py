@@ -1,4 +1,3 @@
-from __future__ import print_function
 from time import time
 import numpy
 import random
@@ -48,7 +47,7 @@ def int_generator_slow(nrows):
             yield (i, float(i))
 
 
-class Stream32(object):
+class Stream32:
 
     "Object simulating a file for reading"
 

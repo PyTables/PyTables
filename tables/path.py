@@ -95,7 +95,7 @@ def check_attribute_name(name):
     ValueError: the empty string is not allowed as an object name
     """
     if not isinstance(name, str):  # Python >= 2.3
-        raise TypeError("object name is not a string: %r" % (name,))
+        raise TypeError("object name is not a string: {!r}".format(name))
 
     if name == '':
         raise ValueError("the empty string is not allowed as an object name")
@@ -187,9 +187,9 @@ def join_path(parentpath, name):
     if parentpath == '/' and name.startswith('/'):
         pstr = '%s' % name
     elif parentpath == '/' or name.startswith('/'):
-        pstr = '%s%s' % (parentpath, name)
+        pstr = '{}{}'.format(parentpath, name)
     else:
-        pstr = '%s/%s' % (parentpath, name)
+        pstr = '{}/{}'.format(parentpath, name)
     if pstr.endswith('/'):
         pstr = pstr[:-1]
     return pstr

@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 from time import time
 import random

@@ -1,4 +1,3 @@
-from __future__ import print_function
 from tables.nodes import filenode
 
 import tables

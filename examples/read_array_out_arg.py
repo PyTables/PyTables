@@ -5,9 +5,6 @@
 # reused.
 
 
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 import time
 
@@ -19,7 +16,7 @@ def create_file(array_size):
     array = np.ones(array_size, dtype='i8')
     with tables.open_file('test.h5', 'w') as fobj:
         array = fobj.create_array('/', 'test', array)
-        print('file created, size: {0} MB'.format(array.size_on_disk / 1e6))
+        print('file created, size: {} MB'.format(array.size_on_disk / 1e6))
 
 
 def standard_read(array_size):
@@ -31,7 +28,7 @@ def standard_read(array_size):
             output = array.read(0, array_size, 1)
         end = time.time()
         assert(np.all(output == 1))
-        print('standard read   \t {0:5.5f}'.format((end - start) / N))
+        print('standard read   \t {:5.5f}'.format((end - start) / N))
 
 
 def pre_allocated_read(array_size):
@@ -44,7 +41,7 @@ def pre_allocated_read(array_size):
             array.read(0, array_size, 1, out=output)
         end = time.time()
         assert(np.all(output == 1))
-        print('pre-allocated read\t {0:5.5f}'.format((end - start) / N))
+        print('pre-allocated read\t {:5.5f}'.format((end - start) / N))
 
 
 if __name__ == '__main__':

@@ -3191,10 +3191,10 @@ class LastRowReuseBuffers(TestCase):
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
-                            "idx--> %s %s %s %s" % (idx, i, nrow, value))
+                            "idx--> {} {} {} {}".format(idx, i, nrow, value))
             self.assertTrue(
                 nrow in idx,
-                "nrow not found: %s != %s, %s" % (idx, nrow, value))
+                "nrow not found: {} != {}, {}".format(idx, nrow, value))
 
     def test01_nocache(self):
         self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=0)
@@ -3210,10 +3210,10 @@ class LastRowReuseBuffers(TestCase):
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
-                            "idx--> %s %s %s %s" % (idx, i, nrow, value))
+                            "idx--> {} {} {} {}".format(idx, i, nrow, value))
             self.assertTrue(
                 nrow in idx,
-                "nrow not found: %s != %s, %s" % (idx, nrow, value))
+                "nrow not found: {} != {}, {}".format(idx, nrow, value))
 
     def test02_dictcache(self):
         self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=-64)
@@ -3229,10 +3229,10 @@ class LastRowReuseBuffers(TestCase):
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
-                            "idx--> %s %s %s %s" % (idx, i, nrow, value))
+                            "idx--> {} {} {} {}".format(idx, i, nrow, value))
             self.assertTrue(
                 nrow in idx,
-                "nrow not found: %s != %s, %s" % (idx, nrow, value))
+                "nrow not found: {} != {}, {}".format(idx, nrow, value))
 
 
 normal_tests = (
@@ -3283,7 +3283,7 @@ testlevels = ['Normal', 'Heavy']
 def iclassdata():
     for ckind in ckinds:
         for ctest in normal_tests + heavy_tests:
-            classname = '%sI%s%s' % (ckind[0], testlevels[heavy][0], ctest)
+            classname = '{}I{}{}'.format(ckind[0], testlevels[heavy][0], ctest)
             # Uncomment the next one and comment the past one if one
             # don't want to include the methods (testing purposes only)
             # cbasenames = ( '%sITableMixin' % ckind, "object")
@@ -3328,7 +3328,7 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
         v1 = numpy.unique(arr['o'])[0]
         v2 = numpy.unique(arr['o'])[1]
         res = numpy.array([v1, v2])
-        selector = '((o == %s) | (o == %s))' % (v1, v2)
+        selector = '((o == {}) | (o == {}))'.format(v1, v2)
         if verbose:
             print("selecting values: %s" % selector)
 
@@ -3338,7 +3338,7 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
         numpy.testing.assert_almost_equal(result, res)
         if verbose:
             print("select entire table:")
-            print("result: %s\texpected: %s" % (result, res))
+            print("result: {}\texpected: {}".format(result, res))
 
         if verbose:
             print("index the column o")
@@ -3351,7 +3351,7 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
             result = numpy.unique(result['o'])
             numpy.testing.assert_almost_equal(numpy.unique(result), res)
             if verbose:
-                print("result: %s\texpected: %s" % (result, res))
+                print("result: {}\texpected: {}".format(result, res))
 
 
 # Test case for issue #441
@@ -3369,7 +3369,7 @@ class SideEffectNumPyQuicksort(TestCase):
         # Setting the chunkshape is critical for reproducing the bug
         t = o.copy(newname="table2", chunkshape=2730)
         t.cols.path.create_index()
-        indexed = set(r.nrow for r in t.where('path == 6'))
+        indexed = {r.nrow for r in t.where('path == 6')}
 
         if verbose:
             diffs = sorted(npvals - indexed)

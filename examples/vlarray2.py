@@ -3,7 +3,6 @@
 """Small example that shows how to work with variable length arrays of
 different types, UNICODE strings and general Python objects included."""
 
-from __future__ import print_function
 import numpy as np
 import tables
 import pickle

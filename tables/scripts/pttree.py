@@ -13,8 +13,6 @@
 Pass the flag -h to this for help on usage.
 
 """
-from __future__ import absolute_import
-from __future__ import print_function
 
 import tables
 import numpy as np
@@ -273,7 +271,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             elif isinstance(node, (tables.Array, tables.Table)):
 
                 if print_size:
-                    sizestr = 'mem=%s, disk=%s' % (
+                    sizestr = 'mem={}, disk={}'.format(
                         b2h(in_mem[path]), b2h(on_disk[path]))
                     if print_percent:
                         sizestr += ' [%4.1f%%]' % pct
@@ -296,7 +294,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             elif depth == max_depth:
                 itemstr = '... %i leaves' % leaf_count[path]
                 if print_size:
-                    itemstr += ', mem=%s, disk=%s' % (
+                    itemstr += ', mem={}, disk={}'.format(
                         b2h(in_mem[path]), b2h(on_disk[path]))
                 if print_percent:
                     itemstr += ' [%4.1f%%]' % pct
@@ -347,7 +345,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
 
         out_str += '-' * 60 + '\n'
         out_str += 'Total branch leaves:    %i\n' % total_items
-        out_str += 'Total branch size:      %s in memory, %s on disk\n' % (
+        out_str += 'Total branch size:      {} in memory, {} on disk\n'.format(
             b2h(total_in_mem), b2h(total_on_disk))
         out_str += 'Mean compression ratio: %.2f\n' % avg_ratio
         out_str += 'HDF5 file size:         %s\n' % b2h(fsize)
@@ -356,7 +354,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
     return out_str
 
 
-class PrettyTree(object):
+class PrettyTree:
 
     """
 
@@ -417,7 +415,7 @@ class PrettyTree(object):
         return "\n".join(self.tree_lines())
 
     def __repr__(self):
-        return '<%s at %s>' % (self.__class__.__name__, hex(id(self)))
+        return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
 
 
 def bytes2human(use_si_units=False):
@@ -436,7 +434,7 @@ def bytes2human(use_si_units=False):
             if scaled >= 1:
                 break
 
-        return "%.1f%s" % (scaled, prefix)
+        return "{:.1f}{}".format(scaled, prefix)
 
     return b2h
 

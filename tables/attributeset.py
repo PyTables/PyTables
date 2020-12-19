@@ -67,7 +67,7 @@ def issysattrname(name):
         return False
 
 
-class AttributeSet(hdf5extension.AttributeSet, object):
+class AttributeSet(hdf5extension.AttributeSet):
     """Container for the HDF5 attributes of a Node.
 
     This class provides methods to create new HDF5 node attributes,
@@ -286,9 +286,9 @@ class AttributeSet(hdf5extension.AttributeSet, object):
 
         Only PY3 supports this special method.
         """
-        return list(set(c for c in
+        return list({c for c in
                     super().__dir__() + self._v_attrnames
-                    if c.isidentifier()))
+                    if c.isidentifier()})
 
     def __getattr__(self, name):
         """Get the attribute named "name"."""
@@ -659,7 +659,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # However, we need to know Node here.
         # Using class_name_dict avoids a circular import.
         if not isinstance(where, class_name_dict['Node']):
-            raise TypeError("destination object is not a node: %r" % (where,))
+            raise TypeError("destination object is not a node: {!r}".format(where))
         self._g_copy(where._v_attrs, where._v_attrs.__setattr__)
 
     def _g_close(self):
@@ -685,11 +685,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # print additional info only if there are attributes to show
         attrnames = [n for n in self._v_attrnames]
         if len(attrnames):
-            rep = ['%s := %r' % (attr, getattr(self, attr))
+            rep = ['{} := {!r}'.format(attr, getattr(self, attr))
                    for attr in attrnames]
             attrlist = '[%s]' % (',\n    '.join(rep))
 
-            return "%s:\n   %s" % (str(self), attrlist)
+            return "{}:\n   {}".format(str(self), attrlist)
         else:
             return str(self)
 

@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 import sys
 from time import time
@@ -162,4 +161,4 @@ if __name__ == '__main__':
             ts.append(time() - t0)
             t0 = time()
         ratio = size_orig / size
-        print("%5.2f, %5.2f" % (round(min(ts), 3), ratio))
+        print("{:5.2f}, {:5.2f}".format(round(min(ts), 3), ratio))

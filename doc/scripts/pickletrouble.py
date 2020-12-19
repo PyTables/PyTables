@@ -1,8 +1,7 @@
-from __future__ import print_function
 import tables
 
 
-class MyClass(object):
+class MyClass:
     foo = 'bar'
 
 # An object of my custom class.

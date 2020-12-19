@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # a stacked bar plot with errorbars
 
-from __future__ import print_function
 from pylab import *
 
 checks = ['open_close', 'only_open',

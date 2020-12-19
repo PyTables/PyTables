@@ -1,4 +1,3 @@
-from __future__ import print_function
 import hotshot
 import hotshot.stats
 
@@ -54,8 +53,8 @@ class WideTreeTestCase(unittest.TestCase):
         t1 = time.time()
         # Open the previous HDF5 file in read-only mode
         fileh = open_file(file, mode="r")
-        print(("\nTime spent opening a file with %d groups + %d arrays: "
-              "%s s" % (maxchilds, maxchilds, time.time() - t1)))
+        print("\nTime spent opening a file with %d groups + %d arrays: "
+              "%s s" % (maxchilds, maxchilds, time.time() - t1))
         if verbose:
             print("\nChildren reading progress: ", end=' ')
         # Close the file

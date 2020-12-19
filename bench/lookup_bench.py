@@ -1,7 +1,6 @@
 """Benchmark to help choosing the best chunksize so as to optimize the access
 time in random lookups."""
 
-from __future__ import print_function
 from time import time
 import os
 import subprocess
@@ -26,7 +25,7 @@ def get_nrows(nrows_str):
             "value of nrows must end with either 'k', 'm' or 'g' suffixes.")
 
 
-class DB(object):
+class DB:
 
     def __init__(self, nrows, dtype, chunksize, userandom, datadir,
                  docompress=0, complib='zlib'):

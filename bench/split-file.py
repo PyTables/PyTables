@@ -29,11 +29,11 @@ for line in f:
                 complib = param
         if 'PyTables' in prefix:
             if complib:
-                sfilename = "%s-O%s-%s.out" % (prefix, optlevel, complib)
+                sfilename = "{}-O{}-{}.out".format(prefix, optlevel, complib)
             else:
-                sfilename = "%s-O%s.out" % (prefix, optlevel,)
+                sfilename = "{}-O{}.out".format(prefix, optlevel)
         else:
-            sfilename = "%s.out" % (prefix,)
+            sfilename = "{}.out".format(prefix)
         sf = file(sfilename, 'a')
     if sf:
         sf.write(line)

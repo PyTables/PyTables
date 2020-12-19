@@ -1,5 +1,4 @@
 # This shows how to use the cols accessors for table columns
-from __future__ import print_function
 import tables
 
 

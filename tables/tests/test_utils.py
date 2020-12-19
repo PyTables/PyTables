@@ -1,10 +1,7 @@
 import sys
 from io import StringIO
 
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
+from unittest.mock import patch
 
 from tables.tests import common
 from tables.tests.common import unittest

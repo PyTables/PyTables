@@ -27,7 +27,6 @@ See :ref:`filenode_usersguide` for instructions on use.
    compliant with the interfaces defined in the :mod:`io` module.
 
 """
-from __future__ import absolute_import
 
 import io
 import os
@@ -114,7 +113,7 @@ class RawPyTablesIO(io.RawIOBase):
             raise TypeError("an integer is required")
         if whence == 0:
             if pos < 0:
-                raise ValueError("negative seek position %r" % (pos,))
+                raise ValueError("negative seek position {!r}".format(pos))
             self._pos = pos
         elif whence == 1:
             self._pos = max(0, self._pos + pos)
@@ -193,10 +192,10 @@ class RawPyTablesIO(io.RawIOBase):
         if pos is None:
             pos = self._pos
         elif pos < 0:
-            raise ValueError("negative truncate position %r" % (pos,))
+            raise ValueError("negative truncate position {!r}".format(pos))
 
         if pos < self._node.nrows:
-            raise IOError("truncating is only allowed for growing a file")
+            raise OSError("truncating is only allowed for growing a file")
         self._append_zeros(pos - self._node.nrows)
 
         return self.seek(pos)
@@ -455,10 +454,10 @@ class RawPyTablesIO(io.RawIOBase):
         ltypever = getattr(attrs, 'NODE_TYPE_VERSION', None)
 
         if ltype != NodeType:
-            raise ValueError("invalid type of node object: %s" % (ltype,))
+            raise ValueError("invalid type of node object: {}".format(ltype))
         if ltypever not in NodeTypeVersions:
             raise ValueError(
-                "unsupported type version of node object: %s" % (ltypever,))
+                "unsupported type version of node object: {}".format(ltypever))
 
 
     def _append_zeros(self, size):
@@ -478,7 +477,7 @@ class RawPyTablesIO(io.RawIOBase):
             np.zeros(dtype=self._vtype, shape=self._vshape(size)))
 
 
-class FileNodeMixin(object):
+class FileNodeMixin:
     """Mixin class for FileNode objects.
 
     It provides access to the attribute set of the node that becomes
@@ -687,7 +686,7 @@ def open_node(node, mode='r'):
     elif mode == 'a+':
         return RAFileNode(node, None)
     else:
-        raise IOError("invalid mode: %s" % (mode,))
+        raise OSError("invalid mode: {}".format(mode))
 
 
 
@@ -734,9 +733,9 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
     """
     # sanity checks
     if not os.access(filename, os.R_OK):
-        raise IOError("The file '%s' could not be read" % filename)
+        raise OSError("The file '%s' could not be read" % filename)
     if isinstance(h5file, tables.file.File) and h5file.mode == "r":
-        raise IOError("The file '%s' is opened read-only" % h5file.filename)
+        raise OSError("The file '%s' is opened read-only" % h5file.filename)
 
     # guess filenode's name if necessary
     if name is None:
@@ -764,7 +763,7 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
         if not overwrite:
             if new_h5file:
                 f.close()
-            raise IOError("Specified node already exists in file '%s'" %
+            raise OSError("Specified node already exists in file '%s'" %
                           f.filename)
     except tables.NoSuchNodeError:
         pass
@@ -848,7 +847,7 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
     if os.access(filename, os.R_OK) and not overwrite:
         if new_h5file:
             f.close()
-        raise IOError("The file '%s' already exists" % filename)
+        raise OSError("The file '%s' already exists" % filename)
 
     # create folder hierarchy if necessary
     if create_target and not os.path.isdir(os.path.split(filename)[0]):
@@ -857,7 +856,7 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
     if not os.access(os.path.split(filename)[0], os.W_OK):
         if new_h5file:
             f.close()
-        raise IOError("The file '%s' cannot be written to" % filename)
+        raise OSError("The file '%s' cannot be written to" % filename)
 
     # read data from filenode
     data = fnode.read()

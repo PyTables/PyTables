@@ -947,7 +947,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         if self.verbose:
             t = round(time() - t1, 4)
             c = round(perf_counter() - c1, 4)
-            print("time: %s. clock: %s" % (t, c))
+            print("time: {}. clock: {}".format(t, c))
 
     def swap(self, what, mode=None):
         """Swap chunks or slices using a certain bounds reference."""
@@ -967,16 +967,16 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         elif what == "slices":
             self.swap_slices(mode)
         if mode:
-            message = "swap_%s(%s)" % (what, mode)
+            message = "swap_{}({})".format(what, mode)
         else:
-            message = "swap_%s" % (what,)
+            message = "swap_{}".format(what)
         (nover, mult, tover) = self.compute_overlaps(
             self.tmp, message, self.verbose)
         rmult = len(mult.nonzero()[0]) / float(len(mult))
         if self.verbose:
             t = round(time() - t1, 4)
             c = round(perf_counter() - c1, 4)
-            print("time: %s. clock: %s" % (t, c))
+            print("time: {}. clock: {}".format(t, c))
         # Check that entropy is actually decreasing
         if what == "chunks" and self.last_tover > 0. and self.last_nover > 0:
             tover_var = (self.last_tover - tover) / self.last_tover
@@ -2125,7 +2125,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
                 filters += ", shuffle"
             if self.filters.bitshuffle:
                 filters += ", bitshuffle"
-            filters += ", %s(%s)" % (self.filters.complib,
+            filters += ", {}({})".format(self.filters.complib,
                                      self.filters.complevel)
         return "Index(%s, %s%s).is_csi=%s" % \
                (self.optlevel, self.kind, filters, self.is_csi)
@@ -2134,18 +2134,18 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """This provides more metainfo than standard __repr__"""
 
         cpathname = self.table._v_pathname + ".cols." + self.column.pathname
-        retstr = """%s (Index for column %s)
-  optlevel := %s
-  kind := %s
-  filters := %s
-  is_csi := %s
-  nelements := %s
-  chunksize := %s
-  slicesize := %s
-  blocksize := %s
-  superblocksize := %s
-  dirty := %s
-  byteorder := %r""" % (self._v_pathname, cpathname,
+        retstr = """{} (Index for column {})
+  optlevel := {}
+  kind := {}
+  filters := {}
+  is_csi := {}
+  nelements := {}
+  chunksize := {}
+  slicesize := {}
+  blocksize := {}
+  superblocksize := {}
+  dirty := {}
+  byteorder := {!r}""".format(self._v_pathname, cpathname,
                         self.optlevel, self.kind,
                         self.filters, self.is_csi,
                         self.nelements,

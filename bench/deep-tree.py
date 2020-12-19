@@ -1,7 +1,6 @@
 # Small benchmark for compare creation times with parameter
 # PYTABLES_SYS_ATTRS active or not.
 
-from __future__ import print_function
 import os
 import subprocess
 from time import time
@@ -32,9 +31,9 @@ def show_stats(explain, tref):
             vmlib = int(line.split()[1])
     sout.close()
     print("Memory usage: ******* %s *******" % explain)
-    print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
-    print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
-    print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
+    print("VmSize: {:>7} kB\tVmRSS: {:>7} kB".format(vmsize, vmrss))
+    print("VmData: {:>7} kB\tVmStk: {:>7} kB".format(vmdata, vmstk))
+    print("VmExe:  {:>7} kB\tVmLib: {:>7} kB".format(vmexe, vmlib))
     tnow = time()
     print("WallClock time:", round(tnow - tref, 3))
     return tnow

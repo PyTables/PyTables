@@ -1,4 +1,3 @@
-from __future__ import print_function
 import subprocess  # Needs Python 2.4
 from indexed_search import DB
 import psycopg2 as db2
@@ -13,7 +12,7 @@ TABLE_NAME = "intsfloats"
 PORT = 5432
 
 
-class StreamChar(object):
+class StreamChar:
     "Object simulating a file for reading"
 
     def __init__(self, db):

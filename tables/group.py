@@ -182,7 +182,7 @@ class Group(hdf5extension.Group, Node):
     def _g_setfilters(self, value):
         if not isinstance(value, Filters):
             raise TypeError(
-                "value is not an instance of `Filters`: %r" % (value,))
+                "value is not an instance of `Filters`: {!r}".format(value))
         self._v_attrs.FILTERS = value
 
     def _g_delfilters(self):
@@ -474,8 +474,7 @@ class Group(hdf5extension.Group, Node):
                 yield group
         else:
             for group in self._f_walk_groups():
-                for leaf in group._f_iter_nodes(classname):
-                    yield leaf
+                yield from group._f_iter_nodes(classname)
 
 
     def _g_join(self, name):
@@ -1089,7 +1088,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         pathname = self._v_pathname
         classname = self.__class__.__name__
         title = self._v_title
-        return "%s (%s) %r" % (pathname, classname, title)
+        return "{} ({}) {!r}".format(pathname, classname, title)
 
     def __repr__(self):
         """Return a detailed string representation of the group.
@@ -1107,12 +1106,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         """
 
         rep = [
-            '%r (%s)' % (childname, child.__class__.__name__)
+            '{!r} ({})'.format(childname, child.__class__.__name__)
             for (childname, child) in self._v_children.items()
         ]
         childlist = '[%s]' % (', '.join(rep))
 
-        return "%s\n  children := %s" % (str(self), childlist)
+        return "{}\n  children := {}".format(str(self), childlist)
 
 
 # Special definition for group root

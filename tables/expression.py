@@ -21,7 +21,7 @@ from .exceptions import PerformanceWarning
 from .parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 
 
-class Expr(object):
+class Expr:
     """A class for evaluating expressions with arbitrary array-like objects.
 
     Expr is a class for evaluating expressions containing array-like objects.
@@ -679,8 +679,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             # Do the actual computation
             rout = self._compiled_expr(*vals)
             # Return one row per call
-            for row in rout:
-                yield row
+            yield from rout
 
         # Activate the conversion again (default)
         for val in values:

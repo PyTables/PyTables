@@ -148,11 +148,11 @@ def check_file_access(filename, mode='r'):
     if mode == 'r':
         # The file should be readable.
         if not os.access(filename, os.F_OK):
-            raise IOError("``%s`` does not exist" % (filename,))
+            raise OSError("``{}`` does not exist".format(filename))
         if not os.path.isfile(filename):
-            raise IOError("``%s`` is not a regular file" % (filename,))
+            raise OSError("``{}`` is not a regular file".format(filename))
         if not os.access(filename, os.R_OK):
-            raise IOError("file ``%s`` exists but it can not be read"
+            raise OSError("file ``%s`` exists but it can not be read"
                           % (filename,))
     elif mode == 'w':
         if os.access(filename, os.F_OK):
@@ -166,11 +166,11 @@ def check_file_access(filename, mode='r'):
             if not parentname:
                 parentname = '.'
             if not os.access(parentname, os.F_OK):
-                raise IOError("``%s`` does not exist" % (parentname,))
+                raise OSError("``{}`` does not exist".format(parentname))
             if not os.path.isdir(parentname):
-                raise IOError("``%s`` is not a directory" % (parentname,))
+                raise OSError("``{}`` is not a directory".format(parentname))
             if not os.access(parentname, os.W_OK):
-                raise IOError("directory ``%s`` exists but it can not be "
+                raise OSError("directory ``%s`` exists but it can not be "
                               "written" % (parentname,))
     elif mode == 'a':
         if os.access(filename, os.F_OK):
@@ -180,10 +180,10 @@ def check_file_access(filename, mode='r'):
     elif mode == 'r+':
         check_file_access(filename, 'r')
         if not os.access(filename, os.W_OK):
-            raise IOError("file ``%s`` exists but it can not be written"
+            raise OSError("file ``%s`` exists but it can not be written"
                           % (filename,))
     else:
-        raise ValueError("invalid mode: %r" % (mode,))
+        raise ValueError("invalid mode: {!r}".format(mode))
 
 
 
@@ -265,9 +265,9 @@ def show_stats(explain, tref, encoding=None):
             vmlib = int(line.split()[1])
     sout.close()
     print("Memory usage: ******* %s *******" % explain)
-    print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
-    print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
-    print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
+    print("VmSize: {:>7} kB\tVmRSS: {:>7} kB".format(vmsize, vmrss))
+    print("VmData: {:>7} kB\tVmStk: {:>7} kB".format(vmdata, vmstk))
+    print("VmExe:  {:>7} kB\tVmLib: {:>7} kB".format(vmexe, vmlib))
     tnow = time()
     print("WallClock time:", round(tnow - tref, 3))
     return tnow
@@ -351,7 +351,7 @@ def dump_logged_instances(classes, file=sys.stdout):
             if obj is not None:
                 file.write('    %s:\n' % obj)
                 for key, value in obj.__dict__.items():
-                    file.write('        %20s : %s\n' % (key, value))
+                    file.write('        {:>20} : {}\n'.format(key, value))
 
 
 
@@ -375,7 +375,7 @@ class CacheDict(dict):
         super().__setitem__(key, value)
 
 
-class NailedDict(object):
+class NailedDict:
     """A dictionary which ignores its items when it has nails on it."""
 
     def __init__(self, maxentries):
