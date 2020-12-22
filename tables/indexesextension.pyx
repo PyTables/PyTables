@@ -240,7 +240,7 @@ cdef void _keysort(number_type* start1, char* start2, size_t elsize2, size_t n) 
     while True:
         while pr - pl > SMALL_QUICKSORT:
             pm  = pl + ((pr - pl) >> 1)
-            ipm  = ipl + ((ipr - ipl)/elsize2 >> 1)*elsize2
+            ipm  = ipl + ((ipr - ipl)//elsize2 >> 1)*elsize2
 
             if less_than(pm, pl):
                 pm[0], pl[0] =  pl[0], pm[0]
@@ -383,8 +383,8 @@ cdef void _keysort_string(char* start1, size_t ss, char* start2, size_t ts, size
 
     while True:
         while pr - pl > SMALL_QUICKSORT * ss:
-            pm  = pl + ((pr - pl)/ss >> 1)*ss
-            ipm  = ipl + ((ipr - ipl)/ts >> 1)*ts
+            pm  = pl + ((pr - pl)//ss >> 1)*ss
+            ipm  = ipl + ((ipr - ipl)//ts >> 1)*ts
 
             if strncmp(pm, pl, ss) < 0:
                 swap_bytes(pm, pl, ss)
@@ -520,7 +520,7 @@ def _bisect_left(a, x, int hi):
   if x <= a[0]: return 0
   if a[-1] < x: return hi
   while lo < hi:
-      mid = (lo+hi)/2
+      mid = (lo+hi)//2
       if a[mid] < x: lo = mid+1
       else: hi = mid
   return lo
@@ -541,7 +541,7 @@ def _bisect_right(a, x, int hi):
   if x < a[0]: return 0
   if a[-1] <= x: return hi
   while lo < hi:
-    mid = (lo+hi)/2
+    mid = (lo+hi)//2
     if x < a[mid]: hi = mid
     else: lo = mid+1
   return lo
@@ -660,7 +660,7 @@ cdef class IndexArray(Array):
       # not be duplicated (I know, this smells badly, but anyway).
       params = self._v_file.params
       rowsize = (self.bounds_ext._v_chunkshape[1] * dtype.itemsize)
-      maxslots = params['BOUNDS_MAX_SIZE'] / rowsize
+      maxslots = params['BOUNDS_MAX_SIZE'] // rowsize
       self.boundscache = <NumCache>NumCache(
         (maxslots, self.nbounds), dtype, 'non-opt types bounds')
       self.bufferbc = numpy.empty(dtype=dtype, shape=self.nbounds)
@@ -668,7 +668,7 @@ cdef class IndexArray(Array):
       self.rbufbc = self.bufferbc.data
       # Another NumCache for the sorted values
       rowsize = (self.chunksize*dtype.itemsize)
-      maxslots = params['SORTED_MAX_SIZE'] / (self.chunksize*dtype.itemsize)
+      maxslots = params['SORTED_MAX_SIZE'] // (self.chunksize*dtype.itemsize)
       self.sortedcache = <NumCache>NumCache(
         (maxslots, self.chunksize), dtype, 'sorted')
 
@@ -754,7 +754,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     rbufst = <int *>self.rbufst
@@ -816,7 +816,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     rbufst = <int *>self.rbufst
@@ -878,7 +878,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     rbufst = <int *>self.rbufst
@@ -939,7 +939,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     rbufst = <int *>self.rbufst
@@ -1000,7 +1000,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     rbufst = <int *>self.rbufst
@@ -1061,7 +1061,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     rbufst = <int *>self.rbufst
@@ -1122,7 +1122,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     rbufst = <int *>self.rbufst
@@ -1183,7 +1183,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     rbufst = <int *>self.rbufst
@@ -1244,7 +1244,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     tlength = 0
@@ -1306,7 +1306,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     tlength = 0
@@ -1369,7 +1369,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     tlength = 0
@@ -1433,7 +1433,7 @@ cdef class IndexArray(Array):
 
     cs = self.l_chunksize
     ss = self.l_slicesize
-    ncs = ss / cs
+    ncs = ss // cs
     nbounds = self.nbounds
     nrows = self.nrows
     tlength = 0

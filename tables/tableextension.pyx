@@ -780,7 +780,7 @@ cdef class Row:
     self.exist_enum_cols = len(self.colenums)
     self.nrowsinbuf = table.nrowsinbuf
     self.chunksize = table.chunkshape[0]
-    self.nchunksinbuf = self.nrowsinbuf / self.chunksize
+    self.nchunksinbuf = self.nrowsinbuf // self.chunksize
     self.dtype = table._v_dtype
     self._new_buffer(table)
     self.mod_elements = None
@@ -877,7 +877,7 @@ cdef class Row:
       self.indexed = 1
       # Compute totalchunks here because self.nrows can change during the
       # life of a Row instance.
-      self.totalchunks = self.nrows / self.chunksize
+      self.totalchunks = self.nrows // self.chunksize
       if self.nrows % self.chunksize:
         self.totalchunks = self.totalchunks + 1
       self.nrowsread = 0
@@ -938,7 +938,7 @@ cdef class Row:
         table = self.table
         iobuf = self.iobuf
         j = 0;  recout = 0;  cs = self.chunksize
-        nchunksread = self.nrowsread / cs
+        nchunksread = self.nrowsread // cs
         tmp_range = numpy.arange(0, cs, dtype='int64')
         self.bufcoords = numpy.empty(self.nrowsinbuf, dtype='int64')
         # Fetch valid chunks until the I/O buffer is full
@@ -1225,7 +1225,7 @@ cdef class Row:
         istopb = istop - inrowsread
         if istopb > inrowsinbuf:
           istopb = inrowsinbuf
-        stopr = startr + ((istopb - istartb - 1) / istep) + 1
+        stopr = startr + ((istopb - istartb - 1) // istep) + 1
         # Read a chunk
         inrowsread = inrowsread + self.table._read_records(i, inrowsinbuf,
                                                            self.iobuf)
@@ -1237,7 +1237,7 @@ cdef class Row:
 
         # Compute some indexes for the next iteration
         startr = stopr
-        j = istartb + ((istopb - istartb - 1) / istep) * istep
+        j = istartb + ((istopb - istartb - 1) // istep) * istep
         istartb = (j+istep) % inrowsinbuf
         inextelement = inextelement + istep
         i = i + inrowsinbuf
@@ -1259,7 +1259,7 @@ cdef class Row:
           continue
         # Compute the end for this iteration
         # (we know we are going backward so try to keep indices positive)
-        stopr = startr + (1 - istopb + istartb) / (-istep)
+        stopr = startr + (1 - istopb + istartb) // (-istep)
         # Read a chunk
         inrowsread = inrowsread + self.table._read_records(i - inrowsinbuf + 1,
                                                            inrowsinbuf, self.iobuf)
