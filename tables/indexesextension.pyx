@@ -29,7 +29,7 @@ import numpy
 cimport numpy as cnp
 
 from .exceptions import HDF5ExtError
-from hdf5extension cimport Array
+from .hdf5extension cimport Array
 
 
 # Types, constants, functions, classes & other objects from everywhere
@@ -46,8 +46,8 @@ ctypedef npy_uint16 npy_float16
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strncmp
 
-from definitions cimport hid_t, herr_t, hsize_t, H5Screate_simple, H5Sclose
-from lrucacheextension cimport NumCache
+from .definitions cimport hid_t, herr_t, hsize_t, H5Screate_simple, H5Sclose
+from .lrucacheextension cimport NumCache
 
 
 
