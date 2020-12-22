@@ -22,12 +22,12 @@ except ImportError:
 
 import numpy
 
-from tables.description import Description, Col
-from tables.misc.enum import Enum
-from tables.exceptions import HDF5ExtError
-from tables.atom import Atom, EnumAtom, ReferenceAtom
+from .description import Description, Col
+from .misc.enum import Enum
+from .exceptions import HDF5ExtError
+from .atom import Atom, EnumAtom, ReferenceAtom
 
-from tables.utils import check_file_access
+from .utils import check_file_access
 
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
@@ -41,7 +41,7 @@ from numpy cimport (import_array, ndarray, dtype,
   NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, NPY_FLOAT16, NPY_FLOAT32,
   NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128)
 
-from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
+from .definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   H5ATTRfind_attribute, H5ATTRget_attribute_string, H5D_CHUNKED,
   H5D_layout_t, H5Dclose, H5Dget_type, H5Dopen, H5E_DEFAULT,
   H5E_WALK_DOWNWARD, H5E_auto_t, H5E_error_t, H5E_walk_t, H5Eget_msg,

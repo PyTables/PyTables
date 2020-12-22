@@ -34,7 +34,7 @@ from .utilsextension import (get_nested_field, atom_from_hdf5_type,
   H5T_STD_I64)
 from .utils import SizeType
 
-from utilsextension cimport get_native_type, cstr_to_pystr
+from .utilsextension cimport get_native_type, cstr_to_pystr
 
 # numpy functions & objects
 from hdf5extension cimport Leaf
@@ -44,7 +44,7 @@ from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp, strlen
 from numpy cimport (import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM, \
   npy_intp)
-from definitions cimport (hid_t, herr_t, hsize_t, htri_t, hbool_t,
+from .definitions cimport (hid_t, herr_t, hsize_t, htri_t, hbool_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, H5T_COMPOUND, H5Tget_order,
   H5Fflush, H5Dget_create_plist, H5T_ORDER_LE,
@@ -60,7 +60,7 @@ from definitions cimport (hid_t, herr_t, hsize_t, htri_t, hbool_t,
   conv_float64_timeval32, truncate_dset,
   pt_H5free_memory)
 
-from lrucacheextension cimport ObjectCache, NumCache
+from .lrucacheextension cimport ObjectCache, NumCache
 
 
 

@@ -12,13 +12,13 @@
 
 from .exceptions import HDF5ExtError
 
-from hdf5extension cimport Node
-from utilsextension cimport cstr_to_pystr
+from .hdf5extension cimport Node
+from .utilsextension cimport cstr_to_pystr
 
 from libc.stdlib cimport malloc, free
 from libc.string cimport strlen
 from cpython.unicode cimport PyUnicode_DecodeUTF8
-from definitions cimport (H5P_DEFAULT,
+from .definitions cimport (H5P_DEFAULT,
     hid_t, herr_t, hbool_t, int64_t, H5T_cset_t, haddr_t)
 
 

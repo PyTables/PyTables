@@ -39,16 +39,16 @@ import pickle
 
 import numpy
 
-from tables.exceptions import HDF5ExtError, DataTypeWarning
+from .exceptions import HDF5ExtError, DataTypeWarning
 
-from tables.utils import (check_file_access, byteorders, correct_byteorder,
+from .utils import (check_file_access, byteorders, correct_byteorder,
   SizeType)
 
-from tables.atom import Atom
+from .atom import Atom
 
-from tables.description import descr_from_dtype
+from .description import descr_from_dtype
 
-from tables.utilsextension import (encode_filename, set_blosc_max_threads,
+from .utilsextension import (encode_filename, set_blosc_max_threads,
   atom_to_hdf5_type, atom_from_hdf5_type, hdf5_to_np_ext_type, create_nested_type,
   pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
   platform_byteorder)
@@ -63,7 +63,7 @@ from cpython.bytes cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
 from cpython.unicode cimport PyUnicode_DecodeUTF8
 
 
-from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
+from .definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED,
   H5O_TYPE_UNKNOWN, H5O_TYPE_GROUP, H5O_TYPE_DATASET, H5O_TYPE_NAMED_DATATYPE,
   H5L_TYPE_ERROR, H5L_TYPE_HARD, H5L_TYPE_SOFT, H5L_TYPE_EXTERNAL,
@@ -99,7 +99,7 @@ from definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
 
 cdef int H5T_CSET_DEFAULT = 16
 
-from utilsextension cimport malloc_dims, get_native_type, cstr_to_pystr, load_reference
+from .utilsextension cimport malloc_dims, get_native_type, cstr_to_pystr, load_reference
 
 
 #-------------------------------------------------------------------
