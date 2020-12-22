@@ -232,7 +232,7 @@ def bisect_left(a, x, int lo=0):
 
   lo = 0
   while lo < hi:
-    mid = (lo+hi)/2
+    mid = (lo+hi)//2
     if nan_aware_lt(a[mid], x): lo = mid+1
     else: hi = mid
   return lo
@@ -250,7 +250,7 @@ def bisect_right(a, x, int lo=0):
 
   lo = 0
   while lo < hi:
-    mid = (lo+hi)/2
+    mid = (lo+hi)//2
     if nan_aware_lt(x, a[mid]): hi = mid
     else: lo = mid+1
   return lo

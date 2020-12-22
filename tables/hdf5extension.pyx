@@ -1184,7 +1184,7 @@ cdef class Leaf(Node):
     else:
       nrecords = len(nparr)
       bytestride = nparr.strides[0]  # supports multi-dimensional recarray
-    nelements = <size_t>nparr.size / nrecords
+    nelements = <size_t>nparr.size // nrecords
     t64buf = nparr.data
 
     conv_float64_timeval32(
