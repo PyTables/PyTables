@@ -535,8 +535,7 @@ class Description:
             # Class variables
             object = classdict[k]
             newdict[k] = object    # To allow natural naming
-            if not (isinstance(object, Col) or
-                    isinstance(object, Description)):
+            if not isinstance(object, (Col, Description)):
                 raise TypeError('Passing an incorrect value to a table column.'
                                 ' Expected a Col (or subclass) instance and '
                                 'got: "%s". Please make use of the Col(), or '
