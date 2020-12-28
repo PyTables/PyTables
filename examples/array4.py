@@ -31,9 +31,9 @@ fileh = tables.open_file(file, mode="r")
 # Get the root group
 group = fileh.root
 # Get the metadata on the previosly saved arrays
-for i in range(len(dtypes)):
+for i, dtype in enumerate(dtypes, 1):
     # Create an array for later comparison
-    a = np.ones((basedim,) * (i + 1), dtypes[i])
+    a = np.ones((basedim,) * i, dtype)
     # Get the dset object hangin from group
     dset = getattr(group, 'array_' + a.dtype.char)
     print("Info from dataset:", repr(dset))

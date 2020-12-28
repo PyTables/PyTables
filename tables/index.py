@@ -1843,8 +1843,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             # Reset the lengths array (not necessary for starts)
             self.lengths[:] = 0
             # Now, set the interesting rows
-            for nrow in range(len(startlengths)):
-                nrow2, start, length = startlengths[nrow]
+            for nrow2, start, length in startlengths:
                 self.starts[nrow2] = start
                 self.lengths[nrow2] = length
                 tlen = tlen + length
@@ -2052,8 +2051,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             idx = chunkmap.nonzero()[0]
             starts = (idx * ratio).astype('int_')
             stops = numpy.ceil((idx + 1) * ratio).astype('int_')
-            for i in range(len(idx)):
-                tchunkmap[starts[i]:stops[i]] = True
+            for start, stop in zip(starts, stops):
+                tchunkmap[start:stop] = True
             chunkmap = tchunkmap
         if profile:
             show_stats("Exiting get_chunkmap", tref)
