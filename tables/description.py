@@ -93,14 +93,14 @@ class Col(atom.Atom, metaclass=type):
     # Class methods
     # ~~~~~~~~~~~~~
     @classmethod
-    def prefix(class_):
+    def prefix(cls):
         """Return the column class prefix."""
 
-        cname = class_.__name__
+        cname = cls.__name__
         return cname[:cname.rfind('Col')]
 
     @classmethod
-    def from_atom(class_, atom, pos=None, _offset=None):
+    def from_atom(cls, atom, pos=None, _offset=None):
         """Create a Col definition from a PyTables atom.
 
         An optional position may be specified as the pos argument.
@@ -109,11 +109,11 @@ class Col(atom.Atom, metaclass=type):
 
         prefix = atom.prefix()
         kwargs = atom._get_init_args()
-        colclass = class_._class_from_prefix[prefix]
+        colclass = cls._class_from_prefix[prefix]
         return colclass(pos=pos, _offset=_offset, **kwargs)
 
     @classmethod
-    def from_sctype(class_, sctype, shape=(), dflt=None, pos=None):
+    def from_sctype(cls, sctype, shape=(), dflt=None, pos=None):
         """Create a `Col` definition from a NumPy scalar type `sctype`.
 
         Optional shape, default value and position may be specified as
@@ -124,10 +124,10 @@ class Col(atom.Atom, metaclass=type):
         """
 
         newatom = atom.Atom.from_sctype(sctype, shape, dflt)
-        return class_.from_atom(newatom, pos=pos)
+        return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_dtype(class_, dtype, dflt=None, pos=None, _offset=None):
+    def from_dtype(cls, dtype, dflt=None, pos=None, _offset=None):
         """Create a `Col` definition from a NumPy `dtype`.
 
         Optional default value and position may be specified as the
@@ -139,10 +139,10 @@ class Col(atom.Atom, metaclass=type):
         """
 
         newatom = atom.Atom.from_dtype(dtype, dflt)
-        return class_.from_atom(newatom, pos=pos, _offset=_offset)
+        return cls.from_atom(newatom, pos=pos, _offset=_offset)
 
     @classmethod
-    def from_type(class_, type, shape=(), dflt=None, pos=None):
+    def from_type(cls, type, shape=(), dflt=None, pos=None):
         """Create a `Col` definition from a PyTables `type`.
 
         Optional shape, default value and position may be specified as
@@ -151,10 +151,10 @@ class Col(atom.Atom, metaclass=type):
         """
 
         newatom = atom.Atom.from_type(type, shape, dflt)
-        return class_.from_atom(newatom, pos=pos)
+        return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_kind(class_, kind, itemsize=None, shape=(), dflt=None, pos=None):
+    def from_kind(cls, kind, itemsize=None, shape=(), dflt=None, pos=None):
         """Create a `Col` definition from a PyTables `kind`.
 
         Optional item size, shape, default value and position may be
@@ -165,19 +165,19 @@ class Col(atom.Atom, metaclass=type):
         """
 
         newatom = atom.Atom.from_kind(kind, itemsize, shape, dflt)
-        return class_.from_atom(newatom, pos=pos)
+        return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def _subclass_from_prefix(class_, prefix):
+    def _subclass_from_prefix(cls, prefix):
         """Get a column subclass for the given `prefix`."""
 
         cname = '%sCol' % prefix
-        class_from_prefix = class_._class_from_prefix
+        class_from_prefix = cls._class_from_prefix
         if cname in class_from_prefix:
             return class_from_prefix[cname]
         atombase = getattr(atom, '%sAtom' % prefix)
 
-        class NewCol(class_, atombase):
+        class NewCol(cls, atombase):
             """Defines a non-nested column of a particular type.
 
             The constructor accepts the same arguments as the equivalent
@@ -766,7 +766,7 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
 class MetaIsDescription(type):
     """Helper metaclass to return the class variables as a dictionary."""
 
-    def __new__(cls, classname, bases, classdict):
+    def __new__(mcs, classname, bases, classdict):
         """Return a new class with a "columns" attribute filled."""
 
         newdict = {"columns": {}, }
@@ -782,7 +782,7 @@ class MetaIsDescription(type):
                 newdict["columns"][k] = classdict[k]
 
         # Return a new class with the "columns" attribute filled
-        return type.__new__(cls, classname, bases, newdict)
+        return type.__new__(mcs, classname, bases, newdict)
 
 
 
