@@ -624,7 +624,7 @@ class StringAtom(Atom):
 
     @property
     def itemsize(self):
-        "Size in bytes of a sigle item in the atom."
+        """Size in bytes of a sigle item in the atom."""
         return self.dtype.base.itemsize
 
     def __init__(self, itemsize, shape=(), dflt=_defvalue):
@@ -733,8 +733,8 @@ class ComplexAtom(Atom):
 
     @property
     def itemsize(self):
-         "Size in bytes of a sigle item in the atom."
-         return self.dtype.base.itemsize
+        """Size in bytes of a sigle item in the atom."""
+        return self.dtype.base.itemsize
 
     # Only instances have a `type` attribute, so complex types must be
     # registered by hand.

@@ -166,7 +166,7 @@ class Group(hdf5extension.Group, Node):
     # `_v_nchildren` is a direct read-only shorthand
     # for the number of *visible* children in a group.
     def _g_getnchildren(self):
-        "The number of children hanging from this group."
+        """The number of children hanging from this group."""
         return len(self._v_children)
 
     _v_nchildren = property(_g_getnchildren)

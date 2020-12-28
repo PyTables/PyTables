@@ -150,7 +150,7 @@ class Node(metaclass=MetaNode):
 
     # `_v_parent` is accessed via its file to avoid upwards references.
     def _g_getparent(self):
-        "The parent :class:`Group` instance"
+        """The parent :class:`Group` instance"""
         (parentpath, nodename) = split_path(self._v_pathname)
         return self._v_file._get_node(parentpath)
 
@@ -173,7 +173,7 @@ class Node(metaclass=MetaNode):
     # '_v_title' is a direct read-write shorthand for the 'TITLE' attribute
     # with the empty string as a default value.
     def _g_gettitle(self):
-        "A description of this node. A shorthand for TITLE attribute."
+        """A description of this node. A shorthand for TITLE attribute."""
         if hasattr(self._v_attrs, 'TITLE'):
             return self._v_attrs.TITLE
         else:

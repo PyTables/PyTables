@@ -57,7 +57,7 @@ _new_filters_sub = br'(\1tables.filters\n'
 
 
 def issysattrname(name):
-    "Check if a name is a system attribute or not"
+    """Check if a name is a system attribute or not"""
 
     if (name in SYS_ATTRS or
             numpy.prod([name.startswith(prefix)

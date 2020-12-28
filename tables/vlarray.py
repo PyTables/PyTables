@@ -222,7 +222,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     @property
     def shape(self):
-        "The shape of the stored array."
+        """The shape of the stored array."""
         return (self.nrows,)
 
     @property

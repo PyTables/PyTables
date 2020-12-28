@@ -958,7 +958,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             return arr
 
     def _get_container(self, shape):
-        "Get the appropriate buffer for data depending on table nestedness."
+        """Get the appropriate buffer for data depending on table nestedness."""
 
         # This is *much* faster than the numpy.rec.array counterpart
         return numpy.empty(shape=shape, dtype=self._v_dtype)
@@ -2767,7 +2767,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._do_reindex(dirty=True)
 
     def _g_copy_rows(self, object, start, stop, step, sortby, checkCSI):
-        "Copy rows from self to object"
+        """Copy rows from self to object"""
         if sortby is None:
             self._g_copy_rows_optim(object, start, stop, step)
             return
@@ -3036,7 +3036,7 @@ class Cols:
 
     @property
     def _v_table(self):
-        "The parent Table instance (see :ref:`TableClassDescr`)."
+        """The parent Table instance (see :ref:`TableClassDescr`)."""
         return self._v__tableFile._get_node(self._v__tablePath)
 
     def __init__(self, table, desc):
@@ -3342,12 +3342,12 @@ class Column:
 
     @property
     def shape(self):
-        "The shape of this column."
+        """The shape of this column."""
         return (self.table.nrows,) + self.descr._v_dtypes[self.name].shape
 
     @property
     def is_indexed(self):
-        "True if the column is indexed, false otherwise."
+        """True if the column is indexed, false otherwise."""
         if self.index is None:
             return False
         else:

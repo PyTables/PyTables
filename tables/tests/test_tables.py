@@ -3819,7 +3819,7 @@ class RecArrayIO(common.TempFileMixin, TestCase):
         self.assertEqual(r1.tobytes(), r2.tobytes())
 
     def test02(self):
-        "Checking saving a large recarray with an offset in its buffer"
+        """Checking saving a large recarray with an offset in its buffer"""
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -6135,7 +6135,7 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
 # Test for building very large MD columns without defaults
 class MDLargeColTestCase(common.TempFileMixin, TestCase):
     def test01_create(self):
-        "Create a Table with a very large MD column.  Ticket #211."
+        """Create a Table with a very large MD column.  Ticket #211."""
         N = 2**18      # 4x larger than maximum object header size (64 KB)
         cols = {'col1': Int8Col(shape=N, dflt=0)}
         tbl = self.h5file.create_table('/', 'test', cols)

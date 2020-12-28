@@ -157,7 +157,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
     @property
     def kind(self):
-        "The kind of this index."
+        """The kind of this index."""
         return {1: 'ultralight', 2: 'light',
                 4: 'medium', 8: 'full'}[self.indsize]
 
@@ -209,22 +209,22 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
     @property
     def nblockssuperblock(self):
-        "The number of blocks in a superblock."
+        """The number of blocks in a superblock."""
         return self.superblocksize // self.blocksize
 
     @property
     def nslicesblock(self):
-        "The number of slices in a block."
+        """The number of slices in a block."""
         return self.blocksize // self.slicesize
 
     @property
     def nchunkslice(self):
-        "The number of chunks in a slice."
+        """The number of chunks in a slice."""
         return self.slicesize // self.chunksize
 
     @property
     def nsuperblocks(self):
-        "The total number of superblocks in index."
+        """The total number of superblocks in index."""
         # Last row should not be considered as a superblock
         nelements = self.nelements - self.nelementsILR
         nblocks = nelements // self.superblocksize
@@ -234,7 +234,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
     @property
     def nblocks(self):
-        "The total number of blocks in index."
+        """The total number of blocks in index."""
         # Last row should not be considered as a block
         nelements = self.nelements - self.nelementsILR
         nblocks = nelements // self.blocksize
@@ -244,27 +244,27 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
     @property
     def nslices(self):
-        "The number of complete slices in index."
+        """The number of complete slices in index."""
         return self.nelements // self.slicesize
 
     @property
     def nchunks(self):
-        "The number of complete chunks in index."
+        """The number of complete chunks in index."""
         return self.nelements // self.chunksize
 
     @property
     def shape(self):
-        "The shape of this index (in slices and elements)."
+        """The shape of this index (in slices and elements)."""
         return (self.nrows, self.slicesize)
 
     @property
     def temp_required(self):
-        "Whether a temporary file for indexes is required or not."
+        """Whether a temporary file for indexes is required or not."""
         return self.indsize > 1 and self.optlevel > 0 and self.table.nrows > self.slicesize
 
     @property
     def want_complete_sort(self):
-        "Whether we should try to build a completely sorted index or not."
+        """Whether we should try to build a completely sorted index or not."""
         return self.indsize == 8 and self.optlevel == 9
 
     @property
@@ -1784,7 +1784,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         return self.nelements
 
     def restorecache(self):
-        "Clean the limits cache and resize starts and lengths arrays"
+        """Clean the limits cache and resize starts and lengths arrays"""
 
         params = self._v_file.params
         # The sorted IndexArray is absolutely required to be in memory
@@ -2210,7 +2210,7 @@ class IndexesTableG(NotLoggedMixin, Group):
 
     @property
     def table(self):
-        "Accessor for the `Table` object of this `IndexesTableG` container."
+        """Accessor for the `Table` object of this `IndexesTableG` container."""
         names = self._v_pathname.split("/")
         tablename = names.pop()[3:]   # "_i_" is at the beginning
         parentpathname = "/".join(names)

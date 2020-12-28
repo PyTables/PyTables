@@ -439,7 +439,7 @@ class NodeManager:
                 cache[newkey] = node
 
     def drop_from_cache(self, nodepath):
-        '''Remove the node from cache'''
+        """Remove the node from cache"""
 
         # Remove the node from the cache.
         self.cache.pop(nodepath, None)
@@ -699,7 +699,7 @@ class File(hdf5extension.File):
 
     @property
     def title(self):
-        "The title of the root group in the file."
+        """The title of the root group in the file."""
         return self.root._v_title
 
     @title.setter
@@ -712,7 +712,7 @@ class File(hdf5extension.File):
 
     @property
     def filters(self):
-        "Default filter properties for the root group (see :ref:`FiltersClassDescr`)."
+        """Default filter properties for the root group (see :ref:`FiltersClassDescr`)."""
         return self.root._v_filters
 
     @filters.setter

@@ -485,7 +485,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         return new_node
 
     def _g_fix_byteorder_data(self, data, dbyteorder):
-        "Fix the byteorder of data passed in constructors."
+        """Fix the byteorder of data passed in constructors."""
         dbyteorder = byteorders[dbyteorder]
         # If self.byteorder has not been passed as an argument of
         # the constructor, then set it to the same value of data.
