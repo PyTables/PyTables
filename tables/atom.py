@@ -588,18 +588,10 @@ class Atom(metaclass=MetaAtom):
         for both constructor arguments and instance attributes.
 
         """
-
-        # @COMPATIBILITY: inspect.getargspec has been deprecated since
-        #                 Python 3.5
-        try:
-            # inspect.signature is new in Python 3.5
-            signature = inspect.signature(self.__init__)
-        except AttributeError:
-            args = inspect.getargspec(self.__init__)[0]
-        else:
-            parameters = signature.parameters
-            args = [arg for arg, p in parameters.items()
-                if p.kind is p.POSITIONAL_OR_KEYWORD]
+        signature = inspect.signature(self.__init__)
+        parameters = signature.parameters
+        args = [arg for arg, p in parameters.items()
+            if p.kind is p.POSITIONAL_OR_KEYWORD]
 
         return {arg: getattr(self, arg) for arg in args if arg != 'self'}
 
