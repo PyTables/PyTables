@@ -992,7 +992,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         if rmult < thmult:
             return True
         # Additional check for the overlap ratio
-        if tover >= 0. and tover < thtover:
+        if 0. <= tover < thtover:
             return True
         return False
 
