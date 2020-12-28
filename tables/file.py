@@ -2106,8 +2106,7 @@ class File(hdf5extension.File):
         class_ = get_class_by_name(classname)
 
         if class_ is Group:  # only groups
-            for group in self.walk_groups(where):
-                yield group
+            yield from self.walk_groups(where)
         elif class_ is Node:  # all nodes
             yield self.get_node(where)
             for group in self.walk_groups(where):
