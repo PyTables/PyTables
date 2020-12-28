@@ -310,7 +310,7 @@ class OpenFileTestCase(TempFileMixin, TestCase):
         fnode.close()
 
     def test02_OpenFileInvalidMode(self):
-        "Opening an existing file node with an invalid mode."
+        """Opening an existing file node with an invalid mode."""
 
         self.assertRaises(
             IOError, filenode.open_node, self.h5file.get_node('/test'), 'w')

@@ -187,7 +187,7 @@ class MetaAtom(type):
 
     """
 
-    def __init__(class_, name, bases, dict_):
+    def __init__(cls, name, bases, dict_):
         super().__init__(name, bases, dict_)
 
         kind = dict_.get('kind')
@@ -204,15 +204,15 @@ class MetaAtom(type):
         if kind and itemsize and not hasattr(itemsize, '__int__'):
             # Atom classes with a non-fixed item size do have an
             # ``itemsize``, but it's not a number (e.g. property).
-            atom_map[kind] = class_
+            atom_map[kind] = cls
             return
 
         if kind:  # first definition of kind, make new entry
             atom_map[kind] = {}
 
         if itemsize and hasattr(itemsize, '__int__'):  # fixed
-            kind = class_.kind  # maybe from superclasses
-            atom_map[kind][int(itemsize)] = class_
+            kind = cls.kind  # maybe from superclasses
+            atom_map[kind][int(itemsize)] = cls
 
 
 # Atom classes
@@ -315,13 +315,13 @@ class Atom(metaclass=MetaAtom):
     # Class methods
     # ~~~~~~~~~~~~~
     @classmethod
-    def prefix(class_):
+    def prefix(cls):
         """Return the atom class prefix."""
-        cname = class_.__name__
+        cname = cls.__name__
         return cname[:cname.rfind('Atom')]
 
     @classmethod
-    def from_sctype(class_, sctype, shape=(), dflt=None):
+    def from_sctype(cls, sctype, shape=(), dflt=None):
         """Create an Atom from a NumPy scalar type sctype.
 
         Optional shape and default value may be specified as the
@@ -345,10 +345,10 @@ class Atom(metaclass=MetaAtom):
             if sctype not in numpy.sctypeDict:
                 raise ValueError("unknown NumPy scalar type: {!r}".format(sctype))
             sctype = numpy.sctypeDict[sctype]
-        return class_.from_dtype(numpy.dtype((sctype, shape)), dflt)
+        return cls.from_dtype(numpy.dtype((sctype, shape)), dflt)
 
     @classmethod
-    def from_dtype(class_, dtype, dflt=None):
+    def from_dtype(cls, dtype, dflt=None):
         """Create an Atom from a NumPy dtype.
 
         An optional default value may be specified as the dflt
@@ -381,19 +381,19 @@ class Atom(metaclass=MetaAtom):
                              % dtype)
         if basedtype.kind == 'S':  # can not reuse something like 'string80'
             itemsize = basedtype.itemsize
-            return class_.from_kind('string', itemsize, dtype.shape, dflt)
+            return cls.from_kind('string', itemsize, dtype.shape, dflt)
         elif basedtype.kind == 'U':
             # workaround for unicode type (standard string type in Python 3)
             warnings.warn("support for unicode type is very limited, "
                           "and only works for strings that can be cast as ascii", FlavorWarning)
             itemsize = basedtype.itemsize // 4
             assert str(itemsize) in basedtype.str, "something went wrong in handling unicode."
-            return class_.from_kind('string', itemsize, dtype.shape, dflt)
+            return cls.from_kind('string', itemsize, dtype.shape, dflt)
         # Most NumPy types have direct correspondence with PyTables types.
-        return class_.from_type(basedtype.name, dtype.shape, dflt)
+        return cls.from_type(basedtype.name, dtype.shape, dflt)
 
     @classmethod
-    def from_type(class_, type, shape=(), dflt=None):
+    def from_type(cls, type, shape=(), dflt=None):
         """Create an Atom from a PyTables type.
 
         Optional shape and default value may be specified as the
@@ -417,10 +417,10 @@ class Atom(metaclass=MetaAtom):
         if type not in all_types:
             raise ValueError("unknown type: {!r}".format(type))
         kind, itemsize = split_type(type)
-        return class_.from_kind(kind, itemsize, shape, dflt)
+        return cls.from_kind(kind, itemsize, shape, dflt)
 
     @classmethod
-    def from_kind(class_, kind, itemsize=None, shape=(), dflt=None):
+    def from_kind(cls, kind, itemsize=None, shape=(), dflt=None):
         """Create an Atom from a PyTables kind.
 
         Optional item size, shape and default value may be
@@ -588,18 +588,10 @@ class Atom(metaclass=MetaAtom):
         for both constructor arguments and instance attributes.
 
         """
-
-        # @COMPATIBILITY: inspect.getargspec has been deprecated since
-        #                 Python 3.5
-        try:
-            # inspect.signature is new in Python 3.5
-            signature = inspect.signature(self.__init__)
-        except AttributeError:
-            args = inspect.getargspec(self.__init__)[0]
-        else:
-            parameters = signature.parameters
-            args = [arg for arg, p in parameters.items()
-                if p.kind is p.POSITIONAL_OR_KEYWORD]
+        signature = inspect.signature(self.__init__)
+        parameters = signature.parameters
+        args = [arg for arg, p in parameters.items()
+            if p.kind is p.POSITIONAL_OR_KEYWORD]
 
         return {arg: getattr(self, arg) for arg in args if arg != 'self'}
 
@@ -624,7 +616,7 @@ class StringAtom(Atom):
 
     @property
     def itemsize(self):
-        "Size in bytes of a sigle item in the atom."
+        """Size in bytes of a sigle item in the atom."""
         return self.dtype.base.itemsize
 
     def __init__(self, itemsize, shape=(), dflt=_defvalue):
@@ -733,8 +725,8 @@ class ComplexAtom(Atom):
 
     @property
     def itemsize(self):
-         "Size in bytes of a sigle item in the atom."
-         return self.dtype.base.itemsize
+        """Size in bytes of a sigle item in the atom."""
+        return self.dtype.base.itemsize
 
     # Only instances have a `type` attribute, so complex types must be
     # registered by hand.

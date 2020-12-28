@@ -2031,7 +2031,7 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
         array[s] = na
 
     def test01_basiccheck(self):
-        "Some basic checks for carrays exceeding 2**31 rows"
+        """Some basic checks for carrays exceeding 2**31 rows"""
 
         array = self.h5file.root.array
 
@@ -2122,7 +2122,7 @@ class BigArrayTestCase(common.TempFileMixin, TestCase):
 class DfltAtomTestCase(common.TempFileMixin, TestCase):
 
     def test00_dflt(self):
-        "Check that Atom.dflt is honored (string version)."
+        """Check that Atom.dflt is honored (string version)."""
 
         # Create a CArray with default values
         self.h5file.create_carray('/', 'bar',
@@ -2140,7 +2140,7 @@ class DfltAtomTestCase(common.TempFileMixin, TestCase):
             allequal(values, numpy.array(["abdef"]*100, "S5").reshape(10, 10)))
 
     def test01_dflt(self):
-        "Check that Atom.dflt is honored (int version)."
+        """Check that Atom.dflt is honored (int version)."""
 
         # Create a CArray with default values
         self.h5file.create_carray('/', 'bar',
@@ -2156,7 +2156,7 @@ class DfltAtomTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(values, numpy.ones((10, 10), "i4")))
 
     def test02_dflt(self):
-        "Check that Atom.dflt is honored (float version)."
+        """Check that Atom.dflt is honored (float version)."""
 
         # Create a CArray with default values
         self.h5file.create_carray('/', 'bar',

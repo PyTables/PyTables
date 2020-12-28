@@ -342,12 +342,12 @@ class EnumTableTestCase(common.TempFileMixin, TestCase):
         tbl.flush()
         tbl.flavor = 'python'
         read = tbl.read()
-        for i in range(len(appended)):
-            self.assertEqual(appended[i][0], read[i][0],
+        for x_appended, x_read in zip(appended, read):
+            self.assertEqual(x_appended[0], x_read[0],
                              "Written and read values differ.")
-            self.assertEqual(appended[i][1][0], read[i][1][0],
+            self.assertEqual(x_appended[1][0], x_read[1][0],
                              "Written and read values differ.")
-            self.assertEqual(appended[i][1][1], read[i][1][1],
+            self.assertEqual(x_appended[1][1], x_read[1][1],
                              "Written and read values differ.")
 
     def test05_where(self):

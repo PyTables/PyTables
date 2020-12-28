@@ -88,7 +88,7 @@ class _FileRegistry:
 
     @property
     def filenames(self):
-        return list(self._name_mapping.keys())
+        return list(self._name_mapping)
 
     @property
     def handlers(self):
@@ -439,7 +439,7 @@ class NodeManager:
                 cache[newkey] = node
 
     def drop_from_cache(self, nodepath):
-        '''Remove the node from cache'''
+        """Remove the node from cache"""
 
         # Remove the node from the cache.
         self.cache.pop(nodepath, None)
@@ -699,7 +699,7 @@ class File(hdf5extension.File):
 
     @property
     def title(self):
-        "The title of the root group in the file."
+        """The title of the root group in the file."""
         return self.root._v_title
 
     @title.setter
@@ -712,7 +712,7 @@ class File(hdf5extension.File):
 
     @property
     def filters(self):
-        "Default filter properties for the root group (see :ref:`FiltersClassDescr`)."
+        """Default filter properties for the root group (see :ref:`FiltersClassDescr`)."""
         return self.root._v_filters
 
     @filters.setter
@@ -2106,8 +2106,7 @@ class File(hdf5extension.File):
         class_ = get_class_by_name(classname)
 
         if class_ is Group:  # only groups
-            for group in self.walk_groups(where):
-                yield group
+            yield from self.walk_groups(where)
         elif class_ is Node:  # all nodes
             yield self.get_node(where)
             for group in self.walk_groups(where):
@@ -2449,7 +2448,7 @@ class File(hdf5extension.File):
             markid = mark
         elif isinstance(mark, str):
             if mark not in self._markers:
-                lmarkers = sorted(self._markers.keys())
+                lmarkers = sorted(self._markers)
                 raise UndoRedoError("The mark that you have specified has not "
                                     "been found in the internal marker list: "
                                     "%r" % lmarkers)

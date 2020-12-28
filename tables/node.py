@@ -64,30 +64,30 @@ class MetaNode(type):
 
     """
 
-    def __new__(class_, name, bases, dict_):
+    def __new__(mcs, name, bases, dict_):
         # Add default behaviour for representing closed nodes.
         for mname in ['__str__', '__repr__']:
             if mname in dict_:
                 dict_[mname] = _closedrepr(dict_[mname])
 
-        return type.__new__(class_, name, bases, dict_)
+        return type.__new__(mcs, name, bases, dict_)
 
-    def __init__(class_, name, bases, dict_):
+    def __init__(cls, name, bases, dict_):
         super().__init__(name, bases, dict_)
 
         # Always register into class name dictionary.
-        class_name_dict[class_.__name__] = class_
+        class_name_dict[cls.__name__] = cls
 
         # Register into class identifier dictionary only if the class
         # has an identifier and it is different from its parents'.
-        cid = getattr(class_, '_c_classid', None)
+        cid = getattr(cls, '_c_classid', None)
         if cid is not None:
             for base in bases:
                 pcid = getattr(base, '_c_classid', None)
                 if pcid == cid:
                     break
             else:
-                class_id_dict[cid] = class_
+                class_id_dict[cid] = cls
 
 
 class Node(metaclass=MetaNode):
@@ -150,7 +150,7 @@ class Node(metaclass=MetaNode):
 
     # `_v_parent` is accessed via its file to avoid upwards references.
     def _g_getparent(self):
-        "The parent :class:`Group` instance"
+        """The parent :class:`Group` instance"""
         (parentpath, nodename) = split_path(self._v_pathname)
         return self._v_file._get_node(parentpath)
 
@@ -173,7 +173,7 @@ class Node(metaclass=MetaNode):
     # '_v_title' is a direct read-write shorthand for the 'TITLE' attribute
     # with the empty string as a default value.
     def _g_gettitle(self):
-        "A description of this node. A shorthand for TITLE attribute."
+        """A description of this node. A shorthand for TITLE attribute."""
         if hasattr(self._v_attrs, 'TITLE'):
             return self._v_attrs.TITLE
         else:

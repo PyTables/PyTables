@@ -630,7 +630,7 @@ cdef class AttributeSet:
     self.name = node._v_name
 
   def _g_list_attr(self, node):
-    "Return a tuple with the attribute list"
+    """Return a tuple with the attribute list"""
     a = Aiterate(node._v_objectid)
     return a
 

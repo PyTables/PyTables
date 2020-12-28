@@ -472,7 +472,7 @@ new2oldnames = {v: k for k, v in old2newnames.items()}
 
 def make_subs(ns):
     names = new2oldnames if ns.reverse else old2newnames
-    s = r'(?<=\W)({})(?=\W)'.format('|'.join(list(names.keys())))
+    s = r'(?<=\W)({})(?=\W)'.format('|'.join(list(names)))
     if ns.ignore_previous:
         s += r'(?!\s*?=\s*?previous_api(_property)?\()'
         s += r'(?!\* to \*\w+\*)'

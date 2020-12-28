@@ -997,7 +997,7 @@ class MD6WriteTestCase(BasicTestCase):
 
 
 class NP_MD6WriteTestCase(BasicTestCase):
-    "Testing NumPy scalars as indexes"
+    """Testing NumPy scalars as indexes"""
     type = 'int32'
     shape = (2, 3, 3, 0, 5, 6)
     chunksize = 1
@@ -2471,7 +2471,7 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(ea[2], a * 3))
 
     def test03b_MDMDMD(self):
-        "Complex append of a MD array in a MD EArray with a MD atom (II)."
+        """Complex append of a MD array in a MD EArray with a MD atom (II)."""
         # Create an EArray
         ea = self.h5file.create_earray('/', 'test', atom=Int32Atom((2, 4)),
                                        shape=(2, 0, 3))
@@ -2490,7 +2490,7 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(ea[:, 2, ...], a.reshape((2, 3, 2, 4))*3))
 
     def test03c_MDMDMD(self):
-        "Complex append of a MD array in a MD EArray with a MD atom (III)."
+        """Complex append of a MD array in a MD EArray with a MD atom (III)."""
         # Create an EArray
         ea = self.h5file.create_earray('/', 'test', atom=Int32Atom((2, 4)),
                                        shape=(2, 3, 0))

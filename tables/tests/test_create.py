@@ -706,10 +706,11 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
         group._v_attrs.attr1 = "an string for root group"
         group._v_attrs.attr2 = 124
         # Create a tree
-        for j in range(5):
-            for i in range(2):
+        for group_i in range(5):
+            for bgroup_i in range(2):
                 # Create a new group (brother of group)
-                group2 = self.h5file.create_group(group, 'bgroup' + str(i),
+                group2 = self.h5file.create_group(group,
+                                                  'bgroup' + str(bgroup_i),
                                                   filters=None)
 
                 # Create a table
@@ -719,10 +720,10 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
                 # Get the record object associated with the new table
                 d = table.row
                 # Fill the table
-                for i in range(self.nrows):
-                    d['var1'] = '%04d' % (self.nrows - i)
-                    d['var2'] = i
-                    d['var3'] = i * 2
+                for row_i in range(self.nrows):
+                    d['var1'] = '%04d' % (self.nrows - row_i)
+                    d['var2'] = row_i
+                    d['var3'] = row_i * 2
                     d.append()      # This injects the Record values
                 # Flush the buffer for this table
                 table.flush()
@@ -752,7 +753,7 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
                 ea2.append(var3List)
 
             # Create a new group (descendant of group)
-            group3 = self.h5file.create_group(group, 'group' + str(j),
+            group3 = self.h5file.create_group(group, 'group' + str(group_i),
                                               filters=None)
             # Iterate over this new group (group3)
             group = group3
@@ -790,8 +791,8 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
 
         # Check that the copy has been done correctly
         dstgroup = self.h5file2.root
-        nodelist1 = list(srcgroup._v_children.keys())
-        nodelist2 = list(dstgroup._v_children.keys())
+        nodelist1 = list(srcgroup._v_children)
+        nodelist2 = list(dstgroup._v_children)
         # Sort the lists
         nodelist1.sort()
         nodelist2.sort()
@@ -1048,10 +1049,11 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         group._v_attrs.attr1 = "an string for root group"
         group._v_attrs.attr2 = 124
         # Create a tree
-        for j in range(5):
-            for i in range(2):
+        for group_i in range(5):
+            for bgroup_i in range(2):
                 # Create a new group (brother of group)
-                group2 = self.h5file.create_group(group, 'bgroup' + str(i),
+                group2 = self.h5file.create_group(group,
+                                                  'bgroup' + str(bgroup_i),
                                                   filters=None)
 
                 # Create a table
@@ -1061,10 +1063,10 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
                 # Get the record object associated with the new table
                 d = table.row
                 # Fill the table
-                for i in range(self.nrows):
-                    d['var1'] = '%04d' % (self.nrows - i)
-                    d['var2'] = i
-                    d['var3'] = i * 2
+                for row_i in range(self.nrows):
+                    d['var1'] = '%04d' % (self.nrows - row_i)
+                    d['var2'] = row_i
+                    d['var3'] = row_i * 2
                     d.append()      # This injects the Record values
                 # Flush the buffer for this table
                 table.flush()
@@ -1095,7 +1097,7 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
                 ea2.append(var3List)
 
             # Create a new group (descendant of group)
-            group3 = self.h5file.create_group(group, 'group' + str(j),
+            group3 = self.h5file.create_group(group, 'group' + str(group_i),
                                               filters=None)
             # Iterate over this new group (group3)
             group = group3
@@ -1140,8 +1142,8 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = list(srcgroup._v_children.keys())
-        nodelist2 = list(dstgroup._v_children.keys())
+        nodelist1 = list(srcgroup._v_children)
+        nodelist2 = list(dstgroup._v_children)
         # Sort the lists
         nodelist1.sort()
         nodelist2.sort()
@@ -1184,8 +1186,8 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = list(srcgroup._v_children.keys())
-        nodelist2 = list(dstgroup._v_children.keys())
+        nodelist1 = list(srcgroup._v_children)
+        nodelist2 = list(dstgroup._v_children)
 
         # Sort the lists
         nodelist1.sort()
@@ -1219,8 +1221,8 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = list(srcgroup._v_children.keys())
-        nodelist2 = list(dstgroup._v_children.keys())
+        nodelist1 = list(srcgroup._v_children)
+        nodelist2 = list(dstgroup._v_children)
 
         # Sort the lists
         nodelist1.sort()

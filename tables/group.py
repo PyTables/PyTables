@@ -166,7 +166,7 @@ class Group(hdf5extension.Group, Node):
     # `_v_nchildren` is a direct read-only shorthand
     # for the number of *visible* children in a group.
     def _g_getnchildren(self):
-        "The number of children hanging from this group."
+        """The number of children hanging from this group."""
         return len(self._v_children)
 
     _v_nchildren = property(_g_getnchildren)
@@ -470,8 +470,7 @@ class Group(hdf5extension.Group, Node):
 
         if classname == "Group":
             # Recursive algorithm
-            for group in self._f_walk_groups():
-                yield group
+            yield from self._f_walk_groups()
         else:
             for group in self._f_walk_groups():
                 yield from group._f_iter_nodes(classname)
@@ -734,35 +733,26 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         if not classname:
             # Returns all the children alphanumerically sorted
-            names = sorted(self._v_children.keys())
-            for name in names:
+            for name in sorted(self._v_children):
                 yield self._v_children[name]
         elif classname == 'Group':
             # Returns all the groups alphanumerically sorted
-            names = sorted(self._v_groups.keys())
-            for name in names:
+            for name in sorted(self._v_groups):
                 yield self._v_groups[name]
         elif classname == 'Leaf':
             # Returns all the leaves alphanumerically sorted
-            names = sorted(self._v_leaves.keys())
-            for name in names:
+            for name in sorted(self._v_leaves):
                 yield self._v_leaves[name]
         elif classname == 'Link':
             # Returns all the links alphanumerically sorted
-            names = sorted(self._v_links.keys())
-            for name in names:
+            for name in sorted(self._v_links):
                 yield self._v_links[name]
         elif classname == 'IndexArray':
             raise TypeError(
                 "listing ``IndexArray`` nodes is not allowed")
         else:
             class_ = get_class_by_name(classname)
-
-            children = self._v_children
-            childnames = sorted(children.keys())
-
-            for childname in childnames:
-                childnode = children[childname]
+            for childname, childnode in sorted(self._v_children.items()):
                 if isinstance(childnode, class_):
                     yield childnode
 
@@ -783,7 +773,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # Iterate over the descendants
         while stack:
             objgroup = stack.pop()
-            groupnames = sorted(objgroup._v_groups.keys())
+            groupnames = sorted(objgroup._v_groups)
             # Sort the groups before delivering. This uses the groups names
             # for groups in tree (in order to sort() can classify them).
             for groupname in groupnames:

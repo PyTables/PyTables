@@ -179,7 +179,7 @@ class EArray(CArray):
         return self._g_create_common(self._v_expectedrows)
 
     def _check_shape_append(self, nparr):
-        "Test that nparr shape is consistent with underlying EArray."
+        """Test that nparr shape is consistent with underlying EArray."""
 
         # The arrays conforms self expandibility?
         myrank = len(self.shape)

@@ -106,7 +106,7 @@ class Array(hdf5extension.Array, Leaf):
 
     @property
     def nrows(self):
-        "The number of rows in the array."
+        """The number of rows in the array."""
         if self.shape == ():
             return SizeType(1)  # scalar case
         else:
@@ -114,7 +114,7 @@ class Array(hdf5extension.Array, Leaf):
 
     @property
     def rowsize(self):
-        "The size of the rows in bytes in dimensions orthogonal to *maindim*."
+        """The size of the rows in bytes in dimensions orthogonal to *maindim*."""
         maindim = self.maindim
         rowsize = self.atom.size
         for i, dim in enumerate(self.shape):

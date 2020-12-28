@@ -315,7 +315,7 @@ def log_instance_creation(instance, name=None):
 
 def string_to_classes(s):
     if s == '*':
-        c = sorted(tracked_classes.keys())
+        c = sorted(tracked_classes)
         return c
     else:
         return s.split()
@@ -370,7 +370,7 @@ class CacheDict(dict):
         if len(self) > self.maxentries:
             # Remove a 10% of (arbitrary) elements from the cache
             entries_to_remove = self.maxentries / 10
-            for k in list(self.keys())[:entries_to_remove]:
+            for k in list(self)[:entries_to_remove]:
                 super().__delitem__(k)
         super().__setitem__(key, value)
 
@@ -424,7 +424,7 @@ class NailedDict:
         if len(cache) > self.maxentries:
             # Remove a 10% of (arbitrary) elements from the cache
             entries_to_remove = max(self.maxentries // 10, 1)
-            for k in list(cache.keys())[:entries_to_remove]:
+            for k in list(cache)[:entries_to_remove]:
                 del cache[k]
         cache[key] = value
 

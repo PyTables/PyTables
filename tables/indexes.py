@@ -169,7 +169,7 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         return (result1, result2)
 
     def __str__(self):
-        "A compact representation of this class"
+        """A compact representation of this class"""
         return "IndexArray(path=%s)" % self._v_pathname
 
     def __repr__(self):

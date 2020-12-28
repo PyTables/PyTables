@@ -185,7 +185,7 @@ class Filters:
             return 2
 
     @classmethod
-    def _from_leaf(class_, leaf):
+    def _from_leaf(cls, leaf):
         # Get a dictionary with all the filters
         parent = leaf._v_parent
         filters_dict = utilsextension.get_filters(parent._v_objectid,
@@ -221,10 +221,10 @@ class Filters:
                 kwargs['complevel'] = 1  # any nonzero value will do
             elif name in ['shuffle', 'fletcher32']:
                 kwargs[name] = True
-        return class_(**kwargs)
+        return cls(**kwargs)
 
     @classmethod
-    def _unpack(class_, packed):
+    def _unpack(cls, packed):
         """Create a new `Filters` object from a packed version.
 
         >>> Filters._unpack(0)
@@ -272,7 +272,7 @@ class Filters:
         else:
             kwargs['least_significant_digit'] = None
 
-        return class_(**kwargs)
+        return cls(**kwargs)
 
     def _pack(self):
         """Pack the `Filters` object into a 64-bit NumPy integer."""

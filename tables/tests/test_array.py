@@ -899,11 +899,11 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
         group = self.h5file.root
 
         # Get the metadata on the previosly saved arrays
-        for i in range(len(typecodes)):
+        for i, typecode in enumerate(typecodes):
             # Create an array for later comparison
-            a = numpy.ones((3,), typecodes[i])
+            a = numpy.ones((3,), typecode)
             # Get the dset object hanging from group
-            dset = getattr(group, 'array_' + typecodes[i])
+            dset = getattr(group, 'array_' + typecode)
             # Get the actual array
             b = dset.read()
             if common.verbose:
@@ -1896,14 +1896,14 @@ class GeneratorTestCase(common.TempFileMixin, TestCase):
             arr = self.h5file.root.somearray
 
         # Get and compare an element
-        ga = [i for i in a]
-        garr = [i for i in arr]
+        ga = list(a)
+        garr = list(arr)
 
         if common.verbose:
             print("Result of original iterator:", ga)
             print("Result of read generator:", garr)
-        for i in range(len(ga)):
-            self.assertTrue(allequal(ga[i], garr[i]))
+        for x_ga, x_garr in zip(ga, garr):
+            self.assertTrue(allequal(x_ga, x_garr))
 
     def test01a_single(self):
         """Testing generator access to Arrays, single elements (numeric)"""
@@ -1938,13 +1938,13 @@ class GeneratorTestCase(common.TempFileMixin, TestCase):
             arr = self.h5file.root.somearray
 
         # Get and compare an element
-        ga = [i for i in a]
-        garr = [i for i in arr]
+        ga = list(a)
+        garr = list(arr)
         if common.verbose:
             print("Result of original iterator:", ga)
             print("Result of read generator:", garr)
-        for i in range(len(ga)):
-            self.assertTrue(allequal(ga[i], garr[i]))
+        for x_ga, x_garr in zip(ga, garr):
+            self.assertTrue(allequal(x_ga, x_garr))
 
 
 class GE1NATestCase(GeneratorTestCase):

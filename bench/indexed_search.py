@@ -28,13 +28,10 @@ prec = 6  # precision for printing floats purposes
 
 
 def get_nrows(nrows_str):
-    if nrows_str.endswith("k"):
-        return int(float(nrows_str[:-1]) * 1000)
-    elif nrows_str.endswith("m"):
-        return int(float(nrows_str[:-1]) * 1000 * 1000)
-    elif nrows_str.endswith("g"):
-        return int(float(nrows_str[:-1]) * 1000 * 1000 * 1000)
-    else:
+    powers = {'k': 3, 'm': 6, 'g': 9}
+    try:
+        return int(float(nrows_str[:-1]) * 10 ** powers[nrows_str[-1]])
+    except KeyError:
         raise ValueError(
             "value of nrows must end with either 'k', 'm' or 'g' suffixes.")
 

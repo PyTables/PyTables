@@ -430,7 +430,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         if start is not None and stop is None and step is None:
             # Protection against start greater than available records
             # nrows == 0 is a special case for empty objects
-            if nrows > 0 and start >= nrows:
+            if 0 < nrows <= start:
                 raise IndexError("start of range (%s) is greater than "
                                  "number of rows (%s)" % (start, nrows))
             step = 1
@@ -485,7 +485,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         return new_node
 
     def _g_fix_byteorder_data(self, data, dbyteorder):
-        "Fix the byteorder of data passed in constructors."
+        """Fix the byteorder of data passed in constructors."""
         dbyteorder = byteorders[dbyteorder]
         # If self.byteorder has not been passed as an argument of
         # the constructor, then set it to the same value of data.
