@@ -230,7 +230,7 @@ class PyTablesTestCase(unittest.TestCase):
     def tearDown(self):
         super().tearDown()
         for key in self.__dict__:
-            if self.__dict__[key].__class__.__name__ not in ('instancemethod'):
+            if self.__dict__[key].__class__.__name__ != 'instancemethod':
                 self.__dict__[key] = None
 
     def _getName(self):
