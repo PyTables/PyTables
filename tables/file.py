@@ -88,7 +88,7 @@ class _FileRegistry:
 
     @property
     def filenames(self):
-        return list(self._name_mapping.keys())
+        return list(self._name_mapping)
 
     @property
     def handlers(self):
@@ -2449,7 +2449,7 @@ class File(hdf5extension.File):
             markid = mark
         elif isinstance(mark, str):
             if mark not in self._markers:
-                lmarkers = sorted(self._markers.keys())
+                lmarkers = sorted(self._markers)
                 raise UndoRedoError("The mark that you have specified has not "
                                     "been found in the internal marker list: "
                                     "%r" % lmarkers)

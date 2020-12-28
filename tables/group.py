@@ -734,22 +734,22 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         if not classname:
             # Returns all the children alphanumerically sorted
-            names = sorted(self._v_children.keys())
+            names = sorted(self._v_children)
             for name in names:
                 yield self._v_children[name]
         elif classname == 'Group':
             # Returns all the groups alphanumerically sorted
-            names = sorted(self._v_groups.keys())
+            names = sorted(self._v_groups)
             for name in names:
                 yield self._v_groups[name]
         elif classname == 'Leaf':
             # Returns all the leaves alphanumerically sorted
-            names = sorted(self._v_leaves.keys())
+            names = sorted(self._v_leaves)
             for name in names:
                 yield self._v_leaves[name]
         elif classname == 'Link':
             # Returns all the links alphanumerically sorted
-            names = sorted(self._v_links.keys())
+            names = sorted(self._v_links)
             for name in names:
                 yield self._v_links[name]
         elif classname == 'IndexArray':
@@ -759,7 +759,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             class_ = get_class_by_name(classname)
 
             children = self._v_children
-            childnames = sorted(children.keys())
+            childnames = sorted(children)
 
             for childname in childnames:
                 childnode = children[childname]
@@ -783,7 +783,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # Iterate over the descendants
         while stack:
             objgroup = stack.pop()
-            groupnames = sorted(objgroup._v_groups.keys())
+            groupnames = sorted(objgroup._v_groups)
             # Sort the groups before delivering. This uses the groups names
             # for groups in tree (in order to sort() can classify them).
             for groupname in groupnames:

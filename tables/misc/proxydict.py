@@ -48,10 +48,7 @@ class ProxyDict(dict):
 
     def values(self):
         # C implementation does not use `self.__getitem__()`. :(
-        valueList = []
-        for key in self.keys():
-            valueList.append(self[key])
-        return valueList
+        return [self[key] for key in self.keys()]
 
     def itervalues(self):
         # C implementation does not use `self.__getitem__()`. :(
@@ -60,10 +57,7 @@ class ProxyDict(dict):
 
     def items(self):
         # C implementation does not use `self.__getitem__()`. :(
-        itemList = []
-        for key in self.keys():
-            itemList.append((key, self[key]))
-        return itemList
+        return [(key, self[key]) for key in self.keys()]
 
     def iteritems(self):
         # C implementation does not use `self.__getitem__()`. :(

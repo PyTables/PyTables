@@ -114,7 +114,7 @@ def append_columns(classdict, shape=()):
 
     """
     heavy = common.heavy
-    for (itype, type_) in enumerate(sorted(type_info.keys())):
+    for (itype, type_) in enumerate(sorted(type_info)):
         if not heavy and type_ in heavy_types:
             continue  # skip heavy type in non-heavy mode
         colpos = itype + 1

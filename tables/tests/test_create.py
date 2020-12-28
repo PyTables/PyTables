@@ -790,8 +790,8 @@ class CopyGroupTestCase(common.TempFileMixin, TestCase):
 
         # Check that the copy has been done correctly
         dstgroup = self.h5file2.root
-        nodelist1 = list(srcgroup._v_children.keys())
-        nodelist2 = list(dstgroup._v_children.keys())
+        nodelist1 = list(srcgroup._v_children)
+        nodelist2 = list(dstgroup._v_children)
         # Sort the lists
         nodelist1.sort()
         nodelist2.sort()
@@ -1140,8 +1140,8 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = list(srcgroup._v_children.keys())
-        nodelist2 = list(dstgroup._v_children.keys())
+        nodelist1 = list(srcgroup._v_children)
+        nodelist2 = list(dstgroup._v_children)
         # Sort the lists
         nodelist1.sort()
         nodelist2.sort()
@@ -1184,8 +1184,8 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = list(srcgroup._v_children.keys())
-        nodelist2 = list(dstgroup._v_children.keys())
+        nodelist1 = list(srcgroup._v_children)
+        nodelist2 = list(dstgroup._v_children)
 
         # Sort the lists
         nodelist1.sort()
@@ -1219,8 +1219,8 @@ class CopyFileTestCase(common.TempFileMixin, TestCase):
         # Check that the copy has been done correctly
         srcgroup = self.h5file.root
         dstgroup = self.h5file2.root
-        nodelist1 = list(srcgroup._v_children.keys())
-        nodelist2 = list(dstgroup._v_children.keys())
+        nodelist1 = list(srcgroup._v_children)
+        nodelist2 = list(dstgroup._v_children)
 
         # Sort the lists
         nodelist1.sort()

@@ -261,7 +261,7 @@ class Expr:
             # Protection against growing the cache too much
             if len(exprvars_cache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
-                for k in list(exprvars_cache.keys())[:10]:
+                for k in list(exprvars_cache)[:10]:
                     del exprvars_cache[k]
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [var for var in cexpr.co_names

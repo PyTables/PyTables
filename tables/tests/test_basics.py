@@ -2423,8 +2423,7 @@ class TestDescription(TestCase):
         descr = Description(d)
         self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
         self.assertIsInstance(descr._v_dtype, numpy.dtype)
-        self.assertTrue(sorted(descr._v_dtype.fields.keys()),
-                        sorted(d.keys()))
+        self.assertTrue(sorted(descr._v_dtype.fields), sorted(d.keys()))
 
 
 class TestAtom(TestCase):

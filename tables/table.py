@@ -342,7 +342,7 @@ class _ColIndexes(dict):
     def __repr__(self):
         """Gives a detailed Description column representation."""
 
-        rep = ['  \"{}\": {}'.format(k, self[k]) for k in self.keys()]
+        rep = ['  \"{}\": {}'.format(k, v) for k, v in self.items()]
         return '{\n  %s}' % (',\n  '.join(rep))
 
 
@@ -1207,7 +1207,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Protection against growing the cache too much
             if len(exprvarscache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
-                for k in list(exprvarscache.keys())[:10]:
+                for k in list(exprvarscache)[:10]:
                     del exprvarscache[k]
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [var for var in cexpr.co_names
