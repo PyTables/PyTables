@@ -838,11 +838,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02a_AppendRows..." % self.__class__.__name__)
 
         group = self.rootgroup
-        for i in range(3):
+        for group_i in range(3):
             # Get a table
-            table = self.h5file.get_node(group, 'table'+str(i))
+            table = self.h5file.get_node(group, 'table'+str(group_i))
             # Get the next group
-            group = self.h5file.get_node(group, 'group'+str(i))
+            group = self.h5file.get_node(group, 'group'+str(group_i))
             # Get their row object
             row = table.row
             if common.verbose:
@@ -850,56 +850,56 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                 print("Record Format ==>", table.description._v_nested_formats)
                 print("Record Size ==>", table.rowsize)
             # Append some rows
-            for i in range(self.appendrows):
-                row['var1'] = '%04d' % (self.appendrows - i)
+            for row_i in range(self.appendrows):
+                row['var1'] = '%04d' % (self.appendrows - row_i)
                 row['var7'] = row['var1'][-1]
-                row['var2'] = i
-                row['var3'] = i % self.maxshort
+                row['var2'] = row_i
+                row['var3'] = row_i % self.maxshort
                 if isinstance(row['var4'], np.ndarray):
-                    row['var4'] = [float(i), float(i * i)]
+                    row['var4'] = [float(row_i), float(row_i * row_i)]
                 else:
-                    row['var4'] = float(i)
+                    row['var4'] = float(row_i)
                 if isinstance(row['var8'], np.ndarray):
                     row['var8'] = [0, 1]
                 else:
                     row['var8'] = 1
                 if isinstance(row['var9'], np.ndarray):
-                    row['var9'] = [0.+float(i)*1j, float(i)+0.j]
+                    row['var9'] = [0.+float(row_i)*1j, float(row_i)+0.j]
                 else:
-                    row['var9'] = float(i)+0.j
+                    row['var9'] = float(row_i)+0.j
                 if isinstance(row['var10'], np.ndarray):
-                    row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
+                    row['var10'] = [float(row_i)+0.j, 1.+float(row_i)*1j]
                 else:
-                    row['var10'] = 1.+float(i)*1j
+                    row['var10'] = 1.+float(row_i)*1j
                 if isinstance(row['var5'], np.ndarray):
-                    row['var5'] = np.array((float(i),)*4)
+                    row['var5'] = np.array((float(row_i),)*4)
                 else:
-                    row['var5'] = float(i)
+                    row['var5'] = float(row_i)
                 if hasattr(tables, 'Float16Col'):
                     if isinstance(row['var11'], np.ndarray):
-                        row['var11'] = np.array((float(i),)*4)
+                        row['var11'] = np.array((float(row_i),)*4)
                     else:
-                        row['var11'] = float(i)
+                        row['var11'] = float(row_i)
                 if hasattr(tables, 'Float96Col'):
                     if isinstance(row['var12'], np.ndarray):
-                        row['var12'] = np.array((float(i),)*4)
+                        row['var12'] = np.array((float(row_i),)*4)
                     else:
-                        row['var12'] = float(i)
+                        row['var12'] = float(row_i)
                 if hasattr(tables, 'Float128Col'):
                     if isinstance(row['var13'], np.ndarray):
-                        row['var13'] = np.array((float(i),)*4)
+                        row['var13'] = np.array((float(row_i),)*4)
                     else:
-                        row['var13'] = float(i)
+                        row['var13'] = float(row_i)
                 if hasattr(tables, 'Complex192Col'):
                     if isinstance(row['var14'], np.ndarray):
-                        row['var14'] = [float(i)+0j, 1 + float(i)*1j]
+                        row['var14'] = [float(row_i)+0j, 1 + float(row_i)*1j]
                     else:
-                        row['var14'] = 1 + float(i)*1j
+                        row['var14'] = 1 + float(row_i)*1j
                 if hasattr(tables, 'Complex256Col'):
                     if isinstance(row['var15'], np.ndarray):
-                        row['var15'] = [float(i)+0j, 1 + float(i)*1j]
+                        row['var15'] = [float(row_i)+0j, 1 + float(row_i)*1j]
                     else:
-                        row['var15'] = 1 + float(i)*1j
+                        row['var15'] = 1 + float(row_i)*1j
 
                 row.append()
             table.flush()
