@@ -96,10 +96,10 @@ if __name__ == '__main__':
 
 
     # The minimum required versions
-    min_python_version = (3, 4)
+    min_python_version = (3, 5)
     # Check for Python
     if sys.version_info < min_python_version:
-        exit_with_error("You need Python 3.4 or greater to install PyTables!")
+        exit_with_error("You need Python 3.5 or greater to install PyTables!")
     print("* Using Python %s" % sys.version.splitlines()[0])
 
     # Minimum required versions for numpy, numexpr and HDF5
@@ -1028,12 +1028,18 @@ Intended Audience :: Developers
 Intended Audience :: Information Technology
 Intended Audience :: Science/Research
 License :: OSI Approved :: BSD License
-Programming Language :: Python
-Programming Language :: Python :: 3
-Topic :: Database
-Topic :: Software Development :: Libraries :: Python Modules
 Operating System :: Microsoft :: Windows
 Operating System :: Unix
+Programming Language :: Python
+Programming Language :: Python :: 3
+Programming Language :: Python :: 3 :: Only
+Programming Language :: Python :: 3.5
+Programming Language :: Python :: 3.6
+Programming Language :: Python :: 3.7
+Programming Language :: Python :: 3.8
+Programming Language :: Python :: 3.9
+Topic :: Database
+Topic :: Software Development :: Libraries :: Python Modules
 """
     setup(
         name=name,
