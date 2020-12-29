@@ -112,7 +112,7 @@ static inline unsigned char *copy_32_bytes(unsigned char *out, const unsigned ch
   __m256i chunk;
   chunk = _mm256_loadu_si256((__m256i*)from);
   _mm256_storeu_si256((__m256i*)out, chunk);
-  from += 32; out += 32;
+  out += 32;
 #elif defined(__SSE2__)
   __m128i chunk;
   chunk = _mm_loadu_si128((__m128i*)from);
@@ -139,14 +139,15 @@ static inline unsigned char *copy_32_bytes(unsigned char *out, const unsigned ch
   return out;
 }
 
-#if defined(__AVX2__)
-static inline unsigned char *copy_32_bytes_aligned(unsigned char *out, const unsigned char *from) {
-  __m256i chunk;
-  chunk = _mm256_load_si256((__m256i*)from);
-  _mm256_storeu_si256((__m256i*)out, chunk);
-  return out + 32;
-}
-#endif  // __AVX2__
+// This is never used, so comment it out
+//#if defined(__AVX2__)
+//static inline unsigned char *copy_32_bytes_aligned(unsigned char *out, const unsigned char *from) {
+//  __m256i chunk;
+//  chunk = _mm256_load_si256((__m256i*)from);
+//  _mm256_storeu_si256((__m256i*)out, chunk);
+//  return out + 32;
+//}
+//#endif  // __AVX2__
 
 /* Copy LEN bytes (7 or fewer) from FROM into OUT. Return OUT + LEN. */
 static inline unsigned char *copy_bytes(unsigned char *out, const unsigned char *from, unsigned len) {
@@ -208,45 +209,45 @@ static inline unsigned char *chunk_memcpy(unsigned char *out, const unsigned cha
     case 7:
       out = copy_8_bytes(out, from);
       from += sz;
-    #ifdef AVOID_FALLTHROUGH_WARNING
+      #ifdef AVOID_FALLTHROUGH_WARNING
       __attribute__ ((fallthrough));  // Shut-up -Wimplicit-fallthrough warning in GCC
-    #endif
+      #endif
     case 6:
       out = copy_8_bytes(out, from);
       from += sz;
-    #ifdef AVOID_FALLTHROUGH_WARNING
+      #ifdef AVOID_FALLTHROUGH_WARNING
       __attribute__ ((fallthrough));
-    #endif
+      #endif
     case 5:
       out = copy_8_bytes(out, from);
       from += sz;
-    #ifdef AVOID_FALLTHROUGH_WARNING
+      #ifdef AVOID_FALLTHROUGH_WARNING
       __attribute__ ((fallthrough));
-    #endif
+      #endif
     case 4:
       out = copy_8_bytes(out, from);
       from += sz;
-    #ifdef AVOID_FALLTHROUGH_WARNING
+      #ifdef AVOID_FALLTHROUGH_WARNING
       __attribute__ ((fallthrough));
-    #endif
+      #endif
     case 3:
       out = copy_8_bytes(out, from);
       from += sz;
-    #ifdef AVOID_FALLTHROUGH_WARNING
+      #ifdef AVOID_FALLTHROUGH_WARNING
       __attribute__ ((fallthrough));
-    #endif
+      #endif
     case 2:
       out = copy_8_bytes(out, from);
       from += sz;
-    #ifdef AVOID_FALLTHROUGH_WARNING
+      #ifdef AVOID_FALLTHROUGH_WARNING
       __attribute__ ((fallthrough));
-    #endif
+      #endif
     case 1:
       out = copy_8_bytes(out, from);
       from += sz;
-    #ifdef AVOID_FALLTHROUGH_WARNING
+      #ifdef AVOID_FALLTHROUGH_WARNING
       __attribute__ ((fallthrough));
-    #endif
+      #endif
     default:
       break;
   }
@@ -492,7 +493,7 @@ static inline unsigned char *chunk_memcpy_unaligned(unsigned char *out, const un
 
 
 /* Byte by byte semantics: copy LEN bytes from FROM and write them to OUT. Return OUT + LEN. */
-unsigned char *blosc_internal_fastcopy(unsigned char *out, const unsigned char *from, unsigned len) {
+unsigned char *fastcopy(unsigned char *out, const unsigned char *from, unsigned len) {
   switch (len) {
     case 32:
       return copy_32_bytes(out, from);
@@ -525,7 +526,7 @@ unsigned char *blosc_internal_fastcopy(unsigned char *out, const unsigned char *
 
 
 /* Copy a run */
-unsigned char* blosc_internal_copy_match(unsigned char *out, const unsigned char *from, unsigned len) {
+unsigned char* copy_match(unsigned char *out, const unsigned char *from, unsigned len) {
 #if defined(__AVX2__)
   unsigned sz = sizeof(__m256i);
 #elif defined(__SSE2__)
@@ -534,12 +535,6 @@ unsigned char* blosc_internal_copy_match(unsigned char *out, const unsigned char
   unsigned sz = sizeof(uint64_t);
 #endif
 
-  // If out and from are away more than the size of the copy, then a blosc_internal_fastcopy is safe
-  unsigned overlap_dist = (unsigned) (out - from);
-  if (overlap_dist > sz) {
-    return blosc_internal_fastcopy(out, from, len);
-  }
-
 #if ((defined(__GNUC__) && BLOSC_GCC_VERSION < 800) && !defined(__clang__) && !defined(__ICC) && !defined(__ICL))
   // GCC < 8 in fully optimization mode seems to have problems with the code further below so stop here
   for (; len > 0; len--) {
@@ -547,6 +542,12 @@ unsigned char* blosc_internal_copy_match(unsigned char *out, const unsigned char
   }
   return out;
 #endif
+
+  // If out and from are away more than the size of the copy, then a fastcopy is safe
+  unsigned overlap_dist = (unsigned) (out - from);
+  if (overlap_dist > sz) {
+    return fastcopy(out, from, len);
+  }
 
   // Otherwise we need to be more careful so as not to overwrite destination
   switch (overlap_dist) {

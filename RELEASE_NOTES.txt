@@ -14,6 +14,7 @@ Changes from 3.6.1 to 3.6.x
 Improvements
 ------------
  - Windows: Significantly faster `import tables` PR #781. Thanks to Christoph Gohlke.
+ - Internal C-Blosc sources updated to 1.21.0.
 
 Bugfixes
 --------

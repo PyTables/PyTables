@@ -9,6 +9,8 @@
 #       build the shared library version of the Blosc library
 #   BUILD_TESTS: default ON
 #       build test programs and generates the "test" target
+#   BUILD_FUZZERS: default ON
+#       build fuzz test programs and generates the "test" target
 #   BUILD_BENCHMARKS: default ON
 #       build the benchmark program
 #   DEACTIVATE_SSE2: default OFF
@@ -17,7 +19,7 @@
 #       do not attempt to build with AVX2 instructions
 #   DEACTIVATE_LZ4: default OFF
 #       do not include support for the LZ4 library
-#   DEACTIVATE_SNAPPY: default OFF
+#   DEACTIVATE_SNAPPY: default ON
 #       do not include support for the Snappy library
 #   DEACTIVATE_ZLIB: default OFF
 #       do not include support for the Zlib library
@@ -27,9 +29,6 @@
 #       do not check for symbols in shared or static libraries
 #   PREFER_EXTERNAL_LZ4: default OFF
 #       when found, use the installed LZ4 libs instead of included
-#       sources
-#   PREFER_EXTERNAL_SNAPPY: default OFF
-#       when found, use the installed Snappy libs instead of included
 #       sources
 #   PREFER_EXTERNAL_ZLIB: default OFF
 #       when found, use the installed zlib libs instead of included
@@ -75,7 +74,7 @@ cmake_minimum_required(VERSION 2.8.12)
 if (NOT CMAKE_VERSION VERSION_LESS 3.3)
     cmake_policy(SET CMP0063 NEW)
 endif()
-project(blosc)
+project(blosc C)
 
 # parse the full version numbers from blosc.h
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/blosc/blosc.h _blosc_h_contents)
@@ -96,27 +95,27 @@ option(BUILD_STATIC
 option(BUILD_SHARED
     "Build a shared library version of the blosc library." ON)
 option(BUILD_TESTS
-    "Build test programs form the blosc compression library" ON)
+    "Build test programs from the blosc compression library" ON)
+option(BUILD_FUZZERS
+    "Build fuzzer programs from the blosc compression library" ${BUILD_STATIC})
 option(BUILD_BENCHMARKS
-    "Build benchmark programs form the blosc compression library" ON)
+    "Build benchmark programs from the blosc compression library" ON)
 option(DEACTIVATE_SSE2
-        "Do not attempt to build with SSE2 instructions" OFF)
+    "Do not attempt to build with SSE2 instructions" OFF)
 option(DEACTIVATE_AVX2
-        "Do not attempt to build with AVX2 instructions" OFF)
+    "Do not attempt to build with AVX2 instructions" OFF)
 option(DEACTIVATE_LZ4
     "Do not include support for the LZ4 library." OFF)
 option(DEACTIVATE_SNAPPY
-    "Do not include support for the Snappy library." OFF)
+    "Do not include support for the Snappy library." ON)
 option(DEACTIVATE_ZLIB
     "Do not include support for the Zlib library." OFF)
 option(DEACTIVATE_ZSTD
-        "Do not include support for the Zstd library." OFF)
+    "Do not include support for the Zstd library." OFF)
 option(DEACTIVATE_SYMBOLS_CHECK
-        "Do not check for symbols in shared or static libraries." ON)
+    "Do not check for symbols in shared or static libraries." ON)
 option(PREFER_EXTERNAL_LZ4
     "Find and use external LZ4 library instead of included sources." OFF)
-option(PREFER_EXTERNAL_SNAPPY
-    "Find and use external Snappy library instead of included sources." OFF)
 option(PREFER_EXTERNAL_ZLIB
     "Find and use external Zlib library instead of included sources." OFF)
 option(PREFER_EXTERNAL_ZSTD
@@ -137,14 +136,13 @@ if(NOT DEACTIVATE_LZ4)
 endif(NOT DEACTIVATE_LZ4)
 
 if(NOT DEACTIVATE_SNAPPY)
-    if(PREFER_EXTERNAL_SNAPPY)
-        find_package(Snappy)
+    find_package(Snappy)
+    if(SNAPPY_FOUND)
+        message(STATUS "Activating support for SNAPPY.")
+        set(HAVE_SNAPPY TRUE)
     else()
-        message(STATUS "Using Snappy internal sources.")
-    endif(PREFER_EXTERNAL_SNAPPY)
-    # HAVE_SNAPPY will be set to true because even if the library is not found,
-    # we will use the included sources for it
-    set(HAVE_SNAPPY TRUE)
+        message(STATUS "SNAPPY *not* found.  De-activating support for it.")
+    endif()
 endif(NOT DEACTIVATE_SNAPPY)
 
 if(NOT DEACTIVATE_ZLIB)
@@ -255,8 +253,8 @@ if(DEACTIVATE_SSE2)
     set(COMPILER_SUPPORT_SSE2 FALSE)
 endif()
 
-# disable AVX2 if specified
-if(DEACTIVATE_AVX2)
+# disable AVX2 if specified or if SSE is deactivated
+if(DEACTIVATE_AVX2 OR DEACTIVATE_SSE2)
     set(COMPILER_SUPPORT_AVX2 FALSE)
 endif()
 
@@ -323,6 +321,14 @@ if(BUILD_TESTS)
     add_subdirectory(tests)
     add_subdirectory(compat)
 endif(BUILD_TESTS)
+
+if(BUILD_FUZZERS)
+    if(NOT BUILD_STATIC)
+        message(FATAL_ERROR "BUILD_FUZZERS requires BUILD_STATIC to be enabled.")
+    endif()
+    enable_testing()
+    add_subdirectory(tests/fuzz)
+endif(BUILD_FUZZERS)
 
 if(BUILD_BENCHMARKS)
     add_subdirectory(bench)

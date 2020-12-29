@@ -18,14 +18,14 @@ extern "C" {
 
 /* Version numbers */
 #define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
-#define BLOSC_VERSION_MINOR    17   /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  1    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_MINOR    21   /* for minor interface/format changes  */
+#define BLOSC_VERSION_RELEASE  0    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "1.17.1"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_STRING   "1.21.0"  /* string version.  Sync with above! */
 #define BLOSC_VERSION_REVISION "$Rev$"   /* revision version */
-#define BLOSC_VERSION_DATE     "$Date:: 2019-12-12 #$"    /* date version */
+#define BLOSC_VERSION_DATE     "$Date:: 2020-12-22 #$"    /* date version */
 
-#define BLOSCLZ_VERSION_STRING "2.0.0"   /* the internal compressor version */
+#define BLOSCLZ_VERSION_STRING "2.3.0"   /* the internal compressor version */
 
 /* The *_FORMAT symbols should be just 1-byte long */
 #define BLOSC_VERSION_FORMAT    2   /* Blosc format version, starting at 1 */
@@ -215,6 +215,10 @@ BLOSC_EXPORT void blosc_destroy(void);
   This will call blosc_set_splitmode() with the different supported values.
   See blosc_set_splitmode() docstrings for more info on each mode.
 
+  BLOSC_WARN=(INTEGER): This will print some warning message on stderr
+  showing more info in situations where data inputs cannot be compressed.
+  The values can range from 1 (less verbose) to 10 (full verbose).  0 is
+  the same as if the BLOSC_WARN envvar was not defined.
   */
 BLOSC_EXPORT int blosc_compress(int clevel, int doshuffle, size_t typesize,
 				size_t nbytes, const void *src, void *dest,
@@ -278,17 +282,6 @@ BLOSC_EXPORT int blosc_compress_ctx(int clevel, int doshuffle, size_t typesize,
 BLOSC_EXPORT int blosc_decompress(const void *src, void *dest, size_t destsize);
 
 /**
-  Same as `blosc_decompress`, except that this is not safe to run on
-  untrusted/possibly corrupted input (even after calling
-  `blosc_cbuffer_validate`).
-
-  This may be marginally faster than `blosc_decompress` due to skipping certain
-  bounds checking and validation.
-*/
-BLOSC_EXPORT int blosc_decompress_unsafe(const void* src, void* dest,
-                                         size_t destsize);
-
-/**
   Context interface to blosc decompression. This does not require a
   call to blosc_init() and can be called from multithreaded
   applications without the global lock being used, so allowing Blosc
@@ -311,18 +304,6 @@ BLOSC_EXPORT int blosc_decompress_ctx(const void *src, void *dest,
                                       size_t destsize, int numinternalthreads);
 
 /**
-  Same as `blosc_decompress_ctx`, except that this is not safe to run on
-  untrusted/possibly corrupted input (even after calling
-  `blosc_cbuffer_validate`).
-
-  This may be marginally faster than `blosc_decompress_ctx` due to skipping
-  certain bounds checking and validation.
-*/
-BLOSC_EXPORT int blosc_decompress_ctx_unsafe(const void* src, void* dest,
-                                             size_t destsize,
-                                             int numinternalthreads);
-
-/**
   Get `nitems` (of typesize size) in `src` buffer starting in `start`.
   The items are returned in `dest` buffer, which has to have enough
   space for storing all items.
@@ -331,17 +312,6 @@ BLOSC_EXPORT int blosc_decompress_ctx_unsafe(const void* src, void* dest,
   some error happens.
   */
 BLOSC_EXPORT int blosc_getitem(const void *src, int start, int nitems, void *dest);
-
-/**
-  Same as `blosc_getitem`, except that this is not safe to run on
-  untrusted/possibly corrupted input (even after calling
-  `blosc_cbuffer_validate`).
-
-  This may be marginally faster than `blosc_getitem` due to skipping certain
-  bounds checking and validation.
-*/
-BLOSC_EXPORT int blosc_getitem_unsafe(const void* src, int start, int nitems,
-                                      void* dest);
 
 /**
   Returns the current number of threads that are used for
@@ -369,7 +339,7 @@ BLOSC_EXPORT const char* blosc_get_compressor(void);
 
 /**
   Select the compressor to be used.  The supported ones are "blosclz",
-  "lz4", "lz4hc", "snappy", "zlib" and "ztsd".  If this function is not
+  "lz4", "lz4hc", "snappy", "zlib" and "zstd".  If this function is not
   called, then "blosclz" will be used by default.
 
   In case the compressor is not recognized, or there is not support
