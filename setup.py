@@ -848,7 +848,8 @@ if __name__ == '__main__':
         # LZ4 sources
         blosc_sources += glob.glob('c-blosc/internal-complibs/lz4*/*.c')
         # Snappy sources
-        blosc_sources += glob.glob('c-blosc/internal-complibs/snappy*/*.cc')
+        # Starting from C-Blosc 1.19.0, snappy sources are not distributed anymore
+        # blosc_sources += glob.glob('c-blosc/internal-complibs/snappy*/*.cc')
         # Zlib sources
         blosc_sources += glob.glob('c-blosc/internal-complibs/zlib*/*.c')
         # Zstd sources
@@ -859,8 +860,7 @@ if __name__ == '__main__':
         inc_dirs += glob.glob('c-blosc/internal-complibs/zstd*/common')
         inc_dirs += glob.glob('c-blosc/internal-complibs/zstd*')
         # ...and the macros for all the compressors supported
-        def_macros += [('HAVE_LZ4', 1), ('HAVE_SNAPPY', 1), ('HAVE_ZLIB', 1),
-                       ('HAVE_ZSTD', 1)]
+        def_macros += [('HAVE_LZ4', 1), ('HAVE_ZLIB', 1), ('HAVE_ZSTD', 1)]
 
         # Add extra flags for optimizing shuffle in include Blosc
         def compiler_has_flags(compiler, flags):
