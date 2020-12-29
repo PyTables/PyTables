@@ -45,7 +45,7 @@ version::
   $ cd ../compat
   $ export LD_LIBRARY_PATH=../build/blosc
   $ gcc -o filegen filegen.c -L$LD_LIBRARY_PATH -lblosc -I../blosc
-  $ ./filegen compress lz4 blosc-lz4-1.y.z.cdata
+  $ ./filegen compress lz4 blosc-1.y.z-lz4.cdata
 
 In order to make sure that we are not breaking forward compatibility,
 link and run the `compat/filegen` utility against different versions of
@@ -58,7 +58,13 @@ You can compile the utility with different blosc shared libraries with::
 
 Then, test the file created with the new version with::
 
-  $ ./filegen decompress blosc-lz4-1.y.z.cdata
+  $ ./filegen decompress blosc-1.y.z-lz4.cdata
+
+If that works and you want to keep track of this for future compatibility checks
+just add the new file to the suite::
+
+  $ git add blosc-1.y.z-lz4.cdata
+  $ git commit -m"Add a new cdata file for compatibility checks"
 
 Repeat this for every codec shipped with Blosc (blosclz, lz4, lz4hc, snappy,
 zlib and zstd).
@@ -66,8 +72,9 @@ zlib and zstd).
 Tagging
 -------
 
-- Create a tag ``X.Y.Z`` from ``master``.  Use the next message::
+- Create a tag ``X.Y.Z`` from ``master``::
 
+    $ git switch master
     $ git tag -a vX.Y.Z -m "Tagging version X.Y.Z"
 
 - Push the previous commits and tag to the github repo::

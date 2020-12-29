@@ -144,7 +144,7 @@ int pthread_cond_wait(pthread_cond_t *cond, CRITICAL_SECTION *mutex)
 		 * for the mutex at the end of this function because the
 		 * broadcasting thread did not leave cond_broadcast, yet.
 		 * (This is so that it can be sure that each waiter has
-		 * consumed exactly one slice of the semaphor.)
+		 * consumed exactly one slice of the semaphore.)
 		 * The last waiter must tell the broadcasting thread that it
 		 * can go on.
 		 */
@@ -198,7 +198,7 @@ int pthread_cond_broadcast(pthread_cond_t *cond)
 		LeaveCriticalSection(&cond->waiters_lock);
 		/*
 		 * At this point all waiters continue. Each one takes its
-		 * slice of the semaphor. Now it's our turn to wait: Since
+		 * slice of the semaphore. Now it's our turn to wait: Since
 		 * the external mutex is held, no thread can leave cond_wait,
 		 * yet. For this reason, we can be sure that no thread gets
 		 * a chance to eat *more* than one slice. OTOH, it means

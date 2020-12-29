@@ -20,8 +20,8 @@ foreach(source ${SOURCES})
         endif()
     endif()
 
-    # test_compressor will be enabled only when LZ4 support is in
-    if(target STREQUAL test_compressor AND DEACTIVATE_LZ4)
+    # Disable targets that use lz4 compressor when lz4 is deactivated
+    if((target STREQUAL test_compressor) OR (target STREQUAL test_bitshuffle_leftovers) AND DEACTIVATE_LZ4)
         message("Skipping ${target} on non-LZ4 builds")
         continue()
     endif()

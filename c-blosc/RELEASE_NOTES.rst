@@ -2,6 +2,90 @@
  Release notes for C-Blosc
 ===========================
 
+Changes from 1.20.1 to 1.21.0
+=============================
+
+* Updated zstd codec to 1.4.8.
+
+* Updated lz4 codec to 1.9.3.
+
+* New instructions on how to use the libraries in python-blosc wheels
+  so as to compile C-Blosc applications.  See:
+  https://github.com/Blosc/c-blosc/blob/master/COMPILING_WITH_WHEELS.rst
+
+
+Changes from 1.20.0 to 1.20.1
+=============================
+
+* Added `<unistd.h>` in vendored zlib 1.2.8 for compatibility with Python 3.8
+  in recent Mac OSX.  For details, see:
+  https://github.com/Blosc/python-blosc/issues/229
+
+
+Changes from 1.19.1 to 1.20.0
+=============================
+
+* More saftey checks have been implemented so that potential flaws
+  discovered by new fuzzers in OSS-Fuzzer are fixed now.  Thanks to
+  Nathan Moinvaziri (@nmoinvaz).
+
+* BloscLZ updated to 2.3.0. Expect better compression ratios for faster
+  codecs.  For details, see our new blog post:
+  https://blosc.org/posts/beast-release/
+
+* Fixed the `_xgetbv()` collision. Thanks to Michał Górny (@mgorny).
+
+* The chunk format has been fully described so that 3rd party software
+  may come with a different implementation, but still compatible with
+  C-Blosc chunks.
+
+
+Changes from 1.19.0 to 1.19.1
+=============================
+
+- pthread_create() errors are now handled and propagated back to the user.
+  See https://github.com/Blosc/c-blosc/pull/299.
+
+
+Changes from 1.18.1 to 1.19.0
+=============================
+
+- The length of automatic blocksizes for fast codecs (lz4, blosclz) has
+  been incremented quite a bit (up to 256 KB) for better compression ratios.
+  The performance in modern CPUs (with at least 256 KB in L2 cache) should
+  be better too (for older CPUs the performance should stay roughly the same).
+
+- Continuous integration has been migrated to GitHub actions and much
+  more scenarios are tested (specially linking with external codecs).
+  Also, a new OSS-Fuzz workflow has been added for increased detection
+  of possible vulnerabilities.  Thanks to Nathan Moinvaziri.
+
+- For small buffers that cannot be compressed (typically < 128 bytes),
+  `blosc_compress()` returns now a 0 (cannot compress) instead of a negative
+  number (internal error).  See https://github.com/Blosc/c-blosc/pull/294.
+  Thanks to @kalvdans for providing the initial patch.
+
+- blosclz codec updated to 2.1.0.  Expect better compression ratios and
+  performance in a wider variety of scenarios.
+
+- `blosc_decompress_unsafe()`, `blosc_decompress_ctx_unsafe()` and
+  `blosc_getitem_unsafe()` have been removed because they are dangerous
+  and after latest improvements, they should not be used in production.
+
+- zstd codec updated to 1.4.5.
+
+- Conan packaging has been deprecated (from now on, we should try
+  to focus on supporting wheels only).
+
+
+Changes from 1.17.1 to 1.18.1
+=============================
+
+- Fixed the copy of the leftovers of a chunk when its size is not a
+  multiple of the typesize.  Although this is a very unusual situation,
+  it can certainly happen (e.g.
+  https://github.com/Blosc/python-blosc/issues/220).
+
 
 Changes from 1.17.0 to 1.17.1
 =============================
