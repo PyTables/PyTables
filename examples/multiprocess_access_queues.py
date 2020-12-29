@@ -3,10 +3,7 @@ queues."""
 
 import sys
 
-if sys.version < '3':
-    import Queue as queue
-else:
-    import queue
+import queue
 
 import multiprocessing
 import os

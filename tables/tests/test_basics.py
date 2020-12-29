@@ -1364,8 +1364,7 @@ class CheckFileTestCase(common.TempFileMixin, TestCase):
                     ui.copy(self.h5file.root, "newui")
 
 
-@unittest.skipIf((os.name == 'nt' and sys.version_info < (3,))
-                  or tables.file._FILE_OPEN_POLICY == 'strict',
+@unittest.skipIf(tables.file._FILE_OPEN_POLICY == 'strict',
                  'FILE_OPEN_POLICY = "strict"')
 class ThreadingTestCase(common.TempFileMixin, TestCase):
     def setUp(self):

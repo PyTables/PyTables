@@ -600,7 +600,6 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         assert_array_equal(self.array.attrs['b'], data.T)
         assert_array_equal(self.array.attrs['c'], data.T)  # AssertionError!
 
-    @unittest.skipIf(sys.version_info[0] < 3, "Special method `__dir__()` introduced in Python-3.")
     def test12_dir(self):
         """Checking AttributeSet.__dir__"""
 
@@ -1711,8 +1710,6 @@ class CompatibilityTestCase(common.TestFileMixin, TestCase):
 class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, TestCase):
     h5fname = test_filename('issue_560.h5')
 
-    @unittest.skipIf(sys.version_info[0] == 3 and sys.version_info[1] < 4,
-                     'bug not fixed on python3<=3.3.')
     def test_pickled_datetime_object(self):
         # See also gh-560
         #

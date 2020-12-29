@@ -15,6 +15,16 @@
 .. image:: https://ci.appveyor.com/api/projects/status/github/PyTables/PyTables?branch=master&svg=true
    :target: https://ci.appveyor.com/project/PyTablesCI/pytables
 
+.. image:: https://img.shields.io/pypi/v/tables.svg
+  :target: https://pypi.org/project/tables/
+
+.. image:: https://img.shields.io/pypi/pyversions/tables.svg
+  :target: https://pypi.org/project/tables/
+
+.. image:: https://img.shields.io/pypi/l/tables
+  :target: https://github.com/PyTables/PyTables/
+
+
 :URL: http://www.pytables.org/
 
 
