@@ -96,10 +96,10 @@ if __name__ == '__main__':
 
 
     # The minimum required versions
-    min_python_version = (3, 5)
+    min_python_version = (3, 6)
     # Check for Python
     if sys.version_info < min_python_version:
-        exit_with_error("You need Python 3.5 or greater to install PyTables!")
+        exit_with_error("You need Python 3.6 or greater to install PyTables!")
     print("* Using Python %s" % sys.version.splitlines()[0])
 
     # Minimum required versions for numpy, numexpr and HDF5
@@ -1033,7 +1033,6 @@ Operating System :: Unix
 Programming Language :: Python
 Programming Language :: Python :: 3
 Programming Language :: Python :: 3 :: Only
-Programming Language :: Python :: 3.5
 Programming Language :: Python :: 3.6
 Programming Language :: Python :: 3.7
 Programming Language :: Python :: 3.8
@@ -1062,7 +1061,7 @@ interactively save and retrieve large amounts of data.
         maintainer_email='pytables@pytables.org',
         url='http://www.pytables.org/',
         license='BSD 2-Clause',
-        python_requires='>=3.5',
+        python_requires='>=3.6',
         platforms=['any'],
         ext_modules=extensions,
         cmdclass=cmdclass,
