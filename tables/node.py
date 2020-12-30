@@ -43,7 +43,7 @@ def _closedrepr(oldmethod):
             cmod = self.__class__.__module__
             cname = self.__class__.__name__
             addr = hex(id(self))
-            return '<closed {}.{} at {}>'.format(cmod, cname, addr)
+            return f'<closed {cmod}.{cname} at {addr}>'
         return oldmethod(self)
 
     return newmethod

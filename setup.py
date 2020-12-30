@@ -81,7 +81,7 @@ if __name__ == '__main__':
     def _print_admonition(kind, head, body):
         tw = textwrap.TextWrapper(initial_indent='   ', subsequent_indent='   ')
 
-        print(".. {}:: {}".format(kind.upper(), head))
+        print(f".. {kind.upper()}:: {head}")
         for line in tw.wrap(body):
             print(line)
 
@@ -391,7 +391,7 @@ if __name__ == '__main__':
         if (major_version == -1 or minor_version == -1 or
                 release_version == -1):
             exit_with_error("Unable to detect Blosc library version!")
-        return "{}.{}.{}".format(major_version, minor_version, release_version)
+        return f"{major_version}.{minor_version}.{release_version}"
 
 
     _cp = convert_path

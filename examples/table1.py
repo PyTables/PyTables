@@ -55,7 +55,7 @@ print()
 
 table = fileh.root.newgroup.table
 print("Object:", table)
-print("Table name: {}. Table title: {}".format(table.name, table.title))
+print(f"Table name: {table.name}. Table title: {table.title}")
 print("Rows saved on table: %d" % (table.nrows))
 
 print("Variable names on table with their type:")

@@ -148,9 +148,9 @@ def check_file_access(filename, mode='r'):
     if mode == 'r':
         # The file should be readable.
         if not os.access(filename, os.F_OK):
-            raise OSError("``{}`` does not exist".format(filename))
+            raise OSError(f"``{filename}`` does not exist")
         if not os.path.isfile(filename):
-            raise OSError("``{}`` is not a regular file".format(filename))
+            raise OSError(f"``{filename}`` is not a regular file")
         if not os.access(filename, os.R_OK):
             raise OSError("file ``%s`` exists but it can not be read"
                           % (filename,))
@@ -166,9 +166,9 @@ def check_file_access(filename, mode='r'):
             if not parentname:
                 parentname = '.'
             if not os.access(parentname, os.F_OK):
-                raise OSError("``{}`` does not exist".format(parentname))
+                raise OSError(f"``{parentname}`` does not exist")
             if not os.path.isdir(parentname):
-                raise OSError("``{}`` is not a directory".format(parentname))
+                raise OSError(f"``{parentname}`` is not a directory")
             if not os.access(parentname, os.W_OK):
                 raise OSError("directory ``%s`` exists but it can not be "
                               "written" % (parentname,))
@@ -183,7 +183,7 @@ def check_file_access(filename, mode='r'):
             raise OSError("file ``%s`` exists but it can not be written"
                           % (filename,))
     else:
-        raise ValueError("invalid mode: {!r}".format(mode))
+        raise ValueError(f"invalid mode: {mode!r}")
 
 
 
@@ -265,9 +265,9 @@ def show_stats(explain, tref, encoding=None):
             vmlib = int(line.split()[1])
     sout.close()
     print("Memory usage: ******* %s *******" % explain)
-    print("VmSize: {:>7} kB\tVmRSS: {:>7} kB".format(vmsize, vmrss))
-    print("VmData: {:>7} kB\tVmStk: {:>7} kB".format(vmdata, vmstk))
-    print("VmExe:  {:>7} kB\tVmLib: {:>7} kB".format(vmexe, vmlib))
+    print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
+    print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
+    print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
     tnow = time()
     print("WallClock time:", round(tnow - tref, 3))
     return tnow
@@ -351,7 +351,7 @@ def dump_logged_instances(classes, file=sys.stdout):
             if obj is not None:
                 file.write('    %s:\n' % obj)
                 for key, value in obj.__dict__.items():
-                    file.write('        {:>20} : {}\n'.format(key, value))
+                    file.write(f'        {key:>20} : {value}\n')
 
 
 

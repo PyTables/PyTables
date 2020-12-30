@@ -139,7 +139,7 @@ sequences, mappings and other enumerations""")
 
         if not isinstance(name, str):
             raise TypeError(
-                "name of enumerated value is not a string: {!r}".format(name))
+                f"name of enumerated value is not a string: {name!r}")
         if name.startswith('_'):
             raise ValueError(
                 "name of enumerated value can not start with ``_``: %r"
@@ -185,7 +185,7 @@ sequences, mappings and other enumerations""")
         try:
             return self._names[name]
         except KeyError:
-            raise KeyError("no enumerated value with that name: {!r}".format(name))
+            raise KeyError(f"no enumerated value with that name: {name!r}")
 
     def __setitem__(self, name, value):
         """This operation is forbidden."""
@@ -265,7 +265,7 @@ sequences, mappings and other enumerations""")
 
         if not isinstance(name, str):
             raise TypeError(
-                "name of enumerated value is not a string: {!r}".format(name))
+                f"name of enumerated value is not a string: {name!r}")
         return name in self._names
 
     def __call__(self, value, *default):
@@ -303,7 +303,7 @@ sequences, mappings and other enumerations""")
             if len(default) > 0:
                 return default[0]
             raise ValueError(
-                "no enumerated value with that concrete value: {!r}".format(value))
+                f"no enumerated value with that concrete value: {value!r}")
 
     def __len__(self):
         """Return the number of enumerated values in the enumerated type.

@@ -92,11 +92,11 @@ class DB:
             # print "Times for warm cache:\n", wtimes
             print("Histogram for warm cache: %s\n%s" %
                   numpy.histogram(wtimes))
-        print("{}1st query time for {}:".format(r, colname),
+        print(f"{r}1st query time for {colname}:",
               round(qtime1, prec))
-        print("{}Query time for {} (cold cache):".format(r, colname),
+        print(f"{r}Query time for {colname} (cold cache):",
               round(cmean, prec), "+-", round(cstd, prec))
-        print("{}Query time for {} (warm cache):".format(r, colname),
+        print(f"{r}Query time for {colname} (warm cache):",
               round(wmean, prec), "+-", round(wstd, prec))
 
     def print_db_sizes(self, init, filled, indexed):

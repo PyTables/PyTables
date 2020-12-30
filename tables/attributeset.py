@@ -659,7 +659,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # However, we need to know Node here.
         # Using class_name_dict avoids a circular import.
         if not isinstance(where, class_name_dict['Node']):
-            raise TypeError("destination object is not a node: {!r}".format(where))
+            raise TypeError(f"destination object is not a node: {where!r}")
         self._g_copy(where._v_attrs, where._v_attrs.__setattr__)
 
     def _g_close(self):

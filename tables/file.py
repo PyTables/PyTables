@@ -1640,7 +1640,7 @@ class File(hdf5extension.File):
             node = self._get_node(nodepath)
         else:
             raise TypeError(
-                "``where`` must be a string or a node: {!r}".format(where))
+                f"``where`` must be a string or a node: {where!r}")
 
         # Finally, check whether the desired node is an instance
         # of the expected class.
@@ -2165,7 +2165,7 @@ class File(hdf5extension.File):
     def _check_group(self, node):
         # `node` must already be a node.
         if not isinstance(node, Group):
-            raise TypeError("node ``{}`` is not a group".format(node._v_pathname))
+            raise TypeError(f"node ``{node._v_pathname}`` is not a group")
 
 
     # <Undo/Redo support>

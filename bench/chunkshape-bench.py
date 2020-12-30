@@ -44,7 +44,7 @@ b = a.copy(f.root, "b", chunkshape=newchunkshape)
 tcpy = round(time() - t1, 3)
 thcpy = round(dim1 * dim2 * 8 / (tcpy * 1024 * 1024), 1)
 print("Chunkshape for row-wise chunkshape array:", b.chunkshape)
-print("Time to copy the original array: {} sec ({} MB/s)".format(tcpy, thcpy))
+print(f"Time to copy the original array: {tcpy} sec ({thcpy} MB/s)")
 
 # Read the same ten rows from the new copied array
 t1 = time()

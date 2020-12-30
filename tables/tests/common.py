@@ -95,7 +95,7 @@ def print_versions():
         vml_avail = "using VML/MKL %s" % vml_version
     else:
         vml_avail = "not using Intel's VML/MKL"
-    print("Numexpr version:     {} ({})".format(numexpr.__version__, vml_avail))
+    print(f"Numexpr version:     {numexpr.__version__} ({vml_avail})")
     if tinfo is not None:
         print("Zlib version:        {} ({})".format(tinfo[1],
                                                 "in Python interpreter"))
@@ -248,7 +248,7 @@ class PyTablesTestCase(unittest.TestCase):
             name = self._getName()
             methodName = self._getMethodName()
 
-            title = "Running {}.{}".format(name, methodName)
+            title = f"Running {name}.{methodName}"
             print('{}\n{}'.format(title, '-' * len(title)))
 
     # COMPATIBILITY: assertWarns is new in Python 3.2
@@ -372,9 +372,9 @@ class ShowMemTime(PyTablesTestCase):
                 vmlib = int(line.split()[1])
         print("\nWallClock time:", time.time() - self.tref)
         print("Memory usage: ******* %s *******" % self._getName())
-        print("VmSize: {:>7} kB\tVmRSS: {:>7} kB".format(vmsize, vmrss))
-        print("VmData: {:>7} kB\tVmStk: {:>7} kB".format(vmdata, vmstk))
-        print("VmExe:  {:>7} kB\tVmLib: {:>7} kB".format(vmexe, vmlib))
+        print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
+        print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
+        print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
 
 
 ## Local Variables:

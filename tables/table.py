@@ -285,7 +285,7 @@ def _column__create_index(self, optlevel, kind, filters, tmp_dir,
             else:
                 dname += '/' + iname
             try:
-                idgroup = get_node('{}/{}'.format(itgroup._v_pathname, dname))
+                idgroup = get_node(f'{itgroup._v_pathname}/{dname}')
             except NoSuchNodeError:
                 idgroup = create_indexes_descr(idgroup, dname, iname, filters)
 
@@ -342,7 +342,7 @@ class _ColIndexes(dict):
     def __repr__(self):
         """Gives a detailed Description column representation."""
 
-        rep = ['  \"{}\": {}'.format(k, v) for k, v in self.items()]
+        rep = [f'  \"{k}\": {v}' for k, v in self.items()]
         return '{\n  %s}' % (',\n  '.join(rep))
 
 
@@ -2078,7 +2078,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
             return self._read_coordinates(key, None)
         else:
-            raise IndexError("Invalid index or slice: {!r}".format(key))
+            raise IndexError(f"Invalid index or slice: {key!r}")
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in the table.
@@ -2148,7 +2148,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
             return self.modify_coordinates(key, value)
         else:
-            raise IndexError("Invalid index or slice: {!r}".format(key))
+            raise IndexError(f"Invalid index or slice: {key!r}")
 
     def _save_buffered_rows(self, wbufRA, lenrows):
         """Update the indexes after a flushing of rows."""
@@ -3164,7 +3164,7 @@ class Cols:
                 else:
                     return get_nested_field(crecarray, colgroup)  # numpy case
         else:
-            raise TypeError("invalid index or slice: {!r}".format(key))
+            raise TypeError(f"invalid index or slice: {key!r}")
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in a table or nested column.
@@ -3208,7 +3208,7 @@ class Cols:
             (start, stop, step) = table._process_range(
                 key.start, key.stop, key.step)
         else:
-            raise TypeError("invalid index or slice: {!r}".format(key))
+            raise TypeError(f"invalid index or slice: {key!r}")
 
         # Actually modify the correct columns
         colgroup = self._v_desc._v_pathname
@@ -3263,7 +3263,7 @@ class Cols:
                 tcol = "Description"
                 # Description doesn't have a shape currently
                 shape = ()
-            out += "  {} ({}{}, {})".format(name, classname, shape, tcol) + "\n"
+            out += f"  {name} ({classname}{shape}, {tcol})" + "\n"
         return out
 
 

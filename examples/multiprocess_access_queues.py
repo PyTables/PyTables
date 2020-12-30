@@ -172,7 +172,7 @@ if __name__ == '__main__':
     print()
     for output_file in output_files:
         print()
-        print('contents of log file {}'.format(output_file))
+        print(f'contents of log file {output_file}')
         print(open(output_file).read())
         os.remove(output_file)
 
