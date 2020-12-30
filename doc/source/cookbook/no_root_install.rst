@@ -12,7 +12,7 @@ Installing PyTables when you're not root
 
 By `Koen van de Sande <http://www.tibed.net>`_.
 
-.. warning:: contents of this recipe recipe may be outdated.
+.. warning:: contents of this recipe may be outdated.
 
 This guide describes how to install PyTables and its dependencies on Linux or
 other \*nix systems when your user account is not root.

@@ -176,8 +176,8 @@ worry too much ;)
 
     The HDF5 libraries and other helper packages are automatically found in
     a conda environment. During installation setup.py uses the `CONDA_PREFIX`
-    environment variable to detect a conda enviroment. If detected it will
-    try to find all packages within this enviroment. PyTables needs at least
+    environment variable to detect a conda environment. If detected it will
+    try to find all packages within this environment. PyTables needs at least
     the hdf5 package::
 
         conda install hdf5
@@ -188,7 +188,7 @@ worry too much ;)
     :envvar:`BLOSC_DIR` environment variables.
 
     When inside a conda environment *pkg-config* will not work. To disable
-    using the conda enviroment and fall back to *pkg-config* use `--no-conda`::
+    using the conda environment and fall back to *pkg-config* use `--no-conda`::
 
           python3 setup.py install --no-conda
 
@@ -419,7 +419,7 @@ following::
 
   $ python3 -m pip install git+https://github.com/PyTables/PyTables.git@develop#egg=tables
 
-A similar command can be used to install a specific tagged fersion::
+A similar command can be used to install a specific tagged version::
 
   $ python3 -m pip install git+https://github.com/PyTables/PyTables.git@v.2.4.0#egg=tables
 
@@ -442,7 +442,7 @@ libraries have to be installed by the user.
    PyTables >= 3.2 natively supports the new layout via *pkg-config* (that
    is expected to be installed on the system at build time).
 
-   If *pkg-config* is not available or PyTables is older that verison 3.2,
+   If *pkg-config* is not available or PyTables is older than version 3.2,
    then the following command can be used::
 
      $ env CPPFLAGS=-I/usr/include/hdf5/serial \

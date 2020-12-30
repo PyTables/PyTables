@@ -277,7 +277,7 @@ cuts::
     ['Particle:      5', 'Particle:      6', 'Particle:      7']
 
 In-kernel and indexed queries are not only much faster, but as you can see,
-they also look more compact, and are among the greatests features for
+they also look more compact, and are among the greatest features for
 PyTables, so be sure that you use them a lot. See :ref:`condition_syntax` and
 :ref:`searchOptim` for more information on in-kernel and indexed selections.
 
@@ -1675,7 +1675,7 @@ what's more, it is exactly the same object::
     >>> fileh.root.anarray is one
     True
 
-It was just moved to the the hidden group and back again, that's all!
+It was just moved to the hidden group and back again, that's all!
 That's kind of fun, so we are going to do the same with /anotherarray::
 
     >>> fileh.redo()
@@ -2179,7 +2179,7 @@ Accessing meta-information of nested tables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Tables have a *description* attribute, which returns an instance of
 the Description class (see :ref:`DescriptionClassDescr`) with table meta-data.
-It can be helpful in understanding the table structure, including nested colums::
+It can be helpful in understanding the table structure, including nested columns::
 
     >>> table.description
     {
