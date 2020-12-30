@@ -12,14 +12,14 @@ New features:
 
 - Indexing of columns in tables. That allow to make data selections on
   tables up to 500 times faster than standard selections (for
-  ex. doing a selection along an indexed column of 100 milion of rows
+  ex. doing a selection along an indexed column of 100 million of rows
   takes less than 1 second on a modern CPU). Perhaps the most
   interesting thing about the indexing algorithm implemented by
-  PyTables is that the time taken to index grows *lineraly* with the
+  PyTables is that the time taken to index grows *linearly* with the
   length of the data, so, making the indexation process to be
   *scalable* (quite differently to many relational databases). This
   means that it can index, in a relatively quick way, arbitrarily
-  large table columns (for ex. indexing a column of 100 milion of rows
+  large table columns (for ex. indexing a column of 100 million of rows
   takes just 100 seconds, i.e. at a rate of 1 Mrow/sec). See more
   detailed info about that in http://www.pytables.org/docs/SciPy04.pdf.
 
@@ -38,7 +38,7 @@ New features:
   well as updating the User's Manual and adding unit tests for the new
   functionality.
 
-- Modification of values. You can modifiy Table, Array, EArray and
+- Modification of values. You can modify Table, Array, EArray and
   VLArray values. See Table.modifyRows, Table.modifyColumns() and the
   newly introduced __setitem__() method for Table, Array, EArray and
   VLArray entities in the Library Reference of User's Manual.

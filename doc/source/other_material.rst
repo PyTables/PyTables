@@ -10,7 +10,7 @@ PyTables in a visual and easy to grasp manner.
 More videos will be made available with the time:
 
 * `HDF5 is for Lovers, SciPy 2012 Tutorial <http://www.youtube.com/watch?v=Nzx0HAd3FiI>`_:
-  a beginer's introduction to PyTables and HDF5.
+  a beginner's introduction to PyTables and HDF5.
 * `PyTables, part I: Introduction
   <http://showmedo.com/videos/video?name=1780000&fromSeriesID=178>`_:
   HDF5 file creation, the object tree, homogeneous array storage, natural

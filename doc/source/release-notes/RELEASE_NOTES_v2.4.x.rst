@@ -86,7 +86,7 @@ Other improvements
 Documentation improvements
 --------------------------
 
-- new coockbook section (contents have been coming from the PyTables wiki
+- new cookbook section (contents have been coming from the PyTables wiki
   on http://www.pytables.org)
 
 - complete rework of the library reference.  Now the entire chapter is

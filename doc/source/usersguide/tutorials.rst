@@ -55,7 +55,7 @@ also need to import functions from the numpy package. So most PyTables
 programs begin with::
 
     >>> import tables   # but in this tutorial we use "from tables import \*"
-    >>> import numpy
+    >>> import numpy as np
 
 
 Declaring a Column Descriptor
@@ -205,8 +205,8 @@ actually an *extension class*), using the column names as keys.
 
 Below is an example of how to write rows::
 
-    >>> for i in xrange(10):
-    ...     particle['name']  = 'Particle: %6d' % (i)
+    >>> for i in range(10):
+    ...     particle['name']  = f'Particle: {i:6d}'
     ...     particle['TDCcount'] = i % 256
     ...     particle['ADCcount'] = (i * 256) % (1 << 16)
     ...     particle['grid_i'] = i
@@ -277,7 +277,7 @@ cuts::
     ['Particle:      5', 'Particle:      6', 'Particle:      7']
 
 In-kernel and indexed queries are not only much faster, but as you can see,
-they also look more compact, and are among the greatests features for
+they also look more compact, and are among the greatest features for
 PyTables, so be sure that you use them a lot. See :ref:`condition_syntax` and
 :ref:`searchOptim` for more information on in-kernel and indexed selections.
 
@@ -331,7 +331,7 @@ naming* (h5file.root) instead of with an absolute path string ("/").
 
 Now, create the first of the two Array objects we've just mentioned::
 
-    >>> h5file.create_array(gcolumns, 'pressure', numpy.array(pressure), "Pressure column selection")
+    >>> h5file.create_array(gcolumns, 'pressure', np.array(pressure), "Pressure column selection")
     /columns/pressure (Array(3,)) 'Pressure column selection'
       atom := Float64Atom(shape=(), dflt=0.0)
       maindim := 0
@@ -923,8 +923,8 @@ values to it::
 
     >>> table = h5file.root.detector.readout
     >>> particle = table.row
-    >>> for i in xrange(10, 15):
-    ...     particle['name']  = 'Particle: %6d' % (i)
+    >>> for i in range(10, 15):
+    ...     particle['name']  = f'Particle: {i:6d}'
     ...     particle['TDCcount'] = i % 256
     ...     particle['ADCcount'] = (i * 256) % (1 << 16)
     ...     particle['grid_i'] = i
@@ -1176,37 +1176,37 @@ dtype (or even as a dictionary), as you can see in the Event description. See
 :meth:`File.create_table` for different kinds of descriptor objects that
 can be passed to this method::
 
-    from tables import *
-    from numpy import *
+    import tables as tb
+    import numpy as np
 
     # Describe a particle record
-    class Particle(IsDescription):
-        name        = StringCol(itemsize=16)  # 16-character string
-        lati        = Int32Col()              # integer
-        longi       = Int32Col()              # integer
-        pressure    = Float32Col(shape=(2,3)) # array of floats (single-precision)
-        temperature = Float64Col(shape=(2,3)) # array of doubles (double-precision)
+    class Particle(tb.IsDescription):
+        name        = tb.StringCol(itemsize=16)  # 16-character string
+        lati        = tb.Int32Col()              # integer
+        longi       = tb.Int32Col()              # integer
+        pressure    = tb.Float32Col(shape=(2,3)) # array of floats (single-precision)
+        temperature = tb.Float64Col(shape=(2,3)) # array of doubles (double-precision)
 
     # Native NumPy dtype instances are also accepted
-    Event = dtype([
+    Event = np.dtype([
         ("name"     , "S16"),
-        ("TDCcount" , uint8),
-        ("ADCcount" , uint16),
-        ("xcoord"   , float32),
-        ("ycoord"   , float32)
+        ("TDCcount" , np.uint8),
+        ("ADCcount" , np.uint16),
+        ("xcoord"   , np.float32),
+        ("ycoord"   , np.float32)
         ])
 
     # And dictionaries too (this defines the same structure as above)
     # Event = {
-    #     "name"     : StringCol(itemsize=16),
-    #     "TDCcount" : UInt8Col(),
-    #     "ADCcount" : UInt16Col(),
-    #     "xcoord"   : Float32Col(),
-    #     "ycoord"   : Float32Col(),
+    #     "name"     : tb.StringCol(itemsize=16),
+    #     "TDCcount" : tb.UInt8Col(),
+    #     "ADCcount" : tb.UInt16Col(),
+    #     "xcoord"   : tb.Float32Col(),
+    #     "ycoord"   : tb.Float32Col(),
     #     }
 
     # Open a file in "w"rite mode
-    fileh = open_file("tutorial2.h5", mode = "w")
+    fileh = tb.open_file("tutorial2.h5", mode="w")
 
     # Get the HDF5 root group
     root = fileh.root
@@ -1227,18 +1227,18 @@ can be passed to this method::
         particle = table.row
 
         # Fill the table with 257 particles
-        for i in xrange(257):
+        for i in range(257):
             # First, assign the values to the Particle record
-            particle['name'] = 'Particle: %6d' % (i)
+            particle['name'] = f'Particle: {i:6d}'
             particle['lati'] = i
             particle['longi'] = 10 - i
 
             ########### Detectable errors start here. Play with them!
-            particle['pressure'] = array(i*arange(2*3)).reshape((2,4))  # Incorrect
-            #particle['pressure'] = array(i*arange(2*3)).reshape((2,3)) # Correct
+            particle['pressure'] = np.array(i * np.arange(2 * 3)).reshape((2, 4))  # Incorrect
+            #particle['pressure'] = np.array(i * np.arange(2 * 3)).reshape((2, 3)) # Correct
             ########### End of errors
 
-            particle['temperature'] = (i**2)     # Broadcasting
+            particle['temperature'] = i ** 2     # Broadcasting
 
             # This injects the Record values
             particle.append()
@@ -1255,19 +1255,19 @@ can be passed to this method::
         event = table.row
 
         # Fill the table with 257 events
-        for i in xrange(257):
+        for i in range(257):
             # First, assign the values to the Event record
-            event['name']  = 'Event: %6d' % (i)
+            event['name']  = f'Event: {i:6d}'
             event['TDCcount'] = i % (1<<8)   # Correct range
 
             ########### Detectable errors start here. Play with them!
-            event['xcoor'] = float(i**2)     # Wrong spelling
-            #event['xcoord'] = float(i**2)   # Correct spelling
+            event['xcoor'] = float(i ** 2)     # Wrong spelling
+            #event['xcoord'] = float(i ** 2)   # Correct spelling
             event['ADCcount'] = "sss"        # Wrong type
             #event['ADCcount'] = i * 2       # Correct type
             ########### End of errors
 
-            event['ycoord'] = float(i)**4
+            event['ycoord'] = float(i) ** 4
 
             # This injects the Record values
             event.append()
@@ -1278,9 +1278,9 @@ can be passed to this method::
     # Read the records from table "/Events/TEvent3" and select some
     table = root.Events.TEvent3
     e = [ p['TDCcount'] for p in table if p['ADCcount'] < 20 and 4 <= p['TDCcount'] < 15 ]
-    print("Last record ==>", p)
-    print("Selected values ==>", e)
-    print("Total selected records ==> ", len(e))
+    print(f"Last record ==> {p}")
+    print("Selected values ==> {e}")
+    print("Total selected records ==> {len(e)}")
 
     # Finally, close the file (this also will flush all the remaining buffers!)
     fileh.close()
@@ -1296,7 +1296,7 @@ get the following error.
     $ python3 tutorial2.py
     Traceback (most recent call last):
       File "tutorial2.py", line 60, in <module>
-        particle['pressure'] = array(i*arange(2*3)).reshape((2,4))  # Incorrect
+        particle['pressure'] = array(i * arange(2 * 3)).reshape((2, 4))  # Incorrect
     ValueError: total size of new array must be unchanged
     Closing remaining open files: tutorial2.h5... done
 
@@ -1310,7 +1310,7 @@ exception: when you assign a *scalar* value to a multidimensional column
 cell, all the cell elements are populated with the value of the scalar.
 For example::
 
-    particle['temperature'] = (i**2)    # Broadcasting
+    particle['temperature'] = i ** 2    # Broadcasting
 
 The value i**2 is assigned to all the elements of the temperature table cell.
 This capability is provided by the NumPy package and is known as
@@ -1327,7 +1327,7 @@ another error.
     $ python3 tutorial2.py
     Traceback (most recent call last):
       File "tutorial2.py", line 73, in ?
-        event['xcoor'] = float(i**2)     # Wrong spelling
+        event['xcoor'] = float(i ** 2)     # Wrong spelling
       File "tableextension.pyx", line 1094, in tableextension.Row.__setitem__
       File "tableextension.pyx", line 127, in tableextension.get_nested_field_cache
       File "utilsextension.pyx", line 331, in utilsextension.get_nested_field
@@ -1425,7 +1425,7 @@ where we will put our links and will start creating one hard link too::
 
     >>> gl = f1.create_group('/', 'gl')
     >>> ht = f1.create_hard_link(gl, 'ht', '/g1/g2/t1')  # ht points to t1
-    >>> print("``%s`` is a hard link to: ``%s``" % (ht, t1))
+    >>> print(f"``{ht}`` is a hard link to: ``{t1}``")
     ``/gl/ht (Table(0,)) `` is a hard link to: ``/g1/g2/t1 (Table(0,)) ``
 
 You can see how we've created a hard link in /gl/ht which is pointing to the
@@ -1436,16 +1436,16 @@ different paths to access that table, the original /g1/g2/t1 and the new one
 the new path::
 
     >>> t1.remove()
-    >>> print("table continues to be accessible in: ``%s``" % f1.get_node('/gl/ht'))
+    >>> print(f"table continues to be accessible in: ``{f1.get_node('/gl/ht')}``")
     table continues to be accessible in: ``/gl/ht (Table(0,)) ``
 
 So far so good. Now, let's create a couple of soft links::
 
     >>> la1 = f1.create_soft_link(gl, 'la1', '/g1/a1')  # la1 points to a1
-    >>> print("``%s`` is a soft link to: ``%s``" % (la1, la1.target))
+    >>> print(f"``{la1}`` is a soft link to: ``{la1.target}``")
     ``/gl/la1 (SoftLink) -> /g1/a1`` is a soft link to: ``/g1/a1``
     >>> lt = f1.create_soft_link(gl, 'lt', '/g1/g2/t1')  # lt points to t1
-    >>> print("``%s`` is a soft link to: ``%s``" % (lt, lt.target))
+    >>> print(f"``{lt}`` is a soft link to: ``{lt.target}``")
     ``/gl/lt (SoftLink) -> /g1/g2/t1 (dangling)`` is a soft link to: ``/g1/g2/t1``
 
 Okay, we see how the first link /gl/la1 points to the array /g1/a1.  Notice
@@ -1462,7 +1462,7 @@ node or not.
 So, let's re-create the removed path to t1 table::
 
     >>> t1 = f1.create_hard_link('/g1/g2', 't1', '/gl/ht')
-    >>> print("``%s`` is not dangling anymore" % (lt,))
+    >>> print(f"``{lt}`` is not dangling anymore")
     ``/gl/lt (SoftLink) -> /g1/g2/t1`` is not dangling anymore
 
 and the soft link is pointing to an existing node now.
@@ -1472,10 +1472,10 @@ the pointed node.  It happens that soft links are callable, and that's the
 way to get the referred nodes back::
 
     >>> plt = lt()
-    >>> print("dereferred lt node: ``%s``" % plt)
+    >>> print(f"dereferred lt node: ``{plt}``")
     dereferred lt node: ``/g1/g2/t1 (Table(0,)) ``
     >>> pla1 = la1()
-    >>> print("dereferred la1 node: ``%s``" % pla1)
+    >>> print(f"dereferred la1 node: ``{pla1}``")
     dereferred la1 node: ``/g1/a1 (CArray(10000,)) ``
 
 Now, plt is a Python reference to the t1 table while pla1 refers to the a1
@@ -1503,13 +1503,13 @@ its place::
 
     >>> la1.remove()
     >>> la1 = f1.create_external_link(gl, 'la1', 'links2.h5:/a1')
-    >>> print("``%s`` is an external link to: ``%s``" % (la1, la1.target))
+    >>> print(f"``{la1}`` is an external link to: ``{la1.target}``")
     ``/gl/la1 (ExternalLink) -> links2.h5:/a1`` is an external link to: ``links2.h5:/a1``
 
 Let's try dereferring it::
 
     >>> new_a1 = la1()  # dereferrencing la1 returns a1 in links2.h5
-    >>> print("dereferred la1 node:  ``%s``" % new_a1)
+    >>> print(f"dereferred la1 node:  ``{new_a1}``")
     dereferred la1 node:  ``/a1 (CArray(10000,)) ``
 
 Well, it seems like we can access the external node.  But just to make sure
@@ -1675,7 +1675,7 @@ what's more, it is exactly the same object::
     >>> fileh.root.anarray is one
     True
 
-It was just moved to the the hidden group and back again, that's all!
+It was just moved to the hidden group and back again, that's all!
 That's kind of fun, so we are going to do the same with /anotherarray::
 
     >>> fileh.redo()
@@ -1884,7 +1884,7 @@ See how accessing a value that is not in the enumeration raises the
 appropriate exception. We can also do the opposite and get the name
 that matches a concrete value by using the __call__() method of Enum::
 
-    >>> print("Name of value %s:" % colors.red, colors(colors.red))
+    >>> print(f"Name of value {colors.red}:", colors(colors.red))
     Name of value 0: red
     >>> print("Name of value 1234:", colors(1234))
     Name of value 1234:
@@ -2005,7 +2005,7 @@ enumerated values.
 Finally, we will print contents of the array::
 
     >>> for (d1, d2) in earr:
-    ...     print("From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2-d1+1))
+    ...     print(f"From {wdays(d1) to {wdays(d2) ({d2 - d1 + 1} days).")
     From Mon to Fri (5 days).
     From Wed to Fri (3 days).
     Traceback (most recent call last):
@@ -2035,29 +2035,29 @@ nested subclasses of IsDescription. The benefit is the ability to group
 and retrieve data more easily. Example below may be a bit silly, but it will serve 
 as an illustration of the concept::
 
-    from tables import *
+    import tables as tb
 
-    class Info(IsDescription):
+    class Info(tb.IsDescription):
         """A sub-structure of NestedDescr"""
         _v_pos = 2   # The position in the whole structure
-        name = StringCol(10)
-        value = Float64Col(pos=0)
+        name = tb.StringCol(10)
+        value = tb.Float64Col(pos=0)
 
-    colors = Enum(['red', 'green', 'blue'])
+    colors = tb.Enum(['red', 'green', 'blue'])
 
-    class NestedDescr(IsDescription):
+    class NestedDescr(tb.IsDescription):
         """A description that has several nested columns"""
-        color = EnumCol(colors, 'red', base='uint32')
-        info1 = Info()
+        color = tb.EnumCol(colors, 'red', base='uint32')
+        info1 = tb.Info()
 
-        class info2(IsDescription):
+        class info2(tb.IsDescription):
             _v_pos = 1
-            name = StringCol(10)
-            value = Float64Col(pos=0)
+            name = tb.StringCol(10)
+            value = tb.Float64Col(pos=0)
 
-            class info3(IsDescription):
-                x = Float64Col(dflt=1)
-                y = UInt8Col(dflt=1)
+            class info3(tb.IsDescription):
+                x = tb.Float64Col(dflt=1)
+                y = tb.UInt8Col(dflt=1)
 
 NestedDescr is the root class with two *substructures* in it: info1 and info2. Note info1 is an instance of class Info which is defined prior to NestedDescr. info2 is declared within NestedDescr. Also, there is a third substructure, info3, that is in turn declared within substructure info2. You can define positions of substructures in the containing object by declaring special class attribute _v_pos.
 
@@ -2067,16 +2067,16 @@ Creating nested tables
 Now that we have defined our nested structure, let's create a *nested* table,
 that is a table with columns which contain subcolumns::
 
-    >>> fileh = open_file("nested-tut.h5", "w")
+    >>> fileh = tb.open_file("nested-tut.h5", "w")
     >>> table = fileh.create_table(fileh.root, 'table', NestedDescr)
 
 Done! Now, to populate the table with values, assign a value to each field. Referencing nested fields can be accomplished by providing a full path. Follow the structure defined earlier - use '/' to access each sublevel of the structure, similar to how you would access a subdirectory on a Unix filesystem::
 
     >>> row = table.row
     >>> for i in range(10):
-    ...     row['color'] = colors[['red', 'green', 'blue'][i%3]]
-    ...     row['info1/name'] = "name1-%s" % i
-    ...     row['info2/name'] = "name2-%s" % i
+    ...     row['color'] = colors[['red', 'green', 'blue'][i % 3]]
+    ...     row['info1/name'] = f"name1-{i}"
+    ...     row['info2/name'] = f"name2-{i}"
     ...     row['info2/info3/y'] =  i
     ...     # Remaining fields will be filled with defaults
     ...     row.append()
@@ -2179,7 +2179,7 @@ Accessing meta-information of nested tables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Tables have a *description* attribute, which returns an instance of
 the Description class (see :ref:`DescriptionClassDescr`) with table meta-data.
-It can be helpful in understanding the table structure, including nested colums::
+It can be helpful in understanding the table structure, including nested columns::
 
     >>> table.description
     {
@@ -2244,7 +2244,7 @@ Last but not least, there is a special iterator of the Description class: _f_wal
 which returns different columns of the table::
 
     >>> for coldescr in table.description._f_walk():
-    ...     print("column-->",coldescr)
+    ...     print(f"column--> {coldescr}")
     column--> Description([('info2', [('info3', [('x', '()f8'), ('y', '()u1')]),
                            ('name', '()S10'), ('value', '()f8')]),
                            ('info1', [('name', '()S10'), ('value', '()f8')]),

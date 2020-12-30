@@ -48,7 +48,7 @@ that can reproduce it.
 Hopefully, someone on the list will be able to help you.
 It is also a good idea to check out the `archives of the user's list`_ (you may
 want to check the `Gmane archives`_ instead) so as to see if the answer to your
-question has already been dealed with.
+question has already been dealt with.
 
 
 Why HDF5?

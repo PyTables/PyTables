@@ -6,7 +6,7 @@ been fixed. Here is the (non-exhaustive) list:
 
 - The new VLArray class enables you to store large lists of rows
   containing variable numbers of elements. The elements can
-  be scalars or fully multimensional objects, in the PyTables
+  be scalars or fully multidimensional objects, in the PyTables
   tradition. This class supports two special objects as rows:
   Unicode strings (UTF-8 codification is used internally) and
   generic Python objects (through the use of cPickle).
