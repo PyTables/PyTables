@@ -505,7 +505,7 @@ def main():
     ns = parser.parse_args()
 
     if not os.path.isfile(ns.filename):
-        sys.exit('file {!r} not found'.format(ns.filename))
+        sys.exit(f'file {ns.filename!r} not found')
     with open(ns.filename) as f:
         src = f.read()
 

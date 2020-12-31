@@ -947,7 +947,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         if self.verbose:
             t = round(time() - t1, 4)
             c = round(perf_counter() - c1, 4)
-            print("time: {}. clock: {}".format(t, c))
+            print(f"time: {t}. clock: {c}")
 
     def swap(self, what, mode=None):
         """Swap chunks or slices using a certain bounds reference."""
@@ -967,16 +967,16 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         elif what == "slices":
             self.swap_slices(mode)
         if mode:
-            message = "swap_{}({})".format(what, mode)
+            message = f"swap_{what}({mode})"
         else:
-            message = "swap_{}".format(what)
+            message = f"swap_{what}"
         (nover, mult, tover) = self.compute_overlaps(
             self.tmp, message, self.verbose)
         rmult = len(mult.nonzero()[0]) / float(len(mult))
         if self.verbose:
             t = round(time() - t1, 4)
             c = round(perf_counter() - c1, 4)
-            print("time: {}. clock: {}".format(t, c))
+            print(f"time: {t}. clock: {c}")
         # Check that entropy is actually decreasing
         if what == "chunks" and self.last_tover > 0. and self.last_nover > 0:
             tover_var = (self.last_tover - tover) / self.last_tover

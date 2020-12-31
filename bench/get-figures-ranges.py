@@ -207,7 +207,7 @@ if __name__ == '__main__':
         plegend = filename[filename.find('-'):filename.index('.out')]
         plegend = plegend.replace('-', ' ')
         xval, yval = get_values(filename)
-        print("Values for {} --> {}, {}".format(filename, xval, yval))
+        print(f"Values for {filename} --> {xval}, {yval}")
         if "PyTables" in filename or "pytables" in filename:
             plot = loglog(xval, yval, linewidth=2)
             #plot = semilogx(xval, yval, linewidth=2)

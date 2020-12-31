@@ -278,7 +278,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
             return
         try:
             kind = self.kind
-            vprint("* Indexing ``{}`` columns. Type: {}.".format(colname, kind))
+            vprint(f"* Indexing ``{colname}`` columns. Type: {kind}.")
             for acolname in [colname, ncolname, extracolname]:
                 acolumn = self.table.colinstances[acolname]
                 acolumn.create_index(
@@ -377,11 +377,11 @@ def create_test_method(type_, op, extracond, func=None):
         cond = ('(lbound %s %s) & (%s %s rbound)'
                 % (op[0], colname, colname, op[1]))
     elif func is not None:
-        cond = '{}({}) {} func_bound'.format(func, colname, op)
+        cond = f'{func}({colname}) {op} func_bound'
     else:  # function or binary variable-variable
-        cond = '{} {} bound'.format(colname, op)
+        cond = f'{colname} {op} bound'
     if extracond:
-        cond = '({}) {}'.format(cond, extracond)
+        cond = f'({cond}) {extracond}'
 
     def ignore_skipped(oldmethod):
         @functools.wraps(oldmethod)

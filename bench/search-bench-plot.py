@@ -131,7 +131,7 @@ if __name__ == '__main__':
         plegend = filename[filename.find('cl-') + 3:filename.index('.h5')]
         plegend = plegend.replace('-', ' ')
         xval, yval = get_values(filename, '')
-        print("Values for {} --> {}, {}".format(filename, xval, yval))
+        print(f"Values for {filename} --> {xval}, {yval}")
         #plots.append(loglog(xval, yval, linewidth=5))
         plots.append(semilogx(xval, yval, linewidth=4))
         legends.append(plegend)

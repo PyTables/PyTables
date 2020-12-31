@@ -48,7 +48,7 @@ def print_filesize(filename, clib=None, clevel=0):
     print("\t\tTotal file sizes: %d -- (%s MB)" % (
         filesize_bytes, filesize_MB), end=' ')
     if clevel > 0:
-        print("(using {} lvl{})".format(clib, clevel))
+        print(f"(using {clib} lvl{clevel})")
     else:
         print()
 
@@ -169,7 +169,7 @@ if __name__ == '__main__':
             populate_x_memmap()
             compute = compute_memmap
         print("*** Time elapsed populating:", round(time() - t0, 3))
-        print("Computing: '{}' using {}".format(expr, what))
+        print(f"Computing: '{expr}' using {what}")
         t0 = time()
         compute()
         print("**************** Time elapsed computing:",
@@ -187,7 +187,7 @@ if __name__ == '__main__':
                 print("Populating x using %s with %d points..." % (what, N))
                 populate_x_tables(clib, clevel)
                 print("*** Time elapsed populating:", round(time() - t0, 3))
-                print("Computing: '{}' using {}".format(expr, what))
+                print(f"Computing: '{expr}' using {what}")
                 t0 = time()
                 compute_tables(clib, clevel)
                 print("**************** Time elapsed computing:",

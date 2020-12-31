@@ -227,7 +227,7 @@ class Col(atom.Atom, metaclass=type):
         rpar = atomrepr.rindex(')')
         atomargs = atomrepr[lpar + 1:rpar]
         classname = self.__class__.__name__
-        return '{}({}, pos={})'.format(classname, atomargs, self._v_pos)
+        return f'{classname}({atomargs}, pos={self._v_pos})'
 
     # Private methods
     # ~~~~~~~~~~~~~~~
@@ -659,7 +659,7 @@ class Description:
         def join_paths(path1, path2):
             if not path1:
                 return path2
-            return '{}/{}'.format(path1, path2)
+            return f'{path1}/{path2}'
 
         # The top of the stack always has a nested description
         # and a list of its child columns

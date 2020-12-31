@@ -49,7 +49,7 @@ Prerequisites
 
 First, make sure that you have
 
-* Python_ >= 3.4 (PyTables-3.5 was the last release with Python 2.7 support)
+* Python_ >= 3.6 (PyTables-3.5 was the last release with Python 2.7 support)
 * HDF5_ >= 1.8.4 (>=1.8.15 is strongly recommended)
 * NumPy_ >= 1.9.3
 * Numexpr_ >= 2.6.2
@@ -508,8 +508,8 @@ can be found e.g. at the `Unofficial Windows Binaries for Python Extension Packa
 matching the version of python and either the 32 or 64-bit version and install
 using pip::
 
-    # python 3.5 64-bit:
-    $ python3 -m pip install tables-3.3-cp35-cp35m-win_amd64.whl
+    # python 3.6 64-bit:
+    $ python3 -m pip install tables-3.6.1-2-cp36-cp36m-win_amd64.whl
 
 You can (and *you should*) test your installation by running the next
 commands::

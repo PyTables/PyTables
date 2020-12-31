@@ -3191,10 +3191,10 @@ class LastRowReuseBuffers(TestCase):
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
-                            "idx--> {} {} {} {}".format(idx, i, nrow, value))
+                            f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
-                "nrow not found: {} != {}, {}".format(idx, nrow, value))
+                f"nrow not found: {idx} != {nrow}, {value}")
 
     def test01_nocache(self):
         self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=0)
@@ -3210,10 +3210,10 @@ class LastRowReuseBuffers(TestCase):
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
-                            "idx--> {} {} {} {}".format(idx, i, nrow, value))
+                            f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
-                "nrow not found: {} != {}, {}".format(idx, nrow, value))
+                f"nrow not found: {idx} != {nrow}, {value}")
 
     def test02_dictcache(self):
         self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=-64)
@@ -3229,10 +3229,10 @@ class LastRowReuseBuffers(TestCase):
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
-                            "idx--> {} {} {} {}".format(idx, i, nrow, value))
+                            f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
-                "nrow not found: {} != {}, {}".format(idx, nrow, value))
+                f"nrow not found: {idx} != {nrow}, {value}")
 
 
 normal_tests = (
@@ -3328,7 +3328,7 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
         v1 = numpy.unique(arr['o'])[0]
         v2 = numpy.unique(arr['o'])[1]
         res = numpy.array([v1, v2])
-        selector = '((o == {}) | (o == {}))'.format(v1, v2)
+        selector = f'((o == {v1}) | (o == {v2}))'
         if verbose:
             print("selecting values: %s" % selector)
 
@@ -3338,7 +3338,7 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
         numpy.testing.assert_almost_equal(result, res)
         if verbose:
             print("select entire table:")
-            print("result: {}\texpected: {}".format(result, res))
+            print(f"result: {result}\texpected: {res}")
 
         if verbose:
             print("index the column o")
@@ -3351,7 +3351,7 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
             result = numpy.unique(result['o'])
             numpy.testing.assert_almost_equal(numpy.unique(result), res)
             if verbose:
-                print("result: {}\texpected: {}".format(result, res))
+                print(f"result: {result}\texpected: {res}")
 
 
 # Test case for issue #441

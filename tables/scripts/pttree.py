@@ -434,7 +434,7 @@ def bytes2human(use_si_units=False):
             if scaled >= 1:
                 break
 
-        return "{:.1f}{}".format(scaled, prefix)
+        return f"{scaled:.1f}{prefix}"
 
     return b2h
 

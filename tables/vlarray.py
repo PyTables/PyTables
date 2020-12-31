@@ -682,7 +682,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             coords = self._point_selection(key)
             return self._read_coordinates(coords)
         else:
-            raise IndexError("Invalid index or slice: {!r}".format(key))
+            raise IndexError(f"Invalid index or slice: {key!r}")
 
     def _assign_values(self, coords, values):
         """Assign the `values` to the positions stated in `coords`."""
@@ -784,7 +784,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
             coords = self._point_selection(key)
         else:
-            raise IndexError("Invalid index or slice: {!r}".format(key))
+            raise IndexError(f"Invalid index or slice: {key!r}")
 
         # Do the assignment row by row
         self._assign_values(coords, value)

@@ -144,7 +144,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
         (type_, value, traceback) = sys.exc_info()
         print("Problems doing the copy from '%s:%s' to '%s:%s'" %
               (srcfile, srcnode, dstfile, dstnode))
-        print("The error was --> {}: {}".format(type_, value))
+        print(f"The error was --> {type_}: {value}")
         print("The destination file looks like:\n", dstfileh)
         # Close all the open files:
         srcfileh.close()
@@ -233,7 +233,7 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
         (type_, value, traceback) = sys.exc_info()
         print("Problems doing the copy from '%s:%s' to '%s:%s'" %
               (srcfile, srcgroup, dstfile, dstgroup))
-        print("The error was --> {}: {}".format(type_, value))
+        print(f"The error was --> {type_}: {value}")
         print("The destination file looks like:\n", dstfileh)
         # Close all the open files:
         srcfileh.close()

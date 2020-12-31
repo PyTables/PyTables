@@ -113,7 +113,7 @@ class RawPyTablesIO(io.RawIOBase):
             raise TypeError("an integer is required")
         if whence == 0:
             if pos < 0:
-                raise ValueError("negative seek position {!r}".format(pos))
+                raise ValueError(f"negative seek position {pos!r}")
             self._pos = pos
         elif whence == 1:
             self._pos = max(0, self._pos + pos)
@@ -192,7 +192,7 @@ class RawPyTablesIO(io.RawIOBase):
         if pos is None:
             pos = self._pos
         elif pos < 0:
-            raise ValueError("negative truncate position {!r}".format(pos))
+            raise ValueError(f"negative truncate position {pos!r}")
 
         if pos < self._node.nrows:
             raise OSError("truncating is only allowed for growing a file")
@@ -454,10 +454,10 @@ class RawPyTablesIO(io.RawIOBase):
         ltypever = getattr(attrs, 'NODE_TYPE_VERSION', None)
 
         if ltype != NodeType:
-            raise ValueError("invalid type of node object: {}".format(ltype))
+            raise ValueError(f"invalid type of node object: {ltype}")
         if ltypever not in NodeTypeVersions:
             raise ValueError(
-                "unsupported type version of node object: {}".format(ltypever))
+                f"unsupported type version of node object: {ltypever}")
 
 
     def _append_zeros(self, size):
@@ -686,7 +686,7 @@ def open_node(node, mode='r'):
     elif mode == 'a+':
         return RAFileNode(node, None)
     else:
-        raise OSError("invalid mode: {}".format(mode))
+        raise OSError(f"invalid mode: {mode}")
 
 
 

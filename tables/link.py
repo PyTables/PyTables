@@ -426,7 +426,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
         """
 
         classname = self.__class__.__name__
-        return "{} ({}) -> {}".format(self._v_pathname, classname, self.target)
+        return f"{self._v_pathname} ({classname}) -> {self.target}"
 
 
 ## Local Variables:

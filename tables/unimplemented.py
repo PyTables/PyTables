@@ -146,7 +146,7 @@ class Unknown(Node):
     def __str__(self):
         pathname = self._v_pathname
         classname = self.__class__.__name__
-        return "{} ({})".format(pathname, classname)
+        return f"{pathname} ({classname})"
 
     def __repr__(self):
         return """%s

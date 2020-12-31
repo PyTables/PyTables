@@ -270,7 +270,7 @@ def _register_converters():
             # contiguous).  Otherwise, an identity function is used.
             convfunc = None
             try:
-                convfunc = eval('_conv_{}_to_{}'.format(src_flavor, dst_flavor))
+                convfunc = eval(f'_conv_{src_flavor}_to_{dst_flavor}')
             except NameError:
                 if src_flavor == dst_flavor:
                     convfunc = identity

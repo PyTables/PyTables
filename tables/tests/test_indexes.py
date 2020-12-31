@@ -1757,7 +1757,7 @@ class IndexFiltersTestCase(TempFileMixin, TestCase):
         icol.reindex()
         ni = icol.index
         if verbose:
-            print("Old parameters: {}, {}, {}".format(kind, optlevel, filters))
+            print(f"Old parameters: {kind}, {optlevel}, {filters}")
             print("New parameters: {}, {}, {}".format(
                 ni.kind, ni.optlevel, ni.filters))
         self.assertEqual(ni.kind, kind)
