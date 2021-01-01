@@ -3187,7 +3187,7 @@ class LastRowReuseBuffers(TestCase):
         ta.cols.id1.create_index()
 
         for i in range(self.nelem):
-            nrow = random.randint(0, self.nelem-1)
+            nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
@@ -3206,7 +3206,7 @@ class LastRowReuseBuffers(TestCase):
         ta.cols.id1.create_index()
 
         for i in range(self.nelem):
-            nrow = random.randint(0, self.nelem-1)
+            nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
@@ -3225,7 +3225,7 @@ class LastRowReuseBuffers(TestCase):
         ta.cols.id1.create_index()
 
         for i in range(self.nelem):
-            nrow = random.randint(0, self.nelem-1)
+            nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
