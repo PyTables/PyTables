@@ -308,7 +308,7 @@ if __name__ == "__main__":
             f"Time writing rows: {tapprows:.3f} s (real) "
             f"{cpuapprows:.3f} s (cpu)  {cpuapprows / tapprows:.0%}")
         print(f"Write rows/sec: {rowsw / tapprows:.0f}")
-        print(f"Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}")
+        print(f"Write KB/s : {rowsw * rowsz / tapprows / 1024:.0f}")
 
     if testread:
         if psyco_imported and usepsyco:
@@ -325,8 +325,8 @@ if __name__ == "__main__":
         cpu2 = time.perf_counter()
         treadrows = t2 - t1
         cpureadrows = cpu2 - cpu1
-        tMrows = rowsr / (1000 * 1000.)
-        sKrows = rowsel / 1000.
+        tMrows = rowsr / 1000 / 1000
+        sKrows = rowsel / 1000
         print(f"Rows read: {rowsr} Mread: {tMrows:.3f} Mrows")
         print(f"Rows selected: {rowsel} Ksel: {sKrows:.3f} Krows")
         print(

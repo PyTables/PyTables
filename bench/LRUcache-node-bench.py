@@ -30,7 +30,7 @@ def iternodes():
 #     for a in f.root.NodeContainer:
 #         pass
     indices = numpy.random.randn(nodespergroup * niter) * \
-        30 + nodespergroup / 2.
+        30 + nodespergroup / 2
     indices = indices.astype('i4').clip(0, nodespergroup - 1)
     g = f.get_node("/", "NodeContainer")
     for i in indices:

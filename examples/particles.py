@@ -23,8 +23,9 @@ class Particle(tables.IsDescription):
 
 # Create a new table for events
 t1 = time()
-print("Creating a table with %s entries aprox.. Wait please..." %
-      (int(NEVENTS * (MAX_PARTICLES_PER_EVENT / 2.))))
+print(
+    f"Creating a table with {NEVENTS * MAX_PARTICLES_PER_EVENT // 2} "
+    f"entries aprox.. Wait please...")
 fileh = tables.open_file("particles-pro.h5", mode="w")
 group = fileh.create_group(fileh.root, "events")
 table = fileh.create_table(group, 'table', Particle, "A table",

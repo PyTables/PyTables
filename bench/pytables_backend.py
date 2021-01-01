@@ -110,7 +110,7 @@ class PyTables_DB(DB):
         self.condvars['inf'] = self.rng[0] + base
         self.condvars['sup'] = self.rng[1] + base
         # For queries that can use two indexes instead of just one
-        d = (self.rng[1] - self.rng[0]) / 2.
+        d = (self.rng[1] - self.rng[0]) / 2
         inf1 = int(self.rng[0] + base)
         sup1 = int(self.rng[0] + d + base)
         inf2 = self.rng[0] + base * 2

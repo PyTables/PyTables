@@ -39,7 +39,7 @@ for table in (table1, table2):
         # First, assign the values to the Particle record
         row['identity'] = 'This is particle: %2d' % (i)
         row['idnumber'] = i
-        row['speed'] = i * 2.
+        row['speed'] = i * 2
         # This injects the Record values
         row.append()
 

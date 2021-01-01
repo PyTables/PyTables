@@ -325,8 +325,8 @@ if __name__ == "__main__":
         cpu2 = time.perf_counter()
         treadrows = t2 - t1
         cpureadrows = cpu2 - cpu1
-        tMrows = rowsr / (1000 * 1000.)
-        sKrows = rowsel / 1000.
+        tMrows = rowsr / 1000 / 1000
+        sKrows = rowsel / 1000
         print(f"Rows read: {rowsr} Mread: {tMrows:.3f} Mrows")
         print(f"Rows selected: {rowsel} Ksel: {sKrows:.3f} Krows")
         print(

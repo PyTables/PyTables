@@ -974,7 +974,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         if self.verbose:
             print(f"time: {time() - t1:.4f}. clock: {perf_counter() - c1:.4f}")
         # Check that entropy is actually decreasing
-        if what == "chunks" and self.last_tover > 0. and self.last_nover > 0:
+        if what == "chunks" and self.last_tover > 0 and self.last_nover > 0:
             tover_var = (self.last_tover - tover) / self.last_tover
             nover_var = (self.last_nover - nover) / self.last_nover
             if tover_var < 0.05 and nover_var < 0.05:
@@ -988,7 +988,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         if rmult < thmult:
             return True
         # Additional check for the overlap ratio
-        if 0. <= tover < thtover:
+        if 0 <= tover < thtover:
             return True
         return False
 
@@ -1541,8 +1541,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             rangeslr = numpy.array([self.bebounds[0], self.bebounds[-1]])
             ranges = numpy.concatenate((ranges, [rangeslr]))
             nslices += 1
-        soverlap = 0.
-        toverlap = -1.
+        soverlap = 0
+        toverlap = -1
         multiplicity = numpy.zeros(shape=nslices, dtype="int_")
         overlaps = multiplicity.copy()
         starts = multiplicity.copy()
@@ -1631,8 +1631,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             ranges = numpy.concatenate((ranges, [rangeslr]))
             nslices += 1
         noverlaps = 0
-        soverlap = 0.
-        toverlap = -1.
+        soverlap = 0
+        toverlap = -1
         multiplicity = numpy.zeros(shape=nslices, dtype="int_")
         for i in range(nslices):
             for j in range(i + 1, nslices):

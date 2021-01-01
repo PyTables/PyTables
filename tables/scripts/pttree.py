@@ -141,8 +141,8 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
     total_items = 0
 
     # defaultdicts for holding the cumulative branch sizes at each node
-    in_mem = defaultdict(lambda: 0.)
-    on_disk = defaultdict(lambda: 0.)
+    in_mem = defaultdict(lambda: 0)
+    on_disk = defaultdict(lambda: 0)
     leaf_count = defaultdict(lambda: 0)
 
     # keep track of node addresses within the HDF5 file so that we don't count

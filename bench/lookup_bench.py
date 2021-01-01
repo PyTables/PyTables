@@ -52,10 +52,10 @@ class DB:
     def print_mtime(self, t1, explain):
         mtime = time() - t1
         print(f"{explain}: {mtime:.6f}")
-        print(f"Krows/s: {self.nrows / 1000. / mtime:.6f}")
+        print(f"Krows/s: {self.nrows / 1000 / mtime:.6f}")
 
     def print_db_sizes(self, init, filled):
-        array_size = (filled - init) / 1024.
+        array_size = (filled - init) / 1024
         print(f"Array size (MB): {array_size:.3f}")
 
     def open_db(self, remove=0):

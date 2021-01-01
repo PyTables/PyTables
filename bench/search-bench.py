@@ -115,10 +115,12 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     rowswritten += nrows
     time1 = time.time() - t1
     tcpu1 = time.perf_counter() - cpu1
-    print(f"Time for filling: {time1:.3f} Krows/s: {nrows / 1000. / time1:.3f}", end=' ')
+    print(
+        f"Time for filling: {time1:.3f} Krows/s: {nrows / 1000 / time1:.3f}",
+        end=' ')
     fileh.close()
     size1 = os.stat(filename)[6]
-    print(f", File size: {size1 / (1024. * 1024.):.3f} MB")
+    print(f", File size: {size1 / 1024 / 1024:.3f} MB")
     fileh = open_file(filename, mode="a", title="Searchsorted Benchmark",
                       filters=filters)
     table = fileh.root.table
@@ -135,12 +137,12 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
         tcpu2 = time.perf_counter() - cpu1
         print(
             f"Time for indexing: {time2:.3f} "
-            f"iKrows/s: {indexrows / 1000. / time2:.3f}",
+            f"iKrows/s: {indexrows / 1000 / time2:.3f}",
             end=' ')
     else:
         indexrows = 0
         time2 = 0.0000000001  # an ugly hack
-        tcpu2 = 0.
+        tcpu2 = 0
 
     if verbose:
         if index:
@@ -153,7 +155,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
 
     size2 = os.stat(filename)[6] - size1
     if index:
-        print(f", Index size: {size2 / (1024. * 1024.):.3f} MB")
+        print(f", Index size: {size2 / 1024 / 1024:.3f} MB")
     return (rowswritten, indexrows, rowsize, time1, time2,
             tcpu1, tcpu2, size1, size2)
 
@@ -187,7 +189,7 @@ def benchCreate(file, nrows, filters, index, bfile, heavy,
         f"{tcpu1} s (cpu)  {tcpu1 / time1:.0%}")
     rowsecf = rowsw / time1
     table.row["rowsecf"] = rowsecf
-    print(f"Total file size: {(size1 + size2) / (1024. * 1024.):.3f} MB", end=' ')
+    print(f"Total file size: {(size1 + size2) / 1024 / 1024:.3f} MB", end=' ')
     print(f", Write KB/s (pure data): {rowsw * rowsz / (time1 * 1024):.0f}")
     print(f"Rows indexed: {irows} (IMRows): {irows / 10 ** 6}")
     print(
@@ -231,8 +233,8 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
     #table.nrowsinbuf = 10
     # print "nrowsinbuf-->", table.nrowsinbuf
     rowselected = 0
-    time2 = 0.
-    tcpu2 = 0.
+    time2 = 0
+    tcpu2 = 0
     results = []
     print("Select mode:", indexmode, ". Selecting for type:", atom)
     # Initialize the random generator always with the same integer
@@ -360,11 +362,11 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
                 f"(real) {cpureadrows2:.6f} s (cpu)  {tratio2:.0%}")
         rowsec1 = rowsr / treadrows
         row["rowsec1"] = rowsec1
-        print(f"Read Mrows/sec: {rowsec1 / 10. ** 6:.6f} (first time)", end=' ')
+        print(f"Read Mrows/sec: {rowsec1 / 10 ** 6:.6f} (first time)", end=' ')
         if riter > 1:
             rowsec2 = rowsr / treadrows2
             row["rowsec2"] = rowsec2
-            print(f"{rowsec2 / 10. ** 6:.6f} (cache time)")
+            print(f"{rowsec2 / 10 ** 6:.6f} (cache time)")
         else:
             print()
         # Append the info to the table
@@ -415,8 +417,8 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # default options
-    dselect = 3.
-    noise = 0.
+    dselect = 3
+    noise = 0
     verbose = 0
     fieldName = None
     testread = 1

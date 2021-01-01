@@ -5,9 +5,9 @@ from pylab import *
 def get_values(filename, complib=''):
     f = tables.open_file(filename)
     nrows = f.root.small.create_best.cols.nrows[:]
-    corrected_sizes = nrows / 10. ** 6
+    corrected_sizes = nrows / 10 ** 6
     if mb_units:
-        corrected_sizes = 16 * nrows / 10. ** 6
+        corrected_sizes = 16 * nrows / 10 ** 6
     if insert:
         values = corrected_sizes / f.root.small.create_best.cols.tfill[:]
     if table_size:

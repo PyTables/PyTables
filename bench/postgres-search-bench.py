@@ -116,7 +116,7 @@ def create_db(filename, nrows):
     ctime = time() - t1
     if verbose:
         print(f"insert time: {ctime:.5f}")
-        print(f"Krows/s: {nrows / 1000. / ctime:.5f}")
+        print(f"Krows/s: {nrows / 1000 / ctime:.5f}")
     close_db(con, cur)
 
 
@@ -149,7 +149,7 @@ def query_db(filename, rng):
     qtime = (time() - t1) / ntimes
     if verbose:
         print(f"query time: {qtime:.5f}")
-        print(f"Mrows/s: {nrows / 1000. / qtime:.5f}")
+        print(f"Mrows/s: {nrows / 1000 / qtime:.5f}")
         results = sorted(flatten(results))
         print(results)
     close_db(con, cur)

@@ -76,14 +76,14 @@ def createFile(filename, nrows, filters, indexmode, heavy, noise, bfile,
                verbose):
 
     # Initialize some variables
-    t1 = 0.
-    t2 = 0.
-    tcpu1 = 0.
-    tcpu2 = 0.
-    rowsecf = 0.
-    rowseci = 0.
-    size1 = 0.
-    size2 = 0.
+    t1 = 0
+    t2 = 0
+    tcpu1 = 0
+    tcpu2 = 0
+    rowsecf = 0
+    rowseci = 0
+    size1 = 0
+    size2 = 0
 
     if indexmode == "standard":
         print("Creating a new database:", dbfile)
@@ -153,7 +153,7 @@ CREATE INDEX ivar3 ON small(var3);
         size1 = os.stat(dbfile)[6]
         print(f"******** Results for writing nrows = {nrows} *********")
         print(f"Insert time: {t1:.5f}, KRows/s: {nrows / 1000 / t1:.3f}")
-        print(f", File size: {size1 / (1024. * 1024.):.3f} MB")
+        print(f", File size: {size1 / 1024 / 1024:.3f} MB")
 
     # Indexem
     if indexmode == "indexed":
@@ -171,7 +171,7 @@ CREATE INDEX ivar3 ON small(var3);
         rowseci = nrows / t2
         print(f"Index time: {t2:.5f}, IKRows/s: {nrows / 1000 / t2:.3f}")
         size2 = os.stat(dbfile)[6] - size1
-        print(f", Final size with index: {size2 / (1024. * 1024):.3f} MB")
+        print(f", Final size with index: {size2 / 1024 / 1024:.3f} MB")
 
     conn.close()
 
@@ -222,8 +222,8 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     # Open the benchmark database
     bf = open_file(bfile, "a")
     # default values for the case that columns are not indexed
-    t2 = 0.
-    tcpu2 = 0.
+    t2 = 0
+    tcpu2 = 0
     # Some previous computations for the case of random values
     if randomvalues:
         # algorithm to choose a value separated from mean
@@ -241,15 +241,15 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
 #             dev = 100
         # Yet Another Algorithm
         if nrows / 2 > standarddeviation * 10:
-            dev = standarddeviation * 4.
+            dev = standarddeviation * 4
         elif nrows / 2 > standarddeviation:
-            dev = standarddeviation * 2.
-        elif nrows / 2 > standarddeviation / 10.:
-            dev = standarddeviation / 10.
+            dev = standarddeviation * 2
+        elif nrows / 2 > standarddeviation / 10:
+            dev = standarddeviation / 10
         else:
-            dev = standarddeviation / 100.
+            dev = standarddeviation / 100
 
-        valmax = int(round((nrows / 2.) - dev))
+        valmax = int(round((nrows / 2) - dev))
         # split the selection range in regular chunks
         if riter > valmax * 2:
             riter = valmax * 2
@@ -321,7 +321,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         print(f"Query time: {t1:.5f}, cached time: {t2:.5f}")
         print(f"MRows/s: {nrows / 1_000_000 / t1:.3f}", end=' ')
         if t2 > 0:
-            print(f", cached MRows/s: {(nrows / 10. ** 6) / t2:.3f}")
+            print(f", cached MRows/s: {nrows / 10 ** 6 / t2:.3f}")
         else:
             print()
 
@@ -382,8 +382,8 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # default options
-    dselect = 3.
-    noise = 0.
+    dselect = 3
+    noise = 0
     verbose = 0
     heavy = 0
     testread = 1

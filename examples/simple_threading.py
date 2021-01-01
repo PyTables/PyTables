@@ -77,7 +77,7 @@ def main():
 
     # collect results
     try:
-        mean_ = 0.
+        mean_ = 0
 
         for _ in range(len(threads)):
             out = outqueue.get()

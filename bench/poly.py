@@ -31,7 +31,7 @@ mpfnames = [fprefix + "-x.bin", fprefix + "-r.bin"]
 # Filename for tables.Expr
 h5fname = "tablesExpr.h5"     # the I/O file
 
-MB = 1024 * 1024.               # a MegaByte
+MB = 1024 * 1024               # a MegaByte
 
 
 def print_filesize(filename, clib=None, clevel=0):

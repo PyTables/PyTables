@@ -19,7 +19,7 @@ def get_values(filename):
     for line in f:
         if show_memory:
             if line.startswith('VmData:'):
-                values.append(float(line.split()[1]) / 1024.)
+                values.append(float(line.split()[1]) / 1024)
         else:
             if line.startswith('WallClock time:'):
                 values.append(float(line.split(':')[1]))
@@ -46,7 +46,7 @@ def show_plot(bars, filenames, tit):
         ylabel('Time (s)')
     title(tit)
     n = len(filenames)
-    xticks(ind + width * n / 2., checks, rotation=45,
+    xticks(ind + width * n / 2, checks, rotation=45,
            horizontalalignment='right', fontsize=8)
     if not gtotal:
         #loc = 'center right'
