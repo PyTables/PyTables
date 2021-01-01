@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'PyTables'
-copyright = '2011–2020, PyTables maintainers'
+copyright = '2011–2021, PyTables maintainers'
 author = 'PyTables maintainers'
 
 # The short X.Y version
