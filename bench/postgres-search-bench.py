@@ -115,8 +115,8 @@ def create_db(filename, nrows):
     con.commit()
     ctime = time() - t1
     if verbose:
-        print("insert time:", round(ctime, 5))
-        print("Krows/s:", round((nrows / 1000.) / ctime, 5))
+        print(f"insert time: {ctime:.5f}")
+        print(f"Krows/s: {nrows / 1000. / ctime:.5f}")
     close_db(con, cur)
 
 
@@ -127,8 +127,8 @@ def index_db(filename):
     con.commit()
     itime = time() - t1
     if verbose:
-        print("index time:", round(itime, 5))
-        print("Krows/s:", round(nrows / itime, 5))
+        print(f"index time: {itime:.5f}")
+        print(f"Krows/s: {nrows / itime:.5f}")
     # Close the DB
     close_db(con, cur)
 
@@ -148,8 +148,8 @@ def query_db(filename, rng):
     con.commit()
     qtime = (time() - t1) / ntimes
     if verbose:
-        print("query time:", round(qtime, 5))
-        print("Mrows/s:", round((nrows / 1000.) / qtime, 5))
+        print(f"query time: {qtime:.5f}")
+        print(f"Mrows/s: {nrows / 1000. / qtime:.5f}")
         results = sorted(flatten(results))
         print(results)
     close_db(con, cur)

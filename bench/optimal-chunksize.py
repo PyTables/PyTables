@@ -64,7 +64,7 @@ def bench(chunkshape, filters):
         # e.append([numpy.random.rand(M)])  # use this for less compressibility
         e.append([quantize(numpy.random.rand(M), 6)])
     # os.system("sync")
-    print("Creation time:", round(time() - t1, 3), end=' ')
+    print(f"Creation time: {time() - t1:.3f}", end=' ')
     filesize = get_db_size(filename)
     filesize_bytes = os.stat(filename)[6]
     print("\t\tFile size: %d -- (%s)" % (filesize_bytes, filesize))
@@ -76,7 +76,7 @@ def bench(chunkshape, filters):
     #os.system("sync; echo 1 > /proc/sys/vm/drop_caches")
     for row in e:
         t = row
-    print("Sequential read time:", round(time() - t1, 3), end=' ')
+    print(f"Sequential read time: {time() - t1:.3f}", end=' ')
 
     # f.close()
     # return
@@ -97,7 +97,7 @@ def bench(chunkshape, filters):
     for i in i_index:
         for j in j_index:
             t = e[i, j]
-    print("\tRandom read time:", round(time() - t1, 3))
+    print(f"\tRandom read time: {time() - t1:.3f}")
 
     f.close()
 

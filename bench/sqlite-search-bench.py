@@ -147,14 +147,13 @@ CREATE INDEX ivar3 ON small(var3);
                 fields = (var1[n], var2[n], var3[n])
                 cursor.execute(SQL, fields)
             conn.commit()
-        t1 = round(time.time() - time1, 5)
-        tcpu1 = round(time.perf_counter() - cpu1, 5)
+        t1 = time.time() - time1
+        tcpu1 = time.perf_counter() - cpu1
         rowsecf = nrows / t1
         size1 = os.stat(dbfile)[6]
-        print("******** Results for writing nrows = %s" % (nrows), "*********")
-        print(("Insert time:", t1, ", KRows/s:",
-              round((nrows / 10. ** 3) / t1, 3),))
-        print(", File size:", round(size1 / (1024. * 1024.), 3), "MB")
+        print(f"******** Results for writing nrows = {nrows} *********")
+        print(f"Insert time: {t1:.5f}, KRows/s: {nrows / 1000 / t1:.3f}")
+        print(f", File size: {size1 / (1024. * 1024.):.3f} MB")
 
     # Indexem
     if indexmode == "indexed":
@@ -167,14 +166,12 @@ CREATE INDEX ivar3 ON small(var3);
         conn.commit()
         cursor.execute("CREATE INDEX ivar3 ON small(var3)")
         conn.commit()
-        t2 = round(time.time() - time1, 5)
-        tcpu2 = round(time.perf_counter() - cpu1, 5)
+        t2 = time.time() - time1
+        tcpu2 = time.perf_counter() - cpu1
         rowseci = nrows / t2
-        print(("Index time:", t2, ", IKRows/s:",
-              round((nrows / 10. ** 3) / t2, 3),))
+        print(f"Index time: {t2:.5f}, IKRows/s: {nrows / 1000 / t2:.3f}")
         size2 = os.stat(dbfile)[6] - size1
-        print((", Final size with index:",
-              round(size2 / (1024. * 1024), 3), "MB"))
+        print(f", Final size with index: {size2 / (1024. * 1024):.3f} MB")
 
     conn.close()
 
@@ -318,12 +315,13 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
             t2 = time2 / (riter - correction)
             tcpu2 = cpu2 / (riter - correction)
 
-        print("*** Query results for atom = %s, nrows = %s, "
-              "indexmode = %s ***" % (atom, nrows, indexmode))
-        print("Query time:", round(t1, 5), ", cached time:", round(t2, 5))
-        print("MRows/s:", round((nrows / 10. ** 6) / t1, 3), end=' ')
+        print(
+            f"*** Query results for atom = {atom}, "
+            f"nrows = {nrows}, indexmode = {indexmode} ***")
+        print(f"Query time: {t1:.5f}, cached time: {t2:.5f}")
+        print(f"MRows/s: {nrows / 1_000_000 / t1:.3f}", end=' ')
         if t2 > 0:
-            print(", cached MRows/s:", round((nrows / 10. ** 6) / t2, 3))
+            print(f", cached MRows/s: {(nrows / 10. ** 6) / t2:.3f}")
         else:
             print()
 

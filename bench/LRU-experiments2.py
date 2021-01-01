@@ -39,7 +39,7 @@ def modify_junk_LRU2():
             #print("table-->", tt._v_name)
             tt = getattr(group, "array" + str(i))
             #d = tt.read()
-        print("iter and time -->", j + 1, round(time() - t1, 3))
+        print(f"iter and time --> {j + 1} {time() - t1:.3f}")
     fileh.close()
 
 if 1:

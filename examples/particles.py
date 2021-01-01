@@ -45,13 +45,12 @@ for i in range(NEVENTS):
         # This injects the row values.
         particle.append()
 table.flush()
-print("Added %s entries --- Time: %s sec" %
-      (table.nrows, round((time() - t1), 3)))
+print(f"Added {table.nrows} entries --- Time: {time() - t1:.3f} sec")
 
 t1 = time()
 print("Creating index...")
 table.cols.event_id.create_index(optlevel=0, _verbose=True)
-print("Index created --- Time: %s sec" % (round((time() - t1), 3)))
+print(f"Index created --- Time: {time() - t1:.3f} sec")
 # Add the number of events as an attribute
 table.attrs.nevents = NEVENTS
 
@@ -68,7 +67,7 @@ t1 = time()
 for row in table.where("event_id == 34"):
         nrows += 1
 print(nrows)
-print("Done --- Time:", round((time() - t1), 3), "sec")
+print(f"Done --- Time: {time() - t1:.3f} sec")
 
 print("Root particles in event 34:", end=' ')
 nrows = 0
@@ -77,7 +76,7 @@ for row in table.where("event_id == 34"):
     if row['parent_id'] < 0:
         nrows += 1
 print(nrows)
-print("Done --- Time:", round((time() - t1), 3), "sec")
+print(f"Done --- Time: {time() - t1:.3f} sec")
 
 print("Sum of masses of root particles in event 34:", end=' ')
 smass = 0.0
@@ -86,7 +85,7 @@ for row in table.where("event_id == 34"):
     if row['parent_id'] < 0:
         smass += row['mass']
 print(smass)
-print("Done --- Time:", round((time() - t1), 3), "sec")
+print(f"Done --- Time: {time() - t1:.3f} sec")
 
 print(
     "Sum of masses of daughter particles for particle 3 in event 34:", end=' ')
@@ -96,7 +95,7 @@ for row in table.where("event_id == 34"):
     if row['parent_id'] == 3:
         smass += row['mass']
 print(smass)
-print("Done --- Time:", round((time() - t1), 3), "sec")
+print(f"Done --- Time: {time() - t1:.3f} sec")
 
 print("Sum of module of momentum for particle 3 in event 34:", end=' ')
 smomentum = 0.0
@@ -106,7 +105,7 @@ for row in table.where("event_id == 34"):
     if row['parent_id'] == 3:
         smomentum += np.sqrt(np.add.reduce(row['momentum'] ** 2))
 print(smomentum)
-print("Done --- Time:", round((time() - t1), 3), "sec")
+print(f"Done --- Time: {time() - t1:.3f} sec")
 
 # This is the same than above, but using generator expressions
 # Python >= 2.4 needed here!
@@ -115,7 +114,7 @@ t1 = time()
 print(sum(np.sqrt(np.add.reduce(row['momentum'] ** 2))
           for row in table.where("event_id == 34")
           if row['parent_id'] == 3))
-print("Done --- Time:", round((time() - t1), 3), "sec")
+print(f"Done --- Time: {time() - t1:.3f} sec")
 
 
 fileh.close()

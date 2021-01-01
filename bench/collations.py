@@ -33,7 +33,7 @@ for i in range(0, N, lbucket):
 bucket = fill_bucket(N % lbucket)
 table.append(bucket)
 f.close()
-print("Time to create the table with %d entries: %.3f" % (N, time() - t1))
+print(f"Time to create the table with {N} entries: {t1:.3f}")
 
 # Now, read the table and group it by collection
 f = tables.open_file("data.nobackup/collations.h5", "a")

@@ -242,20 +242,20 @@ if __name__ == "__main__":
     psyco.bind(createFile)
     (rowsw, rowsz) = createFile(file, iterations, recsize, verbose)
     t2 = time.perf_counter()
-    tapprows = round(t2 - t1, 3)
+    tapprows = t2 - t1
 
     t1 = time.perf_counter()
     psyco.bind(readFile)
     readFile(file, recsize, verbose)
     t2 = time.perf_counter()
-    treadrows = round(t2 - t1, 3)
+    treadrows = t2 - t1
 
-    print("Rows written:", rowsw, " Row size:", rowsz)
-    print("Time appending rows:", tapprows)
-    if tapprows > 0.:
-        print("Write rows/sec: ", int(iterations / float(tapprows)))
-        print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
-    print("Time reading rows:", treadrows)
-    if treadrows > 0.:
-        print("Read rows/sec: ", int(iterations / float(treadrows)))
-        print("Read KB/s :", int(rowsw * rowsz / (treadrows * 1024)))
+    print(f"Rows written: {rowsw}, Row size: {rowsz}")
+    print(f"Time appending rows: {tapprows:.3f}")
+    if tapprows > 0.001:
+        print(f"Write rows/sec: {iterations / tapprows:.0f}")
+        print(f"Write KB/s: {rowsw * rowsz / (tapprows * 1024):.0f}")
+    print(f"Time reading rows: {treadrows:.3f}")
+    if treadrows > 0.001:
+        print(f"Read rows/sec: {iterations / treadrows:.0f}")
+        print(f"Read KB/s: {rowsw * rowsz / (treadrows * 1024):.0f}")

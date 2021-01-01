@@ -35,7 +35,7 @@ def show_stats(explain, tref):
     print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
     print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
     tnow = time()
-    print("WallClock time:", round(tnow - tref, 3))
+    print(f"WallClock time: {tnow - tref:.3f}")
     return tnow
 
 
