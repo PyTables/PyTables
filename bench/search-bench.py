@@ -141,7 +141,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
             end=' ')
     else:
         indexrows = 0
-        time2 = 0.0000000001  # an ugly hack
+        time2 = 0.000_000_000_1  # an ugly hack
         tcpu2 = 0
 
     if verbose:

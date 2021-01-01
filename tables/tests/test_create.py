@@ -44,7 +44,7 @@ class CreateTestCase(common.TempFileMixin, TestCase):
     title = "This is the table title"
     expectedrows = 100
     maxshort = 2 ** 15
-    maxint = 2147483648   # (2 ** 31)
+    maxint = 2_147_483_648   # (2 ** 31)
     compress = 0
 
     def setUp(self):
@@ -2243,7 +2243,8 @@ class InMemoryCoreDriverTestCase(TestCase):
         self.assertEqual(self.h5file.get_node_attr("/table", "TITLE"), "Table")
         self.assertEqual(self.h5file.root.array.read(), [1, 2])
 
-        self.h5file.create_array(self.h5file.root, 'array2', list(range(10000)),
+        self.h5file.create_array(self.h5file.root, 'array2',
+                                 list(range(10_000)),
                                  title="Array2")
         self.h5file.root._v_attrs.testattr2 = 42
 
@@ -2434,9 +2435,9 @@ class QuantizeTestCase(common.TempFileMixin, TestCase):
         super().setUp()
 
         self.data = numpy.linspace(-5., 5., 41)
-        self.randomdata = numpy.random.random_sample(1000000)
-        self.randomints = numpy.random.randint(-1000000, 1000000,
-                                               1000000).astype('int64')
+        self.randomdata = numpy.random.random_sample(1_000_000)
+        self.randomints = numpy.random.randint(-1_000_000, 1_000_000,
+                                               1_000_000).astype('int64')
 
         self.populateFile()
         self.h5file.close()
@@ -2452,10 +2453,10 @@ class QuantizeTestCase(common.TempFileMixin, TestCase):
         filters = Filters(complevel=1, complib="blosc",
                           least_significant_digit=1)
         ints = self.h5file.create_carray(root, "integers", Int64Atom(),
-                                         (1000000,), filters=filters)
+                                         (1_000_000,), filters=filters)
         ints[:] = self.randomints
         floats = self.h5file.create_carray(root, "floats", Float32Atom(),
-                                           (1000000,), filters=filters)
+                                           (1_000_000,), filters=filters)
         floats[:] = self.randomdata
         data1 = self.h5file.create_carray(root, "data1", Float64Atom(),
                                           (41,), filters=filters)

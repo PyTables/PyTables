@@ -939,7 +939,7 @@ class File(hdf5extension.File):
 
 
     def create_table(self, where, name, description=None, title="",
-                     filters=None, expectedrows=10000,
+                     filters=None, expectedrows=10_000,
                      chunkshape=None, byteorder=None,
                      createparents=False, obj=None, track_times=True):
         """Create a new table with the given name in where location.

@@ -2,7 +2,7 @@ import random
 import tables
 print('tables.__version__', tables.__version__)
 
-nrows = 10000 - 1
+nrows = 10_000 - 1
 
 
 class Distance(tables.IsDescription):

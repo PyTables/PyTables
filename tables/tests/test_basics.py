@@ -2154,7 +2154,7 @@ class BloscSubprocess(TestCase):
         # Create a relatively large table with Blosc level 9 (large blocks)
         h5fname = tempfile.mktemp(prefix="multiproc-blosc9-", suffix=".h5")
         try:
-            size = int(3e5)
+            size = 300_000
             sa = numpy.fromiter(((i, i**2, i//3)
                                  for i in range(size)), 'i4,i8,f8')
             with tables.open_file(h5fname, 'w') as h5file:

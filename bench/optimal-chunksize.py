@@ -17,7 +17,7 @@ import tables
 # N, M = 512, 2**16     # 256 MB
 # N, M = 512, 2**18     # 1 GB
 # N, M = 512, 2**19     # 2 GB
-N, M = 2000, 1000000  # 15 GB
+N, M = 2000, 1_000_000  # 15 GB
 # N, M = 4000, 1000000  # 30 GB
 datom = tables.Float64Atom()   # elements are double precision
 

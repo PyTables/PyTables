@@ -7,7 +7,7 @@ from numexpr.necompiler import (
     getContext, getExprNames, getType, NumExpr)
 
 
-shape = (1000, 160000)
+shape = (1000, 160_000)
 #shape = (10,1600)
 filters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
 ofilters = tb.Filters(complevel=1, complib="blosc", shuffle=0)

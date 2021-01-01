@@ -53,7 +53,7 @@ class NewFileTestCase(TempFileMixin, TestCase):
 
         try:
             filenode.new_node(
-                self.h5file, where='/', name='test', expectedsize=100000)
+                self.h5file, where='/', name='test', expectedsize=100_000)
         except TypeError:
             self.fail("filenode.new_node() failed to accept 'expectedsize'"
                       " argument.")
@@ -63,7 +63,7 @@ class NewFileTestCase(TempFileMixin, TestCase):
 
         self.assertRaises(
             TypeError, filenode.new_node,
-            self.h5file, where='/', name='test', expectedrows=100000)
+            self.h5file, where='/', name='test', expectedrows=100_000)
 
 
 class ClosedFileTestCase(TempFileMixin, TestCase):

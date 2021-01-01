@@ -1872,7 +1872,7 @@ class BigTablesTestCase(BasicTestCase):
     # reducing to 1000 would be more than enough
     # F. Alted 2004-01-19
     # Will be executed only in common.heavy mode
-    expectedrows = 10000
+    expectedrows = 10_000
     appendrows = 100
 
 
@@ -1992,7 +1992,7 @@ class NonNestedTableReadTestCase(common.TempFileMixin, TestCase):
 
     def test_read_all_out_arg_sliced(self):
         output = np.empty((200, ), self.dtype)
-        output['f0'] = np.random.randint(0, 10000, (200, ))
+        output['f0'] = np.random.randint(0, 10_000, (200, ))
         output_orig = output.copy()
         self.table.read(out=output[0:100])
         npt.assert_array_equal(output[0:100], self.array)
@@ -3826,7 +3826,7 @@ class RecArrayIO(common.TempFileMixin, TestCase):
             print("Running %s.test02..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array(b'a'*200000, 'f4,3i4,a5,i2', 3000)
+        r = records.array(b'a'*200_000, 'f4,3i4,a5,i2', 3000)
 
         # Get an offsetted bytearray
         r1 = r[2000:]
@@ -3849,7 +3849,7 @@ class RecArrayIO(common.TempFileMixin, TestCase):
             print("Running %s.test03..." % self.__class__.__name__)
 
         # Create a recarray
-        r = records.array(b'a'*200000, 'f4,3i4,a5,i2', 3000)
+        r = records.array(b'a'*200_000, 'f4,3i4,a5,i2', 3000)
 
         # Get an strided recarray
         r2 = r[::2]
@@ -6314,7 +6314,7 @@ class ColumnIterationTestCase(common.TempFileMixin, TestCase):
     def create_non_nested_table(self, nrows, dtype):
         array = np.empty((nrows, ), dtype)
         for name in dtype.names:
-            array[name] = np.random.randint(0, 10000, nrows)
+            array[name] = np.random.randint(0, 10_000, nrows)
         table = self.h5file.create_table('/', 'table', dtype)
         table.append(array)
         return array, table
@@ -6361,7 +6361,7 @@ class TestCreateTableArgs(common.TempFileMixin, TestCase):
     description, _ = descr_from_dtype(obj.dtype)
     title = 'title'
     filters = None
-    expectedrows = 10000
+    expectedrows = 10_000
     chunkshape = None
     byteorder = None
     createparents = False

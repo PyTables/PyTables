@@ -5,7 +5,7 @@ import numpy as np
 import tables
 
 # NEVENTS = 10000
-NEVENTS = 20000
+NEVENTS = 20_000
 MAX_PARTICLES_PER_EVENT = 100
 
 # Particle description

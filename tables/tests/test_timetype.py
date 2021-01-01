@@ -163,7 +163,7 @@ class CompareTestCase(common.TempFileMixin, TestCase):
     def test00_Compare32VLArray(self):
         """Comparing written 32-bit time data with read data in a VLArray."""
 
-        wtime = numpy.array((1234567890,) * 2, numpy.int32)
+        wtime = numpy.array((1_234_567_890,) * 2, numpy.int32)
 
         # Create test VLArray with data.
         vla = self.h5file.create_vlarray('/', 'test', self.myTime32Atom)
@@ -179,7 +179,7 @@ class CompareTestCase(common.TempFileMixin, TestCase):
     def test01_Compare64VLArray(self):
         """Comparing written 64-bit time data with read data in a VLArray."""
 
-        wtime = numpy.array((1234567890.123456,) * 2, numpy.float64)
+        wtime = numpy.array((1_234_567_890.123456,) * 2, numpy.float64)
 
         # Create test VLArray with data.
         vla = self.h5file.create_vlarray('/', 'test', self.myTime64Atom)
@@ -226,7 +226,7 @@ class CompareTestCase(common.TempFileMixin, TestCase):
     def test02_CompareTable(self):
         """Comparing written time data with read data in a Table."""
 
-        wtime = 1234567890.123456
+        wtime = 1_234_567_890.123456
 
         # Create test Table with data.
         tbl = self.h5file.create_table('/', 'test', self.MyTimeRow)
@@ -292,7 +292,7 @@ class CompareTestCase(common.TempFileMixin, TestCase):
     def test03_Compare64EArray(self):
         """Comparing written 64-bit time data with read data in an EArray."""
 
-        wtime = 1234567890.123456
+        wtime = 1_234_567_890.123456
 
         # Create test EArray with data.
         ea = self.h5file.create_earray(
@@ -419,7 +419,7 @@ class BigEndianTestCase(TestCase):
         earr = self.h5file.root.earr32[:]
 
         # Generate the expected Time32 array.
-        start = 1178896298
+        start = 1_178_896_298
         nrows = 10
         orig_val = numpy.arange(start, start + nrows, dtype=numpy.int32)
 
@@ -436,7 +436,7 @@ class BigEndianTestCase(TestCase):
         earr = self.h5file.root.earr64[:]
 
         # Generate the expected Time64 array.
-        start = 1178896298.832258
+        start = 1_178_896_298.832258
         nrows = 10
         orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
 
@@ -454,7 +454,7 @@ class BigEndianTestCase(TestCase):
         t32 = tbl.cols.t32[:]
 
         # Generate the expected Time32 array.
-        start = 1178896298
+        start = 1_178_896_298
         nrows = 10
         orig_val = numpy.arange(start, start + nrows, dtype=numpy.int32)
 
@@ -472,7 +472,7 @@ class BigEndianTestCase(TestCase):
         t64 = tbl.cols.nested.t64[:]
 
         # Generate the expected Time64 array.
-        start = 1178896298.832258
+        start = 1_178_896_298.832258
         nrows = 10
         orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
 
@@ -492,7 +492,7 @@ class BigEndianTestCase(TestCase):
         t64 = tbl.cols.nested.t64[:]
 
         # Generate the expected Time64 array.
-        start = 1178896298.832258
+        start = 1_178_896_298.832258
         nrows = 10
         orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
 

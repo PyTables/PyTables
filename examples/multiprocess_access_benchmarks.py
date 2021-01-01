@@ -174,7 +174,7 @@ def unix_socket_address():
 
 def ipv4_socket_address():
     # create an IPv4 socket address
-    return ('127.0.0.1', random.randint(9000, 10000))
+    return ('127.0.0.1', random.randint(9000, 10_000))
 
 
 def read_and_send_socket(send_type, array_size, array_bytes, address_func,

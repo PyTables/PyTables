@@ -7,7 +7,7 @@ import numpy
 import tables
 from time import time
 
-dim1, dim2 = 360, 6109666
+dim1, dim2 = 360, 6_109_666
 rows_to_read = range(0, 360, 36)
 
 print("=" * 32)

@@ -690,7 +690,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 if __name__ == "__main__":
 
     # shape = (10000,10000)
-    shape = (10, 10000)
+    shape = (10, 10_000)
 
     f = tb.open_file("/tmp/expression.h5", "w")
 

@@ -201,7 +201,7 @@ EXPECTED_ROWS_VLARRAY = 1000
 
 """
 
-EXPECTED_ROWS_TABLE = 10000
+EXPECTED_ROWS_TABLE = 10_000
 """Default expected number of rows for :class:`Table` objects."""
 
 PYTABLES_SYS_ATTRS = True

@@ -6,7 +6,7 @@ g1 = f1.create_group('/', 'g1')
 g2 = f1.create_group(g1, 'g2')
 
 # Create some datasets
-a1 = f1.create_carray(g1, 'a1', tb.Int64Atom(), shape=(10000,))
+a1 = f1.create_carray(g1, 'a1', tb.Int64Atom(), shape=(10_000,))
 t1 = f1.create_table(g2, 't1', {'f1': tb.IntCol(), 'f2': tb.FloatCol()})
 
 # Create new group and a first hard link

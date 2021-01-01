@@ -10,7 +10,7 @@ from tables import *
 import numpy as np
 
 randomvalues = 0
-standarddeviation = 10000
+standarddeviation = 10_000
 # Initialize the random generator always with the same integer
 # in order to have reproductible results
 random.seed(19)
