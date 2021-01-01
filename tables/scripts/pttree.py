@@ -340,7 +340,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
     out_str += str(pretty[root._v_pathname]) + '\n' * 2
 
     if print_total:
-        avg_ratio = float(total_on_disk) / total_in_mem
+        avg_ratio = total_on_disk / total_in_mem
         fsize = os.stat(f.filename).st_size
 
         out_str += '-' * 60 + '\n'
@@ -430,7 +430,7 @@ def bytes2human(use_si_units=False):
     def b2h(nbytes):
 
         for (prefix, value) in zip(prefixes, values):
-            scaled = float(nbytes) / value
+            scaled = nbytes / value
             if scaled >= 1:
                 break
 

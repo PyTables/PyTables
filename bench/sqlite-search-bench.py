@@ -249,7 +249,7 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         else:
             dev = standarddeviation / 100
 
-        valmax = int(round((nrows / 2) - dev))
+        valmax = round(nrows / 2 - dev)
         # split the selection range in regular chunks
         if riter > valmax * 2:
             riter = valmax * 2

@@ -202,7 +202,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
         if index.reduction == 1 and ncoords == 0:
             # No values from index condition, thus the chunkmap should be empty
             nrowsinchunk = self.chunkshape[0]
-            nchunks = int(math.ceil(float(self.nrows) / nrowsinchunk))
+            nchunks = math.ceil(self.nrows / nrowsinchunk)
             chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
         else:
             # Get the chunkmap from the index

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import math
 import time
 import random
 import warnings

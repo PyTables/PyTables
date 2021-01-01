@@ -67,8 +67,8 @@ def populate_x_memmap():
 
     # Populate x in range [-1, 1]
     for i in range(0, N, step):
-        chunk = np.linspace((2 * i - N) / float(N),
-                            (2 * (i + step) - N) / float(N), step)
+        chunk = np.linspace((2 * i - N) / N,
+                            (2 * (i + step) - N) / N, step)
         x[i:i + step] = chunk
     del x        # close x memmap
 
@@ -87,8 +87,8 @@ def populate_x_tables(clib, clevel):
 
     # Populate x in range [-1, 1]
     for i in range(0, N, step):
-        chunk = np.linspace((2 * i - N) / float(N),
-                            (2 * (i + step) - N) / float(N), step)
+        chunk = np.linspace((2 * i - N) / N,
+                            (2 * (i + step) - N) / N, step)
         x[i:i + step] = chunk
     f.close()
 

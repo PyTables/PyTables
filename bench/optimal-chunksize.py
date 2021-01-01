@@ -34,9 +34,9 @@ def quantize(data, least_significant_digit):
     precision = 10 ** -least_significant_digit
     exp = math.log(precision, 10)
     if exp < 0:
-        exp = int(math.floor(exp))
+        exp = math.floor(exp)
     else:
-        exp = int(math.ceil(exp))
+        exp = math.ceil(exp)
     bits = math.ceil(math.log(10 ** -exp, 2))
     scale = 2 ** bits
     return numpy.around(scale * data) / scale
