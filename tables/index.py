@@ -307,13 +307,13 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             # bucket outside of a slice.
             maxnb = 2**8
             if self.slicesize > maxnb * lbucket:
-                lbucket = int(math.ceil(float(self.slicesize) / maxnb))
+                lbucket = math.ceil(self.slicesize / maxnb)
         elif self.indsize == 2:
             # For light, we will never have to keep track of a
             # bucket outside of a block.
             maxnb = 2**16
             if self.blocksize > maxnb * lbucket:
-                lbucket = int(math.ceil(float(self.blocksize) / maxnb))
+                lbucket = math.ceil(self.blocksize / maxnb)
         else:
             # For medium and full indexes there should not be a need to
             # increase lbucket
@@ -970,11 +970,11 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             message = f"swap_{what}"
         (nover, mult, tover) = self.compute_overlaps(
             self.tmp, message, self.verbose)
-        rmult = len(mult.nonzero()[0]) / float(len(mult))
+        rmult = len(mult.nonzero()[0]) / len(mult)
         if self.verbose:
             print(f"time: {time() - t1:.4f}. clock: {perf_counter() - c1:.4f}")
         # Check that entropy is actually decreasing
-        if what == "chunks" and self.last_tover > 0. and self.last_nover > 0:
+        if what == "chunks" and self.last_tover > 0 and self.last_nover > 0:
             tover_var = (self.last_tover - tover) / self.last_tover
             nover_var = (self.last_nover - nover) / self.last_nover
             if tover_var < 0.05 and nover_var < 0.05:
@@ -988,7 +988,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         if rmult < thmult:
             return True
         # Additional check for the overlap ratio
-        if 0. <= tover < thtover:
+        if 0 <= tover < thtover:
             return True
         return False
 
@@ -1541,8 +1541,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             rangeslr = numpy.array([self.bebounds[0], self.bebounds[-1]])
             ranges = numpy.concatenate((ranges, [rangeslr]))
             nslices += 1
-        soverlap = 0.
-        toverlap = -1.
+        soverlap = 0
+        toverlap = -1
         multiplicity = numpy.zeros(shape=nslices, dtype="int_")
         overlaps = multiplicity.copy()
         starts = multiplicity.copy()
@@ -1631,8 +1631,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             ranges = numpy.concatenate((ranges, [rangeslr]))
             nslices += 1
         noverlaps = 0
-        soverlap = 0.
-        toverlap = -1.
+        soverlap = 0
+        toverlap = -1
         multiplicity = numpy.zeros(shape=nslices, dtype="int_")
         for i in range(nslices):
             for j in range(i + 1, nslices):
@@ -2006,8 +2006,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         nslices = self.nslices
         lbucket = self.lbucket
         indsize = self.indsize
-        bucketsinblock = float(self.blocksize) / lbucket
-        nchunks = int(math.ceil(float(self.nelements) / lbucket))
+        bucketsinblock = self.blocksize / lbucket
+        nchunks = math.ceil(self.nelements / lbucket)
         chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
         reduction = self.reduction
         starts = (self.starts - 1) * reduction + 1
@@ -2041,9 +2041,9 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         if lbucket != nrowsinchunk:
             # Map the 'coarse grain' chunkmap into the 'true' chunkmap
             nelements = self.nelements
-            tnchunks = int(math.ceil(float(nelements) / nrowsinchunk))
+            tnchunks = math.ceil(nelements / nrowsinchunk)
             tchunkmap = numpy.zeros(shape=tnchunks, dtype="bool")
-            ratio = float(lbucket) / nrowsinchunk
+            ratio = lbucket / nrowsinchunk
             idx = chunkmap.nonzero()[0]
             starts = (idx * ratio).astype('int_')
             stops = numpy.ceil((idx + 1) * ratio).astype('int_')

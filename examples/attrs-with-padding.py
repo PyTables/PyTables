@@ -11,7 +11,7 @@ attrs = fileh.root._v_attrs
 # Set some attrs
 attrs.pq = np.zeros(2, dt)
 attrs.qr = np.ones((2, 2), dt)
-attrs.rs = np.array([(1, 2.)], dt)
+attrs.rs = np.array([(1, 2)], dt)
 print("repr(attrs)-->", repr(attrs))
 
 fileh.close()
@@ -23,7 +23,7 @@ attrs = fileh.root._v_attrs
 # Set some attrs
 attrs.pq = np.zeros(2, dt)
 attrs.qr = np.ones((2, 2), dt)
-attrs.rs = np.array([(1, 2.)], dt)
+attrs.rs = np.array([(1, 2)], dt)
 print("repr(attrs)-->", repr(attrs))
 
 fileh.close()

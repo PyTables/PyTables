@@ -3,7 +3,7 @@ import time
 import numpy as np
 import tables
 
-N = 144000
+N = 144_000
 #N = 144
 
 
@@ -91,7 +91,7 @@ def copy5(input_path, output_path, complib='zlib', complevel=0):
     filter = tables.Filters(complevel=complevel, complib=complib)
     output_table = output_file.create_table("/", "test", input_table.dtype,
                                             filters=filter)
-    chunksize = 10000
+    chunksize = 10_000
     rowsleft = len(input_table)
     start = 0
     for chunk in range((len(input_table) / chunksize) + 1):

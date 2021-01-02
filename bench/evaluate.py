@@ -7,7 +7,7 @@ from numexpr.necompiler import (
     getContext, getExprNames, getType, NumExpr)
 
 
-shape = (1000, 160000)
+shape = (1000, 160_000)
 #shape = (10,1600)
 filters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
 ofilters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
@@ -127,15 +127,15 @@ if __name__ == "__main__":
         b = np.ones(shape, dtype='float32') * 2
         c = np.ones(shape, dtype='float32') * 3
     else:
-        a = f.create_carray(f.root, 'a', tb.Float32Atom(dflt=1.),
+        a = f.create_carray(f.root, 'a', tb.Float32Atom(dflt=1),
                             shape=shape, filters=filters)
-        a[:] = 1.
-        b = f.create_carray(f.root, 'b', tb.Float32Atom(dflt=2.),
+        a[:] = 1
+        b = f.create_carray(f.root, 'b', tb.Float32Atom(dflt=2),
                             shape=shape, filters=filters)
-        b[:] = 2.
-        c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3.),
+        b[:] = 2
+        c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3),
                             shape=shape, filters=filters)
-        c[:] = 3.
+        c[:] = 3
     if oarrays:
         out = np.empty(shape, dtype='float32')
     else:

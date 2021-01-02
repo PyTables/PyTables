@@ -127,7 +127,7 @@ class Postgres_DB(DB):
         return results
 
     def do_query(self, con, column, base, *unused):
-        d = (self.rng[1] - self.rng[0]) / 2.
+        d = (self.rng[1] - self.rng[0]) / 2
         inf1 = int(self.rng[0] + base)
         sup1 = int(self.rng[0] + d + base)
         inf2 = self.rng[0] + base * 2

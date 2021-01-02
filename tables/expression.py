@@ -690,15 +690,15 @@ value of dimensions that are orthogonal (and preferably close) to the
 if __name__ == "__main__":
 
     # shape = (10000,10000)
-    shape = (10, 10000)
+    shape = (10, 10_000)
 
     f = tb.open_file("/tmp/expression.h5", "w")
 
     # Create some arrays
-    a = f.create_carray(f.root, 'a', atom=tb.Float32Atom(dflt=1.), shape=shape)
-    b = f.create_carray(f.root, 'b', atom=tb.Float32Atom(dflt=2.), shape=shape)
-    c = f.create_carray(f.root, 'c', atom=tb.Float32Atom(dflt=3.), shape=shape)
-    out = f.create_carray(f.root, 'out', atom=tb.Float32Atom(dflt=3.),
+    a = f.create_carray(f.root, 'a', atom=tb.Float32Atom(dflt=1), shape=shape)
+    b = f.create_carray(f.root, 'b', atom=tb.Float32Atom(dflt=2), shape=shape)
+    c = f.create_carray(f.root, 'c', atom=tb.Float32Atom(dflt=3), shape=shape)
+    out = f.create_carray(f.root, 'out', atom=tb.Float32Atom(dflt=3),
                           shape=shape)
 
     expr = Expr("a * b + c")

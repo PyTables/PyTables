@@ -17,7 +17,7 @@ import tables
 # N, M = 512, 2**16     # 256 MB
 # N, M = 512, 2**18     # 1 GB
 # N, M = 512, 2**19     # 2 GB
-N, M = 2000, 1000000  # 15 GB
+N, M = 2000, 1_000_000  # 15 GB
 # N, M = 4000, 1000000  # 30 GB
 datom = tables.Float64Atom()   # elements are double precision
 
@@ -31,14 +31,14 @@ def quantize(data, least_significant_digit):
 
     """
 
-    precision = 10. ** -least_significant_digit
+    precision = 10 ** -least_significant_digit
     exp = math.log(precision, 10)
     if exp < 0:
-        exp = int(math.floor(exp))
+        exp = math.floor(exp)
     else:
-        exp = int(math.ceil(exp))
-    bits = math.ceil(math.log(10. ** -exp, 2))
-    scale = 2. ** bits
+        exp = math.ceil(exp)
+    bits = math.ceil(math.log(10 ** -exp, 2))
+    scale = 2 ** bits
     return numpy.around(scale * data) / scale
 
 
@@ -66,7 +66,7 @@ def bench(chunkshape, filters):
     # os.system("sync")
     print(f"Creation time: {time() - t1:.3f}", end=' ')
     filesize = get_db_size(filename)
-    filesize_bytes = os.stat(filename)[6]
+    filesize_bytes = os.stat(filename).st_size
     print("\t\tFile size: %d -- (%s)" % (filesize_bytes, filesize))
 
     # Read in sequential mode:

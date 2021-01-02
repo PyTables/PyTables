@@ -174,7 +174,7 @@ def unix_socket_address():
 
 def ipv4_socket_address():
     # create an IPv4 socket address
-    return ('127.0.0.1', random.randint(9000, 10000))
+    return ('127.0.0.1', random.randint(9000, 10_000))
 
 
 def read_and_send_socket(send_type, array_size, array_bytes, address_func,
@@ -216,10 +216,10 @@ def print_results(send_type, start_timestamp, recv_timestamp,
 if __name__ == '__main__':
 
     random.seed(os.urandom(2))
-    array_num_bytes = [int(x) for x in [1e5, 1e6, 1e7, 1e8]]
+    array_num_bytes = [10**5, 10**6, 10**7, 10**8]
 
     for array_bytes in array_num_bytes:
-        array_size = int(array_bytes // 8)
+        array_size = array_bytes // 8
 
         create_file(array_size)
         read_and_send_pipe('multiproc.Pipe', array_size)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import math
 import os
 import queue
 import functools
@@ -73,7 +74,7 @@ def create_test_file(filename):
 
 
 def chunk_generator(data_size, nchunks):
-    chunk_size = int(np.ceil(data_size / nchunks))
+    chunk_size = math.ceil(data_size / nchunks)
     for start in range(0, data_size, chunk_size):
         yield slice(start, start + chunk_size)
 
@@ -113,7 +114,7 @@ def main():
 
     # collect results
     try:
-        mean_ = 0.
+        mean_ = 0
 
         for _ in range(len(threads)):
             out = outqueue.get()

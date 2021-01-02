@@ -10,6 +10,7 @@
 
 """Utility functions."""
 
+import math
 import os
 import sys
 import warnings
@@ -285,14 +286,10 @@ def quantize(data, least_significant_digit):
 
     """
 
-    precision = pow(10., -least_significant_digit)
-    exp = numpy.log10(precision)
-    if exp < 0:
-        exp = int(numpy.floor(exp))
-    else:
-        exp = int(numpy.ceil(exp))
-    bits = numpy.ceil(numpy.log2(pow(10., -exp)))
-    scale = pow(2., bits)
+    exp = -least_significant_digit
+    exp = math.floor(exp) if exp < 0 else math.ceil(exp)
+    bits = math.ceil(math.log2(10 ** -exp))
+    scale = 2 ** bits
     datout = numpy.around(scale * data) / scale
 
     return datout

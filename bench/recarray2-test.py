@@ -16,7 +16,7 @@ except:
     print(usage)
     sys.exit()
 
-delta = 0.000001
+delta = 0.000_001
 
 # Creation of recarrays objects for test
 x1 = np.array(np.arange(reclen))

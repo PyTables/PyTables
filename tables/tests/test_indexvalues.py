@@ -3187,7 +3187,7 @@ class LastRowReuseBuffers(TestCase):
         ta.cols.id1.create_index()
 
         for i in range(self.nelem):
-            nrow = random.randint(0, self.nelem-1)
+            nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
@@ -3206,7 +3206,7 @@ class LastRowReuseBuffers(TestCase):
         ta.cols.id1.create_index()
 
         for i in range(self.nelem):
-            nrow = random.randint(0, self.nelem-1)
+            nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
@@ -3225,7 +3225,7 @@ class LastRowReuseBuffers(TestCase):
         ta.cols.id1.create_index()
 
         for i in range(self.nelem):
-            nrow = random.randint(0, self.nelem-1)
+            nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
             self.assertGreater(len(idx), 0,
@@ -3305,21 +3305,21 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
 
     def test01(self):
         numpy.random.seed(2)
-        n = 700000
-        cs = 50000
+        n = 700_000
+        cs = 50_000
         nchunks = n // cs
 
         arr = numpy.zeros(
             (n,), dtype=[('index', 'i8'), ('o', 'i8'), ('value', 'f8')])
         arr['index'] = numpy.arange(n)
-        arr['o'] = numpy.random.randint(-20000, -15000, size=n)
+        arr['o'] = numpy.random.randint(-20_000, -15_000, size=n)
         arr['value'] = numpy.random.randn(n)
 
         node = self.h5file.create_group('/', 'foo')
         table = self.h5file.create_table(node, 'table', dict(
             index=tables.Int64Col(),
             o=tables.Int64Col(),
-            value=tables.FloatCol(shape=())), expectedrows=10000000)
+            value=tables.FloatCol(shape=())), expectedrows=10_000_000)
 
         table.append(arr)
 

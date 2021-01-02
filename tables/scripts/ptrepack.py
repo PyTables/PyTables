@@ -568,7 +568,7 @@ def main():
             print("User attrs copied")
         else:
             print("User attrs not copied")
-        print(f"KBytes copied: {nbytescopied / 1024.:.3f}")
+        print(f"KBytes copied: {nbytescopied / 1024:.3f}")
         print(
             f"Time copying: {tcopy:.3f} s (real) {cpucopy:.3f} s "
             f"(cpu)  {cpucopy / tcopy:.0%}")

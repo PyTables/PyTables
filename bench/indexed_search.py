@@ -15,7 +15,7 @@ NI_NTIMES = 1       # The number of queries for doing a mean (non-idx cols)
 # COLDCACHE = 50   # The number of reads where the cache is considered 'cold'
 # WARMCACHE = 50   # The number of reads until the cache is considered 'warmed'
 # READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
-MROW = 1000 * 1000.
+MROW = 1000 * 1000
 
 # Test values
 COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
@@ -99,8 +99,8 @@ class DB:
               f"{wmean:.{prec}f} +- {wstd:.{prec}f}")
 
     def print_db_sizes(self, init, filled, indexed):
-        table_size = (filled - init) / 1024.
-        indexes_size = (indexed - filled) / 1024.
+        table_size = (filled - init) / 1024
+        indexes_size = (indexed - filled) / 1024
         print(f"Table size (MB): {table_size:.3f}")
         print(f"Indexes size (MB): {indexes_size:.3f}")
         print(f"Full size (MB): {table_size + indexes_size:.3f}")

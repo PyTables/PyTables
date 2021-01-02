@@ -31,7 +31,7 @@ mpfnames = [fprefix + "-x.bin", fprefix + "-r.bin"]
 # Filename for tables.Expr
 h5fname = "tablesExpr.h5"     # the I/O file
 
-MB = 1024 * 1024.               # a MegaByte
+MB = 1024 * 1024               # a MegaByte
 
 
 def print_filesize(filename, clib=None, clevel=0):
@@ -39,11 +39,9 @@ def print_filesize(filename, clib=None, clevel=0):
 
     # os.system("sync")    # make sure that all data has been flushed to disk
     if isinstance(filename, list):
-        filesize_bytes = 0
-        for fname in filename:
-            filesize_bytes += os.stat(fname)[6]
+        filesize_bytes = sum(os.stat(fname).st_size for fname in filename)
     else:
-        filesize_bytes = os.stat(filename)[6]
+        filesize_bytes = os.stat(filename).st_size
     print(
         f"\t\tTotal file sizes: {filesize_bytes} -- "
         f"({filesize_bytes / MB:.1f} MB)", end=' ')
@@ -67,8 +65,8 @@ def populate_x_memmap():
 
     # Populate x in range [-1, 1]
     for i in range(0, N, step):
-        chunk = np.linspace((2 * i - N) / float(N),
-                            (2 * (i + step) - N) / float(N), step)
+        chunk = np.linspace((2 * i - N) / N,
+                            (2 * (i + step) - N) / N, step)
         x[i:i + step] = chunk
     del x        # close x memmap
 
@@ -87,8 +85,8 @@ def populate_x_tables(clib, clevel):
 
     # Populate x in range [-1, 1]
     for i in range(0, N, step):
-        chunk = np.linspace((2 * i - N) / float(N),
-                            (2 * (i + step) - N) / float(N), step)
+        chunk = np.linspace((2 * i - N) / N,
+                            (2 * (i + step) - N) / N, step)
         x[i:i + step] = chunk
     f.close()
 

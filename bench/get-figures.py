@@ -280,8 +280,8 @@ if __name__ == '__main__':
             #plots.append(semilogx(xval, yval, linewidth=linewidth, color='m'))
             legends.append(plegend)
     if 0:  # Per a introduir dades simulades si es vol...
-        xval = [1000, 10000, 100000, 1000000, 10000000,
-                100000000, 1000000000]
+        xval = [1000, 10_000, 100_000, 1_000_000, 10_000_000,
+                100_000_000, 1_000_000_000]
 #         yval = [0.003, 0.005, 0.02, 0.06, 1.2,
 #                 40, 210]
         yval = [0.0009, 0.0011, 0.0022, 0.005, 0.02,

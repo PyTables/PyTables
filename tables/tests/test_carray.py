@@ -1106,7 +1106,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
 
     def setUp(self):
         super().setUp()
-        self.array_size = (10000, 10)
+        self.array_size = (10_000, 10)
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
         self.chunkshape = (1000, 10)
@@ -1125,14 +1125,14 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
         complevel = 0
         self.create_array(complevel)
         self.assertEqual(self.array.size_on_disk, 0)
-        self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
+        self.assertEqual(self.array.size_in_memory, 10_000 * 10 * 2)
 
     def test_data_no_compression(self):
         complevel = 0
         self.create_array(complevel)
         self.array[:] = 1
-        self.assertEqual(self.array.size_on_disk, 10000 * 10 * 2)
-        self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
+        self.assertEqual(self.array.size_on_disk, 10_000 * 10 * 2)
+        self.assertEqual(self.array.size_in_memory, 10_000 * 10 * 2)
 
     def test_highly_compressible_data(self):
         complevel = 1
@@ -1143,7 +1143,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
         self.assertTrue(
             abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertTrue(self.array.size_on_disk < self.array.size_in_memory)
-        self.assertEqual(self.array.size_in_memory, 10000 * 10 * 2)
+        self.assertEqual(self.array.size_in_memory, 10_000 * 10 * 2)
 
     # XXX
     def test_random_data(self):
@@ -1157,10 +1157,10 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
 
         # XXX: check. The test fails if blosc is not available
         if tables.which_lib_version('blosc') is not None:
-            self.assertAlmostEqual(self.array.size_on_disk, 10000 * 10 * 2)
+            self.assertAlmostEqual(self.array.size_on_disk, 10_000 * 10 * 2)
         else:
             self.assertTrue(
-                abs(self.array.size_on_disk - 10000 * 10 * 2) < 200)
+                abs(self.array.size_on_disk - 10_000 * 10 * 2) < 200)
 
 
 class OffsetStrideTestCase(common.TempFileMixin, TestCase):
@@ -2091,7 +2091,7 @@ class Rows64bitsTestCase2(Rows64bitsTestCase):
 
 
 class BigArrayTestCase(common.TempFileMixin, TestCase):
-    shape = (3000000000,)  # more than 2**31-1
+    shape = (3_000_000_000,)  # more than 2**31-1
 
     def setUp(self):
         super().setUp()

@@ -7,7 +7,7 @@ fileh = tables.open_file("array2.h5", mode="w")
 root = fileh.root
 
 # Create an array
-a = np.array([1, 2.7182818284590451, 3.141592], float)
+a = np.array([1, np.e, np.pi], float)
 print("About to write array:", a)
 print("  with shape: ==>", a.shape)
 print("  and dtype ==>", a.dtype)

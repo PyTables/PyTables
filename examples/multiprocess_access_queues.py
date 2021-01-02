@@ -105,13 +105,13 @@ class DataProcessor(multiprocessing.Process):
     def run(self):
         self.output_file = open(self.output_file, 'w')
         # read a random row from the file
-        row_num = random.randint(0, self.array_size - 1)
+        row_num = random.randrange(self.array_size)
         self.read_queue.put((row_num, self.proc_num))
         self.output_file.write(str(row_num) + '\n')
         self.output_file.write(str(self.result_queue.get()) + '\n')
 
         # modify a random row to equal 11 * (self.proc_num + 1)
-        row_num = random.randint(0, self.array_size - 1)
+        row_num = random.randrange(self.array_size)
         new_data = (numpy.zeros((1, self.array_size), 'i8') +
                     11 * (self.proc_num + 1))
         self.write_queue.put((row_num, new_data))

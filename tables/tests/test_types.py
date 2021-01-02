@@ -37,7 +37,7 @@ class RangeTestCase(common.TempFileMixin, TestCase):
     title = "This is the table title"
     expectedrows = 100
     maxshort = 2 ** 15
-    maxint = 2147483648   # (2 ** 31)
+    maxint = 2_147_483_648   # (2 ** 31)
     compress = 0
 
     def setUp(self):
