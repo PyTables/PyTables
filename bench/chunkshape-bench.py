@@ -22,18 +22,17 @@ t1 = time()
 zeros = numpy.zeros((dim1, 1), dtype="float64")
 for i in range(dim2):
     a.append(zeros)
-tcre = round(time() - t1, 3)
-thcre = round(dim1 * dim2 * 8 / (tcre * 1024 * 1024), 1)
-print("Time to append %d rows: %s sec (%s MB/s)" % (a.nrows, tcre, thcre))
+tcre = time() - t1
+thcre = dim1 * dim2 * 8 / (tcre * 1024 * 1024)
+print(f"Time to append {a.nrows} rows: {tcre:.3f} sec ({thcre:.1f} MB/s)")
 
 # Read some row vectors from the original array
 t1 = time()
 for i in rows_to_read:
     r1 = a[i, :]
-tr1 = round(time() - t1, 3)
-thr1 = round(dim2 * len(rows_to_read) * 8 / (tr1 * 1024 * 1024), 1)
-print("Time to read ten rows in original array: {} sec ({} MB/s)".format(tr1,
-                                                                     thr1))
+tr1 = time() - t1
+thr1 = dim2 * len(rows_to_read) * 8 / (tr1 * 1024 * 1024)
+print(f"Time to read ten rows in original array: {tr1:.3f} sec ({thr1:.1f} MB/s)")
 
 print("=" * 32)
 # Copy the array to another with a row-wise chunkshape
@@ -41,20 +40,19 @@ t1 = time()
 #newchunkshape = (1, a.chunkshape[0]*a.chunkshape[1])
 newchunkshape = (1, a.chunkshape[0] * a.chunkshape[1] * 10)  # ten times larger
 b = a.copy(f.root, "b", chunkshape=newchunkshape)
-tcpy = round(time() - t1, 3)
-thcpy = round(dim1 * dim2 * 8 / (tcpy * 1024 * 1024), 1)
+tcpy = time() - t1
+thcpy = dim1 * dim2 * 8 / (tcpy * 1024 * 1024)
 print("Chunkshape for row-wise chunkshape array:", b.chunkshape)
-print(f"Time to copy the original array: {tcpy} sec ({thcpy} MB/s)")
+print(f"Time to copy the original array: {tcpy:.3f} sec ({thcpy:.1f} MB/s)")
 
 # Read the same ten rows from the new copied array
 t1 = time()
 for i in rows_to_read:
     r2 = b[i, :]
-tr2 = round(time() - t1, 3)
-thr2 = round(dim2 * len(rows_to_read) * 8 / (tr2 * 1024 * 1024), 1)
-print("Time to read with a row-wise chunkshape: {} sec ({} MB/s)".format(tr2,
-                                                                     thr2))
+tr2 = time() - t1
+thr2 = dim2 * len(rows_to_read) * 8 / (tr2 * 1024 * 1024)
+print(f"Time to read with a row-wise chunkshape: {tr2:.3f} sec ({thr2:.1f} MB/s)")
 print("=" * 32)
-print("Speed-up with a row-wise chunkshape:", round(tr1 / tr2, 1))
+print(f"Speed-up with a row-wise chunkshape: {tr1 / tr2:.1f}")
 
 f.close()

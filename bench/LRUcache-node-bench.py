@@ -42,7 +42,7 @@ print("reading nodes...")
 t1 = time()
 for a in f.root.NodeContainer:
     pass
-print("time (init cache)-->", round(time() - t1, 3))
+print(f"time (init cache)--> {time() - t1:.3f}")
 
 
 def timeLRU():
@@ -51,7 +51,7 @@ def timeLRU():
 #     for i in range(niter):
 #         iternodes()
     iternodes()
-    print("time (from cache)-->", round((time() - t1) / niter, 3))
+    print(f"time (from cache)--> {(time() - t1) / niter:.3f}")
 
 
 def profile(verbose=False):

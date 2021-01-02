@@ -50,7 +50,7 @@ def tables(docompute, dowrite, complib, verbose):
             a[i] = row * (i + 1)
             b[i] = row * (i + 1) * 2
         f.close()
-        print("[tables.Expr] Time for creating inputs:", round(time() - t0, 3))
+        print(f"[tables.Expr] Time for creating inputs: {time() - t0:.3f}")
 
     if docompute:
         f = tb.open_file(ifilename, 'r')
@@ -68,8 +68,7 @@ def tables(docompute, dowrite, complib, verbose):
             print("First ten values:", r1[0, :10])
         f.close()
         fr.close()
-        print("[tables.Expr] Time for computing & save:",
-              round(time() - t0, 3))
+        print(f"[tables.Expr] Time for computing & save: {time() - t0:.3f}")
 
 
 def memmap(docompute, dowrite, verbose):
@@ -89,8 +88,7 @@ def memmap(docompute, dowrite, verbose):
             a[i] = row * (i + 1)
             b[i] = row * (i + 1) * 2
         del a, b  # flush data
-        print("[numpy.memmap] Time for creating inputs:",
-              round(time() - t0, 3))
+        print(f"[numpy.memmap] Time for creating inputs: {time() - t0:.3f}")
 
     if docompute:
         t0 = time()
@@ -106,7 +104,7 @@ def memmap(docompute, dowrite, verbose):
             print("First ten values:", r[0, :10])
         del a, b
         del r  # flush output data
-        print("[numpy.memmap] Time for compute & save:", round(time() - t0, 3))
+        print(f"[numpy.memmap] Time for compute & save: {time() - t0:.3f}")
 
 
 def do_bench(what, documpute, dowrite, complib, verbose):

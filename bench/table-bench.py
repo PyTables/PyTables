@@ -389,14 +389,14 @@ if __name__ == "__main__":
             (rowsw, rowsz) = createFile(file, iterations, filters, recsize)
         t2 = time.time()
         cpu2 = time.perf_counter()
-        tapprows = round(t2 - t1, 3)
-        cpuapprows = round(cpu2 - cpu1, 3)
-        tpercent = int(round(cpuapprows / tapprows, 2) * 100)
-        print("Rows written:", rowsw, " Row size:", rowsz)
-        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" %
-              (tapprows, cpuapprows, tpercent))
-        print("Write rows/sec: ", int(rowsw / float(tapprows)))
-        print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
+        tapprows = t2 - t1
+        cpuapprows = cpu2 - cpu1
+        print(f"Rows written: {rowsw}  Row size: {rowsz}")
+        print(
+            f"Time writing rows: {tapprows:.3f} s (real) "
+            f"{cpuapprows:.3f} s (cpu)  {cpuapprows / tapprows:.0%}")
+        print(f"Write rows/sec:  {rowsw / tapprows}")
+        print(f"Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}")
 
     if testread:
         t1 = time.time()
@@ -413,11 +413,11 @@ if __name__ == "__main__":
                 (rowsr, rowsz) = readFile(file, recsize, verbose)
         t2 = time.time()
         cpu2 = time.perf_counter()
-        treadrows = round(t2 - t1, 3)
-        cpureadrows = round(cpu2 - cpu1, 3)
-        tpercent = int(round(cpureadrows / treadrows, 2) * 100)
-        print("Rows read:", rowsr, " Row size:", rowsz)
-        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" %
-              (treadrows, cpureadrows, tpercent))
-        print("Read rows/sec: ", int(rowsr / float(treadrows)))
-        print("Read KB/s :", int(rowsr * rowsz / (treadrows * 1024)))
+        treadrows = t2 - t1
+        cpureadrows = cpu2 - cpu1
+        print(f"Rows read: {rowsw}  Row size: {rowsz}")
+        print(
+            f"Time reading rows: {treadrows:.3f} s (real) "
+            f"{cpureadrows:.3f} s (cpu)  {cpureadrows / treadrows:.0%}")
+        print(f"Read rows/sec:  {rowsr / treadrows}")
+        print(f"Read KB/s : {rowsr * rowsz / (treadrows * 1024):.0f}")

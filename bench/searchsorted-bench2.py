@@ -301,14 +301,14 @@ if __name__ == "__main__":
                                     atom, recsize, index, verbose)
         t2 = time.time()
         cpu2 = time.perf_counter()
-        tapprows = round(t2 - t1, 3)
-        cpuapprows = round(cpu2 - cpu1, 3)
-        tpercent = int(round(cpuapprows / tapprows, 2) * 100)
-        print("Rows written:", rowsw, " Row size:", rowsz)
-        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" %
-              (tapprows, cpuapprows, tpercent))
-        print("Write rows/sec: ", int(rowsw / float(tapprows)))
-        print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
+        tapprows = t2 - t1
+        cpuapprows = cpu2 - cpu1
+        print(f"Rows written: {rowsw}  Row size: {rowsz}")
+        print(
+            f"Time writing rows: {tapprows:.3f} s (real) "
+            f"{cpuapprows:.3f} s (cpu)  {cpuapprows / tapprows:.0%}")
+        print(f"Write rows/sec:  {rowsw / tapprows:.0f}")
+        print(f"Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}")
 
     if testread:
         if psyco_imported and usepsyco:
@@ -323,16 +323,16 @@ if __name__ == "__main__":
                 (rowsr, rowsel, rowsz) = readFile(file, atom, niter, verbose)
         t2 = time.time()
         cpu2 = time.perf_counter()
-        treadrows = round(t2 - t1, 3)
-        cpureadrows = round(cpu2 - cpu1, 3)
-        tpercent = int(round(cpureadrows / treadrows, 2) * 100)
+        treadrows = t2 - t1
+        cpureadrows = cpu2 - cpu1
         tMrows = rowsr / (1000 * 1000.)
         sKrows = rowsel / 1000.
-        print("Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows")
-        print("Rows selected:", rowsel, "Ksel:", round(sKrows, 3), "Krows")
-        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" %
-              (treadrows, cpureadrows, tpercent))
-        print("Read Mrows/sec: ", round(tMrows / float(treadrows), 3))
+        print(f"Rows read: {rowsr} Mread: {tMrows:.3f} Mrows")
+        print(f"Rows selected: {rowsel} Ksel: {sKrows:.3f} Krows")
+        print(
+            f"Time reading rows: {treadrows:.3f} s (real) "
+            f"{cpureadrows:.3f} s (cpu)  {cpureadrows / treadrows:.0%}")
+        print(f"Read Mrows/sec: {tMrows / treadrows:.3f}")
         # print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
 #       print "Uncompr MB :", int(uncomprB / (1024 * 1024))
 #       print "Uncompr MB/s :", int(uncomprB / (treadrows * 1024 * 1024))

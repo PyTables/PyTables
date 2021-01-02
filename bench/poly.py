@@ -44,9 +44,9 @@ def print_filesize(filename, clib=None, clevel=0):
             filesize_bytes += os.stat(fname)[6]
     else:
         filesize_bytes = os.stat(filename)[6]
-    filesize_MB = round(filesize_bytes / MB, 1)
-    print("\t\tTotal file sizes: %d -- (%s MB)" % (
-        filesize_bytes, filesize_MB), end=' ')
+    print(
+        f"\t\tTotal file sizes: {filesize_bytes} -- "
+        f"({filesize_bytes / MB:.1f} MB)", end=' ')
     if clevel > 0:
         print(f"(using {clib} lvl{clevel})")
     else:
@@ -144,8 +144,7 @@ if __name__ == '__main__':
 
     tb.print_versions()
 
-    print("Total size for datasets:",
-          round(2 * N * dtype.itemsize / MB, 1), "MB")
+    print(f"Total size for datasets: {2 * N * dtype.itemsize / MB:.1f} MB")
 
     # Get the compression libraries supported
     # supported_clibs = [clib for clib in ("zlib", "lzo", "bzip2", "blosc")
@@ -168,12 +167,11 @@ if __name__ == '__main__':
         elif what == "numpy.memmap":
             populate_x_memmap()
             compute = compute_memmap
-        print("*** Time elapsed populating:", round(time() - t0, 3))
-        print(f"Computing: '{expr}' using {what}")
+        print(f"*** Time elapsed populating: {time() - t0:.3f}")
+        print(f"Computing: {expr!r} using {what}")
         t0 = time()
         compute()
-        print("**************** Time elapsed computing:",
-              round(time() - t0, 3))
+        print(f"**************** Time elapsed computing: {time() - t0:.3f}")
 
     for what in ["tables.Expr"]:
         t0 = time()
@@ -186,10 +184,11 @@ if __name__ == '__main__':
                     continue
                 print("Populating x using %s with %d points..." % (what, N))
                 populate_x_tables(clib, clevel)
-                print("*** Time elapsed populating:", round(time() - t0, 3))
-                print(f"Computing: '{expr}' using {what}")
+                print(f"*** Time elapsed populating: {time() - t0:.3f}")
+                print(f"Computing: {expr!r} using {what}")
                 t0 = time()
                 compute_tables(clib, clevel)
-                print("**************** Time elapsed computing:",
-                      round(time() - t0, 3))
+                print(
+                    f"**************** Time elapsed computing: "
+                    f"{time() - t0:.3f}")
                 first = False

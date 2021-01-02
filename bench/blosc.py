@@ -124,7 +124,7 @@ def process_file(kind, prec, clevel, synth):
         a2, b2 = a_[:], b_[:]
         t0 = time()
         r = eval(expression, {'a': a2, 'b': b2})
-        print("%5.2f" % round(time() - t0, 3))
+        print(f"{time() - t0:5.2f}")
     else:
         expr = tb.Expr(expression, {'a': a_, 'b': b_})
         expr.set_output(r)
@@ -161,4 +161,4 @@ if __name__ == '__main__':
             ts.append(time() - t0)
             t0 = time()
         ratio = size_orig / size
-        print("{:5.2f}, {:5.2f}".format(round(min(ts), 3), ratio))
+        print(f"{min(ts):5.2f}, {ratio:5.2f}")

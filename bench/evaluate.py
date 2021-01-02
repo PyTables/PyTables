@@ -165,7 +165,7 @@ if __name__ == "__main__":
         ofile.close()
     else:
         evaluate("a*b+c", out)
-    print("Time for evaluate-->", round(time() - t0, 3))
+    print(f"Time for evaluate--> {time() - t0:.3f}")
 
     # print "out-->", `out`
     # print `out[:]`

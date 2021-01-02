@@ -66,7 +66,7 @@ def modify_junk_LRU2():
             tt = getattr(group, "table" + str(i))
             #for row in tt:
             #    pass
-        print("iter and time -->", j + 1, round(time() - t1, 3))
+        print(f"iter and time --> {j + 1} {time() - t1:.3f}")
     fileh.close()
 
 
@@ -79,7 +79,7 @@ def modify_junk_LRU3():
             tt.attrs.TITLE
             for row in tt:
                 pass
-        print("iter and time -->", j + 1, round(time() - t1, 3))
+        print(f"iter and time --> {j + 1} {time() - t1:.3f}")
     fileh.close()
 
 if 1:

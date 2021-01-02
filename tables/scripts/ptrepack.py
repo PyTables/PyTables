@@ -547,14 +547,9 @@ def main():
 
     # Gather some statistics
     t2 = time.time()
-    cpu2 = cputime ()
-    tcopy = round(t2 - t1, 3)
-    cpucopy = round(cpu2 - cpu1, 3)
-    try:
-        tpercent = int(round(cpucopy / tcopy, 2) * 100)
-    except ZeroDivisionError:
-        tpercent = 'NaN'
-
+    cpu2 = cputime()
+    tcopy = t2 - t1
+    cpucopy = cpu2 - cpu1
     if verbose:
         ngroups = stats['groups']
         nleaves = stats['leaves']
@@ -573,8 +568,9 @@ def main():
             print("User attrs copied")
         else:
             print("User attrs not copied")
-        print("KBytes copied:", round(nbytescopied / 1024., 3))
-        print("Time copying: {} s (real) {} s (cpu)  {}%".format(
-            tcopy, cpucopy, tpercent))
-        print("Copied nodes/sec: ", round((nnodes) / float(tcopy), 1))
-        print("Copied KB/s :", int(nbytescopied / (tcopy * 1024)))
+        print(f"KBytes copied: {nbytescopied / 1024.:.3f}")
+        print(
+            f"Time copying: {tcopy:.3f} s (real) {cpucopy:.3f} s "
+            f"(cpu)  {cpucopy / tcopy:.0%}")
+        print(f"Copied nodes/sec: {nnodes / tcopy:.1f}")
+        print(f"Copied KB/s : {nbytescopied / tcopy / 1024:.0f}")
