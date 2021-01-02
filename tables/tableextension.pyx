@@ -1050,7 +1050,7 @@ cdef class Row:
         self._finish_riterator()
     elif 0 > self.step:
       #print("self.nextelement = ", self.nextelement, self.start, self.nrowsread, self.nextelement <  self.start - self.nrowsread + 1)
-      while self.nextelement - 1 > self.stop:
+      while self.nextelement > self.stop:
         if self.nextelement < self.start - (<long long> self.nrowsread) + 1:
           if 0 > self.nextelement - (<long long> self.nrowsinbuf) + 1:
             tmp = self.coords[0:self.nextelement + 1]

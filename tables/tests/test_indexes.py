@@ -2062,7 +2062,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         self.assertTrue(allequal(sortedtable, sortedtable2))
 
     def test04_itersorted9(self):
-        """Testing the Table.itersorted() method with a negative step."""
+        """Testing the Table.itersorted() method with a negative step -5."""
 
         # see also gh-252
         table = self.table
@@ -2070,6 +2070,20 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         sortedtable2 = numpy.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', step=-5)], dtype=table._v_dtype)
+        if verbose:
+            print("Original sorted table:", sortedtable)
+            print("The values from the iterator:", sortedtable2)
+        self.assertTrue(allequal(sortedtable, sortedtable2))
+
+    def test04_itersorted10(self):
+        """Testing the Table.itersorted() method with a negative step -1."""
+
+        # see also gh-252
+        table = self.table
+        sortedtable = numpy.sort(table[:], order='icol')[::-1]
+        sortedtable2 = numpy.array(
+            [row.fetch_all_fields() for row in table.itersorted(
+                'icol', step=-1)], dtype=table._v_dtype)
         if verbose:
             print("Original sorted table:", sortedtable)
             print("The values from the iterator:", sortedtable2)
