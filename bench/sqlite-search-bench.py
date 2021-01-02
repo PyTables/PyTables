@@ -150,7 +150,7 @@ CREATE INDEX ivar3 ON small(var3);
         t1 = time.time() - time1
         tcpu1 = time.perf_counter() - cpu1
         rowsecf = nrows / t1
-        size1 = os.stat(dbfile)[6]
+        size1 = os.stat(dbfile).st_size
         print(f"******** Results for writing nrows = {nrows} *********")
         print(f"Insert time: {t1:.5f}, KRows/s: {nrows / 1000 / t1:.3f}")
         print(f", File size: {size1 / 1024 / 1024:.3f} MB")
@@ -170,7 +170,7 @@ CREATE INDEX ivar3 ON small(var3);
         tcpu2 = time.perf_counter() - cpu1
         rowseci = nrows / t2
         print(f"Index time: {t2:.5f}, IKRows/s: {nrows / 1000 / t2:.3f}")
-        size2 = os.stat(dbfile)[6] - size1
+        size2 = os.stat(dbfile).st_size - size1
         print(f", Final size with index: {size2 / 1024 / 1024:.3f} MB")
 
     conn.close()

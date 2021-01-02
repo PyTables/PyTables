@@ -2051,7 +2051,7 @@ class FilePropertyTestCase(TestCase):
         h5_filesize = self.h5file.get_filesize()
         self.h5file.close()
 
-        fs_filesize = os.stat(self.h5fname)[6]
+        fs_filesize = os.stat(self.h5fname).st_size
 
         self.assertGreaterEqual(h5_filesize, datasize)
         self.assertEqual(h5_filesize, fs_filesize)

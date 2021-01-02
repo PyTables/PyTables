@@ -118,7 +118,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
         f"Time for filling: {time1:.3f} Krows/s: {nrows / 1000 / time1:.3f}",
         end=' ')
     fileh.close()
-    size1 = os.stat(filename)[6]
+    size1 = os.stat(filename).st_size
     print(f", File size: {size1 / 1024 / 1024:.3f} MB")
     fileh = open_file(filename, mode="a", title="Searchsorted Benchmark",
                       filters=filters)
@@ -152,7 +152,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     # Close the file
     fileh.close()
 
-    size2 = os.stat(filename)[6] - size1
+    size2 = os.stat(filename).st_size - size1
     if index:
         print(f", Index size: {size2 / 1024 / 1024:.3f} MB")
     return (rowswritten, indexrows, rowsize, time1, time2,

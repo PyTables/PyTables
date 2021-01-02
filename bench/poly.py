@@ -39,11 +39,9 @@ def print_filesize(filename, clib=None, clevel=0):
 
     # os.system("sync")    # make sure that all data has been flushed to disk
     if isinstance(filename, list):
-        filesize_bytes = 0
-        for fname in filename:
-            filesize_bytes += os.stat(fname)[6]
+        filesize_bytes = sum(os.stat(fname).st_size for fname in filename)
     else:
-        filesize_bytes = os.stat(filename)[6]
+        filesize_bytes = os.stat(filename).st_size
     print(
         f"\t\tTotal file sizes: {filesize_bytes} -- "
         f"({filesize_bytes / MB:.1f} MB)", end=' ')

@@ -50,7 +50,7 @@ def create_file(kind, prec, synth):
                 r[:] = col[:]
         f2.close()
         if clevel == 0:
-            size = 1.5 * os.stat(oname)[6]
+            size = 1.5 * os.stat(oname).st_size
     f.close()
     return size
 
@@ -88,7 +88,7 @@ def create_synth(kind, prec):
 
         f2.close()
         if clevel == 0:
-            size = 1.5 * os.stat(oname)[6]
+            size = 1.5 * os.stat(oname).st_size
     f.close()
     return size
 
@@ -131,7 +131,7 @@ def process_file(kind, prec, clevel, synth):
         expr.eval()
     f.close()
     f2.close()
-    size = os.stat(iname)[6] + os.stat(oname)[6]
+    size = os.stat(iname).st_size + os.stat(oname).st_size
     return size
 
 

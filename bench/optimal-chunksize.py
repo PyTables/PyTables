@@ -66,7 +66,7 @@ def bench(chunkshape, filters):
     # os.system("sync")
     print(f"Creation time: {time() - t1:.3f}", end=' ')
     filesize = get_db_size(filename)
-    filesize_bytes = os.stat(filename)[6]
+    filesize_bytes = os.stat(filename).st_size
     print("\t\tFile size: %d -- (%s)" % (filesize_bytes, filesize))
 
     # Read in sequential mode:

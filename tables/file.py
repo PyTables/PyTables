@@ -2785,7 +2785,7 @@ class File(hdf5extension.File):
 
         # Print all the nodes (Group and Leaf objects) on object tree
         try:
-            date = time.asctime(time.localtime(os.stat(self.filename)[8]))
+            date = time.asctime(time.localtime(os.stat(self.filename).st_mtime))
         except OSError:
             # in-memory file
             date = ""
