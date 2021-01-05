@@ -251,7 +251,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                 name += " (%s)" % node.__class__.__name__
 
             labels = []
-            pct = 100 * on_disk[path] / total_on_disk
+            ratio = on_disk[path] / total_on_disk
 
             # if the address of this object has a ref_count > 1, it has
             # multiple hardlinks
@@ -274,7 +274,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                     sizestr = 'mem={}, disk={}'.format(
                         b2h(in_mem[path]), b2h(on_disk[path]))
                     if print_percent:
-                        sizestr += ' [%4.1f%%]' % pct
+                        sizestr += f' [{ratio:5.1%}]'
                     labels.append(sizestr)
 
                 if print_shape:
@@ -297,7 +297,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                     itemstr += ', mem={}, disk={}'.format(
                         b2h(in_mem[path]), b2h(on_disk[path]))
                 if print_percent:
-                    itemstr += ' [%4.1f%%]' % pct
+                    itemstr += f' [{ratio:5.1%}]'
                 labels.append(itemstr)
 
             # create a PrettyTree for this node, if one doesn't exist already
@@ -307,7 +307,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             pretty[path].labels = labels
             if sort_by == 'size':
                 # descending size order
-                pretty[path].sort_by = -pct
+                pretty[path].sort_by = -ratio
             elif sort_by == 'name':
                 pretty[path].sort_by = node._v_name
             else:
