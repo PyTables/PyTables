@@ -675,21 +675,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Get this class name
         classname = self.__class__.__name__
         # The attribute names
-        attrnumber = len([n for n in self._v_attrnames])
-        return "%s._v_attrs (%s), %s attributes" % \
-               (pathname, classname, attrnumber)
+        attrnumber = sum(1 for _ in self._v_attrnames)
+        return f"{pathname}._v_attrs ({classname}), {attrnumber} attributes"
 
     def __repr__(self):
         """A detailed string representation for this object."""
 
         # print additional info only if there are attributes to show
-        attrnames = [n for n in self._v_attrnames]
-        if len(attrnames):
-            rep = ['{} := {!r}'.format(attr, getattr(self, attr))
-                   for attr in attrnames]
-            attrlist = '[%s]' % (',\n    '.join(rep))
-
-            return "{}:\n   {}".format(str(self), attrlist)
+        attrnames = list(self._v_attrnames)
+        if attrnames:
+            rep = [f'{attr} := {getattr(self, attr)!r}' for attr in attrnames]
+            return f"{self!s}:\n   [" + ',\n    '.join(rep) + "]"
         else:
             return str(self)
 

@@ -415,7 +415,7 @@ class PrettyTree:
         return "\n".join(self.tree_lines())
 
     def __repr__(self):
-        return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
+        return f'<{self.__class__.__name__} at 0x{id(self):x}>'
 
 
 def bytes2human(use_si_units=False):

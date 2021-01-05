@@ -303,21 +303,14 @@ class SoftLink(linkextension.SoftLink, Link):
 
         """
 
-        classname = self.__class__.__name__
         target = str(self.target)
         # Check for relative pathnames
         if not self.target.startswith('/'):
             target = self._v_parent._g_join(self.target)
-        if self._v_isopen:
-            closed = ""
-        else:
-            closed = "closed "
-        if target not in self._v_file:
-            dangling = " (dangling)"
-        else:
-            dangling = ""
-        return "{}{} ({}) -> {}{}".format(closed, self._v_pathname, classname,
-                                      self.target, dangling)
+        closed = "" if self._v_isopen else "closed "
+        dangling = "" if target in self._v_file else " (dangling)"
+        return (f"{closed}{self._v_pathname} ({self.__class__.__name__}) -> "
+                f"{self.target}{dangling}")
 
 
 class ExternalLink(linkextension.ExternalLink, Link):
@@ -425,8 +418,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         """
 
-        classname = self.__class__.__name__
-        return f"{self._v_pathname} ({classname}) -> {self.target}"
+        return f"{self._v_pathname} ({self.__class__.__name__}) -> {self.target}"
 
 
 ## Local Variables:

@@ -170,20 +170,18 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
 
     def __str__(self):
         """A compact representation of this class"""
-        return "IndexArray(path=%s)" % self._v_pathname
+        return f"IndexArray(path={self._v_pathname})"
 
     def __repr__(self):
         """A verbose representation of this class."""
 
-        return """{}
-  atom = {!r}
-  shape = {}
-  nrows = {}
-  chunksize = {}
-  slicesize = {}
-  byteorder = {!r}""".format(self, self.atom, self.shape, self.nrows,
-                       self.chunksize, self.slicesize, self.byteorder)
-
+        return f"""{self}
+  atom = {self.atom!r}
+  shape = {self.shape}
+  nrows = {self.nrows}
+  chunksize = {self.chunksize}
+  slicesize = {self.slicesize}
+  byteorder = {self.byteorder!r}"""
 
 ## Local Variables:
 ## mode: python

@@ -298,23 +298,17 @@ class Leaf(Node):
         """The string representation for this object is its pathname in the
         HDF5 object tree plus some additional metainfo."""
 
-        # Get this class name
-        classname = self.__class__.__name__
-        # The title
-        title = self._v_title
-        # The filters
-        filters = ""
+        filters = []
         if self.filters.fletcher32:
-            filters += ", fletcher32"
+            filters.append("fletcher32")
         if self.filters.complevel:
             if self.filters.shuffle:
-                filters += ", shuffle"
+                filters.append("shuffle")
             if self.filters.bitshuffle:
-                filters += ", bitshuffle"
-            filters += ", {}({})".format(self.filters.complib,
-                                     self.filters.complevel)
-        return "%s (%s%s%s) %r" % \
-               (self._v_pathname, classname, self.shape, filters, title)
+                filters.append("bitshuffle")
+            filters.append(f"{self.filters.complib}({self.filters.complevel})")
+        return (f"{self._v_pathname} ({self.__class__.__name__}"
+                f"{self.shape}{', '.join(filters)}) {self._v_title!r}")
 
     # Private methods
     # ~~~~~~~~~~~~~~~

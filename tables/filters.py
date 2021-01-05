@@ -379,17 +379,16 @@ class Filters:
         """The least significant digit to which data shall be truncated."""
 
     def __repr__(self):
-        args, complevel = [], self.complevel
-        if complevel >= 0:  # meaningful compression level
-            args.append('complevel=%d' % complevel)
-        if complevel != 0:  # compression enabled (-1 or > 0)
-            args.append('complib=%r' % self.complib)
-        args.append('shuffle=%s' % self.shuffle)
-        args.append('bitshuffle=%s' % self.bitshuffle)
-        args.append('fletcher32=%s' % self.fletcher32)
-        args.append(
-            'least_significant_digit=%s' % self.least_significant_digit)
-        return '{}({})'.format(self.__class__.__name__, ', '.join(args))
+        args = []
+        if self.complevel >= 0:  # meaningful compression level
+            args.append(f'complevel={self.complevel}')
+        if self.complevel != 0:  # compression enabled (-1 or > 0)
+            args.append(f'complib={self.complib!r}')
+        args.append(f'shuffle={self.shuffle}')
+        args.append(f'bitshuffle={self.bitshuffle}')
+        args.append(f'fletcher32={self.fletcher32}')
+        args.append(f'least_significant_digit={self.least_significant_digit}')
+        return f'{self.__class__.__name__}({", ".join(args)})'
 
     def __str__(self):
         return repr(self)

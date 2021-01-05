@@ -3235,21 +3235,16 @@ class Cols:
         """The string representation for this object."""
 
         # The pathname
-        tablepathname = self._v__tablePath
         descpathname = self._v_desc._v_pathname
         if descpathname:
             descpathname = "." + descpathname
-        # Get this class name
-        classname = self.__class__.__name__
-        # The number of columns
-        ncols = len(self._v_colnames)
-        return "%s.cols%s (%s), %s columns" % \
-               (tablepathname, descpathname, classname, ncols)
+        return (f"{self._v__tablePath}.cols{descpathname} "
+                f"({self.__class__.__name__}), {len(self._v_colnames)} columns")
 
     def __repr__(self):
         """A detailed string representation for this object."""
 
-        out = str(self) + "\n"
+        lines = [f'{self!s}']
         for name in self._v_colnames:
             # Get this class name
             classname = getattr(self, name).__class__.__name__
@@ -3263,8 +3258,8 @@ class Cols:
                 tcol = "Description"
                 # Description doesn't have a shape currently
                 shape = ()
-            out += f"  {name} ({classname}{shape}, {tcol})" + "\n"
-        return out
+            lines.append(f"  {name} ({classname}{shape}, {tcol})")
+        return '\n'.join(lines) + '\n'
 
 
 class Column:
@@ -3698,17 +3693,9 @@ class Column:
     def __str__(self):
         """The string representation for this object."""
 
-        # The pathname
-        tablepathname = self._table_path
-        pathname = self.pathname.replace('/', '.')
-        # Get this class name
-        classname = self.__class__.__name__
-        # The shape for this column
-        shape = self.shape
-        # The type
-        tcol = self.descr._v_types[self.name]
-        return "%s.cols.%s (%s%s, %s, idx=%s)" % \
-               (tablepathname, pathname, classname, shape, tcol, self.index)
+        return (f"{self._table_path}.cols.{self.pathname.replace('/', '.')} "
+                f"({self.__class__.__name__}{self.shape}, "
+                f"{self.descr._v_types[self.name]}, idx={self.index})")
 
     def __repr__(self):
         """A detailed string representation for this object."""

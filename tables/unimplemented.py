@@ -149,11 +149,11 @@ class Unknown(Node):
         return f"{pathname} ({classname})"
 
     def __repr__(self):
-        return """%s
+        return f"""{self!s}
   NOTE: <The Unknown object represents a node which is reported as
          unknown by the underlying HDF5 library, but that might be
          supported in more recent HDF5 versions.>
-""" % (str(self))
+"""
 
 
 # These are listed here for backward compatibility with PyTables 0.9.x indexes

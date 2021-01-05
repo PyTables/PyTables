@@ -2114,45 +2114,38 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """This provides a more compact representation than __repr__"""
 
         # The filters
-        filters = ""
+        filters = []
         if self.filters.complevel:
             if self.filters.shuffle:
-                filters += ", shuffle"
+                filters.append('shuffle')
             if self.filters.bitshuffle:
-                filters += ", bitshuffle"
-            filters += ", {}({})".format(self.filters.complib,
-                                     self.filters.complevel)
-        return "Index(%s, %s%s).is_csi=%s" % \
-               (self.optlevel, self.kind, filters, self.is_csi)
+                filters.append('bitshuffle')
+            filters.append(f'{self.filters.complib}({self.filters.complevel})')
+        return (f"Index({self.optlevel}, "
+                f"{self.kind}{', '.join(filters)}).is_csi={self.is_csi}")
 
     def __repr__(self):
         """This provides more metainfo than standard __repr__"""
 
-        cpathname = self.table._v_pathname + ".cols." + self.column.pathname
-        retstr = """{} (Index for column {})
-  optlevel := {}
-  kind := {}
-  filters := {}
-  is_csi := {}
-  nelements := {}
-  chunksize := {}
-  slicesize := {}
-  blocksize := {}
-  superblocksize := {}
-  dirty := {}
-  byteorder := {!r}""".format(self._v_pathname, cpathname,
-                        self.optlevel, self.kind,
-                        self.filters, self.is_csi,
-                        self.nelements,
-                        self.chunksize, self.slicesize,
-                        self.blocksize, self.superblocksize,
-                        self.dirty, self.byteorder)
-        retstr += "\n  sorted := %s" % self.sorted
-        retstr += "\n  indices := %s" % self.indices
-        retstr += "\n  ranges := %s" % self.ranges
-        retstr += "\n  bounds := %s" % self.bounds
-        retstr += "\n  sortedLR := %s" % self.sortedLR
-        retstr += "\n  indicesLR := %s" % self.indicesLR
+        cpathname = f"{self.table._v_pathname}.cols.{self.column.pathname}"
+        retstr = f"""{self._v_pathname} (Index for column {cpathname})
+  optlevel := {self.optlevel}
+  kind := {self.kind}
+  filters := {self.filters}
+  is_csi := {self.is_csi}
+  nelements := {self.nelements}
+  chunksize := {self.chunksize}
+  slicesize := {self.slicesize}
+  blocksize := {self.blocksize}
+  superblocksize := {self.superblocksize}
+  dirty := {self.dirty}
+  byteorder := {self.byteorder!r}
+    sorted := {self.sorted}
+    indices := {self.indices}
+    ranges := {self.ranges}
+    bounds := {self.bounds}
+    sortedLR := {self.sortedLR}
+    indicesLR := {self.indicesLR}"""
         return retstr
 
 
