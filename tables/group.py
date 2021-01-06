@@ -1075,10 +1075,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         """
 
-        pathname = self._v_pathname
-        classname = self.__class__.__name__
-        title = self._v_title
-        return f"{pathname} ({classname}) {title!r}"
+        return (f"{self._v_pathname} ({self.__class__.__name__}) "
+                f"{self._v_title!r}")
 
     def __repr__(self):
         """Return a detailed string representation of the group.
@@ -1099,9 +1097,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             f'{childname!r} ({child.__class__.__name__})'
             for (childname, child) in self._v_children.items()
         ]
-        childlist = '[%s]' % (', '.join(rep))
+        return f'{self!s}\n  children := [{", ".join(rep)}]'
 
-        return "{}\n  children := {}".format(str(self), childlist)
 
 
 # Special definition for group root

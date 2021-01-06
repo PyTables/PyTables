@@ -18,12 +18,13 @@ nodes.
 
 """
 
+import collections
+import datetime as dt
 import os
 import sys
 import time
 import weakref
 import warnings
-import collections
 
 import numexpr
 import numpy
@@ -2785,23 +2786,22 @@ class File(hdf5extension.File):
 
         # Print all the nodes (Group and Leaf objects) on object tree
         try:
-            date = time.asctime(time.localtime(os.stat(self.filename).st_mtime))
+            date = dt.datetime.fromtimestamp(
+                os.stat(self.filename).st_mtime, dt.timezone.utc
+            ).isoformat(timespec='seconds')
         except OSError:
             # in-memory file
-            date = ""
-        astring = str(self.filename) + ' (File) ' + repr(self.title) + '\n'
-#         astring += 'root_uep :=' + repr(self.root_uep) + '; '
-#         astring += 'format_version := ' + self.format_version + '\n'
-#         astring += 'filters :=' + repr(self.filters) + '\n'
-        astring += 'Last modif.: ' + repr(date) + '\n'
-        astring += 'Object Tree: \n'
+            date = "<in-memory file>"
+        lines = [f'{self.filename} (File) {self.title!r}',
+                 f'Last modif.: {date!r}',
+                 f'Object Tree: ']
 
         for group in self.walk_groups("/"):
-            astring += str(group) + '\n'
+            lines.append(f'{group}')
             for kind in self._node_kinds[1:]:
                 for node in self.list_nodes(group, kind):
-                    astring += str(node) + '\n'
-        return astring
+                    lines.append(f'{node}')
+        return '\n'.join(lines) + '\n'
 
     def __repr__(self):
         """Return a detailed string representation of the object tree."""
@@ -2810,18 +2810,16 @@ class File(hdf5extension.File):
             return "<closed File>"
 
         # Print all the nodes (Group and Leaf objects) on object tree
-        astring = 'File(filename=' + str(self.filename) + \
-                  ', title=' + repr(self.title) + \
-                  ', mode=' + repr(self.mode) + \
-                  ', root_uep=' + repr(self.root_uep) + \
-                  ', filters=' + repr(self.filters) + \
-                  ')\n'
+        lines = [
+            f'File(filename={self.filename!s}, title={self.title!r}, '
+            f'mode={self.mode!r}, root_uep={self.root_uep!r}, '
+            f'filters={self.filters!r})']
         for group in self.walk_groups("/"):
-            astring += str(group) + '\n'
+            lines.append(f'{group}')
             for kind in self._node_kinds[1:]:
                 for node in self.list_nodes(group, kind):
-                    astring += repr(node) + '\n'
-        return astring
+                    lines.append(f'{node!r}')
+        return '\n'.join(lines) + '\n'
 
     def _update_node_locations(self, oldpath, newpath):
         """Update location information of nodes under `oldpath`.

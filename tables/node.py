@@ -40,10 +40,8 @@ def _closedrepr(oldmethod):
     @functools.wraps(oldmethod)
     def newmethod(self):
         if not self._v_isopen:
-            cmod = self.__class__.__module__
-            cname = self.__class__.__name__
-            addr = hex(id(self))
-            return f'<closed {cmod}.{cname} at {addr}>'
+            return (f'<closed {self.__class__.__module__}.'
+                    f'{self.__class__.__name__} at 0x{id(self):x}>')
         return oldmethod(self)
 
     return newmethod

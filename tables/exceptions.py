@@ -163,7 +163,7 @@ class HDF5ExtError(RuntimeError):
                 msg = super().__str__()
                 msg = f"{bt}\n\n{msg}"
             elif self.h5backtrace[-1][-1]:
-                msg = "{}\n\n{}".format(bt, self.h5backtrace[-1][-1])
+                msg = f"{bt}\n\n{self.h5backtrace[-1][-1]}"
             else:
                 msg = bt
         else:

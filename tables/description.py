@@ -759,7 +759,7 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
     def __str__(self):
         """Gives a brief Description representation."""
 
-        return 'Description(%s)' % self._v_nested_descr
+        return f'Description({self._v_nested_descr})'
 
 
 class MetaIsDescription(type):
