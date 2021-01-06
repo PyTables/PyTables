@@ -15,7 +15,7 @@ import os
 import sys
 import warnings
 import subprocess
-from time import time
+from time import perf_counter as clock
 
 import numpy
 
@@ -269,7 +269,7 @@ def show_stats(explain, tref, encoding=None):
     print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
     print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
     print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
-    tnow = time()
+    tnow = clock()
     print(f"WallClock time: {tnow - tref:.3f}")
     return tnow
 

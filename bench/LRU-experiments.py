@@ -1,7 +1,7 @@
 # Testbed to perform experiments in order to determine best values for
 # the node numbers in LRU cache. Tables version.
 
-from time import time
+from time import perf_counter as clock
 from tables import *
 import tables
 
@@ -60,13 +60,13 @@ def modify_junk_LRU2():
     fileh = open_file(filename, 'a')
     group = fileh.root.newgroup
     for j in range(20):
-        t1 = time()
+        t1 = clock()
         for i in range(100):
             #print("table-->", tt._v_name)
             tt = getattr(group, "table" + str(i))
             #for row in tt:
             #    pass
-        print(f"iter and time --> {j + 1} {time() - t1:.3f}")
+        print(f"iter and time --> {j + 1} {clock() - t1:.3f}")
     fileh.close()
 
 
@@ -74,12 +74,12 @@ def modify_junk_LRU3():
     fileh = open_file(filename, 'a')
     group = fileh.root.newgroup
     for j in range(3):
-        t1 = time()
+        t1 = clock()
         for tt in fileh.walk_nodes(group, "Table"):
             tt.attrs.TITLE
             for row in tt:
                 pass
-        print(f"iter and time --> {j + 1} {time() - t1:.3f}")
+        print(f"iter and time --> {j + 1} {clock() - t1:.3f}")
     fileh.close()
 
 if 1:

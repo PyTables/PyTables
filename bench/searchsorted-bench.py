@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import time
+from time import perf_counter as clock
+from time import process_time as cpuclock
+
 from tables import *
 
 
@@ -293,14 +295,14 @@ if __name__ == "__main__":
             print("Compression library:", complib)
             if shuffle:
                 print("Suffling...")
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
         (rowsw, rowsz) = createFile(file, nrows, filters,
                                     atom, recsize, index, verbose)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
+        t2 = clock()
+        cpu2 = cpuclock()
         tapprows = t2 - t1
         cpuapprows = cpu2 - cpu1
         print(f"Rows written:", rowsw, " Row size:", rowsz)
@@ -314,15 +316,15 @@ if __name__ == "__main__":
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
             psyco.bind(searchFile)
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         if rng or item:
             (rowsr, uncomprB, niter) = searchFile(file, atom, verbose, item)
         else:
             for i in range(1):
                 (rowsr, rowsel, rowsz) = readFile(file, atom, niter, verbose)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
+        t2 = clock()
+        cpu2 = cpuclock()
         treadrows = t2 - t1
         cpureadrows = cpu2 - cpu1
         tMrows = rowsr / 1000 / 1000

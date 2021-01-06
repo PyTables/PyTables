@@ -15,11 +15,11 @@ Pass the flag -h to this for help on usage.
 """
 
 import sys
-import time
 import os.path
 import argparse
 import warnings
-from time import process_time as cputime
+from time import perf_counter as clock
+from time import process_time as cpuclock
 
 from tables.file import open_file
 from tables.group import Group
@@ -493,8 +493,8 @@ def main():
     createsysattrs = args.createsysattrs
 
     # Some timing
-    t1 = time.time()
-    cpu1 = cputime()
+    t1 = clock()
+    cpu1 = cpuclock()
     # Copy the file
     if verbose:
         print("+=+" * 20)
@@ -546,8 +546,8 @@ def main():
         )
 
     # Gather some statistics
-    t2 = time.time()
-    cpu2 = cputime()
+    t2 = clock()
+    cpu2 = cpuclock()
     tcopy = t2 - t1
     cpucopy = cpu2 - cpu1
     if verbose:

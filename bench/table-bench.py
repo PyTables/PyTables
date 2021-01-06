@@ -277,7 +277,8 @@ if __name__ == "__main__":
     except:
         psyco_imported = 0
 
-    import time
+    from time import perf_counter as clock
+    from time import process_time as cpuclock
 
     usage = """usage: %s [-v] [-p] [-P] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] [-S] [-F] file
             -v verbose
@@ -370,8 +371,8 @@ if __name__ == "__main__":
             print("Compression library:", complib)
             if shuffle:
                 print("Suffling...")
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
         if profile:
@@ -387,8 +388,8 @@ if __name__ == "__main__":
             stats.print_stats(20)
         else:
             (rowsw, rowsz) = createFile(file, iterations, filters, recsize)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
+        t2 = clock()
+        cpu2 = cpuclock()
         tapprows = t2 - t1
         cpuapprows = cpu2 - cpu1
         print(f"Rows written: {rowsw}  Row size: {rowsz}")
@@ -399,8 +400,8 @@ if __name__ == "__main__":
         print(f"Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}")
 
     if testread:
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
             # psyco.bind(readField)
@@ -411,8 +412,8 @@ if __name__ == "__main__":
         else:
             for i in range(1):
                 (rowsr, rowsz) = readFile(file, recsize, verbose)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
+        t2 = clock()
+        cpu2 = cpuclock()
         treadrows = t2 - t1
         cpureadrows = cpu2 - cpu1
         print(f"Rows read: {rowsw}  Row size: {rowsz}")

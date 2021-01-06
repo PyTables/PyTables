@@ -1,6 +1,6 @@
 import os
 import subprocess
-from time import time
+from time import perf_counter as clock
 import random
 import numpy
 import h5py
@@ -31,7 +31,7 @@ def show_stats(explain, tref):
     print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
     print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
     print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
-    tnow = time()
+    tnow = clock()
     print(f"WallClock time: {tnow - tref:.3f}")
     return tnow
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
         import cProfile as prof
 
     if profile:
-        tref = time()
+        tref = clock()
     if profile:
         show_stats("Abans de crear...", tref)
     f = h5py.File("/tmp/deep-tree.h5", 'w')

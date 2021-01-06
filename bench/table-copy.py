@@ -1,4 +1,4 @@
-import time
+from time import perf_counter as clock
 
 import numpy as np
 import tables
@@ -8,9 +8,9 @@ N = 144_000
 
 
 def timed(func, *args, **kwargs):
-    start = time.time()
+    start = clock()
     res = func(*args, **kwargs)
-    print("%fs elapsed." % (time.time() - start))
+    print(f"{clock() - start:.3f}s elapsed.")
     return res
 
 

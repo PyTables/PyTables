@@ -200,7 +200,7 @@ def readFile(filename, recsize, verbose):
 # Add code to test here
 if __name__ == "__main__":
     import getopt
-    import time
+    from time import perf_counter as clock
 
     usage = """usage: %s [-v] [-s recsize] [-i iterations] file
             -v verbose
@@ -238,16 +238,16 @@ if __name__ == "__main__":
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
-    t1 = time.perf_counter()
+    t1 = clock()
     psyco.bind(createFile)
     (rowsw, rowsz) = createFile(file, iterations, recsize, verbose)
-    t2 = time.perf_counter()
+    t2 = clock()
     tapprows = t2 - t1
 
-    t1 = time.perf_counter()
+    t1 = clock()
     psyco.bind(readFile)
     readFile(file, recsize, verbose)
-    t2 = time.perf_counter()
+    t2 = clock()
     treadrows = t2 - t1
 
     print(f"Rows written: {rowsw}, Row size: {rowsz}")

@@ -1,4 +1,4 @@
-from time import time
+from time import perf_counter as clock
 import os.path
 
 import numpy as np
@@ -35,7 +35,7 @@ def tables(docompute, dowrite, complib, verbose):
         f = tb.open_file(ifilename, 'w')
 
         # Build input arrays
-        t0 = time()
+        t0 = clock()
         root = f.root
         a = f.create_carray(root, 'a', tb.Float32Atom(),
                             shape, filters=filters)
@@ -50,7 +50,7 @@ def tables(docompute, dowrite, complib, verbose):
             a[i] = row * (i + 1)
             b[i] = row * (i + 1) * 2
         f.close()
-        print(f"[tables.Expr] Time for creating inputs: {time() - t0:.3f}")
+        print(f"[tables.Expr] Time for creating inputs: {clock() - t0:.3f}")
 
     if docompute:
         f = tb.open_file(ifilename, 'r')
@@ -62,13 +62,13 @@ def tables(docompute, dowrite, complib, verbose):
         # The expression
         e = tb.Expr(expr)
         e.set_output(r1)
-        t0 = time()
+        t0 = clock()
         e.eval()
         if verbose:
             print("First ten values:", r1[0, :10])
         f.close()
         fr.close()
-        print(f"[tables.Expr] Time for computing & save: {time() - t0:.3f}")
+        print(f"[tables.Expr] Time for computing & save: {clock() - t0:.3f}")
 
 
 def memmap(docompute, dowrite, verbose):
@@ -77,7 +77,7 @@ def memmap(docompute, dowrite, verbose):
     bfilename = os.path.join(OUT_DIR, "memmap-b.bin")
     rfilename = os.path.join(OUT_DIR, "memmap-output.bin")
     if dowrite:
-        t0 = time()
+        t0 = clock()
         a = np.memmap(afilename, dtype='float32', mode='w+', shape=shape)
         b = np.memmap(bfilename, dtype='float32', mode='w+', shape=shape)
 
@@ -88,10 +88,10 @@ def memmap(docompute, dowrite, verbose):
             a[i] = row * (i + 1)
             b[i] = row * (i + 1) * 2
         del a, b  # flush data
-        print(f"[numpy.memmap] Time for creating inputs: {time() - t0:.3f}")
+        print(f"[numpy.memmap] Time for creating inputs: {clock() - t0:.3f}")
 
     if docompute:
-        t0 = time()
+        t0 = clock()
         # Reopen inputs in read-only mode
         a = np.memmap(afilename, dtype='float32', mode='r', shape=shape)
         b = np.memmap(bfilename, dtype='float32', mode='r', shape=shape)
@@ -104,7 +104,7 @@ def memmap(docompute, dowrite, verbose):
             print("First ten values:", r[0, :10])
         del a, b
         del r  # flush output data
-        print(f"[numpy.memmap] Time for compute & save: {time() - t0:.3f}")
+        print(f"[numpy.memmap] Time for compute & save: {clock() - t0:.3f}")
 
 
 def do_bench(what, documpute, dowrite, complib, verbose):

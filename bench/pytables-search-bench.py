@@ -1,5 +1,5 @@
 import os
-from time import time
+from time import perf_counter as clock
 import random
 import numpy as np
 import tables
@@ -30,7 +30,7 @@ def create_db(filename, nrows):
     table.indexFilters = filters
     step = 1000 * 100
     scale = 0.1
-    t1 = time()
+    t1 = clock()
     j = 0
     for i in range(0, nrows, step):
         stop = (j + 1) * step
@@ -45,7 +45,7 @@ def create_db(filename, nrows):
         table.append(recarr)
         j += 1
     table.flush()
-    ctime = time() - t1
+    ctime = clock() - t1
     if verbose:
         print(f"insert time: {ctime:.5f}")
         print(f"Krows/s: {nrows / 1000 / ctime:.5f}")
@@ -54,15 +54,15 @@ def create_db(filename, nrows):
 
 
 def index_db(table):
-    t1 = time()
+    t1 = clock()
     table.cols.col2.create_index()
-    itime = time() - t1
+    itime = clock() - t1
     if verbose:
         print(f"index time (int): {itime:.5f}")
         print(f"Krows/s: {nrows / 1000 / itime:.5f}")
-    t1 = time()
+    t1 = clock()
     table.cols.col4.create_index()
-    itime = time() - t1
+    itime = clock() - t1
     if verbose:
         print(f"index time (float): {itime:.5f}")
         print(f"Krows/s: {nrows / 1000 / itime:.5f}")
@@ -74,27 +74,27 @@ def query_db(filename, rng):
     # Query for integer columns
     # Query for non-indexed column
     if not doqueryidx:
-        t1 = time()
+        t1 = clock()
         ntimes = 10
         for i in range(ntimes):
             results = [
                 r['col1'] for r in table.where(
                     rng[0] + i <= table.cols.col1 <= rng[1] + i)
             ]
-        qtime = (time() - t1) / ntimes
+        qtime = (clock() - t1) / ntimes
         if verbose:
             print(f"query time (int, not indexed): {qtime:.5f}")
             print(f"Krows/s: {nrows / 1000 / qtime:.5f}")
             print(results)
     # Query for indexed column
-    t1 = time()
+    t1 = clock()
     ntimes = 10
     for i in range(ntimes):
         results = [
             r['col1'] for r in table.where(
                 rng[0] + i <= table.cols.col2 <= rng[1] + i)
         ]
-    qtime = (time() - t1) / ntimes
+    qtime = (clock() - t1) / ntimes
     if verbose:
         print(f"query time (int, indexed): {qtime:.5f}")
         print(f"Krows/s: {nrows / 1000 / qtime:.5f}")
@@ -102,25 +102,25 @@ def query_db(filename, rng):
     # Query for floating columns
     # Query for non-indexed column
     if not doqueryidx:
-        t1 = time()
+        t1 = clock()
         ntimes = 10
         for i in range(ntimes):
             results = [
                 r['col3'] for r in table.where(
                     rng[0] + i <= table.cols.col3 <= rng[1] + i)
             ]
-        qtime = (time() - t1) / ntimes
+        qtime = (clock() - t1) / ntimes
         if verbose:
             print(f"query time (float, not indexed): {qtime:.5f}")
             print(f"Krows/s: {nrows / 1000 / qtime:.5f}")
             print(results)
     # Query for indexed column
-    t1 = time()
+    t1 = clock()
     ntimes = 10
     for i in range(ntimes):
         results = [r['col3'] for r in
                    table.where(rng[0] + i <= table.cols.col4 <= rng[1] + i)]
-    qtime = (time() - t1) / ntimes
+    qtime = (clock() - t1) / ntimes
     if verbose:
         print(f"query time (float, indexed): {qtime:.5f}")
         print(f"Krows/s: {nrows / 1000 / qtime:.5f}")

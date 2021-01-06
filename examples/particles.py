@@ -1,6 +1,6 @@
 """Beware! you need PyTables >= 2.3 to run this script!"""
 
-from time import time  # use clock for Win
+from time import perf_counter as clock
 import numpy as np
 import tables
 
@@ -22,7 +22,7 @@ class Particle(tables.IsDescription):
     mass = tables.Float64Col(pos=5)                 # mass of the particle
 
 # Create a new table for events
-t1 = time()
+t1 = clock()
 print(
     f"Creating a table with {NEVENTS * MAX_PARTICLES_PER_EVENT // 2} "
     f"entries aprox.. Wait please...")
@@ -46,12 +46,12 @@ for i in range(NEVENTS):
         # This injects the row values.
         particle.append()
 table.flush()
-print(f"Added {table.nrows} entries --- Time: {time() - t1:.3f} sec")
+print(f"Added {table.nrows} entries --- Time: {clock() - t1:.3f} sec")
 
-t1 = time()
+t1 = clock()
 print("Creating index...")
 table.cols.event_id.create_index(optlevel=0, _verbose=True)
-print(f"Index created --- Time: {time() - t1:.3f} sec")
+print(f"Index created --- Time: {clock() - t1:.3f} sec")
 # Add the number of events as an attribute
 table.attrs.nevents = NEVENTS
 
@@ -64,58 +64,58 @@ table = fileh.root.events.table
 
 print("Particles in event 34:", end=' ')
 nrows = 0
-t1 = time()
+t1 = clock()
 for row in table.where("event_id == 34"):
         nrows += 1
 print(nrows)
-print(f"Done --- Time: {time() - t1:.3f} sec")
+print(f"Done --- Time: {clock() - t1:.3f} sec")
 
 print("Root particles in event 34:", end=' ')
 nrows = 0
-t1 = time()
+t1 = clock()
 for row in table.where("event_id == 34"):
     if row['parent_id'] < 0:
         nrows += 1
 print(nrows)
-print(f"Done --- Time: {time() - t1:.3f} sec")
+print(f"Done --- Time: {clock() - t1:.3f} sec")
 
 print("Sum of masses of root particles in event 34:", end=' ')
 smass = 0.0
-t1 = time()
+t1 = clock()
 for row in table.where("event_id == 34"):
     if row['parent_id'] < 0:
         smass += row['mass']
 print(smass)
-print(f"Done --- Time: {time() - t1:.3f} sec")
+print(f"Done --- Time: {clock() - t1:.3f} sec")
 
 print(
     "Sum of masses of daughter particles for particle 3 in event 34:", end=' ')
 smass = 0.0
-t1 = time()
+t1 = clock()
 for row in table.where("event_id == 34"):
     if row['parent_id'] == 3:
         smass += row['mass']
 print(smass)
-print(f"Done --- Time: {time() - t1:.3f} sec")
+print(f"Done --- Time: {clock() - t1:.3f} sec")
 
 print("Sum of module of momentum for particle 3 in event 34:", end=' ')
 smomentum = 0.0
-t1 = time()
+t1 = clock()
 # for row in table.where("(event_id == 34) & ((parent_id) == 3)"):
 for row in table.where("event_id == 34"):
     if row['parent_id'] == 3:
         smomentum += np.sqrt(np.add.reduce(row['momentum'] ** 2))
 print(smomentum)
-print(f"Done --- Time: {time() - t1:.3f} sec")
+print(f"Done --- Time: {clock() - t1:.3f} sec")
 
 # This is the same than above, but using generator expressions
 # Python >= 2.4 needed here!
 print("Sum of module of momentum for particle 3 in event 34 (2):", end=' ')
-t1 = time()
+t1 = clock()
 print(sum(np.sqrt(np.add.reduce(row['momentum'] ** 2))
           for row in table.where("event_id == 34")
           if row['parent_id'] == 3))
-print(f"Done --- Time: {time() - t1:.3f} sec")
+print(f"Done --- Time: {clock() - t1:.3f} sec")
 
 
 fileh.close()

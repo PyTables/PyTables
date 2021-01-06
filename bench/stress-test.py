@@ -1,7 +1,7 @@
 import gc
 import sys
-import time
-#import types
+from time import perf_counter as clock
+from time import process_time as cpuclock
 import numpy
 from tables import Group  # , MetaIsDescription
 from tables import *
@@ -263,15 +263,15 @@ def testMethod(file, usearray, testwrite, testread, complib, complevel,
     if complevel > 0:
         print("Compression library:", complib)
     if testwrite:
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         if usearray:
             (rowsw, rowsz) = createFileArr(file, ngroups, ntables, nrows)
         else:
             (rowsw, rowsz) = createFile(file, ngroups, ntables, nrows,
                                         complevel, complib, recsize)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
+        t2 = clock()
+        cpu2 = cpuclock()
         tapprows = t2 - t1
         cpuapprows = cpu2 - cpu1
         print(f"Rows written: {rowsw}  Row size: {rowsz}")
@@ -282,15 +282,15 @@ def testMethod(file, usearray, testwrite, testread, complib, complevel,
         print(f"Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}")
 
     if testread:
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         if usearray:
             (rowsr, rowsz, bufsz) = readFileArr(file,
                                                 ngroups, recsize, verbose)
         else:
             (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
+        t2 = clock()
+        cpu2 = cpuclock()
         treadrows = t2 - t1
         cpureadrows = cpu2 - cpu1
         print(f"Rows read: {rowsw}  Row size: {rowsz}, Buf size: {bufsz}")

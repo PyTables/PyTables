@@ -1,4 +1,4 @@
-from time import time
+from time import perf_counter as clock
 import subprocess
 import random
 import numpy
@@ -54,7 +54,7 @@ class DB:
         return int(line.split()[0])
 
     def print_mtime(self, t1, explain):
-        mtime = time() - t1
+        mtime = clock() - t1
         print(f"{explain}: {mtime:.6f}")
         print(f"Krows/s: {self.nrows / 1000 / mtime:.6f}")
 
@@ -118,7 +118,7 @@ class DB:
         self.con = self.open_db(remove=1)
         self.create_table(self.con)
         init_size = self.get_db_size()
-        t1 = time()
+        t1 = clock()
         self.fill_table(self.con)
         table_size = self.get_db_size()
         self.print_mtime(t1, 'Insert time')
@@ -135,7 +135,7 @@ class DB:
         else:
             idx_cols = ['col2', 'col4']
         for colname in idx_cols:
-            t1 = time()
+            t1 = clock()
             self.index_col(self.con, colname, kind, optlevel, verbose)
             self.print_mtime(t1, 'Index time (%s)' % colname)
 
@@ -163,9 +163,9 @@ class DB:
                 ltimes = []
                 random.seed(rseed)
                 for i in range(NI_NTIMES):
-                    t1 = time()
+                    t1 = clock()
                     results = self.do_query(self.con, colname, base, inkernel)
-                    ltimes.append(time() - t1)
+                    ltimes.append(clock() - t1)
                 if verbose:
                     print("Results len:", results)
                 self.print_qtime(colname, ltimes)
@@ -182,11 +182,11 @@ class DB:
                 # First, non-repeated queries
                 for i in range(niter):
                     base = rndbase[i]
-                    t1 = time()
+                    t1 = clock()
                     results = self.do_query(self.con, colname, base, inkernel)
                     #results, tprof = self.do_query(
                     #    self.con, colname, base, inkernel)
-                    ltimes.append(time() - t1)
+                    ltimes.append(clock() - t1)
                 if verbose:
                     print("Results len:", results)
                 self.print_qtime_idx(colname, ltimes, False, verbose)

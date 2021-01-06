@@ -9,7 +9,7 @@ import os
 import math
 import subprocess
 import tempfile
-from time import time
+from time import perf_counter as clock
 import numpy
 import tables
 
@@ -59,24 +59,24 @@ def bench(chunkshape, filters):
                         filters = filters,
                         chunkshape = chunkshape)
     # Fill the array
-    t1 = time()
+    t1 = clock()
     for i in range(N):
         # e.append([numpy.random.rand(M)])  # use this for less compressibility
         e.append([quantize(numpy.random.rand(M), 6)])
     # os.system("sync")
-    print(f"Creation time: {time() - t1:.3f}", end=' ')
+    print(f"Creation time: {clock() - t1:.3f}", end=' ')
     filesize = get_db_size(filename)
     filesize_bytes = os.stat(filename).st_size
     print("\t\tFile size: %d -- (%s)" % (filesize_bytes, filesize))
 
     # Read in sequential mode:
     e = f.root.earray
-    t1 = time()
+    t1 = clock()
     # Flush everything to disk and flush caches
     #os.system("sync; echo 1 > /proc/sys/vm/drop_caches")
     for row in e:
         t = row
-    print(f"Sequential read time: {time() - t1:.3f}", end=' ')
+    print(f"Sequential read time: {clock() - t1:.3f}", end=' ')
 
     # f.close()
     # return
@@ -93,11 +93,11 @@ def bench(chunkshape, filters):
         f.close()
         return
 
-    t1 = time()
+    t1 = clock()
     for i in i_index:
         for j in j_index:
             t = e[i, j]
-    print(f"\tRandom read time: {time() - t1:.3f}")
+    print(f"\tRandom read time: {clock() - t1:.3f}")
 
     f.close()
 

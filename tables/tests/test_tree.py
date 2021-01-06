@@ -1,8 +1,8 @@
 import os
 import sys
-import time
 import tempfile
 import warnings
+from time import perf_counter as clock
 
 import tables
 from tables import Group, Leaf, Table, Array
@@ -770,14 +770,14 @@ class WideTreeTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print()
 
-        t1 = time.time()
+        t1 = clock()
         a = [1, 1]
 
         # Open the previous HDF5 file in read-only mode
         self._reopen()
         if common.verbose:
             print("\nTime spent opening a file with %d arrays: %s s" %
-                  (maxchildren, time.time()-t1))
+                  (maxchildren, clock()-t1))
             print("\nChildren reading progress: ", end=' ')
 
         # Get the metadata on the previosly saved arrays
@@ -829,13 +829,13 @@ class WideTreeTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print()
 
-        t1 = time.time()
+        t1 = clock()
 
         # Open the previous HDF5 file in read-only mode
         self._reopen()
         if common.verbose:
             print("\nTime spent opening a file with %d groups: %s s" %
-                  (maxchildren, time.time()-t1))
+                  (maxchildren, clock()-t1))
             print("\nChildren reading progress: ", end=' ')
 
         # Get the metadata on the previosly saved arrays

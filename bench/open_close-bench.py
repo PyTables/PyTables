@@ -9,9 +9,9 @@ import sys
 import getopt
 import pstats
 import cProfile as prof
-import time
 import subprocess  # From Python 2.4 on
 import tables
+from time import perf_counter as clock
 
 filename = None
 niter = 1
@@ -36,7 +36,7 @@ def show_stats(explain, tref):
         elif line.startswith("VmLib:"):
             vmlib = int(line.split()[1])
     sout.close()
-    print("WallClock time:", time.time() - tref)
+    print("WallClock time:", clock() - tref)
     print("Memory usage: ******* %s *******" % explain)
     print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
     print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
@@ -47,7 +47,7 @@ def check_open_close():
     for i in range(niter):
         print(
             "------------------ open_close #%s -------------------------" % i)
-        tref = time.time()
+        tref = clock()
         fileh = tables.open_file(filename)
         fileh.close()
         show_stats("After closing file", tref)
@@ -56,7 +56,7 @@ def check_open_close():
 def check_only_open():
     for i in range(niter):
         print("------------------ only_open #%s -------------------------" % i)
-        tref = time.time()
+        tref = clock()
         fileh = tables.open_file(filename)
         show_stats("Before closing file", tref)
         fileh.close()
@@ -65,7 +65,7 @@ def check_only_open():
 def check_full_browse():
     for i in range(niter):
         print("------------------ full_browse #%s -----------------------" % i)
-        tref = time.time()
+        tref = clock()
         fileh = tables.open_file(filename)
         for node in fileh:
             pass
@@ -76,7 +76,7 @@ def check_full_browse():
 def check_partial_browse():
     for i in range(niter):
         print("------------------ partial_browse #%s --------------------" % i)
-        tref = time.time()
+        tref = clock()
         fileh = tables.open_file(filename)
         for node in fileh.root.ngroup0.ngroup1:
             pass
@@ -87,7 +87,7 @@ def check_partial_browse():
 def check_full_browse_attrs():
     for i in range(niter):
         print("------------------ full_browse_attrs #%s -----------------" % i)
-        tref = time.time()
+        tref = clock()
         fileh = tables.open_file(filename)
         for node in fileh:
             # Access to an attribute
@@ -99,7 +99,7 @@ def check_full_browse_attrs():
 def check_partial_browse_attrs():
     for i in range(niter):
         print("------------------ partial_browse_attrs #%s --------------" % i)
-        tref = time.time()
+        tref = clock()
         fileh = tables.open_file(filename)
         for node in fileh.root.ngroup0.ngroup1:
             # Access to an attribute
@@ -111,7 +111,7 @@ def check_partial_browse_attrs():
 def check_open_group():
     for i in range(niter):
         print("------------------ open_group #%s ------------------------" % i)
-        tref = time.time()
+        tref = clock()
         fileh = tables.open_file(filename)
         group = fileh.root.ngroup0.ngroup1
         # Access to an attribute
@@ -123,7 +123,7 @@ def check_open_group():
 def check_open_leaf():
     for i in range(niter):
         print("------------------ open_leaf #%s -----------------------" % i)
-        tref = time.time()
+        tref = clock()
         fileh = tables.open_file(filename)
         leaf = fileh.root.ngroup0.ngroup1.array9
         # Access to an attribute
@@ -208,7 +208,7 @@ if __name__ == '__main__':
 
     filename = pargs[0]
 
-    tref = time.time()
+    tref = clock()
     if all_system_checks:
         args.remove('-S')  # We don't want -S in the options list again
         for opt in options:

@@ -6,7 +6,7 @@
 
 
 
-import time
+from time import perf_counter as clock
 
 import numpy as np
 import tables
@@ -23,10 +23,10 @@ def standard_read(array_size):
     N = 10
     with tables.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
-        start = time.time()
+        start = clock()
         for i in range(N):
             output = array.read(0, array_size, 1)
-        end = time.time()
+        end = clock()
         assert(np.all(output == 1))
         print('standard read   \t {:5.5f}'.format((end - start) / N))
 
@@ -35,11 +35,11 @@ def pre_allocated_read(array_size):
     N = 10
     with tables.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
-        start = time.time()
+        start = clock()
         output = np.empty(array_size, 'i8')
         for i in range(N):
             array.read(0, array_size, 1, out=output)
-        end = time.time()
+        end = clock()
         assert(np.all(output == 1))
         print('pre-allocated read\t {:5.5f}'.format((end - start) / N))
 
