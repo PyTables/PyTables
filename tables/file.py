@@ -18,12 +18,13 @@ nodes.
 
 """
 
+import collections
+import datetime as dt
 import os
 import sys
 import time
 import weakref
 import warnings
-import collections
 
 import numexpr
 import numpy
@@ -2785,10 +2786,12 @@ class File(hdf5extension.File):
 
         # Print all the nodes (Group and Leaf objects) on object tree
         try:
-            date = time.asctime(time.localtime(os.stat(self.filename).st_mtime))
+            date = dt.datetime.fromtimestamp(
+                os.stat(self.filename).st_mtime, dt.timezone.utc
+            ).isoformat(timespec='seconds')
         except OSError:
             # in-memory file
-            date = ""
+            date = "<in-memory file>"
         lines = [f'{self.filename} (File) {self.title!r}',
                  f'Last modif.: {date!r}',
                  f'Object Tree: ']
