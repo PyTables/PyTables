@@ -1,7 +1,7 @@
 """Benchmark to help choosing the best chunksize so as to optimize the access
 time in random lookups."""
 
-from time import time
+from time import perf_counter as clock
 import os
 import subprocess
 import numpy
@@ -50,7 +50,7 @@ class DB:
         return int(line.split()[0])
 
     def print_mtime(self, t1, explain):
-        mtime = time() - t1
+        mtime = clock() - t1
         print(f"{explain}: {mtime:.6f}")
         print(f"Krows/s: {self.nrows / 1000 / mtime:.6f}")
 
@@ -68,7 +68,7 @@ class DB:
         self.con = self.open_db(remove=1)
         self.create_array()
         init_size = self.get_db_size()
-        t1 = time()
+        t1 = clock()
         self.fill_array()
         array_size = self.get_db_size()
         self.print_mtime(t1, 'Insert time')
@@ -132,9 +132,9 @@ class DB:
         numpy.random.randint(self.nrows)
         ltimes = []
         for i in range(niter):
-            t1 = time()
+            t1 = clock()
             self.do_query(earray, numpy.random.randint(self.nrows))
-            ltimes.append(time() - t1)
+            ltimes.append(clock() - t1)
         self.print_qtime(ltimes)
         self.close_db()
 

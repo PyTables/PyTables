@@ -2,10 +2,12 @@
 
 import sqlite
 import random
-import time
 import sys
 import os
 import os.path
+from time import perf_counter as clock
+from time import process_time as cpuclock
+
 from tables import *
 import numpy as np
 
@@ -121,8 +123,8 @@ CREATE INDEX ivar3 ON small(var3);
         place_holders = ",".join(['%s'] * 3)
         # Insert rows
         SQL = "insert into small values(NULL, %s)" % place_holders
-        time1 = time.time()
-        cpu1 = time.perf_counter()
+        time1 = clock()
+        cpu1 = cpuclock()
         # This way of filling is to copy the PyTables benchmark
         nrowsbuf = 1000
         minimum = 0
@@ -147,8 +149,8 @@ CREATE INDEX ivar3 ON small(var3);
                 fields = (var1[n], var2[n], var3[n])
                 cursor.execute(SQL, fields)
             conn.commit()
-        t1 = time.time() - time1
-        tcpu1 = time.perf_counter() - cpu1
+        t1 = clock() - time1
+        tcpu1 = cpuclock() - cpu1
         rowsecf = nrows / t1
         size1 = os.stat(dbfile).st_size
         print(f"******** Results for writing nrows = {nrows} *********")
@@ -157,8 +159,8 @@ CREATE INDEX ivar3 ON small(var3);
 
     # Indexem
     if indexmode == "indexed":
-        time1 = time.time()
-        cpu1 = time.perf_counter()
+        time1 = clock()
+        cpu1 = cpuclock()
         if not heavy:
             cursor.execute("CREATE INDEX ivar1 ON small(var1)")
             conn.commit()
@@ -166,8 +168,8 @@ CREATE INDEX ivar3 ON small(var3);
         conn.commit()
         cursor.execute("CREATE INDEX ivar3 ON small(var3)")
         conn.commit()
-        t2 = time.time() - time1
-        tcpu2 = time.perf_counter() - cpu1
+        t2 = clock() - time1
+        tcpu2 = cpuclock() - cpu1
         rowseci = nrows / t2
         print(f"Index time: {t2:.5f}, IKRows/s: {nrows / 1000 / t2:.3f}")
         size2 = os.stat(dbfile).st_size - size1
@@ -279,8 +281,8 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
         rowsel = 0
         for i in range(riter):
             rnd = random.randrange(nrows)
-            time1 = time.time()
-            cpu1 = time.perf_counter()
+            time1 = clock()
+            cpu1 = cpuclock()
             if atom == "string":
                 #cursor.execute(SQL1, "1111")
                 cursor.execute(SQL1, str(rnd)[-4:])
@@ -294,19 +296,19 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
                 raise ValueError(
                     "atom must take a value in ['string','int','float']")
             if i == 0:
-                t1 = time.time() - time1
-                tcpu1 = time.perf_counter() - cpu1
+                t1 = clock() - time1
+                tcpu1 = cpuclock() - cpu1
             else:
                 if indexmode == "indexed":
                     # if indexed, wait until the 5th iteration to take
                     # times (so as to insure that the index is
                     # effectively cached)
                     if i >= 5:
-                        time2 += time.time() - time1
-                        cpu2 += time.perf_counter() - cpu1
+                        time2 += clock() - time1
+                        cpu2 += cpuclock() - cpu1
                 else:
-                    time2 += time.time() - time1
-                    time2 += time.perf_counter() - cpu1
+                    time2 += clock() - time1
+                    time2 += cpuclock() - cpu1
         if riter > 1:
             if indexmode == "indexed" and riter >= 5:
                 correction = 5

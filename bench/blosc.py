@@ -1,6 +1,6 @@
 import os
 import sys
-from time import time
+from time import perf_counter as clock
 import numpy as np
 import tables as tb
 
@@ -122,9 +122,9 @@ def process_file(kind, prec, clevel, synth):
 
     if kind == "numpy":
         a2, b2 = a_[:], b_[:]
-        t0 = time()
+        t0 = clock()
         r = eval(expression, {'a': a2, 'b': b2})
-        print(f"{time() - t0:5.2f}")
+        print(f"{clock() - t0:5.2f}")
     else:
         expr = tb.Expr(expression, {'a': a_, 'b': b_})
         expr.set_output(r)
@@ -154,11 +154,11 @@ if __name__ == '__main__':
 
     # print "Processing files for compression levels in range(10)..."
     for clevel in range(10):
-        t0 = time()
+        t0 = clock()
         ts = []
         for i in range(niter):
             size = process_file(kind, prec, clevel, synth)
-            ts.append(time() - t0)
-            t0 = time()
+            ts.append(clock() - t0)
+            t0 = clock()
         ratio = size_orig / size
         print(f"{min(ts):5.2f}, {ratio:5.2f}")

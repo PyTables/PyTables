@@ -1,5 +1,5 @@
 import sys
-from time import time
+from time import perf_counter as clock
 
 import numpy as np
 import tables as tb
@@ -142,7 +142,7 @@ if __name__ == "__main__":
         out = f.create_carray(f.root, 'out', tb.Float32Atom(),
                               shape=shape, filters=ofilters)
 
-    t0 = time()
+    t0 = clock()
     if iarrays and oarrays:
         #out = ne.evaluate("a*b+c")
         out = a * b + c
@@ -165,7 +165,7 @@ if __name__ == "__main__":
         ofile.close()
     else:
         evaluate("a*b+c", out)
-    print(f"Time for evaluate--> {time() - t0:.3f}")
+    print(f"Time for evaluate--> {clock() - t0:.3f}")
 
     # print "out-->", `out`
     # print `out[:]`

@@ -4,6 +4,7 @@ import hotshot.stats
 import unittest
 import os
 import tempfile
+from time import perf_counter as clock
 
 from tables import *
 
@@ -24,7 +25,6 @@ class WideTreeTestCase(unittest.TestCase):
 
         """
 
-        import time
         maxchilds = 1000
         if verbose:
             print('\n', '-=' * 30)
@@ -50,11 +50,11 @@ class WideTreeTestCase(unittest.TestCase):
         # Close the file
         fileh.close()
 
-        t1 = time.time()
+        t1 = clock()
         # Open the previous HDF5 file in read-only mode
         fileh = open_file(file, mode="r")
         print("\nTime spent opening a file with %d groups + %d arrays: "
-              "%s s" % (maxchilds, maxchilds, time.time() - t1))
+              "%s s" % (maxchilds, maxchilds, clock() - t1))
         if verbose:
             print("\nChildren reading progress: ", end=' ')
         # Close the file
@@ -73,7 +73,6 @@ class WideTreeTestCase(unittest.TestCase):
 
         """
 
-        import time
         maxchilds = 1000
         if verbose:
             print('\n', '-=' * 30)
@@ -96,11 +95,11 @@ class WideTreeTestCase(unittest.TestCase):
         # Close the file
         fileh.close()
 
-        t1 = time.time()
+        t1 = clock()
         # Open the previous HDF5 file in read-only mode
         fileh = open_file(file, mode="r")
         print("\nTime spent opening a file with %d groups: %s s" %
-              (maxchilds, time.time() - t1))
+              (maxchilds, clock() - t1))
         # Close the file
         fileh.close()
         # Then, delete the file

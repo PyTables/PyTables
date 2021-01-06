@@ -7,7 +7,7 @@
 #######################################################################
 
 import os
-from time import time
+from time import perf_counter as clock
 import numpy as np
 import tables as tb
 import numexpr as ne
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     for what in ["numpy", "numexpr"]:
         # break
         print("Populating x using %s with %d points..." % (what, N))
-        t0 = time()
+        t0 = clock()
         if what == "numpy":
             populate_x_numpy()
             compute = compute_numpy
@@ -165,14 +165,14 @@ if __name__ == '__main__':
         elif what == "numpy.memmap":
             populate_x_memmap()
             compute = compute_memmap
-        print(f"*** Time elapsed populating: {time() - t0:.3f}")
+        print(f"*** Time elapsed populating: {clock() - t0:.3f}")
         print(f"Computing: {expr!r} using {what}")
-        t0 = time()
+        t0 = clock()
         compute()
-        print(f"**************** Time elapsed computing: {time() - t0:.3f}")
+        print(f"**************** Time elapsed computing: {clock() - t0:.3f}")
 
     for what in ["tables.Expr"]:
-        t0 = time()
+        t0 = clock()
         first = True    # Sentinel
         for clib in supported_clibs:
             # for clevel in (0, 1, 3, 6, 9):
@@ -182,11 +182,11 @@ if __name__ == '__main__':
                     continue
                 print("Populating x using %s with %d points..." % (what, N))
                 populate_x_tables(clib, clevel)
-                print(f"*** Time elapsed populating: {time() - t0:.3f}")
+                print(f"*** Time elapsed populating: {clock() - t0:.3f}")
                 print(f"Computing: {expr!r} using {what}")
-                t0 = time()
+                t0 = clock()
                 compute_tables(clib, clevel)
                 print(
                     f"**************** Time elapsed computing: "
-                    f"{time() - t0:.3f}")
+                    f"{clock() - t0:.3f}")
                 first = False

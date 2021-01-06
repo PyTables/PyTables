@@ -13,11 +13,11 @@
 import os
 import re
 import sys
-import time
 import locale
 import platform
 import tempfile
 import warnings
+from time import perf_counter as clock
 from distutils.version import LooseVersion
 
 import unittest
@@ -350,7 +350,7 @@ class TempFileMixin:
 
 
 class ShowMemTime(PyTablesTestCase):
-    tref = time.time()
+    tref = clock()
     """Test for showing memory and time consumption."""
 
     def test00(self):
@@ -370,7 +370,7 @@ class ShowMemTime(PyTablesTestCase):
                 vmexe = int(line.split()[1])
             elif line.startswith("VmLib:"):
                 vmlib = int(line.split()[1])
-        print("\nWallClock time:", time.time() - self.tref)
+        print("\nWallClock time:", clock() - self.tref)
         print("Memory usage: ******* %s *******" % self._getName())
         print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
         print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")

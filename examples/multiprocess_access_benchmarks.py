@@ -19,6 +19,7 @@ import random
 import select
 import socket
 import time
+from time import perf_counter as clock
 
 import numpy as np
 import tables
@@ -44,10 +45,10 @@ class PipeReceive(multiprocessing.Process):
     def run(self):
         # block until something is received on the pipe
         array = self.receiver_pipe.recv()
-        recv_timestamp = time.time()
+        recv_timestamp = clock()
         # perform an operation on the received array
         array += 1
-        finish_timestamp = time.time()
+        finish_timestamp = clock()
         assert(np.all(array == 2))
         # send the measured timestamps back to the originating process
         self.result_send.send((recv_timestamp, finish_timestamp))
@@ -64,7 +65,7 @@ def read_and_send_pipe(send_type, array_size):
     time.sleep(0.15)
     with tables.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
-        start_timestamp = time.time()
+        start_timestamp = clock()
         # read an array from the PyTables file and send it to the other process
         output = array.read(0, array_size, 1)
         array_send.send(output)
@@ -90,10 +91,10 @@ class MemmapReceive(multiprocessing.Process):
         path = self.path_recv.recv()
         # create a memmap array using the received file path
         array = np.memmap(path, 'i8', 'r+')
-        recv_timestamp = time.time()
+        recv_timestamp = clock()
         # perform an operation on the array
         array += 1
-        finish_timestamp = time.time()
+        finish_timestamp = clock()
         assert(np.all(array == 2))
         # send the timing results back to the other process
         self.result_send.send((recv_timestamp, finish_timestamp))
@@ -110,7 +111,7 @@ def read_and_send_memmap(send_type, array_size):
     time.sleep(0.15)
     with tables.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
-        start_timestamp = time.time()
+        start_timestamp = clock()
         # memmap a file as a NumPy array in 'overwrite' mode
         output = np.memmap('/tmp/array1', 'i8', 'w+', shape=(array_size, ))
         # read an array from a PyTables file into the memmory mapped array
@@ -155,10 +156,10 @@ class SocketReceive(multiprocessing.Process):
             bytes_recv += connection.recv_into(view[bytes_recv:])
         # convert the bytearray into a NumPy array
         array = np.frombuffer(recv_buffer, dtype='i8')
-        recv_timestamp = time.time()
+        recv_timestamp = clock()
         # perform an operation on the received array
         array += 1
-        finish_timestamp = time.time()
+        finish_timestamp = clock()
         assert(np.all(array == 2))
         # send the timestamps back to the originating process
         self.result_send.send((recv_timestamp, finish_timestamp))
@@ -188,7 +189,7 @@ def read_and_send_socket(send_type, array_size, array_bytes, address_func,
     time.sleep(0.15)
     with tables.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
-        start_timestamp = time.time()
+        start_timestamp = clock()
         # connect to the receiving process' socket
         sock = socket.socket(socket_family, socket.SOCK_STREAM)
         sock.connect(address)

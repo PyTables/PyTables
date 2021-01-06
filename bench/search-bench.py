@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-import sys
-import time
-import random
-import warnings
 import os
+import random
+import sys
+import warnings
+from time import perf_counter as clock
+from time import process_time as cpuclock
 
 import numpy
 
@@ -89,8 +90,8 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     table = fileh.create_table(fileh.root, 'table', Small, "test table",
                                None, nrows)
 
-    t1 = time.time()
-    cpu1 = time.perf_counter()
+    t1 = clock()
+    cpu1 = cpuclock()
     nrowsbuf = table.nrowsinbuf
     minimum = 0
     maximum = nrows
@@ -112,8 +113,8 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
         table.append([var3, var2, var1])
     table.flush()
     rowswritten += nrows
-    time1 = time.time() - t1
-    tcpu1 = time.perf_counter() - cpu1
+    time1 = clock() - t1
+    tcpu1 = cpuclock() - cpu1
     print(
         f"Time for filling: {time1:.3f} Krows/s: {nrows / 1000 / time1:.3f}",
         end=' ')
@@ -125,15 +126,15 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     table = fileh.root.table
     rowsize = table.rowsize
     if index:
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         # Index all entries
         if not heavy:
             indexrows = table.cols.var1.create_index(filters=filters)
         for colname in ['var2', 'var3']:
             table.colinstances[colname].create_index(filters=filters)
-        time2 = time.time() - t1
-        tcpu2 = time.perf_counter() - cpu1
+        time2 = clock() - t1
+        tcpu2 = cpuclock() - cpu1
         print(
             f"Time for indexing: {time2:.3f} "
             f"iKrows/s: {indexrows / 1000 / time2:.3f}",
@@ -244,8 +245,8 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
         # The interval for look values at. This is aproximately equivalent to
         # the number of elements to select
         rnd = numpy.random.randint(table.nrows)
-        cpu1 = time.perf_counter()
-        t1 = time.time()
+        cpu1 = cpuclock()
+        t1 = clock()
         if atom == "string":
             val = str(rnd)[-4:]
             if indexmode in ["indexed", "inkernel"]:
@@ -265,7 +266,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
         elif atom == "float":
             val = rnd + dselect
             if indexmode in ["indexed", "inkernel"]:
-                t1 = time.time()
+                t1 = clock()
                 results = [p.nrow
                            for p in where('(rnd <= var3) & (var3 < val)')]
             else:
@@ -277,18 +278,18 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
         # print "selected values-->", results
         if i == 0:
             # First iteration
-            time1 = time.time() - t1
-            tcpu1 = time.perf_counter() - cpu1
+            time1 = clock() - t1
+            tcpu1 = cpuclock() - cpu1
         else:
             if indexmode == "indexed":
                 # if indexed, wait until the 5th iteration (in order to
                 # insure that the index is effectively cached) to take times
                 if i >= 5:
-                    time2 += time.time() - t1
-                    tcpu2 += time.perf_counter() - cpu1
+                    time2 += clock() - t1
+                    tcpu2 += cpuclock() - cpu1
             else:
-                time2 += time.time() - t1
-                tcpu2 += time.perf_counter() - cpu1
+                time2 += clock() - t1
+                tcpu2 += cpuclock() - cpu1
 
     if riter > 1:
         if indexmode == "indexed" and riter >= 5:

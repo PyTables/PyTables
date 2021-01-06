@@ -4,7 +4,7 @@
 
 import numpy
 import tables
-from time import time
+from time import perf_counter as clock
 
 L = 20
 N = 2000
@@ -32,9 +32,9 @@ c1 = f.create_carray(f1.root, 'cfield1',
                      tables.Int32Atom(), (L, N, M),
                      "scalar int32 carray", tables.Filters(complevel=0))
 
-t1 = time()
+t1 = clock()
 c1[:] = numpy.empty(shape=(L, 1, 1), dtype="int32")
-print("carray1 populate time:", time() - t1)
+print("carray1 populate time:", clock() - t1)
 f1.close()
 
 
@@ -43,9 +43,9 @@ c2 = f.create_carray(f2.root, 'cfield2',
                      tables.Int32Atom(), (L, M, N),
                      "scalar int32 carray", tables.Filters(complevel))
 
-t1 = time()
+t1 = clock()
 c2[:] = numpy.empty(shape=(L, 1, 1), dtype="int32")
-print("carray2 populate time:", time() - t1)
+print("carray2 populate time:", clock() - t1)
 f2.close()
 
 f0 = tables.open_file("chunkshape0.h5", mode="w")
@@ -54,9 +54,9 @@ e0 = f.create_earray(f0.root, 'efield0',
                      "scalar int32 carray", tables.Filters(complevel),
                      expectedrows=N)
 
-t1 = time()
+t1 = clock()
 e0.append(numpy.empty(shape=(N, L, M), dtype="int32"))
-print("earray0 populate time:", time() - t1)
+print("earray0 populate time:", clock() - t1)
 f0.close()
 
 f1 = tables.open_file("chunkshape1.h5", mode="w")
@@ -65,9 +65,9 @@ e1 = f.create_earray(f1.root, 'efield1',
                      "scalar int32 carray", tables.Filters(complevel),
                      expectedrows=N)
 
-t1 = time()
+t1 = clock()
 e1.append(numpy.empty(shape=(L, N, M), dtype="int32"))
-print("earray1 populate time:", time() - t1)
+print("earray1 populate time:", clock() - t1)
 f1.close()
 
 
@@ -77,9 +77,9 @@ e2 = f.create_earray(f2.root, 'efield2',
                      "scalar int32 carray", tables.Filters(complevel),
                      expectedrows=N)
 
-t1 = time()
+t1 = clock()
 e2.append(numpy.empty(shape=(L, M, N), dtype="int32"))
-print("earray2 populate time:", time() - t1)
+print("earray2 populate time:", clock() - t1)
 f2.close()
 
 # t1=time()

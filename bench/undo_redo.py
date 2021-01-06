@@ -7,7 +7,7 @@
 ###########################################################################
 
 import numpy
-from time import time
+from time import perf_counter as clock
 import tables
 
 verbose = 0
@@ -51,23 +51,23 @@ class BasicBenchmark:
             self.fileh.mark()
         # Unwind all marks sequentially
         for i in range(self.niter):
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
                     print("u", end=' ')
             if verbose:
                 print()
-            undo = time() - t1
+            undo = clock() - t1
             # Rewind all marks sequentially
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
                     print("r", end=' ')
             if verbose:
                 print()
-            redo = time() - t1
+            redo = clock() - t1
 
             print("Time for Undo, Redo (createNode):", undo, "s, ", redo, "s")
 
@@ -90,23 +90,23 @@ class BasicBenchmark:
             self.fileh.mark()
         # Unwind all marks sequentially
         for i in range(self.niter):
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
                     print("u", end=' ')
             if verbose:
                 print()
-            undo = time() - t1
+            undo = clock() - t1
             # Rewind all marks sequentially
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
                     print("r", end=' ')
             if verbose:
                 print()
-            redo = time() - t1
+            redo = clock() - t1
 
             print(("Time for Undo, Redo (copy_children):", undo, "s, ",
                   redo, "s"))
@@ -123,23 +123,23 @@ class BasicBenchmark:
             self.fileh.mark()
         # Unwind all marks sequentially
         for i in range(self.niter):
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
                     print("u", end=' ')
             if verbose:
                 print()
-            undo = time() - t1
+            undo = clock() - t1
             # Rewind all marks sequentially
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
                     print("r", end=' ')
             if verbose:
                 print()
-            redo = time() - t1
+            redo = clock() - t1
 
             print("Time for Undo, Redo (set_attr):", undo, "s, ", redo, "s")
 

@@ -17,7 +17,7 @@ import sys
 import warnings
 
 from functools import reduce as _reduce
-from time import time
+from time import perf_counter as clock
 
 import numpy
 import numexpr
@@ -149,7 +149,7 @@ def restorecache(self):
 def _table__where_indexed(self, compiled, condition, condvars,
                           start, stop, step):
     if profile:
-        tref = time()
+        tref = clock()
     if profile:
         show_stats("Entering table_whereIndexed", tref)
     self._use_index = True
@@ -1487,7 +1487,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Low-level counterpart of `self.where()`."""
 
         if profile:
-            tref = time()
+            tref = clock()
         if profile:
             show_stats("Entering table._where", tref)
         # Adjust the slice to be used.

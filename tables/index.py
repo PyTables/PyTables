@@ -19,7 +19,8 @@ import sys
 import tempfile
 import warnings
 
-from time import time, perf_counter
+from time import perf_counter as clock
+from time import process_time as cpuclock
 
 import numpy
 
@@ -551,7 +552,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """Compute an initial indices arrays for data to be indexed."""
 
         if profile:
-            tref = time()
+            tref = clock()
         if profile:
             show_stats("Entering initial_append", tref)
         arr = xarr.pop()
@@ -630,7 +631,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """Perform final operations in 32-bit indices."""
 
         if profile:
-            tref = time()
+            tref = clock()
         if profile:
             show_stats("Entering final_idx32", tref)
         # Do an upcast first in order to add the offset.
@@ -650,7 +651,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """Append the array to the index objects."""
 
         if profile:
-            tref = time()
+            tref = clock()
         if profile:
             show_stats("Entering append", tref)
         if not update and self.temp_required:
@@ -715,7 +716,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """Append the array to the last row index objects."""
 
         if profile:
-            tref = time()
+            tref = clock()
         if profile:
             show_stats("Entering appendLR", tref)
         # compute the elements in the last row sorted & bounds array
@@ -839,8 +840,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """Bring an already optimized index into a complete sorted state."""
 
         if self.verbose:
-            t1 = time()
-            c1 = perf_counter()
+            t1 = clock()
+            c1 = cpuclock()
         ss = self.slicesize
         tmp = self.tmp
         ranges = tmp.ranges[:]
@@ -945,7 +946,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         # in verbose mode!).
         self.compute_overlaps(self.tmp, "do_complete_sort()", self.verbose)
         if self.verbose:
-            print(f"time: {time() - t1:.4f}. clock: {perf_counter() - c1:.4f}")
+            print(f"time: {clock() - t1:.4f}. clock: {cpuclock() - c1:.4f}")
 
     def swap(self, what, mode=None):
         """Swap chunks or slices using a certain bounds reference."""
@@ -958,8 +959,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         thtover = 0.01    # minimum overlaping index for slices (a 1%)
 
         if self.verbose:
-            t1 = time()
-            c1 = perf_counter()
+            t1 = clock()
+            c1 = cpuclock()
         if what == "chunks":
             self.swap_chunks(mode)
         elif what == "slices":
@@ -972,7 +973,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             self.tmp, message, self.verbose)
         rmult = len(mult.nonzero()[0]) / len(mult)
         if self.verbose:
-            print(f"time: {time() - t1:.4f}. clock: {perf_counter() - c1:.4f}")
+            print(f"time: {clock() - t1:.4f}. clock: {cpuclock() - c1:.4f}")
         # Check that entropy is actually decreasing
         if what == "chunks" and self.last_tover > 0 and self.last_nover > 0:
             tover_var = (self.last_tover - tover) / self.last_tover
@@ -1815,7 +1816,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """Do a binary search in this index for an item."""
 
         if profile:
-            tref = time()
+            tref = clock()
         if profile:
             show_stats("Entering search", tref)
 
@@ -1998,7 +1999,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """Compute a map with the interesting chunks in index."""
 
         if profile:
-            tref = time()
+            tref = clock()
         if profile:
             show_stats("Entering get_chunkmap", tref)
         ss = self.slicesize

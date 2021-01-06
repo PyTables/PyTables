@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-
-import tables, cPickle, time
+from time import perf_counter as clock
+import tables, cPickle
 #################################################################################
 
 
@@ -180,15 +180,15 @@ class Hdf_dict(dict):
         table=fileh.root.cache0
         total=[]
         print 'reading'
-        begin=time.time()
+        begin=clock()
         for i in table.iterrows():
             total.append(i['col_0'])
         total=''.join(total)
         total=total.replace(chr(1), '\n')
-        print 'loaded cache len=', len(total), time.time()-begin
-        begin=time.time()
+        print 'loaded cache len=', len(total), clock()-begin
+        begin=clock()
         a=cPickle.loads(total)
-        print 'cache', time.time()-begin
+        print 'cache', clock()-begin
         return a
 
     def has_key(self, k):

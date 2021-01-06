@@ -1,9 +1,9 @@
 import os
-import time
+from time import perf_counter as clock
 
 import tables
 
-tref = time.time()
+tref = clock()
 trel = tref
 
 
@@ -30,9 +30,9 @@ def show_mem(explain):
     print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
     print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
     print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
-    print("WallClock time:", time.time() - tref, end=' ')
-    print("  Delta time:", time.time() - trel)
-    trel = time.time()
+    print("WallClock time:", clock() - tref, end=' ')
+    print("  Delta time:", clock() - trel)
+    trel = clock()
 
 
 def write_group(filename, nchildren, niter):

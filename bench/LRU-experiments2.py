@@ -1,7 +1,7 @@
 # Testbed to perform experiments in order to determine best values for
 # the node numbers in LRU cache. Arrays version.
 
-from time import time
+from time import perf_counter as clock
 import tables
 
 print("PyTables version-->", tables.__version__)
@@ -34,12 +34,12 @@ def modify_junk_LRU2():
     fileh = tables.open_file(filename, 'a')
     group = fileh.root
     for j in range(5):
-        t1 = time()
+        t1 = clock()
         for i in range(100):  # The number
             #print("table-->", tt._v_name)
             tt = getattr(group, "array" + str(i))
             #d = tt.read()
-        print(f"iter and time --> {j + 1} {time() - t1:.3f}")
+        print(f"iter and time --> {j + 1} {clock() - t1:.3f}")
     fileh.close()
 
 if 1:

@@ -1,7 +1,7 @@
 import sys
 import numpy
 import tables
-from time import time
+from time import perf_counter as clock
 #import psyco
 
 filename = "/tmp/LRU-bench.h5"
@@ -39,19 +39,19 @@ def iternodes():
 
 print("reading nodes...")
 # First iteration (put in LRU cache)
-t1 = time()
+t1 = clock()
 for a in f.root.NodeContainer:
     pass
-print(f"time (init cache)--> {time() - t1:.3f}")
+print(f"time (init cache)--> {clock() - t1:.3f}")
 
 
 def timeLRU():
     # Next iterations
-    t1 = time()
+    t1 = clock()
 #     for i in range(niter):
 #         iternodes()
     iternodes()
-    print(f"time (from cache)--> {(time() - t1) / niter:.3f}")
+    print(f"time (from cache)--> {(clock() - t1) / niter:.3f}")
 
 
 def profile(verbose=False):

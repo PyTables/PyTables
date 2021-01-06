@@ -1,6 +1,6 @@
 import os
 import os.path
-from time import time
+from time import perf_counter as clock
 import numpy
 import random
 
@@ -53,11 +53,11 @@ def open_db(filename, remove=0):
 def create_db(filename, nrows):
     con, cur = open_db(filename, remove=1)
     cur.execute("create table ints(i integer, j real)")
-    t1 = time()
+    t1 = clock()
     # This is twice as fast as a plain loop
     cur.executemany("insert into ints(i,j) values (?,?)", int_generator(nrows))
     con.commit()
-    ctime = time() - t1
+    ctime = clock() - t1
     if verbose:
         print(f"insert time: {ctime:.5f}")
         print(f"Krows/s: {nrows / 1000 / ctime:.5f}")
@@ -66,10 +66,10 @@ def create_db(filename, nrows):
 
 def index_db(filename):
     con, cur = open_db(filename)
-    t1 = time()
+    t1 = clock()
     cur.execute("create index ij on ints(j)")
     con.commit()
-    itime = time() - t1
+    itime = clock() - t1
     if verbose:
         print(f"index time: {itime:.5f}")
         print(f"Krows/s: {nrows / itime:.5f}")
@@ -79,7 +79,7 @@ def index_db(filename):
 
 def query_db(filename, rng):
     con, cur = open_db(filename)
-    t1 = time()
+    t1 = clock()
     ntimes = 10
     for i in range(ntimes):
         # between clause does not seem to take advantage of indexes
@@ -90,7 +90,7 @@ def query_db(filename, rng):
                     (rng[0] + i, rng[1] + i))
         results = cur.fetchall()
     con.commit()
-    qtime = (time() - t1) / ntimes
+    qtime = (clock() - t1) / ntimes
     if verbose:
         print(f"query time: {qtime:.5f}")
         print(f"Mrows/s: {nrows / 1000 / qtime:.5f}")
