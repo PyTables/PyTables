@@ -53,8 +53,8 @@ if __name__ == "__main__":
 
         BuildExtensions does two things
         1) it makes sure numpy is available
-        2) it injects numpy's core/include directory in the include_dirs parameter
-        of all extensions
+        2) it injects numpy's core/include directory in the include_dirs
+           parameter of all extensions
         3) it runs the original build_ext command
         """
 
@@ -226,7 +226,8 @@ if __name__ == "__main__":
             returns None otherwise
             """
             # An explicit path can not be provided for runtime libraries.
-            # (The argument is accepted for compatibility with previous methods.)
+            # (The argument is accepted for compatibility with previous
+            # methods.)
 
             # dlopen() won't tell us where the file is, just whether
             # success occurred, so this returns True instead of a filename
@@ -365,7 +366,8 @@ if __name__ == "__main__":
 
         def find_runtime_path(self, locations=default_runtime_dirs):
             # An explicit path can not be provided for runtime libraries.
-            # (The argument is accepted for compatibility with previous methods.)
+            # (The argument is accepted for compatibility with previous
+            # methods.)
             return _find_file_path(
                 self.runtime_name,
                 default_runtime_dirs,
@@ -449,8 +451,8 @@ if __name__ == "__main__":
 
         if os.environ.get("HDF5_USE_PREFIX", None):
             # This is used on CI systems to link against HDF5 library
-            # The vendored `hdf5.dll` in a wheel is renamed to: `pytables_hdf5.dll`
-            # This should prevent DLL Hell.
+            # The vendored `hdf5.dll` in a wheel is renamed to:
+            # `pytables_hdf5.dll`  This should prevent DLL Hell.
             print(
                 "* HDF5_USE_PREFIX: Trying to build against pytables_hdf5.dll"
             )
@@ -639,7 +641,8 @@ if __name__ == "__main__":
         if not location and CONDA_PREFIX:
             location = CONDA_PREFIX
 
-        # looking for lzo/lzo1x.h but pkgconfig already returns '/usr/include/lzo'
+        # looking for lzo/lzo1x.h but pkgconfig already returns
+        # '/usr/include/lzo'
         use_pkgconfig = USE_PKGCONFIG if package.tag != "LZO2" else False
 
         (hdrdir, libdir, rundir) = package.find_directories(
@@ -677,8 +680,8 @@ if __name__ == "__main__":
                 pname, ptag = package.name, package.tag
                 exit_with_error(
                     "Could not find a local %s installation." % pname,
-                    "You may need to explicitly state "
-                    "where your local %(name)s headers and library can be found "
+                    "You may need to explicitly state where your local "
+                    "%(name)s headers and library can be found "
                     "by setting the ``%(tag)s_DIR`` environment variable "
                     "or by using the ``--%(ltag)s`` command-line option."
                     % dict(name=pname, tag=ptag, ltag=ptag.lower()),
@@ -736,8 +739,9 @@ if __name__ == "__main__":
                 )
             if blosc_version < min_blosc_bitshuffle_version:
                 print_warning(
-                    "This Blosc version does not support the BitShuffle filter. "
-                    "Minimum desirable version is %s.  Found version: %s"
+                    "This Blosc version does not support the BitShuffle "
+                    "filter. Minimum desirable version is %s.  "
+                    "Found version: %s"
                     % (min_blosc_bitshuffle_version, blosc_version)
                 )
 
@@ -758,12 +762,14 @@ if __name__ == "__main__":
                 print_warning(
                     "Could not find the %s runtime." % package.name,
                     "The %(name)s shared library was *not* found in %(loc)s "
-                    "In case of runtime problems, please remember to install it."
+                    "In case of runtime problems, please remember to install "
+                    "it."
                     % dict(name=package.name, loc=loc),
                 )
 
         if os.name == "nt":
-            # LZO DLLs cannot be copied to the binary package for license reasons
+            # LZO DLLs cannot be copied to the binary package for license
+            # reasons
             if package.tag not in ["LZO", "LZO2"]:
                 dll_file = _platdep[package.tag][1] + ".dll"
                 # If DLL is not in rundir, do nothing.  This can be useful
@@ -905,7 +911,8 @@ if __name__ == "__main__":
         # LZ4 sources
         blosc_sources += glob.glob("c-blosc/internal-complibs/lz4*/*.c")
         # Snappy sources
-        # Starting from C-Blosc 1.19.0, snappy sources are not distributed anymore
+        # Starting from C-Blosc 1.19.0, snappy sources are not distributed
+        # anymore
         # blosc_sources += glob.glob('c-blosc/internal-complibs/snappy*/*.cc')
         # Zlib sources
         blosc_sources += glob.glob("c-blosc/internal-complibs/zlib*/*.c")
@@ -956,7 +963,8 @@ if __name__ == "__main__":
                 if LooseVersion(platform.python_version()) >= LooseVersion(
                     "3.5.0"
                 ):
-                    # MSVC2010 for Python 3.4 does not have sufficient AVX2 support
+                    # MSVC2010 for Python 3.4 does not have sufficient AVX2
+                    # support
                     def_macros += [("__AVX2__", 1)]
                     CFLAGS.append("-DSHUFFLE_AVX2_ENABLED")
                     blosc_sources += [
