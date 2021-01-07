@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # Check for Python
     if sys.version_info < min_python_version:
         exit_with_error("You need Python 3.6 or greater to install PyTables!")
-    print("* Using Python %s" % sys.version.splitlines()[0])
+    print(f"* Using Python {sys.version.splitlines()[0]}")
 
     # Minimum required versions for numpy, numexpr and HDF5
     with open(os.path.join("tables", "req_versions.py")) as fd:
@@ -185,7 +185,7 @@ if __name__ == "__main__":
         for prefix in prefixes:
             for suffix in suffixes:
                 for location in locations:
-                    path = os.path.join(location, prefix + name + suffix)
+                    path = os.path.join(location, f"{prefix}{name}{suffix}")
                     if os.path.isfile(path):
                         return path
         return None
@@ -234,7 +234,7 @@ if __name__ == "__main__":
             for prefix in self._runtime_prefixes:
                 for suffix in self._runtime_suffixes:
                     try:
-                        ctypes.CDLL(prefix + self.runtime_name + suffix)
+                        ctypes.CDLL(f"{prefix}{self.runtime_name}{suffix}")
                         return True
                     except OSError:
                         pass
@@ -290,7 +290,7 @@ if __name__ == "__main__":
                 ]
                 if pkgconfig_header_dirs:
                     print(
-                        "* pkg-config header dirs for %s:" % self.name,
+                        f"* pkg-config header dirs for {self.name}:",
                         ", ".join(pkgconfig_header_dirs),
                     )
 
@@ -303,7 +303,7 @@ if __name__ == "__main__":
                 ]
                 if pkgconfig_library_dirs:
                     print(
-                        "* pkg-config library dirs for %s:" % self.name,
+                        f"* pkg-config library dirs for {self.name}:",
                         ", ".join(pkgconfig_library_dirs),
                     )
 
@@ -464,7 +464,7 @@ if __name__ == "__main__":
     else:
         _Package = None
         _platdep = {}
-        exit_with_error("Unsupported OS: %s" % os.name)
+        exit_with_error(f"Unsupported OS: {os.name}")
 
     hdf5_package = _Package("HDF5", "HDF5", "H5public", *_platdep["HDF5"])
     hdf5_package.target_function = "H5close"
@@ -571,10 +571,10 @@ if __name__ == "__main__":
             libdir = os.path.dirname(libdir)
             # Strip off the 'bin' directory
             HDF5_DIR = os.path.dirname(libdir)
-            print("* Found HDF5 using system PATH ('%s')" % libdir)
+            print(f"* Found HDF5 using system PATH ('{libdir}')")
 
     if CONDA_PREFIX:
-        print("* Found conda env: ``%s``" % CONDA_PREFIX)
+        print(f"* Found conda env: ``{CONDA_PREFIX}``")
         if os.name == "nt":
             CONDA_PREFIX += "\\Library"
 
@@ -632,8 +632,8 @@ if __name__ == "__main__":
 
         if package.tag == "LZO" and lzo2_enabled:
             print(
-                "* Skipping detection of %s since %s has already been found."
-                % (lzo1_package.name, lzo2_package.name)
+                f"* Skipping detection of {lzo1_package.name} "
+                f"since {lzo2_package.name} has already been found."
             )
             continue  # do not use LZO 1 if LZO 2 is available
 
@@ -655,8 +655,8 @@ if __name__ == "__main__":
             hdf5_version = get_hdf5_version(hdf5_header)
             if hdf5_version < min_hdf5_version:
                 exit_with_error(
-                    "Unsupported HDF5 version! HDF5 v%s+ required. "
-                    "Found version v%s" % (min_hdf5_version, hdf5_version)
+                    f"Unsupported HDF5 version! HDF5 v{min_hdf5_version}+ "
+                    f"required. Found version v{hdf5_version}"
                 )
 
             if os.name == "nt" and hdf5_version < "1.8.10":
@@ -679,37 +679,36 @@ if __name__ == "__main__":
             if package.tag in ["HDF5"]:  # these are compulsory!
                 pname, ptag = package.name, package.tag
                 exit_with_error(
-                    "Could not find a local %s installation." % pname,
-                    "You may need to explicitly state where your local "
-                    "%(name)s headers and library can be found "
-                    "by setting the ``%(tag)s_DIR`` environment variable "
-                    "or by using the ``--%(ltag)s`` command-line option."
-                    % dict(name=pname, tag=ptag, ltag=ptag.lower()),
+                    f"Could not find a local {pname} installation.",
+                    f"You may need to explicitly state where your local "
+                    f"{pname} headers and library can be found by setting "
+                    f"the ``{ptag}_DIR`` environment variable or by using "
+                    f"the ``--{ptag.lower()}`` command-line option.",
                 )
             if (
                 package.tag == "BLOSC"
             ):  # this is optional, but comes with sources
                 print(
-                    "* Could not find %s headers and library; "
-                    "using internal sources." % package.name
+                    f"* Could not find {package.name} headers and library; "
+                    f"using internal sources."
                 )
             else:
                 print(
-                    "* Could not find %s headers and library; "
-                    "disabling support for it." % package.name
+                    f"* Could not find {package.name} headers and library; "
+                    f"disabling support for it."
                 )
 
             continue  # look for the next library
 
         if libdir in ("", True):
             print(
-                "* Found %s headers at ``%s``, the library is located in the "
-                "standard system search dirs." % (package.name, hdrdir)
+                f"* Found {package.name} headers at ``{hdrdir}``, the library "
+                f"is located in the standard system search dirs."
             )
         else:
             print(
-                "* Found %s headers at ``%s``, library at ``%s``."
-                % (package.name, hdrdir, libdir)
+                f"* Found {package.name} headers at ``{hdrdir}``, "
+                f"library at ``{libdir}``."
             )
 
         if hdrdir not in default_header_dirs:
@@ -718,14 +717,14 @@ if __name__ == "__main__":
             # save library directory if needed
             if os.name == "nt":
                 # Important to quote the libdir for Windows (Vista) systems
-                lib_dirs.append('"%s"' % libdir)
+                lib_dirs.append(f'"{libdir}"')
             else:
                 lib_dirs.append(libdir)
 
         if package.tag not in ["HDF5"]:
             # Keep record of the optional libraries found.
             optional_libs.append(package.tag)
-            def_macros.append(("HAVE_%s_LIB" % package.tag, 1))
+            def_macros.append((f"HAVE_{package.tag}_LIB", 1))
 
         if hdrdir and package.tag == "BLOSC":
             blosc_header = os.path.join(hdrdir, "blosc.h")
@@ -733,45 +732,43 @@ if __name__ == "__main__":
             if blosc_version < min_blosc_version:
                 optional_libs.pop()  # Remove Blosc from the discovered libs
                 print_warning(
-                    "Unsupported Blosc version installed! Blosc %s+ required. "
-                    "Found version %s.  Using internal Blosc sources."
-                    % (min_blosc_version, blosc_version)
+                    f"Unsupported Blosc version installed! Blosc "
+                    f"{min_blosc_version}+ required. Found version "
+                    f"{blosc_version}.  Using internal Blosc sources."
                 )
             if blosc_version < min_blosc_bitshuffle_version:
                 print_warning(
-                    "This Blosc version does not support the BitShuffle "
-                    "filter. Minimum desirable version is %s.  "
-                    "Found version: %s"
-                    % (min_blosc_bitshuffle_version, blosc_version)
+                    f"This Blosc version does not support the BitShuffle "
+                    f"filter. Minimum desirable version is "
+                    f"{min_blosc_bitshuffle_version}.  "
+                    f"Found version: {blosc_version}"
                 )
 
         if not rundir:
             loc = {
-                "posix": "the default library paths.",
-                "nt": "any of the directories in %%PATH%%.",
+                "posix": "the default library paths",
+                "nt": "any of the directories in %%PATH%%",
             }[os.name]
 
             if "bdist_wheel" in sys.argv and os.name == "nt":
                 exit_with_error(
-                    "Could not find the %s runtime." % package.name,
-                    "The %(name)s shared library was *not* found in %(loc)s "
-                    "Cannot build wheel without the runtime."
-                    % dict(name=package.name, loc=loc),
+                    f"Could not find the {package.name} runtime.",
+                    f"The {package.name} shared library was *not* found in "
+                    f"{loc}. Cannot build wheel without the runtime.",
                 )
             else:
                 print_warning(
-                    "Could not find the %s runtime." % package.name,
-                    "The %(name)s shared library was *not* found in %(loc)s "
-                    "In case of runtime problems, please remember to install "
-                    "it."
-                    % dict(name=package.name, loc=loc),
+                    f"Could not find the {package.name} runtime.",
+                    f"The {package.name} shared library was *not* found "
+                    f"in {loc}. In case of runtime problems, please "
+                    f"remember to install it.",
                 )
 
         if os.name == "nt":
             # LZO DLLs cannot be copied to the binary package for license
             # reasons
             if package.tag not in ["LZO", "LZO2"]:
-                dll_file = _platdep[package.tag][1] + ".dll"
+                dll_file = f"{_platdep[package.tag][1]}.dll"
                 # If DLL is not in rundir, do nothing.  This can be useful
                 # for BZIP2, that can be linked either statically (.LIB)
                 # or dynamically (.DLL)
@@ -782,9 +779,7 @@ if __name__ == "__main__":
             # hdf5.dll usually depends on zlib.dll
             z_lib_path = ctypes.util.find_library("zlib.dll")
             if z_lib_path:
-                print(
-                    "* Adding zlib.dll (hdf5 dependency): ``%s``" % z_lib_path
-                )
+                print(f"* Adding zlib.dll (hdf5 dependency): ``{z_lib_path}``")
                 dll_files.append(z_lib_path)
 
         if package.tag == "LZO2":
@@ -814,8 +809,8 @@ if __name__ == "__main__":
 
         for extname in extnames:
             extfile = os.path.join(extdir, extname)
-            extpfile = "%s.pyx" % extfile
-            extcfile = "%s.c" % extfile
+            extpfile = f"{extfile}.pyx"
+            extcfile = f"{extfile}.c"
 
             if not exists(extcfile) or newer(extpfile, extcfile):
                 # This is the only place where Cython is needed, but every
@@ -833,7 +828,7 @@ if __name__ == "__main__":
     # Update the version.h file if this file is newer
     if newer("VERSION", "src/version.h"):
         with open("src/version.h", "w") as fd:
-            fd.write('#define PYTABLES_VERSION "%s"\n' % VERSION)
+            fd.write(f'#define PYTABLES_VERSION "{VERSION}"\n')
 
     # --------------------------------------------------------------------
 
@@ -874,7 +869,7 @@ if __name__ == "__main__":
         append "-pyX.Y" to the base name"""
         name = base
         if "--name-with-python-version" in sys.argv:
-            name += "-py%i.%i" % (sys.version_info[0], sys.version_info[1])
+            name += f"-py{sys.version_info[0]}.{sys.version_info[1]}"
             sys.argv.remove("--name-with-python-version")
         return name
 
@@ -882,11 +877,7 @@ if __name__ == "__main__":
 
     if os.name == "nt":
         # Add DLL's to the final package for windows
-        data_files.extend(
-            [
-                ("Lib/site-packages/%s" % name, dll_files),
-            ]
-        )
+        data_files.append((f"Lib/site-packages/{name}", dll_files))
 
     ADDLIBS = [hdf5_package.library_name]
 
