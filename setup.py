@@ -969,11 +969,17 @@ if __name__ == "__main__":
         if package.tag in optional_libs:
             complibs.extend([hdf5_package.library_name, package.library_name])
 
+    extension_kwargs = {
+        "extra_compile_args": CFLAGS,
+        "extra_link_args": LFLAGS,
+        "library_dirs": lib_dirs,
+        "define_macros": def_macros,
+        "include_dirs": inc_dirs,
+    }
+
     extensions = [
         Extension(
             "tables.utilsextension",
-            include_dirs=inc_dirs,
-            define_macros=def_macros,
             sources=[
                 cython_extfiles["utilsextension"],
                 "src/utils.c",
@@ -981,15 +987,11 @@ if __name__ == "__main__":
                 "src/H5ATTR.c",
             ]
             + blosc_sources,
-            library_dirs=lib_dirs,
             libraries=utilsExtension_libs,
-            extra_link_args=LFLAGS,
-            extra_compile_args=CFLAGS,
+            **extension_kwargs,
         ),
         Extension(
             "tables.hdf5extension",
-            include_dirs=inc_dirs,
-            define_macros=def_macros,
             sources=[
                 cython_extfiles["hdf5extension"],
                 "src/utils.c",
@@ -1000,15 +1002,11 @@ if __name__ == "__main__":
                 "src/H5ATTR.c",
             ]
             + blosc_sources,
-            library_dirs=lib_dirs,
             libraries=hdf5Extension_libs,
-            extra_link_args=LFLAGS,
-            extra_compile_args=CFLAGS,
+            **extension_kwargs,
         ),
         Extension(
             "tables.tableextension",
-            include_dirs=inc_dirs,
-            define_macros=def_macros,
             sources=[
                 cython_extfiles["tableextension"],
                 "src/utils.c",
@@ -1017,64 +1015,42 @@ if __name__ == "__main__":
                 "src/H5ATTR.c",
             ]
             + blosc_sources,
-            library_dirs=lib_dirs,
             libraries=tableExtension_libs,
-            extra_link_args=LFLAGS,
-            extra_compile_args=CFLAGS,
+            **extension_kwargs,
         ),
         Extension(
             "tables._comp_lzo",
-            include_dirs=inc_dirs,
-            define_macros=def_macros,
             sources=[cython_extfiles["_comp_lzo"], "src/H5Zlzo.c"],
-            library_dirs=lib_dirs,
             libraries=_comp_lzo_libs,
-            extra_link_args=LFLAGS,
-            extra_compile_args=CFLAGS,
+            **extension_kwargs,
         ),
         Extension(
             "tables._comp_bzip2",
-            include_dirs=inc_dirs,
-            define_macros=def_macros,
             sources=[cython_extfiles["_comp_bzip2"], "src/H5Zbzip2.c"],
-            library_dirs=lib_dirs,
             libraries=_comp_bzip2_libs,
-            extra_link_args=LFLAGS,
-            extra_compile_args=CFLAGS,
+            **extension_kwargs,
         ),
         Extension(
             "tables.linkextension",
-            include_dirs=inc_dirs,
-            define_macros=def_macros,
             sources=[cython_extfiles["linkextension"]],
-            library_dirs=lib_dirs,
             libraries=tableExtension_libs,
-            extra_link_args=LFLAGS,
-            extra_compile_args=CFLAGS,
+            **extension_kwargs,
         ),
         Extension(
             "tables.lrucacheextension",
-            include_dirs=inc_dirs,
-            define_macros=def_macros,
             sources=[cython_extfiles["lrucacheextension"]],
-            library_dirs=lib_dirs,
             libraries=lrucacheExtension_libs,
-            extra_link_args=LFLAGS,
-            extra_compile_args=CFLAGS,
+            **extension_kwargs,
         ),
         Extension(
             "tables.indexesextension",
-            include_dirs=inc_dirs,
-            define_macros=def_macros,
             sources=[
                 cython_extfiles["indexesextension"],
                 "src/H5ARRAY-opt.c",
                 "src/idx-opt.c",
             ],
-            library_dirs=lib_dirs,
             libraries=indexesExtension_libs,
-            extra_link_args=LFLAGS,
-            extra_compile_args=CFLAGS,
+            **extension_kwargs,
         ),
     ]
 
