@@ -10,9 +10,9 @@
 
 """Test module for diferent kind of links under PyTables."""
 
-import os
 import re
 import tempfile
+from pathlib import Path
 
 import tables as tb
 from tables.tests import common
@@ -300,7 +300,7 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Copied link:", lgroup1_, 'in:', lgroup1_._v_file.filename)
         h5f.close()
-        os.remove(fname)
+        Path(fname).unlink()
 
     def test11_direct_attribute_access(self):
         """Check direct get/set attributes via link-->target.attribute"""
@@ -384,7 +384,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         #    for handler in open_files.get_handlers_by_name(self.extfname):
         #        handler.close()
 
-        os.remove(extfname)   # comment this for debugging purposes only
+        Path(extfname).unlink()   # comment this for debugging purposes only
 
     def _createFile(self):
         self.h5file.create_array('/', 'arr1', [1, 2])
@@ -581,8 +581,8 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     print("Copied link:", lgroup1_, 'in:',
                           lgroup1_._v_file.filename)
         finally:
-            if os.path.exists(h5fname2):
-                os.remove(h5fname2)
+            if Path(h5fname2).is_file():
+                Path(h5fname2).unlink()
 
 
 def suite():

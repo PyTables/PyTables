@@ -1,5 +1,5 @@
-import os
 import sys
+from pathlib import Path
 
 import numpy as np
 
@@ -1132,7 +1132,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTe
         self.create_array(complevel)
         self.array[:] = 1
         self.h5file.flush()
-        file_size = os.stat(self.h5fname).st_size
+        file_size = Path(self.h5fname).stat().st_size
         self.assertTrue(
             abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertTrue(self.array.size_on_disk < self.array.size_in_memory)
@@ -1144,7 +1144,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTe
         self.create_array(complevel)
         self.array[:] = np.random.randint(0, 1e6, self.array_size)
         self.h5file.flush()
-        file_size = os.stat(self.h5fname).st_size
+        file_size = Path(self.h5fname).stat().st_size
         self.assertTrue(
             abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
 

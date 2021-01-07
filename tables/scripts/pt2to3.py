@@ -12,10 +12,10 @@
 are PEP 8 compliant.
 
 """
-import os
 import re
 import sys
 import argparse
+from pathlib import Path
 
 old2newnames = dict([
     # from __init__.py
@@ -504,10 +504,9 @@ def main():
     parser.add_argument('filename', help='path to input file.')
     ns = parser.parse_args()
 
-    if not os.path.isfile(ns.filename):
+    if not Path(ns.filename).is_file():
         sys.exit(f'file {ns.filename!r} not found')
-    with open(ns.filename) as f:
-        src = f.read()
+    src = Path(ns.filename).read_text()
 
     subs, repl = make_subs(ns)
     targ = subs.sub(repl, src)
@@ -516,8 +515,7 @@ def main():
     if ns.output is None:
         sys.stdout.write(targ)
     else:
-        with open(ns.output, 'w') as f:
-            f.write(targ)
+        Path(ns.output).write_text(targ)
 
 if __name__ == '__main__':
     main()

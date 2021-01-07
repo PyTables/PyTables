@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 import tables as tb
 from indexed_search import DB
 
@@ -19,15 +21,16 @@ class PyTables_DB(DB):
         if docompress:
             self.filename += '-' + complib + str(docompress)
         self.datadir = datadir
-        if not os.path.isdir(self.datadir):
-            if not os.path.isabs(self.datadir):
-                dir_path = os.path.join(os.getcwd(), self.datadir)
+        path = Path(self.datadir)
+        if not path.is_dir():
+            if not path.is_absolute():
+                dir_path = Path('.') / self.datadir
             else:
-                dir_path = self.datadir
-            os.makedirs(dir_path)
+                dir_path = Path(self.datadir)
+            dir_path.mkdir(parents=True, exist_ok=True)
             self.datadir = dir_path
             print(f"Created {self.datadir}.")
-        self.filename = self.datadir + '/' + self.filename + '.h5'
+        self.filename = self.datadir / f'{self.filename}.h5'
         # The chosen filters
         self.filters = tb.Filters(complevel=self.docompress,
                                   complib=self.complib,
@@ -35,8 +38,8 @@ class PyTables_DB(DB):
         print("Processing database:", self.filename)
 
     def open_db(self, remove=0):
-        if remove and os.path.exists(self.filename):
-            os.remove(self.filename)
+        if remove and Path(self.filename).is_file():
+            Path(self.filename).unlink()
         con = tb.open_file(self.filename, 'a')
         return con
 
@@ -73,10 +76,8 @@ class PyTables_DB(DB):
 
     def index_col(self, con, column, kind, optlevel, verbose):
         col = getattr(con.root.table.cols, column)
-        tmp_dir = os.path.join(self.datadir, "scratch2")
-        if not os.path.isdir(tmp_dir):
-            os.makedirs(tmp_dir)
-            print("Created scratch space.")
+        tmp_dir = self.datadir / "scratch2"
+        tmp_dir.mkdir(parents=True, exist_ok=True)
         col.create_index(kind=kind, optlevel=optlevel, filters=self.filters,
                          tmp_dir=tmp_dir, _verbose=verbose, _blocksizes=None)
 #                       _blocksizes=(2**27, 2**22, 2**15, 2**7))

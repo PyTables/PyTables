@@ -1,9 +1,10 @@
 """Benchmark to help choosing the best chunksize so as to optimize the access
 time in random lookups."""
 
-from time import perf_counter as clock
-import os
 import subprocess
+from pathlib import Path
+from time import perf_counter as clock
+
 import numpy as np
 import tables as tb
 
@@ -59,8 +60,8 @@ class DB:
         print(f"Array size (MB): {array_size:.3f}")
 
     def open_db(self, remove=0):
-        if remove and os.path.exists(self.filename):
-            os.remove(self.filename)
+        if remove and Path(self.filename).is_file():
+            Path(self.filename).unlink()
         con = tb.open_file(self.filename, 'a')
         return con
 

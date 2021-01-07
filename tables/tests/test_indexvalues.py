@@ -1,6 +1,6 @@
-import os
 import random
 import tempfile
+from pathlib import Path
 
 import numpy as np
 
@@ -3168,8 +3168,8 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
     def tearDown(self):
         if self.h5file is not None:
             self.h5file.close()
-        if os.path.exists(self.h5fname):
-            os.remove(self.h5fname)
+        if Path(self.h5fname).is_file():
+            Path(self.h5fname).unlink()
         super().tearDown()
 
     def test00_lrucache(self):
@@ -3372,8 +3372,8 @@ class SideEffectNumPyQuicksort(common.PyTablesTestCase):
         self.assertEqual(len(npvals), len(indexed))
 
         h5.close()
-        if os.path.exists(tmp_file):
-            os.remove(tmp_file)
+        if Path(tmp_file).is_file():
+            Path(tmp_file).unlink()
 
 
 # -----------------------------

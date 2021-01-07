@@ -1,6 +1,7 @@
-import os
-from time import perf_counter as clock
 import random
+from pathlib import Path
+from time import perf_counter as clock
+
 import numpy as np
 import tables as tb
 
@@ -10,8 +11,8 @@ np.random.seed((19, 20))
 
 
 def open_db(filename, remove=0):
-    if remove and os.path.exists(filename):
-        os.remove(filename)
+    if remove and Path(filename).is_file():
+        Path(filename).unlink()
     con = tb.open_file(filename, 'a')
     return con
 

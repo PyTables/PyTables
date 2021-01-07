@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from time import perf_counter as clock
 import numpy as np
 import random
@@ -42,8 +42,8 @@ def int_generator_slow(nrows):
 
 
 def open_db(filename, remove=0):
-    if remove and os.path.exists(filename):
-        os.remove(filename)
+    if remove and Path(filename).is_file():
+        Path(filename).unlink()
     con = sqlite.connect(filename)
     cur = con.cursor()
     return con, cur

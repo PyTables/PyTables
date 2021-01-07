@@ -2,8 +2,8 @@ import hotshot
 import hotshot.stats
 
 import unittest
-import os
 import tempfile
+from pathlib import Path
 from time import perf_counter as clock
 
 import tables as tb
@@ -103,7 +103,7 @@ class WideTreeTestCase(unittest.TestCase):
         # Close the file
         fileh.close()
         # Then, delete the file
-        os.remove(file)
+        Path(file).unlink()
 
 #----------------------------------------------------------------------
 

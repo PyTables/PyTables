@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import math
-import os
 import queue
 import threading
+from pathlib import Path
 
 import numpy as np
 import tables as tb
@@ -58,7 +58,7 @@ def run(filename, path, inqueue, outqueue):
 
 def main():
     # generate the test data
-    if not os.path.exists(FILENAME):
+    if not Path(FILENAME).exists():
         create_test_file(FILENAME)
 
     threads = []

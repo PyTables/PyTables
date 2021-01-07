@@ -10,12 +10,12 @@
 
 """Utilities for PyTables' test suites."""
 
-import os
 import re
 import sys
 import locale
 import platform
 import tempfile
+from pathlib import Path
 from time import perf_counter as clock
 from distutils.version import LooseVersion
 
@@ -331,7 +331,7 @@ class TempFileMixin:
 
         self.h5file.close()
         self.h5file = None
-        os.remove(self.h5fname)   # comment this for debugging purposes only
+        Path(self.h5fname).unlink()   # comment this for debugging purposes only
         super().tearDown()
 
     def _reopen(self, mode='r', **kwargs):
@@ -355,7 +355,7 @@ class ShowMemTime(PyTablesTestCase):
         """Showing memory and time consumption."""
 
         # Obtain memory info (only for Linux 2.6.x)
-        for line in open("/proc/self/status"):
+        for line in Path("/proc/self/status").read_text().splitlines():
             if line.startswith("VmSize:"):
                 vmsize = int(line.split()[1])
             elif line.startswith("VmRSS:"):

@@ -5,10 +5,10 @@ Francesc Alted
 
 """
 
-import os
 import math
 import subprocess
 import tempfile
+from pathlib import Path
 from time import perf_counter as clock
 import numpy as np
 import tables as tb
@@ -66,7 +66,7 @@ def bench(chunkshape, filters):
     # os.system("sync")
     print(f"Creation time: {clock() - t1:.3f}", end=' ')
     filesize = get_db_size(filename)
-    filesize_bytes = os.stat(filename).st_size
+    filesize_bytes = Path(filename).stat().st_size
     print("\t\tFile size: %d -- (%s)" % (filesize_bytes, filesize))
 
     # Read in sequential mode:

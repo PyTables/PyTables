@@ -1,5 +1,5 @@
-import os
 import sys
+from pathlib import Path
 
 import numpy as np
 
@@ -1262,7 +1262,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTe
         complevel = 1
         self.create_array(complevel)
         self.array.append([tuple(range(10))] * self.chunkshape[0] * 10)
-        file_size = os.stat(self.h5fname).st_size
+        file_size = Path(self.h5fname).stat().st_size
         self.assertTrue(
             abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)

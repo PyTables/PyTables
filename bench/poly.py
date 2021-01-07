@@ -6,8 +6,9 @@
 # Date: 2010-02-24
 #######################################################################
 
-import os
+from pathlib import Path
 from time import perf_counter as clock
+
 import numpy as np
 import tables as tb
 import numexpr as ne
@@ -39,9 +40,9 @@ def print_filesize(filename, clib=None, clevel=0):
 
     # os.system("sync")    # make sure that all data has been flushed to disk
     if isinstance(filename, list):
-        filesize_bytes = sum(os.stat(fname).st_size for fname in filename)
+        filesize_bytes = sum(Path(fname).stat().st_size for fname in filename)
     else:
-        filesize_bytes = os.stat(filename).st_size
+        filesize_bytes = Path(filename).stat().st_size
     print(
         f"\t\tTotal file sizes: {filesize_bytes} -- "
         f"({filesize_bytes / MB:.1f} MB)", end=' ')

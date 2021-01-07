@@ -1,6 +1,6 @@
-import os
 import sys
 import tempfile
+from pathlib import Path
 
 import numpy as np
 import tables as tb
@@ -95,7 +95,7 @@ class BasicTestCase(common.PyTablesTestCase):
                 self.assertTrue(common.allequal(a, b))
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def write_read_out_arg(self, testarray):
         a = testarray
@@ -148,7 +148,7 @@ class BasicTestCase(common.PyTablesTestCase):
                 self.assertTrue(common.allequal(a, b))
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def write_read_atom_shape_args(self, testarray):
         a = testarray
@@ -242,7 +242,7 @@ class BasicTestCase(common.PyTablesTestCase):
                 self.assertTrue(common.allequal(a, b))
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def setup00_char(self):
         """Data integrity during recovery (character objects)"""
@@ -290,7 +290,7 @@ class BasicTestCase(common.PyTablesTestCase):
                     self.assertIn(type(b), [list, np.ndarray])
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def test00b_char_out_arg(self):
         """Data integrity during recovery (string objects)"""
@@ -315,7 +315,7 @@ class BasicTestCase(common.PyTablesTestCase):
                 self.assertIsInstance(b, np.ndarray)
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def test00b_char_atom_shape_args(self):
         """Data integrity during recovery (string objects)"""
@@ -354,7 +354,7 @@ class BasicTestCase(common.PyTablesTestCase):
                 self.assertIsInstance(b, np.ndarray)
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def setup01_char_nc(self):
         """Data integrity during recovery (non-contiguous character objects)"""
@@ -2391,7 +2391,7 @@ class CopyNativeHDF5MDAtom(common.PyTablesTestCase):
     def tearDown(self):
         self.h5file.close()
         self.copyh.close()
-        os.remove(self.copy)
+        Path(self.copy).unlink()
         super().tearDown()
 
     def test01_copy(self):

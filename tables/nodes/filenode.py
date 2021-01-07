@@ -32,6 +32,7 @@ import io
 import os
 import re
 import warnings
+from pathlib import Path
 
 import numpy as np
 
@@ -731,11 +732,13 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
        during the life of this object.
 
     """
+    path = Path(filename).resolve()
+
     # sanity checks
-    if not os.access(filename, os.R_OK):
-        raise OSError("The file '%s' could not be read" % filename)
+    if not os.access(path, os.R_OK):
+        raise OSError(f"The file '{path}' could not be read")
     if isinstance(h5file, tb.file.File) and h5file.mode == "r":
-        raise OSError("The file '%s' is opened read-only" % h5file.filename)
+        raise OSError(f"The file '{h5file.filename}' is opened read-only")
 
     # guess filenode's name if necessary
     if name is None:
@@ -763,14 +766,14 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
         if not overwrite:
             if new_h5file:
                 f.close()
-            raise OSError("Specified node already exists in file '%s'" %
-                          f.filename)
+            raise OSError(
+                f"Specified node already exists in file '{f.filename}'"
+            )
     except tb.NoSuchNodeError:
         pass
 
     # read data from disk
-    with open(filename, "rb") as fd:
-        data = fd.read()
+    data = path.read_bytes()
 
     # remove existing filenode if present
     try:
@@ -781,7 +784,7 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
     # write file's contents to filenode
     fnode = new_node(f, where=where, name=name, title=title, filters=filters)
     fnode.write(data)
-    fnode.attrs._filename = os.path.split(filename)[1]
+    fnode.attrs._filename = path.name
     fnode.close()
 
     # cleanup
@@ -822,6 +825,8 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
       given target ``filename`` will be created.
 
     """
+    path = Path(filename).resolve()
+
     new_h5file = not isinstance(h5file, tb.file.File)
     f = tb.File(h5file, "r") if new_h5file else h5file
     try:
@@ -838,22 +843,23 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
                                      "'%s'" % (name, where))
 
     # guess output filename if necessary
-    if os.path.isdir(filename) or filename.endswith(os.path.sep):
+    # TODO: pathlib.Path strips trailing slash automatically :-(
+    if path.is_dir() or filename.endswith(os.path.sep):
         try:
-            filename = os.path.join(filename, fnode.node.attrs._filename)
+            path = path / fnode.node.attrs._filename
         except Exception:
-            filename = os.path.join(filename, fnode.node.name)
+            path = path / fnode.node.name
 
-    if os.access(filename, os.R_OK) and not overwrite:
+    if os.access(path, os.R_OK) and not overwrite:
         if new_h5file:
             f.close()
-        raise OSError("The file '%s' already exists" % filename)
+        raise OSError(f"The file '{path}' already exists")
 
     # create folder hierarchy if necessary
-    if create_target and not os.path.isdir(os.path.split(filename)[0]):
-        os.makedirs(os.path.split(filename)[0])
+    if create_target:
+        path.parent.mkdir(parents=True, exist_ok=True)
 
-    if not os.access(os.path.split(filename)[0], os.W_OK):
+    if not os.access(path.parent, os.W_OK):
         if new_h5file:
             f.close()
         raise OSError("The file '%s' cannot be written to" % filename)
@@ -863,8 +869,7 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
     fnode.close()
 
     # store data to file
-    with open(filename, "wb") as fd:
-        fd.write(data)
+    path.write_bytes(data)
 
     # cleanup
     del data

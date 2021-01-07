@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
-import sqlite
-import random
-import sys
 import os
+import random
+import sqlite3
+import sys
+from pathlib import Path
 from time import perf_counter as clock
 from time import process_time as cpuclock
 
@@ -116,7 +117,7 @@ CREATE INDEX ivar3 ON small(var3);
         instd.write(CREATESTD)
         instd.close()
 
-    conn = sqlite.connect(dbfile)
+    conn = sqlite3.connect(dbfile)
     cursor = conn.cursor()
     if indexmode == "standard":
         place_holders = ",".join(['%s'] * 3)
@@ -151,7 +152,7 @@ CREATE INDEX ivar3 ON small(var3);
         t1 = clock() - time1
         tcpu1 = cpuclock() - cpu1
         rowsecf = nrows / t1
-        size1 = os.stat(dbfile).st_size
+        size1 = Path(dbfile).stat().st_size
         print(f"******** Results for writing nrows = {nrows} *********")
         print(f"Insert time: {t1:.5f}, KRows/s: {nrows / 1000 / t1:.3f}")
         print(f", File size: {size1 / 1024 / 1024:.3f} MB")
@@ -171,7 +172,7 @@ CREATE INDEX ivar3 ON small(var3);
         tcpu2 = cpuclock() - cpu1
         rowseci = nrows / t2
         print(f"Index time: {t2:.5f}, IKRows/s: {nrows / 1000 / t2:.3f}")
-        size2 = os.stat(dbfile).st_size - size1
+        size2 = Path(dbfile).stat().st_size - size1
         print(f", Final size with index: {size2 / 1024 / 1024:.3f} MB")
 
     conn.close()
@@ -202,7 +203,7 @@ CREATE INDEX ivar3 ON small(var3);
 
 def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     # Connect to the database.
-    conn = sqlite.connect(db=dbfile, mode=755)
+    conn = sqlite3.connect(db=dbfile, mode=755)
     # Obtain a cursor
     cursor = conn.cursor()
 
@@ -436,7 +437,7 @@ if __name__ == "__main__":
         nrows -= 1  # the worst case
 
     # Create the benchfile (if needed)
-    if not os.path.exists(bfile):
+    if not Path(bfile).exists():
         createNewBenchFile(bfile, verbose)
 
     if testwrite:

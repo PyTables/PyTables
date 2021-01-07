@@ -7,12 +7,12 @@ Usage: python split-file.py prefix filename
 """
 
 import sys
+from pathlib import Path
 
 prefix = sys.argv[1]
 filename = sys.argv[2]
-f = open(filename)
 sf = None
-for line in f:
+for line in Path(filename).read_text().splitlines():
     if line.startswith('Processing database:'):
         if sf:
             sf.close()
@@ -37,4 +37,3 @@ for line in f:
         sf = file(sfilename, 'a')
     if sf:
         sf.write(line)
-f.close()

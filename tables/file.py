@@ -19,11 +19,11 @@ nodes.
 """
 
 import datetime
-import os
 import sys
 import weakref
 import warnings
 from collections import defaultdict
+from pathlib import Path
 
 import numexpr as ne
 import numpy as np
@@ -1961,7 +1961,7 @@ class File(hdf5extension.File):
         self._check_open()
 
         # Check that we are not treading our own shoes
-        if os.path.abspath(self.filename) == os.path.abspath(dstfilename):
+        if Path(self.filename).resolve() == Path(dstfilename).resolve():
             raise OSError("You cannot copy a file over itself")
 
         # Compute default arguments.
@@ -1976,10 +1976,11 @@ class File(hdf5extension.File):
         copyuserattrs = kwargs.get('copyuserattrs', True)
         title = kwargs.pop('title', self.title)
 
-        if os.path.isfile(dstfilename) and not overwrite:
-            raise OSError(("file ``%s`` already exists; "
-                           "you may want to use the ``overwrite`` "
-                           "argument") % dstfilename)
+        if Path(dstfilename).is_file() and not overwrite:
+            raise OSError(
+                f"file ``{dstfilename}`` already exists; you may want to "
+                f"use the ``overwrite`` argument"
+            )
 
         # Create destination file, overwriting it.
         dstfileh = open_file(
@@ -2786,7 +2787,7 @@ class File(hdf5extension.File):
         # Print all the nodes (Group and Leaf objects) on object tree
         try:
             date = datetime.datetime.fromtimestamp(
-                os.stat(self.filename).st_mtime, datetime.timezone.utc
+                Path(self.filename).stat().st_mtime, datetime.timezone.utc
             ).isoformat(timespec='seconds')
         except OSError:
             # in-memory file
