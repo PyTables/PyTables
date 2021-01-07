@@ -233,18 +233,16 @@ if __name__ == "__main__":
                 for suffix in self._runtime_suffixes:
                     try:
                         ctypes.CDLL(f"{prefix}{self.runtime_name}{suffix}")
-                        return True
                     except OSError:
                         pass
+                    else:
+                        return True
 
         def _pkg_config(self, flags):
             try:
                 cmd = [PKG_CONFIG] + flags.split() + [self.library_name]
                 config = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-
-            # subprocess.CalledProcessError is only available in Python >= 2.7
-            # except (OSError, subprocess.CalledProcessError):
-            except Exception:
+            except (OSError, subprocess.CalledProcessError):
                 return []
             else:
                 return config.decode().strip().split()
@@ -280,10 +278,9 @@ if __name__ == "__main__":
 
             if use_pkgconfig:
                 # header
-                pkgconfig_header_dirs = self._pkg_config("--cflags")
                 pkgconfig_header_dirs = [
-                    d.lstrip("-I")
-                    for d in pkgconfig_header_dirs
+                    d[2:]
+                    for d in self._pkg_config("--cflags")
                     if d.startswith("-I")
                 ]
                 if pkgconfig_header_dirs:
@@ -293,10 +290,9 @@ if __name__ == "__main__":
                     )
 
                 # library
-                pkgconfig_library_dirs = self._pkg_config("--libs-only-L")
                 pkgconfig_library_dirs = [
-                    d.lstrip("-L")
-                    for d in pkgconfig_library_dirs
+                    d[2:]
+                    for d in self._pkg_config("--libs-only-L")
                     if d.startswith("-L")
                 ]
                 if pkgconfig_library_dirs:
@@ -496,42 +492,37 @@ if __name__ == "__main__":
     # ...then the command line.
     # Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH] --blosc=[PATH]
     # --lflags=[FLAGS] --cflags=[FLAGS] and --debug
-    args = sys.argv[:]
-    for arg in args:
-        if arg.find("--hdf5=") == 0:
-            HDF5_DIR = expanduser(arg.split("=")[1])
-            sys.argv.remove(arg)
-        elif arg.find("--lzo=") == 0:
-            LZO_DIR = expanduser(arg.split("=")[1])
-            sys.argv.remove(arg)
-        elif arg.find("--bzip2=") == 0:
-            BZIP2_DIR = expanduser(arg.split("=")[1])
-            sys.argv.remove(arg)
-        elif arg.find("--blosc=") == 0:
-            BLOSC_DIR = expanduser(arg.split("=")[1])
-            sys.argv.remove(arg)
-        elif arg.find("--lflags=") == 0:
-            LFLAGS = arg.split("=")[1].split()
-            sys.argv.remove(arg)
-        elif arg.find("--cflags=") == 0:
-            CFLAGS = arg.split("=")[1].split()
-            sys.argv.remove(arg)
-        elif arg.find("--debug") == 0:
+    for arg in list(sys.argv):
+        key, _, val = arg.partition("=")
+        if key == "--hdf5":
+            HDF5_DIR = expanduser(val)
+        elif key == "--lzo":
+            LZO_DIR = expanduser(val)
+        elif key == "--bzip2":
+            BZIP2_DIR = expanduser(val)
+        elif key == "--blosc":
+            BLOSC_DIR = expanduser(val)
+        elif key == "--lflags":
+            LFLAGS = val.split()
+        elif key == "--cflags":
+            CFLAGS = val.split()
+        elif key == "--debug":
             # For debugging (mainly compression filters)
             if os.name != "nt":  # to prevent including dlfcn.h by utils.c!!!
                 def_macros = [("DEBUG", 1)]
             # Don't delete this argument. It maybe useful for distutils
             # when adding more flags later on
-            # sys.argv.remove(arg)
-        elif arg.find("--use-pkgconfig") == 0:
-            USE_PKGCONFIG = arg.split("=")[1]
+            continue
+        elif key == "--use-pkgconfig":
+            USE_PKGCONFIG = val
             CONDA_PREFIX = ""
-            sys.argv.remove(arg)
-        elif arg.find("--no-conda") == 0:
+        elif key == "--no-conda":
             CONDA_PREFIX = ""
-            sys.argv.remove(arg)
+        else:
+            continue
+        sys.argv.remove(arg)
 
-    USE_PKGCONFIG = True if USE_PKGCONFIG.upper() == "TRUE" else False
+    USE_PKGCONFIG = USE_PKGCONFIG.upper() == "TRUE"
     print("* USE_PKGCONFIG:", USE_PKGCONFIG)
 
     # For windows, search for the hdf5 dll in the path and use it if found.
@@ -626,7 +617,7 @@ if __name__ == "__main__":
 
         # looking for lzo/lzo1x.h but pkgconfig already returns
         # '/usr/include/lzo'
-        use_pkgconfig = USE_PKGCONFIG if package.tag != "LZO2" else False
+        use_pkgconfig = USE_PKGCONFIG and package.tag != "LZO2"
 
         (hdrdir, libdir, rundir) = package.find_directories(
             location, use_pkgconfig=use_pkgconfig
@@ -668,9 +659,8 @@ if __name__ == "__main__":
                     f"the ``{ptag}_DIR`` environment variable or by using "
                     f"the ``--{ptag.lower()}`` command-line option.",
                 )
-            if (
-                package.tag == "BLOSC"
-            ):  # this is optional, but comes with sources
+            if package.tag == "BLOSC":
+                # this is optional, but comes with sources
                 print(
                     f"* Could not find {package.name} headers and library; "
                     f"using internal sources."
@@ -768,10 +758,7 @@ if __name__ == "__main__":
         if package.tag == "LZO2":
             lzo2_enabled = True
 
-    if lzo2_enabled:
-        lzo_package = lzo2_package
-    else:
-        lzo_package = lzo1_package
+    lzo_package = lzo2_package if lzo2_enabled else lzo1_package
 
     # ------------------------------------------------------------------------------
 
