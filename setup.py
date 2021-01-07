@@ -11,6 +11,7 @@ import subprocess
 from os.path import exists, expanduser
 import glob
 import platform
+from pathlib import Path
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, find_packages
@@ -27,6 +28,8 @@ import distutils.spawn
 # This approach is based on this SO answer http://stackoverflow.com/a/21621689
 # This is also what pandas does.
 from setuptools.command.build_ext import build_ext
+
+ROOT = Path(__file__).resolve().parent
 
 if __name__ == "__main__":
     # `cpuinfo.py` uses multiprocessing to check CPUID flags. On Windows, the
@@ -45,8 +48,7 @@ if __name__ == "__main__":
     PKG_CONFIG = "pkg-config"
 
     # Fetch the requisites
-    with open("requirements.txt") as f:
-        requirements = f.read().splitlines()
+    requirements = (ROOT / "requirements.txt").read_text().splitlines()
 
     class BuildExtensions(build_ext):
         """Subclass setuptools build_ext command
@@ -103,18 +105,15 @@ if __name__ == "__main__":
     print(f"* Using Python {sys.version.splitlines()[0]}")
 
     # Minimum required versions for numpy, numexpr and HDF5
-    with open(os.path.join("tables", "req_versions.py")) as fd:
-        _min_versions = {}
-        exec(fd.read(), _min_versions)
+    _min_versions = {}
+    exec((ROOT / "tables" / "req_versions.py").read_text(), _min_versions)
+    min_hdf5_version = _min_versions["min_hdf5_version"]
+    min_blosc_version = _min_versions["min_blosc_version"]
+    min_blosc_bitshuffle_version = _min_versions[
+        "min_blosc_bitshuffle_version"
+    ]
 
-        min_hdf5_version = _min_versions["min_hdf5_version"]
-        min_blosc_version = _min_versions["min_blosc_version"]
-        min_blosc_bitshuffle_version = _min_versions[
-            "min_blosc_bitshuffle_version"
-        ]
-
-    with open("VERSION") as fd:
-        VERSION = fd.read().strip()
+    VERSION = (ROOT / "VERSION").read_text().strip()
 
     # ----------------------------------------------------------------------
 
@@ -827,8 +826,9 @@ if __name__ == "__main__":
 
     # Update the version.h file if this file is newer
     if newer("VERSION", "src/version.h"):
-        with open("src/version.h", "w") as fd:
-            fd.write(f'#define PYTABLES_VERSION "{VERSION}"\n')
+        (ROOT / "src" / "version.h").write_text(
+            f'#define PYTABLES_VERSION "{VERSION}"\n'
+        )
 
     # --------------------------------------------------------------------
 
