@@ -10,7 +10,6 @@ import textwrap
 import subprocess
 from os.path import exists, expanduser
 import glob
-import platform
 from pathlib import Path
 
 # Using ``setuptools`` enables lots of goodies
@@ -376,50 +375,35 @@ if __name__ == "__main__":
 
     # Get the HDF5 version provided the 'H5public.h' header
     def get_hdf5_version(headername):
-        major_version = -1
-        minor_version = -1
-        release_version = -1
-        with open(headername) as fd:
-            for line in fd:
-                if "H5_VERS_MAJOR" in line:
-                    major_version = int(line.split()[2])
-                if "H5_VERS_MINOR" in line:
-                    minor_version = int(line.split()[2])
-                if "H5_VERS_RELEASE" in line:
-                    release_version = int(line.split()[2])
-                if (
-                    major_version != -1
-                    and minor_version != -1
-                    and release_version != -1
-                ):
-                    break
-        if major_version == -1 or minor_version == -1 or release_version == -1:
+        major, minor, release = None, None, None
+        for line in Path(headername).read_text().splitlines():
+            if "H5_VERS_MAJOR" in line:
+                major = int(line.split()[2])
+            elif "H5_VERS_MINOR" in line:
+                minor = int(line.split()[2])
+            elif "H5_VERS_RELEASE" in line:
+                release = int(line.split()[2])
+            if None not in (major, minor, release):
+                break
+        else:
             exit_with_error("Unable to detect HDF5 library version!")
-        return LooseVersion(
-            "{}.{}.{}".format(major_version, minor_version, release_version)
-        )
+        return LooseVersion(f"{major}.{minor}.{release}")
 
     # Get the Blosc version provided the 'blosc.h' header
     def get_blosc_version(headername):
-        major_version = -1
-        minor_version = -1
-        release_version = -1
-        for line in open(headername):
+        major, minor, release = None, None, None
+        for line in Path(headername).read_text().splitlines():
             if "BLOSC_VERSION_MAJOR" in line:
-                major_version = int(line.split()[2])
-            if "BLOSC_VERSION_MINOR" in line:
-                minor_version = int(line.split()[2])
-            if "BLOSC_VERSION_RELEASE" in line:
-                release_version = int(line.split()[2])
-            if (
-                major_version != -1
-                and minor_version != -1
-                and release_version != -1
-            ):
+                major = int(line.split()[2])
+            elif "BLOSC_VERSION_MINOR" in line:
+                minor = int(line.split()[2])
+            elif "BLOSC_VERSION_RELEASE" in line:
+                release = int(line.split()[2])
+            if None not in (major, minor, release):
                 break
-        if major_version == -1 or minor_version == -1 or release_version == -1:
+        else:
             exit_with_error("Unable to detect Blosc library version!")
-        return f"{major_version}.{minor_version}.{release_version}"
+        return LooseVersion(f"{major}.{minor}.{release}")
 
     _cp = convert_path
     if os.name == "posix":
@@ -658,7 +642,7 @@ if __name__ == "__main__":
                     f"required. Found version v{hdf5_version}"
                 )
 
-            if os.name == "nt" and hdf5_version < "1.8.10":
+            if os.name == "nt" and hdf5_version < LooseVersion("1.8.10"):
                 # Change in DLL naming happened in 1.8.10
                 hdf5_old_dll_name = "hdf5dll" if not debug else "hdf5ddll"
                 package.library_name = hdf5_old_dll_name
@@ -951,18 +935,13 @@ if __name__ == "__main__":
         if "avx2" in cpu_flags and "DISABLE_AVX2" not in os.environ:
             print("AVX2 detected and enabled")
             if os.name == "nt":
-                if LooseVersion(platform.python_version()) >= LooseVersion(
-                    "3.5.0"
-                ):
-                    # MSVC2010 for Python 3.4 does not have sufficient AVX2
-                    # support
-                    def_macros += [("__AVX2__", 1)]
-                    CFLAGS.append("-DSHUFFLE_AVX2_ENABLED")
-                    blosc_sources += [
-                        f
-                        for f in glob.glob("c-blosc/blosc/*.c")
-                        if "avx2" in f
-                    ]
+                def_macros += [("__AVX2__", 1)]
+                CFLAGS.append("-DSHUFFLE_AVX2_ENABLED")
+                blosc_sources += [
+                    f
+                    for f in glob.glob("c-blosc/blosc/*.c")
+                    if "avx2" in f
+                ]
             elif compiler_has_flags(compiler, ["-mavx2"]):
                 CFLAGS.append("-DSHUFFLE_AVX2_ENABLED")
                 CFLAGS.append("-mavx2")
