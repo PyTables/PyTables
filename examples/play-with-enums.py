@@ -93,6 +93,6 @@ for (d1, d2) in earr:
     print("From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2 - d1 + 1))
 
 COMMENT("Close the PyTables file and remove it.")
-import os
+from pathlib import Path
 h5f.close()
-os.remove('enum.h5')
+Path('enum.h5').unlink()

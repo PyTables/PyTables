@@ -14,6 +14,7 @@ import os
 import shutil
 import tempfile
 import warnings
+from pathlib import Path
 
 from ... import open_file, file, NoSuchNodeError
 from ...nodes import filenode
@@ -831,7 +832,7 @@ class OldVersionTestCase(TestCase):
         self.fnode = None
         self.h5file.close()
         self.h5file = None
-        os.remove(self.h5fname)
+        Path(self.h5fname).unlink()
         super().tearDown()
 
     def test00_Read(self):
@@ -911,8 +912,7 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         self.datafname = test_file(self.datafname)
         self.testfname = tempfile.mktemp()
         self.testh5fname = tempfile.mktemp(suffix=".h5")
-        with open(self.datafname, "rb") as fd:
-            self.data = fd.read()
+        self.data = Path(self.datafname).read_bytes()
         self.testdir = tempfile.mkdtemp()
 
     def tearDown(self):
@@ -922,9 +922,9 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
 
         """
         if os.access(self.testfname, os.R_OK):
-            os.remove(self.testfname)
+            Path(self.testfname).unlink()
         if os.access(self.testh5fname, os.R_OK):
-            os.remove(self.testh5fname)
+            Path(self.testh5fname).unlink()
         shutil.rmtree(self.testdir)
         super().tearDown()
 
@@ -943,8 +943,7 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         # read from test h5file
         filenode.read_from_filenode(self.testh5fname, self.testfname, "/test1")
         # and compare result to what it should be
-        with open(self.testfname, "rb") as fd:
-            self.assertEqual(fd.read(), self.data)
+        self.assertEqual(Path(self.testfname).read_bytes(), self.data)
         # make sure extracting to an existing file doesn't work ...
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -954,11 +953,10 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         filenode.read_from_filenode(self.testh5fname, self.testfname, "/",
                                     name="test2", overwrite=True)
         # and compare to what it should be
-        with open(self.testfname, "rb") as fd:
-            self.assertEqual(fd.read(), self.data)
+        self.assertEqual(Path(self.testfname).read_bytes(), self.data)
         # cleanup
-        os.remove(self.testfname)
-        os.remove(self.testh5fname)
+        Path(self.testfname).unlink()
+        Path(self.testh5fname).unlink()
 
 
     def test02_WriteToHDF5File(self):
@@ -973,8 +971,7 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         # read from test h5file
         filenode.read_from_filenode(self.h5file, self.testfname, "/test1")
         # and compare result to what it should be
-        with open(self.testfname, "rb") as fd:
-            self.assertEqual(fd.read(), self.data)
+        self.assertEqual(Path(self.testfname).read_bytes(), self.data)
         # make sure extracting to an existing file doesn't work ...
         self.assertRaises(IOError, filenode.read_from_filenode, self.h5file,
                           self.testfname, "/test1")
@@ -986,29 +983,29 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         # write using the filename as node name
         filenode.save_to_filenode(self.testh5fname, self.datafname, "/")
         # and read again
-        datafname = os.path.split(self.datafname)[1]
+        datafname = Path(self.datafname).name
         filenode.read_from_filenode(self.testh5fname, self.testdir, "/",
                                     name=datafname.replace(".", "_"))
         # test if the output file really has the expected name
-        self.assertEqual(os.access(os.path.join(self.testdir, datafname),
-                                   os.R_OK), True)
+        self.assertEqual(os.access(Path(self.testdir) / datafname, os.R_OK),
+                         True)
         # and compare result to what it should be
-        with open(os.path.join(self.testdir, datafname), "rb") as fd:
-            self.assertEqual(fd.read(), self.data)
+        self.assertEqual((Path(self.testdir) / datafname).read_bytes(),
+                         self.data)
 
     def test04_AutomaticNameGuessingWithFilenameAttribute(self):
         # write using the filename as node name
         filenode.save_to_filenode(self.testh5fname, self.datafname, "/")
         # and read again
-        datafname = os.path.split(self.datafname)[1]
+        datafname = Path(self.datafname).name
         filenode.read_from_filenode(self.testh5fname, self.testdir, "/",
                                     name=datafname)
         # test if the output file really has the expected name
-        self.assertEqual(os.access(os.path.join(self.testdir, datafname),
-                                   os.R_OK), True)
+        self.assertEqual(os.access(Path(self.testdir) / datafname, os.R_OK),
+                         True)
         # and compare result to what it should be
-        with open(os.path.join(self.testdir, datafname), "rb") as fd:
-            self.assertEqual(fd.read(), self.data)
+        self.assertEqual((Path(self.testdir) / datafname).read_bytes(),
+                         self.data)
 
     def test05_ReadFromNonexistingNodeRaises(self):
         # write using the filename as node name

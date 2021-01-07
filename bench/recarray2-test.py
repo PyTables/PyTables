@@ -1,5 +1,5 @@
-import os
 import sys
+from pathlib import Path
 from time import perf_counter as clock
 import numpy as np
 import chararray
@@ -80,24 +80,22 @@ print()
 
 print("Printing in recarray original")
 print("------------------------------")
-f = open("test.out", "w")
-t1 = clock()
-f.write(str(r1))
-t2 = clock()
-origtime = t2 - t1
-f.close()
-os.unlink("test.out")
+with Path("test.out").open("w") as f:
+    t1 = clock()
+    f.write(str(r1))
+    t2 = clock()
+    origtime = t2 - t1
+Path("test.out").unlink()
 print(f"Print time: {origtime:.3f} Rows/s: {reclen / (origtime + delta):.0f}")
 print()
 print("Printing in recarray modified")
 print("------------------------------")
-f = open("test2.out", "w")
-t1 = clock()
-f.write(str(r2))
-t2 = clock()
-ttime = t2 - t1
-f.close()
-os.unlink("test2.out")
+with Path("test2.out").open("w") as f:
+    t1 = clock()
+    f.write(str(r2))
+    t2 = clock()
+    ttime = t2 - t1
+Path("test2.out").unlink()
 print(f"Print time: {ttime:.3f} Rows/s: {reclen / (ttime + delta):.0f}", end=' ')
 print(f" Speed-up: {origtime / ttime:.3f}")
 print()

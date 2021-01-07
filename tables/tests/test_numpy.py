@@ -1,6 +1,6 @@
-import os
 import sys
 import tempfile
+from pathlib import Path
 
 import numpy as np
 
@@ -92,8 +92,8 @@ class BasicTestCase(common.PyTablesTestCase):
                 self.assertTrue(common.allequal(a, b, "numpy"))
         finally:
             # Then, delete the file
-            if os.path.exists(self.h5fname):
-                os.remove(self.h5fname)
+            if Path(self.h5fname).is_file():
+                Path(self.h5fname).unlink()
 
     def test00_char(self):
         """Data integrity during recovery (character objects)"""

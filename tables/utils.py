@@ -14,7 +14,7 @@ import math
 import os
 import sys
 import warnings
-import subprocess
+from pathlib import Path
 from time import perf_counter as clock
 
 import numpy as np
@@ -146,43 +146,42 @@ def check_file_access(filename, mode='r'):
 
     """
 
+    path = Path(filename).resolve()
+
     if mode == 'r':
         # The file should be readable.
-        if not os.access(filename, os.F_OK):
-            raise OSError(f"``{filename}`` does not exist")
-        if not os.path.isfile(filename):
-            raise OSError(f"``{filename}`` is not a regular file")
-        if not os.access(filename, os.R_OK):
-            raise OSError("file ``%s`` exists but it can not be read"
-                          % (filename,))
+        if not os.access(path, os.F_OK):
+            raise OSError(f"``{path}`` does not exist")
+        if not path.is_file():
+            raise OSError(f"``{path}`` is not a regular file")
+        if not os.access(path, os.R_OK):
+            raise OSError(f"file ``{path}`` exists but it can not be read")
     elif mode == 'w':
-        if os.access(filename, os.F_OK):
+        if os.access(path, os.F_OK):
             # Since the file is not removed but replaced,
             # it must already be accessible to read and write operations.
-            check_file_access(filename, 'r+')
+            check_file_access(path, 'r+')
         else:
             # A new file is going to be created,
             # so the directory should be writable.
-            parentname = os.path.dirname(filename)
-            if not parentname:
-                parentname = '.'
-            if not os.access(parentname, os.F_OK):
-                raise OSError(f"``{parentname}`` does not exist")
-            if not os.path.isdir(parentname):
-                raise OSError(f"``{parentname}`` is not a directory")
-            if not os.access(parentname, os.W_OK):
-                raise OSError("directory ``%s`` exists but it can not be "
-                              "written" % (parentname,))
+            if not os.access(path.parent, os.F_OK):
+                raise OSError(f"``{path.parent}`` does not exist")
+            if not path.parent.is_dir():
+                raise OSError(f"``{path.parent}`` is not a directory")
+            if not os.access(path.parent, os.W_OK):
+                raise OSError(
+                    f"directory ``{path.parent}`` exists but it can not be "
+                    f"written"
+                )
     elif mode == 'a':
-        if os.access(filename, os.F_OK):
-            check_file_access(filename, 'r+')
+        if os.access(path, os.F_OK):
+            check_file_access(path, 'r+')
         else:
-            check_file_access(filename, 'w')
+            check_file_access(path, 'w')
     elif mode == 'r+':
-        check_file_access(filename, 'r')
-        if not os.access(filename, os.W_OK):
-            raise OSError("file ``%s`` exists but it can not be written"
-                          % (filename,))
+        check_file_access(path, 'r')
+        if not os.access(path, os.W_OK):
+            raise OSError(f"file ``{path}`` exists but it can not be written")
     else:
         raise ValueError(f"invalid mode: {mode!r}")
 
@@ -244,14 +243,7 @@ def lazyattr(fget):
 def show_stats(explain, tref, encoding=None):
     """Show the used memory (only works for Linux 2.6.x)."""
 
-    if encoding is None:
-        encoding = sys.getdefaultencoding()
-
-    # Build the command to obtain memory info
-    cmd = "cat /proc/%s/status" % os.getpid()
-    sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
-    for line in sout:
-        line = line.decode(encoding)
+    for line in Path('/proc/self/status').read_text().splitlines():
         if line.startswith("VmSize:"):
             vmsize = int(line.split()[1])
         elif line.startswith("VmRSS:"):
@@ -264,7 +256,6 @@ def show_stats(explain, tref, encoding=None):
             vmexe = int(line.split()[1])
         elif line.startswith("VmLib:"):
             vmlib = int(line.split()[1])
-    sout.close()
     print("Memory usage: ******* %s *******" % explain)
     print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
     print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")

@@ -13,9 +13,9 @@
 import functools
 import math
 import operator
-import os
 import sys
 import warnings
+from pathlib import Path
 
 from time import perf_counter as clock
 
@@ -3573,11 +3573,12 @@ class Column:
         if filters is None:
             filters = default_index_filters
         if tmp_dir is None:
-            tmp_dir = os.path.dirname(self._table_file.filename)
+            tmp_dir = str(Path(self._table_file.filename).parent)
         else:
-            if not os.path.isdir(tmp_dir):
-                raise ValueError("Temporary directory '%s' does not exist" %
-                                 tmp_dir)
+            if not Path(tmp_dir).is_dir():
+                raise ValueError(
+                    f"Temporary directory '{tmp_dir}' does not exist"
+                )
         if (_blocksizes is not None and
                 (not isinstance(_blocksizes, tuple) or len(_blocksizes) != 4)):
             raise ValueError("_blocksizes must be a tuple with exactly 4 "

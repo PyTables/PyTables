@@ -163,9 +163,8 @@ if __name__ == "__main__":
         prof = Profile()
         prof.run('evaluate("a*b+c", out)')
         kcg = lsprofcalltree.KCacheGrind(prof)
-        ofile = open('evaluate.kcg', 'w')
-        kcg.output(ofile)
-        ofile.close()
+        with Path('evaluate.kcg').open('w') as ofile:
+            kcg.output(ofile)
     else:
         evaluate("a*b+c", out)
     print(f"Time for evaluate--> {clock() - t0:.3f}")

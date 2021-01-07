@@ -1,3 +1,4 @@
+from pathlib import Path
 from pylab import *
 
 linewidth = 2
@@ -8,11 +9,10 @@ markersize = 8
 
 
 def get_values(filename):
-    f = open(filename)
     sizes = []
     values = []
     isize = None
-    for line in f:
+    for line in Path(filename).read_text().splitlines():
         if line.startswith('range'):
             tmp = line.split(':')[1]
             tmp = tmp.strip()
@@ -68,8 +68,6 @@ def get_values(filename):
                 elif query_warm and 'warm' in line:
                     sizes.append(isize)
                     values.append(qtime)
-
-    f.close()
     return sizes, values
 
 

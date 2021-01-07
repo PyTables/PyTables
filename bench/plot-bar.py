@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # a stacked bar plot with errorbars
 
+from pathlib import Path
 from pylab import *
 
 checks = ['open_close', 'only_open',
@@ -15,15 +16,13 @@ ind = arange(len(checks))    # the x locations for the groups
 
 def get_values(filename):
     values = []
-    f = open(filename)
-    for line in f:
+    for line in Path(filename).read_text().splitlines():
         if show_memory:
             if line.startswith('VmData:'):
                 values.append(float(line.split()[1]) / 1024)
         else:
             if line.startswith('WallClock time:'):
                 values.append(float(line.split(':')[1]))
-    f.close()
     return values
 
 

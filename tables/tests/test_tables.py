@@ -1,9 +1,9 @@
 import itertools
-import os
 import sys
 import tempfile
 import struct
 import platform
+from pathlib import Path
 
 import numpy as np
 
@@ -1908,7 +1908,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTe
         complevel = 1
         self.create_table(complevel)
         self.table.append([tuple(range(10))] * self.chunkshape[0] * 10)
-        file_size = os.stat(self.h5fname).st_size
+        file_size = Path(self.h5fname).stat().st_size
         self.assertTrue(
             abs(self.table.size_on_disk - file_size) <= self.hdf_overhead)
         self.assertEqual(self.table.size_in_memory, 10 * 1000 * 10 * 4)
@@ -5610,8 +5610,8 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 tbl2 = h5file2.root.test
                 tbl1.append_where(tbl2, 'id > 1')
         finally:
-            if os.path.exists(h5fname2):
-                os.remove(h5fname2)
+            if Path(h5fname2).is_file():
+                Path(h5fname2).unlink()
 
     def test06_wholeTable(self):
         """Append whole table."""

@@ -9,11 +9,11 @@ It also checks:
 
 """
 
-import os
 import sys
 import hashlib
 import tempfile
 import warnings
+from pathlib import Path
 
 import numpy as np
 
@@ -751,7 +751,7 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Close the file
         if self.h5file2.isopen:
             self.h5file2.close()
-        os.remove(self.h5fname2)
+        Path(self.h5fname2).unlink()
 
         super().tearDown()
 
@@ -1096,8 +1096,8 @@ class CopyFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if hasattr(self, 'h5file2') and self.h5file2.isopen:
             self.h5file2.close()
 
-        if hasattr(self, 'h5fname2') and os.path.exists(self.h5fname2):
-            os.remove(self.h5fname2)
+        if hasattr(self, 'h5fname2') and Path(self.h5fname2).is_file():
+            Path(self.h5fname2).unlink()
 
         super().tearDown()
 
@@ -1109,8 +1109,7 @@ class CopyFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Running %s.test00_overwrite..." % self.__class__.__name__)
 
         # Create a temporary file
-        file2h = open(self.h5fname2, "w")
-        file2h.close()
+        Path(self.h5fname2).write_text('')
 
         # Copy the file to the destination
         self.h5file.copy_file(self.h5fname2, title=self.title,
@@ -1378,7 +1377,7 @@ class CopyFileCase10(common.TempFileMixin, common.PyTablesTestCase):
                 IOError, self.h5file.copy_file, self.h5fname2, overwrite=False)
         finally:
             # Delete files
-            os.remove(self.h5fname2)
+            Path(self.h5fname2).unlink()
 
 
 class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -1447,7 +1446,7 @@ class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
             finally:
                 copyf.close()
         finally:
-            os.remove(copyfname)
+            Path(copyfname).unlink()
 
     def test01_copyFile(self):
         """Keeping filters when copying a file."""
@@ -1601,7 +1600,7 @@ class DefaultDriverTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                  title="table")
 
     def assertIsFile(self):
-        self.assertTrue(os.path.isfile(self.h5fname))
+        self.assertTrue(Path(self.h5fname).is_file())
 
     def test_newFile(self):
         self.assertIsInstance(self.h5file, tb.File)
@@ -1792,15 +1791,15 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
                 h5file.close()
 
         self.h5file = None
-        if os.path.isfile(self.h5fname):
-            os.remove(self.h5fname)
+        if Path(self.h5fname).is_file():
+            Path(self.h5fname).unlink()
 
         super().tearDown()
 
     def test_newFile(self):
         """Ensure that nothing is written to file."""
 
-        self.assertFalse(os.path.isfile(self.h5fname))
+        self.assertFalse(Path(self.h5fname).is_file())
 
         self.h5file = tb.open_file(self.h5fname, mode="w",
                                    driver=self.DRIVER,
@@ -1814,10 +1813,10 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
                                  title="table")
         self.h5file.close()     # flush
 
-        self.assertFalse(os.path.isfile(self.h5fname))
+        self.assertFalse(Path(self.h5fname).is_file())
 
     def test_readNewFileW(self):
-        self.assertFalse(os.path.isfile(self.h5fname))
+        self.assertFalse(Path(self.h5fname).is_file())
 
         # Create an HDF5 file and contents
         self.h5file = tb.open_file(self.h5fname, mode="w",
@@ -1841,10 +1840,10 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
         self.h5file.close()     # flush
 
-        self.assertFalse(os.path.isfile(self.h5fname))
+        self.assertFalse(Path(self.h5fname).is_file())
 
     def test_readNewFileA(self):
-        self.assertFalse(os.path.isfile(self.h5fname))
+        self.assertFalse(Path(self.h5fname).is_file())
 
         # Create an HDF5 file and contents
         self.h5file = tb.open_file(self.h5fname, mode="a",
@@ -1868,16 +1867,16 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
         self.h5file.close()     # flush
 
-        self.assertFalse(os.path.isfile(self.h5fname))
+        self.assertFalse(Path(self.h5fname).is_file())
 
     def test_openNewFileRW(self):
-        self.assertFalse(os.path.isfile(self.h5fname))
+        self.assertFalse(Path(self.h5fname).is_file())
         self.assertRaises(tb.HDF5ExtError,
                           tb.open_file, self.h5fname, mode="r+",
                           driver=self.DRIVER, driver_core_backing_store=False)
 
     def test_openNewFileR(self):
-        self.assertFalse(os.path.isfile(self.h5fname))
+        self.assertFalse(Path(self.h5fname).is_file())
         self.assertRaises(tb.HDF5ExtError,
                           tb.open_file, self.h5fname, mode="r",
                           driver=self.DRIVER, driver_core_backing_store=False)
@@ -1895,7 +1894,7 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
     def test_readFile(self):
         self._create_file(self.h5fname)
-        self.assertTrue(os.path.isfile(self.h5fname))
+        self.assertTrue(Path(self.h5fname).is_file())
 
         # Open an existing HDF5 file
         self.h5file = tb.open_file(self.h5fname, mode="r",
@@ -1915,20 +1914,13 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
     def _get_digest(self, filename):
         md5 = hashlib.md5()
-        fd = open(filename, 'rb')
-
-        for data in fd:
-            md5.update(data)
-
-        fd.close()
-
+        md5.update(Path(filename).read_bytes())
         hexdigest = md5.hexdigest()
-
         return hexdigest
 
     def test_openFileA(self):
         self._create_file(self.h5fname)
-        self.assertTrue(os.path.isfile(self.h5fname))
+        self.assertTrue(Path(self.h5fname).is_file())
 
         # compute the file hash
         hexdigest = self._get_digest(self.h5fname)
@@ -1964,7 +1956,7 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
 
     def test_openFileRW(self):
         self._create_file(self.h5fname)
-        self.assertTrue(os.path.isfile(self.h5fname))
+        self.assertTrue(Path(self.h5fname).is_file())
 
         # compute the file hash
         hexdigest = self._get_digest(self.h5fname)
@@ -2035,14 +2027,14 @@ class SplitDriverTestCase(DefaultDriverTestCase):
     def tearDown(self):
         self.h5file.close()
         for fname in self.h5fnames:
-            if os.path.isfile(fname):
-                os.remove(fname)
+            if Path(fname).is_file():
+                Path(fname).unlink()
         #super().tearDown()
         common.PyTablesTestCase.tearDown(self)
 
     def assertIsFile(self):
         for fname in self.h5fnames:
-            self.assertTrue(os.path.isfile(fname))
+            self.assertTrue(Path(fname).is_file())
 
 
 class NotSpportedDriverTestCase(common.PyTablesTestCase):
@@ -2059,14 +2051,14 @@ class NotSpportedDriverTestCase(common.PyTablesTestCase):
         if self.h5fname in open_files:
             for h5file in open_files.get_handlers_by_name(self.h5fname):
                 h5file.close()
-        if os.path.exists(self.h5fname):
-            os.remove(self.h5fname)
+        if Path(self.h5fname).is_file():
+            Path(self.h5fname).unlink()
         super().tearDown()
 
     def test_newFile(self):
         self.assertRaises(self.EXCEPTION, tb.open_file, self.h5fname,
                           mode="w", driver=self.DRIVER, **self.DRIVER_PARAMS)
-        self.assertFalse(os.path.isfile(self.h5fname))
+        self.assertFalse(Path(self.h5fname).is_file())
 
 
 if "H5FD_LOG" in tb.hdf5extension._supported_drivers:
@@ -2089,8 +2081,8 @@ class LogDriverTestCase(BaseLogDriverTestCase):
         super().setUp()
 
     def tearDown(self):
-        if os.path.exists(self.DRIVER_PARAMS["driver_log_file"]):
-            os.remove(self.DRIVER_PARAMS["driver_log_file"])
+        if Path(self.DRIVER_PARAMS["driver_log_file"]).is_file():
+            Path(self.DRIVER_PARAMS["driver_log_file"]).unlink()
         super().tearDown()
 
 
@@ -2154,8 +2146,8 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
             self.h5file.close()
         self.h5file = None
 
-        if os.path.isfile(self.h5fname):
-            os.remove(self.h5fname)
+        if Path(self.h5fname).is_file():
+            Path(self.h5fname).unlink()
         super().tearDown()
 
     def _create_image(self, filename="in-memory", title="Title", mode='w'):
@@ -2179,17 +2171,17 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         image = self._create_image(self.h5fname, mode='w')
         self.assertGreater(len(image), 0)
         self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
     def test_newFileA(self):
         image = self._create_image(self.h5fname, mode='a')
         self.assertGreater(len(image), 0)
         self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
     def test_openFileR(self):
         image = self._create_image(self.h5fname)
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
         # Open an existing file
         self.h5file = tb.open_file(self.h5fname, mode="r",
@@ -2210,7 +2202,7 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
     def test_openFileRW(self):
         image = self._create_image(self.h5fname)
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
         # Open an existing file
         self.h5file = tb.open_file(self.h5fname, mode="r+",
@@ -2236,12 +2228,12 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         self.h5file.close()
 
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
     def test_openFileRW_update(self):
         filename = tempfile.mktemp(".h5")
         image1 = self._create_image(filename)
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
         # Open an existing file
         self.h5file = tb.open_file(self.h5fname, mode="r+",
@@ -2269,7 +2261,7 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         self.h5file.close()
 
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
         self.assertNotEqual(len(image1), len(image2))
         self.assertNotEqual(image1, image2)
@@ -2300,11 +2292,11 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         self.h5file.close()
 
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
     def test_openFileA(self):
         image = self._create_image(self.h5fname)
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
         # Open an existing file
         self.h5file = tb.open_file(self.h5fname, mode="a",
@@ -2325,12 +2317,12 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         self.h5file.close()
 
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
     def test_openFileA_update(self):
         h5fname = tempfile.mktemp(".h5")
         image1 = self._create_image(h5fname)
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
         # Open an existing file
         self.h5file = tb.open_file(self.h5fname, mode="a",
@@ -2358,7 +2350,7 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         self.h5file.close()
 
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
         self.assertNotEqual(len(image1), len(image2))
         self.assertNotEqual(image1, image2)
@@ -2389,7 +2381,7 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         self.h5file.close()
 
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
     def test_str(self):
         self.h5file = tb.open_file(self.h5fname, mode="w", title="Title",
@@ -2408,7 +2400,7 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
         self.assertIsNotNone(str(self.h5file))
 
         self.h5file.close()
-        self.assertFalse(os.path.exists(self.h5fname))
+        self.assertFalse(Path(self.h5fname).exists())
 
 
 class QuantizeTestCase(common.TempFileMixin, common.PyTablesTestCase):

@@ -6,9 +6,9 @@ import sys
 import queue
 
 import multiprocessing
-import os
 import random
 import time
+from pathlib import Path
 
 import numpy as np
 import tables as tb
@@ -174,6 +174,6 @@ if __name__ == '__main__':
         print()
         print(f'contents of log file {output_file}')
         print(open(output_file).read())
-        os.remove(output_file)
+        Path(output_file).unlink()
 
-    os.remove('test.h5')
+    Path('test.h5').unlink()

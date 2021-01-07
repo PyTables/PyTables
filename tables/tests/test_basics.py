@@ -7,6 +7,7 @@ import warnings
 import threading
 import subprocess
 import queue
+from pathlib import Path
 
 try:
     import multiprocessing as mp
@@ -42,7 +43,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
 
         # create a dummy file
         h5fname = tempfile.mktemp(".h5")
-        open(h5fname, 'wb').close()
+        Path(h5fname).write_text('')
 
         # Try to open the dummy file
         try:
@@ -52,7 +53,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
 
             self.assertEqual(self.N, len(self.open_files))
         finally:
-            os.remove(h5fname)
+            Path(h5fname).unlink()
 
     def test03_open_file(self):
         """Checking opening of an existing file with invalid mode."""
@@ -68,7 +69,7 @@ class OpenFileFailureTestCase(common.PyTablesTestCase):
             # Try to open the dummy file
             self.assertRaises(ValueError, tb.open_file, h5fname, "ab")
         finally:
-            os.remove(h5fname)
+            Path(h5fname).unlink()
 
 
 class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -133,7 +134,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_newFile_unicode_filename(self):
         temp_dir = tempfile.mkdtemp()
         try:
-            h5fname = str(os.path.join(temp_dir, 'test.h5'))
+            h5fname = str(Path(temp_dir) / 'test.h5')
             with tb.open_file(h5fname, 'w') as h5file:
                 self.assertTrue(h5file, tb.File)
         finally:
@@ -142,7 +143,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_newFile_numpy_str_filename(self):
         temp_dir = tempfile.mkdtemp()
         try:
-            h5fname = np.str_(os.path.join(temp_dir, 'test.h5'))
+            h5fname = np.str_(Path(temp_dir) / 'test.h5')
             with tb.open_file(h5fname, 'w') as h5file:
                 self.assertTrue(h5file, tb.File)
         finally:
@@ -151,7 +152,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_newFile_numpy_unicode_filename(self):
         temp_dir = tempfile.mkdtemp()
         try:
-            h5fname = np.unicode_(os.path.join(temp_dir, 'test.h5'))
+            h5fname = np.unicode_(Path(temp_dir) / 'test.h5')
             with tb.open_file(h5fname, 'w') as h5file:
                 self.assertTrue(h5file, tb.File)
         finally:
@@ -900,7 +901,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         finally:
             h5file2.close()
-            os.remove(h5fname2)
+            Path(h5fname2).unlink()
 
     def test13f_copyRootRecursive(self):
         """Recursively copying the root group into a group in another file."""
@@ -924,7 +925,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         finally:
             h5file2.close()
-            os.remove(h5fname2)
+            Path(h5fname2).unlink()
 
     def test13g_copyRootItself(self):
         """Recursively copying the root group into itself."""
@@ -979,7 +980,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertIs(new_node, dstNode)
         finally:
             h5file2.close()
-            os.remove(h5fname2)
+            Path(h5fname2).unlink()
 
     def test14c_copyNodeExistingSelf(self):
         """Copying over self."""
@@ -1096,7 +1097,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
                              dstNode.agroup.anarray1.read())
         finally:
             h5file2.close()
-            os.remove(h5fname2)
+            Path(h5fname2).unlink()
 
     def test17a_CopyChunkshape(self):
         """Copying dataset with a chunkshape."""
@@ -1181,7 +1182,7 @@ class CheckFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def tearDown(self):
         self.fileh.close()
-        os.remove(self.txtfile)
+        Path(self.txtfile).unlink()
         super().tearDown()
 
     def test00_isHDF5File(self):
@@ -1218,7 +1219,7 @@ class CheckFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Identifying an unreadable HDF5 file."""
 
         self.h5file.close()
-        os.chmod(self.h5fname, 0)  # no permissions at all
+        Path(self.h5fname).chmod(0)  # no permissions at all
         self.assertRaises(IOError,  tb.is_hdf5_file, self.h5fname)
 
     def test02_isPyTablesFile(self):
@@ -1503,8 +1504,8 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertRaises(tb.ClosedFileError,
                               self.h5file.copy_file, h5cfname)
         finally:
-            if os.path.exists(h5cfname):
-                os.remove(h5cfname)
+            if Path(h5cfname).is_file():
+                Path(h5cfname).unlink()
 
     def test01_fileCloseClosed(self):
         """Test closing an already closed file."""
@@ -2019,8 +2020,8 @@ class FilePropertyTestCase(common.PyTablesTestCase):
         if self.h5file:
             self.h5file.close()
 
-        if os.path.exists(self.h5fname):
-            os.remove(self.h5fname)
+        if Path(self.h5fname).is_file():
+            Path(self.h5fname).unlink()
         super().tearDown()
 
     def test_get_filesize(self):
@@ -2032,7 +2033,7 @@ class FilePropertyTestCase(common.PyTablesTestCase):
         h5_filesize = self.h5file.get_filesize()
         self.h5file.close()
 
-        fs_filesize = os.stat(self.h5fname).st_size
+        fs_filesize = Path(self.h5fname).stat().st_size
 
         self.assertGreaterEqual(h5_filesize, datasize)
         self.assertEqual(h5_filesize, fs_filesize)
@@ -2164,7 +2165,7 @@ class BloscSubprocess(common.PyTablesTestCase):
                 if common.verbose:
                     print(result)
         finally:
-            os.remove(h5fname)
+            Path(h5fname).unlink()
 
 
 class HDF5ErrorHandling(common.PyTablesTestCase):
@@ -2199,7 +2200,7 @@ except tb.HDF5ExtError, e:
 
             self.assertNotIn("HDF5-DIAG", stderr.decode('ascii'))
         finally:
-            os.remove(filename)
+            Path(filename).unlink()
 
     def test_enable_messages(self):
         code = """
@@ -2214,8 +2215,7 @@ except tb.HDF5ExtError as e:
 
         filename = tempfile.mktemp(prefix="hdf5-error-handling-", suffix=".py")
         try:
-            with open(filename, 'w') as fp:
-                fp.write(code % filename)
+            Path(filename).write_text(code % filename)
 
             p = subprocess.Popen([sys.executable, filename],
                                  stdout=subprocess.PIPE,
@@ -2224,17 +2224,17 @@ except tb.HDF5ExtError as e:
 
             self.assertIn("HDF5-DIAG", stderr.decode('ascii'))
         finally:
-            os.remove(filename)
+            Path(filename).unlink()
 
     def _raise_exterror(self):
         h5fname = tempfile.mktemp(".h5")
-        open(h5fname, 'wb').close()
+        Path(h5fname).write_text('')
 
         try:
             h5file = tb.open_file(h5fname)
             h5file.close()
         finally:
-            os.remove(h5fname)
+            Path(h5fname).unlink()
 
     def test_h5_backtrace_quiet(self):
         tb.HDF5ExtError.DEFAULT_H5_BACKTRACE_POLICY = True

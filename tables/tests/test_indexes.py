@@ -1,6 +1,6 @@
-import os
 import copy
 import tempfile
+from pathlib import Path
 
 import numpy as np
 
@@ -669,7 +669,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             distance = tb.FloatCol(pos=1)
 
         # Delete the old temporal file
-        os.remove(self.h5fname)
+        Path(self.h5fname).unlink()
 
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = tb.open_file(self.h5fname, mode='w')

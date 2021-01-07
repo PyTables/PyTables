@@ -1,6 +1,8 @@
-from time import perf_counter as clock
-import subprocess
 import random
+import subprocess
+from pathlib import Path
+from time import perf_counter as clock
+
 import numpy as np
 
 # Constants
@@ -414,9 +416,8 @@ if __name__ == "__main__":
                 'db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, '
                 'avoidfscache, verbose, inkernel)')
             kcg = lsprofcalltree.KCacheGrind(prof)
-            ofile = open('indexed_search.kcg', 'w')
-            kcg.output(ofile)
-            ofile.close()
+            with Path('indexed_search.kcg').open('w') as ofile:
+                kcg.output(ofile)
         elif doprofile:
             import hotshot
             import hotshot.stats

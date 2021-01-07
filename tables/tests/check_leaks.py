@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from time import perf_counter as clock
 
 import tables as tb
@@ -10,21 +10,19 @@ trel = tref
 def show_mem(explain):
     global tref, trel
 
-    filename = "/proc/%s/status" % os.getpid()
-    with open(filename) as fd:
-        for line in fd:
-            if line.startswith("VmSize:"):
-                vmsize = int(line.split()[1])
-            elif line.startswith("VmRSS:"):
-                vmrss = int(line.split()[1])
-            elif line.startswith("VmData:"):
-                vmdata = int(line.split()[1])
-            elif line.startswith("VmStk:"):
-                vmstk = int(line.split()[1])
-            elif line.startswith("VmExe:"):
-                vmexe = int(line.split()[1])
-            elif line.startswith("VmLib:"):
-                vmlib = int(line.split()[1])
+    for line in Path(f"/proc/self/status").read_text().splitlines():
+        if line.startswith("VmSize:"):
+            vmsize = int(line.split()[1])
+        elif line.startswith("VmRSS:"):
+            vmrss = int(line.split()[1])
+        elif line.startswith("VmData:"):
+            vmdata = int(line.split()[1])
+        elif line.startswith("VmStk:"):
+            vmstk = int(line.split()[1])
+        elif line.startswith("VmExe:"):
+            vmexe = int(line.split()[1])
+        elif line.startswith("VmLib:"):
+            vmlib = int(line.split()[1])
 
     print("\nMemory usage: ******* %s *******" % explain)
     print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")

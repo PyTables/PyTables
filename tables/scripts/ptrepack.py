@@ -15,9 +15,9 @@ Pass the flag -h to this for help on usage.
 """
 
 import argparse
-import os
 import sys
 import warnings
+from pathlib import Path
 from time import perf_counter as clock
 from time import process_time as cpuclock
 
@@ -99,7 +99,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
     if dstleaf == "":
         dstleaf = srcnode.name
     # Check whether the destination group exists or not
-    if os.path.isfile(dstfile) and not overwritefile:
+    if Path(dstfile).is_file() and not overwritefile:
         dstfileh = tb.open_file(dstfile, 'a',
                                 pytables_sys_attrs=createsysattrs,
                                 allow_padding=allow_padding)
@@ -185,7 +185,7 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
 
     created_dstgroup = False
     # Check whether the destination group exists or not
-    if os.path.isfile(dstfile) and not overwritefile:
+    if Path(dstfile).is_file() and not overwritefile:
         dstfileh = tb.open_file(dstfile, 'a',
                                 pytables_sys_attrs=createsysattrs,
                                 allow_padding=allow_padding)

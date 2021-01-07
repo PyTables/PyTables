@@ -1,7 +1,7 @@
-import os
 import shutil
 import tempfile
 import warnings
+from pathlib import Path
 
 import numpy as np
 
@@ -191,7 +191,7 @@ class OldFlavorsTestCase01(common.PyTablesTestCase):
                 self.assertEqual(h5file.root.vlarray1copy.flavor, 'numeric')
                 self.assertEqual(h5file.root.vlarray2copy.flavor, 'python')
         finally:
-            os.remove(tmpfile)
+            Path(tmpfile).unlink()
 
 
 class OldFlavorsTestCase02(common.PyTablesTestCase):

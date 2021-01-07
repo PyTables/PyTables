@@ -5,16 +5,17 @@ the raw data file in a subdirectory.
 
 """
 
-import os
 import errno
+from pathlib import Path
+
 import numpy as np
 import tables as tb
 
 FNAME = "split"
 DRIVER = "H5FD_SPLIT"
-RAW_DIR = "raw"
+RAW_DIR = Path(__file__).with_name("raw")
 DRIVER_PROPS = {
-    "driver_split_raw_ext": os.path.join(RAW_DIR, "%s-r.h5")
+    "driver_split_raw_ext": str(RAW_DIR / "%s-r.h5")
 }
 DATA_SHAPE = (2, 10)
 
@@ -24,7 +25,7 @@ class FooBar(tb.IsDescription):
     data = tb.Float32Col(shape=DATA_SHAPE)
 
 try:
-    os.mkdir(RAW_DIR)
+    RAW_DIR.mkdir()
 except OSError as e:
     if e.errno == errno.EEXIST:
         pass

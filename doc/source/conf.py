@@ -13,6 +13,7 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+from pathlib import Path
 
 
 # -- Project information -----------------------------------------------------
@@ -22,7 +23,7 @@ copyright = '2011–2021, PyTables maintainers'
 author = 'PyTables maintainers'
 
 # The short X.Y version
-VERSION = open('../../VERSION').read().strip()
+VERSION = (Path(__file__).parent.parent.parent / 'VERSION').read_text().strip()
 version = VERSION
 
 # The full version, including alpha/beta/rc tags

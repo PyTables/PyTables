@@ -8,10 +8,9 @@ markersize = 8
 
 
 def get_values(filename):
-    f = open(filename)
     sizes = []
     values = []
-    for line in f:
+    for line in Path(filename).read_text().splitlines():
         if line.startswith('Processing database:'):
             txtime = 0
             line = line.split(':')[1]
@@ -93,8 +92,6 @@ def get_values(filename):
                 qtime = float(tmp[:tmp.index('+-')])
                 sizes.append(isize)
                 values.append(qtime)
-
-    f.close()
     return sizes, values
 
 

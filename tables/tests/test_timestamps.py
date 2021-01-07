@@ -5,6 +5,7 @@
 import hashlib
 import sys
 import time
+from pathlib import Path
 
 import tables as tb
 from tables.tests import common
@@ -143,12 +144,8 @@ class BitForBitTestCase(TrackTimesMixin, common.TempFileMixin, common.PyTablesTe
 
     def _get_digest(self, filename):
         md5 = hashlib.md5()
-        fd = open(filename, 'rb')
-
-        for data in fd:
+        for data in Path(filename).read_bytes():
             md5.update(data)
-
-        fd.close()
 
         hexdigest = md5.hexdigest()
 

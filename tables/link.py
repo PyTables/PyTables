@@ -25,8 +25,10 @@ Misc variables:
 
 """
 
-import os
+from pathlib import Path
+
 import tables as tb
+
 from . import linkextension
 from .node import Node
 from .utils import lazyattr
@@ -373,11 +375,10 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         filename, target = self._get_filename_node()
 
-        if not os.path.isabs(filename):
+        if not Path(filename).is_absolute():
             # Resolve the external link with respect to the this
             # file's directory.  See #306.
-            base_directory = os.path.dirname(self._v_file.filename)
-            filename = os.path.join(base_directory, filename)
+            filename = str(Path(self._v_file.filename).with_name(filename))
 
         if self.extfile is None or not self.extfile.isopen:
             self.extfile = tb.open_file(filename, **kwargs)

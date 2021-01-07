@@ -18,6 +18,7 @@ import os
 import argparse
 from collections import defaultdict, deque
 import warnings
+from pathlib import Path
 
 import numpy as np
 import tables as tb
@@ -342,7 +343,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
 
     if print_total:
         avg_ratio = total_on_disk / total_in_mem
-        fsize = os.stat(f.filename).st_size
+        fsize = Path(f.filename).stat().st_size
 
         out_str += '-' * 60 + '\n'
         out_str += 'Total branch leaves:    %i\n' % total_items
@@ -441,7 +442,7 @@ def bytes2human(use_si_units=False):
 
 
 def make_test_file(prefix='/tmp'):
-    f = tb.open_file(os.path.join(prefix, 'test_pttree.hdf5'), 'w')
+    f = tb.open_file(str(Path(prefix) / 'test_pttree.hdf5'), 'w')
 
     g1 = f.create_group('/', 'group1')
     g1a = f.create_group(g1, 'group1a')

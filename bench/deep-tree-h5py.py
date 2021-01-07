@@ -1,5 +1,4 @@
-import os
-import subprocess
+from pathlib import Path
 from time import perf_counter as clock
 import random
 import numpy as np
@@ -10,10 +9,7 @@ random.seed(2)
 
 def show_stats(explain, tref):
     "Show the used memory (only works for Linux 2.6.x)."
-    # Build the command to obtain memory info
-    cmd = "cat /proc/%s/status" % os.getpid()
-    sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
-    for line in sout:
+    for line in Path('/proc/self/status').read_text().splitlines():
         if line.startswith("VmSize:"):
             vmsize = int(line.split()[1])
         elif line.startswith("VmRSS:"):
@@ -26,7 +22,6 @@ def show_stats(explain, tref):
             vmexe = int(line.split()[1])
         elif line.startswith("VmLib:"):
             vmlib = int(line.split()[1])
-    sout.close()
     print("Memory usage: ******* %s *******" % explain)
     print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
     print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")

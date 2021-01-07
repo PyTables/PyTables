@@ -18,6 +18,7 @@ import sys
 import tempfile
 import warnings
 
+from pathlib import Path
 from time import perf_counter as clock
 from time import process_time as cpuclock
 
@@ -1134,7 +1135,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             print("Deleting temporaries...")
         self.tmp = None
         self.tmpfile.close()
-        os.remove(self.tmpfilename)
+        Path(self.tmpfilename).unlink()
         self.tmpfilename = None
 
         # The optimization process has finished, and the index is ok now

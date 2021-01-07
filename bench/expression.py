@@ -1,10 +1,10 @@
-import os
+from pathlib import Path
 from time import perf_counter as clock
 
 import numpy as np
 import tables as tb
 
-OUT_DIR = "/scratch2/faltet/"   # the directory for data output
+OUT_DIR = Path("/scratch2/faltet/")   # the directory for data output
 
 shape = (1000, 1000 * 1000)   # shape for input arrays
 expr = "a*b+1"   # Expression to be computed
@@ -15,8 +15,8 @@ nrows, ncols = shape
 def tables(docompute, dowrite, complib, verbose):
 
     # Filenames
-    ifilename = os.path.join(OUT_DIR, "expression-inputs.h5")
-    ofilename = os.path.join(OUT_DIR, "expression-outputs.h5")
+    ifilename = OUT_DIR / "expression-inputs.h5"
+    ofilename = OUT_DIR / "expression-outputs.h5"
 
     # Filters
     shuffle = True
@@ -73,9 +73,9 @@ def tables(docompute, dowrite, complib, verbose):
 
 def memmap(docompute, dowrite, verbose):
 
-    afilename = os.path.join(OUT_DIR, "memmap-a.bin")
-    bfilename = os.path.join(OUT_DIR, "memmap-b.bin")
-    rfilename = os.path.join(OUT_DIR, "memmap-output.bin")
+    afilename = OUT_DIR / "memmap-a.bin"
+    bfilename = OUT_DIR / "memmap-b.bin"
+    rfilename = OUT_DIR / "memmap-output.bin"
     if dowrite:
         t0 = clock()
         a = np.memmap(afilename, dtype='float32', mode='w+', shape=shape)

@@ -1,7 +1,7 @@
-import os
 import sys
 import tempfile
 import warnings
+from pathlib import Path
 from time import perf_counter as clock
 
 import tables as tb
@@ -661,8 +661,8 @@ class DeepTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
             self._check_tree(h5fname2)
         finally:
-            if os.path.exists(h5fname2):
-                os.remove(h5fname2)
+            if Path(h5fname2).is_file():
+                Path(h5fname2).unlink()
 
     def test01b_copyDeepTree(self):
         """Copy of a large depth object tree with small node cache."""
@@ -681,8 +681,8 @@ class DeepTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
             self._check_tree(h5fname2)
         finally:
-            if os.path.exists(h5fname2):
-                os.remove(h5fname2)
+            if Path(h5fname2).is_file():
+                Path(h5fname2).unlink()
 
     def test01c_copyDeepTree(self):
         """Copy of a large depth object tree with no node cache."""
@@ -701,8 +701,8 @@ class DeepTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
             self._check_tree(h5fname2)
         finally:
-            if os.path.exists(h5fname2):
-                os.remove(h5fname2)
+            if Path(h5fname2).is_file():
+                Path(h5fname2).unlink()
 
     @common.unittest.skipUnless(common.heavy, 'only in heavy mode')
     def test01d_copyDeepTree(self):
@@ -723,8 +723,8 @@ class DeepTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
             self._check_tree(h5fname2)
         finally:
-            if os.path.exists(h5fname2):
-                os.remove(h5fname2)
+            if Path(h5fname2).is_file():
+                Path(h5fname2).unlink()
 
 
 class WideTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):

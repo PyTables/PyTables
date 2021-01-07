@@ -10,9 +10,9 @@
 
 """Test module for compatibility with plain HDF files."""
 
-import os
 import shutil
 import tempfile
+from pathlib import Path
 
 import numpy as np
 
@@ -266,7 +266,7 @@ class ContiguousCompoundAppendTestCase(common.TestFileMixin, common.PyTablesTest
         self.assertRaises(tb.HDF5ExtError, tbl.row.append)
         # Remove the file copy
         self.h5file.close()  # Close the handler first
-        os.remove(h5fname_copy)
+        Path(h5fname_copy).unlink()
 
 
 class ExtendibleTestCase(common.TestFileMixin, common.PyTablesTestCase):

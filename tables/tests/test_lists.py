@@ -1,5 +1,5 @@
-import os
 import tempfile
+from pathlib import Path
 
 import tables as tb
 from tables.tests import common
@@ -50,8 +50,8 @@ class BasicTestCase(common.PyTablesTestCase):
     def tearDown(self):
         if self.h5file is not None:
             self.h5file.close()
-        if os.path.exists(self.h5fname):
-            os.remove(self.h5fname)
+        if Path(self.h5fname).is_file():
+            Path(self.h5fname).unlink()
         super().tearDown()
 
     def test00_char(self):
@@ -126,8 +126,8 @@ class ExceptionTestCase(common.PyTablesTestCase):
     def tearDown(self):
         if self.h5file is not None:
             self.h5file.close()
-        if os.path.exists(self.h5fname):
-            os.remove(self.h5fname)
+        if Path(self.h5fname).is_file():
+            Path(self.h5fname).unlink()
         super().tearDown()
 
     def test00_char(self):
