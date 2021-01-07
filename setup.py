@@ -8,8 +8,6 @@ import ctypes
 import tempfile
 import textwrap
 import subprocess
-from os.path import exists, expanduser
-import glob
 from pathlib import Path
 
 # Using ``setuptools`` enables lots of goodies
@@ -120,7 +118,7 @@ if __name__ == "__main__":
 
     # Global variables
     lib_dirs = []
-    inc_dirs = [os.path.join("hdf5-blosc", "src")]
+    inc_dirs = [ROOT / "hdf5-blosc" / "src"]
     optional_libs = []
     data_files = []  # list of data files to add to packages (mainly for DLL's)
 
@@ -129,33 +127,33 @@ if __name__ == "__main__":
     default_runtime_dirs = None
 
     def add_from_path(envname, dirs):
-        try:
-            dirs.extend(os.environ[envname].split(os.pathsep))
-        except KeyError:
-            pass
+        dirs.extend(
+            Path(x) for x in os.environ.get(envname, "").split(os.pathsep) if x
+        )
 
     def add_from_flags(envname, flag_key, dirs):
-        for flag in os.environ.get(envname, "").split():
-            if flag.startswith(flag_key):
-                dirs.append(flag[len(flag_key) :])
+        dirs.extend(
+            Path(flag[len(flag_key) :])
+            for flag in os.environ.get(envname, "").split()
+            if flag.startswith(flag_key)
+        )
 
     if os.name == "posix":
         prefixes = ("/usr/local", "/sw", "/opt", "/opt/local", "/usr", "/")
+        prefix_paths = [Path(x) for x in prefixes]
 
         default_header_dirs = []
         add_from_path("CPATH", default_header_dirs)
         add_from_path("C_INCLUDE_PATH", default_header_dirs)
         add_from_flags("CPPFLAGS", "-I", default_header_dirs)
         add_from_flags("CFLAGS", "-I", default_header_dirs)
-        default_header_dirs.extend(
-            os.path.join(_tree, "include") for _tree in prefixes
-        )
+        default_header_dirs.extend(_tree / "include" for _tree in prefix_paths)
 
         default_library_dirs = []
         add_from_flags("LDFLAGS", "-L", default_library_dirs)
         default_library_dirs.extend(
-            os.path.join(_tree, _arch)
-            for _tree in prefixes
+            _tree / _arch
+            for _tree in prefix_paths
             for _arch in ("lib64", "lib")
         )
         default_runtime_dirs = default_library_dirs
@@ -164,13 +162,13 @@ if __name__ == "__main__":
         default_header_dirs = []  # no default, must be given explicitly
         default_library_dirs = []  # no default, must be given explicitly
         default_runtime_dirs = [  # look for DLL files in ``%PATH%``
-            _path for _path in os.environ["PATH"].split(";")
+            Path(_path) for _path in os.environ["PATH"].split(";")
         ]
         # Add the \Windows\system to the runtime list (necessary for Vista)
-        default_runtime_dirs.append("\\windows\\system")
+        default_runtime_dirs.append(Path("\\windows\\system"))
         # Add the \path_to_python\DLLs and tables package to the list
-        default_runtime_dirs.extend(
-            [os.path.join(sys.prefix, "Lib\\site-packages\\tables")]
+        default_runtime_dirs.append(
+            Path(sys.prefix) / "Lib" / "site-packages" / "tables"
         )
 
     # Gcc 4.0.1 on Mac OS X 10.4 does not seem to include the default
@@ -183,9 +181,9 @@ if __name__ == "__main__":
         for prefix in prefixes:
             for suffix in suffixes:
                 for location in locations:
-                    path = os.path.join(location, f"{prefix}{name}{suffix}")
-                    if os.path.isfile(path):
-                        return path
+                    path = location / f"{prefix}{name}{suffix}"
+                    if path.is_file():
+                        return str(path)
         return None
 
     class BasePackage:
@@ -272,33 +270,33 @@ if __name__ == "__main__":
                 # Remove leading and trailing '"' chars that can mislead
                 # the finding routines on Windows machines
                 locations = [
-                    os.path.join(location.strip('"'), compdir)
+                    Path(str(location).strip('"')) / compdir
                     for compdir in self._component_dirs
                 ]
 
             if use_pkgconfig:
                 # header
                 pkgconfig_header_dirs = [
-                    d[2:]
+                    Path(d[2:])
                     for d in self._pkg_config("--cflags")
                     if d.startswith("-I")
                 ]
                 if pkgconfig_header_dirs:
                     print(
                         f"* pkg-config header dirs for {self.name}:",
-                        ", ".join(pkgconfig_header_dirs),
+                        ", ".join(str(x) for x in pkgconfig_header_dirs),
                     )
 
                 # library
                 pkgconfig_library_dirs = [
-                    d[2:]
+                    Path(d[2:])
                     for d in self._pkg_config("--libs-only-L")
                     if d.startswith("-L")
                 ]
                 if pkgconfig_library_dirs:
                     print(
                         f"* pkg-config library dirs for {self.name}:",
-                        ", ".join(pkgconfig_library_dirs),
+                        ", ".join(str(x) for x in pkgconfig_library_dirs),
                     )
 
                 # runtime
@@ -334,11 +332,9 @@ if __name__ == "__main__":
                     # then, the directory will be returned as '\stuff' (!!)
                     # F. Alted 2006-02-16
                     if idx == 0:
-                        directories[idx] = os.path.dirname(
-                            path[: path.rfind(name)]
-                        )
+                        directories[idx] = Path(path[: path.rfind(name)])
                     else:
-                        directories[idx] = os.path.dirname(path)
+                        directories[idx] = Path(path).parent
 
             return tuple(directories)
 
@@ -372,7 +368,7 @@ if __name__ == "__main__":
     # Get the HDF5 version provided the 'H5public.h' header
     def get_hdf5_version(headername):
         major, minor, release = None, None, None
-        for line in Path(headername).read_text().splitlines():
+        for line in headername.read_text().splitlines():
             if "H5_VERS_MAJOR" in line:
                 major = int(line.split()[2])
             elif "H5_VERS_MINOR" in line:
@@ -388,7 +384,7 @@ if __name__ == "__main__":
     # Get the Blosc version provided the 'blosc.h' header
     def get_blosc_version(headername):
         major, minor, release = None, None, None
-        for line in Path(headername).read_text().splitlines():
+        for line in headername.read_text().splitlines():
             if "BLOSC_VERSION_MAJOR" in line:
                 major = int(line.split()[2])
             elif "BLOSC_VERSION_MINOR" in line:
@@ -495,13 +491,13 @@ if __name__ == "__main__":
     for arg in list(sys.argv):
         key, _, val = arg.partition("=")
         if key == "--hdf5":
-            HDF5_DIR = expanduser(val)
+            HDF5_DIR = Path(val).expanduser()
         elif key == "--lzo":
-            LZO_DIR = expanduser(val)
+            LZO_DIR = Path(val).expanduser()
         elif key == "--bzip2":
-            BZIP2_DIR = expanduser(val)
+            BZIP2_DIR = Path(val).expanduser()
         elif key == "--blosc":
-            BLOSC_DIR = expanduser(val)
+            BLOSC_DIR = Path(val).expanduser()
         elif key == "--lflags":
             LFLAGS = val.split()
         elif key == "--cflags":
@@ -541,16 +537,15 @@ if __name__ == "__main__":
             ) or ctypes.util.find_library("hdf5ddll.dll")
         # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.8.8\\bin\\hdf5dll.dll'
         if libdir:
-            # Strip off the filename
-            libdir = os.path.dirname(libdir)
-            # Strip off the 'bin' directory
-            HDF5_DIR = os.path.dirname(libdir)
+            # Strip off the filename and the 'bin' directory
+            HDF5_DIR = Path(libdir).parent.parent
             print(f"* Found HDF5 using system PATH ('{libdir}')")
 
     if CONDA_PREFIX:
+        CONDA_PREFIX = Path(CONDA_PREFIX)
         print(f"* Found conda env: ``{CONDA_PREFIX}``")
         if os.name == "nt":
-            CONDA_PREFIX += "\\Library"
+            CONDA_PREFIX = CONDA_PREFIX / "Library"
 
     # The next flag for the C compiler is needed for finding the C headers for
     # the Cython extensions
@@ -625,8 +620,7 @@ if __name__ == "__main__":
 
         # check if HDF5 library uses old DLL naming scheme
         if hdrdir and package.tag == "HDF5":
-            hdf5_header = os.path.join(hdrdir, "H5public.h")
-            hdf5_version = get_hdf5_version(hdf5_header)
+            hdf5_version = get_hdf5_version(Path(hdrdir) / "H5public.h")
             if hdf5_version < min_hdf5_version:
                 exit_with_error(
                     f"Unsupported HDF5 version! HDF5 v{min_hdf5_version}+ "
@@ -685,14 +679,14 @@ if __name__ == "__main__":
             )
 
         if hdrdir not in default_header_dirs:
-            inc_dirs.append(hdrdir)  # save header directory if needed
+            inc_dirs.append(Path(hdrdir))  # save header directory if needed
         if libdir not in default_library_dirs and libdir not in ("", True):
             # save library directory if needed
             if os.name == "nt":
                 # Important to quote the libdir for Windows (Vista) systems
-                lib_dirs.append(f'"{libdir}"')
+                lib_dirs.append(Path(f'"{libdir}"'))
             else:
-                lib_dirs.append(libdir)
+                lib_dirs.append(Path(libdir))
 
         if package.tag not in ["HDF5"]:
             # Keep record of the optional libraries found.
@@ -700,8 +694,7 @@ if __name__ == "__main__":
             def_macros.append((f"HAVE_{package.tag}_LIB", 1))
 
         if hdrdir and package.tag == "BLOSC":
-            blosc_header = os.path.join(hdrdir, "blosc.h")
-            blosc_version = get_blosc_version(blosc_header)
+            blosc_version = get_blosc_version(Path(hdrdir) / "blosc.h")
             if blosc_version < min_blosc_version:
                 optional_libs.pop()  # Remove Blosc from the discovered libs
                 print_warning(
@@ -746,7 +739,7 @@ if __name__ == "__main__":
                 # for BZIP2, that can be linked either statically (.LIB)
                 # or dynamically (.DLL)
                 if rundir is not None:
-                    dll_files.append(os.path.join(rundir, dll_file))
+                    dll_files.append(Path(rundir) / dll_file)
 
         if os.name == "nt" and package.tag in ["HDF5"]:
             # hdf5.dll usually depends on zlib.dll
@@ -774,21 +767,21 @@ if __name__ == "__main__":
     ]
 
     def get_cython_extfiles(extnames):
-        extdir = "tables"
+        extdir = ROOT / "tables"
         extfiles = {}
 
         for extname in extnames:
-            extfile = os.path.join(extdir, extname)
-            extpfile = f"{extfile}.pyx"
-            extcfile = f"{extfile}.c"
+            extfile = extdir / extname
+            extpfile = extfile.with_suffix(".pyx")
+            extcfile = extfile.with_suffix(".c")
 
-            if not exists(extcfile) or newer(extpfile, extcfile):
+            if not extcfile.exists() or newer(extpfile, extcfile):
                 # This is the only place where Cython is needed, but every
                 # developer should have it installed, so it should not be
                 # a hard requisite
                 from Cython.Build import cythonize
 
-                cythonize(extpfile, language_level="2")
+                cythonize(str(extpfile), language_level="2")
             extfiles[extname] = extcfile
 
         return extfiles
@@ -796,7 +789,7 @@ if __name__ == "__main__":
     cython_extfiles = get_cython_extfiles(cython_extnames)
 
     # Update the version.h file if this file is newer
-    if newer("VERSION", "src/version.h"):
+    if newer(ROOT / "VERSION", ROOT / "src" / "version.h"):
         (ROOT / "src" / "version.h").write_text(
             f'#define PYTABLES_VERSION "{VERSION}"\n'
         )
@@ -848,12 +841,15 @@ if __name__ == "__main__":
 
     if os.name == "nt":
         # Add DLL's to the final package for windows
-        data_files.append((f"Lib/site-packages/{name}", dll_files))
+        data_files.append((Path("Lib") / "site-packages" / name, dll_files))
 
     ADDLIBS = [hdf5_package.library_name]
 
     # List of Blosc file dependencies
-    blosc_sources = ["hdf5-blosc/src/blosc_filter.c"]
+    blosc_path = ROOT / "c-blosc" / "blosc"
+    int_complibs_path = ROOT / "c-blosc" / "internal-complibs"
+
+    blosc_sources = [ROOT / "hdf5-blosc" / "src" / "blosc_filter.c"]
     if "BLOSC" not in optional_libs:
         if not os.environ.get("PYTABLES_NO_EMBEDDED_LIBS", None) is None:
             exit_with_error(
@@ -867,24 +863,17 @@ if __name__ == "__main__":
         # Blosc + BloscLZ sources
         blosc_sources += [
             f
-            for f in glob.glob("c-blosc/blosc/*.c")
-            if "avx2" not in f and "sse2" not in f
+            for f in blosc_path.glob("*.c")
+            if "avx2" not in f.stem and "sse2" not in f.stem
         ]
-        # LZ4 sources
-        blosc_sources += glob.glob("c-blosc/internal-complibs/lz4*/*.c")
-        # Snappy sources
-        # Starting from C-Blosc 1.19.0, snappy sources are not distributed
-        # anymore
-        # blosc_sources += glob.glob('c-blosc/internal-complibs/snappy*/*.cc')
-        # Zlib sources
-        blosc_sources += glob.glob("c-blosc/internal-complibs/zlib*/*.c")
-        # Zstd sources
-        blosc_sources += glob.glob("c-blosc/internal-complibs/zstd*/*/*.c")
+        blosc_sources += int_complibs_path.glob("lz4*/*.c")  # LZ4 sources
+        blosc_sources += int_complibs_path.glob("zlib*/*.c")  # Zlib sources
+        blosc_sources += int_complibs_path.glob("zstd*/*/*.c")  # Zstd sources
         # Finally, add all the include dirs...
-        inc_dirs += [os.path.join("c-blosc", "blosc")]
-        inc_dirs += glob.glob("c-blosc/internal-complibs/*")
-        inc_dirs += glob.glob("c-blosc/internal-complibs/zstd*/common")
-        inc_dirs += glob.glob("c-blosc/internal-complibs/zstd*")
+        inc_dirs += [blosc_path]
+        inc_dirs += int_complibs_path.glob("*")
+        inc_dirs += int_complibs_path.glob("zstd*/common")
+        inc_dirs += int_complibs_path.glob("zstd*")
         # ...and the macros for all the compressors supported
         def_macros += [("HAVE_LZ4", 1), ("HAVE_ZLIB", 1), ("HAVE_ZSTD", 1)]
 
@@ -902,7 +891,7 @@ if __name__ == "__main__":
             else:
                 return True
             finally:
-                os.remove(fd.name)
+                Path(fd.name).unlink()
 
         # SSE2
         if "sse2" in cpu_flags:
@@ -915,26 +904,18 @@ if __name__ == "__main__":
             else:
                 # On UNIX, both gcc and clang understand -msse2
                 CFLAGS.append("-msse2")
-            blosc_sources += [
-                f for f in glob.glob("c-blosc/blosc/*.c") if "sse2" in f
-            ]
+            blosc_sources += blosc_path.glob("*sse2*.c")
         # AVX2
         if "avx2" in cpu_flags and "DISABLE_AVX2" not in os.environ:
             print("AVX2 detected and enabled")
             if os.name == "nt":
                 def_macros += [("__AVX2__", 1)]
                 CFLAGS.append("-DSHUFFLE_AVX2_ENABLED")
-                blosc_sources += [
-                    f
-                    for f in glob.glob("c-blosc/blosc/*.c")
-                    if "avx2" in f
-                ]
+                blosc_sources += blosc_path.glob("*avx2*.c")
             elif compiler_has_flags(compiler, ["-mavx2"]):
                 CFLAGS.append("-DSHUFFLE_AVX2_ENABLED")
                 CFLAGS.append("-mavx2")
-                blosc_sources += [
-                    f for f in glob.glob("c-blosc/blosc/*.c") if "avx2" in f
-                ]
+                blosc_sources += blosc_path.glob("*avx2*.c")
     else:
         ADDLIBS += ["blosc"]
 
@@ -956,19 +937,23 @@ if __name__ == "__main__":
         if package.tag in optional_libs:
             complibs.extend([hdf5_package.library_name, package.library_name])
 
+    # Extension expects strings, so we have to convert Path to str
+    blosc_sources = [str(x) for x in blosc_sources]
+    inc_dirs = [str(x) for x in inc_dirs]
+
     extension_kwargs = {
         "extra_compile_args": CFLAGS,
         "extra_link_args": LFLAGS,
-        "library_dirs": lib_dirs,
+        "library_dirs": [str(x) for x in lib_dirs],
         "define_macros": def_macros,
-        "include_dirs": inc_dirs,
+        "include_dirs": [str(x) for x in inc_dirs],
     }
 
     extensions = [
         Extension(
             "tables.utilsextension",
             sources=[
-                cython_extfiles["utilsextension"],
+                str(cython_extfiles["utilsextension"]),
                 "src/utils.c",
                 "src/H5ARRAY.c",
                 "src/H5ATTR.c",
@@ -980,7 +965,7 @@ if __name__ == "__main__":
         Extension(
             "tables.hdf5extension",
             sources=[
-                cython_extfiles["hdf5extension"],
+                str(cython_extfiles["hdf5extension"]),
                 "src/utils.c",
                 "src/typeconv.c",
                 "src/H5ARRAY.c",
@@ -995,7 +980,7 @@ if __name__ == "__main__":
         Extension(
             "tables.tableextension",
             sources=[
-                cython_extfiles["tableextension"],
+                str(cython_extfiles["tableextension"]),
                 "src/utils.c",
                 "src/typeconv.c",
                 "src/H5TB-opt.c",
@@ -1007,32 +992,32 @@ if __name__ == "__main__":
         ),
         Extension(
             "tables._comp_lzo",
-            sources=[cython_extfiles["_comp_lzo"], "src/H5Zlzo.c"],
+            sources=[str(cython_extfiles["_comp_lzo"]), "src/H5Zlzo.c"],
             libraries=_comp_lzo_libs,
             **extension_kwargs,
         ),
         Extension(
             "tables._comp_bzip2",
-            sources=[cython_extfiles["_comp_bzip2"], "src/H5Zbzip2.c"],
+            sources=[str(cython_extfiles["_comp_bzip2"]), "src/H5Zbzip2.c"],
             libraries=_comp_bzip2_libs,
             **extension_kwargs,
         ),
         Extension(
             "tables.linkextension",
-            sources=[cython_extfiles["linkextension"]],
+            sources=[str(cython_extfiles["linkextension"])],
             libraries=tableExtension_libs,
             **extension_kwargs,
         ),
         Extension(
             "tables.lrucacheextension",
-            sources=[cython_extfiles["lrucacheextension"]],
+            sources=[str(cython_extfiles["lrucacheextension"])],
             libraries=lrucacheExtension_libs,
             **extension_kwargs,
         ),
         Extension(
             "tables.indexesextension",
             sources=[
-                cython_extfiles["indexesextension"],
+                str(cython_extfiles["indexesextension"]),
                 "src/H5ARRAY-opt.c",
                 "src/idx-opt.c",
             ],
@@ -1086,7 +1071,10 @@ interactively save and retrieve large amounts of data.
         platforms=["any"],
         ext_modules=extensions,
         cmdclass=cmdclass,
-        data_files=data_files,
+        data_files=[
+            (str(parent), [str(file) for file in files])
+            for parent, files in data_files
+        ],
         extras_require={
             "doc": ["sphinx >= 1.1", "sphinx_rtd_theme", "numpydoc", "ipython"]
         },
