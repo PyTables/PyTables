@@ -716,7 +716,7 @@ if __name__ == '__main__':
                 dll_file = _platdep[package.tag][1] + '.dll'
                 # If DLL is not in rundir, do nothing.  This can be useful
                 # for BZIP2, that can be linked either statically (.LIB)
-                # or dinamically (.DLL)
+                # or dynamically (.DLL)
                 if rundir is not None:
                     dll_files.append(os.path.join(rundir, dll_file))
 
@@ -1046,7 +1046,7 @@ Topic :: Software Development :: Libraries :: Python Modules
         description='Hierarchical datasets for Python',
         long_description="""\
 PyTables is a package for managing hierarchical datasets and
-designed to efficently cope with extremely large amounts of
+designed to efficiently cope with extremely large amounts of
 data. PyTables is built on top of the HDF5 library and the
 NumPy package and features an object-oriented interface
 that, combined with C-code generated from Cython sources,
@@ -1066,7 +1066,7 @@ interactively save and retrieve large amounts of data.
         ext_modules=extensions,
         cmdclass=cmdclass,
         data_files=data_files,
-        extra_require={
+        extras_require={
             'doc': [
                 'sphinx >= 1.1',
                 'sphinx_rtd_theme',
