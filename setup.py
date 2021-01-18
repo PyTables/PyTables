@@ -647,7 +647,7 @@ if __name__ == "__main__":
         # check if the library is in the standard compiler paths
         if not libdir and package.target_function:
             libdir = compiler.has_function(
-                package.target_function, libraries=(package.library_name,)
+                package.target_function, libraries=[package.library_name]
             )
 
         if not (hdrdir and libdir):
