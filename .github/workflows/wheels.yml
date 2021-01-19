@@ -6,7 +6,6 @@ on:
     branches:
       - master
       - 'releases/**'
-      - gha-macos-windows-ci
     tags:
       - v*
   release:
@@ -16,33 +15,142 @@ on:
 jobs:
   build_wheels:
 
-    name: Build wheels for ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        #os: [ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@v2
+
+      - name: Acquire sources
+        uses: actions/checkout@v2
 
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.9'
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          # Increase this value to reset cache if requirements*.txt has not changed
+          CACHE_NUMBER: 2
+        with:
+          path: |
+            ~/.cache/pip
+            ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-pythonpkg-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements.txt', 'requirements-docs.txt') }}
+
+      - name: Install Miniconda
+        if: contains(matrix.os, 'windows')
+
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          channels: defaults,conda-forge
+          use-only-tar-bz2: true
 
       - name: Install cibuildwheel
         run: |
           pip install --upgrade cibuildwheel
 
-      - name: Build wheels
-        run: |
-          cibuildwheel --output-dir wheelhouse
+      # General note:
+      # We wanted to handle this all within a single `cibuildwheel` action,
+      # but things are a bit involved, so we split that between Linux/macOS
+      # 32-bit vs. 64-bit and Windows.
+
+
+      # The workhorse for Linux and macOS 64-bit.
+      #
+      # This uses the vanilla way of `cibuildwheel`. For building on Linux,
+      # it uses the fine `manylinux` images. Because neither `manylinux1`
+      # nor `manylinux2010` apparently ship `blosc-devel` packages, we
+      # switch to `manylinux2014`. For building on macOS, it uses Homebrew.
+
+      - name: Build wheels for Linux and macOS (64-bit)
+        if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
+        run: cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-*"
-          CIBW_BEFORE_ALL_LINUX: "yum install -y epel-release && yum install -y blosc-devel bzip2-devel hdf5-devel lz4-devel lzo-devel snappy-devel zstd-devel zlib-devel"
+          CIBW_BUILD: "cp36-manylinux_x86_64 cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp36-macosx_x86_64 cp37-macosx_x86_64 cp38-macosx_x86_64 cp39-macosx_x86_64"
+
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+
+          CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
+          CIBW_BEFORE_ALL_LINUX: "yum install -y blosc-devel bzip2-devel hdf5-devel lz4-devel lzo-devel snappy-devel libzstd-devel zlib-devel"
+          CIBW_BEFORE_ALL_MACOS: "brew install c-blosc bzip2 hdf5 lz4 lzo snappy zstd zlib"
+          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt cython"
+
+
+      # The workhorse for Linux 32-bit.
+      #
+      # Unfortunately, we found no image suitable to install a `blosc-devel` package
+      # on a 32-bit Linux system. We tried `quay.io/pypa/manylinux1_i686`,
+      # `quay.io/pypa/manylinux2010_i686` and `quay.io/pypa/manylinux2014_i686`.
+      # `dockcross/manylinux2014-x86` doesn't work either.
+      #
+      # The reason behind this is probably because `manylinux2014` is based on CentOS 7,
+      # where there isn't a 32-bit EPEL repository for at all. To top it all off,
+      # there is also no `hdf5-devel` for 32-bit CentOS 7.
+      #
+      # So, the only solution for now was to fall back to the embedded libraries
+      # by not using `PYTABLES_NO_EMBEDDED_LIBS=true`.
+      #
+      # Finally, we found a solution based on `manylinux2010_i686` (CentOS 6.10)
+      # paired with obtaining `libblosc` packages from "ALT Linux Sisyphus".
+
+      - name: Build wheels for Linux (32-bit)
+        if: contains(matrix.os, 'ubuntu')
+        run: cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: "cp36-manylinux_i686 cp37-manylinux_i686 cp38-manylinux_i686 cp39-manylinux_i686"
+
+          CIBW_MANYLINUX_I686_IMAGE: manylinux2010
+
+          CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
+          CIBW_BEFORE_ALL_LINUX: "yum install -y bzip2-devel hdf5-devel lz4-devel lzo-devel snappy-devel libzstd-devel zlib-devel wget; BASEURL=http://ftp.altlinux.org/pub/distributions/ALTLinux/Sisyphus/i586/RPMS.classic; wget $BASEURL/libblosc-1.18.1-alt1.i586.rpm $BASEURL/libblosc-devel-1.18.1-alt1.i586.rpm; rpm --install --nodeps *.rpm"
+          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt cython"
+
+
+      # The workhorses for Windows.
+      #
+      # For provisioning dependency packages on Windows, Anaconda is apparently the best option.
+      # In order to discriminate between 32-bit and 64-bit, conda's `--set subdir` option is used.
+      #
+      # In order not to mix up 32-bit and 64-bit, the installation is isolated into dedicated conda
+      # environments. Otherwise, errors like `Error C2371: redefinition; different basic types - why?`
+      # will happen.
+      # https://stackoverflow.com/questions/33709391/using-multiple-python-engines-32bit-64bit-and-2-7-3-5
+      #
+      # Because `conda activate` will not carry over into the `cibuildwheel` environment, we
+      # currently have to manipulate `$PATH` using `CIBW_ENVIRONMENT_WINDOWS` in order to make
+      # the build process find the runtime components of `libhdf5`.
+
+      - name: Build wheels for Windows (32-bit)
+        if: contains(matrix.os, 'windows')
+        run: cibuildwheel --output-dir wheelhouse
+        env:
+          # FIXME: Unfortunately, building for Python 3.9 on Windows fails with "fatal error LNK1181: cannot open input file 'hdf5.lib'"
+          CIBW_BUILD: "cp36-win32 cp37-win32 cp38-win32"
+
+          CIBW_BEFORE_ALL_WINDOWS: "conda create --yes --name=build-32 && conda activate build-32 && conda config --env --set subdir win-32 && conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib"
+
+          CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
+          CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build-32" PATH="$PATH;C:\\Miniconda\\envs\\build-32\\Library\\bin"'
+          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt cython"
+
+      - name: Build wheels for Windows (64-bit)
+        if: contains(matrix.os, 'windows')
+        run: cibuildwheel --output-dir wheelhouse
+        env:
+          # FIXME: Unfortunately, building for Python 3.9 on Windows fails with "fatal error LNK1181: cannot open input file 'hdf5.lib'"
+          CIBW_BUILD: "cp36-win_amd64 cp37-win_amd64 cp38-win_amd64"
+
+          CIBW_BEFORE_ALL_WINDOWS: "conda create --yes --name=build-64 && conda activate build-64 && conda config --env --set subdir win-64 && conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib"
+
+          CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
+          CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build-64" PATH="$PATH;C:\\Miniconda\\envs\\build-64\\Library\\bin"'
           CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt cython>=0.29.21"
-          CIBW_ENVIRONMENT: "DISABLE_AVX2='TRUE'"
 
       - uses: actions/upload-artifact@v2
         with:
@@ -51,15 +159,18 @@ jobs:
   build_sdist:
     name: Build source distribution
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
+
+      - name: Acquire sources
+        uses: actions/checkout@v2
 
       - name: Install Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
 
-      - name: Install APT packages
+      - name: Install Debian packages
         if: contains(${{ matrix.os }}, 'ubuntu')
         run: |
           sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
@@ -72,27 +183,31 @@ jobs:
           pip install --requirement=requirements-docs.txt
 
       - name: Build sdist
-        run: make PYTHON=python dist
+        run: python setup.py sdist
 
       - uses: actions/upload-artifact@v2
         with:
           path: dist/*
 
-#  upload_pypi:
-#    needs: [build_wheels, build_sdist]
-#    runs-on: ubuntu-latest
-#    # upload to PyPI on every tag starting with 'v'
-#    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
-#    # alternatively, to publish when a GitHub Release is created, use the following rule:
-#    # if: github.event_name == 'release' && github.event.action == 'published'
-#    steps:
-#      - uses: actions/download-artifact@v2
-#        with:
-#          name: artifact
-#          path: dist
-#
-#      - uses: pypa/gh-action-pypi-publish@master
-#        with:
-#          user: __token__
-#          password: ${{ secrets.pypi_password }}
-#          # To test: repository_url: https://test.pypi.org/legacy/
+  upload_pypi:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    # upload to PyPI on every tag starting with 'v'
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    # alternatively, to publish when a GitHub Release is created, use the following rule:
+    # if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          verbose: true
+          skip_existing: true
+
+          # Use for testing.
+          #repository_url: https://test.pypi.org/legacy/

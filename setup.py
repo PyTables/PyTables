@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # The name for the pkg-config utility
     PKG_CONFIG = "pkg-config"
 
-    # Fetch the requisites
+    # Fetch the requirements
     requirements = (ROOT / "requirements.txt").read_text().splitlines()
 
     class BuildExtensions(build_ext):
@@ -1033,37 +1033,36 @@ if __name__ == "__main__":
         ),
     ]
 
+    # Load README.rst to include as long_description.
+    README = (ROOT / "README.rst").read_text()
+
     classifiers = """\
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
 Intended Audience :: Information Technology
 Intended Audience :: Science/Research
 License :: OSI Approved :: BSD License
-Operating System :: Microsoft :: Windows
+Operating System :: POSIX
 Operating System :: Unix
+Operating System :: MacOS
+Operating System :: Microsoft :: Windows
 Programming Language :: Python
 Programming Language :: Python :: 3
-Programming Language :: Python :: 3 :: Only
 Programming Language :: Python :: 3.6
 Programming Language :: Python :: 3.7
 Programming Language :: Python :: 3.8
 Programming Language :: Python :: 3.9
 Topic :: Database
 Topic :: Software Development :: Libraries :: Python Modules
+Topic :: System :: Archiving
+Topic :: System :: Archiving :: Compression
 """
     setup(
         name=name,
         version=VERSION,
         description="Hierarchical datasets for Python",
-        long_description="""\
-PyTables is a package for managing hierarchical datasets and
-designed to efficiently cope with extremely large amounts of
-data. PyTables is built on top of the HDF5 library and the
-NumPy package and features an object-oriented interface
-that, combined with C-code generated from Cython sources,
-makes of it a fast, yet extremely easy to use tool for
-interactively save and retrieve large amounts of data.
-""",
+        long_description=README,
+        long_description_content_type="text/x-rst",
         classifiers=[c for c in classifiers.split("\n") if c],
         author=(
             "Francesc Alted, Ivan Vilata,"
@@ -1083,7 +1082,7 @@ interactively save and retrieve large amounts of data.
             for parent, files in data_files
         ],
         extras_require={
-            "doc": ["sphinx >= 1.1", "sphinx_rtd_theme", "numpydoc", "ipython"]
+            "doc": ["sphinx>=1.1", "sphinx_rtd_theme", "numpydoc", "ipython"]
         },
         **setuptools_kwargs,
     )
