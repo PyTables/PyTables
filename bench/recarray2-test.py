@@ -21,7 +21,7 @@ delta = 0.000_001
 # Creation of recarrays objects for test
 x1 = np.array(np.arange(reclen))
 x2 = chararray.array(None, itemsize=7, shape=reclen)
-x3 = np.array(np.arange(reclen, reclen * 3, 2), np.Float64)
+x3 = np.array(np.arange(reclen, reclen * 3, 2), np.float64)
 r1 = recarray.fromarrays([x1, x2, x3], names='a,b,c')
 r2 = recarray2.fromarrays([x1, x2, x3], names='a,b,c')
 

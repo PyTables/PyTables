@@ -82,11 +82,11 @@ def createFile(filename, totalrows, recsize, verbose):
     # Get the record object associated with the new table
     if recsize == "big":
         isrec = Big()
-        arr = np.array(np.arange(32), type=np.Float64)
-        arr2 = np.array(np.arange(32), type=np.Float64)
+        arr = np.array(np.arange(32), type=np.float64)
+        arr2 = np.array(np.arange(32), type=np.float64)
     elif recsize == "medium":
         isrec = Medium()
-        arr = np.array(np.arange(2), type=np.Float64)
+        arr = np.array(np.arange(2), type=np.float64)
     else:
         isrec = Small()
     # print d
@@ -106,8 +106,8 @@ def createFile(filename, totalrows, recsize, verbose):
             #d['TDCcount'] = i % 256
             d['ADCcount'] = (i * 256) % (1 << 16)
             if recsize == "big":
-                #d.float1 = np.array([i]*32, np.Float64)
-                #d.float2 = np.array([i**2]*32, np.Float64)
+                #d.float1 = np.array([i]*32, np.float64)
+                #d.float2 = np.array([i**2]*32, np.float64)
                 arr[0] = 1.1
                 d['float1'] = arr
                 arr2[0] = 2.2

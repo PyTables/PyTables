@@ -336,7 +336,7 @@ class Atom(metaclass=MetaAtom):
             Traceback (most recent call last):
             ...
             ValueError: unknown NumPy scalar type: 'S5'
-            >>> Atom.from_sctype('Float64')
+            >>> Atom.from_sctype('float64')
             Float64Atom(shape=(), dflt=0.0)
 
         """

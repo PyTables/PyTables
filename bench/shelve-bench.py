@@ -64,8 +64,8 @@ def createFile(filename, totalrows, recsize):
     # Get the record object associated with the new table
     if recsize == "big":
         d = Big()
-        arr = NA.array(NA.arange(32), type=NA.Float64)
-        arr2 = NA.array(NA.arange(32), type=NA.Float64)
+        arr = NA.array(NA.arange(32), type=NA.float64)
+        arr2 = NA.array(NA.arange(32), type=NA.float64)
     elif recsize == "medium":
         d = Medium()
     else:
@@ -86,15 +86,15 @@ def createFile(filename, totalrows, recsize):
                 #d.TDCcount = i % 256
                 d.ADCcount = (i * 256) % (1 << 16)
                 if recsize == "big":
-                    #d.float1 = NA.array([i]*32, NA.Float64)
-                    #d.float2 = NA.array([i**2]*32, NA.Float64)
+                    #d.float1 = NA.array([i]*32, NA.float64)
+                    #d.float2 = NA.array([i**2]*32, NA.float64)
                     arr[0] = 1.1
                     d.float1 = arr
                     arr2[0] = 2.2
                     d.float2 = arr2
                     pass
                 else:
-                    d.float1 = NA.array([i ** 2] * 2, NA.Float64)
+                    d.float1 = NA.array([i ** 2] * 2, NA.float64)
                     #d.float1 = float(i)
                     #d.float2 = float(i)
                 d.grid_i = i

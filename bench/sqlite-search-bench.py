@@ -137,10 +137,10 @@ CREATE INDEX ivar3 ON small(var3);
             if randomvalues:
                 var3 = np.random.uniform(minimum, maximum, shape=[j - i])
             else:
-                var3 = np.arange(i, j, type=np.Float64)
+                var3 = np.arange(i, j, type=np.float64)
                 if noise:
                     var3 += np.random.uniform(-3, 3, shape=[j - i])
-            var2 = np.array(var3, type=np.Int32)
+            var2 = np.array(var3, type=np.int32)
             var1 = np.array(None, shape=[j - i], dtype='s4')
             if not heavy:
                 for n in range(j - i):
