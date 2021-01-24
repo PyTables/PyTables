@@ -2020,7 +2020,7 @@ cdef class VLArray(Leaf):
     return self.dataset_id, SizeType(nrecords), (SizeType(chunksize),), atom
 
 
-  def _append(self, ndarray nparr, int nobjects):
+  def _append(self, ndarray nparr, size_t nobjects):
     cdef int ret
     cdef void *rbuf
 
@@ -2043,7 +2043,7 @@ cdef class VLArray(Leaf):
 
     self.nrecords = self.nrecords + 1
 
-  def _modify(self, hsize_t nrow, ndarray nparr, int nobjects):
+  def _modify(self, hsize_t nrow, ndarray nparr, size_t nobjects):
     cdef int ret
     cdef void *rbuf
 

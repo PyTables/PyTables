@@ -207,7 +207,7 @@ out:
 
 herr_t H5VLARRAYappend_records( hid_t dataset_id,
                                 hid_t type_id,
-                                int nobjects,
+                                size_t nobjects,
                                 hsize_t nrecords,
                                 const void *data )
 {
@@ -285,7 +285,7 @@ out:
 herr_t H5VLARRAYmodify_records( hid_t dataset_id,
                                 hid_t type_id,
                                 hsize_t nrow,
-                                int nobjects,
+                                size_t nobjects,
                                 const void *data )
 {
 

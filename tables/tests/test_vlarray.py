@@ -5,7 +5,7 @@ import numpy.testing as npt
 
 import tables
 from tables import (
-    Atom, StringAtom, BoolAtom, IntAtom, Int16Atom, Int32Atom,
+    Atom, StringAtom, BoolAtom, IntAtom, Int8Atom, Int16Atom, Int32Atom,
     ObjectAtom, VLStringAtom, VLUnicodeAtom,
 )
 from tables.tests import common
@@ -250,6 +250,30 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(vlarray.get_row_size(3), 4 * vlarray.atom.size)
         self.assertEqual(vlarray.get_row_size(4), 5 * vlarray.atom.size)
 
+    @unittest.skipIf(True,
+                     'This requires 8 GB of RAM, so this is meant to '
+                     'be run manually in big machines only')
+    def test05_large_append(self):
+        """Checking vlarray witgh a large number of appends."""
+        import numpy.lib.stride_tricks
+
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test05_large_append..." % self.__class__.__name__)
+
+        N = int(2**32 + 1)  # > 2**32
+        h5file = tables.open_file(self.h5fname, "a")
+        vlarray = h5file.create_vlarray(h5file.root, 'vlarray2',
+                                        atom=Int8Atom(),
+                                        filters=None,
+                                        expectedrows=N)
+
+        # Append a large number of rows
+        x = numpy.zeros(N, dtype="i1")
+        vlarray.append(x)
+        x2 = vlarray[0]
+        #print("vlarray:", x2, len(x2))
+        self.assertTrue(allequal(x2, x))
 
 class BasicNumPyTestCase(BasicTestCase):
     flavor = "numpy"
