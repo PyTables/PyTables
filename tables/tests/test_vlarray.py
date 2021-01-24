@@ -179,7 +179,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         vlarray = self.h5file.get_node("/vlarray1")
 
         # Get a numpy array of objects
-        rows = numpy.array(vlarray[:], dtype=numpy.object)
+        rows = numpy.array(vlarray[:], dtype=object)
 
         for slc in [0, numpy.array(1), 2, numpy.array([3]), [4]]:
             # Read the rows in slc

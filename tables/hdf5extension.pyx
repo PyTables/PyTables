@@ -1439,7 +1439,7 @@ cdef class Array(Leaf):
       chunkshapes = getshape(self.rank, self.dims_chunk)
 
     # object arrays should not be read directly into memory
-    if atom.dtype != numpy.object:
+    if atom.dtype != object:
       # Get the fill value
       dflts = numpy.zeros((), dtype=atom.dtype)
       fill_data = dflts.data
