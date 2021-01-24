@@ -14,11 +14,11 @@ def flatten(l):
 
 
 def fill_arrays(start, stop):
-    col_i = numpy.arange(start, stop, type=numpy.Int32)
+    col_i = numpy.arange(start, stop, type=numpy.int32)
     if userandom:
         col_j = numpy.random.uniform(0, nrows, size=[stop - start])
     else:
-        col_j = numpy.array(col_i, type=numpy.Float64)
+        col_j = numpy.array(col_i, type=numpy.float64)
     return col_i, col_j
 
 # Generator for ensure pytables benchmark compatibility

@@ -36,11 +36,11 @@ def create_db(filename, nrows):
         stop = (j + 1) * step
         if stop > nrows:
             stop = nrows
-        arr_f8 = np.arange(i, stop, type=np.Float64)
-        arr_i4 = np.arange(i, stop, type=np.Int32)
+        arr_f8 = np.arange(i, stop, type=np.float64)
+        arr_i4 = np.arange(i, stop, type=np.int32)
         if userandom:
             arr_f8 += np.random.normal(0, stop * scale, shape=[stop - i])
-            arr_i4 = np.array(arr_f8, type=np.Int32)
+            arr_i4 = np.array(arr_f8, type=np.int32)
         recarr = np.rec.fromarrays([arr_i4, arr_i4, arr_f8, arr_f8])
         table.append(recarr)
         j += 1
