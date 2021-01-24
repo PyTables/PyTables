@@ -1234,8 +1234,8 @@ can be passed to this method::
             particle['longi'] = 10 - i
 
             ########### Detectable errors start here. Play with them!
-            particle['pressure'] = np.array(i * np.arange(2 * 3)).reshape((2, 4))  # Incorrect
-            #particle['pressure'] = np.array(i * np.arange(2 * 3)).reshape((2, 3)) # Correct
+            particle['pressure'] = i * np.arange(2 * 4).reshape(2, 4)  # Incorrect
+            #particle['pressure'] = i * np.arange(2 * 3).reshape(2, 3) # Correct
             ########### End of errors
 
             particle['temperature'] = i ** 2     # Broadcasting
