@@ -8,7 +8,7 @@ fileh = tables.open_file(file, mode="w")
 # Get the root group
 group = fileh.root
 # Set the type codes to test
-dtypes = [np.int8, np.uint8, np.int16, np.int, np.float32, np.float]
+dtypes = [np.int8, np.uint8, np.int16, int, np.float32, float]
 i = 1
 for dtype in dtypes:
     # Create an array of dtype, with incrementally bigger ranges
