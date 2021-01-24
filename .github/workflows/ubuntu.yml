@@ -13,6 +13,7 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: Install APT packages
       run: |
+        sudo apt-get update
         sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
         sudo apt install python3-all-dev cython3 python3-setuptools python3-six python3-numpy python3-numexpr
         sudo apt install python3-numpydoc python3-sphinx python3-sphinx-rtd-theme python3-ipython
