@@ -64,8 +64,8 @@ def createFile(filename, totalrows, recsize):
     # Get the record object associated with the new table
     if recsize == "big":
         d = Big()
-        arr = np.array(np.arange(32), type=np.float64)
-        arr2 = np.array(np.arange(32), type=np.float64)
+        arr = np.arange(32, dtype=np.float64)
+        arr2 = np.arange(32, dtype=np.float64)
     elif recsize == "medium":
         d = Medium()
     else:
