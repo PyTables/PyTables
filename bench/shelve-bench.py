@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from tables import *
-import numpy as NA
+import numpy as np
 import struct
 import sys
 import shelve
@@ -44,8 +44,8 @@ class Medium(IsDescription):
 
 class Big(IsDescription):
     name = StringCol(itemsize=16)   # 16-character String
-    #float1 = Float64Col(shape=32, dflt=NA.arange(32))
-    #float2 = Float64Col(shape=32, dflt=NA.arange(32))
+    #float1 = Float64Col(shape=32, dflt=np.arange(32))
+    #float2 = Float64Col(shape=32, dflt=np.arange(32))
     float1 = Float64Col(shape=32, dflt=range(32))
     float2 = Float64Col(shape=32, dflt=[2.2] * 32)
     ADCcount = Int16Col()           # signed short integer
@@ -64,8 +64,8 @@ def createFile(filename, totalrows, recsize):
     # Get the record object associated with the new table
     if recsize == "big":
         d = Big()
-        arr = NA.array(NA.arange(32), type=NA.float64)
-        arr2 = NA.array(NA.arange(32), type=NA.float64)
+        arr = np.array(np.arange(32), type=np.float64)
+        arr2 = np.array(np.arange(32), type=np.float64)
     elif recsize == "medium":
         d = Medium()
     else:
@@ -86,15 +86,15 @@ def createFile(filename, totalrows, recsize):
                 #d.TDCcount = i % 256
                 d.ADCcount = (i * 256) % (1 << 16)
                 if recsize == "big":
-                    #d.float1 = NA.array([i]*32, NA.float64)
-                    #d.float2 = NA.array([i**2]*32, NA.float64)
+                    #d.float1 = np.array([i]*32, np.float64)
+                    #d.float2 = np.array([i**2]*32, np.float64)
                     arr[0] = 1.1
                     d.float1 = arr
                     arr2[0] = 2.2
                     d.float2 = arr2
                     pass
                 else:
-                    d.float1 = NA.array([i ** 2] * 2, NA.float64)
+                    d.float1 = np.array([i ** 2] * 2, np.float64)
                     #d.float1 = float(i)
                     #d.float2 = float(i)
                 d.grid_i = i
