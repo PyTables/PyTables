@@ -460,7 +460,6 @@ class TableReadTestCase(common.TempFileMixin, TestCase):
         for colname in table.colnames:
             numcol = table.read(field=colname)
             typecol = table.coltypes[colname]
-            #nctypecode = np.typeNA[numcol.dtype.char[0]]
             nctypecode = np.sctypeDict[numcol.dtype.char[0]]
             if typecol != "string":
                 if common.verbose:
