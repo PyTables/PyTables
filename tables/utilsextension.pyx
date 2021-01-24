@@ -213,7 +213,7 @@ cdef str cstr_to_pystr(const char* cstring):
 import_array()
 
 # NaN-aware sorting with NaN as the greatest element
-# numpy.isNaN only takes floats, this should work for strings too
+# numpy.isnan only takes floats, this should work for strings too
 cpdef nan_aware_lt(a, b): return a < b or (b != b and a == a)
 cpdef nan_aware_le(a, b): return a <= b or b != b
 cpdef nan_aware_gt(a, b): return a > b or (a != a and b == b)
