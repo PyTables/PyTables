@@ -1,7 +1,7 @@
 """This test unit checks node attributes that are persistent (AttributeSet)."""
 
-import sys
 import datetime
+import sys
 import warnings
 from distutils.version import LooseVersion
 

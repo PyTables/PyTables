@@ -19,7 +19,7 @@ nodes.
 """
 
 import collections
-import datetime as dt
+import datetime
 import os
 import sys
 import weakref
@@ -2785,8 +2785,8 @@ class File(hdf5extension.File):
 
         # Print all the nodes (Group and Leaf objects) on object tree
         try:
-            date = dt.datetime.fromtimestamp(
-                os.stat(self.filename).st_mtime, dt.timezone.utc
+            date = datetime.datetime.fromtimestamp(
+                os.stat(self.filename).st_mtime, datetime.timezone.utc
             ).isoformat(timespec='seconds')
         except OSError:
             # in-memory file
