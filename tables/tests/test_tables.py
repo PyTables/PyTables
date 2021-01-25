@@ -15,7 +15,7 @@ from tables import (
 from tables.utils import SizeType, byteorders
 from tables.tests import common
 from tables.tests.common import allequal, areArraysEqual
-from tables.tests.common import unittest, hdf5_version, blosc_version
+from tables.tests.common import unittest, blosc_version
 from tables.tests.common import test_filename
 from tables.tests.common import PyTablesTestCase as TestCase
 from tables.description import descr_from_dtype

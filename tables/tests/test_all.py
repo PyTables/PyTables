@@ -9,7 +9,6 @@ from tables.req_versions import min_hdf5_version, min_numpy_version
 from tables.tests import common
 from tables.tests.common import unittest
 from tables.tests.common import print_heavy, print_versions
-from tables.tests.test_suite import suite, test
 
 
 def get_tuple_version(hexversion):

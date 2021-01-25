@@ -10,7 +10,6 @@
 
 """Utilities to be used mainly by the Index class."""
 
-import sys
 import math
 import numpy as np
 

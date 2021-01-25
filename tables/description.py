@@ -12,7 +12,6 @@
 
 # Imports
 # =======
-import sys
 import copy
 import warnings
 

@@ -22,7 +22,6 @@ import collections
 import datetime as dt
 import os
 import sys
-import time
 import weakref
 import warnings
 

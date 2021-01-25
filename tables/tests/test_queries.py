@@ -12,7 +12,6 @@
 
 import re
 import sys
-import types
 import warnings
 import functools
 

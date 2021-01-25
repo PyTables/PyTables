@@ -16,7 +16,6 @@ import sys
 import locale
 import platform
 import tempfile
-import warnings
 from time import perf_counter as clock
 from distutils.version import LooseVersion
 
