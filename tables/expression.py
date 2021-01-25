@@ -13,10 +13,10 @@
 import sys
 import warnings
 
+import numexpr as ne
 import numpy as np
 import tables as tb
-from numexpr.necompiler import getContext, getExprNames, getType, NumExpr
-from numexpr.expressions import functions as numexpr_functions
+
 from .exceptions import PerformanceWarning
 from .parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 
@@ -176,8 +176,8 @@ class Expr:
 
         # First, get the signature for the arrays in expression
         vars_ = self._required_expr_vars(expr, uservars)
-        context = getContext(kwargs)
-        self.names, _ = getExprNames(expr, context)
+        context = ne.necompiler.getContext(kwargs)
+        self.names, _ = ne.necompiler.getExprNames(expr, context)
 
         # Raise a ValueError in case we have unsupported objects
         for name, var in vars_.items():
@@ -222,11 +222,11 @@ class Expr:
             values.append(value)
 
         # Create a signature for the expression
-        signature = [(name, getType(type_))
+        signature = [(name, ne.necompiler.getType(type_))
                      for (name, type_) in zip(self.names, types_)]
 
         # Compile the expression
-        self._compiled_expr = NumExpr(expr, signature, **kwargs)
+        self._compiled_expr = ne.necompiler.NumExpr(expr, signature, **kwargs)
 
         # Guess the shape for the outcome and the maindim of inputs
         self.shape, self.maindim = self._guess_shape()
@@ -266,7 +266,7 @@ class Expr:
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [var for var in cexpr.co_names
                         if var not in ['None', 'False', 'True']
-                        and var not in numexpr_functions]
+                        and var not in ne.expressions.functions]
             exprvars_cache[expression] = exprvars
         else:
             exprvars = exprvars_cache[expression]

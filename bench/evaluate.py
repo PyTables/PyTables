@@ -1,10 +1,10 @@
 import sys
 from time import perf_counter as clock
 
+import numexpr as ne
 import numpy as np
+
 import tables as tb
-from numexpr.necompiler import (
-    getContext, getExprNames, getType, NumExpr)
 
 
 shape = (1000, 160_000)
@@ -78,8 +78,8 @@ def evaluate(ex, out=None, local_dict=None, global_dict=None, **kwargs):
     """Evaluate expression and return an array."""
 
     # First, get the signature for the arrays in expression
-    context = getContext(kwargs)
-    names, _ = getExprNames(ex, context)
+    context = ne.necompiler.getContext(kwargs)
+    names, _ = ne.necompiler.getExprNames(ex, context)
 
     # Get the arguments based on the names.
     call_frame = sys._getframe(1)
@@ -101,11 +101,14 @@ def evaluate(ex, out=None, local_dict=None, global_dict=None, **kwargs):
             types.append(a)
 
     # Create a signature
-    signature = [(name, getType(type_)) for (name, type_) in zip(names, types)]
+    signature = [
+        (name, ne.necompiler.getType(type_))
+        for (name, type_) in zip(names, types)
+    ]
     print("signature-->", signature)
 
     # Compile the expression
-    compiled_ex = NumExpr(ex, signature, [], **kwargs)
+    compiled_ex = ne.necompiler.NumExpr(ex, signature, [], **kwargs)
     print("fullsig-->", compiled_ex.fullsig)
 
     _compute(out, compiled_ex, arguments)

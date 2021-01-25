@@ -25,7 +25,7 @@ import weakref
 import warnings
 from collections import defaultdict
 
-import numexpr
+import numexpr as ne
 import numpy as np
 
 from . import hdf5extension
@@ -824,7 +824,7 @@ class File(hdf5extension.File):
             self.enable_undo()
 
         # Set the maximum number of threads for Numexpr
-        numexpr.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
+        ne.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
 
     def __get_root_group(self, root_uep, title, filters):
         """Returns a Group instance which will act as the root group in the

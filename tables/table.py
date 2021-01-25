@@ -19,15 +19,13 @@ import warnings
 
 from time import perf_counter as clock
 
+import numexpr as ne
 import numpy as np
-import numexpr
 
 from . import tableextension
 from .lrucacheextension import ObjectCache, NumCache
 from .atom import Atom
 from .conditions import compile_condition
-from numexpr.necompiler import getType as numexpr_getType, double
-from numexpr.expressions import functions as numexpr_functions
 from .flavor import flavor_of, array_as_internal, internal_to_flavor
 from .utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
 from .leaf import Leaf
@@ -59,26 +57,19 @@ if profile:
 obversion = "2.7"  # The Table VERSION number
 
 
-try:
-    # int_, long_ are only available in numexpr >= 2.1
-    from numexpr.necompiler import int_, long_
-except ImportError:
-    int_ = int
-    long_ = int
-
 # Maps NumPy types to the types used by Numexpr.
 _nxtype_from_nptype = {
     np.bool_: bool,
-    np.int8: int_,
-    np.int16: int_,
-    np.int32: int_,
-    np.int64: long_,
-    np.uint8: int_,
-    np.uint16: int_,
-    np.uint32: long_,
-    np.uint64: long_,
+    np.int8: ne.necompiler.int_,
+    np.int16: ne.necompiler.int_,
+    np.int32: ne.necompiler.int_,
+    np.int64: ne.necompiler.long_,
+    np.uint8: ne.necompiler.int_,
+    np.uint16: ne.necompiler.int_,
+    np.uint32: ne.necompiler.long_,
+    np.uint64: ne.necompiler.long_,
     np.float32: float,
-    np.float64: double,
+    np.float64: ne.necompiler.double,
     np.complex64: complex,
     np.complex128: complex,
     np.bytes_: bytes,
@@ -89,10 +80,10 @@ _nxtype_from_nptype[np.str_] = str
 if hasattr(np, 'float16'):
     _nxtype_from_nptype[np.float16] = float    # XXX: check
 if hasattr(np, 'float96'):
-    _nxtype_from_nptype[np.float96] = double   # XXX: check
+    _nxtype_from_nptype[np.float96] = ne.necompiler.double   # XXX: check
 if hasattr(np, 'float128'):
-    _nxtype_from_nptype[np.float128] = double  # XXX: check
-if hasattr(np, 'complec192'):
+    _nxtype_from_nptype[np.float128] = ne.necompiler.double  # XXX: check
+if hasattr(np, 'complex192'):
     _nxtype_from_nptype[np.complex192] = complex  # XXX: check
 if hasattr(np, 'complex256'):
     _nxtype_from_nptype[np.complex256] = complex  # XXX: check
@@ -216,7 +207,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
         return iter([])
 
     # Compute the final chunkmap
-    chunkmap = numexpr.evaluate(strexpr, cmvars)
+    chunkmap = ne.evaluate(strexpr, cmvars)
     if not chunkmap.any():
         # The chunkmap is all False, so the result is empty
         self._seqcache.setitem(seqkey, [], 1)
@@ -1213,7 +1204,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [var for var in cexpr.co_names
                         if var not in ['None', 'False', 'True']
-                        and var not in numexpr_functions]
+                        and var not in ne.expressions.functions]
             exprvarscache[expression] = exprvars
         else:
             exprvars = exprvarscache[expression]
@@ -1303,7 +1294,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:  # array
                 try:
                     varnames.append(var)
-                    vartypes.append(numexpr_getType(val))  # expensive
+                    vartypes.append(ne.necompiler.getType(val))  # expensive
                 except ValueError:
                     # This is more clear than the error given by Numexpr.
                     raise TypeError("variable ``%s`` has data type ``%s``, "

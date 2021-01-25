@@ -21,8 +21,8 @@ from distutils.version import LooseVersion
 
 import unittest
 
+import numexpr as ne
 import numpy as np
-import numexpr
 
 import tables
 from tables.utils import detect_number_of_cores
@@ -87,14 +87,14 @@ def print_versions():
     print("HDF5 version:        %s" % tables.which_lib_version("hdf5")[1])
     print("NumPy version:       %s" % np.__version__)
     tinfo = tables.which_lib_version("zlib")
-    if numexpr.use_vml:
+    if ne.use_vml:
         # Get only the main version number and strip out all the rest
-        vml_version = numexpr.get_vml_version()
+        vml_version = ne.get_vml_version()
         vml_version = re.findall("[0-9.]+", vml_version)[0]
         vml_avail = "using VML/MKL %s" % vml_version
     else:
         vml_avail = "not using Intel's VML/MKL"
-    print(f"Numexpr version:     {numexpr.__version__} ({vml_avail})")
+    print(f"Numexpr version:     {ne.__version__} ({vml_avail})")
     if tinfo is not None:
         print("Zlib version:        {} ({})".format(tinfo[1],
                                                 "in Python interpreter"))
