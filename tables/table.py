@@ -10,13 +10,13 @@
 
 """Here is defined the Table class."""
 
+import functools
 import math
 import operator
 import os
 import sys
 import warnings
 
-from functools import reduce as _reduce
 from time import perf_counter as clock
 
 import numpy as np
@@ -1145,7 +1145,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         try:
-            return _reduce(getattr, colpathname.split('/'), self.description)
+            return functools.reduce(
+                getattr, colpathname.split('/'), self.description)
         except AttributeError:
             raise KeyError("table ``%s`` does not have a column named ``%s``"
                            % (self._v_pathname, colpathname))
