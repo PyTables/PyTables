@@ -18,12 +18,12 @@ nodes.
 
 """
 
-import collections
 import datetime
 import os
 import sys
 import weakref
 import warnings
+from collections import defaultdict
 
 import numexpr
 import numpy as np
@@ -83,7 +83,7 @@ compatible_formats = []  # Old format versions we can read
 
 class _FileRegistry:
     def __init__(self):
-        self._name_mapping = collections.defaultdict(set)
+        self._name_mapping = defaultdict(set)
         self._handlers = set()
 
     @property
