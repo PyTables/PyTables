@@ -432,10 +432,10 @@ class Filters:
             Filters(complevel=0, shuffle=False, bitshuffle=False, fletcher32=False, least_significant_digit=None)
             >>> print(filters3)
             Filters(complevel=1, complib='zlib', shuffle=False, bitshuffle=False, fletcher32=False, least_significant_digit=None)
-            >>> filters1.copy(foobar=42)
+            >>> filters1.copy(foobar=42) #doctest: +ELLIPSIS
             Traceback (most recent call last):
             ...
-            TypeError: __init__() got an unexpected keyword argument 'foobar'
+            TypeError: ...__init__() got an unexpected keyword argument 'foobar'
 
         """
 

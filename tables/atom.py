@@ -569,10 +569,10 @@ class Atom(metaclass=MetaAtom):
             >>> atom3 = atom1.copy(shape=(2, 2))
             >>> print(atom3)
             Int32Atom(shape=(2, 2), dflt=0)
-            >>> atom1.copy(foobar=42)
+            >>> atom1.copy(foobar=42) #doctest: +ELLIPSIS
             Traceback (most recent call last):
             ...
-            TypeError: __init__() got an unexpected keyword argument 'foobar'
+            TypeError: ...__init__() got an unexpected keyword argument 'foobar'
 
         """
         newargs = self._get_init_args()
