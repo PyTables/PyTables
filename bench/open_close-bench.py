@@ -9,7 +9,7 @@ import sys
 import getopt
 import pstats
 import cProfile as prof
-import subprocess  # From Python 2.4 on
+import subprocess
 import tables
 from time import perf_counter as clock
 
