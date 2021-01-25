@@ -10,8 +10,8 @@
 
 """Test module for enumerated types under PyTables."""
 
-import operator
 import itertools
+import operator
 
 import tables
 from tables.tests import common

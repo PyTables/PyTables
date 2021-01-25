@@ -1,7 +1,7 @@
+import itertools
 import os
 import sys
 import tempfile
-from itertools import groupby
 import struct
 import platform
 
@@ -6186,10 +6186,10 @@ class ExhaustedIter(common.TempFileMixin, TestCase):
 
     def test00_groupby(self):
         """Checking iterating an exhausted iterator (ticket #264)"""
-        from itertools import groupby
         rows = self.h5file.root.observations.where('(market_id == 3)')
         scenario_means = []
-        for scenario_id, rows_grouped in groupby(rows, self.f_scenario):
+        for scenario_id, rows_grouped in itertools.groupby(rows,
+                                                           self.f_scenario):
             vals = [row['value'] for row in rows_grouped]
             scenario_means.append(self.average(vals))
         if common.verbose:
@@ -6203,7 +6203,8 @@ class ExhaustedIter(common.TempFileMixin, TestCase):
 
         rows = self.h5file.root.observations.where('(market_id == 3)')
         scenario_means = []
-        for scenario_id, rows_grouped in groupby(rows, self.f_scenario):
+        for scenario_id, rows_grouped in itertools.groupby(rows,
+                                                           self.f_scenario):
             vals = [row['value'] for row in rows_grouped]
             scenario_means.append(self.average(vals))
         if common.verbose:
