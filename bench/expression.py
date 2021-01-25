@@ -1,5 +1,5 @@
+import os
 from time import perf_counter as clock
-import os.path
 
 import numpy as np
 import tables as tb
@@ -116,7 +116,6 @@ def do_bench(what, documpute, dowrite, complib, verbose):
 
 if __name__ == "__main__":
     import sys
-    import os
     import getopt
 
     usage = """usage: %s [-T] [-M] [-c] [-w] [-v] [-z complib]

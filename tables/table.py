@@ -12,7 +12,7 @@
 
 import math
 import operator
-import os.path
+import os
 import sys
 import warnings
 

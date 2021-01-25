@@ -14,7 +14,6 @@
 import math
 import operator
 import os
-import os.path
 import sys
 import tempfile
 import warnings

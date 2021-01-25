@@ -14,9 +14,9 @@ Pass the flag -h to this for help on usage.
 
 """
 
-import sys
-import os.path
 import argparse
+import os
+import sys
 import warnings
 from time import perf_counter as clock
 from time import process_time as cpuclock
