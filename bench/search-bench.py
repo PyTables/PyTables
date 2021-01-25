@@ -7,14 +7,14 @@ import warnings
 from time import perf_counter as clock
 from time import process_time as cpuclock
 
-import numpy
+import numpy as np
 
 from tables import *
 
 # Initialize the random generator always with the same integer
 # in order to have reproductible results
 random.seed(19)
-numpy.random.seed(19)
+np.random.seed(19)
 
 randomvalues = 0
 worst = 0
@@ -101,13 +101,13 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
         else:
             j = i + nrowsbuf
         if randomvalues:
-            var3 = numpy.random.uniform(minimum, maximum, size=j - i)
+            var3 = np.random.uniform(minimum, maximum, size=j - i)
         else:
-            var3 = numpy.arange(i, j, dtype=numpy.float64)
+            var3 = np.arange(i, j, dtype=np.float64)
             if noise > 0:
-                var3 += numpy.random.uniform(-noise, noise, size=j - i)
-        var2 = numpy.array(var3, dtype=numpy.int32)
-        var1 = numpy.empty(shape=[j - i], dtype="S4")
+                var3 += np.random.uniform(-noise, noise, size=j - i)
+        var2 = np.array(var3, dtype=np.int32)
+        var1 = np.empty(shape=[j - i], dtype="S4")
         if not heavy:
             var1[:] = var2
         table.append([var3, var2, var1])
@@ -240,11 +240,11 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
     # Initialize the random generator always with the same integer
     # in order to have reproductible results on each read iteration
     random.seed(19)
-    numpy.random.seed(19)
+    np.random.seed(19)
     for i in range(riter):
         # The interval for look values at. This is aproximately equivalent to
         # the number of elements to select
-        rnd = numpy.random.randint(table.nrows)
+        rnd = np.random.randint(table.nrows)
         cpu1 = cpuclock()
         t1 = clock()
         if atom == "string":

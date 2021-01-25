@@ -6,7 +6,7 @@
 # 2005-03-09
 ###########################################################################
 
-import numpy
+import numpy as np
 from time import perf_counter as clock
 import tables
 
@@ -24,9 +24,9 @@ class BasicBenchmark:
         self.niter = niter
 
         # Initialize the arrays
-        self.a1 = numpy.arange(0, 1 * self.vecsize)
-        self.a2 = numpy.arange(1 * self.vecsize, 2 * self.vecsize)
-        self.a3 = numpy.arange(2 * self.vecsize, 3 * self.vecsize)
+        self.a1 = np.arange(0, 1 * self.vecsize)
+        self.a2 = np.arange(1 * self.vecsize, 2 * self.vecsize)
+        self.a3 = np.arange(2 * self.vecsize, 3 * self.vecsize)
 
     def setUp(self):
 

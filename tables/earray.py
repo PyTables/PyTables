@@ -10,7 +10,7 @@
 
 """Here is defined the EArray class."""
 
-import numpy
+import numpy as np
 
 from .utils import convert_to_np_atom2, SizeType
 from .carray import CArray
@@ -107,7 +107,7 @@ class EArray(CArray):
     code is available in ``examples/earray1.py``::
 
         import tables
-        import numpy
+        import numpy as np
 
         fileh = tables.open_file('earray1.h5', mode='w')
         a = tables.StringAtom(itemsize=8)
@@ -162,7 +162,7 @@ class EArray(CArray):
         """Create a new array in file (specific part)."""
 
         # Pre-conditions and extdim computation
-        zerodims = numpy.sum(numpy.array(self.shape) == 0)
+        zerodims = np.sum(np.array(self.shape) == 0)
         if zerodims > 0:
             if zerodims == 1:
                 self.extdim = list(self.shape).index(0)
@@ -252,7 +252,7 @@ class EArray(CArray):
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.itemsize
+        nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.itemsize
 
         return (object, nbytes)
 

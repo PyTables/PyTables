@@ -8,7 +8,7 @@ with ptdump or any HDF5 generic utility.
 
 """
 
-import numpy
+import numpy as np
 
 import tables
 
@@ -115,10 +115,10 @@ print(repr(table.description.info1._v_nested_names))
 print()
 print("**** now some for nested records, take that ****")
 print(repr(table.description._v_nested_descr))
-print(repr(numpy.rec.array(None, shape=0,
-                           dtype=table.description._v_nested_descr)))
-print(repr(numpy.rec.array(None, shape=0,
-                           dtype=table.description.info2._v_nested_descr)))
+print(repr(np.rec.array(None, shape=0,
+                        dtype=table.description._v_nested_descr)))
+print(repr(np.rec.array(None, shape=0,
+                        dtype=table.description.info2._v_nested_descr)))
 print()
 print("**** and some iteration over descriptions, too ****")
 for coldescr in table.description._f_walk():

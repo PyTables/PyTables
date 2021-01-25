@@ -2,7 +2,7 @@ import os
 import copy
 import tempfile
 
-import numpy
+import numpy as np
 
 import tables
 from tables import (
@@ -277,7 +277,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         rowList1 = table.get_where_list('var2 == False', sort=True)
         rowList2 = [p.nrow for p in table if p['var2'] is False]
         # Convert to a NumPy object
-        rowList2 = numpy.array(rowList2, numpy.int64)
+        rowList2 = np.array(rowList2, np.int64)
         if verbose:
             print("Selected values:", rowList1)
             print("Should look like:", rowList2)
@@ -1825,7 +1825,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.read_sorted() method with no arguments."""
 
         icol = self.icol
-        sortedcol = numpy.sort(icol[:])
+        sortedcol = np.sort(icol[:])
         sortedcol2 = icol.index.read_sorted()
         if verbose:
             print("Original sorted column:", sortedcol)
@@ -1836,7 +1836,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.read_sorted() method with arguments (I)."""
 
         icol = self.icol
-        sortedcol = numpy.sort(icol[:])[30:55]
+        sortedcol = np.sort(icol[:])[30:55]
         sortedcol2 = icol.index.read_sorted(30, 55)
         if verbose:
             print("Original sorted column:", sortedcol)
@@ -1847,7 +1847,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.read_sorted() method with arguments (II)."""
 
         icol = self.icol
-        sortedcol = numpy.sort(icol[:])[33:97]
+        sortedcol = np.sort(icol[:])[33:97]
         sortedcol2 = icol.index.read_sorted(33, 97)
         if verbose:
             print("Original sorted column:", sortedcol)
@@ -1858,7 +1858,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.read_indices() method with no arguments."""
 
         icol = self.icol
-        indicescol = numpy.argsort(icol[:]).astype('uint64')
+        indicescol = np.argsort(icol[:]).astype('uint64')
         indicescol2 = icol.index.read_indices()
         if verbose:
             print("Original indices column:", indicescol)
@@ -1869,7 +1869,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.read_indices() method with arguments (I)."""
 
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])[30:55].astype('uint64')
+        indicescol = np.argsort(icol[:])[30:55].astype('uint64')
         indicescol2 = icol.index.read_indices(30, 55)
         if verbose:
             print("Original indices column:", indicescol)
@@ -1880,7 +1880,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.read_indices() method with arguments (II)."""
 
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])[33:97].astype('uint64')
+        indicescol = np.argsort(icol[:])[33:97].astype('uint64')
         indicescol2 = icol.index.read_indices(33, 97)
         if verbose:
             print("Original indices column:", indicescol)
@@ -1891,7 +1891,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.read_indices() method with arguments (III)."""
 
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])[33:97:2].astype('uint64')
+        indicescol = np.argsort(icol[:])[33:97:2].astype('uint64')
         indicescol2 = icol.index.read_indices(33, 97, 2)
         if verbose:
             print("Original indices column:", indicescol)
@@ -1902,7 +1902,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.read_indices() method with arguments (IV)."""
 
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])[33:55:5].astype('uint64')
+        indicescol = np.argsort(icol[:])[33:55:5].astype('uint64')
         indicescol2 = icol.index.read_indices(33, 55, 5)
         if verbose:
             print("Original indices column:", indicescol)
@@ -1913,7 +1913,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.read_indices() method with step only."""
 
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])[::3].astype('uint64')
+        indicescol = np.argsort(icol[:])[::3].astype('uint64')
         indicescol2 = icol.index.read_indices(step=3)
         if verbose:
             print("Original indices column:", indicescol)
@@ -1924,7 +1924,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.__getitem__() method with no arguments."""
 
         icol = self.icol
-        indicescol = numpy.argsort(icol[:]).astype('uint64')
+        indicescol = np.argsort(icol[:]).astype('uint64')
         indicescol2 = icol.index[:]
         if verbose:
             print("Original indices column:", indicescol)
@@ -1935,7 +1935,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.__getitem__() method with start."""
 
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])[31].astype('uint64')
+        indicescol = np.argsort(icol[:])[31].astype('uint64')
         indicescol2 = icol.index[31]
         if verbose:
             print("Original indices column:", indicescol)
@@ -1946,7 +1946,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Index.__getitem__() method with start, stop."""
 
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])[2:16].astype('uint64')
+        indicescol = np.argsort(icol[:])[2:16].astype('uint64')
         indicescol2 = icol.index[2:16]
         if verbose:
             print("Original indices column:", indicescol)
@@ -1957,8 +1957,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.itersorted() method with no arguments."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')
-        sortedtable2 = numpy.array(
+        sortedtable = np.sort(table[:], order='icol')
+        sortedtable2 = np.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol')], dtype=table._v_dtype)
         if verbose:
@@ -1970,8 +1970,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.itersorted() method with a start."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[15:]
-        sortedtable2 = numpy.array(
+        sortedtable = np.sort(table[:], order='icol')[15:]
+        sortedtable2 = np.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', start=15)], dtype=table._v_dtype)
         if verbose:
@@ -1983,8 +1983,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.itersorted() method with a stop."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[:20]
-        sortedtable2 = numpy.array(
+        sortedtable = np.sort(table[:], order='icol')[:20]
+        sortedtable2 = np.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', stop=20)], dtype=table._v_dtype)
         if verbose:
@@ -1996,8 +1996,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.itersorted() method with a start and stop."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[15:20]
-        sortedtable2 = numpy.array(
+        sortedtable = np.sort(table[:], order='icol')[15:20]
+        sortedtable2 = np.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', start=15, stop=20)], dtype=table._v_dtype)
         if verbose:
@@ -2010,8 +2010,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         step."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[15:45:4]
-        sortedtable2 = numpy.array(
+        sortedtable = np.sort(table[:], order='icol')[15:45:4]
+        sortedtable2 = np.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', start=15, stop=45, step=4)], dtype=table._v_dtype)
         if verbose:
@@ -2024,8 +2024,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         step."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[33:55:5]
-        sortedtable2 = numpy.array(
+        sortedtable = np.sort(table[:], order='icol')[33:55:5]
+        sortedtable2 = np.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', start=33, stop=55, step=5)], dtype=table._v_dtype)
         if verbose:
@@ -2037,8 +2037,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.itersorted() method with checkCSI=True."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')
-        sortedtable2 = numpy.array(
+        sortedtable = np.sort(table[:], order='icol')
+        sortedtable2 = np.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', checkCSI=True)], dtype=table._v_dtype)
         if verbose:
@@ -2052,8 +2052,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
 
         # see also gh-252
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[55:33:-5]
-        sortedtable2 = numpy.array(
+        sortedtable = np.sort(table[:], order='icol')[55:33:-5]
+        sortedtable2 = np.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', start=55, stop=33, step=-5)], dtype=table._v_dtype)
         if verbose:
@@ -2066,8 +2066,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
 
         # see also gh-252
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[::-5]
-        sortedtable2 = numpy.array(
+        sortedtable = np.sort(table[:], order='icol')[::-5]
+        sortedtable2 = np.array(
             [row.fetch_all_fields() for row in table.itersorted(
              'icol', step=-5)], dtype=table._v_dtype)
         if verbose:
@@ -2080,8 +2080,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
 
         # see also gh-252
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[::-1]
-        sortedtable2 = numpy.array(
+        sortedtable = np.sort(table[:], order='icol')[::-1]
+        sortedtable2 = np.array(
             [row.fetch_all_fields() for row in table.itersorted(
                 'icol', step=-1)], dtype=table._v_dtype)
         if verbose:
@@ -2093,7 +2093,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.read_sorted() method with no arguments."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable = np.sort(table[:], order='icol')
         sortedtable2 = table.read_sorted('icol')
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2104,7 +2104,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.read_sorted() method with a start."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[16:17]
+        sortedtable = np.sort(table[:], order='icol')[16:17]
         sortedtable2 = table.read_sorted('icol', start=16)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2115,7 +2115,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.read_sorted() method with a start and stop."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[16:33]
+        sortedtable = np.sort(table[:], order='icol')[16:33]
         sortedtable2 = table.read_sorted('icol', start=16, stop=33)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2127,7 +2127,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         step."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[33:55:5]
+        sortedtable = np.sort(table[:], order='icol')[33:55:5]
         sortedtable2 = table.read_sorted('icol', start=33, stop=55, step=5)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2138,7 +2138,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.read_sorted() method with only a step."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[::3]
+        sortedtable = np.sort(table[:], order='icol')[::3]
         sortedtable2 = table.read_sorted('icol', step=3)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2149,7 +2149,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.read_sorted() method with negative step."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[::-1]
+        sortedtable = np.sort(table[:], order='icol')[::-1]
         sortedtable2 = table.read_sorted('icol', step=-1)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2160,7 +2160,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.read_sorted() method with negative step (II)."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')[::-2]
+        sortedtable = np.sort(table[:], order='icol')[::-2]
         sortedtable2 = table.read_sorted('icol', step=-2)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2173,7 +2173,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         table = self.table
         sstart = 100-24-1
         sstop = 100-54-1
-        sortedtable = numpy.sort(table[:], order='icol')[sstart:sstop:-1]
+        sortedtable = np.sort(table[:], order='icol')[sstart:sstop:-1]
         sortedtable2 = table.read_sorted('icol', start=24, stop=54, step=-1)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2186,7 +2186,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         table = self.table
         sstart = 100-14-1
         sstop = 100-54-1
-        sortedtable = numpy.sort(table[:], order='icol')[sstart:sstop:-3]
+        sortedtable = np.sort(table[:], order='icol')[sstart:sstop:-3]
         sortedtable2 = table.read_sorted('icol', start=14, stop=54, step=-3)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2199,7 +2199,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         table = self.table
         sstart = 100-24-1
         sstop = 100-25-1
-        sortedtable = numpy.sort(table[:], order='icol')[sstart:sstop:-2]
+        sortedtable = np.sort(table[:], order='icol')[sstart:sstop:-2]
         sortedtable2 = table.read_sorted('icol', start=24, stop=25, step=-2)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2212,7 +2212,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         table = self.table
         sstart = 100-137-1
         sstop = 100-25-1
-        sortedtable = numpy.sort(table[:], order='icol')[sstart:sstop:-2]
+        sortedtable = np.sort(table[:], order='icol')[sstart:sstop:-2]
         sortedtable2 = table.read_sorted('icol', start=137, stop=25, step=-2)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2223,7 +2223,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.read_sorted() method with checkCSI (I)."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable = np.sort(table[:], order='icol')
         sortedtable2 = table.read_sorted('icol', checkCSI=True)
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2244,7 +2244,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
         table2 = table.copy("/", 'table2', sortby="icol")
-        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable = np.sort(table[:], order='icol')
         sortedtable2 = table2[:]
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2258,7 +2258,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
         table2 = table.copy("/", 'table2', sortby="icol", step=-1)
-        sortedtable = numpy.sort(table[:], order='icol')[::-1]
+        sortedtable = np.sort(table[:], order='icol')[::-1]
         sortedtable2 = table2[:]
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2272,7 +2272,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
         table2 = table.copy("/", 'table2', sortby="icol", start=3)
-        sortedtable = numpy.sort(table[:], order='icol')[3:4]
+        sortedtable = np.sort(table[:], order='icol')[3:4]
         sortedtable2 = table2[:]
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2286,7 +2286,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
         table2 = table.copy("/", 'table2', sortby="icol", start=3, stop=40)
-        sortedtable = numpy.sort(table[:], order='icol')[3:40]
+        sortedtable = np.sort(table[:], order='icol')[3:40]
         sortedtable2 = table2[:]
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2301,7 +2301,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         table.nrowsinbuf = self.nrowsinbuf
         table2 = table.copy("/", 'table2', sortby="icol",
                             start=3, stop=33, step=5)
-        sortedtable = numpy.sort(table[:], order='icol')[3:33:5]
+        sortedtable = np.sort(table[:], order='icol')[3:33:5]
         sortedtable2 = table2[:]
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2316,7 +2316,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, TestCase):
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
         table2 = table.copy("/", 'table2', sortby="icol")
-        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable = np.sort(table[:], order='icol')
         sortedtable2 = table2[:]
         if verbose:
             print("Original sorted table:", sortedtable)
@@ -2389,7 +2389,7 @@ class ReadSortedIndexTestCase(TempFileMixin, TestCase):
         """Testing the Table.read_sorted() method with no arguments."""
 
         table = self.table
-        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable = np.sort(table[:], order='icol')
         sortedtable2 = table.read_sorted('icol')
         if verbose:
             print("Sorted table:", sortedtable)
@@ -2397,7 +2397,7 @@ class ReadSortedIndexTestCase(TempFileMixin, TestCase):
         # Compare with the sorted read table because we have no
         # guarantees that read_sorted returns a completely sorted table
         self.assertTrue(allequal(sortedtable,
-                                 numpy.sort(sortedtable2, order="icol")))
+                                 np.sort(sortedtable2, order="icol")))
 
     def test01_readSorted2(self):
         """Testing the Table.read_sorted() method with no arguments
@@ -2405,7 +2405,7 @@ class ReadSortedIndexTestCase(TempFileMixin, TestCase):
 
         self._reopen()
         table = self.h5file.root.table
-        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable = np.sort(table[:], order='icol')
         sortedtable2 = table.read_sorted('icol')
         if verbose:
             print("Sorted table:", sortedtable)
@@ -2413,7 +2413,7 @@ class ReadSortedIndexTestCase(TempFileMixin, TestCase):
         # Compare with the sorted read table because we have no
         # guarantees that read_sorted returns a completely sorted table
         self.assertTrue(allequal(sortedtable,
-                                 numpy.sort(sortedtable2, order="icol")))
+                                 np.sort(sortedtable2, order="icol")))
 
     def test02_copy_sorted1(self):
         """Testing the Table.copy(sortby) method."""
@@ -2422,8 +2422,8 @@ class ReadSortedIndexTestCase(TempFileMixin, TestCase):
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
         table2 = table.copy("/", 'table2', sortby="icol")
-        sortedtable = numpy.sort(table[:], order='icol')
-        sortedtable2 = numpy.sort(table2[:], order='icol')
+        sortedtable = np.sort(table[:], order='icol')
+        sortedtable2 = np.sort(table2[:], order='icol')
         if verbose:
             print("Original table:", table2[:])
             print("The sorted values from copy:", sortedtable2)
@@ -2437,8 +2437,8 @@ class ReadSortedIndexTestCase(TempFileMixin, TestCase):
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
         table2 = table.copy("/", 'table2', sortby="icol")
-        sortedtable = numpy.sort(table[:], order='icol')
-        sortedtable2 = numpy.sort(table2[:], order='icol')
+        sortedtable = np.sort(table[:], order='icol')
+        sortedtable2 = np.sort(table2[:], order='icol')
         if verbose:
             print("Original table:", table2[:])
             print("The sorted values from copy:", sortedtable2)
@@ -2484,8 +2484,8 @@ class Issue156TestBase(common.TempFileMixin, TestCase):
         # fill table with 10 random numbers
         for k in range(10):
             row = table.row
-            row['frame'] = numpy.random.randint(0, 2**16-1)
-            row['Bar/code'] = numpy.random.randint(0, 2**16-1)
+            row['frame'] = np.random.randint(0, 2**16-1)
+            row['Bar/code'] = np.random.randint(0, 2**16-1)
             row.append()
 
         self.h5file.flush()
@@ -2504,7 +2504,7 @@ class Issue156TestBase(common.TempFileMixin, TestCase):
                                 propindexes=True)
 
         # check column is sorted
-        self.assertTrue(numpy.all(
+        self.assertTrue(np.all(
             new_node.col(self.sort_field) ==
             sorted(oldNode.col(self.sort_field))))
         # check index is available
@@ -2580,7 +2580,7 @@ class TestIndexingNans(TempFileMixin, TestCase):
         r = table.row
         for i in range(5):
             r['index'] = i
-            r['values'] = numpy.nan if i == 0 else i
+            r['values'] = np.nan if i == 0 else i
             r.append()
         table.flush()
 
@@ -2600,7 +2600,7 @@ class TestIndexingNans(TempFileMixin, TestCase):
         r = table.row
         for i in range(5):
             r['index'] = i
-            r['values'] = numpy.nan if i == 2 or i == 3 else i
+            r['values'] = np.nan if i == 2 or i == 3 else i
             r['values2'] = i
             r.append()
         table.flush()
@@ -2625,7 +2625,7 @@ class TestIndexingNans(TempFileMixin, TestCase):
         for _ in range(100):
             for i in range(5):
                 r['index'] = i
-                r['values'] = numpy.nan if i == 2 or i == 3 else i
+                r['values'] = np.nan if i == 2 or i == 3 else i
                 r['values2'] = i
                 r.append()
         table.flush()
@@ -2650,7 +2650,7 @@ class TestIndexingNans(TempFileMixin, TestCase):
         for x in range(100):
             for i in range(5):
                 r['index'] = i
-                r['values'] = numpy.nan if i == 2 or i == 3 else i
+                r['values'] = np.nan if i == 2 or i == 3 else i
                 r['values2'] = i
                 r.append()
         table.flush()

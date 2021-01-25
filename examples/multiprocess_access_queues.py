@@ -10,7 +10,7 @@ import os
 import random
 import time
 
-import numpy
+import numpy as np
 import tables
 
 
@@ -112,7 +112,7 @@ class DataProcessor(multiprocessing.Process):
 
         # modify a random row to equal 11 * (self.proc_num + 1)
         row_num = random.randrange(self.array_size)
-        new_data = (numpy.zeros((1, self.array_size), 'i8') +
+        new_data = (np.zeros((1, self.array_size), 'i8') +
                     11 * (self.proc_num + 1))
         self.write_queue.put((row_num, new_data))
 

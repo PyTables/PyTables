@@ -13,7 +13,7 @@
 import warnings
 import math
 
-import numpy
+import numpy as np
 
 from .flavor import (check_flavor, internal_flavor, toarray,
                      alias_map as flavor_alias_map)
@@ -354,7 +354,7 @@ class Leaf(Node):
         chunkshape = list(self.shape)
         # Check whether trimming the main dimension is enough
         chunkshape[maindim] = 1
-        newchunknitems = numpy.prod(chunkshape, dtype=SizeType)
+        newchunknitems = np.prod(chunkshape, dtype=SizeType)
         if newchunknitems <= chunknitems:
             chunkshape[maindim] = chunknitems // newchunknitems
         else:
@@ -362,7 +362,7 @@ class Leaf(Node):
             for j in range(len(chunkshape)):
                 # Check whether trimming this dimension is enough
                 chunkshape[j] = 1
-                newchunknitems = numpy.prod(chunkshape, dtype=SizeType)
+                newchunknitems = np.prod(chunkshape, dtype=SizeType)
                 if newchunknitems <= chunknitems:
                     chunkshape[j] = chunknitems // newchunknitems
                     break
@@ -536,20 +536,20 @@ very small/large chunksize, you may want to increase/decrease it."""
                 key = toarray(key)
             except ValueError:
                 raise TypeError(f"Invalid index or slice: {key!r}")
-        elif not isinstance(key, numpy.ndarray):
+        elif not isinstance(key, np.ndarray):
             raise TypeError(f"Invalid index or slice: {key!r}")
 
         # Protection against empty keys
         if len(key) == 0:
-            return numpy.array([], dtype="i8")
+            return np.array([], dtype="i8")
 
         if key.dtype.kind == 'b':
             if not key.shape == self.shape:
                 raise IndexError(
                     "Boolean indexing array has incompatible shape")
             # Get the True coordinates (64-bit indices!)
-            coords = numpy.asarray(key.nonzero(), dtype='i8')
-            coords = numpy.transpose(coords)
+            coords = np.asarray(key.nonzero(), dtype='i8')
+            coords = np.transpose(coords)
         elif key.dtype.kind == 'i' or key.dtype.kind == 'u':
             if len(key.shape) > 2:
                 raise IndexError(
@@ -558,18 +558,18 @@ very small/large chunksize, you may want to increase/decrease it."""
                 if key.shape[0] != len(self.shape):
                     raise IndexError(
                         "Coordinate indexing array has incompatible shape")
-                coords = numpy.asarray(key, dtype="i8")
-                coords = numpy.transpose(coords)
+                coords = np.asarray(key, dtype="i8")
+                coords = np.transpose(coords)
             else:
                 # For 1-dimensional datasets
-                coords = numpy.asarray(key, dtype="i8")
+                coords = np.asarray(key, dtype="i8")
 
             # handle negative indices
             idx = coords < 0
             coords[idx] = (coords + self.shape)[idx]
 
             # bounds check
-            if numpy.any(coords < 0) or numpy.any(coords >= self.shape):
+            if np.any(coords < 0) or np.any(coords >= self.shape):
                 raise IndexError("Index out of bounds")
         else:
             raise TypeError("Only integer coordinates allowed.")

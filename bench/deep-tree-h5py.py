@@ -2,7 +2,7 @@ import os
 import subprocess
 from time import perf_counter as clock
 import random
-import numpy
+import numpy as np
 import h5py
 
 random.seed(2)
@@ -38,7 +38,7 @@ def show_stats(explain, tref):
 
 def populate(f, nlevels):
     g = f
-    arr = numpy.zeros((10,), "f4")
+    arr = np.zeros((10,), "f4")
     for i in range(nlevels):
         g["DS1"] = arr
         g["DS2"] = arr

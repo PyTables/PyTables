@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import numpy as NP
+import numpy as np
 from tables import *
 
 # This class is accessible only for the examples
@@ -16,7 +16,7 @@ class Small(IsDescription):
 
 class Medium(IsDescription):
     name = StringCol(itemsize=16, pos=0)    # 16-character String
-    float1 = Float64Col(shape=2, dflt=NP.arange(2), pos=1)
+    float1 = Float64Col(shape=2, dflt=np.arange(2), pos=1)
     #float1 = Float64Col(dflt=2.3)
     #float2 = Float64Col(dflt=2.3)
     # zADCcount    = Int16Col()               # signed short integer
@@ -32,7 +32,7 @@ class Medium(IsDescription):
 
 class Big(IsDescription):
     name = StringCol(itemsize=16)           # 16-character String
-    float1 = Float64Col(shape=32, dflt=NP.arange(32))
+    float1 = Float64Col(shape=32, dflt=np.arange(32))
     float2 = Float64Col(shape=32, dflt=2.2)
     TDCcount = Int8Col()                    # signed short integer
     #ADCcount    = Int32Col()
@@ -361,7 +361,7 @@ if __name__ == "__main__":
     file = pargs[0]
 
     if verbose:
-        print("numpy version:", NP.__version__)
+        print("numpy version:", np.__version__)
         if psyco_imported and usepsyco:
             print("Using psyco version:", psyco.version_info)
 

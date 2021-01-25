@@ -3,7 +3,7 @@ import shutil
 import tempfile
 import warnings
 
-import numpy
+import numpy as np
 
 import tables
 from tables.exceptions import FlavorWarning
@@ -87,8 +87,8 @@ class BackCompatAttrsTestCase(common.TestFileMixin, TestCase):
 
         # Read old formats
         a = self.h5file.get_node("/a")
-        scalar = numpy.array(1, dtype="int32")
-        vector = numpy.array([1], dtype="int32")
+        scalar = np.array(1, dtype="int32")
+        vector = np.array([1], dtype="int32")
         if self.format == "1.3":
             self.assertTrue(allequal(a.attrs.arrdim1, vector))
             self.assertTrue(allequal(a.attrs.arrscalar, scalar))

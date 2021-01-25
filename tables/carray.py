@@ -13,7 +13,7 @@
 
 import sys
 
-import numpy
+import numpy as np
 
 from .atom import Atom
 from .array import Array
@@ -91,7 +91,7 @@ class CArray(Array):
     See below a small example of the use of the `CArray` class.
     The code is available in ``examples/carray1.py``::
 
-        import numpy
+        import numpy as np
         import tables
 
         fileName = 'carray1.h5'
@@ -290,7 +290,7 @@ class CArray(Array):
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.size
+        nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object, nbytes)
 

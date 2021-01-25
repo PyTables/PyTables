@@ -7,7 +7,7 @@ the raw data file in a subdirectory.
 
 import os
 import errno
-import numpy
+import numpy as np
 import tables
 
 FNAME = "split"
@@ -33,6 +33,6 @@ with tables.open_file(FNAME, mode="w", driver=DRIVER, **DRIVER_PROPS) as f:
     table = f.create_table(group, "bar", FooBar, "bar desc")
     for i in range(5):
         table.row["tag"] = "t%d" % i
-        table.row["data"] = numpy.random.random_sample(DATA_SHAPE)
+        table.row["data"] = np.random.random_sample(DATA_SHAPE)
         table.row.append()
     table.flush()

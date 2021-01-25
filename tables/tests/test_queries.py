@@ -16,7 +16,7 @@ import types
 import warnings
 import functools
 
-import numpy
+import numpy as np
 
 import tables
 from tables.utils import SizeType
@@ -26,10 +26,6 @@ from tables.tests.common import verbosePrint as vprint
 from tables.tests.common import PyTablesTestCase as TestCase
 
 
-from numpy import (log10, exp, log, abs, sqrt, sin, cos, tan,
-                   arcsin, arccos, arctan)
-
-
 # Data parameters
 # ---------------
 row_period = 50
@@ -37,8 +33,8 @@ row_period = 50
 md_shape = (2, 2)
 """Shape of multidimensional fields."""
 
-_maxnvalue = row_period + numpy.prod(md_shape, dtype=SizeType) - 1
-_strlen = int(numpy.log10(_maxnvalue-1)) + 1
+_maxnvalue = row_period + np.prod(md_shape, dtype=SizeType) - 1
+_strlen = int(np.log10(_maxnvalue-1)) + 1
 
 str_format = '%%0%dd' % _strlen
 """Format of string values."""
@@ -51,36 +47,36 @@ small_blocksizes = (300, 60, 20, 5)
 # Type information
 # ----------------
 type_info = {
-    'bool': (numpy.bool_, bool),
-    'int8': (numpy.int8, int),
-    'uint8': (numpy.uint8, int),
-    'int16': (numpy.int16, int),
-    'uint16': (numpy.uint16, int),
-    'int32': (numpy.int32, int),
-    'uint32': (numpy.uint32, int),
-    'int64': (numpy.int64, int),
-    'uint64': (numpy.uint64, int),
-    'float32': (numpy.float32, float),
-    'float64': (numpy.float64, float),
-    'complex64': (numpy.complex64, complex),
-    'complex128': (numpy.complex128, complex),
-    'time32': (numpy.int32, int),
-    'time64': (numpy.float64, float),
-    'enum': (numpy.uint8, int),  # just for these tests
-    'string': ('S%s' % _strlen, numpy.string_),  # just for these tests
+    'bool': (np.bool_, bool),
+    'int8': (np.int8, int),
+    'uint8': (np.uint8, int),
+    'int16': (np.int16, int),
+    'uint16': (np.uint16, int),
+    'int32': (np.int32, int),
+    'uint32': (np.uint32, int),
+    'int64': (np.int64, int),
+    'uint64': (np.uint64, int),
+    'float32': (np.float32, float),
+    'float64': (np.float64, float),
+    'complex64': (np.complex64, complex),
+    'complex128': (np.complex128, complex),
+    'time32': (np.int32, int),
+    'time64': (np.float64, float),
+    'enum': (np.uint8, int),  # just for these tests
+    'string': ('S%s' % _strlen, np.string_),  # just for these tests
 }
 """NumPy and Numexpr type for each PyTables type that will be tested."""
 
 # globals dict for eval()
-func_info = {'log10': log10, 'log': log, 'exp': exp,
-             'abs': abs, 'sqrt': sqrt,
-             'sin': sin, 'cos': cos, 'tan': tan,
-             'arcsin': arcsin, 'arccos': arccos, 'arctan': arctan}
+func_info = {'log10': np.log10, 'log': np.log, 'exp': np.exp,
+             'abs': np.abs, 'sqrt': np.sqrt,
+             'sin': np.sin, 'cos': np.cos, 'tan': np.tan,
+             'arcsin': np.arcsin, 'arccos': np.arccos, 'arctan': np.arctan}
 """functions and NumPy.ufunc() for each function that will be tested."""
 
 
-if hasattr(numpy, 'float16'):
-    type_info['float16'] = (numpy.float16, float)
+if hasattr(np, 'float16'):
+    type_info['float16'] = (np.float16, float)
 # if hasattr(numpy, 'float96'):
 #    type_info['float96'] = (numpy.float96, float)
 # if hasattr(numpy, 'float128'):
@@ -124,7 +120,7 @@ def append_columns(classdict, shape=()):
             col = tables.EnumCol(enum, enum(0), base, shape=shape, pos=colpos)
         else:
             sctype = sctype_from_type[type_]
-            dtype = numpy.dtype((sctype, shape))
+            dtype = np.dtype((sctype, shape))
             col = tables.Col.from_dtype(dtype, pos=colpos)
         classdict[colname] = col
     ncols = colpos
@@ -208,11 +204,11 @@ def fill_table(table, shape, nrows):
         return
 
     heavy = common.heavy
-    size = int(numpy.prod(shape, dtype=SizeType))
+    size = int(np.prod(shape, dtype=SizeType))
 
     row, value = table.row, 0
     for nrow in range(nrows):
-        data = numpy.arange(value, value + size).reshape(shape)
+        data = np.arange(value, value + size).reshape(shape)
         for (type_, sctype) in sctype_from_type.items():
             if not heavy and type_ in heavy_types:
                 continue  # skip heavy type in non-heavy mode
@@ -222,9 +218,9 @@ def fill_table(table, shape, nrows):
                 coldata = data > (row_period // 2)
             elif type_ == 'string':
                 sdata = [str_format % x for x in range(value, value + size)]
-                coldata = numpy.array(sdata, dtype=sctype).reshape(shape)
+                coldata = np.array(sdata, dtype=sctype).reshape(shape)
             else:
-                coldata = numpy.asarray(data, dtype=sctype)
+                coldata = np.asarray(data, dtype=sctype)
             row[ncolname] = row[colname] = coldata
             row['c_extra'] = data - (row_period // 2)
             row['c_idxextra'] = data - (row_period // 2)
@@ -435,8 +431,8 @@ def create_test_method(type_, op, extracond, func=None):
                 if isvalidrow:
                     pyrownos.append(row.nrow)
                     pyfvalues.append(row[acolname])
-            pyrownos = numpy.array(pyrownos)  # row numbers already sorted
-            pyfvalues = numpy.array(pyfvalues, dtype=sctype)
+            pyrownos = np.array(pyrownos)  # row numbers already sorted
+            pyfvalues = np.array(pyfvalues, dtype=sctype)
             pyfvalues.sort()
             vprint("* %d rows selected by Python from ``%s``."
                    % (len(pyrownos), acolname))
@@ -444,8 +440,8 @@ def create_test_method(type_, op, extracond, func=None):
                 rownos = pyrownos  # initialise reference results
                 fvalues = pyfvalues
             else:
-                self.assertTrue(numpy.all(pyrownos == rownos))  # check
-                self.assertTrue(numpy.all(pyfvalues == fvalues))
+                self.assertTrue(np.all(pyrownos == rownos))  # check
+                self.assertTrue(np.all(pyfvalues == fvalues))
 
             # Then the in-kernel or indexed version.
             ptvars = condvars.copy()
@@ -475,11 +471,11 @@ def create_test_method(type_, op, extracond, func=None):
             vprint("* %d rows selected by PyTables from ``%s``"
                    % (len(ptrownos[0]), acolname), nonl=True)
             vprint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
-            self.assertTrue(numpy.all(ptrownos[0] == rownos))
-            self.assertTrue(numpy.all(ptfvalues[0] == fvalues))
+            self.assertTrue(np.all(ptrownos[0] == rownos))
+            self.assertTrue(np.all(ptfvalues[0] == fvalues))
             # The following test possible caching of query results.
-            self.assertTrue(numpy.all(ptrownos[0] == ptrownos[1]))
-            self.assertTrue(numpy.all(ptfvalues[0] == ptfvalues[1]))
+            self.assertTrue(np.all(ptrownos[0] == ptrownos[1]))
+            self.assertTrue(np.all(ptfvalues[0] == ptfvalues[1]))
 
     test_method.__doc__ = "Testing ``%s``." % cond
     return test_method

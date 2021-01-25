@@ -1,7 +1,7 @@
 "This creates an HDF5 file with a potentially large number of objects"
 
 import sys
-import numpy
+import numpy as np
 import tables
 
 filename = sys.argv[1]
@@ -21,7 +21,7 @@ nlevels, ngroups, ndatasets = (3, 10, 100)
 #nlevels, ngroups, ndatasets = (30, 10, 10)
 
 # Create an Array to save on disk
-a = numpy.array([-1, 2, 4], numpy.int16)
+a = np.array([-1, 2, 4], np.int16)
 
 group = fileh.root
 group2 = fileh.root

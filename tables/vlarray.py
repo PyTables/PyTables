@@ -12,7 +12,7 @@
 
 import operator
 import sys
-import numpy
+import numpy as np
 
 from . import hdf5extension
 from .atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
@@ -331,7 +331,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
-            if isinstance(chunkshape, (int, numpy.integer)):
+            if isinstance(chunkshape, (int, np.integer)):
                 chunkshape = (chunkshape,)
             try:
                 chunkshape = tuple(chunkshape)
@@ -386,7 +386,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         atom = self.atom
         self._v_version = obversion
         # Check for zero dims in atom shape (not allowed in VLArrays)
-        zerodims = numpy.sum(numpy.array(atom.shape) == 0)
+        zerodims = np.sum(np.array(atom.shape) == 0)
         if zerodims > 0:
             raise ValueError("When creating VLArrays, none of the dimensions "
                              "of the Atom instance can be zero.")
@@ -455,7 +455,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """Return the number of objects in a NumPy array."""
 
         # Check for zero dimensionality array
-        zerodims = numpy.sum(numpy.array(nparr.shape) == 0)
+        zerodims = np.sum(np.array(nparr.shape) == 0)
         if zerodims > 0:
             # No objects to be added
             return 0
@@ -678,7 +678,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
                 key.start, key.stop, key.step)
             return self.read(start, stop, step)
         # Try with a boolean or point selection
-        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+        elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
             coords = self._point_selection(key)
             return self._read_coordinates(coords)
         else:
@@ -781,7 +781,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
                 key.start, key.stop, key.step)
             coords = range(start, stop, step)
         # Try with a boolean or point selection
-        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+        elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
             coords = self._point_selection(key)
         else:
             raise IndexError(f"Invalid index or slice: {key!r}")

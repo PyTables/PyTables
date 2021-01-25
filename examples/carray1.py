@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import tables
 
 fileName = 'carray1.h5'
@@ -9,7 +9,7 @@ filters = tables.Filters(complevel=5, complib='zlib')
 h5f = tables.open_file(fileName, 'w')
 ca = h5f.create_carray(h5f.root, 'carray', atom, shape, filters=filters)
 # Fill a hyperslab in ``ca``.
-ca[10:60, 20:70] = numpy.ones((50, 50))
+ca[10:60, 20:70] = np.ones((50, 50))
 h5f.close()
 
 # Re-open and read another hyperslab

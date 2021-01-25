@@ -5,7 +5,6 @@ import os
 import subprocess
 from time import perf_counter as clock
 import random
-#import numpy
 import tables
 
 random.seed(2)

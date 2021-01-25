@@ -2,7 +2,7 @@ import gc
 import sys
 from time import perf_counter as clock
 from time import process_time as cpuclock
-import numpy
+import numpy as np
 from tables import Group  # , MetaIsDescription
 from tables import *
 
@@ -34,7 +34,7 @@ def createFileArr(filename, ngroups, ntables, nrows):
     fileh.close()
 
     # Now, create the arrays
-    arr = numpy.arange(nrows)
+    arr = np.arange(nrows)
     for k in range(ngroups):
         fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
         for j in range(ntables):

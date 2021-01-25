@@ -14,7 +14,7 @@ try:
 except ImportError:
     multiprocessing_imported = False
 
-import numpy
+import numpy as np
 
 import tables
 import tables.flavor
@@ -120,7 +120,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
         self.h5file.create_array(group, 'anarray2', [2], "Array title 2")
         self.h5file.create_table(group, 'atable1', {
                                  'var1': IntCol()}, "Table title 1")
-        ra = numpy.rec.array([(1, 11, 'a')], formats='u1,f4,a1')
+        ra = np.rec.array([(1, 11, 'a')], formats='u1,f4,a1')
         self.h5file.create_table(group, 'atable2', ra, "Table title 2")
 
         # Create a lonely group in first level
@@ -159,7 +159,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
     def test00_newFile_numpy_str_filename(self):
         temp_dir = tempfile.mkdtemp()
         try:
-            h5fname = numpy.str_(os.path.join(temp_dir, 'test.h5'))
+            h5fname = np.str_(os.path.join(temp_dir, 'test.h5'))
             with tables.open_file(h5fname, 'w') as h5file:
                 self.assertTrue(h5file, tables.File)
         finally:
@@ -168,7 +168,7 @@ class OpenFileTestCase(common.TempFileMixin, TestCase):
     def test00_newFile_numpy_unicode_filename(self):
         temp_dir = tempfile.mkdtemp()
         try:
-            h5fname = numpy.unicode_(os.path.join(temp_dir, 'test.h5'))
+            h5fname = np.unicode_(os.path.join(temp_dir, 'test.h5'))
             with tables.open_file(h5fname, 'w') as h5file:
                 self.assertTrue(h5file, tables.File)
         finally:
@@ -1805,8 +1805,8 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
     """Test that setting, getting and changing the ``flavor`` attribute of a
     leaf works as expected."""
 
-    array_data = numpy.arange(10)
-    scalar_data = numpy.int32(10)
+    array_data = np.arange(10)
+    scalar_data = np.int32(10)
 
     def _reopen(self, mode='r'):
         super()._reopen(mode)
@@ -1973,7 +1973,7 @@ class UnicodeFilename(common.TempFileMixin, TestCase):
         root = self.h5file.root
         group = self.h5file.create_group(root, 'face_data')
         array_name = 'data at 40\N{DEGREE SIGN}C'
-        data = numpy.sinh(numpy.linspace(-1.4, 1.4, 500))
+        data = np.sinh(np.linspace(-1.4, 1.4, 500))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', NaturalNameWarning)
             self._store_carray(array_name, data, group)
@@ -2043,8 +2043,8 @@ class FilePropertyTestCase(TestCase):
         super().tearDown()
 
     def test_get_filesize(self):
-        data = numpy.zeros((2000, 2000))
-        datasize = numpy.prod(data.shape) * data.dtype.itemsize
+        data = np.zeros((2000, 2000))
+        datasize = np.prod(data.shape) * data.dtype.itemsize
 
         self.h5file = tables.open_file(self.h5fname, mode="w")
         self.h5file.create_array(self.h5file.root, 'array', data)
@@ -2112,7 +2112,7 @@ class BloscBigEndian(common.TestFileMixin, TestCase):
 
         # Check that we can read the contents without problems (nor warnings!)
         for dset_name in ('i1', 'i2', 'i4', 'i8'):
-            a = numpy.arange(10, dtype=dset_name)
+            a = np.arange(10, dtype=dset_name)
             dset = self.h5file.get_node('/'+dset_name)
             self.assertTrue(common.allequal(a, dset[:]),
                             "Error in big-endian data!")
@@ -2155,8 +2155,8 @@ class BloscSubprocess(TestCase):
         h5fname = tempfile.mktemp(prefix="multiproc-blosc9-", suffix=".h5")
         try:
             size = 300_000
-            sa = numpy.fromiter(((i, i**2, i//3)
-                                 for i in range(size)), 'i4,i8,f8')
+            sa = np.fromiter(((i, i**2, i//3) for i in range(size)),
+                             'i4,i8,f8')
             with tables.open_file(h5fname, 'w') as h5file:
                 h5file.create_table(
                     h5file.root, 'table', sa,
@@ -2294,7 +2294,7 @@ class TestDescription(TestCase):
         self.assertIn('c', TestDesc.columns)
 
     def test_descr_from_dtype(self):
-        t = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        t = np.dtype([('col1', 'int16'), ('col2', float)])
         descr, byteorder = descr_from_dtype(t)
 
         self.assertIn('col1', descr._v_colobjects)
@@ -2302,29 +2302,21 @@ class TestDescription(TestCase):
         self.assertEqual(len(descr._v_colobjects), 2)
         self.assertIsInstance(descr._v_colobjects['col1'], Col)
         self.assertIsInstance(descr._v_colobjects['col2'], Col)
-        self.assertEqual(descr._v_colobjects['col1'].dtype, numpy.int16)
+        self.assertEqual(descr._v_colobjects['col1'].dtype, np.int16)
         self.assertEqual(descr._v_colobjects['col2'].dtype, float)
 
     def test_descr_from_dtype_rich_dtype(self):
         header = [(('timestamp', 't'), 'u4'),
                   (('unit (cluster) id', 'unit'), 'u2')]
-        t = numpy.dtype(header)
+        t = np.dtype(header)
 
         descr, byteorder = descr_from_dtype(t)
         self.assertEqual(len(descr._v_names), 2)
         self.assertEqual(sorted(descr._v_names), ['t', 'unit'])
 
     def test_descr_from_dtype_comp_01(self):
-        d1 = numpy.dtype([
-            ('x', 'int16'),
-            ('y', 'int16'),
-        ])
-
-        d_comp = numpy.dtype([
-            ('time', 'float64'),
-            ('value', d1)
-            #('value', (d1, (1,)))
-        ])
+        d1 = np.dtype([('x', 'int16'), ('y', 'int16')])
+        d_comp = np.dtype([('time', 'float64'), ('value', d1)])
 
         descr, byteorder = descr_from_dtype(d_comp)
 
@@ -2335,18 +2327,12 @@ class TestDescription(TestCase):
         self.assertIsInstance(descr._v_colobjects['time'], Col)
         self.assertTrue(isinstance(descr._v_colobjects['value'],
                                    tables.Description))
-        self.assertEqual(descr._v_colobjects['time'].dtype, numpy.float64)
+        self.assertEqual(descr._v_colobjects['time'].dtype, np.float64)
 
     def test_descr_from_dtype_comp_02(self):
-        d1 = numpy.dtype([
-            ('x', 'int16'),
-            ('y', 'int16'),
-        ])
+        d1 = np.dtype([('x', 'int16'), ('y', 'int16')])
 
-        d_comp = numpy.dtype([
-            ('time', 'float64'),
-            ('value', (d1, (1,)))
-        ])
+        d_comp = np.dtype([('time', 'float64'), ('value', (d1, (1,)))])
 
         with self.assertWarns(UserWarning):
             descr, byteorder = descr_from_dtype(d_comp)
@@ -2358,7 +2344,7 @@ class TestDescription(TestCase):
         self.assertIsInstance(descr._v_colobjects['time'], Col)
         self.assertTrue(isinstance(descr._v_colobjects['value'],
                                    tables.Description))
-        self.assertEqual(descr._v_colobjects['time'].dtype, numpy.float64)
+        self.assertEqual(descr._v_colobjects['time'].dtype, np.float64)
 
     def test_dtype_from_descr_is_description(self):
         # See gh-152
@@ -2366,7 +2352,7 @@ class TestDescription(TestCase):
             col1 = Int16Col()
             col2 = FloatCol()
 
-        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        dtype = np.dtype([('col1', 'int16'), ('col2', float)])
         t = dtype_from_descr(TestDescParent)
 
         self.assertEqual(t, dtype)
@@ -2377,7 +2363,7 @@ class TestDescription(TestCase):
             col1 = Int16Col()
             col2 = FloatCol()
 
-        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        dtype = np.dtype([('col1', 'int16'), ('col2', float)])
         t = dtype_from_descr(TestDescParent())
 
         self.assertEqual(t, dtype)
@@ -2388,7 +2374,7 @@ class TestDescription(TestCase):
             col1 = Int16Col()
             col2 = FloatCol()
 
-        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        dtype = np.dtype([('col1', 'int16'), ('col2', float)])
         desctiption = Description(TestDescParent().columns)
         t = dtype_from_descr(desctiption)
 
@@ -2396,7 +2382,7 @@ class TestDescription(TestCase):
 
     def test_dtype_from_descr_dict(self):
         # See gh-152
-        dtype = numpy.dtype([('col1', 'int16'), ('col2', float)])
+        dtype = np.dtype([('col1', 'int16'), ('col2', float)])
         t = dtype_from_descr({'col1': Int16Col(), 'col2': FloatCol()})
 
         self.assertEqual(t, dtype)
@@ -2421,7 +2407,7 @@ class TestDescription(TestCase):
         d = {'name': tables.Int16Col()}
         descr = Description(d)
         self.assertEqual(sorted(descr._v_names), sorted(d.keys()))
-        self.assertIsInstance(descr._v_dtype, numpy.dtype)
+        self.assertIsInstance(descr._v_dtype, np.dtype)
         self.assertTrue(sorted(descr._v_dtype.fields), sorted(d.keys()))
 
 
@@ -2431,13 +2417,13 @@ class TestAtom(TestCase):
         a = Float64Atom(shape=shape)
 
         self.assertEqual(a.dflt, 0.)
-        self.assertEqual(a.dtype, numpy.dtype((numpy.float64, shape)))
+        self.assertEqual(a.dtype, np.dtype((np.float64, shape)))
         self.assertEqual(a.itemsize, a.dtype.base.itemsize)
         self.assertEqual(a.kind, 'float')
         self.assertEqual(a.ndim, len(shape))
         # self.assertEqual(a.recarrtype, )
         self.assertEqual(a.shape, shape)
-        self.assertEqual(a.size, a.itemsize * numpy.prod(shape))
+        self.assertEqual(a.size, a.itemsize * np.prod(shape))
         self.assertEqual(a.type, 'float64')
 
     def test_atom_copy01(self):

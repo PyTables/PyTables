@@ -229,7 +229,7 @@ def restrict_flavors(keep=('python',)):
 # The order in which flavors appear in `all_flavors` determines the
 # order in which they will be tested for by `flavor_of()`, so place
 # most frequent flavors first.
-import numpy
+import numpy as np
 all_flavors.append('numpy')  # this is the internal flavor
 
 all_flavors.append('python')  # this is always supported
@@ -349,26 +349,24 @@ _numpy_aliases = []
 _numpy_desc = "NumPy array, record or scalar"
 
 
-from numpy.lib import NumpyVersion
 
-
-if NumpyVersion(numpy.__version__) >= NumpyVersion('1.19.0'):
+if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion('1.19.0'):
     def toarray(array, *args, **kwargs):
         with warnings.catch_warnings():
             warnings.simplefilter('error')
             try:
-                array = numpy.array(array, *args, **kwargs)
-            except numpy.VisibleDeprecationWarning:
+                array = np.array(array, *args, **kwargs)
+            except np.VisibleDeprecationWarning:
                 raise ValueError(
                     'cannot guess the desired dtype from the input')
 
         return array
 else:
-    toarray = numpy.array
+    toarray = np.array
 
 
 def _is_numpy(array):
-    return isinstance(array, (numpy.ndarray, numpy.generic))
+    return isinstance(array, (np.ndarray, np.generic))
 
 
 def _numpy_contiguous(convfunc):
@@ -394,7 +392,7 @@ def _numpy_contiguous(convfunc):
 def _conv_numpy_to_numpy(array):
     # Passes contiguous arrays through and converts scalars into
     # scalar arrays.
-    nparr = numpy.asarray(array)
+    nparr = np.asarray(array)
     if nparr.dtype.kind == 'U':
         # from Python 3 loads of common strings are disguised as Unicode
         try:

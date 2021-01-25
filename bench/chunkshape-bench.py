@@ -3,7 +3,7 @@
 # You need at least PyTables 2.1 to run this!
 # F. Alted
 
-import numpy
+import numpy as np
 import tables
 from time import perf_counter as clock
 
@@ -19,7 +19,7 @@ print("Chunkshape for original array:", a.chunkshape)
 
 # Fill the EArray
 t1 = clock()
-zeros = numpy.zeros((dim1, 1), dtype="float64")
+zeros = np.zeros((dim1, 1), dtype="float64")
 for i in range(dim2):
     a.append(zeros)
 tcre = clock() - t1

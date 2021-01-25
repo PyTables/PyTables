@@ -13,7 +13,7 @@
 # Imports
 # =======
 import warnings
-import numpy
+import numpy as np
 
 from . import utilsextension, blosc_compressor_list, blosc_compcode_to_compname
 from .exceptions import FiltersWarning
@@ -114,7 +114,7 @@ class Filters:
 
     This is a small example on using the Filters class::
 
-        import numpy
+        import numpy as np
         import tables
 
         fileh = tables.open_file('test5.h5', mode='w')
@@ -268,7 +268,7 @@ class Filters:
 
         # Byte 3: least significant digit.
         if has_rounding:
-            kwargs['least_significant_digit'] = numpy.int8(packed & 0xff)
+            kwargs['least_significant_digit'] = np.int8(packed & 0xff)
         else:
             kwargs['least_significant_digit'] = None
 
@@ -277,7 +277,7 @@ class Filters:
     def _pack(self):
         """Pack the `Filters` object into a 64-bit NumPy integer."""
 
-        packed = numpy.int64(0)
+        packed = np.int64(0)
 
         # Byte 3: least significant digit.
         if self.least_significant_digit is not None:
@@ -332,7 +332,7 @@ class Filters:
         bitshuffle = bool(bitshuffle)
         fletcher32 = bool(fletcher32)
         if least_significant_digit is not None:
-            least_significant_digit = numpy.int8(least_significant_digit)
+            least_significant_digit = np.int8(least_significant_digit)
 
         if complevel == 0:
             # Override some inputs when compression is not enabled.

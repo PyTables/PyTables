@@ -1,6 +1,6 @@
 import sys
 
-import numpy
+import numpy as np
 
 import tables
 from tables import (
@@ -155,14 +155,14 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
 
     def setUp(self):
         super().setUp()
-        x = numpy.arange(self.ncols)
-        y = numpy.arange(self.nrows)
+        x = np.arange(self.ncols)
+        y = np.arange(self.nrows)
         y.shape = (self.nrows, 1)
         self.values = x + y
 
     def test01_read_float16(self):
         dtype = "float16"
-        if hasattr(numpy, dtype):
+        if hasattr(np, dtype):
             ds = getattr(self.h5file.root, dtype)
             self.assertNotIsInstance(ds, tables.UnImplemented)
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
@@ -253,26 +253,26 @@ class AtomTestCase(TestCase):
         self.assertRaises(TypeError, atom1.copy, foobar=42)
 
     def test_from_dtype_01(self):
-        atom1 = Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
+        atom1 = Atom.from_dtype(np.dtype((np.int16, (2, 2))))
         atom2 = Int16Atom(shape=(2, 2), dflt=0)
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_dtype_02(self):
-        atom1 = Atom.from_dtype(numpy.dtype('S5'), dflt=b'hello')
+        atom1 = Atom.from_dtype(np.dtype('S5'), dflt=b'hello')
         atom2 = StringAtom(itemsize=5, shape=(), dflt=b'hello')
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_dtype_03(self):
         with self.assertWarns(Warning):
-            atom1 = Atom.from_dtype(numpy.dtype('U5'), dflt=b'hello')
+            atom1 = Atom.from_dtype(np.dtype('U5'), dflt=b'hello')
         atom2 = StringAtom(itemsize=5, shape=(), dflt=b'hello')
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_dtype_04(self):
-        atom1 = Atom.from_dtype(numpy.dtype('float64'))
+        atom1 = Atom.from_dtype(np.dtype('float64'))
         atom2 = Float64Atom(shape=(), dflt=0.0)
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))

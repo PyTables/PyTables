@@ -5,8 +5,7 @@ import datetime
 import warnings
 from distutils.version import LooseVersion
 
-import numpy
-from numpy.testing import assert_array_equal, assert_almost_equal
+import numpy as np
 
 import tables
 from tables import (IsDescription, Int32Atom, StringCol, IntCol, Int16Col,
@@ -590,15 +589,15 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         # thay are stored in to HDF5 attributes without being actually
         # contiguous and ths causes an error whn they are restored.
 
-        data = numpy.array([[0, 1], [2, 3]])
+        data = np.array([[0, 1], [2, 3]])
 
         self.array.attrs['a'] = data
         self.array.attrs['b'] = data.T.copy()
         self.array.attrs['c'] = data.T
 
-        assert_array_equal(self.array.attrs['a'], data)
-        assert_array_equal(self.array.attrs['b'], data.T)
-        assert_array_equal(self.array.attrs['c'], data.T)  # AssertionError!
+        np.testing.assert_array_equal(self.array.attrs['a'], data)
+        np.testing.assert_array_equal(self.array.attrs['b'], data.T)
+        np.testing.assert_array_equal(self.array.attrs['c'], data.T)  # AssertionError!
 
     def test12_dir(self):
         """Checking AttributeSet.__dir__"""
@@ -723,9 +722,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test00b_setBoolAttributes(self):
         """Checking setting Bool attributes (scalar, NumPy case)"""
 
-        self.array.attrs.pq = numpy.bool_(True)
-        self.array.attrs.qr = numpy.bool_(False)
-        self.array.attrs.rs = numpy.bool_(True)
+        self.array.attrs.pq = np.bool_(True)
+        self.array.attrs.qr = np.bool_(False)
+        self.array.attrs.rs = np.bool_(True)
 
         # Check the results
         if common.verbose:
@@ -740,9 +739,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.bool_)
-        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.bool_)
-        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.bool_)
+        self.assertIsInstance(self.root.anarray.attrs.pq, np.bool_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, np.bool_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, np.bool_)
         self.assertEqual(self.root.anarray.attrs.pq, True)
         self.assertEqual(self.root.anarray.attrs.qr, False)
         self.assertEqual(self.root.anarray.attrs.rs, True)
@@ -750,9 +749,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test00c_setBoolAttributes(self):
         """Checking setting Bool attributes (NumPy, 0-dim case)"""
 
-        self.array.attrs.pq = numpy.array(True)
-        self.array.attrs.qr = numpy.array(False)
-        self.array.attrs.rs = numpy.array(True)
+        self.array.attrs.pq = np.array(True)
+        self.array.attrs.qr = np.array(False)
+        self.array.attrs.rs = np.array(True)
 
         # Check the results
         if common.verbose:
@@ -774,9 +773,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test00d_setBoolAttributes(self):
         """Checking setting Bool attributes (NumPy, multidim case)"""
 
-        self.array.attrs.pq = numpy.array([True])
-        self.array.attrs.qr = numpy.array([[False]])
-        self.array.attrs.rs = numpy.array([[True, False], [True, False]])
+        self.array.attrs.pq = np.array([True])
+        self.array.attrs.qr = np.array([[False]])
+        self.array.attrs.rs = np.array([[True, False], [True, False]])
 
         # Check the results
         if common.verbose:
@@ -791,10 +790,12 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.root.anarray.attrs.pq, numpy.array([True]))
-        assert_array_equal(self.root.anarray.attrs.qr, numpy.array([[False]]))
-        assert_array_equal(self.root.anarray.attrs.rs,
-                           numpy.array([[True, False], [True, False]]))
+        np.testing.assert_array_equal(self.root.anarray.attrs.pq,
+                                      np.array([True]))
+        np.testing.assert_array_equal(self.root.anarray.attrs.qr,
+                                      np.array([[False]]))
+        np.testing.assert_array_equal(self.root.anarray.attrs.rs,
+                                      np.array([[True, False], [True, False]]))
 
     def test01a_setIntAttributes(self):
         """Checking setting Int attributes (scalar, Python case)"""
@@ -816,9 +817,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.int_)
-        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.int_)
-        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.int_)
+        self.assertIsInstance(self.root.anarray.attrs.pq, np.int_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, np.int_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, np.int_)
         self.assertEqual(self.root.anarray.attrs.pq, 1)
         self.assertEqual(self.root.anarray.attrs.qr, 2)
         self.assertEqual(self.root.anarray.attrs.rs, 3)
@@ -831,7 +832,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                       'uint8', 'uint16', 'uint32']
 
         for dtype in checktypes:
-            setattr(self.array.attrs, dtype, numpy.array(1, dtype=dtype))
+            setattr(self.array.attrs, dtype, np.array(1, dtype=dtype))
 
         # Check the results
         if common.verbose:
@@ -847,8 +848,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
-            assert_array_equal(getattr(self.array.attrs, dtype),
-                               numpy.array(1, dtype=dtype))
+            np.testing.assert_array_equal(getattr(self.array.attrs, dtype),
+                                          np.array(1, dtype=dtype))
 
     def test01c_setIntAttributes(self):
         """Checking setting Int attributes (unidimensional NumPy case)"""
@@ -858,7 +859,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                       'uint8', 'uint16', 'uint32']
 
         for dtype in checktypes:
-            setattr(self.array.attrs, dtype, numpy.array([1, 2], dtype=dtype))
+            setattr(self.array.attrs, dtype, np.array([1, 2], dtype=dtype))
 
         # Check the results
         if self.close:
@@ -872,8 +873,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             if common.verbose:
                 print("type, value-->", dtype,
                       getattr(self.array.attrs, dtype))
-            assert_array_equal(getattr(self.array.attrs, dtype),
-                               numpy.array([1, 2], dtype=dtype))
+            np.testing.assert_array_equal(getattr(self.array.attrs, dtype),
+                                          np.array([1, 2], dtype=dtype))
 
     def test01d_setIntAttributes(self):
         """Checking setting Int attributes (unidimensional, non-contiguous)"""
@@ -883,7 +884,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                       'uint8', 'uint16', 'uint32']
 
         for dtype in checktypes:
-            arr = numpy.array([1, 2, 3, 4], dtype=dtype)[::2]
+            arr = np.array([1, 2, 3, 4], dtype=dtype)[::2]
             setattr(self.array.attrs, dtype, arr)
 
         # Check the results
@@ -895,11 +896,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
-            arr = numpy.array([1, 2, 3, 4], dtype=dtype)[::2]
+            arr = np.array([1, 2, 3, 4], dtype=dtype)[::2]
             if common.verbose:
                 print("type, value-->", dtype,
                       getattr(self.array.attrs, dtype))
-            assert_array_equal(getattr(self.array.attrs, dtype), arr)
+            np.testing.assert_array_equal(getattr(self.array.attrs, dtype), arr)
 
     def test01e_setIntAttributes(self):
         """Checking setting Int attributes (bidimensional NumPy case)"""
@@ -910,7 +911,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype,
-                    numpy.array([[1, 2], [2, 3]], dtype=dtype))
+                    np.array([[1, 2], [2, 3]], dtype=dtype))
 
         if self.close:
             if common.verbose:
@@ -924,8 +925,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             if common.verbose:
                 print("type, value-->", dtype,
                       getattr(self.array.attrs, dtype))
-            assert_array_equal(getattr(self.array.attrs, dtype),
-                               numpy.array([[1, 2], [2, 3]], dtype=dtype))
+            np.testing.assert_array_equal(
+                getattr(self.array.attrs, dtype),
+                np.array([[1, 2], [2, 3]], dtype=dtype))
 
     def test02a_setFloatAttributes(self):
         """Checking setting Float (double) attributes."""
@@ -948,9 +950,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.float_)
-        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.float_)
-        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.float_)
+        self.assertIsInstance(self.root.anarray.attrs.pq, np.float_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, np.float_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, np.float_)
         self.assertEqual(self.root.anarray.attrs.pq, 1.0)
         self.assertEqual(self.root.anarray.attrs.qr, 2.0)
         self.assertEqual(self.root.anarray.attrs.rs, 3.0)
@@ -961,8 +963,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         checktypes = ['float32', 'float64']
 
         for dtype in checktypes:
-            setattr(self.array.attrs, dtype,
-                    numpy.array(1.1, dtype=dtype))
+            setattr(self.array.attrs, dtype, np.array(1.1, dtype=dtype))
 
         # Check the results
         if common.verbose:
@@ -980,7 +981,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         for dtype in checktypes:
             # assert getattr(self.array.attrs, dtype) == 1.1
             # In order to make Float32 tests pass. This is legal, not a trick.
-            assert_almost_equal(getattr(self.array.attrs, dtype), 1.1)
+            np.testing.assert_almost_equal(getattr(self.array.attrs, dtype),
+                                           1.1)
 
     def test02c_setFloatAttributes(self):
         """Checking setting Float attributes (unidimensional NumPy case)"""
@@ -988,8 +990,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         checktypes = ['float32', 'float64']
 
         for dtype in checktypes:
-            setattr(self.array.attrs, dtype,
-                    numpy.array([1.1, 2.1], dtype=dtype))
+            setattr(self.array.attrs, dtype, np.array([1.1, 2.1], dtype=dtype))
 
         # Check the results
         if common.verbose:
@@ -1005,8 +1006,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
-            assert_array_equal(getattr(self.array.attrs, dtype),
-                               numpy.array([1.1, 2.1], dtype=dtype))
+            np.testing.assert_array_equal(getattr(self.array.attrs, dtype),
+                                          np.array([1.1, 2.1], dtype=dtype))
 
     def test02d_setFloatAttributes(self):
         """Checking setting Float attributes (unidimensional,
@@ -1015,7 +1016,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         checktypes = ['float32', 'float64']
 
         for dtype in checktypes:
-            arr = numpy.array([1.1, 2.1, 3.1, 4.1], dtype=dtype)[1::2]
+            arr = np.array([1.1, 2.1, 3.1, 4.1], dtype=dtype)[1::2]
             setattr(self.array.attrs, dtype, arr)
 
         # Check the results
@@ -1032,8 +1033,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
-            arr = numpy.array([1.1, 2.1, 3.1, 4.1], dtype=dtype)[1::2]
-            assert_array_equal(getattr(self.array.attrs, dtype), arr)
+            arr = np.array([1.1, 2.1, 3.1, 4.1], dtype=dtype)[1::2]
+            np.testing.assert_array_equal(getattr(self.array.attrs, dtype),
+                                          arr)
 
     def test02e_setFloatAttributes(self):
         """Checking setting Int attributes (bidimensional NumPy case)"""
@@ -1042,7 +1044,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype,
-                    numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
+                    np.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
 
         # Check the results
         if common.verbose:
@@ -1058,9 +1060,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
-            assert_array_equal(
+            np.testing.assert_array_equal(
                 getattr(self.array.attrs, dtype),
-                numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
+                np.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
 
     def test03_setObjectAttributes(self):
         """Checking setting Object attributes."""
@@ -1107,9 +1109,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.str_)
-        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.str_)
-        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.str_)
+        self.assertIsInstance(self.root.anarray.attrs.pq, np.str_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, np.str_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, np.str_)
         self.assertEqual(self.root.anarray.attrs.pq, 'foo')
         self.assertEqual(self.root.anarray.attrs.qr, 'bar')
         self.assertEqual(self.root.anarray.attrs.rs, 'baz')
@@ -1117,7 +1119,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test04b_setStringAttributes(self):
         """Checking setting string attributes (unidimensional 1-elem case)"""
 
-        self.array.attrs.pq = numpy.array(['foo'])
+        self.array.attrs.pq = np.array(['foo'])
 
         # Check the results
         if common.verbose:
@@ -1130,13 +1132,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.root.anarray.attrs.pq, numpy.array(['foo']))
+        np.testing.assert_array_equal(self.root.anarray.attrs.pq,
+                                      np.array(['foo']))
 
     def test04c_setStringAttributes(self):
         """Checking setting string attributes (empty unidimensional
         1-elem case)"""
 
-        self.array.attrs.pq = numpy.array([''])
+        self.array.attrs.pq = np.array([''])
 
         # Check the results
         if common.verbose:
@@ -1151,13 +1154,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             if common.verbose:
                 print("pq -->", self.array.attrs.pq)
 
-        assert_array_equal(self.root.anarray.attrs.pq,
-                           numpy.array(['']))
+        np.testing.assert_array_equal(self.root.anarray.attrs.pq,
+                                      np.array(['']))
 
     def test04d_setStringAttributes(self):
         """Checking setting string attributes (unidimensional 2-elem case)"""
 
-        self.array.attrs.pq = numpy.array(['foo', 'bar3'])
+        self.array.attrs.pq = np.array(['foo', 'bar3'])
 
         # Check the results
         if common.verbose:
@@ -1170,14 +1173,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.root.anarray.attrs.pq,
-                           numpy.array(['foo', 'bar3']))
+        np.testing.assert_array_equal(self.root.anarray.attrs.pq,
+                                      np.array(['foo', 'bar3']))
 
     def test04e_setStringAttributes(self):
         """Checking setting string attributes (empty unidimensional
         2-elem case)"""
 
-        self.array.attrs.pq = numpy.array(['', ''])
+        self.array.attrs.pq = np.array(['', ''])
 
         # Check the results
         if common.verbose:
@@ -1190,13 +1193,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.root.anarray.attrs.pq, numpy.array(['', '']))
+        np.testing.assert_array_equal(self.root.anarray.attrs.pq,
+                                      np.array(['', '']))
 
     def test04f_setStringAttributes(self):
         """Checking setting string attributes (bidimensional 4-elem case)"""
 
-        self.array.attrs.pq = numpy.array([['foo', 'foo2'],
-                                           ['foo3', 'foo4']])
+        self.array.attrs.pq = np.array([['foo', 'foo2'], ['foo3', 'foo4']])
 
         # Check the results
         if common.verbose:
@@ -1209,9 +1212,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.root.anarray.attrs.pq,
-                           numpy.array([['foo', 'foo2'],
-                                        ['foo3', 'foo4']]))
+        np.testing.assert_array_equal(self.root.anarray.attrs.pq,
+                                      np.array([['foo', 'foo2'],
+                                                ['foo3', 'foo4']]))
 
     def test05a_setComplexAttributes(self):
         """Checking setting Complex (python) attributes."""
@@ -1234,9 +1237,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.root.anarray.attrs.pq, numpy.complex_)
-        self.assertIsInstance(self.root.anarray.attrs.qr, numpy.complex_)
-        self.assertIsInstance(self.root.anarray.attrs.rs, numpy.complex_)
+        self.assertIsInstance(self.root.anarray.attrs.pq, np.complex_)
+        self.assertIsInstance(self.root.anarray.attrs.qr, np.complex_)
+        self.assertIsInstance(self.root.anarray.attrs.rs, np.complex_)
         self.assertEqual(self.root.anarray.attrs.pq, 1.0 + 2j)
         self.assertEqual(self.root.anarray.attrs.qr, 2.0 + 3j)
         self.assertEqual(self.root.anarray.attrs.rs, 3.0 + 4j)
@@ -1247,8 +1250,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         checktypes = ['complex64', 'complex128']
 
         for dtype in checktypes:
-            setattr(self.array.attrs, dtype,
-                    numpy.array(1.1 + 2j, dtype=dtype))
+            setattr(self.array.attrs, dtype, np.array(1.1 + 2j, dtype=dtype))
 
         # Check the results
         if common.verbose:
@@ -1266,7 +1268,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         for dtype in checktypes:
             # assert getattr(self.array.attrs, dtype) == 1.1 + 2j
             # In order to make Complex32 tests pass.
-            assert_almost_equal(getattr(self.array.attrs, dtype), 1.1 + 2j)
+            np.testing.assert_almost_equal(getattr(self.array.attrs, dtype),
+                                           1.1 + 2j)
 
     def test05c_setComplexAttributes(self):
         """Checking setting Complex attributes (unidimensional NumPy case)"""
@@ -1274,8 +1277,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         checktypes = ['complex64', 'complex128']
 
         for dtype in checktypes:
-            setattr(self.array.attrs, dtype,
-                    numpy.array([1.1, 2.1], dtype=dtype))
+            setattr(self.array.attrs, dtype, np.array([1.1, 2.1], dtype=dtype))
 
         # Check the results
         if common.verbose:
@@ -1291,8 +1293,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
-            assert_array_equal(getattr(self.array.attrs, dtype),
-                               numpy.array([1.1, 2.1], dtype=dtype))
+            np.testing.assert_array_equal(getattr(self.array.attrs, dtype),
+                                          np.array([1.1, 2.1], dtype=dtype))
 
     def test05d_setComplexAttributes(self):
         """Checking setting Int attributes (bidimensional NumPy case)"""
@@ -1301,7 +1303,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for dtype in checktypes:
             setattr(self.array.attrs, dtype,
-                    numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
+                    np.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
 
         # Check the results
         if common.verbose:
@@ -1317,9 +1319,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.array = self.h5file.root.anarray
 
         for dtype in checktypes:
-            assert_array_equal(
+            np.testing.assert_array_equal(
                 getattr(self.array.attrs, dtype),
-                numpy.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
+                np.array([[1.1, 2.1], [2.1, 3.1]], dtype=dtype))
 
     def test06a_setUnicodeAttributes(self):
         """Checking setting unicode attributes (scalar case)"""
@@ -1345,9 +1347,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.array.attrs.pq, numpy.unicode_)
-        self.assertIsInstance(self.array.attrs.qr, numpy.unicode_)
-        self.assertIsInstance(self.array.attrs.rs, numpy.unicode_)
+        self.assertIsInstance(self.array.attrs.pq, np.unicode_)
+        self.assertIsInstance(self.array.attrs.qr, np.unicode_)
+        self.assertIsInstance(self.array.attrs.rs, np.unicode_)
         self.assertEqual(self.array.attrs.pq, 'para\u0140lel')
         self.assertEqual(self.array.attrs.qr, '')
         self.assertEqual(self.array.attrs.rs, 'baz')
@@ -1355,7 +1357,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
     def test06b_setUnicodeAttributes(self):
         """Checking setting unicode attributes (unidimensional 1-elem case)"""
 
-        self.array.attrs.pq = numpy.array(['para\u0140lel'])
+        self.array.attrs.pq = np.array(['para\u0140lel'])
 
         # Check the results
         if common.verbose:
@@ -1368,8 +1370,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.array.attrs.pq,
-                           numpy.array(['para\u0140lel']))
+        np.testing.assert_array_equal(self.array.attrs.pq,
+                                      np.array(['para\u0140lel']))
 
     def test06c_setUnicodeAttributes(self):
         """Checking setting unicode attributes (empty unidimensional
@@ -1378,7 +1380,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         # The next raises a `TypeError` when unpickled. See:
         # http://projects.scipy.org/numpy/ticket/1037
         # self.array.attrs.pq = numpy.array([''])
-        self.array.attrs.pq = numpy.array([''], dtype="U1")
+        self.array.attrs.pq = np.array([''], dtype="U1")
 
         # Check the results
         if common.verbose:
@@ -1393,13 +1395,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             if common.verbose:
                 print("pq -->", repr(self.array.attrs.pq))
 
-        assert_array_equal(self.array.attrs.pq,
-                           numpy.array([''], dtype="U1"))
+        np.testing.assert_array_equal(self.array.attrs.pq,
+                                      np.array([''], dtype="U1"))
 
     def test06d_setUnicodeAttributes(self):
         """Checking setting unicode attributes (unidimensional 2-elem case)"""
 
-        self.array.attrs.pq = numpy.array(['para\u0140lel', 'bar3'])
+        self.array.attrs.pq = np.array(['para\u0140lel', 'bar3'])
 
         # Check the results
         if common.verbose:
@@ -1412,14 +1414,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.array.attrs.pq,
-                           numpy.array(['para\u0140lel', 'bar3']))
+        np.testing.assert_array_equal(self.array.attrs.pq,
+                                      np.array(['para\u0140lel', 'bar3']))
 
     def test06e_setUnicodeAttributes(self):
         """Checking setting unicode attributes (empty unidimensional
         2-elem case)"""
 
-        self.array.attrs.pq = numpy.array(['', ''], dtype="U1")
+        self.array.attrs.pq = np.array(['', ''], dtype="U1")
 
         # Check the results
         if common.verbose:
@@ -1432,14 +1434,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.array.attrs.pq,
-                           numpy.array(['', ''], dtype="U1"))
+        np.testing.assert_array_equal(self.array.attrs.pq,
+                                      np.array(['', ''], dtype="U1"))
 
     def test06f_setUnicodeAttributes(self):
         """Checking setting unicode attributes (bidimensional 4-elem case)"""
 
-        self.array.attrs.pq = numpy.array([['para\u0140lel', 'foo2'],
-                                           ['foo3', 'para\u0140lel4']])
+        self.array.attrs.pq = np.array([['para\u0140lel', 'foo2'],
+                                        ['foo3', 'para\u0140lel4']])
 
         # Check the results
         if common.verbose:
@@ -1452,18 +1454,18 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        assert_array_equal(self.array.attrs.pq,
-                           numpy.array([['para\u0140lel', 'foo2'],
-                                        ['foo3', 'para\u0140lel4']]))
+        np.testing.assert_array_equal(self.array.attrs.pq,
+                                      np.array([['para\u0140lel', 'foo2'],
+                                                ['foo3', 'para\u0140lel4']]))
 
     def test07a_setRecArrayAttributes(self):
         """Checking setting RecArray (NumPy) attributes."""
 
-        dt = numpy.dtype('i4,f8', align=self.aligned)
+        dt = np.dtype('i4,f8', align=self.aligned)
         # Set some attrs
-        self.array.attrs.pq = numpy.zeros(2, dt)
-        self.array.attrs.qr = numpy.ones((2, 2), dt)
-        self.array.attrs.rs = numpy.array([(1, 2.)], dt)
+        self.array.attrs.pq = np.zeros(2, dt)
+        self.array.attrs.qr = np.ones((2, 2), dt)
+        self.array.attrs.rs = np.array([(1, 2.)], dt)
 
         # Check the results
         if common.verbose:
@@ -1478,22 +1480,24 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.array.attrs.pq, numpy.ndarray)
-        self.assertIsInstance(self.array.attrs.qr, numpy.ndarray)
-        self.assertIsInstance(self.array.attrs.rs, numpy.ndarray)
-        assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
-        assert_array_equal(self.array.attrs.qr, numpy.ones((2, 2), dt))
-        assert_array_equal(self.array.attrs.rs, numpy.array([(1, 2.)], dt))
+        self.assertIsInstance(self.array.attrs.pq, np.ndarray)
+        self.assertIsInstance(self.array.attrs.qr, np.ndarray)
+        self.assertIsInstance(self.array.attrs.rs, np.ndarray)
+        np.testing.assert_array_equal(self.array.attrs.pq, np.zeros(2, dt))
+        np.testing.assert_array_equal(self.array.attrs.qr,
+                                      np.ones((2, 2), dt))
+        np.testing.assert_array_equal(self.array.attrs.rs,
+                                      np.array([(1, 2.)], dt))
 
     def test07b_setRecArrayAttributes(self):
         """Checking setting nested RecArray (NumPy) attributes."""
 
         # Build a nested dtype
-        dt = numpy.dtype([('f1', [('f1', 'i2'), ('f2', 'f8')])])
+        dt = np.dtype([('f1', [('f1', 'i2'), ('f2', 'f8')])])
         # Set some attrs
-        self.array.attrs.pq = numpy.zeros(2, dt)
-        self.array.attrs.qr = numpy.ones((2, 2), dt)
-        self.array.attrs.rs = numpy.array([((1, 2.),)], dt)
+        self.array.attrs.pq = np.zeros(2, dt)
+        self.array.attrs.qr = np.ones((2, 2), dt)
+        self.array.attrs.rs = np.array([((1, 2.),)], dt)
 
         # Check the results
         if common.verbose:
@@ -1508,23 +1512,26 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.array.attrs.pq, numpy.ndarray)
-        self.assertIsInstance(self.array.attrs.qr, numpy.ndarray)
-        self.assertIsInstance(self.array.attrs.rs, numpy.ndarray)
-        assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
-        assert_array_equal(self.array.attrs.qr, numpy.ones((2, 2), dt))
-        assert_array_equal(self.array.attrs.rs, numpy.array([((1, 2),)], dt))
+        self.assertIsInstance(self.array.attrs.pq, np.ndarray)
+        self.assertIsInstance(self.array.attrs.qr, np.ndarray)
+        self.assertIsInstance(self.array.attrs.rs, np.ndarray)
+        np.testing.assert_array_equal(self.array.attrs.pq,
+                                      np.zeros(2, dt))
+        np.testing.assert_array_equal(self.array.attrs.qr,
+                                      np.ones((2, 2), dt))
+        np.testing.assert_array_equal(self.array.attrs.rs,
+                                      np.array([((1, 2),)], dt))
 
     def test07c_setRecArrayAttributes(self):
         """Checking setting multidim nested RecArray (NumPy) attributes."""
 
         # Build a nested dtype
-        dt = numpy.dtype([('f1', [('f1', 'i2', (2,)), ('f2', 'f8')])], align=True)
+        dt = np.dtype([('f1', [('f1', 'i2', (2,)), ('f2', 'f8')])], align=True)
 
         # Set some attrs
-        self.array.attrs.pq = numpy.zeros(2, dt)
-        self.array.attrs.qr = numpy.ones((2, 2), dt)
-        self.array.attrs.rs = numpy.array([(([1, 3], 2.),)], dt)
+        self.array.attrs.pq = np.zeros(2, dt)
+        self.array.attrs.qr = np.ones((2, 2), dt)
+        self.array.attrs.rs = np.array([(([1, 3], 2.),)], dt)
 
         # Check the results
         if common.verbose:
@@ -1539,22 +1546,22 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.array.attrs.pq, numpy.ndarray)
-        self.assertIsInstance(self.array.attrs.qr, numpy.ndarray)
-        self.assertIsInstance(self.array.attrs.rs, numpy.ndarray)
-        assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
-        assert_array_equal(self.array.attrs.qr, numpy.ones((2, 2), dt))
-        assert_array_equal(self.array.attrs.rs, numpy.array(
-            [(([1, 3], 2),)], dt))
+        self.assertIsInstance(self.array.attrs.pq, np.ndarray)
+        self.assertIsInstance(self.array.attrs.qr, np.ndarray)
+        self.assertIsInstance(self.array.attrs.rs, np.ndarray)
+        np.testing.assert_array_equal(self.array.attrs.pq, np.zeros(2, dt))
+        np.testing.assert_array_equal(self.array.attrs.qr, np.ones((2, 2), dt))
+        np.testing.assert_array_equal(self.array.attrs.rs,
+                                      np.array([(([1, 3], 2),)], dt))
 
     def test08_setRecArrayNotAllowPadding(self):
         """Checking setting aligned RecArray (NumPy) attributes with `allow_aligned` param set to False when reopen."""
 
-        dt = numpy.dtype('i4,f8', align=self.aligned)
+        dt = np.dtype('i4,f8', align=self.aligned)
         # Set some attrs
-        self.array.attrs.pq = numpy.zeros(2, dt)
-        self.array.attrs.qr = numpy.ones((2, 2), dt)
-        self.array.attrs.rs = numpy.array([(1, 2.)], dt)
+        self.array.attrs.pq = np.zeros(2, dt)
+        self.array.attrs.qr = np.ones((2, 2), dt)
+        self.array.attrs.rs = np.array([(1, 2.)], dt)
 
         # Check the results
         if common.verbose:
@@ -1569,12 +1576,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.array.attrs.pq, numpy.ndarray)
-        self.assertIsInstance(self.array.attrs.qr, numpy.ndarray)
-        self.assertIsInstance(self.array.attrs.rs, numpy.ndarray)
-        assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
-        assert_array_equal(self.array.attrs.qr, numpy.ones((2, 2), dt))
-        assert_array_equal(self.array.attrs.rs, numpy.array([(1, 2.)], dt))
+        self.assertIsInstance(self.array.attrs.pq, np.ndarray)
+        self.assertIsInstance(self.array.attrs.qr, np.ndarray)
+        self.assertIsInstance(self.array.attrs.rs, np.ndarray)
+        np.testing.assert_array_equal(self.array.attrs.pq, np.zeros(2, dt))
+        np.testing.assert_array_equal(self.array.attrs.qr, np.ones((2, 2), dt))
+        np.testing.assert_array_equal(self.array.attrs.rs,
+                                      np.array([(1, 2.)], dt))
 
 
 class NotCloseTypesTestCase(TypesTestCase):
@@ -1686,7 +1694,7 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
 class CompatibilityTestCase(common.TestFileMixin, TestCase):
     h5fname = test_filename('issue_368.h5')
 
-    @unittest.skipIf(LooseVersion(numpy.__version__) < '1.9.0',
+    @unittest.skipIf(LooseVersion(np.__version__) < '1.9.0',
                      'requires numpy >= 1.9')
     def test_pickled_unicode_attrs(self):
         # See also gh-368 and https://github.com/numpy/numpy/issues/4879.

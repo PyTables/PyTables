@@ -10,7 +10,7 @@ import math
 import subprocess
 import tempfile
 from time import perf_counter as clock
-import numpy
+import numpy as np
 import tables
 
 # Size of dataset
@@ -39,7 +39,7 @@ def quantize(data, least_significant_digit):
         exp = math.ceil(exp)
     bits = math.ceil(math.log(10 ** -exp, 2))
     scale = 2 ** bits
-    return numpy.around(scale * data) / scale
+    return np.around(scale * data) / scale
 
 
 def get_db_size(filename):
@@ -50,7 +50,7 @@ def get_db_size(filename):
 
 
 def bench(chunkshape, filters):
-    numpy.random.seed(1)   # to have reproductible results
+    np.random.seed(1)   # to have reproductible results
     filename = tempfile.mktemp(suffix='.h5')
     print("Doing test on the file system represented by:", filename)
 
@@ -62,7 +62,7 @@ def bench(chunkshape, filters):
     t1 = clock()
     for i in range(N):
         # e.append([numpy.random.rand(M)])  # use this for less compressibility
-        e.append([quantize(numpy.random.rand(M), 6)])
+        e.append([quantize(np.random.rand(M), 6)])
     # os.system("sync")
     print(f"Creation time: {clock() - t1:.3f}", end=' ')
     filesize = get_db_size(filename)
@@ -82,8 +82,8 @@ def bench(chunkshape, filters):
     # return
 
     # Read in random mode:
-    i_index = numpy.random.randint(0, N, 128)
-    j_index = numpy.random.randint(0, M, 256)
+    i_index = np.random.randint(0, N, 128)
+    j_index = np.random.randint(0, M, 256)
     # Flush everything to disk and flush caches
     #os.system("sync; echo 1 > /proc/sys/vm/drop_caches")
 

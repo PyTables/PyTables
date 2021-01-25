@@ -16,7 +16,7 @@ import sys
 import copy
 import warnings
 
-import numpy
+import numpy as np
 
 from . import atom
 from .path import check_name_validity
@@ -617,9 +617,9 @@ class Description:
             itemsize = newdict.get('_v_itemsize', None)
             if itemsize is not None:
               dtype_fields['itemsize'] = itemsize
-            dtype = numpy.dtype(dtype_fields)
+            dtype = np.dtype(dtype_fields)
         else:
-            dtype = numpy.dtype(nestedDType)
+            dtype = np.dtype(nestedDType)
         newdict['_v_dtype'] = dtype
         newdict['_v_itemsize'] = dtype.itemsize
         newdict['_v_offsets'] = [dtype.fields[name][1] for name in dtype.names]

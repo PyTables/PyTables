@@ -14,7 +14,7 @@ import re
 import sys
 import warnings
 import pickle
-import numpy
+import numpy as np
 
 from . import hdf5extension
 from .utils import SizeType
@@ -59,12 +59,8 @@ _new_filters_sub = br'(\1tables.filters\n'
 def issysattrname(name):
     """Check if a name is a system attribute or not"""
 
-    if (name in SYS_ATTRS or
-            numpy.prod([name.startswith(prefix)
-                        for prefix in SYS_ATTRS_PREFIXES])):
-        return True
-    else:
-        return False
+    return bool(name in SYS_ATTRS or np.prod(
+        [name.startswith(prefix) for prefix in SYS_ATTRS_PREFIXES]))
 
 
 class AttributeSet(hdf5extension.AttributeSet):
@@ -308,8 +304,8 @@ class AttributeSet(hdf5extension.AttributeSet):
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
         maybe_pickled = (
-            isinstance(value, numpy.generic) and  # NumPy scalar?
-            value.dtype.type == numpy.bytes_ and  # string type?
+            isinstance(value, np.generic) and  # NumPy scalar?
+            value.dtype.type == np.bytes_ and  # string type?
             value.itemsize > 0 and value.endswith(b'.'))
 
         if (maybe_pickled and value in [b"0", b"0."]):
@@ -322,7 +318,7 @@ class AttributeSet(hdf5extension.AttributeSet):
             # for string defaults.
             try:
                 retval = pickle.loads(value)
-                retval = numpy.array(retval)
+                retval = np.array(retval)
             except ImportError:
                 retval = None  # signal error avoiding exception
         elif maybe_pickled and name == 'FILTERS' and format_version is not None and format_version < (2, 0):
@@ -366,7 +362,7 @@ class AttributeSet(hdf5extension.AttributeSet):
                 retval = value
             # Additional check for allowing a workaround for #307
             if isinstance(retval, str) and retval == '':
-                retval = numpy.array(retval)[()]
+                retval = np.array(retval)[()]
         elif name == 'FILTERS' and format_version is not None and format_version >= (2, 0):
             try:
                 retval = Filters._unpack(value)
@@ -404,10 +400,10 @@ class AttributeSet(hdf5extension.AttributeSet):
         stvalue = value
         if issysattrname(name):
             if name in ["EXTDIM", "AUTO_INDEX", "DIRTY", "NODE_TYPE_VERSION"]:
-                stvalue = numpy.array(value, dtype=numpy.int32)
+                stvalue = np.array(value, dtype=np.int32)
                 value = stvalue[()]
             elif name == "NROWS":
-                stvalue = numpy.array(value, dtype=SizeType)
+                stvalue = np.array(value, dtype=SizeType)
                 value = stvalue[()]
             elif name == "FILTERS" and self._v__format_version is not None and self._v__format_version >= (2, 0):
                 stvalue = value._pack()
@@ -417,12 +413,12 @@ class AttributeSet(hdf5extension.AttributeSet):
         # Fixes ticket #59
         if (stvalue is value and
                 type(value) in (bool, bytes, int, float, complex, str,
-                                numpy.unicode_)):
+                                np.unicode_)):
             # Additional check for allowing a workaround for #307
             if isinstance(value, str) and len(value) == 0:
-                stvalue = numpy.array('')
+                stvalue = np.array('')
             else:
-                stvalue = numpy.array(value)
+                stvalue = np.array(value)
             value = stvalue[()]
 
         self._g_setattr(self._v_node, name, stvalue)

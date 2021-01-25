@@ -12,7 +12,7 @@
 
 import operator
 import sys
-import numpy
+import numpy as np
 
 from . import hdf5extension
 from .filters import Filters
@@ -371,10 +371,10 @@ class Array(hdf5extension.Array, Leaf):
 
         maxlen = len(self.shape)
         shape = (maxlen,)
-        startl = numpy.empty(shape=shape, dtype=SizeType)
-        stopl = numpy.empty(shape=shape, dtype=SizeType)
-        stepl = numpy.empty(shape=shape, dtype=SizeType)
-        stop_None = numpy.zeros(shape=shape, dtype=SizeType)
+        startl = np.empty(shape=shape, dtype=SizeType)
+        stopl = np.empty(shape=shape, dtype=SizeType)
+        stepl = np.empty(shape=shape, dtype=SizeType)
+        stop_None = np.zeros(shape=shape, dtype=SizeType)
         if not isinstance(keys, tuple):
             keys = (keys,)
         nkeys = len(keys)
@@ -573,24 +573,22 @@ class Array(hdf5extension.Array, Leaf):
                     else:
                         list_seen = True
                 else:
-                    if (not isinstance(exp[0], (int, numpy.integer)) or
-                        (isinstance(exp[0], numpy.ndarray) and not
-                            numpy.issubdtype(exp[0].dtype, numpy.integer))):
+                    if (not isinstance(exp[0], (int, np.integer)) or
+                        (isinstance(exp[0], np.ndarray) and not
+                            np.issubdtype(exp[0].dtype, np.integer))):
                         raise TypeError("Only integer coordinates allowed.")
 
-                nexp = numpy.asarray(exp, dtype="i8")
+                nexp = np.asarray(exp, dtype="i8")
                 # Convert negative values
-                nexp = numpy.where(nexp < 0, length + nexp, nexp)
+                nexp = np.where(nexp < 0, length + nexp, nexp)
                 # Check whether the list is ordered or not
                 # (only one unordered list is allowed)
-                if not len(nexp) == len(numpy.unique(nexp)):
+                if len(nexp) != len(np.unique(nexp)):
                     raise IndexError(
                         "Selection lists cannot have repeated values")
                 neworder = nexp.argsort()
                 if (neworder.shape != (len(exp),) or
-                        numpy.sum(
-                            numpy.abs(
-                                neworder - numpy.arange(len(exp)))) != 0):
+                        np.sum(np.abs(neworder - np.arange(len(exp)))) != 0):
                     if reorder is not None:
                         raise IndexError(
                             "Only one selection list can be unordered")
@@ -716,7 +714,7 @@ class Array(hdf5extension.Array, Leaf):
         # truncate data if least_significant_digit filter is set
         # TODO: add the least_significant_digit attribute to the array on disk
         if (self.filters.least_significant_digit is not None and
-                not numpy.issubdtype(nparr.dtype, numpy.signedinteger)):
+                not np.issubdtype(nparr.dtype, np.signedinteger)):
             nparr = quantize(nparr, self.filters.least_significant_digit)
 
         try:
@@ -741,7 +739,7 @@ class Array(hdf5extension.Array, Leaf):
 
         if nparr.shape != (slice_shape + self.atom.dtype.shape):
             # Create an array compliant with the specified shape
-            narr = numpy.empty(shape=slice_shape, dtype=self.atom.dtype)
+            narr = np.empty(shape=slice_shape, dtype=self.atom.dtype)
 
             # Assign the value to it. It will raise a ValueError exception
             # if the objects cannot be broadcast to a single shape.
@@ -753,7 +751,7 @@ class Array(hdf5extension.Array, Leaf):
     def _read_slice(self, startl, stopl, stepl, shape):
         """Read a slice based on `startl`, `stopl` and `stepl`."""
 
-        nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
+        nparr = np.empty(dtype=self.atom.dtype, shape=shape)
         # Protection against reading empty arrays
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
@@ -766,7 +764,7 @@ class Array(hdf5extension.Array, Leaf):
     def _read_coords(self, coords):
         """Read a set of points defined by `coords`."""
 
-        nparr = numpy.empty(dtype=self.atom.dtype, shape=len(coords))
+        nparr = np.empty(dtype=self.atom.dtype, shape=len(coords))
         if len(coords) > 0:
             self._g_read_coords(coords, nparr)
         # For zero-shaped arrays, return the scalar
@@ -782,7 +780,7 @@ class Array(hdf5extension.Array, Leaf):
         """
 
         # Create the container for the slice
-        nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
+        nparr = np.empty(dtype=self.atom.dtype, shape=shape)
         # Arrays that have non-zero dimensionality
         self._g_read_selection(selection, nparr)
         # For zero-shaped arrays, return the scalar
@@ -838,7 +836,7 @@ class Array(hdf5extension.Array, Leaf):
         if shape:
             shape[self.maindim] = nrowstoread
         if out is None:
-            arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
+            arr = np.empty(dtype=self.atom.dtype, shape=shape)
         else:
             bytes_required = self.rowsize * nrowstoread
             # if buffer is too small, it will segfault
@@ -916,7 +914,7 @@ class Array(hdf5extension.Array, Leaf):
         # For details, see #275 of trac.
         object_ = Array(group, name, arr, title=title, _log=_log,
                         _atom=self.atom)
-        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.size
+        nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object_, nbytes)
 

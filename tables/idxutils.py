@@ -12,7 +12,7 @@
 
 import sys
 import math
-import numpy
+import numpy as np
 
 
 # Hints for chunk/slice/block/superblock computations:
@@ -352,15 +352,15 @@ infinitymap = {
     'float64': [-infinity, infinity],
 }
 
-if hasattr(numpy, 'float16'):
-    infinitymap['float16'] = [-numpy.float16(numpy.inf),
-                              numpy.float16(numpy.inf)]
-if hasattr(numpy, 'float96'):
-    infinitymap['float96'] = [-numpy.float96(numpy.inf),
-                              numpy.float96(numpy.inf)]
-if hasattr(numpy, 'float128'):
-    infinitymap['float128'] = [-numpy.float128(numpy.inf),
-                               numpy.float128(numpy.inf)]
+if hasattr(np, 'float16'):
+    infinitymap['float16'] = [-np.float16(np.inf),
+                              np.float16(np.inf)]
+if hasattr(np, 'float96'):
+    infinitymap['float96'] = [-np.float96(np.inf),
+                              np.float96(np.inf)]
+if hasattr(np, 'float128'):
+    infinitymap['float128'] = [-np.float128(np.inf),
+                               np.float128(np.inf)]
 
 # deprecated API
 infinityMap = infinitymap
@@ -438,13 +438,13 @@ def int_type_next_after(x, direction, itemsize):
             return x - 1
         else:
             # return int(PyNextAfter(x, x - 1))
-            return int(numpy.nextafter(x, x - 1))
+            return int(np.nextafter(x, x - 1))
     else:
         if isinstance(x, int):
             return x + 1
         else:
             # return int(PyNextAfter(x,x + 1)) + 1
-            return int(numpy.nextafter(x, x + 1)) + 1
+            return int(np.nextafter(x, x + 1)) + 1
 
 
 def bool_type_next_after(x, direction, itemsize):
@@ -479,9 +479,9 @@ def nextafter(x, direction, dtype, itemsize):
         return int_type_next_after(x, direction, itemsize)
     elif dtype.kind == "f":
         if direction < 0:
-            return numpy.nextafter(x, x - 1)
+            return np.nextafter(x, x - 1)
         else:
-            return numpy.nextafter(x, x + 1)
+            return np.nextafter(x, x + 1)
 
     # elif dtype.name == "float32":
     #    if direction < 0:
