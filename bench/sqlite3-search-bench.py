@@ -1,7 +1,7 @@
 import os
 import os.path
 from time import perf_counter as clock
-import numpy
+import numpy as np
 import random
 
 # in order to always generate the same random sequence
@@ -9,11 +9,11 @@ random.seed(19)
 
 
 def fill_arrays(start, stop):
-    col_i = numpy.arange(start, stop, dtype=numpy.int32)
+    col_i = np.arange(start, stop, dtype=np.int32)
     if userandom:
-        col_j = numpy.random.uniform(0, nrows, stop - start)
+        col_j = np.random.uniform(0, nrows, stop - start)
     else:
-        col_j = numpy.array(col_i, dtype=numpy.float64)
+        col_j = np.array(col_i, dtype=np.float64)
     return col_i, col_j
 
 # Generator for ensure pytables benchmark compatibility

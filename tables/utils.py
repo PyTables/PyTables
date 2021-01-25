@@ -17,7 +17,7 @@ import warnings
 import subprocess
 from time import perf_counter as clock
 
-import numpy
+import numpy as np
 
 from .flavor import array_of_flavor
 
@@ -31,7 +31,7 @@ byteorders = {
 
 # The type used for size values: indexes, coordinates, dimension
 # lengths, row numbers, shapes, chunk shapes, byte counts...
-SizeType = numpy.int64
+SizeType = np.int64
 
 
 def correct_byteorder(ptype, byteorder):
@@ -61,10 +61,10 @@ def is_idx(index):
             return True
         except TypeError:
             return False
-    elif isinstance(index, numpy.integer):
+    elif isinstance(index, np.integer):
         return True
     # For Python 2.4 one should test 0-dim and 1-dim, 1-elem arrays as well
-    elif (isinstance(index, numpy.ndarray) and (index.shape == ()) and
+    elif (isinstance(index, np.ndarray) and (index.shape == ()) and
           index.dtype.str[1] == 'i'):
         return True
 
@@ -93,7 +93,7 @@ def convert_to_np_atom(arr, atom, copy=False):
     # dtype is not the correct one.
     if atom.shape == ():
         # Scalar atom case
-        nparr = numpy.array(nparr, dtype=atom.dtype, copy=copy)
+        nparr = np.array(nparr, dtype=atom.dtype, copy=copy)
     else:
         # Multidimensional atom case.  Addresses #133.
         # We need to use this strange way to obtain a dtype compliant
@@ -104,7 +104,7 @@ def convert_to_np_atom(arr, atom, copy=False):
         # All of this is done just to taking advantage of the NumPy
         # broadcasting rules.
         newshape = nparr.shape[:-len(atom.dtype.shape)]
-        nparr2 = numpy.empty(newshape, dtype=[('', atom.dtype)])
+        nparr2 = np.empty(newshape, dtype=[('', atom.dtype)])
         nparr2['f0'][:] = nparr
         # Return a view (i.e. get rid of the record type)
         nparr = nparr2.view(atom.dtype)
@@ -290,7 +290,7 @@ def quantize(data, least_significant_digit):
     exp = math.floor(exp) if exp < 0 else math.ceil(exp)
     bits = math.ceil(math.log2(10 ** -exp))
     scale = 2 ** bits
-    datout = numpy.around(scale * data) / scale
+    datout = np.around(scale * data) / scale
 
     return datout
 

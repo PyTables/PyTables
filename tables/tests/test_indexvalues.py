@@ -2,7 +2,7 @@ import os
 import random
 import tempfile
 
-import numpy
+import numpy as np
 
 import tables
 from tables import StringCol, BoolCol, IntCol, FloatCol
@@ -874,7 +874,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
 
         # Convert the limits to the appropriate type
         # il = numpy.string_(self.il)
-        sl = numpy.string_(self.sl)
+        sl = np.string_(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -998,7 +998,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        false = numpy.bool_(False)
+        false = np.bool_(False)
         self.assertFalse(false)     # silence pyflakes
         condition = 't1var2==false'
         self.assertTrue(
@@ -1125,7 +1125,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
 
         # Convert the limits to the appropriate type
         # il = numpy.int32(self.il)
-        sl = numpy.uint16(self.sl)
+        sl = np.uint16(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var3
@@ -1321,7 +1321,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
 
         # Convert the limits to the appropriate type
         # il = numpy.float32(self.il)
-        sl = numpy.float64(self.sl)
+        sl = np.float64(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var4
@@ -3159,7 +3159,7 @@ class LastRowReuseBuffers(TestCase):
     # Test that checks for possible reuse of buffers coming
     # from last row in the sorted part of indexes
     nelem = 1221
-    numpy.random.seed(1)
+    np.random.seed(1)
     random.seed(1)
 
     class Record(tables.IsDescription):
@@ -3181,7 +3181,7 @@ class LastRowReuseBuffers(TestCase):
         self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=64)
         ta = self.h5file.create_table('/', 'table', self.Record,
                                       filters=tables.Filters(1))
-        id1 = numpy.random.randint(0, 2**15, self.nelem)
+        id1 = np.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
         ta.cols.id1.create_index()
@@ -3200,7 +3200,7 @@ class LastRowReuseBuffers(TestCase):
         self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=0)
         ta = self.h5file.create_table('/', 'table', self.Record,
                                       filters=tables.Filters(1))
-        id1 = numpy.random.randint(0, 2**15, self.nelem)
+        id1 = np.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
         ta.cols.id1.create_index()
@@ -3219,7 +3219,7 @@ class LastRowReuseBuffers(TestCase):
         self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=-64)
         ta = self.h5file.create_table('/', 'table', self.Record,
                                       filters=tables.Filters(1))
-        id1 = numpy.random.randint(0, 2**15, self.nelem)
+        id1 = np.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
         ta.cols.id1.create_index()
@@ -3304,16 +3304,16 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
     open_mode = 'w'
 
     def test01(self):
-        numpy.random.seed(2)
+        np.random.seed(2)
         n = 700_000
         cs = 50_000
         nchunks = n // cs
 
-        arr = numpy.zeros(
+        arr = np.zeros(
             (n,), dtype=[('index', 'i8'), ('o', 'i8'), ('value', 'f8')])
-        arr['index'] = numpy.arange(n)
-        arr['o'] = numpy.random.randint(-20_000, -15_000, size=n)
-        arr['value'] = numpy.random.randn(n)
+        arr['index'] = np.arange(n)
+        arr['o'] = np.random.randint(-20_000, -15_000, size=n)
+        arr['value'] = np.random.randn(n)
 
         node = self.h5file.create_group('/', 'foo')
         table = self.h5file.create_table(node, 'table', dict(
@@ -3325,17 +3325,17 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
 
         self._reopen('a')
 
-        v1 = numpy.unique(arr['o'])[0]
-        v2 = numpy.unique(arr['o'])[1]
-        res = numpy.array([v1, v2])
+        v1 = np.unique(arr['o'])[0]
+        v2 = np.unique(arr['o'])[1]
+        res = np.array([v1, v2])
         selector = f'((o == {v1}) | (o == {v2}))'
         if verbose:
             print("selecting values: %s" % selector)
 
         table = self.h5file.root.foo.table
 
-        result = numpy.unique(table.read_where(selector)['o'])
-        numpy.testing.assert_almost_equal(result, res)
+        result = np.unique(table.read_where(selector)['o'])
+        np.testing.assert_almost_equal(result, res)
         if verbose:
             print("select entire table:")
             print(f"result: {result}\texpected: {res}")
@@ -3348,8 +3348,8 @@ class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
             print("select via chunks")
         for i in range(nchunks):
             result = table.read_where(selector, start=i*cs, stop=(i+1)*cs)
-            result = numpy.unique(result['o'])
-            numpy.testing.assert_almost_equal(numpy.unique(result), res)
+            result = np.unique(result['o'])
+            np.testing.assert_almost_equal(np.unique(result), res)
             if verbose:
                 print(f"result: {result}\texpected: {res}")
 
@@ -3364,7 +3364,7 @@ class SideEffectNumPyQuicksort(TestCase):
         h5 = tables.open_file(tmp_file, "a")
         o = h5.root.table
         vals = o.cols.path[:]
-        npvals = set(numpy.where(vals == 6)[0])
+        npvals = set(np.where(vals == 6)[0])
 
         # Setting the chunkshape is critical for reproducing the bug
         t = o.copy(newname="table2", chunkshape=2730)

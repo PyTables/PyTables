@@ -22,7 +22,7 @@ from distutils.version import LooseVersion
 
 import unittest
 
-import numpy
+import numpy as np
 import numexpr
 
 import tables
@@ -86,7 +86,7 @@ def print_versions():
     print('-=' * 38)
     print("PyTables version:    %s" % tables.__version__)
     print("HDF5 version:        %s" % tables.which_lib_version("hdf5")[1])
-    print("NumPy version:       %s" % numpy.__version__)
+    print("NumPy version:       %s" % np.__version__)
     tinfo = tables.which_lib_version("zlib")
     if numexpr.use_vml:
         # Get only the main version number and strip out all the rest
@@ -200,7 +200,7 @@ def allequal(a, b, flavor="numpy"):
 
     # Multidimensional case
     result = (a == b)
-    result = numpy.all(result)
+    result = np.all(result)
     if not result and verbose:
         print("Some of the elements in arrays are not equal")
 
@@ -223,7 +223,7 @@ def areArraysEqual(arr1, arr2):
             issubclass(t1, t2) or issubclass(t2, t1)):
         return False
 
-    return numpy.all(arr1 == arr2)
+    return np.all(arr1 == arr2)
 
 
 class PyTablesTestCase(unittest.TestCase):

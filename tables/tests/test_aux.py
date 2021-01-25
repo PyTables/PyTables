@@ -1,5 +1,5 @@
 import unittest
-import numpy
+import numpy as np
 
 from tables import indexesextension
 
@@ -7,11 +7,11 @@ from tables import indexesextension
 class TestAuxiliaryFunctions(unittest.TestCase):
     def test_keysort(self):
         N = 1000
-        rnd = numpy.random.randint(N, size=N)
+        rnd = np.random.randint(N, size=N)
         for dtype1 in ('S6', 'b1', 'i1', 'i8', 'u4', 'u8', 'f4', 'f8'):
             for dtype2 in ('u4', 'i8'):
-                a = numpy.array(rnd, dtype1)
-                b = numpy.array(rnd, dtype2)
+                a = np.array(rnd, dtype1)
+                b = np.array(rnd, dtype2)
 
                 c = a.copy()
                 d = c.argsort()

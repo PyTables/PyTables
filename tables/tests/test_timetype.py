@@ -11,7 +11,7 @@
 """Unit test for the Time datatypes."""
 
 
-import numpy
+import numpy as np
 
 import tables
 from tables.tests import common
@@ -163,7 +163,7 @@ class CompareTestCase(common.TempFileMixin, TestCase):
     def test00_Compare32VLArray(self):
         """Comparing written 32-bit time data with read data in a VLArray."""
 
-        wtime = numpy.array((1_234_567_890,) * 2, numpy.int32)
+        wtime = np.array((1_234_567_890,) * 2, np.int32)
 
         # Create test VLArray with data.
         vla = self.h5file.create_vlarray('/', 'test', self.myTime32Atom)
@@ -179,7 +179,7 @@ class CompareTestCase(common.TempFileMixin, TestCase):
     def test01_Compare64VLArray(self):
         """Comparing written 64-bit time data with read data in a VLArray."""
 
-        wtime = numpy.array((1_234_567_890.123456,) * 2, numpy.float64)
+        wtime = np.array((1_234_567_890.123456,) * 2, np.float64)
 
         # Create test VLArray with data.
         vla = self.h5file.create_vlarray('/', 'test', self.myTime64Atom)
@@ -214,8 +214,8 @@ class CompareTestCase(common.TempFileMixin, TestCase):
         arr = self.h5file.root.test.read()
         self.h5file.close()
 
-        arr = numpy.array(arr)
-        orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
+        arr = np.array(arr)
+        orig_val = np.arange(0, nrows * 2, dtype=np.int32) + 0.012
         orig_val.shape = (nrows, 1, 2)
         if common.verbose:
             print("Original values:", orig_val)
@@ -243,8 +243,8 @@ class CompareTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(recarr['t32col'][0], int(wtime),
                          "Stored and retrieved values do not match.")
 
-        comp = (recarr['t64col'][0] == numpy.array((wtime, wtime)))
-        self.assertTrue(numpy.alltrue(comp),
+        comp = (recarr['t64col'][0] == np.array((wtime, wtime)))
+        self.assertTrue(np.alltrue(comp),
                         "Stored and retrieved values do not match.")
 
     def test02b_CompareTable(self):
@@ -273,20 +273,20 @@ class CompareTestCase(common.TempFileMixin, TestCase):
         self.h5file.close()
 
         # Time32 column.
-        orig_val = numpy.arange(nrows, dtype=numpy.int32)
+        orig_val = np.arange(nrows, dtype=np.int32)
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['t32col'][:])
-        self.assertTrue(numpy.alltrue(recarr['t32col'][:] == orig_val),
+        self.assertTrue(np.alltrue(recarr['t32col'][:] == orig_val),
                         "Stored and retrieved values do not match.")
 
         # Time64 column.
-        orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
+        orig_val = np.arange(0, nrows * 2, dtype=np.int32) + 0.012
         orig_val.shape = (nrows, 2)
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['t64col'][:])
-        self.assertTrue(allequal(recarr['t64col'][:], orig_val, numpy.float64),
+        self.assertTrue(allequal(recarr['t64col'][:], orig_val, np.float64),
                         "Stored and retrieved values do not match.")
 
     def test03_Compare64EArray(self):
@@ -329,7 +329,7 @@ class CompareTestCase(common.TempFileMixin, TestCase):
         arr = self.h5file.root.test.read()
         self.h5file.close()
 
-        orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
+        orig_val = np.arange(0, nrows * 2, dtype=np.int32) + 0.012
         orig_val.shape = (nrows, 2)
         if common.verbose:
             print("Original values:", orig_val)
@@ -375,28 +375,28 @@ class UnalignedTestCase(common.TempFileMixin, TestCase):
         self.h5file.close()
 
         # Int8 column.
-        orig_val = numpy.arange(nrows, dtype=numpy.int8)
+        orig_val = np.arange(nrows, dtype=np.int8)
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['i8col'][:])
-        self.assertTrue(numpy.alltrue(recarr['i8col'][:] == orig_val),
+        self.assertTrue(np.alltrue(recarr['i8col'][:] == orig_val),
                         "Stored and retrieved values do not match.")
 
         # Time32 column.
-        orig_val = numpy.arange(nrows, dtype=numpy.int32)
+        orig_val = np.arange(nrows, dtype=np.int32)
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['t32col'][:])
-        self.assertTrue(numpy.alltrue(recarr['t32col'][:] == orig_val),
+        self.assertTrue(np.alltrue(recarr['t32col'][:] == orig_val),
                         "Stored and retrieved values do not match.")
 
         # Time64 column.
-        orig_val = numpy.arange(0, nrows * 2, dtype=numpy.int32) + 0.012
+        orig_val = np.arange(0, nrows * 2, dtype=np.int32) + 0.012
         orig_val.shape = (nrows, 2)
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['t64col'][:])
-        self.assertTrue(allequal(recarr['t64col'][:], orig_val, numpy.float64),
+        self.assertTrue(allequal(recarr['t64col'][:], orig_val, np.float64),
                         "Stored and retrieved values do not match.")
 
 
@@ -421,12 +421,12 @@ class BigEndianTestCase(TestCase):
         # Generate the expected Time32 array.
         start = 1_178_896_298
         nrows = 10
-        orig_val = numpy.arange(start, start + nrows, dtype=numpy.int32)
+        orig_val = np.arange(start, start + nrows, dtype=np.int32)
 
         if common.verbose:
             print("Retrieved values:", earr)
             print("Should look like:", orig_val)
-        self.assertTrue(numpy.alltrue(earr == orig_val),
+        self.assertTrue(np.alltrue(earr == orig_val),
                         "Retrieved values do not match the expected values.")
 
     def test00b_Read64Array(self):
@@ -438,12 +438,12 @@ class BigEndianTestCase(TestCase):
         # Generate the expected Time64 array.
         start = 1_178_896_298.832258
         nrows = 10
-        orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
+        orig_val = np.arange(start, start + nrows, dtype=np.float64)
 
         if common.verbose:
             print("Retrieved values:", earr)
             print("Should look like:", orig_val)
-        self.assertTrue(numpy.allclose(earr, orig_val, rtol=1.e-15),
+        self.assertTrue(np.allclose(earr, orig_val, rtol=1.e-15),
                         "Retrieved values do not match the expected values.")
 
     def test01a_ReadPlainColumn(self):
@@ -456,12 +456,12 @@ class BigEndianTestCase(TestCase):
         # Generate the expected Time32 array.
         start = 1_178_896_298
         nrows = 10
-        orig_val = numpy.arange(start, start + nrows, dtype=numpy.int32)
+        orig_val = np.arange(start, start + nrows, dtype=np.int32)
 
         if common.verbose:
             print("Retrieved values:", t32)
             print("Should look like:", orig_val)
-        self.assertTrue(numpy.alltrue(t32 == orig_val),
+        self.assertTrue(np.alltrue(t32 == orig_val),
                         "Retrieved values do not match the expected values.")
 
     def test01b_ReadNestedColumn(self):
@@ -474,12 +474,12 @@ class BigEndianTestCase(TestCase):
         # Generate the expected Time64 array.
         start = 1_178_896_298.832258
         nrows = 10
-        orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
+        orig_val = np.arange(start, start + nrows, dtype=np.float64)
 
         if common.verbose:
             print("Retrieved values:", t64)
             print("Should look like:", orig_val)
-        self.assertTrue(numpy.allclose(t64, orig_val, rtol=1.e-15),
+        self.assertTrue(np.allclose(t64, orig_val, rtol=1.e-15),
                         "Retrieved values do not match the expected values.")
 
     def test02_ReadNestedColumnTwice(self):
@@ -494,12 +494,12 @@ class BigEndianTestCase(TestCase):
         # Generate the expected Time64 array.
         start = 1_178_896_298.832258
         nrows = 10
-        orig_val = numpy.arange(start, start + nrows, dtype=numpy.float64)
+        orig_val = np.arange(start, start + nrows, dtype=np.float64)
 
         if common.verbose:
             print("Retrieved values:", t64)
             print("Should look like:", orig_val)
-        self.assertTrue(numpy.allclose(t64, orig_val, rtol=1.e-15),
+        self.assertTrue(np.allclose(t64, orig_val, rtol=1.e-15),
                         "Retrieved values do not match the expected values.")
 
 

@@ -15,7 +15,7 @@ import hashlib
 import tempfile
 import warnings
 
-import numpy
+import numpy as np
 
 import tables
 from tables import (
@@ -1544,7 +1544,7 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin, TestCase):
 
 class FilterTestCase(TestCase):
     def test_filter_pack_type(self):
-        self.assertEqual(type(Filters()._pack()), numpy.int64)
+        self.assertEqual(type(Filters()._pack()), np.int64)
 
     @staticmethod
     def _hexl(n):
@@ -1567,7 +1567,7 @@ class FilterTestCase(TestCase):
         self.assertEqual(self._hexl(filter_._pack()), '0x5040101')
 
     def test_filter_unpack_01(self):
-        filter_ = Filters._unpack(numpy.int64(0x0))
+        filter_ = Filters._unpack(np.int64(0x0))
         self.assertFalse(filter_.shuffle)
         self.assertFalse(filter_.fletcher32)
         self.assertEqual(filter_.least_significant_digit, None)
@@ -1575,7 +1575,7 @@ class FilterTestCase(TestCase):
         self.assertEqual(filter_.complib, None)
 
     def test_filter_unpack_02(self):
-        filter_ = Filters._unpack(numpy.int64(0x101))
+        filter_ = Filters._unpack(np.int64(0x101))
         self.assertFalse(filter_.shuffle)
         self.assertFalse(filter_.fletcher32)
         self.assertEqual(filter_.least_significant_digit, None)
@@ -1583,7 +1583,7 @@ class FilterTestCase(TestCase):
         self.assertEqual(filter_.complib, 'zlib')
 
     def test_filter_unpack_03(self):
-        filter_ = Filters._unpack(numpy.int64(0x30109))
+        filter_ = Filters._unpack(np.int64(0x30109))
         self.assertTrue(filter_.shuffle)
         self.assertTrue(filter_.fletcher32)
         self.assertEqual(filter_.least_significant_digit, None)
@@ -1591,7 +1591,7 @@ class FilterTestCase(TestCase):
         self.assertEqual(filter_.complib, 'zlib')
 
     def test_filter_unpack_04(self):
-        filter_ = Filters._unpack(numpy.int64(0x5040101))
+        filter_ = Filters._unpack(np.int64(0x5040101))
         self.assertFalse(filter_.shuffle)
         self.assertFalse(filter_.fletcher32)
         self.assertEqual(filter_.least_significant_digit, 5)
@@ -2434,18 +2434,18 @@ class QuantizeTestCase(common.TempFileMixin, TestCase):
     def setUp(self):
         super().setUp()
 
-        self.data = numpy.linspace(-5., 5., 41)
-        self.randomdata = numpy.random.random_sample(1_000_000)
-        self.randomints = numpy.random.randint(-1_000_000, 1_000_000,
-                                               1_000_000).astype('int64')
+        self.data = np.linspace(-5., 5., 41)
+        self.randomdata = np.random.random_sample(1_000_000)
+        self.randomints = np.random.randint(
+            -1_000_000, 1_000_000, 1_000_000).astype('int64')
 
         self.populateFile()
         self.h5file.close()
 
-        self.quantizeddata_0 = numpy.asarray(
+        self.quantizeddata_0 = np.asarray(
             [-5.] * 2 + [-4.] * 5 + [-3.] * 3 + [-2.] * 5 + [-1.] * 3 +
             [0.] * 5 + [1.] * 3 + [2.] * 5 + [3.] * 3 + [4.] * 5 + [5.] * 2)
-        self.quantizeddata_m1 = numpy.asarray(
+        self.quantizeddata_m1 = np.asarray(
             [-8.] * 4 + [0.] * 33 + [8.] * 4)
 
     def populateFile(self):
@@ -2484,10 +2484,10 @@ class QuantizeTestCase(common.TempFileMixin, TestCase):
         quantized_1 = quantize(self.data, 1)
         quantized_2 = quantize(self.data, 2)
         quantized_m1 = quantize(self.data, -1)
-        numpy.testing.assert_array_equal(quantized_0, self.quantizeddata_0)
-        numpy.testing.assert_array_equal(quantized_1, self.data)
-        numpy.testing.assert_array_equal(quantized_2, self.data)
-        numpy.testing.assert_array_equal(quantized_m1, self.quantizeddata_m1)
+        np.testing.assert_array_equal(quantized_0, self.quantizeddata_0)
+        np.testing.assert_array_equal(quantized_1, self.data)
+        np.testing.assert_array_equal(quantized_2, self.data)
+        np.testing.assert_array_equal(quantized_m1, self.quantizeddata_m1)
 
     def test01_quantizeDataMaxError(self):
         """Checking the maximum error introduced by the quantize() function."""
@@ -2503,23 +2503,23 @@ class QuantizeTestCase(common.TempFileMixin, TestCase):
         #self.assertLess(numpy.abs(quantized_2 - self.randomdata).max(), 0.005)
         #self.assertLess(numpy.abs(quantized_m1 - self.randomdata).max(), 1.)
 
-        self.assertTrue(numpy.abs(quantized_0 - self.randomdata).max() < 0.5)
-        self.assertTrue(numpy.abs(quantized_1 - self.randomdata).max() < 0.05)
-        self.assertTrue(numpy.abs(quantized_2 - self.randomdata).max() < 0.005)
-        self.assertTrue(numpy.abs(quantized_m1 - self.randomdata).max() < 1.)
+        self.assertTrue(np.abs(quantized_0 - self.randomdata).max() < 0.5)
+        self.assertTrue(np.abs(quantized_1 - self.randomdata).max() < 0.05)
+        self.assertTrue(np.abs(quantized_2 - self.randomdata).max() < 0.005)
+        self.assertTrue(np.abs(quantized_m1 - self.randomdata).max() < 1.)
 
     def test02_array(self):
         """Checking quantized data as written to disk."""
 
         self.h5file = tables.open_file(self.h5fname, "r")
-        numpy.testing.assert_array_equal(self.h5file.root.data1[:], self.data)
-        numpy.testing.assert_array_equal(self.h5file.root.data2[:], self.data)
-        numpy.testing.assert_array_equal(self.h5file.root.data0[:],
-                                         self.quantizeddata_0)
-        numpy.testing.assert_array_equal(self.h5file.root.datam1[:],
-                                         self.quantizeddata_m1)
-        numpy.testing.assert_array_equal(self.h5file.root.integers[:],
-                                         self.randomints)
+        np.testing.assert_array_equal(self.h5file.root.data1[:], self.data)
+        np.testing.assert_array_equal(self.h5file.root.data2[:], self.data)
+        np.testing.assert_array_equal(self.h5file.root.data0[:],
+                                      self.quantizeddata_0)
+        np.testing.assert_array_equal(self.h5file.root.datam1[:],
+                                      self.quantizeddata_m1)
+        np.testing.assert_array_equal(self.h5file.root.integers[:],
+                                      self.randomints)
         self.assertEqual(self.h5file.root.integers[:].dtype,
                          self.randomints.dtype)
 
@@ -2529,8 +2529,7 @@ class QuantizeTestCase(common.TempFileMixin, TestCase):
         #    0.05
         #)
         self.assertTrue(
-            numpy.abs(self.h5file.root.floats[:] - self.randomdata).max() <
-            0.05
+            np.abs(self.h5file.root.floats[:] - self.randomdata).max() < 0.05
         )
 
 

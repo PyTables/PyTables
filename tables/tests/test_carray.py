@@ -1,7 +1,7 @@
 import os
 import sys
 
-import numpy
+import numpy as np
 
 import tables
 from tables import (
@@ -65,15 +65,15 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # Fill it with data
         self.rowshape = list(carray.shape)
-        self.objsize = self.length * numpy.prod(carray.shape)
+        self.objsize = self.length * np.prod(carray.shape)
 
         if self.flavor == "numpy":
             if self.type == "string":
-                object = numpy.ndarray(buffer=b"a"*self.objsize,
+                object = np.ndarray(buffer=b"a"*self.objsize,
                                        shape=self.shape,
                                        dtype="S%s" % carray.atom.itemsize)
             else:
-                object = numpy.arange(self.objsize, dtype=carray.atom.dtype)
+                object = np.arange(self.objsize, dtype=carray.atom.dtype)
                 object.shape = carray.shape
         if common.verbose:
             print("Object to append -->", repr(object))
@@ -84,7 +84,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         if self.shape is not None:
             shape = self.shape
         else:
-            shape = numpy.asarray(self.obj).shape
+            shape = np.asarray(self.obj).shape
 
         return shape
 
@@ -126,11 +126,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Build the array to do comparisons
         if self.flavor == "numpy":
             if self.type == "string":
-                object_ = numpy.ndarray(buffer=b"a"*self.objsize,
-                                        shape=self.shape,
-                                        dtype="S%s" % carray.atom.itemsize)
+                object_ = np.ndarray(buffer=b"a" * self.objsize,
+                                     shape=self.shape,
+                                     dtype=f"S{carray.atom.itemsize}")
             else:
-                object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
+                object_ = np.arange(self.objsize, dtype=carray.atom.dtype)
                 object_.shape = shape
 
         stop = self.stop
@@ -156,9 +156,9 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             data = carray.read(self.start, stop, self.step)
         except IndexError:
             if self.flavor == "numpy":
-                data = numpy.empty(shape=self.shape, dtype=self.type)
+                data = np.empty(shape=self.shape, dtype=self.type)
             else:
-                data = numpy.empty(shape=self.shape, dtype=self.type)
+                data = np.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
             if hasattr(obj, "shape"):
@@ -189,11 +189,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Build the array to do comparisons
         if self.flavor == "numpy":
             if self.type == "string":
-                object_ = numpy.ndarray(buffer=b"a"*self.objsize,
-                                        shape=self.shape,
-                                        dtype="S%s" % carray.atom.itemsize)
+                object_ = np.ndarray(buffer=b"a" * self.objsize,
+                                     shape=self.shape,
+                                     dtype=f"S{carray.atom.itemsize}")
             else:
-                object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
+                object_ = np.arange(self.objsize, dtype=carray.atom.dtype)
                 object_.shape = shape
 
         stop = self.stop
@@ -216,14 +216,14 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # Read all the array
         try:
-            data = numpy.empty(shape, dtype=carray.atom.dtype)
+            data = np.empty(shape, dtype=carray.atom.dtype)
             data = data[self.start:stop:self.step].copy()
             carray.read(self.start, stop, self.step, out=data)
         except IndexError:
             if self.flavor == "numpy":
-                data = numpy.empty(shape=shape, dtype=self.type)
+                data = np.empty(shape=shape, dtype=self.type)
             else:
-                data = numpy.empty(shape=shape, dtype=self.type)
+                data = np.empty(shape=shape, dtype=self.type)
 
         if hasattr(data, "shape"):
             self.assertEqual(len(data.shape), len(shape))
@@ -259,11 +259,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = numpy.ndarray(buffer=b"a"*self.objsize,
-                                    shape=self.shape,
-                                    dtype="S%s" % carray.atom.itemsize)
+            object_ = np.ndarray(buffer=b"a" * self.objsize,
+                                 shape=self.shape,
+                                 dtype=f"S{carray.atom.itemsize}")
         else:
-            object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
+            object_ = np.arange(self.objsize, dtype=carray.atom.dtype)
             object_.shape = shape
 
         # do a copy() in order to ensure that len(object._data)
@@ -276,9 +276,9 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         except IndexError:
             print("IndexError!")
             if self.flavor == "numpy":
-                data = numpy.empty(shape=self.shape, dtype=self.type)
+                data = np.empty(shape=self.shape, dtype=self.type)
             else:
-                data = numpy.empty(shape=self.shape, dtype=self.type)
+                data = np.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
             print("Object read:\n", repr(data))  # , data.info()
@@ -320,11 +320,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = numpy.ndarray(buffer=b"a"*self.objsize,
-                                    shape=self.shape,
-                                    dtype="S%s" % carray.atom.itemsize)
+            object_ = np.ndarray(buffer=b"a" * self.objsize,
+                                 shape=self.shape,
+                                 dtype=f"S{carray.atom.itemsize}")
         else:
-            object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
+            object_ = np.arange(self.objsize, dtype=carray.atom.dtype)
             object_.shape = shape
 
         # do a copy() in order to ensure that len(object._data)
@@ -345,19 +345,19 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                 carray[self.wslice] = carray[self.wslice] * 2 + 3
             elif sum(obj[self.slices].shape) != 0:
                 obj = obj * 2 + 3
-                if numpy.prod(obj.shape) > 0:
+                if np.prod(obj.shape) > 0:
                     carray[self.slices] = carray[self.slices] * 2 + 3
             # Cast again object to its original type
-            obj = numpy.array(obj, dtype=carray.atom.dtype)
+            obj = np.array(obj, dtype=carray.atom.dtype)
         # Read datafrom the array
         try:
             data = carray.__getitem__(self.slices)
         except IndexError:
             print("IndexError!")
             if self.flavor == "numpy":
-                data = numpy.empty(shape=self.shape, dtype=self.type)
+                data = np.empty(shape=self.shape, dtype=self.type)
             else:
-                data = numpy.empty(shape=self.shape, dtype=self.type)
+                data = np.empty(shape=self.shape, dtype=self.type)
 
         if common.verbose:
             print("Object read:\n", repr(data))  # , data.info()
@@ -393,7 +393,7 @@ class BasicWrite2TestCase(BasicTestCase):
 
 class BasicWrite3TestCase(BasicTestCase):
     obj = [1, 2]
-    type = numpy.asarray(obj).dtype.name
+    type = np.asarray(obj).dtype.name
     shape = None
     chunkshape = (5,)
     step = 1
@@ -401,7 +401,7 @@ class BasicWrite3TestCase(BasicTestCase):
 
 
 class BasicWrite4TestCase(BasicTestCase):
-    obj = numpy.array([1, 2])
+    obj = np.array([1, 2])
     type = obj.dtype.name
     shape = None
     chunkshape = (5,)
@@ -411,7 +411,7 @@ class BasicWrite4TestCase(BasicTestCase):
 
 class BasicWrite5TestCase(BasicTestCase):
     obj = [[1, 2], [3, 4]]
-    type = numpy.asarray(obj).dtype.name
+    type = np.asarray(obj).dtype.name
     shape = None
     chunkshape = (5, 1)
     step = 1
@@ -420,7 +420,7 @@ class BasicWrite5TestCase(BasicTestCase):
 
 class BasicWrite6TestCase(BasicTestCase):
     obj = [1, 2]
-    type = numpy.asarray(obj).dtype.name
+    type = np.asarray(obj).dtype.name
     shape = None
     chunkshape = (5,)
     step = 1
@@ -428,7 +428,7 @@ class BasicWrite6TestCase(BasicTestCase):
 
 
 class BasicWrite7TestCase(BasicTestCase):
-    obj = numpy.array([1, 2])
+    obj = np.array([1, 2])
     type = obj.dtype.name
     shape = None
     chunkshape = (5,)
@@ -438,7 +438,7 @@ class BasicWrite7TestCase(BasicTestCase):
 
 class BasicWrite8TestCase(BasicTestCase):
     obj = [[1, 2], [3, 4]]
-    type = numpy.asarray(obj).dtype.name
+    type = np.asarray(obj).dtype.name
     shape = None
     chunkshape = (5, 1)
     step = 1
@@ -1065,7 +1065,7 @@ class ReadOutArgumentTests(common.TempFileMixin, TestCase):
         self.filters = tables.Filters(complevel=1, complib='blosc')
 
     def create_array(self):
-        array = numpy.arange(self.size, dtype='i8')
+        array = np.arange(self.size, dtype='i8')
         disk_array = self.h5file.create_carray('/', 'array', atom=Int64Atom(),
                                                shape=(self.size, ),
                                                filters=self.filters)
@@ -1074,13 +1074,13 @@ class ReadOutArgumentTests(common.TempFileMixin, TestCase):
 
     def test_read_entire_array(self):
         array, disk_array = self.create_array()
-        out_buffer = numpy.empty((self.size, ), 'i8')
+        out_buffer = np.empty((self.size, ), 'i8')
         disk_array.read(out=out_buffer)
-        numpy.testing.assert_equal(out_buffer, array)
+        np.testing.assert_equal(out_buffer, array)
 
     def test_read_non_contiguous_buffer(self):
         array, disk_array = self.create_array()
-        out_buffer = numpy.empty((self.size, ), 'i8')
+        out_buffer = np.empty((self.size, ), 'i8')
         out_buffer_slice = out_buffer[0:self.size:2]
         # once Python 2.6 support is dropped, this could change
         # to assertRaisesRegexp to check exception type and message at once
@@ -1093,7 +1093,7 @@ class ReadOutArgumentTests(common.TempFileMixin, TestCase):
 
     def test_buffer_too_small(self):
         array, disk_array = self.create_array()
-        out_buffer = numpy.empty((self.size // 2, ), 'i8')
+        out_buffer = np.empty((self.size // 2, ), 'i8')
         self.assertRaises(ValueError, disk_array.read, 0, self.size, 1,
                           out_buffer)
         try:
@@ -1149,7 +1149,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
     def test_random_data(self):
         complevel = 1
         self.create_array(complevel)
-        self.array[:] = numpy.random.randint(0, 1e6, self.array_size)
+        self.array[:] = np.random.randint(0, 1e6, self.array_size)
         self.h5file.flush()
         file_size = os.stat(self.h5fname).st_size
         self.assertTrue(
@@ -1187,11 +1187,9 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
                                            shape=shape,
                                            title="Array of strings",
                                            chunkshape=(1, 2, 2))
-        a = numpy.array([[["a", "b"], [
-                        "123", "45"], ["45", "123"]]], dtype="S3")
+        a = np.array([[["a", "b"], ["123", "45"], ["45", "123"]]], dtype="S3")
         carray[0] = a[0, 1:]
-        a = numpy.array([[["s", "a"], [
-                        "ab", "f"], ["s", "abc"], ["abc", "f"]]])
+        a = np.array([[["s", "a"], ["ab", "f"], ["s", "abc"], ["abc", "f"]]])
         carray[1] = a[0, 2:]
 
         # Read all the data:
@@ -1223,11 +1221,9 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
                                            shape=shape,
                                            title="Array of strings",
                                            chunkshape=(1, 2, 2))
-        a = numpy.array([[["a", "b"], [
-                        "123", "45"], ["45", "123"]]], dtype="S3")
+        a = np.array([[["a", "b"], ["123", "45"], ["45", "123"]]], dtype="S3")
         carray[0] = a[0, ::2]
-        a = numpy.array([[["s", "a"], [
-                        "ab", "f"], ["s", "abc"], ["abc", "f"]]])
+        a = np.array([[["s", "a"], ["ab", "f"], ["s", "abc"], ["abc", "f"]]])
         carray[1] = a[0, ::2]
 
         # Read all the rows:
@@ -1258,10 +1254,10 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
                                            atom=Int32Atom(), shape=shape,
                                            title="array of ints",
                                            chunkshape=(1, 3))
-        a = numpy.array([(0, 0, 0), (1, 0, 3), (
-            1, 1, 1), (0, 0, 0)], dtype='int32')
+        a = np.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)],
+                     dtype='int32')
         carray[0:2] = a[2:]  # Introduce an offset
-        a = numpy.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
+        a = np.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
         carray[2:3] = a[1:]  # Introduce an offset
 
         # Read all the rows:
@@ -1272,12 +1268,9 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
             print("Third row in carray ==>", data[2])
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[
-                        0], numpy.array([1, 1, 1], dtype='int32')))
-        self.assertTrue(allequal(data[
-                        1], numpy.array([0, 0, 0], dtype='int32')))
-        self.assertTrue(allequal(data[
-                        2], numpy.array([-1, 0, 0], dtype='int32')))
+        self.assertTrue(allequal(data[0], np.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(allequal(data[1], np.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(allequal(data[2], np.array([-1, 0, 0], dtype='int32')))
 
     def test02b_int(self):
         """Checking carray with strided NumPy ints appends."""
@@ -1294,10 +1287,10 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
                                            atom=Int32Atom(), shape=shape,
                                            title="array of ints",
                                            chunkshape=(1, 3))
-        a = numpy.array([(0, 0, 0), (1, 0, 3), (
-            1, 1, 1), (3, 3, 3)], dtype='int32')
+        a = np.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)],
+                     dtype='int32')
         carray[0:2] = a[::3]  # Create an offset
-        a = numpy.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
+        a = np.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
         carray[2:3] = a[::2]  # Create an offset
 
         # Read all the rows:
@@ -1308,12 +1301,9 @@ class OffsetStrideTestCase(common.TempFileMixin, TestCase):
             print("Third row in carray ==>", data[2])
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(allequal(data[
-                        0], numpy.array([0, 0, 0], dtype='int32')))
-        self.assertTrue(allequal(data[
-                        1], numpy.array([3, 3, 3], dtype='int32')))
-        self.assertTrue(allequal(data[
-                        2], numpy.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(allequal(data[0], np.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(allequal(data[1], np.array([3, 3, 3], dtype='int32')))
+        self.assertTrue(allequal(data[2], np.array([1, 1, 1], dtype='int32')))
 
 
 class CopyTestCase(common.TempFileMixin, TestCase):
@@ -1331,7 +1321,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_carray(
             self.h5file.root, 'array1', atom=atom, shape=shape,
             title="title array1", chunkshape=(2, 2))
-        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        array1[...] = np.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
@@ -1386,7 +1376,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_carray(
             self.h5file.root, 'array1', atom=atom, shape=shape,
             title="title array1", chunkshape=(5, 5))
-        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        array1[...] = np.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
@@ -1439,7 +1429,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_carray(
             self.h5file.root, 'array1', atom=atom, shape=shape,
             title="title array1", chunkshape=(2, 2))
-        array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        array1[:2, :2] = np.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
@@ -1494,7 +1484,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_carray(
             self.h5file.root, 'array1', atom=atom, shape=shape,
             title="title array1", chunkshape=(2, 2))
-        array1[:2, :2] = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        array1[:2, :2] = np.array([[456, 2], [3, 457]], dtype='int16')
 
         if self.close:
             if common.verbose:
@@ -1654,7 +1644,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_carray(
             self.h5file.root, 'array1', atom=atom, shape=shape,
             title="title array1", chunkshape=(2, 2))
-        array1[...] = numpy.array([["456", "2"], ["3", "457"]], dtype="S4")
+        array1[...] = np.array([["456", "2"], ["3", "457"]], dtype="S4")
 
         if self.close:
             if common.verbose:
@@ -1705,7 +1695,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_carray(
             self.h5file.root, 'array1', atom=atom, shape=shape,
             title="title array1", chunkshape=(2, 2))
-        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        array1[...] = np.array([[456, 2], [3, 457]], dtype='int16')
 
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1745,7 +1735,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_carray(
             self.h5file.root, 'array1', atom=atom, shape=shape,
             title="title array1", chunkshape=(2, 2))
-        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        array1[...] = np.array([[456, 2], [3, 457]], dtype='int16')
 
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1788,7 +1778,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_carray(
             self.h5file.root, 'array1', atom=atom, shape=shape,
             title="title array1", chunkshape=(2, 2))
-        array1[...] = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        array1[...] = np.array([[456, 2], [3, 457]], dtype='int16')
 
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1843,7 +1833,7 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_carray(
             self.h5file.root, 'array1', atom=atom, shape=shape,
             title="title array1", chunkshape=(2, 2))
-        r = numpy.arange(200, dtype='int32')
+        r = np.arange(200, dtype='int32')
         r.shape = shape
         array1[...] = r
 
@@ -1889,7 +1879,7 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
         array1 = self.h5file.create_carray(
             self.h5file.root, 'array1', atom=atom, shape=shape,
             title="title array1", chunkshape=(2, 2))
-        r = numpy.arange(200, dtype='int32')
+        r = np.arange(200, dtype='int32')
         r.shape = shape
         array1[...] = r
 
@@ -2021,7 +2011,7 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
             filters=tables.Filters(complib='lzo', complevel=1))
 
         # Fill the array
-        na = numpy.arange(self.narows, dtype='int8')
+        na = np.arange(self.narows, dtype='int8')
         #~ for i in xrange(self.nanumber):
             #~ s = slice(i * self.narows, (i + 1)*self.narows)
             #~ array[s] = na
@@ -2060,7 +2050,7 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
                 stop -= 256
             start = stop - 10
             # print("start, stop-->", start, stop)
-            print("Should look like:", numpy.arange(start, stop, dtype='int8'))
+            print("Should look like:", np.arange(start, stop, dtype='int8'))
 
         nrows = self.narows * self.nanumber
 
@@ -2071,7 +2061,7 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(array.shape, (nrows,))
 
         # check the 10 first elements
-        self.assertTrue(allequal(array[:10], numpy.arange(10, dtype='int8')))
+        self.assertTrue(allequal(array[:10], np.arange(10, dtype='int8')))
 
         # check the 10 last elements
         stop = self.narows % 256
@@ -2079,7 +2069,7 @@ class Rows64bitsTestCase(common.TempFileMixin, TestCase):
             stop -= 256
         start = stop - 10
         self.assertTrue(allequal(array[-10:],
-                                 numpy.arange(start, stop, dtype='int8')))
+                                 np.arange(start, stop, dtype='int8')))
 
 
 class Rows64bitsTestCase1(Rows64bitsTestCase):
@@ -2108,7 +2098,7 @@ class BigArrayTestCase(common.TempFileMixin, TestCase):
             self.assertEqual(len(self.h5file.root.array), self.shape[0])
         except OverflowError:
             # This can't be avoided in 32-bit platforms.
-            self.assertTrue(self.shape[0] > numpy.iinfo(int).max,
+            self.assertTrue(self.shape[0] > np.iinfo(int).max,
                             "Array length overflowed but ``int`` "
                             "is wide enough.")
 
@@ -2137,7 +2127,7 @@ class DfltAtomTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Read values:", values)
         self.assertTrue(
-            allequal(values, numpy.array(["abdef"]*100, "S5").reshape(10, 10)))
+            allequal(values, np.array(["abdef"]*100, "S5").reshape(10, 10)))
 
     def test01_dflt(self):
         """Check that Atom.dflt is honored (int version)."""
@@ -2153,7 +2143,7 @@ class DfltAtomTestCase(common.TempFileMixin, TestCase):
         values = self.h5file.root.bar[:]
         if common.verbose:
             print("Read values:", values)
-        self.assertTrue(allequal(values, numpy.ones((10, 10), "i4")))
+        self.assertTrue(allequal(values, np.ones((10, 10), "i4")))
 
     def test02_dflt(self):
         """Check that Atom.dflt is honored (float version)."""
@@ -2169,7 +2159,7 @@ class DfltAtomTestCase(common.TempFileMixin, TestCase):
         values = self.h5file.root.bar[:]
         if common.verbose:
             print("Read values:", values)
-        self.assertTrue(allequal(values, numpy.ones((10, 10), "f8")*1.134))
+        self.assertTrue(allequal(values, np.ones((10, 10), "f8")*1.134))
 
 
 class DfltAtomNoReopen(DfltAtomTestCase):
@@ -2196,8 +2186,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("First row-->", repr(ca[0]))
             print("Defaults-->", repr(ca.atom.dflt))
-        self.assertTrue(allequal(ca[0], numpy.zeros(N, 'S3')))
-        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
+        self.assertTrue(allequal(ca[0], np.zeros(N, 'S3')))
+        self.assertTrue(allequal(ca.atom.dflt, np.zeros(N, 'S3')))
 
     def test00b_zeros(self):
         """Testing default values.  Zeros (array)."""
@@ -2212,8 +2202,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("First row-->", ca[0])
             print("Defaults-->", ca.atom.dflt)
-        self.assertTrue(allequal(ca[0], numpy.zeros(N, 'S3')))
-        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
+        self.assertTrue(allequal(ca[0], np.zeros(N, 'S3')))
+        self.assertTrue(allequal(ca.atom.dflt, np.zeros(N, 'S3')))
 
     def test01a_values(self):
         """Testing default values.  Ones."""
@@ -2228,8 +2218,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("First row-->", ca[0])
             print("Defaults-->", ca.atom.dflt)
-        self.assertTrue(allequal(ca[0], numpy.ones(N, 'i4')))
-        self.assertTrue(allequal(ca.atom.dflt, numpy.ones(N, 'i4')))
+        self.assertTrue(allequal(ca[0], np.ones(N, 'i4')))
+        self.assertTrue(allequal(ca.atom.dflt, np.ones(N, 'i4')))
 
     def test01b_values(self):
         """Testing default values.  Generic value."""
@@ -2245,8 +2235,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("First row-->", ca[0])
             print("Defaults-->", ca.atom.dflt)
-        self.assertTrue(allequal(ca[0], numpy.ones(N, 'f4')*generic))
-        self.assertTrue(allequal(ca.atom.dflt, numpy.ones(N, 'f4')*generic))
+        self.assertTrue(allequal(ca[0], np.ones(N, 'f4')*generic))
+        self.assertTrue(allequal(ca.atom.dflt, np.ones(N, 'f4')*generic))
 
     def test02a_None(self):
         """Testing default values.  None (scalar)."""
@@ -2261,7 +2251,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("First row-->", repr(ca[0]))
             print("Defaults-->", repr(ca.atom.dflt))
-        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
+        self.assertTrue(allequal(ca.atom.dflt, np.zeros(N, 'i4')))
 
     def test02b_None(self):
         """Testing default values.  None (array)."""
@@ -2276,7 +2266,7 @@ class AtomDefaultReprTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("First row-->", ca[0])
             print("Defaults-->", ca.atom.dflt)
-        self.assertTrue(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
+        self.assertTrue(allequal(ca.atom.dflt, np.zeros(N, 'i4')))
 
 
 class AtomDefaultReprNoReopen(AtomDefaultReprTestCase):
@@ -2312,7 +2302,7 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(ca.nrows, 1)
         if common.verbose:
             print("First row-->", ca[0])
-        self.assertTrue(allequal(ca[0], numpy.array([[1, 3], [4, 5]], 'i4')))
+        self.assertTrue(allequal(ca[0], np.array([[1, 3], [4, 5]], 'i4')))
 
     def test01b_assign(self):
         """Assign several rows to a (unidimensional) CArray with a MD atom."""
@@ -2328,7 +2318,7 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
             print("Third row-->", ca[2])
-        self.assertTrue(allequal(ca[2], numpy.array([[3, 3], [3, 3]], 'i4')))
+        self.assertTrue(allequal(ca[2], np.array([[3, 3], [3, 3]], 'i4')))
 
     def test02a_assign(self):
         """Assign a row to a (multidimensional) CArray with a MD atom."""
@@ -2344,7 +2334,7 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(ca.nrows, 1)
         if common.verbose:
             print("First row-->", ca[0])
-        self.assertTrue(allequal(ca[0], numpy.array(
+        self.assertTrue(allequal(ca[0], np.array(
             [[1, 3], [4, 5], [7, 9]], 'i4')))
 
     def test02b_assign(self):
@@ -2365,7 +2355,7 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Third row-->", ca[2])
         self.assertTrue(
-            allequal(ca[2], numpy.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
+            allequal(ca[2], np.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
 
     def test03a_MDMDMD(self):
         """Complex assign of a MD array in a MD CArray with a MD atom."""
@@ -2379,7 +2369,7 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
 
         # Assign values
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2 * 3*2*4, dtype='i4').reshape((2, 3, 2, 4))
+        a = np.arange(2 * 3*2*4, dtype='i4').reshape((2, 3, 2, 4))
         ca[:] = [a * 1, a*2, a*3]
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
@@ -2398,7 +2388,7 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
 
         # Assign values
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(2 * 3*3*2*4, dtype='i4').reshape((2, 3, 3, 2, 4))
+        a = np.arange(2 * 3*3*2*4, dtype='i4').reshape((2, 3, 3, 2, 4))
         ca[:] = a
         self.assertEqual(ca.nrows, 2)
         if common.verbose:
@@ -2417,7 +2407,7 @@ class MDAtomTestCase(common.TempFileMixin, TestCase):
 
         # Assign values
         # The shape of the atom should be added at the end of the arrays
-        a = numpy.arange(3 * 1*2*2*4, dtype='i4').reshape((3, 1, 2, 2, 4))
+        a = np.arange(3 * 1*2*2*4, dtype='i4').reshape((3, 1, 2, 2, 4))
         ca[:] = a
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
@@ -2449,7 +2439,7 @@ class MDLargeAtomTestCase(common.TempFileMixin, TestCase):
         # Check the value
         if common.verbose:
             print("First row-->", ca[0])
-        self.assertTrue(allequal(ca[0], numpy.zeros(N, 'i4')))
+        self.assertTrue(allequal(ca[0], np.zeros(N, 'i4')))
 
 
 class MDLargeAtomNoReopen(MDLargeAtomTestCase):
@@ -2467,7 +2457,7 @@ class AccessClosedTestCase(common.TempFileMixin, TestCase):
         self.array = self.h5file.create_carray(self.h5file.root, 'array',
                                                atom=Int32Atom(),
                                                shape=(10, 10))
-        self.array[...] = numpy.zeros((10, 10))
+        self.array[...] = np.zeros((10, 10))
 
     def test_read(self):
         self.h5file.close()
@@ -2483,7 +2473,7 @@ class AccessClosedTestCase(common.TempFileMixin, TestCase):
 
 
 class TestCreateCArrayArgs(common.TempFileMixin, TestCase):
-    obj = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    obj = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     where = '/'
     name = 'carray'
     atom = Atom.from_dtype(obj.dtype)
@@ -2509,7 +2499,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
         self.assertEqual(ptarr.chunkshape, self.chunkshape)
-        self.assertTrue(allequal(numpy.zeros_like(self.obj), nparr))
+        self.assertTrue(allequal(np.zeros_like(self.obj), nparr))
 
     def test_positional_args_02(self):
         ptarr = self.h5file.create_carray(self.where, self.name,
@@ -2603,7 +2593,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
         self.assertEqual(ptarr.chunkshape, self.chunkshape)
-        self.assertTrue(allequal(numpy.zeros_like(self.obj), nparr))
+        self.assertTrue(allequal(np.zeros_like(self.obj), nparr))
 
     def test_kwargs_obj_atom(self):
         ptarr = self.h5file.create_carray(self.where, self.name,
@@ -2664,7 +2654,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, TestCase):
         self.assertTrue(allequal(self.obj, nparr))
 
     def test_kwargs_obj_atom_error(self):
-        atom = Atom.from_dtype(numpy.dtype('complex'))
+        atom = Atom.from_dtype(np.dtype('complex'))
         #shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_carray,
@@ -2686,7 +2676,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, TestCase):
                           shape=shape)
 
     def test_kwargs_obj_atom_shape_error_01(self):
-        atom = Atom.from_dtype(numpy.dtype('complex'))
+        atom = Atom.from_dtype(np.dtype('complex'))
         #shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_carray,
@@ -2710,7 +2700,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, TestCase):
                           shape=shape)
 
     def test_kwargs_obj_atom_shape_error_03(self):
-        atom = Atom.from_dtype(numpy.dtype('complex'))
+        atom = Atom.from_dtype(np.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_carray,

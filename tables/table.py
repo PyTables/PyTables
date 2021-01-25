@@ -19,7 +19,7 @@ import warnings
 from functools import reduce as _reduce
 from time import perf_counter as clock
 
-import numpy
+import numpy as np
 import numexpr
 
 from . import tableextension
@@ -68,38 +68,38 @@ except ImportError:
 
 # Maps NumPy types to the types used by Numexpr.
 _nxtype_from_nptype = {
-    numpy.bool_: bool,
-    numpy.int8: int_,
-    numpy.int16: int_,
-    numpy.int32: int_,
-    numpy.int64: long_,
-    numpy.uint8: int_,
-    numpy.uint16: int_,
-    numpy.uint32: long_,
-    numpy.uint64: long_,
-    numpy.float32: float,
-    numpy.float64: double,
-    numpy.complex64: complex,
-    numpy.complex128: complex,
-    numpy.bytes_: bytes,
+    np.bool_: bool,
+    np.int8: int_,
+    np.int16: int_,
+    np.int32: int_,
+    np.int64: long_,
+    np.uint8: int_,
+    np.uint16: int_,
+    np.uint32: long_,
+    np.uint64: long_,
+    np.float32: float,
+    np.float64: double,
+    np.complex64: complex,
+    np.complex128: complex,
+    np.bytes_: bytes,
 }
 
-_nxtype_from_nptype[numpy.str_] = str
+_nxtype_from_nptype[np.str_] = str
 
-if hasattr(numpy, 'float16'):
-    _nxtype_from_nptype[numpy.float16] = float    # XXX: check
-if hasattr(numpy, 'float96'):
-    _nxtype_from_nptype[numpy.float96] = double   # XXX: check
-if hasattr(numpy, 'float128'):
-    _nxtype_from_nptype[numpy.float128] = double  # XXX: check
-if hasattr(numpy, 'complec192'):
-    _nxtype_from_nptype[numpy.complex192] = complex  # XXX: check
-if hasattr(numpy, 'complex256'):
-    _nxtype_from_nptype[numpy.complex256] = complex  # XXX: check
+if hasattr(np, 'float16'):
+    _nxtype_from_nptype[np.float16] = float    # XXX: check
+if hasattr(np, 'float96'):
+    _nxtype_from_nptype[np.float96] = double   # XXX: check
+if hasattr(np, 'float128'):
+    _nxtype_from_nptype[np.float128] = double  # XXX: check
+if hasattr(np, 'complec192'):
+    _nxtype_from_nptype[np.complex192] = complex  # XXX: check
+if hasattr(np, 'complex256'):
+    _nxtype_from_nptype[np.complex256] = complex  # XXX: check
 
 
 # The NumPy scalar type corresponding to `SizeType`.
-_npsizetype = numpy.array(SizeType(0)).dtype.type
+_npsizetype = np.array(SizeType(0)).dtype.type
 
 
 def _index_name_of(node):
@@ -160,7 +160,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
     # Get the values in expression that are not columns
     values = []
     for key, value in condvars.items():
-        if isinstance(value, numpy.ndarray):
+        if isinstance(value, np.ndarray):
             values.append((key, value.item()))
     # Build a key for the sequence cache
     seqkey = (condition, tuple(values), (start, stop, step))
@@ -172,7 +172,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
         if len(seq) == 0:
             return iter([])
         # seq is a list.
-        seq = numpy.array(seq, dtype='int64')
+        seq = np.array(seq, dtype='int64')
         # Correct the ranges in cached sequence
         if (start, stop, step) != (0, self.nrows, 1):
             seq = seq[(seq >= start) & (
@@ -203,7 +203,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
             # No values from index condition, thus the chunkmap should be empty
             nrowsinchunk = self.chunkshape[0]
             nchunks = math.ceil(self.nrows / nrowsinchunk)
-            chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
+            chunkmap = np.zeros(shape=nchunks, dtype="bool")
         else:
             # Get the chunkmap from the index
             chunkmap = index.get_chunkmap()
@@ -291,7 +291,7 @@ def _column__create_index(self, optlevel, kind, filters, tmp_dir,
 
     # Create the atom
     assert dtype.shape == ()
-    atom = Atom.from_dtype(numpy.dtype((dtype, (0,))))
+    atom = Atom.from_dtype(np.dtype((dtype, (0,))))
 
     # Protection on tables larger than the expected rows (perhaps the
     # user forgot to pass this parameter to the Table constructor?)
@@ -564,7 +564,7 @@ class Table(tableextension.Table, Leaf):
         # First, do a check to see whether we need to set default values
         # different from 0 or not.
         for coldflt in self.coldflts.values():
-            if isinstance(coldflt, numpy.ndarray) or coldflt:
+            if isinstance(coldflt, np.ndarray) or coldflt:
                 break
         else:
             # No default different from 0 found.  Returning None.
@@ -784,7 +784,7 @@ class Table(tableextension.Table, Leaf):
         # No description yet?
         if new and self.description is None:
             # Try NumPy dtype instances
-            if isinstance(description, numpy.dtype):
+            if isinstance(description, np.dtype):
                 self.description, self._rabyteorder = \
                     descr_from_dtype(description, ptparams=parentnode._v_file.params)
 
@@ -797,7 +797,7 @@ class Table(tableextension.Table, Leaf):
                 pass
             else:
                 if flavor == 'python':
-                    nparray = numpy.rec.array(description)
+                    nparray = np.rec.array(description)
                 else:
                     nparray = array_as_internal(description, flavor)
                 self.nrows = nrows = SizeType(nparray.size)
@@ -817,7 +817,7 @@ class Table(tableextension.Table, Leaf):
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
-            if isinstance(chunkshape, (int, numpy.integer)):
+            if isinstance(chunkshape, (int, np.integer)):
                 chunkshape = (chunkshape,)
             try:
                 chunkshape = tuple(chunkshape)
@@ -954,14 +954,14 @@ very small/large chunksize, you may want to increase/decrease it."""
             return self._empty_array_cache[key]
         else:
             self._empty_array_cache[
-                key] = arr = numpy.empty(shape=0, dtype=key)
+                key] = arr = np.empty(shape=0, dtype=key)
             return arr
 
     def _get_container(self, shape):
         """Get the appropriate buffer for data depending on table nestedness."""
 
         # This is *much* faster than the numpy.rec.array counterpart
-        return numpy.empty(shape=shape, dtype=self._v_dtype)
+        return np.empty(shape=shape, dtype=self._v_dtype)
 
     def _get_type_col_names(self, type_):
         """Returns a list containing 'type_' column names."""
@@ -1276,9 +1276,9 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:  # only non-column values are converted to arrays
                 # XXX: not 100% sure about this
                 if isinstance(val, str):
-                    val = numpy.asarray(val.encode('ascii'))
+                    val = np.asarray(val.encode('ascii'))
                 else:
-                    val = numpy.asarray(val)
+                    val = np.asarray(val)
             reqvars[var] = val
         return reqvars
 
@@ -1505,7 +1505,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         if compiled.index_expressions:
             chunkmap = _table__where_indexed(
                 self, compiled, condition, condvars, start, stop, step)
-            if not isinstance(chunkmap, numpy.ndarray):
+            if not isinstance(chunkmap, np.ndarray):
                 # If it is not a NumPy array it should be an iterator
                 # Reset conditions
                 self._use_index = False
@@ -1543,8 +1543,8 @@ very small/large chunksize, you may want to increase/decrease it."""
             cstart, cstop = coords[0], coords[-1] + 1
             if cstop - cstart == len(coords):
                 # Chances for monotonically increasing row values. Refine.
-                inc_seq = numpy.alltrue(
-                    numpy.arange(cstart, cstop) == numpy.array(coords))
+                inc_seq = np.alltrue(
+                    np.arange(cstart, cstop) == np.array(coords))
                 if inc_seq:
                     return self.read(cstart, cstop, field=field)
         return self.read_coordinates(coords, field)
@@ -1605,11 +1605,11 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         coords = [p.nrow for p in
                   self._where(condition, condvars, start, stop, step)]
-        coords = numpy.array(coords, dtype=SizeType)
+        coords = np.array(coords, dtype=SizeType)
         # Reset the conditions
         self._where_condition = None
         if sort:
-            coords = numpy.sort(coords)
+            coords = np.sort(coords)
         return internal_to_flavor(coords, self.flavor)
 
     def itersequence(self, sequence):
@@ -1804,7 +1804,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             if field is None:
                 nra = self._get_container(0)
                 return nra
-            return numpy.empty(shape=0, dtype=dtype_field)
+            return np.empty(shape=0, dtype=dtype_field)
 
         nrows = len(range(start, stop, step))
 
@@ -1812,7 +1812,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Compute the shape of the resulting column object
             if field:
                 # Create a container for the results
-                result = numpy.empty(shape=nrows, dtype=dtype_field)
+                result = np.empty(shape=nrows, dtype=dtype_field)
             else:
                 # Recarray case
                 result = self._get_container(nrows)
@@ -1944,12 +1944,12 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Do the real read
         if ncoords > 0:
             # Turn coords into an array of coordinate indexes, if necessary
-            if not (isinstance(coords, numpy.ndarray) and
+            if not (isinstance(coords, np.ndarray) and
                     coords.dtype.type is _npsizetype and
                     coords.flags.contiguous and
                     coords.flags.aligned):
                 # Get a contiguous and aligned coordinate array
-                coords = numpy.array(coords, dtype=SizeType)
+                coords = np.array(coords, dtype=SizeType)
             self._read_elements(coords, result)
 
         # Do the final conversions, if needed
@@ -2075,7 +2075,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 key.start, key.stop, key.step)
             return self.read(start, stop, step)
         # Try with a boolean or point selection
-        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+        elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
             return self._read_coordinates(key, None)
         else:
             raise IndexError(f"Invalid index or slice: {key!r}")
@@ -2145,7 +2145,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 key.start, key.stop, key.step)
             return self.modify_rows(start, stop, step, value)
         # Try with a boolean or point selection
-        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+        elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
             return self.modify_coordinates(key, value)
         else:
             raise IndexError(f"Invalid index or slice: {key!r}")
@@ -2216,7 +2216,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 rows = array_as_internal(rows, iflavor)
             # Works for Python structures and always copies the original,
             # so the resulting object is safe for in-place conversion.
-            wbufRA = numpy.rec.array(rows, dtype=self._v_dtype)
+            wbufRA = np.rec.array(rows, dtype=self._v_dtype)
         except Exception as exc:  # XXX
             raise ValueError("rows parameter cannot be converted into a "
                              "recarray object compliant with table '%s'. "
@@ -2239,11 +2239,11 @@ very small/large chunksize, you may want to increase/decrease it."""
                 # See http://projects.scipy.org/scipy/numpy/ticket/315
                 # for discussion on how to pass buffers to constructors
                 # See also http://projects.scipy.org/scipy/numpy/ticket/348
-                recarr = numpy.array([obj], dtype=self._v_dtype)
+                recarr = np.array([obj], dtype=self._v_dtype)
             else:
                 # Works for Python structures and always copies the original,
                 # so the resulting object is safe for in-place conversion.
-                recarr = numpy.rec.array(obj, dtype=self._v_dtype)
+                recarr = np.rec.array(obj, dtype=self._v_dtype)
         except Exception as exc:  # XXX
             raise ValueError("Object cannot be converted into a recarray "
                              "object compliant with table format '%s'. "
@@ -2381,7 +2381,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         try:
             # If the column is a recarray (or kind of), convert into ndarray
             if hasattr(column, 'dtype') and column.dtype.kind == 'V':
-                column = numpy.rec.array(column, dtype=descr).field(0)
+                column = np.rec.array(column, dtype=descr).field(0)
             else:
                 # Make sure the result is always a *copy* of the original,
                 # so the resulting object is safe for in-place conversion.
@@ -2465,9 +2465,9 @@ very small/large chunksize, you may want to increase/decrease it."""
             iflavor = flavor_of(columns)
             if iflavor != 'python':
                 columns = array_as_internal(columns, iflavor)
-                recarray = numpy.rec.array(columns, dtype=descr)
+                recarray = np.rec.array(columns, dtype=descr)
             else:
-                recarray = numpy.rec.fromarrays(columns, dtype=descr)
+                recarray = np.rec.fromarrays(columns, dtype=descr)
         except Exception as exc:  # XXX
             raise ValueError("columns parameter cannot be converted into a "
                              "recarray object compliant with table '%s'. "
@@ -3457,7 +3457,7 @@ class Column:
         table = self.table
         itemsize = self.dtype.itemsize
         nrowsinbuf = table._v_file.params['IO_BUFFER_SIZE'] // itemsize
-        buf = numpy.empty((nrowsinbuf, ), self._itemtype)
+        buf = np.empty((nrowsinbuf, ), self._itemtype)
         max_row = len(self)
         for start_row in range(0, len(self), nrowsinbuf):
             end_row = min(start_row + nrowsinbuf, max_row)

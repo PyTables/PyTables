@@ -1,7 +1,7 @@
 from time import perf_counter as clock
 import subprocess
 import random
-import numpy
+import numpy as np
 
 # Constants
 
@@ -80,7 +80,7 @@ class DB:
             r = "[REP] "
         else:
             r = "[NOREP] "
-        ltimes = numpy.array(ltimes)
+        ltimes = np.array(ltimes)
         ntimes = len(ltimes)
         qtime1 = ltimes[0]  # First measured time
         ctimes = ltimes[1:COLDCACHE]
@@ -90,7 +90,7 @@ class DB:
         if verbose:
             print("Times for cold cache:\n", ctimes)
             # print "Times for warm cache:\n", wtimes
-            hist1, hist2 = numpy.histogram(wtimes)
+            hist1, hist2 = np.histogram(wtimes)
             print(f"Histogram for warm cache: {hist1}\n{hist2}")
         print(f"{r}1st query time for {colname}: {qtime1:.{prec}f}")
         print(f"{r}Query time for {colname} (cold cache): "
@@ -106,12 +106,11 @@ class DB:
         print(f"Full size (MB): {table_size + indexes_size:.3f}")
 
     def fill_arrays(self, start, stop):
-        arr_f8 = numpy.arange(start, stop, dtype='float64')
-        arr_i4 = numpy.arange(start, stop, dtype='int32')
+        arr_f8 = np.arange(start, stop, dtype='float64')
+        arr_i4 = np.arange(start, stop, dtype='int32')
         if self.userandom:
-            arr_f8 += numpy.random.normal(0, stop * self.scale,
-                                          size=stop - start)
-            arr_i4 = numpy.array(arr_f8, dtype='int32')
+            arr_f8 += np.random.normal(0, stop * self.scale, size=stop - start)
+            arr_i4 = np.array(arr_f8, dtype='int32')
         return arr_i4, arr_f8
 
     def create_db(self, dtype, kind, optlevel, verbose):
@@ -152,12 +151,12 @@ class DB:
             reg_cols = ['col1', 'col3']
             idx_cols = ['col2', 'col4']
         if avoidfscache:
-            rseed = int(numpy.random.randint(self.nrows))
+            rseed = int(np.random.randint(self.nrows))
         else:
             rseed = 19
         # Query for non-indexed columns
-        numpy.random.seed(rseed)
-        base = numpy.random.randint(self.nrows)
+        np.random.seed(rseed)
+        base = np.random.randint(self.nrows)
         if not onlyidxquery:
             for colname in reg_cols:
                 ltimes = []
@@ -177,8 +176,8 @@ class DB:
         if not onlynonidxquery:
             for colname in idx_cols:
                 ltimes = []
-                numpy.random.seed(rseed)
-                rndbase = numpy.random.randint(self.nrows, size=niter)
+                np.random.seed(rseed)
+                rndbase = np.random.randint(self.nrows, size=niter)
                 # First, non-repeated queries
                 for i in range(niter):
                     base = rndbase[i]
@@ -374,7 +373,7 @@ if __name__ == "__main__":
 
     if not avoidfscache:
         # in order to always generate the same random sequence
-        numpy.random.seed(20)
+        np.random.seed(20)
 
     if verbose:
         if userandom:

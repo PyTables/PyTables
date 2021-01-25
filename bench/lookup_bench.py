@@ -4,7 +4,7 @@ time in random lookups."""
 from time import perf_counter as clock
 import os
 import subprocess
-import numpy
+import numpy as np
 import tables
 
 # Constants
@@ -100,16 +100,16 @@ class DB:
         earray.flush()
 
     def get_array(self, start, stop):
-        arr = numpy.arange(start, stop, dtype='float')
+        arr = np.arange(start, stop, dtype='float')
         if self.userandom:
-            arr += numpy.random.normal(0, stop * self.scale, size=stop - start)
+            arr += np.random.normal(0, stop * self.scale, size=stop - start)
         arr = arr.astype(self.dtype)
         return arr
 
     def print_qtime(self, ltimes):
-        ltimes = numpy.array(ltimes)
+        ltimes = np.array(ltimes)
         print("Raw query times:\n", ltimes)
-        print("Histogram times:\n", numpy.histogram(ltimes[1:]))
+        print("Histogram times:\n", np.histogram(ltimes[1:]))
         ntimes = len(ltimes)
         qtime1 = ltimes[0]  # First measured time
         if ntimes > 5:
@@ -125,15 +125,15 @@ class DB:
         self.con = self.open_db()
         earray = self.con.root.earray
         if avoidfscache:
-            rseed = int(numpy.random.randint(self.nrows))
+            rseed = int(np.random.randint(self.nrows))
         else:
             rseed = 19
-        numpy.random.seed(rseed)
-        numpy.random.randint(self.nrows)
+        np.random.seed(rseed)
+        np.random.randint(self.nrows)
         ltimes = []
         for i in range(niter):
             t1 = clock()
-            self.do_query(earray, numpy.random.randint(self.nrows))
+            self.do_query(earray, np.random.randint(self.nrows))
             ltimes.append(clock() - t1)
         self.print_qtime(ltimes)
         self.close_db()
@@ -219,7 +219,7 @@ if __name__ == "__main__":
 
     if not avoidfscache:
         # in order to always generate the same random sequence
-        numpy.random.seed(20)
+        np.random.seed(20)
 
     if verbose:
         if userandom:

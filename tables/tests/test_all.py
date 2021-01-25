@@ -2,7 +2,7 @@
 
 import sys
 
-import numpy
+import numpy as np
 
 import tables
 from tables.req_versions import min_hdf5_version, min_numpy_version
@@ -26,12 +26,12 @@ if __name__ == '__main__':
     hdf5_version = get_tuple_version(tables.which_lib_version("hdf5")[0])
     hdf5_version_str = "%s.%s.%s" % hdf5_version
     if hdf5_version_str < min_hdf5_version:
-        print("*Warning*: HDF5 version is lower than recommended: %s < %s" %
-              (hdf5_version, min_hdf5_version))
+        print(f"*Warning*: HDF5 version is lower than recommended: "
+              f"{hdf5_version} < {min_hdf5_version}")
 
-    if numpy.__version__ < min_numpy_version:
-        print("*Warning*: NumPy version is lower than recommended: %s < %s" %
-              (numpy.__version__, min_numpy_version))
+    if np.__version__ < min_numpy_version:
+        print(f"*Warning*: NumPy version is lower than recommended: "
+              f"{np.__version__} < {min_numpy_version}")
 
     # Handle some global flags (i.e. only useful for test_all.py)
     only_versions = 0

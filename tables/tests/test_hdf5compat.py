@@ -14,7 +14,7 @@ import os
 import shutil
 import tempfile
 
-import numpy
+import numpy as np
 
 import tables
 from tables.tests import common
@@ -48,10 +48,10 @@ class PaddedArrayTestCase(common.TestFileMixin, TestCase):
     def test(self):
         arr = self.h5file.get_node('/Test')
         data = arr.read()
-        expectedData = numpy.array(
-                [(1, 11), (2, 12), (3, 13)],
-                dtype={'names': ['A', 'B'], 'formats': ['<u4', '<u4'],
-                       'offsets': [0, 4], 'itemsize': 16})
+        expectedData = np.array(
+            [(1, 11), (2, 12), (3, 13)],
+            dtype={'names': ['A', 'B'], 'formats': ['<u4', '<u4'],
+                   'offsets': [0, 4], 'itemsize': 16})
         self.assertTrue(common.areArraysEqual(data, expectedData))
 
 
@@ -102,7 +102,7 @@ class NumericTestCase(common.TestFileMixin, TestCase):
         self.assertEqual(arr.shape, (6, 5))
 
         data = arr.read()
-        expectedData = numpy.array([
+        expectedData = np.array([
             [0, 1, 2, 3, 4],
             [1, 2, 3, 4, 5],
             [2, 3, 4, 5, 6],
@@ -237,8 +237,8 @@ class ContiguousCompoundTestCase(common.TestFileMixin, TestCase):
         for row in tbl.iterrows():
             self.assertEqual(row['a'], 3.0)
             self.assertEqual(row['b'], 4.0)
-            self.assertTrue(allequal(row['c'], numpy.array([2.0, 3.0],
-                                                           dtype="float64")))
+            self.assertTrue(allequal(row['c'],
+                                     np.array([2.0, 3.0], dtype="float64")))
             self.assertEqual(row['d'], b"d")
 
         self.h5file.close()
@@ -294,7 +294,7 @@ class ExtendibleTestCase(common.TestFileMixin, TestCase):
         self.assertEqual(len(arr), 10)
 
         data = arr.read()
-        expectedData = numpy.array([
+        expectedData = np.array([
             [1, 1, 1, 3, 3],
             [1, 1, 1, 3, 3],
             [1, 1, 1, 0, 0],
@@ -337,7 +337,7 @@ class MatlabFileTestCase(common.TestFileMixin, TestCase):
         self.assertEqual(array.shape, (3, 1))
 
     def test_numpy_str(self):
-        array = self.h5file.get_node(numpy.str_('/'), numpy.str_('a'))
+        array = self.h5file.get_node(np.str_('/'), np.str_('a'))
         self.assertEqual(array.shape, (3, 1))
 
 
@@ -352,9 +352,7 @@ class ObjectReferenceTestCase(common.TestFileMixin, TestCase):
         array = self.h5file.get_node('/ANN/my_arr')
 
         self.assertTrue(common.areArraysEqual(
-                        array[0][0][0],
-                        numpy.array([0, 0],
-                                    dtype=numpy.uint64)))
+            array[0][0][0], np.array([0, 0], dtype=np.uint64)))
 
 
 class ObjectReferenceRecursiveTestCase(common.TestFileMixin, TestCase):
@@ -368,16 +366,15 @@ class ObjectReferenceRecursiveTestCase(common.TestFileMixin, TestCase):
         array = self.h5file.get_node('/var')
 
         self.assertTrue(common.areArraysEqual(
-                        array[1][0][0],
-                        numpy.array([[116], [101], [115], [116]],
-                                    dtype=numpy.uint16)))
+            array[1][0][0],
+            np.array([[116], [101], [115], [116]], dtype=np.uint16)))
 
     def test_double_ref(self):
         array = self.h5file.get_node('/var')
         self.assertTrue(common.areArraysEqual(
-                        array[2][0][0][1][0],
-                        numpy.array([[105], [110], [115], [105], [100], [101]],
-                                    dtype=numpy.uint16)))
+            array[2][0][0][1][0],
+            np.array([[105], [110], [115], [105], [100], [101]],
+                     dtype=np.uint16)))
 
 
 def suite():

@@ -1,5 +1,5 @@
 from time import perf_counter as clock
-import numpy
+import numpy as np
 import random
 
 DSN = "dbname=test port = 5435"
@@ -14,11 +14,11 @@ def flatten(l):
 
 
 def fill_arrays(start, stop):
-    col_i = numpy.arange(start, stop, type=numpy.int32)
+    col_i = np.arange(start, stop, type=np.int32)
     if userandom:
-        col_j = numpy.random.uniform(0, nrows, size=[stop - start])
+        col_j = np.random.uniform(0, nrows, size=[stop - start])
     else:
-        col_j = numpy.array(col_i, type=numpy.float64)
+        col_j = np.array(col_i, type=np.float64)
     return col_i, col_j
 
 # Generator for ensure pytables benchmark compatibility

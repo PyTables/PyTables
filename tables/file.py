@@ -27,7 +27,7 @@ import weakref
 import warnings
 
 import numexpr
-import numpy
+import numpy as np
 
 from . import hdf5extension
 from . import utilsextension
@@ -1033,7 +1033,7 @@ class File(hdf5extension.File):
         """
 
         if obj is not None:
-            if not isinstance(obj, numpy.ndarray):
+            if not isinstance(obj, np.ndarray):
                 raise TypeError('invalid obj parameter %r' % obj)
 
             descr, _ = descr_from_dtype(obj.dtype, ptparams=self.params)
@@ -1135,9 +1135,9 @@ class File(hdf5extension.File):
             else:
                 # Making strides=(0,...) below is a trick to create the
                 # array fast and without memory consumption
-                dflt = numpy.zeros((), dtype=atom.dtype)
-                obj = numpy.ndarray(shape, dtype=atom.dtype, buffer=dflt,
-                                    strides=(0,)*len(shape))
+                dflt = np.zeros((), dtype=atom.dtype)
+                obj = np.ndarray(shape, dtype=atom.dtype, buffer=dflt,
+                                 strides=(0,)*len(shape))
         else:
             flavor = flavor_of(obj)
             # use a temporary object because converting obj at this stage
@@ -1632,7 +1632,7 @@ class File(hdf5extension.File):
             basepath = where._v_pathname
             nodepath = join_path(basepath, name or '') or '/'
             node = where._v_file._get_node(nodepath)
-        elif isinstance(where, (str, numpy.str_)):
+        elif isinstance(where, (str, np.str_)):
             if not where.startswith('/'):
                 raise NameError("``where`` must start with a slash ('/')")
 

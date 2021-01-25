@@ -2,7 +2,7 @@
 
 """Simple benchmark for testing chunkshapes and nrowsinbuf."""
 
-import numpy
+import numpy as np
 import tables
 from time import perf_counter as clock
 
@@ -11,7 +11,7 @@ N = 2000
 M = 30
 complevel = 1
 
-recarray = numpy.empty(shape=2, dtype='(2,2,2)i4,(2,3,3)f8,i4,i8')
+recarray = np.empty(shape=2, dtype='(2,2,2)i4,(2,3,3)f8,i4,i8')
 
 f = tables.open_file("chunkshape.h5", mode="w")
 
@@ -33,7 +33,7 @@ c1 = f.create_carray(f1.root, 'cfield1',
                      "scalar int32 carray", tables.Filters(complevel=0))
 
 t1 = clock()
-c1[:] = numpy.empty(shape=(L, 1, 1), dtype="int32")
+c1[:] = np.empty(shape=(L, 1, 1), dtype="int32")
 print("carray1 populate time:", clock() - t1)
 f1.close()
 
@@ -44,7 +44,7 @@ c2 = f.create_carray(f2.root, 'cfield2',
                      "scalar int32 carray", tables.Filters(complevel))
 
 t1 = clock()
-c2[:] = numpy.empty(shape=(L, 1, 1), dtype="int32")
+c2[:] = np.empty(shape=(L, 1, 1), dtype="int32")
 print("carray2 populate time:", clock() - t1)
 f2.close()
 
@@ -55,7 +55,7 @@ e0 = f.create_earray(f0.root, 'efield0',
                      expectedrows=N)
 
 t1 = clock()
-e0.append(numpy.empty(shape=(N, L, M), dtype="int32"))
+e0.append(np.empty(shape=(N, L, M), dtype="int32"))
 print("earray0 populate time:", clock() - t1)
 f0.close()
 
@@ -66,7 +66,7 @@ e1 = f.create_earray(f1.root, 'efield1',
                      expectedrows=N)
 
 t1 = clock()
-e1.append(numpy.empty(shape=(L, N, M), dtype="int32"))
+e1.append(np.empty(shape=(L, N, M), dtype="int32"))
 print("earray1 populate time:", clock() - t1)
 f1.close()
 
@@ -78,7 +78,7 @@ e2 = f.create_earray(f2.root, 'efield2',
                      expectedrows=N)
 
 t1 = clock()
-e2.append(numpy.empty(shape=(L, M, N), dtype="int32"))
+e2.append(np.empty(shape=(L, M, N), dtype="int32"))
 print("earray2 populate time:", clock() - t1)
 f2.close()
 
