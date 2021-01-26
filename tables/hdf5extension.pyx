@@ -1233,6 +1233,19 @@ cdef class Leaf(Node):
       H5Dclose(self.dataset_id)
 
 
+cdef void* _array_data(ndarray arr):
+    # When the object is not a 0-d ndarray and its strides == 0, that
+    # means that the array does not contain actual data
+    cdef npy_intp i, ndim
+
+    ndim = PyArray_NDIM(arr)
+    if ndim == 0:
+        return PyArray_DATA(arr)
+    for i in range(ndim):
+        if PyArray_STRIDE(arr, i) > 0:
+            return PyArray_DATA(arr)
+    return NULL
+
 cdef class Array(Leaf):
   # Instance variables declared in .pxd
 
@@ -1266,15 +1279,9 @@ cdef class Array(Leaf):
     # Allocate space for the dimension axis info and fill it
     dims = numpy.array(shape, dtype=numpy.intp)
     self.rank = len(shape)
-    self.dims = npy_malloc_dims(self.rank, <npy_intp *>(dims.data))
-    # Get the pointer to the buffer data area
-    strides = (<object>nparr).strides
-    # When the object is not a 0-d ndarray and its strides == 0, that
-    # means that the array does not contain actual data
-    if strides != () and sum(strides) == 0:
-      rbuf = NULL
-    else:
-      rbuf = nparr.data
+    self.dims = npy_malloc_dims(self.rank, <npy_intp *>PyArray_DATA(dims))
+    rbuf = _array_data(nparr)
+
     # Save the array
     complib = (self.filters.complib or '').encode('utf-8')
     version = self._v_version.encode('utf-8')
