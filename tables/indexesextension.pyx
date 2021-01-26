@@ -33,11 +33,10 @@ from .hdf5extension cimport Array
 
 
 # Types, constants, functions, classes & other objects from everywhere
-from numpy cimport import_array, ndarray, \
-    npy_int8, npy_int16, npy_int32, npy_int64, \
-    npy_uint8, npy_uint16, npy_uint32, npy_uint64, \
-    npy_float32, npy_float64, \
-    npy_float, npy_double, npy_longdouble
+from numpy cimport (import_array, ndarray, npy_int8, npy_int16, npy_int32,
+                    npy_int64, npy_uint8, npy_uint16, npy_uint32, npy_uint64,
+                    npy_float32, npy_float64, npy_float, npy_double,
+                    npy_longdouble, PyArray_BYTES, PyArray_DATA)
 
 # These two types are defined in npy_common.h but not in cython's numpy.pxd
 ctypedef unsigned char npy_bool
@@ -156,36 +155,36 @@ def keysort(ndarray array1, ndarray array2):
 
     # floating types
     if type_num == cnp.NPY_FLOAT16:
-        _keysort[npy_float16](<npy_float16*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_float16](<npy_float16*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     elif type_num == cnp.NPY_FLOAT32:
-        _keysort[npy_float32](<npy_float32*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_float32](<npy_float32*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     elif type_num == cnp.NPY_FLOAT64:
-        _keysort[npy_float64](<npy_float64*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_float64](<npy_float64*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     elif type_num == cnp.NPY_LONGDOUBLE:
-        _keysort[npy_longdouble](<npy_longdouble*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_longdouble](<npy_longdouble*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     # signed integer types
     elif type_num == cnp.NPY_INT8:
-        _keysort[npy_int8](<npy_int8*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_int8](<npy_int8*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     elif type_num == cnp.NPY_INT16:
-        _keysort[npy_int16](<npy_int16*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_int16](<npy_int16*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     elif type_num == cnp.NPY_INT32:
-        _keysort[npy_int32](<npy_int32*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_int32](<npy_int32*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     elif type_num == cnp.NPY_INT64:
-        _keysort[npy_int64](<npy_int64*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_int64](<npy_int64*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     # unsigned integer types
     elif type_num == cnp.NPY_UINT8:
-        _keysort[npy_uint8](<npy_uint8*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_uint8](<npy_uint8*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     elif type_num == cnp.NPY_UINT16:
-        _keysort[npy_uint16](<npy_uint16*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_uint16](<npy_uint16*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     elif type_num == cnp.NPY_UINT32:
-        _keysort[npy_uint32](<npy_uint32*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_uint32](<npy_uint32*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     elif type_num == cnp.NPY_UINT64:
-        _keysort[npy_uint64](<npy_uint64*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_uint64](<npy_uint64*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     # other
     elif type_num == cnp.NPY_BOOL:
-        _keysort[npy_bool](<npy_bool*>array1.data, array2.data, elsize2, size)
+        _keysort[npy_bool](<npy_bool*>PyArray_DATA(array1), PyArray_BYTES(array2), elsize2, size)
     elif type_num == cnp.NPY_STRING:
-        _keysort_string(array1.data, elsize1, array2.data, elsize2, size)
+        _keysort_string(PyArray_BYTES(array1), elsize1, PyArray_BYTES(array2), elsize2, size)
     else:
         raise ValueError("Unknown array datatype")
 
@@ -608,7 +607,7 @@ cdef class IndexArray(Array):
     # Do the physical read
     with nogil:
         ret = H5ARRAYOread_readSlice(self.dataset_id, self.type_id,
-                                     irow, start, stop, idx.data)
+                                     irow, start, stop, PyArray_DATA(idx))
 
     if ret < 0:
       raise HDF5ExtError("Problems reading the index indices.")
@@ -630,7 +629,7 @@ cdef class IndexArray(Array):
       # Internal buffers
       self.bufferlb = numpy.empty(dtype=dtype, shape=self.chunksize)
       # Get the pointers to the different buffer data areas
-      self.rbuflb = self.bufferlb.data
+      self.rbuflb = PyArray_DATA(self.bufferlb)
       # Init structures for accelerating sorted array reads
       rank = 2
       count[0] = 1
@@ -643,11 +642,11 @@ cdef class IndexArray(Array):
     # Get the addresses of buffer data
     starts = index.starts
     lengths = index.lengths
-    self.rbufst = starts.data
-    self.rbufln = lengths.data
+    self.rbufst = PyArray_DATA(starts)
+    self.rbufln = PyArray_DATA(lengths)
     # The 1st cache is loaded completely in memory and needs to be reloaded
     rvcache = index.ranges[:]
-    self.rbufrv = rvcache.data
+    self.rbufrv = PyArray_DATA(rvcache)
     index.rvcache = <object>rvcache
     # Init the bounds array for reading
     self.nbounds = index.bounds.shape[1]
@@ -665,7 +664,7 @@ cdef class IndexArray(Array):
         (maxslots, self.nbounds), dtype, 'non-opt types bounds')
       self.bufferbc = numpy.empty(dtype=dtype, shape=self.nbounds)
       # Get the pointer for the internal buffer for 2nd level cache
-      self.rbufbc = self.bufferbc.data
+      self.rbufbc = PyArray_DATA(self.bufferbc)
       # Another NumCache for the sorted values
       rowsize = (self.chunksize*dtype.itemsize)
       maxslots = params['SORTED_MAX_SIZE'] // (self.chunksize*dtype.itemsize)
@@ -1500,7 +1499,7 @@ cdef class LastRowArray(Array):
 
     with nogil:
         ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
-                                  start, stop, idx.data)
+                                  start, stop, PyArray_DATA(idx))
 
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data in Last Row.")
