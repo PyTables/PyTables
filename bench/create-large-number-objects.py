@@ -2,12 +2,12 @@
 
 import sys
 import numpy as np
-import tables
+import tables as tb
 
 filename = sys.argv[1]
 
 # Open a new empty HDF5 file
-fileh = tables.open_file(filename, mode="w")
+fileh = tb.open_file(filename, mode="w")
 
 # nlevels -- Number of levels in hierarchy
 # ngroups -- Number of groups on each level

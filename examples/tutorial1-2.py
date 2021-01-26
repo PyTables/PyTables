@@ -5,13 +5,13 @@ that create the tutorial1.h5 file needed here.
 
 """
 
-import tables
+import tables as tb
 
 print()
 print('-**-**-**-**- open the previous tutorial file -**-**-**-**-**-')
 
 # Reopen the file in append mode
-h5file = tables.open_file("tutorial1.h5", "a")
+h5file = tb.open_file("tutorial1.h5", "a")
 
 # Print the object tree created from this filename
 print("Object tree from filename:", h5file.filename)

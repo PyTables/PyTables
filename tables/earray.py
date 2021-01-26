@@ -106,17 +106,17 @@ class EArray(CArray):
     See below a small example of the use of the `EArray` class.  The
     code is available in ``examples/earray1.py``::
 
-        import tables
         import numpy as np
+        import tables as tb
 
-        fileh = tables.open_file('earray1.h5', mode='w')
-        a = tables.StringAtom(itemsize=8)
+        fileh = tb.open_file('earray1.h5', mode='w')
+        a = tb.StringAtom(itemsize=8)
 
         # Use ``a`` as the object type for the enlargeable array.
         array_c = fileh.create_earray(fileh.root, 'array_c', a, (0,),
                                       \"Chars\")
-        array_c.append(numpy.array(['a'*2, 'b'*4], dtype='S8'))
-        array_c.append(numpy.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
+        array_c.append(np.array(['a'*2, 'b'*4], dtype='S8'))
+        array_c.append(np.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
 
         # Read the string ``EArray`` we have created on disk.
         for s in array_c:

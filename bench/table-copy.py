@@ -1,7 +1,7 @@
 from time import perf_counter as clock
 
 import numpy as np
-import tables
+import tables as tb
 
 N = 144_000
 #N = 144
@@ -20,7 +20,7 @@ def create_table(output_path):
     a = np.zeros(N, dtype=dt)
     print("done.")
 
-    output_file = tables.open_file(output_path, mode="w")
+    output_file = tb.open_file(output_path, mode="w")
     table = output_file.create_table("/", "test", dt)  # , filters=blosc4)
     print("appending data...", end=' ')
     table.append(a)
@@ -32,8 +32,8 @@ def create_table(output_path):
 
 def copy1(input_path, output_path):
     print(f"copying data from {input_path} to {output_path}...")
-    input_file = tables.open_file(input_path, mode="r")
-    output_file = tables.open_file(output_path, mode="w")
+    input_file = tb.open_file(input_path, mode="r")
+    output_file = tb.open_file(output_path, mode="w")
 
     # copy nodes as a batch
     input_file.copy_node("/", output_file.root, recursive=True)
@@ -43,15 +43,15 @@ def copy1(input_path, output_path):
 
 def copy2(input_path, output_path):
     print(f"copying data from {input_path} to {output_path}...")
-    input_file = tables.open_file(input_path, mode="r")
+    input_file = tb.open_file(input_path, mode="r")
     input_file.copy_file(output_path, overwrite=True)
     input_file.close()
 
 
 def copy3(input_path, output_path):
     print(f"copying data from {input_path} to {output_path}...")
-    input_file = tables.open_file(input_path, mode="r")
-    output_file = tables.open_file(output_path, mode="w")
+    input_file = tb.open_file(input_path, mode="r")
+    output_file = tb.open_file(output_path, mode="w")
     table = input_file.root.test
     table.copy(output_file.root)
     output_file.close()
@@ -60,15 +60,15 @@ def copy3(input_path, output_path):
 
 def copy4(input_path, output_path, complib='zlib', complevel=0):
     print(f"copying data from {input_path} to {output_path}...")
-    input_file = tables.open_file(input_path, mode="r")
-    output_file = tables.open_file(output_path, mode="w")
+    input_file = tb.open_file(input_path, mode="r")
+    output_file = tb.open_file(output_path, mode="w")
 
     input_table = input_file.root.test
     print("reading data...", end=' ')
     data = input_file.root.test.read()
     print("done.")
 
-    filter = tables.Filters(complevel=complevel, complib=complib)
+    filter = tb.Filters(complevel=complevel, complib=complib)
     output_table = output_file.create_table("/", "test", input_table.dtype,
                                             filters=filter)
     print("appending data...", end=' ')
@@ -83,12 +83,12 @@ def copy4(input_path, output_path, complib='zlib', complevel=0):
 
 def copy5(input_path, output_path, complib='zlib', complevel=0):
     print(f"copying data from {input_path} to {output_path}...")
-    input_file = tables.open_file(input_path, mode="r")
-    output_file = tables.open_file(output_path, mode="w")
+    input_file = tb.open_file(input_path, mode="r")
+    output_file = tb.open_file(output_path, mode="w")
 
     input_table = input_file.root.test
 
-    filter = tables.Filters(complevel=complevel, complib=complib)
+    filter = tb.Filters(complevel=complevel, complib=complib)
     output_table = output_file.create_table("/", "test", input_table.dtype,
                                             filters=filter)
     chunksize = 10_000

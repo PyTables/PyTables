@@ -4,25 +4,20 @@ import tempfile
 import warnings
 from time import perf_counter as clock
 
-import tables
-from tables import Group, Leaf, Table, Array
-from tables import StringCol, IntCol, Int16Col, FloatCol, Float32Col
-
+import tables as tb
 from tables.tests import common
-from tables.tests.common import unittest
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Test Record class
-class Record(tables.IsDescription):
-    var1 = StringCol(itemsize=4)  # 4-character String
-    var2 = IntCol()              # integer
-    var3 = Int16Col()            # short integer
-    var4 = FloatCol()            # double (double-precision)
-    var5 = Float32Col()          # float  (single-precision)
+class Record(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=4)  # 4-character String
+    var2 = tb.IntCol()              # integer
+    var3 = tb.Int16Col()            # short integer
+    var4 = tb.FloatCol()            # double (double-precision)
+    var5 = tb.Float32Col()          # float  (single-precision)
 
 
-class TreeTestCase(common.TempFileMixin, TestCase):
+class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     open_mode = "w"
     title = "This is the table title"
     expectedrows = 10
@@ -77,7 +72,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test00_getNode..." % self.__class__.__name__)
 
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
         nodelist = ['/', '/table0', '/group0/var1', '/group0/group1/var4']
         nodenames = []
         for node in nodelist:
@@ -159,24 +154,24 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_getNodeClass..." %
                   self.__class__.__name__)
 
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
 
         # This tree ways of get_node usage should return a table instance
         table = self.h5file.get_node("/group0/table1")
-        self.assertIsInstance(table, Table)
+        self.assertIsInstance(table, tb.Table)
         table = self.h5file.get_node("/group0", "table1")
-        self.assertIsInstance(table, Table)
+        self.assertIsInstance(table, tb.Table)
         table = self.h5file.get_node(self.h5file.root.group0, "table1")
-        self.assertIsInstance(table, Table)
+        self.assertIsInstance(table, tb.Table)
 
         # This should return an array instance
         arr = self.h5file.get_node("/group0/var1")
-        self.assertIsInstance(arr, Array)
-        self.assertIsInstance(arr, Leaf)
+        self.assertIsInstance(arr, tb.Array)
+        self.assertIsInstance(arr, tb.Leaf)
 
         # And this a Group
         group = self.h5file.get_node("/group0", "group1", "Group")
-        self.assertIsInstance(group, Group)
+        self.assertIsInstance(group, tb.Group)
 
     def test02_listNodes(self):
         """Checking the File.list_nodes() method"""
@@ -187,7 +182,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
 
         # Made the warnings to raise an error
         # warnings.filterwarnings("error", category=UserWarning)
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
 
         self.assertRaises(TypeError,
                           self.h5file.list_nodes, '/', 'NoSuchClass')
@@ -283,7 +278,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02b_iterNodes..." % self.__class__.__name__)
 
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
 
         self.assertRaises(TypeError,
                           self.h5file.list_nodes, '/', 'NoSuchClass')
@@ -380,7 +375,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test03_TraverseTree..." %
                   self.__class__.__name__)
 
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
         groups = []
         tables_ = []
         arrays = []
@@ -434,7 +429,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test04_walkNodes..." % self.__class__.__name__)
 
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
 
         self.assertRaises(TypeError, next,
                           self.h5file.walk_nodes('/', 'NoSuchClass'))
@@ -501,7 +496,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test05_dir..." % self.__class__.__name__)
 
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
 
         """
         h5file nodes:
@@ -558,7 +553,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06_v_groups..." % self.__class__.__name__)
 
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
 
         """
         h5file nodes:
@@ -581,7 +576,7 @@ class TreeTestCase(common.TempFileMixin, TestCase):
             print("Group._v_groups test passed")
 
 
-class DeepTreeTestCase(common.TempFileMixin, TestCase):
+class DeepTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Checks for deep hierarchy levels in PyTables trees."""
 
     def setUp(self):
@@ -624,7 +619,7 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
     def _check_tree(self, filename):
         # Open the previous HDF5 file in read-only mode
 
-        with tables.open_file(filename, mode="r") as h5file:
+        with tb.open_file(filename, mode="r") as h5file:
             group = h5file.root
             if common.verbose:
                 print("\nDepth reading progress: ", end=' ')
@@ -653,10 +648,10 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
     def test01a_copyDeepTree(self):
         """Copy of a large depth object tree."""
 
-        self.h5file = tables.open_file(self.h5fname, mode="r")
+        self.h5file = tb.open_file(self.h5fname, mode="r")
         h5fname2 = tempfile.mktemp(".h5")
         try:
-            with tables.open_file(h5fname2, mode="w") as h5file2:
+            with tb.open_file(h5fname2, mode="w") as h5file2:
                 if common.verbose:
                     print("\nCopying deep tree...")
 
@@ -672,11 +667,10 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
     def test01b_copyDeepTree(self):
         """Copy of a large depth object tree with small node cache."""
 
-        self.h5file = tables.open_file(self.h5fname, mode="r",
-                                       node_cache_slots=10)
+        self.h5file = tb.open_file(self.h5fname, mode="r", node_cache_slots=10)
         h5fname2 = tempfile.mktemp(".h5")
         try:
-            with tables.open_file(h5fname2, mode="w",
+            with tb.open_file(h5fname2, mode="w",
                                   node_cache_slots=10) as h5file2:
                 if common.verbose:
                     print("\nCopying deep tree...")
@@ -693,12 +687,11 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
     def test01c_copyDeepTree(self):
         """Copy of a large depth object tree with no node cache."""
 
-        self.h5file = tables.open_file(self.h5fname, mode="r",
-                                       node_cache_slots=0)
+        self.h5file = tb.open_file(self.h5fname, mode="r", node_cache_slots=0)
         h5fname2 = tempfile.mktemp(".h5")
         try:
-            with tables.open_file(h5fname2, mode="w",
-                                  node_cache_slots=0) as h5file2:
+            with tb.open_file(h5fname2, mode="w",
+                              node_cache_slots=0) as h5file2:
                 if common.verbose:
                     print("\nCopying deep tree...")
 
@@ -711,16 +704,16 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
             if os.path.exists(h5fname2):
                 os.remove(h5fname2)
 
-    @unittest.skipUnless(common.heavy, 'only in heavy mode')
+    @common.unittest.skipUnless(common.heavy, 'only in heavy mode')
     def test01d_copyDeepTree(self):
         """Copy of a large depth object tree with static node cache."""
 
-        self.h5file = tables.open_file(self.h5fname, mode="r",
-                                       node_cache_slots=-256)
+        self.h5file = tb.open_file(self.h5fname, mode="r",
+                                   node_cache_slots=-256)
         h5fname2 = tempfile.mktemp(".h5")
         try:
-            with tables.open_file(h5fname2, mode="w",
-                                  node_cache_slots=-256) as h5file2:
+            with tb.open_file(h5fname2, mode="w",
+                              node_cache_slots=-256) as h5file2:
                 if common.verbose:
                     print("\nCopying deep tree...")
 
@@ -734,7 +727,7 @@ class DeepTreeTestCase(common.TempFileMixin, TestCase):
                 os.remove(h5fname2)
 
 
-class WideTreeTestCase(common.TempFileMixin, TestCase):
+class WideTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Checks for maximum number of children for a Group."""
 
     def test00_Leafs(self):
@@ -851,7 +844,7 @@ class WideTreeTestCase(common.TempFileMixin, TestCase):
             print()  # This flush the stdout buffer
 
 
-class HiddenTreeTestCase(common.TempFileMixin, TestCase):
+class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Check for hidden groups, leaves and hierarchies."""
 
     def setUp(self):
@@ -1022,7 +1015,7 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
         """Reopening a file with hidden nodes."""
 
         self.h5file.close()
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         self.test00_objects()
 
     def test07_move(self):
@@ -1044,7 +1037,7 @@ class HiddenTreeTestCase(common.TempFileMixin, TestCase):
         self.assertNotIn('/g/_p_a', self.h5file)
 
 
-class CreateParentsTestCase(common.TempFileMixin, TestCase):
+class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Test the ``createparents`` flag.
 
     These are mainly for the user interface.  More thorough tests on the
@@ -1052,7 +1045,7 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     """
 
-    filters = tables.Filters(complevel=4)  # simply non-default
+    filters = tb.Filters(complevel=4)  # simply non-default
 
     def setUp(self):
         super().setUp()
@@ -1075,11 +1068,11 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
     def test01_inside(self):
         """Placing a node inside a nonexistent child of itself."""
-        self.assertRaises(tables.NodeError, self.h5file.move_node,
+        self.assertRaises(tb.NodeError, self.h5file.move_node,
                           '/group', '/group/foo/bar',
                           createparents=True)
         self.assertNotIn('/group/foo', self.h5file)
-        self.assertRaises(tables.NodeError, self.h5file.copy_node,
+        self.assertRaises(tb.NodeError, self.h5file.copy_node,
                           '/group', '/group/foo/bar',
                           recursive=True, createparents=True)
         self.assertNotIn('/group/foo', self.h5fname)
@@ -1094,16 +1087,16 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
     # This counter is useful when detecting memory leaks
     niter = 1
 
     for i in range(niter):
-        theSuite.addTest(unittest.makeSuite(TreeTestCase))
-        theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
-        theSuite.addTest(unittest.makeSuite(WideTreeTestCase))
-        theSuite.addTest(unittest.makeSuite(HiddenTreeTestCase))
-        theSuite.addTest(unittest.makeSuite(CreateParentsTestCase))
+        theSuite.addTest(common.unittest.makeSuite(TreeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(DeepTreeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(WideTreeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(HiddenTreeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CreateParentsTestCase))
 
     return theSuite
 
@@ -1111,4 +1104,4 @@ def suite():
 if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

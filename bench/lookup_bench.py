@@ -5,7 +5,7 @@ from time import perf_counter as clock
 import os
 import subprocess
 import numpy as np
-import tables
+import tables as tb
 
 # Constants
 NOISE = 1e-15    # standard deviation of the noise compared with actual values
@@ -61,7 +61,7 @@ class DB:
     def open_db(self, remove=0):
         if remove and os.path.exists(self.filename):
             os.remove(self.filename)
-        con = tables.open_file(self.filename, 'a')
+        con = tb.open_file(self.filename, 'a')
         return con
 
     def create_db(self, verbose):
@@ -77,9 +77,9 @@ class DB:
 
     def create_array(self):
         # The filters chosen
-        filters = tables.Filters(complevel=self.docompress,
-                                 complib=self.complib)
-        atom = tables.Atom.from_kind(self.dtype)
+        filters = tb.Filters(complevel=self.docompress,
+                             complib=self.complib)
+        atom = tb.Atom.from_kind(self.dtype)
         self.con.create_earray(self.con.root, 'earray', atom, (0,),
                                filters=filters,
                                expectedrows=self.nrows,

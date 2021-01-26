@@ -11,14 +11,14 @@ import random
 import time
 
 import numpy as np
-import tables
+import tables as tb
 
 
 # this creates an HDF5 file with one array containing n rows
 def make_file(file_path, n):
 
-    with tables.open_file(file_path, 'w') as fobj:
-        array = fobj.create_carray('/', 'array', tables.Int64Atom(), (n, n))
+    with tb.open_file(file_path, 'w') as fobj:
+        array = fobj.create_carray('/', 'array', tb.Int64Atom(), (n, n))
         for i in range(n):
             array[i, :] = i
 
@@ -43,7 +43,7 @@ class FileAccess(multiprocessing.Process):
         super().__init__()
 
     def run(self):
-        self.h5_file = tables.open_file(self.h5_path, 'r+')
+        self.h5_file = tb.open_file(self.h5_path, 'r+')
         self.array = self.h5_file.get_node('/array')
         another_loop = True
         while another_loop:

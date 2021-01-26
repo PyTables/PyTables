@@ -1,7 +1,8 @@
 import unittest
 import numpy as np
 
-from tables import indexesextension
+import tables as tb
+from tables.tests import common
 
 
 class TestAuxiliaryFunctions(unittest.TestCase):
@@ -18,7 +19,7 @@ class TestAuxiliaryFunctions(unittest.TestCase):
                 e = c[d]
                 f = b[d]
 
-                indexesextension.keysort(a, b)
+                tb.indexesextension.keysort(a, b)
                 self.assertTrue((a == e).all())
                 self.assertTrue((b == f).all())
 

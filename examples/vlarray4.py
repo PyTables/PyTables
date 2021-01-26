@@ -4,15 +4,15 @@
 VLArray."""
 
 import numpy as np
-import tables
+import tables as tb
 
 N = 100
 shape = (3, 3)
 
 np.random.seed(10)  # For reproductible results
-f = tables.open_file("vlarray4.h5", mode="w")
+f = tb.open_file("vlarray4.h5", mode="w")
 vlarray = f.create_vlarray(f.root, 'vlarray1',
-                           tables.Float64Atom(shape=shape),
+                           tb.Float64Atom(shape=shape),
                            "ragged array of arrays")
 
 k = 0

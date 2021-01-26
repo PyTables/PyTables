@@ -1,11 +1,11 @@
 """Yet another couple of examples on do/undo feauture."""
 
-import tables
+import tables as tb
 
 
 def setUp(filename):
     # Create an HDF5 file
-    fileh = tables.open_file(filename, mode="w", title="Undo/Redo demo")
+    fileh = tb.open_file(filename, mode="w", title="Undo/Redo demo")
     # Create some nodes in there
     fileh.create_group("/", "agroup", "Group 1")
     fileh.create_group("/agroup", "agroup2", "Group 2")

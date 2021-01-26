@@ -1,53 +1,53 @@
 #!/usr/bin/env python
 
 import numpy as np
-from tables import *
+import tables as tb
 
 # This class is accessible only for the examples
 
 
-class Small(IsDescription):
-    var1 = StringCol(itemsize=4, pos=2)
-    var2 = Int32Col(pos=1)
-    var3 = Float64Col(pos=0)
+class Small(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=4, pos=2)
+    var2 = tb.Int32Col(pos=1)
+    var3 = tb.Float64Col(pos=0)
 
 # Define a user record to characterize some kind of particles
 
 
-class Medium(IsDescription):
-    name = StringCol(itemsize=16, pos=0)    # 16-character String
-    float1 = Float64Col(shape=2, dflt=np.arange(2), pos=1)
+class Medium(tb.IsDescription):
+    name = tb.StringCol(itemsize=16, pos=0)    # 16-character String
+    float1 = tb.Float64Col(shape=2, dflt=np.arange(2), pos=1)
     #float1 = Float64Col(dflt=2.3)
     #float2 = Float64Col(dflt=2.3)
     # zADCcount    = Int16Col()               # signed short integer
-    ADCcount = Int32Col(pos=6)              # signed short integer
-    grid_i = Int32Col(pos=7)                # integer
-    grid_j = Int32Col(pos=8)                # integer
-    pressure = Float32Col(pos=9)            # float  (single-precision)
-    energy = Float64Col(pos=2)              # double (double-precision)
+    ADCcount = tb.Int32Col(pos=6)              # signed short integer
+    grid_i = tb.Int32Col(pos=7)                # integer
+    grid_j = tb.Int32Col(pos=8)                # integer
+    pressure = tb.Float32Col(pos=9)            # float  (single-precision)
+    energy = tb.Float64Col(pos=2)              # double (double-precision)
     # unalig      = Int8Col()                 # just to unalign data
 
 # Define a user record to characterize some kind of particles
 
 
-class Big(IsDescription):
-    name = StringCol(itemsize=16)           # 16-character String
-    float1 = Float64Col(shape=32, dflt=np.arange(32))
-    float2 = Float64Col(shape=32, dflt=2.2)
-    TDCcount = Int8Col()                    # signed short integer
+class Big(tb.IsDescription):
+    name = tb.StringCol(itemsize=16)           # 16-character String
+    float1 = tb.Float64Col(shape=32, dflt=np.arange(32))
+    float2 = tb.Float64Col(shape=32, dflt=2.2)
+    TDCcount = tb.Int8Col()                    # signed short integer
     #ADCcount    = Int32Col()
     # ADCcount = Int16Col()                   # signed short integer
-    grid_i = Int32Col()                       # integer
-    grid_j = Int32Col()                       # integer
-    pressure = Float32Col()                   # float  (single-precision)
-    energy = Float64Col()                     # double (double-precision)
+    grid_i = tb.Int32Col()                       # integer
+    grid_j = tb.Int32Col()                       # integer
+    pressure = tb.Float32Col()                   # float  (single-precision)
+    energy = tb.Float64Col()                     # double (double-precision)
 
 
 def createFile(filename, totalrows, filters, recsize):
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="Table Benchmark",
-                      filters=filters)
+    fileh = tb.open_file(filename, mode="w", title="Table Benchmark",
+                         filters=filters)
 
     # Table title
     title = "This is the table title"
@@ -140,7 +140,7 @@ def createFile(filename, totalrows, filters, recsize):
 def readFile(filename, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
-    fileh = open_file(filename, mode="r")
+    fileh = tb.open_file(filename, mode="r")
     rowsread = 0
     for groupobj in fileh.walk_groups(fileh.root):
         # print "Group pathname:", groupobj._v_pathname
@@ -238,7 +238,7 @@ def readFile(filename, recsize, verbose):
 
 
 def readField(filename, field, rng, verbose):
-    fileh = open_file(filename, mode="r")
+    fileh = tb.open_file(filename, mode="r")
     rowsread = 0
     if rng is None:
         rng = [0, -1, 1]
@@ -354,8 +354,8 @@ if __name__ == "__main__":
             iterations = int(option[1])
 
     # Build the Filters instance
-    filters = Filters(complevel=complevel, complib=complib,
-                      shuffle=shuffle, fletcher32=fletcher32)
+    filters = tb.Filters(complevel=complevel, complib=complib,
+                         shuffle=shuffle, fletcher32=fletcher32)
 
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]

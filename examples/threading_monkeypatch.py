@@ -9,10 +9,8 @@ import threading
 import numpy as np
 import tables as tb
 
-import tables.file as _tables_file
 
-
-class ThreadsafeFileRegistry(_tables_file._FileRegistry):
+class ThreadsafeFileRegistry(tb.file._FileRegistry):
     lock = threading.RLock()
 
     @property
@@ -32,7 +30,7 @@ class ThreadsafeFileRegistry(_tables_file._FileRegistry):
             return super().close_all(handler)
 
 
-class ThreadsafeFile(_tables_file.File):
+class ThreadsafeFile(tb.file.File):
     def __init__(self, *args, **kargs):
         with ThreadsafeFileRegistry.lock:
             super().__init__(*args, **kargs)
@@ -45,19 +43,19 @@ class ThreadsafeFile(_tables_file.File):
 @functools.wraps(tb.open_file)
 def synchronized_open_file(*args, **kwargs):
     with ThreadsafeFileRegistry.lock:
-        return _tables_file._original_open_file(*args, **kwargs)
+        return tb.file._original_open_file(*args, **kwargs)
 
 
 # monkey patch the tables package
-_tables_file._original_open_file = _tables_file.open_file
-_tables_file.open_file = synchronized_open_file
+tb.file._original_open_file = tb.file.open_file
+tb.file.open_file = synchronized_open_file
 tb.open_file = synchronized_open_file
 
-_tables_file._original_File = _tables_file.File
-_tables_file.File = ThreadsafeFile
+tb.file._original_File = tb.file.File
+tb.file.File = ThreadsafeFile
 tb.File = ThreadsafeFile
 
-_tables_file._open_files = ThreadsafeFileRegistry()
+tb.file._open_files = ThreadsafeFileRegistry()
 
 
 SIZE = 100

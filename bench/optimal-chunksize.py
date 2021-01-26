@@ -11,7 +11,7 @@ import subprocess
 import tempfile
 from time import perf_counter as clock
 import numpy as np
-import tables
+import tables as tb
 
 # Size of dataset
 # N, M = 512, 2**16     # 256 MB
@@ -19,7 +19,7 @@ import tables
 # N, M = 512, 2**19     # 2 GB
 N, M = 2000, 1_000_000  # 15 GB
 # N, M = 4000, 1000000  # 30 GB
-datom = tables.Float64Atom()   # elements are double precision
+datom = tb.Float64Atom()   # elements are double precision
 
 
 def quantize(data, least_significant_digit):
@@ -54,7 +54,7 @@ def bench(chunkshape, filters):
     filename = tempfile.mktemp(suffix='.h5')
     print("Doing test on the file system represented by:", filename)
 
-    f = tables.open_file(filename, 'w')
+    f = tb.open_file(filename, 'w')
     e = f.create_earray(f.root, 'earray', datom, shape=(0, M),
                         filters = filters,
                         chunkshape = chunkshape)
@@ -106,9 +106,9 @@ def bench(chunkshape, filters):
 for complib in (None, 'zlib', 'lzo', 'blosc'):
 # for complib in ('blosc',):
     if complib:
-        filters = tables.Filters(complevel=5, complib=complib)
+        filters = tb.Filters(complevel=5, complib=complib)
     else:
-        filters = tables.Filters(complevel=0)
+        filters = tb.Filters(complevel=0)
     print("8<--" * 20, "\nFilters:", filters, "\n" + "-" * 80)
     # for ecs in (11, 14, 17, 20, 21, 22):
     for ecs in range(10, 24):

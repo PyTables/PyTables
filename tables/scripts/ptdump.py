@@ -18,11 +18,8 @@ Pass the flag -h to this for help on usage.
 import argparse
 import operator
 
-from tables.file import open_file
-from tables.group import Group
-from tables.leaf import Leaf
-from tables.table import Table, Column
-from tables.unimplemented import UnImplemented
+import tables as tb
+
 
 # default options
 options = argparse.Namespace(
@@ -42,7 +39,7 @@ def dump_leaf(leaf):
         print(str(leaf))
     if options.showattrs:
         print("  "+repr(leaf.attrs))
-    if options.dump and not isinstance(leaf, UnImplemented):
+    if options.dump and not isinstance(leaf, tb.unimplemented.UnImplemented):
         print("  Data dump:")
         # print((leaf.read(options.rng.start, options.rng.stop,
         #        options.rng.step))
@@ -66,16 +63,16 @@ def dump_leaf(leaf):
             for i in range(start, stop, step):
                 print("[{}] {}".format(i, leaf[i]))
 
-    if isinstance(leaf, Table) and options.colinfo:
+    if isinstance(leaf, tb.table.Table) and options.colinfo:
         # Show info of columns
         for colname in leaf.colnames:
             print(repr(leaf.cols._f_col(colname)))
 
-    if isinstance(leaf, Table) and options.idxinfo:
+    if isinstance(leaf, tb.table.Table) and options.idxinfo:
         # Show info of indexes
         for colname in leaf.colnames:
             col = leaf.cols._f_col(colname)
-            if isinstance(col, Column) and col.index is not None:
+            if isinstance(col, tb.table.Column) and col.index is not None:
                 idx = col.index
                 print(repr(idx))
 
@@ -171,17 +168,17 @@ def main():
             nodename = "/"
 
     try:
-        h5file = open_file(filename, 'r')
+        h5file = tb.open_file(filename, 'r')
     except Exception as e:
         return 'Cannot open input file: ' + str(e)
 
     with h5file:
         # Check whether the specified node is a group or a leaf
         nodeobject = h5file.get_node(nodename)
-        if isinstance(nodeobject, Group):
+        if isinstance(nodeobject, tb.group.Group):
             # Close the file again and reopen using the root_uep
             dump_group(nodeobject, args.sort)
-        elif isinstance(nodeobject, Leaf):
+        elif isinstance(nodeobject, tb.leaf.Leaf):
             # If it is not a Group, it must be a Leaf
             dump_leaf(nodeobject)
         else:

@@ -8,8 +8,8 @@ import sys
 import struct
 import cPickle
 
-from tables import *
 import numpy as np
+import tables as tb
 
 try:
     # For Python 2.3
@@ -21,7 +21,7 @@ import psyco
 
 
 # This class is accessible only for the examples
-class Small(IsDescription):
+class Small(tb.IsDescription):
     """Record descriptor.
 
     A record has several columns. They are represented here as class
@@ -31,38 +31,38 @@ class Small(IsDescription):
 
     """
 
-    var1 = StringCol(itemsize=16)
-    var2 = Int32Col()
-    var3 = Float64Col()
+    var1 = tb.StringCol(itemsize=16)
+    var2 = tb.Int32Col()
+    var3 = tb.Float64Col()
 
 # Define a user record to characterize some kind of particles
 
 
-class Medium(IsDescription):
-    name = StringCol(itemsize=16, pos=0)  # 16-character String
+class Medium(tb.IsDescription):
+    name = tb.StringCol(itemsize=16, pos=0)  # 16-character String
     #float1      = Float64Col(shape=2, dflt=2.3)
-    float1 = Float64Col(dflt=1.3, pos=1)
-    float2 = Float64Col(dflt=2.3, pos=2)
-    ADCcount = Int16Col(pos=3)     # signed short integer
-    grid_i = Int32Col(pos=4)        # integer
-    grid_j = Int32Col(pos=5)        # integer
-    pressure = Float32Col(pos=6)    # float  (single-precision)
-    energy = Float64Col(pos=7)      # double (double-precision)
+    float1 = tb.Float64Col(dflt=1.3, pos=1)
+    float2 = tb.Float64Col(dflt=2.3, pos=2)
+    ADCcount = tb.Int16Col(pos=3)     # signed short integer
+    grid_i = tb.Int32Col(pos=4)        # integer
+    grid_j = tb.Int32Col(pos=5)        # integer
+    pressure = tb.Float32Col(pos=6)    # float  (single-precision)
+    energy = tb.Float64Col(pos=7)      # double (double-precision)
 
 # Define a user record to characterize some kind of particles
 
 
-class Big(IsDescription):
-    name = StringCol(itemsize=16)   # 16-character String
+class Big(tb.IsDescription):
+    name = tb.StringCol(itemsize=16)   # 16-character String
     #float1 = Float64Col(shape=32, dflt=np.arange(32))
     #float2 = Float64Col(shape=32, dflt=np.arange(32))
-    float1 = Float64Col(shape=32, dflt=range(32))
-    float2 = Float64Col(shape=32, dflt=[2.2] * 32)
-    ADCcount = Int16Col()           # signed short integer
-    grid_i = Int32Col()             # integer
-    grid_j = Int32Col()             # integer
-    pressure = Float32Col()         # float  (single-precision)
-    energy = Float64Col()           # double (double-precision)
+    float1 = tb.Float64Col(shape=32, dflt=range(32))
+    float2 = tb.Float64Col(shape=32, dflt=[2.2] * 32)
+    ADCcount = tb.Int16Col()           # signed short integer
+    grid_i = tb.Int32Col()             # integer
+    grid_j = tb.Int32Col()             # integer
+    pressure = tb.Float32Col()         # float  (single-precision)
+    energy = tb.Float64Col()           # double (double-precision)
 
 
 def createFile(filename, totalrows, recsize, verbose):
@@ -70,11 +70,11 @@ def createFile(filename, totalrows, recsize, verbose):
     # Open a 'n'ew file
     dd = db.DB()
     if recsize == "big":
-        isrec = Description(Big)
+        isrec = tb.Description(Big)
     elif recsize == "medium":
         isrec = Medium()
     else:
-        isrec = Description(Small)
+        isrec = tb.Description(Small)
     # dd.set_re_len(struct.calcsize(isrec._v_fmt))  # fixed length records
     dd.open(filename, db.DB_RECNO, db.DB_CREATE | db.DB_TRUNCATE)
 

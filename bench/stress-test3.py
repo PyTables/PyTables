@@ -11,14 +11,14 @@ import gc
 import sys
 from time import perf_counter as clock
 from time import process_time as cpuclock
-from tables import *
+import tables as tb
 
 
-class Test(IsDescription):
-    ngroup = Int32Col(pos=1)
-    ntable = Int32Col(pos=2)
-    nrow = Int32Col(pos=3)
-    string = StringCol(500, pos=4)
+class Test(tb.IsDescription):
+    ngroup = tb.Int32Col(pos=1)
+    ntable = tb.Int32Col(pos=2)
+    nrow = tb.Int32Col(pos=3)
+    string = tb.StringCol(500, pos=4)
 
 
 def createFileArr(filename, ngroups, ntables, nrows):
@@ -26,7 +26,7 @@ def createFileArr(filename, ngroups, ntables, nrows):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
+    fileh = tb.open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
@@ -41,7 +41,7 @@ def readFileArr(filename, ngroups, recsize, verbose):
 
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
+        fileh = tb.open_file(filename, mode="r", root_uep='group%04d' % ngroup)
         # Get the group
         group = fileh.root
         ntable = 0
@@ -68,7 +68,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
+    fileh = tb.open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
@@ -79,14 +79,14 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     # Now, create the tables
     rowswritten = 0
     for k in range(ngroups):
-        fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
+        fileh = tb.open_file(filename, mode="a", root_uep='group%04d' % k)
         # Get the group
         group = fileh.root
         for j in range(ntables):
             # Create a table
             table = fileh.create_table(group, 'table%04d' % j, Test,
                                        'Table%04d' % j,
-                                       Filters(complevel, complib), nrows)
+                                       tb.Filters(complevel, complib), nrows)
             rowsize = table.rowsize
             # Get the row object associated with the new table
             row = table.row
@@ -111,7 +111,7 @@ def readFile(filename, ngroups, recsize, verbose):
 
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
+        fileh = tb.open_file(filename, mode="r", root_uep='group%04d' % ngroup)
         # Get the group
         group = fileh.root
         ntable = 0

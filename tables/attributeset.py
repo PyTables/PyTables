@@ -111,21 +111,21 @@ class AttributeSet(hdf5extension.AttributeSet):
     get an idea of where things went wrong, as shown in this example::
 
         >>> import os, tempfile
-        >>> import tables
+        >>> import tables as tb
         >>>
         >>> class MyClass(object):
         ...   foo = 'bar'
         ...
         >>> myObject = MyClass()  # save object of custom class in HDF5 attr
         >>> h5fname = tempfile.mktemp(suffix='.h5')
-        >>> h5f = tables.open_file(h5fname, 'w')
+        >>> h5f = tb.open_file(h5fname, 'w')
         >>> h5f.root._v_attrs.obj = myObject  # store the object
         >>> print(h5f.root._v_attrs.obj.foo)  # retrieve it
         bar
         >>> h5f.close()
         >>>
         >>> del MyClass, myObject  # delete class of object and reopen file
-        >>> h5f = tables.open_file(h5fname, 'r')
+        >>> h5f = tb.open_file(h5fname, 'r')
         >>> print(repr(h5f.root._v_attrs.obj))
         'ccopy_reg\\n_reconstructor...
         >>> import pickle  # let's unpickle that to see what went wrong

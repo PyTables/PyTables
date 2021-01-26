@@ -1,14 +1,14 @@
-import tables
+import tables as tb
 
 
-class Particle(tables.IsDescription):
-    identity = tables.StringCol(itemsize=22, dflt=" ", pos=0)
+class Particle(tb.IsDescription):
+    identity = tb.StringCol(itemsize=22, dflt=" ", pos=0)
                                                 # character String
-    idnumber = tables.Int16Col(dflt=1, pos=1)   # short integer
-    speed = tables.Float32Col(dflt=1, pos=1)    # single-precision
+    idnumber = tb.Int16Col(dflt=1, pos=1)   # short integer
+    speed = tb.Float32Col(dflt=1, pos=1)    # single-precision
 
 # Open a file in "w"rite mode
-fileh = tables.open_file("objecttree.h5", mode="w")
+fileh = tb.open_file("objecttree.h5", mode="w")
 # Get the HDF5 root group
 root = fileh.root
 

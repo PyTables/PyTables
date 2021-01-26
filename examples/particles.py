@@ -2,7 +2,7 @@
 
 from time import perf_counter as clock
 import numpy as np
-import tables
+import tables as tb
 
 # NEVENTS = 10000
 NEVENTS = 20_000
@@ -11,25 +11,25 @@ MAX_PARTICLES_PER_EVENT = 100
 # Particle description
 
 
-class Particle(tables.IsDescription):
+class Particle(tb.IsDescription):
     # event_id = tables.Int32Col(pos=1, indexed=True) # event id (indexed)
-    event_id = tables.Int32Col(pos=1)               # event id (not indexed)
-    particle_id = tables.Int32Col(pos=2)            # particle id in the event
-    parent_id = tables.Int32Col(pos=3)              # the id of the parent
+    event_id = tb.Int32Col(pos=1)               # event id (not indexed)
+    particle_id = tb.Int32Col(pos=2)            # particle id in the event
+    parent_id = tb.Int32Col(pos=3)              # the id of the parent
                                                     # particle (negative
                                                     # values means no parent)
-    momentum = tables.Float64Col(shape=3, pos=4)    # momentum of the particle
-    mass = tables.Float64Col(pos=5)                 # mass of the particle
+    momentum = tb.Float64Col(shape=3, pos=4)    # momentum of the particle
+    mass = tb.Float64Col(pos=5)                 # mass of the particle
 
 # Create a new table for events
 t1 = clock()
 print(
     f"Creating a table with {NEVENTS * MAX_PARTICLES_PER_EVENT // 2} "
     f"entries aprox.. Wait please...")
-fileh = tables.open_file("particles-pro.h5", mode="w")
+fileh = tb.open_file("particles-pro.h5", mode="w")
 group = fileh.create_group(fileh.root, "events")
 table = fileh.create_table(group, 'table', Particle, "A table",
-                           tables.Filters(0))
+                           tb.Filters(0))
 # Choose this line if you want data compression
 # table = fileh.create_table(group, 'table', Particle, "A table", Filters(1))
 
@@ -59,7 +59,7 @@ fileh.close()
 
 # Open the file en read only mode and start selections
 print("Selecting events...")
-fileh = tables.open_file("particles-pro.h5", mode="r")
+fileh = tb.open_file("particles-pro.h5", mode="r")
 table = fileh.root.events.table
 
 print("Particles in event 34:", end=' ')

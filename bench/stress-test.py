@@ -3,20 +3,19 @@ import sys
 from time import perf_counter as clock
 from time import process_time as cpuclock
 import numpy as np
-from tables import Group  # , MetaIsDescription
-from tables import *
+import tables as tb
 
 
-class Test(IsDescription):
-    ngroup = Int32Col(pos=1)
-    ntable = Int32Col(pos=2)
-    nrow = Int32Col(pos=3)
+class Test(tb.IsDescription):
+    ngroup = tb.Int32Col(pos=1)
+    ntable = tb.Int32Col(pos=2)
+    nrow = tb.Int32Col(pos=3)
     #string = StringCol(itemsize=500, pos=4)
 
 TestDict = {
-    "ngroup": Int32Col(pos=1),
-    "ntable": Int32Col(pos=2),
-    "nrow": Int32Col(pos=3),
+    "ngroup": tb.Int32Col(pos=1),
+    "ntable": tb.Int32Col(pos=2),
+    "nrow": tb.Int32Col(pos=3),
 }
 
 
@@ -25,7 +24,7 @@ def createFileArr(filename, ngroups, ntables, nrows):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
+    fileh = tb.open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
@@ -36,7 +35,7 @@ def createFileArr(filename, ngroups, ntables, nrows):
     # Now, create the arrays
     arr = np.arange(nrows)
     for k in range(ngroups):
-        fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
+        fileh = tb.open_file(filename, mode="a", root_uep='group%04d' % k)
         for j in range(ntables):
             # Create the array
             fileh.create_array("/", 'array%04d' % j, arr, "Array %d" % j)
@@ -49,7 +48,7 @@ def readFileArr(filename, ngroups, recsize, verbose):
 
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
+        fileh = tb.open_file(filename, mode="r", root_uep='group%04d' % ngroup)
         # Get the group
         group = fileh.root
         narrai = 0
@@ -76,7 +75,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
+    fileh = tb.open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
@@ -91,7 +90,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
 
     for k in range(ngroups):
         print("Filling tables in group:", k)
-        fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
+        fileh = tb.open_file(filename, mode="a", root_uep='group%04d' % k)
         # Get the group
         group = fileh.root
         for j in range(ntables):
@@ -126,7 +125,7 @@ def readFile(filename, ngroups, recsize, verbose):
     buffersize = 0
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
+        fileh = tb.open_file(filename, mode="r", root_uep='group%04d' % ngroup)
         # Get the group
         group = fileh.root
         ntable = 0
@@ -183,7 +182,7 @@ class TrackRefs:
             t = type(o)
             if verbose:
                 # if t == types.TupleType:
-                if isinstance(o, Group):
+                if isinstance(o, tb.Group):
                 # if isinstance(o, MetaIsDescription):
                     print("-->", o, "refs:", all)
                     refrs = gc.get_referrers(o)

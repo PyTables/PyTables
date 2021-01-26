@@ -8,8 +8,7 @@ from time import perf_counter as clock
 from time import process_time as cpuclock
 
 import numpy as np
-
-from tables import *
+import tables as tb
 
 # Initialize the random generator always with the same integer
 # in order to have reproductible results
@@ -20,43 +19,43 @@ randomvalues = 0
 worst = 0
 
 Small = {
-    "var1": StringCol(itemsize=4, dflt="Hi!", pos=2),
-    "var2": Int32Col(pos=1),
-    "var3": Float64Col(pos=0),
+    "var1": tb.StringCol(itemsize=4, dflt="Hi!", pos=2),
+    "var2": tb.Int32Col(pos=1),
+    "var3": tb.Float64Col(pos=0),
     #"var4" : BoolCol(),
 }
 
 
 def createNewBenchFile(bfile, verbose):
 
-    class Create(IsDescription):
-        nrows = Int32Col(pos=0)
-        irows = Int32Col(pos=1)
-        tfill = Float64Col(pos=2)
-        tidx = Float64Col(pos=3)
-        tcfill = Float64Col(pos=4)
-        tcidx = Float64Col(pos=5)
-        rowsecf = Float64Col(pos=6)
-        rowseci = Float64Col(pos=7)
-        fsize = Float64Col(pos=8)
-        isize = Float64Col(pos=9)
-        psyco = BoolCol(pos=10)
+    class Create(tb.IsDescription):
+        nrows = tb.Int32Col(pos=0)
+        irows = tb.Int32Col(pos=1)
+        tfill = tb.Float64Col(pos=2)
+        tidx = tb.Float64Col(pos=3)
+        tcfill = tb.Float64Col(pos=4)
+        tcidx = tb.Float64Col(pos=5)
+        rowsecf = tb.Float64Col(pos=6)
+        rowseci = tb.Float64Col(pos=7)
+        fsize = tb.Float64Col(pos=8)
+        isize = tb.Float64Col(pos=9)
+        psyco = tb.BoolCol(pos=10)
 
-    class Search(IsDescription):
-        nrows = Int32Col(pos=0)
-        rowsel = Int32Col(pos=1)
-        time1 = Float64Col(pos=2)
-        time2 = Float64Col(pos=3)
-        tcpu1 = Float64Col(pos=4)
-        tcpu2 = Float64Col(pos=5)
-        rowsec1 = Float64Col(pos=6)
-        rowsec2 = Float64Col(pos=7)
-        psyco = BoolCol(pos=8)
+    class Search(tb.IsDescription):
+        nrows = tb.Int32Col(pos=0)
+        rowsel = tb.Int32Col(pos=1)
+        time1 = tb.Float64Col(pos=2)
+        time2 = tb.Float64Col(pos=3)
+        tcpu1 = tb.Float64Col(pos=4)
+        tcpu2 = tb.Float64Col(pos=5)
+        rowsec1 = tb.Float64Col(pos=6)
+        rowsec2 = tb.Float64Col(pos=7)
+        psyco = tb.BoolCol(pos=8)
 
     if verbose:
         print("Creating a new benchfile:", bfile)
     # Open the benchmarking file
-    bf = open_file(bfile, "w")
+    bf = tb.open_file(bfile, "w")
     # Create groups
     for recsize in ["small"]:
         group = bf.create_group("/", recsize, recsize + " Group")
@@ -82,7 +81,7 @@ def createNewBenchFile(bfile, verbose):
 def createFile(filename, nrows, filters, index, heavy, noise, verbose):
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="Searchsorted Benchmark",
+    fileh = tb.open_file(filename, mode="w", title="Searchsorted Benchmark",
                       filters=filters)
     rowswritten = 0
 
@@ -121,7 +120,7 @@ def createFile(filename, nrows, filters, index, heavy, noise, verbose):
     fileh.close()
     size1 = os.stat(filename).st_size
     print(f", File size: {size1 / 1024 / 1024:.3f} MB")
-    fileh = open_file(filename, mode="a", title="Searchsorted Benchmark",
+    fileh = tb.open_file(filename, mode="a", title="Searchsorted Benchmark",
                       filters=filters)
     table = fileh.root.table
     rowsize = table.rowsize
@@ -164,7 +163,7 @@ def benchCreate(file, nrows, filters, index, bfile, heavy,
                 psyco, noise, verbose):
 
     # Open the benchfile in append mode
-    bf = open_file(bfile, "a")
+    bf = tb.open_file(bfile, "a")
     recsize = "small"
     if worst:
         table = bf.get_node("/" + recsize + "/create_worst")
@@ -204,7 +203,7 @@ def benchCreate(file, nrows, filters, index, bfile, heavy,
 def readFile(filename, atom, riter, indexmode, dselect, verbose):
     # Open the HDF5 file in read-only mode
 
-    fileh = open_file(filename, mode="r")
+    fileh = tb.open_file(filename, mode="r")
     table = fileh.root.table
     var1 = table.cols.var1
     var2 = table.cols.var2
@@ -315,7 +314,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
 def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
 
     # Open the benchfile in append mode
-    bf = open_file(bfile, "a")
+    bf = tb.open_file(bfile, "a")
     recsize = "small"
     if worst:
         tableparent = "/" + recsize + "/search_worst/" + indexmode + "/"
@@ -491,8 +490,8 @@ if __name__ == "__main__":
     file = pargs[0]
 
     # Build the Filters instance
-    filters = Filters(complevel=complevel, complib=complib,
-                      shuffle=shuffle, fletcher32=fletcher32)
+    filters = tb.Filters(complevel=complevel, complib=complib,
+                         shuffle=shuffle, fletcher32=fletcher32)
 
     # Create the benchfile (if needed)
     if not os.path.exists(bfile):

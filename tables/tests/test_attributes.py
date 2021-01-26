@@ -7,25 +7,19 @@ from distutils.version import LooseVersion
 
 import numpy as np
 
-import tables
-from tables import (IsDescription, Int32Atom, StringCol, IntCol, Int16Col,
-                    FloatCol, Float32Col)
-from tables.exceptions import DataTypeWarning
-from tables.parameters import NODE_CACHE_SLOTS
+import tables as tb
 from tables.tests import common
-from tables.tests.common import unittest, test_filename
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
-class Record(IsDescription):
-    var1 = StringCol(itemsize=4)  # 4-character String
-    var2 = IntCol()               # integer
-    var3 = Int16Col()             # short integer
-    var4 = FloatCol()             # double (double-precision)
-    var5 = Float32Col()           # float  (single-precision)
+class Record(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=4)  # 4-character String
+    var2 = tb.IntCol()               # integer
+    var3 = tb.Int16Col()             # short integer
+    var4 = tb.FloatCol()             # double (double-precision)
+    var5 = tb.Float32Col()           # float  (single-precision)
 
 
-class CreateTestCase(common.TempFileMixin, TestCase):
+class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
         self.root = self.h5file.root
@@ -144,7 +138,7 @@ class CreateTestCase(common.TempFileMixin, TestCase):
     def test01a_setAttributes(self):
         """Checking attribute names validity"""
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore', tables.NaturalNameWarning)
+            warnings.simplefilter('ignore', tb.NaturalNameWarning)
             self.check_name('a')
             self.check_name('a:b')
             self.check_name('/a/b')
@@ -617,7 +611,7 @@ class CreateTestCase(common.TempFileMixin, TestCase):
         bad_sys = 'SYS%'
         for a in [bad_user, bad_sys]:
             with warnings.catch_warnings():
-                warnings.simplefilter('ignore', tables.NaturalNameWarning)
+                warnings.simplefilter('ignore', tb.NaturalNameWarning)
                 attrset[a] = 1
 
         completions = dir(attrset)
@@ -647,13 +641,13 @@ class CreateTestCase(common.TempFileMixin, TestCase):
 
 class NotCloseCreate(CreateTestCase):
     close = False
-    node_cache_slots = NODE_CACHE_SLOTS
+    node_cache_slots = tb.parameters.NODE_CACHE_SLOTS
     open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class CloseCreate(CreateTestCase):
     close = True
-    node_cache_slots = NODE_CACHE_SLOTS
+    node_cache_slots = tb.parameters.NODE_CACHE_SLOTS
     open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
@@ -671,17 +665,17 @@ class NoCacheCloseCreate(CreateTestCase):
 
 class DictCacheNotCloseCreate(CreateTestCase):
     close = False
-    node_cache_slots = -NODE_CACHE_SLOTS
+    node_cache_slots = -tb.parameters.NODE_CACHE_SLOTS
     open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
 class DictCacheCloseCreate(CreateTestCase):
     close = True
-    node_cache_slots = -NODE_CACHE_SLOTS
+    node_cache_slots = -tb.parameters.NODE_CACHE_SLOTS
     open_kwargs = dict(node_cache_slots=node_cache_slots)
 
 
-class TypesTestCase(common.TempFileMixin, TestCase):
+class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
         self.open_kwargs = {'allow_padding': self.allow_padding}
@@ -1620,7 +1614,7 @@ class CloseAlignedPaddedTypesTestCase(TypesTestCase):
     close = True
 
 
-class NoSysAttrsTestCase(common.TempFileMixin, TestCase):
+class NoSysAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     open_kwargs = dict(pytables_sys_attrs=False)
 
     def setUp(self):
@@ -1691,11 +1685,11 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
     close = True
 
 
-class CompatibilityTestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename('issue_368.h5')
+class CompatibilityTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    h5fname = common.test_filename('issue_368.h5')
 
-    @unittest.skipIf(LooseVersion(np.__version__) < '1.9.0',
-                     'requires numpy >= 1.9')
+    @common.unittest.skipIf(LooseVersion(np.__version__) < '1.9.0',
+                            'requires numpy >= 1.9')
     def test_pickled_unicode_attrs(self):
         # See also gh-368 and https://github.com/numpy/numpy/issues/4879.
         #
@@ -1715,8 +1709,8 @@ class CompatibilityTestCase(common.TestFileMixin, TestCase):
             self.h5file.get_node_attr('/', 'py2_pickled_unicode'), 'abc')
 
 
-class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename('issue_560.h5')
+class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, common.PyTablesTestCase):
+    h5fname = common.test_filename('issue_560.h5')
 
     def test_pickled_datetime_object(self):
         # See also gh-560
@@ -1739,7 +1733,7 @@ class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, TestCase):
         self.assertIsInstance(d, dict)
         self.assertEqual(d['s'], 'just a string')
 
-class SegFaultPythonTestCase(common.TempFileMixin, TestCase):
+class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_segfault(self):
         """Checking workaround for Python unpickle problem (see #253)."""
@@ -1756,7 +1750,7 @@ class SegFaultPythonTestCase(common.TempFileMixin, TestCase):
             print("Great! '0' and '0.' values can be safely retrieved.")
 
 
-class EmbeddedNullsTestCase(common.TempFileMixin, TestCase):
+class EmbeddedNullsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     # See laso gh-371 (https://github.com/PyTables/PyTables/issues/371)
 
     def test_unicode(self):
@@ -1780,11 +1774,11 @@ class EmbeddedNullsTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.root._v_attrs.name, value)
 
 
-class VlenStrAttrTestCase(TestCase):
+class VlenStrAttrTestCase(common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
-        self.h5fname = test_filename('vlstr_attr.h5')
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5fname = common.test_filename('vlstr_attr.h5')
+        self.h5file = tb.open_file(self.h5fname)
 
     def tearDown(self):
         self.h5file.close()
@@ -1819,22 +1813,22 @@ class VlenStrAttrTestCase(TestCase):
                 self.assertEqual(item, value.encode('ascii'))
 
 
-class UnsupportedAttrTypeTestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename('attr-u16.h5')
+class UnsupportedAttrTypeTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    h5fname = common.test_filename('attr-u16.h5')
 
     def test00_unsupportedType(self):
         """Checking file with unsupported type."""
 
-        self.assertWarns(DataTypeWarning, repr, self.h5file)
+        self.assertWarns(tb.exceptions.DataTypeWarning, repr, self.h5file)
 
 
 # Test for specific system attributes
-class SpecificAttrsTestCase(common.TempFileMixin, TestCase):
+class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_earray(self):
         """Testing EArray specific attrs (create)."""
 
-        ea = self.h5file.create_earray('/', 'ea', Int32Atom(), (2, 0, 4))
+        ea = self.h5file.create_earray('/', 'ea', tb.Int32Atom(), (2, 0, 4))
         if common.verbose:
             print("EXTDIM-->", ea.attrs.EXTDIM)
         self.assertEqual(ea.attrs.EXTDIM, 1)
@@ -1842,7 +1836,7 @@ class SpecificAttrsTestCase(common.TempFileMixin, TestCase):
     def test01_earray(self):
         """Testing EArray specific attrs (open)."""
 
-        ea = self.h5file.create_earray('/', 'ea', Int32Atom(), (0, 1, 4))
+        ea = self.h5file.create_earray('/', 'ea', tb.Int32Atom(), (0, 1, 4))
         self._reopen('r')
         ea = self.h5file.root.ea
         if common.verbose:
@@ -1851,31 +1845,31 @@ class SpecificAttrsTestCase(common.TempFileMixin, TestCase):
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
     niter = 1
 
     for i in range(niter):
-        theSuite.addTest(unittest.makeSuite(NotCloseCreate))
-        theSuite.addTest(unittest.makeSuite(CloseCreate))
-        theSuite.addTest(unittest.makeSuite(NoCacheNotCloseCreate))
-        theSuite.addTest(unittest.makeSuite(NoCacheCloseCreate))
-        theSuite.addTest(unittest.makeSuite(DictCacheNotCloseCreate))
-        theSuite.addTest(unittest.makeSuite(DictCacheCloseCreate))
-        theSuite.addTest(unittest.makeSuite(NotCloseTypesTestCase))
-        theSuite.addTest(unittest.makeSuite(CloseTypesTestCase))
-        theSuite.addTest(unittest.makeSuite(CloseNotAlignedPaddedTypesTestCase))
-        theSuite.addTest(unittest.makeSuite(NoCloseAlignedTypesTestCase))
-        theSuite.addTest(unittest.makeSuite(CloseAlignedTypesTestCase))
-        theSuite.addTest(unittest.makeSuite(CloseAlignedPaddedTypesTestCase))
-        theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
-        theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
-        theSuite.addTest(unittest.makeSuite(CompatibilityTestCase))
-        theSuite.addTest(unittest.makeSuite(PicklePy2UnpicklePy3TestCase))
-        theSuite.addTest(unittest.makeSuite(SegFaultPythonTestCase))
-        theSuite.addTest(unittest.makeSuite(EmbeddedNullsTestCase))
-        theSuite.addTest(unittest.makeSuite(VlenStrAttrTestCase))
-        theSuite.addTest(unittest.makeSuite(UnsupportedAttrTypeTestCase))
-        theSuite.addTest(unittest.makeSuite(SpecificAttrsTestCase))
+        theSuite.addTest(common.unittest.makeSuite(NotCloseCreate))
+        theSuite.addTest(common.unittest.makeSuite(CloseCreate))
+        theSuite.addTest(common.unittest.makeSuite(NoCacheNotCloseCreate))
+        theSuite.addTest(common.unittest.makeSuite(NoCacheCloseCreate))
+        theSuite.addTest(common.unittest.makeSuite(DictCacheNotCloseCreate))
+        theSuite.addTest(common.unittest.makeSuite(DictCacheCloseCreate))
+        theSuite.addTest(common.unittest.makeSuite(NotCloseTypesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CloseTypesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CloseNotAlignedPaddedTypesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(NoCloseAlignedTypesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CloseAlignedTypesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CloseAlignedPaddedTypesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(NoSysAttrsNotClose))
+        theSuite.addTest(common.unittest.makeSuite(NoSysAttrsClose))
+        theSuite.addTest(common.unittest.makeSuite(CompatibilityTestCase))
+        theSuite.addTest(common.unittest.makeSuite(PicklePy2UnpicklePy3TestCase))
+        theSuite.addTest(common.unittest.makeSuite(SegFaultPythonTestCase))
+        theSuite.addTest(common.unittest.makeSuite(EmbeddedNullsTestCase))
+        theSuite.addTest(common.unittest.makeSuite(VlenStrAttrTestCase))
+        theSuite.addTest(common.unittest.makeSuite(UnsupportedAttrTypeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(SpecificAttrsTestCase))
 
     return theSuite
 
@@ -1883,4 +1877,4 @@ def suite():
 if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')
