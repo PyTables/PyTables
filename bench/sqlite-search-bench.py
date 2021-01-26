@@ -4,7 +4,6 @@ import sqlite
 import random
 import sys
 import os
-import os.path
 from time import perf_counter as clock
 from time import process_time as cpuclock
 

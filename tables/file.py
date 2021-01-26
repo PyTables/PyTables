@@ -18,15 +18,14 @@ nodes.
 
 """
 
-import collections
-import datetime as dt
+import datetime
 import os
 import sys
-import time
 import weakref
 import warnings
+from collections import defaultdict
 
-import numexpr
+import numexpr as ne
 import numpy as np
 
 from . import hdf5extension
@@ -84,7 +83,7 @@ compatible_formats = []  # Old format versions we can read
 
 class _FileRegistry:
     def __init__(self):
-        self._name_mapping = collections.defaultdict(set)
+        self._name_mapping = defaultdict(set)
         self._handlers = set()
 
     @property
@@ -825,7 +824,7 @@ class File(hdf5extension.File):
             self.enable_undo()
 
         # Set the maximum number of threads for Numexpr
-        numexpr.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
+        ne.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
 
     def __get_root_group(self, root_uep, title, filters):
         """Returns a Group instance which will act as the root group in the
@@ -2786,8 +2785,8 @@ class File(hdf5extension.File):
 
         # Print all the nodes (Group and Leaf objects) on object tree
         try:
-            date = dt.datetime.fromtimestamp(
-                os.stat(self.filename).st_mtime, dt.timezone.utc
+            date = datetime.datetime.fromtimestamp(
+                os.stat(self.filename).st_mtime, datetime.timezone.utc
             ).isoformat(timespec='seconds')
         except OSError:
             # in-memory file

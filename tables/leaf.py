@@ -21,7 +21,6 @@ from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
 from .exceptions import PerformanceWarning
-from . import utilsextension
 
 
 def csformula(expected_mb):

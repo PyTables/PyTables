@@ -11,7 +11,6 @@
 """Here is defined the Group class."""
 
 import os
-import re
 import weakref
 import warnings
 

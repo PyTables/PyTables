@@ -1,4 +1,4 @@
-import subprocess  # Needs Python 2.4
+import subprocess
 from indexed_search import DB
 import psycopg2 as db2
 

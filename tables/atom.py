@@ -13,7 +13,6 @@
 # Imports
 # =======
 import re
-import sys
 import inspect
 import warnings
 

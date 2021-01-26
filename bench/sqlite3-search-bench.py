@@ -1,5 +1,4 @@
 import os
-import os.path
 from time import perf_counter as clock
 import numpy as np
 import random
