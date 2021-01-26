@@ -2,28 +2,28 @@
 # the node numbers in LRU cache. Arrays version.
 
 from time import perf_counter as clock
-import tables
+import tables as tb
 
-print("PyTables version-->", tables.__version__)
+print("PyTables version-->", tb.__version__)
 
 filename = "/tmp/junk-array.h5"
 NOBJS = 1000
 
 
 def create_junk():
-    fileh = tables.open_file(filename, mode="w")
+    fileh = tb.open_file(filename, mode="w")
     for i in range(NOBJS):
         fileh.create_array(fileh.root, 'array' + str(i), [1])
     fileh.close()
 
 
 def modify_junk_LRU():
-    fileh = tables.open_file(filename, 'a')
+    fileh = tb.open_file(filename, 'a')
     group = fileh.root
     for j in range(5):
         print("iter -->", j)
         for tt in fileh.walk_nodes(group):
-            if isinstance(tt, tables.Array):
+            if isinstance(tt, tb.Array):
 #                 d = tt.read()
                 pass
 
@@ -31,7 +31,7 @@ def modify_junk_LRU():
 
 
 def modify_junk_LRU2():
-    fileh = tables.open_file(filename, 'a')
+    fileh = tb.open_file(filename, 'a')
     group = fileh.root
     for j in range(5):
         t1 = clock()

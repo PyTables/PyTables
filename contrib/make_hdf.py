@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
+import cPickle
 from time import perf_counter as clock
-import tables, cPickle
+
+import tables as tb
 #################################################################################
 
 
@@ -32,11 +34,11 @@ def make_col(row_type, row_name, row_item, str_len):
     if str_len:
         if 2*str_len>set_len:
             set_len=2*str_len
-        row_type[row_name]=tables.Col("CharType", set_len)
+        row_type[row_name]=tb.Col("CharType", set_len)
     else:
         type_matrix={
-            int: tables.Col("Int32", 1),
-            float: tables.Col("Float32", 4), #Col("Int16", 1)
+            int: tb.Col("Int32", 1),
+            float: tb.Col("Float32", 4), #Col("Int16", 1)
             }
         row_type[row_name]=type_matrix[type(row_item)]
 
@@ -121,7 +123,7 @@ def add_cache(fileh, cache):
         if cache_part:
             cache_pieces.append(cache_part)
     row_type={}
-    row_type['col_0']=tables.Col("CharType", 8000)
+    row_type['col_0']=tb.Col("CharType", 8000)
     #
     table_cache=fileh.createTable(group_obj, table_name, row_type, 'H', compress =1)
     for piece in cache_pieces:
@@ -132,7 +134,7 @@ def add_cache(fileh, cache):
 
 
 def save2(hdf_file, data):
-    fileh=tables.openFile(hdf_file, mode='w', title='logon history')
+    fileh=tb.openFile(hdf_file, mode='w', title='logon history')
     root=fileh.root;cache_root=cache={}
     root_path=root._v_pathname;root=0
     stack = [ (root_path, data, cache) ]
@@ -176,7 +178,7 @@ class Hdf_dict(dict):
         self.cur_dict=self.hdf_dict
 
     def get_cache(self):
-        fileh=tables.openFile(self.hdf_file, rootUEP='pytables_cache_v0')
+        fileh=tb.openFile(self.hdf_file, rootUEP='pytables_cache_v0')
         table=fileh.root.cache0
         total=[]
         print 'reading'
@@ -224,7 +226,7 @@ class Hdf_dict(dict):
             else:
                 new_stack=self.stack[:]
                 new_stack.append(k)
-                fileh=tables.openFile(self.hdf_file, rootUEP='/'.join(new_stack))
+                fileh=tb.openFile(self.hdf_file, rootUEP='/'.join(new_stack))
                 #cur_data=getattr(self.cur_group,k) #/wilma (Group) '' =getattr(/ (Group) 'logon history',wilma)
                 for table in fileh.root:
                     #return [ i['col_1'] for i in table.iterrows() ] #[9110,91]

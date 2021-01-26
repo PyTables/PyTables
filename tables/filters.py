@@ -19,10 +19,9 @@ from . import utilsextension, blosc_compressor_list, blosc_compcode_to_compname
 from .exceptions import FiltersWarning
 from distutils.version import LooseVersion
 
-import tables
-from tables.req_versions import min_blosc_bitshuffle_version
+import tables as tb
 
-blosc_version = LooseVersion(tables.which_lib_version("blosc")[1])
+blosc_version = LooseVersion(tb.which_lib_version("blosc")[1])
 
 
 # Public variables
@@ -115,18 +114,18 @@ class Filters:
     This is a small example on using the Filters class::
 
         import numpy as np
-        import tables
+        import tables as tb
 
-        fileh = tables.open_file('test5.h5', mode='w')
+        fileh = tb.open_file('test5.h5', mode='w')
         atom = Float32Atom()
         filters = Filters(complevel=1, complib='blosc', fletcher32=True)
         arr = fileh.create_earray(fileh.root, 'earray', atom, (0,2),
                                  "A growable array", filters=filters)
 
         # Append several rows in only one call
-        arr.append(numpy.array([[1., 2.],
-                                [2., 3.],
-                                [3., 4.]], dtype=numpy.float32))
+        arr.append(np.array([[1., 2.],
+                             [2., 3.],
+                             [3., 4.]], dtype=np.float32))
 
         # Print information on that enlargeable array
         print("Result Array:")
@@ -366,11 +365,12 @@ class Filters:
             # BitShuffle has priority in case both are specified
             self.shuffle = False
 
-        if self.bitshuffle and blosc_version < min_blosc_bitshuffle_version:
+        if (self.bitshuffle and
+                blosc_version < tb.req_versions.min_blosc_bitshuffle_version):
             raise ValueError(
                 "This Blosc library does not have support for the bitshuffle "
                 "filter.  Please update to Blosc >= %s" % \
-                min_blosc_bitshuffle_version)
+                tb.req_versions)
 
         self.fletcher32 = fletcher32
         """Whether the *Fletcher32* filter is active or not."""

@@ -24,12 +24,11 @@ import unittest
 import numexpr as ne
 import numpy as np
 
-import tables
-from tables.utils import detect_number_of_cores
+import tables as tb
 from tables.req_versions import min_blosc_bitshuffle_version
 
-hdf5_version = LooseVersion(tables.hdf5_version)
-blosc_version = LooseVersion(tables.which_lib_version("blosc")[1])
+hdf5_version = LooseVersion(tb.hdf5_version)
+blosc_version = LooseVersion(tb.which_lib_version("blosc")[1])
 
 
 verbose = False
@@ -60,10 +59,10 @@ def parse_argv(argv):
     return argv
 
 
-zlib_avail = tables.which_lib_version("zlib") is not None
-lzo_avail = tables.which_lib_version("lzo") is not None
-bzip2_avail = tables.which_lib_version("bzip2") is not None
-blosc_avail = tables.which_lib_version("blosc") is not None
+zlib_avail = tb.which_lib_version("zlib") is not None
+lzo_avail = tb.which_lib_version("lzo") is not None
+bzip2_avail = tb.which_lib_version("bzip2") is not None
+blosc_avail = tb.which_lib_version("blosc") is not None
 
 
 def print_heavy(heavy):
@@ -83,10 +82,10 @@ def print_versions():
     """Print all the versions of software that PyTables relies on."""
 
     print('-=' * 38)
-    print("PyTables version:    %s" % tables.__version__)
-    print("HDF5 version:        %s" % tables.which_lib_version("hdf5")[1])
+    print("PyTables version:    %s" % tb.__version__)
+    print("HDF5 version:        %s" % tb.which_lib_version("hdf5")[1])
     print("NumPy version:       %s" % np.__version__)
-    tinfo = tables.which_lib_version("zlib")
+    tinfo = tb.which_lib_version("zlib")
     if ne.use_vml:
         # Get only the main version number and strip out all the rest
         vml_version = ne.get_vml_version()
@@ -98,23 +97,23 @@ def print_versions():
     if tinfo is not None:
         print("Zlib version:        {} ({})".format(tinfo[1],
                                                 "in Python interpreter"))
-    tinfo = tables.which_lib_version("lzo")
+    tinfo = tb.which_lib_version("lzo")
     if tinfo is not None:
         print("LZO version:         {} ({})".format(tinfo[1], tinfo[2]))
-    tinfo = tables.which_lib_version("bzip2")
+    tinfo = tb.which_lib_version("bzip2")
     if tinfo is not None:
         print("BZIP2 version:       {} ({})".format(tinfo[1], tinfo[2]))
-    tinfo = tables.which_lib_version("blosc")
+    tinfo = tb.which_lib_version("blosc")
     if tinfo is not None:
         blosc_date = tinfo[2].split()[1]
         print("Blosc version:       {} ({})".format(tinfo[1], blosc_date))
-        blosc_cinfo = tables.blosc_get_complib_info()
+        blosc_cinfo = tb.blosc_get_complib_info()
         blosc_cinfo = [
             "{} ({})".format(k, v[1]) for k, v in sorted(blosc_cinfo.items())
         ]
         print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
         blosc_finfo = ['shuffle']
-        if tinfo[1] >= min_blosc_bitshuffle_version:
+        if tinfo[1] >= tb.req_versions.min_blosc_bitshuffle_version:
             blosc_finfo.append('bitshuffle')
         print("Blosc filters:       %s" % ', '.join(blosc_finfo))
     try:
@@ -128,7 +127,7 @@ def print_versions():
     #    (sysname, nodename, release, version, machine) = os.uname()
     #    print('Platform:          %s-%s' % (sys.platform, machine))
     print('Byte-ordering:       %s' % sys.byteorder)
-    print('Detected cores:      %s' % detect_number_of_cores())
+    print('Detected cores:      %s' % tb.utils.detect_number_of_cores())
     print('Default encoding:    %s' % sys.getdefaultencoding())
     print('Default FS encoding: %s' % sys.getfilesystemencoding())
     print('Default locale:      (%s, %s)' % locale.getdefaultlocale())
@@ -296,7 +295,7 @@ class TestFileMixin:
 
     def setUp(self):
         super().setUp()
-        self.h5file = tables.open_file(
+        self.h5file = tb.open_file(
             self.h5fname, title=self._getName(), **self.open_kwargs)
 
     def tearDown(self):
@@ -323,7 +322,7 @@ class TempFileMixin:
 
         super().setUp()
         self.h5fname = self._getTempFileName()
-        self.h5file = tables.open_file(
+        self.h5file = tb.open_file(
             self.h5fname, self.open_mode, title=self._getName(),
             **self.open_kwargs)
 
@@ -344,7 +343,7 @@ class TempFileMixin:
         """
 
         self.h5file.close()
-        self.h5file = tables.open_file(self.h5fname, mode, **kwargs)
+        self.h5file = tb.open_file(self.h5fname, mode, **kwargs)
         return True
 
 

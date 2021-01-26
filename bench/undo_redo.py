@@ -6,9 +6,9 @@
 # 2005-03-09
 ###########################################################################
 
-import numpy as np
 from time import perf_counter as clock
-import tables
+import numpy as np
+import tables as tb
 
 verbose = 0
 
@@ -31,7 +31,7 @@ class BasicBenchmark:
     def setUp(self):
 
         # Create an HDF5 file
-        self.fileh = tables.open_file(self.file, mode="w")
+        self.fileh = tb.open_file(self.file, mode="w")
         # open the do/undo
         self.fileh.enable_undo()
 

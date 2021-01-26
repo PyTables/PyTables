@@ -12,9 +12,9 @@ def COMMENT(string):
 COMMENT("**** Usage of the ``Enum`` class. ****")
 
 COMMENT("Create an enumeration of colors with automatic concrete values.")
-import tables
+import tables as tb
 colorList = ['red', 'green', 'blue', 'white', 'black']
-colors = tables.Enum(colorList)
+colors = tb.Enum(colorList)
 
 COMMENT("Take a look at the name-value pairs.")
 print("Colors:", [v for v in colors])
@@ -35,14 +35,14 @@ print("Name of value 1234:", colors(1234))
 COMMENT("**** Enumerated columns. ****")
 
 COMMENT("Create a new PyTables file.")
-h5f = tables.open_file('enum.h5', 'w')
+h5f = tb.open_file('enum.h5', 'w')
 
 COMMENT("This describes a ball extraction.")
 
 
-class BallExt(tables.IsDescription):
-    ballTime = tables.Time32Col()
-    ballColor = tables.EnumCol(colors, 'black', base='uint8')
+class BallExt(tb.IsDescription):
+    ballTime = tb.Time32Col()
+    ballColor = tb.EnumCol(colors, 'black', base='uint8')
 
 COMMENT("Create a table of ball extractions.")
 tbl = h5f.create_table(
@@ -75,7 +75,7 @@ COMMENT("**** Enumerated arrays. ****")
 
 COMMENT("This describes a range of working days.")
 workingDays = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5}
-dayRange = tables.EnumAtom(workingDays, 'Mon', base='uint16', shape=(0, 2))
+dayRange = tb.EnumAtom(workingDays, 'Mon', base='uint16', shape=(0, 2))
 
 COMMENT("Create an EArray of day ranges within a week.")
 earr = h5f.create_earray('/', 'days', dayRange, title="Working day ranges")

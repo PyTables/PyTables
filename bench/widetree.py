@@ -6,7 +6,7 @@ import os
 import tempfile
 from time import perf_counter as clock
 
-from tables import *
+import tables as tb
 
 verbose = 0
 
@@ -34,7 +34,7 @@ class WideTreeTestCase(unittest.TestCase):
         #file = tempfile.mktemp(".h5")
         file = "test_widetree.h5"
 
-        fileh = open_file(file, mode="w")
+        fileh = tb.open_file(file, mode="w")
         if verbose:
             print("Children writing progress: ", end=' ')
         for child in range(maxchilds):
@@ -52,7 +52,7 @@ class WideTreeTestCase(unittest.TestCase):
 
         t1 = clock()
         # Open the previous HDF5 file in read-only mode
-        fileh = open_file(file, mode="r")
+        fileh = tb.open_file(file, mode="r")
         print("\nTime spent opening a file with %d groups + %d arrays: "
               "%s s" % (maxchilds, maxchilds, clock() - t1))
         if verbose:
@@ -82,7 +82,7 @@ class WideTreeTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         #file = "test_widetree.h5"
 
-        fileh = open_file(file, mode="w")
+        fileh = tb.open_file(file, mode="w")
         if verbose:
             print("Children writing progress: ", end=' ')
         for child in range(maxchilds):
@@ -97,7 +97,7 @@ class WideTreeTestCase(unittest.TestCase):
 
         t1 = clock()
         # Open the previous HDF5 file in read-only mode
-        fileh = open_file(file, mode="r")
+        fileh = tb.open_file(file, mode="r")
         print("\nTime spent opening a file with %d groups: %s s" %
               (maxchilds, clock() - t1))
         # Close the file

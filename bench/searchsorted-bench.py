@@ -3,35 +3,35 @@
 from time import perf_counter as clock
 from time import process_time as cpuclock
 
-from tables import *
+import tables as tb
 
 
-class Small(IsDescription):
-    var1 = StringCol(itemsize=4)
-    var2 = Int32Col()
-    var3 = Float64Col()
-    var4 = BoolCol()
+class Small(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=4)
+    var2 = tb.Int32Col()
+    var3 = tb.Float64Col()
+    var4 = tb.BoolCol()
 
 # Define a user record to characterize some kind of particles
 
 
-class Medium(IsDescription):
-    var1 = StringCol(itemsize=16)   # 16-character String
+class Medium(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=16)   # 16-character String
     #float1 = Float64Col(dflt=2.3)
     #float2 = Float64Col(dflt=2.3)
     # zADCcount    = Int16Col()      # signed short integer
-    var2 = Int32Col()               # signed short integer
-    var3 = Float64Col()
-    grid_i = Int32Col()             # integer
-    grid_j = Int32Col()             # integer
-    pressure = Float32Col()         # float  (single-precision)
-    energy = Float64Col(shape=2)    # double (double-precision)
+    var2 = tb.Int32Col()               # signed short integer
+    var3 = tb.Float64Col()
+    grid_i = tb.Int32Col()             # integer
+    grid_j = tb.Int32Col()             # integer
+    pressure = tb.Float32Col()         # float  (single-precision)
+    energy = tb.Float64Col(shape=2)    # double (double-precision)
 
 
 def createFile(filename, nrows, filters, atom, recsize, index, verbose):
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="Searchsorted Benchmark",
+    fileh = tb.open_file(filename, mode="w", title="Searchsorted Benchmark",
                       filters=filters)
     title = "This is the IndexArray title"
     # Create an IndexArray instance
@@ -76,7 +76,7 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
 def readFile(filename, atom, niter, verbose):
     # Open the HDF5 file in read-only mode
 
-    fileh = open_file(filename, mode="r")
+    fileh = tb.open_file(filename, mode="r")
     table = fileh.root.table
     print("reading", table)
     if atom == "string":
@@ -153,7 +153,7 @@ def readFile(filename, atom, niter, verbose):
 def searchFile(filename, atom, verbose, item):
     # Open the HDF5 file in read-only mode
 
-    fileh = open_file(filename, mode="r")
+    fileh = tb.open_file(filename, mode="r")
     rowsread = 0
     uncomprBytes = 0
     table = fileh.root.table
@@ -283,8 +283,8 @@ if __name__ == "__main__":
             niter = int(option[1])
 
     # Build the Filters instance
-    filters = Filters(complevel=complevel, complib=complib,
-                      shuffle=shuffle, fletcher32=fletcher32)
+    filters = tb.Filters(complevel=complevel, complib=complib,
+                         shuffle=shuffle, fletcher32=fletcher32)
 
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]

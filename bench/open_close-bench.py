@@ -10,8 +10,9 @@ import getopt
 import pstats
 import cProfile as prof
 import subprocess
-import tables
 from time import perf_counter as clock
+
+import tables as tb
 
 filename = None
 niter = 1
@@ -48,7 +49,7 @@ def check_open_close():
         print(
             "------------------ open_close #%s -------------------------" % i)
         tref = clock()
-        fileh = tables.open_file(filename)
+        fileh = tb.open_file(filename)
         fileh.close()
         show_stats("After closing file", tref)
 
@@ -57,7 +58,7 @@ def check_only_open():
     for i in range(niter):
         print("------------------ only_open #%s -------------------------" % i)
         tref = clock()
-        fileh = tables.open_file(filename)
+        fileh = tb.open_file(filename)
         show_stats("Before closing file", tref)
         fileh.close()
 
@@ -66,7 +67,7 @@ def check_full_browse():
     for i in range(niter):
         print("------------------ full_browse #%s -----------------------" % i)
         tref = clock()
-        fileh = tables.open_file(filename)
+        fileh = tb.open_file(filename)
         for node in fileh:
             pass
         fileh.close()
@@ -77,7 +78,7 @@ def check_partial_browse():
     for i in range(niter):
         print("------------------ partial_browse #%s --------------------" % i)
         tref = clock()
-        fileh = tables.open_file(filename)
+        fileh = tb.open_file(filename)
         for node in fileh.root.ngroup0.ngroup1:
             pass
         fileh.close()
@@ -88,7 +89,7 @@ def check_full_browse_attrs():
     for i in range(niter):
         print("------------------ full_browse_attrs #%s -----------------" % i)
         tref = clock()
-        fileh = tables.open_file(filename)
+        fileh = tb.open_file(filename)
         for node in fileh:
             # Access to an attribute
             klass = node._v_attrs.CLASS
@@ -100,7 +101,7 @@ def check_partial_browse_attrs():
     for i in range(niter):
         print("------------------ partial_browse_attrs #%s --------------" % i)
         tref = clock()
-        fileh = tables.open_file(filename)
+        fileh = tb.open_file(filename)
         for node in fileh.root.ngroup0.ngroup1:
             # Access to an attribute
             klass = node._v_attrs.CLASS
@@ -112,7 +113,7 @@ def check_open_group():
     for i in range(niter):
         print("------------------ open_group #%s ------------------------" % i)
         tref = clock()
-        fileh = tables.open_file(filename)
+        fileh = tb.open_file(filename)
         group = fileh.root.ngroup0.ngroup1
         # Access to an attribute
         klass = group._v_attrs.CLASS
@@ -124,7 +125,7 @@ def check_open_leaf():
     for i in range(niter):
         print("------------------ open_leaf #%s -----------------------" % i)
         tref = clock()
-        fileh = tables.open_file(filename)
+        fileh = tb.open_file(filename)
         leaf = fileh.root.ngroup0.ngroup1.array9
         # Access to an attribute
         klass = leaf._v_attrs.CLASS

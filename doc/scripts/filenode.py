@@ -1,11 +1,10 @@
 # Copy this file into the clipboard and paste into 'script -c python'.
 
-import tables
-from tables.nodes import FileNode
+import tables as tb
 
-h5file = tables.open_file('fnode.h5', 'w')
+h5file = tb.open_file('fnode.h5', 'w')
 
-fnode = FileNode.new_node(h5file, where='/', name='fnode_test')
+fnode = tb.nodes.FileNode.new_node(h5file, where='/', name='fnode_test')
 
 print(h5file.getAttrNode('/fnode_test', 'NODE_TYPE'))
 
@@ -23,7 +22,7 @@ fnode.close()
 print(fnode.closed)
 
 node = h5file.root.fnode_test
-fnode = FileNode.open_node(node, 'a+')
+fnode = tb.nodes.FileNode.open_node(node, 'a+')
 print(repr(fnode.readline()))
 print(fnode.tell())
 print("This is a new line.", file=fnode)

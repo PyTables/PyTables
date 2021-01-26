@@ -1,5 +1,5 @@
 import numpy as np
-import tables
+import tables as tb
 from time import perf_counter as clock
 
 N = 1000 * 1000
@@ -9,9 +9,9 @@ NCOLL = 200  # 200 collections maximum
 np.random.seed(19)
 
 
-class Energies(tables.IsDescription):
-    collection = tables.UInt8Col()
-    energy = tables.Float64Col()
+class Energies(tb.IsDescription):
+    collection = tb.UInt8Col()
+    energy = tb.Float64Col()
 
 
 def fill_bucket(lbucket):
@@ -22,7 +22,7 @@ def fill_bucket(lbucket):
 
 # Fill the table
 t1 = clock()
-f = tables.open_file("data.nobackup/collations.h5", "w")
+f = tb.open_file("data.nobackup/collations.h5", "w")
 table = f.create_table("/", "Energies", Energies, expectedrows=N)
 # Fill the table with values
 lbucket = 1000   # Fill in buckets of 1000 rows, for speed
@@ -36,7 +36,7 @@ f.close()
 print(f"Time to create the table with {N} entries: {t1:.3f}")
 
 # Now, read the table and group it by collection
-f = tables.open_file("data.nobackup/collations.h5", "a")
+f = tb.open_file("data.nobackup/collations.h5", "a")
 table = f.root.Energies
 
 #########################################################

@@ -1,6 +1,7 @@
-from tables.indexesextension import keysort
-import numpy as np
 from time import perf_counter as clock
+
+import numpy as np
+import tables as tb
 
 N = 1000 * 1000
 rnd = np.random.randint(N, size=N)
@@ -24,7 +25,7 @@ for dtype1 in ('S6', 'b1',
         print("normal sort time-->", tref)
 
         t1 = clock()
-        keysort(a, b)
+        tb.indexesextension.keysort(a, b)
         tks = clock() - t1
         print("keysort time-->", tks, "    {:.2f}x".format(tref / tks))
         assert np.alltrue(a == e)

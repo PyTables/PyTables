@@ -1,9 +1,9 @@
 """Small example of do/undo capability with PyTables."""
 
-import tables
+import tables as tb
 
 # Create an HDF5 file
-fileh = tables.open_file("tutorial3-1.h5", "w", title="Undo/Redo demo 1")
+fileh = tb.open_file("tutorial3-1.h5", "w", title="Undo/Redo demo 1")
 
          #'-**-**-**-**-**-**- enable undo/redo log  -**-**-**-**-**-**-**-'
 fileh.enable_undo()

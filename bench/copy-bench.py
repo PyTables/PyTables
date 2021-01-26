@@ -1,18 +1,19 @@
-import tables
 import sys
 from time import perf_counter as clock
+
+import tables as tb
 
 if len(sys.argv) != 3:
     print("usage: %s source_file dest_file", sys.argv[0])
 filesrc = sys.argv[1]
 filedest = sys.argv[2]
-filehsrc = tables.open_file(filesrc)
-filehdest = tables.open_file(filedest, 'w')
+filehsrc = tb.open_file(filesrc)
+filehdest = tb.open_file(filedest, 'w')
 ntables = 0
 tsize = 0
 t1 = clock()
 for group in filehsrc.walk_groups():
-    if isinstance(group._v_parent, tables.File):
+    if isinstance(group._v_parent, tb.File):
         groupdest = filehdest.root
     else:
         pathname = group._v_parent._v_pathname

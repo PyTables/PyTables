@@ -5,7 +5,7 @@ import os
 import subprocess
 from time import perf_counter as clock
 import random
-import tables
+import tables as tb
 
 random.seed(2)
 
@@ -45,8 +45,8 @@ def populate(f, nlevels):
     for i in range(nlevels):
         #dset = f.create_array(g, "DS1", arr)
         #dset = f.create_array(g, "DS2", arr)
-        f.create_carray(g, "DS1", tables.IntAtom(), (10,))
-        f.create_carray(g, "DS2", tables.IntAtom(), (10,))
+        f.create_carray(g, "DS1", tb.IntAtom(), (10,))
+        f.create_carray(g, "DS2", tb.IntAtom(), (10,))
         #dset = f.create_table(g, "DS1", descr)
         #dset = f.create_table(g, "DS2", descr)
         f.create_group(g, 'group2_')
@@ -82,9 +82,9 @@ if __name__ == '__main__':
         tref = clock()
     if profile:
         show_stats("Abans de crear...", tref)
-    f = tables.open_file("/tmp/PTdeep-tree.h5", 'w',
-                         node_cache_slots=nodeCacheSlots,
-                         pytables_sys_attrs=pytables_sys_attrs)
+    f = tb.open_file("/tmp/PTdeep-tree.h5", 'w',
+                     node_cache_slots=nodeCacheSlots,
+                     pytables_sys_attrs=pytables_sys_attrs)
     if doprofile:
         prof.run('populate(f, nlevels)', 'populate.prof')
         stats = pstats.Stats('populate.prof')
@@ -104,9 +104,9 @@ if __name__ == '__main__':
         tref = clock()
     if profile:
         show_stats("Abans d'obrir...", tref)
-    f = tables.open_file("/tmp/PTdeep-tree.h5", 'r',
-                         node_cache_slots=nodeCacheSlots,
-                         pytables_sys_attrs=pytables_sys_attrs)
+    f = tb.open_file("/tmp/PTdeep-tree.h5", 'r',
+                     node_cache_slots=nodeCacheSlots,
+                     pytables_sys_attrs=pytables_sys_attrs)
     if profile:
         show_stats("Abans d'accedir...", tref)
     if doprofile:

@@ -35,7 +35,7 @@ import warnings
 
 import numpy as np
 
-import tables
+import tables as tb
 
 
 NodeType = 'file'
@@ -388,9 +388,9 @@ class RawPyTablesIO(io.RawIOBase):
             raise ValueError("host PyTables file is already closed!")
 
     def _check_node(self, node):
-        if not isinstance(node, tables.EArray):
+        if not isinstance(node, tb.EArray):
             raise TypeError('the "node" parameter should be a tables.EArray')
-        if not isinstance(node.atom, tables.UInt8Atom):
+        if not isinstance(node.atom, tb.UInt8Atom):
             raise TypeError('only nodes with atom "UInt8Atom" are allowed')
 
     def _check_mode(self, mode):
@@ -622,7 +622,7 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
             self._version = NodeTypeVersions[-1]
             shape = self._byte_shape[self._version]
             node = h5file.create_earray(
-                atom=tables.UInt8Atom(), shape=shape, **kwargs)
+                atom=tb.UInt8Atom(), shape=shape, **kwargs)
 
             # Set the node attributes, else remove the array itself.
             try:
@@ -734,12 +734,12 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
     # sanity checks
     if not os.access(filename, os.R_OK):
         raise OSError("The file '%s' could not be read" % filename)
-    if isinstance(h5file, tables.file.File) and h5file.mode == "r":
+    if isinstance(h5file, tb.file.File) and h5file.mode == "r":
         raise OSError("The file '%s' is opened read-only" % h5file.filename)
 
     # guess filenode's name if necessary
     if name is None:
-        if isinstance(where, tables.group.Group):
+        if isinstance(where, tb.group.Group):
             name = os.path.split(filename)[1]
         if isinstance(where, str):
             if where.endswith("/"):
@@ -750,12 +750,12 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
                 name = nodepath[-1]
 
     # sanitize name if necessary
-    if not tables.path._python_id_re.match(name):
+    if not tb.path._python_id_re.match(name):
         name = re.sub('(?![a-zA-Z0-9_]).', "_",
                       re.sub('^(?![a-zA-Z_]).', "_", name))
 
-    new_h5file = not isinstance(h5file, tables.file.File)
-    f = tables.File(h5file, "a") if new_h5file else h5file
+    new_h5file = not isinstance(h5file, tb.file.File)
+    f = tb.File(h5file, "a") if new_h5file else h5file
 
     # check for already existing filenode
     try:
@@ -765,7 +765,7 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
                 f.close()
             raise OSError("Specified node already exists in file '%s'" %
                           f.filename)
-    except tables.NoSuchNodeError:
+    except tb.NoSuchNodeError:
         pass
 
     # read data from disk
@@ -775,7 +775,7 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
     # remove existing filenode if present
     try:
         f.remove_node(where=where, name=name)
-    except tables.NoSuchNodeError:
+    except tb.NoSuchNodeError:
         pass
 
     # write file's contents to filenode
@@ -822,11 +822,11 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
       given target ``filename`` will be created.
 
     """
-    new_h5file = not isinstance(h5file, tables.file.File)
-    f = tables.File(h5file, "r") if new_h5file else h5file
+    new_h5file = not isinstance(h5file, tb.file.File)
+    f = tb.File(h5file, "r") if new_h5file else h5file
     try:
         fnode = open_node(f.get_node(where=where, name=name))
-    except tables.NoSuchNodeError:
+    except tb.NoSuchNodeError:
         fnode = None
         for n in f.walk_nodes(where=where, classname="EArray"):
             if n.attrs._filename == name:
@@ -834,8 +834,8 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
                 break
         if fnode is None:
             f.close()
-            raise tables.NoSuchNodeError("A filenode '%s' cannot be found at "
-                                         "'%s'" % (name, where))
+            raise tb.NoSuchNodeError("A filenode '%s' cannot be found at "
+                                     "'%s'" % (name, where))
 
     # guess output filename if necessary
     if os.path.isdir(filename) or filename.endswith(os.path.sep):

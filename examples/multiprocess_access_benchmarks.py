@@ -22,14 +22,14 @@ import time
 from time import perf_counter as clock
 
 import numpy as np
-import tables
+import tables as tb
 
 
 # create a PyTables file with a single int64 array with the specified number of
 # elements
 def create_file(array_size):
     array = np.ones(array_size, dtype='i8')
-    with tables.open_file('test.h5', 'w') as fobj:
+    with tb.open_file('test.h5', 'w') as fobj:
         array = fobj.create_array('/', 'test', array)
         print('file created, size: {} MB'.format(array.size_on_disk / 1e6))
 
@@ -63,7 +63,7 @@ def read_and_send_pipe(send_type, array_size):
     recv_process = PipeReceive(array_recv, result_send)
     recv_process.start()
     time.sleep(0.15)
-    with tables.open_file('test.h5', 'r') as fobj:
+    with tb.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
         start_timestamp = clock()
         # read an array from the PyTables file and send it to the other process
@@ -109,7 +109,7 @@ def read_and_send_memmap(send_type, array_size):
     recv_process = MemmapReceive(path_recv, result_send)
     recv_process.start()
     time.sleep(0.15)
-    with tables.open_file('test.h5', 'r') as fobj:
+    with tb.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
         start_timestamp = clock()
         # memmap a file as a NumPy array in 'overwrite' mode
@@ -187,7 +187,7 @@ def read_and_send_socket(send_type, array_size, array_bytes, address_func,
                                  array_bytes)
     recv_process.start()
     time.sleep(0.15)
-    with tables.open_file('test.h5', 'r') as fobj:
+    with tb.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
         start_timestamp = clock()
         # connect to the receiving process' socket

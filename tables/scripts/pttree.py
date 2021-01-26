@@ -14,12 +14,13 @@ Pass the flag -h to this for help on usage.
 
 """
 
-import tables
-import numpy as np
 import os
 import argparse
 from collections import defaultdict, deque
 import warnings
+
+import numpy as np
+import tables as tb
 
 
 def _get_parser():
@@ -107,7 +108,7 @@ def main():
             # case where filename == "filename:" instead of "filename:/"
             nodename = "/"
 
-    with tables.open_file(filename, 'r') as f:
+    with tb.open_file(filename, 'r') as f:
         tree_str = get_tree_str(f, nodename, **args.__dict__)
         print(tree_str)
 
@@ -159,7 +160,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
 
         node = stack.pop()
 
-        if isinstance(node, tables.link.Link):
+        if isinstance(node, tb.link.Link):
             # we treat links like leaves, except we don't dereference them to
             # get their sizes or addresses
             leaves.append(node)
@@ -171,10 +172,10 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
         ref_idx[path] = ref_count[addr]
         hl_addresses[path] = addr
 
-        if isinstance(node, tables.UnImplemented):
+        if isinstance(node, tb.UnImplemented):
             leaves.append(node)
 
-        elif isinstance(node, tables.Leaf):
+        elif isinstance(node, tb.Leaf):
 
             # only count the size of a hardlinked leaf the first time it is
             # visited
@@ -205,7 +206,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             # push leaf nodes onto the stack for the next pass
             leaves.append(node)
 
-        elif isinstance(node, tables.Group):
+        elif isinstance(node, tb.Group):
 
             # don't recurse down the same hardlinked branch multiple times!
             if ref_count[addr] == 1:
@@ -261,14 +262,14 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                     ref_count[hl_addresses[path]]
                 )
 
-            if isinstance(node, tables.link.Link):
+            if isinstance(node, tb.link.Link):
                 labels.append('softlink --> %s' % node.target)
 
             elif ref_idx[path] > 1:
                 labels.append('hardlink --> %s'
                               % hl_targets[hl_addresses[path]])
 
-            elif isinstance(node, (tables.Array, tables.Table)):
+            elif isinstance(node, (tb.Array, tb.Table)):
 
                 if print_size:
                     sizestr = 'mem={}, disk={}'.format(
@@ -440,13 +441,13 @@ def bytes2human(use_si_units=False):
 
 
 def make_test_file(prefix='/tmp'):
-    f = tables.open_file(os.path.join(prefix, 'test_pttree.hdf5'), 'w')
+    f = tb.open_file(os.path.join(prefix, 'test_pttree.hdf5'), 'w')
 
     g1 = f.create_group('/', 'group1')
     g1a = f.create_group(g1, 'group1a')
     g1b = f.create_group(g1, 'group1b')
 
-    filters = tables.Filters(complevel=5, complib='bzip2')
+    filters = tb.Filters(complevel=5, complib='bzip2')
 
     for gg in g1a, g1b:
         f.create_carray(gg, 'zeros128b', obj=np.zeros(32, dtype=np.float64),

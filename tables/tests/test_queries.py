@@ -17,12 +17,8 @@ import functools
 
 import numpy as np
 
-import tables
-from tables.utils import SizeType
+import tables as tb
 from tables.tests import common
-from tables.tests.common import unittest
-from tables.tests.common import verbosePrint as vprint
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Data parameters
@@ -32,7 +28,7 @@ row_period = 50
 md_shape = (2, 2)
 """Shape of multidimensional fields."""
 
-_maxnvalue = row_period + np.prod(md_shape, dtype=SizeType) - 1
+_maxnvalue = row_period + np.prod(md_shape, dtype=tb.utils.SizeType) - 1
 _strlen = int(np.log10(_maxnvalue-1)) + 1
 
 str_format = '%%0%dd' % _strlen
@@ -95,7 +91,7 @@ nxtype_from_type = {type_: info[1]
 heavy_types = frozenset(['uint8', 'int16', 'uint16', 'float32', 'complex64'])
 """PyTables types to be tested only in heavy mode."""
 
-enum = tables.Enum({'n%d' % i: i for i in range(_maxnvalue)})
+enum = tb.Enum({'n%d' % i: i for i in range(_maxnvalue)})
 """Enumerated type to be used in tests."""
 
 
@@ -115,12 +111,12 @@ def append_columns(classdict, shape=()):
         colpos = itype + 1
         colname = 'c_%s' % type_
         if type_ == 'enum':
-            base = tables.Atom.from_sctype(sctype_from_type[type_])
-            col = tables.EnumCol(enum, enum(0), base, shape=shape, pos=colpos)
+            base = tb.Atom.from_sctype(sctype_from_type[type_])
+            col = tb.EnumCol(enum, enum(0), base, shape=shape, pos=colpos)
         else:
             sctype = sctype_from_type[type_]
             dtype = np.dtype((sctype, shape))
-            col = tables.Col.from_dtype(dtype, pos=colpos)
+            col = tb.Col.from_dtype(dtype, pos=colpos)
         classdict[colname] = col
     ncols = colpos
     return ncols
@@ -136,7 +132,7 @@ def nested_description(classname, pos, shape=()):
     classdict = {}
     append_columns(classdict, shape=shape)
     classdict['_v_pos'] = pos
-    return type(classname, (tables.IsDescription,), classdict)
+    return type(classname, (tb.IsDescription,), classdict)
 
 
 def table_description(classname, nclassname, shape=()):
@@ -158,15 +154,15 @@ def table_description(classname, nclassname, shape=()):
     classdict['c_nested'] = ndescr
     colpos += 1
 
-    extracol = tables.IntCol(shape=shape, pos=colpos)
+    extracol = tb.IntCol(shape=shape, pos=colpos)
     classdict['c_extra'] = extracol
     colpos += 1
 
-    idxextracol = tables.IntCol(shape=shape, pos=colpos)
+    idxextracol = tb.IntCol(shape=shape, pos=colpos)
     classdict['c_idxextra'] = idxextracol
     colpos += 1
 
-    return type(classname, (tables.IsDescription,), classdict)
+    return type(classname, (tb.IsDescription,), classdict)
 
 TableDescription = table_description(
     'TableDescription', 'NestedDescription')
@@ -203,7 +199,7 @@ def fill_table(table, shape, nrows):
         return
 
     heavy = common.heavy
-    size = int(np.prod(shape, dtype=SizeType))
+    size = int(np.prod(shape, dtype=tb.utils.SizeType))
 
     row, value = table.row, 0
     for nrow in range(nrows):
@@ -234,13 +230,13 @@ def fill_table(table, shape, nrows):
     table_data[(shape, nrows)] = tdata
 
 
-class SilentlySkipTest(unittest.SkipTest):
+class SilentlySkipTest(common.unittest.SkipTest):
     pass
 
 
 # Base test cases
 # ---------------
-class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
+class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Base test case for querying tables.
 
     Sub-classes must define the following attributes:
@@ -273,7 +269,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
             return
         try:
             kind = self.kind
-            vprint(f"* Indexing ``{colname}`` columns. Type: {kind}.")
+            common.verbosePrint(f"* Indexing ``{colname}`` columns. Type: {kind}.")
             for acolname in [colname, ncolname, extracolname]:
                 acolumn = self.table.colinstances[acolname]
                 acolumn.create_index(
@@ -396,7 +392,7 @@ def create_test_method(type_, op, extracond, func=None):
 
     @ignore_skipped
     def test_method(self):
-        vprint("* Condition is ``%s``." % cond)
+        common.verbosePrint("* Condition is ``%s``." % cond)
         # Replace bitwise operators with their logical counterparts.
         pycond = cond
         for (ptop, pyop) in [('&', 'and'), ('|', 'or'), ('~', 'not')]:
@@ -433,7 +429,7 @@ def create_test_method(type_, op, extracond, func=None):
             pyrownos = np.array(pyrownos)  # row numbers already sorted
             pyfvalues = np.array(pyfvalues, dtype=sctype)
             pyfvalues.sort()
-            vprint("* %d rows selected by Python from ``%s``."
+            common.verbosePrint("* %d rows selected by Python from ``%s``."
                    % (len(pyrownos), acolname))
             if rownos is None:
                 rownos = pyrownos  # initialise reference results
@@ -467,9 +463,9 @@ def create_test_method(type_, op, extracond, func=None):
                     "The PyTables type does not support the operation.")
             for ptfvals in ptfvalues:  # row numbers already sorted
                 ptfvals.sort()
-            vprint("* %d rows selected by PyTables from ``%s``"
+            common.verbosePrint("* %d rows selected by PyTables from ``%s``"
                    % (len(ptrownos[0]), acolname), nonl=True)
-            vprint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
+            common.verbosePrint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
             self.assertTrue(np.all(ptrownos[0] == rownos))
             self.assertTrue(np.all(ptfvalues[0] == fvalues))
             # The following test possible caching of query results.
@@ -823,7 +819,7 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
                              "Computed index operations are:\n``%s``\n"
                              "and should be:\n``%s``" %
                             (condition, c_str_expr, self.str_expr))
-            vprint("* Query with condition ``%s`` will use "
+            common.verbosePrint("* Query with condition ``%s`` will use "
                    "variables ``%s`` for indexing."
                    % (condition, compiled.index_variables))
 
@@ -1225,7 +1221,7 @@ class IndexedTableUsage32(IndexedTableUsage):
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
-    testSuite = unittest.TestSuite()
+    testSuite = common.unittest.TestSuite()
 
     cdatafuncs = [niclassdata]  # non-indexing data tests
     cdatafuncs.append(iclassdata)  # indexing data tests
@@ -1244,43 +1240,43 @@ def suite():
             for cdata in cdatafunc():
                 class_ = eval(cdata[0])
                 if heavy or not class_.heavy:
-                    suite_ = unittest.makeSuite(class_, prefix=autoprefix)
+                    suite_ = common.unittest.makeSuite(class_, prefix=autoprefix)
                     testSuite.addTest(suite_)
         # Tests on query usage.
-        testSuite.addTest(unittest.makeSuite(ScalarTableUsageTestCase))
-        testSuite.addTest(unittest.makeSuite(MDTableUsageTestCase))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage1))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage2))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage3))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage4))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage5))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage6))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage7))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage8))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage9))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage10))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage11))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage12))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage13))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage14))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage15))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage16))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage17))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage18))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage19))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage20))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage21))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage22))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage23))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage24))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage25))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage26))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage27))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage28))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage29))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage30))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage31))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage32))
+        testSuite.addTest(common.unittest.makeSuite(ScalarTableUsageTestCase))
+        testSuite.addTest(common.unittest.makeSuite(MDTableUsageTestCase))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage1))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage2))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage3))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage4))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage5))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage6))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage7))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage8))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage9))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage10))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage11))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage12))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage13))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage14))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage15))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage16))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage17))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage18))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage19))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage20))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage21))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage22))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage23))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage24))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage25))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage26))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage27))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage28))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage29))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage30))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage31))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage32))
 
     return testSuite
 
@@ -1288,4 +1284,4 @@ def suite():
 if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

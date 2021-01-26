@@ -26,12 +26,11 @@ Misc variables:
 """
 
 import os
-import tables
+import tables as tb
 from . import linkextension
 from .node import Node
 from .utils import lazyattr
 from .attributeset import AttributeSet
-import tables.file
 
 
 def _g_get_link_class(parent_id, name):
@@ -164,7 +163,7 @@ class SoftLink(linkextension.SoftLink, Link):
 
     ::
 
-        >>> f = tables.open_file('/tmp/test_softlink.h5', 'w')
+        >>> f = tb.open_file('/tmp/test_softlink.h5', 'w')
         >>> a = f.create_array('/', 'A', np.arange(10))
         >>> link_a = f.create_soft_link('/', 'link_A', target='/A')
 
@@ -207,7 +206,7 @@ class SoftLink(linkextension.SoftLink, Link):
 
         ::
 
-            >>> f=tables.open_file('data/test.h5')
+            >>> f=tb.open_file('data/test.h5')
             >>> print(f.root.link0)
             /link0 (SoftLink) -> /another/path
             >>> print(f.root.link0())
@@ -236,7 +235,7 @@ class SoftLink(linkextension.SoftLink, Link):
 
         # get attribute of the target node
         elif not self._v_isopen:
-            raise tables.ClosedNodeError('the node object is closed')
+            raise tb.ClosedNodeError('the node object is closed')
         elif self.is_dangling():
             return None
         else:
@@ -257,7 +256,7 @@ class SoftLink(linkextension.SoftLink, Link):
 
         # set attribute of the target node
         elif not self._v_isopen:
-            raise tables.ClosedNodeError('the node object is closed')
+            raise tb.ClosedNodeError('the node object is closed')
         elif self.is_dangling():
             raise ValueError("softlink target does not exist")
         else:
@@ -268,7 +267,7 @@ class SoftLink(linkextension.SoftLink, Link):
         indexing syntax to work"""
 
         if not self._v_isopen:
-            raise tables.ClosedNodeError('the node object is closed')
+            raise tb.ClosedNodeError('the node object is closed')
         elif self.is_dangling():
             raise ValueError("softlink target does not exist")
         else:
@@ -279,7 +278,7 @@ class SoftLink(linkextension.SoftLink, Link):
         indexing syntax to work"""
 
         if not self._v_isopen:
-            raise tables.ClosedNodeError('the node object is closed')
+            raise tb.ClosedNodeError('the node object is closed')
         elif self.is_dangling():
             raise ValueError("softlink target does not exist")
         else:
@@ -297,7 +296,7 @@ class SoftLink(linkextension.SoftLink, Link):
 
         ::
 
-            >>> f=tables.open_file('data/test.h5')
+            >>> f=tb.open_file('data/test.h5')
             >>> print(f.root.link0)
             /link0 (SoftLink) -> /path/to/node
 
@@ -361,7 +360,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         ::
 
-            >>> f=tables.open_file('data1/test1.h5')
+            >>> f=tb.open_file('data1/test1.h5')
             >>> print(f.root.link2)
             /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
             >>> plink2 = f.root.link2('a')  # open in 'a'ppend mode
@@ -381,7 +380,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
             filename = os.path.join(base_directory, filename)
 
         if self.extfile is None or not self.extfile.isopen:
-            self.extfile = tables.open_file(filename, **kwargs)
+            self.extfile = tb.open_file(filename, **kwargs)
         else:
             # XXX: implement better consistency checks
             assert self.extfile.filename == filename
@@ -412,7 +411,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         ::
 
-            >>> f=tables.open_file('data1/test1.h5')
+            >>> f=tb.open_file('data1/test1.h5')
             >>> print(f.root.link2)
             /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
 

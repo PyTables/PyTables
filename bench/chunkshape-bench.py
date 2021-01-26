@@ -3,17 +3,17 @@
 # You need at least PyTables 2.1 to run this!
 # F. Alted
 
-import numpy as np
-import tables
 from time import perf_counter as clock
+import numpy as np
+import tables as tb
 
 dim1, dim2 = 360, 6_109_666
 rows_to_read = range(0, 360, 36)
 
 print("=" * 32)
 # Create the EArray
-f = tables.open_file("/tmp/test.h5", "w")
-a = f.create_earray(f.root, "a", tables.Float64Atom(), shape=(dim1, 0),
+f = tb.open_file("/tmp/test.h5", "w")
+a = f.create_earray(f.root, "a", tb.Float64Atom(), shape=(dim1, 0),
                     expectedrows=dim2)
 print("Chunkshape for original array:", a.chunkshape)
 

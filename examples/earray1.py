@@ -1,8 +1,8 @@
-import tables
+import tables as tb
 import numpy as np
 
-fileh = tables.open_file('earray1.h5', mode='w')
-a = tables.StringAtom(itemsize=8)
+fileh = tb.open_file('earray1.h5', mode='w')
+a = tb.StringAtom(itemsize=8)
 # Use ``a`` as the object type for the enlargeable array.
 array_c = fileh.create_earray(fileh.root, 'array_c', a, (0,), "Chars")
 array_c.append(np.array(['a' * 2, 'b' * 4], dtype='S8'))

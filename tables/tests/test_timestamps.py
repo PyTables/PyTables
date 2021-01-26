@@ -6,21 +6,16 @@ import hashlib
 import sys
 import time
 
-import tables
-from tables import (
-    StringAtom, Int16Atom, StringCol, IntCol, Int16Col,
-)
+import tables as tb
 from tables.tests import common
-from tables.tests.common import unittest
-from tables.tests.common import PyTablesTestCase as TestCase
 
 HEXDIGEST = '2aafb84ab739bb4ae61d2939dc010bfd'
 
 
-class Record(tables.IsDescription):
-    var1 = StringCol(itemsize=4)  # 4-character String
-    var2 = IntCol()               # integer
-    var3 = Int16Col()             # short integer
+class Record(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=4)  # 4-character String
+    var2 = tb.IntCol()               # integer
+    var3 = tb.Int16Col()             # short integer
 
 
 class TrackTimesMixin:
@@ -58,7 +53,7 @@ class TrackTimesMixin:
 
         # Create EArrays as well
         ea = self.h5file.create_earray(group, f'earray{j}',
-                                       StringAtom(itemsize=4), (0,),
+                                       tb.StringAtom(itemsize=4), (0,),
                                        "col {}".format(j + 4),
                                        track_times=track_times)
         # And fill them with some values
@@ -66,14 +61,14 @@ class TrackTimesMixin:
 
         # Finally VLArrays too
         vla = self.h5file.create_vlarray(group, f'vlarray{j}',
-                                         Int16Atom(),
+                                         tb.Int16Atom(),
                                          "col {}".format(j + 6),
                                          track_times=track_times)
         # And fill them with some values
         vla.append(var3List)
 
 
-class TimestampTestCase(TrackTimesMixin, common.TempFileMixin, TestCase):
+class TimestampTestCase(TrackTimesMixin, common.TempFileMixin, common.PyTablesTestCase):
     title = "A title"
     nrows = 10
 
@@ -118,13 +113,13 @@ class TimestampTestCase(TrackTimesMixin, common.TempFileMixin, TestCase):
             self.assertGreaterEqual(tracked_ctimes[1], tracked_ctimes[0])
 
 
-class BitForBitTestCase(TrackTimesMixin, common.TempFileMixin, TestCase):
+class BitForBitTestCase(TrackTimesMixin, common.TempFileMixin, common.PyTablesTestCase):
     title = "A title"
     nrows = 10
 
     def repopulateFile(self, track_times):
         self.h5file.close()
-        self.h5file = tables.open_file(self.h5fname, mode="w")
+        self.h5file = tb.open_file(self.h5fname, mode="w")
         group = self.h5file.root
         self._add_datasets(group, 1, track_times)
         self.h5file.close()
@@ -161,13 +156,13 @@ class BitForBitTestCase(TrackTimesMixin, common.TempFileMixin, TestCase):
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
     niter = 1
     # common.heavy = 1 # Uncomment this only for testing purposes!
 
     for i in range(niter):
-        theSuite.addTest(unittest.makeSuite(TimestampTestCase))
-        theSuite.addTest(unittest.makeSuite(BitForBitTestCase))
+        theSuite.addTest(common.unittest.makeSuite(TimestampTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BitForBitTestCase))
 
     return theSuite
 
@@ -175,4 +170,4 @@ def suite():
 if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

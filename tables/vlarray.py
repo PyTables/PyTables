@@ -120,19 +120,21 @@ class VLArray(hdf5extension.VLArray, Leaf):
     See below a small example of the use of the VLArray class.  The code is
     available in :file:`examples/vlarray1.py`::
 
-        import tables
-        from numpy import *
+        import numpy as np
+        import tables as tb
 
         # Create a VLArray:
-        fileh = tables.open_file('vlarray1.h5', mode='w')
-        vlarray = fileh.create_vlarray(fileh.root, 'vlarray1',
-        tables.Int32Atom(shape=()),
-                        "ragged array of ints",
-                        filters=tables.Filters(1))
+        fileh = tb.open_file('vlarray1.h5', mode='w')
+        vlarray = fileh.create_vlarray(
+            fileh.root,
+            'vlarray1',
+            tb.Int32Atom(shape=()),
+            "ragged array of ints",
+            filters=tb.Filters(1))
 
         # Append some (variable length) rows:
-        vlarray.append(array([5, 6]))
-        vlarray.append(array([5, 6, 7]))
+        vlarray.append(np.array([5, 6]))
+        vlarray.append(np.array([5, 6, 7]))
         vlarray.append([5, 6, 9, 8])
 
         # Now, read it through an iterator:
@@ -141,10 +143,12 @@ class VLArray(hdf5extension.VLArray, Leaf):
             print('%s[%d]--> %s' % (vlarray.name, vlarray.nrow, x))
 
         # Now, do the same with native Python strings.
-        vlarray2 = fileh.create_vlarray(fileh.root, 'vlarray2',
-        tables.StringAtom(itemsize=2),
-                            "ragged array of strings",
-                            filters=tables.Filters(1))
+        vlarray2 = fileh.create_vlarray(
+            fileh.root,
+            'vlarray2',
+            tb.StringAtom(itemsize=2),
+            "ragged array of strings",
+            filters=tb.Filters(1))
         vlarray2.flavor = 'python'
 
         # Append some (variable length) rows:

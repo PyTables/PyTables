@@ -1,10 +1,8 @@
 import os
 import tempfile
 
-import tables
+import tables as tb
 from tables.tests import common
-from tables.tests.common import unittest
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
 def WriteRead(filename, testTuple):
@@ -13,7 +11,7 @@ def WriteRead(filename, testTuple):
         print("Running test for object %s" % type(testTuple))
 
     # Create an instance of HDF5 Table
-    fileh = tables.open_file(filename, mode="w")
+    fileh = tb.open_file(filename, mode="w")
     root = fileh.root
     try:
         # Create the array under root and name 'somearray'
@@ -24,7 +22,7 @@ def WriteRead(filename, testTuple):
         fileh.close()
 
     # Re-open the file in read-only mode
-    fileh = tables.open_file(filename, mode="r")
+    fileh = tb.open_file(filename, mode="r")
     root = fileh.root
 
     # Read the saved array
@@ -43,7 +41,7 @@ def WriteRead(filename, testTuple):
         fileh.close()
 
 
-class BasicTestCase(TestCase):
+class BasicTestCase(common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
         self.h5fname = tempfile.mktemp(".h5")
@@ -119,7 +117,7 @@ class Basic10DTestCase(BasicTestCase):
     charList = [[[[[[[[[[b"a", b"b"], [b"qq", b"zz"]]]]]]]]]]*5
 
 
-class ExceptionTestCase(TestCase):
+class ExceptionTestCase(common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
         self.h5fname = tempfile.mktemp(".h5")
@@ -156,7 +154,7 @@ class Basic1DFourTestCase(ExceptionTestCase):
     charList = [b"aaa", [b"bbb", b"ccc"]]
 
 
-class GetItemTestCase(common.TempFileMixin, TestCase):
+class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_single(self):
         """Single element access (character types)"""
 
@@ -327,7 +325,7 @@ class GI2ListTestCase(GetItemTestCase):
     ]
 
 
-class GeneratorTestCase(common.TempFileMixin, TestCase):
+class GeneratorTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00a_single(self):
         """Testing generator access to Arrays, single elements (char)"""
 
@@ -430,22 +428,22 @@ class GE2ListTestCase(GeneratorTestCase):
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
     niter = 1
 
     for i in range(niter):
-        theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic0DOneTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic0DTwoTestCase))
         # theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic1DFourTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
-        theSuite.addTest(unittest.makeSuite(GI1ListTestCase))
-        theSuite.addTest(unittest.makeSuite(GI2ListTestCase))
-        theSuite.addTest(unittest.makeSuite(GE1ListTestCase))
-        theSuite.addTest(unittest.makeSuite(GE2ListTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic1DOneTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic1DTwoTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic1DFourTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic2DTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic10DTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GI1ListTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GI2ListTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GE1ListTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GE2ListTestCase))
 
     return theSuite
 
@@ -454,4 +452,4 @@ if __name__ == '__main__':
     import sys
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

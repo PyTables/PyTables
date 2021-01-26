@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-import tables
+import tables as tb
 from time import perf_counter as clock
 #import psyco
 
@@ -15,15 +15,15 @@ if len(sys.argv) > 1:
     NODE_CACHE_SLOTS = int(sys.argv[1])
     print('NODE_CACHE_SLOTS:', NODE_CACHE_SLOTS)
 else:
-    NODE_CACHE_SLOTS = tables.parameters.NODE_CACHE_SLOTS
-f = tables.open_file(filename, "w", node_cache_slots=NODE_CACHE_SLOTS)
+    NODE_CACHE_SLOTS = tb.parameters.NODE_CACHE_SLOTS
+f = tb.open_file(filename, "w", node_cache_slots=NODE_CACHE_SLOTS)
 g = f.create_group("/", "NodeContainer")
 print("Creating nodes")
 for i in range(nodespergroup):
     f.create_array(g, "arr%d" % i, [i])
 f.close()
 
-f = tables.open_file(filename)
+f = tb.open_file(filename)
 
 
 def iternodes():

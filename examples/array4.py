@@ -1,10 +1,10 @@
 import numpy as np
-import tables
+import tables as tb
 
 basedim = 4
 file = "array4.h5"
 # Open a new empty HDF5 file
-fileh = tables.open_file(file, mode="w")
+fileh = tb.open_file(file, mode="w")
 # Get the root group
 group = fileh.root
 # Set the type codes to test
@@ -27,7 +27,7 @@ fileh.close()
 
 
 # Open the previous HDF5 file in read-only mode
-fileh = tables.open_file(file, mode="r")
+fileh = tb.open_file(file, mode="r")
 # Get the root group
 group = fileh.root
 # Get the metadata on the previosly saved arrays

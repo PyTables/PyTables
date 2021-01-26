@@ -1,5 +1,5 @@
 import os
-import tables
+import tables as tb
 from indexed_search import DB
 
 
@@ -29,15 +29,15 @@ class PyTables_DB(DB):
             print(f"Created {self.datadir}.")
         self.filename = self.datadir + '/' + self.filename + '.h5'
         # The chosen filters
-        self.filters = tables.Filters(complevel=self.docompress,
-                                      complib=self.complib,
-                                      shuffle=1)
+        self.filters = tb.Filters(complevel=self.docompress,
+                                  complib=self.complib,
+                                  shuffle=1)
         print("Processing database:", self.filename)
 
     def open_db(self, remove=0):
         if remove and os.path.exists(self.filename):
             os.remove(self.filename)
-        con = tables.open_file(self.filename, 'a')
+        con = tb.open_file(self.filename, 'a')
         return con
 
     def close_db(self, con):
@@ -47,11 +47,11 @@ class PyTables_DB(DB):
         con.close()
 
     def create_table(self, con):
-        class Record(tables.IsDescription):
-            col1 = tables.Int32Col()
-            col2 = tables.Int32Col()
-            col3 = tables.Float64Col()
-            col4 = tables.Float64Col()
+        class Record(tb.IsDescription):
+            col1 = tb.Int32Col()
+            col2 = tb.Int32Col()
+            col3 = tb.Float64Col()
+            col4 = tb.Float64Col()
 
         con.create_table(con.root, 'table', Record,
                          filters=self.filters, expectedrows=self.nrows)

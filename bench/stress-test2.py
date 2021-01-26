@@ -3,15 +3,15 @@ import sys
 import random
 from time import perf_counter as clock
 from time import process_time as cpuclock
-from tables import *
+import tables as tb
 
 
-class Test(IsDescription):
-    ngroup = Int32Col(pos=1)
-    ntable = Int32Col(pos=2)
-    nrow = Int32Col(pos=3)
-    time = Float64Col(pos=5)
-    random = Float32Col(pos=4)
+class Test(tb.IsDescription):
+    ngroup = tb.Int32Col(pos=1)
+    ntable = tb.Int32Col(pos=2)
+    nrow = tb.Int32Col(pos=3)
+    time = tb.Float64Col(pos=5)
+    random = tb.Float32Col(pos=4)
 
 
 def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
@@ -19,7 +19,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
+    fileh = tb.open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
@@ -30,7 +30,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     # Now, create the tables
     rowswritten = 0
     for k in range(ngroups):
-        fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
+        fileh = tb.open_file(filename, mode="a", root_uep='group%04d' % k)
         # Get the group
         group = fileh.root
         for j in range(ntables):
@@ -63,7 +63,7 @@ def readFile(filename, ngroups, recsize, verbose):
 
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
+        fileh = tb.open_file(filename, mode="r", root_uep='group%04d' % ngroup)
         # Get the group
         group = fileh.root
         ntable = 0

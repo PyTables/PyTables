@@ -2,7 +2,7 @@ import os
 from time import perf_counter as clock
 import random
 import numpy as np
-import tables
+import tables as tb
 
 # in order to always generate the same random sequence
 random.seed(19)
@@ -12,17 +12,17 @@ np.random.seed((19, 20))
 def open_db(filename, remove=0):
     if remove and os.path.exists(filename):
         os.remove(filename)
-    con = tables.open_file(filename, 'a')
+    con = tb.open_file(filename, 'a')
     return con
 
 
 def create_db(filename, nrows):
 
-    class Record(tables.IsDescription):
-        col1 = tables.Int32Col()
-        col2 = tables.Int32Col()
-        col3 = tables.Float64Col()
-        col4 = tables.Float64Col()
+    class Record(tb.IsDescription):
+        col1 = tb.Int32Col()
+        col2 = tb.Int32Col()
+        col3 = tb.Float64Col()
+        col4 = tb.Float64Col()
 
     con = open_db(filename, remove=1)
     table = con.create_table(con.root, 'table', Record,
@@ -199,10 +199,10 @@ if __name__ == "__main__":
     filename = pargs[0]
 
     # The filters chosen
-    filters = tables.Filters(complevel=docompress, complib=complib)
+    filters = tb.Filters(complevel=docompress, complib=complib)
 
     if verbose:
-        print("pytables version:", tables.__version__)
+        print("pytables version:", tb.__version__)
         if userandom:
             print("using random values")
         if doqueryidx:
