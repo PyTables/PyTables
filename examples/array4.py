@@ -47,7 +47,7 @@ for i, dtype in enumerate(dtypes, 1):
     else:
         print("Error: Read array and the original differs!")
     # Iterate over the next group
-    group = getattr(group, 'group' + str(i + 1))
+    group = getattr(group, 'group' + str(i))
 
 # Close the file
 fileh.close()
