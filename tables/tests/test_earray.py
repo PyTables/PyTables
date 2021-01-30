@@ -153,8 +153,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Read all the array
         for idx, row in enumerate(earray):
             if idx < initialrows:
-                self.assertTrue(
-                    common.allequal(row, np.asarray(self.obj[idx]), self.flavor))
+                self.assertTrue(common.allequal(
+                    row, np.asarray(self.obj[idx]), self.flavor))
                 continue
 
             chunk = int((earray.nrow - initialrows) % self.chunksize)
@@ -241,8 +241,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                                   stop=self.stop,
                                                   step=self.step)):
             if idx < initialrows:
-                self.assertTrue(
-                    common.allequal(row, np.asarray(self.obj[idx]), self.flavor))
+                self.assertTrue(common.allequal(
+                    row, np.asarray(self.obj[idx]), self.flavor))
                 continue
 
             if self.chunksize == 1:
@@ -843,7 +843,8 @@ class Empty2EArrayTestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class SlicesEArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -1080,7 +1081,8 @@ class BloscShuffleTestCase(BasicTestCase):
     step = 7
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
@@ -1091,7 +1093,8 @@ class LZOComprTestCase(BasicTestCase):
     step = 3
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class LZOShuffleTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
@@ -1216,7 +1219,8 @@ class StringComprTestCase(BasicTestCase):
     step = 20
 
 
-class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
+                                         common.PyTablesTestCase):
 
     def setUp(self):
         super().setUp()
@@ -1230,7 +1234,8 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTe
 
     def create_array(self, complevel):
         filters = tb.Filters(complevel=complevel, complib='blosc')
-        self.array = self.h5file.create_earray('/', 'earray', atom=tb.Int32Atom(),
+        self.array = self.h5file.create_earray('/', 'earray',
+                                               atom=tb.Int32Atom(),
                                                shape=self.array_size,
                                                filters=filters,
                                                chunkshape=self.chunkshape)
@@ -1364,9 +1369,12 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Third row in vlarray ==>", row[2])
 
         self.assertEqual(earray.nrows, 3)
-        self.assertTrue(common.allequal(row[0], np.array([1, 1, 1], dtype='int32')))
-        self.assertTrue(common.allequal(row[1], np.array([0, 0, 0], dtype='int32')))
-        self.assertTrue(common.allequal(row[2], np.array([-1, 0, 0], dtype='int32')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(common.allequal(
+            row[2], np.array([-1, 0, 0], dtype='int32')))
 
     def test02b_int(self):
         """Checking earray with strided NumPy ints appends."""
@@ -1393,9 +1401,12 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Third row in vlarray ==>", row[2])
 
         self.assertEqual(earray.nrows, 3)
-        self.assertTrue(common.allequal(row[0], np.array([0, 0, 0], dtype='int32')))
-        self.assertTrue(common.allequal(row[1], np.array([3, 3, 3], dtype='int32')))
-        self.assertTrue(common.allequal(row[2], np.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([3, 3, 3], dtype='int32')))
+        self.assertTrue(common.allequal(
+            row[2], np.array([1, 1, 1], dtype='int32')))
 
     def test03a_int(self):
         """Checking earray with byteswapped appends (ints)"""
@@ -1488,10 +1499,12 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         native = earray[:4, :]
         swapped = earray[4:, :]
         if common.verbose:
-            print("Byteorder native rows:", tb.utils.byteorders[native.dtype.byteorder])
+            print("Byteorder native rows:",
+                  tb.utils.byteorders[native.dtype.byteorder])
             print("Byteorder earray on-disk:", earray.byteorder)
 
-        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder], sys.byteorder)
+        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder],
+                         sys.byteorder)
         self.assertEqual(earray.byteorder, byteorder)
         self.assertTrue(common.allequal(native, swapped))
 
@@ -1524,10 +1537,12 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         native = earray[:4, :]
         swapped = earray[4:, :]
         if common.verbose:
-            print("Byteorder native rows:", tb.utils.byteorders[native.dtype.byteorder])
+            print("Byteorder native rows:",
+                  tb.utils.byteorders[native.dtype.byteorder])
             print("Byteorder earray on-disk:", earray.byteorder)
 
-        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder], sys.byteorder)
+        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder],
+                         sys.byteorder)
         self.assertEqual(earray.byteorder, byteorder)
         self.assertTrue(common.allequal(native, swapped))
 
@@ -1558,10 +1573,12 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         native = earray[:4, :]
         swapped = earray[4:, :]
         if common.verbose:
-            print("Byteorder native rows:", tb.utils.byteorders[native.dtype.byteorder])
+            print("Byteorder native rows:",
+                  tb.utils.byteorders[native.dtype.byteorder])
             print("Byteorder earray on-disk:", earray.byteorder)
 
-        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder], sys.byteorder)
+        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder],
+                         sys.byteorder)
         self.assertEqual(earray.byteorder, byteorder)
         self.assertTrue(common.allequal(native, swapped))
 
@@ -1594,10 +1611,12 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         native = earray[:4, :]
         swapped = earray[4:, :]
         if common.verbose:
-            print("Byteorder native rows:", tb.utils.byteorders[native.dtype.byteorder])
+            print("Byteorder native rows:",
+                  tb.utils.byteorders[native.dtype.byteorder])
             print("Byteorder earray on-disk:", earray.byteorder)
 
-        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder], sys.byteorder)
+        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder],
+                         sys.byteorder)
         self.assertEqual(earray.byteorder, byteorder)
         self.assertTrue(common.allequal(native, swapped))
 
@@ -2311,7 +2330,8 @@ class Rows64bitsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check shape
         self.assertEqual(array.shape, (nrows,))
         # check the 10 first elements
-        self.assertTrue(common.allequal(array[:10], np.arange(10, dtype='int8')))
+        self.assertTrue(common.allequal(
+            array[:10], np.arange(10, dtype='int8')))
         # check the 10 last elements
         stop = self.narows % 256
         if stop > 127:
@@ -2377,7 +2397,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ea.nrows, 1)
         if common.verbose:
             print("First row-->", ea[0])
-        self.assertTrue(common.allequal(ea[0], np.array([[1, 3], [4, 5]], 'i4')))
+        self.assertTrue(common.allequal(
+            ea[0], np.array([[1, 3], [4, 5]], 'i4')))
 
     def test01b_append(self):
         """Append several rows to a (unidimensional) EArray with a MD
@@ -2394,7 +2415,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print("Third row-->", ea[2])
-        self.assertTrue(common.allequal(ea[2], np.array([[3, 3], [3, 3]], 'i4')))
+        self.assertTrue(common.allequal(
+            ea[2], np.array([[3, 3], [3, 3]], 'i4')))
 
     def test02a_append(self):
         """Append a row to a (multidimensional) EArray with a
@@ -2470,7 +2492,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print("Third row-->", ea[:, 2, ...])
-        self.assertTrue(common.allequal(ea[:, 2, ...], a.reshape((2, 3, 2, 4))*3))
+        self.assertTrue(common.allequal(ea[:, 2, ...],
+                                        a.reshape((2, 3, 2, 4))*3))
 
     def test03c_MDMDMD(self):
         """Complex append of a MD array in a MD EArray with a MD atom (III)."""
@@ -2489,7 +2512,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print("Third row-->", ea[:, :, 2, ...])
-        self.assertTrue(common.allequal(ea[:, :, 2, ...], a.reshape((2, 3, 2, 4))*3))
+        self.assertTrue(common.allequal(ea[:, :, 2, ...],
+                                        a.reshape((2, 3, 2, 4))*3))
 
 
 class MDAtomNoReopen(MDAtomTestCase):
@@ -2505,7 +2529,8 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
         self.array = self.h5file.create_earray(self.h5file.root, 'array',
-                                               atom=tb.Int32Atom(), shape=(0, 10))
+                                               atom=tb.Int32Atom(),
+                                               shape=(0, 10))
         self.array.append(np.zeros((10, 10)))
 
     def test_read(self):

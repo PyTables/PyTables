@@ -413,4 +413,5 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         """
 
-        return f"{self._v_pathname} ({self.__class__.__name__}) -> {self.target}"
+        return (f"{self._v_pathname} ({self.__class__.__name__}) -> "
+                f"{self.target}")

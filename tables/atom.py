@@ -366,8 +366,8 @@ class Atom(metaclass=MetaAtom):
         warning is issued.
 
             >>> Atom.from_dtype(np.dtype('U20')) # doctest: +SKIP
-            Atom.py:392: FlavorWarning: support for unicode type is very limited,
-                and only works for strings that can be cast as ascii
+            Atom.py:392: FlavorWarning: support for unicode type is very
+                limited, and only works for strings that can be cast as ascii
             StringAtom(itemsize=20, shape=(), dflt=b'')
 
         """
@@ -383,10 +383,12 @@ class Atom(metaclass=MetaAtom):
             return cls.from_kind('string', itemsize, dtype.shape, dflt)
         elif basedtype.kind == 'U':
             # workaround for unicode type (standard string type in Python 3)
-            warnings.warn("support for unicode type is very limited, "
-                          "and only works for strings that can be cast as ascii", FlavorWarning)
+            warnings.warn("support for unicode type is very limited, and "
+                          "only works for strings that can be cast as ascii",
+                          FlavorWarning)
             itemsize = basedtype.itemsize // 4
-            assert str(itemsize) in basedtype.str, "something went wrong in handling unicode."
+            assert str(itemsize) in basedtype.str, (
+                "something went wrong in handling unicode.")
             return cls.from_kind('string', itemsize, dtype.shape, dflt)
         # Most NumPy types have direct correspondence with PyTables types.
         return cls.from_type(basedtype.name, dtype.shape, dflt)

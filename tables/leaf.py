@@ -136,7 +136,8 @@ class Leaf(Node):
     # ```````````````````````````````
     @property
     def name(self):
-        """The name of this node in its parent group (This is an easier-to-write alias of :attr:`Node._v_name`)."""
+        """The name of this node in its parent group (This is an
+        easier-to-write alias of :attr:`Node._v_name`)."""
         return self._v_name
 
     @property

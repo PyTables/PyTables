@@ -213,7 +213,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Build a dictionary with the types as values and varnames as keys
         recordDict = {}
         recordDict["a" * 255] = tb.IntCol(dflt=1)
-        recordDict["b" * 256] = tb.IntCol(dflt=1)  # Should trigger a ValueError
+        recordDict["b" * 256] = tb.IntCol(dflt=1)  # Should raise a ValueError
 
         # Now, create a table with this record object
         # This way of creating node objects has been deprecated
@@ -293,10 +293,10 @@ class FiltersTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ea2.append(var3List)
 
             # Finally a couple of VLArrays too
-            vla1 = self.h5file.create_vlarray(group, 'vlarray1',
-                                              tb.StringAtom(itemsize=4), "col 1")
-            vla2 = self.h5file.create_vlarray(group, 'vlarray2',
-                                              tb.Int16Atom(), "col 3")
+            vla1 = self.h5file.create_vlarray(
+                group, 'vlarray1', tb.StringAtom(itemsize=4), "col 1")
+            vla2 = self.h5file.create_vlarray(
+                group, 'vlarray2', tb.Int16Atom(), "col 3")
             # And fill them with some values
             vla1.append(var1List)
             vla2.append(var3List)
@@ -543,7 +543,8 @@ class FiltersCase2(FiltersTreeTestCase):
     open_kwargs = dict(filters=filters)
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class FiltersCase3(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=True, complib="zlib")
     gfilters = tb.Filters(complevel=1, shuffle=False, complib="lzo")
@@ -580,14 +581,16 @@ class FiltersCase8(FiltersTreeTestCase):
     open_kwargs = dict(filters=filters)
 
 
-@common.unittest.skipIf(not common.bzip2_avail, 'BZIP2 compression library not available')
+@common.unittest.skipIf(not common.bzip2_avail,
+                        'BZIP2 compression library not available')
 class FiltersCase9(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=True, complib="zlib")
     gfilters = tb.Filters(complevel=5, shuffle=True, complib="bzip2")
     open_kwargs = dict(filters=filters)
 
 
-@common.unittest.skipIf(not common.blosc_avail, 'BLOSC compression library not available')
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
 class FiltersCase10(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=False, complevel=1, complib="blosc")
     gfilters = tb.Filters(complevel=5, shuffle=True, complib="blosc")
@@ -604,18 +607,22 @@ class FiltersCaseBloscBloscLZ(FiltersTreeTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4(FiltersTreeTestCase):
     def setUp(self):
-        self.filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:lz4")
-        self.gfilters = tb.Filters(complevel=5, shuffle=True, complib="blosc:lz4")
+        self.filters = tb.Filters(shuffle=False, complevel=1,
+                                  complib="blosc:lz4")
+        self.gfilters = tb.Filters(complevel=5, shuffle=True,
+                                   complib="blosc:lz4")
         self.open_kwargs = dict(filters=self.filters)
         super().setUp()
 
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
     def setUp(self):
         self.filters = tb.Filters(
@@ -642,33 +649,41 @@ class FiltersCaseBloscSnappy(FiltersTreeTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('zlib' not in tb.blosc_compressor_list(), 'zlib required')
+@common.unittest.skipIf(
+    'zlib' not in tb.blosc_compressor_list(), 'zlib required')
 class FiltersCaseBloscZlib(FiltersTreeTestCase):
     def setUp(self):
-        self.filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:zlib")
-        self.gfilters = tb.Filters(complevel=5, shuffle=True, complib="blosc:zlib")
+        self.filters = tb.Filters(shuffle=False, complevel=1,
+                                  complib="blosc:zlib")
+        self.gfilters = tb.Filters(complevel=5, shuffle=True,
+                                   complib="blosc:zlib")
         self.open_kwargs = dict(filters=self.filters)
         super().setUp()
 
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('zstd' not in tb.blosc_compressor_list(), 'zstd required')
+@common.unittest.skipIf(
+    'zstd' not in tb.blosc_compressor_list(), 'zstd required')
 class FiltersCaseBloscZstd(FiltersTreeTestCase):
     def setUp(self):
-        self.filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:zstd")
-        self.gfilters = tb.Filters(complevel=5, shuffle=True, complib="blosc:zstd")
+        self.filters = tb.Filters(shuffle=False, complevel=1,
+                                  complib="blosc:zstd")
+        self.gfilters = tb.Filters(complevel=5, shuffle=True,
+                                   complib="blosc:zstd")
         self.open_kwargs = dict(filters=self.filters)
         super().setUp()
 
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf(common.blosc_version < common.min_blosc_bitshuffle_version,
-                        'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
+@common.unittest.skipIf(
+    common.blosc_version < common.min_blosc_bitshuffle_version,
+    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class FiltersCaseBloscBitShuffle(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:blosclz")
-    gfilters = tb.Filters(complevel=5, shuffle=False, bitshuffle=True, complib="blosc:blosclz")
+    gfilters = tb.Filters(complevel=5, shuffle=False, bitshuffle=True,
+                          complib="blosc:blosclz")
     open_kwargs = dict(filters=filters)
     # print("version:", tables.which_lib_version("blosc")[1])
 
@@ -728,8 +743,8 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
                 # Create a couple of EArrays as well
                 ea1 = self.h5file.create_earray(group2, 'earray1',
-                                                tb.StringAtom(itemsize=4), (0,),
-                                                "col 1")
+                                                tb.StringAtom(itemsize=4),
+                                                (0,), "col 1")
                 ea2 = self.h5file.create_earray(group2, 'earray2',
                                                 tb.Int16Atom(), (0,), "col 3")
                 # Add some user attrs:
@@ -1009,7 +1024,8 @@ class CopyGroupCase7(CopyGroupTestCase):
     dstnode = '/'
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class CopyGroupCase8(CopyGroupTestCase):
     close = 1
     filters = tb.Filters(complevel=1, complib="lzo")
@@ -1071,8 +1087,8 @@ class CopyFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
                 # Create a couple of EArrays as well
                 ea1 = self.h5file.create_earray(group2, 'earray1',
-                                                tb.StringAtom(itemsize=4), (0,),
-                                                "col 1")
+                                                tb.StringAtom(itemsize=4),
+                                                (0,), "col 1")
                 ea2 = self.h5file.create_earray(group2, 'earray2',
                                                 tb.Int16Atom(), (0,),
                                                 "col 3")
@@ -1493,7 +1509,8 @@ class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail, 'BLOSC not available')
-class SetBloscMaxThreadsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SetBloscMaxThreadsTestCase(common.TempFileMixin,
+                                 common.PyTablesTestCase):
     filters = tb.Filters(complevel=4, complib="blosc")
 
     def test00(self):
@@ -1741,7 +1758,8 @@ class DefaultDriverTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(root.table2.cols.var2.dtype, tb.FloatCol().dtype)
 
 
-@common.unittest.skipIf(common.hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
+@common.unittest.skipIf(common.hdf5_version < "1.8.9",
+                        "requires HDF5 >= 1.8,9")
 class Sec2DriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_SEC2"
     open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
@@ -1752,7 +1770,8 @@ class Sec2DriverTestCase(DefaultDriverTestCase):
         self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
-@common.unittest.skipIf(common.hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
+@common.unittest.skipIf(common.hdf5_version < "1.8.9",
+                        "requires HDF5 >= 1.8,9")
 class StdioDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_STDIO"
     open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
@@ -1763,7 +1782,8 @@ class StdioDriverTestCase(DefaultDriverTestCase):
         self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
-@common.unittest.skipIf(common.hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
+@common.unittest.skipIf(common.hdf5_version < "1.8.9",
+                        "requires HDF5 >= 1.8,9")
 class CoreDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_CORE"
     open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
@@ -1991,7 +2011,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
         # ensure that there is no change on the file on disk
         self.assertEqual(hexdigest, self._get_digest(self.h5fname))
 
-    @common.unittest.skipIf(common.hdf5_version < "1.8.9", 'HDF5 >= "1.8.9" required')
+    @common.unittest.skipIf(common.hdf5_version < "1.8.9",
+                            'HDF5 >= "1.8.9" required')
     def test_get_file_image(self):
         self.h5file = tb.open_file(self.h5fname, mode="w",
                                    driver=self.DRIVER,
@@ -2133,7 +2154,8 @@ class StreamDriverTestCase(NotSpportedDriverTestCase):
     DRIVER = "H5FD_STREAM"
 
 
-@common.unittest.skipIf(common.hdf5_version < "1.8.9", 'HDF5 >= "1.8.9" required')
+@common.unittest.skipIf(common.hdf5_version < "1.8.9",
+                        'HDF5 >= "1.8.9" required')
 class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
     DRIVER = "H5FD_CORE"
 
@@ -2391,8 +2413,8 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         self.h5file.create_array(self.h5file.root, 'array', [1, 2],
                                  title="Array")
-        self.h5file.create_table(self.h5file.root, 'table', {'var1': tb.IntCol()},
-                                 "Table")
+        self.h5file.create_table(self.h5file.root, 'table',
+                                 {'var1': tb.IntCol()}, "Table")
         self.h5file.root._v_attrs.testattr = 41
 
         # ensure that the __str__ method works even if there is no phisical
@@ -2531,7 +2553,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(Sec2DriverTestCase))
         theSuite.addTest(common.unittest.makeSuite(StdioDriverTestCase))
         theSuite.addTest(common.unittest.makeSuite(CoreDriverTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CoreDriverNoBackingStoreTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            CoreDriverNoBackingStoreTestCase))
         theSuite.addTest(common.unittest.makeSuite(SplitDriverTestCase))
 
         theSuite.addTest(common.unittest.makeSuite(LogDriverTestCase))

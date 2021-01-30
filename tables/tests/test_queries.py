@@ -268,7 +268,8 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
             return
         try:
             kind = self.kind
-            common.verbosePrint(f"* Indexing ``{colname}`` columns. Type: {kind}.")
+            common.verbosePrint(
+                f"* Indexing ``{colname}`` columns. Type: {kind}.")
             for acolname in [colname, ncolname, extracolname]:
                 acolumn = self.table.colinstances[acolname]
                 acolumn.create_index(
@@ -464,7 +465,7 @@ def create_test_method(type_, op, extracond, func=None):
                 ptfvals.sort()
             common.verbosePrint(f"* {len(ptrownos[0])} rows selected by "
                                 f"PyTables from ``{acolname}``", nonl=True)
-            common.verbosePrint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
+            common.verbosePrint(f"(indexing: {'yes' if isidxq else 'no'}).")
             self.assertTrue(np.all(ptrownos[0] == rownos))
             self.assertTrue(np.all(ptfvalues[0] == fvalues))
             # The following test possible caching of query results.
@@ -1243,7 +1244,8 @@ def suite():
             for cdata in cdatafunc():
                 class_ = eval(cdata[0])
                 if heavy or not class_.heavy:
-                    suite_ = common.unittest.makeSuite(class_, prefix=autoprefix)
+                    suite_ = common.unittest.makeSuite(class_,
+                                                       prefix=autoprefix)
                     testSuite.addTest(suite_)
         # Tests on query usage.
         testSuite.addTest(common.unittest.makeSuite(ScalarTableUsageTestCase))

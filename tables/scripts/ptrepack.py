@@ -341,7 +341,7 @@ def _get_parser():
     )
     parser.add_argument(
         '--bitshuffle', type=int, choices=(0, 1),
-        help='''activate or not the bitshuffle filter (not active by default)''',
+        help='activate or not the bitshuffle filter (not active by default)',
     )
     parser.add_argument(
         '--fletcher32', type=int, choices=(0, 1),

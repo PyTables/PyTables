@@ -281,8 +281,9 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['t64col'][:])
-        self.assertTrue(common.allequal(recarr['t64col'][:], orig_val, np.float64),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            common.allequal(recarr['t64col'][:], orig_val, np.float64),
+            "Stored and retrieved values do not match.")
 
     def test03_Compare64EArray(self):
         """Comparing written 64-bit time data with read data in an EArray."""
@@ -391,8 +392,9 @@ class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['t64col'][:])
-        self.assertTrue(common.allequal(recarr['t64col'][:], orig_val, np.float64),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(common.allequal(
+            recarr['t64col'][:], orig_val, np.float64),
+            "Stored and retrieved values do not match.")
 
 
 class BigEndianTestCase(common.PyTablesTestCase):

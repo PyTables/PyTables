@@ -637,7 +637,9 @@ class Table(tableextension.Table, Leaf):
     @property
     def indexedcolpathnames(self):
         """List of pathnames of indexed columns in the table."""
-        return [_colpname for _colpname in self.colpathnames if self.colindexed[_colpname]]
+        return [_colpname
+                for _colpname in self.colpathnames
+                if self.colindexed[_colpname]]
 
     @property
     def colindexes(self):
@@ -761,12 +763,14 @@ class Table(tableextension.Table, Leaf):
         # Try purely descriptive description objects.
         if new and isinstance(description, dict):
             # Dictionary case
-            self.description = Description(description, ptparams=parentnode._v_file.params)
+            self.description = Description(description,
+                                           ptparams=parentnode._v_file.params)
         elif new and (type(description) == type(IsDescription)
                       and issubclass(description, IsDescription)):
             # IsDescription subclass case
             descr = description()
-            self.description = Description(descr.columns, ptparams=parentnode._v_file.params)
+            self.description = Description(descr.columns,
+                                           ptparams=parentnode._v_file.params)
         elif new and isinstance(description, Description):
             # It is a Description instance already
             self.description = description
@@ -775,8 +779,9 @@ class Table(tableextension.Table, Leaf):
         if new and self.description is None:
             # Try NumPy dtype instances
             if isinstance(description, np.dtype):
-                self.description, self._rabyteorder = \
-                    descr_from_dtype(description, ptparams=parentnode._v_file.params)
+                tup = descr_from_dtype(description,
+                                       ptparams=parentnode._v_file.params)
+                self.description, self._rabyteorder = tup
 
         # No description yet?
         if new and self.description is None:
@@ -795,8 +800,9 @@ class Table(tableextension.Table, Leaf):
                 # initial buffer.
                 if nrows > 0:
                     self._v_recarray = nparray
-                self.description, self._rabyteorder = \
-                    descr_from_dtype(nparray.dtype, ptparams=parentnode._v_file.params)
+                tup = descr_from_dtype(nparray.dtype,
+                                       ptparams=parentnode._v_file.params)
+                self.description, self._rabyteorder = tup
 
         # No description yet?
         if new and self.description is None:
@@ -948,7 +954,8 @@ very small/large chunksize, you may want to increase/decrease it."""
             return arr
 
     def _get_container(self, shape):
-        """Get the appropriate buffer for data depending on table nestedness."""
+        """Get the appropriate buffer for data depending on table
+        nestedness."""
 
         # This is *much* faster than the numpy.rec.array counterpart
         return np.empty(shape=shape, dtype=self._v_dtype)
@@ -1039,7 +1046,8 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         # 2. Create an instance description to host the record fields.
         validate = not self._v_file._isPTFile  # only for non-PyTables files
-        self.description = Description(description, validate=validate, ptparams=self._v_file.params)
+        self.description = Description(description, validate=validate,
+                                       ptparams=self._v_file.params)
 
         # 3. Compute or get chunk shape and buffer size parameters.
         if chunksize == 0:
@@ -3229,7 +3237,8 @@ class Cols:
         if descpathname:
             descpathname = "." + descpathname
         return (f"{self._v__tablePath}.cols{descpathname} "
-                f"({self.__class__.__name__}), {len(self._v_colnames)} columns")
+                f"({self.__class__.__name__}), "
+                f"{len(self._v_colnames)} columns")
 
     def __repr__(self):
         """A detailed string representation for this object."""

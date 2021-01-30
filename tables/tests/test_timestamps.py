@@ -69,7 +69,8 @@ class TrackTimesMixin:
         vla.append(var3List)
 
 
-class TimestampTestCase(TrackTimesMixin, common.TempFileMixin, common.PyTablesTestCase):
+class TimestampTestCase(TrackTimesMixin, common.TempFileMixin,
+                        common.PyTablesTestCase):
     title = "A title"
     nrows = 10
 
@@ -114,7 +115,8 @@ class TimestampTestCase(TrackTimesMixin, common.TempFileMixin, common.PyTablesTe
             self.assertGreaterEqual(tracked_ctimes[1], tracked_ctimes[0])
 
 
-class BitForBitTestCase(TrackTimesMixin, common.TempFileMixin, common.PyTablesTestCase):
+class BitForBitTestCase(TrackTimesMixin, common.TempFileMixin,
+                        common.PyTablesTestCase):
     title = "A title"
     nrows = 10
 

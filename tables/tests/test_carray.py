@@ -457,7 +457,8 @@ class EmptyCArray2TestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class SlicesCArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -475,7 +476,8 @@ class EllipsisCArrayTestCase(BasicTestCase):
     slices = (Ellipsis, slice(1, 2, 1))
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class Slices2CArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -492,7 +494,8 @@ class Ellipsis2CArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class Slices3CArrayTestCase(BasicTestCase):
     compress = 1      # To show the chunks id DEBUG is on
     complib = "lzo"
@@ -662,8 +665,9 @@ class BloscShuffleTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf(common.blosc_version < common.min_blosc_bitshuffle_version,
-                        'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
+@common.unittest.skipIf(
+    common.blosc_version < common.min_blosc_bitshuffle_version,
+    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class BloscBitShuffleTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -705,7 +709,8 @@ class BloscBloscLZTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4TestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -719,7 +724,8 @@ class BloscLZ4TestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4HCTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -748,7 +754,8 @@ class BloscSnappyTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('zlib' not in tb.blosc_compressor_list(), 'zlib required')
+@common.unittest.skipIf(
+    'zlib' not in tb.blosc_compressor_list(), 'zlib required')
 class BloscZlibTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -762,7 +769,8 @@ class BloscZlibTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('zstd' not in tb.blosc_compressor_list(), 'zstd required')
+@common.unittest.skipIf(
+    'zstd' not in tb.blosc_compressor_list(), 'zstd required')
 class BloscZstdTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -774,7 +782,8 @@ class BloscZstdTestCase(BasicTestCase):
     step = 7
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
@@ -784,7 +793,8 @@ class LZOComprTestCase(BasicTestCase):
     step = 3
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class LZOShuffleTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -1060,8 +1070,9 @@ class ReadOutArgumentTests(common.TempFileMixin, common.PyTablesTestCase):
 
     def create_array(self):
         array = np.arange(self.size, dtype='i8')
-        disk_array = self.h5file.create_carray('/', 'array', atom=tb.Int64Atom(),
-                                               shape=(self.size, ),
+        disk_array = self.h5file.create_carray('/', 'array',
+                                               atom=tb.Int64Atom(),
+                                               shape=(self.size,),
                                                filters=self.filters)
         disk_array[:] = array
         return array, disk_array
@@ -1096,7 +1107,8 @@ class ReadOutArgumentTests(common.TempFileMixin, common.PyTablesTestCase):
             self.assertIn('output array size invalid, got', str(exc))
 
 
-class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
+                                         common.PyTablesTestCase):
 
     def setUp(self):
         super().setUp()
@@ -1262,9 +1274,12 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Third row in carray ==>", data[2])
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(common.allequal(data[0], np.array([1, 1, 1], dtype='int32')))
-        self.assertTrue(common.allequal(data[1], np.array([0, 0, 0], dtype='int32')))
-        self.assertTrue(common.allequal(data[2], np.array([-1, 0, 0], dtype='int32')))
+        self.assertTrue(common.allequal(
+            data[0], np.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(common.allequal(
+            data[1], np.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(common.allequal(
+            data[2], np.array([-1, 0, 0], dtype='int32')))
 
     def test02b_int(self):
         """Checking carray with strided NumPy ints appends."""
@@ -1295,9 +1310,12 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Third row in carray ==>", data[2])
 
         self.assertEqual(carray.nrows, 3)
-        self.assertTrue(common.allequal(data[0], np.array([0, 0, 0], dtype='int32')))
-        self.assertTrue(common.allequal(data[1], np.array([3, 3, 3], dtype='int32')))
-        self.assertTrue(common.allequal(data[2], np.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(common.allequal(
+            data[0], np.array([0, 0, 0], dtype='int32')))
+        self.assertTrue(common.allequal(
+            data[1], np.array([3, 3, 3], dtype='int32')))
+        self.assertTrue(common.allequal(
+            data[2], np.array([1, 1, 1], dtype='int32')))
 
 
 class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -2055,7 +2073,8 @@ class Rows64bitsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(array.shape, (nrows,))
 
         # check the 10 first elements
-        self.assertTrue(common.allequal(array[:10], np.arange(10, dtype='int8')))
+        self.assertTrue(common.allequal(
+            array[:10], np.arange(10, dtype='int8')))
 
         # check the 10 last elements
         stop = self.narows % 256
@@ -2109,9 +2128,9 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Check that Atom.dflt is honored (string version)."""
 
         # Create a CArray with default values
-        self.h5file.create_carray('/', 'bar',
-                                  atom=tb.StringAtom(itemsize=5, dflt=b"abdef"),
-                                  shape=(10, 10))
+        self.h5file.create_carray(
+            '/', 'bar', atom=tb.StringAtom(itemsize=5, dflt=b"abdef"),
+            shape=(10, 10))
 
         if self.reopen:
             self._reopen()
@@ -2120,8 +2139,8 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         values = self.h5file.root.bar[:]
         if common.verbose:
             print("Read values:", values)
-        self.assertTrue(
-            common.allequal(values, np.array(["abdef"]*100, "S5").reshape(10, 10)))
+        self.assertTrue(common.allequal(
+            values, np.array(["abdef"] * 100, "S5").reshape(10, 10)))
 
     def test01_dflt(self):
         """Check that Atom.dflt is honored (int version)."""
@@ -2143,8 +2162,8 @@ class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Check that Atom.dflt is honored (float version)."""
 
         # Create a CArray with default values
-        self.h5file.create_carray('/', 'bar',
-                                  atom=tb.FloatAtom(dflt=1.134), shape=(10, 10))
+        self.h5file.create_carray(
+            '/', 'bar', atom=tb.FloatAtom(dflt=1.134), shape=(10, 10))
 
         if self.reopen:
             self._reopen()
@@ -2230,7 +2249,8 @@ class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("First row-->", ca[0])
             print("Defaults-->", ca.atom.dflt)
         self.assertTrue(common.allequal(ca[0], np.ones(N, 'f4')*generic))
-        self.assertTrue(common.allequal(ca.atom.dflt, np.ones(N, 'f4')*generic))
+        self.assertTrue(common.allequal(
+            ca.atom.dflt, np.ones(N, 'f4')*generic))
 
     def test02a_None(self):
         """Testing default values.  None (scalar)."""
@@ -2296,7 +2316,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ca.nrows, 1)
         if common.verbose:
             print("First row-->", ca[0])
-        self.assertTrue(common.allequal(ca[0], np.array([[1, 3], [4, 5]], 'i4')))
+        self.assertTrue(common.allequal(
+            ca[0], np.array([[1, 3], [4, 5]], 'i4')))
 
     def test01b_assign(self):
         """Assign several rows to a (unidimensional) CArray with a MD atom."""
@@ -2312,7 +2333,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
             print("Third row-->", ca[2])
-        self.assertTrue(common.allequal(ca[2], np.array([[3, 3], [3, 3]], 'i4')))
+        self.assertTrue(common.allequal(
+            ca[2], np.array([[3, 3], [3, 3]], 'i4')))
 
     def test02a_assign(self):
         """Assign a row to a (multidimensional) CArray with a MD atom."""
@@ -2348,15 +2370,15 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ca.nrows, 3)
         if common.verbose:
             print("Third row-->", ca[2])
-        self.assertTrue(
-            common.allequal(ca[2], np.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
+        self.assertTrue(common.allequal(
+            ca[2], np.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
 
     def test03a_MDMDMD(self):
         """Complex assign of a MD array in a MD CArray with a MD atom."""
 
         # Create an CArray
-        ca = self.h5file.create_carray('/', 'test',
-                                       atom=tb.Int32Atom((2, 4)), shape=(3, 2, 3))
+        ca = self.h5file.create_carray(
+            '/', 'test', atom=tb.Int32Atom((2, 4)), shape=(3, 2, 3))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test
@@ -2393,8 +2415,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Complex assign of a MD array in a MD CArray with a MD atom (III)."""
 
         # Create an CArray
-        ca = self.h5file.create_carray('/', 'test',
-                                       atom=tb.Int32Atom((2, 4)), shape=(3, 1, 2))
+        ca = self.h5file.create_carray(
+            '/', 'test', atom=tb.Int32Atom((2, 4)), shape=(3, 1, 2))
         if self.reopen:
             self._reopen('a')
             ca = self.h5file.root.test

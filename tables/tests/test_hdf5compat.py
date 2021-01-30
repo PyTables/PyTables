@@ -200,7 +200,8 @@ class ChunkedCompoundTestCase(common.TestFileMixin, common.PyTablesTestCase):
             self.assertEqual(row['g_name'], ord('m'))
 
 
-class ContiguousCompoundTestCase(common.TestFileMixin, common.PyTablesTestCase):
+class ContiguousCompoundTestCase(common.TestFileMixin,
+                                 common.PyTablesTestCase):
     """Test for support of native contiguous compound datasets.
 
     This example has been provided by Dav Clark.
@@ -241,7 +242,8 @@ class ContiguousCompoundTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.h5file.close()
 
 
-class ContiguousCompoundAppendTestCase(common.TestFileMixin, common.PyTablesTestCase):
+class ContiguousCompoundAppendTestCase(common.TestFileMixin,
+                                       common.PyTablesTestCase):
     """Test for appending data to native contiguous compound datasets."""
 
     h5fname = common.test_filename('non-chunked-table.h5')
@@ -352,7 +354,8 @@ class ObjectReferenceTestCase(common.TestFileMixin, common.PyTablesTestCase):
             array[0][0][0], np.array([0, 0], dtype=np.uint64)))
 
 
-class ObjectReferenceRecursiveTestCase(common.TestFileMixin, common.PyTablesTestCase):
+class ObjectReferenceRecursiveTestCase(common.TestFileMixin,
+                                       common.PyTablesTestCase):
     h5fname = common.test_filename('test_ref_array2.mat')
 
     def test_var(self):
@@ -391,12 +394,14 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(I32LETestCase))
         theSuite.addTest(common.unittest.makeSuite(ChunkedCompoundTestCase))
         theSuite.addTest(common.unittest.makeSuite(ContiguousCompoundTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ContiguousCompoundAppendTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(ContiguousCompoundAppendTestCase))
         theSuite.addTest(common.unittest.makeSuite(ExtendibleTestCase))
         theSuite.addTest(common.unittest.makeSuite(SzipTestCase))
         theSuite.addTest(common.unittest.makeSuite(MatlabFileTestCase))
         theSuite.addTest(common.unittest.makeSuite(ObjectReferenceTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ObjectReferenceRecursiveTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(ObjectReferenceRecursiveTestCase))
 
     return theSuite
 

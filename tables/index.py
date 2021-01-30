@@ -198,7 +198,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
     @property
     def table(self):
         """Accessor for the `Table` object of this index."""
-        tablepath, columnpath = _table_column_pathname_of_index(self._v_pathname)
+        tablepath, columnpath = _table_column_pathname_of_index(
+            self._v_pathname)
         table = self._v_file._get_node(tablepath)
         return table
 
@@ -255,7 +256,9 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
     @property
     def temp_required(self):
         """Whether a temporary file for indexes is required or not."""
-        return self.indsize > 1 and self.optlevel > 0 and self.table.nrows > self.slicesize
+        return (self.indsize > 1 and
+                self.optlevel > 0 and
+                self.table.nrows > self.slicesize)
 
     @property
     def want_complete_sort(self):
@@ -2177,7 +2180,8 @@ class IndexesTableG(NotLoggedMixin, Group):
 
     @property
     def table(self):
-        """Accessor for the `Table` object of this `IndexesTableG` container."""
+        """Accessor for the `Table` object of this `IndexesTableG`
+        container."""
         names = self._v_pathname.split("/")
         tablename = names.pop()[3:]   # "_i_" is at the beginning
         parentpathname = "/".join(names)

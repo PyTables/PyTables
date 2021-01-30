@@ -86,10 +86,10 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(nrows, vlarray.nrows)
         if self.flavor == "numpy":
             self.assertEqual(type(row), np.ndarray)
-            self.assertTrue(
-                common.allequal(row, np.array([1, 2], dtype='int32'), self.flavor))
-            self.assertTrue(
-                common.allequal(row2, np.array([], dtype='int32'), self.flavor))
+            self.assertTrue(common.allequal(
+                row, np.array([1, 2], dtype='int32'), self.flavor))
+            self.assertTrue(common.allequal(
+                row2, np.array([], dtype='int32'), self.flavor))
         elif self.flavor == "python":
             self.assertEqual(row, [1, 2])
             self.assertEqual(row2, [])
@@ -108,7 +108,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(self.shuffle, vlarray.filters.shuffle)
         if self.bitshuffle != vlarray.filters.bitshuffle and common.verbose:
             print("Error in shuffle. Class:", self.__class__.__name__)
-            print("self, vlarray:", self.bitshuffle, vlarray.filters.bitshuffle)
+            print("self, vlarray:", self.bitshuffle,
+                  vlarray.filters.bitshuffle)
         self.assertEqual(self.shuffle, vlarray.filters.shuffle)
         if self.fletcher32 != vlarray.filters.fletcher32 and common.verbose:
             print("Error in fletcher32. Class:", self.__class__.__name__)
@@ -150,7 +151,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 for val in rows1:
                     rows1f.append(np.array(val, dtype='int32'))
                 for i in range(len(rows1f)):
-                    self.assertTrue(common.allequal(rows2[i], rows1f[i], self.flavor))
+                    self.assertTrue(common.allequal(
+                        rows2[i], rows1f[i], self.flavor))
             elif self.flavor == "python":
                 self.assertEqual(rows2, rows1)
 
@@ -183,7 +185,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("Rows read in vlarray ==>", rows2)
 
             for i in range(len(rows1)):
-                self.assertTrue(common.allequal(rows2[i], rows1[i], self.flavor))
+                self.assertTrue(common.allequal(
+                    rows2[i], rows1[i], self.flavor))
 
     def test03_append(self):
         """Checking vlarray append."""
@@ -271,8 +274,9 @@ class BloscShuffleComprTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf(common.blosc_version < common.min_blosc_bitshuffle_version,
-                        f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
+@common.unittest.skipIf(
+    common.blosc_version < common.min_blosc_bitshuffle_version,
+    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class BloscBitShuffleComprTestCase(BasicTestCase):
     compress = 9
     bitshuffle = 1
@@ -289,7 +293,8 @@ class BloscBloscLZComprTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4ComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
@@ -298,7 +303,8 @@ class BloscLZ4ComprTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4HCComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
@@ -317,7 +323,8 @@ class BloscSnappyComprTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('zlib' not in tb.blosc_compressor_list(), 'zlib required')
+@common.unittest.skipIf(
+    'zlib' not in tb.blosc_compressor_list(), 'zlib required')
 class BloscZlibComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
@@ -326,14 +333,16 @@ class BloscZlibComprTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf('zstd' not in tb.blosc_compressor_list(), 'zstd required')
+@common.unittest.skipIf(
+    'zstd' not in tb.blosc_compressor_list(), 'zstd required')
 class BloscZstdComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:zstd"
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(
+    not common.lzo_avail, 'LZO compression library not available')
 class LZOComprTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -427,7 +436,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        np.testing.assert_array_equal(row[0], np.array(["1", "123", "123"], 'S'))
+        np.testing.assert_array_equal(row[0],
+                                      np.array(["1", "123", "123"], 'S'))
         np.testing.assert_array_equal(row[1], np.array(["1", "321"], 'S'))
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 2)
@@ -531,9 +541,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(
-            common.allequal(row[0], np.array([b"1", b"123", b"12", b"", b"123"])))
-        self.assertTrue(common.allequal(row[1], np.array(["44", "4"], dtype="S3")))
+        self.assertTrue(common.allequal(
+            row[0], np.array([b"1", b"123", b"12", b"", b"123"])))
+        self.assertTrue(common.allequal(
+            row[1], np.array(["44", "4"], dtype="S3")))
         self.assertEqual(len(row[0]), 5)
         self.assertEqual(len(row[1]), 2)
 
@@ -581,7 +592,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02_BoolAtom..." % self.__class__.__name__)
 
-        vlarray = self.h5file.create_vlarray('/', 'BoolAtom', atom=tb.BoolAtom(),
+        vlarray = self.h5file.create_vlarray('/', 'BoolAtom',
+                                             atom=tb.BoolAtom(),
                                              title="Ragged array of Booleans")
         vlarray.append([1, 0, 3])
         vlarray.append([-1, 0])
@@ -599,8 +611,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(common.allequal(row[0], np.array([1, 0, 1], dtype='bool')))
-        self.assertTrue(common.allequal(row[1], np.array([1, 0], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([1, 0, 1], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([1, 0], dtype='bool')))
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 2)
 
@@ -611,7 +625,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02b_BoolAtom..." % self.__class__.__name__)
 
-        vlarray = self.h5file.create_vlarray('/', 'BoolAtom', atom=tb.BoolAtom(),
+        vlarray = self.h5file.create_vlarray('/', 'BoolAtom',
+                                             atom=tb.BoolAtom(),
                                              title="Ragged array of Booleans")
         vlarray.append([1, 0, 3])
         vlarray.append([-1, 0])
@@ -633,8 +648,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(common.allequal(row[0], np.array([0, 1, 1], dtype='bool')))
-        self.assertTrue(common.allequal(row[1], np.array([0, 1], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([0, 1, 1], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([0, 1], dtype='bool')))
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 2)
 
@@ -656,8 +673,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Running %s.test03_IntAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.h5file.create_vlarray('/', atype,
-                                                 atom=tb.Atom.from_sctype(atype))
+            vlarray = self.h5file.create_vlarray(
+                '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
             vlarray.append([-1, 0])
 
@@ -675,8 +692,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(common.allequal(row[0], np.array([1, 2, 3], dtype=atype)))
-            self.assertTrue(common.allequal(row[1], np.array([-1, 0], dtype=atype)))
+            self.assertTrue(
+                common.allequal(row[0], np.array([1, 2, 3], dtype=atype)))
+            self.assertTrue(
+                common.allequal(row[1], np.array([-1, 0], dtype=atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -723,10 +742,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(
-                common.allequal(row[0], np.array([1, 2, 3], dtype=ttypes[atype])))
-            self.assertTrue(
-                common.allequal(row[1], np.array([-1, 0], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[0], np.array([1, 2, 3], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[1], np.array([-1, 0], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -771,8 +790,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(common.allequal(row[0], np.array([3, 2, 1], dtype=atype)))
-            self.assertTrue(common.allequal(row[1], np.array([0, -1], dtype=atype)))
+            self.assertTrue(
+                common.allequal(row[0], np.array([3, 2, 1], dtype=atype)))
+            self.assertTrue(
+                common.allequal(row[1], np.array([0, -1], dtype=atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -825,10 +846,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(
-                common.allequal(row[0], np.array([3, 2, 1], dtype=ttypes[atype])))
-            self.assertTrue(
-                common.allequal(row[1], np.array([0, -1], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[0], np.array([3, 2, 1], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[1], np.array([0, -1], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -888,10 +909,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                  sys.byteorder)
                 self.assertEqual(vlarray.byteorder, byteorder)
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(
-                common.allequal(row[0], np.array([3, 2, 1], dtype=ttypes[atype])))
-            self.assertTrue(
-                common.allequal(row[1], np.array([0, -1], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[0], np.array([3, 2, 1], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[1], np.array([0, -1], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -931,7 +952,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(common.allequal(row[0], np.array([1.3, 2.2, 3.3], atype)))
+            self.assertTrue(common.allequal(
+                row[0], np.array([1.3, 2.2, 3.3], atype)))
             self.assertTrue(common.allequal(
                 row[1], np.array([-1.3e34, 1.e-32], atype)))
             self.assertEqual(len(row[0]), 3)
@@ -1028,7 +1050,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(common.allequal(row[0], np.array([4.3, 2.2, 4.3], atype)))
+            self.assertTrue(common.allequal(
+                row[0], np.array([4.3, 2.2, 4.3], atype)))
             self.assertTrue(
                 common.allequal(row[1], np.array([-1.1e34, 1.3e-32], atype)))
             self.assertEqual(len(row[0]), 3)
@@ -1143,7 +1166,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.byteorder, byteorder)
-            self.assertEqual(tb.utils.byteorders[row[0].dtype.byteorder], sys.byteorder)
+            self.assertEqual(tb.utils.byteorders[row[0].dtype.byteorder],
+                             sys.byteorder)
             self.assertEqual(vlarray.nrows, 2)
             self.assertTrue(common.allequal(
                 row[0], np.array([4.3, 2.2, 4.3], dtype=ttypes[atype])))
@@ -1337,7 +1361,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         vlarray = self.h5file.create_vlarray(
             '/', "Object", atom=tb.ObjectAtom())
-        vlarray.append([[1, 2, 3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"])
+        vlarray.append(
+            [[1, 2, 3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"])
         vlarray.append([3, 4, C()])
         vlarray.append(42)
 
@@ -1354,7 +1379,9 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
-        self.assertEqual(row[0], [[1, 2, 3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"])
+        self.assertEqual(
+            row[0],
+            [[1, 2, 3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"])
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [3, 4])
@@ -1371,10 +1398,12 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06b_Object..." % self.__class__.__name__)
 
-        vlarray = self.h5file.create_vlarray('/', "Object", atom=tb.ObjectAtom())
+        vlarray = self.h5file.create_vlarray('/', "Object",
+                                             atom=tb.ObjectAtom())
         # When updating an object, this seems to change the number
         # of bytes that pickle.dumps generates
-        # vlarray.append(([1,2,3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"))
+        # vlarray.append(
+        #     ([1,2,3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"))
         vlarray.append(([1, 2, 3], "aaa", "\xef\xbf\xbd\xef\xbf\xbd4"))
         # vlarray.append([3,4, C()])
         vlarray.append([3, 4, [24]])
@@ -1398,7 +1427,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], ([1, 2, 4], "aa4", "\xef\xbf\xbd\xef\xbf\xbd5"))
+        self.assertEqual(row[0],
+                         ([1, 2, 4], "aa4", "\xef\xbf\xbd\xef\xbf\xbd5"))
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [4, 4])
@@ -1415,7 +1445,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06c_Object..." % self.__class__.__name__)
 
-        vlarray = self.h5file.create_vlarray('/', "Object", atom=tb.ObjectAtom())
+        vlarray = self.h5file.create_vlarray('/', "Object",
+                                             atom=tb.ObjectAtom())
         vlarray.append(np.array([[1, 2], [0, 4]], 'i4'))
         vlarray.append(np.array([0, 1, 2, 3], 'i8'))
         vlarray.append(np.array(42, 'i1'))
@@ -1433,7 +1464,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
-        self.assertTrue(common.allequal(row[0], np.array([[1, 2], [0, 4]], 'i4')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([[1, 2], [0, 4]], 'i4')))
         self.assertTrue(common.allequal(row[1], np.array([0, 1, 2, 3], 'i8')))
         self.assertTrue(common.allequal(row[2], np.array(42, 'i1')))
 
@@ -1444,7 +1476,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06d_Object..." % self.__class__.__name__)
 
-        vlarray = self.h5file.create_vlarray('/', "Object", atom=tb.ObjectAtom())
+        vlarray = self.h5file.create_vlarray('/', "Object",
+                                             atom=tb.ObjectAtom())
         vlarray.append(np.array([[1, 2], [0, 4]], 'i4'))
         vlarray.append(np.array([0, 1, 2, 3], 'i8'))
         vlarray.append(np.array(42, 'i1'))
@@ -1469,8 +1502,10 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
-        self.assertTrue(common.allequal(row[0], np.array([[1, 0], [0, 4]], 'i4')))
-        self.assertTrue(common.allequal(row[1], np.array([0, 1, 0, 3], 'i8')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([[1, 0], [0, 4]], 'i4')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([0, 1, 0, 3], 'i8')))
         self.assertTrue(common.allequal(row[2], np.array(22, 'i1')))
 
     def test07_VLUnicodeAtom(self):
@@ -1764,7 +1799,8 @@ class MDTypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(vlarray.nrows, 2)
         self.assertTrue(common.allequal(
             row[0], np.array([[1, 0, 1], [1, 1, 1], [0, 0, 0]], dtype='bool')))
-        self.assertTrue(common.allequal(row[1], np.array([[1, 0, 0]], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([[1, 0, 0]], dtype='bool')))
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 1)
 
@@ -1997,7 +2033,8 @@ class AppendShapeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("First row in vlarray ==>", repr(row))
 
         self.assertEqual(vlarray.nrows, 1)
-        self.assertTrue(common.allequal(row, np.zeros(dtype='int32', shape=(0,))))
+        self.assertTrue(common.allequal(
+            row, np.zeros(dtype='int32', shape=(0,))))
         self.assertEqual(len(row), 0)
 
     def test03a_cast(self):
@@ -2092,8 +2129,8 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
                   self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.h5file.create_vlarray(root, "vlarray",
-                                             tb.Atom.from_kind('int', itemsize=4))
+        vlarray = self.h5file.create_vlarray(
+            root, "vlarray", tb.Atom.from_kind('int', itemsize=4))
         vlarray.flavor = self.flavor
         self.h5file.close()
         self.h5file = tb.open_file(self.h5fname, "r")
@@ -2120,8 +2157,8 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
                   self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.h5file.create_vlarray(root, "vlarray",
-                                             tb.Atom.from_kind('int', itemsize=4))
+        vlarray = self.h5file.create_vlarray(
+            root, "vlarray", tb.Atom.from_kind('int', itemsize=4))
         vlarray.flavor = self.flavor
 
         # Read all the rows (it should be empty):
@@ -2505,13 +2542,14 @@ class ReadRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[0]), 1)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(common.allequal(row[0][0], np.arange(0, dtype='int32')))
+        self.assertTrue(common.allequal(
+            row[0][0], np.arange(0, dtype='int32')))
         for x in range(10):
-            self.assertTrue(common.allequal(row[1][
-                            x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x], np.arange(x, dtype='int32')))
         for x in range(99):
-            self.assertTrue(common.allequal(row[2][
-                            x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test02b_stop(self):
         """Checking reads with only a stop value in a slice"""
@@ -2539,11 +2577,14 @@ class ReadRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
         for x in range(1):
-            self.assertTrue(common.allequal(row[0][x], np.arange(0, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(0, dtype='int32')))
         for x in range(10):
-            self.assertTrue(common.allequal(row[1][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x], np.arange(x, dtype='int32')))
         for x in range(99):
-            self.assertTrue(common.allequal(row[2][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test03_startstop(self):
         """Checking reads with a start and stop values"""
@@ -2571,11 +2612,14 @@ class ReadRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 100)
         for x in range(0, 10):
-            self.assertTrue(common.allequal(row[0][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(x, dtype='int32')))
         for x in range(5, 15):
-            self.assertTrue(common.allequal(row[1][x-5], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x-5], np.arange(x, dtype='int32')))
         for x in range(0, 100):
-            self.assertTrue(common.allequal(row[2][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test03b_startstop(self):
         """Checking reads with a start and stop values in slices"""
@@ -2603,11 +2647,14 @@ class ReadRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 100)
         for x in range(0, 10):
-            self.assertTrue(common.allequal(row[0][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(x, dtype='int32')))
         for x in range(5, 15):
-            self.assertTrue(common.allequal(row[1][x-5], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x-5], np.arange(x, dtype='int32')))
         for x in range(0, 100):
-            self.assertTrue(common.allequal(row[2][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test04_startstopstep(self):
         """Checking reads with a start, stop & step values"""
@@ -2878,11 +2925,14 @@ class GetItemRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[0]), 1)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(common.allequal(row[0][0], np.arange(0, dtype='int32')))
+        self.assertTrue(common.allequal(
+            row[0][0], np.arange(0, dtype='int32')))
         for x in range(10):
-            self.assertTrue(common.allequal(row[1][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x], np.arange(x, dtype='int32')))
         for x in range(99):
-            self.assertTrue(common.allequal(row[2][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test02b_stop(self):
         """Checking reads with only a stop value in a slice"""
@@ -2910,11 +2960,14 @@ class GetItemRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
         for x in range(1):
-            self.assertTrue(common.allequal(row[0][x], np.arange(0, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(0, dtype='int32')))
         for x in range(10):
-            self.assertTrue(common.allequal(row[1][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x], np.arange(x, dtype='int32')))
         for x in range(99):
-            self.assertTrue(common.allequal(row[2][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test03_startstop(self):
         """Checking reads with a start and stop values"""
@@ -2942,11 +2995,14 @@ class GetItemRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 100)
         for x in range(0, 10):
-            self.assertTrue(common.allequal(row[0][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(x, dtype='int32')))
         for x in range(5, 15):
-            self.assertTrue(common.allequal(row[1][x-5], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x-5], np.arange(x, dtype='int32')))
         for x in range(0, 100):
-            self.assertTrue(common.allequal(row[2][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test03b_startstop(self):
         """Checking reads with a start and stop values in slices"""
@@ -2974,11 +3030,14 @@ class GetItemRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 100)
         for x in range(0, 10):
-            self.assertTrue(common.allequal(row[0][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(x, dtype='int32')))
         for x in range(5, 15):
-            self.assertTrue(common.allequal(row[1][x-5], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x-5], np.arange(x, dtype='int32')))
         for x in range(0, 100):
-            self.assertTrue(common.allequal(row[2][x], np.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test04_slices(self):
         """Checking reads with a start, stop & step values"""
@@ -3136,9 +3195,12 @@ class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(common.allequal(row[0], np.arange(0, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[1], np.arange(10, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[2], np.arange(99, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(0, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(10, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[2], np.arange(99, dtype='int32') * 2 + 3))
 
     def test01np_start(self):
         """Checking updates that modifies a complete row"""
@@ -3167,9 +3229,12 @@ class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(common.allequal(row[0], np.arange(0, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[1], np.arange(10, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[2], np.arange(99, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(0, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(10, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[2], np.arange(99, dtype='int32') * 2 + 3))
 
     def test02_partial(self):
         """Checking updates with only a part of a row"""
@@ -3198,8 +3263,10 @@ class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(common.allequal(row[0], np.arange(0, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[1], np.arange(10, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(0, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(10, dtype='int32') * 2 + 3))
         a = np.arange(3, 99, dtype='int32')
         a = a * 2 + 3
         self.assertTrue(common.allequal(row[2], a))
@@ -3232,9 +3299,12 @@ class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 4)
         self.assertEqual(len(row[2]), 5)
-        self.assertTrue(common.allequal(row[0], np.arange(3, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[1], np.arange(4, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[2], np.arange(5, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(3, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(4, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[2], np.arange(5, dtype='int32') * 2 + 3))
 
     def test03b_several_rows(self):
         """Checking updating several rows at once (list style)"""
@@ -3264,9 +3334,12 @@ class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(common.allequal(row[0], np.arange(0, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[1], np.arange(10, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[2], np.arange(96, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(0, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(10, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[2], np.arange(96, dtype='int32') * 2 + 3))
 
     def test03c_several_rows(self):
         """Checking updating several rows at once (NumPy's where style)"""
@@ -3296,9 +3369,12 @@ class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(common.allequal(row[0], np.arange(0, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[1], np.arange(10, dtype='int32') * 2 + 3))
-        self.assertTrue(common.allequal(row[2], np.arange(96, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(0, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(10, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[2], np.arange(96, dtype='int32') * 2 + 3))
 
     def test04_out_of_range(self):
         """Checking out of range updates (first index)"""
@@ -3900,7 +3976,8 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("array1-->", array1.read())
 
         self.assertEqual(array1.nrows, 1)
-        self.assertTrue(common.allequal(array1[0], np.array([456, 2], dtype='int16')))
+        self.assertTrue(common.allequal(
+            array1[0], np.array([456, 2], dtype='int16')))
 
     def test02_truncate(self):
         """Checking VLArray.truncate() method (truncating to == self.nrows)"""
@@ -3921,7 +3998,8 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(array1.nrows, 2)
         self.assertTrue(
             common.allequal(array1[0], np.array([456, 2], dtype='int16')))
-        self.assertTrue(common.allequal(array1[1], np.array([3], dtype='int16')))
+        self.assertTrue(common.allequal(
+            array1[1], np.array([3], dtype='int16')))
 
     def test03_truncate(self):
         """Checking VLArray.truncate() method (truncating to > self.nrows)"""
@@ -3944,11 +4022,14 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check the original values
         self.assertTrue(
             common.allequal(array1[0], np.array([456, 2], dtype='int16')))
-        self.assertTrue(common.allequal(array1[1], np.array([3], dtype='int16')))
+        self.assertTrue(common.allequal(
+            array1[1], np.array([3], dtype='int16')))
 
         # Check that the added rows are empty
-        self.assertTrue(common.allequal(array1[2], np.array([], dtype='int16')))
-        self.assertTrue(common.allequal(array1[3], np.array([], dtype='int16')))
+        self.assertTrue(common.allequal(
+            array1[2], np.array([], dtype='int16')))
+        self.assertTrue(common.allequal(
+            array1[3], np.array([], dtype='int16')))
 
 
 class TruncateOpenTestCase(TruncateTestCase):
@@ -4022,7 +4103,8 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertRaises(IndexError, vlarr.__getitem__, key)
 
 
-class SizeInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SizeInMemoryPropertyTestCase(common.TempFileMixin,
+                                   common.PyTablesTestCase):
     def create_array(self, atom, complevel):
         filters = tb.Filters(complevel=complevel, complib='blosc')
         self.array = self.h5file.create_vlarray('/', 'vlarray', atom=atom,
@@ -4079,7 +4161,8 @@ class SizeInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTestCase
         self.assertEqual(self.array.size_in_memory, expected_size)
 
 
-class SizeOnDiskPropertyTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SizeOnDiskPropertyTestCase(common.TempFileMixin,
+                                 common.PyTablesTestCase):
     def create_array(self, atom, complevel):
         filters = tb.Filters(complevel=complevel, complib='blosc')
         self.h5file.create_vlarray('/', 'vlarray', atom, filters=filters)
@@ -4287,7 +4370,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(ZlibComprTestCase))
         theSuite.addTest(common.unittest.makeSuite(BloscComprTestCase))
         theSuite.addTest(common.unittest.makeSuite(BloscShuffleComprTestCase))
-        theSuite.addTest(common.unittest.makeSuite(BloscBitShuffleComprTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(BloscBitShuffleComprTestCase))
         theSuite.addTest(common.unittest.makeSuite(BloscBloscLZComprTestCase))
         theSuite.addTest(common.unittest.makeSuite(BloscLZ4ComprTestCase))
         theSuite.addTest(common.unittest.makeSuite(BloscLZ4HCComprTestCase))
@@ -4328,7 +4412,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(TruncateOpenTestCase))
         theSuite.addTest(common.unittest.makeSuite(TruncateCloseTestCase))
         theSuite.addTest(common.unittest.makeSuite(PointSelectionTestCase))
-        theSuite.addTest(common.unittest.makeSuite(SizeInMemoryPropertyTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(SizeInMemoryPropertyTestCase))
         theSuite.addTest(common.unittest.makeSuite(SizeOnDiskPropertyTestCase))
         theSuite.addTest(common.unittest.makeSuite(AccessClosedTestCase))
         theSuite.addTest(common.unittest.makeSuite(TestCreateVLArrayArgs))

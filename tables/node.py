@@ -834,9 +834,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_maybe_remove(self, parent, name, overwrite):
         if name in parent:
             if not overwrite:
-                raise NodeError("""\
-destination group ``{}`` already has a node named ``{}``; \
-you may want to use the ``overwrite`` argument""".format(parent._v_pathname, name))
+                raise NodeError(
+                    f"destination group ``{parent._v_pathname}`` already "
+                    f"has a node named ``{name}``; you may want to use the "
+                    f"``overwrite`` argument")
             parent._f_get_child(name)._f_remove(True)
 
     def _g_check_name(self, name):

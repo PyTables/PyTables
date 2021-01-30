@@ -11,30 +11,30 @@ from tables.tests import common
 
 # Test Record class
 class Record(tb.IsDescription):
-    var0 = tb.StringCol(itemsize=4, dflt=b"", shape=2)  # 4-character string array
+    var0 = tb.StringCol(itemsize=4, dflt=b"", shape=2)  # 4-char str array
     var1 = tb.StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2))
     var1_ = tb.IntCol(dflt=((1, 1),), shape=2)           # integer array
     var2 = tb.IntCol(dflt=((1, 1), (1, 1)), shape=(2, 2))  # integer array
-    var3 = tb.Int16Col(dflt=2)                         # short integer
-    var4 = tb.FloatCol(dflt=3.1)                       # double (double-precision)
-    var5 = tb.Float32Col(dflt=4.2)                     # float  (single-precision)
-    var6 = tb.UInt16Col(dflt=5)                        # unsigned short integer
-    var7 = tb.StringCol(itemsize=1, dflt=b"e")          # 1-character String
+    var3 = tb.Int16Col(dflt=2)  # short integer
+    var4 = tb.FloatCol(dflt=3.1)  # double (double-precision)
+    var5 = tb.Float32Col(dflt=4.2)  # float  (single-precision)
+    var6 = tb.UInt16Col(dflt=5)  # unsigned short integer
+    var7 = tb.StringCol(itemsize=1, dflt=b"e")  # 1-character String
 
 
 #  Dictionary definition
 RecordDescriptionDict = {
     'var0': tb.StringCol(itemsize=4, dflt=b"", shape=2),  # 4-char str array
     'var1': tb.StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2)),
-    # 'var0': StringCol(itemsize=4, shape=2),       # 4-character String
-    # 'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
-    'var1_': tb.IntCol(shape=2),                      # integer array
-    'var2': tb.IntCol(shape=(2, 2)),                  # integer array
-    'var3': tb.Int16Col(),                           # short integer
-    'var4': tb.FloatCol(),                           # double (double-precision)
-    'var5': tb.Float32Col(),                         # float  (single-precision)
-    'var6': tb.Int16Col(),                           # unsigned short integer
-    'var7': tb.StringCol(itemsize=1),                # 1-character String
+    # 'var0': StringCol(itemsize=4, shape=2),  # 4-character String
+    # 'var1': StringCol(itemsize=4, shape=(2,2)),  # 4-character String
+    'var1_': tb.IntCol(shape=2),  # integer array
+    'var2': tb.IntCol(shape=(2, 2)),  # integer array
+    'var3': tb.Int16Col(),  # short integer
+    'var4': tb.FloatCol(),  # double (double-precision)
+    'var5': tb.Float32Col(),  # float  (single-precision)
+    'var6': tb.Int16Col(),  # unsigned short integer
+    'var7': tb.StringCol(itemsize=1),  # 1-character String
 }
 
 # Record class with numpy dtypes (mixed shapes is checked here)
@@ -44,7 +44,8 @@ class RecordDT(tb.IsDescription):
     var0 = tb.Col.from_dtype(np.dtype("2S4"), dflt=b"")  # shape in dtype
     var1 = tb.Col.from_dtype(np.dtype(("S4", (
         2, 2))), dflt=[b"abcd", b"efgh"])  # shape is a mix
-    var1_ = tb.Col.from_dtype(np.dtype("2i4"), dflt=((1, 1),))  # shape in dtype
+    var1_ = tb.Col.from_dtype(
+        np.dtype("2i4"), dflt=((1, 1),))  # shape in dtype
     var2 = tb.Col.from_sctype("i4", shape=(
         2, 2), dflt=((1, 1), (1, 1)))  # shape is a mix
     var3 = tb.Col.from_dtype(np.dtype("i2"), dflt=2)
@@ -2213,7 +2214,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(RecArrayThreeWriteTestCase))
-        theSuite.addTest(common.unittest.makeSuite(RecArrayAlignedWriteTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(RecArrayAlignedWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressZLIBTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(IterRangeTestCase))
@@ -2231,10 +2233,12 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(UpdateRowTestCase2))
         theSuite.addTest(common.unittest.makeSuite(UpdateRowTestCase3))
         theSuite.addTest(common.unittest.makeSuite(UpdateRowTestCase4))
-        theSuite.addTest(common.unittest.makeSuite(CompressBloscTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressLZOTablesTestCase))
     if common.heavy:
-        theSuite.addTest(common.unittest.makeSuite(CompressBzip2TablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBzip2TablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(BigTablesTestCase))
 
     return theSuite

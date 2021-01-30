@@ -330,7 +330,7 @@ class TempFileMixin:
 
         self.h5file.close()
         self.h5file = None
-        Path(self.h5fname).unlink()   # comment this for debugging purposes only
+        Path(self.h5fname).unlink()   # comment this for debug only
         super().tearDown()
 
     def _reopen(self, mode='r', **kwargs):

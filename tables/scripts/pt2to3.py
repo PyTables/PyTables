@@ -338,7 +338,8 @@ old2newnames = dict([
     ('_whereCondition', '_where_condition'),            # attr (private)
     ('_conditionCache', '_condition_cache'),            # attr (private)
     # ('_exprvarsCache', '_exprvars_cache'),
-    ('_enabledIndexingInQueries', '_enabled_indexing_in_queries'),  # attr (private)
+    ('_enabledIndexingInQueries',
+     '_enabled_indexing_in_queries'),  # attr (private)
     ('_emptyArrayCache', '_empty_array_cache'),         # attr (private)
     ('_getTypeColNames', '_get_type_col_names'),
     ('_getEnumMap', '_get_enum_map'),

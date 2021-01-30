@@ -607,7 +607,8 @@ class ReadOutArgumentTests(common.TempFileMixin, common.PyTablesTestCase):
             self.assertIn('output array size invalid, got', str(exc))
 
 
-class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
+                                         common.PyTablesTestCase):
 
     def setUp(self):
         super().setUp()
@@ -620,7 +621,8 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTe
         self.assertEqual(self.array.size_in_memory, 10 * 10 * 4)
 
 
-class UnalignedAndComplexTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class UnalignedAndComplexTestCase(common.TempFileMixin,
+                                  common.PyTablesTestCase):
     """Basic test for all the supported typecodes present in numpy.
 
     Most of them are included on PyTables.
@@ -675,7 +677,8 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, common.PyTablesTestCase)
         if a.dtype.byteorder != "|":
             self.assertEqual(a.dtype, b.dtype)
             self.assertEqual(a.dtype, self.root.somearray.atom.dtype)
-            self.assertEqual(tb.utils.byteorders[b.dtype.byteorder], sys.byteorder)
+            self.assertEqual(tb.utils.byteorders[b.dtype.byteorder],
+                             sys.byteorder)
             self.assertEqual(self.root.somearray.byteorder, byteorder)
 
         self.assertTrue(common.allequal(c, b))
@@ -2672,10 +2675,14 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(
             SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(common.unittest.makeSuite(GroupsArrayTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ComplexNotReopenNotEndianTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ComplexReopenNotEndianTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ComplexNotReopenEndianTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ComplexReopenEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexNotReopenNotEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexReopenNotEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexNotReopenEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexReopenEndianTestCase))
         theSuite.addTest(common.unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex1TestCase))

@@ -716,7 +716,8 @@ class TableNativeFlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(data), 100)
 
         # Finally, check that the contents are ok
-        self.assertTrue(common.allequal(data, np.arange(100, dtype="i8"), "numpy"))
+        self.assertTrue(common.allequal(
+            data, np.arange(100, dtype="i8"), "numpy"))
 
     def test03a_readWhere(self):
         """Checking the return of NumPy in read_where method (strings)."""
@@ -841,7 +842,8 @@ class TableNativeFlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(data), 100)
 
         # Finally, check that the contents are ok
-        self.assertTrue(common.allequal(data, np.zeros((100,), dtype="u1"), "numpy"))
+        self.assertTrue(common.allequal(
+            data, np.zeros((100,), dtype="u1"), "numpy"))
 
     def test05b_modifyingColumns(self):
         """Checking modifying several columns at once."""
@@ -1379,8 +1381,10 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(Basic2DTestCase))
         theSuite.addTest(common.unittest.makeSuite(GroupsArrayTestCase))
         theSuite.addTest(common.unittest.makeSuite(TableReadTestCase))
-        theSuite.addTest(common.unittest.makeSuite(TableNativeFlavorOpenTestCase))
-        theSuite.addTest(common.unittest.makeSuite(TableNativeFlavorCloseTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(TableNativeFlavorOpenTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(TableNativeFlavorCloseTestCase))
         theSuite.addTest(common.unittest.makeSuite(AttributesOpenTestCase))
         theSuite.addTest(common.unittest.makeSuite(AttributesCloseTestCase))
         theSuite.addTest(common.unittest.makeSuite(StrlenOpenTestCase))

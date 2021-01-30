@@ -400,7 +400,9 @@ def _conv_numpy_to_numpy(array):
             # try to convert to basic 'S' type
             return nparr.astype('S')
         except UnicodeEncodeError:
-            pass  # pass on true Unicode arrays downstream in case it can be handled in the future
+            pass
+            # pass on true Unicode arrays downstream in case it can be
+            # handled in the future
     return nparr
 
 
@@ -413,7 +415,9 @@ def _conv_python_to_numpy(array):
             # try to convert to basic 'S' type
             return nparr.astype('S')
         except UnicodeEncodeError:
-            pass  # pass on true Unicode arrays downstream in case it can be handled in the future
+            pass
+            # pass on true Unicode arrays downstream in case it can be
+            # handled in the future
     return nparr
 
 

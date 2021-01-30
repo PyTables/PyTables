@@ -1214,7 +1214,8 @@ class CheckFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Identifying a nonexistent HDF5 file."""
         self.assertRaises(IOError,  tb.is_hdf5_file, 'nonexistent')
 
-    @common.unittest.skipUnless(hasattr(os, 'getuid') and os.getuid() != 0, "no UID")
+    @common.unittest.skipUnless(hasattr(os, 'getuid') and os.getuid() != 0,
+                                "no UID")
     def test01x_isHDF5File_unreadable(self):
         """Identifying an unreadable HDF5 file."""
 
@@ -1898,7 +1899,8 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tb.flavor.description_map.update(description_map)
 
 
-@common.unittest.skipIf('win' in platform.system().lower(), 'known bug: gh-389')
+@common.unittest.skipIf('win' in platform.system().lower(),
+                        'known bug: gh-389')
 @common.unittest.skipIf(sys.getfilesystemencoding() != 'utf-8',
                         'need utf-8 file-system encoding')
 class UnicodeFilename(common.TempFileMixin, common.PyTablesTestCase):
@@ -1989,7 +1991,8 @@ class PathLikeFilename(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(test[:], [1, 2], "Values does not match.")
 
     def test02(self):
-        """Checking  tables.is_hdf5_file with a PathLike object as the filename."""
+        """Checking tables.is_hdf5_file with a PathLike object as the
+        filename."""
 
         self.h5file.close()
         if common.verbose:
@@ -2129,7 +2132,8 @@ def _worker(fn, qout=None):
 @common.unittest.skipIf(not multiprocessing_imported,
                         'multiprocessing module not available')
 @common.unittest.skipIf(platform.system().lower() in ('gnu', 'gnu/kfreebsd'),
-                        "multiprocessing module is not supported on Hurd/kFreeBSD")
+                        "multiprocessing module is not "
+                        "supported on Hurd/kFreeBSD")
 @common.unittest.skipIf(not common.blosc_avail, 'Blosc not available')
 class BloscSubprocess(common.PyTablesTestCase):
     def test_multiprocess(self):
@@ -2364,7 +2368,8 @@ class TestDescription(common.PyTablesTestCase):
     def test_dtype_from_descr_dict(self):
         # See gh-152
         dtype = np.dtype([('col1', 'int16'), ('col2', float)])
-        t = tb.description.dtype_from_descr({'col1': tb.Int16Col(), 'col2': tb.FloatCol()})
+        t = tb.description.dtype_from_descr(
+            {'col1': tb.Int16Col(), 'col2': tb.FloatCol()})
 
         self.assertEqual(t, dtype)
 

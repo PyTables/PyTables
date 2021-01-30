@@ -430,9 +430,9 @@ class Description:
 
     .. attribute:: _v_offsets
 
-        A list of offsets for all the columns.  If the list is empty, means that
-        there are no padding in the data structure.  However, the support for
-        offsets is currently limited to flat tables; for nested tables, the
+        A list of offsets for all the columns.  If the list is empty, means
+        that there are no padding in the data structure.  However, the support
+        for offsets is currently limited to flat tables; for nested tables, the
         potential padding is always removed (exactly the same as in pre-3.5
         versions), and this variable is set to empty.
 
@@ -502,7 +502,8 @@ class Description:
             # provided by the user will remain unchanged even if we
             # tamper with the values of ``_v_pos`` here.
             if columns is not None:
-                descr = Description(copy.copy(columns), self._v_nestedlvl, ptparams=ptparams)
+                descr = Description(copy.copy(columns), self._v_nestedlvl,
+                                    ptparams=ptparams)
             classdict[name] = descr
 
             pos = getattr(descr, '_v_pos', None)
@@ -573,19 +574,24 @@ class Description:
         #     traceback.print_stack()
 
         # Check whether we are gonna use padding or not.  Two possibilities:
-        #   1) Make padding True by default (except if ALLOW_PADDING is set to False)
-        #   2) Make padding False by default (except if ALLOW_PADDING is set to True)
-        # Currently we choose 1) because it favours honoring padding even on unhandled situations (should be very few).
-        # However, for development, option 2) is recommended as it catches most of the unhandled situations.
-        allow_padding = False if ptparams is not None and not ptparams['ALLOW_PADDING'] else True
-        # allow_padding = True if ptparams is not None and ptparams['ALLOW_PADDING'] else False
+        #   1) Make padding True by default (except if ALLOW_PADDING is set
+        #      to False)
+        #   2) Make padding False by default (except if ALLOW_PADDING is set
+        #       to True)
+        # Currently we choose 1) because it favours honoring padding even on
+        # unhandled situations (should be very few).
+        # However, for development, option 2) is recommended as it catches
+        # most of the unhandled situations.
+        allow_padding = ptparams is None or ptparams['ALLOW_PADDING']
+        # allow_padding = ptparams is not None and ptparams['ALLOW_PADDING']
         if (allow_padding and
                 len(cols_offsets) > 1 and
                 len(keys) == len(cols_with_pos) and
                 len(keys) == len(cols_offsets) and
                 not nested):  # TODO: support offsets with nested types
-            # We have to sort the offsets too, as they must follow the column order.
-            # As the offsets and the pos should be place in the same order, a single sort is enough here.
+            # We have to sort the offsets too, as they must follow the column
+            # order. As the offsets and the pos should be place in the same
+            # order, a single sort is enough here.
             cols_offsets.sort()
             valid_offsets = True
         else:

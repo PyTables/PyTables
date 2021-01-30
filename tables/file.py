@@ -205,11 +205,9 @@ def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
         srcfileh.close()
 
 
-if tuple(map(int, utilsextension.get_hdf5_version().split('-')[0].split('.'))) \
-                                                                        < (1, 8, 7):
-    _FILE_OPEN_POLICY = 'strict'
-else:
-    _FILE_OPEN_POLICY = 'default'
+hdf5_version_str = utilsextension.get_hdf5_version()
+hdf5_version_tup = tuple(map(int, hdf5_version_str.split('-')[0].split('.')))
+_FILE_OPEN_POLICY = 'strict' if hdf5_version_tup < (1, 8, 7) else 'default'
 
 
 def open_file(filename, mode="r", title="", root_uep="/", filters=None,
@@ -709,7 +707,8 @@ class File(hdf5extension.File):
 
     @property
     def filters(self):
-        """Default filter properties for the root group (see :ref:`FiltersClassDescr`)."""
+        """Default filter properties for the root group
+        (see :ref:`FiltersClassDescr`)."""
         return self.root._v_filters
 
     @filters.setter
@@ -1030,7 +1029,8 @@ class File(hdf5extension.File):
 
             descr, _ = descr_from_dtype(obj.dtype, ptparams=self.params)
             if (description is not None and
-                    dtype_from_descr(description, ptparams=self.params) != obj.dtype):
+                    dtype_from_descr(description,
+                                     ptparams=self.params) != obj.dtype):
                 raise TypeError('the desctiption parameter is not consistent '
                                 'with the data type of the obj parameter')
             elif description is None:

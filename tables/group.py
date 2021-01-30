@@ -18,7 +18,8 @@ from .misc.proxydict import ProxyDict
 from . import hdf5extension
 from . import utilsextension
 from .registry import class_id_dict
-from .exceptions import NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
+from .exceptions import (NodeError, NoSuchNodeError, NaturalNameWarning,
+                         PerformanceWarning)
 from .filters import Filters
 from .registry import get_class_by_name
 from .path import check_name_validity, join_path, isvisiblename

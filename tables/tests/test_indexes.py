@@ -213,8 +213,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Selected values:", results)
         self.assertEqual(len(results), min(10, table.nrows))
-        self.assertEqual(results, [float(i) for i in
-                                   reversed(list(range(min(10, table.nrows))))])
+        self.assertEqual(
+            results,
+            [float(i) for i in reversed(list(range(min(10, table.nrows))))])
 
     def test05_getWhereList(self):
         """Checking reading an Index with get_where_list (string flavor)"""
@@ -740,7 +741,8 @@ class BloscReadTestCase(BasicTestCase):
     nrows = small_ss
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class LZOReadTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -1761,14 +1763,16 @@ class OldIndexTestCase(common.TestFileMixin, common.PyTablesTestCase):
     def test1_x(self):
         """Check that files with 1.x indexes are recognized and warned."""
 
-        self.assertWarns(tb.exceptions.OldIndexWarning, self.h5file.get_node, "/table")
+        self.assertWarns(tb.exceptions.OldIndexWarning,
+                         self.h5file.get_node, "/table")
 
 
 # Sensible parameters for indexing with small blocksizes
 small_blocksizes = (512, 128, 32, 8)
 
 
-class CompletelySortedIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class CompletelySortedIndexTestCase(common.TempFileMixin,
+                                    common.PyTablesTestCase):
     """Test case for testing a complete sort in a table."""
 
     nrows = 100
@@ -2669,7 +2673,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(Bzip2ReadTestCase))
         theSuite.addTest(common.unittest.makeSuite(ShuffleReadTestCase))
         theSuite.addTest(common.unittest.makeSuite(Fletcher32ReadTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ShuffleFletcher32ReadTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(ShuffleFletcher32ReadTestCase))
         theSuite.addTest(common.unittest.makeSuite(OneHalfTestCase))
         theSuite.addTest(common.unittest.makeSuite(UpperBoundTestCase))
         theSuite.addTest(common.unittest.makeSuite(LowerBoundTestCase))
@@ -2680,7 +2685,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(IndexPropsChangeTestCase))
         theSuite.addTest(common.unittest.makeSuite(IndexFiltersTestCase))
         theSuite.addTest(common.unittest.makeSuite(OldIndexTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CompletelySortedIndexTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompletelySortedIndexTestCase))
         theSuite.addTest(common.unittest.makeSuite(ManyNodesTestCase))
         theSuite.addTest(common.unittest.makeSuite(ReadSortedIndex0))
         theSuite.addTest(common.unittest.makeSuite(ReadSortedIndex3))
