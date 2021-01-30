@@ -367,10 +367,10 @@ class Filters:
 
         if (self.bitshuffle and
                 blosc_version < tb.req_versions.min_blosc_bitshuffle_version):
-            raise ValueError(
-                "This Blosc library does not have support for the bitshuffle "
-                "filter.  Please update to Blosc >= %s" % \
-                tb.req_versions)
+            raise ValueError(f"This Blosc library does not have support for "
+                             f"the bitshuffle filter.  Please update to "
+                             f"Blosc >= "
+                             f"{tb.req_versions.min_blosc_bitshuffle_version}")
 
         self.fletcher32 = fletcher32
         """Whether the *Fletcher32* filter is active or not."""
