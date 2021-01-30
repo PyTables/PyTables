@@ -23,8 +23,7 @@ class Record(tb.IsDescription):
 
 #  Dictionary definition
 RecordDescriptionDict = {
-    'var0': tb.StringCol(itemsize=4, dflt=b"", shape=2),  # 4-character string
-                                                       # array
+    'var0': tb.StringCol(itemsize=4, dflt=b"", shape=2),  # 4-char str array
     'var1': tb.StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2)),
     #'var0': StringCol(itemsize=4, shape=2),       # 4-character String
     #'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String

@@ -642,10 +642,9 @@ class Table(tableextension.Table, Leaf):
     @property
     def colindexes(self):
         """A dictionary with the indexes of the indexed columns."""
-        return _ColIndexes(
-            (_colpname, self.cols._f_col(_colpname).index)
-                for _colpname in self.colpathnames
-                if self.colindexed[_colpname])
+        return _ColIndexes((_colpname, self.cols._f_col(_colpname).index)
+                           for _colpname in self.colpathnames
+                           if self.colindexed[_colpname])
 
     @property
     def _dirtyindexes(self):
