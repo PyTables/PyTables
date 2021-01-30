@@ -2744,7 +2744,7 @@ class File(hdf5extension.File):
             date = "<in-memory file>"
         lines = [f'{self.filename} (File) {self.title!r}',
                  f'Last modif.: {date!r}',
-                 f'Object Tree: ']
+                 'Object Tree: ']
 
         for group in self.walk_groups("/"):
             lines.append(f'{group}')
