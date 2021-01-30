@@ -4589,7 +4589,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
@@ -4665,7 +4665,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
@@ -4743,7 +4743,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8, 20, 24])
             self.assertEqual(table1.description._v_itemsize, 32)
         else:
@@ -4817,7 +4817,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             self.assertEqual(table1.description._v_offsets, [0, 8, 12])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
@@ -4893,7 +4893,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             # The conditions for guessing the correct alignment are very
             # tricky, so better disable the checks.  Feel free to re-enable
             # them during debugging by removing the False condition below.
@@ -4981,7 +4981,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             self.assertEqual(table1.description._v_offsets, [0, 8, 12])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
