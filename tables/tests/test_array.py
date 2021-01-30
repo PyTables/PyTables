@@ -2217,15 +2217,15 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
 
-        M, N, O = self.shape
+        m, n, o = self.shape
 
         # The next are valid selections for both NumPy and PyTables
         self.working_keyset = [
-            ([1, 3], slice(1, N-1), 2),
-            ([M-1, 1, 3, 2], slice(None), 2),  # unordered lists supported
-            (slice(M), [N-1, 1, 0], slice(None)),
-            (slice(1, M, 3), slice(1, N), [O-1, 1, 0]),
-            (M-1, [2, 1], 1),
+            ([1, 3], slice(1, n-1), 2),
+            ([m-1, 1, 3, 2], slice(None), 2),  # unordered lists supported
+            (slice(m), [n-1, 1, 0], slice(None)),
+            (slice(1, m, 3), slice(1, n), [o-1, 1, 0]),
+            (m-1, [2, 1], 1),
             (1, 2, 1),              # regular selection
             ([1, 2], -2, -1),     # negative indices
             ([1, -2], 2, -1),     # more negative indices
@@ -2268,8 +2268,8 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create a sample array
         nparr = np.empty(self.shape, dtype=np.int32)
-        data = np.arange(N * O, dtype=np.int32).reshape(N, O)
-        for i in range(M):
+        data = np.arange(n * o, dtype=np.int32).reshape(n, o)
+        for i in range(m):
             nparr[i] = data * i
         self.nparr = nparr
         self.tbarr = self.h5file.create_array(self.h5file.root, 'array', nparr)

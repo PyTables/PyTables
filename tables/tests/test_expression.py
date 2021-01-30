@@ -1341,9 +1341,9 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r2 = eval("a-b-1")
         lsl = tuple([slice(None)] * self.maindim)
         # print "lsl-->", lsl + (slice(start,stop,step),)
-        l = len(range(start, stop, step))
+        lrange = len(range(start, stop, step))
         r.__setitem__(lsl + (slice(start, stop, step),),
-                      r2.__getitem__(lsl + (slice(0, l),)))
+                      r2.__getitem__(lsl + (slice(0, lrange),)))
         if common.verbose:
             print("Tested shape:", shape)
             print("Computed expression:", repr(r1[:]), r1.dtype)
