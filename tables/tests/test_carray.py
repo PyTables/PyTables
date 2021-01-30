@@ -63,8 +63,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if self.flavor == "numpy":
             if self.type == "string":
                 object = np.ndarray(buffer=b"a"*self.objsize,
-                                       shape=self.shape,
-                                       dtype="S%s" % carray.atom.itemsize)
+                                    shape=self.shape,
+                                    dtype="S%s" % carray.atom.itemsize)
             else:
                 object = np.arange(self.objsize, dtype=carray.atom.dtype)
                 object.shape = carray.shape

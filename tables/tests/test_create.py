@@ -793,8 +793,8 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_nonRecursiveAttrs..." %
-                   self.__class__.__name__)
+            print(f"Running {self.__class__.__name__}"
+                  f".test01_nonRecursiveAttrs...")
 
         # Copy a group non-recursively with attrs
         srcgroup = self.h5file.root.group0.group1
@@ -909,8 +909,8 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_RecursiveFilters..." %
-                   self.__class__.__name__)
+            print(f"Running {self.__class__.__name__}"
+                  f".test03_RecursiveFilters...")
 
         # Create the destination node
         group = self.h5file2.root

@@ -349,7 +349,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         super().__init__(parentnode, name, new, filters,
-                                      byteorder, _log, track_times)
+                         byteorder, _log, track_times)
 
     def _g_post_init_hook(self):
         super()._g_post_init_hook()

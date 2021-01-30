@@ -2389,8 +2389,7 @@ class ReadRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        filters = tb.Filters(complevel=self.compress,
-                                 complib=self.complib)
+        filters = tb.Filters(complevel=self.compress, complib=self.complib)
         vlarray = self.h5file.create_vlarray(group, 'vlarray', tb.Int32Atom(),
                                              "ragged array if ints",
                                              filters=filters,
@@ -2786,8 +2785,7 @@ class GetItemRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        filters = tb.Filters(complevel=self.compress,
-                                 complib=self.complib)
+        filters = tb.Filters(complevel=self.compress, complib=self.complib)
         vlarray = self.h5file.create_vlarray(group, 'vlarray', tb.Int32Atom(),
                                              "ragged array if ints",
                                              filters=filters,
@@ -3098,8 +3096,7 @@ class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        filters = tb.Filters(complevel=self.compress,
-                                 complib=self.complib)
+        filters = tb.Filters(complevel=self.compress, complib=self.complib)
         vlarray = self.h5file.create_vlarray(group, 'vlarray', tb.Int32Atom(),
                                              "ragged array if ints",
                                              filters=filters,

@@ -116,8 +116,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.initRecArray()
         for j in range(3):
             # Create a table
-            filters = tb.Filters(complevel=self.compress,
-                                     complib=self.complib)
+            filters = tb.Filters(complevel=self.compress, complib=self.complib)
             if j < 2:
                 byteorder = sys.byteorder
             else:

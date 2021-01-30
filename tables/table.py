@@ -1609,7 +1609,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         if not hasattr(sequence, '__getitem__'):
             raise TypeError("Wrong 'sequence' parameter type. Only sequences "
-                             "are suported.")
+                            "are suported.")
         # start, stop and step are necessary for the new iterator for
         # coordinates, and perhaps it would be useful to add them as
         # parameters in the future (not now, because I've just removed
@@ -1813,15 +1813,14 @@ very small/large chunksize, you may want to increase/decrease it."""
             # have different byteorders
             if not out.dtype.isnative:
                 raise ValueError("output array must be in system's byteorder "
-                                  "or results will be incorrect")
+                                 "or results will be incorrect")
             if field:
                 bytes_required = dtype_field.itemsize * nrows
             else:
                 bytes_required = self.rowsize * nrows
             if bytes_required != out.nbytes:
-                raise ValueError(('output array size invalid, got {} bytes, '
-                                  'need {} bytes').format(out.nbytes,
-                                                           bytes_required))
+                raise ValueError(f'output array size invalid, got {out.nbytes}'
+                                 f' bytes, need {bytes_required} bytes')
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
             result = out
@@ -2444,7 +2443,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise ValueError("'start' must have a positive value.")
         if step < 1:
             raise ValueError("'step' must have a value greater or "
-                              "equal than 1.")
+                             "equal than 1.")
         descr = []
         for colname in names:
             objcol = self._get_column_instance(colname)

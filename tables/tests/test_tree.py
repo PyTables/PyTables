@@ -671,7 +671,7 @@ class DeepTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         h5fname2 = tempfile.mktemp(".h5")
         try:
             with tb.open_file(h5fname2, mode="w",
-                                  node_cache_slots=10) as h5file2:
+                              node_cache_slots=10) as h5file2:
                 if common.verbose:
                     print("\nCopying deep tree...")
 
@@ -987,7 +987,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if pathname == node_to_find:
                 found_node = True
             self.assertIn(pathname, hidden,
-                            "Listed hidden node ``%s``." % pathname)
+                          f"Listed hidden node ``{pathname}``.")
 
         self.assertTrue(found_node,
                         "Hidden node ``%s`` was not listed." % node_to_find)
@@ -1004,7 +1004,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if pathname == node_to_find:
                 found_node = True
             self.assertIn(pathname, hidden,
-                            "Listed hidden node ``%s``." % pathname)
+                          f"Listed hidden node ``{pathname}``.")
 
         self.assertTrue(found_node,
                         "Hidden node ``%s`` was not listed." % node_to_find)

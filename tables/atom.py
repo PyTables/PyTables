@@ -1071,7 +1071,7 @@ class _BufferedAtom(PseudoAtom):
     def toarray(self, object_):
         buffer_ = self._tobuffer(object_)
         array = np.ndarray(buffer=buffer_, dtype=self.base.dtype,
-                              shape=len(buffer_))
+                           shape=len(buffer_))
         return array
 
     def _tobuffer(self, object_):

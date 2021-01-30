@@ -40,9 +40,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Create a table
         title = "This is the IndexArray title"
         self.filters = tb.Filters(complevel=self.compress,
-                                      complib=self.complib,
-                                      shuffle=self.shuffle,
-                                      fletcher32=self.fletcher32)
+                                  complib=self.complib,
+                                  shuffle=self.shuffle,
+                                  fletcher32=self.fletcher32)
         table = self.h5file.create_table(group, 'table', TDescr, title,
                                          self.filters, self.nrows)
         for i in range(self.nrows):
@@ -493,8 +493,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Running %s.test10c_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = tb.open_file(self.h5fname, mode="a",
-                                       node_cache_slots=10)
+        self.h5file = tb.open_file(self.h5fname, mode="a", node_cache_slots=10)
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if common.verbose:
@@ -532,8 +531,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Running %s.test10d_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = tb.open_file(self.h5fname, mode="a",
-                                       node_cache_slots=0)
+        self.h5file = tb.open_file(self.h5fname, mode="a", node_cache_slots=0)
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if common.verbose:

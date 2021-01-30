@@ -32,13 +32,13 @@ from . import hdf5extension
 from . import utilsextension
 from . import parameters
 from .exceptions import (ClosedFileError, FileModeError, NodeError,
-                               NoSuchNodeError, UndoRedoError, ClosedNodeError,
-                               PerformanceWarning)
+                         NoSuchNodeError, UndoRedoError, ClosedNodeError,
+                         PerformanceWarning)
 from .registry import get_class_by_name
 from .path import join_path, split_path
 from . import undoredo
 from .description import (IsDescription, UInt8Col, StringCol,
-                                descr_from_dtype, dtype_from_descr)
+                          descr_from_dtype, dtype_from_descr)
 from .filters import Filters
 from .node import Node, NotLoggedMixin
 from .group import Group, RootGroup
@@ -752,7 +752,7 @@ class File(hdf5extension.File):
 
         # Get all the parameters in parameter file(s)
         params = {k: v for k, v in parameters.__dict__.items()
-                       if k.isupper() and not k.startswith('_')}
+                  if k.isupper() and not k.startswith('_')}
         # Update them with possible keyword arguments
         if [k for k in kwargs if k.isupper()]:
             warnings.warn("The use of uppercase keyword parameters is "

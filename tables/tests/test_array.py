@@ -2442,7 +2442,7 @@ class BroadcastTest(common.TempFileMixin, common.PyTablesTestCase):
         dtype = np.dtype((np.int, element_shape))
         atom = tb.Atom.from_dtype(dtype)
         h5arr = self.h5file.create_array(self.h5file.root, 'array',
-                                          atom=atom, shape=array_shape)
+                                         atom=atom, shape=array_shape)
 
         size = np.prod(element_shape)
         nparr = np.arange(size).reshape(element_shape)

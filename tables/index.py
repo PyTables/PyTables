@@ -25,7 +25,7 @@ from time import process_time as cpuclock
 import numpy as np
 
 from .idxutils import (calc_chunksize, calcoptlevels,
-                             get_reduction_level, nextafter, inftype)
+                       get_reduction_level, nextafter, inftype)
 
 from . import indexesextension
 from .node import NotLoggedMixin
@@ -39,8 +39,8 @@ from .path import join_path
 from .exceptions import PerformanceWarning
 from .utils import is_idx, idx2long, lazyattr
 from .utilsextension import (nan_aware_gt, nan_aware_ge,
-                                   nan_aware_lt, nan_aware_le,
-                                   bisect_left, bisect_right)
+                             nan_aware_lt, nan_aware_le,
+                             bisect_left, bisect_right)
 from .lrucacheextension import ObjectCache
 
 

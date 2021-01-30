@@ -2150,7 +2150,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for j in range(3):
             # Create a table
             filterprops = tb.Filters(complevel=self.compress,
-                                         shuffle=self.shuffle)
+                                     shuffle=self.shuffle)
             table = self.h5file.create_table(group, 'table'+str(j),
                                              self.record,
                                              title=self.title,
@@ -2622,7 +2622,7 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for j in range(3):
             # Create a table
             filterprops = tb.Filters(complevel=self.compress,
-                                         shuffle=self.shuffle)
+                                     shuffle=self.shuffle)
             table = self.h5file.create_table(group, 'table'+str(j),
                                              self.record,
                                              title=self.title,
@@ -3029,7 +3029,7 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Modify two existing rows
         rows = np.rec.array([(457, b'db1', 1.2), (5, b'de1', 1.3)],
-                             formats="i4,a3,f8")
+                            formats="i4,a3,f8")
         # table.modify_rows(start=1, rows=rows)
         table[1:3] = rows
         # Create the modified recarray
@@ -3978,9 +3978,9 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
             rows=np.rec.array([(456, 'db2', 1.2)], formats="i4,a3,f8"))
         # Create the modified recarray
         r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                            (456, b'db2', 1.2), (5, b'de1', 1.3)],
-                           formats="i4,a3,f8",
-                           names="col1,col2,col3")
+                           (456, b'db2', 1.2), (5, b'de1', 1.3)],
+                          formats="i4,a3,f8",
+                          names="col1,col2,col3")
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -4312,7 +4312,7 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         # Modify a couple of columns
         columns = np.rec.array([("aaa", 1.2), ("bbb", .1), ("ccc", .3)],
-                                formats="a3,f8")
+                               formats="a3,f8")
         table.modify_columns(start=1, columns=columns, names=["col2", "col3"])
         # Create the modified recarray
         r1 = np.rec.array([(456, 'dbe', 1.2), (2, 'aaa', 1.2),

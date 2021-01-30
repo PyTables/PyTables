@@ -15,7 +15,7 @@ import functools
 
 from .registry import class_name_dict, class_id_dict
 from .exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
-                               PerformanceWarning)
+                         PerformanceWarning)
 from .path import join_path, split_path, isvisiblepath
 from .utils import lazyattr
 from .undoredo import move_to_shadow

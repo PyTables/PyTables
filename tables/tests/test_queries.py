@@ -81,11 +81,9 @@ if hasattr(np, 'float16'):
 # if hasattr(numpy, 'complex256'):
 #    type_info['complex256'] = (numpy.complex256, complex)
 
-sctype_from_type = {type_: info[0]
-                        for (type_, info) in type_info.items()}
+sctype_from_type = {type_: info[0] for (type_, info) in type_info.items()}
 """Maps PyTables types to NumPy scalar types."""
-nxtype_from_type = {type_: info[1]
-                        for (type_, info) in type_info.items()}
+nxtype_from_type = {type_: info[1] for (type_, info) in type_info.items()}
 """Maps PyTables types to Numexpr types."""
 
 heavy_types = frozenset(['uint8', 'int16', 'uint16', 'float32', 'complex64'])

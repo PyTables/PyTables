@@ -1676,16 +1676,16 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Already open nodes should be closed now, but not the new ones.
         self.assertIs(g2._v_isopen, False,
-                        "open child of closed group has not been closed")
+                      "open child of closed group has not been closed")
         self.assertIs(g2_._v_isopen, True,
-                        "open child of closed group has not been closed")
+                      "open child of closed group has not been closed")
 
         # And existing closed ones should remain closed, but not the new ones.
         g1_ = self.h5file.get_node('/g1')
         self.assertIs(g1._v_isopen, False,
-                        "already closed group is not closed anymore")
+                      "already closed group is not closed anymore")
         self.assertIs(g1_._v_isopen, True,
-                        "newly opened group is still closed")
+                      "newly opened group is still closed")
 
     def test19b_getNode(self):
         """Test getting a node that does not start with a slash ('/')."""
