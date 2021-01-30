@@ -152,7 +152,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 for i in range(len(rows1f)):
                     self.assertTrue(common.allequal(rows2[i], rows1f[i], self.flavor))
             elif self.flavor == "python":
-                    self.assertEqual(rows2, rows1)
+                self.assertEqual(rows2, rows1)
 
     def test02b_getitem(self):
         """Checking vlarray __getitem__ (scalars)"""
