@@ -510,8 +510,7 @@ def main():
             print("Forcing a CSI creation:", args.checkCSI)
         if args.propindexes:
             print("Recreating indexes in copied table(s)")
-        print("Start copying {}:{} to {}:{}".format(srcfile, srcnode,
-                                                dstfile, dstnode))
+        print(f"Start copying {srcfile}:{srcnode} to {dstfile}:{dstnode}")
         print("+=+" * 20)
 
     allow_padding = not args.dont_allow_padding

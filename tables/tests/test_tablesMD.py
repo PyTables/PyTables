@@ -259,8 +259,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             r['var7']
         ), (b"0001", b"0001", nrows, nrows, b"1"))
         if isinstance(r['var5'], np.ndarray):
-            self.assertTrue(common.allequal(r['var5'],
-                                     np.array((nrows,)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                r['var5'], np.array((nrows,)*4, np.float32)))
         else:
             self.assertEqual(r['var5'], float(nrows))
         self.assertEqual(len(result), 20)
@@ -287,21 +287,21 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrows = table.nrows
         result2 = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
         if isinstance(result2['var5'], np.ndarray):
-            self.assertTrue(common.allequal(result1[0],
-                                     np.array((float(0),)*4, np.float32)))
-            self.assertTrue(common.allequal(result1[1],
-                                     np.array((float(1),)*4, np.float32)))
-            self.assertTrue(common.allequal(result1[2],
-                                     np.array((float(2),)*4, np.float32)))
-            self.assertTrue(common.allequal(result1[3],
-                                     np.array((float(3),)*4, np.float32)))
-            self.assertTrue(common.allequal(result1[10],
-                                     np.array((float(10),)*4, np.float32)))
-            self.assertTrue(common.allequal(result2['var5'],
-                                     np.array((float(nrows-1),)*4,
-                                              np.float32)))
+            self.assertTrue(common.allequal(
+                result1[0], np.array((float(0),) * 4, np.float32)))
+            self.assertTrue(common.allequal(
+                result1[1], np.array((float(1),) * 4, np.float32)))
+            self.assertTrue(common.allequal(
+                result1[2], np.array((float(2),) * 4, np.float32)))
+            self.assertTrue(common.allequal(
+                result1[3], np.array((float(3),) * 4, np.float32)))
+            self.assertTrue(common.allequal(
+                result1[10], np.array((float(10),) * 4, np.float32)))
+            self.assertTrue(common.allequal(
+                result2['var5'], np.array((float(nrows - 1),) * 4, np.float32)
+            ))
         else:
-            self.assertEqual(result2['var5'], float(nrows-1))
+            self.assertEqual(result2['var5'], float(nrows - 1))
         self.assertEqual(len(result1), 20)
 
         # Read the records and select those with "var2" file less than 20
@@ -393,8 +393,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row['var7']),
             (b"0001", b"0001", nrows, nrows, b"1"))
         if isinstance(row['var5'], np.ndarray):
-            self.assertTrue(common.allequal(row['var5'],
-                                     np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                row['var5'], np.array((float(nrows),) * 4, np.float32)))
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -499,14 +499,15 @@ class RecArrayAlignedWriteTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class CompressBloscTablesTestCase(BasicTestCase):
     title = "CompressBloscTables"
     compress = 1
     complib = "blosc"
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class CompressLZOTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
     compress = 1
@@ -514,7 +515,7 @@ class CompressLZOTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.bzip2_avail,
-                 'BZIP2 compression library not available')
+                        'BZIP2 compression library not available')
 class CompressBzip2TablesTestCase(BasicTestCase):
     title = "CompressBzip2Tables"
     compress = 1

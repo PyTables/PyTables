@@ -594,7 +594,7 @@ class FiltersCase10(FiltersTreeTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class FiltersCaseBloscBloscLZ(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:blosclz")
     gfilters = tb.Filters(complevel=5, shuffle=True, complib="blosc:blosclz")
@@ -602,7 +602,7 @@ class FiltersCaseBloscBloscLZ(FiltersTreeTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4(FiltersTreeTestCase):
     def setUp(self):
@@ -613,7 +613,7 @@ class FiltersCaseBloscLZ4(FiltersTreeTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
     def setUp(self):
@@ -626,9 +626,9 @@ class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('snappy' not in tb.blosc_compressor_list(),
-                 'snappy required')
+                        'snappy required')
 class FiltersCaseBloscSnappy(FiltersTreeTestCase):
     def setUp(self):
         self.filters = tb.Filters(
@@ -640,7 +640,7 @@ class FiltersCaseBloscSnappy(FiltersTreeTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('zlib' not in tb.blosc_compressor_list(), 'zlib required')
 class FiltersCaseBloscZlib(FiltersTreeTestCase):
     def setUp(self):
@@ -651,7 +651,7 @@ class FiltersCaseBloscZlib(FiltersTreeTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('zstd' not in tb.blosc_compressor_list(), 'zstd required')
 class FiltersCaseBloscZstd(FiltersTreeTestCase):
     def setUp(self):
@@ -829,10 +829,10 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
             # These lists should already be ordered
             if common.verbose:
-                print("srcattrskeys for node {}: {}".format(srcnode._v_name,
-                                                        srcattrskeys))
-                print("dstattrskeys for node {}: {}".format(dstnode._v_name,
-                                                        dstattrskeys))
+                print(f"srcattrskeys for node {srcnode._v_name}: "
+                      f"{srcattrskeys}")
+                print(f"dstattrskeys for node {dstnode._v_name}: "
+                      f"{dstattrskeys}")
             self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
                 print("The attrs names has been copied correctly")
@@ -1235,10 +1235,10 @@ class CopyFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
             # These lists should already be ordered
             if common.verbose:
-                print("srcattrskeys for node {}: {}".format(srcnode._v_name,
-                                                        srcattrskeys))
-                print("dstattrskeys for node {}: {}".format(dstnode._v_name,
-                                                        dstattrskeys))
+                print(f"srcattrskeys for node {srcnode._v_name}: "
+                      f"{srcattrskeys}")
+                print(f"dstattrskeys for node {dstnode._v_name}: "
+                      f"{dstattrskeys}")
             self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
                 print("The attrs names has been copied correctly")
@@ -1284,10 +1284,10 @@ class CopyFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
             dstattrskeys = dstattrs._f_list("all")
             # These lists should already be ordered
             if common.verbose:
-                print("srcattrskeys for node {}: {}".format(srcnode._v_name,
-                                                        srcattrskeys))
-                print("dstattrskeys for node {}: {}".format(dstnode._v_name,
-                                                        dstattrskeys))
+                print(f"srcattrskeys for node {srcnode._v_name}: "
+                      f"{srcattrskeys}")
+                print(f"dstattrskeys for node {dstnode._v_name}: "
+                      f"{dstattrskeys}")
 
             # Filters may differ, do not take into account
             if self.filters is not None:
@@ -2429,7 +2429,7 @@ class QuantizeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def populateFile(self):
         root = self.h5file.root
         filters = tb.Filters(complevel=1, complib="blosc",
-                          least_significant_digit=1)
+                             least_significant_digit=1)
         ints = self.h5file.create_carray(root, "integers", tb.Int64Atom(),
                                          (1_000_000,), filters=filters)
         ints[:] = self.randomints
@@ -2440,17 +2440,17 @@ class QuantizeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                           (41,), filters=filters)
         data1[:] = self.data
         filters = tb.Filters(complevel=1, complib="blosc",
-                          least_significant_digit=0)
+                             least_significant_digit=0)
         data0 = self.h5file.create_carray(root, "data0", tb.Float64Atom(),
                                           (41,), filters=filters)
         data0[:] = self.data
         filters = tb.Filters(complevel=1, complib="blosc",
-                          least_significant_digit=2)
+                             least_significant_digit=2)
         data2 = self.h5file.create_carray(root, "data2", tb.Float64Atom(),
                                           (41,), filters=filters)
         data2[:] = self.data
         filters = tb.Filters(complevel=1, complib="blosc",
-                          least_significant_digit=-1)
+                             least_significant_digit=-1)
         datam1 = self.h5file.create_carray(root, "datam1", tb.Float64Atom(),
                                            (41,), filters=filters)
         datam1[:] = self.data

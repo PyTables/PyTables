@@ -205,9 +205,8 @@ class CArray(Array):
                         "`chunkshape` parameter must be a sequence "
                         "and you passed a %s" % type(chunkshape))
                 if len(shape) != len(chunkshape):
-                    raise ValueError("the shape (%s) and chunkshape (%s) "
-                                     "ranks must be equal." %
-                                    (shape, chunkshape))
+                    raise ValueError(f"the shape ({shape}) and chunkshape "
+                                     f"({chunkshape}) ranks must be equal.")
                 elif min(chunkshape) < 1:
                     raise ValueError("chunkshape parameter cannot have "
                                      "zero-dimensions.")

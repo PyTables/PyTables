@@ -1104,7 +1104,7 @@ class LZOShuffleTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.bzip2_avail,
-                 'BZIP2 compression library not available')
+                        'BZIP2 compression library not available')
 class Bzip2ComprTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"
@@ -1116,7 +1116,7 @@ class Bzip2ComprTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.bzip2_avail,
-                 'BZIP2 compression library not available')
+                        'BZIP2 compression library not available')
 class Bzip2ShuffleTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
@@ -2411,8 +2411,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ea.nrows, 1)
         if common.verbose:
             print("First row-->", ea[0])
-        self.assertTrue(common.allequal(ea[0],
-                                 np.array([[1, 3], [4, 5], [7, 9]], 'i4')))
+        self.assertTrue(common.allequal(
+            ea[0], np.array([[1, 3], [4, 5], [7, 9]], 'i4')))
 
     def test02b_append(self):
         """Append several rows to a (multidimensional) EArray with a MD
@@ -2431,8 +2431,8 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print("Third row-->", ea[2])
-        self.assertTrue(common.allequal(ea[2],
-                                 np.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
+        self.assertTrue(common.allequal(
+            ea[2], np.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
 
     def test03a_MDMDMD(self):
         """Complex append of a MD array in a MD EArray with a

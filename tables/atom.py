@@ -590,7 +590,7 @@ class Atom(metaclass=MetaAtom):
         signature = inspect.signature(self.__init__)
         parameters = signature.parameters
         args = [arg for arg, p in parameters.items()
-            if p.kind is p.POSITIONAL_OR_KEYWORD]
+                if p.kind is p.POSITIONAL_OR_KEYWORD]
 
         return {arg: getattr(self, arg) for arg in args if arg != 'self'}
 

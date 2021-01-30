@@ -2061,8 +2061,8 @@ class Rows64bitsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if stop > 127:
             stop -= 256
         start = stop - 10
-        self.assertTrue(common.allequal(array[-10:],
-                                 np.arange(start, stop, dtype='int8')))
+        self.assertTrue(common.allequal(
+            array[-10:], np.arange(start, stop, dtype='int8')))
 
 
 class Rows64bitsTestCase1(Rows64bitsTestCase):

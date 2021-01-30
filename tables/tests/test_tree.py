@@ -943,7 +943,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for group in self.h5file.walk_groups('/'):
             pathname = group._v_pathname
             self.assertNotIn(pathname, hidden,
-                            "Walked across hidden group ``%s``." % pathname)
+                             f"Walked across hidden group ``{pathname}``.")
 
     def test03_walkNodes(self):
         """Hidden node absence in `File.walk_nodes()`."""
@@ -953,7 +953,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in self.h5file.walk_nodes('/'):
             pathname = node._v_pathname
             self.assertNotIn(pathname, hidden,
-                            "Walked across hidden node ``%s``." % pathname)
+                             f"Walked across hidden node ``{pathname}``.")
 
     def test04_listNodesVisible(self):
         """Listing visible nodes under a visible group (list_nodes)."""
@@ -963,7 +963,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in self.h5file.list_nodes('/g'):
             pathname = node._v_pathname
             self.assertNotIn(pathname, hidden,
-                            "Listed hidden node ``%s``." % pathname)
+                             f"Listed hidden node ``{pathname}``.")
 
     def test04b_listNodesVisible(self):
         """Listing visible nodes under a visible group (iter_nodes)."""
@@ -973,7 +973,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in self.h5file.iter_nodes('/g'):
             pathname = node._v_pathname
             self.assertNotIn(pathname, hidden,
-                            "Listed hidden node ``%s``." % pathname)
+                             f"Listed hidden node ``{pathname}``.")
 
     def test05_listNodesHidden(self):
         """Listing visible nodes under a hidden group (list_nodes)."""

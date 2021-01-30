@@ -427,8 +427,8 @@ def create_test_method(type_, op, extracond, func=None):
             pyrownos = np.array(pyrownos)  # row numbers already sorted
             pyfvalues = np.array(pyfvalues, dtype=sctype)
             pyfvalues.sort()
-            common.verbosePrint("* %d rows selected by Python from ``%s``."
-                   % (len(pyrownos), acolname))
+            common.verbosePrint(f"* {len(pyrownos)} rows selected by Python "
+                                f"from ``{acolname}``.")
             if rownos is None:
                 rownos = pyrownos  # initialise reference results
                 fvalues = pyfvalues
@@ -461,8 +461,8 @@ def create_test_method(type_, op, extracond, func=None):
                     "The PyTables type does not support the operation.")
             for ptfvals in ptfvalues:  # row numbers already sorted
                 ptfvals.sort()
-            common.verbosePrint("* %d rows selected by PyTables from ``%s``"
-                   % (len(ptrownos[0]), acolname), nonl=True)
+            common.verbosePrint(f"* {len(ptrownos[0])} rows selected by "
+                                f"PyTables from ``{acolname}``", nonl=True)
             common.verbosePrint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
             self.assertTrue(np.all(ptrownos[0] == rownos))
             self.assertTrue(np.all(ptfvalues[0] == fvalues))
@@ -799,27 +799,27 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
         for condition in self.conditions:
             c_usable_idxs = self.will_query_use_indexing(condition, {})
             self.assertEqual(c_usable_idxs, self.usable_idxs,
-                             "\nQuery with condition: ``%s``\n"
-                             "Computed usable indexes are: ``%s``\n"
-                             "and should be: ``%s``" %
-                            (condition, c_usable_idxs, self.usable_idxs))
+                             f"\nQuery with condition: ``{condition}``\n"
+                             f"Computed usable indexes are: "
+                             f"``{c_usable_idxs}``\nand should be: "
+                             f"``{self.usable_idxs}``")
             condvars = self.requiredExprVars(condition, None)
             compiled = self.compileCondition(condition, condvars)
             c_idx_expr = compiled.index_expressions
             self.assertEqual(c_idx_expr, self.idx_expr,
-                             "\nWrong index expression in condition:\n``%s``\n"
-                             "Compiled index expression is:\n``%s``\n"
-                             "and should be:\n``%s``" %
-                            (condition, c_idx_expr, self.idx_expr))
+                             f"\nWrong index expression in condition:\n"
+                             f"``{condition}``\nCompiled index expression is:"
+                             f"\n``{c_idx_expr}``\nand should be:\n"
+                             f"``{self.idx_expr}``")
             c_str_expr = compiled.string_expression
             self.assertEqual(c_str_expr, self.str_expr,
-                             "\nWrong index operations in condition:\n``%s``\n"
-                             "Computed index operations are:\n``%s``\n"
-                             "and should be:\n``%s``" %
-                            (condition, c_str_expr, self.str_expr))
-            common.verbosePrint("* Query with condition ``%s`` will use "
-                   "variables ``%s`` for indexing."
-                   % (condition, compiled.index_variables))
+                             f"\nWrong index operations in condition:\n"
+                             f"``{condition}``\nComputed index operations are:"
+                             f"\n``{c_str_expr}``\nand should be:\n"
+                             f"``{self.str_expr}``")
+            common.verbosePrint(
+                f"* Query with condition ``{condition}`` will use variables "
+                f"``{compiled.index_variables}`` for indexing.")
 
 
 class IndexedTableUsage1(IndexedTableUsage):

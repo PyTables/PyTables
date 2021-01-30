@@ -496,15 +496,14 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(rec[:2], (strnrows, 19))
         self.assertEqual(rec[3], b'1')
         if isinstance(rec[2], np.ndarray):
-            self.assertTrue(common.allequal(rec[2],
-                                     np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                rec[2], np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(rec[2], nrows)
         if isinstance(rec[4], np.ndarray):
-            self.assertTrue(
-                common.allequal(rec[4],
-                         np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
-                                  np.complex64)))
+            self.assertTrue(common.allequal(
+                rec[4], np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
+                                 np.complex64)))
         else:
             self.assertEqual(rec[4], float(nrows)+0.j)
         self.assertEqual(len(result), 20)
@@ -802,8 +801,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual((row['var1'], row['var2'], row['var7']),
                          (b"0001", nrows, b"1"))
         if isinstance(row['var5'], np.ndarray):
-            self.assertTrue(common.allequal(row['var5'],
-                                     np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                row['var5'], np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -904,8 +903,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual((row['var1'], row['var2'], row['var7']),
                          ("0001", nrows, "1"))
         if isinstance(row['var5'], np.ndarray):
-            self.assertTrue(common.allequal(row['var5'],
-                                     np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                row['var5'], np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -1700,7 +1699,7 @@ class RecArrayAlignedWriteTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class CompressBloscTablesTestCase(BasicTestCase):
     title = "CompressBloscTables"
     compress = 6
@@ -1708,7 +1707,7 @@ class CompressBloscTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class CompressBloscShuffleTablesTestCase(BasicTestCase):
     title = "CompressBloscTables"
     compress = 1
@@ -1717,9 +1716,10 @@ class CompressBloscShuffleTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@common.unittest.skipIf(common.blosc_version < common.min_blosc_bitshuffle_version,
-                 'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    common.blosc_version < common.min_blosc_bitshuffle_version,
+    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class CompressBloscBitShuffleTablesTestCase(BasicTestCase):
     title = "CompressBloscBitShuffleTables"
     compress = 1
@@ -1729,7 +1729,7 @@ class CompressBloscBitShuffleTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class CompressBloscBloscLZTablesTestCase(BasicTestCase):
     title = "CompressBloscLZTables"
     compress = 1
@@ -1738,7 +1738,7 @@ class CompressBloscBloscLZTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class CompressBloscLZ4TablesTestCase(BasicTestCase):
     title = "CompressLZ4Tables"
@@ -1748,7 +1748,7 @@ class CompressBloscLZ4TablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
     title = "CompressLZ4HCTables"
@@ -1758,9 +1758,9 @@ class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('snappy' not in tb.blosc_compressor_list(),
-                 'snappy required')
+                        'snappy required')
 class CompressBloscSnappyTablesTestCase(BasicTestCase):
     title = "CompressSnappyTables"
     compress = 1
@@ -1769,7 +1769,7 @@ class CompressBloscSnappyTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('zlib' not in tb.blosc_compressor_list(), 'zlib required')
 class CompressBloscZlibTablesTestCase(BasicTestCase):
     title = "CompressZlibTables"
@@ -1778,7 +1778,7 @@ class CompressBloscZlibTablesTestCase(BasicTestCase):
     complib = "blosc:zlib"
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('zstd' not in tb.blosc_compressor_list(), 'zstd required')
 class CompressBloscZstdTablesTestCase(BasicTestCase):
     title = "CompressZstdTables"
@@ -1787,14 +1787,16 @@ class CompressBloscZstdTablesTestCase(BasicTestCase):
     complib = "blosc:zstd"
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class CompressLZOTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
     compress = 1
     complib = "lzo"
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class CompressLZOShuffleTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
     compress = 1
@@ -1803,7 +1805,7 @@ class CompressLZOShuffleTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.bzip2_avail,
-                 'BZIP2 compression library not available')
+                        'BZIP2 compression library not available')
 class CompressBzip2TablesTestCase(BasicTestCase):
     title = "CompressBzip2Tables"
     compress = 1
@@ -1811,7 +1813,7 @@ class CompressBzip2TablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.bzip2_avail,
-                 'BZIP2 compression library not available')
+                        'BZIP2 compression library not available')
 class CompressBzip2ShuffleTablesTestCase(BasicTestCase):
     title = "CompressBzip2Tables"
     compress = 1
@@ -4709,8 +4711,8 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for colname in table1.colnames:
                 # self.assertTrue(allequal(row1[colname],
                 # table2[nrow][colname]))
-                self.assertTrue(common.allequal(row1[colname],
-                                         table2.read(nrow, field=colname)[0]))
+                self.assertTrue(common.allequal(
+                    row1[colname], table2.read(nrow, field=colname)[0]))
 
         # Assert other properties in table
         self.assertEqual(table1.nrows, table2.nrows)
@@ -5040,8 +5042,8 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r2 = r[self.start:self.stop:self.step]
         for nrow in range(r2.shape[0]):
             for colname in table1.colnames:
-                self.assertTrue(common.allequal(r2[nrow][colname],
-                                         table2[nrow][colname]))
+                self.assertTrue(common.allequal(
+                    r2[nrow][colname], table2[nrow][colname]))
 
         # Assert the number of rows in table
         if common.verbose:
@@ -5090,8 +5092,8 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r2 = r[self.start:self.stop:self.step]
         for nrow in range(r2.shape[0]):
             for colname in table1.colnames:
-                self.assertTrue(common.allequal(r2[nrow][colname],
-                                         table2[nrow][colname]))
+                self.assertTrue(common.allequal(
+                    r2[nrow][colname], table2[nrow][colname]))
 
         # Assert the number of rows in table
         if common.verbose:

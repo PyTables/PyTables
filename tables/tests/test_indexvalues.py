@@ -3185,8 +3185,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0,
-                            f"idx--> {idx} {i} {nrow} {value}")
+            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
                 f"nrow not found: {idx} != {nrow}, {value}")
@@ -3204,8 +3203,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0,
-                            f"idx--> {idx} {i} {nrow} {value}")
+            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
                 f"nrow not found: {idx} != {nrow}, {value}")
@@ -3223,8 +3221,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0,
-                            f"idx--> {idx} {i} {nrow} {value}")
+            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
                 f"nrow not found: {idx} != {nrow}, {value}")

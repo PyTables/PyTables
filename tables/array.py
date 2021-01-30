@@ -920,14 +920,12 @@ class Array(hdf5extension.Array, Leaf):
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return """{}
-  atom := {!r}
-  maindim := {!r}
-  flavor := {!r}
-  byteorder := {!r}
-  chunkshape := {!r}""".format(self, self.atom, self.maindim,
-                         self.flavor, self.byteorder,
-                         self.chunkshape)
+        return f"""{self}
+  atom := {self.atom!r}
+  maindim := {self.maindim!r}
+  flavor := {self.flavor!r}
+  byteorder := {self.byteorder!r}
+  chunkshape := {self.chunkshape!r}"""
 
 
 class ImageArray(Array):

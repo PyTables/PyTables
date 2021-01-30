@@ -2384,8 +2384,8 @@ class ReadSortedIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("The values from read_sorted:", sortedtable2)
         # Compare with the sorted read table because we have no
         # guarantees that read_sorted returns a completely sorted table
-        self.assertTrue(common.allequal(sortedtable,
-                                 np.sort(sortedtable2, order="icol")))
+        self.assertTrue(common.allequal(
+            sortedtable, np.sort(sortedtable2, order="icol")))
 
     def test01_readSorted2(self):
         """Testing the Table.read_sorted() method with no arguments
@@ -2400,8 +2400,8 @@ class ReadSortedIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("The values from read_sorted:", sortedtable2)
         # Compare with the sorted read table because we have no
         # guarantees that read_sorted returns a completely sorted table
-        self.assertTrue(common.allequal(sortedtable,
-                                 np.sort(sortedtable2, order="icol")))
+        self.assertTrue(common.allequal(
+            sortedtable, np.sort(sortedtable2, order="icol")))
 
     def test02_copy_sorted1(self):
         """Testing the Table.copy(sortby) method."""

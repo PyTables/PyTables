@@ -254,7 +254,7 @@ class ZlibComprTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class BloscComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 0
@@ -262,23 +262,23 @@ class BloscComprTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class BloscShuffleComprTestCase(BasicTestCase):
     compress = 6
     shuffle = 1
     complib = "blosc"
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf(common.blosc_version < common.min_blosc_bitshuffle_version,
-                 'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
+                        f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class BloscBitShuffleComprTestCase(BasicTestCase):
     compress = 9
     bitshuffle = 1
     complib = "blosc"
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class BloscBloscLZComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
@@ -286,7 +286,7 @@ class BloscBloscLZComprTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4ComprTestCase(BasicTestCase):
     compress = 9
@@ -295,7 +295,7 @@ class BloscLZ4ComprTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4HCComprTestCase(BasicTestCase):
     compress = 9
@@ -304,9 +304,9 @@ class BloscLZ4HCComprTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('snappy' not in tb.blosc_compressor_list(),
-                 'snappy required')
+                        'snappy required')
 class BloscSnappyComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
@@ -314,7 +314,7 @@ class BloscSnappyComprTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('zlib' not in tb.blosc_compressor_list(), 'zlib required')
 class BloscZlibComprTestCase(BasicTestCase):
     compress = 9
@@ -322,7 +322,7 @@ class BloscZlibComprTestCase(BasicTestCase):
     complib = "blosc:zlib"
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('zstd' not in tb.blosc_compressor_list(), 'zstd required')
 class BloscZstdComprTestCase(BasicTestCase):
     compress = 9
@@ -337,7 +337,7 @@ class LZOComprTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.bzip2_avail,
-                 'BZIP2 compression library not available')
+                        'BZIP2 compression library not available')
 class Bzip2ComprTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"

@@ -95,8 +95,7 @@ def print_versions():
         vml_avail = "not using Intel's VML/MKL"
     print(f"Numexpr version:     {ne.__version__} ({vml_avail})")
     if tinfo is not None:
-        print("Zlib version:        {} ({})".format(tinfo[1],
-                                                "in Python interpreter"))
+        print(f"Zlib version:        {tinfo[1]} (in Python interpreter)")
     tinfo = tb.which_lib_version("lzo")
     if tinfo is not None:
         print("LZO version:         {} ({})".format(tinfo[1], tinfo[2]))
