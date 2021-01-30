@@ -58,8 +58,6 @@ from .atom import Atom
 from .link import SoftLink, ExternalLink
 
 
-
-
 # format_version = "1.0"  # Initial format
 # format_version = "1.1"  # Changes in ucl compression
 # format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -204,7 +202,6 @@ def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
     finally:
         # Close the source file.
         srcfileh.close()
-
 
 
 if tuple(map(int, utilsextension.get_hdf5_version().split('-')[0].split('.'))) \
@@ -861,7 +858,6 @@ class File(hdf5extension.File):
         # create the object tree
         return RootGroup(self, root_uep, title=title, new=new, filters=filters)
 
-
     def _get_or_create_path(self, path, create):
         """Get the given `path` or create it if `create` is true.
 
@@ -874,7 +870,6 @@ class File(hdf5extension.File):
             return self._create_path(path)
         else:
             return self.get_node(path)
-
 
     def _create_path(self, path):
         """Create the groups needed for the `path` to exist.
@@ -897,7 +892,6 @@ class File(hdf5extension.File):
                 child = create_group(parent, pcomp)
             parent = child
         return parent
-
 
     def create_group(self, where, name, title="", filters=None,
                      createparents=False):
@@ -935,7 +929,6 @@ class File(hdf5extension.File):
         _checkfilters(filters)
         return Group(parentnode, name,
                      title=title, new=True, filters=filters)
-
 
     def create_table(self, where, name, description=None, title="",
                      filters=None, expectedrows=10_000,
@@ -1058,7 +1051,6 @@ class File(hdf5extension.File):
 
         return ptobj
 
-
     def create_array(self, where, name, obj=None, title="",
                      byteorder=None, createparents=False,
                      atom=None, shape=None, track_times=True):
@@ -1154,7 +1146,6 @@ class File(hdf5extension.File):
         return Array(parentnode, name,
                      obj=obj, title=title, byteorder=byteorder,
                      track_times=track_times)
-
 
     def create_carray(self, where, name, atom=None, shape=None, title="",
                       filters=None, chunkshape=None,
@@ -1266,7 +1257,6 @@ class File(hdf5extension.File):
             ptobj[...] = obj
 
         return ptobj
-
 
     def create_earray(self, where, name, atom=None, shape=None, title="",
                       filters=None, expectedrows=1000,
@@ -1385,7 +1375,6 @@ class File(hdf5extension.File):
 
         return ptobj
 
-
     def create_vlarray(self, where, name, atom=None, title="",
                        filters=None, expectedrows=None,
                        chunkshape=None, byteorder=None,
@@ -1498,7 +1487,6 @@ class File(hdf5extension.File):
 
         return ptobj
 
-
     def create_hard_link(self, where, name, target, createparents=False):
         """Create a hard link.
 
@@ -1519,7 +1507,6 @@ class File(hdf5extension.File):
         parentnode._g_add_children_names()
         # Return the target node
         return self.get_node(parentnode, name)
-
 
     def create_soft_link(self, where, name, target, createparents=False):
         """Create a soft link (aka symbolic link) to a `target` node.
@@ -1549,7 +1536,6 @@ class File(hdf5extension.File):
         parentnode._g_add_children_names()
         return slink
 
-
     def create_external_link(self, where, name, target, createparents=False):
         """Create an external link.
 
@@ -1578,7 +1564,6 @@ class File(hdf5extension.File):
         parentnode._g_add_children_names()
         return elink
 
-
     def _get_node(self, nodepath):
         # The root node is always at hand.
         if nodepath == '/':
@@ -1588,7 +1573,6 @@ class File(hdf5extension.File):
         assert node is not None, "unable to instantiate node ``%s``" % nodepath
 
         return node
-
 
     def get_node(self, where, name=None, classname=None):
         """Get the node under where with the given name.
@@ -1657,7 +1641,6 @@ class File(hdf5extension.File):
 
         return node
 
-
     def is_visible_node(self, path):
         """Is the node under `path` visible?
 
@@ -1667,7 +1650,6 @@ class File(hdf5extension.File):
 
         # ``util.isvisiblepath()`` is still recommended for internal use.
         return self.get_node(path)._f_isvisible()
-
 
     def rename_node(self, where, newname, name=None, overwrite=False):
         """Change the name of the node specified by where and name to newname.
@@ -1687,7 +1669,6 @@ class File(hdf5extension.File):
 
         obj = self.get_node(where, name=name)
         obj._f_rename(newname, overwrite)
-
 
     def move_node(self, where, newparent=None, newname=None, name=None,
                   overwrite=False, createparents=False):
@@ -1717,7 +1698,6 @@ class File(hdf5extension.File):
 
         obj = self.get_node(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
-
 
     def copy_node(self, where, newparent=None, newname=None, name=None,
                   overwrite=False, recursive=False, createparents=False,
@@ -1781,7 +1761,6 @@ class File(hdf5extension.File):
         return obj._f_copy(newparent, newname,
                            overwrite, recursive, createparents, **kwargs)
 
-
     def remove_node(self, where, name=None, recursive=False):
         """Remove the object node *name* under *where* location.
 
@@ -1802,7 +1781,6 @@ class File(hdf5extension.File):
         obj = self.get_node(where, name=name)
         obj._f_remove(recursive)
 
-
     def get_node_attr(self, where, attrname, name=None):
         """Get a PyTables attribute from the given node.
 
@@ -1819,7 +1797,6 @@ class File(hdf5extension.File):
 
         obj = self.get_node(where, name=name)
         return obj._f_getattr(attrname)
-
 
     def set_node_attr(self, where, attrname, attrvalue, name=None):
         """Set a PyTables attribute for the given node.
@@ -1849,7 +1826,6 @@ class File(hdf5extension.File):
         obj = self.get_node(where, name=name)
         obj._f_setattr(attrname, attrvalue)
 
-
     def del_node_attr(self, where, attrname, name=None):
         """Delete a PyTables attribute from the given node.
 
@@ -1866,7 +1842,6 @@ class File(hdf5extension.File):
 
         obj = self.get_node(where, name=name)
         obj._f_delattr(attrname)
-
 
     def copy_node_attrs(self, where, dstnode, name=None):
         """Copy PyTables attributes from one node to another.
@@ -1885,7 +1860,6 @@ class File(hdf5extension.File):
         srcobject = self.get_node(where, name=name)
         dstobject = self.get_node(dstnode)
         srcobject._v_attrs._f_copy(dstobject)
-
 
     def copy_children(self, srcgroup, dstgroup,
                       overwrite=False, recursive=False,
@@ -1919,7 +1893,6 @@ class File(hdf5extension.File):
 
         srcgroup._f_copy_children(
             dstgroup, overwrite, recursive, createparents, **kwargs)
-
 
     def copy_file(self, dstfilename, overwrite=False, **kwargs):
         """Copy the contents of this file to dstfilename.
@@ -1995,7 +1968,6 @@ class File(hdf5extension.File):
         finally:
             dstfileh.close()
 
-
     def list_nodes(self, where, classname=None):
         """Return a *list* with children nodes hanging from where.
 
@@ -2007,7 +1979,6 @@ class File(hdf5extension.File):
         self._check_group(group)  # Is it a group?
 
         return group._f_list_nodes(classname)
-
 
     def iter_nodes(self, where, classname=None):
         """Iterate over children nodes hanging from where.
@@ -2033,7 +2004,6 @@ class File(hdf5extension.File):
         self._check_group(group)  # Is it a group?
 
         return group._f_iter_nodes(classname)
-
 
     def __contains__(self, path):
         """Is there a node with that path?
@@ -2115,7 +2085,6 @@ class File(hdf5extension.File):
             for group in self.walk_groups(where):
                 yield from self.iter_nodes(group, classname)
 
-
     def walk_groups(self, where="/"):
         """Recursively iterate over groups (not leaves) hanging from where.
 
@@ -2133,7 +2102,6 @@ class File(hdf5extension.File):
         self._check_group(group)  # Is it a group?
         return group._f_walk_groups()
 
-
     def _check_open(self):
         """Check the state of the file.
 
@@ -2144,12 +2112,10 @@ class File(hdf5extension.File):
         if not self.isopen:
             raise ClosedFileError("the file object is closed")
 
-
     def _iswritable(self):
         """Is this file writable?"""
 
         return self.mode in ('w', 'a', 'r+')
-
 
     def _check_writable(self):
         """Check whether the file is writable.
@@ -2161,12 +2127,10 @@ class File(hdf5extension.File):
         if not self._iswritable():
             raise FileModeError("the file is not writable")
 
-
     def _check_group(self, node):
         # `node` must already be a node.
         if not isinstance(node, Group):
             raise TypeError(f"node ``{node._v_pathname}`` is not a group")
-
 
     def is_undo_enabled(self):
         """Is the Undo/Redo mechanism enabled?
@@ -2181,11 +2145,9 @@ class File(hdf5extension.File):
         self._check_open()
         return self._undoEnabled
 
-
     def _check_undo_enabled(self):
         if not self._undoEnabled:
             raise UndoRedoError("Undo/Redo feature is currently disabled!")
-
 
     def _create_transaction_group(self):
         tgroup = TransactionGroupG(
@@ -2195,18 +2157,15 @@ class File(hdf5extension.File):
         tgroup._v_attrs._g__setattr('FORMATVERSION', _trans_version)
         return tgroup
 
-
     def _create_transaction(self, troot, tid):
         return TransactionG(
             troot, _trans_name % tid,
             "Transaction number %d" % tid, new=True)
 
-
     def _create_mark(self, trans, mid):
         return MarkG(
             trans, _markName % mid,
             "Mark number %d" % mid, new=True)
-
 
     def enable_undo(self, filters=Filters(complevel=1)):
         """Enable the Undo/Redo mechanism.
@@ -2303,7 +2262,6 @@ class File(hdf5extension.File):
         # The Undo/Redo mechanism has been enabled.
         self._undoEnabled = True
 
-
     def disable_undo(self):
         """Disable the Undo/Redo mechanism.
 
@@ -2338,7 +2296,6 @@ class File(hdf5extension.File):
 
         # The Undo/Redo mechanism has been disabled.
         self._undoEnabled = False
-
 
     def mark(self, name=None):
         """Mark the state of the database.
@@ -2458,7 +2415,6 @@ class File(hdf5extension.File):
         # print("markid, self._nmarks:", markid, self._nmarks)
         return markid
 
-
     def _get_final_action(self, markid):
         """Get the action to go.
 
@@ -2476,7 +2432,6 @@ class File(hdf5extension.File):
             return 0
 
         return self._seqmarkers[markid]
-
 
     def _doundo(self, finalaction, direction):
         """Undo/Redo actions up to final action in the specificed direction."""
@@ -2665,7 +2620,6 @@ class File(hdf5extension.File):
         self._check_undo_enabled()
         return self._curmark
 
-
     def _shadow_name(self):
         """Compute and return a shadow name.
 
@@ -2680,7 +2634,6 @@ class File(hdf5extension.File):
         name = _shadow_name % (self._curaction,)
 
         return (parent, name)
-
 
     def flush(self):
         """Flush all the alive leaves in the object tree."""
@@ -2836,7 +2789,6 @@ class File(hdf5extension.File):
                     newnodeppath = split_path(newnodepath)[0]
                     descendent_node = self._get_node(nodepath)
                     descendent_node._g_update_location(newnodeppath)
-
 
 
 # If a user hits ^C during a run, it is wise to gracefully close the

@@ -505,7 +505,6 @@ class Atom(metaclass=MetaAtom):
         .. versionadded:: 2.4"""
         return len(self.shape)
 
-
     def __init__(self, nptype, shape, dflt):
         if not hasattr(self, 'type'):
             raise NotImplementedError("``%s`` is an abstract class; "
@@ -935,7 +934,6 @@ class EnumAtom(Atom):
         if len(npvalues.shape) > 1:
             raise NotImplementedError("only scalar concrete values "
                                       "are supported for the moment, sorry")
-
 
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments."""

@@ -155,7 +155,6 @@ class Group(hdf5extension.Group, Node):
     # Class identifier.
     _c_classid = 'GROUP'
 
-
     # Children containers that should be loaded only in a lazy way.
     # These are documented in the ``Group._g_add_children_names`` method.
     _c_lazy_children_attrs = (
@@ -196,7 +195,6 @@ class Group(hdf5extension.Group, Node):
         instance (see :ref:`FiltersClassDescr`). When the group has no such
         attribute, a default Filters instance is used.
         """)
-
 
     def __init__(self, parentnode, name,
                  title="", new=False, filters=None,
@@ -260,7 +258,6 @@ class Group(hdf5extension.Group, Node):
             # We don't need to get more attributes from disk,
             # since the most important ones are defined as properties.
 
-
     def __del__(self):
         if (self._v_isopen and
             self._v_pathname in self._v_file._node_manager.registry and
@@ -293,7 +290,6 @@ class Group(hdf5extension.Group, Node):
             return class_id_dict[childCID]  # look up group class
         else:
             return Group  # default group class
-
 
     def _g_get_child_leaf_class(self, childname, warn=True):
         """Get the class of a not-yet-loaded leaf child.
@@ -332,7 +328,6 @@ class Group(hdf5extension.Group, Node):
                 return UnImplemented
             assert childCID2 in class_id_dict
             return class_id_dict[childCID2]  # look up leaf class
-
 
     def _g_add_children_names(self):
         """Add children names to this group taking into account their
@@ -380,7 +375,6 @@ class Group(hdf5extension.Group, Node):
                     # Hidden node.
                     hidden[childname] = None
 
-
     def _g_check_has_child(self, name):
         """Check whether 'name' is a children of 'self' and return its type."""
 
@@ -391,7 +385,6 @@ class Group(hdf5extension.Group, Node):
                 "group ``%s`` does not have a child named ``%s``"
                 % (self._v_pathname, name))
         return node_type
-
 
     def __iter__(self):
         """Iterate over the child nodes hanging directly from the group.
@@ -474,7 +467,6 @@ class Group(hdf5extension.Group, Node):
             for group in self._f_walk_groups():
                 yield from group._f_iter_nodes(classname)
 
-
     def _g_join(self, name):
         """Helper method to correctly concatenate a name child object with the
         pathname of this group."""
@@ -492,7 +484,6 @@ group ``%s`` is exceeding the recommended maximum number of children (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                       % (self._v_pathname, self._v_max_group_width),
                       PerformanceWarning)
-
 
     def _g_refnode(self, childnode, childname, validate=True):
         """Insert references to a `childnode` via a `childname`.
@@ -552,7 +543,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             # Hidden node.
             self._v_hidden[childname] = None  # insert node
 
-
     def _g_unrefnode(self, childname):
         """Remove references to a node.
 
@@ -581,7 +571,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             else:
                 # Hidden node.
                 del self._v_hidden[childname]  # remove node
-
 
     def _g_move(self, newparent, newname):
         # Move the node to the new location.
@@ -685,7 +674,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                     if isinstance(srcchild, Group):
                         parentstack.append((srcchild, dstchild))
 
-
     def _f_get_child(self, childname):
         """Get the child called childname of this group.
 
@@ -705,7 +693,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         childpath = join_path(self._v_pathname, childname)
         return self._v_file._get_node(childpath)
 
-
     def _f_list_nodes(self, classname=None):
         """Return a *list* with children nodes.
 
@@ -714,7 +701,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         """
 
         return list(self._f_iter_nodes(classname))
-
 
     def _f_iter_nodes(self, classname=None):
         """Iterate over children nodes.
@@ -755,7 +741,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                 if isinstance(childnode, class_):
                     yield childnode
 
-
     def _f_walk_groups(self):
         """Recursively iterate over descendent groups (not leaves).
 
@@ -778,7 +763,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             for groupname in groupnames:
                 stack.append(objgroup._v_groups[groupname])
                 yield objgroup._v_groups[groupname]
-
 
     def __delattr__(self, name):
         """Delete a Python attribute called name.
@@ -881,7 +865,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         node_manager = self._v_file._node_manager
         node_manager.close_subtree(self._v_pathname)
-
 
     def _g_close(self):
         """Close this (open) group."""
@@ -1059,7 +1042,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             for child in self._v_children.values():
                 child._f_copy(dstparent, None, overwrite, recursive, **kwargs)
 
-
     def __str__(self):
         """Return a short string representation of the group.
 
@@ -1101,7 +1083,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 # Special definition for group root
 class RootGroup(Group):
-
 
     def __init__(self, ptfile, name, title, new, filters):
         mydict = self.__dict__
@@ -1194,7 +1175,6 @@ class RootGroup(Group):
         else:
             return UnImplemented(self, childname)
 
-
     def _f_rename(self, newname):
         raise NodeError("the root node can not be renamed")
 
@@ -1208,7 +1188,6 @@ class RootGroup(Group):
 class TransactionGroupG(NotLoggedMixin, Group):
     _c_classid = 'TRANSGROUP'
 
-
     def _g_width_warning(self):
         warnings.warn("""\
 the number of transactions is exceeding the recommended maximum (%d);\
@@ -1216,10 +1195,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                       % (self._v_max_group_width,), PerformanceWarning)
 
 
-
 class TransactionG(NotLoggedMixin, Group):
     _c_classid = 'TRANSG'
-
 
     def _g_width_warning(self):
         warnings.warn("""\
@@ -1229,11 +1206,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                       PerformanceWarning)
 
 
-
 class MarkG(NotLoggedMixin, Group):
     # Class identifier.
     _c_classid = 'MARKG'
-
 
     import re
     _c_shadow_name_re = re.compile(r'^a[0-9]+$')
@@ -1244,7 +1219,6 @@ mark ``%s`` is exceeding the recommended maximum action storage (%d nodes);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                       % (self._v_pathname, self._v_max_group_width),
                       PerformanceWarning)
-
 
     def _g_reset(self):
         """Empty action storage (nodes and attributes).

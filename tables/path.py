@@ -162,10 +162,6 @@ def check_name_validity(name):
                          "in object names: %r" % name)
 
 
-
-
-
-
 def join_path(parentpath, name):
     """Join a *canonical* `parentpath` with a *non-empty* `name`.
 
@@ -196,7 +192,6 @@ def join_path(parentpath, name):
     return pstr
 
 
-
 def split_path(path):
     """Split a *canonical* `path` into a parent path and a node name.
 
@@ -220,12 +215,10 @@ def split_path(path):
     return (ppath, name)
 
 
-
 def isvisiblename(name):
     """Does this `name` make the named node a visible one?"""
 
     return _hidden_name_re.match(name) is None
-
 
 
 def isvisiblepath(path):

@@ -349,7 +349,6 @@ _numpy_aliases = []
 _numpy_desc = "NumPy array, record or scalar"
 
 
-
 if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion('1.19.0'):
     def toarray(array, *args, **kwargs):
         with warnings.catch_warnings():

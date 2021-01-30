@@ -10,7 +10,6 @@
 
 """Here is defined the Index class."""
 
-
 import math
 import operator
 import os
@@ -43,14 +42,11 @@ from .utilsextension import (nan_aware_gt, nan_aware_ge,
                              bisect_left, bisect_right)
 from .lrucacheextension import ObjectCache
 
-
-
 # default version for INDEX objects
 # obversion = "1.0"    # Version of indexes in PyTables 1.x series
 # obversion = "2.0"    # Version of indexes in PyTables Pro 2.0 series
 obversion = "2.1"     # Version of indexes in PyTables Pro 2.1 and up series,
 #                     # including the join 2.3 Std + Pro version
-
 
 debug = False
 # debug = True  # Uncomment this for printing sizes purposes
@@ -58,7 +54,6 @@ profile = False
 # profile = True  # Uncomment for profiling
 if profile:
     from .utils import show_stats
-
 
 # The default method for sorting
 # defsort = "quicksort"
@@ -154,7 +149,6 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
     """
 
     _c_classid = 'INDEX'
-
 
     @property
     def kind(self):
@@ -547,7 +541,6 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         if self.temp_required:
             self.create_temp()
 
-
     def initial_append(self, xarr, nrow, reduction):
         """Compute an initial indices arrays for data to be indexed."""
 
@@ -759,7 +752,6 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         self.dirtycache = True   # the cache is dirty now
         if profile:
             show_stats("Exiting appendLR", tref)
-
 
     def optimize(self, verbose=False):
         """Optimize an index so as to allow faster searches.
@@ -1261,7 +1253,6 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         stepl = np.array([1], dtype=np.uint64)
         where._g_write_slice(startl, stepl, countl, buffer)
 
-
     def reorder_slice(self, nslice, sorted, indices, ssorted, sindices,
                       tmp_sorted, tmp_indices):
         """Copy & reorder the slice in source to final destination."""
@@ -1719,7 +1710,6 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
         return self.read_sorted_indices('sorted', start, stop, step)
 
-
     def read_indices(self, start=None, stop=None, step=None):
         """Return the indices values of index in the specified range.
 
@@ -1729,7 +1719,6 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """
 
         return self.read_sorted_indices('indices', start, stop, step)
-
 
     def _process_range(self, start, stop, step):
         """Get a range specifc for the index usage."""
@@ -1750,7 +1739,6 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         else:
             step = idx2long(step)
         return (start, stop, step)
-
 
     def __getitem__(self, key):
         """Return the indices values of index in the specified range.
@@ -1991,7 +1979,6 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             stop = 0
         return (start, stop)
 
-
     def get_chunkmap(self):
         """Compute a map with the interesting chunks in index."""
 
@@ -2100,7 +2087,6 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
         return range_
 
-
     def _f_remove(self, recursive=False):
         """Remove this Index object."""
 
@@ -2150,7 +2136,6 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 class IndexesDescG(NotLoggedMixin, Group):
     _c_classid = 'DINDEX'
 
-
     def _g_width_warning(self):
         warnings.warn(
             "the number of indexed columns on a single description group "
@@ -2160,10 +2145,8 @@ class IndexesDescG(NotLoggedMixin, Group):
             PerformanceWarning)
 
 
-
 class IndexesTableG(NotLoggedMixin, Group):
     _c_classid = 'TINDEX'
-
 
     @property
     def auto(self):
@@ -2187,12 +2170,10 @@ class IndexesTableG(NotLoggedMixin, Group):
             "and possibly slow I/O" % self._v_max_group_width,
             PerformanceWarning)
 
-
     def _g_check_name(self, name):
         if not name.startswith('_i_'):
             raise ValueError(
                 "names of index groups must start with ``_i_``: %s" % name)
-
 
     @property
     def table(self):

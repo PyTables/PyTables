@@ -130,7 +130,6 @@ def convert_to_np_atom2(object, atom):
     return nparr
 
 
-
 def check_file_access(filename, mode='r'):
     """Check for file access in the specified `mode`.
 
@@ -183,7 +182,6 @@ def check_file_access(filename, mode='r'):
             raise OSError(f"file ``{path}`` exists but it can not be written")
     else:
         raise ValueError(f"invalid mode: {mode!r}")
-
 
 
 def lazyattr(fget):
@@ -299,7 +297,6 @@ def log_instance_creation(instance, name=None):
         tracked_classes[name].append(weakref.ref(instance))
 
 
-
 def string_to_classes(s):
     if s == '*':
         c = sorted(tracked_classes)
@@ -313,11 +310,9 @@ def fetch_logged_instances(classes="*"):
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
 
-
 def count_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
-
 
 
 def list_logged_instances(classes, file=sys.stdout):
@@ -327,7 +322,6 @@ def list_logged_instances(classes, file=sys.stdout):
             obj = ref()
             if obj is not None:
                 file.write('    %s\n' % repr(obj))
-
 
 
 def dump_logged_instances(classes, file=sys.stdout):

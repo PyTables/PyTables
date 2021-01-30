@@ -25,7 +25,6 @@ from .undoredo import attr_to_shadow
 from .filters import Filters
 
 
-
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
              "ENCODING", "PYTABLES_FORMAT_VERSION",
@@ -259,7 +258,6 @@ class AttributeSet(hdf5extension.AttributeSet):
         # hdf5extension operations:
         self._g_new(node)
 
-
     def _f_list(self, attrset='user'):
         """Get a list of attribute names.
 
@@ -488,14 +486,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_log_add(self, name):
         self._v__nodefile._log('ADDATTR', self._v__nodepath, name)
 
-
     def _g_del_and_log(self, name):
         nodefile = self._v__nodefile
         node_pathname = self._v__nodepath
         # Log *before* moving to use the right shadow name.
         nodefile._log('DELATTR', node_pathname, name)
         attr_to_shadow(nodefile, node_pathname, name)
-
 
     def _g__delattr(self, name):
         """Delete a PyTables attribute.
@@ -689,7 +685,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 class NotLoggedAttributeSet(AttributeSet):
     def _g_log_add(self, name):
         pass
-
 
     def _g_del_and_log(self, name):
         self._g__delattr(name)

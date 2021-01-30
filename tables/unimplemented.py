@@ -46,7 +46,6 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
     # Class identifier.
     _c_classid = 'UNIMPLEMENTED'
 
-
     def __init__(self, parentnode, name):
         """Create the `UnImplemented` instance."""
 
@@ -122,7 +121,6 @@ class Unknown(Node):
 
     # Class identifier
     _c_classid = 'UNKNOWN'
-
 
     def __init__(self, parentnode, name):
         """Create the `Unknown` instance."""

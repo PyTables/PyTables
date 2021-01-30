@@ -21,7 +21,6 @@ from . import atom
 from .path import check_name_validity
 
 
-
 # Public variables
 # ================
 __docformat__ = 'reStructuredText'
@@ -444,7 +443,6 @@ class Description:
            and attribute copies.
     """
 
-
     def __init__(self, classdict, nestedlvl=-1, validate=True, ptparams=None):
 
         if not classdict:
@@ -623,7 +621,6 @@ class Description:
         newdict['_v_itemsize'] = dtype.itemsize
         newdict['_v_offsets'] = [dtype.fields[name][1] for name in dtype.names]
 
-
     def _g_set_nested_names_descr(self):
         """Computes the nested names and descriptions for nested datatypes."""
 
@@ -640,7 +637,6 @@ class Description:
                 self._v_nested_descr[i] = (name, new_object._v_nested_descr)
                 # set the _v_is_nested flag
                 self._v_is_nested = True
-
 
     def _g_set_path_names(self):
         """Compute the pathnames for arbitrary nested descriptions.
@@ -718,7 +714,6 @@ class Description:
                     parentCols.extend(colPaths)
                 # (Nothing is pushed, we are done with this description.)
 
-
     def _f_walk(self, type='All'):
         """Iterate over nested columns.
 
@@ -781,7 +776,6 @@ class MetaIsDescription(type):
 
         # Return a new class with the "columns" attribute filled
         return type.__new__(mcs, classname, bases, newdict)
-
 
 
 class IsDescription(metaclass=MetaIsDescription):

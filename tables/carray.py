@@ -131,7 +131,6 @@ class CArray(Array):
     # Class identifier.
     _c_classid = 'CARRAY'
 
-
     def __init__(self, parentnode, name,
                  atom=None, shape=None,
                  title="", filters=None,

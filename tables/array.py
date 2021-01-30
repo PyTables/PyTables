@@ -22,7 +22,6 @@ from .utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
                     byteorders, quantize)
 
 
-
 # default version for ARRAY objects
 # obversion = "1.0"    # initial version
 # obversion = "2.0"    # Added an optional EXTDIM attribute

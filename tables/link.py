@@ -41,7 +41,6 @@ def _g_get_link_class(parent_id, name):
     return linkextension._get_link_class(parent_id, name)
 
 
-
 class Link(Node):
     """Abstract base class for all PyTables links.
 
@@ -191,14 +190,12 @@ class SoftLink(linkextension.SoftLink, Link):
     # Class identifier.
     _c_classid = 'SOFTLINK'
 
-
     # attributes with these names/prefixes are treated as attributes of the
     # SoftLink rather than the target node
     _link_attrnames = ('target', 'dereference', 'is_dangling', 'copy', 'move',
                        'remove', 'rename', '__init__', '__str__', '__repr__',
                        '__unicode__', '__class__', '__dict__')
     _link_attrprefixes = ('_f_', '_c_', '_g_', '_v_')
-
 
     def __call__(self):
         """Dereference `self.target` and return the object.
@@ -289,7 +286,6 @@ class SoftLink(linkextension.SoftLink, Link):
     def is_dangling(self):
         return not (self.dereference() in self._v_file)
 
-
     def __str__(self):
         """Return a short string representation of the link.
 
@@ -334,7 +330,6 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
     # Class identifier.
     _c_classid = 'EXTERNALLINK'
-
 
     def __init__(self, parentnode, name, target=None, _log=False):
         self.extfile = None

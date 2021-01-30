@@ -279,7 +279,6 @@ class Leaf(Node):
         # Existing filters need not be read since `filters`
         # is a lazy property that automatically handles their loading.
 
-
         super().__init__(parentnode, name, _log)
 
     def __len__(self):

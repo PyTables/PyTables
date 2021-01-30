@@ -316,7 +316,6 @@ class OpenFileTestCase(TempFileMixin, TestCase):
         self.assertRaises(
             IOError, filenode.open_node, self.h5file.get_node('/test'), 'w')
 
-
     # This no longer works since type and type version attributes
     # are now system attributes.  ivb(2004-12-29)
     # def test03_OpenFileNoAttrs(self):
@@ -957,7 +956,6 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         # cleanup
         Path(self.testfname).unlink()
         Path(self.testh5fname).unlink()
-
 
     def test02_WriteToHDF5File(self):
         # write contents of datafname to h5 testfile
