@@ -2042,8 +2042,8 @@ class NonNestedTableReadTestCase(common.TempFileMixin,
 
     def test_specified_field_buffer_too_small(self):
         output = np.empty((99, ), 'i4')
-        func = lambda: self.table.read(field='f5', out=output)
-        self.assertRaises(ValueError, func)
+        self.assertRaises(ValueError,
+                          lambda: self.table.read(field='f5', out=output))
         try:
             self.table.read(field='f5', out=output)
         except ValueError as exc:
