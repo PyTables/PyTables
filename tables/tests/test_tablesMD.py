@@ -1120,8 +1120,8 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         table.cols.col1[1:] = [[[2, 3], [3, 4], [4, 5]]]
 
         # Create the modified recarray
-        r1 = np.rec.array([ ([456, 457], s0, f0), ([2, 3], s1, f1),
-                            ([3, 4], s2, f2), ([4, 5], s3, f3)],
+        r1 = np.rec.array([([456, 457], s0, f0), ([2, 3], s1, f1),
+                           ([3, 4], s2, f2), ([4, 5], s3, f3)],
                           formats="(2,)i4,(3,)a3,(3,2)f8",
                           names="col1,col2,col3")
 
