@@ -2005,9 +2005,9 @@ class Rows64bitsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Fill the array
         na = np.arange(self.narows, dtype='int8')
-        #~ for i in xrange(self.nanumber):
-            #~ s = slice(i * self.narows, (i + 1)*self.narows)
-            #~ array[s] = na
+        # for i in xrange(self.nanumber):
+        #     s = slice(i * self.narows, (i + 1)*self.narows)
+        #     array[s] = na
         s = slice(0, self.narows)
         array[s] = na
         s = slice((self.nanumber-1)*self.narows, self.nanumber * self.narows)
