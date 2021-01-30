@@ -181,4 +181,3 @@ def main():
         else:
             # This should never happen
             print("Unrecognized object:", nodeobject)
-

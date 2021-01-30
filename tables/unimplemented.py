@@ -157,4 +157,3 @@ class Unknown(Node):
 # These are listed here for backward compatibility with PyTables 0.9.x indexes
 class OldIndexArray(UnImplemented):
     _c_classid = 'IndexArray'
-

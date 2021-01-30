@@ -287,4 +287,3 @@ class CArray(Array):
         nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object, nbytes)
-

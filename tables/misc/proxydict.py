@@ -66,4 +66,3 @@ class ProxyDict(dict):
         if container is None:
             raise ValueError("the container object does no longer exist")
         return container
-
