@@ -379,8 +379,8 @@ def _numpy_contiguous(convfunc):
     def conv_to_numpy(array):
         nparr = convfunc(array)
         if (hasattr(nparr, 'flags') and
-            not nparr.flags.contiguous and
-            sum(nparr.strides) != 0):
+                not nparr.flags.contiguous and
+                sum(nparr.strides) != 0):
             nparr = nparr.copy()  # copying the array makes it contiguous
         return nparr
     conv_to_numpy.__name__ = convfunc.__name__

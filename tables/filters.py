@@ -356,10 +356,10 @@ class Filters:
         self.bitshuffle = bitshuffle
         """Whether the *BitShuffle* filter is active or not."""
 
-        if (self.complib and self.bitshuffle and
-            not self.complib.startswith('blosc')):
-            raise ValueError(
-                "BitShuffle can only be used inside Blosc")
+        if (self.complib and
+                self.bitshuffle and
+                not self.complib.startswith('blosc')):
+            raise ValueError("BitShuffle can only be used inside Blosc")
 
         if self.shuffle and self.bitshuffle:
             # BitShuffle has priority in case both are specified
