@@ -68,6 +68,7 @@ _warnInfo = (
 # Public functions
 # ================
 
+
 def check_attribute_name(name):
     """Check the validity of the `name` of an attribute in AttributeSet.
 
@@ -233,9 +234,6 @@ def isvisiblepath(path):
     return _hidden_path_re.search(path) is None
 
 
-
-# Main part
-# =========
 def _test():
     """Run ``doctest`` on this module."""
 

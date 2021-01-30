@@ -313,7 +313,6 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
     return File(filename, mode, title, root_uep, filters, **kwargs)
 
 
-
 # A dumb class that doesn't keep nothing at all
 class _NoCache:
     def __len__(self):

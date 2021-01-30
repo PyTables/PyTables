@@ -268,6 +268,7 @@ class BloscShuffleComprTestCase(BasicTestCase):
     shuffle = 1
     complib = "blosc"
 
+
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
 @common.unittest.skipIf(common.blosc_version < common.min_blosc_bitshuffle_version,
@@ -276,6 +277,7 @@ class BloscBitShuffleComprTestCase(BasicTestCase):
     compress = 9
     bitshuffle = 1
     complib = "blosc"
+
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
@@ -320,6 +322,7 @@ class BloscZlibComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:zlib"
+
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')

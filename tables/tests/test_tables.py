@@ -15,6 +15,7 @@ from tables.tests import common
 def is_python_64bit():
     return struct.calcsize("P") == 8
 
+
 # To know whether the os platform is 32 or 64 bit
 def is_os_64bit():
     return platform.machine().endswith('64')
@@ -1776,6 +1777,7 @@ class CompressBloscZlibTablesTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
     complib = "blosc:zlib"
+
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
@@ -4995,6 +4997,7 @@ class AlignedOpenCopyTestCase(CopyTestCase):
     close = False
     aligned = True
     open_kwargs = {'allow_padding': True}
+
 
 class AlignedNoPaddingOpenCopyTestCase(CopyTestCase):
     close = False

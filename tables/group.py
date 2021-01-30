@@ -1099,7 +1099,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         return f'{self!s}\n  children := [{", ".join(rep)}]'
 
 
-
 # Special definition for group root
 class RootGroup(Group):
 

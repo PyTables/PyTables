@@ -759,6 +759,7 @@ class BloscZlibTestCase(BasicTestCase):
     stop = 10
     step = 7
 
+
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
 @common.unittest.skipIf('zstd' not in tb.blosc_compressor_list(), 'zstd required')

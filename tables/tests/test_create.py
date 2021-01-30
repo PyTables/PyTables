@@ -20,6 +20,7 @@ import numpy as np
 import tables as tb
 from tables.tests import common
 
+
 class Record(tb.IsDescription):
     var1 = tb.StringCol(itemsize=4)  # 4-character String
     var2 = tb.IntCol()               # integer

@@ -111,7 +111,6 @@ def convert_to_np_atom(arr, atom, copy=False):
     return nparr
 
 
-
 # The next is used in Array, EArray and VLArray, and it is a bit more
 # high level than convert_to_np_atom
 def convert_to_np_atom2(object, atom):
@@ -340,7 +339,6 @@ def dump_logged_instances(classes, file=sys.stdout):
                 file.write('    %s:\n' % obj)
                 for key, value in obj.__dict__.items():
                     file.write(f'        {key:>20} : {value}\n')
-
 
 
 #

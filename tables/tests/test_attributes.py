@@ -1605,6 +1605,7 @@ class CloseAlignedTypesTestCase(TypesTestCase):
     aligned = True
     close = True
 
+
 class CloseAlignedPaddedTypesTestCase(TypesTestCase):
     allow_padding = True
     aligned = True
@@ -1729,6 +1730,7 @@ class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, common.PyTablesTestCase
         d = self.h5file.get_node_attr('/', 'py2_pickled_dict')
         self.assertIsInstance(d, dict)
         self.assertEqual(d['s'], 'just a string')
+
 
 class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
