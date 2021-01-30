@@ -875,10 +875,3 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
     del data
     if new_h5file:
         f.close()
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## End:

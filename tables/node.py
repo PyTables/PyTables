@@ -922,12 +922,3 @@ class NotLoggedMixin:
 
     def _g_remove_and_log(self, recursive, force):
         self._g_remove(recursive, force)
-
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

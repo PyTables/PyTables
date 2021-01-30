@@ -374,12 +374,3 @@ class ExperimentalFeatureWarning(Warning):
 
     """
     pass
-
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

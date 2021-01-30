@@ -171,11 +171,3 @@ def undo_del_attr(file_, path, name):
 
 def redo_del_attr(file_, path, name):
     attr_to_shadow(file_, path, name)
-
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## End:

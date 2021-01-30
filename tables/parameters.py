@@ -449,11 +449,3 @@ by replacing '%s' with the name passed as the first parameter instead.
 .. versionadded:: 3.1
 
 """
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

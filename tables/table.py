@@ -3692,11 +3692,3 @@ class Column:
         """A detailed string representation for this object."""
 
         return str(self)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

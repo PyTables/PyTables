@@ -764,11 +764,3 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         self._f_close(flush)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

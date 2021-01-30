@@ -419,11 +419,3 @@ class ExternalLink(linkextension.ExternalLink, Link):
         """
 
         return f"{self._v_pathname} ({self.__class__.__name__}) -> {self.target}"
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

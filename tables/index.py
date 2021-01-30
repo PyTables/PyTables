@@ -349,12 +349,12 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             self.dtype = atom.dtype.base
             self.type = atom.type
             """The datatypes to be stored by the sorted index array."""
-            ############### Important note ###########################
+            # ############## Important note ###########################
             # The datatypes saved as index values are NumPy native
             # types, so we get rid of type metainfo like Time* or Enum*
             # that belongs to HDF5 types (actually, this metainfo is
             # not needed for sorting and looking-up purposes).
-            ##########################################################
+            # #########################################################
             indsize = {
                 'ultralight': 1, 'light': 2, 'medium': 4, 'full': 8}[kind]
             assert indsize in (1, 2, 4, 8), "indsize should be 1, 2, 4 or 8!"
@@ -2209,12 +2209,3 @@ class OldIndex(NotLoggedMixin, Group):
     """This is meant to hide indexes of PyTables 1.x files."""
 
     _c_classid = 'CINDEX'
-
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

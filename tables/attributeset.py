@@ -693,11 +693,3 @@ class NotLoggedAttributeSet(AttributeSet):
 
     def _g_del_and_log(self, name):
         self._g__delattr(name)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

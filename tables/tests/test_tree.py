@@ -506,8 +506,8 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """
         root_dir = dir(self.h5file.root)
 
-        ## Check some regular attributes.
-        #
+        # Check some regular attributes.
+
         self.assertIn('_v_children', root_dir)
         self.assertIn('_v_attrs', root_dir)
         self.assertIn('_v_groups', root_dir)
@@ -515,8 +515,8 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIn('_g_get_child_group_class', root_dir)
         self.assertIn('_f_close', root_dir)
 
-        ## Check children nodes.
-        #
+        # Check children nodes.
+
         self.assertIn('group0', root_dir)
         self.assertIn('table0', root_dir)
         self.assertIn('var1', root_dir)

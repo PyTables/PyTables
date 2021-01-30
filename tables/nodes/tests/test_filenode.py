@@ -320,13 +320,13 @@ class OpenFileTestCase(TempFileMixin, TestCase):
     # This no longer works since type and type version attributes
     # are now system attributes.  ivb(2004-12-29)
     # def test03_OpenFileNoAttrs(self):
-    ##      "Opening a node with no type attributes."
-    ##
-    ##      node = self.h5file.get_node('/test')
-    ##      self.h5file.del_node_attr('/test', '_type')
-    ##      # Another way to get the same result is changing the value.
-    ##      ##self.h5file.set_node_attr('/test', '_type', 'foobar')
-    ##      self.assertRaises(ValueError, filenode.open_node, node)
+    #      "Opening a node with no type attributes."
+    #
+    #      node = self.h5file.get_node('/test')
+    #      self.h5file.del_node_attr('/test', '_type')
+    #      # Another way to get the same result is changing the value.
+    #      ##self.h5file.set_node_attr('/test', '_type', 'foobar')
+    #      self.assertRaises(ValueError, filenode.open_node, node)
 
 
 class ReadFileTestCase(TempFileMixin, TestCase):
@@ -672,11 +672,11 @@ class AttrsTestCase(TempFileMixin, TestCase):
     # This no longer works since type and type version attributes
     # are now system attributes.  ivb(2004-12-29)
     # def test00_GetTypeAttr(self):
-    ##      "Getting the type attribute of a file node."
-    ##
-    ##      self.assertEqual(
-    ##          getattr(self.fnode.attrs, '_type', None), filenode.NodeType,
-    ##          "File node has no '_type' attribute.")
+    #      "Getting the type attribute of a file node."
+    #
+    #      self.assertEqual(
+    #          getattr(self.fnode.attrs, '_type', None), filenode.NodeType,
+    #          "File node has no '_type' attribute.")
     def test00_MangleTypeAttrs(self):
         """Mangling the type attributes on a file node."""
 
@@ -692,11 +692,11 @@ class AttrsTestCase(TempFileMixin, TestCase):
 
         # System attributes are now writable.  ivb(2004-12-30)
         # self.assertRaises(
-        ##      AttributeError,
-        ##      setattr, self.fnode.attrs, 'NODE_TYPE', 'foobar')
+        #      AttributeError,
+        #      setattr, self.fnode.attrs, 'NODE_TYPE', 'foobar')
         # self.assertRaises(
-        ##      AttributeError,
-        ##      setattr, self.fnode.attrs, 'NODE_TYPE_VERSION', 'foobar')
+        #      AttributeError,
+        #      setattr, self.fnode.attrs, 'NODE_TYPE_VERSION', 'foobar')
 
         # System attributes are now removables.  F. Alted (2007-03-06)
 #         self.assertRaises(
@@ -708,9 +708,9 @@ class AttrsTestCase(TempFileMixin, TestCase):
 
     # System attributes are now writable.  ivb(2004-12-30)
     # def test01_SetSystemAttr(self):
-    ##      "Setting a system attribute on a file node."
-    ##
-    ##      self.assertRaises(
+    #      "Setting a system attribute on a file node."
+    #
+    #      self.assertRaises(
     # AttributeError, setattr, self.fnode.attrs, 'CLASS', 'foobar')
     def test02_SetGetDelUserAttr(self):
         """Setting a user attribute on a file node."""
@@ -735,7 +735,7 @@ class AttrsTestCase(TempFileMixin, TestCase):
             "User attribute was not deleted.")
         # Another way is looking up the attribute in the attribute list.
         # if 'userAttr' in self.fnode.attrs._f_list():
-        ##      self.fail("User attribute was not deleted.")
+        #      self.fail("User attribute was not deleted.")
 
     def test03_AttrsOnClosedFile(self):
         """Accessing attributes on a closed file node."""
@@ -1045,10 +1045,3 @@ if __name__ == '__main__':
     parse_argv(sys.argv)
     print_versions()
     unittest.main(defaultTest='suite')
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## End:

@@ -641,7 +641,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         # Recursive version of children copy.
         # for srcchild in self._v_children.itervalues():
-        ##    srcchild._g_copy_as_child(newparent, **kwargs)
+        #     srcchild._g_copy_as_child(newparent, **kwargs)
 
         # Non-recursive version of children copy.
         use_hardlinks = kwargs.get('use_hardlinks', False)
@@ -1265,11 +1265,3 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         for attrname in attrs._v_attrnamesuser[:]:
             if shname.match(attrname):
                 attrs._g__delattr(attrname)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

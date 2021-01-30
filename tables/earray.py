@@ -255,11 +255,3 @@ class EArray(CArray):
         nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.itemsize
 
         return (object, nbytes)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

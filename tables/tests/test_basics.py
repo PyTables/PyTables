@@ -1285,11 +1285,11 @@ class CheckFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test04b_UnImplementedOnLoading(self):
         """Checking failure loading resulting in an ``UnImplemented`` node."""
 
-        ############### Note for developers ###############################
+        # ############## Note for developers ##############################
         # This test fails if you have the line:                           #
         # ##return ChildClass(self, childname)  # uncomment for debugging #
         # uncommented in Group.py!                                        #
-        ###################################################################
+        # #################################################################
 
         h5fname = common.test_filename('smpl_unsupptype.h5')
         with tb.open_file(h5fname) as h5file:
@@ -1734,7 +1734,7 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         node._f_close()
         self.assertRaises(tb.ClosedNodeError, getattr, node, '_v_attrs')
         # The design of ``AttributeSet`` does not yet allow this test.
-        ## self.assertRaises(ClosedNodeError, getattr, nodeAttrs, 'test')
+        # self.assertRaises(ClosedNodeError, getattr, nodeAttrs, 'test')
 
         self.assertEqual(self.h5file.get_node_attr('/test', 'test'), attr)
 
@@ -2498,7 +2498,3 @@ if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
     common.unittest.main(defaultTest='suite')
-
-## Local Variables:
-## mode: python
-## End:

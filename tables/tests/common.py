@@ -372,11 +372,3 @@ class ShowMemTime(PyTablesTestCase):
         print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
         print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
         print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:
