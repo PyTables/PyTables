@@ -347,11 +347,11 @@ class AttributeSet(hdf5extension.AttributeSet):
                 except TypeError:
                     try:
                         retval = pickle.loads(value, encoding='bytes')
-                    except:
+                    except Exception:
                         retval = value
-                except:
+                except Exception:
                     retval = value
-            except:
+            except Exception:
                 # catch other unpickling errors:
                 # ivb (2005-09-07): It is too hard to tell
                 # whether the unpickling failed

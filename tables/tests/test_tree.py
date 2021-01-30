@@ -134,7 +134,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for name in nodenames:
                 try:
                     object = self.h5file.get_node(group, name, 'Array')
-                except:
+                except Exception:
                     pass
                 else:
                     nodearrays.append(object._v_pathname)
@@ -194,7 +194,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in nodelist:
             try:
                 objectlist = self.h5file.list_nodes(node)
-            except:
+            except Exception:
                 pass
             else:
                 objects.extend(objectlist)
@@ -212,7 +212,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in objects:
             try:
                 objectlist = self.h5file.list_nodes(node)
-            except:
+            except Exception:
                 pass
             else:
                 for object in objectlist:
@@ -290,7 +290,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in nodelist:
             try:
                 objectlist = [o for o in self.h5file.iter_nodes(node)]
-            except:
+            except Exception:
                 pass
             else:
                 objects.extend(objectlist)
@@ -308,7 +308,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in objects:
             try:
                 objectlist = [o for o in self.h5file.iter_nodes(node)]
-            except:
+            except Exception:
                 pass
             else:
                 for object in objectlist:

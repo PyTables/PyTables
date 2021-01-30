@@ -118,7 +118,7 @@ def print_versions():
     try:
         from Cython import __version__ as cython_version
         print('Cython version:      %s' % cython_version)
-    except:
+    except Exception:
         pass
     print('Python version:      %s' % sys.version)
     print('Platform:            %s' % platform.platform())

@@ -77,7 +77,7 @@ def idx2long(index):
 
     try:
         return int(index)
-    except:
+    except Exception:
         raise TypeError("not an integer type.")
 
 

@@ -105,7 +105,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
                                 allow_padding=allow_padding)
         try:
             dstgroup = dstfileh.get_node(dstgroup)
-        except:
+        except Exception:
             # The dstgroup does not seem to exist. Try creating it.
             dstgroup = newdst_group(dstfileh, dstgroup, title, filters)
         else:
@@ -140,7 +140,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
             stats=stats, start=start, stop=stop, step=step,
             chunkshape=chunkshape,
             sortby=sortby, check_CSI=check_CSI, propindexes=propindexes)
-    except:
+    except Exception:
         (type_, value, traceback) = sys.exc_info()
         print("Problems doing the copy from '%s:%s' to '%s:%s'" %
               (srcfile, srcnode, dstfile, dstnode))
@@ -233,7 +233,7 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
             chunkshape=chunkshape,
             sortby=sortby, check_CSI=check_CSI, propindexes=propindexes,
             use_hardlinks=use_hardlinks)
-    except:
+    except Exception:
         (type_, value, traceback) = sys.exc_info()
         print("Problems doing the copy from '%s:%s' to '%s:%s'" %
               (srcfile, srcgroup, dstfile, dstgroup))

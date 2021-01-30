@@ -266,7 +266,7 @@ class Node(metaclass=MetaNode):
 
             # This allows extra operations after creating the node.
             self._g_post_init_hook()
-        except:
+        except Exception:
             # If anything happens, the node must be closed
             # to undo every possible registration made so far.
             # We do *not* rely on ``__del__()`` doing it later,

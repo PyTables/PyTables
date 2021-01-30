@@ -198,7 +198,7 @@ class Array(hdf5extension.Array, Leaf):
             # `Leaf._g_post_init_hook()` should be setting the flavor on disk.
             self._flavor = flavor = flavor_of(self._obj)
             nparr = array_as_internal(self._obj, flavor)
-        except:  # XXX
+        except Exception:  # XXX
             # Problems converting data. Close the node and re-raise exception.
             self.close(flush=0)
             raise
@@ -221,7 +221,7 @@ class Array(hdf5extension.Array, Leaf):
             # on
             (self._v_objectid, self.shape, self.atom) = self._create_array(
                 nparr, self._v_new_title, self.atom)
-        except:  # XXX
+        except Exception:  # XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
