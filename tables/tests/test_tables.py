@@ -94,7 +94,7 @@ class OldRecord(tb.IsDescription):
     var7 = tb.StringCol(itemsize=1, dflt=b"e", pos=6)
     var8 = tb.Col.from_type("bool", shape=(), dflt=1, pos=7)
     var9 = tb.ComplexCol(itemsize=8, shape=(), dflt=(0.+1.j), pos=8)
-    var10 = tb.ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos = 9)
+    var10 = tb.ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos=9)
     if hasattr(tb, 'Float16Col'):
         var11 = tb.Col.from_type("float16", (), 6.4)
     if hasattr(tb, 'Float96Col'):

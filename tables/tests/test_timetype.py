@@ -149,7 +149,7 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
     # The description used in the test Table.
     class MyTimeRow(tb.IsDescription):
         t32col = tb.Time32Col(pos=0)
-        t64col = tb.Time64Col(shape=(2,), pos = 1)
+        t64col = tb.Time64Col(shape=(2,), pos=1)
 
     # The atoms used in the test VLArrays.
     myTime32Atom = tb.Time32Atom(shape=(2,))
@@ -341,7 +341,7 @@ class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     class MyTimeRow(tb.IsDescription):
         i8col = tb.Int8Col(pos=0)
         t32col = tb.Time32Col(pos=1)
-        t64col = tb.Time64Col(shape=(2,), pos = 2)
+        t64col = tb.Time64Col(shape=(2,), pos=2)
 
     def test00_CompareTable(self):
         """Comparing written unaligned time data with read data in a Table."""

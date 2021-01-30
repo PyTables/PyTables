@@ -75,7 +75,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertNotIn(name, self.root.anarray.attrs)
 
 
-    def check_name(self, name, val = ''):
+    def check_name(self, name, val=''):
         """Check validity of attribute name filtering"""
         self.check_missing(name)
         # Using File methods
