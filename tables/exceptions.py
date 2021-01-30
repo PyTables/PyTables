@@ -10,13 +10,13 @@
 
 """Declare exceptions and warnings that are specific to PyTables."""
 
-__docformat__ = 'reStructuredText'
-"""The format of documentation strings in this module."""
-
-
 import os
 import warnings
 import traceback
+
+
+__docformat__ = 'reStructuredText'
+"""The format of documentation strings in this module."""
 
 
 class HDF5ExtError(RuntimeError):

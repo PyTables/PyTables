@@ -14,6 +14,7 @@ import math
 import os
 import sys
 import warnings
+import weakref
 from pathlib import Path
 from time import perf_counter as clock
 
@@ -286,7 +287,6 @@ def quantize(data, least_significant_digit):
 # Utilities to detect leaked instances.  See recipe 14.10 of the Python
 # Cookbook by Martelli & Ascher.
 tracked_classes = {}
-import weakref
 
 
 def log_instance_creation(instance, name=None):

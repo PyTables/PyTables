@@ -48,6 +48,8 @@ Variables
 # =======
 import warnings
 
+import numpy as np
+
 from .exceptions import FlavorError, FlavorWarning
 
 
@@ -229,7 +231,6 @@ def restrict_flavors(keep=('python',)):
 # The order in which flavors appear in `all_flavors` determines the
 # order in which they will be tested for by `flavor_of()`, so place
 # most frequent flavors first.
-import numpy as np
 all_flavors.append('numpy')  # this is the internal flavor
 
 all_flavors.append('python')  # this is always supported

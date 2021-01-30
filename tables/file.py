@@ -18,6 +18,7 @@ nodes.
 
 """
 
+import atexit
 import datetime
 import sys
 import weakref
@@ -2793,5 +2794,4 @@ class File(hdf5extension.File):
 
 # If a user hits ^C during a run, it is wise to gracefully close the
 # opened files.
-import atexit
 atexit.register(_open_files.close_all)
