@@ -2497,10 +2497,10 @@ class File(hdf5extension.File):
                 # undo/redo the action
                 if direction > 0:
                     # Uncomment this for debugging
-#                     print("redo-->", \
-#                           _code_to_op[actionlog['opcode'][i]],\
-#                           actionlog['arg1'][i],\
-#                           actionlog['arg2'][i])
+                    # print("redo-->", \
+                    #       _code_to_op[actionlog['opcode'][i]],\
+                    #       actionlog['arg1'][i],\
+                    #       actionlog['arg2'][i])
                     undoredo.redo(self,
                                   # _code_to_op[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
