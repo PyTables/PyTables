@@ -10,9 +10,9 @@
 
 from distutils.version import LooseVersion
 
-#**********************************************************************
-#  Keep these in sync with requirements.txt and user's guide
-#**********************************************************************
+# **********************************************************************
+#   Keep these in sync with requirements.txt and user's guide
+# **********************************************************************
 
 # Minimum recommended versions for mandatory packages
 min_numpy_version = LooseVersion('1.9.3')

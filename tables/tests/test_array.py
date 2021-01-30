@@ -7,7 +7,7 @@ import tables as tb
 from tables.tests import common
 
 
-#warnings.resetwarnings()
+# warnings.resetwarnings()
 
 
 class BasicTestCase(common.PyTablesTestCase):
@@ -2236,9 +2236,9 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Using booleans instead of ints is deprecated since numpy 1.8
         # Tests for keys that have to support the __index__ attribute
-        #self.working_keyset.append(
-        #    (False, True),  # equivalent to (0,1) ;-)
-        #)
+        # self.working_keyset.append(
+        #     (False, True),  # equivalent to (0,1) ;-)
+        # )
 
         # Valid selections for NumPy, but not for PyTables (yet)
         # The next should raise an IndexError
@@ -2527,7 +2527,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         ptarr = self.h5file.create_array(self.where, self.name,
                                          title=self.title,
                                          atom=self.atom, shape=self.shape)
-        #ptarr[...] = self.obj
+        # ptarr[...] = self.obj
         self.h5file.close()
 
         self.h5file = tb.open_file(self.h5fname)
@@ -2594,7 +2594,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_kwargs_obj_atom_error(self):
         atom = tb.Atom.from_dtype(np.dtype('complex'))
-        #shape = self.shape + self.shape
+        # shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
                           self.where,
@@ -2604,7 +2604,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           atom=atom)
 
     def test_kwargs_obj_shape_error(self):
-        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        # atom = Atom.from_dtype(numpy.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
@@ -2616,7 +2616,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_kwargs_obj_atom_shape_error_01(self):
         atom = tb.Atom.from_dtype(np.dtype('complex'))
-        #shape = self.shape + self.shape
+        # shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
                           self.where,
@@ -2627,7 +2627,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           shape=self.shape)
 
     def test_kwargs_obj_atom_shape_error_02(self):
-        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        # atom = Atom.from_dtype(numpy.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,

@@ -429,7 +429,7 @@ class ReadlineTestCase(TempFileMixin, TestCase):
 
         # Fill the node file with some text.
         fnode = filenode.new_node(self.h5file, where='/', name='test')
-        #fnode.line_separator = linesep
+        # fnode.line_separator = linesep
         fnode.write(linesep)
         data = 'short line%sshort line%s%s' % ((linesep.decode('ascii'),) * 3)
         data = data.encode('ascii')
@@ -440,7 +440,7 @@ class ReadlineTestCase(TempFileMixin, TestCase):
 
         # Re-open it for reading.
         self.fnode = filenode.open_node(self.h5file.get_node('/test'))
-        #self.fnode.line_separator = linesep
+        # self.fnode.line_separator = linesep
 
     def tearDown(self):
         """tearDown() -> None
@@ -564,10 +564,10 @@ class ReadlineTestCase(TempFileMixin, TestCase):
         data = '%sshort line%sshort' % ((linesep.decode('ascii'),) * 2)
         data = data.encode('ascii')
         lines = self.fnode.readlines(len(data))
-        #self.assertEqual(lines, [linesep, b'short line' + linesep, b'short'])
+        # self.assertEqual(lines, [linesep, b'short line' + linesep, b'short'])
         #
-        #line = self.fnode.readline()
-        #self.assertEqual(line, b' line' + linesep)
+        # line = self.fnode.readline()
+        # self.assertEqual(line, b' line' + linesep)
 
         # NOTE: the test is relaxed because the *hint* parameter of
         # io.BaseIO.readlines controls the amout of read data in a coarse way
@@ -583,13 +583,13 @@ class MonoReadlineTestCase(ReadlineTestCase):
     line_separator = b'\n'
 
 
-#class MultiReadlineTestCase(ReadlineTestCase):
+# class MultiReadlineTestCase(ReadlineTestCase):
 #    "Tests reading multibyte-separated text lines from an existing file node."
 #
 #    line_separator = b'<br/>'
 
 
-#class LineSeparatorTestCase(TempFileMixin, TestCase):
+# class LineSeparatorTestCase(TempFileMixin, TestCase):
 #    "Tests text line separator manipulation in a file node."
 #
 #    def setUp(self):
@@ -838,7 +838,7 @@ class OldVersionTestCase(TestCase):
     def test00_Read(self):
         """Reading an old version file node."""
 
-        #self.fnode.line_separator = '\n'
+        # self.fnode.line_separator = '\n'
 
         line = self.fnode.readline()
         self.assertEqual(line, 'This is only\n')
@@ -859,7 +859,7 @@ class OldVersionTestCase(TestCase):
     def test01_Write(self):
         """Writing an old version file node."""
 
-        #self.fnode.line_separator = '\n'
+        # self.fnode.line_separator = '\n'
 
         self.fnode.write('foobar\n')
         self.fnode.seek(-7, 2)
@@ -1031,8 +1031,8 @@ def suite():
     theSuite.addTest(unittest.makeSuite(OpenFileTestCase))
     theSuite.addTest(unittest.makeSuite(ReadFileTestCase))
     theSuite.addTest(unittest.makeSuite(MonoReadlineTestCase))
-    #theSuite.addTest(unittest.makeSuite(MultiReadlineTestCase))
-    #theSuite.addTest(unittest.makeSuite(LineSeparatorTestCase))
+    # theSuite.addTest(unittest.makeSuite(MultiReadlineTestCase))
+    # theSuite.addTest(unittest.makeSuite(LineSeparatorTestCase))
     theSuite.addTest(unittest.makeSuite(AttrsTestCase))
     theSuite.addTest(unittest.makeSuite(ClosedH5FileTestCase))
     theSuite.addTest(unittest.makeSuite(DirectReadWriteTestCase))

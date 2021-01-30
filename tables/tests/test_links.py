@@ -378,11 +378,11 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.exth5file.close()
         super().tearDown()
 
-        #open_files = tables.file._open_files
-        #if self.extfname in open_files:
-        #    #assert False
-        #    for handler in open_files.get_handlers_by_name(self.extfname):
-        #        handler.close()
+        # open_files = tables.file._open_files
+        # if self.extfname in open_files:
+        #     #assert False
+        #     for handler in open_files.get_handlers_by_name(self.extfname):
+        #         handler.close()
 
         Path(extfname).unlink()   # comment this for debugging purposes only
 

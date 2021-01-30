@@ -122,9 +122,9 @@ def print_versions():
         pass
     print('Python version:      %s' % sys.version)
     print('Platform:            %s' % platform.platform())
-    #if os.name == 'posix':
-    #    (sysname, nodename, release, version, machine) = os.uname()
-    #    print('Platform:          %s-%s' % (sys.platform, machine))
+    # if os.name == 'posix':
+    #     (sysname, nodename, release, version, machine) = os.uname()
+    #     print('Platform:          %s-%s' % (sys.platform, machine))
     print('Byte-ordering:       %s' % sys.byteorder)
     print('Detected cores:      %s' % tb.utils.detect_number_of_cores())
     print('Default encoding:    %s' % sys.getdefaultencoding())

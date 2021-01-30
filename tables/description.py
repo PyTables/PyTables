@@ -264,9 +264,9 @@ def _generate_col_classes():
         yield newclass
 
 # Create all column classes.
-#for _newclass in _generate_col_classes():
-#    exec('%s = _newclass' % _newclass.__name__)
-#del _newclass
+# for _newclass in _generate_col_classes():
+#     exec('%s = _newclass' % _newclass.__name__)
+# del _newclass
 
 StringCol = Col._subclass_from_prefix('String')
 BoolCol = Col._subclass_from_prefix('Bool')

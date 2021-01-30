@@ -73,7 +73,7 @@ from .link import SoftLink, ExternalLink
 # format_version = "1.6"  # Support for NumPy objects and new flavors for
 #                         # objects.
 #                         # 1.6 was introduced in pytables 1.3
-#format_version = "2.0"   # Pickles are not used anymore in system attrs
+# format_version = "2.0"  # Pickles are not used anymore in system attrs
 #                         # 2.0 was introduced in PyTables 2.0
 format_version = "2.1"  # Numeric and numarray flavors are gone.
 
@@ -92,7 +92,7 @@ class _FileRegistry:
 
     @property
     def handlers(self):
-        #return set(self._handlers)  # return a copy
+        # return set(self._handlers)  # return a copy
         return self._handlers
 
     def __len__(self):
@@ -114,7 +114,7 @@ class _FileRegistry:
         self._handlers.remove(handler)
 
     def get_handlers_by_name(self, filename):
-        #return set(self._name_mapping[filename])  # return a copy
+        # return set(self._name_mapping[filename])  # return a copy
         return self._name_mapping[filename]
 
     def close_all(self):
@@ -511,14 +511,14 @@ class NodeManager:
                         node._f_close()
                     del node
                 except ClosedNodeError:
-                    #import traceback
-                    #type_, value, tb = sys.exc_info()
-                    #exception_dump = ''.join(
-                    #    traceback.format_exception(type_, value, tb))
-                    #warnings.warn(
-                    #    "A '%s' exception occurred trying to close a node "
-                    #    "that was supposed to be open.\n"
-                    #    "%s" % (type_.__name__, exception_dump))
+                    # import traceback
+                    # type_, value, tb = sys.exc_info()
+                    # exception_dump = ''.join(
+                    #     traceback.format_exception(type_, value, tb))
+                    # warnings.warn(
+                    #     "A '%s' exception occurred trying to close a node "
+                    #     "that was supposed to be open.\n"
+                    #     "%s" % (type_.__name__, exception_dump))
                     pass
 
     def close_subtree(self, prefix='/'):
@@ -554,7 +554,7 @@ class NodeManager:
         registry = self.registry
         cache = self.cache
 
-        #self.close_subtree('/')
+        # self.close_subtree('/')
 
         keys = list(cache)  # copy
         for key in keys:

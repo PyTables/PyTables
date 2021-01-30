@@ -354,7 +354,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 stop = rowshape[self.extdim]
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
-            #object = object__[self.start:stop:self.step].copy()
+            # object = object__[self.start:stop:self.step].copy()
             object = object__[self.start:self.stop:self.step].copy()
             # Swap the axes again to have normal ordering
             if self.flavor == "numpy":
@@ -458,7 +458,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 stop = rowshape[self.extdim]
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
-            #object = object__[self.start:stop:self.step].copy()
+            # object = object__[self.start:stop:self.step].copy()
             object = object__[self.start:self.stop:self.step].copy()
             # Swap the axes again to have normal ordering
             if self.flavor == "numpy":
@@ -470,7 +470,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         try:
             row = np.empty(earray.shape, dtype=earray.atom.dtype)
             slice_obj = [slice(None)] * len(earray.shape)
-            #slice_obj[earray.maindim] = slice(self.start, stop, self.step)
+            # slice_obj[earray.maindim] = slice(self.start, stop, self.step)
             slice_obj[earray.maindim] = slice(self.start, self.stop, self.step)
             row = row[tuple(slice_obj)].copy()
             earray.read(self.start, self.stop, self.step, out=row)
@@ -2645,7 +2645,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                                           title=self.title,
                                           chunkshape=self.chunkshape,
                                           atom=self.atom, shape=self.shape)
-        #ptarr.append(self.obj)
+        # ptarr.append(self.obj)
 
         self._reopen()
 
@@ -2721,7 +2721,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_kwargs_obj_atom_error(self):
         atom = tb.Atom.from_dtype(np.dtype('complex'))
-        #shape = self.shape + self.shape
+        # shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_earray,
                           self.where,
@@ -2731,7 +2731,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           atom=atom)
 
     def test_kwargs_obj_shape_error(self):
-        #atom = tables.Atom.from_dtype(numpy.dtype('complex'))
+        # atom = tables.Atom.from_dtype(numpy.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_earray,
@@ -2743,7 +2743,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_kwargs_obj_atom_shape_error_01(self):
         atom = tb.Atom.from_dtype(np.dtype('complex'))
-        #shape = self.shape + self.shape
+        # shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_earray,
                           self.where,
@@ -2754,7 +2754,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           shape=self.shape)
 
     def test_kwargs_obj_atom_shape_error_02(self):
-        #atom = tables.Atom.from_dtype(numpy.dtype('complex'))
+        # atom = tables.Atom.from_dtype(numpy.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_earray,

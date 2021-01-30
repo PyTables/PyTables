@@ -2198,8 +2198,8 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         table.nrowsinbuf = self.nrowsinbuf
         resrange = slice(self.start, self.stop, self.step).indices(table.nrows)
         reslength = len(list(range(*resrange)))
-        #print "self.checkrecarray = ", self.checkrecarray
-        #print "self.checkgetCol = ", self.checkgetCol
+        # print "self.checkrecarray = ", self.checkrecarray
+        # print "self.checkgetCol = ", self.checkgetCol
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
@@ -2547,9 +2547,9 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("\nGreat!, the next ValueError was catched!")
                 print(value)
             self.h5file.close()
-        #else:
-        #    print rec
-        #    self.fail("expected a ValueError")
+        # else:
+        #     print rec
+        #     self.fail("expected a ValueError")
 
         # Case where step == 0
         self.step = 0
@@ -2561,9 +2561,9 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("\nGreat!, the next ValueError was catched!")
                 print(value)
             self.h5file.close()
-        #else:
-        #    print rec
-        #    self.fail("expected a ValueError")
+        # else:
+        #     print rec
+        #     self.fail("expected a ValueError")
 
 
 class IterRangeTestCase(BasicRangeTestCase):
@@ -6446,7 +6446,7 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
         ptarr = self.h5file.create_table(self.where, self.name,
                                          title=self.title,
                                          description=self.description)
-        #ptarr.append(self.obj)
+        # ptarr.append(self.obj)
         self._reopen()
 
         ptarr = self.h5file.get_node(self.where, self.name)

@@ -82,14 +82,14 @@ class RawPyTablesIO(io.RawIOBase):
 
         return self._mode
 
-    #def tell(self) -> int:
+    # def tell(self) -> int:
     def tell(self):
         """Return current stream position."""
 
         self._checkClosed()
         return self._pos
 
-    #def seek(self, pos: int, whence: int = 0) -> int:
+    # def seek(self, pos: int, whence: int = 0) -> int:
     def seek(self, pos, whence=0):
         """Change stream position.
 
@@ -108,8 +108,8 @@ class RawPyTablesIO(io.RawIOBase):
         self._checkClosed()
         try:
             pos = pos.__index__()
-        #except AttributeError as err:
-            #raise TypeError("an integer is required") from err
+        # except AttributeError as err:
+        #     raise TypeError("an integer is required") from err
         except AttributeError:
             raise TypeError("an integer is required")
         if whence == 0:
@@ -124,7 +124,7 @@ class RawPyTablesIO(io.RawIOBase):
             raise ValueError("invalid whence value")
         return self._pos
 
-    #def seekable(self) -> bool:
+    # def seekable(self) -> bool:
     def seekable(self):
         """Return whether object supports random access.
 
@@ -135,7 +135,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         return True
 
-    #def fileno(self) -> int:
+    # def fileno(self) -> int:
     def fileno(self):
         """Returns underlying file descriptor if one exists.
 
@@ -147,7 +147,7 @@ class RawPyTablesIO(io.RawIOBase):
         self._checkClosed()
         return self._node._v_file.fileno()
 
-    #def close(self) -> None:
+    # def close(self) -> None:
     def close(self):
         """Flush and close the IO object.
 
@@ -175,7 +175,7 @@ class RawPyTablesIO(io.RawIOBase):
         self._checkClosed()
         self._node.flush()
 
-    #def truncate(self, pos: int = None) -> int:
+    # def truncate(self, pos: int = None) -> int:
     def truncate(self, pos=None):
         """Truncate file to size bytes.
 
@@ -201,7 +201,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         return self.seek(pos)
 
-    #def readable(self) -> bool:
+    # def readable(self) -> bool:
     def readable(self):
         """Return whether object was opened for reading.
 
@@ -212,7 +212,7 @@ class RawPyTablesIO(io.RawIOBase):
         mode = self._mode
         return 'r' in mode or '+' in mode
 
-    #def writable(self) -> bool:
+    # def writable(self) -> bool:
     def writable(self):
         """Return whether object was opened for writing.
 
@@ -223,7 +223,7 @@ class RawPyTablesIO(io.RawIOBase):
         mode = self._mode
         return 'w' in mode or 'a' in mode or '+' in mode
 
-    #def readinto(self, b: bytearray) -> int:
+    # def readinto(self, b: bytearray) -> int:
     def readinto(self, b):
         """Read up to len(b) bytes into b.
 
@@ -243,10 +243,10 @@ class RawPyTablesIO(io.RawIOBase):
         stop = self._pos + n
 
         # XXX optimized path
-        #if stop <= self._node.nrows and isinstance(b, np.ndarray):
-        #    self._node.read(start, stop, out=b)
-        #    self._pos += n
-        #    return n
+        # if stop <= self._node.nrows and isinstance(b, np.ndarray):
+        #     self._node.read(start, stop, out=b)
+        #     self._pos += n
+        #     return n
 
         if stop > self._node.nrows:
             stop = self._node.nrows
@@ -259,7 +259,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         return n
 
-    #def readline(self, limit: int = -1) -> bytes:
+    # def readline(self, limit: int = -1) -> bytes:
     def readline(self, limit=-1):
         """Read and return a line from the stream.
 
@@ -340,7 +340,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         return b''.join(partial)
 
-    #def write(self, b: bytes) -> int:
+    # def write(self, b: bytes) -> int:
     def write(self, b):
         """Write the given buffer to the IO stream.
 
@@ -405,7 +405,7 @@ class RawPyTablesIO(io.RawIOBase):
         reading = "r" in modes
         writing = "w" in modes
         appending = "a" in modes
-        #updating = "+" in modes
+        # updating = "+" in modes
         text = "t" in modes
         binary = "b" in modes
 
@@ -425,12 +425,12 @@ class RawPyTablesIO(io.RawIOBase):
 
     def _cross_check_mode(self, mode, h5filemode):
         # XXX: check
-        #readable = bool('r' in mode or '+' in mode)
-        #h5readable = bool('r' in h5filemode or '+' in h5filemode)
+        # readable = bool('r' in mode or '+' in mode)
+        # h5readable = bool('r' in h5filemode or '+' in h5filemode)
         #
-        #if readable and not h5readable:
-        #    raise ValueError("RawPyTablesIO can't be open in read mode if "
-        #                     "the underlying hdf5 file is not readable")
+        # if readable and not h5readable:
+        #     raise ValueError("RawPyTablesIO can't be open in read mode if "
+        #                      "the underlying hdf5 file is not readable")
 
         writable = bool('w' in mode or 'a' in mode or '+' in mode)
         h5writable = bool('w' in h5filemode or 'a' in h5filemode or
@@ -492,7 +492,7 @@ class FileNodeMixin:
     def _get_attrs(self):
         """Returns the attribute set of the file node."""
 
-        #sefl._checkClosed()
+        # sefl._checkClosed()
         return self._node.attrs
 
 

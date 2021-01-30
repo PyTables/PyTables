@@ -646,7 +646,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "int32",
             "uint32",
             "int64",
-            #"UInt64",  # Unavailable in some platforms
+            # "UInt64",  # Unavailable in some platforms
         ]
         if common.verbose:
             print('\n', '-=' * 30)
@@ -688,7 +688,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "int32": np.int32,
             "uint32": np.uint32,
             "int64": np.int64,
-            #"UInt64": numpy.int64,  # Unavailable in some platforms
+            # "UInt64": numpy.int64,  # Unavailable in some platforms
         }
         if common.verbose:
             print('\n', '-=' * 30)
@@ -738,7 +738,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "int32",
             "uint32",
             "int64",
-            #"UInt64",  # Unavailable in some platforms
+            # "UInt64",  # Unavailable in some platforms
         ]
         if common.verbose:
             print('\n', '-=' * 30)
@@ -784,7 +784,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "int32": np.int32,
             "uint32": np.uint32,
             "int64": np.int64,
-            #"UInt64": numpy.int64,  # Unavailable in some platforms
+            # "UInt64": numpy.int64,  # Unavailable in some platforms
         }
         if common.verbose:
             print('\n', '-=' * 30)
@@ -840,7 +840,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "int32": np.int32,
             "uint32": np.uint32,
             "int64": np.int64,
-            #"UInt64": numpy.int64,  # Unavailable in some platforms
+            # "UInt64": numpy.int64,  # Unavailable in some platforms
         }
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1809,7 +1809,7 @@ class MDTypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "int32",
             "uint32",
             "int64",
-            #"UInt64",  # Unavailable in some platforms
+            # "UInt64",  # Unavailable in some platforms
         ]
         root = self.rootgroup
         if common.verbose:
@@ -2190,7 +2190,7 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "uint32",
             "int64",
             # Not checked because some platforms does not support it
-            #"UInt64",
+            # "UInt64",
         ]
 
         root = self.rootgroup
@@ -2250,7 +2250,7 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "uint32",
             "int64",
             # Not checked because some platforms does not support it
-            #"UInt64",
+            # "UInt64",
         ]
 
         root = self.rootgroup
@@ -4231,7 +4231,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         ptarr = self.h5file.create_vlarray(self.where, self.name,
                                            title=self.title,
                                            atom=self.atom)
-        #ptarr.append(self.obj)
+        # ptarr.append(self.obj)
         self.h5file.close()
 
         self.h5file = tb.open_file(self.h5fname)
@@ -4264,7 +4264,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_kwargs_obj_atom_error(self):
         atom = tb.Atom.from_dtype(np.dtype('complex'))
-        #shape = self.shape + self.shape
+        # shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_vlarray,
                           self.where,

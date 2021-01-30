@@ -25,8 +25,8 @@ class Record(tb.IsDescription):
 RecordDescriptionDict = {
     'var0': tb.StringCol(itemsize=4, dflt=b"", shape=2),  # 4-char str array
     'var1': tb.StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2)),
-    #'var0': StringCol(itemsize=4, shape=2),       # 4-character String
-    #'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
+    # 'var0': StringCol(itemsize=4, shape=2),       # 4-character String
+    # 'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
     'var1_': tb.IntCol(shape=2),                      # integer array
     'var2': tb.IntCol(shape=(2, 2)),                  # integer array
     'var3': tb.Int16Col(),                           # short integer
@@ -540,8 +540,8 @@ class BigTablesTestCase(BasicTestCase):
     # reducing to 1000 would be more than enough
     # F. Alted 2004-01-19
 
-    #expectedrows = 10000
-    #appendrows = 1000
+    # expectedrows = 10000
+    # appendrows = 1000
     expectedrows = 1000
     appendrows = 100
 
@@ -942,8 +942,8 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 (type, value, traceback) = sys.exc_info()
                 print("\nGreat!, the next ValueError was catched!")
             self.h5file.close()
-        #else:
-        #    self.fail("expected a ValueError")
+        # else:
+        #     self.fail("expected a ValueError")
 
         # Case where step == 0
         self.step = 0
@@ -954,8 +954,8 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 (type, value, traceback) = sys.exc_info()
                 print("\nGreat!, the next ValueError was catched!")
             self.h5file.close()
-        #else:
-        #    self.fail("expected a ValueError")
+        # else:
+        #     self.fail("expected a ValueError")
 
 
 class IterRangeTestCase(BasicRangeTestCase):

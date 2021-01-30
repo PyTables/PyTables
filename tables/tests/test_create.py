@@ -765,8 +765,8 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Copy a group non-recursively
         srcgroup = self.h5file.root.group0.group1
-        #srcgroup._f_copy_children(self.h5file2.root, recursive=False,
-        #                          filters=self.filters)
+        # srcgroup._f_copy_children(self.h5file2.root, recursive=False,
+        #                           filters=self.filters)
         self.h5file.copy_children(srcgroup, self.h5file2.root,
                                   recursive=False, filters=self.filters)
         if self.close:
@@ -2029,7 +2029,7 @@ class SplitDriverTestCase(DefaultDriverTestCase):
         for fname in self.h5fnames:
             if Path(fname).is_file():
                 Path(fname).unlink()
-        #super().tearDown()
+        # super().tearDown()
         common.PyTablesTestCase.tearDown(self)
 
     def assertIsFile(self):
@@ -2475,16 +2475,10 @@ class QuantizeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         quantized_2 = tb.utils.quantize(self.randomdata, 2)
         quantized_m1 = tb.utils.quantize(self.randomdata, -1)
 
-        # assertLess is new in Python 2.7
-        #self.assertLess(numpy.abs(quantized_0 - self.randomdata).max(), 0.5)
-        #self.assertLess(numpy.abs(quantized_1 - self.randomdata).max(), 0.05)
-        #self.assertLess(numpy.abs(quantized_2 - self.randomdata).max(), 0.005)
-        #self.assertLess(numpy.abs(quantized_m1 - self.randomdata).max(), 1.)
-
-        self.assertTrue(np.abs(quantized_0 - self.randomdata).max() < 0.5)
-        self.assertTrue(np.abs(quantized_1 - self.randomdata).max() < 0.05)
-        self.assertTrue(np.abs(quantized_2 - self.randomdata).max() < 0.005)
-        self.assertTrue(np.abs(quantized_m1 - self.randomdata).max() < 1.)
+        self.assertLess(np.abs(quantized_0 - self.randomdata).max(), 0.5)
+        self.assertLess(np.abs(quantized_1 - self.randomdata).max(), 0.05)
+        self.assertLess(np.abs(quantized_2 - self.randomdata).max(), 0.005)
+        self.assertLess(np.abs(quantized_m1 - self.randomdata).max(), 1.)
 
     def test02_array(self):
         """Checking quantized data as written to disk."""
@@ -2501,14 +2495,8 @@ class QuantizeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(self.h5file.root.integers[:].dtype,
                          self.randomints.dtype)
 
-        # assertLess is new in Python 2.7
-        #self.assertLess(
-        #    numpy.abs(self.h5file.root.floats[:] - self.randomdata).max(),
-        #    0.05
-        #)
-        self.assertTrue(
-            np.abs(self.h5file.root.floats[:] - self.randomdata).max() < 0.05
-        )
+        self.assertLess(
+            np.abs(self.h5file.root.floats[:] - self.randomdata).max(), 0.05)
 
 
 def suite():

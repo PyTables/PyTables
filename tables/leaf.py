@@ -411,9 +411,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         if warn_negstep and step and step < 0:
             raise ValueError("slice step cannot be negative")
 
-        #if start is not None: start = long(start)
-        #if stop is not None: stop = long(stop)
-        #if step is not None: step = long(step)
+        # if start is not None: start = long(start)
+        # if stop is not None: stop = long(stop)
+        # if step is not None: step = long(step)
 
         return slice(start, stop, step).indices(int(nrows))
 

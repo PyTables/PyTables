@@ -953,8 +953,8 @@ class TableNativeFlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
                  ('name', '|S2'),
                  ('z2', '|u1')]
         npdata = np.zeros((3,), dtype=dtype)
-        #self.assertRaises(NotImplementedError,
-        #                  table.cols.Info.__setitem__, slice(3,6,1),  npdata)
+        # self.assertRaises(NotImplementedError,
+        #                   table.cols.Info.__setitem__, slice(3,6,1),  npdata)
         table.cols.Info[3:6] = npdata
         if self.close:
             self._reopen(mode='a')
