@@ -49,7 +49,7 @@ from .lrucacheextension import ObjectCache
 # obversion = "1.0"    # Version of indexes in PyTables 1.x series
 # obversion = "2.0"    # Version of indexes in PyTables Pro 2.0 series
 obversion = "2.1"     # Version of indexes in PyTables Pro 2.1 and up series,
-                      # including the join 2.3 Std + Pro version
+#                     # including the join 2.3 Std + Pro version
 
 
 debug = False

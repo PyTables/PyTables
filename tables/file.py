@@ -78,7 +78,7 @@ from .link import SoftLink, ExternalLink
 format_version = "2.1"  # Numeric and numarray flavors are gone.
 
 compatible_formats = []  # Old format versions we can read
-                         # Empty means that we support all the old formats
+#                        # Empty means that we support all the old formats
 
 
 class _FileRegistry:

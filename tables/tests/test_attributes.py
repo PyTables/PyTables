@@ -82,7 +82,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.set_node_attr(self.root.agroup, name, val)
         self.h5file.set_node_attr(self.root.atable, name, val)
         self.h5file.set_node_attr(self.root.anarray, name, val)
-         # Check File methods
+        # Check File methods
         self.reopen()
         self.assertEqual(self.h5file.get_node_attr(self.root.agroup, name),val)
         self.assertEqual(self.h5file.get_node_attr(self.root.atable, name),val)
