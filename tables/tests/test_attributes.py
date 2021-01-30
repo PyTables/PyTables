@@ -122,9 +122,9 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.check_missing(name)
 
         # Using dict []
-        self.root.agroup._v_attrs[name]=val
-        self.root.atable.attrs[name]=val
-        self.root.anarray.attrs[name]=val
+        self.root.agroup._v_attrs[name] = val
+        self.root.atable.attrs[name] = val
+        self.root.anarray.attrs[name] = val
         # Check dict []
         self.reopen()
         self.assertEqual(self.root.agroup._v_attrs[name], val)
