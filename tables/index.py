@@ -170,13 +170,13 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
     @property
     def dirty(self):
-       """Whether the index is dirty or not.
-       Dirty indexes are out of sync with column data, so they exist but they
-       are not usable.
-       """
+        """Whether the index is dirty or not.
+        Dirty indexes are out of sync with column data, so they exist but they
+        are not usable.
+        """
 
-       # If there is no ``DIRTY`` attribute, index should be clean.
-       return getattr(self._v_attrs, 'DIRTY', False)
+        # If there is no ``DIRTY`` attribute, index should be clean.
+        return getattr(self._v_attrs, 'DIRTY', False)
 
     @dirty.setter
     def dirty(self, dirty):

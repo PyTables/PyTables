@@ -615,7 +615,7 @@ class Description:
                 'offsets': cols_offsets}
             itemsize = newdict.get('_v_itemsize', None)
             if itemsize is not None:
-              dtype_fields['itemsize'] = itemsize
+                dtype_fields['itemsize'] = itemsize
             dtype = np.dtype(dtype_fields)
         else:
             dtype = np.dtype(nestedDType)
