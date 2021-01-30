@@ -932,7 +932,7 @@ class EnumAtom(Atom):
                             "concrete values in the enumeration")
 
         # ...with some implementation limitations.
-        if not npvalues.dtype.kind in ['i', 'u']:
+        if npvalues.dtype.kind not in ['i', 'u']:
             raise NotImplementedError("only integer concrete values "
                                       "are supported for the moment, sorry")
         if len(npvalues.shape) > 1:

@@ -126,7 +126,7 @@ def attr_to_shadow(file_, path, name):
 
     # Set the attribute only if it has not been kept in the shadow.
     # This avoids re-pickling complex attributes on REDO.
-    if not shname in shattrs:
+    if shname not in shattrs:
         shattrs._g__setattr(shname, value)
 
     attrs._g__delattr(name)

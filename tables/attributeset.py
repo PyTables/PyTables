@@ -289,9 +289,9 @@ class AttributeSet(hdf5extension.AttributeSet):
         """Get the attribute named "name"."""
 
         # If attribute does not exist, raise AttributeError
-        if not name in self._v_attrnames:
-            raise AttributeError("Attribute '%s' does not exist in node: "
-                                 "'%s'" % (name, self._v__nodepath))
+        if name not in self._v_attrnames:
+            raise AttributeError(f"Attribute {name!r} does not exist "
+                                 f"in node: {self._v__nodepath!r}")
 
         # Read the attribute from disk. This is an optimization to read
         # quickly system attributes that are _string_ values, but it
@@ -435,7 +435,7 @@ class AttributeSet(hdf5extension.AttributeSet):
 
         # Finally, add this attribute to the list if not present
         attrnames = self._v_attrnames
-        if not name in attrnames:
+        if name not in attrnames:
             attrnames.append(name)
             attrnames.sort()
             if issysattrname(name):
