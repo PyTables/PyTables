@@ -482,15 +482,12 @@ def add_test_method(type_, op, extracond='', func=None):
     heavy = type_ in heavy_types or op in heavy_operators
     if heavy:
         testfmt = TableDataTestCase._testfmt_heavy
-        numfmt = ' [#H%d]'
     else:
         testfmt = TableDataTestCase._testfmt_light
-        numfmt = ' [#L%d]'
     tmethod = create_test_method(type_, op, extracond, func)
     # The test number is appended to the docstring to help
     # identify failing methods in non-verbose mode.
     tmethod.__name__ = testfmt % testn
-    # tmethod.__doc__ += numfmt % testn
     tmethod.__doc__ += testfmt % testn
     setattr(TableDataTestCase, tmethod.__name__, tmethod)
     testn += 1

@@ -1411,7 +1411,6 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Last selected value ==>", result[-1])
             print("Total selected records in table ==>", len(result))
 
-        nrows = table.nrows
         table.nrowsinbuf = 4  # small value of the buffer
         # Delete all rows
         table.remove_rows(0, self.expectedrows)
@@ -1446,7 +1445,6 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Last selected value ==>", result[-1])
             print("Total selected records in table ==>", len(result))
 
-        nrows = table.nrows
         table.nrowsinbuf = 4  # small value of the buffer
         # Delete 100 rows
         table.remove_rows()

@@ -328,7 +328,7 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test13_direct_attribute_access_via_chained_softlinks(self):
         """Check get/set access via link2-->link1-->target.child.attribute"""
 
-        lgroup1 = self.h5file.get_node('/lgroup1')
+        self.h5file.get_node('/lgroup1')
         arr2 = self.h5file.get_node('/group1/arr2')
         # multiple chained links
         l_lgroup1 = self.h5file.create_soft_link('/', 'l_lgroup1', '/lgroup1')
@@ -341,9 +341,9 @@ class SoftLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test14_child_of_softlink_to_group(self):
         """Create an array whose parent is a softlink to another group"""
 
-        group1 = self.h5file.get_node('/group1')
+        self.h5file.get_node('/group1')
         lgroup1 = self.h5file.get_node('/lgroup1')
-        new_arr = self.h5file.create_array(lgroup1, 'new_arr', obj=[1, 2, 3])
+        self.h5file.create_array(lgroup1, 'new_arr', obj=[1, 2, 3])
         new_arr2 = self.h5file.get_node('/group1/new_arr')
         self.assertEqual(new_arr2[:], [1, 2, 3])
 

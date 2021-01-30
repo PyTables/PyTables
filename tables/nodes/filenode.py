@@ -753,7 +753,7 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
 
     # check for already existing filenode
     try:
-        n = f.get_node(where=where, name=name)
+        f.get_node(where=where, name=name)
         if not overwrite:
             if new_h5file:
                 f.close()
