@@ -2,7 +2,6 @@ import unittest
 import numpy as np
 
 import tables as tb
-from tables.tests import common
 
 
 class TestAuxiliaryFunctions(unittest.TestCase):
