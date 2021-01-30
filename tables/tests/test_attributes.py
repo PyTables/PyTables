@@ -68,7 +68,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
-    def check_missing(self,name):
+    def check_missing(self, name):
         self.reopen()
         self.assertNotIn(name, self.root.agroup._v_attrs)
         self.assertNotIn(name, self.root.atable.attrs)
@@ -84,9 +84,9 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.set_node_attr(self.root.anarray, name, val)
         # Check File methods
         self.reopen()
-        self.assertEqual(self.h5file.get_node_attr(self.root.agroup, name),val)
-        self.assertEqual(self.h5file.get_node_attr(self.root.atable, name),val)
-        self.assertEqual(self.h5file.get_node_attr(self.root.anarray, name),val)
+        self.assertEqual(self.h5file.get_node_attr(self.root.agroup, name), val)
+        self.assertEqual(self.h5file.get_node_attr(self.root.atable, name), val)
+        self.assertEqual(self.h5file.get_node_attr(self.root.anarray, name), val)
         # Remove, file methods
         self.h5file.del_node_attr(self.root.agroup, name)
         self.h5file.del_node_attr(self.root.atable, name)
@@ -116,7 +116,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(getattr(self.root.agroup._v_attrs, name), val)
         self.assertEqual(getattr(self.root.atable.attrs, name), val)
         self.assertEqual(getattr(self.root.anarray.attrs, name), val)
-        delattr(self.root.agroup._v_attrs,name)
+        delattr(self.root.agroup._v_attrs, name)
         delattr(self.root.atable.attrs, name)
         delattr(self.root.anarray.attrs, name)
         self.check_missing(name)

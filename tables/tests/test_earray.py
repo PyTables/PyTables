@@ -2176,7 +2176,7 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("array1-->", array1.read())
 
         self.assertTrue(common.allequal(
-            array1[:], np.array([],dtype='int16').reshape(0, 2)))
+            array1[:], np.array([], dtype='int16').reshape(0, 2)))
 
     def test01_truncate(self):
         """Checking EArray.truncate() method (truncating to 1 rows)"""

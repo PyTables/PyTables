@@ -4043,8 +4043,8 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify two existing rows
-        rows = np.rec.array(
-            [(457, b'db1', 1.2), (5, b'de1', 1.3)],formats="i4,a3,f8")
+        rows = np.rec.array([(457, b'db1', 1.2), (5, b'de1', 1.3)],
+                            formats="i4,a3,f8")
         table.modify_rows(start=1, rows=rows)
         # Create the modified recarray
         r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
