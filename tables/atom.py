@@ -506,8 +506,6 @@ class Atom(metaclass=MetaAtom):
         return len(self.shape)
 
 
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __init__(self, nptype, shape, dflt):
         if not hasattr(self, 'type'):
             raise NotImplementedError("``%s`` is an abstract class; "

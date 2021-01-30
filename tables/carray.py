@@ -132,10 +132,6 @@ class CArray(Array):
     _c_classid = 'CARRAY'
 
 
-    # Properties
-    # ~~~~~~~~~~
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  atom=None, shape=None,
                  title="", filters=None,

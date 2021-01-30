@@ -2169,7 +2169,6 @@ class File(hdf5extension.File):
             raise TypeError(f"node ``{node._v_pathname}`` is not a group")
 
 
-    # <Undo/Redo support>
     def is_undo_enabled(self):
         """Is the Undo/Redo mechanism enabled?
 
@@ -2683,8 +2682,6 @@ class File(hdf5extension.File):
 
         return (parent, name)
 
-
-    # </Undo/Redo support>
 
     def flush(self):
         """Flush all the alive leaves in the object tree."""

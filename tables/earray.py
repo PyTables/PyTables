@@ -138,8 +138,6 @@ class EArray(CArray):
     _c_classid = 'EARRAY'
 
 
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  atom=None, shape=None, title="",
                  filters=None, expectedrows=None,

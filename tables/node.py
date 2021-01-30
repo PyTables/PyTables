@@ -869,7 +869,6 @@ you may want to use the ``overwrite`` argument""".format(parent._v_pathname, nam
                 "node name starts with reserved prefix ``_i_``: %s" % name)
 
 
-    # <attribute handling>
     def _f_getattr(self, name):
         """Get a PyTables attribute from this node.
 
