@@ -162,6 +162,7 @@ def table_description(classname, nclassname, shape=()):
 
     return type(classname, (tb.IsDescription,), classdict)
 
+
 TableDescription = table_description(
     'TableDescription', 'NestedDescription')
 """Unidimensional table description for testing queries."""
@@ -493,6 +494,7 @@ def add_test_method(type_, op, extracond='', func=None):
     setattr(TableDataTestCase, tmethod.__name__, tmethod)
     testn += 1
 
+
 # Create individual tests.  You may restrict which tests are generated
 # by replacing the sequences in the ``for`` statements.  For instance:
 testn = 0
@@ -522,6 +524,7 @@ class BigNITableMixin:
     assert nrows > NX_BLOCK_SIZE1 + NX_BLOCK_SIZE2
     assert nrows % NX_BLOCK_SIZE1 != 0
     assert nrows % NX_BLOCK_SIZE2 != 0  # to have some residual rows
+
 
 # Parameters for non-indexed queries.
 table_sizes = ['Small', 'Big']
@@ -577,6 +580,7 @@ class MediumSTableMixin:
 class BigSTableMixin:
     nrows = 500
 
+
 # Parameters for indexed queries.
 ckinds = ['UltraLight', 'Light', 'Medium', 'Full']
 itable_sizes = ['Small', 'Medium', 'Big']
@@ -622,6 +626,7 @@ for cdatafunc in [niclassdata, iclassdata]:
 # -------------------------
 class BaseTableUsageTestCase(BaseTableQueryTestCase):
     nrows = row_period
+
 
 _gvar = None
 """Use this when a global variable is needed."""

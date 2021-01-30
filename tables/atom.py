@@ -751,6 +751,8 @@ class _ComplexErrorAtom(ComplexAtom, metaclass=type):
             "please use ``ComplexAtom(itemsize=N)``, "
             "where N=8 for single precision complex atoms, "
             "and N=16 for double precision complex atoms")
+
+
 Complex32Atom = Complex64Atom = Complex128Atom = _ComplexErrorAtom
 if hasattr(np, 'complex192'):
     Complex192Atom = _ComplexErrorAtom

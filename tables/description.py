@@ -262,6 +262,7 @@ def _generate_col_classes():
         newclass = Col._subclass_from_prefix(cprefix)
         yield newclass
 
+
 # Create all column classes.
 # for _newclass in _generate_col_classes():
 #     exec('%s = _newclass' % _newclass.__name__)

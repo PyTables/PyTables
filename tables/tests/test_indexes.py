@@ -710,6 +710,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertEqual(
                 len(list(table.where('(var3 < e)', dict(e=limit)))), limit)
 
+
 small_ss = small_blocksizes[2]
 
 
@@ -944,6 +945,7 @@ class IndexProps:
                  filters=tb.index.default_index_filters):
         self.auto = auto
         self.filters = filters
+
 
 DefaultProps = IndexProps()
 NoAutoProps = IndexProps(auto=False)

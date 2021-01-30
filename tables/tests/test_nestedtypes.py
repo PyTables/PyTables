@@ -63,6 +63,7 @@ class TestTDescr(tb.IsDescription):
             name = tb.StringCol(itemsize=2)
             value = tb.ComplexCol(itemsize=16, shape=2)
 
+
 # The corresponding nested array description:
 testADescr = [
     ('x', '(2,)int32'),
@@ -1196,6 +1197,7 @@ class B_Candidate(tb.IsDescription):
 class C_Candidate(tb.IsDescription):
     nested1 = Nested()
     nested2 = Nested
+
 
 Dnested = {
     'uid': tb.IntCol(pos=1),

@@ -517,5 +517,6 @@ def main():
     else:
         Path(ns.output).write_text(targ)
 
+
 if __name__ == '__main__':
     main()

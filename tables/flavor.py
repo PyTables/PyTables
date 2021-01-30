@@ -345,6 +345,7 @@ _python_desc = ("homogeneous list or tuple, "
 def _is_python(array):
     return isinstance(array, (tuple, list, int, float, complex, bytes))
 
+
 _numpy_aliases = []
 _numpy_desc = "NumPy array, record or scalar"
 
@@ -423,6 +424,7 @@ def _conv_numpy_to_python(array):
         # 0-dim or scalar case
         array = array.item()
     return array
+
 
 # Now register everything related with *available* flavors.
 _register_all()

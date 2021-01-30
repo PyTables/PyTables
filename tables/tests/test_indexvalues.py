@@ -3262,6 +3262,7 @@ class MediumITableMixin:
 class FullITableMixin:
     kind = "full"
 
+
 # Parameters for indexed queries.
 ckinds = ['UltraLight', 'Light', 'Medium', 'Full']
 testlevels = ['Normal', 'Heavy']

@@ -21,6 +21,7 @@ class Record(tb.IsDescription):
     var6 = tb.UInt16Col(dflt=5)                        # unsigned short integer
     var7 = tb.StringCol(itemsize=1, dflt=b"e")          # 1-character String
 
+
 #  Dictionary definition
 RecordDescriptionDict = {
     'var0': tb.StringCol(itemsize=4, dflt=b"", shape=2),  # 4-char str array

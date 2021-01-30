@@ -29,5 +29,6 @@ def suite():
     theSuite.addTest(unittest.makeSuite(TestAuxiliaryFunctions))
     return theSuite
 
+
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')

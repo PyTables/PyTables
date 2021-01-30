@@ -48,6 +48,7 @@ class Record(tb.IsDescription):
         var15 = tb.ComplexCol(
             itemsize=32, dflt=(1.-0.j))  # Complex double (extended precision)
 
+
 #  Dictionary definition
 RecordDescriptionDict = {
     'var1': tb.StringCol(itemsize=4, dflt=b"abcd", pos=0),  # 4-character String
