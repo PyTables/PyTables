@@ -316,17 +316,16 @@ class OpenFileTestCase(TempFileMixin, TestCase):
         self.assertRaises(
             IOError, filenode.open_node, self.h5file.get_node('/test'), 'w')
 
-
     # This no longer works since type and type version attributes
     # are now system attributes.  ivb(2004-12-29)
     # def test03_OpenFileNoAttrs(self):
-    ##      "Opening a node with no type attributes."
-    ##
-    ##      node = self.h5file.get_node('/test')
-    ##      self.h5file.del_node_attr('/test', '_type')
-    ##      # Another way to get the same result is changing the value.
-    ##      ##self.h5file.set_node_attr('/test', '_type', 'foobar')
-    ##      self.assertRaises(ValueError, filenode.open_node, node)
+    #      "Opening a node with no type attributes."
+    #
+    #      node = self.h5file.get_node('/test')
+    #      self.h5file.del_node_attr('/test', '_type')
+    #      # Another way to get the same result is changing the value.
+    #      ##self.h5file.set_node_attr('/test', '_type', 'foobar')
+    #      self.assertRaises(ValueError, filenode.open_node, node)
 
 
 class ReadFileTestCase(TempFileMixin, TestCase):
@@ -429,7 +428,7 @@ class ReadlineTestCase(TempFileMixin, TestCase):
 
         # Fill the node file with some text.
         fnode = filenode.new_node(self.h5file, where='/', name='test')
-        #fnode.line_separator = linesep
+        # fnode.line_separator = linesep
         fnode.write(linesep)
         data = 'short line%sshort line%s%s' % ((linesep.decode('ascii'),) * 3)
         data = data.encode('ascii')
@@ -440,7 +439,7 @@ class ReadlineTestCase(TempFileMixin, TestCase):
 
         # Re-open it for reading.
         self.fnode = filenode.open_node(self.h5file.get_node('/test'))
-        #self.fnode.line_separator = linesep
+        # self.fnode.line_separator = linesep
 
     def tearDown(self):
         """tearDown() -> None
@@ -564,10 +563,10 @@ class ReadlineTestCase(TempFileMixin, TestCase):
         data = '%sshort line%sshort' % ((linesep.decode('ascii'),) * 2)
         data = data.encode('ascii')
         lines = self.fnode.readlines(len(data))
-        #self.assertEqual(lines, [linesep, b'short line' + linesep, b'short'])
+        # self.assertEqual(lines, [linesep, b'short line' + linesep, b'short'])
         #
-        #line = self.fnode.readline()
-        #self.assertEqual(line, b' line' + linesep)
+        # line = self.fnode.readline()
+        # self.assertEqual(line, b' line' + linesep)
 
         # NOTE: the test is relaxed because the *hint* parameter of
         # io.BaseIO.readlines controls the amout of read data in a coarse way
@@ -583,13 +582,13 @@ class MonoReadlineTestCase(ReadlineTestCase):
     line_separator = b'\n'
 
 
-#class MultiReadlineTestCase(ReadlineTestCase):
+# class MultiReadlineTestCase(ReadlineTestCase):
 #    "Tests reading multibyte-separated text lines from an existing file node."
 #
 #    line_separator = b'<br/>'
 
 
-#class LineSeparatorTestCase(TempFileMixin, TestCase):
+# class LineSeparatorTestCase(TempFileMixin, TestCase):
 #    "Tests text line separator manipulation in a file node."
 #
 #    def setUp(self):
@@ -672,11 +671,11 @@ class AttrsTestCase(TempFileMixin, TestCase):
     # This no longer works since type and type version attributes
     # are now system attributes.  ivb(2004-12-29)
     # def test00_GetTypeAttr(self):
-    ##      "Getting the type attribute of a file node."
-    ##
-    ##      self.assertEqual(
-    ##          getattr(self.fnode.attrs, '_type', None), filenode.NodeType,
-    ##          "File node has no '_type' attribute.")
+    #      "Getting the type attribute of a file node."
+    #
+    #      self.assertEqual(
+    #          getattr(self.fnode.attrs, '_type', None), filenode.NodeType,
+    #          "File node has no '_type' attribute.")
     def test00_MangleTypeAttrs(self):
         """Mangling the type attributes on a file node."""
 
@@ -692,11 +691,11 @@ class AttrsTestCase(TempFileMixin, TestCase):
 
         # System attributes are now writable.  ivb(2004-12-30)
         # self.assertRaises(
-        ##      AttributeError,
-        ##      setattr, self.fnode.attrs, 'NODE_TYPE', 'foobar')
+        #      AttributeError,
+        #      setattr, self.fnode.attrs, 'NODE_TYPE', 'foobar')
         # self.assertRaises(
-        ##      AttributeError,
-        ##      setattr, self.fnode.attrs, 'NODE_TYPE_VERSION', 'foobar')
+        #      AttributeError,
+        #      setattr, self.fnode.attrs, 'NODE_TYPE_VERSION', 'foobar')
 
         # System attributes are now removables.  F. Alted (2007-03-06)
 #         self.assertRaises(
@@ -708,9 +707,9 @@ class AttrsTestCase(TempFileMixin, TestCase):
 
     # System attributes are now writable.  ivb(2004-12-30)
     # def test01_SetSystemAttr(self):
-    ##      "Setting a system attribute on a file node."
-    ##
-    ##      self.assertRaises(
+    #      "Setting a system attribute on a file node."
+    #
+    #      self.assertRaises(
     # AttributeError, setattr, self.fnode.attrs, 'CLASS', 'foobar')
     def test02_SetGetDelUserAttr(self):
         """Setting a user attribute on a file node."""
@@ -735,7 +734,7 @@ class AttrsTestCase(TempFileMixin, TestCase):
             "User attribute was not deleted.")
         # Another way is looking up the attribute in the attribute list.
         # if 'userAttr' in self.fnode.attrs._f_list():
-        ##      self.fail("User attribute was not deleted.")
+        #      self.fail("User attribute was not deleted.")
 
     def test03_AttrsOnClosedFile(self):
         """Accessing attributes on a closed file node."""
@@ -838,7 +837,7 @@ class OldVersionTestCase(TestCase):
     def test00_Read(self):
         """Reading an old version file node."""
 
-        #self.fnode.line_separator = '\n'
+        # self.fnode.line_separator = '\n'
 
         line = self.fnode.readline()
         self.assertEqual(line, 'This is only\n')
@@ -859,7 +858,7 @@ class OldVersionTestCase(TestCase):
     def test01_Write(self):
         """Writing an old version file node."""
 
-        #self.fnode.line_separator = '\n'
+        # self.fnode.line_separator = '\n'
 
         self.fnode.write('foobar\n')
         self.fnode.seek(-7, 2)
@@ -958,7 +957,6 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         Path(self.testfname).unlink()
         Path(self.testh5fname).unlink()
 
-
     def test02_WriteToHDF5File(self):
         # write contents of datafname to h5 testfile
         filenode.save_to_filenode(self.h5file, self.datafname, "/test1")
@@ -1031,8 +1029,8 @@ def suite():
     theSuite.addTest(unittest.makeSuite(OpenFileTestCase))
     theSuite.addTest(unittest.makeSuite(ReadFileTestCase))
     theSuite.addTest(unittest.makeSuite(MonoReadlineTestCase))
-    #theSuite.addTest(unittest.makeSuite(MultiReadlineTestCase))
-    #theSuite.addTest(unittest.makeSuite(LineSeparatorTestCase))
+    # theSuite.addTest(unittest.makeSuite(MultiReadlineTestCase))
+    # theSuite.addTest(unittest.makeSuite(LineSeparatorTestCase))
     theSuite.addTest(unittest.makeSuite(AttrsTestCase))
     theSuite.addTest(unittest.makeSuite(ClosedH5FileTestCase))
     theSuite.addTest(unittest.makeSuite(DirectReadWriteTestCase))
@@ -1045,10 +1043,3 @@ if __name__ == '__main__':
     parse_argv(sys.argv)
     print_versions()
     unittest.main(defaultTest='suite')
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## End:

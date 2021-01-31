@@ -10,6 +10,7 @@ class Descr(tb.IsDescription):
     var3 = tb.Int32Col(shape=(), dflt=0, pos=2)
     var4 = tb.Float64Col(shape=(), dflt=0.0, pos=3)
 
+
 # Parameters for the table and index creation
 small_chunkshape = (2,)
 small_blocksizes = (64, 32, 16, 8)

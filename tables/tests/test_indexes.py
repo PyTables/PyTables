@@ -40,9 +40,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Create a table
         title = "This is the IndexArray title"
         self.filters = tb.Filters(complevel=self.compress,
-                                      complib=self.complib,
-                                      shuffle=self.shuffle,
-                                      fletcher32=self.fletcher32)
+                                  complib=self.complib,
+                                  shuffle=self.shuffle,
+                                  fletcher32=self.fletcher32)
         table = self.h5file.create_table(group, 'table', TDescr, title,
                                          self.filters, self.nrows)
         for i in range(self.nrows):
@@ -213,8 +213,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Selected values:", results)
         self.assertEqual(len(results), min(10, table.nrows))
-        self.assertEqual(results, [float(i) for i in
-                                   reversed(list(range(min(10, table.nrows))))])
+        self.assertEqual(
+            results,
+            [float(i) for i in reversed(list(range(min(10, table.nrows))))])
 
     def test05_getWhereList(self):
         """Checking reading an Index with get_where_list (string flavor)"""
@@ -493,8 +494,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Running %s.test10c_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = tb.open_file(self.h5fname, mode="a",
-                                       node_cache_slots=10)
+        self.h5file = tb.open_file(self.h5fname, mode="a", node_cache_slots=10)
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if common.verbose:
@@ -532,8 +532,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Running %s.test10d_moveIndex..." % self.__class__.__name__)
 
         # Open the HDF5 file in read-write mode
-        self.h5file = tb.open_file(self.h5fname, mode="a",
-                                       node_cache_slots=0)
+        self.h5file = tb.open_file(self.h5fname, mode="a", node_cache_slots=0)
         table = self.h5file.root.table
         idxcol = table.cols.var1.index
         if common.verbose:
@@ -712,6 +711,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertEqual(
                 len(list(table.where('(var3 < e)', dict(e=limit)))), limit)
 
+
 small_ss = small_blocksizes[2]
 
 
@@ -741,7 +741,8 @@ class BloscReadTestCase(BasicTestCase):
     nrows = small_ss
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class LZOReadTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -946,6 +947,7 @@ class IndexProps:
                  filters=tb.index.default_index_filters):
         self.auto = auto
         self.filters = filters
+
 
 DefaultProps = IndexProps()
 NoAutoProps = IndexProps(auto=False)
@@ -1761,14 +1763,16 @@ class OldIndexTestCase(common.TestFileMixin, common.PyTablesTestCase):
     def test1_x(self):
         """Check that files with 1.x indexes are recognized and warned."""
 
-        self.assertWarns(tb.exceptions.OldIndexWarning, self.h5file.get_node, "/table")
+        self.assertWarns(tb.exceptions.OldIndexWarning,
+                         self.h5file.get_node, "/table")
 
 
 # Sensible parameters for indexing with small blocksizes
 small_blocksizes = (512, 128, 32, 8)
 
 
-class CompletelySortedIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class CompletelySortedIndexTestCase(common.TempFileMixin,
+                                    common.PyTablesTestCase):
     """Test case for testing a complete sort in a table."""
 
     nrows = 100
@@ -2386,8 +2390,8 @@ class ReadSortedIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("The values from read_sorted:", sortedtable2)
         # Compare with the sorted read table because we have no
         # guarantees that read_sorted returns a completely sorted table
-        self.assertTrue(common.allequal(sortedtable,
-                                 np.sort(sortedtable2, order="icol")))
+        self.assertTrue(common.allequal(
+            sortedtable, np.sort(sortedtable2, order="icol")))
 
     def test01_readSorted2(self):
         """Testing the Table.read_sorted() method with no arguments
@@ -2402,8 +2406,8 @@ class ReadSortedIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("The values from read_sorted:", sortedtable2)
         # Compare with the sorted read table because we have no
         # guarantees that read_sorted returns a completely sorted table
-        self.assertTrue(common.allequal(sortedtable,
-                                 np.sort(sortedtable2, order="icol")))
+        self.assertTrue(common.allequal(
+            sortedtable, np.sort(sortedtable2, order="icol")))
 
     def test02_copy_sorted1(self):
         """Testing the Table.copy(sortby) method."""
@@ -2669,7 +2673,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(Bzip2ReadTestCase))
         theSuite.addTest(common.unittest.makeSuite(ShuffleReadTestCase))
         theSuite.addTest(common.unittest.makeSuite(Fletcher32ReadTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ShuffleFletcher32ReadTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(ShuffleFletcher32ReadTestCase))
         theSuite.addTest(common.unittest.makeSuite(OneHalfTestCase))
         theSuite.addTest(common.unittest.makeSuite(UpperBoundTestCase))
         theSuite.addTest(common.unittest.makeSuite(LowerBoundTestCase))
@@ -2680,7 +2685,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(IndexPropsChangeTestCase))
         theSuite.addTest(common.unittest.makeSuite(IndexFiltersTestCase))
         theSuite.addTest(common.unittest.makeSuite(OldIndexTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CompletelySortedIndexTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompletelySortedIndexTestCase))
         theSuite.addTest(common.unittest.makeSuite(ManyNodesTestCase))
         theSuite.addTest(common.unittest.makeSuite(ReadSortedIndex0))
         theSuite.addTest(common.unittest.makeSuite(ReadSortedIndex3))

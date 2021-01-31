@@ -15,6 +15,7 @@ from tables.tests import common
 def is_python_64bit():
     return struct.calcsize("P") == 8
 
+
 # To know whether the os platform is 32 or 64 bit
 def is_os_64bit():
     return platform.machine().endswith('64')
@@ -23,23 +24,23 @@ def is_os_64bit():
 # Test Record class
 class Record(tb.IsDescription):
     var1 = tb.StringCol(itemsize=4, dflt=b"abcd", pos=0)  # 4-character String
-    var2 = tb.IntCol(dflt=1, pos=1)                   # integer
-    var3 = tb.Int16Col(dflt=2, pos=2)                 # short integer
-    var4 = tb.Float64Col(dflt=3.1, pos=3)             # double (double-precision)
-    var5 = tb.Float32Col(dflt=4.2, pos=4)             # float  (single-precision)
-    var6 = tb.UInt16Col(dflt=5, pos=5)                # unsigned short integer
+    var2 = tb.IntCol(dflt=1, pos=1)  # integer
+    var3 = tb.Int16Col(dflt=2, pos=2)  # short integer
+    var4 = tb.Float64Col(dflt=3.1, pos=3)  # double (double-precision)
+    var5 = tb.Float32Col(dflt=4.2, pos=4)  # float  (single-precision)
+    var6 = tb.UInt16Col(dflt=5, pos=5)  # unsigned short integer
     var7 = tb.StringCol(itemsize=1, dflt=b"e", pos=6)  # 1-character String
-    var8 = tb.BoolCol(dflt=True, pos=7)               # boolean
+    var8 = tb.BoolCol(dflt=True, pos=7)  # boolean
     var9 = tb.ComplexCol(
-        itemsize=8, dflt=(0.+1.j), pos=8)       # Complex single precision
+        itemsize=8, dflt=(0.+1.j), pos=8)  # Complex single precision
     var10 = tb.ComplexCol(
-        itemsize=16, dflt=(1.-0.j), pos=9)      # Complex double precision
+        itemsize=16, dflt=(1.-0.j), pos=9)  # Complex double precision
     if hasattr(tb, 'Float16Col'):
-        var11 = tb.Float16Col(dflt=6.4)     # float  (half-precision)
+        var11 = tb.Float16Col(dflt=6.4)  # float  (half-precision)
     if hasattr(tb, 'Float96Col'):
-        var12 = tb.Float96Col(dflt=6.4)     # float  (extended precision)
+        var12 = tb.Float96Col(dflt=6.4)  # float  (extended precision)
     if hasattr(tb, 'Float128Col'):
-        var13 = tb.Float128Col(dflt=6.4)    # float  (extended precision)
+        var13 = tb.Float128Col(dflt=6.4)  # float  (extended precision)
     if hasattr(tb, 'Complex192Col'):
         var14 = tb.ComplexCol(
             itemsize=24, dflt=(1.-0.j))  # Complex double (extended precision)
@@ -47,21 +48,22 @@ class Record(tb.IsDescription):
         var15 = tb.ComplexCol(
             itemsize=32, dflt=(1.-0.j))  # Complex double (extended precision)
 
+
 #  Dictionary definition
 RecordDescriptionDict = {
-    'var1': tb.StringCol(itemsize=4, dflt=b"abcd", pos=0),  # 4-character String
-    'var2': tb.IntCol(dflt=1, pos=1),              # integer
-    'var3': tb.Int16Col(dflt=2, pos=2),            # short integer
-    'var4': tb.Float64Col(dflt=3.1, pos=3),        # double (double-precision)
-    'var5': tb.Float32Col(dflt=4.2, pos=4),        # float  (single-precision)
-    'var6': tb.UInt16Col(dflt=5, pos=5),           # unsigned short integer
+    'var1': tb.StringCol(itemsize=4, dflt=b"abcd", pos=0),  # 4-char String
+    'var2': tb.IntCol(dflt=1, pos=1),  # integer
+    'var3': tb.Int16Col(dflt=2, pos=2),  # short integer
+    'var4': tb.Float64Col(dflt=3.1, pos=3),  # double (double-precision)
+    'var5': tb.Float32Col(dflt=4.2, pos=4),  # float  (single-precision)
+    'var6': tb.UInt16Col(dflt=5, pos=5),  # unsigned short integer
     'var7': tb.StringCol(
-        itemsize=1, dflt=b"e", pos=6),          # 1-character String
-    'var8': tb.BoolCol(dflt=True, pos=7),          # boolean
+        itemsize=1, dflt=b"e", pos=6),  # 1-character String
+    'var8': tb.BoolCol(dflt=True, pos=7),   # boolean
     'var9': tb.ComplexCol(
-        itemsize=8, dflt=(0.+1.j), pos=8),      # Complex single precision
+        itemsize=8, dflt=(0.+1.j), pos=8),  # Complex single precision
     'var10': tb.ComplexCol(
-        itemsize=16, dflt=(1.-0.j), pos=9),     # Complex double precision
+        itemsize=16, dflt=(1.-0.j), pos=9),  # Complex double precision
 }
 
 if hasattr(tb, 'Float16Col'):
@@ -94,7 +96,7 @@ class OldRecord(tb.IsDescription):
     var7 = tb.StringCol(itemsize=1, dflt=b"e", pos=6)
     var8 = tb.Col.from_type("bool", shape=(), dflt=1, pos=7)
     var9 = tb.ComplexCol(itemsize=8, shape=(), dflt=(0.+1.j), pos=8)
-    var10 = tb.ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos = 9)
+    var10 = tb.ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos=9)
     if hasattr(tb, 'Float16Col'):
         var11 = tb.Col.from_type("float16", (), 6.4)
     if hasattr(tb, 'Float96Col'):
@@ -354,8 +356,10 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("coldflts-->", tbl.coldflts[v], type(tbl.coldflts[v]))
                 print("desc.dflts-->", desc._v_dflts[v],
                       type(desc._v_dflts[v]))
-            self.assertTrue(common.areArraysEqual(tbl.coldflts[v], columns[v].dflt))
-            self.assertTrue(common.areArraysEqual(desc._v_dflts[v], columns[v].dflt))
+            self.assertTrue(
+                common.areArraysEqual(tbl.coldflts[v], columns[v].dflt))
+            self.assertTrue(
+                common.areArraysEqual(desc._v_dflts[v], columns[v].dflt))
 
         # Column path names.
         self.assertEqual(expectedNames, list(desc._v_pathnames))
@@ -392,15 +396,14 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual((rec['var1'], rec['var2'], rec['var7']),
                          (b"0001", nrows, b"1"))
         if isinstance(rec['var5'], np.ndarray):
-            self.assertTrue(common.allequal(rec['var5'],
-                                            np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                rec['var5'], np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(rec['var5'], float(nrows))
         if isinstance(rec['var9'], np.ndarray):
-            self.assertTrue(
-                common.allequal(rec['var9'],
-                                np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
-                                         np.complex64)))
+            self.assertTrue(common.allequal(
+                rec['var9'], np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
+                                      np.complex64)))
         else:
             self.assertEqual((rec['var9']), float(nrows)+0.j)
         self.assertEqual(len(result), 20)
@@ -433,15 +436,15 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual((rec['var1'], rec['var2'], rec['var7']),
                          (strnrows, nrows, b"1"))
         if isinstance(rec['var5'], np.ndarray):
-            self.assertTrue(common.allequal(rec['var5'],
-                                            np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                rec['var5'], np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(rec['var5'], float(nrows))
         if isinstance(rec['var9'], np.ndarray):
-            self.assertTrue(
-                common.allequal(rec['var9'],
-                                np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
-                                         np.complex64)))
+            self.assertTrue(common.allequal(
+                rec['var9'],
+                np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
+                         np.complex64)))
         else:
             self.assertEqual(rec['var9'], float(nrows)+0.j)
         self.assertEqual(len(result), 20)
@@ -496,15 +499,14 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(rec[:2], (strnrows, 19))
         self.assertEqual(rec[3], b'1')
         if isinstance(rec[2], np.ndarray):
-            self.assertTrue(common.allequal(rec[2],
-                                     np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                rec[2], np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(rec[2], nrows)
         if isinstance(rec[4], np.ndarray):
-            self.assertTrue(
-                common.allequal(rec[4],
-                         np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
-                                  np.complex64)))
+            self.assertTrue(common.allequal(
+                rec[4], np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
+                                 np.complex64)))
         else:
             self.assertEqual(rec[4], float(nrows)+0.j)
         self.assertEqual(len(result), 20)
@@ -802,8 +804,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual((row['var1'], row['var2'], row['var7']),
                          (b"0001", nrows, b"1"))
         if isinstance(row['var5'], np.ndarray):
-            self.assertTrue(common.allequal(row['var5'],
-                                     np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                row['var5'], np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -904,8 +906,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual((row['var1'], row['var2'], row['var7']),
                          ("0001", nrows, "1"))
         if isinstance(row['var5'], np.ndarray):
-            self.assertTrue(common.allequal(row['var5'],
-                                     np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                row['var5'], np.array((float(nrows),)*4, np.float32)))
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -1409,7 +1411,6 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Last selected value ==>", result[-1])
             print("Total selected records in table ==>", len(result))
 
-        nrows = table.nrows
         table.nrowsinbuf = 4  # small value of the buffer
         # Delete all rows
         table.remove_rows(0, self.expectedrows)
@@ -1444,7 +1445,6 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Last selected value ==>", result[-1])
             print("Total selected records in table ==>", len(result))
 
-        nrows = table.nrows
         table.nrowsinbuf = 4  # small value of the buffer
         # Delete 100 rows
         table.remove_rows()
@@ -1538,8 +1538,10 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(obj.nrows, self.expectedrows)
 
     def test07_out_of_order_members(self):
-        # If members are stored 'out of order' make sure they are loaded correctly
-        self.h5file = tb.open_file(common.test_filename("out_of_order_types.h5"))
+        # If members are stored 'out of order' make sure they are loaded
+        # correctly
+        self.h5file = tb.open_file(
+            common.test_filename("out_of_order_types.h5"))
         row = self.h5file.get_node('/group/table')[0]
 
         self.assertEqual(row[0], b'*'*14)
@@ -1700,7 +1702,7 @@ class RecArrayAlignedWriteTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class CompressBloscTablesTestCase(BasicTestCase):
     title = "CompressBloscTables"
     compress = 6
@@ -1708,7 +1710,7 @@ class CompressBloscTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class CompressBloscShuffleTablesTestCase(BasicTestCase):
     title = "CompressBloscTables"
     compress = 1
@@ -1717,9 +1719,10 @@ class CompressBloscShuffleTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@common.unittest.skipIf(common.blosc_version < common.min_blosc_bitshuffle_version,
-                 'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    common.blosc_version < common.min_blosc_bitshuffle_version,
+    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class CompressBloscBitShuffleTablesTestCase(BasicTestCase):
     title = "CompressBloscBitShuffleTables"
     compress = 1
@@ -1729,7 +1732,7 @@ class CompressBloscBitShuffleTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class CompressBloscBloscLZTablesTestCase(BasicTestCase):
     title = "CompressBloscLZTables"
     compress = 1
@@ -1738,8 +1741,9 @@ class CompressBloscBloscLZTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class CompressBloscLZ4TablesTestCase(BasicTestCase):
     title = "CompressLZ4Tables"
     compress = 1
@@ -1748,8 +1752,9 @@ class CompressBloscLZ4TablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
     title = "CompressLZ4HCTables"
     compress = 1
@@ -1758,9 +1763,9 @@ class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('snappy' not in tb.blosc_compressor_list(),
-                 'snappy required')
+                        'snappy required')
 class CompressBloscSnappyTablesTestCase(BasicTestCase):
     title = "CompressSnappyTables"
     compress = 1
@@ -1769,17 +1774,20 @@ class CompressBloscSnappyTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@common.unittest.skipIf('zlib' not in tb.blosc_compressor_list(), 'zlib required')
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'zlib' not in tb.blosc_compressor_list(), 'zlib required')
 class CompressBloscZlibTablesTestCase(BasicTestCase):
     title = "CompressZlibTables"
     compress = 1
     shuffle = 1
     complib = "blosc:zlib"
 
+
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@common.unittest.skipIf('zstd' not in tb.blosc_compressor_list(), 'zstd required')
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'zstd' not in tb.blosc_compressor_list(), 'zstd required')
 class CompressBloscZstdTablesTestCase(BasicTestCase):
     title = "CompressZstdTables"
     compress = 1
@@ -1787,14 +1795,16 @@ class CompressBloscZstdTablesTestCase(BasicTestCase):
     complib = "blosc:zstd"
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class CompressLZOTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
     compress = 1
     complib = "lzo"
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class CompressLZOShuffleTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
     compress = 1
@@ -1803,7 +1813,7 @@ class CompressLZOShuffleTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.bzip2_avail,
-                 'BZIP2 compression library not available')
+                        'BZIP2 compression library not available')
 class CompressBzip2TablesTestCase(BasicTestCase):
     title = "CompressBzip2Tables"
     compress = 1
@@ -1811,7 +1821,7 @@ class CompressBzip2TablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.bzip2_avail,
-                 'BZIP2 compression library not available')
+                        'BZIP2 compression library not available')
 class CompressBzip2ShuffleTablesTestCase(BasicTestCase):
     title = "CompressBzip2Tables"
     compress = 1
@@ -1864,7 +1874,8 @@ class BigTablesTestCase(BasicTestCase):
     appendrows = 100
 
 
-class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
+                                         common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
 
@@ -1915,7 +1926,8 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTe
         self.assertLess(self.table.size_on_disk, self.table.size_in_memory)
 
 
-class NonNestedTableReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class NonNestedTableReadTestCase(common.TempFileMixin,
+                                 common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
 
@@ -2028,8 +2040,8 @@ class NonNestedTableReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_specified_field_buffer_too_small(self):
         output = np.empty((99, ), 'i4')
-        func = lambda: self.table.read(field='f5', out=output)
-        self.assertRaises(ValueError, func)
+        self.assertRaises(ValueError,
+                          lambda: self.table.read(field='f5', out=output))
         try:
             self.table.read(field='f5', out=output)
         except ValueError as exc:
@@ -2044,7 +2056,8 @@ class NonNestedTableReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertIn('output array size invalid, got', str(exc))
 
 
-class TableReadByteorderTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class TableReadByteorderTestCase(common.TempFileMixin,
+                                 common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
         self.system_byteorder = sys.byteorder
@@ -2150,7 +2163,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for j in range(3):
             # Create a table
             filterprops = tb.Filters(complevel=self.compress,
-                                         shuffle=self.shuffle)
+                                     shuffle=self.shuffle)
             table = self.h5file.create_table(group, 'table'+str(j),
                                              self.record,
                                              title=self.title,
@@ -2196,8 +2209,8 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         table.nrowsinbuf = self.nrowsinbuf
         resrange = slice(self.start, self.stop, self.step).indices(table.nrows)
         reslength = len(list(range(*resrange)))
-        #print "self.checkrecarray = ", self.checkrecarray
-        #print "self.checkgetCol = ", self.checkgetCol
+        # print "self.checkrecarray = ", self.checkrecarray
+        # print "self.checkgetCol = ", self.checkgetCol
         if self.checkrecarray:
             recarray = table.read(self.start, self.stop, self.step)
             result = []
@@ -2545,9 +2558,9 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("\nGreat!, the next ValueError was catched!")
                 print(value)
             self.h5file.close()
-        #else:
-        #    print rec
-        #    self.fail("expected a ValueError")
+        # else:
+        #     print rec
+        #     self.fail("expected a ValueError")
 
         # Case where step == 0
         self.step = 0
@@ -2559,9 +2572,9 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("\nGreat!, the next ValueError was catched!")
                 print(value)
             self.h5file.close()
-        #else:
-        #    print rec
-        #    self.fail("expected a ValueError")
+        # else:
+        #     print rec
+        #     self.fail("expected a ValueError")
 
 
 class IterRangeTestCase(BasicRangeTestCase):
@@ -2622,7 +2635,7 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for j in range(3):
             # Create a table
             filterprops = tb.Filters(complevel=self.compress,
-                                         shuffle=self.shuffle)
+                                     shuffle=self.shuffle)
             table = self.h5file.create_table(group, 'table'+str(j),
                                              self.record,
                                              title=self.title,
@@ -2765,7 +2778,8 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(result["var2"].tolist(), list(range(
             2, self.expectedrows-6)))
         result = table[2:]
-        self.assertEqual(result["var2"].tolist(), list(range(2, self.expectedrows)))
+        self.assertEqual(result["var2"].tolist(),
+                         list(range(2, self.expectedrows)))
         result = table[-2:]
         self.assertEqual(result["var2"].tolist(),
                          list(range(self.expectedrows-2, self.expectedrows)))
@@ -2844,10 +2858,12 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
         table = self.h5file.root.table0
         colvar2 = table.cols.var2
         self.assertEqual(colvar2[2:6].tolist(), list(range(2, 6)))
-        self.assertEqual(colvar2[2:-6].tolist(), list(range(2, self.expectedrows-6)))
-        self.assertEqual(colvar2[2:].tolist(), list(range(2, self.expectedrows)))
+        self.assertEqual(colvar2[2:-6].tolist(),
+                         list(range(2, self.expectedrows - 6)))
+        self.assertEqual(colvar2[2:].tolist(),
+                         list(range(2, self.expectedrows)))
         self.assertEqual(colvar2[-2:].tolist(),
-                         list(range(self.expectedrows-2, self.expectedrows)))
+                         list(range(self.expectedrows - 2, self.expectedrows)))
 
     def test08_threeItemsCol(self):
         """Checking __getitem__ method in Col with start, stop, step
@@ -2865,7 +2881,8 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(colvar2[2::3].tolist(), list(range(
             2, self.expectedrows, 3)))
         self.assertEqual(colvar2[:6:2].tolist(), list(range(0, 6, 2)))
-        self.assertEqual(colvar2[::].tolist(), list(range(0, self.expectedrows, 1)))
+        self.assertEqual(colvar2[::].tolist(),
+                         list(range(0, self.expectedrows, 1)))
 
     def test09_negativeStep(self):
         """Checking __getitem__ method in Col with negative step parameter."""
@@ -3029,7 +3046,7 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Modify two existing rows
         rows = np.rec.array([(457, b'db1', 1.2), (5, b'de1', 1.3)],
-                             formats="i4,a3,f8")
+                            formats="i4,a3,f8")
         # table.modify_rows(start=1, rows=rows)
         table[1:3] = rows
         # Create the modified recarray
@@ -3978,9 +3995,9 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
             rows=np.rec.array([(456, 'db2', 1.2)], formats="i4,a3,f8"))
         # Create the modified recarray
         r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                            (456, b'db2', 1.2), (5, b'de1', 1.3)],
-                           formats="i4,a3,f8",
-                           names="col1,col2,col3")
+                           (456, b'db2', 1.2), (5, b'de1', 1.3)],
+                          formats="i4,a3,f8",
+                          names="col1,col2,col3")
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -4041,8 +4058,8 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify two existing rows
-        rows = np.rec.array(
-            [(457, b'db1', 1.2), (5, b'de1', 1.3)],formats="i4,a3,f8")
+        rows = np.rec.array([(457, b'db1', 1.2), (5, b'de1', 1.3)],
+                            formats="i4,a3,f8")
         table.modify_rows(start=1, rows=rows)
         # Create the modified recarray
         r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
@@ -4312,7 +4329,7 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         # Modify a couple of columns
         columns = np.rec.array([("aaa", 1.2), ("bbb", .1), ("ccc", .3)],
-                                formats="a3,f8")
+                               formats="a3,f8")
         table.modify_columns(start=1, columns=columns, names=["col2", "col3"])
         # Create the modified recarray
         r1 = np.rec.array([(456, 'dbe', 1.2), (2, 'aaa', 1.2),
@@ -4570,14 +4587,16 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
             self.assertEqual(table1.description._v_offsets, [0, 4, 7])
             self.assertEqual(table1.description._v_itemsize, 15)
-        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
+        self.assertEqual(table1.description._v_offsets,
+                         table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize,
+                         table2.description._v_itemsize)
 
         # This could be not the same when re-opening the file
         # self.assertEqual(table1.description._v_ColObjects,
@@ -4644,14 +4663,16 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
             self.assertEqual(table1.description._v_offsets, [0, 3, 7])
             self.assertEqual(table1.description._v_itemsize, 15)
-        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
+        self.assertEqual(table1.description._v_offsets,
+                         table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize,
+                         table2.description._v_itemsize)
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4709,8 +4730,8 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for colname in table1.colnames:
                 # self.assertTrue(allequal(row1[colname],
                 # table2[nrow][colname]))
-                self.assertTrue(common.allequal(row1[colname],
-                                         table2.read(nrow, field=colname)[0]))
+                self.assertTrue(common.allequal(
+                    row1[colname], table2.read(nrow, field=colname)[0]))
 
         # Assert other properties in table
         self.assertEqual(table1.nrows, table2.nrows)
@@ -4720,14 +4741,16 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8, 20, 24])
             self.assertEqual(table1.description._v_itemsize, 32)
         else:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8, 20, 24])
             self.assertEqual(table1.description._v_itemsize, 32)
-        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
+        self.assertEqual(table1.description._v_offsets,
+                         table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize,
+                         table2.description._v_itemsize)
 
         # Leaf attributes
         self.assertEqual("title table2", table2.title)
@@ -4792,14 +4815,16 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             self.assertEqual(table1.description._v_offsets, [0, 8, 12])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
             self.assertEqual(table1.description._v_offsets, [0, 8, 11])
             self.assertEqual(table1.description._v_itemsize, 15)
-        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
+        self.assertEqual(table1.description._v_offsets,
+                         table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize,
+                         table2.description._v_itemsize)
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4866,10 +4891,10 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
-            # The conditions for guessing the correct alignment are very tricky,
-            # so better disable the checks.  Feel free to re-enable them during
-            # debugging by removing the False condition below.
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
+            # The conditions for guessing the correct alignment are very
+            # tricky, so better disable the checks.  Feel free to re-enable
+            # them during debugging by removing the False condition below.
             if False:
                 if is_os_64bit() and is_python_64bit():
                     self.assertEqual(table1.description._v_offsets, [0, 8, 16])
@@ -4880,8 +4905,10 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         else:
             self.assertEqual(table1.description._v_offsets, [0, 8, 11])
             self.assertEqual(table1.description._v_itemsize, 19)
-        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
+        self.assertEqual(table1.description._v_offsets,
+                         table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize,
+                         table2.description._v_itemsize)
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4952,14 +4979,16 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqualColinstances(table1, table2)
         self.assertEqual(repr(table1.description), repr(table2.description))
         # Check alignment
-        if self.aligned and self.open_kwargs['allow_padding'] == True:
+        if self.aligned and self.open_kwargs['allow_padding'] is True:
             self.assertEqual(table1.description._v_offsets, [0, 8, 12])
             self.assertEqual(table1.description._v_itemsize, 16)
         else:
             self.assertEqual(table1.description._v_offsets, [0, 8, 11])
             self.assertEqual(table1.description._v_itemsize, 15)
-        self.assertEqual(table1.description._v_offsets, table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize, table2.description._v_itemsize)
+        self.assertEqual(table1.description._v_offsets,
+                         table2.description._v_offsets)
+        self.assertEqual(table1.description._v_itemsize,
+                         table2.description._v_itemsize)
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4993,6 +5022,7 @@ class AlignedOpenCopyTestCase(CopyTestCase):
     close = False
     aligned = True
     open_kwargs = {'allow_padding': True}
+
 
 class AlignedNoPaddingOpenCopyTestCase(CopyTestCase):
     close = False
@@ -5040,8 +5070,8 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r2 = r[self.start:self.stop:self.step]
         for nrow in range(r2.shape[0]):
             for colname in table1.colnames:
-                self.assertTrue(common.allequal(r2[nrow][colname],
-                                         table2[nrow][colname]))
+                self.assertTrue(common.allequal(
+                    r2[nrow][colname], table2[nrow][colname]))
 
         # Assert the number of rows in table
         if common.verbose:
@@ -5090,8 +5120,8 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r2 = r[self.start:self.stop:self.step]
         for nrow in range(r2.shape[0]):
             for colname in table1.colnames:
-                self.assertTrue(common.allequal(r2[nrow][colname],
-                                         table2[nrow][colname]))
+                self.assertTrue(common.allequal(
+                    r2[nrow][colname], table2[nrow][colname]))
 
         # Assert the number of rows in table
         if common.verbose:
@@ -5214,8 +5244,8 @@ class LargeRowSize(common.TempFileMixin, common.PyTablesTestCase):
     def test01(self):
         """Checking saving a Table with an extremely large rowsize"""
 
-        # Create a recarray
-        r = np.zeros(10, dtype=np.dtype('(300,100)i4,(400,400)f8'))   # 1.4 MB rowsize
+        # Create a recarray (1.4 MB rowsize)
+        r = np.zeros(10, dtype=np.dtype('(300,100)i4,(400,400)f8'))
         # From PyTables 1.3 on, we allow row sizes equal or larger than 640 KB
         self.h5file.create_table(self.h5file.root, 'largerow', r)
 
@@ -5678,8 +5708,8 @@ class ZeroSizedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         super().setUp()
 
         # Create a Table
-        t = self.h5file.create_table('/', 'table',
-                                     {'c1': tb.Int32Col(), 'c2': tb.Float64Col()})
+        t = self.h5file.create_table('/', 'table', {'c1': tb.Int32Col(),
+                                                    'c2': tb.Float64Col()})
         # Append a single row
         t.append([(1, 2.2)])
 
@@ -5722,8 +5752,10 @@ class IrregularStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("\nSelected coords1-->", coords1)
             print("Selected coords2-->", coords2)
-        self.assertTrue(common.allequal(coords1, np.arange(5, dtype=tb.utils.SizeType)))
-        self.assertTrue(common.allequal(coords2, np.arange(5, dtype=tb.utils.SizeType)))
+        self.assertTrue(
+            common.allequal(coords1, np.arange(5, dtype=tb.utils.SizeType)))
+        self.assertTrue(
+            common.allequal(coords2, np.arange(5, dtype=tb.utils.SizeType)))
 
 
 class Issue262TestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -6444,7 +6476,7 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
         ptarr = self.h5file.create_table(self.where, self.name,
                                          title=self.title,
                                          description=self.description)
-        #ptarr.append(self.obj)
+        # ptarr.append(self.obj)
         self._reopen()
 
         ptarr = self.h5file.get_node(self.where, self.name)
@@ -6506,29 +6538,39 @@ def suite():
 
     for n in range(niter):
         theSuite.addTest(common.unittest.makeSuite(BasicWriteTestCase))
-        theSuite.addTest(common.unittest.makeSuite(OldRecordBasicWriteTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(OldRecordBasicWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(DictWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(NumPyDTWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(RecArrayThreeWriteTestCase))
-        theSuite.addTest(common.unittest.makeSuite(RecArrayAlignedWriteTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CompressBloscTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(RecArrayAlignedWriteTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(
             CompressBloscShuffleTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(
             CompressBloscBitShuffleTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(
             CompressBloscBloscLZTablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CompressBloscLZ4TablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CompressBloscLZ4HCTablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CompressBloscSnappyTablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CompressBloscZlibTablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CompressBloscZstdTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscLZ4TablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscLZ4HCTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscSnappyTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscZlibTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscZstdTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressLZOTablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CompressLZOShuffleTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressLZOShuffleTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressZLIBTablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CompressZLIBShuffleTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressZLIBShuffleTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(Fletcher32TablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(AllFiltersTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressTwoTablesTestCase))
@@ -6554,7 +6596,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(AlignedOpenCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(AlignedCloseCopyTestCase))
-        theSuite.addTest(common.unittest.makeSuite(AlignedNoPaddingOpenCopyTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(AlignedNoPaddingOpenCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex1TestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex2TestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex3TestCase))
@@ -6589,7 +6632,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(TestCreateTableArgs))
 
     if common.heavy:
-        theSuite.addTest(common.unittest.makeSuite(CompressBzip2TablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBzip2TablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(
             CompressBzip2ShuffleTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex10TestCase))

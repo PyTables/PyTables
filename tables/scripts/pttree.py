@@ -458,11 +458,8 @@ def make_test_file(prefix='/tmp'):
 
     g2 = f.create_group('/', 'group2')
 
-    softlink = f.create_soft_link(g2, 'softlink_g1_z128',
-                                  '/group1/group1a/zeros128b')
-    hardlink = f.create_hard_link(g2, 'hardlink_g1a_z128',
-                                  '/group1/group1a/zeros128b')
-
-    hlgroup = f.create_hard_link(g2, 'hardlink_g1a', '/group1/group1a')
+    f.create_soft_link(g2, 'softlink_g1_z128', '/group1/group1a/zeros128b')
+    f.create_hard_link(g2, 'hardlink_g1a_z128', '/group1/group1a/zeros128b')
+    f.create_hard_link(g2, 'hardlink_g1a', '/group1/group1a')
 
     return f

@@ -131,11 +131,6 @@ class CArray(Array):
     # Class identifier.
     _c_classid = 'CARRAY'
 
-
-    # Properties
-    # ~~~~~~~~~~
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  atom=None, shape=None,
                  title="", filters=None,
@@ -205,9 +200,8 @@ class CArray(Array):
                         "`chunkshape` parameter must be a sequence "
                         "and you passed a %s" % type(chunkshape))
                 if len(shape) != len(chunkshape):
-                    raise ValueError("the shape (%s) and chunkshape (%s) "
-                                     "ranks must be equal." %
-                                    (shape, chunkshape))
+                    raise ValueError(f"the shape ({shape}) and chunkshape "
+                                     f"({chunkshape}) ranks must be equal.")
                 elif min(chunkshape) < 1:
                     raise ValueError("chunkshape parameter cannot have "
                                      "zero-dimensions.")
@@ -246,7 +240,7 @@ class CArray(Array):
             # needed for setting attributes in some descendants later
             # on
             self._v_objectid = self._create_carray(self._v_new_title)
-        except:  # XXX
+        except Exception:  # XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
@@ -293,4 +287,3 @@ class CArray(Array):
         nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object, nbytes)
-

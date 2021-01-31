@@ -494,11 +494,3 @@ def nextafter(x, direction, dtype, itemsize):
     #        return PyNextAfter(x,x + 1)
 
     raise TypeError("data type ``%s`` is not supported" % dtype)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

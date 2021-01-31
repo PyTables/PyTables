@@ -22,7 +22,6 @@ from .utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
                     byteorders, quantize)
 
 
-
 # default version for ARRAY objects
 # obversion = "1.0"    # initial version
 # obversion = "2.0"    # Added an optional EXTDIM attribute
@@ -114,7 +113,8 @@ class Array(hdf5extension.Array, Leaf):
 
     @property
     def rowsize(self):
-        """The size of the rows in bytes in dimensions orthogonal to *maindim*."""
+        """The size of the rows in bytes in dimensions orthogonal to
+        *maindim*."""
         maindim = self.maindim
         rowsize = self.atom.size
         for i, dim in enumerate(self.shape):
@@ -198,7 +198,7 @@ class Array(hdf5extension.Array, Leaf):
             # `Leaf._g_post_init_hook()` should be setting the flavor on disk.
             self._flavor = flavor = flavor_of(self._obj)
             nparr = array_as_internal(self._obj, flavor)
-        except:  # XXX
+        except Exception:  # XXX
             # Problems converting data. Close the node and re-raise exception.
             self.close(flush=0)
             raise
@@ -221,7 +221,7 @@ class Array(hdf5extension.Array, Leaf):
             # on
             (self._v_objectid, self.shape, self.atom) = self._create_array(
                 nparr, self._v_new_title, self.atom)
-        except:  # XXX
+        except Exception:  # XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
@@ -427,17 +427,6 @@ class Array(hdf5extension.Array, Leaf):
         # Compute the shape for the container properly. Fixes #1288792
         shape = []
         for dim in range(len(self.shape)):
-            # The negative division operates differently with python scalars
-            # and numpy scalars (which are similar to C conventions). See:
-            # http://www.python.org/doc/faq/programming.html#why-does-22-10-return-3
-            # and
-            # http://www.peterbe.com/Integer-division-in-programming-languages
-            # for more info on this issue.
-            # I've finally decided to rely on the len(xrange) function.
-            # F. Alted 2006-09-25
-            # Switch to `lrange` to allow long ranges (see #99).
-            # use xrange, since it supports large integers as of Python 2.6
-            # see github #181
             new_dim = len(range(startl[dim], stopl[dim], stepl[dim]))
             if not (new_dim == 1 and stop_None[dim]):
                 shape.append(new_dim)
@@ -841,9 +830,8 @@ class Array(hdf5extension.Array, Leaf):
             bytes_required = self.rowsize * nrowstoread
             # if buffer is too small, it will segfault
             if bytes_required != out.nbytes:
-                raise ValueError(('output array size invalid, got {} bytes, '
-                                  'need {} bytes').format(out.nbytes,
-                                                           bytes_required))
+                raise ValueError(f'output array size invalid, got {out.nbytes}'
+                                 f' bytes, need {bytes_required} bytes')
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
             arr = out
@@ -921,14 +909,12 @@ class Array(hdf5extension.Array, Leaf):
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return """{}
-  atom := {!r}
-  maindim := {!r}
-  flavor := {!r}
-  byteorder := {!r}
-  chunkshape := {!r}""".format(self, self.atom, self.maindim,
-                         self.flavor, self.byteorder,
-                         self.chunkshape)
+        return f"""{self}
+  atom := {self.atom!r}
+  maindim := {self.maindim!r}
+  flavor := {self.flavor!r}
+  byteorder := {self.byteorder!r}
+  chunkshape := {self.chunkshape!r}"""
 
 
 class ImageArray(Array):

@@ -20,6 +20,7 @@ import numpy as np
 import tables as tb
 from tables.tests import common
 
+
 class Record(tb.IsDescription):
     var1 = tb.StringCol(itemsize=4)  # 4-character String
     var2 = tb.IntCol()               # integer
@@ -212,7 +213,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Build a dictionary with the types as values and varnames as keys
         recordDict = {}
         recordDict["a" * 255] = tb.IntCol(dflt=1)
-        recordDict["b" * 256] = tb.IntCol(dflt=1)  # Should trigger a ValueError
+        recordDict["b" * 256] = tb.IntCol(dflt=1)  # Should raise a ValueError
 
         # Now, create a table with this record object
         # This way of creating node objects has been deprecated
@@ -292,10 +293,10 @@ class FiltersTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ea2.append(var3List)
 
             # Finally a couple of VLArrays too
-            vla1 = self.h5file.create_vlarray(group, 'vlarray1',
-                                              tb.StringAtom(itemsize=4), "col 1")
-            vla2 = self.h5file.create_vlarray(group, 'vlarray2',
-                                              tb.Int16Atom(), "col 3")
+            vla1 = self.h5file.create_vlarray(
+                group, 'vlarray1', tb.StringAtom(itemsize=4), "col 1")
+            vla2 = self.h5file.create_vlarray(
+                group, 'vlarray2', tb.Int16Atom(), "col 3")
             # And fill them with some values
             vla1.append(var1List)
             vla2.append(var3List)
@@ -542,7 +543,8 @@ class FiltersCase2(FiltersTreeTestCase):
     open_kwargs = dict(filters=filters)
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class FiltersCase3(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=True, complib="zlib")
     gfilters = tb.Filters(complevel=1, shuffle=False, complib="lzo")
@@ -579,14 +581,16 @@ class FiltersCase8(FiltersTreeTestCase):
     open_kwargs = dict(filters=filters)
 
 
-@common.unittest.skipIf(not common.bzip2_avail, 'BZIP2 compression library not available')
+@common.unittest.skipIf(not common.bzip2_avail,
+                        'BZIP2 compression library not available')
 class FiltersCase9(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=True, complib="zlib")
     gfilters = tb.Filters(complevel=5, shuffle=True, complib="bzip2")
     open_kwargs = dict(filters=filters)
 
 
-@common.unittest.skipIf(not common.blosc_avail, 'BLOSC compression library not available')
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
 class FiltersCase10(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=False, complevel=1, complib="blosc")
     gfilters = tb.Filters(complevel=5, shuffle=True, complib="blosc")
@@ -594,7 +598,7 @@ class FiltersCase10(FiltersTreeTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class FiltersCaseBloscBloscLZ(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:blosclz")
     gfilters = tb.Filters(complevel=5, shuffle=True, complib="blosc:blosclz")
@@ -602,19 +606,23 @@ class FiltersCaseBloscBloscLZ(FiltersTreeTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4(FiltersTreeTestCase):
     def setUp(self):
-        self.filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:lz4")
-        self.gfilters = tb.Filters(complevel=5, shuffle=True, complib="blosc:lz4")
+        self.filters = tb.Filters(shuffle=False, complevel=1,
+                                  complib="blosc:lz4")
+        self.gfilters = tb.Filters(complevel=5, shuffle=True,
+                                   complib="blosc:lz4")
         self.open_kwargs = dict(filters=self.filters)
         super().setUp()
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@common.unittest.skipIf('lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
     def setUp(self):
         self.filters = tb.Filters(
@@ -626,9 +634,9 @@ class FiltersCaseBloscLZ4HC(FiltersTreeTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 @common.unittest.skipIf('snappy' not in tb.blosc_compressor_list(),
-                 'snappy required')
+                        'snappy required')
 class FiltersCaseBloscSnappy(FiltersTreeTestCase):
     def setUp(self):
         self.filters = tb.Filters(
@@ -640,34 +648,42 @@ class FiltersCaseBloscSnappy(FiltersTreeTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@common.unittest.skipIf('zlib' not in tb.blosc_compressor_list(), 'zlib required')
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'zlib' not in tb.blosc_compressor_list(), 'zlib required')
 class FiltersCaseBloscZlib(FiltersTreeTestCase):
     def setUp(self):
-        self.filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:zlib")
-        self.gfilters = tb.Filters(complevel=5, shuffle=True, complib="blosc:zlib")
-        self.open_kwargs = dict(filters=self.filters)
-        super().setUp()
-
-
-@common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@common.unittest.skipIf('zstd' not in tb.blosc_compressor_list(), 'zstd required')
-class FiltersCaseBloscZstd(FiltersTreeTestCase):
-    def setUp(self):
-        self.filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:zstd")
-        self.gfilters = tb.Filters(complevel=5, shuffle=True, complib="blosc:zstd")
+        self.filters = tb.Filters(shuffle=False, complevel=1,
+                                  complib="blosc:zlib")
+        self.gfilters = tb.Filters(complevel=5, shuffle=True,
+                                   complib="blosc:zlib")
         self.open_kwargs = dict(filters=self.filters)
         super().setUp()
 
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf(common.blosc_version < common.min_blosc_bitshuffle_version,
-                        'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
+@common.unittest.skipIf(
+    'zstd' not in tb.blosc_compressor_list(), 'zstd required')
+class FiltersCaseBloscZstd(FiltersTreeTestCase):
+    def setUp(self):
+        self.filters = tb.Filters(shuffle=False, complevel=1,
+                                  complib="blosc:zstd")
+        self.gfilters = tb.Filters(complevel=5, shuffle=True,
+                                   complib="blosc:zstd")
+        self.open_kwargs = dict(filters=self.filters)
+        super().setUp()
+
+
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    common.blosc_version < common.min_blosc_bitshuffle_version,
+    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class FiltersCaseBloscBitShuffle(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:blosclz")
-    gfilters = tb.Filters(complevel=5, shuffle=False, bitshuffle=True, complib="blosc:blosclz")
+    gfilters = tb.Filters(complevel=5, shuffle=False, bitshuffle=True,
+                          complib="blosc:blosclz")
     open_kwargs = dict(filters=filters)
     # print("version:", tables.which_lib_version("blosc")[1])
 
@@ -727,8 +743,8 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
                 # Create a couple of EArrays as well
                 ea1 = self.h5file.create_earray(group2, 'earray1',
-                                                tb.StringAtom(itemsize=4), (0,),
-                                                "col 1")
+                                                tb.StringAtom(itemsize=4),
+                                                (0,), "col 1")
                 ea2 = self.h5file.create_earray(group2, 'earray2',
                                                 tb.Int16Atom(), (0,), "col 3")
                 # Add some user attrs:
@@ -765,8 +781,8 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Copy a group non-recursively
         srcgroup = self.h5file.root.group0.group1
-        #srcgroup._f_copy_children(self.h5file2.root, recursive=False,
-        #                          filters=self.filters)
+        # srcgroup._f_copy_children(self.h5file2.root, recursive=False,
+        #                           filters=self.filters)
         self.h5file.copy_children(srcgroup, self.h5file2.root,
                                   recursive=False, filters=self.filters)
         if self.close:
@@ -793,8 +809,8 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_nonRecursiveAttrs..." %
-                   self.__class__.__name__)
+            print(f"Running {self.__class__.__name__}"
+                  f".test01_nonRecursiveAttrs...")
 
         # Copy a group non-recursively with attrs
         srcgroup = self.h5file.root.group0.group1
@@ -829,10 +845,10 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
             # These lists should already be ordered
             if common.verbose:
-                print("srcattrskeys for node {}: {}".format(srcnode._v_name,
-                                                        srcattrskeys))
-                print("dstattrskeys for node {}: {}".format(dstnode._v_name,
-                                                        dstattrskeys))
+                print(f"srcattrskeys for node {srcnode._v_name}: "
+                      f"{srcattrskeys}")
+                print(f"dstattrskeys for node {dstnode._v_name}: "
+                      f"{dstattrskeys}")
             self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
                 print("The attrs names has been copied correctly")
@@ -909,8 +925,8 @@ class CopyGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_RecursiveFilters..." %
-                   self.__class__.__name__)
+            print(f"Running {self.__class__.__name__}"
+                  f".test03_RecursiveFilters...")
 
         # Create the destination node
         group = self.h5file2.root
@@ -1008,7 +1024,8 @@ class CopyGroupCase7(CopyGroupTestCase):
     dstnode = '/'
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class CopyGroupCase8(CopyGroupTestCase):
     close = 1
     filters = tb.Filters(complevel=1, complib="lzo")
@@ -1070,8 +1087,8 @@ class CopyFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
                 # Create a couple of EArrays as well
                 ea1 = self.h5file.create_earray(group2, 'earray1',
-                                                tb.StringAtom(itemsize=4), (0,),
-                                                "col 1")
+                                                tb.StringAtom(itemsize=4),
+                                                (0,), "col 1")
                 ea2 = self.h5file.create_earray(group2, 'earray2',
                                                 tb.Int16Atom(), (0,),
                                                 "col 3")
@@ -1235,10 +1252,10 @@ class CopyFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
             # These lists should already be ordered
             if common.verbose:
-                print("srcattrskeys for node {}: {}".format(srcnode._v_name,
-                                                        srcattrskeys))
-                print("dstattrskeys for node {}: {}".format(dstnode._v_name,
-                                                        dstattrskeys))
+                print(f"srcattrskeys for node {srcnode._v_name}: "
+                      f"{srcattrskeys}")
+                print(f"dstattrskeys for node {dstnode._v_name}: "
+                      f"{dstattrskeys}")
             self.assertEqual(srcattrskeys, dstattrskeys)
             if common.verbose:
                 print("The attrs names has been copied correctly")
@@ -1284,10 +1301,10 @@ class CopyFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
             dstattrskeys = dstattrs._f_list("all")
             # These lists should already be ordered
             if common.verbose:
-                print("srcattrskeys for node {}: {}".format(srcnode._v_name,
-                                                        srcattrskeys))
-                print("dstattrskeys for node {}: {}".format(dstnode._v_name,
-                                                        dstattrskeys))
+                print(f"srcattrskeys for node {srcnode._v_name}: "
+                      f"{srcattrskeys}")
+                print(f"dstattrskeys for node {dstnode._v_name}: "
+                      f"{dstattrskeys}")
 
             # Filters may differ, do not take into account
             if self.filters is not None:
@@ -1492,7 +1509,8 @@ class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail, 'BLOSC not available')
-class SetBloscMaxThreadsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SetBloscMaxThreadsTestCase(common.TempFileMixin,
+                                 common.PyTablesTestCase):
     filters = tb.Filters(complevel=4, complib="blosc")
 
     def test00(self):
@@ -1505,7 +1523,7 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(nthreads_old, self.h5file.params['MAX_BLOSC_THREADS'])
         self.h5file.create_carray('/', 'some_array',
                                   atom=tb.Int32Atom(), shape=(3, 3),
-                                  filters = self.filters)
+                                  filters=self.filters)
         nthreads_old = tb.set_blosc_max_threads(1)
         if common.verbose:
             print("Previous max threads:", nthreads_old)
@@ -1518,7 +1536,7 @@ class SetBloscMaxThreadsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nthreads_old = tb.set_blosc_max_threads(4)
         self.h5file.create_carray('/', 'some_array',
                                   atom=tb.Int32Atom(), shape=(3, 3),
-                                  filters = self.filters)
+                                  filters=self.filters)
         self._reopen()
         nthreads_old = tb.set_blosc_max_threads(4)
         if common.verbose:
@@ -1740,7 +1758,8 @@ class DefaultDriverTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(root.table2.cols.var2.dtype, tb.FloatCol().dtype)
 
 
-@common.unittest.skipIf(common.hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
+@common.unittest.skipIf(common.hdf5_version < "1.8.9",
+                        "requires HDF5 >= 1.8,9")
 class Sec2DriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_SEC2"
     open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
@@ -1751,7 +1770,8 @@ class Sec2DriverTestCase(DefaultDriverTestCase):
         self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
-@common.unittest.skipIf(common.hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
+@common.unittest.skipIf(common.hdf5_version < "1.8.9",
+                        "requires HDF5 >= 1.8,9")
 class StdioDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_STDIO"
     open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
@@ -1762,7 +1782,8 @@ class StdioDriverTestCase(DefaultDriverTestCase):
         self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
-@common.unittest.skipIf(common.hdf5_version < "1.8.9", "requires HDF5 >= 1.8,9")
+@common.unittest.skipIf(common.hdf5_version < "1.8.9",
+                        "requires HDF5 >= 1.8,9")
 class CoreDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_CORE"
     open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
@@ -1990,7 +2011,8 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
         # ensure that there is no change on the file on disk
         self.assertEqual(hexdigest, self._get_digest(self.h5fname))
 
-    @common.unittest.skipIf(common.hdf5_version < "1.8.9", 'HDF5 >= "1.8.9" required')
+    @common.unittest.skipIf(common.hdf5_version < "1.8.9",
+                            'HDF5 >= "1.8.9" required')
     def test_get_file_image(self):
         self.h5file = tb.open_file(self.h5fname, mode="w",
                                    driver=self.DRIVER,
@@ -2029,7 +2051,7 @@ class SplitDriverTestCase(DefaultDriverTestCase):
         for fname in self.h5fnames:
             if Path(fname).is_file():
                 Path(fname).unlink()
-        #super().tearDown()
+        # super().tearDown()
         common.PyTablesTestCase.tearDown(self)
 
     def assertIsFile(self):
@@ -2132,7 +2154,8 @@ class StreamDriverTestCase(NotSpportedDriverTestCase):
     DRIVER = "H5FD_STREAM"
 
 
-@common.unittest.skipIf(common.hdf5_version < "1.8.9", 'HDF5 >= "1.8.9" required')
+@common.unittest.skipIf(common.hdf5_version < "1.8.9",
+                        'HDF5 >= "1.8.9" required')
 class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
     DRIVER = "H5FD_CORE"
 
@@ -2390,8 +2413,8 @@ class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
 
         self.h5file.create_array(self.h5file.root, 'array', [1, 2],
                                  title="Array")
-        self.h5file.create_table(self.h5file.root, 'table', {'var1': tb.IntCol()},
-                                 "Table")
+        self.h5file.create_table(self.h5file.root, 'table',
+                                 {'var1': tb.IntCol()}, "Table")
         self.h5file.root._v_attrs.testattr = 41
 
         # ensure that the __str__ method works even if there is no phisical
@@ -2429,7 +2452,7 @@ class QuantizeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def populateFile(self):
         root = self.h5file.root
         filters = tb.Filters(complevel=1, complib="blosc",
-                          least_significant_digit=1)
+                             least_significant_digit=1)
         ints = self.h5file.create_carray(root, "integers", tb.Int64Atom(),
                                          (1_000_000,), filters=filters)
         ints[:] = self.randomints
@@ -2440,17 +2463,17 @@ class QuantizeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                           (41,), filters=filters)
         data1[:] = self.data
         filters = tb.Filters(complevel=1, complib="blosc",
-                          least_significant_digit=0)
+                             least_significant_digit=0)
         data0 = self.h5file.create_carray(root, "data0", tb.Float64Atom(),
                                           (41,), filters=filters)
         data0[:] = self.data
         filters = tb.Filters(complevel=1, complib="blosc",
-                          least_significant_digit=2)
+                             least_significant_digit=2)
         data2 = self.h5file.create_carray(root, "data2", tb.Float64Atom(),
                                           (41,), filters=filters)
         data2[:] = self.data
         filters = tb.Filters(complevel=1, complib="blosc",
-                          least_significant_digit=-1)
+                             least_significant_digit=-1)
         datam1 = self.h5file.create_carray(root, "datam1", tb.Float64Atom(),
                                            (41,), filters=filters)
         datam1[:] = self.data
@@ -2475,16 +2498,10 @@ class QuantizeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         quantized_2 = tb.utils.quantize(self.randomdata, 2)
         quantized_m1 = tb.utils.quantize(self.randomdata, -1)
 
-        # assertLess is new in Python 2.7
-        #self.assertLess(numpy.abs(quantized_0 - self.randomdata).max(), 0.5)
-        #self.assertLess(numpy.abs(quantized_1 - self.randomdata).max(), 0.05)
-        #self.assertLess(numpy.abs(quantized_2 - self.randomdata).max(), 0.005)
-        #self.assertLess(numpy.abs(quantized_m1 - self.randomdata).max(), 1.)
-
-        self.assertTrue(np.abs(quantized_0 - self.randomdata).max() < 0.5)
-        self.assertTrue(np.abs(quantized_1 - self.randomdata).max() < 0.05)
-        self.assertTrue(np.abs(quantized_2 - self.randomdata).max() < 0.005)
-        self.assertTrue(np.abs(quantized_m1 - self.randomdata).max() < 1.)
+        self.assertLess(np.abs(quantized_0 - self.randomdata).max(), 0.5)
+        self.assertLess(np.abs(quantized_1 - self.randomdata).max(), 0.05)
+        self.assertLess(np.abs(quantized_2 - self.randomdata).max(), 0.005)
+        self.assertLess(np.abs(quantized_m1 - self.randomdata).max(), 1.)
 
     def test02_array(self):
         """Checking quantized data as written to disk."""
@@ -2501,14 +2518,8 @@ class QuantizeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(self.h5file.root.integers[:].dtype,
                          self.randomints.dtype)
 
-        # assertLess is new in Python 2.7
-        #self.assertLess(
-        #    numpy.abs(self.h5file.root.floats[:] - self.randomdata).max(),
-        #    0.05
-        #)
-        self.assertTrue(
-            np.abs(self.h5file.root.floats[:] - self.randomdata).max() < 0.05
-        )
+        self.assertLess(
+            np.abs(self.h5file.root.floats[:] - self.randomdata).max(), 0.05)
 
 
 def suite():
@@ -2542,7 +2553,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(Sec2DriverTestCase))
         theSuite.addTest(common.unittest.makeSuite(StdioDriverTestCase))
         theSuite.addTest(common.unittest.makeSuite(CoreDriverTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CoreDriverNoBackingStoreTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            CoreDriverNoBackingStoreTestCase))
         theSuite.addTest(common.unittest.makeSuite(SplitDriverTestCase))
 
         theSuite.addTest(common.unittest.makeSuite(LogDriverTestCase))

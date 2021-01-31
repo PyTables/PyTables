@@ -68,25 +68,27 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen(mode='r+', node_cache_slots=self.node_cache_slots)
             self.root = self.h5file.root
 
-    def check_missing(self,name):
+    def check_missing(self, name):
         self.reopen()
         self.assertNotIn(name, self.root.agroup._v_attrs)
         self.assertNotIn(name, self.root.atable.attrs)
         self.assertNotIn(name, self.root.anarray.attrs)
 
-
-    def check_name(self, name, val = ''):
+    def check_name(self, name, val=''):
         """Check validity of attribute name filtering"""
         self.check_missing(name)
         # Using File methods
         self.h5file.set_node_attr(self.root.agroup, name, val)
         self.h5file.set_node_attr(self.root.atable, name, val)
         self.h5file.set_node_attr(self.root.anarray, name, val)
-         # Check File methods
+        # Check File methods
         self.reopen()
-        self.assertEqual(self.h5file.get_node_attr(self.root.agroup, name),val)
-        self.assertEqual(self.h5file.get_node_attr(self.root.atable, name),val)
-        self.assertEqual(self.h5file.get_node_attr(self.root.anarray, name),val)
+        self.assertEqual(self.h5file.get_node_attr(self.root.agroup, name),
+                         val)
+        self.assertEqual(self.h5file.get_node_attr(self.root.atable, name),
+                         val)
+        self.assertEqual(self.h5file.get_node_attr(self.root.anarray, name),
+                         val)
         # Remove, file methods
         self.h5file.del_node_attr(self.root.agroup, name)
         self.h5file.del_node_attr(self.root.atable, name)
@@ -116,15 +118,15 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(getattr(self.root.agroup._v_attrs, name), val)
         self.assertEqual(getattr(self.root.atable.attrs, name), val)
         self.assertEqual(getattr(self.root.anarray.attrs, name), val)
-        delattr(self.root.agroup._v_attrs,name)
+        delattr(self.root.agroup._v_attrs, name)
         delattr(self.root.atable.attrs, name)
         delattr(self.root.anarray.attrs, name)
         self.check_missing(name)
 
         # Using dict []
-        self.root.agroup._v_attrs[name]=val
-        self.root.atable.attrs[name]=val
-        self.root.anarray.attrs[name]=val
+        self.root.agroup._v_attrs[name] = val
+        self.root.atable.attrs[name] = val
+        self.root.anarray.attrs[name] = val
         # Check dict []
         self.reopen()
         self.assertEqual(self.root.agroup._v_attrs[name], val)
@@ -591,7 +593,8 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         np.testing.assert_array_equal(self.array.attrs['a'], data)
         np.testing.assert_array_equal(self.array.attrs['b'], data.T)
-        np.testing.assert_array_equal(self.array.attrs['c'], data.T)  # AssertionError!
+        # AssertionError:
+        np.testing.assert_array_equal(self.array.attrs['c'], data.T)
 
     def test12_dir(self):
         """Checking AttributeSet.__dir__"""
@@ -616,20 +619,17 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         completions = dir(attrset)
 
-        ## Check some regular attributes.
-        #
+        # Check some regular attributes.
         self.assertIn('__class__', completions)
         self.assertIn('_f_copy', completions)
         self.assertEqual(completions.count('_f_copy'), 1)
 
-        ## Check SYS attrs.
-        #
+        # Check SYS attrs.
         self.assertNotIn(bad_sys, completions)
         self.assertIn(sys_attr, completions)
         self.assertEqual(completions.count(sys_attr), 1)
 
-        ## Check USER attrs.
-        #
+        # Check USER attrs.
         self.assertIn(user_attr, completions)
         self.assertNotIn(bad_user, completions)
         self.assertEqual(completions.count(user_attr), 1)
@@ -894,7 +894,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if common.verbose:
                 print("type, value-->", dtype,
                       getattr(self.array.attrs, dtype))
-            np.testing.assert_array_equal(getattr(self.array.attrs, dtype), arr)
+            np.testing.assert_array_equal(getattr(self.array.attrs, dtype),
+                                          arr)
 
     def test01e_setIntAttributes(self):
         """Checking setting Int attributes (bidimensional NumPy case)"""
@@ -1549,7 +1550,8 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                       np.array([(([1, 3], 2),)], dt))
 
     def test08_setRecArrayNotAllowPadding(self):
-        """Checking setting aligned RecArray (NumPy) attributes with `allow_aligned` param set to False when reopen."""
+        """Checking setting aligned RecArray (NumPy) attributes with
+        `allow_aligned` param set to False when reopen."""
 
         dt = np.dtype('i4,f8', align=self.aligned)
         # Set some attrs
@@ -1607,6 +1609,7 @@ class CloseAlignedTypesTestCase(TypesTestCase):
     allow_padding = False
     aligned = True
     close = True
+
 
 class CloseAlignedPaddedTypesTestCase(TypesTestCase):
     allow_padding = True
@@ -1709,7 +1712,8 @@ class CompatibilityTestCase(common.TestFileMixin, common.PyTablesTestCase):
             self.h5file.get_node_attr('/', 'py2_pickled_unicode'), 'abc')
 
 
-class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, common.PyTablesTestCase):
+class PicklePy2UnpicklePy3TestCase(common.TestFileMixin,
+                                   common.PyTablesTestCase):
     h5fname = common.test_filename('issue_560.h5')
 
     def test_pickled_datetime_object(self):
@@ -1732,6 +1736,7 @@ class PicklePy2UnpicklePy3TestCase(common.TestFileMixin, common.PyTablesTestCase
         d = self.h5file.get_node_attr('/', 'py2_pickled_dict')
         self.assertIsInstance(d, dict)
         self.assertEqual(d['s'], 'just a string')
+
 
 class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
@@ -1813,7 +1818,8 @@ class VlenStrAttrTestCase(common.PyTablesTestCase):
                 self.assertEqual(item, value.encode('ascii'))
 
 
-class UnsupportedAttrTypeTestCase(common.TestFileMixin, common.PyTablesTestCase):
+class UnsupportedAttrTypeTestCase(common.TestFileMixin,
+                                  common.PyTablesTestCase):
     h5fname = common.test_filename('attr-u16.h5')
 
     def test00_unsupportedType(self):
@@ -1857,18 +1863,23 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(DictCacheCloseCreate))
         theSuite.addTest(common.unittest.makeSuite(NotCloseTypesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CloseTypesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CloseNotAlignedPaddedTypesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(NoCloseAlignedTypesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            CloseNotAlignedPaddedTypesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            NoCloseAlignedTypesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CloseAlignedTypesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CloseAlignedPaddedTypesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            CloseAlignedPaddedTypesTestCase))
         theSuite.addTest(common.unittest.makeSuite(NoSysAttrsNotClose))
         theSuite.addTest(common.unittest.makeSuite(NoSysAttrsClose))
         theSuite.addTest(common.unittest.makeSuite(CompatibilityTestCase))
-        theSuite.addTest(common.unittest.makeSuite(PicklePy2UnpicklePy3TestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            PicklePy2UnpicklePy3TestCase))
         theSuite.addTest(common.unittest.makeSuite(SegFaultPythonTestCase))
         theSuite.addTest(common.unittest.makeSuite(EmbeddedNullsTestCase))
         theSuite.addTest(common.unittest.makeSuite(VlenStrAttrTestCase))
-        theSuite.addTest(common.unittest.makeSuite(UnsupportedAttrTypeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            UnsupportedAttrTypeTestCase))
         theSuite.addTest(common.unittest.makeSuite(SpecificAttrsTestCase))
 
     return theSuite

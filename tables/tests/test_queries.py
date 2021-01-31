@@ -81,11 +81,9 @@ if hasattr(np, 'float16'):
 # if hasattr(numpy, 'complex256'):
 #    type_info['complex256'] = (numpy.complex256, complex)
 
-sctype_from_type = {type_: info[0]
-                        for (type_, info) in type_info.items()}
+sctype_from_type = {type_: info[0] for (type_, info) in type_info.items()}
 """Maps PyTables types to NumPy scalar types."""
-nxtype_from_type = {type_: info[1]
-                        for (type_, info) in type_info.items()}
+nxtype_from_type = {type_: info[1] for (type_, info) in type_info.items()}
 """Maps PyTables types to Numexpr types."""
 
 heavy_types = frozenset(['uint8', 'int16', 'uint16', 'float32', 'complex64'])
@@ -163,6 +161,7 @@ def table_description(classname, nclassname, shape=()):
     colpos += 1
 
     return type(classname, (tb.IsDescription,), classdict)
+
 
 TableDescription = table_description(
     'TableDescription', 'NestedDescription')
@@ -269,7 +268,8 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
             return
         try:
             kind = self.kind
-            common.verbosePrint(f"* Indexing ``{colname}`` columns. Type: {kind}.")
+            common.verbosePrint(
+                f"* Indexing ``{colname}`` columns. Type: {kind}.")
             for acolname in [colname, ncolname, extracolname]:
                 acolumn = self.table.colinstances[acolname]
                 acolumn.create_index(
@@ -429,8 +429,8 @@ def create_test_method(type_, op, extracond, func=None):
             pyrownos = np.array(pyrownos)  # row numbers already sorted
             pyfvalues = np.array(pyfvalues, dtype=sctype)
             pyfvalues.sort()
-            common.verbosePrint("* %d rows selected by Python from ``%s``."
-                   % (len(pyrownos), acolname))
+            common.verbosePrint(f"* {len(pyrownos)} rows selected by Python "
+                                f"from ``{acolname}``.")
             if rownos is None:
                 rownos = pyrownos  # initialise reference results
                 fvalues = pyfvalues
@@ -463,9 +463,9 @@ def create_test_method(type_, op, extracond, func=None):
                     "The PyTables type does not support the operation.")
             for ptfvals in ptfvalues:  # row numbers already sorted
                 ptfvals.sort()
-            common.verbosePrint("* %d rows selected by PyTables from ``%s``"
-                   % (len(ptrownos[0]), acolname), nonl=True)
-            common.verbosePrint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
+            common.verbosePrint(f"* {len(ptrownos[0])} rows selected by "
+                                f"PyTables from ``{acolname}``", nonl=True)
+            common.verbosePrint(f"(indexing: {'yes' if isidxq else 'no'}).")
             self.assertTrue(np.all(ptrownos[0] == rownos))
             self.assertTrue(np.all(ptfvalues[0] == fvalues))
             # The following test possible caching of query results.
@@ -482,18 +482,16 @@ def add_test_method(type_, op, extracond='', func=None):
     heavy = type_ in heavy_types or op in heavy_operators
     if heavy:
         testfmt = TableDataTestCase._testfmt_heavy
-        numfmt = ' [#H%d]'
     else:
         testfmt = TableDataTestCase._testfmt_light
-        numfmt = ' [#L%d]'
     tmethod = create_test_method(type_, op, extracond, func)
     # The test number is appended to the docstring to help
     # identify failing methods in non-verbose mode.
     tmethod.__name__ = testfmt % testn
-    # tmethod.__doc__ += numfmt % testn
     tmethod.__doc__ += testfmt % testn
     setattr(TableDataTestCase, tmethod.__name__, tmethod)
     testn += 1
+
 
 # Create individual tests.  You may restrict which tests are generated
 # by replacing the sequences in the ``for`` statements.  For instance:
@@ -524,6 +522,7 @@ class BigNITableMixin:
     assert nrows > NX_BLOCK_SIZE1 + NX_BLOCK_SIZE2
     assert nrows % NX_BLOCK_SIZE1 != 0
     assert nrows % NX_BLOCK_SIZE2 != 0  # to have some residual rows
+
 
 # Parameters for non-indexed queries.
 table_sizes = ['Small', 'Big']
@@ -579,6 +578,7 @@ class MediumSTableMixin:
 class BigSTableMixin:
     nrows = 500
 
+
 # Parameters for indexed queries.
 ckinds = ['UltraLight', 'Light', 'Medium', 'Full']
 itable_sizes = ['Small', 'Medium', 'Big']
@@ -624,6 +624,7 @@ for cdatafunc in [niclassdata, iclassdata]:
 # -------------------------
 class BaseTableUsageTestCase(BaseTableQueryTestCase):
     nrows = row_period
+
 
 _gvar = None
 """Use this when a global variable is needed."""
@@ -801,27 +802,27 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
         for condition in self.conditions:
             c_usable_idxs = self.will_query_use_indexing(condition, {})
             self.assertEqual(c_usable_idxs, self.usable_idxs,
-                             "\nQuery with condition: ``%s``\n"
-                             "Computed usable indexes are: ``%s``\n"
-                             "and should be: ``%s``" %
-                            (condition, c_usable_idxs, self.usable_idxs))
+                             f"\nQuery with condition: ``{condition}``\n"
+                             f"Computed usable indexes are: "
+                             f"``{c_usable_idxs}``\nand should be: "
+                             f"``{self.usable_idxs}``")
             condvars = self.requiredExprVars(condition, None)
             compiled = self.compileCondition(condition, condvars)
             c_idx_expr = compiled.index_expressions
             self.assertEqual(c_idx_expr, self.idx_expr,
-                             "\nWrong index expression in condition:\n``%s``\n"
-                             "Compiled index expression is:\n``%s``\n"
-                             "and should be:\n``%s``" %
-                            (condition, c_idx_expr, self.idx_expr))
+                             f"\nWrong index expression in condition:\n"
+                             f"``{condition}``\nCompiled index expression is:"
+                             f"\n``{c_idx_expr}``\nand should be:\n"
+                             f"``{self.idx_expr}``")
             c_str_expr = compiled.string_expression
             self.assertEqual(c_str_expr, self.str_expr,
-                             "\nWrong index operations in condition:\n``%s``\n"
-                             "Computed index operations are:\n``%s``\n"
-                             "and should be:\n``%s``" %
-                            (condition, c_str_expr, self.str_expr))
-            common.verbosePrint("* Query with condition ``%s`` will use "
-                   "variables ``%s`` for indexing."
-                   % (condition, compiled.index_variables))
+                             f"\nWrong index operations in condition:\n"
+                             f"``{condition}``\nComputed index operations are:"
+                             f"\n``{c_str_expr}``\nand should be:\n"
+                             f"``{self.str_expr}``")
+            common.verbosePrint(
+                f"* Query with condition ``{condition}`` will use variables "
+                f"``{compiled.index_variables}`` for indexing.")
 
 
 class IndexedTableUsage1(IndexedTableUsage):
@@ -1240,7 +1241,8 @@ def suite():
             for cdata in cdatafunc():
                 class_ = eval(cdata[0])
                 if heavy or not class_.heavy:
-                    suite_ = common.unittest.makeSuite(class_, prefix=autoprefix)
+                    suite_ = common.unittest.makeSuite(class_,
+                                                       prefix=autoprefix)
                     testSuite.addTest(suite_)
         # Tests on query usage.
         testSuite.addTest(common.unittest.makeSuite(ScalarTableUsageTestCase))

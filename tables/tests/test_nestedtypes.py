@@ -63,6 +63,7 @@ class TestTDescr(tb.IsDescription):
             name = tb.StringCol(itemsize=2)
             value = tb.ComplexCol(itemsize=16, shape=2)
 
+
 # The corresponding nested array description:
 testADescr = [
     ('x', '(2,)int32'),
@@ -497,10 +498,10 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._testAData['x'].copy(),
             self._testAData['color'].copy()],
             dtype=[('x', '(2,)i4'), ('color', 'a2')])
-            # descr=tbl.description._v_nested_descr[0:2])
-            # or...
-            # names=tbl.description._v_nested_names[0:2],
-            # formats=tbl.description._v_nested_formats[0:2])
+        # descr=tbl.description._v_nested_descr[0:2])
+        # or...
+        # names=tbl.description._v_nested_names[0:2],
+        # formats=tbl.description._v_nested_formats[0:2])
         (raCols[0], raCols[-1]) = (raCols[-1].copy(), raCols[0].copy())
 
         # Write the resulting columns
@@ -1197,6 +1198,7 @@ class C_Candidate(tb.IsDescription):
     nested1 = Nested()
     nested2 = Nested
 
+
 Dnested = {
     'uid': tb.IntCol(pos=1),
     'value': tb.FloatCol(pos=2),
@@ -1502,11 +1504,3 @@ if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
     common.unittest.main(defaultTest='suite')
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

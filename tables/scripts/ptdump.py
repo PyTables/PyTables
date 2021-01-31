@@ -77,7 +77,6 @@ def dump_leaf(leaf):
                 print(repr(idx))
 
 
-
 def dump_group(pgroup, sort=False):
     node_kinds = pgroup._v_file._node_kinds[1:]
     what = pgroup._f_walk_groups()
@@ -93,8 +92,6 @@ def dump_group(pgroup, sort=False):
                     dump_leaf(node)
                 else:
                     print(str(node))
-
-
 
 
 def _get_parser():
@@ -184,4 +181,3 @@ def main():
         else:
             # This should never happen
             print("Unrecognized object:", nodeobject)
-

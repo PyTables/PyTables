@@ -149,7 +149,7 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
     # The description used in the test Table.
     class MyTimeRow(tb.IsDescription):
         t32col = tb.Time32Col(pos=0)
-        t64col = tb.Time64Col(shape=(2,), pos = 1)
+        t64col = tb.Time64Col(shape=(2,), pos=1)
 
     # The atoms used in the test VLArrays.
     myTime32Atom = tb.Time32Atom(shape=(2,))
@@ -281,8 +281,9 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['t64col'][:])
-        self.assertTrue(common.allequal(recarr['t64col'][:], orig_val, np.float64),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            common.allequal(recarr['t64col'][:], orig_val, np.float64),
+            "Stored and retrieved values do not match.")
 
     def test03_Compare64EArray(self):
         """Comparing written 64-bit time data with read data in an EArray."""
@@ -341,7 +342,7 @@ class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     class MyTimeRow(tb.IsDescription):
         i8col = tb.Int8Col(pos=0)
         t32col = tb.Time32Col(pos=1)
-        t64col = tb.Time64Col(shape=(2,), pos = 2)
+        t64col = tb.Time64Col(shape=(2,), pos=2)
 
     def test00_CompareTable(self):
         """Comparing written unaligned time data with read data in a Table."""
@@ -391,8 +392,9 @@ class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['t64col'][:])
-        self.assertTrue(common.allequal(recarr['t64col'][:], orig_val, np.float64),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(common.allequal(
+            recarr['t64col'][:], orig_val, np.float64),
+            "Stored and retrieved values do not match.")
 
 
 class BigEndianTestCase(common.PyTablesTestCase):
@@ -520,10 +522,3 @@ if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
     common.unittest.main(defaultTest='suite')
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## End:

@@ -7,7 +7,7 @@ import tables as tb
 from tables.tests import common
 
 
-#warnings.resetwarnings()
+# warnings.resetwarnings()
 
 
 class BasicTestCase(common.PyTablesTestCase):
@@ -607,7 +607,8 @@ class ReadOutArgumentTests(common.TempFileMixin, common.PyTablesTestCase):
             self.assertIn('output array size invalid, got', str(exc))
 
 
-class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
+                                         common.PyTablesTestCase):
 
     def setUp(self):
         super().setUp()
@@ -620,7 +621,8 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, common.PyTablesTe
         self.assertEqual(self.array.size_in_memory, 10 * 10 * 4)
 
 
-class UnalignedAndComplexTestCase(common.TempFileMixin, common.PyTablesTestCase):
+class UnalignedAndComplexTestCase(common.TempFileMixin,
+                                  common.PyTablesTestCase):
     """Basic test for all the supported typecodes present in numpy.
 
     Most of them are included on PyTables.
@@ -675,7 +677,8 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, common.PyTablesTestCase)
         if a.dtype.byteorder != "|":
             self.assertEqual(a.dtype, b.dtype)
             self.assertEqual(a.dtype, self.root.somearray.atom.dtype)
-            self.assertEqual(tb.utils.byteorders[b.dtype.byteorder], sys.byteorder)
+            self.assertEqual(tb.utils.byteorders[b.dtype.byteorder],
+                             sys.byteorder)
             self.assertEqual(self.root.somearray.byteorder, byteorder)
 
         self.assertTrue(common.allequal(c, b))
@@ -2214,15 +2217,15 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
 
-        M, N, O = self.shape
+        m, n, o = self.shape
 
         # The next are valid selections for both NumPy and PyTables
         self.working_keyset = [
-            ([1, 3], slice(1, N-1), 2),
-            ([M-1, 1, 3, 2], slice(None), 2),  # unordered lists supported
-            (slice(M), [N-1, 1, 0], slice(None)),
-            (slice(1, M, 3), slice(1, N), [O-1, 1, 0]),
-            (M-1, [2, 1], 1),
+            ([1, 3], slice(1, n-1), 2),
+            ([m-1, 1, 3, 2], slice(None), 2),  # unordered lists supported
+            (slice(m), [n-1, 1, 0], slice(None)),
+            (slice(1, m, 3), slice(1, n), [o-1, 1, 0]),
+            (m-1, [2, 1], 1),
             (1, 2, 1),              # regular selection
             ([1, 2], -2, -1),     # negative indices
             ([1, -2], 2, -1),     # more negative indices
@@ -2236,9 +2239,9 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Using booleans instead of ints is deprecated since numpy 1.8
         # Tests for keys that have to support the __index__ attribute
-        #self.working_keyset.append(
-        #    (False, True),  # equivalent to (0,1) ;-)
-        #)
+        # self.working_keyset.append(
+        #     (False, True),  # equivalent to (0,1) ;-)
+        # )
 
         # Valid selections for NumPy, but not for PyTables (yet)
         # The next should raise an IndexError
@@ -2265,8 +2268,8 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create a sample array
         nparr = np.empty(self.shape, dtype=np.int32)
-        data = np.arange(N * O, dtype=np.int32).reshape(N, O)
-        for i in range(M):
+        data = np.arange(n * o, dtype=np.int32).reshape(n, o)
+        for i in range(m):
             nparr[i] = data * i
         self.nparr = nparr
         self.tbarr = self.h5file.create_array(self.h5file.root, 'array', nparr)
@@ -2442,7 +2445,7 @@ class BroadcastTest(common.TempFileMixin, common.PyTablesTestCase):
         dtype = np.dtype((np.int, element_shape))
         atom = tb.Atom.from_dtype(dtype)
         h5arr = self.h5file.create_array(self.h5file.root, 'array',
-                                          atom=atom, shape=array_shape)
+                                         atom=atom, shape=array_shape)
 
         size = np.prod(element_shape)
         nparr = np.arange(size).reshape(element_shape)
@@ -2527,7 +2530,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         ptarr = self.h5file.create_array(self.where, self.name,
                                          title=self.title,
                                          atom=self.atom, shape=self.shape)
-        #ptarr[...] = self.obj
+        # ptarr[...] = self.obj
         self.h5file.close()
 
         self.h5file = tb.open_file(self.h5fname)
@@ -2594,7 +2597,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_kwargs_obj_atom_error(self):
         atom = tb.Atom.from_dtype(np.dtype('complex'))
-        #shape = self.shape + self.shape
+        # shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
                           self.where,
@@ -2604,7 +2607,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           atom=atom)
 
     def test_kwargs_obj_shape_error(self):
-        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        # atom = Atom.from_dtype(numpy.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
@@ -2616,7 +2619,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_kwargs_obj_atom_shape_error_01(self):
         atom = tb.Atom.from_dtype(np.dtype('complex'))
-        #shape = self.shape + self.shape
+        # shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
                           self.where,
@@ -2627,7 +2630,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           shape=self.shape)
 
     def test_kwargs_obj_atom_shape_error_02(self):
-        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        # atom = Atom.from_dtype(numpy.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
@@ -2672,10 +2675,14 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(
             SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(common.unittest.makeSuite(GroupsArrayTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ComplexNotReopenNotEndianTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ComplexReopenNotEndianTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ComplexNotReopenEndianTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ComplexReopenEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexNotReopenNotEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexReopenNotEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexNotReopenEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexReopenEndianTestCase))
         theSuite.addTest(common.unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex1TestCase))

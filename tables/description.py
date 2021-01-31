@@ -21,7 +21,6 @@ from . import atom
 from .path import check_name_validity
 
 
-
 # Public variables
 # ================
 __docformat__ = 'reStructuredText'
@@ -263,10 +262,11 @@ def _generate_col_classes():
         newclass = Col._subclass_from_prefix(cprefix)
         yield newclass
 
+
 # Create all column classes.
-#for _newclass in _generate_col_classes():
-#    exec('%s = _newclass' % _newclass.__name__)
-#del _newclass
+# for _newclass in _generate_col_classes():
+#     exec('%s = _newclass' % _newclass.__name__)
+# del _newclass
 
 StringCol = Col._subclass_from_prefix('String')
 BoolCol = Col._subclass_from_prefix('Bool')
@@ -430,9 +430,9 @@ class Description:
 
     .. attribute:: _v_offsets
 
-        A list of offsets for all the columns.  If the list is empty, means that
-        there are no padding in the data structure.  However, the support for
-        offsets is currently limited to flat tables; for nested tables, the
+        A list of offsets for all the columns.  If the list is empty, means
+        that there are no padding in the data structure.  However, the support
+        for offsets is currently limited to flat tables; for nested tables, the
         potential padding is always removed (exactly the same as in pre-3.5
         versions), and this variable is set to empty.
 
@@ -443,7 +443,6 @@ class Description:
            types (non-nested) are honored and replicated during dataset
            and attribute copies.
     """
-
 
     def __init__(self, classdict, nestedlvl=-1, validate=True, ptparams=None):
 
@@ -503,7 +502,8 @@ class Description:
             # provided by the user will remain unchanged even if we
             # tamper with the values of ``_v_pos`` here.
             if columns is not None:
-                descr = Description(copy.copy(columns), self._v_nestedlvl, ptparams=ptparams)
+                descr = Description(copy.copy(columns), self._v_nestedlvl,
+                                    ptparams=ptparams)
             classdict[name] = descr
 
             pos = getattr(descr, '_v_pos', None)
@@ -574,19 +574,24 @@ class Description:
         #     traceback.print_stack()
 
         # Check whether we are gonna use padding or not.  Two possibilities:
-        #   1) Make padding True by default (except if ALLOW_PADDING is set to False)
-        #   2) Make padding False by default (except if ALLOW_PADDING is set to True)
-        # Currently we choose 1) because it favours honoring padding even on unhandled situations (should be very few).
-        # However, for development, option 2) is recommended as it catches most of the unhandled situations.
-        allow_padding = False if ptparams is not None and not ptparams['ALLOW_PADDING'] else True
-        # allow_padding = True if ptparams is not None and ptparams['ALLOW_PADDING'] else False
+        #   1) Make padding True by default (except if ALLOW_PADDING is set
+        #      to False)
+        #   2) Make padding False by default (except if ALLOW_PADDING is set
+        #       to True)
+        # Currently we choose 1) because it favours honoring padding even on
+        # unhandled situations (should be very few).
+        # However, for development, option 2) is recommended as it catches
+        # most of the unhandled situations.
+        allow_padding = ptparams is None or ptparams['ALLOW_PADDING']
+        # allow_padding = ptparams is not None and ptparams['ALLOW_PADDING']
         if (allow_padding and
                 len(cols_offsets) > 1 and
                 len(keys) == len(cols_with_pos) and
                 len(keys) == len(cols_offsets) and
                 not nested):  # TODO: support offsets with nested types
-            # We have to sort the offsets too, as they must follow the column order.
-            # As the offsets and the pos should be place in the same order, a single sort is enough here.
+            # We have to sort the offsets too, as they must follow the column
+            # order. As the offsets and the pos should be place in the same
+            # order, a single sort is enough here.
             cols_offsets.sort()
             valid_offsets = True
         else:
@@ -615,14 +620,13 @@ class Description:
                 'offsets': cols_offsets}
             itemsize = newdict.get('_v_itemsize', None)
             if itemsize is not None:
-              dtype_fields['itemsize'] = itemsize
+                dtype_fields['itemsize'] = itemsize
             dtype = np.dtype(dtype_fields)
         else:
             dtype = np.dtype(nestedDType)
         newdict['_v_dtype'] = dtype
         newdict['_v_itemsize'] = dtype.itemsize
         newdict['_v_offsets'] = [dtype.fields[name][1] for name in dtype.names]
-
 
     def _g_set_nested_names_descr(self):
         """Computes the nested names and descriptions for nested datatypes."""
@@ -640,7 +644,6 @@ class Description:
                 self._v_nested_descr[i] = (name, new_object._v_nested_descr)
                 # set the _v_is_nested flag
                 self._v_is_nested = True
-
 
     def _g_set_path_names(self):
         """Compute the pathnames for arbitrary nested descriptions.
@@ -718,7 +721,6 @@ class Description:
                     parentCols.extend(colPaths)
                 # (Nothing is pushed, we are done with this description.)
 
-
     def _f_walk(self, type='All'):
         """Iterate over nested columns.
 
@@ -781,7 +783,6 @@ class MetaIsDescription(type):
 
         # Return a new class with the "columns" attribute filled
         return type.__new__(mcs, classname, bases, newdict)
-
 
 
 class IsDescription(metaclass=MetaIsDescription):
@@ -993,10 +994,3 @@ if __name__ == "__main__":
         pass
 
     assert 'c' in testDesc.columns
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

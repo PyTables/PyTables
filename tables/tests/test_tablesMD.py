@@ -11,30 +11,30 @@ from tables.tests import common
 
 # Test Record class
 class Record(tb.IsDescription):
-    var0 = tb.StringCol(itemsize=4, dflt=b"", shape=2)  # 4-character string array
+    var0 = tb.StringCol(itemsize=4, dflt=b"", shape=2)  # 4-char str array
     var1 = tb.StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2))
     var1_ = tb.IntCol(dflt=((1, 1),), shape=2)           # integer array
     var2 = tb.IntCol(dflt=((1, 1), (1, 1)), shape=(2, 2))  # integer array
-    var3 = tb.Int16Col(dflt=2)                         # short integer
-    var4 = tb.FloatCol(dflt=3.1)                       # double (double-precision)
-    var5 = tb.Float32Col(dflt=4.2)                     # float  (single-precision)
-    var6 = tb.UInt16Col(dflt=5)                        # unsigned short integer
-    var7 = tb.StringCol(itemsize=1, dflt=b"e")          # 1-character String
+    var3 = tb.Int16Col(dflt=2)  # short integer
+    var4 = tb.FloatCol(dflt=3.1)  # double (double-precision)
+    var5 = tb.Float32Col(dflt=4.2)  # float  (single-precision)
+    var6 = tb.UInt16Col(dflt=5)  # unsigned short integer
+    var7 = tb.StringCol(itemsize=1, dflt=b"e")  # 1-character String
+
 
 #  Dictionary definition
 RecordDescriptionDict = {
-    'var0': tb.StringCol(itemsize=4, dflt=b"", shape=2),  # 4-character string
-                                                       # array
+    'var0': tb.StringCol(itemsize=4, dflt=b"", shape=2),  # 4-char str array
     'var1': tb.StringCol(itemsize=4, dflt=[b"abcd", b"efgh"], shape=(2, 2)),
-    #'var0': StringCol(itemsize=4, shape=2),       # 4-character String
-    #'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
-    'var1_': tb.IntCol(shape=2),                      # integer array
-    'var2': tb.IntCol(shape=(2, 2)),                  # integer array
-    'var3': tb.Int16Col(),                           # short integer
-    'var4': tb.FloatCol(),                           # double (double-precision)
-    'var5': tb.Float32Col(),                         # float  (single-precision)
-    'var6': tb.Int16Col(),                           # unsigned short integer
-    'var7': tb.StringCol(itemsize=1),                # 1-character String
+    # 'var0': StringCol(itemsize=4, shape=2),  # 4-character String
+    # 'var1': StringCol(itemsize=4, shape=(2,2)),  # 4-character String
+    'var1_': tb.IntCol(shape=2),  # integer array
+    'var2': tb.IntCol(shape=(2, 2)),  # integer array
+    'var3': tb.Int16Col(),  # short integer
+    'var4': tb.FloatCol(),  # double (double-precision)
+    'var5': tb.Float32Col(),  # float  (single-precision)
+    'var6': tb.Int16Col(),  # unsigned short integer
+    'var7': tb.StringCol(itemsize=1),  # 1-character String
 }
 
 # Record class with numpy dtypes (mixed shapes is checked here)
@@ -44,7 +44,8 @@ class RecordDT(tb.IsDescription):
     var0 = tb.Col.from_dtype(np.dtype("2S4"), dflt=b"")  # shape in dtype
     var1 = tb.Col.from_dtype(np.dtype(("S4", (
         2, 2))), dflt=[b"abcd", b"efgh"])  # shape is a mix
-    var1_ = tb.Col.from_dtype(np.dtype("2i4"), dflt=((1, 1),))  # shape in dtype
+    var1_ = tb.Col.from_dtype(
+        np.dtype("2i4"), dflt=((1, 1),))  # shape in dtype
     var2 = tb.Col.from_sctype("i4", shape=(
         2, 2), dflt=((1, 1), (1, 1)))  # shape is a mix
     var3 = tb.Col.from_dtype(np.dtype("i2"), dflt=2)
@@ -116,8 +117,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.initRecArray()
         for j in range(3):
             # Create a table
-            filters = tb.Filters(complevel=self.compress,
-                                     complib=self.complib)
+            filters = tb.Filters(complevel=self.compress, complib=self.complib)
             if j < 2:
                 byteorder = sys.byteorder
             else:
@@ -260,8 +260,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             r['var7']
         ), (b"0001", b"0001", nrows, nrows, b"1"))
         if isinstance(r['var5'], np.ndarray):
-            self.assertTrue(common.allequal(r['var5'],
-                                     np.array((nrows,)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                r['var5'], np.array((nrows,)*4, np.float32)))
         else:
             self.assertEqual(r['var5'], float(nrows))
         self.assertEqual(len(result), 20)
@@ -288,21 +288,21 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrows = table.nrows
         result2 = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
         if isinstance(result2['var5'], np.ndarray):
-            self.assertTrue(common.allequal(result1[0],
-                                     np.array((float(0),)*4, np.float32)))
-            self.assertTrue(common.allequal(result1[1],
-                                     np.array((float(1),)*4, np.float32)))
-            self.assertTrue(common.allequal(result1[2],
-                                     np.array((float(2),)*4, np.float32)))
-            self.assertTrue(common.allequal(result1[3],
-                                     np.array((float(3),)*4, np.float32)))
-            self.assertTrue(common.allequal(result1[10],
-                                     np.array((float(10),)*4, np.float32)))
-            self.assertTrue(common.allequal(result2['var5'],
-                                     np.array((float(nrows-1),)*4,
-                                              np.float32)))
+            self.assertTrue(common.allequal(
+                result1[0], np.array((float(0),) * 4, np.float32)))
+            self.assertTrue(common.allequal(
+                result1[1], np.array((float(1),) * 4, np.float32)))
+            self.assertTrue(common.allequal(
+                result1[2], np.array((float(2),) * 4, np.float32)))
+            self.assertTrue(common.allequal(
+                result1[3], np.array((float(3),) * 4, np.float32)))
+            self.assertTrue(common.allequal(
+                result1[10], np.array((float(10),) * 4, np.float32)))
+            self.assertTrue(common.allequal(
+                result2['var5'], np.array((float(nrows - 1),) * 4, np.float32)
+            ))
         else:
-            self.assertEqual(result2['var5'], float(nrows-1))
+            self.assertEqual(result2['var5'], float(nrows - 1))
         self.assertEqual(len(result1), 20)
 
         # Read the records and select those with "var2" file less than 20
@@ -394,8 +394,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row['var7']),
             (b"0001", b"0001", nrows, nrows, b"1"))
         if isinstance(row['var5'], np.ndarray):
-            self.assertTrue(common.allequal(row['var5'],
-                                     np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(common.allequal(
+                row['var5'], np.array((float(nrows),) * 4, np.float32)))
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -500,14 +500,15 @@ class RecArrayAlignedWriteTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+                        'BLOSC compression library not available')
 class CompressBloscTablesTestCase(BasicTestCase):
     title = "CompressBloscTables"
     compress = 1
     complib = "blosc"
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(not common.lzo_avail,
+                        'LZO compression library not available')
 class CompressLZOTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
     compress = 1
@@ -515,7 +516,7 @@ class CompressLZOTablesTestCase(BasicTestCase):
 
 
 @common.unittest.skipIf(not common.bzip2_avail,
-                 'BZIP2 compression library not available')
+                        'BZIP2 compression library not available')
 class CompressBzip2TablesTestCase(BasicTestCase):
     title = "CompressBzip2Tables"
     compress = 1
@@ -541,8 +542,8 @@ class BigTablesTestCase(BasicTestCase):
     # reducing to 1000 would be more than enough
     # F. Alted 2004-01-19
 
-    #expectedrows = 10000
-    #appendrows = 1000
+    # expectedrows = 10000
+    # appendrows = 1000
     expectedrows = 1000
     appendrows = 100
 
@@ -943,8 +944,8 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 (type, value, traceback) = sys.exc_info()
                 print("\nGreat!, the next ValueError was catched!")
             self.h5file.close()
-        #else:
-        #    self.fail("expected a ValueError")
+        # else:
+        #     self.fail("expected a ValueError")
 
         # Case where step == 0
         self.step = 0
@@ -955,8 +956,8 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 (type, value, traceback) = sys.exc_info()
                 print("\nGreat!, the next ValueError was catched!")
             self.h5file.close()
-        #else:
-        #    self.fail("expected a ValueError")
+        # else:
+        #     self.fail("expected a ValueError")
 
 
 class IterRangeTestCase(BasicRangeTestCase):
@@ -1121,8 +1122,8 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         table.cols.col1[1:] = [[[2, 3], [3, 4], [4, 5]]]
 
         # Create the modified recarray
-        r1 = np.rec.array([ ([456, 457], s0, f0), ([2, 3], s1, f1),
-                            ([3, 4], s2, f2), ([4, 5], s3, f3)],
+        r1 = np.rec.array([([456, 457], s0, f0), ([2, 3], s1, f1),
+                           ([3, 4], s2, f2), ([4, 5], s3, f3)],
                           formats="(2,)i4,(3,)a3,(3,2)f8",
                           names="col1,col2,col3")
 
@@ -2213,7 +2214,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(RecArrayThreeWriteTestCase))
-        theSuite.addTest(common.unittest.makeSuite(RecArrayAlignedWriteTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(RecArrayAlignedWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressZLIBTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressTwoTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(IterRangeTestCase))
@@ -2231,10 +2233,12 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(UpdateRowTestCase2))
         theSuite.addTest(common.unittest.makeSuite(UpdateRowTestCase3))
         theSuite.addTest(common.unittest.makeSuite(UpdateRowTestCase4))
-        theSuite.addTest(common.unittest.makeSuite(CompressBloscTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressLZOTablesTestCase))
     if common.heavy:
-        theSuite.addTest(common.unittest.makeSuite(CompressBzip2TablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBzip2TablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(BigTablesTestCase))
 
     return theSuite

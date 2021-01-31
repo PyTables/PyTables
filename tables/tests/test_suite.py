@@ -81,14 +81,15 @@ def test(verbose=False, heavy=False):
     common.print_heavy(heavy)
 
     # What a context this is!
-    #oldverbose, common.verbose = common.verbose, verbose
+    # oldverbose, common.verbose = common.verbose, verbose
     oldheavy, common.heavy = common.heavy, heavy
     try:
-        result = common.unittest.TextTestRunner(verbosity=1+int(verbose)).run(suite())
+        result = common.unittest.TextTestRunner(
+            verbosity=1 + int(verbose)).run(suite())
         if result.wasSuccessful():
             return 0
         else:
             return 1
     finally:
-        #common.verbose = oldverbose
+        # common.verbose = oldverbose
         common.heavy = oldheavy  # there are pretty young heavies, too ;)

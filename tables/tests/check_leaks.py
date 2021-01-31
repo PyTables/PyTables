@@ -10,7 +10,7 @@ trel = tref
 def show_mem(explain):
     global tref, trel
 
-    for line in Path(f"/proc/self/status").read_text().splitlines():
+    for line in Path("/proc/self/status").read_text().splitlines():
         if line.startswith("VmSize:"):
             vmsize = int(line.split()[1])
         elif line.startswith("VmRSS:"):
@@ -78,13 +78,13 @@ def read_array(filename, nchildren, niter):
             data = node[:]  # Read data
             assert data is not None
         show_mem("After reading data. Iter %s" % i)
-#         for child in range(nchildren):
-#             node = fileh.get_node(fileh.root, 'array' + str(child))
-#             flavor = node._v_attrs.FLAVOR
-            # flavor = node._v_attrs
-#         for child in fileh.walk_nodes():
-#             pass
-#         show_mem("After reading metadata. Iter %s" % i)
+        # for child in range(nchildren):
+        #     node = fileh.get_node(fileh.root, 'array' + str(child))
+        #     flavor = node._v_attrs.FLAVOR
+        #     # flavor = node._v_attrs
+        # for child in fileh.walk_nodes():
+        #     pass
+        # show_mem("After reading metadata. Iter %s" % i)
         fileh.close()
         show_mem("After close")
 

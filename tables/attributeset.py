@@ -25,7 +25,6 @@ from .undoredo import attr_to_shadow
 from .filters import Filters
 
 
-
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
              "ENCODING", "PYTABLES_FORMAT_VERSION",
@@ -143,7 +142,8 @@ class AttributeSet(hdf5extension.AttributeSet):
 
     Note that this class overrides the __getattr__(), __setattr__(),
     __delattr__() and __dir__() special methods.  This allows you to
-    read, assign or delete attributes on disk by just using the next constructs::
+    read, assign or delete attributes on disk by just using the next
+    constructs::
 
         leaf.attrs.myattr = 'str attr'    # set a string (native support)
         leaf.attrs.myattr2 = 3            # set an integer (native support)
@@ -259,7 +259,6 @@ class AttributeSet(hdf5extension.AttributeSet):
         # hdf5extension operations:
         self._g_new(node)
 
-
     def _f_list(self, attrset='user'):
         """Get a list of attribute names.
 
@@ -290,9 +289,9 @@ class AttributeSet(hdf5extension.AttributeSet):
         """Get the attribute named "name"."""
 
         # If attribute does not exist, raise AttributeError
-        if not name in self._v_attrnames:
-            raise AttributeError("Attribute '%s' does not exist in node: "
-                                 "'%s'" % (name, self._v__nodepath))
+        if name not in self._v_attrnames:
+            raise AttributeError(f"Attribute {name!r} does not exist "
+                                 f"in node: {self._v__nodepath!r}")
 
         # Read the attribute from disk. This is an optimization to read
         # quickly system attributes that are _string_ values, but it
@@ -321,7 +320,10 @@ class AttributeSet(hdf5extension.AttributeSet):
                 retval = np.array(retval)
             except ImportError:
                 retval = None  # signal error avoiding exception
-        elif maybe_pickled and name == 'FILTERS' and format_version is not None and format_version < (2, 0):
+        elif (maybe_pickled and
+              name == 'FILTERS' and
+              format_version is not None and
+              format_version < (2, 0)):
             # This is a big hack, but we don't have other way to recognize
             # pickled filters of PyTables 1.x files.
             value = _old_filters_re.sub(_new_filters_sub, value, 1)
@@ -345,11 +347,11 @@ class AttributeSet(hdf5extension.AttributeSet):
                 except TypeError:
                     try:
                         retval = pickle.loads(value, encoding='bytes')
-                    except:
+                    except Exception:
                         retval = value
-                except:
+                except Exception:
                     retval = value
-            except:
+            except Exception:
                 # catch other unpickling errors:
                 # ivb (2005-09-07): It is too hard to tell
                 # whether the unpickling failed
@@ -363,7 +365,9 @@ class AttributeSet(hdf5extension.AttributeSet):
             # Additional check for allowing a workaround for #307
             if isinstance(retval, str) and retval == '':
                 retval = np.array(retval)[()]
-        elif name == 'FILTERS' and format_version is not None and format_version >= (2, 0):
+        elif (name == 'FILTERS' and
+              format_version is not None and
+              format_version >= (2, 0)):
             try:
                 retval = Filters._unpack(value)
             except ValueError:
@@ -405,7 +409,9 @@ class AttributeSet(hdf5extension.AttributeSet):
             elif name == "NROWS":
                 stvalue = np.array(value, dtype=SizeType)
                 value = stvalue[()]
-            elif name == "FILTERS" and self._v__format_version is not None and self._v__format_version >= (2, 0):
+            elif (name == "FILTERS" and
+                  self._v__format_version is not None and
+                  self._v__format_version >= (2, 0)):
                 stvalue = value._pack()
                 # value will remain as a Filters instance here
         # Convert value from a Python scalar into a NumPy scalar
@@ -429,7 +435,7 @@ class AttributeSet(hdf5extension.AttributeSet):
 
         # Finally, add this attribute to the list if not present
         attrnames = self._v_attrnames
-        if not name in attrnames:
+        if name not in attrnames:
             attrnames.append(name)
             attrnames.sort()
             if issysattrname(name):
@@ -488,14 +494,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_log_add(self, name):
         self._v__nodefile._log('ADDATTR', self._v__nodepath, name)
 
-
     def _g_del_and_log(self, name):
         nodefile = self._v__nodefile
         node_pathname = self._v__nodepath
         # Log *before* moving to use the right shadow name.
         nodefile._log('DELATTR', node_pathname, name)
         attr_to_shadow(nodefile, node_pathname, name)
-
 
     def _g__delattr(self, name):
         """Delete a PyTables attribute.
@@ -690,14 +694,5 @@ class NotLoggedAttributeSet(AttributeSet):
     def _g_log_add(self, name):
         pass
 
-
     def _g_del_and_log(self, name):
         self._g__delattr(name)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

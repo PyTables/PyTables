@@ -136,7 +136,8 @@ class Leaf(Node):
     # ```````````````````````````````
     @property
     def name(self):
-        """The name of this node in its parent group (This is an easier-to-write alias of :attr:`Node._v_name`)."""
+        """The name of this node in its parent group (This is an
+        easier-to-write alias of :attr:`Node._v_name`)."""
         return self._v_name
 
     @property
@@ -279,7 +280,6 @@ class Leaf(Node):
         # Existing filters need not be read since `filters`
         # is a lazy property that automatically handles their loading.
 
-
         super().__init__(parentnode, name, _log)
 
     def __len__(self):
@@ -411,9 +411,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         if warn_negstep and step and step < 0:
             raise ValueError("slice step cannot be negative")
 
-        #if start is not None: start = long(start)
-        #if stop is not None: stop = long(stop)
-        #if step is not None: step = long(step)
+        # if start is not None: start = long(start)
+        # if stop is not None: stop = long(stop)
+        # if step is not None: step = long(step)
 
         return slice(start, stop, step).indices(int(nrows))
 
@@ -764,11 +764,3 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         self._f_close(flush)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

@@ -366,8 +366,8 @@ class Atom(metaclass=MetaAtom):
         warning is issued.
 
             >>> Atom.from_dtype(np.dtype('U20')) # doctest: +SKIP
-            Atom.py:392: FlavorWarning: support for unicode type is very limited,
-                and only works for strings that can be cast as ascii
+            Atom.py:392: FlavorWarning: support for unicode type is very
+                limited, and only works for strings that can be cast as ascii
             StringAtom(itemsize=20, shape=(), dflt=b'')
 
         """
@@ -383,10 +383,12 @@ class Atom(metaclass=MetaAtom):
             return cls.from_kind('string', itemsize, dtype.shape, dflt)
         elif basedtype.kind == 'U':
             # workaround for unicode type (standard string type in Python 3)
-            warnings.warn("support for unicode type is very limited, "
-                          "and only works for strings that can be cast as ascii", FlavorWarning)
+            warnings.warn("support for unicode type is very limited, and "
+                          "only works for strings that can be cast as ascii",
+                          FlavorWarning)
             itemsize = basedtype.itemsize // 4
-            assert str(itemsize) in basedtype.str, "something went wrong in handling unicode."
+            assert str(itemsize) in basedtype.str, (
+                "something went wrong in handling unicode.")
             return cls.from_kind('string', itemsize, dtype.shape, dflt)
         # Most NumPy types have direct correspondence with PyTables types.
         return cls.from_type(basedtype.name, dtype.shape, dflt)
@@ -505,9 +507,6 @@ class Atom(metaclass=MetaAtom):
         .. versionadded:: 2.4"""
         return len(self.shape)
 
-
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __init__(self, nptype, shape, dflt):
         if not hasattr(self, 'type'):
             raise NotImplementedError("``%s`` is an abstract class; "
@@ -590,7 +589,7 @@ class Atom(metaclass=MetaAtom):
         signature = inspect.signature(self.__init__)
         parameters = signature.parameters
         args = [arg for arg, p in parameters.items()
-            if p.kind is p.POSITIONAL_OR_KEYWORD]
+                if p.kind is p.POSITIONAL_OR_KEYWORD]
 
         return {arg: getattr(self, arg) for arg in args if arg != 'self'}
 
@@ -754,6 +753,8 @@ class _ComplexErrorAtom(ComplexAtom, metaclass=type):
             "please use ``ComplexAtom(itemsize=N)``, "
             "where N=8 for single precision complex atoms, "
             "and N=16 for double precision complex atoms")
+
+
 Complex32Atom = Complex64Atom = Complex128Atom = _ComplexErrorAtom
 if hasattr(np, 'complex192'):
     Complex192Atom = _ComplexErrorAtom
@@ -931,13 +932,12 @@ class EnumAtom(Atom):
                             "concrete values in the enumeration")
 
         # ...with some implementation limitations.
-        if not npvalues.dtype.kind in ['i', 'u']:
+        if npvalues.dtype.kind not in ['i', 'u']:
             raise NotImplementedError("only integer concrete values "
                                       "are supported for the moment, sorry")
         if len(npvalues.shape) > 1:
             raise NotImplementedError("only scalar concrete values "
                                       "are supported for the moment, sorry")
-
 
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments."""
@@ -1071,7 +1071,7 @@ class _BufferedAtom(PseudoAtom):
     def toarray(self, object_):
         buffer_ = self._tobuffer(object_)
         array = np.ndarray(buffer=buffer_, dtype=self.base.dtype,
-                              shape=len(buffer_))
+                           shape=len(buffer_))
         return array
 
     def _tobuffer(self, object_):

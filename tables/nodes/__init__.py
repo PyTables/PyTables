@@ -22,10 +22,3 @@ Package modules:
 
 # The list of names to be exported to the importing module.
 __all__ = ['filenode']
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## End:

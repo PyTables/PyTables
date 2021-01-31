@@ -296,7 +296,8 @@ class AtomTestCase(common.PyTablesTestCase):
 
     def test_from_kind_05(self):
         # ValueError: no default item size for kind ``string``
-        self.assertRaises(ValueError, tb.Atom.from_kind, 'string', dflt=b'hello')
+        self.assertRaises(ValueError, tb.Atom.from_kind, 'string',
+                          dflt=b'hello')
 
     def test_from_kind_06(self):
         # ValueError: unknown kind: 'Float'

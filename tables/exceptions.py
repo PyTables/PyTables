@@ -10,13 +10,13 @@
 
 """Declare exceptions and warnings that are specific to PyTables."""
 
-__docformat__ = 'reStructuredText'
-"""The format of documentation strings in this module."""
-
-
 import os
 import warnings
 import traceback
+
+
+__docformat__ = 'reStructuredText'
+"""The format of documentation strings in this module."""
 
 
 class HDF5ExtError(RuntimeError):
@@ -374,12 +374,3 @@ class ExperimentalFeatureWarning(Warning):
 
     """
     pass
-
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

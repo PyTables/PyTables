@@ -349,7 +349,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         super().__init__(parentnode, name, new, filters,
-                                      byteorder, _log, track_times)
+                         byteorder, _log, track_times)
 
     def _g_post_init_hook(self):
         super()._g_post_init_hook()
@@ -874,9 +874,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return """{}
-  atom = {!r}
-  byteorder = {!r}
-  nrows = {}
-  flavor = {!r}""".format(self, self.atom, self.byteorder, self.nrows,
-                    self.flavor)
+        return f"""{self}
+  atom = {self.atom!r}
+  byteorder = {self.byteorder!r}
+  nrows = {self.nrows}
+  flavor = {self.flavor!r}"""

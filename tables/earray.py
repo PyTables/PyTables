@@ -137,9 +137,6 @@ class EArray(CArray):
     # Class identifier.
     _c_classid = 'EARRAY'
 
-
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  atom=None, shape=None, title="",
                  filters=None, expectedrows=None,
@@ -193,7 +190,6 @@ class EArray(CArray):
                 raise ValueError(("the shapes of the appended object and the "
                                   "``%s`` EArray differ in non-enlargeable "
                                   "dimension %d") % (self._v_pathname, i))
-
 
     def append(self, sequence):
         """Add a sequence of data to the end of the dataset.
@@ -255,11 +251,3 @@ class EArray(CArray):
         nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.itemsize
 
         return (object, nbytes)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

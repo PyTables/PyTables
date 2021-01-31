@@ -637,15 +637,16 @@ class Table(tableextension.Table, Leaf):
     @property
     def indexedcolpathnames(self):
         """List of pathnames of indexed columns in the table."""
-        return [_colpname for _colpname in self.colpathnames if self.colindexed[_colpname]]
+        return [_colpname
+                for _colpname in self.colpathnames
+                if self.colindexed[_colpname]]
 
     @property
     def colindexes(self):
         """A dictionary with the indexes of the indexed columns."""
-        return _ColIndexes(
-            (_colpname, self.cols._f_col(_colpname).index)
-                for _colpname in self.colpathnames
-                if self.colindexed[_colpname])
+        return _ColIndexes((_colpname, self.cols._f_col(_colpname).index)
+                           for _colpname in self.colpathnames
+                           if self.colindexed[_colpname])
 
     @property
     def _dirtyindexes(self):
@@ -762,12 +763,14 @@ class Table(tableextension.Table, Leaf):
         # Try purely descriptive description objects.
         if new and isinstance(description, dict):
             # Dictionary case
-            self.description = Description(description, ptparams=parentnode._v_file.params)
+            self.description = Description(description,
+                                           ptparams=parentnode._v_file.params)
         elif new and (type(description) == type(IsDescription)
                       and issubclass(description, IsDescription)):
             # IsDescription subclass case
             descr = description()
-            self.description = Description(descr.columns, ptparams=parentnode._v_file.params)
+            self.description = Description(descr.columns,
+                                           ptparams=parentnode._v_file.params)
         elif new and isinstance(description, Description):
             # It is a Description instance already
             self.description = description
@@ -776,8 +779,9 @@ class Table(tableextension.Table, Leaf):
         if new and self.description is None:
             # Try NumPy dtype instances
             if isinstance(description, np.dtype):
-                self.description, self._rabyteorder = \
-                    descr_from_dtype(description, ptparams=parentnode._v_file.params)
+                tup = descr_from_dtype(description,
+                                       ptparams=parentnode._v_file.params)
+                self.description, self._rabyteorder = tup
 
         # No description yet?
         if new and self.description is None:
@@ -796,8 +800,9 @@ class Table(tableextension.Table, Leaf):
                 # initial buffer.
                 if nrows > 0:
                     self._v_recarray = nparray
-                self.description, self._rabyteorder = \
-                    descr_from_dtype(nparray.dtype, ptparams=parentnode._v_file.params)
+                tup = descr_from_dtype(nparray.dtype,
+                                       ptparams=parentnode._v_file.params)
+                self.description, self._rabyteorder = tup
 
         # No description yet?
         if new and self.description is None:
@@ -949,7 +954,8 @@ very small/large chunksize, you may want to increase/decrease it."""
             return arr
 
     def _get_container(self, shape):
-        """Get the appropriate buffer for data depending on table nestedness."""
+        """Get the appropriate buffer for data depending on table
+        nestedness."""
 
         # This is *much* faster than the numpy.rec.array counterpart
         return np.empty(shape=shape, dtype=self._v_dtype)
@@ -1040,7 +1046,8 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         # 2. Create an instance description to host the record fields.
         validate = not self._v_file._isPTFile  # only for non-PyTables files
-        self.description = Description(description, validate=validate, ptparams=self._v_file.params)
+        self.description = Description(description, validate=validate,
+                                       ptparams=self._v_file.params)
 
         # 3. Compute or get chunk shape and buffer size parameters.
         if chunksize == 0:
@@ -1609,7 +1616,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         if not hasattr(sequence, '__getitem__'):
             raise TypeError("Wrong 'sequence' parameter type. Only sequences "
-                             "are suported.")
+                            "are suported.")
         # start, stop and step are necessary for the new iterator for
         # coordinates, and perhaps it would be useful to add them as
         # parameters in the future (not now, because I've just removed
@@ -1813,15 +1820,14 @@ very small/large chunksize, you may want to increase/decrease it."""
             # have different byteorders
             if not out.dtype.isnative:
                 raise ValueError("output array must be in system's byteorder "
-                                  "or results will be incorrect")
+                                 "or results will be incorrect")
             if field:
                 bytes_required = dtype_field.itemsize * nrows
             else:
                 bytes_required = self.rowsize * nrows
             if bytes_required != out.nbytes:
-                raise ValueError(('output array size invalid, got {} bytes, '
-                                  'need {} bytes').format(out.nbytes,
-                                                           bytes_required))
+                raise ValueError(f'output array size invalid, got {out.nbytes}'
+                                 f' bytes, need {bytes_required} bytes')
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
             result = out
@@ -2444,7 +2450,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise ValueError("'start' must have a positive value.")
         if step < 1:
             raise ValueError("'step' must have a value greater or "
-                              "equal than 1.")
+                             "equal than 1.")
         descr = []
         for colname in names:
             objcol = self._get_column_instance(colname)
@@ -3231,7 +3237,8 @@ class Cols:
         if descpathname:
             descpathname = "." + descpathname
         return (f"{self._v__tablePath}.cols{descpathname} "
-                f"({self.__class__.__name__}), {len(self._v_colnames)} columns")
+                f"({self.__class__.__name__}), "
+                f"{len(self._v_colnames)} columns")
 
     def __repr__(self):
         """A detailed string representation for this object."""
@@ -3694,11 +3701,3 @@ class Column:
         """A detailed string representation for this object."""
 
         return str(self)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

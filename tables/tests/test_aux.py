@@ -2,7 +2,6 @@ import unittest
 import numpy as np
 
 import tables as tb
-from tables.tests import common
 
 
 class TestAuxiliaryFunctions(unittest.TestCase):
@@ -28,6 +27,7 @@ def suite():
     theSuite = unittest.TestSuite()
     theSuite.addTest(unittest.makeSuite(TestAuxiliaryFunctions))
     return theSuite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')

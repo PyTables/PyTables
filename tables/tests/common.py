@@ -95,8 +95,7 @@ def print_versions():
         vml_avail = "not using Intel's VML/MKL"
     print(f"Numexpr version:     {ne.__version__} ({vml_avail})")
     if tinfo is not None:
-        print("Zlib version:        {} ({})".format(tinfo[1],
-                                                "in Python interpreter"))
+        print(f"Zlib version:        {tinfo[1]} (in Python interpreter)")
     tinfo = tb.which_lib_version("lzo")
     if tinfo is not None:
         print("LZO version:         {} ({})".format(tinfo[1], tinfo[2]))
@@ -119,13 +118,13 @@ def print_versions():
     try:
         from Cython import __version__ as cython_version
         print('Cython version:      %s' % cython_version)
-    except:
+    except Exception:
         pass
     print('Python version:      %s' % sys.version)
     print('Platform:            %s' % platform.platform())
-    #if os.name == 'posix':
-    #    (sysname, nodename, release, version, machine) = os.uname()
-    #    print('Platform:          %s-%s' % (sys.platform, machine))
+    # if os.name == 'posix':
+    #     (sysname, nodename, release, version, machine) = os.uname()
+    #     print('Platform:          %s-%s' % (sys.platform, machine))
     print('Byte-ordering:       %s' % sys.byteorder)
     print('Detected cores:      %s' % tb.utils.detect_number_of_cores())
     print('Default encoding:    %s' % sys.getdefaultencoding())
@@ -331,7 +330,7 @@ class TempFileMixin:
 
         self.h5file.close()
         self.h5file = None
-        Path(self.h5fname).unlink()   # comment this for debugging purposes only
+        Path(self.h5fname).unlink()   # comment this for debug only
         super().tearDown()
 
     def _reopen(self, mode='r', **kwargs):
@@ -373,11 +372,3 @@ class ShowMemTime(PyTablesTestCase):
         print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
         print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
         print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

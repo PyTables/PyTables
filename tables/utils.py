@@ -14,6 +14,7 @@ import math
 import os
 import sys
 import warnings
+import weakref
 from pathlib import Path
 from time import perf_counter as clock
 
@@ -76,7 +77,7 @@ def idx2long(index):
 
     try:
         return int(index)
-    except:
+    except Exception:
         raise TypeError("not an integer type.")
 
 
@@ -111,7 +112,6 @@ def convert_to_np_atom(arr, atom, copy=False):
     return nparr
 
 
-
 # The next is used in Array, EArray and VLArray, and it is a bit more
 # high level than convert_to_np_atom
 def convert_to_np_atom2(object, atom):
@@ -129,7 +129,6 @@ def convert_to_np_atom2(object, atom):
         nparr = nparr.byteswap()
 
     return nparr
-
 
 
 def check_file_access(filename, mode='r'):
@@ -184,7 +183,6 @@ def check_file_access(filename, mode='r'):
             raise OSError(f"file ``{path}`` exists but it can not be written")
     else:
         raise ValueError(f"invalid mode: {mode!r}")
-
 
 
 def lazyattr(fget):
@@ -289,7 +287,6 @@ def quantize(data, least_significant_digit):
 # Utilities to detect leaked instances.  See recipe 14.10 of the Python
 # Cookbook by Martelli & Ascher.
 tracked_classes = {}
-import weakref
 
 
 def log_instance_creation(instance, name=None):
@@ -298,7 +295,6 @@ def log_instance_creation(instance, name=None):
         if name not in tracked_classes:
             tracked_classes[name] = []
         tracked_classes[name].append(weakref.ref(instance))
-
 
 
 def string_to_classes(s):
@@ -314,11 +310,9 @@ def fetch_logged_instances(classes="*"):
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
 
-
 def count_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
-
 
 
 def list_logged_instances(classes, file=sys.stdout):
@@ -330,7 +324,6 @@ def list_logged_instances(classes, file=sys.stdout):
                 file.write('    %s\n' % repr(obj))
 
 
-
 def dump_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write('\n%s:\n' % classname)
@@ -340,7 +333,6 @@ def dump_logged_instances(classes, file=sys.stdout):
                 file.write('    %s:\n' % obj)
                 for key, value in obj.__dict__.items():
                     file.write(f'        {key:>20} : {value}\n')
-
 
 
 #
@@ -452,11 +444,3 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

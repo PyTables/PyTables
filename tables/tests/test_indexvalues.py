@@ -3185,8 +3185,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0,
-                            f"idx--> {idx} {i} {nrow} {value}")
+            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
                 f"nrow not found: {idx} != {nrow}, {value}")
@@ -3204,8 +3203,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0,
-                            f"idx--> {idx} {i} {nrow} {value}")
+            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
                 f"nrow not found: {idx} != {nrow}, {value}")
@@ -3223,8 +3221,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0,
-                            f"idx--> {idx} {i} {nrow} {value}")
+            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
                 f"nrow not found: {idx} != {nrow}, {value}")
@@ -3265,6 +3262,7 @@ class MediumITableMixin:
 class FullITableMixin:
     kind = "full"
 
+
 # Parameters for indexed queries.
 ckinds = ['UltraLight', 'Light', 'Medium', 'Full']
 testlevels = ['Normal', 'Heavy']
@@ -3278,7 +3276,7 @@ testlevels = ['Normal', 'Heavy']
 def iclassdata():
     for ckind in ckinds:
         for ctest in normal_tests + heavy_tests:
-            classname = '{}I{}{}'.format(ckind[0], testlevels[common.heavy][0], ctest)
+            classname = f'{ckind[0]}I{testlevels[common.heavy][0]}{ctest}'
             # Uncomment the next one and comment the past one if one
             # don't want to include the methods (testing purposes only)
             # cbasenames = ( '%sITableMixin' % ckind, "object")
@@ -3295,7 +3293,8 @@ for (cname, cbasenames, cdict) in iclassdata():
 
 
 # Test case for issue #319
-class BuffersizeMultipleChunksize(common.TempFileMixin, common.PyTablesTestCase):
+class BuffersizeMultipleChunksize(common.TempFileMixin,
+                                  common.PyTablesTestCase):
     open_mode = 'w'
 
     def test01(self):
@@ -3394,7 +3393,8 @@ def suite():
                 suite_ = common.unittest.makeSuite(class_)
                 theSuite.addTest(suite_)
         theSuite.addTest(common.unittest.makeSuite(LastRowReuseBuffers))
-        theSuite.addTest(common.unittest.makeSuite(BuffersizeMultipleChunksize))
+        theSuite.addTest(
+            common.unittest.makeSuite(BuffersizeMultipleChunksize))
         theSuite.addTest(common.unittest.makeSuite(SideEffectNumPyQuicksort))
     return theSuite
 

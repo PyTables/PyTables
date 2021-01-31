@@ -48,6 +48,8 @@ Variables
 # =======
 import warnings
 
+import numpy as np
+
 from .exceptions import FlavorError, FlavorWarning
 
 
@@ -229,7 +231,6 @@ def restrict_flavors(keep=('python',)):
 # The order in which flavors appear in `all_flavors` determines the
 # order in which they will be tested for by `flavor_of()`, so place
 # most frequent flavors first.
-import numpy as np
 all_flavors.append('numpy')  # this is the internal flavor
 
 all_flavors.append('python')  # this is always supported
@@ -345,9 +346,9 @@ _python_desc = ("homogeneous list or tuple, "
 def _is_python(array):
     return isinstance(array, (tuple, list, int, float, complex, bytes))
 
+
 _numpy_aliases = []
 _numpy_desc = "NumPy array, record or scalar"
-
 
 
 if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion('1.19.0'):
@@ -379,8 +380,8 @@ def _numpy_contiguous(convfunc):
     def conv_to_numpy(array):
         nparr = convfunc(array)
         if (hasattr(nparr, 'flags') and
-            not nparr.flags.contiguous and
-            sum(nparr.strides) != 0):
+                not nparr.flags.contiguous and
+                sum(nparr.strides) != 0):
             nparr = nparr.copy()  # copying the array makes it contiguous
         return nparr
     conv_to_numpy.__name__ = convfunc.__name__
@@ -399,7 +400,9 @@ def _conv_numpy_to_numpy(array):
             # try to convert to basic 'S' type
             return nparr.astype('S')
         except UnicodeEncodeError:
-            pass  # pass on true Unicode arrays downstream in case it can be handled in the future
+            pass
+            # pass on true Unicode arrays downstream in case it can be
+            # handled in the future
     return nparr
 
 
@@ -412,7 +415,9 @@ def _conv_python_to_numpy(array):
             # try to convert to basic 'S' type
             return nparr.astype('S')
         except UnicodeEncodeError:
-            pass  # pass on true Unicode arrays downstream in case it can be handled in the future
+            pass
+            # pass on true Unicode arrays downstream in case it can be
+            # handled in the future
     return nparr
 
 
@@ -424,6 +429,7 @@ def _conv_numpy_to_python(array):
         # 0-dim or scalar case
         array = array.item()
     return array
+
 
 # Now register everything related with *available* flavors.
 _register_all()

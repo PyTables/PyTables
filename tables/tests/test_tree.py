@@ -134,7 +134,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for name in nodenames:
                 try:
                     object = self.h5file.get_node(group, name, 'Array')
-                except:
+                except Exception:
                     pass
                 else:
                     nodearrays.append(object._v_pathname)
@@ -194,7 +194,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in nodelist:
             try:
                 objectlist = self.h5file.list_nodes(node)
-            except:
+            except Exception:
                 pass
             else:
                 objects.extend(objectlist)
@@ -212,7 +212,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in objects:
             try:
                 objectlist = self.h5file.list_nodes(node)
-            except:
+            except Exception:
                 pass
             else:
                 for object in objectlist:
@@ -290,7 +290,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in nodelist:
             try:
                 objectlist = [o for o in self.h5file.iter_nodes(node)]
-            except:
+            except Exception:
                 pass
             else:
                 objects.extend(objectlist)
@@ -308,7 +308,7 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in objects:
             try:
                 objectlist = [o for o in self.h5file.iter_nodes(node)]
-            except:
+            except Exception:
                 pass
             else:
                 for object in objectlist:
@@ -506,8 +506,8 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """
         root_dir = dir(self.h5file.root)
 
-        ## Check some regular attributes.
-        #
+        # Check some regular attributes.
+
         self.assertIn('_v_children', root_dir)
         self.assertIn('_v_attrs', root_dir)
         self.assertIn('_v_groups', root_dir)
@@ -515,8 +515,8 @@ class TreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIn('_g_get_child_group_class', root_dir)
         self.assertIn('_f_close', root_dir)
 
-        ## Check children nodes.
-        #
+        # Check children nodes.
+
         self.assertIn('group0', root_dir)
         self.assertIn('table0', root_dir)
         self.assertIn('var1', root_dir)
@@ -671,7 +671,7 @@ class DeepTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         h5fname2 = tempfile.mktemp(".h5")
         try:
             with tb.open_file(h5fname2, mode="w",
-                                  node_cache_slots=10) as h5file2:
+                              node_cache_slots=10) as h5file2:
                 if common.verbose:
                     print("\nCopying deep tree...")
 
@@ -943,7 +943,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for group in self.h5file.walk_groups('/'):
             pathname = group._v_pathname
             self.assertNotIn(pathname, hidden,
-                            "Walked across hidden group ``%s``." % pathname)
+                             f"Walked across hidden group ``{pathname}``.")
 
     def test03_walkNodes(self):
         """Hidden node absence in `File.walk_nodes()`."""
@@ -953,7 +953,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in self.h5file.walk_nodes('/'):
             pathname = node._v_pathname
             self.assertNotIn(pathname, hidden,
-                            "Walked across hidden node ``%s``." % pathname)
+                             f"Walked across hidden node ``{pathname}``.")
 
     def test04_listNodesVisible(self):
         """Listing visible nodes under a visible group (list_nodes)."""
@@ -963,7 +963,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in self.h5file.list_nodes('/g'):
             pathname = node._v_pathname
             self.assertNotIn(pathname, hidden,
-                            "Listed hidden node ``%s``." % pathname)
+                             f"Listed hidden node ``{pathname}``.")
 
     def test04b_listNodesVisible(self):
         """Listing visible nodes under a visible group (iter_nodes)."""
@@ -973,7 +973,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for node in self.h5file.iter_nodes('/g'):
             pathname = node._v_pathname
             self.assertNotIn(pathname, hidden,
-                            "Listed hidden node ``%s``." % pathname)
+                             f"Listed hidden node ``{pathname}``.")
 
     def test05_listNodesHidden(self):
         """Listing visible nodes under a hidden group (list_nodes)."""
@@ -987,7 +987,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if pathname == node_to_find:
                 found_node = True
             self.assertIn(pathname, hidden,
-                            "Listed hidden node ``%s``." % pathname)
+                          f"Listed hidden node ``{pathname}``.")
 
         self.assertTrue(found_node,
                         "Hidden node ``%s`` was not listed." % node_to_find)
@@ -1004,7 +1004,7 @@ class HiddenTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if pathname == node_to_find:
                 found_node = True
             self.assertIn(pathname, hidden,
-                            "Listed hidden node ``%s``." % pathname)
+                          f"Listed hidden node ``{pathname}``.")
 
         self.assertTrue(found_node,
                         "Hidden node ``%s`` was not listed." % node_to_find)
