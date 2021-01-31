@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: February 25, 2005
-# Author:  Ivan Vilata - reverse:net.selidor@ivan
-#
-# $Id$
-#
-########################################################################
-
 """Parameters for PyTables."""
 
 __docformat__ = 'reStructuredText'

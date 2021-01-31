@@ -1,14 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: February 15, 2005
-# Author:  Ivan Vilata - reverse:net.selidor@ivan
-#
-# $Source$
-# $Id$
-#
-########################################################################
-
 """Support for undoing and redoing actions.
 
 Functions:

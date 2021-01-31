@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: May 4, 2005
-# Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
-#
-# $Id$
-#
-########################################################################
-
 """Implementation of enumerated types.
 
 This module provides the `Enum` class, which can be used to construct

@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: February 10, 2004
-# Author:  Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """This utility lets you look into the data and metadata of your data files.
 
 Pass the flag -h to this for help on usage.

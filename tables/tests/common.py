@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: 2005-05-24
-# Author: Ivan Vilata i Balaguer - ivan@selidor.net
-#
-# $Id$
-#
-########################################################################
-
 """Utilities for PyTables' test suites."""
 
 import re

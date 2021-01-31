@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: 2009-11-24
-# Author: Francesc Alted - faltet@pytables.org
-#
-# $Id$
-#
-########################################################################
-
 """Test module for diferent kind of links under PyTables."""
 
 import re
