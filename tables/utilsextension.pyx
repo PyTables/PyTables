@@ -36,7 +36,7 @@ from cpython.bytes cimport PyBytes_Check, PyBytes_FromStringAndSize
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 
 from numpy cimport (import_array, ndarray, dtype,
-  npy_int64, PyArray_GETPTR1, PyArray_DescrFromType, npy_intp,
+  npy_int64, PyArray_DATA, PyArray_GETPTR1, PyArray_DescrFromType, npy_intp,
   NPY_BOOL, NPY_STRING, NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64,
   NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, NPY_FLOAT16, NPY_FLOAT32,
   NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128)
@@ -989,7 +989,7 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
 
   dtype = atom.dtype
   npvalue = numpy.array((0,), dtype=dtype)
-  rbuf = npvalue.data
+  rbuf = PyArray_DATA(npvalue)
 
   # Get the name and value of each of the members
   # and put the pair in `enumDict`.
@@ -1446,7 +1446,7 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
         newrefbuf = <hobj_ref_t *>malloc(nprefarr.size * item_size)
         rbuf = newrefbuf
       else:
-        rbuf = nprefarr.data
+        rbuf = PyArray_DATA(nprefarr)
 
       # Do the physical read
       with nogil:

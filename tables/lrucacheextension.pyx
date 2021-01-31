@@ -30,7 +30,7 @@ import sys
 import numpy
 from libc.string cimport memcpy, strcmp
 from cpython.unicode cimport PyUnicode_Check
-from numpy cimport import_array, ndarray
+from numpy cimport import_array, ndarray, PyArray_DATA
 
 from .parameters import (DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES,
   LOWEST_HIT_RATIO)
@@ -203,7 +203,7 @@ cdef class BaseCache:
     self.incsetcount = False
     # The array for keeping the access times (using long ints here)
     self.atimes = <ndarray>numpy.zeros(shape=nslots, dtype=numpy.int_)
-    self.ratimes = <long *>self.atimes.data
+    self.ratimes = <long *>PyArray_DATA(self.atimes)
 
   def __len__(self):
     return self.nslots
@@ -332,7 +332,7 @@ cdef class ObjectCache(BaseCache):
     self.mrunode = <ObjectNode>None   # Most Recent Used node
     # The array for keeping the object size (using long ints here)
     self.sizes = <ndarray>numpy.zeros(shape=nslots, dtype=numpy.int_)
-    self.rsizes = <long *>self.sizes.data
+    self.rsizes = <long *>PyArray_DATA(self.sizes)
 
   # Clear cache
   cdef clearcache_(self):
@@ -507,10 +507,10 @@ cdef class NumCache(BaseCache):
     # a valid scratch area for writing purposes
     self.cacheobj = <ndarray>numpy.empty(shape=(nslots+1, self.slotsize),
                                          dtype=dtype)
-    self.rcache = <void *>self.cacheobj.data
+    self.rcache = PyArray_DATA(self.cacheobj)
     # The array for keeping the keys of slots
     self.keys = <ndarray>(-numpy.ones(shape=nslots, dtype=numpy.int64))
-    self.rkeys = <long long *>self.keys.data
+    self.rkeys = <long long *>PyArray_DATA(self.keys)
 
   # Returns the address of nslot
   cdef void *getaddrslot_(self, long nslot):
@@ -520,7 +520,7 @@ cdef class NumCache(BaseCache):
       return <char *>self.rcache + self.nslots * self.slotsize * self.itemsize
 
   def setitem(self, long long key, ndarray nparr, long start):
-    return self.setitem_(key, nparr.data, start)
+    return self.setitem_(key, PyArray_DATA(nparr), start)
 
   # Copy the new data into a cache slot
   cdef long setitem_(self, long long key, void *data, long start):
@@ -594,7 +594,7 @@ cdef class NumCache(BaseCache):
     return nslot
 
   def getitem(self, long nslot, ndarray nparr, long start):
-    self.getitem_(nslot, nparr.data, start)
+    self.getitem_(nslot, PyArray_DATA(nparr), start)
 
   # This version copies data in cache to data+start.
   # The user should be responsible to provide a large enough data buffer
