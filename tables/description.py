@@ -1,17 +1,5 @@
-########################################################################
-#
-# License: BSD
-# Created: September 21, 2002
-# Author: Francesc Alted
-#
-# $Id$
-#
-########################################################################
-
 """Classes for describing columns for ``Table`` objects."""
 
-# Imports
-# =======
 import copy
 import warnings
 
@@ -21,14 +9,10 @@ from . import atom
 from .path import check_name_validity
 
 
-# Public variables
-# ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 
-# Private functions
-# =================
 def same_position(oldmethod):
     """Decorate `oldmethod` to also compare the `_v_pos` attribute."""
     def newmethod(self, other):
@@ -42,8 +26,6 @@ def same_position(oldmethod):
     return newmethod
 
 
-# Column classes
-# ==============
 class Col(atom.Atom, metaclass=type):
     """Defines a non-nested column.
 
@@ -88,8 +70,6 @@ class Col(atom.Atom, metaclass=type):
     _class_from_prefix = {}  # filled as column classes are created
     """Maps column prefixes to column classes."""
 
-    # Class methods
-    # ~~~~~~~~~~~~~
     @classmethod
     def prefix(cls):
         """Return the column class prefix."""
@@ -216,8 +196,6 @@ class Col(atom.Atom, metaclass=type):
         class_from_prefix[prefix] = NewCol
         return NewCol
 
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __repr__(self):
         # Reuse the atom representation.
         atomrepr = super().__repr__()
@@ -227,8 +205,6 @@ class Col(atom.Atom, metaclass=type):
         classname = self.__class__.__name__
         return f'{classname}({atomargs}, pos={self._v_pos})'
 
-    # Private methods
-    # ~~~~~~~~~~~~~~~
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments."""
 

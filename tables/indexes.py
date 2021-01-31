@@ -1,14 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: June 02, 2004
-# Author:  Francesc Alted - faltet@pytables.com
-#
-# $Source: /cvsroot/pytables/pytables/tables/indexes.py $
-# $Id$
-#
-########################################################################
-
 """Here is defined the IndexArray class."""
 
 from bisect import bisect_left, bisect_right
@@ -68,8 +57,6 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     # Class identifier.
     _c_classid = 'INDEXARRAY'
 
-    # Properties
-    # ~~~~~~~~~~
     @property
     def chunksize(self):
         """The chunksize for this object."""
@@ -80,8 +67,6 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         """The slicesize for this object."""
         return self.shape[1]
 
-    # Other methods
-    # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  atom=None, title="",
                  filters=None, byteorder=None):

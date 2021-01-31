@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: December 15, 2003
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the EArray class."""
 
 import numpy as np
@@ -153,8 +143,6 @@ class EArray(CArray):
         super().__init__(parentnode, name, atom, shape, title, filters,
                          chunkshape, byteorder, _log, track_times)
 
-    # Public and private methods
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~
     def _g_create(self):
         """Create a new array in file (specific part)."""
 

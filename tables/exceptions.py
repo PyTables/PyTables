@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: December 17, 2004
-# Author:  Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Declare exceptions and warnings that are specific to PyTables."""
 
 import os

@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: May 26, 2003
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the AttributeSet class."""
 
 import re

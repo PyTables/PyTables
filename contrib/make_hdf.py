@@ -163,8 +163,6 @@ def save2(hdf_file, data):
     add_cache(fileh, cache_root)
     fileh.close()
 
-    ########################
-
 
 class Hdf_dict(dict):
     def __init__(self, hdf_file, hdf_dict=None, stack=None):
@@ -214,7 +212,6 @@ class Hdf_dict(dict):
     def values(self):
         return list(self.cur_dict.values())
 
-    ###########################################
     def __len__(self):
         return len(self.cur_dict)
 

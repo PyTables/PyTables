@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: 2005-09-29
-# Author: Ivan Vilata i Balaguer - ivan@selidor.net
-#
-# $Id$
-#
-########################################################################
-
 """Test module for compatibility with plain HDF files."""
 
 import shutil

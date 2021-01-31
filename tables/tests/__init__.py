@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: 2005-12-02
-# Author: Ivan Vilata i Balaguer - ivan@selidor.net
-#
-# $Id$
-#
-########################################################################
-
 """Unit tests for PyTables.
 
 This package contains some modules which provide a ``suite()`` function

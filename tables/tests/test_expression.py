@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: 2009-06-14
-# Author: Francesc Alted - faltet@pytables.org
-#
-# $Id$
-#
-########################################################################
-
 """Test module for evaluating expressions under PyTables."""
 
 

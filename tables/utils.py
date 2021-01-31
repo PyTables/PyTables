@@ -1,13 +1,3 @@
-########################################################################
-#
-#       License: BSD
-#       Created: March 4, 2003
-#       Author:  Francesc Alted - faltet@pytables.com
-#
-#       $Id$
-#
-########################################################################
-
 """Utility functions."""
 
 import math
@@ -433,8 +423,6 @@ def detect_number_of_cores():
     return 1  # Default
 
 
-# Main part
-# =========
 def _test():
     """Run ``doctest`` on this module."""
 

@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: December 15, 2004
-# Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
-#
-# $Id$
-#
-########################################################################
-
 """Unit test for the Time datatypes."""
 
 

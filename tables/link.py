@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: November 25, 2009
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Create links in the HDF5 file.
 
 This module implements containers for soft and external links.  Hard

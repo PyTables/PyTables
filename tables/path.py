@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: January 15, 2007
-# Author:  Ivan Vilata i Balaguer - ivan at selidor dot net
-#
-# $Id$
-#
-########################################################################
-
 """Functionality related with node paths in a PyTables file.
 
 Variables
@@ -18,22 +8,16 @@ Variables
 
 """
 
-# Imports
-# =======
 import re
 import warnings
 import keyword
 
 from .exceptions import NaturalNameWarning
 
-# Public variables
-# ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 
-# Private variables
-# =================
 _python_id_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 """Python identifier regular expression."""
 
@@ -64,9 +48,6 @@ _warnInfo = (
         "you will not be able to use natural naming to access this object; "
         "using ``getattr()`` will still work, though")
 """Warning printed when a name will not be reachable through natural naming"""
-
-# Public functions
-# ================
 
 
 def check_attribute_name(name):
