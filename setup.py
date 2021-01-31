@@ -101,6 +101,13 @@ if __name__ == "__main__":
         exit_with_error("You need Python 3.6 or greater to install PyTables!")
     print(f"* Using Python {sys.version.splitlines()[0]}")
 
+    try:
+        import cython
+        print(f"* Found cython {cython.__version__}")
+        del cython
+    except ImportError:
+        pass
+
     # Minimum required versions for numpy, numexpr and HDF5
     _min_versions = {}
     exec((ROOT / "tables" / "req_versions.py").read_text(), _min_versions)
