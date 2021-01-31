@@ -183,7 +183,7 @@ def lazyattr(fget):
     instance method.  The docstring of `fget` is used for the property
     itself.  For instance:
 
-    >>> class MyClass(object):
+    >>> class MyClass:
     ...     @lazyattr
     ...     def attribute(self):
     ...         'Attribute description.'
@@ -191,7 +191,7 @@ def lazyattr(fget):
     ...         return 10
     ...
     >>> type(MyClass.attribute)
-    <type 'property'>
+    <class 'property'>
     >>> MyClass.attribute.__doc__
     'Attribute description.'
     >>> obj = MyClass()
