@@ -60,13 +60,15 @@ class Expr:
     --------
     The following shows an example of using Expr.
 
-        >>> a = f.create_array('/', 'a', np.array([1,2,3]))
-        >>> b = f.create_array('/', 'b', np.array([3,4,5]))
+        >>> import tables as tb, numpy as np
+        >>> h5f = tb.open_file('/tmp/expr.h5', 'w')
+        >>> a = h5f.create_array('/', 'a', np.array([1,2,3]))
+        >>> b = h5f.create_array('/', 'b', np.array([3,4,5]))
         >>> c = np.array([4,5,6])
         >>> expr = tb.Expr("2 * a + b * c")   # initialize the expression
-        >>> expr.eval()                 # evaluate it
-        array([14, 24, 36])
-        >>> sum(expr)                   # use as an iterator
+        >>> expr.eval()                       # evaluate it
+        array([14, 24, 36], dtype=int64)
+        >>> sum(expr)                         # use as an iterator
         74
 
     where you can see that you can mix different containers in
@@ -74,15 +76,15 @@ class Expr:
 
     You can also work with multidimensional arrays::
 
-        >>> a2 = f.create_array('/', 'a2', np.array([[1,2],[3,4]]))
-        >>> b2 = f.create_array('/', 'b2', np.array([[3,4],[5,6]]))
+        >>> a2 = h5f.create_array('/', 'a2', np.array([[1,2],[3,4]]))
+        >>> b2 = h5f.create_array('/', 'b2', np.array([[3,4],[5,6]]))
         >>> c2 = np.array([4,5])           # This will be broadcasted
         >>> expr = tb.Expr("2 * a2 + b2-c2")
         >>> expr.eval()
         array([[1, 3],
-               [7, 9]])
+               [7, 9]], dtype=int64)
         >>> sum(expr)
-        array([ 8, 12])
+        array([ 8, 12], dtype=int64)
 
     .. rubric:: Expr attributes
 
