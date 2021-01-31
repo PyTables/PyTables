@@ -51,7 +51,7 @@ First, make sure that you have
 
 * Python_ >= 3.6 (PyTables-3.5 was the last release with Python 2.7 support)
 * HDF5_ >= 1.8.4 (>=1.8.15 is strongly recommended)
-* NumPy_ >= 1.9.3
+* NumPy_ >= 1.19.0
 * Numexpr_ >= 2.6.2
 * Cython_ >= 0.29.21
 * c-blosc_ >= 1.4.1 (sources are bundled with PyTables sources but the user can
