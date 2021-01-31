@@ -154,6 +154,8 @@ class SoftLink(linkextension.SoftLink, Link):
 
     ::
 
+        >>> import numpy as np
+        >>> import tables as tb
         >>> f = tb.open_file('/tmp/test_softlink.h5', 'w')
         >>> a = f.create_array('/', 'A', np.arange(10))
         >>> link_a = f.create_soft_link('/', 'link_A', target='/A')
@@ -161,7 +163,7 @@ class SoftLink(linkextension.SoftLink, Link):
         # transparent read/write access to a softlinked node
         >>> link_a[0] = -1
         >>> print(link_a[:], link_a.dtype)
-        (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
+        [-1  1  2  3  4  5  6  7  8  9] int64
 
         # dereferencing a softlink using the __call__() method
         >>> print(link_a() is a)
@@ -170,9 +172,9 @@ class SoftLink(linkextension.SoftLink, Link):
         # SoftLink.remove() overrides Array.remove()
         >>> link_a.remove()
         >>> print(link_a)
-        <closed tables.link.SoftLink at 0x7febe97186e0>
+        <closed tables.link.SoftLink at 0x...>
         >>> print(a[:], a.dtype)
-        (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
+        [-1  1  2  3  4  5  6  7  8  9] int64
 
 
     """
