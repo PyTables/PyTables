@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: January 14, 2004
+# Author:  Francesc Alted - faltet@pytables.com
+#
+# $Id$
+#
+########################################################################
+
 """Here is defined the UnImplemented class."""
 
 import warnings

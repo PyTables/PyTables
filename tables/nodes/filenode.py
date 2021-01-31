@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: October 2, 2004
+# Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
+#
+# $Id$
+#
+########################################################################
+
 """A file interface to nodes for PyTables databases.
 
 The FileNode module provides a file interface for using inside of

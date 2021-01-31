@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: June 12, 2009
+# Author: Francesc Alted - faltet@pytables.com
+#
+# $Id$
+#
+########################################################################
+
 """Here is defined the Expr class."""
 
 import sys

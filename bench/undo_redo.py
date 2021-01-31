@@ -1,5 +1,10 @@
-"""Benchmark for undo/redo.
-Run this program without parameters for mode of use."""
+###########################################################################
+# Benchmark for undo/redo. Run this program without parameters
+# for mode of use.
+#
+# Francesc Alted
+# 2005-03-09
+###########################################################################
 
 from time import perf_counter as clock
 import numpy as np

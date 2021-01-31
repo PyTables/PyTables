@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: 2005-09-20
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
 """Test module for detecting uncollectable garbage in PyTables.
 
 This test module *must* be loaded in the last place.  It just checks for

@@ -1,5 +1,17 @@
+########################################################################
+#
+# License: BSD
+# Created: 2007-02-23
+# Author: Ivan Vilata i Balaguer - ivan at selidor dot net
+#
+# $Id$
+#
+########################################################################
+
 """Functionality related with filters in a PyTables file."""
 
+# Imports
+# =======
 import warnings
 import numpy as np
 
@@ -12,6 +24,8 @@ import tables as tb
 blosc_version = LooseVersion(tb.which_lib_version("blosc")[1])
 
 
+# Public variables
+# ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
@@ -28,12 +42,16 @@ default_complib = 'zlib'
 """The default compression library."""
 
 
+# Private variables
+# =================
 _shuffle_flag = 0x1
 _fletcher32_flag = 0x2
 _rounding_flag = 0x4
 _bitshuffle_flag = 0x8
 
 
+# Classes
+# =======
 class Filters:
     """Container for filter properties.
 
@@ -426,6 +444,8 @@ class Filters:
         return self.__class__(**newargs)
 
 
+# Main part
+# =========
 def _test():
     """Run ``doctest`` on this module."""
 

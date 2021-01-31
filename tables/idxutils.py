@@ -1,3 +1,13 @@
+########################################################################
+#
+#       License: BSD
+#       Created: April 02, 2007
+#       Author:  Francesc Alted - faltet@pytables.com
+#
+#       $Id$
+#
+########################################################################
+
 """Utilities to be used mainly by the Index class."""
 
 import math

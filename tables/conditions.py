@@ -1,3 +1,17 @@
+########################################################################
+#
+# License: BSD
+# Created: 2006-09-19
+# Author:  Ivan Vilata i Balaguer -- ivan@selidor.net
+# :Notes:  Heavily modified by Francesc Alted for multi-index support.
+#          2008-04-09
+#          Combined common & pro version.
+#          2011-06-04
+#
+# $Id$
+#
+########################################################################
+
 """Utility functions and classes for supporting query conditions.
 
 Classes:
@@ -303,6 +317,8 @@ def _get_idx_expr(expr, indexedcols):
 class CompiledCondition:
     """Container for a compiled condition."""
 
+    # Lazy attributes
+    # ```````````````
     @lazyattr
     def index_variables(self):
         """The columns participating in the index expression."""

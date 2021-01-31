@@ -1,3 +1,14 @@
+########################################################################
+#
+# License: BSD
+# Created: 2005-05-18
+# Author: Francesc Alted - faltet@pytables.org
+# Author: Ivan Vilata - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
 """Test module for nested types under PyTables."""
 
 import sys

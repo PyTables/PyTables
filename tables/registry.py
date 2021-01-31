@@ -1,3 +1,14 @@
+########################################################################
+#
+# License: BSD
+# Created: March 18, 2005
+# Author:  Ivan Vilata - reverse:net.selidor@ivan
+#
+# $Source$
+# $Id$
+#
+########################################################################
+
 """Miscellaneous mappings used to avoid circular imports.
 
 Variables:

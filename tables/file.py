@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: September 4, 2002
+# Author: Francesc Alted - faltet@pytables.com
+#
+# $Id$
+#
+########################################################################
+
 """Create PyTables files and the object tree.
 
 This module support importing generic HDF5 files, on top of which

@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: September 4, 2002
+# Author: Francesc Alted - faltet@pytables.com
+#
+# $Id$
+#
+########################################################################
+
 """Here is defined the Group class."""
 
 import os

@@ -1,5 +1,10 @@
-"""This script compares the speed of the computation of a polynomial for
-different (numpy.memmap and tables.Expr) out-of-memory paradigms."""
+#######################################################################
+# This script compares the speed of the computation of a polynomial
+# for different (numpy.memmap and tables.Expr) out-of-memory paradigms.
+#
+# Author: Francesc Alted
+# Date: 2010-02-24
+#######################################################################
 
 from pathlib import Path
 from time import perf_counter as clock

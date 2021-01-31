@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: October 14, 2002
+# Author: Francesc Alted - faltet@pytables.com
+#
+# $Id$
+#
+########################################################################
+
 """Here is defined the Leaf class."""
 
 import warnings
@@ -109,6 +119,11 @@ class Leaf(Node):
 
     """
 
+    # Properties
+    # ~~~~~~~~~~
+
+    # Node property aliases
+    # `````````````````````
     # These are a little hard to override, but so are properties.
     attrs = Node._v_attrs
     """The associated AttributeSet instance - see :ref:`AttributeSetClassDescr`
@@ -117,6 +132,8 @@ class Leaf(Node):
     """A description for this node
     (This is an easier-to-write alias of :attr:`Node._v_title`)."""
 
+    # Read-only node property aliases
+    # ```````````````````````````````
     @property
     def name(self):
         """The name of this node in its parent group (This is an
@@ -150,6 +167,8 @@ class Leaf(Node):
         .. versionadded: 2.4"""
         return len(self.shape)
 
+    # Lazy read-only attributes
+    # `````````````````````````
     @lazyattr
     def filters(self):
         """Filter properties for this leaf.
@@ -175,6 +194,9 @@ class Leaf(Node):
         track_times = (leaf._get_obj_timestamps().ctime == 0)
         """
         return self._get_obj_track_times()
+
+    # Other properties
+    # ````````````````
 
     @property
     def maindim(self):
@@ -222,6 +244,8 @@ class Leaf(Node):
         """
         return self._get_storage_size()
 
+    # Special methods
+    # ~~~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  new=False, filters=None,
                  byteorder=None, _log=True,
@@ -285,6 +309,8 @@ class Leaf(Node):
         return (f"{self._v_pathname} ({self.__class__.__name__}"
                 f"{self.shape}{', '.join(filters)}) {self._v_title!r}")
 
+    # Private methods
+    # ~~~~~~~~~~~~~~~
     def _g_post_init_hook(self):
         """Code to be run after node creation and before creation logging.
 
@@ -551,7 +577,10 @@ very small/large chunksize, you may want to increase/decrease it."""
             coords = coords.copy()
         return coords
 
+    # Public methods
+    # ~~~~~~~~~~~~~~
     # Tree manipulation
+    # `````````````````
     def remove(self):
         """Remove this node from the hierarchy.
 
@@ -660,6 +689,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         return self._f_isvisible()
 
     # Attribute handling
+    # ``````````````````
     def get_attr(self, name):
         """Get a PyTables attribute from this node.
 
@@ -688,6 +718,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._f_delattr(name)
 
     # Data handling
+    # `````````````
     def flush(self):
         """Flush pending data to disk.
 

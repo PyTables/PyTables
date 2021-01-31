@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: October 1, 2002
+# Author: Francesc Alted - faltet@pytables.com
+#
+# $Id$
+#
+########################################################################
+
 """PyTables, hierarchical datasets in Python.
 
 :URL: http://www.pytables.org/

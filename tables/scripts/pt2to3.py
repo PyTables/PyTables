@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: April 9, 2013
+# Author:  Anthony Scopatz - scopatz@gmail.com
+#
+# $Id$
+#
+########################################################################
+
 """This utility helps you migrate from PyTables 2.x APIs to 3.x APIs, which
 are PEP 8 compliant.
 

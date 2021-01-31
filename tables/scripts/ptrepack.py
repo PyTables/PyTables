@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: February 10, 2004
+# Author:  Francesc Alted - faltet@pytables.com
+#
+# $Id$
+#
+########################################################################
+
 """This utility lets you repack your data files in a flexible way.
 
 Pass the flag -h to this for help on usage.

@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: 2005-05-09
+# Author: Ivan Vilata i Balaguer - ivan@selidor.net
+#
+# $Id$
+#
+########################################################################
+
 """Test module for enumerated types under PyTables."""
 
 import itertools

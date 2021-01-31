@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: November 8, 2014
+# Author:  Alistair Muldal - alimuldal@gmail.com
+#
+# $Id$
+#
+########################################################################
+
 """This utility prints the contents of an HDF5 file as a tree.
 
 Pass the flag -h to this for help on usage.

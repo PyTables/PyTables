@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: December 30, 2006
+# Author: Ivan Vilata i Balaguer - ivan at selidor dot net
+#
+# $Id$
+#
+########################################################################
+
 """Utilities for handling different array flavors in PyTables.
 
 Variables
@@ -34,6 +44,8 @@ Variables
 
 """
 
+# Imports
+# =======
 import warnings
 
 import numpy as np
@@ -41,6 +53,8 @@ import numpy as np
 from .exceptions import FlavorError, FlavorWarning
 
 
+# Public variables
+# ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
@@ -81,6 +95,8 @@ friendlier interfaces to flavor conversion.
 """
 
 
+# Public functions
+# ================
 def check_flavor(flavor):
     """Raise a ``FlavorError`` if the `flavor` is not valid."""
 
@@ -210,6 +226,7 @@ def restrict_flavors(keep=('python',)):
 
 
 # Flavor registration
+# ===================
 #
 # The order in which flavors appear in `all_flavors` determines the
 # order in which they will be tested for by `flavor_of()`, so place
@@ -316,6 +333,7 @@ def _disable_flavor(flavor):
 
 
 # Implementation of flavors
+# =========================
 _python_aliases = [
     'List', 'Tuple',
     'Int', 'Float', 'String',
@@ -417,6 +435,8 @@ def _conv_numpy_to_python(array):
 _register_all()
 
 
+# Main part
+# =========
 def _test():
     """Run ``doctest`` on this module."""
 

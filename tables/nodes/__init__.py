@@ -1,3 +1,13 @@
+########################################################################
+#
+# License: BSD
+# Created: October 19, 2004
+# Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
+#
+# $Id$
+#
+########################################################################
+
 """Special node behaviours for PyTables.
 
 This package contains several modules that give specific behaviours
