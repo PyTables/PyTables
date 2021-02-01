@@ -1326,13 +1326,13 @@ cdef class Row:
     # self.iobuf[self._unsaved_nrows] = self.wrec
     # The next is faster
     iobuf = <ndarray>self.iobuf; wrec = <ndarray>self.wrec
-    memcpy(PyArray_DATA(iobuf) + self._unsaved_nrows * self._stride,
-           PyArray_DATA(wrec), self._rowsize)
+    memcpy(PyArray_BYTES(iobuf) + self._unsaved_nrows * self._stride,
+           PyArray_BYTES(wrec), self._rowsize)
     # Restore the defaults for the private record
     # self.wrec[:] = self.wreccpy
     # The next is faster
     wreccpy = <ndarray>self.wreccpy
-    memcpy(PyArray_DATA(wrec), PyArray_DATA(wreccpy), self._rowsize)
+    memcpy(PyArray_BYTES(wrec), PyArray_BYTES(wreccpy), self._rowsize)
     self._unsaved_nrows = self._unsaved_nrows + 1
     # When the buffer is full, flush it
     if self._unsaved_nrows == self.nrowsinbuf:
@@ -1415,8 +1415,8 @@ cdef class Row:
     # self.iobufcpy[self._mod_nrows] = self.iobuf[self._row]
     # The next is faster
     iobufcpy = <ndarray>self.iobufcpy; iobuf = <ndarray>self.iobuf
-    memcpy(PyArray_DATA(iobufcpy) + self._mod_nrows * self._stride,
-           PyArray_DATA(iobuf) + self._row * self._stride, self._rowsize)
+    memcpy(PyArray_BYTES(iobufcpy) + self._mod_nrows * self._stride,
+           PyArray_BYTES(iobuf) + self._row * self._stride, self._rowsize)
     # Increase the modified buffer count by one
     self._mod_nrows = self._mod_nrows + 1
     # No point writing seqcache -- Table.flush will invalidate it
@@ -1521,7 +1521,7 @@ cdef class Row:
 
     if PyArray_NDIM(field) == 1:
       # For an scalar it is not needed a copy (immutable object)
-      return PyArray_GETITEM(field, PyArray_DATA(field) + offset * self._stride)
+      return PyArray_GETITEM(field, PyArray_BYTES(field) + offset * self._stride)
     else:
       # Do a copy of the array, so that it can be overwritten by the user
       # without damaging the internal self.rfields buffer
