@@ -16,7 +16,7 @@
 #ifndef __TYPECONV_H__
 #define __TYPECONV_H__ 1
 
-#include "Python.h"
+#include <Python.h>
 
 /* Meaning for common arguments:
  *   * base: pointer to data

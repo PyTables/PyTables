@@ -8,7 +8,7 @@
 
 /* See https://numpy.org/doc/1.17/reference/c-api.array.html#c.NO_IMPORT_ARRAY */
 #define NO_IMPORT_ARRAY
-#include "numpy/arrayobject.h"
+#include <numpy/arrayobject.h>
 
 #ifndef NPY_COMPLEX192
 typedef npy_cdouble npy_complex192;

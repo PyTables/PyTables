@@ -1,4 +1,4 @@
-#include "Python.h"
+#include <Python.h>
 #include "hdf5.h"
 
 /* Define this variable for error printings */
