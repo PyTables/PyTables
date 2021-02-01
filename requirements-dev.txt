@@ -1,0 +1,2 @@
+# Requirements needed for building
+cython>=0.29.21

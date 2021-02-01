@@ -59,7 +59,7 @@ jobs:
 
     - name: Install dependencies on Linux and macOS
       if: contains(matrix.os, 'windows') == false
-      run: pip install --requirement=requirements.txt cython>=0.29.21
+      run: pip install --requirement=requirements.txt --requirement=requirements-dev.txt
 
     - name: Install Miniconda on Windows
       if: contains(matrix.os, 'windows')
@@ -77,7 +77,7 @@ jobs:
         conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
 
         # Install build dependencies.
-        conda install --yes --file=requirements.txt cython>=0.29.21
+        conda install --yes --file=requirements.txt --file=requirements-dev.txt
 
     - name: Run build and install in development mode
       run: python setup.py develop

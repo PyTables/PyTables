@@ -79,7 +79,7 @@ jobs:
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
           CIBW_BEFORE_ALL_LINUX: "yum install -y blosc-devel bzip2-devel hdf5-devel lz4-devel lzo-devel snappy-devel libzstd-devel zlib-devel"
           CIBW_BEFORE_ALL_MACOS: "brew install c-blosc bzip2 hdf5 lz4 lzo snappy zstd zlib"
-          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt cython"
+          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt --requirement=requirements-dev.txt"
 
 
       # The workhorse for Linux 32-bit.
@@ -109,7 +109,7 @@ jobs:
 
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
           CIBW_BEFORE_ALL_LINUX: "yum install -y bzip2-devel hdf5-devel lz4-devel lzo-devel snappy-devel libzstd-devel zlib-devel wget; BASEURL=http://ftp.altlinux.org/pub/distributions/ALTLinux/Sisyphus/i586/RPMS.classic; wget $BASEURL/libblosc-1.18.1-alt1.i586.rpm $BASEURL/libblosc-devel-1.18.1-alt1.i586.rpm; rpm --install --nodeps *.rpm"
-          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt cython"
+          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt --requirement=requirements-dev.txt"
 
 
       # The workhorses for Windows.
@@ -137,7 +137,7 @@ jobs:
 
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
           CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build-32" PATH="$PATH;C:\\Miniconda\\envs\\build-32\\Library\\bin"'
-          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt cython"
+          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt --requirement=requirements-dev.txt"
 
       - name: Build wheels for Windows (64-bit)
         if: contains(matrix.os, 'windows')
@@ -150,7 +150,7 @@ jobs:
 
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
           CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build-64" PATH="$PATH;C:\\Miniconda\\envs\\build-64\\Library\\bin"'
-          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt cython>=0.29.21"
+          CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt --requirement=requirements-dev.txt"
 
       - uses: actions/upload-artifact@v2
         with:
@@ -179,7 +179,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade setuptools pip wheel
-          pip install --requirement=requirements.txt cython>=0.29.21
+          pip install --requirement=requirements.txt --requirement=requirements-dev.txt
           pip install --requirement=requirements-docs.txt
 
       - name: Build sdist
