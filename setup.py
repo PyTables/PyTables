@@ -955,6 +955,7 @@ if __name__ == "__main__":
         "define_macros": def_macros,
         "include_dirs": [str(x) for x in inc_dirs],
     }
+    print(f"* Using build arguments: {extension_kwargs}")
 
     extensions = [
         Extension(

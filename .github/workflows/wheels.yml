@@ -6,6 +6,7 @@ on:
     branches:
       - master
       - 'releases/**'
+      - gha-macos-windows-ci
     tags:
       - v*
   release:
@@ -19,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ 'ubuntu-18.04', 'macos-10.15', 'windows-latest' ]
 
     steps:
 
@@ -31,17 +32,19 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Cache dependencies
+      - name: Apply caching
+        id: cache
         uses: actions/cache@v2
         env:
           # Increase this value to reset cache if requirements*.txt has not changed
-          CACHE_NUMBER: 2
+          CACHE_NUMBER: 4
         with:
           path: |
-            ~/.cache/pip
+            ~/.cache
             ~/conda_pkgs_dir
+            #/usr/local/Cellar
           key:
-            ${{ runner.os }}-pythonpkg-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements.txt', 'requirements-docs.txt') }}
+            ${{ runner.os }}-pythonpkg-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements.txt', 'requirements-dev.txt', 'requirements-docs.txt') }}
 
       - name: Install Miniconda
         if: contains(matrix.os, 'windows')
@@ -53,7 +56,7 @@ jobs:
 
       - name: Install cibuildwheel
         run: |
-          pip install --upgrade cibuildwheel
+          pip install cibuildwheel==1.8.0
 
       # General note:
       # We wanted to handle this all within a single `cibuildwheel` action,
@@ -68,18 +71,35 @@ jobs:
       # nor `manylinux2010` apparently ship `blosc-devel` packages, we
       # switch to `manylinux2014`. For building on macOS, it uses Homebrew.
 
-      - name: Build wheels for Linux and macOS (64-bit)
+      - name: Install prerequisites for macOS
+        if: contains(matrix.os, 'macos') # && steps.cache.outputs.cache-hit != 'true'
+        env:
+          # Best compatibility, even with older releases of macOS.
+          MACOSX_DEPLOYMENT_TARGET: "10.9"
+        run: |
+          brew install --build-from-source --no-binaries --force szip
+          brew reinstall --build-from-source --no-binaries --force c-blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
+          brew link --overwrite --force bzip2 zlib
+
+      - name: Build wheels for Linux or macOS (64-bit)
         if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'macos')
         run: cibuildwheel --output-dir wheelhouse
         env:
+
           CIBW_BUILD: "cp36-manylinux_x86_64 cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp39-manylinux_x86_64 cp36-macosx_x86_64 cp37-macosx_x86_64 cp38-macosx_x86_64 cp39-macosx_x86_64"
-
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
-          CIBW_BEFORE_ALL_LINUX: "yum install -y blosc-devel bzip2-devel hdf5-devel lz4-devel lzo-devel snappy-devel libzstd-devel zlib-devel"
-          CIBW_BEFORE_ALL_MACOS: "brew install c-blosc bzip2 hdf5 lz4 lzo snappy zstd zlib"
           CIBW_BEFORE_BUILD: "pip install --requirement=requirements.txt --requirement=requirements-dev.txt"
+          CIBW_BUILD_VERBOSITY: 3
+
+          # Linux specific configuration.
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_BEFORE_ALL_LINUX: "yum install -y blosc-devel bzip2-devel hdf5-devel lz4-devel lzo-devel snappy-devel libzstd-devel zlib-devel"
+
+          # macOS specific configuration.
+          # Best compatibility, even with older releases of macOS.
+          MACOSX_DEPLOYMENT_TARGET: "10.9"
+          CIBW_ENVIRONMENT_MACOS: BZIP2_DIR=/usr/local/opt/bzip2 LDFLAGS+="-L/usr/local/opt/bzip2/lib -L/usr/local/opt/zlib/lib" CPPFLAGS+="-I/usr/local/opt/bzip2/include -I/usr/local/opt/zlib/include" PKG_CONFIG_PATH="/usr/local/opt/zlib/lib/pkgconfig"
+
 
 
       # The workhorse for Linux 32-bit.
