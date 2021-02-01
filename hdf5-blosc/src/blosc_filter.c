@@ -154,9 +154,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     int doshuffle = 1;             /* Shuffle default */
     int compcode;                  /* Blosc compressor */
     int code;
-    char *compname = "blosclz";    /* The compressor by default */
-    char *complist;
-    char errmsg[256];
+    const char *compname = "blosclz"; /* The compressor by default */
 
     /* Filter params that are always set */
     typesize = cd_values[2];      /* The datatype size */
@@ -177,6 +175,8 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
 #endif
     }
     if (cd_nelmts >= 7) {
+        const char *complist;
+
         compcode = cd_values[6];     /* The Blosc compressor used */
 	/* Check that we actually have support for the compressor code */
         complist = blosc_list_compressors();

@@ -189,7 +189,7 @@ cdef extern from "utils.h":
 cdef extern from "blosc.h" nogil:
   void blosc_init()
   int blosc_set_nthreads(int nthreads)
-  char* blosc_list_compressors()
+  const char* blosc_list_compressors()
   int blosc_compcode_to_compname(int compcode, char **compname)
   int blosc_get_complib_info(char *compname, char **complib, char **version)
 
@@ -705,7 +705,7 @@ def blosc_compcode_to_compname_(compcode):
   out : string
       The name of the compressor.
   """
-  cdef char *cname
+  cdef const char *cname
   cdef object compname
 
   compname = b"unknown (report this to developers)"
