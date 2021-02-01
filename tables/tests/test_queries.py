@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: 2006-10-19
-# Author: Ivan Vilata i Balaguer - ivan@selidor.net
-#
-# $Id$
-#
-########################################################################
-
 """Test module for queries on datasets."""
 
 import re

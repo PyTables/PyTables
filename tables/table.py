@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: September 4, 2002
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the Table class."""
 
 import functools
@@ -506,8 +496,6 @@ class Table(tableextension.Table, Leaf):
     # Class identifier.
     _c_classid = 'TABLE'
 
-    # Properties
-    # ~~~~~~~~~~
     @lazyattr
     def row(self):
         """The associated Row instance (see :ref:`RowClassDescr`)."""
@@ -519,9 +507,6 @@ class Table(tableextension.Table, Leaf):
         """The NumPy ``dtype`` that most closely matches this table."""
 
         return self.description._v_dtype
-
-    # Read-only shorthands
-    # ````````````````````
 
     @property
     def shape(self):
@@ -540,8 +525,6 @@ class Table(tableextension.Table, Leaf):
         the compression ratio of the data."""
         return self.nrows * self.rowsize
 
-    # Lazy attributes
-    # ```````````````
     @lazyattr
     def _v_iobuf(self):
         """A buffer for doing I/O."""
@@ -575,9 +558,6 @@ class Table(tableextension.Table, Leaf):
             if not carr.flags.aligned and carr.ndim == 1:
                 colunaligned.append(colpathname)
         return frozenset(colunaligned)
-
-    # Index-related properties
-    # ````````````````````````
 
     # **************** WARNING! ***********************
     # This function can be called during the destruction time of a table
@@ -653,8 +633,6 @@ class Table(tableextension.Table, Leaf):
         """Whether some index in table is dirty."""
         return self._condition_cache._nailcount > 0
 
-    # Other methods
-    # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  description=None, title="", filters=None,
                  expectedrows=None, chunkshape=None,
@@ -3297,8 +3275,6 @@ class Column:
 
     """
 
-    # Lazy read-only attributes
-    # `````````````````````````
     @lazyattr
     def dtype(self):
         """The NumPy dtype that most closely matches this column."""
@@ -3310,9 +3286,6 @@ class Column:
         """The PyTables type of the column (a string)."""
 
         return self.descr._v_types[self.name]
-
-    # Properties
-    # ~~~~~~~~~~
 
     @property
     def table(self):

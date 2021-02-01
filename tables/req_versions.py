@@ -1,11 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: November 5, 2010
-# Author:  Francesc Alted - faltet@pytables.com
-#
-########################################################################
-
 """Required versions for PyTables dependencies."""
 
 from distutils.version import LooseVersion

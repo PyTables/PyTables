@@ -1,17 +1,5 @@
-########################################################################
-#
-# License: BSD
-# Created: December 16, 2004
-# Author: Ivan Vilata i Balaguer - ivan at selidor dot net
-#
-# $Id$
-#
-########################################################################
-
 """Atom classes for describing dataset contents."""
 
-# Imports
-# =======
 import re
 import inspect
 import warnings
@@ -25,8 +13,6 @@ import pickle
 
 from .exceptions import FlavorWarning
 
-# Public variables
-# ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
@@ -45,8 +31,6 @@ deftype_from_kind = {}  # filled as atom classes are created
 """Maps atom kinds to their default atom type (if any)."""
 
 
-# Public functions
-# ================
 _type_re = re.compile(r'^([a-z]+)([0-9]*)$')
 
 
@@ -85,8 +69,6 @@ def split_type(type):
     return (kind, itemsize)
 
 
-# Private functions
-# =================
 def _invalid_itemsize_error(kind, itemsize, itemsizes):
     isizes = sorted(itemsizes)
     return ValueError("invalid item size for kind ``%s``: %r; "
@@ -176,8 +158,6 @@ def _cmp_dispatcher(other_method_name):
     return dispatched_cmp
 
 
-# Helper classes
-# ==============
 class MetaAtom(type):
     """Atom metaclass.
 
@@ -214,8 +194,6 @@ class MetaAtom(type):
             atom_map[kind][int(itemsize)] = cls
 
 
-# Atom classes
-# ============
 class Atom(metaclass=MetaAtom):
     """Defines the type of atomic cells stored in a dataset.
 
@@ -311,8 +289,6 @@ class Atom(metaclass=MetaAtom):
 
     """
 
-    # Class methods
-    # ~~~~~~~~~~~~~
     @classmethod
     def prefix(cls):
         """Return the atom class prefix."""
@@ -488,8 +464,6 @@ class Atom(metaclass=MetaAtom):
 
         return atomclass(**kwargs)
 
-    # Properties
-    # ~~~~~~~~~~
     @property
     def size(self):
         """Total size in bytes of the atom."""
@@ -548,8 +522,6 @@ class Atom(metaclass=MetaAtom):
     #    return hash((self.__class__, self.type, self.shape, self.itemsize,
     #                 self.dflt))
 
-    # Public methods
-    # ~~~~~~~~~~~~~~
     def copy(self, **override):
         """Get a copy of the atom, possibly overriding some arguments.
 
@@ -577,8 +549,6 @@ class Atom(metaclass=MetaAtom):
         newargs.update(override)
         return self.__class__(**newargs)
 
-    # Private methods
-    # ~~~~~~~~~~~~~~~
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments.
 
@@ -895,15 +865,11 @@ class EnumAtom(Atom):
     kind = 'enum'
     type = 'enum'
 
-    # Properties
-    # ~~~~~~~~~~
     @property
     def itemsize(self):
         """Size in bytes of a single item in the atom."""
         return self.dtype.base.itemsize
 
-    # Private methods
-    # ~~~~~~~~~~~~~~~
     def _checkbase(self, base):
         """Check the `base` storage atom."""
 
@@ -957,8 +923,6 @@ class EnumAtom(Atom):
                 and np.all(self.dflt == enumatom.dflt)
                 and self.base == enumatom.base)
 
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __init__(self, enum, dflt, base, shape=()):
         if not isinstance(enum, Enum):
             enum = Enum(enum)
@@ -1008,8 +972,6 @@ class ReferenceAtom(Atom):
     _deftype = 'NoneType'
     _defvalue = None
 
-    # Properties
-    # ~~~~~~~~~~
     @property
     def itemsize(self):
         """Size in bytes of a single item in the atom."""

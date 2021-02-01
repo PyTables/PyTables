@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: October 10, 2002
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the Array class."""
 
 import operator
@@ -92,16 +82,10 @@ class Array(hdf5extension.Array, Leaf):
     # Class identifier.
     _c_classid = 'ARRAY'
 
-    # Lazy read-only attributes
-    # `````````````````````````
     @lazyattr
     def dtype(self):
         """The NumPy ``dtype`` that most closely matches this array."""
-
         return self.atom.dtype
-
-    # Properties
-    # ~~~~~~~~~~
 
     @property
     def nrows(self):
@@ -128,8 +112,6 @@ class Array(hdf5extension.Array, Leaf):
         memory."""
         return self.nrows * self.rowsize
 
-    # Other methods
-    # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  obj=None, title="",
                  byteorder=None, _log=True, _atom=None,

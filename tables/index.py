@@ -1,13 +1,3 @@
-#######################################################################
-#
-# License: BSD
-# Created: June 08, 2004
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the Index class."""
 
 import math

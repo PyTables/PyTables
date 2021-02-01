@@ -1,13 +1,3 @@
-########################################################################
-#
-# License: BSD
-# Created: November 12, 2003
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the VLArray class."""
 
 import operator
@@ -214,15 +204,10 @@ class VLArray(hdf5extension.VLArray, Leaf):
     # Class identifier.
     _c_classid = 'VLARRAY'
 
-    # Lazy read-only attributes
-    # `````````````````````````
     @lazyattr
     def dtype(self):
         """The NumPy ``dtype`` that most closely matches this array."""
         return self.atom.dtype
-
-    # Properties
-    # ~~~~~~~~~~
 
     @property
     def shape(self):
@@ -257,8 +242,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """
         return self._get_memory_size()
 
-    # Other methods
-    # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name, atom=None, title="",
                  filters=None, expectedrows=None,
                  chunkshape=None, byteorder=None,
