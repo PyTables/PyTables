@@ -57,7 +57,8 @@ from .utilsextension import (encode_filename, set_blosc_max_threads,
 # Types, constants, functions, classes & other objects from everywhere
 from libc.stdlib cimport malloc, free
 from libc.string cimport strdup, strlen
-from numpy cimport import_array, ndarray, npy_intp
+from numpy cimport (import_array, ndarray, npy_intp, PyArray_BYTES, PyArray_DATA,
+    PyArray_DIMS, PyArray_NDIM, PyArray_STRIDE)
 from cpython.bytes cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
     PyBytes_Check)
 from cpython.unicode cimport PyUnicode_DecodeUTF8
@@ -683,10 +684,10 @@ cdef class AttributeSet:
         type_id = atom_to_hdf5_type(baseatom, byteorder)
       # Get dimensionality info
       ndv = <ndarray>value
-      dims = npy_malloc_dims(ndv.ndim, ndv.shape)
+      dims = npy_malloc_dims(PyArray_NDIM(ndv), PyArray_DIMS(ndv))
       # Actually write the attribute
       ret = H5ATTRset_attribute(dset_id, cname, type_id,
-                                ndv.ndim, dims, ndv.data)
+                                PyArray_NDIM(ndv), dims, PyArray_BYTES(ndv))
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
                            (name, self._v_node))
@@ -854,7 +855,7 @@ cdef class AttributeSet:
     # Get the container for data
     ndvalue = numpy.empty(dtype=dtype_, shape=shape)
     # Get the pointer to the buffer data area
-    rbuf = ndvalue.data
+    rbuf = PyArray_DATA(ndvalue)
     # Actually read the attribute from disk
     ret = H5ATTRget_attribute(dset_id, cattrname, type_id, rbuf)
     if ret < 0:
@@ -1183,9 +1184,9 @@ cdef class Leaf(Node):
       bytestride = 8
     else:
       nrecords = len(nparr)
-      bytestride = nparr.strides[0]  # supports multi-dimensional recarray
+      bytestride = PyArray_STRIDE(nparr, 0)  # supports multi-dimensional recarray
     nelements = <size_t>nparr.size // nrecords
-    t64buf = nparr.data
+    t64buf = PyArray_DATA(nparr)
 
     conv_float64_timeval32(
       t64buf, byteoffset, bytestride, nrecords, nelements, sense)
@@ -1232,6 +1233,19 @@ cdef class Leaf(Node):
       H5Dclose(self.dataset_id)
 
 
+cdef void* _array_data(ndarray arr):
+    # When the object is not a 0-d ndarray and its strides == 0, that
+    # means that the array does not contain actual data
+    cdef npy_intp i, ndim
+
+    ndim = PyArray_NDIM(arr)
+    if ndim == 0:
+        return PyArray_DATA(arr)
+    for i in range(ndim):
+        if PyArray_STRIDE(arr, i) > 0:
+            return PyArray_DATA(arr)
+    return NULL
+
 cdef class Array(Leaf):
   # Instance variables declared in .pxd
 
@@ -1265,15 +1279,9 @@ cdef class Array(Leaf):
     # Allocate space for the dimension axis info and fill it
     dims = numpy.array(shape, dtype=numpy.intp)
     self.rank = len(shape)
-    self.dims = npy_malloc_dims(self.rank, <npy_intp *>(dims.data))
-    # Get the pointer to the buffer data area
-    strides = (<object>nparr).strides
-    # When the object is not a 0-d ndarray and its strides == 0, that
-    # means that the array does not contain actual data
-    if strides != () and sum(strides) == 0:
-      rbuf = NULL
-    else:
-      rbuf = nparr.data
+    self.dims = npy_malloc_dims(self.rank, <npy_intp *>PyArray_DATA(dims))
+    rbuf = _array_data(nparr)
+
     # Save the array
     complib = (self.filters.complib or '').encode('utf-8')
     version = self._v_version.encode('utf-8')
@@ -1337,7 +1345,7 @@ cdef class Array(Leaf):
     # Get the fill values
     if isinstance(atom.dflt, numpy.ndarray) or atom.dflt:
       dflts = numpy.array(atom.dflt, dtype=atom.dtype)
-      fill_data = dflts.data
+      fill_data = PyArray_DATA(dflts)
     else:
       dflts = numpy.zeros((), dtype=atom.dtype)
       fill_data = NULL
@@ -1369,7 +1377,7 @@ cdef class Array(Leaf):
         extdim = <ndarray>numpy.array([self.extdim], dtype="int32")
         # Attach the EXTDIM attribute in case of enlargeable arrays
         H5ATTRset_attribute(self.dataset_id, "EXTDIM", H5T_NATIVE_INT,
-                            0, NULL, extdim.data)
+                            0, NULL, PyArray_BYTES(extdim))
 
     # Get the native type (so that it is HDF5 who is the responsible to deal
     # with non-native byteorders on-disk)
@@ -1442,7 +1450,7 @@ cdef class Array(Leaf):
     if atom.dtype != object:
       # Get the fill value
       dflts = numpy.zeros((), dtype=atom.dtype)
-      fill_data = dflts.data
+      fill_data = PyArray_DATA(dflts)
       H5ARRAYget_fill_value(self.dataset_id, self.type_id,
                             &fill_status, fill_data);
       if fill_status == H5D_FILL_VALUE_UNDEFINED:
@@ -1471,9 +1479,9 @@ cdef class Array(Leaf):
       raise ValueError("Cannot append to the reference types")
 
     # Allocate space for the dimension axis info
-    dims_arr = npy_malloc_dims(self.rank, nparr.shape)
+    dims_arr = npy_malloc_dims(self.rank, PyArray_DIMS(nparr))
     # Get the pointer to the buffer data area
-    rbuf = nparr.data
+    rbuf = PyArray_DATA(nparr)
     # Convert some NumPy types to HDF5 before storing.
     if self.atom.type == 'time64':
       self._convert_time64(nparr, 0)
@@ -1510,7 +1518,7 @@ cdef class Array(Leaf):
       refbuf = malloc(nrows * item_size)
       rbuf = refbuf
     else:
-      rbuf = nparr.data
+      rbuf = PyArray_DATA(nparr)
 
     if hasattr(self, "extdim"):
       extdim = self.extdim
@@ -1557,16 +1565,16 @@ cdef class Array(Leaf):
     cdef void * refbuf = NULL
 
     # Get the pointer to the buffer data area of startl, stopl and stepl arrays
-    start = <hsize_t *>startl.data
-    stop = <hsize_t *>stopl.data
-    step = <hsize_t *>stepl.data
+    start = <hsize_t *>PyArray_DATA(startl)
+    stop = <hsize_t *>PyArray_DATA(stopl)
+    step = <hsize_t *>PyArray_DATA(stepl)
 
     # Get the pointer to the buffer data area
     if self.atom.kind == "reference":
       refbuf = malloc(nparr.size * item_size)
       rbuf = refbuf
     else:
-      rbuf = nparr.data
+      rbuf = PyArray_DATA(nparr)
 
     # Do the physical read
     with nogil:
@@ -1616,14 +1624,14 @@ cdef class Array(Leaf):
 
     # Select the dataspace to be read
     H5Sselect_elements(space_id, H5S_SELECT_SET,
-                       <size_t>size, <hsize_t *>coords.data)
+                       <size_t>size, <hsize_t *>PyArray_DATA(coords))
 
     # Get the pointer to the buffer data area
     if self.atom.kind == "reference":
       refbuf = malloc(nparr.size * item_size)
       rbuf = refbuf
     else:
-      rbuf = nparr.data
+      rbuf = PyArray_DATA(nparr)
 
     # Do the actual read
     with nogil:
@@ -1691,9 +1699,9 @@ cdef class Array(Leaf):
     step_ = numpy.array(stepl, dtype="i8")
 
     # Get the pointers to array data
-    startp = <hsize_t *>start_.data
-    countp = <hsize_t *>count_.data
-    stepp = <hsize_t *>step_.data
+    startp = <hsize_t *>PyArray_DATA(start_)
+    countp = <hsize_t *>PyArray_DATA(count_)
+    stepp = <hsize_t *>PyArray_DATA(step_)
 
     # Do the actual selection
     select_modes = {"AND": H5S_SELECT_AND, "NOTB": H5S_SELECT_NOTB}
@@ -1732,7 +1740,7 @@ cdef class Array(Leaf):
       refbuf = malloc(nparr.size * item_size)
       rbuf = refbuf
     else:
-      rbuf = nparr.data
+      rbuf = PyArray_DATA(nparr)
 
     # Do the actual read
     with nogil:
@@ -1782,11 +1790,11 @@ cdef class Array(Leaf):
     if self.atom.kind == "reference":
       raise ValueError("Cannot write reference types yet")
     # Get the pointer to the buffer data area
-    rbuf = nparr.data
+    rbuf = PyArray_DATA(nparr)
     # Get the start, step and count values
-    start = <hsize_t *>startl.data
-    step = <hsize_t *>stepl.data
-    count = <hsize_t *>countl.data
+    start = <hsize_t *>PyArray_DATA(startl)
+    step = <hsize_t *>PyArray_DATA(stepl)
+    count = <hsize_t *>PyArray_DATA(countl)
 
     # Convert some NumPy types to HDF5 before storing.
     if self.atom.type == 'time64':
@@ -1824,10 +1832,10 @@ cdef class Array(Leaf):
 
     # Select the dataspace to be written
     H5Sselect_elements(space_id, H5S_SELECT_SET,
-                       <size_t>size, <hsize_t *>coords.data)
+                       <size_t>size, <hsize_t *>PyArray_DATA(coords))
 
     # Get the pointer to the buffer data area
-    rbuf = nparr.data
+    rbuf = PyArray_DATA(nparr)
 
     # Convert some NumPy types to HDF5 before storing.
     if self.atom.type == 'time64':
@@ -1875,7 +1883,7 @@ cdef class Array(Leaf):
       self.perform_selection(space_id, *args)
 
     # Get the pointer to the buffer data area
-    rbuf = nparr.data
+    rbuf = PyArray_DATA(nparr)
 
     # Convert some NumPy types to HDF5 before storing.
     if self.atom.type == 'time64':
@@ -2026,7 +2034,7 @@ cdef class VLArray(Leaf):
 
     # Get the pointer to the buffer data area
     if nobjects:
-      rbuf = nparr.data
+      rbuf = PyArray_DATA(nparr)
       # Convert some NumPy types to HDF5 before storing.
       if self.atom.type == 'time64':
         self._convert_time64(nparr, 0)
@@ -2048,7 +2056,7 @@ cdef class VLArray(Leaf):
     cdef void *rbuf
 
     # Get the pointer to the buffer data area
-    rbuf = nparr.data
+    rbuf = PyArray_DATA(nparr)
     if nobjects:
       # Convert some NumPy types to HDF5 before storing.
       if self.atom.type == 'time64':

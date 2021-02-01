@@ -593,7 +593,7 @@ if __name__ == "__main__":
     # CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
 
     # Do not use numpy deprecated API
-    # CFLAGS.append("-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
+    CFLAGS.append("-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
 
     # Try to locate the compulsory and optional libraries.
     lzo2_enabled = False

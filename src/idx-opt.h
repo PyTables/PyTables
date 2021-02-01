@@ -1,5 +1,5 @@
-#include "Python.h"
-#include "numpy/arrayobject.h"
+#include <Python.h>
+#include <numpy/arrayobject.h>
 
 #ifndef NPY_FLOAT16
 typedef npy_uint16 npy_float16;

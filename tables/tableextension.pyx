@@ -42,8 +42,8 @@ from cpython cimport PyErr_Clear
 from libc.stdio cimport snprintf
 from libc.stdlib cimport malloc, free
 from libc.string cimport memcpy, strdup, strcmp, strlen
-from numpy cimport (import_array, ndarray, PyArray_GETITEM, PyArray_SETITEM, \
-  npy_intp)
+from numpy cimport (import_array, ndarray, npy_intp, PyArray_GETITEM,
+  PyArray_SETITEM, PyArray_BYTES, PyArray_DATA, PyArray_NDIM, PyArray_STRIDE)
 from .definitions cimport (hid_t, herr_t, hsize_t, htri_t, hbool_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, H5T_COMPOUND, H5Tget_order,
@@ -187,12 +187,12 @@ cdef class Table(Leaf):
     if wdflts is None:
       fill_data = NULL
     else:
-      fill_data = wdflts.data
+      fill_data = PyArray_DATA(wdflts)
 
     # test if there is data to be saved initially
     if self._v_recarray is not None:
       recarr = self._v_recarray
-      data = recarr.data
+      data = PyArray_DATA(recarr)
     else:
       data = NULL
 
@@ -261,10 +261,9 @@ cdef class Table(Leaf):
     """Open a nested type and return a nested dictionary as description."""
 
     cdef hid_t   member_type_id, native_member_type_id, member_offset
-    cdef hsize_t nfields
+    cdef hsize_t nfields, i
     cdef hsize_t dims[1]
     cdef size_t  itemsize
-    cdef int     i
     cdef char    *c_colname
     cdef H5T_class_t class_id
     cdef char    c_byteorder2[11]  # "irrelevant" fits easily here
@@ -439,10 +438,10 @@ cdef class Table(Leaf):
     cdef npy_intp bytestride, nelements
 
     byteoffset = 0   # NumPy objects doesn't have an offset
-    bytestride = nparr.strides[0]  # supports multi-dimensional recarray
+    bytestride = PyArray_STRIDE(nparr, 0)  # supports multi-dimensional recarray
     # Compute the number of elements in the multidimensional cell
     nelements = nparr.size // len(nparr)
-    t64buf = nparr.data
+    t64buf = PyArray_DATA(nparr)
 
     conv_float64_timeval32(
       t64buf, byteoffset, bytestride, nrecords, nelements, sense)
@@ -476,7 +475,7 @@ cdef class Table(Leaf):
   def _open_append(self, ndarray recarr):
     self._v_recarray = <object>recarr
     # Get the pointer to the buffer data area
-    self.wbuf = recarr.data
+    self.wbuf = PyArray_DATA(recarr)
 
   def _append_records(self, hsize_t nrecords):
     cdef int ret
@@ -520,7 +519,7 @@ cdef class Table(Leaf):
     cdef hsize_t nrecords, nrows
 
     # Get the pointer to the buffer data area
-    rbuf = recarr.data
+    rbuf = PyArray_DATA(recarr)
 
     # Compute the number of records to update
     nrecords = len(recarr)
@@ -548,10 +547,10 @@ cdef class Table(Leaf):
     cdef void *rcoords
 
     # Get the chunk of the coords that correspond to a buffer
-    rcoords = coords.data
+    rcoords = PyArray_DATA(coords)
 
     # Get the pointer to the buffer data area
-    rbuf = recarr.data
+    rbuf = PyArray_DATA(recarr)
 
     # Convert some NumPy types to HDF5 before storing.
     self._convert_types(recarr, nrecords, 0)
@@ -576,7 +575,7 @@ cdef class Table(Leaf):
       nrecords = self.nrows - start
 
     # Get the pointer to the buffer data area
-    rbuf = recarr.data
+    rbuf = PyArray_DATA(recarr)
 
     # Read the records from disk
     with nogil:
@@ -605,7 +604,7 @@ cdef class Table(Leaf):
     nrecords = chunkshape
     if (start + nrecords) > self.nrows:
       nrecords = self.nrows - start
-    rbuf = <char *>iobuf.data + cstart * chunkcache.itemsize
+    rbuf = PyArray_BYTES(iobuf) + cstart * chunkcache.itemsize
     # Try to see if the chunk is in cache
     nslot = chunkcache.getslot_(nchunk)
     if nslot >= 0:
@@ -630,9 +629,9 @@ cdef class Table(Leaf):
     # Get the chunk of the coords that correspond to a buffer
     nrecords = coords.size
     # Get the pointer to the buffer data area
-    rbuf = recarr.data
+    rbuf = PyArray_DATA(recarr)
     # Get the pointer to the buffer coords area
-    rbuf2 = coords.data
+    rbuf2 = PyArray_DATA(coords)
 
     with nogil:
         ret = H5TBOread_elements(self.dataset_id, self.type_id,
@@ -823,7 +822,7 @@ cdef class Row:
       self.rfields[name] = buff[name]
 
     # Get the stride of these buffers
-    self._stride = buff.strides[0]
+    self._stride = PyArray_STRIDE(buff, 0)
     # The rowsize
     self._rowsize = self.dtype.itemsize
     self.nrows = table.nrows  # This value may change
@@ -883,7 +882,7 @@ cdef class Row:
       self.nrowsread = 0
       self.nextelement = 0
       self.chunkmap = chunkmap
-      self.chunkmap_data = <char*>self.chunkmap.data
+      self.chunkmap_data = PyArray_BYTES(self.chunkmap)
       table._use_index = False
       self.lenbuf = self.nrowsinbuf
       # Check if we have limitations on start, stop, step
@@ -970,10 +969,10 @@ cdef class Row:
           self.table._convert_types(iobuf, len(iobuf), 1)
         self.indexvalid = call_on_recarr(
           self.condfunc, self.condargs, iobuf, **self.condkwargs)
-        self.index_valid_data = <char *>self.indexvalid.data
+        self.index_valid_data = PyArray_BYTES(self.indexvalid)
         # Get the valid coordinates
         self.indexvalues = self.bufcoords[:recout][self.indexvalid]
-        self.index_values_data = <hsize_t *>self.indexvalues.data
+        self.index_values_data = <hsize_t *>PyArray_DATA(self.indexvalues)
         self.lenbuf = self.indexvalues.size
         # Place the valid results at the beginning of the buffer
         iobuf[:self.lenbuf] = iobuf[self.indexvalid]
@@ -1036,7 +1035,7 @@ cdef class Row:
             recout = self.table._read_elements(self.bufcoords, self.iobuf)
           else:
             recout = 0
-          self.bufcoords_data = <hsize_t*>self.bufcoords.data
+          self.bufcoords_data = <hsize_t*>PyArray_DATA(self.bufcoords)
           self.nrowsread = self.nrowsread + lenbuf
           if recout == 0:
             # no items were read, skip out
@@ -1058,7 +1057,7 @@ cdef class Row:
             tmp = self.coords[self.nextelement - (<long long> self.nrowsinbuf) + 1:self.nextelement + 1]
           self.bufcoords = numpy.array(tmp, dtype="uint64")
           recout = self.table._read_elements(self.bufcoords, self.iobuf)
-          self.bufcoords_data = <hsize_t*>self.bufcoords.data
+          self.bufcoords_data = <hsize_t*>PyArray_DATA(self.bufcoords)
           self.nrowsread = self.nrowsread + self.nrowsinbuf
           self._row = len(self.bufcoords) - 1
         else:
@@ -1099,7 +1098,7 @@ cdef class Row:
         # Evaluate the condition on this table fragment.
         self.indexvalid = call_on_recarr(
           self.condfunc, self.condargs, self.iobuf[:recout], **self.condkwargs)
-        self.index_valid_data = <char *>self.indexvalid.data
+        self.index_valid_data = PyArray_BYTES(self.indexvalid)
 
         # Is there any interesting information in this buffer?
         if not numpy.sometrue(self.indexvalid):
@@ -1327,13 +1326,13 @@ cdef class Row:
     # self.iobuf[self._unsaved_nrows] = self.wrec
     # The next is faster
     iobuf = <ndarray>self.iobuf; wrec = <ndarray>self.wrec
-    memcpy(iobuf.data + self._unsaved_nrows * self._stride,
-           wrec.data, self._rowsize)
+    memcpy(PyArray_BYTES(iobuf) + self._unsaved_nrows * self._stride,
+           PyArray_BYTES(wrec), self._rowsize)
     # Restore the defaults for the private record
     # self.wrec[:] = self.wreccpy
     # The next is faster
     wreccpy = <ndarray>self.wreccpy
-    memcpy(wrec.data, wreccpy.data, self._rowsize)
+    memcpy(PyArray_BYTES(wrec), PyArray_BYTES(wreccpy), self._rowsize)
     self._unsaved_nrows = self._unsaved_nrows + 1
     # When the buffer is full, flush it
     if self._unsaved_nrows == self.nrowsinbuf:
@@ -1416,8 +1415,8 @@ cdef class Row:
     # self.iobufcpy[self._mod_nrows] = self.iobuf[self._row]
     # The next is faster
     iobufcpy = <ndarray>self.iobufcpy; iobuf = <ndarray>self.iobuf
-    memcpy(iobufcpy.data + self._mod_nrows * self._stride,
-           iobuf.data + self._row * self._stride, self._rowsize)
+    memcpy(PyArray_BYTES(iobufcpy) + self._mod_nrows * self._stride,
+           PyArray_BYTES(iobuf) + self._row * self._stride, self._rowsize)
     # Increase the modified buffer count by one
     self._mod_nrows = self._mod_nrows + 1
     # No point writing seqcache -- Table.flush will invalidate it
@@ -1520,9 +1519,9 @@ cdef class Row:
         # Try with __getitem__()
         return row[key]
 
-    if field.ndim == 1:
+    if PyArray_NDIM(field) == 1:
       # For an scalar it is not needed a copy (immutable object)
-      return PyArray_GETITEM(field, field.data + offset * self._stride)
+      return PyArray_GETITEM(field, PyArray_BYTES(field) + offset * self._stride)
     else:
       # Do a copy of the array, so that it can be overwritten by the user
       # without damaging the internal self.rfields buffer
@@ -1590,8 +1589,8 @@ cdef class Row:
     try:
       # Optimization for scalar values. This can optimize the writes
       # between a 10% and 100%, depending on the number of columns modified
-      if field.ndim == 1:
-        ret = PyArray_SETITEM(field, field.data + offset * self._stride, value)
+      if PyArray_NDIM(field) == 1:
+        ret = PyArray_SETITEM(field, PyArray_BYTES(field) + offset * self._stride, value)
         if ret < 0:
           PyErr_Clear()
           raise TypeError
