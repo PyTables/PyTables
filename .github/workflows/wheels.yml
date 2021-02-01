@@ -39,7 +39,7 @@ jobs:
         env:
           CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-*"
           CIBW_BEFORE_ALL_LINUX: "yum install -y epel-release && yum install -y hdf5-devel zlib-devel bzip2-devel lzo-devel"
-          CIBW_BEFORE_BUILD: "pip install numpy numexpr cython>=0.29.21"
+          CIBW_BEFORE_BUILD: "pip install numpy numexpr cython"
           CIBW_ENVIRONMENT: "DISABLE_AVX2='TRUE'"
 
       - uses: actions/upload-artifact@v2

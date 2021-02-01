@@ -1,4 +1,4 @@
 # Keep in sync with tables/req_versions.py and
 # doc/source/usersguide/installation.rst
-numpy>=1.19.0
+numpy>=1.9.3
 numexpr>=2.6.2

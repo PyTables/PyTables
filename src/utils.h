@@ -1,4 +1,5 @@
 #include "Python.h"
+#include "numpy/arrayobject.h"
 #include "hdf5.h"
 
 /* Define this variable for error printings */

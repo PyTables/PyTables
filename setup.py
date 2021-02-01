@@ -101,13 +101,6 @@ if __name__ == "__main__":
         exit_with_error("You need Python 3.6 or greater to install PyTables!")
     print(f"* Using Python {sys.version.splitlines()[0]}")
 
-    try:
-        import cython
-        print(f"* Found cython {cython.__version__}")
-        del cython
-    except ImportError:
-        pass
-
     # Minimum required versions for numpy, numexpr and HDF5
     _min_versions = {}
     exec((ROOT / "tables" / "req_versions.py").read_text(), _min_versions)
@@ -593,7 +586,7 @@ if __name__ == "__main__":
     # CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
 
     # Do not use numpy deprecated API
-    CFLAGS.append("-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
+    # CFLAGS.append("-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
 
     # Try to locate the compulsory and optional libraries.
     lzo2_enabled = False
