@@ -261,10 +261,9 @@ cdef class Table(Leaf):
     """Open a nested type and return a nested dictionary as description."""
 
     cdef hid_t   member_type_id, native_member_type_id, member_offset
-    cdef hsize_t nfields
+    cdef hsize_t nfields, i
     cdef hsize_t dims[1]
     cdef size_t  itemsize
-    cdef int     i
     cdef char    *c_colname
     cdef H5T_class_t class_id
     cdef char    c_byteorder2[11]  # "irrelevant" fits easily here
