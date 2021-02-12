@@ -14,19 +14,19 @@ from tables.tests import common
 # Data parameters
 # ---------------
 row_period = 50
-"""Maximum number of unique rows before they start cycling."""
+'''Maximum number of unique rows before they start cycling.'''
 md_shape = (2, 2)
-"""Shape of multidimensional fields."""
+'''Shape of multidimensional fields.'''
 
 _maxnvalue = row_period + np.prod(md_shape, dtype=tb.utils.SizeType) - 1
-_strlen = int(np.log10(_maxnvalue-1)) + 1
+_strlen = int(np.log10(_maxnvalue - 1)) + 1
 
 str_format = '%%0%dd' % _strlen
-"""Format of string values."""
+'''Format of string values.'''
 
 small_blocksizes = (300, 60, 20, 5)
 # small_blocksizes = (512, 128, 32, 4)   # for manual testing only
-"""Sensible parameters for indexing with small blocksizes."""
+'''Sensible parameters for indexing with small blocksizes.'''
 
 
 # Type information
@@ -50,14 +50,23 @@ type_info = {
     'enum': (np.uint8, int),  # just for these tests
     'string': ('S%s' % _strlen, np.string_),  # just for these tests
 }
-"""NumPy and Numexpr type for each PyTables type that will be tested."""
+'''NumPy and Numexpr type for each PyTables type that will be tested.'''
 
 # globals dict for eval()
-func_info = {'log10': np.log10, 'log': np.log, 'exp': np.exp,
-             'abs': np.abs, 'sqrt': np.sqrt,
-             'sin': np.sin, 'cos': np.cos, 'tan': np.tan,
-             'arcsin': np.arcsin, 'arccos': np.arccos, 'arctan': np.arctan}
-"""functions and NumPy.ufunc() for each function that will be tested."""
+func_info = {
+    'log10': np.log10,
+    'log': np.log,
+    'exp': np.exp,
+    'abs': np.abs,
+    'sqrt': np.sqrt,
+    'sin': np.sin,
+    'cos': np.cos,
+    'tan': np.tan,
+    'arcsin': np.arcsin,
+    'arccos': np.arccos,
+    'arctan': np.arctan,
+}
+'''functions and NumPy.ufunc() for each function that will be tested.'''
 
 
 if hasattr(np, 'float16'):
@@ -72,15 +81,15 @@ if hasattr(np, 'float16'):
 #    type_info['complex256'] = (numpy.complex256, complex)
 
 sctype_from_type = {type_: info[0] for (type_, info) in type_info.items()}
-"""Maps PyTables types to NumPy scalar types."""
+'''Maps PyTables types to NumPy scalar types.'''
 nxtype_from_type = {type_: info[1] for (type_, info) in type_info.items()}
-"""Maps PyTables types to Numexpr types."""
+'''Maps PyTables types to Numexpr types.'''
 
 heavy_types = frozenset(['uint8', 'int16', 'uint16', 'float32', 'complex64'])
-"""PyTables types to be tested only in heavy mode."""
+'''PyTables types to be tested only in heavy mode.'''
 
 enum = tb.Enum({'n%d' % i: i for i in range(_maxnvalue)})
-"""Enumerated type to be used in tests."""
+'''Enumerated type to be used in tests.'''
 
 
 # Table description
@@ -153,19 +162,19 @@ def table_description(classname, nclassname, shape=()):
     return type(classname, (tb.IsDescription,), classdict)
 
 
-TableDescription = table_description(
-    'TableDescription', 'NestedDescription')
-"""Unidimensional table description for testing queries."""
+TableDescription = table_description('TableDescription', 'NestedDescription')
+'''Unidimensional table description for testing queries.'''
 
 MDTableDescription = table_description(
-    'MDTableDescription', 'MDNestedDescription', shape=md_shape)
-"""Multidimensional table description for testing queries."""
+    'MDTableDescription', 'MDNestedDescription', shape=md_shape
+)
+'''Multidimensional table description for testing queries.'''
 
 
 # Table data
 # ----------
 table_data = {}
-"""Cached table data for a given shape and number of rows."""
+'''Cached table data for a given shape and number of rows.'''
 # Data is cached because computing it row by row is quite slow.  Hop!
 
 
@@ -250,8 +259,8 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
     indexed = False
     optlevel = 0
 
-    colNotIndexable_re = re.compile(r"\bcan not be indexed\b")
-    condNotBoolean_re = re.compile(r"\bdoes not have a boolean type\b")
+    colNotIndexable_re = re.compile(r'\bcan not be indexed\b')
+    condNotBoolean_re = re.compile(r'\bdoes not have a boolean type\b')
 
     def create_indexes(self, colname, ncolname, extracolname):
         if not self.indexed:
@@ -259,26 +268,33 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
         try:
             kind = self.kind
             common.verbosePrint(
-                f"* Indexing ``{colname}`` columns. Type: {kind}.")
+                f'* Indexing ``{colname}`` columns. Type: {kind}.'
+            )
             for acolname in [colname, ncolname, extracolname]:
                 acolumn = self.table.colinstances[acolname]
                 acolumn.create_index(
-                    kind=self.kind, optlevel=self.optlevel,
-                    _blocksizes=small_blocksizes, _testmode=True)
+                    kind=self.kind,
+                    optlevel=self.optlevel,
+                    _blocksizes=small_blocksizes,
+                    _testmode=True,
+                )
 
         except TypeError as te:
             if self.colNotIndexable_re.search(str(te)):
                 raise SilentlySkipTest(
-                    "Columns of this type can not be indexed.")
+                    'Columns of this type can not be indexed.'
+                )
             raise
         except NotImplementedError:
             raise SilentlySkipTest(
-                "Indexing columns of this type is not supported yet.")
+                'Indexing columns of this type is not supported yet.'
+            )
 
     def setUp(self):
         super().setUp()
         self.table = self.h5file.create_table(
-            '/', 'test', self.tableDescription, expectedrows=self.nrows)
+            '/', 'test', self.tableDescription, expectedrows=self.nrows
+        )
         fill_table(self.table, self.shape, self.nrows)
 
 
@@ -295,25 +311,33 @@ class MDTableMixin:
 # Test cases on query data
 # ------------------------
 operators = [
-    None, '~',
-    '<', '<=', '==', '!=', '>=', '>',
-    ('<', '<='), ('>', '>=')]
-"""Comparison operators to check with different types."""
+    None,
+    '~',
+    '<',
+    '<=',
+    '==',
+    '!=',
+    '>=',
+    '>',
+    ('<', '<='),
+    ('>', '>='),
+]
+'''Comparison operators to check with different types.'''
 heavy_operators = frozenset(['~', '<=', '>=', '>', ('>', '>=')])
-"""Comparison operators to be tested only in heavy mode."""
+'''Comparison operators to be tested only in heavy mode.'''
 left_bound = row_period // 4
-"""Operand of left side operator in comparisons with operator pairs."""
+'''Operand of left side operator in comparisons with operator pairs.'''
 right_bound = row_period * 3 // 4
-"""Operand of right side operator in comparisons with operator pairs."""
+'''Operand of right side operator in comparisons with operator pairs.'''
 func_bound = 0.8  # must be <1 for trig functions to be able to fail
-"""Operand of right side operator in comparisons with functions. """
+'''Operand of right side operator in comparisons with functions. '''
 extra_conditions = [
-    '',                     # uses one index
+    '',  # uses one index
     '& ((c_extra + 1) < 0)',  # uses one index
-    '| (c_idxextra > 0)',   # uses two indexes
+    '| (c_idxextra > 0)',  # uses two indexes
     '| ((c_idxextra > 0) | ((c_extra + 1) > 0))',  # can't use indexes
 ]
-"""Extra conditions to append to comparison conditions."""
+'''Extra conditions to append to comparison conditions.'''
 
 
 class TableDataTestCase(BaseTableQueryTestCase):
@@ -325,6 +349,7 @@ class TableDataTestCase(BaseTableQueryTestCase):
     heavy (``h``) set.
 
     """
+
     _testfmt_light = 'test_l%04d'
     _testfmt_heavy = 'test_h%04d'
 
@@ -333,10 +358,12 @@ def create_test_method(type_, op, extracond, func=None):
     sctype = sctype_from_type[type_]
 
     # Compute the value of bounds.
-    condvars = {'bound': right_bound,
-                'lbound': left_bound,
-                'rbound': right_bound,
-                'func_bound': func_bound}
+    condvars = {
+        'bound': right_bound,
+        'lbound': left_bound,
+        'rbound': right_bound,
+        'func_bound': func_bound,
+    }
     for (bname, bvalue) in condvars.items():
         if type_ == 'string':
             bvalue = str_format % bvalue
@@ -355,8 +382,12 @@ def create_test_method(type_, op, extracond, func=None):
     elif op == '<' and func is None:  # binary variable-constant
         cond = '{} {} {}'.format(colname, op, repr(condvars['bound']))
     elif isinstance(op, tuple):  # double binary variable-constant
-        cond = ('(lbound %s %s) & (%s %s rbound)'
-                % (op[0], colname, colname, op[1]))
+        cond = '(lbound %s %s) & (%s %s rbound)' % (
+            op[0],
+            colname,
+            colname,
+            op[1],
+        )
     elif func is not None:
         cond = f'{func}({colname}) {op} func_bound'
     else:  # function or binary variable-variable
@@ -374,15 +405,16 @@ def create_test_method(type_, op, extracond, func=None):
                 if se.args:
                     msg = se.args[0]
                 else:
-                    msg = "<skipped>"
-                common.verbosePrint("\nSkipped test: %s" % msg)
+                    msg = '<skipped>'
+                common.verbosePrint('\nSkipped test: %s' % msg)
             finally:
                 common.verbosePrint('')  # separator line between tests
+
         return newmethod
 
     @ignore_skipped
     def test_method(self):
-        common.verbosePrint("* Condition is ``%s``." % cond)
+        common.verbosePrint('* Condition is ``%s``.' % cond)
         # Replace bitwise operators with their logical counterparts.
         pycond = cond
         for (ptop, pyop) in [('&', 'and'), ('|', 'or'), ('~', 'not')]:
@@ -408,19 +440,23 @@ def create_test_method(type_, op, extracond, func=None):
                         warnings.filterwarnings(
                             'ignore',
                             'invalid value encountered in arc(cos|sin)',
-                            RuntimeWarning)
+                            RuntimeWarning,
+                        )
                         isvalidrow = eval(pycond, func_info, pyvars)
                 except TypeError:
                     raise SilentlySkipTest(
-                        "The Python type does not support the operation.")
+                        'The Python type does not support the operation.'
+                    )
                 if isvalidrow:
                     pyrownos.append(row.nrow)
                     pyfvalues.append(row[acolname])
             pyrownos = np.array(pyrownos)  # row numbers already sorted
             pyfvalues = np.array(pyfvalues, dtype=sctype)
             pyfvalues.sort()
-            common.verbosePrint(f"* {len(pyrownos)} rows selected by Python "
-                                f"from ``{acolname}``.")
+            common.verbosePrint(
+                f'* {len(pyrownos)} rows selected by Python '
+                f'from ``{acolname}``.'
+            )
             if rownos is None:
                 rownos = pyrownos  # initialise reference results
                 fvalues = pyfvalues
@@ -436,25 +472,33 @@ def create_test_method(type_, op, extracond, func=None):
             try:
                 isidxq = table.will_query_use_indexing(cond, ptvars)
                 # Query twice to trigger possible query result caching.
-                ptrownos = [table.get_where_list(cond, condvars, sort=True,
-                                                 **table_slice)
-                            for _ in range(2)]
+                ptrownos = [
+                    table.get_where_list(
+                        cond, condvars, sort=True, **table_slice
+                    )
+                    for _ in range(2)
+                ]
                 ptfvalues = [
-                    table.read_where(cond, condvars, field=acolname,
-                                     **table_slice)
+                    table.read_where(
+                        cond, condvars, field=acolname, **table_slice
+                    )
                     for _ in range(2)
                 ]
             except TypeError as te:
                 if self.condNotBoolean_re.search(str(te)):
-                    raise SilentlySkipTest("The condition is not boolean.")
+                    raise SilentlySkipTest('The condition is not boolean.')
                 raise
             except NotImplementedError:
                 raise SilentlySkipTest(
-                    "The PyTables type does not support the operation.")
+                    'The PyTables type does not support the operation.'
+                )
             for ptfvals in ptfvalues:  # row numbers already sorted
                 ptfvals.sort()
-            common.verbosePrint(f"* {len(ptrownos[0])} rows selected by "
-                                f"PyTables from ``{acolname}``", nonl=True)
+            common.verbosePrint(
+                f'* {len(ptrownos[0])} rows selected by '
+                f'PyTables from ``{acolname}``',
+                nonl=True,
+            )
             common.verbosePrint(f"(indexing: {'yes' if isidxq else 'no'}).")
             self.assertTrue(np.all(ptrownos[0] == rownos))
             self.assertTrue(np.all(ptfvalues[0] == fvalues))
@@ -462,7 +506,7 @@ def create_test_method(type_, op, extracond, func=None):
             self.assertTrue(np.all(ptrownos[0] == ptrownos[1]))
             self.assertTrue(np.all(ptfvalues[0] == ptfvalues[1]))
 
-    test_method.__doc__ = "Testing ``%s``." % cond
+    test_method.__doc__ = 'Testing ``%s``.' % cond
     return test_method
 
 
@@ -532,27 +576,31 @@ def niclassdata():
         heavy = size in heavy_table_sizes
         for ndim in table_ndims:
             classname = '{}{}TDTestCase'.format(size[0], ndim[0])
-            cbasenames = ('%sNITableMixin' % size, '%sTableMixin' % ndim,
-                          'TableDataTestCase')
+            cbasenames = (
+                '%sNITableMixin' % size,
+                '%sTableMixin' % ndim,
+                'TableDataTestCase',
+            )
             classdict = dict(heavy=heavy)
             yield (classname, cbasenames, classdict)
 
 
 # Base classes for the different type index.
 class UltraLightITableMixin:
-    kind = "ultralight"
+    kind = 'ultralight'
 
 
 class LightITableMixin:
-    kind = "light"
+    kind = 'light'
 
 
 class MediumITableMixin:
-    kind = "medium"
+    kind = 'medium'
 
 
 class FullITableMixin:
-    kind = "full"
+    kind = 'full'
+
 
 # Base classes for indexed queries.
 
@@ -590,14 +638,21 @@ def iclassdata():
     for ckind in ckinds:
         for size in itable_sizes:
             for optlevel in itable_optvalues:
-                heavy = (optlevel in heavy_itable_optvalues
-                         or size in heavy_itable_sizes)
+                heavy = (
+                    optlevel in heavy_itable_optvalues
+                    or size in heavy_itable_sizes
+                )
                 classname = '%sI%sO%dTDTestCase' % (
-                    size[0], ckind[0], optlevel)
-                cbasenames = ('%sSTableMixin' % size,
-                              '%sITableMixin' % ckind,
-                              'ScalarTableMixin',
-                              'TableDataTestCase')
+                    size[0],
+                    ckind[0],
+                    optlevel,
+                )
+                cbasenames = (
+                    '%sSTableMixin' % size,
+                    '%sITableMixin' % ckind,
+                    'ScalarTableMixin',
+                    'TableDataTestCase',
+                )
                 classdict = dict(heavy=heavy, optlevel=optlevel, indexed=True)
                 yield (classname, cbasenames, classdict)
 
@@ -617,7 +672,7 @@ class BaseTableUsageTestCase(BaseTableQueryTestCase):
 
 
 _gvar = None
-"""Use this when a global variable is needed."""
+'''Use this when a global variable is needed.'''
 
 
 class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
@@ -660,10 +715,15 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         """Using a condition with a column from other table."""
 
         table2 = self.h5file.create_table('/', 'other', self.tableDescription)
-        self.assertRaises(ValueError, self.table.where,
-                          'c_int32_a + c_int32_b > 0',
-                          {'c_int32_a': self.table.cols.c_int32,
-                           'c_int32_b': table2.cols.c_int32})
+        self.assertRaises(
+            ValueError,
+            self.table.where,
+            'c_int32_a + c_int32_b > 0',
+            {
+                'c_int32_a': self.table.cols.c_int32,
+                'c_int32_b': table2.cols.c_int32,
+            },
+        )
 
     def test_unsupported_op(self):
         """Using a condition with unsupported operations on types."""
@@ -688,28 +748,38 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         # If implicit columns didn't work, a ``NameError`` would be raised.
         self.assertRaises(TypeError, self.table.where, 'c_int32')
         # If overriding didn't work, no exception would be raised.
-        self.assertRaises(TypeError, self.table.where,
-                          'c_bool', {'c_bool': self.table.cols.c_int32})
+        self.assertRaises(
+            TypeError,
+            self.table.where,
+            'c_bool',
+            {'c_bool': self.table.cols.c_int32},
+        )
         # External variables do not override implicit columns.
 
         def where_with_locals():
             c_int32 = self.table.cols.c_bool  # this wouldn't cause an error
             self.assertIsNotNone(c_int32)
             self.table.where('c_int32')
+
         self.assertRaises(TypeError, where_with_locals)
 
     def test_condition_vars(self):
         """Using condition variables in conditions."""
 
         # If condition variables didn't work, a ``NameError`` would be raised.
-        self.assertRaises(NotImplementedError, self.table.where,
-                          'c_string > bound', {'bound': 0})
+        self.assertRaises(
+            NotImplementedError,
+            self.table.where,
+            'c_string > bound',
+            {'bound': 0},
+        )
 
         def where_with_locals():
             bound = 'foo'  # this wouldn't cause an error
             # silence pyflakes warnings
             self.assertIsInstance(bound, str)
             self.table.where('c_string > bound', {'bound': 0})
+
         self.assertRaises(NotImplementedError, where_with_locals)
 
         def where_with_globals():
@@ -721,6 +791,7 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
                 self.table.where('c_string > _gvar', {'_gvar': 0})
             finally:
                 del _gvar  # to keep global namespace clean
+
         self.assertRaises(NotImplementedError, where_with_globals)
 
     def test_scopes(self):
@@ -730,14 +801,19 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         self.assertRaises(NameError, self.table.where, 'col')
 
         # First scope: dictionary of condition variables.
-        self.assertRaises(TypeError, self.table.where,
-                          'col', {'col': self.table.cols.c_int32})
+        self.assertRaises(
+            TypeError,
+            self.table.where,
+            'col',
+            {'col': self.table.cols.c_int32},
+        )
 
         # Second scope: local variables.
         def where_whith_locals():
             col = self.table.cols.c_int32
             self.assertIsNotNone(col)
             self.table.where('col')
+
         self.assertRaises(TypeError, where_whith_locals)
 
         # Third scope: global variables.
@@ -771,6 +847,7 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
     at least in the cases tested here.
 
     """
+
     nrows = 50
     indexed = True
 
@@ -791,28 +868,38 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
     def test(self):
         for condition in self.conditions:
             c_usable_idxs = self.will_query_use_indexing(condition, {})
-            self.assertEqual(c_usable_idxs, self.usable_idxs,
-                             f"\nQuery with condition: ``{condition}``\n"
-                             f"Computed usable indexes are: "
-                             f"``{c_usable_idxs}``\nand should be: "
-                             f"``{self.usable_idxs}``")
+            self.assertEqual(
+                c_usable_idxs,
+                self.usable_idxs,
+                f'\nQuery with condition: ``{condition}``\n'
+                f'Computed usable indexes are: '
+                f'``{c_usable_idxs}``\nand should be: '
+                f'``{self.usable_idxs}``',
+            )
             condvars = self.requiredExprVars(condition, None)
             compiled = self.compileCondition(condition, condvars)
             c_idx_expr = compiled.index_expressions
-            self.assertEqual(c_idx_expr, self.idx_expr,
-                             f"\nWrong index expression in condition:\n"
-                             f"``{condition}``\nCompiled index expression is:"
-                             f"\n``{c_idx_expr}``\nand should be:\n"
-                             f"``{self.idx_expr}``")
+            self.assertEqual(
+                c_idx_expr,
+                self.idx_expr,
+                f'\nWrong index expression in condition:\n'
+                f'``{condition}``\nCompiled index expression is:'
+                f'\n``{c_idx_expr}``\nand should be:\n'
+                f'``{self.idx_expr}``',
+            )
             c_str_expr = compiled.string_expression
-            self.assertEqual(c_str_expr, self.str_expr,
-                             f"\nWrong index operations in condition:\n"
-                             f"``{condition}``\nComputed index operations are:"
-                             f"\n``{c_str_expr}``\nand should be:\n"
-                             f"``{self.str_expr}``")
+            self.assertEqual(
+                c_str_expr,
+                self.str_expr,
+                f'\nWrong index operations in condition:\n'
+                f'``{condition}``\nComputed index operations are:'
+                f'\n``{c_str_expr}``\nand should be:\n'
+                f'``{self.str_expr}``',
+            )
             common.verbosePrint(
-                f"* Query with condition ``{condition}`` will use variables "
-                f"``{compiled.index_variables}`` for indexing.")
+                f'* Query with condition ``{condition}`` will use variables '
+                f'``{compiled.index_variables}`` for indexing.'
+            )
 
 
 class IndexedTableUsage1(IndexedTableUsage):
@@ -852,37 +939,40 @@ class IndexedTableUsage3(IndexedTableUsage):
 class IndexedTableUsage4(IndexedTableUsage):
     conditions = [
         '((c_int32 > 0) & (c_bool == True)) & (c_extra > 0)',
-        '((c_int32 > 0) & (c_bool == True)) & ((c_extra > 0)' +
-        ' & (c_extra < 4))',
+        '((c_int32 > 0) & (c_bool == True)) & ((c_extra > 0)'
+        + ' & (c_extra < 4))',
     ]
-    idx_expr = [('c_int32', ('gt',), (0,)),
-                ('c_bool', ('eq',), (True,)),
-                ]
+    idx_expr = [
+        ('c_int32', ('gt',), (0,)),
+        ('c_bool', ('eq',), (True,)),
+    ]
     str_expr = '(e0 & e1)'
 
 
 class IndexedTableUsage5(IndexedTableUsage):
     conditions = [
         '(c_int32 >= 1) & (c_int32 < 2) & (c_bool == True)',
-        '(c_int32 >= 1) & (c_int32 < 2) & (c_bool == True)' +
-        ' & (c_extra > 0)',
+        '(c_int32 >= 1) & (c_int32 < 2) & (c_bool == True)'
+        + ' & (c_extra > 0)',
     ]
-    idx_expr = [('c_int32', ('ge', 'lt'), (1, 2)),
-                ('c_bool', ('eq',), (True,)),
-                ]
+    idx_expr = [
+        ('c_int32', ('ge', 'lt'), (1, 2)),
+        ('c_bool', ('eq',), (True,)),
+    ]
     str_expr = '(e0 & e1)'
 
 
 class IndexedTableUsage6(IndexedTableUsage):
     conditions = [
         '(c_int32 >= 1) & (c_int32 < 2) & (c_int32 > 0) & (c_int32 < 5)',
-        '(c_int32 >= 1) & (c_int32 < 2) & (c_int32 > 0) & (c_int32 < 5)' +
-        ' & (c_extra > 0)',
+        '(c_int32 >= 1) & (c_int32 < 2) & (c_int32 > 0) & (c_int32 < 5)'
+        + ' & (c_extra > 0)',
     ]
-    idx_expr = [('c_int32', ('ge', 'lt'), (1, 2)),
-                ('c_int32', ('gt',), (0,)),
-                ('c_int32', ('lt',), (5,)),
-                ]
+    idx_expr = [
+        ('c_int32', ('ge', 'lt'), (1, 2)),
+        ('c_int32', ('gt',), (0,)),
+        ('c_int32', ('lt',), (5,)),
+    ]
     str_expr = '((e0 & e1) & e2)'
 
 
@@ -890,12 +980,13 @@ class IndexedTableUsage7(IndexedTableUsage):
     conditions = [
         '(c_int32 >= 1) & (c_int32 < 2) & ((c_int32 > 0) & (c_int32 < 5))',
         '((c_int32 >= 1) & (c_int32 < 2)) & ((c_int32 > 0) & (c_int32 < 5))',
-        '((c_int32 >= 1) & (c_int32 < 2)) & ((c_int32 > 0) & (c_int32 < 5))' +
-        ' & (c_extra > 0)',
+        '((c_int32 >= 1) & (c_int32 < 2)) & ((c_int32 > 0) & (c_int32 < 5))'
+        + ' & (c_extra > 0)',
     ]
-    idx_expr = [('c_int32', ('ge', 'lt'), (1, 2)),
-                ('c_int32', ('gt', 'lt'), (0, 5)),
-                ]
+    idx_expr = [
+        ('c_int32', ('ge', 'lt'), (1, 2)),
+        ('c_int32', ('gt', 'lt'), (0, 5)),
+    ]
     str_expr = '(e0 & e1)'
 
 
@@ -903,8 +994,9 @@ class IndexedTableUsage8(IndexedTableUsage):
     conditions = [
         '(c_extra > 0) & ((c_int32 > 0) & (c_int32 < 5))',
     ]
-    idx_expr = [('c_int32', ('gt', 'lt'), (0, 5)),
-                ]
+    idx_expr = [
+        ('c_int32', ('gt', 'lt'), (0, 5)),
+    ]
     str_expr = 'e0'
 
 
@@ -914,8 +1006,7 @@ class IndexedTableUsage9(IndexedTableUsage):
         '((c_extra > 0) & (c_int32 > 0)) & (c_int32 < 5)',
         '(c_extra > 0) & (c_int32 > 0) & (c_int32 < 5) & (c_extra > 3)',
     ]
-    idx_expr = [('c_int32', ('gt',), (0,)),
-                ('c_int32', ('lt',), (5,))]
+    idx_expr = [('c_int32', ('gt',), (0,)), ('c_int32', ('lt',), (5,))]
     str_expr = '(e0 & e1)'
 
 
@@ -926,8 +1017,7 @@ class IndexedTableUsage10(IndexedTableUsage):
         '(c_int32 < 5) & (c_bool == True) & (c_extra > 0) & (c_extra < 4)',
         '(c_int32 < 5) & (c_extra > 0) & (c_bool == True) & (c_extra < 4)',
     ]
-    idx_expr = [('c_int32', ('lt',), (5,)),
-                ('c_bool', ('eq',), (True,))]
+    idx_expr = [('c_int32', ('lt',), (5,)), ('c_bool', ('eq',), (True,))]
     str_expr = '(e0 & e1)'
 
 
@@ -981,12 +1071,13 @@ class IndexedTableUsage15(IndexedTableUsage):
     conditions = [
         '(~(c_int32 > 0) | ~c_bool)',
         '(~(c_int32 > 0) | ~(c_bool)) & (c_extra > 0)',
-        '(~(c_int32 > 0) | ~(c_bool == True)) & ((c_extra > 0)' +
-        ' & (c_extra < 4))',
+        '(~(c_int32 > 0) | ~(c_bool == True)) & ((c_extra > 0)'
+        + ' & (c_extra < 4))',
     ]
-    idx_expr = [('c_int32', ('le',), (0,)),
-                ('c_bool', ('eq',), (False,)),
-                ]
+    idx_expr = [
+        ('c_int32', ('le',), (0,)),
+        ('c_bool', ('eq',), (False,)),
+    ]
     str_expr = '(e0 | e1)'
 
 
@@ -994,12 +1085,13 @@ class IndexedTableUsage16(IndexedTableUsage):
     conditions = [
         '(~(c_int32 > 0) & ~(c_int32 < 2))',
         '(~(c_int32 > 0) & ~(c_int32 < 2)) & (c_extra > 0)',
-        '(~(c_int32 > 0) & ~(c_int32 < 2)) & ((c_extra > 0)' +
-        ' & (c_extra < 4))',
+        '(~(c_int32 > 0) & ~(c_int32 < 2)) & ((c_extra > 0)'
+        + ' & (c_extra < 4))',
     ]
-    idx_expr = [('c_int32', ('le',), (0,)),
-                ('c_int32', ('ge',), (2,)),
-                ]
+    idx_expr = [
+        ('c_int32', ('le',), (0,)),
+        ('c_int32', ('ge',), (2,)),
+    ]
     str_expr = '(e0 & e1)'
 
 
@@ -1007,13 +1099,15 @@ class IndexedTableUsage17(IndexedTableUsage):
     conditions = [
         '(~(c_int32 > 0) & ~(c_int32 < 2))',
         '(~(c_int32 > 0) & ~(c_int32 < 2)) & (c_extra > 0)',
-        '(~(c_int32 > 0) & ~(c_int32 < 2)) & ((c_extra > 0)' +
-        ' & (c_extra < 4))',
+        '(~(c_int32 > 0) & ~(c_int32 < 2)) & ((c_extra > 0)'
+        + ' & (c_extra < 4))',
     ]
-    idx_expr = [('c_int32', ('le',), (0,)),
-                ('c_int32', ('ge',), (2,)),
-                ]
+    idx_expr = [
+        ('c_int32', ('le',), (0,)),
+        ('c_int32', ('ge',), (2,)),
+    ]
     str_expr = '(e0 & e1)'
+
 
 # Negations of complex conditions are not supported yet
 
@@ -1022,8 +1116,7 @@ class IndexedTableUsage18(IndexedTableUsage):
     conditions = [
         '~((c_int32 > 0) & (c_bool))',
         '~((c_int32 > 0) & (c_bool)) & (c_extra > 0)',
-        '~((c_int32 > 0) & (c_bool)) & ((c_extra > 0)' +
-        ' & (c_extra < 4))',
+        '~((c_int32 > 0) & (c_bool)) & ((c_extra > 0)' + ' & (c_extra < 4))',
     ]
     idx_expr = []
     str_expr = ''
@@ -1031,11 +1124,12 @@ class IndexedTableUsage18(IndexedTableUsage):
 
 class IndexedTableUsage19(IndexedTableUsage):
     conditions = [
-        '~((c_int32 > 0) & (c_bool)) & ((c_bool == False)' +
-        ' & (c_extra < 4))',
+        '~((c_int32 > 0) & (c_bool)) & ((c_bool == False)'
+        + ' & (c_extra < 4))',
     ]
-    idx_expr = [('c_bool', ('eq',), (False,)),
-                ]
+    idx_expr = [
+        ('c_bool', ('eq',), (False,)),
+    ]
     str_expr = 'e0'
 
 
@@ -1043,7 +1137,7 @@ class IndexedTableUsage20(IndexedTableUsage):
     conditions = [
         '((c_int32 > 0) & ~(c_bool))',
         '((c_int32 > 0) & ~(c_bool)) & (c_extra > 0)',
-        '((c_int32 > 0) & ~(c_bool == True)) & ((c_extra > 0) & (c_extra < 4))'
+        '((c_int32 > 0) & ~(c_bool == True)) & ((c_extra > 0) & (c_extra < 4))',
     ]
     idx_expr = [
         ('c_int32', ('gt',), (0,)),
@@ -1056,12 +1150,13 @@ class IndexedTableUsage21(IndexedTableUsage):
     conditions = [
         '(~(c_int32 > 0) & (c_bool))',
         '(~(c_int32 > 0) & (c_bool)) & (c_extra > 0)',
-        '(~(c_int32 > 0) & (c_bool == True)) & ((c_extra > 0)' +
-        ' & (c_extra < 4))',
+        '(~(c_int32 > 0) & (c_bool == True)) & ((c_extra > 0)'
+        + ' & (c_extra < 4))',
     ]
-    idx_expr = [('c_int32', ('le',), (0,)),
-                ('c_bool', ('eq',), (True,)),
-                ]
+    idx_expr = [
+        ('c_int32', ('le',), (0,)),
+        ('c_bool', ('eq',), (True,)),
+    ]
     str_expr = '(e0 & e1)'
 
 
@@ -1069,11 +1164,12 @@ class IndexedTableUsage22(IndexedTableUsage):
     conditions = [
         '~((c_int32 >= 1) & (c_int32 < 2)) & ~(c_bool == True)',
         '~(c_bool == True) & (c_extra > 0)',
-        '~((c_int32 >= 1) & (c_int32 < 2)) & (~(c_bool == True)' +
-        ' & (c_extra > 0))',
+        '~((c_int32 >= 1) & (c_int32 < 2)) & (~(c_bool == True)'
+        + ' & (c_extra > 0))',
     ]
-    idx_expr = [('c_bool', ('eq',), (False,)),
-                ]
+    idx_expr = [
+        ('c_bool', ('eq',), (False,)),
+    ]
     str_expr = 'e0'
 
 
@@ -1099,8 +1195,9 @@ class IndexedTableUsage24(IndexedTableUsage):
         '~~~~c_bool',
         '~(~c_bool) & (c_extra != 2)',
     ]
-    idx_expr = [('c_bool', ('eq',), (True,)),
-                ]
+    idx_expr = [
+        ('c_bool', ('eq',), (True,)),
+    ]
     str_expr = 'e0'
 
 
@@ -1126,7 +1223,7 @@ class IndexedTableUsage26(IndexedTableUsage):
         'True != c_bool',
         'c_bool != False',
         'False != c_bool',
-        ]
+    ]
     idx_expr = []
     str_expr = ''
 
@@ -1134,9 +1231,9 @@ class IndexedTableUsage26(IndexedTableUsage):
 class IndexedTableUsage27(IndexedTableUsage):
     conditions = [
         '(c_int32 == 3) | c_bool | (c_int32 == 5)',
-        '(((c_int32 == 3) | (c_bool == True)) | (c_int32 == 5))' +
-        ' & (c_extra > 0)',
-        ]
+        '(((c_int32 == 3) | (c_bool == True)) | (c_int32 == 5))'
+        + ' & (c_extra > 0)',
+    ]
     idx_expr = [
         ('c_int32', ('eq',), (3,)),
         ('c_bool', ('eq',), (True,)),
@@ -1148,9 +1245,9 @@ class IndexedTableUsage27(IndexedTableUsage):
 class IndexedTableUsage28(IndexedTableUsage):
     conditions = [
         '((c_int32 == 3) | c_bool) & (c_int32 == 5)',
-        '(((c_int32 == 3) | (c_bool == True)) & (c_int32 == 5))' +
-        ' & (c_extra > 0)',
-        ]
+        '(((c_int32 == 3) | (c_bool == True)) & (c_int32 == 5))'
+        + ' & (c_extra > 0)',
+    ]
     idx_expr = [
         ('c_int32', ('eq',), (3,)),
         ('c_bool', ('eq',), (True,)),
@@ -1162,9 +1259,9 @@ class IndexedTableUsage28(IndexedTableUsage):
 class IndexedTableUsage29(IndexedTableUsage):
     conditions = [
         '(c_int32 == 3) | ((c_int32 == 4) & (c_int32 == 5))',
-        '((c_int32 == 3) | ((c_int32 == 4) & (c_int32 == 5)))' +
-        ' & (c_extra > 0)',
-        ]
+        '((c_int32 == 3) | ((c_int32 == 4) & (c_int32 == 5)))'
+        + ' & (c_extra > 0)',
+    ]
     idx_expr = [
         ('c_int32', ('eq',), (4,)),
         ('c_int32', ('eq',), (5,)),
@@ -1176,9 +1273,9 @@ class IndexedTableUsage29(IndexedTableUsage):
 class IndexedTableUsage30(IndexedTableUsage):
     conditions = [
         '((c_int32 == 3) | (c_int32 == 4)) & (c_int32 == 5)',
-        '((c_int32 == 3) | (c_int32 == 4)) & (c_int32 == 5)' +
-        ' & (c_extra > 0)',
-        ]
+        '((c_int32 == 3) | (c_int32 == 4)) & (c_int32 == 5)'
+        + ' & (c_extra > 0)',
+    ]
     idx_expr = [
         ('c_int32', ('eq',), (3,)),
         ('c_int32', ('eq',), (4,)),
@@ -1192,7 +1289,7 @@ class IndexedTableUsage31(IndexedTableUsage):
         '(c_extra > 0) & ((c_extra < 4) & (c_bool == True))',
         '(c_extra > 0) & ((c_bool == True) & (c_extra < 5))',
         '((c_int32 > 0) | (c_extra > 0)) & (c_bool == True)',
-        ]
+    ]
     idx_expr = [
         ('c_bool', ('eq',), (True,)),
     ]
@@ -1202,7 +1299,7 @@ class IndexedTableUsage31(IndexedTableUsage):
 class IndexedTableUsage32(IndexedTableUsage):
     conditions = [
         '(c_int32 < 5) & (c_extra > 0) & (c_bool == True) | (c_extra < 4)',
-        ]
+    ]
     idx_expr = []
     str_expr = ''
 
@@ -1231,8 +1328,9 @@ def suite():
             for cdata in cdatafunc():
                 class_ = eval(cdata[0])
                 if heavy or not class_.heavy:
-                    suite_ = common.unittest.makeSuite(class_,
-                                                       prefix=autoprefix)
+                    suite_ = common.unittest.makeSuite(
+                        class_, prefix=autoprefix
+                    )
                     testSuite.addTest(suite_)
         # Tests on query usage.
         testSuite.addTest(common.unittest.makeSuite(ScalarTableUsageTestCase))

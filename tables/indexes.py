@@ -67,15 +67,21 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         """The slicesize for this object."""
         return self.shape[1]
 
-    def __init__(self, parentnode, name,
-                 atom=None, title="",
-                 filters=None, byteorder=None):
+    def __init__(
+        self,
+        parentnode,
+        name,
+        atom=None,
+        title='',
+        filters=None,
+        byteorder=None,
+    ):
         """Create an IndexArray instance."""
 
         self._v_pathname = parentnode._g_join(name)
         if atom is not None:
             # The shape and chunkshape needs to be fixed here
-            if name == "sorted":
+            if name == 'sorted':
                 reduction = parentnode.reduction
                 shape = (0, parentnode.slicesize // reduction)
                 chunkshape = (1, parentnode.chunksize // reduction)
@@ -88,8 +94,15 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
             chunkshape = None
 
         super().__init__(
-            parentnode, name, atom, shape, title, filters,
-            chunkshape=chunkshape, byteorder=byteorder)
+            parentnode,
+            name,
+            atom,
+            shape,
+            title,
+            filters,
+            chunkshape=chunkshape,
+            byteorder=byteorder,
+        )
 
     # This version of searchBin uses both ranges (1st level) and
     # bounds (2nd level) caches. It uses a cache for boundary rows,
@@ -138,8 +151,9 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         if result1 < 0:
             # Search the appropriate chunk in bounds cache
             nchunk = bisect_left(bounds, item1)
-            chunk = self._read_sorted_slice(nrow, chunksize * nchunk,
-                                            chunksize * (nchunk + 1))
+            chunk = self._read_sorted_slice(
+                nrow, chunksize * nchunk, chunksize * (nchunk + 1)
+            )
             result1 = indexesextension._bisect_left(chunk, item1, chunksize)
             result1 += chunksize * nchunk
         # Lookup in the middle of slice for item2
@@ -147,23 +161,24 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
             # Search the appropriate chunk in bounds cache
             nchunk2 = bisect_right(bounds, item2)
             if nchunk2 != nchunk:
-                chunk = self._read_sorted_slice(nrow, chunksize * nchunk2,
-                                                chunksize * (nchunk2 + 1))
+                chunk = self._read_sorted_slice(
+                    nrow, chunksize * nchunk2, chunksize * (nchunk2 + 1)
+                )
             result2 = indexesextension._bisect_right(chunk, item2, chunksize)
             result2 += chunksize * nchunk2
         return (result1, result2)
 
     def __str__(self):
         """A compact representation of this class"""
-        return f"IndexArray(path={self._v_pathname})"
+        return f'IndexArray(path={self._v_pathname})'
 
     def __repr__(self):
         """A verbose representation of this class."""
 
-        return f"""{self}
+        return f'''{self}
   atom = {self.atom!r}
   shape = {self.shape}
   nrows = {self.nrows}
   chunksize = {self.chunksize}
   slicesize = {self.slicesize}
-  byteorder = {self.byteorder!r}"""
+  byteorder = {self.byteorder!r}'''

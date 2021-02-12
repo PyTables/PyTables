@@ -10,33 +10,33 @@ random.seed(2)
 def show_stats(explain, tref):
     "Show the used memory (only works for Linux 2.6.x)."
     for line in Path('/proc/self/status').read_text().splitlines():
-        if line.startswith("VmSize:"):
+        if line.startswith('VmSize:'):
             vmsize = int(line.split()[1])
-        elif line.startswith("VmRSS:"):
+        elif line.startswith('VmRSS:'):
             vmrss = int(line.split()[1])
-        elif line.startswith("VmData:"):
+        elif line.startswith('VmData:'):
             vmdata = int(line.split()[1])
-        elif line.startswith("VmStk:"):
+        elif line.startswith('VmStk:'):
             vmstk = int(line.split()[1])
-        elif line.startswith("VmExe:"):
+        elif line.startswith('VmExe:'):
             vmexe = int(line.split()[1])
-        elif line.startswith("VmLib:"):
+        elif line.startswith('VmLib:'):
             vmlib = int(line.split()[1])
-    print("Memory usage: ******* %s *******" % explain)
-    print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
-    print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
-    print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
+    print('Memory usage: ******* %s *******' % explain)
+    print(f'VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB')
+    print(f'VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB')
+    print(f'VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB')
     tnow = clock()
-    print(f"WallClock time: {tnow - tref:.3f}")
+    print(f'WallClock time: {tnow - tref:.3f}')
     return tnow
 
 
 def populate(f, nlevels):
     g = f
-    arr = np.zeros((10,), "f4")
+    arr = np.zeros((10,), 'f4')
     for i in range(nlevels):
-        g["DS1"] = arr
-        g["DS2"] = arr
+        g['DS1'] = arr
+        g['DS2'] = arr
         g.create_group('group2_')
         g = g.create_group('group')
 
@@ -44,11 +44,12 @@ def populate(f, nlevels):
 def getnode(f, nlevels, niter, range_):
     for i in range(niter):
         nlevel = random.randrange(
-            (nlevels - range_) / 2, (nlevels + range_) / 2)
-        groupname = ""
+            (nlevels - range_) / 2, (nlevels + range_) / 2
+        )
+        groupname = ''
         for i in range(nlevel):
-            groupname += "/group"
-        groupname += "/DS1"
+            groupname += '/group'
+        groupname += '/DS1'
         f[groupname]
 
 
@@ -67,8 +68,8 @@ if __name__ == '__main__':
     if profile:
         tref = clock()
     if profile:
-        show_stats("Abans de crear...", tref)
-    f = h5py.File("/tmp/deep-tree.h5", 'w')
+        show_stats('Abans de crear...', tref)
+    f = h5py.File('/tmp/deep-tree.h5', 'w')
     if doprofile:
         prof.run('populate(f, nlevels)', 'populate.prof')
         stats = pstats.Stats('populate.prof')
@@ -82,7 +83,7 @@ if __name__ == '__main__':
         populate(f, nlevels)
     f.close()
     if profile:
-        show_stats("Despres de crear", tref)
+        show_stats('Despres de crear', tref)
 
 #     if profile: tref = time()
 #     if profile: show_stats("Abans d'obrir...", tref)

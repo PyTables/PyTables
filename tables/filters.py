@@ -9,23 +9,23 @@ from distutils.version import LooseVersion
 
 import tables as tb
 
-blosc_version = LooseVersion(tb.which_lib_version("blosc")[1])
+blosc_version = LooseVersion(tb.which_lib_version('blosc')[1])
 
 
 __docformat__ = 'reStructuredText'
-"""The format of documentation strings in this module."""
+'''The format of documentation strings in this module.'''
 
 all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc']
 all_complibs += ['blosc:%s' % cname for cname in blosc_compressor_list()]
 
 
-"""List of all compression libraries."""
+'''List of all compression libraries.'''
 
 foreign_complibs = ['szip']
-"""List of known but unsupported compression libraries."""
+'''List of known but unsupported compression libraries.'''
 
 default_complib = 'zlib'
-"""The default compression library."""
+'''The default compression library.'''
 
 
 _shuffle_flag = 0x1
@@ -155,9 +155,10 @@ class Filters:
     @property
     def shuffle_bitshuffle(self):
         """Encode NoShuffle (0), Shuffle (1) and BitShuffle (2) filters."""
-        if (self.shuffle and self.bitshuffle):
+        if self.shuffle and self.bitshuffle:
             raise ValueError(
-                "Shuffle and BitShuffle cannot be active at the same time")
+                'Shuffle and BitShuffle cannot be active at the same time'
+            )
         if not (self.shuffle or self.bitshuffle):
             return 0
         if self.shuffle:
@@ -169,21 +170,27 @@ class Filters:
     def _from_leaf(cls, leaf):
         # Get a dictionary with all the filters
         parent = leaf._v_parent
-        filters_dict = utilsextension.get_filters(parent._v_objectid,
-                                                  leaf._v_name)
+        filters_dict = utilsextension.get_filters(
+            parent._v_objectid, leaf._v_name
+        )
         if filters_dict is None:
             filters_dict = {}  # not chunked
 
         # Keyword arguments are all off
-        kwargs = dict(complevel=0, shuffle=False, bitshuffle=False,
-                      fletcher32=False, least_significant_digit=None,
-                      _new=False)
+        kwargs = dict(
+            complevel=0,
+            shuffle=False,
+            bitshuffle=False,
+            fletcher32=False,
+            least_significant_digit=None,
+            _new=False,
+        )
         for (name, values) in filters_dict.items():
             if name == 'deflate':
                 name = 'zlib'
             if name in all_complibs:
                 kwargs['complib'] = name
-                if name == "blosc":
+                if name == 'blosc':
                     kwargs['complevel'] = values[4]
                     if values[5] == 1:
                         # Shuffle filter is internal to blosc
@@ -194,7 +201,7 @@ class Filters:
                     # From Blosc 1.3 on, parameter 6 is used for the compressor
                     if len(values) > 6:
                         cname = blosc_compcode_to_compname(values[6])
-                        kwargs['complib'] = "blosc:%s" % cname
+                        kwargs['complib'] = 'blosc:%s' % cname
                 else:
                     kwargs['complevel'] = values[0]
             elif name in foreign_complibs:
@@ -228,15 +235,16 @@ class Filters:
         kwargs = {'_new': False}
 
         # Byte 0: compression level.
-        kwargs['complevel'] = complevel = packed & 0xff
+        kwargs['complevel'] = complevel = packed & 0xFF
         packed >>= 8
 
         # Byte 1: compression library id (0 for none).
         if complevel > 0:
-            complib_id = int(packed & 0xff)
+            complib_id = int(packed & 0xFF)
             if not (0 < complib_id <= len(all_complibs)):
-                raise ValueError("invalid compression library id: %d"
-                                 % complib_id)
+                raise ValueError(
+                    'invalid compression library id: %d' % complib_id
+                )
             kwargs['complib'] = all_complibs[complib_id - 1]
         packed >>= 8
 
@@ -249,7 +257,7 @@ class Filters:
 
         # Byte 3: least significant digit.
         if has_rounding:
-            kwargs['least_significant_digit'] = np.int8(packed & 0xff)
+            kwargs['least_significant_digit'] = np.int8(packed & 0xFF)
         else:
             kwargs['least_significant_digit'] = None
 
@@ -287,24 +295,34 @@ class Filters:
 
         return packed
 
-    def __init__(self, complevel=0, complib=default_complib,
-                 shuffle=True, bitshuffle=False, fletcher32=False,
-                 least_significant_digit=None, _new=True):
+    def __init__(
+        self,
+        complevel=0,
+        complib=default_complib,
+        shuffle=True,
+        bitshuffle=False,
+        fletcher32=False,
+        least_significant_digit=None,
+        _new=True,
+    ):
 
         if not (0 <= complevel <= 9):
-            raise ValueError("compression level must be between 0 and 9")
+            raise ValueError('compression level must be between 0 and 9')
 
         if _new and complevel > 0:
             # These checks are not performed when loading filters from disk.
             if complib not in all_complibs:
                 raise ValueError(
-                    "compression library ``%s`` is not supported; "
-                    "it must be one of: %s"
-                    % (complib, ", ".join(all_complibs)))
+                    'compression library ``%s`` is not supported; '
+                    'it must be one of: %s'
+                    % (complib, ', '.join(all_complibs))
+                )
             if utilsextension.which_lib_version(complib) is None:
-                warnings.warn("compression library ``%s`` is not available; "
-                              "using ``%s`` instead"
-                              % (complib, default_complib), FiltersWarning)
+                warnings.warn(
+                    'compression library ``%s`` is not available; '
+                    'using ``%s`` instead' % (complib, default_complib),
+                    FiltersWarning,
+                )
                 complib = default_complib  # always available
 
         complevel = int(complevel)
@@ -325,40 +343,46 @@ class Filters:
             complevel = -1
 
         self.complevel = complevel
-        """The compression level (0 disables compression)."""
+        '''The compression level (0 disables compression).'''
 
         self.complib = complib
-        """The compression filter used (irrelevant when compression is
+        '''The compression filter used (irrelevant when compression is
         not enabled).
-        """
+        '''
 
         self.shuffle = shuffle
-        """Whether the *Shuffle* filter is active or not."""
+        '''Whether the *Shuffle* filter is active or not.'''
 
         self.bitshuffle = bitshuffle
-        """Whether the *BitShuffle* filter is active or not."""
+        '''Whether the *BitShuffle* filter is active or not.'''
 
-        if (self.complib and
-                self.bitshuffle and
-                not self.complib.startswith('blosc')):
-            raise ValueError("BitShuffle can only be used inside Blosc")
+        if (
+            self.complib
+            and self.bitshuffle
+            and not self.complib.startswith('blosc')
+        ):
+            raise ValueError('BitShuffle can only be used inside Blosc')
 
         if self.shuffle and self.bitshuffle:
             # BitShuffle has priority in case both are specified
             self.shuffle = False
 
-        if (self.bitshuffle and
-                blosc_version < tb.req_versions.min_blosc_bitshuffle_version):
-            raise ValueError(f"This Blosc library does not have support for "
-                             f"the bitshuffle filter.  Please update to "
-                             f"Blosc >= "
-                             f"{tb.req_versions.min_blosc_bitshuffle_version}")
+        if (
+            self.bitshuffle
+            and blosc_version < tb.req_versions.min_blosc_bitshuffle_version
+        ):
+            raise ValueError(
+                f'This Blosc library does not have support for '
+                f'the bitshuffle filter.  Please update to '
+                f'Blosc >= '
+                f'{tb.req_versions.min_blosc_bitshuffle_version}'
+            )
 
         self.fletcher32 = fletcher32
-        """Whether the *Fletcher32* filter is active or not."""
+        '''Whether the *Fletcher32* filter is active or not.'''
 
         self.least_significant_digit = least_significant_digit
-        """The least significant digit to which data shall be truncated."""
+        '''The least significant digit to which data shall be truncated.'''
 
     def __repr__(self):
         args = []
@@ -430,6 +454,7 @@ def _test():
     """Run ``doctest`` on this module."""
 
     import doctest
+
     doctest.testmod()
 
 

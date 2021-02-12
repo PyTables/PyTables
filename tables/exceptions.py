@@ -6,7 +6,7 @@ import traceback
 
 
 __docformat__ = 'reStructuredText'
-"""The format of documentation strings in this module."""
+'''The format of documentation strings in this module.'''
 
 
 class HDF5ExtError(RuntimeError):
@@ -49,8 +49,8 @@ class HDF5ExtError(RuntimeError):
     #       the utilsExtenion.
     _dump_h5_backtrace = None
 
-    DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
-    """Default policy for HDF5 backtrace handling
+    DEFAULT_H5_BACKTRACE_POLICY = 'VERBOSE'
+    '''Default policy for HDF5 backtrace handling
 
     * if set to False the HDF5 back trace is ignored and the
       :attr:`HDF5ExtError.h5backtrace` attribute is set to None
@@ -70,27 +70,29 @@ class HDF5ExtError(RuntimeError):
     the policy to the default value
 
     .. versionadded:: 2.4
-    """
+    '''
 
     @classmethod
     def set_policy_from_env(cls):
         envmap = {
-            "IGNORE": False,
-            "FALSE": False,
-            "SAVE": True,
-            "TRUE": True,
-            "VERBOSE": "VERBOSE",
-            "DEFAULT": "VERBOSE",
+            'IGNORE': False,
+            'FALSE': False,
+            'SAVE': True,
+            'TRUE': True,
+            'VERBOSE': 'VERBOSE',
+            'DEFAULT': 'VERBOSE',
         }
         oldvalue = cls.DEFAULT_H5_BACKTRACE_POLICY
-        envvalue = os.environ.get("PT_DEFAULT_H5_BACKTRACE_POLICY", "DEFAULT")
+        envvalue = os.environ.get('PT_DEFAULT_H5_BACKTRACE_POLICY', 'DEFAULT')
         try:
             newvalue = envmap[envvalue.upper()]
         except KeyError:
-            warnings.warn("Invalid value for the environment variable "
-                          "'PT_DEFAULT_H5_BACKTRACE_POLICY'.  The default "
-                          "policy for HDF5 back trace management in PyTables "
-                          "will be: '%s'" % oldvalue)
+            warnings.warn(
+                'Invalid value for the environment variable '
+                "'PT_DEFAULT_H5_BACKTRACE_POLICY'.  The default "
+                'policy for HDF5 back trace management in PyTables '
+                "will be: '%s'" % oldvalue
+            )
         else:
             cls.DEFAULT_H5_BACKTRACE_POLICY = newvalue
 
@@ -104,7 +106,7 @@ class HDF5ExtError(RuntimeError):
 
         if self._h5bt_policy and self._dump_h5_backtrace is not None:
             self.h5backtrace = self._dump_h5_backtrace()
-            """HDF5 back trace.
+            '''HDF5 back trace.
 
             Contains the HDF5 back trace as a (possibly empty) list of
             tuples.  Each tuple has the following format::
@@ -124,7 +126,7 @@ class HDF5ExtError(RuntimeError):
             --------
             traceback.format_list : :func:`traceback.format_list`
 
-            """
+            '''
 
             # XXX: check _dump_h5_backtrace failures
         else:
@@ -143,17 +145,19 @@ class HDF5ExtError(RuntimeError):
         verbose = bool(self._h5bt_policy in ('VERBOSE', 'verbose'))
 
         if verbose and self.h5backtrace:
-            bt = "\n".join([
-                "HDF5 error back trace\n",
-                self.format_h5_backtrace(),
-                "End of HDF5 error back trace"
-            ])
+            bt = '\n'.join(
+                [
+                    'HDF5 error back trace\n',
+                    self.format_h5_backtrace(),
+                    'End of HDF5 error back trace',
+                ]
+            )
 
             if len(self.args) == 1 and isinstance(self.args[0], str):
                 msg = super().__str__()
-                msg = f"{bt}\n\n{msg}"
+                msg = f'{bt}\n\n{msg}'
             elif self.h5backtrace[-1][-1]:
-                msg = f"{bt}\n\n{self.h5backtrace[-1][-1]}"
+                msg = f'{bt}\n\n{self.h5backtrace[-1][-1]}'
             else:
                 msg = bt
         else:
@@ -183,6 +187,7 @@ HDF5ExtError.set_policy_from_env()
 
 # The following exceptions are concretions of the ``ValueError`` exceptions
 # raised by ``file`` objects on certain operations.
+
 
 class ClosedNodeError(ValueError):
     """The operation can not be completed because the node is closed.
@@ -363,4 +368,5 @@ class ExperimentalFeatureWarning(Warning):
     experimental and that users have to use with care.
 
     """
+
     pass

@@ -12,22 +12,26 @@ def get_tuple_version(hexversion):
     """Get a tuple from a compact version in hex."""
 
     h = hexversion
-    return(h & 0xff0000) >> 16, (h & 0xff00) >> 8, h & 0xff
+    return (h & 0xFF0000) >> 16, (h & 0xFF00) >> 8, h & 0xFF
 
 
 if __name__ == '__main__':
 
     common.parse_argv(sys.argv)
 
-    hdf5_version = get_tuple_version(tb.which_lib_version("hdf5")[0])
-    hdf5_version_str = "%s.%s.%s" % hdf5_version
+    hdf5_version = get_tuple_version(tb.which_lib_version('hdf5')[0])
+    hdf5_version_str = '%s.%s.%s' % hdf5_version
     if hdf5_version_str < tb.req_versions.min_hdf5_version:
-        print(f"*Warning*: HDF5 version is lower than recommended: "
-              f"{hdf5_version} < {tb.req_versions.min_hdf5_version}")
+        print(
+            f'*Warning*: HDF5 version is lower than recommended: '
+            f'{hdf5_version} < {tb.req_versions.min_hdf5_version}'
+        )
 
     if np.__version__ < tb.req_versions.min_numpy_version:
-        print(f"*Warning*: NumPy version is lower than recommended: "
-              f"{np.__version__} < {tb.req_versions.min_numpy_version}")
+        print(
+            f'*Warning*: NumPy version is lower than recommended: '
+            f'{np.__version__} < {tb.req_versions.min_numpy_version}'
+        )
 
     # Handle some global flags (i.e. only useful for test_all.py)
     only_versions = 0

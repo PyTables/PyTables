@@ -22,6 +22,7 @@ class Info(tb.IsDescription):
     name = tb.StringCol(10)
     value = tb.Float64Col(pos=0)
 
+
 colors = tb.Enum(['red', 'green', 'blue'])
 
 
@@ -40,13 +41,14 @@ class NestedDescr(tb.IsDescription):
             x = tb.Float64Col(dflt=1)
             y = tb.UInt8Col(dflt=1)
 
+
 print()
 print('-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-')
 
-filename = "nested-tut.h5"
+filename = 'nested-tut.h5'
 
-print("Creating file:", filename)
-fileh = tb.open_file(filename, "w")
+print('Creating file:', filename)
+fileh = tb.open_file(filename, 'w')
 
 print()
 print('-**-**-**-**-**- nested table creation  -**-**-**-**-**-')
@@ -57,8 +59,8 @@ table = fileh.create_table(fileh.root, 'table', NestedDescr)
 row = table.row
 for i in range(10):
     row['color'] = colors[['red', 'green', 'blue'][i % 3]]
-    row['info1/name'] = "name1-%s" % i
-    row['info2/name'] = "name2-%s" % i
+    row['info1/name'] = 'name1-%s' % i
+    row['info2/name'] = 'name2-%s' % i
     row['info2/info3/y'] = i
     # All the rest will be filled with defaults
     row.append()
@@ -87,16 +89,18 @@ print('-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-')
 
 # Read the data
 print()
-print("**** table data contents:\n", table[:])
+print('**** table data contents:\n', table[:])
 
 print()
-print("**** table.info2 data contents:\n", repr(table.cols.info2[1:5]))
+print('**** table.info2 data contents:\n', repr(table.cols.info2[1:5]))
 
 print()
-print("**** table.info2.info3 data contents:\n",
-      repr(table.cols.info2.info3[1:5]))
+print(
+    '**** table.info2.info3 data contents:\n',
+    repr(table.cols.info2.info3[1:5]),
+)
 
-print("**** _f_col() ****")
+print('**** _f_col() ****')
 print(repr(table.cols._f_col('info2')))
 print(repr(table.cols._f_col('info2/info3/y')))
 
@@ -105,28 +109,34 @@ print('-**-**-**-**-**-**- table metadata  -**-**-**-**-**-')
 
 # Read description metadata
 print()
-print("**** table description (short):\n", repr(table.description))
+print('**** table description (short):\n', repr(table.description))
 print()
-print("**** more from manual, period ***")
+print('**** more from manual, period ***')
 print(repr(table.description.info1))
 print(repr(table.description.info2.info3))
 print(repr(table.description._v_nested_names))
 print(repr(table.description.info1._v_nested_names))
 print()
-print("**** now some for nested records, take that ****")
+print('**** now some for nested records, take that ****')
 print(repr(table.description._v_nested_descr))
-print(repr(np.rec.array(None, shape=0,
-                        dtype=table.description._v_nested_descr)))
-print(repr(np.rec.array(None, shape=0,
-                        dtype=table.description.info2._v_nested_descr)))
+print(
+    repr(np.rec.array(None, shape=0, dtype=table.description._v_nested_descr))
+)
+print(
+    repr(
+        np.rec.array(
+            None, shape=0, dtype=table.description.info2._v_nested_descr
+        )
+    )
+)
 print()
-print("**** and some iteration over descriptions, too ****")
+print('**** and some iteration over descriptions, too ****')
 for coldescr in table.description._f_walk():
-    print("column-->", coldescr)
+    print('column-->', coldescr)
 print()
-print("**** info2 sub-structure description:\n", table.description.info2)
+print('**** info2 sub-structure description:\n', table.description.info2)
 print()
-print("**** table representation (long form):\n", repr(table))
+print('**** table representation (long form):\n', repr(table))
 
 # Remember to always close the file
 fileh.close()

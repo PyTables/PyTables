@@ -5,8 +5,12 @@ import math
 
 import numpy as np
 
-from .flavor import (check_flavor, internal_flavor, toarray,
-                     alias_map as flavor_alias_map)
+from .flavor import (
+    check_flavor,
+    internal_flavor,
+    toarray,
+    alias_map as flavor_alias_map,
+)
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
@@ -20,7 +24,7 @@ def csformula(expected_mb):
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
     basesize = 8 * 1024   # 8 KB is a good minimum
-    return basesize * int(2**math.log10(expected_mb))
+    return basesize * int(2 ** math.log10(expected_mb))
 
 
 def limit_es(expected_mb):
@@ -28,8 +32,8 @@ def limit_es(expected_mb):
 
     if expected_mb < 1:        # < 1 MB
         expected_mb = 1
-    elif expected_mb > 10**7:  # > 10 TB
-        expected_mb = 10**7
+    elif expected_mb > 10 ** 7:  # > 10 TB
+        expected_mb = 10 ** 7
     return expected_mb
 
 
@@ -52,7 +56,7 @@ def calc_chunksize(expected_mb):
 
     expected_mb = limit_es(expected_mb)
     zone = int(math.log10(expected_mb))
-    expected_mb = 10**zone
+    expected_mb = 10 ** zone
     chunksize = csformula(expected_mb)
     # XXX: Multiply by 8 seems optimal for sequential access
     return chunksize * 8
@@ -111,11 +115,11 @@ class Leaf(Node):
 
     # These are a little hard to override, but so are properties.
     attrs = Node._v_attrs
-    """The associated AttributeSet instance - see :ref:`AttributeSetClassDescr`
-    (This is an easier-to-write alias of :attr:`Node._v_attrs`."""
+    '''The associated AttributeSet instance - see :ref:`AttributeSetClassDescr`
+    (This is an easier-to-write alias of :attr:`Node._v_attrs`.'''
     title = Node._v_title
-    """A description for this node
-    (This is an easier-to-write alias of :attr:`Node._v_title`)."""
+    '''A description for this node
+    (This is an easier-to-write alias of :attr:`Node._v_title`).'''
 
     @property
     def name(self):
@@ -222,21 +226,27 @@ class Leaf(Node):
         """
         return self._get_storage_size()
 
-    def __init__(self, parentnode, name,
-                 new=False, filters=None,
-                 byteorder=None, _log=True,
-                 track_times=True):
+    def __init__(
+        self,
+        parentnode,
+        name,
+        new=False,
+        filters=None,
+        byteorder=None,
+        _log=True,
+        track_times=True,
+    ):
         self._v_new = new
-        """Is this the first time the node has been created?"""
+        '''Is this the first time the node has been created?'''
         self.nrowsinbuf = None
-        """
+        '''
         The number of rows that fits in internal input buffers.
 
         You can change this to fine-tune the speed or memory
         requirements of your application.
-        """
+        '''
         self._flavor = None
-        """Private storage for the `flavor` property."""
+        '''Private storage for the `flavor` property.'''
 
         if new:
             # Get filter properties from parent group if not given.
@@ -247,9 +257,10 @@ class Leaf(Node):
             if byteorder not in (None, 'little', 'big'):
                 raise ValueError(
                     "the byteorder can only take 'little' or 'big' values "
-                    "and you passed: %s" % byteorder)
+                    'and you passed: %s' % byteorder
+                )
             self.byteorder = byteorder
-            """The byte ordering of the leaf data *on disk*."""
+            '''The byte ordering of the leaf data *on disk*.'''
 
         self._want_track_times = track_times
 
@@ -275,15 +286,17 @@ class Leaf(Node):
 
         filters = []
         if self.filters.fletcher32:
-            filters.append("fletcher32")
+            filters.append('fletcher32')
         if self.filters.complevel:
             if self.filters.shuffle:
-                filters.append("shuffle")
+                filters.append('shuffle')
             if self.filters.bitshuffle:
-                filters.append("bitshuffle")
-            filters.append(f"{self.filters.complib}({self.filters.complevel})")
-        return (f"{self._v_pathname} ({self.__class__.__name__}"
-                f"{self.shape}{', '.join(filters)}) {self._v_title!r}")
+                filters.append('bitshuffle')
+            filters.append(f'{self.filters.complib}({self.filters.complevel})')
+        return (
+            f'{self._v_pathname} ({self.__class__.__name__}'
+            f"{self.shape}{', '.join(filters)}) {self._v_title!r}"
+        )
 
     def _g_post_init_hook(self):
         """Code to be run after node creation and before creation logging.
@@ -364,15 +377,17 @@ class Leaf(Node):
             # If rowsize is too large, issue a Performance warning
             maxrowsize = params['BUFFER_TIMES'] * buffersize
             if rowsize > maxrowsize:
-                warnings.warn("""\
+                warnings.warn(
+                    '''\
 The Leaf ``%s`` is exceeding the maximum recommended rowsize (%d bytes);
 be ready to see PyTables asking for *lots* of memory and possibly slow
 I/O.  You may want to reduce the rowsize by trimming the value of
 dimensions that are orthogonal (and preferably close) to the *main*
 dimension of this leave.  Alternatively, in case you have specified a
-very small/large chunksize, you may want to increase/decrease it."""
-                              % (self._v_pathname, maxrowsize),
-                              PerformanceWarning)
+very small/large chunksize, you may want to increase/decrease it.'''
+                    % (self._v_pathname, maxrowsize),
+                    PerformanceWarning,
+                )
         return nrowsinbuf
 
     # This method is appropriate for calls to __getitem__ methods
@@ -383,7 +398,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             nrows = self.shape[dim]
 
         if warn_negstep and step and step < 0:
-            raise ValueError("slice step cannot be negative")
+            raise ValueError('slice step cannot be negative')
 
         # if start is not None: start = long(start)
         # if stop is not None: stop = long(stop)
@@ -398,16 +413,19 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Protection against start greater than available records
             # nrows == 0 is a special case for empty objects
             if 0 < nrows <= start:
-                raise IndexError("start of range (%s) is greater than "
-                                 "number of rows (%s)" % (start, nrows))
+                raise IndexError(
+                    'start of range (%s) is greater than '
+                    'number of rows (%s)' % (start, nrows)
+                )
             step = 1
             if start == -1:  # corner case
                 stop = nrows
             else:
                 stop = start + 1
         # Finally, get the correct values (over the main dimension)
-        start, stop, step = self._process_range(start, stop, step,
-                                                warn_negstep=warn_negstep)
+        start, stop, step = self._process_range(
+            start, stop, step, warn_negstep=warn_negstep
+        )
         return (start, stop, step)
 
     def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
@@ -433,8 +451,17 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         # Create a copy of the object.
         (new_node, bytes) = self._g_copy_with_stats(
-            newparent, newname, start, stop, step,
-            title, filters, chunkshape, _log, **kwargs)
+            newparent,
+            newname,
+            start,
+            stop,
+            step,
+            title,
+            filters,
+            chunkshape,
+            _log,
+            **kwargs,
+        )
 
         # Copy user attributes if requested (or the flavor at least).
         if copyuserattrs:
@@ -472,7 +499,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         else:
             # Fix the byteorder again, no matter which byteorder have
             # specified the user in the constructor.
-            self.byteorder = "irrelevant"
+            self.byteorder = 'irrelevant'
         return data
 
     def _point_selection(self, key):
@@ -502,40 +529,43 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         if type(key) in (list, tuple):
             if isinstance(key, tuple) and len(key) > len(self.shape):
-                raise IndexError(f"Invalid index or slice: {key!r}")
+                raise IndexError(f'Invalid index or slice: {key!r}')
             # Try to convert key to a numpy array.  If not possible,
             # a TypeError will be issued (to be catched later on).
             try:
                 key = toarray(key)
             except ValueError:
-                raise TypeError(f"Invalid index or slice: {key!r}")
+                raise TypeError(f'Invalid index or slice: {key!r}')
         elif not isinstance(key, np.ndarray):
-            raise TypeError(f"Invalid index or slice: {key!r}")
+            raise TypeError(f'Invalid index or slice: {key!r}')
 
         # Protection against empty keys
         if len(key) == 0:
-            return np.array([], dtype="i8")
+            return np.array([], dtype='i8')
 
         if key.dtype.kind == 'b':
             if not key.shape == self.shape:
                 raise IndexError(
-                    "Boolean indexing array has incompatible shape")
+                    'Boolean indexing array has incompatible shape'
+                )
             # Get the True coordinates (64-bit indices!)
             coords = np.asarray(key.nonzero(), dtype='i8')
             coords = np.transpose(coords)
         elif key.dtype.kind == 'i' or key.dtype.kind == 'u':
             if len(key.shape) > 2:
                 raise IndexError(
-                    "Coordinate indexing array has incompatible shape")
+                    'Coordinate indexing array has incompatible shape'
+                )
             elif len(key.shape) == 2:
                 if key.shape[0] != len(self.shape):
                     raise IndexError(
-                        "Coordinate indexing array has incompatible shape")
-                coords = np.asarray(key, dtype="i8")
+                        'Coordinate indexing array has incompatible shape'
+                    )
+                coords = np.asarray(key, dtype='i8')
                 coords = np.transpose(coords)
             else:
                 # For 1-dimensional datasets
-                coords = np.asarray(key, dtype="i8")
+                coords = np.asarray(key, dtype='i8')
 
             # handle negative indices
             idx = coords < 0
@@ -543,9 +573,9 @@ very small/large chunksize, you may want to increase/decrease it."""
 
             # bounds check
             if np.any(coords < 0) or np.any(coords >= self.shape):
-                raise IndexError("Index out of bounds")
+                raise IndexError('Index out of bounds')
         else:
-            raise TypeError("Only integer coordinates allowed.")
+            raise TypeError('Only integer coordinates allowed.')
         # We absolutely need a contiguous array
         if not coords.flags.contiguous:
             coords = coords.copy()
@@ -572,8 +602,13 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_rename(newname)
 
-    def move(self, newparent=None, newname=None,
-             overwrite=False, createparents=False):
+    def move(
+        self,
+        newparent=None,
+        newname=None,
+        overwrite=False,
+        createparents=False,
+    ):
         """Move or rename this node.
 
         This method has the behavior described in :meth:`Node._f_move`
@@ -582,8 +617,14 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_move(newparent, newname, overwrite, createparents)
 
-    def copy(self, newparent=None, newname=None,
-             overwrite=False, createparents=False, **kwargs):
+    def copy(
+        self,
+        newparent=None,
+        newname=None,
+        overwrite=False,
+        createparents=False,
+        **kwargs,
+    ):
         """Copy this node and return the new one.
 
         This method has the behavior described in :meth:`Node._f_copy`. Please
@@ -631,7 +672,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         return self._f_copy(
-            newparent, newname, overwrite, createparents, **kwargs)
+            newparent, newname, overwrite, createparents, **kwargs
+        )
 
     def truncate(self, size):
         """Truncate the main dimension to be size rows.
@@ -647,7 +689,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         # A non-enlargeable arrays (Array, CArray) cannot be truncated
         if self.extdim < 0:
-            raise TypeError("non-enlargeable datasets cannot be truncated")
+            raise TypeError('non-enlargeable datasets cannot be truncated')
         self._g_truncate(size)
 
     def isvisible(self):
@@ -716,7 +758,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         # internal buffers of HDF5 will be flushed afterwards during the
         # self._g_close() call.  Avoiding an unnecessary flush()
         # operation accelerates the closing for the unbuffered leaves.
-        if flush and hasattr(self, "_v_iobuf"):
+        if flush and hasattr(self, '_v_iobuf'):
             self.flush()
 
         # Close the dataset and release resources

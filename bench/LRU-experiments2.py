@@ -4,14 +4,14 @@
 from time import perf_counter as clock
 import tables as tb
 
-print("PyTables version-->", tb.__version__)
+print('PyTables version-->', tb.__version__)
 
-filename = "/tmp/junk-array.h5"
+filename = '/tmp/junk-array.h5'
 NOBJS = 1000
 
 
 def create_junk():
-    fileh = tb.open_file(filename, mode="w")
+    fileh = tb.open_file(filename, mode='w')
     for i in range(NOBJS):
         fileh.create_array(fileh.root, 'array' + str(i), [1])
     fileh.close()
@@ -21,10 +21,10 @@ def modify_junk_LRU():
     fileh = tb.open_file(filename, 'a')
     group = fileh.root
     for j in range(5):
-        print("iter -->", j)
+        print('iter -->', j)
         for tt in fileh.walk_nodes(group):
             if isinstance(tt, tb.Array):
-#                 d = tt.read()
+                #                 d = tt.read()
                 pass
 
     fileh.close()
@@ -36,11 +36,12 @@ def modify_junk_LRU2():
     for j in range(5):
         t1 = clock()
         for i in range(100):  # The number
-            #print("table-->", tt._v_name)
-            tt = getattr(group, "array" + str(i))
-            #d = tt.read()
-        print(f"iter and time --> {j + 1} {clock() - t1:.3f}")
+            # print("table-->", tt._v_name)
+            tt = getattr(group, 'array' + str(i))
+            # d = tt.read()
+        print(f'iter and time --> {j + 1} {clock() - t1:.3f}')
     fileh.close()
+
 
 if 1:
     # create_junk()
@@ -49,6 +50,7 @@ if 1:
 else:
     import profile
     import pstats
+
     profile.run('modify_junk_LRU2()', 'modify.prof')
     stats = pstats.Stats('modify.prof')
     stats.strip_dirs()

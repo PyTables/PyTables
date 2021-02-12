@@ -10,7 +10,7 @@ import tables as tb
 # Create an HDF5 file
 fileh = tb.open_file('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
 
-         #'-**-**-**-**-**-**- enable undo/redo log  -**-**-**-**-**-**-**-'
+#'-**-**-**-**-**-**- enable undo/redo log  -**-**-**-**-**-**-**-'
 fileh.enable_undo()
 
 # Start undoable operations
@@ -72,7 +72,7 @@ assert fileh.root.otherarray4.read() == [6, 7]
 assert fileh.root.agroup.otherarray5.read() == [7, 8]
 
 
-         #'-**-**-**-**-**-**- disable undo/redo log  -**-**-**-**-**-**-**-'
+#'-**-**-**-**-**-**- disable undo/redo log  -**-**-**-**-**-**-**-'
 fileh.disable_undo()
 
 # Close the file

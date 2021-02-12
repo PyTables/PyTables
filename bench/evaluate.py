@@ -8,19 +8,24 @@ import tables as tb
 
 
 shape = (1000, 160_000)
-#shape = (10,1600)
-filters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
-ofilters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
-#filters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
-#ofilters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
+# shape = (10,1600)
+filters = tb.Filters(complevel=1, complib='blosc', shuffle=0)
+ofilters = tb.Filters(complevel=1, complib='blosc', shuffle=0)
+# filters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
+# ofilters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
 
 # TODO: Makes it sense to add a 's'tring typecode here?
-typecode_to_dtype = {'b': 'bool', 'i': 'int32', 'l': 'int64', 'f': 'float32',
-                     'd': 'float64', 'c': 'complex128'}
+typecode_to_dtype = {
+    'b': 'bool',
+    'i': 'int32',
+    'l': 'int64',
+    'f': 'float32',
+    'd': 'float64',
+    'c': 'complex128',
+}
 
 
-def _compute(result, function, arguments,
-             start=None, stop=None, step=None):
+def _compute(result, function, arguments, start=None, stop=None, step=None):
     """Compute the `function` over the `arguments` and put the outcome in
     `result`"""
     arg0 = arguments[0]
@@ -28,7 +33,7 @@ def _compute(result, function, arguments,
         maindim = arg0.maindim
         (start, stop, step) = arg0._process_range_read(start, stop, step)
         nrowsinbuf = arg0.nrowsinbuf
-        print("nrowsinbuf-->", nrowsinbuf)
+        print('nrowsinbuf-->', nrowsinbuf)
     else:
         maindim = 0
         (start, stop, step) = (0, len(arg0), 1)
@@ -105,24 +110,24 @@ def evaluate(ex, out=None, local_dict=None, global_dict=None, **kwargs):
         (name, ne.necompiler.getType(type_))
         for (name, type_) in zip(names, types)
     ]
-    print("signature-->", signature)
+    print('signature-->', signature)
 
     # Compile the expression
     compiled_ex = ne.necompiler.NumExpr(ex, signature, [], **kwargs)
-    print("fullsig-->", compiled_ex.fullsig)
+    print('fullsig-->', compiled_ex.fullsig)
 
     _compute(out, compiled_ex, arguments)
 
     return
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     iarrays = 0
     oarrays = 0
     doprofile = 1
     dokprofile = 0
 
-    f = tb.open_file("/scratch2/faltet/evaluate.h5", "w")
+    f = tb.open_file('/scratch2/faltet/evaluate.h5', 'w')
 
     # Create some arrays
     if iarrays:
@@ -130,28 +135,33 @@ if __name__ == "__main__":
         b = np.ones(shape, dtype='float32') * 2
         c = np.ones(shape, dtype='float32') * 3
     else:
-        a = f.create_carray(f.root, 'a', tb.Float32Atom(dflt=1),
-                            shape=shape, filters=filters)
+        a = f.create_carray(
+            f.root, 'a', tb.Float32Atom(dflt=1), shape=shape, filters=filters
+        )
         a[:] = 1
-        b = f.create_carray(f.root, 'b', tb.Float32Atom(dflt=2),
-                            shape=shape, filters=filters)
+        b = f.create_carray(
+            f.root, 'b', tb.Float32Atom(dflt=2), shape=shape, filters=filters
+        )
         b[:] = 2
-        c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3),
-                            shape=shape, filters=filters)
+        c = f.create_carray(
+            f.root, 'c', tb.Float32Atom(dflt=3), shape=shape, filters=filters
+        )
         c[:] = 3
     if oarrays:
         out = np.empty(shape, dtype='float32')
     else:
-        out = f.create_carray(f.root, 'out', tb.Float32Atom(),
-                              shape=shape, filters=ofilters)
+        out = f.create_carray(
+            f.root, 'out', tb.Float32Atom(), shape=shape, filters=ofilters
+        )
 
     t0 = clock()
     if iarrays and oarrays:
-        #out = ne.evaluate("a*b+c")
+        # out = ne.evaluate("a*b+c")
         out = a * b + c
     elif doprofile:
         import cProfile as prof
         import pstats
+
         prof.run('evaluate("a*b+c", out)', 'evaluate.prof')
         stats = pstats.Stats('evaluate.prof')
         stats.strip_dirs()
@@ -160,14 +170,15 @@ if __name__ == "__main__":
     elif dokprofile:
         from cProfile import Profile
         import lsprofcalltree
+
         prof = Profile()
         prof.run('evaluate("a*b+c", out)')
         kcg = lsprofcalltree.KCacheGrind(prof)
         with Path('evaluate.kcg').open('w') as ofile:
             kcg.output(ofile)
     else:
-        evaluate("a*b+c", out)
-    print(f"Time for evaluate--> {clock() - t0:.3f}")
+        evaluate('a*b+c', out)
+    print(f'Time for evaluate--> {clock() - t0:.3f}')
 
     # print "out-->", `out`
     # print `out[:]`

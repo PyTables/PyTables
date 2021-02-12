@@ -18,7 +18,7 @@ standard variables and constants are more adequate.
 
 
 __docformat__ = 'reStructuredText'
-"""The format of documentation strings in this module."""
+'''The format of documentation strings in this module.'''
 
 
 class Enum:
@@ -117,9 +117,11 @@ class Enum:
             for (name, value) in enum._names.items():
                 self._check_and_set_pair(name, value)
         else:
-            raise TypeError("""\
+            raise TypeError(
+                '''\
 enumerations can only be created from \
-sequences, mappings and other enumerations""")
+sequences, mappings and other enumerations'''
+            )
 
     def _check_and_set_pair(self, name, value):
         """Check validity of enumerated value and insert it into type."""
@@ -129,20 +131,23 @@ sequences, mappings and other enumerations""")
 
         if not isinstance(name, str):
             raise TypeError(
-                f"name of enumerated value is not a string: {name!r}")
+                f'name of enumerated value is not a string: {name!r}'
+            )
         if name.startswith('_'):
             raise ValueError(
-                "name of enumerated value can not start with ``_``: %r"
-                % name)
+                'name of enumerated value can not start with ``_``: %r' % name
+            )
         # This check is only necessary with a sequence base object.
         if name in names:
             raise ValueError(
-                "enumerated values contain duplicate names: %r" % name)
+                'enumerated values contain duplicate names: %r' % name
+            )
         # This check is only necessary with a mapping base object.
         if value in values:
             raise ValueError(
-                "enumerated values contain duplicate concrete values: %r"
-                % value)
+                'enumerated values contain duplicate concrete values: %r'
+                % value
+            )
 
         names[name] = value
         values[value] = name
@@ -175,15 +180,15 @@ sequences, mappings and other enumerations""")
         try:
             return self._names[name]
         except KeyError:
-            raise KeyError(f"no enumerated value with that name: {name!r}")
+            raise KeyError(f'no enumerated value with that name: {name!r}')
 
     def __setitem__(self, name, value):
         """This operation is forbidden."""
-        raise IndexError("operation not allowed")
+        raise IndexError('operation not allowed')
 
     def __delitem__(self, name):
         """This operation is forbidden."""
-        raise IndexError("operation not allowed")
+        raise IndexError('operation not allowed')
 
     def __getattr__(self, name):
         """Get the concrete value of the enumerated value with that name.
@@ -215,11 +220,11 @@ sequences, mappings and other enumerations""")
 
     def __setattr__(self, name, value):
         """This operation is forbidden."""
-        raise AttributeError("operation not allowed")
+        raise AttributeError('operation not allowed')
 
     def __delattr__(self, name):
         """This operation is forbidden."""
-        raise AttributeError("operation not allowed")
+        raise AttributeError('operation not allowed')
 
     def __contains__(self, name):
         """Is there an enumerated value with that name in the type?
@@ -255,7 +260,8 @@ sequences, mappings and other enumerations""")
 
         if not isinstance(name, str):
             raise TypeError(
-                f"name of enumerated value is not a string: {name!r}")
+                f'name of enumerated value is not a string: {name!r}'
+            )
         return name in self._names
 
     def __call__(self, value, *default):
@@ -293,7 +299,8 @@ sequences, mappings and other enumerations""")
             if len(default) > 0:
                 return default[0]
             raise ValueError(
-                f"no enumerated value with that concrete value: {value!r}")
+                f'no enumerated value with that concrete value: {value!r}'
+            )
 
     def __len__(self):
         """Return the number of enumerated values in the enumerated type.
@@ -429,6 +436,7 @@ sequences, mappings and other enumerations""")
 
 def _test():
     import doctest
+
     return doctest.testmod()
 
 

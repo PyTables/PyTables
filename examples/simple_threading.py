@@ -19,7 +19,7 @@ def create_test_file(filename):
     data = np.random.rand(SIZE, SIZE)
 
     with tb.open_file(filename, 'w') as h5file:
-        h5file.create_array('/', 'array', title="Test Array", obj=data)
+        h5file.create_array('/', 'array', title='Test Array', obj=data)
 
 
 def chunk_generator(data_size, nchunks):
@@ -67,8 +67,9 @@ def main():
 
     # start all threads
     for _ in range(NTHREADS):
-        thread = threading.Thread(target=run,
-                                  args=(FILENAME, H5PATH, inqueue, outqueue))
+        thread = threading.Thread(
+            target=run, args=(FILENAME, H5PATH, inqueue, outqueue)
+        )
         thread.start()
         threads.append(thread)
 

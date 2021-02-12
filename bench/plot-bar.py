@@ -4,11 +4,17 @@
 from pathlib import Path
 from pylab import *
 
-checks = ['open_close', 'only_open',
-          'full_browse', 'partial_browse',
-          'full_browse_attrs', 'partial_browse_attrs',
-          'open_group', 'open_leaf',
-          'total']
+checks = [
+    'open_close',
+    'only_open',
+    'full_browse',
+    'partial_browse',
+    'full_browse_attrs',
+    'partial_browse_attrs',
+    'open_group',
+    'open_leaf',
+    'total',
+]
 width = 0.15       # the width of the bars: can also be len(x) sequence
 colors = ['r', 'm', 'g', 'y', 'b']
 ind = arange(len(checks))    # the x locations for the groups
@@ -45,15 +51,20 @@ def show_plot(bars, filenames, tit):
         ylabel('Time (s)')
     title(tit)
     n = len(filenames)
-    xticks(ind + width * n / 2, checks, rotation=45,
-           horizontalalignment='right', fontsize=8)
+    xticks(
+        ind + width * n / 2,
+        checks,
+        rotation=45,
+        horizontalalignment='right',
+        fontsize=8,
+    )
     if not gtotal:
-        #loc = 'center right'
+        # loc = 'center right'
         loc = 'upper left'
     else:
         loc = 'center left'
 
-    legends = [f[:f.index('_')] for f in filenames]
+    legends = [f[: f.index('_')] for f in filenames]
     legends = [l.replace('-', ' ') for l in legends]
     legend([p[0] for p in bars], legends, loc=loc)
 
@@ -63,17 +74,21 @@ def show_plot(bars, filenames, tit):
     else:
         show()
 
+
 if __name__ == '__main__':
 
     import sys
     import getopt
 
-    usage = """usage: %s [-g] [-m] [-o file] [-t title] files
+    usage = (
+        '''usage: %s [-g] [-m] [-o file] [-t title] files
             -g grand total
             -m show memory instead of time
             -o filename for output (only .png and .jpg extensions supported)
             -t title of the plot
-            \n""" % sys.argv[0]
+            \n'''
+        % sys.argv[0]
+    )
 
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], 'gmo:t:')
@@ -90,7 +105,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # default options
-    tit = "Comparison of differents PyTables versions"
+    tit = 'Comparison of differents PyTables versions'
     gtotal = 0
     show_memory = 0
     outfile = None
@@ -111,7 +126,7 @@ if __name__ == '__main__':
     n = 0
     for filename in filenames:
         values = get_values(filename)
-        print("Values-->", values)
+        print('Values-->', values)
         bars.append(plot_bar(values, n))
         n += 1
     show_plot(bars, filenames, tit)

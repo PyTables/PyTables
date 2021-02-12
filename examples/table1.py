@@ -8,14 +8,14 @@ class Particle(tb.IsDescription):
     pressure = tb.Float32Col(pos=4)     # float  (single-precision)
     temperature = tb.Float64Col(pos=5)  # double (double-precision)
 
+
 # Open a file in "w"rite mode
-fileh = tb.open_file("table1.h5", mode="w")
+fileh = tb.open_file('table1.h5', mode='w')
 # Create a new group
-group = fileh.create_group(fileh.root, "newgroup")
+group = fileh.create_group(fileh.root, 'newgroup')
 
 # Create a new table in newgroup group
-table = fileh.create_table(group, 'table', Particle, "A table",
-                           tb.Filters(1))
+table = fileh.create_table(group, 'table', Particle, 'A table', tb.Filters(1))
 particle = table.row
 
 # Fill the table with 10 particles
@@ -35,37 +35,41 @@ table.flush()
 
 # Add a couple of user attrs
 table.attrs.user_attr1 = 1.023
-table.attrs.user_attr2 = "This is the second user attr"
+table.attrs.user_attr2 = 'This is the second user attr'
 
 # Append several rows in only one call
-table.append([("Particle:     10", 10, 0, 10 * 10, 10 ** 2),
-              ("Particle:     11", 11, -1, 11 * 11, 11 ** 2),
-              ("Particle:     12", 12, -2, 12 * 12, 12 ** 2)])
+table.append(
+    [
+        ('Particle:     10', 10, 0, 10 * 10, 10 ** 2),
+        ('Particle:     11', 11, -1, 11 * 11, 11 ** 2),
+        ('Particle:     12', 12, -2, 12 * 12, 12 ** 2),
+    ]
+)
 
 group = fileh.root.newgroup
-print("Nodes under group", group, ":")
+print('Nodes under group', group, ':')
 for node in fileh.list_nodes(group):
     print(node)
 print()
 
-print("Leaves everywhere in file", fileh.filename, ":")
-for leaf in fileh.walk_nodes(classname="Leaf"):
+print('Leaves everywhere in file', fileh.filename, ':')
+for leaf in fileh.walk_nodes(classname='Leaf'):
     print(leaf)
 print()
 
 table = fileh.root.newgroup.table
-print("Object:", table)
-print(f"Table name: {table.name}. Table title: {table.title}")
-print("Rows saved on table: %d" % (table.nrows))
+print('Object:', table)
+print(f'Table name: {table.name}. Table title: {table.title}')
+print('Rows saved on table: %d' % (table.nrows))
 
-print("Variable names on table with their type:")
+print('Variable names on table with their type:')
 for name in table.colnames:
-    print("  ", name, ':=', table.coldtypes[name])
+    print('  ', name, ':=', table.coldtypes[name])
 
-print("Table contents:")
+print('Table contents:')
 for row in table:
     print(row[:])
-print("Associated recarray:")
+print('Associated recarray:')
 print(table.read())
 
 # Finally, close the file

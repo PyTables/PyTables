@@ -4,8 +4,12 @@ import warnings
 import functools
 
 from .registry import class_name_dict, class_id_dict
-from .exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
-                         PerformanceWarning)
+from .exceptions import (
+    ClosedNodeError,
+    NodeError,
+    UndoRedoWarning,
+    PerformanceWarning,
+)
 from .path import join_path, split_path, isvisiblepath
 from .utils import lazyattr
 from .undoredo import move_to_shadow
@@ -13,7 +17,7 @@ from .attributeset import AttributeSet, NotLoggedAttributeSet
 
 
 __docformat__ = 'reStructuredText'
-"""The format of documentation strings in this module."""
+'''The format of documentation strings in this module.'''
 
 
 def _closedrepr(oldmethod):
@@ -30,8 +34,10 @@ def _closedrepr(oldmethod):
     @functools.wraps(oldmethod)
     def newmethod(self):
         if not self._v_isopen:
-            return (f'<closed {self.__class__.__module__}.'
-                    f'{self.__class__.__name__} at 0x{id(self):x}>')
+            return (
+                f'<closed {self.__class__.__module__}.'
+                f'{self.__class__.__name__} at 0x{id(self):x}>'
+            )
         return oldmethod(self)
 
     return newmethod
@@ -175,7 +181,7 @@ class Node(metaclass=MetaNode):
     # This may be looked up by ``__del__`` when ``__init__`` doesn't get
     # to be called.  See ticket #144 for more info.
     _v_isopen = False
-    """Whehter this node is open or not."""
+    '''Whehter this node is open or not.'''
 
     # The ``_log`` argument is only meant to be used by ``_g_copy_as_child()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
@@ -188,39 +194,39 @@ class Node(metaclass=MetaNode):
             parentnode = parentnode.dereference()
 
         self._v_file = None
-        """The hosting File instance (see :ref:`FileClassDescr`)."""
+        '''The hosting File instance (see :ref:`FileClassDescr`).'''
 
         self._v_isopen = False
-        """Whether this node is open or not."""
+        '''Whether this node is open or not.'''
 
         self._v_pathname = None
-        """The path of this node in the tree (a string)."""
+        '''The path of this node in the tree (a string).'''
 
         self._v_name = None
-        """The name of this node in its parent group (a string)."""
+        '''The name of this node in its parent group (a string).'''
 
         self._v_depth = None
-        """The depth of this node in the tree (an non-negative integer value).
-        """
+        '''The depth of this node in the tree (an non-negative integer value).
+        '''
 
         self._v_maxtreedepth = parentnode._v_file.params['MAX_TREE_DEPTH']
-        """Maximum tree depth before warning the user.
+        '''Maximum tree depth before warning the user.
 
         .. versionchanged:: 3.0
            Renamed into *_v_maxtreedepth* from *_v_maxTreeDepth*.
 
-        """
+        '''
 
         self._v__deleting = False
-        """Is the node being deleted?"""
+        '''Is the node being deleted?'''
 
         self._v_objectid = None
-        """A node identifier (may change from run to run).
+        '''A node identifier (may change from run to run).
 
         .. versionchanged:: 3.0
            The *_v_objectID* attribute has been renamed into *_v_objectid*.
 
-        """
+        '''
 
         validate = new = self._v_new  # set by subclass constructor
 
@@ -322,8 +328,8 @@ class Node(metaclass=MetaNode):
         """
 
         if not self._v_isopen:
-            raise ClosedNodeError("the node object is closed")
-        assert self._v_file.isopen, "found an open node in a closed file"
+            raise ClosedNodeError('the node object is closed')
+        assert self._v_file.isopen, 'found an open node in a closed file'
 
     def _g_set_location(self, parentnode, name):
         """Set location-dependent attributes.
@@ -348,12 +354,12 @@ class Node(metaclass=MetaNode):
         if name.startswith(root_uep):
             # This has been called from File._get_node()
             assert parentdepth == 0
-            if root_uep == "/":
+            if root_uep == '/':
                 self._v_pathname = name
             else:
-                self._v_pathname = name[len(root_uep):]
+                self._v_pathname = name[len(root_uep) :]
             _, self._v_name = split_path(name)
-            self._v_depth = name.count("/") - root_uep.count("/") + 1
+            self._v_depth = name.count('/') - root_uep.count('/') + 1
         else:
             # If we enter here is because this has been called elsewhere
             self._v_name = name
@@ -362,11 +368,13 @@ class Node(metaclass=MetaNode):
 
         # Check if the node is too deep in the tree.
         if parentdepth >= self._v_maxtreedepth:
-            warnings.warn("""\
+            warnings.warn(
+                '''\
 node ``%s`` is exceeding the recommended maximum depth (%d);\
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (self._v_pathname, self._v_maxtreedepth),
-                          PerformanceWarning)
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O'''
+                % (self._v_pathname, self._v_maxtreedepth),
+                PerformanceWarning,
+            )
 
         if self._v_pathname != '/':
             file_._node_manager.cache_node(self, self._v_pathname)
@@ -394,10 +402,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Check if the node is too deep in the tree.
         if newdepth > self._v_maxtreedepth:
-            warnings.warn("""\
+            warnings.warn(
+                '''\
 moved descendent node is exceeding the recommended maximum depth (%d);\
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (self._v_maxtreedepth,), PerformanceWarning)
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O'''
+                % (self._v_maxtreedepth,),
+                PerformanceWarning,
+            )
 
         node_manager = self._v_file._node_manager
         node_manager.rename_node(oldpath, newpath)
@@ -560,9 +571,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_new(newparent, self._v_name, init=False)
         #   Move the node.
         # self._v_parent._g_move_node(oldpathname, self._v_pathname)
-        self._v_parent._g_move_node(oldparent._v_objectid, oldname,
-                                    newparent._v_objectid, newname,
-                                    oldpathname, self._v_pathname)
+        self._v_parent._g_move_node(
+            oldparent._v_objectid,
+            oldname,
+            newparent._v_objectid,
+            newname,
+            oldpathname,
+            self._v_pathname,
+        )
 
         # Tell dependent objects about the new location of this node.
         self._g_update_dependent()
@@ -578,8 +594,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         self._f_move(newname=newname, overwrite=overwrite)
 
-    def _f_move(self, newparent=None, newname=None,
-                overwrite=False, createparents=False):
+    def _f_move(
+        self,
+        newparent=None,
+        newname=None,
+        overwrite=False,
+        createparents=False,
+    ):
         """Move or rename this node.
 
         Moves a node into a new parent group, or changes the name of the
@@ -610,8 +631,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Set default arguments.
         if newparent is None and newname is None:
-            raise NodeError("you should specify at least "
-                            "a ``newparent`` or a ``newname`` parameter")
+            raise NodeError(
+                'you should specify at least '
+                'a ``newparent`` or a ``newname`` parameter'
+            )
         if newparent is None:
             newparent = oldparent
         if newname is None:
@@ -625,14 +648,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             newfile = file_
             newpath = newparent
         else:
-            raise TypeError("new parent is not a node nor a path: %r"
-                            % (newparent,))
+            raise TypeError(
+                'new parent is not a node nor a path: %r' % (newparent,)
+            )
 
         # Validity checks on arguments.
         # Is it in the same file?
         if newfile is not file_:
-            raise NodeError("nodes can not be moved across databases; "
-                            "please make a copy of the node")
+            raise NodeError(
+                'nodes can not be moved across databases; '
+                'please make a copy of the node'
+            )
 
         # The movement always fails if the hosting file can not be modified.
         file_._check_writable()
@@ -696,12 +722,19 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         """
 
-        return self._g_copy(newparent, self._v_name,
-                            recursive=False, _log=False, **kwargs)
+        return self._g_copy(
+            newparent, self._v_name, recursive=False, _log=False, **kwargs
+        )
 
-    def _f_copy(self, newparent=None, newname=None,
-                overwrite=False, recursive=False, createparents=False,
-                **kwargs):
+    def _f_copy(
+        self,
+        newparent=None,
+        newname=None,
+        overwrite=False,
+        recursive=False,
+        createparents=False,
+        **kwargs,
+    ):
         """Copy this node and return the new node.
 
         Creates and returns a copy of the node, maybe in a different place in
@@ -743,8 +776,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Set default arguments.
         if dstparent is None and dstname is None:
-            raise NodeError("you should specify at least "
-                            "a ``newparent`` or a ``newname`` parameter")
+            raise NodeError(
+                'you should specify at least '
+                'a ``newparent`` or a ``newname`` parameter'
+            )
         if dstparent is None:
             dstparent = srcparent
         if dstname is None:
@@ -758,8 +793,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             dstfile = srcfile
             dstpath = dstparent
         else:
-            raise TypeError("new parent is not a node nor a path: %r"
-                            % (dstparent,))
+            raise TypeError(
+                'new parent is not a node nor a path: %r' % (dstparent,)
+            )
 
         # Validity checks on arguments.
         if dstfile is srcfile:
@@ -767,8 +803,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             srcpath = srcparent._v_pathname
             if dstpath == srcpath and dstname == srcname:
                 raise NodeError(
-                    "source and destination nodes are the same node: ``%s``"
-                    % self._v_pathname)
+                    'source and destination nodes are the same node: ``%s``'
+                    % self._v_pathname
+                )
 
             # Recursively copying into itself?
             if recursive:
@@ -784,9 +821,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Copying to another file with undo enabled?
         if dstfile is not srcfile and srcfile.is_undo_enabled():
-            warnings.warn("copying across databases can not be undone "
-                          "nor redone from this database",
-                          UndoRedoWarning)
+            warnings.warn(
+                'copying across databases can not be undone '
+                'nor redone from this database',
+                UndoRedoWarning,
+            )
 
         # Copying over an existing node?
         self._g_maybe_remove(dstparent, dstname, overwrite)
@@ -806,28 +845,35 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # However, we need to know Group here.
         # Using class_name_dict avoids a circular import.
         if not isinstance(node, class_name_dict['Node']):
-            raise TypeError("new parent is not a registered node: %s"
-                            % node._v_pathname)
+            raise TypeError(
+                'new parent is not a registered node: %s' % node._v_pathname
+            )
         if not isinstance(node, class_name_dict['Group']):
-            raise TypeError("new parent node ``%s`` is not a group"
-                            % node._v_pathname)
+            raise TypeError(
+                'new parent node ``%s`` is not a group' % node._v_pathname
+            )
 
     def _g_check_not_contains(self, pathname):
         # The not-a-TARDIS test. ;)
         mypathname = self._v_pathname
-        if (mypathname == '/'  # all nodes fall below the root group
-           or pathname == mypathname
-           or pathname.startswith(mypathname + '/')):
-            raise NodeError("can not move or recursively copy node ``%s`` "
-                            "into itself" % mypathname)
+        if (
+            mypathname == '/'  # all nodes fall below the root group
+            or pathname == mypathname
+            or pathname.startswith(mypathname + '/')
+        ):
+            raise NodeError(
+                'can not move or recursively copy node ``%s`` '
+                'into itself' % mypathname
+            )
 
     def _g_maybe_remove(self, parent, name, overwrite):
         if name in parent:
             if not overwrite:
                 raise NodeError(
-                    f"destination group ``{parent._v_pathname}`` already "
-                    f"has a node named ``{name}``; you may want to use the "
-                    f"``overwrite`` argument")
+                    f'destination group ``{parent._v_pathname}`` already '
+                    f'has a node named ``{name}``; you may want to use the '
+                    f'``overwrite`` argument'
+                )
             parent._f_get_child(name)._f_remove(True)
 
     def _g_check_name(self, name):
@@ -841,7 +887,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if name.startswith('_i_'):
             # This is reserved for table index groups.
             raise ValueError(
-                "node name starts with reserved prefix ``_i_``: %s" % name)
+                'node name starts with reserved prefix ``_i_``: %s' % name
+            )
 
     def _f_getattr(self, name):
         """Get a PyTables attribute from this node.

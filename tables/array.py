@@ -8,8 +8,14 @@ from . import hdf5extension
 from .filters import Filters
 from .flavor import flavor_of, array_as_internal, internal_to_flavor
 from .leaf import Leaf
-from .utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
-                    byteorders, quantize)
+from .utils import (
+    is_idx,
+    convert_to_np_atom2,
+    SizeType,
+    lazyattr,
+    byteorders,
+    quantize,
+)
 
 
 # default version for ARRAY objects
@@ -18,7 +24,7 @@ from .utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
 # obversion = "2.1"    # Added support for complex datatypes
 # obversion = "2.2"    # This adds support for time datatypes.
 # obversion = "2.3"    # This adds support for enumerated datatypes.
-obversion = "2.4"    # Numeric and numarray flavors are gone.
+obversion = '2.4'    # Numeric and numarray flavors are gone.
 
 
 class Array(hdf5extension.Array, Leaf):
@@ -112,65 +118,73 @@ class Array(hdf5extension.Array, Leaf):
         memory."""
         return self.nrows * self.rowsize
 
-    def __init__(self, parentnode, name,
-                 obj=None, title="",
-                 byteorder=None, _log=True, _atom=None,
-                 track_times=True):
+    def __init__(
+        self,
+        parentnode,
+        name,
+        obj=None,
+        title='',
+        byteorder=None,
+        _log=True,
+        _atom=None,
+        track_times=True,
+    ):
 
         self._v_version = None
-        """The object version of this array."""
+        '''The object version of this array.'''
         self._v_new = new = obj is not None
-        """Is this the first time the node has been created?"""
+        '''Is this the first time the node has been created?'''
         self._v_new_title = title
-        """New title for this node."""
+        '''New title for this node.'''
         self._obj = obj
-        """The object to be stored in the array.  It can be any of numpy,
+        '''The object to be stored in the array.  It can be any of numpy,
         list, tuple, string, integer of floating point types, provided
         that they are regular (i.e. they are not like ``[[1, 2], 2]``).
 
         .. versionchanged:: 3.0
            Renamed form *_object* into *_obj*.
 
-        """
+        '''
 
         self._v_convert = True
-        """Whether the ``Array`` object must be converted or not."""
+        '''Whether the ``Array`` object must be converted or not.'''
 
         # Miscellaneous iteration rubbish.
         self._start = None
-        """Starting row for the current iteration."""
+        '''Starting row for the current iteration.'''
         self._stop = None
-        """Stopping row for the current iteration."""
+        '''Stopping row for the current iteration.'''
         self._step = None
-        """Step size for the current iteration."""
+        '''Step size for the current iteration.'''
         self._nrowsread = None
-        """Number of rows read up to the current state of iteration."""
+        '''Number of rows read up to the current state of iteration.'''
         self._startb = None
-        """Starting row for current buffer."""
+        '''Starting row for current buffer.'''
         self._stopb = None
-        """Stopping row for current buffer. """
+        '''Stopping row for current buffer. '''
         self._row = None
-        """Current row in iterators (sentinel)."""
+        '''Current row in iterators (sentinel).'''
         self._init = False
-        """Whether we are in the middle of an iteration or not (sentinel)."""
+        '''Whether we are in the middle of an iteration or not (sentinel).'''
         self.listarr = None
-        """Current buffer in iterators."""
+        '''Current buffer in iterators.'''
 
         # Documented (*public*) attributes.
         self.atom = _atom
-        """An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
+        '''An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
         and *shape* of the atomic objects to be saved.
-        """
+        '''
         self.shape = None
-        """The shape of the stored array."""
+        '''The shape of the stored array.'''
         self.nrow = None
-        """On iterators, this is the index of the current row."""
+        '''On iterators, this is the index of the current row.'''
         self.extdim = -1   # ordinary arrays are not enlargeable
-        """The index of the enlargeable dimension."""
+        '''The index of the enlargeable dimension.'''
 
         # Ordinary arrays have no filters: leaf is created with default ones.
-        super().__init__(parentnode, name, new, Filters(), byteorder, _log,
-                         track_times)
+        super().__init__(
+            parentnode, name, new, Filters(), byteorder, _log, track_times
+        )
 
     def _g_create(self):
         """Save a new array in file."""
@@ -187,8 +201,10 @@ class Array(hdf5extension.Array, Leaf):
 
         # Raise an error in case of unsupported object
         if nparr.dtype.kind in ['V', 'U', 'O']:  # in void, unicode, object
-            raise TypeError("Array objects cannot currently deal with void, "
-                            "unicode or object arrays")
+            raise TypeError(
+                'Array objects cannot currently deal with void, '
+                'unicode or object arrays'
+            )
 
         # Decrease the number of references to the object
         self._obj = None
@@ -202,7 +218,8 @@ class Array(hdf5extension.Array, Leaf):
             # needed for setting attributes in some descendants later
             # on
             (self._v_objectid, self.shape, self.atom) = self._create_array(
-                nparr, self._v_new_title, self.atom)
+                nparr, self._v_new_title, self.atom
+            )
         except Exception:  # XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
@@ -234,8 +251,9 @@ class Array(hdf5extension.Array, Leaf):
         """
 
         if self.atom.kind != 'enum':
-            raise TypeError("array ``%s`` is not of an enumerated type"
-                            % self._v_pathname)
+            raise TypeError(
+                'array ``%s`` is not of an enumerated type' % self._v_pathname
+            )
 
         return self.atom.enum
 
@@ -267,7 +285,8 @@ class Array(hdf5extension.Array, Leaf):
 
         try:
             (self._start, self._stop, self._step) = self._process_range(
-                start, stop, step)
+                start, stop, step
+            )
         except IndexError:
             # If problems with indexes, silently return the null tuple
             return ()
@@ -373,25 +392,28 @@ class Array(hdf5extension.Array, Leaf):
                     stepl[dim] = 1
                     dim += 1
             elif dim >= maxlen:
-                raise IndexError("Too many indices for object '%s'" %
-                                 self._v_pathname)
+                raise IndexError(
+                    "Too many indices for object '%s'" % self._v_pathname
+                )
             elif is_idx(key):
                 key = operator.index(key)
 
                 # Protection for index out of range
                 if key >= self.shape[dim]:
-                    raise IndexError("Index out of range")
+                    raise IndexError('Index out of range')
                 if key < 0:
                     # To support negative values (Fixes bug #968149)
                     key += self.shape[dim]
                 start, stop, step = self._process_range(
-                    key, key + 1, 1, dim=dim)
+                    key, key + 1, 1, dim=dim
+                )
                 stop_None[dim] = 1
             elif isinstance(key, slice):
                 start, stop, step = self._process_range(
-                    key.start, key.stop, key.step, dim=dim)
+                    key.start, key.stop, key.step, dim=dim
+                )
             else:
-                raise TypeError("Non-valid index or slice: %s" % key)
+                raise TypeError('Non-valid index or slice: %s' % key)
             if not ellipsis:
                 startl[dim] = start
                 stopl[dim] = stop
@@ -435,16 +457,16 @@ class Array(hdf5extension.Array, Leaf):
             try:
                 num = int(num)
             except TypeError:
-                raise TypeError("Illegal index: %r" % num)
+                raise TypeError('Illegal index: %r' % num)
             if num > length - 1:
-                raise IndexError("Index out of bounds: %d" % num)
+                raise IndexError('Index out of bounds: %d' % num)
 
         def expand_ellipsis(args, rank):
             """Expand ellipsis objects and fill in missing axes."""
 
             n_el = sum(1 for arg in args if arg is Ellipsis)
             if n_el > 1:
-                raise IndexError("Only one ellipsis may be used.")
+                raise IndexError('Only one ellipsis may be used.')
             elif n_el == 0 and len(args) != rank:
                 args = args + (Ellipsis,)
 
@@ -457,7 +479,7 @@ class Array(hdf5extension.Array, Leaf):
                     final_args.append(arg)
 
             if len(final_args) > rank:
-                raise IndexError("Too many indices.")
+                raise IndexError('Too many indices.')
 
             return final_args
 
@@ -483,11 +505,11 @@ class Array(hdf5extension.Array, Leaf):
                 step = int(step)
 
             if step < 1:
-                raise IndexError("Step must be >= 1 (got %d)" % step)
+                raise IndexError('Step must be >= 1 (got %d)' % step)
             if stop == start:
-                raise IndexError("Zero-length selections are not allowed")
+                raise IndexError('Zero-length selections are not allowed')
             if stop < start:
-                raise IndexError("Reverse-order selections are not allowed")
+                raise IndexError('Reverse-order selections are not allowed')
             if start < 0:
                 start = length + start
             if stop < 0:
@@ -495,10 +517,12 @@ class Array(hdf5extension.Array, Leaf):
 
             if not 0 <= start <= (length - 1):
                 raise IndexError(
-                    "Start index %s out of range (0-%d)" % (start, length - 1))
+                    'Start index %s out of range (0-%d)' % (start, length - 1)
+                )
             if not 1 <= stop <= length:
                 raise IndexError(
-                    "Stop index %s out of range (1-%d)" % (stop, length))
+                    'Stop index %s out of range (1-%d)' % (stop, length)
+                )
 
             count = (stop - start) // step
             if (stop - start) % step != 0:
@@ -506,8 +530,9 @@ class Array(hdf5extension.Array, Leaf):
 
             if start + count > length:
                 raise IndexError(
-                    "Selection out of bounds (%d; axis has %d)" %
-                    (start + count, length))
+                    'Selection out of bounds (%d; axis has %d)'
+                    % (start + count, length)
+                )
 
             return start, count, step
 
@@ -525,7 +550,7 @@ class Array(hdf5extension.Array, Leaf):
         for idx, (exp, length) in enumerate(zip(args, self.shape)):
             if isinstance(exp, slice):
                 start, count, step = translate_slice(exp, length)
-                selection.append((start, count, step, idx, "AND"))
+                selection.append((start, count, step, idx, 'AND'))
                 mshape.append(count)
             else:
                 try:
@@ -537,32 +562,38 @@ class Array(hdf5extension.Array, Leaf):
                     mshape.append(len(exp))
                 if len(exp) == 0:
                     raise IndexError(
-                        "Empty selections are not allowed (axis %d)" % idx)
+                        'Empty selections are not allowed (axis %d)' % idx
+                    )
                 elif len(exp) > 1:
                     if list_seen:
-                        raise IndexError("Only one selection list is allowed")
+                        raise IndexError('Only one selection list is allowed')
                     else:
                         list_seen = True
                 else:
-                    if (not isinstance(exp[0], (int, np.integer)) or
-                        (isinstance(exp[0], np.ndarray) and not
-                            np.issubdtype(exp[0].dtype, np.integer))):
-                        raise TypeError("Only integer coordinates allowed.")
+                    if not isinstance(exp[0], (int, np.integer)) or (
+                        isinstance(exp[0], np.ndarray)
+                        and not np.issubdtype(exp[0].dtype, np.integer)
+                    ):
+                        raise TypeError('Only integer coordinates allowed.')
 
-                nexp = np.asarray(exp, dtype="i8")
+                nexp = np.asarray(exp, dtype='i8')
                 # Convert negative values
                 nexp = np.where(nexp < 0, length + nexp, nexp)
                 # Check whether the list is ordered or not
                 # (only one unordered list is allowed)
                 if len(nexp) != len(np.unique(nexp)):
                     raise IndexError(
-                        "Selection lists cannot have repeated values")
+                        'Selection lists cannot have repeated values'
+                    )
                 neworder = nexp.argsort()
-                if (neworder.shape != (len(exp),) or
-                        np.sum(np.abs(neworder - np.arange(len(exp)))) != 0):
+                if (
+                    neworder.shape != (len(exp),)
+                    or np.sum(np.abs(neworder - np.arange(len(exp)))) != 0
+                ):
                     if reorder is not None:
                         raise IndexError(
-                            "Only one selection list can be unordered")
+                            'Only one selection list can be unordered'
+                        )
                     corrected_idx = sum(1 for x in mshape if x != 0) - 1
                     reorder = (corrected_idx, neworder)
                     nexp = nexp[neworder]
@@ -585,7 +616,7 @@ class Array(hdf5extension.Array, Leaf):
                         start = nexp[select_idx - 1] + 1
                         count = nexp[select_idx] - start
                     if count > 0:
-                        selection.append((start, count, 1, idx, "NOTB"))
+                        selection.append((start, count, 1, idx, 'NOTB'))
 
         mshape = tuple(x for x in mshape if x != 0)
         return selection, reorder, mshape
@@ -633,7 +664,7 @@ class Array(hdf5extension.Array, Leaf):
                 selection, reorder, shape = self._fancy_selection(key)
                 arr = self._read_selection(selection, reorder, shape)
 
-        if self.flavor == "numpy" or not self._v_convert:
+        if self.flavor == 'numpy' or not self._v_convert:
             return arr
 
         return internal_to_flavor(arr, self.flavor)
@@ -684,8 +715,10 @@ class Array(hdf5extension.Array, Leaf):
 
         # truncate data if least_significant_digit filter is set
         # TODO: add the least_significant_digit attribute to the array on disk
-        if (self.filters.least_significant_digit is not None and
-                not np.issubdtype(nparr.dtype, np.signedinteger)):
+        if (
+            self.filters.least_significant_digit is not None
+            and not np.issubdtype(nparr.dtype, np.signedinteger)
+        ):
             nparr = quantize(nparr, self.filters.least_significant_digit)
 
         try:
@@ -812,8 +845,10 @@ class Array(hdf5extension.Array, Leaf):
             bytes_required = self.rowsize * nrowstoread
             # if buffer is too small, it will segfault
             if bytes_required != out.nbytes:
-                raise ValueError(f'output array size invalid, got {out.nbytes}'
-                                 f' bytes, need {bytes_required} bytes')
+                raise ValueError(
+                    f'output array size invalid, got {out.nbytes}'
+                    f' bytes, need {bytes_required} bytes'
+                )
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
             arr = out
@@ -823,8 +858,10 @@ class Array(hdf5extension.Array, Leaf):
             self._read_array(start, stop, step, arr)
         # data is always read in the system byteorder
         # if the out array's byteorder is different, do a byteswap
-        if (out is not None and
-                byteorders[arr.dtype.byteorder] != sys.byteorder):
+        if (
+            out is not None
+            and byteorders[arr.dtype.byteorder] != sys.byteorder
+        ):
             arr.byteswap(True)
         return arr
 
@@ -859,15 +896,28 @@ class Array(hdf5extension.Array, Leaf):
 
         self._g_check_open()
         if out is not None and self.flavor != 'numpy':
-            msg = ("Optional 'out' argument may only be supplied if array "
-                   "flavor is 'numpy', currently is {}").format(self.flavor)
+            msg = (
+                "Optional 'out' argument may only be supplied if array "
+                "flavor is 'numpy', currently is {}"
+            ).format(self.flavor)
             raise TypeError(msg)
         (start, stop, step) = self._process_range_read(start, stop, step)
         arr = self._read(start, stop, step, out)
         return internal_to_flavor(arr, self.flavor)
 
-    def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+    def _g_copy_with_stats(
+        self,
+        group,
+        name,
+        start,
+        stop,
+        step,
+        title,
+        filters,
+        chunkshape,
+        _log,
+        **kwargs,
+    ):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         # Compute the correct indices.
@@ -882,8 +932,9 @@ class Array(hdf5extension.Array, Leaf):
         # just in case the array is being copied from a native HDF5
         # with atomic types different from scalars.
         # For details, see #275 of trac.
-        object_ = Array(group, name, arr, title=title, _log=_log,
-                        _atom=self.atom)
+        object_ = Array(
+            group, name, arr, title=title, _log=_log, _atom=self.atom
+        )
         nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object_, nbytes)
@@ -891,12 +942,12 @@ class Array(hdf5extension.Array, Leaf):
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return f"""{self}
+        return f'''{self}
   atom := {self.atom!r}
   maindim := {self.maindim!r}
   flavor := {self.flavor!r}
   byteorder := {self.byteorder!r}
-  chunkshape := {self.chunkshape!r}"""
+  chunkshape := {self.chunkshape!r}'''
 
 
 class ImageArray(Array):

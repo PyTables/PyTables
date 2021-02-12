@@ -42,54 +42,55 @@ from .exceptions import FlavorError, FlavorWarning
 
 
 __docformat__ = 'reStructuredText'
-"""The format of documentation strings in this module."""
+'''The format of documentation strings in this module.'''
 
 internal_flavor = 'numpy'
-"""The flavor used internally by PyTables."""
+'''The flavor used internally by PyTables.'''
 
 # This is very slightly slower than a set for a small number of values
 # in terms of (infrequent) lookup time, but allows `flavor_of()`
 # (which may be called much more frequently) to check for flavors in
 # order, beginning with the most common one.
 all_flavors = []  # filled as flavors are registered
-"""List of all flavors available to PyTables."""
+'''List of all flavors available to PyTables.'''
 
 alias_map = {}  # filled as flavors are registered
-"""Maps old flavor names to the most similar current flavor."""
+'''Maps old flavor names to the most similar current flavor.'''
 
 description_map = {}  # filled as flavors are registered
-"""Maps flavors to short descriptions of their supported objects."""
+'''Maps flavors to short descriptions of their supported objects.'''
 
 identifier_map = {}  # filled as flavors are registered
-"""Maps flavors to functions that can identify their objects.
+'''Maps flavors to functions that can identify their objects.
 
 The function associated with a given flavor will return a true value
 if the object passed to it can be identified as being of that flavor.
 
 See the `flavor_of()` function for a friendlier interface to flavor
 identification.
-"""
+'''
 
 converter_map = {}  # filled as flavors are registered
-"""Maps (source, destination) flavor pairs to converter functions.
+'''Maps (source, destination) flavor pairs to converter functions.
 
 Converter functions get an array of the source flavor and return an
 array of the destination flavor.
 
 See the `array_of_flavor()` and `flavor_to_flavor()` functions for
 friendlier interfaces to flavor conversion.
-"""
+'''
 
 
 def check_flavor(flavor):
     """Raise a ``FlavorError`` if the `flavor` is not valid."""
 
     if flavor not in all_flavors:
-        available_flavs = ", ".join(flav for flav in all_flavors)
+        available_flavs = ', '.join(flav for flav in all_flavors)
         raise FlavorError(
-            "flavor ``%s`` is unsupported or unavailable; "
-            "available flavors in this system are: %s"
-            % (flavor, available_flavs))
+            'flavor ``%s`` is unsupported or unavailable; '
+            'available flavors in this system are: %s'
+            % (flavor, available_flavs)
+        )
 
 
 def array_of_flavor2(array, src_flavor, dst_flavor):
@@ -107,9 +108,11 @@ def array_of_flavor2(array, src_flavor, dst_flavor):
 
     convkey = (src_flavor, dst_flavor)
     if convkey not in converter_map:
-        raise FlavorError("conversion from flavor ``%s`` to flavor ``%s`` "
-                          "is unsupported or unavailable in this system"
-                          % (src_flavor, dst_flavor))
+        raise FlavorError(
+            'conversion from flavor ``%s`` to flavor ``%s`` '
+            'is unsupported or unavailable in this system'
+            % (src_flavor, dst_flavor)
+        )
 
     convfunc = converter_map[convkey]
     return convfunc(array)
@@ -132,8 +135,11 @@ def flavor_to_flavor(array, src_flavor, dst_flavor):
     try:
         return array_of_flavor2(array, src_flavor, dst_flavor)
     except FlavorError as fe:
-        warnings.warn("%s; returning an object of the ``%s`` flavor instead"
-                      % (fe.args[0], src_flavor), FlavorWarning)
+        warnings.warn(
+            '%s; returning an object of the ``%s`` flavor instead'
+            % (fe.args[0], src_flavor),
+            FlavorWarning,
+        )
         return array
 
 
@@ -174,10 +180,11 @@ def flavor_of(array):
         if identifier_map[flavor](array):
             return flavor
     type_name = type(array).__name__
-    supported_descs = "; ".join(description_map[fl] for fl in all_flavors)
+    supported_descs = '; '.join(description_map[fl] for fl in all_flavors)
     raise TypeError(
-        "objects of type ``%s`` are not supported in this context, sorry; "
-        "supported objects are: %s" % (type_name, supported_descs))
+        'objects of type ``%s`` are not supported in this context, sorry; '
+        'supported objects are: %s' % (type_name, supported_descs)
+    )
 
 
 def array_of_flavor(array, dst_flavor):
@@ -246,6 +253,7 @@ def _register_converters():
 
     def identity(array):
         return array
+
     for src_flavor in all_flavors:
         for dst_flavor in all_flavors:
             # Converters with the same source and destination flavor
@@ -317,12 +325,15 @@ def _disable_flavor(flavor):
 
 # Implementation of flavors
 _python_aliases = [
-    'List', 'Tuple',
-    'Int', 'Float', 'String',
-    'VLString', 'Object',
+    'List',
+    'Tuple',
+    'Int',
+    'Float',
+    'String',
+    'VLString',
+    'Object',
 ]
-_python_desc = ("homogeneous list or tuple, "
-                "integer, float, complex or bytes")
+_python_desc = 'homogeneous list or tuple, ' 'integer, float, complex or bytes'
 
 
 def _is_python(array):
@@ -330,10 +341,11 @@ def _is_python(array):
 
 
 _numpy_aliases = []
-_numpy_desc = "NumPy array, record or scalar"
+_numpy_desc = 'NumPy array, record or scalar'
 
 
 if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion('1.19.0'):
+
     def toarray(array, *args, **kwargs):
         with warnings.catch_warnings():
             warnings.simplefilter('error')
@@ -341,9 +353,12 @@ if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion('1.19.0'):
                 array = np.array(array, *args, **kwargs)
             except np.VisibleDeprecationWarning:
                 raise ValueError(
-                    'cannot guess the desired dtype from the input')
+                    'cannot guess the desired dtype from the input'
+                )
 
         return array
+
+
 else:
     toarray = np.array
 
@@ -361,11 +376,14 @@ def _numpy_contiguous(convfunc):
 
     def conv_to_numpy(array):
         nparr = convfunc(array)
-        if (hasattr(nparr, 'flags') and
-                not nparr.flags.contiguous and
-                sum(nparr.strides) != 0):
+        if (
+            hasattr(nparr, 'flags')
+            and not nparr.flags.contiguous
+            and sum(nparr.strides) != 0
+        ):
             nparr = nparr.copy()  # copying the array makes it contiguous
         return nparr
+
     conv_to_numpy.__name__ = convfunc.__name__
     conv_to_numpy.__doc__ = convfunc.__doc__
     return conv_to_numpy
@@ -421,6 +439,7 @@ def _test():
     """Run ``doctest`` on this module."""
 
     import doctest
+
     doctest.testmod()
 
 

@@ -5,7 +5,6 @@
 # reused.
 
 
-
 from time import perf_counter as clock
 
 import numpy as np
@@ -27,7 +26,7 @@ def standard_read(array_size):
         for i in range(N):
             output = array.read(0, array_size, 1)
         end = clock()
-        assert(np.all(output == 1))
+        assert np.all(output == 1)
         print('standard read   \t {:5.5f}'.format((end - start) / N))
 
 
@@ -40,13 +39,13 @@ def pre_allocated_read(array_size):
         for i in range(N):
             array.read(0, array_size, 1, out=output)
         end = clock()
-        assert(np.all(output == 1))
+        assert np.all(output == 1)
         print('pre-allocated read\t {:5.5f}'.format((end - start) / N))
 
 
 if __name__ == '__main__':
 
-    array_num_bytes = [10**5, 10**6, 10**7, 10**8]
+    array_num_bytes = [10 ** 5, 10 ** 6, 10 ** 7, 10 ** 8]
 
     for array_bytes in array_num_bytes:
 

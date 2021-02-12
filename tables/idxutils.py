@@ -14,6 +14,7 @@ import numpy as np
 # the performance by requering the HDF5 to use a lot of memory and CPU
 # for its internal B-Tree.
 
+
 def csformula(nrows):
     """Return the fitted chunksize (a float value) for nrows."""
 
@@ -23,16 +24,16 @@ def csformula(nrows):
     # where 2**12 and 2**15 are reasonable values for chunksizes for indexes
     # with 10**6 and 10**9 elements respectively.
     # Yes, return a floating point number!
-    return 64 * 2**math.log10(nrows)
+    return 64 * 2 ** math.log10(nrows)
 
 
 def limit_er(expectedrows):
     """Protection against creating too small or too large chunks or slices."""
 
-    if expectedrows < 10**5:
-        expectedrows = 10**5
-    elif expectedrows > 10**12:
-        expectedrows = 10**12
+    if expectedrows < 10 ** 5:
+        expectedrows = 10 ** 5
+    elif expectedrows > 10 ** 12:
+        expectedrows = 10 ** 12
     return expectedrows
 
 
@@ -41,7 +42,7 @@ def computechunksize(expectedrows):
 
     expectedrows = limit_er(expectedrows)
     zone = int(math.log10(expectedrows))
-    nrows = 10**zone
+    nrows = 10 ** zone
     return int(csformula(nrows))
 
 
@@ -54,7 +55,7 @@ def computeslicesize(expectedrows, memlevel):
     # Now, the actual chunksize
     chunksize = computechunksize(expectedrows)
     # The optimal slicesize
-    ss = int(cs * memlevel**2)
+    ss = int(cs * memlevel ** 2)
     # We *need* slicesize to be an exact multiple of the actual chunksize
     ss = (ss // chunksize) * chunksize
     ss *= 4    # slicesize should be at least divisible by 4
@@ -66,8 +67,8 @@ def computeslicesize(expectedrows, memlevel):
     # (in idx-opt.c, the line ``mid = lo + (hi-lo)/2;`` will overflow
     # for values of ``lo`` and ``hi`` >= 2**30).  Finally, ss must be a
     # multiple of 4, so 2**30 must definitely be an upper limit.
-    if ss > 2**30:
-        ss = 2**30
+    if ss > 2 ** 30:
+        ss = 2 ** 30
     return ss
 
 
@@ -80,9 +81,9 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
     """
 
     nlowerblocks = (expectedrows // lowercompoundsize) + 1
-    if nlowerblocks > 2**20:
+    if nlowerblocks > 2 ** 20:
         # Protection against too large number of compound blocks
-        nlowerblocks = 2**20
+        nlowerblocks = 2 ** 20
     size = int(lowercompoundsize * nlowerblocks)
     # We *need* superblocksize to be an exact multiple of the actual
     # compoundblock size (a ceil must be performed here!)
@@ -329,27 +330,24 @@ infinityf = math.ldexp(1.0, 128)
 # "infinity" for several types
 infinitymap = {
     'bool': [0, 1],
-    'int8': [-2**7, 2**7 - 1],
-    'uint8': [0, 2**8 - 1],
-    'int16': [-2**15, 2**15 - 1],
-    'uint16': [0, 2**16 - 1],
-    'int32': [-2**31, 2**31 - 1],
-    'uint32': [0, 2**32 - 1],
-    'int64': [-2**63, 2**63 - 1],
-    'uint64': [0, 2**64 - 1],
+    'int8': [-(2 ** 7), 2 ** 7 - 1],
+    'uint8': [0, 2 ** 8 - 1],
+    'int16': [-(2 ** 15), 2 ** 15 - 1],
+    'uint16': [0, 2 ** 16 - 1],
+    'int32': [-(2 ** 31), 2 ** 31 - 1],
+    'uint32': [0, 2 ** 32 - 1],
+    'int64': [-(2 ** 63), 2 ** 63 - 1],
+    'uint64': [0, 2 ** 64 - 1],
     'float32': [-infinityf, infinityf],
     'float64': [-infinity, infinity],
 }
 
 if hasattr(np, 'float16'):
-    infinitymap['float16'] = [-np.float16(np.inf),
-                              np.float16(np.inf)]
+    infinitymap['float16'] = [-np.float16(np.inf), np.float16(np.inf)]
 if hasattr(np, 'float96'):
-    infinitymap['float96'] = [-np.float96(np.inf),
-                              np.float96(np.inf)]
+    infinitymap['float96'] = [-np.float96(np.inf), np.float96(np.inf)]
 if hasattr(np, 'float128'):
-    infinitymap['float128'] = [-np.float128(np.inf),
-                               np.float128(np.inf)]
+    infinitymap['float128'] = [-np.float128(np.inf), np.float128(np.inf)]
 
 # deprecated API
 infinityMap = infinitymap
@@ -363,15 +361,15 @@ def inftype(dtype, itemsize, sign=+1):
 
     assert sign in [-1, +1]
 
-    if dtype.kind == "S":
+    if dtype.kind == 'S':
         if sign < 0:
-            return b"\x00" * itemsize
+            return b'\x00' * itemsize
         else:
-            return b"\xff" * itemsize
+            return b'\xff' * itemsize
     try:
         return infinitymap[dtype.name][sign >= 0]
     except KeyError:
-        raise TypeError("Type %s is not supported" % dtype.name)
+        raise TypeError('Type %s is not supported' % dtype.name)
 
 
 def string_next_after(x, direction, itemsize):
@@ -383,36 +381,36 @@ def string_next_after(x, direction, itemsize):
     # Pad the string with \x00 chars until itemsize completion
     padsize = itemsize - len(x)
     if padsize > 0:
-        x += b"\x00" * padsize
+        x += b'\x00' * padsize
     # int.to_bytes is not available in Python < 3.2
     # xlist = [i.to_bytes(1, sys.byteorder) for i in x]
     xlist = [bytes([i]) for i in x]
     xlist.reverse()
     i = 0
     if direction > 0:
-        if xlist == b"\xff" * itemsize:
+        if xlist == b'\xff' * itemsize:
             # Maximum value, return this
-            return b"".join(xlist)
+            return b''.join(xlist)
         for xchar in xlist:
-            if ord(xchar) < 0xff:
+            if ord(xchar) < 0xFF:
                 xlist[i] = chr(ord(xchar) + 1).encode('ascii')
                 break
             else:
-                xlist[i] = b"\x00"
+                xlist[i] = b'\x00'
             i += 1
     else:
-        if xlist == b"\x00" * itemsize:
+        if xlist == b'\x00' * itemsize:
             # Minimum value, return this
-            return b"".join(xlist)
+            return b''.join(xlist)
         for xchar in xlist:
             if ord(xchar) > 0x00:
                 xlist[i] = chr(ord(xchar) - 1).encode('ascii')
                 break
             else:
-                xlist[i] = b"\xff"
+                xlist[i] = b'\xff'
             i += 1
     xlist.reverse()
-    return b"".join(xlist)
+    return b''.join(xlist)
 
 
 def int_type_next_after(x, direction, itemsize):
@@ -454,19 +452,19 @@ def nextafter(x, direction, dtype, itemsize):
     direction."""
 
     assert direction in [-1, 0, +1]
-    assert dtype.kind == "S" or type(x) in (bool, float, int)
+    assert dtype.kind == 'S' or type(x) in (bool, float, int)
 
     if direction == 0:
         return x
 
-    if dtype.kind == "S":
+    if dtype.kind == 'S':
         return string_next_after(x, direction, itemsize)
 
     if dtype.kind in ['b']:
         return bool_type_next_after(x, direction, itemsize)
     elif dtype.kind in ['i', 'u']:
         return int_type_next_after(x, direction, itemsize)
-    elif dtype.kind == "f":
+    elif dtype.kind == 'f':
         if direction < 0:
             return np.nextafter(x, x - 1)
         else:
@@ -483,4 +481,4 @@ def nextafter(x, direction, dtype, itemsize):
     #    else:
     #        return PyNextAfter(x,x + 1)
 
-    raise TypeError("data type ``%s`` is not supported" % dtype)
+    raise TypeError('data type ``%s`` is not supported' % dtype)

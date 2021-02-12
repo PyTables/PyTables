@@ -16,13 +16,24 @@ from .filters import Filters
 
 
 # System attributes
-SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
-             "ENCODING", "PYTABLES_FORMAT_VERSION",
-             "FLAVOR", "FILTERS", "AUTO_INDEX",
-             "DIRTY", "NODE_TYPE", "NODE_TYPE_VERSION",
-             "PSEUDOATOM"]
+SYS_ATTRS = [
+    'CLASS',
+    'VERSION',
+    'TITLE',
+    'NROWS',
+    'EXTDIM',
+    'ENCODING',
+    'PYTABLES_FORMAT_VERSION',
+    'FLAVOR',
+    'FILTERS',
+    'AUTO_INDEX',
+    'DIRTY',
+    'NODE_TYPE',
+    'NODE_TYPE_VERSION',
+    'PSEUDOATOM',
+]
 # Prefixes of other system attributes
-SYS_ATTRS_PREFIXES = ["FIELD_"]
+SYS_ATTRS_PREFIXES = ['FIELD_']
 # RO_ATTRS will be disabled and let the user modify them if they
 # want to. The user is still not allowed to remove or rename
 # system attributes. Francesc Alted 2004-12-19
@@ -33,8 +44,16 @@ SYS_ATTRS_PREFIXES = ["FIELD_"]
 # RO_ATTRS = []
 
 # The next attributes are not meant to be copied during a Node copy process
-SYS_ATTRS_NOTTOBECOPIED = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
-                           "PYTABLES_FORMAT_VERSION", "FILTERS", "ENCODING"]
+SYS_ATTRS_NOTTOBECOPIED = [
+    'CLASS',
+    'VERSION',
+    'TITLE',
+    'NROWS',
+    'EXTDIM',
+    'PYTABLES_FORMAT_VERSION',
+    'FILTERS',
+    'ENCODING',
+]
 # Attributes forced to be copied during node copies
 FORCE_COPY_CLASS = ['CLASS', 'VERSION']
 # Regular expression for column default values.
@@ -48,8 +67,10 @@ _new_filters_sub = br'(\1tables.filters\n'
 def issysattrname(name):
     """Check if a name is a system attribute or not"""
 
-    return bool(name in SYS_ATTRS or np.prod(
-        [name.startswith(prefix) for prefix in SYS_ATTRS_PREFIXES]))
+    return bool(
+        name in SYS_ATTRS
+        or np.prod([name.startswith(prefix) for prefix in SYS_ATTRS_PREFIXES])
+    )
 
 
 class AttributeSet(hdf5extension.AttributeSet):
@@ -200,16 +221,16 @@ class AttributeSet(hdf5extension.AttributeSet):
 
         # Refuse to create an instance of an already closed node
         if not node._v_isopen:
-            raise ClosedNodeError("the node for attribute set is closed")
+            raise ClosedNodeError('the node for attribute set is closed')
 
         dict_ = self.__dict__
 
         self._g_new(node)
-        dict_["_v__nodefile"] = node._v_file
-        dict_["_v__nodepath"] = node._v_pathname
-        dict_["_v_attrnames"] = self._g_list_attr(node)
+        dict_['_v__nodefile'] = node._v_file
+        dict_['_v__nodepath'] = node._v_pathname
+        dict_['_v_attrnames'] = self._g_list_attr(node)
         # The list of unimplemented attribute names
-        dict_["_v_unimplemented"] = []
+        dict_['_v_unimplemented'] = []
 
         # Get the file version format. This is an optimization
         # in order to avoid accessing it too much.
@@ -222,10 +243,10 @@ class AttributeSet(hdf5extension.AttributeSet):
                 parsed_version = None
             else:
                 parsed_version = tuple(map(int, format_version.split('.')))
-        dict_["_v__format_version"] = parsed_version
+        dict_['_v__format_version'] = parsed_version
         # Split the attribute list in system and user lists
-        dict_["_v_attrnamessys"] = []
-        dict_["_v_attrnamesuser"] = []
+        dict_['_v_attrnamessys'] = []
+        dict_['_v_attrnamesuser'] = []
         for attr in self._v_attrnames:
             # put the attributes on the local dictionary to allow
             # tab-completion
@@ -259,11 +280,11 @@ class AttributeSet(hdf5extension.AttributeSet):
 
         """
 
-        if attrset == "user":
+        if attrset == 'user':
             return self._v_attrnamesuser[:]
-        elif attrset == "sys":
+        elif attrset == 'sys':
             return self._v_attrnamessys[:]
-        elif attrset == "all":
+        elif attrset == 'all':
             return self._v_attrnames[:]
 
     def __dir__(self):
@@ -271,17 +292,23 @@ class AttributeSet(hdf5extension.AttributeSet):
 
         Only PY3 supports this special method.
         """
-        return list({c for c in
-                    super().__dir__() + self._v_attrnames
-                    if c.isidentifier()})
+        return list(
+            {
+                c
+                for c in super().__dir__() + self._v_attrnames
+                if c.isidentifier()
+            }
+        )
 
     def __getattr__(self, name):
         """Get the attribute named "name"."""
 
         # If attribute does not exist, raise AttributeError
         if name not in self._v_attrnames:
-            raise AttributeError(f"Attribute {name!r} does not exist "
-                                 f"in node: {self._v__nodepath!r}")
+            raise AttributeError(
+                f'Attribute {name!r} does not exist '
+                f'in node: {self._v__nodepath!r}'
+            )
 
         # Read the attribute from disk. This is an optimization to read
         # quickly system attributes that are _string_ values, but it
@@ -293,16 +320,21 @@ class AttributeSet(hdf5extension.AttributeSet):
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
         maybe_pickled = (
-            isinstance(value, np.generic) and  # NumPy scalar?
-            value.dtype.type == np.bytes_ and  # string type?
-            value.itemsize > 0 and value.endswith(b'.'))
+            isinstance(value, np.generic)
+            and value.dtype.type == np.bytes_  # NumPy scalar?
+            and value.itemsize > 0  # string type?
+            and value.endswith(b'.')
+        )
 
-        if (maybe_pickled and value in [b"0", b"0."]):
+        if maybe_pickled and value in [b'0', b'0.']:
             # Workaround for a bug in many versions of Python (starting
             # somewhere after Python 2.6.1).  See ticket #253.
             retval = value
-        elif (maybe_pickled and _field_fill_re.match(name)
-              and format_version == (1, 5)):
+        elif (
+            maybe_pickled
+            and _field_fill_re.match(name)
+            and format_version == (1, 5)
+        ):
             # This format was used during the first 1.2 releases, just
             # for string defaults.
             try:
@@ -310,10 +342,12 @@ class AttributeSet(hdf5extension.AttributeSet):
                 retval = np.array(retval)
             except ImportError:
                 retval = None  # signal error avoiding exception
-        elif (maybe_pickled and
-              name == 'FILTERS' and
-              format_version is not None and
-              format_version < (2, 0)):
+        elif (
+            maybe_pickled
+            and name == 'FILTERS'
+            and format_version is not None
+            and format_version < (2, 0)
+        ):
             # This is a big hack, but we don't have other way to recognize
             # pickled filters of PyTables 1.x files.
             value = _old_filters_re.sub(_new_filters_sub, value, 1)
@@ -355,9 +389,11 @@ class AttributeSet(hdf5extension.AttributeSet):
             # Additional check for allowing a workaround for #307
             if isinstance(retval, str) and retval == '':
                 retval = np.array(retval)[()]
-        elif (name == 'FILTERS' and
-              format_version is not None and
-              format_version >= (2, 0)):
+        elif (
+            name == 'FILTERS'
+            and format_version is not None
+            and format_version >= (2, 0)
+        ):
             try:
                 retval = Filters._unpack(value)
             except ValueError:
@@ -366,8 +402,12 @@ class AttributeSet(hdf5extension.AttributeSet):
                 retval = None
         elif name == 'TITLE' and not isinstance(value, str):
             retval = value.decode('utf-8')
-        elif (issysattrname(name) and isinstance(value, (bytes, str)) and
-              not isinstance(value, str) and not _field_fill_re.match(name)):
+        elif (
+            issysattrname(name)
+            and isinstance(value, (bytes, str))
+            and not isinstance(value, str)
+            and not _field_fill_re.match(name)
+        ):
             # system attributes should always be str
             # python 3, bytes and not "FIELD_[0-9]+_FILL"
             retval = value.decode('utf-8')
@@ -393,23 +433,31 @@ class AttributeSet(hdf5extension.AttributeSet):
         # (overwriting an existing one if needed)
         stvalue = value
         if issysattrname(name):
-            if name in ["EXTDIM", "AUTO_INDEX", "DIRTY", "NODE_TYPE_VERSION"]:
+            if name in ['EXTDIM', 'AUTO_INDEX', 'DIRTY', 'NODE_TYPE_VERSION']:
                 stvalue = np.array(value, dtype=np.int32)
                 value = stvalue[()]
-            elif name == "NROWS":
+            elif name == 'NROWS':
                 stvalue = np.array(value, dtype=SizeType)
                 value = stvalue[()]
-            elif (name == "FILTERS" and
-                  self._v__format_version is not None and
-                  self._v__format_version >= (2, 0)):
+            elif (
+                name == 'FILTERS'
+                and self._v__format_version is not None
+                and self._v__format_version >= (2, 0)
+            ):
                 stvalue = value._pack()
                 # value will remain as a Filters instance here
         # Convert value from a Python scalar into a NumPy scalar
         # (only in case it has not been converted yet)
         # Fixes ticket #59
-        if (stvalue is value and
-                type(value) in (bool, bytes, int, float, complex, str,
-                                np.unicode_)):
+        if stvalue is value and type(value) in (
+            bool,
+            bytes,
+            int,
+            float,
+            complex,
+            str,
+            np.unicode_,
+        ):
             # Additional check for allowing a workaround for #307
             if isinstance(value, str) and len(value) == 0:
                 stvalue = np.array('')
@@ -463,11 +511,13 @@ class AttributeSet(hdf5extension.AttributeSet):
         # Check if there are too many attributes.
         max_node_attrs = nodefile.params['MAX_NODE_ATTRS']
         if len(attrnames) >= max_node_attrs:
-            warnings.warn("""\
+            warnings.warn(
+                '''\
 node ``%s`` is exceeding the recommended maximum number of attributes (%d);\
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (self._v__nodepath, max_node_attrs),
-                          PerformanceWarning)
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O'''
+                % (self._v__nodepath, max_node_attrs),
+                PerformanceWarning,
+            )
 
         undo_enabled = nodefile.is_undo_enabled()
         # Log old attribute removal (if any).
@@ -529,7 +579,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if name not in self._v_attrnames:
             raise AttributeError(
                 "Attribute ('%s') does not exist in node '%s'"
-                % (name, self._v__nodepath))
+                % (name, self._v__nodepath)
+            )
 
         nodefile._check_writable()
 
@@ -548,7 +599,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             # Capture the AttributeError an re-raise a KeyError one
             raise KeyError(
                 "Attribute ('%s') does not exist in node '%s'"
-                % (name, self._v__nodepath))
+                % (name, self._v__nodepath)
+            )
 
     def __setitem__(self, name, value):
         """The dictionary like interface for __setattr__()."""
@@ -564,7 +616,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             # Capture the AttributeError an re-raise a KeyError one
             raise KeyError(
                 "Attribute ('%s') does not exist in node '%s'"
-                % (name, self._v__nodepath))
+                % (name, self._v__nodepath)
+            )
 
     def __contains__(self, name):
         """Is there an attribute with that name?
@@ -624,11 +677,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Copy the system attributes that we are allowed to.
         if copysysattrs:
             for attrname in self._v_attrnamessys:
-                if ((attrname not in SYS_ATTRS_NOTTOBECOPIED) and
+                if (
+                    (attrname not in SYS_ATTRS_NOTTOBECOPIED)
+                    and
                     # Do not copy the FIELD_ attributes in tables as this can
                     # be really *slow* (don't know exactly the reason).
                     # See #304.
-                        not attrname.startswith("FIELD_")):
+                    not attrname.startswith('FIELD_')
+                ):
                     set_attr(attrname, getattr(self, attrname))
             # Copy CLASS and VERSION attributes if requested
             if copyclass:
@@ -649,7 +705,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # However, we need to know Node here.
         # Using class_name_dict avoids a circular import.
         if not isinstance(where, class_name_dict['Node']):
-            raise TypeError(f"destination object is not a node: {where!r}")
+            raise TypeError(f'destination object is not a node: {where!r}')
         self._g_copy(where._v_attrs, where._v_attrs.__setattr__)
 
     def _g_close(self):
@@ -666,7 +722,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         classname = self.__class__.__name__
         # The attribute names
         attrnumber = sum(1 for _ in self._v_attrnames)
-        return f"{pathname}._v_attrs ({classname}), {attrnumber} attributes"
+        return f'{pathname}._v_attrs ({classname}), {attrnumber} attributes'
 
     def __repr__(self):
         """A detailed string representation for this object."""
@@ -675,7 +731,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         attrnames = list(self._v_attrnames)
         if attrnames:
             rep = [f'{attr} := {getattr(self, attr)!r}' for attr in attrnames]
-            return f"{self!s}:\n   [" + ',\n    '.join(rep) + "]"
+            return f'{self!s}:\n   [' + ',\n    '.join(rep) + ']'
         else:
             return str(self)
 

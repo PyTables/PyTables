@@ -31,15 +31,15 @@ def make_file(file_path, n):
 # The write_queue is used for requests to modify the HDF5 file.
 # One end of a pipe (shutdown) is used to signal the process to terminate.
 class FileAccess(multiprocessing.Process):
-
-    def __init__(self, h5_path, read_queue, result_queues, write_queue,
-                 shutdown):
+    def __init__(
+        self, h5_path, read_queue, result_queues, write_queue, shutdown
+    ):
         self.h5_path = h5_path
         self.read_queue = read_queue
         self.result_queues = result_queues
         self.write_queue = write_queue
         self.shutdown = shutdown
-        self.block_period = .01
+        self.block_period = 0.01
         super().__init__()
 
     def run(self):
@@ -55,12 +55,16 @@ class FileAccess(multiprocessing.Process):
             # Check for any data requests in the read_queue.
             try:
                 row_num, proc_num = self.read_queue.get(
-                    True, self.block_period)
+                    True, self.block_period
+                )
                 # look up the appropriate result_queue for this data processor
                 # instance
                 result_queue = self.result_queues[proc_num]
-                print('processor {} reading from row {}'.format(proc_num,
-                                                                  row_num))
+                print(
+                    'processor {} reading from row {}'.format(
+                        proc_num, row_num
+                    )
+                )
                 result_queue.put(self.read_data(row_num))
                 another_loop = True
             except queue.Empty:
@@ -91,9 +95,15 @@ class FileAccess(multiprocessing.Process):
 # the result_queue.
 # Its actions are logged to a text file.
 class DataProcessor(multiprocessing.Process):
-
-    def __init__(self, read_queue, result_queue, write_queue, proc_num,
-                 array_size, output_file):
+    def __init__(
+        self,
+        read_queue,
+        result_queue,
+        write_queue,
+        proc_num,
+        array_size,
+        output_file,
+    ):
         self.read_queue = read_queue
         self.result_queue = result_queue
         self.write_queue = write_queue
@@ -112,8 +122,9 @@ class DataProcessor(multiprocessing.Process):
 
         # modify a random row to equal 11 * (self.proc_num + 1)
         row_num = random.randrange(self.array_size)
-        new_data = (np.zeros((1, self.array_size), 'i8') +
-                    11 * (self.proc_num + 1))
+        new_data = np.zeros((1, self.array_size), 'i8') + 11 * (
+            self.proc_num + 1
+        )
         self.write_queue.put((row_num, new_data))
 
         # pause, then read the modified row
@@ -131,8 +142,9 @@ def make_queues(num_processors):
     write_queue = multiprocessing.Queue()
     shutdown_recv, shutdown_send = multiprocessing.Pipe(False)
     result_queues = [multiprocessing.Queue() for i in range(num_processors)]
-    file_access = FileAccess(file_path, read_queue, result_queues, write_queue,
-                             shutdown_recv)
+    file_access = FileAccess(
+        file_path, read_queue, result_queues, write_queue, shutdown_recv
+    )
     file_access.start()
     return read_queue, result_queues, write_queue, shutdown_send
 
@@ -144,16 +156,18 @@ if __name__ == '__main__':
     make_file(file_path, n)
 
     num_processors = 3
-    (read_queue, result_queues,
-     write_queue, shutdown_send) = make_queues(num_processors)
+    (read_queue, result_queues, write_queue, shutdown_send) = make_queues(
+        num_processors
+    )
 
     processors = []
     output_files = []
     for i in range(num_processors):
         result_queue = result_queues[i]
         output_file = str(i)
-        processor = DataProcessor(read_queue, result_queue, write_queue, i, n,
-                                  output_file)
+        processor = DataProcessor(
+            read_queue, result_queue, write_queue, i, n, output_file
+        )
         processors.append(processor)
         output_files.append(output_file)
 

@@ -29,7 +29,7 @@ def correct_byteorder(ptype, byteorder):
     """Fix the byteorder depending on the PyTables types."""
 
     if ptype in ['string', 'bool', 'int8', 'uint8', 'object']:
-        return "irrelevant"
+        return 'irrelevant'
     else:
         return byteorder
 
@@ -39,24 +39,30 @@ def is_idx(index):
 
     if type(index) is int:
         return True
-    elif hasattr(index, "__index__"):  # Only works on Python 2.5 (PEP 357)
+    elif hasattr(index, '__index__'):  # Only works on Python 2.5 (PEP 357)
         # Exclude the array([idx]) as working as an index.  Fixes #303.
-        if (hasattr(index, "shape") and index.shape != ()):
+        if hasattr(index, 'shape') and index.shape != ():
             return False
         try:
             index.__index__()
             if isinstance(index, bool):
                 warnings.warn(
                     'using a boolean instead of an integer will result in an '
-                    'error in the future', DeprecationWarning, stacklevel=2)
+                    'error in the future',
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
             return True
         except TypeError:
             return False
     elif isinstance(index, np.integer):
         return True
     # For Python 2.4 one should test 0-dim and 1-dim, 1-elem arrays as well
-    elif (isinstance(index, np.ndarray) and (index.shape == ()) and
-          index.dtype.str[1] == 'i'):
+    elif (
+        isinstance(index, np.ndarray)
+        and (index.shape == ())
+        and index.dtype.str[1] == 'i'
+    ):
         return True
 
     return False
@@ -68,7 +74,7 @@ def idx2long(index):
     try:
         return int(index)
     except Exception:
-        raise TypeError("not an integer type.")
+        raise TypeError('not an integer type.')
 
 
 # This is used in VLArray and EArray to produce NumPy object compliant
@@ -94,7 +100,7 @@ def convert_to_np_atom(arr, atom, copy=False):
         # for details.
         # All of this is done just to taking advantage of the NumPy
         # broadcasting rules.
-        newshape = nparr.shape[:-len(atom.dtype.shape)]
+        newshape = nparr.shape[: -len(atom.dtype.shape)]
         nparr2 = np.empty(newshape, dtype=[('', atom.dtype)])
         nparr2['f0'][:] = nparr
         # Return a view (i.e. get rid of the record type)
@@ -113,7 +119,7 @@ def convert_to_np_atom2(object, atom):
     nparr = convert_to_np_atom(object, atom, copy)
     # Finally, check the byteorder and change it if needed
     byteorder = byteorders[nparr.dtype.byteorder]
-    if (byteorder in ['little', 'big'] and byteorder != sys.byteorder):
+    if byteorder in ['little', 'big'] and byteorder != sys.byteorder:
         # The byteorder needs to be fixed (a copy is made
         # so that the original array is not modified)
         nparr = nparr.byteswap()
@@ -140,11 +146,11 @@ def check_file_access(filename, mode='r'):
     if mode == 'r':
         # The file should be readable.
         if not os.access(path, os.F_OK):
-            raise OSError(f"``{path}`` does not exist")
+            raise OSError(f'``{path}`` does not exist')
         if not path.is_file():
-            raise OSError(f"``{path}`` is not a regular file")
+            raise OSError(f'``{path}`` is not a regular file')
         if not os.access(path, os.R_OK):
-            raise OSError(f"file ``{path}`` exists but it can not be read")
+            raise OSError(f'file ``{path}`` exists but it can not be read')
     elif mode == 'w':
         if os.access(path, os.F_OK):
             # Since the file is not removed but replaced,
@@ -154,13 +160,13 @@ def check_file_access(filename, mode='r'):
             # A new file is going to be created,
             # so the directory should be writable.
             if not os.access(path.parent, os.F_OK):
-                raise OSError(f"``{path.parent}`` does not exist")
+                raise OSError(f'``{path.parent}`` does not exist')
             if not path.parent.is_dir():
-                raise OSError(f"``{path.parent}`` is not a directory")
+                raise OSError(f'``{path.parent}`` is not a directory')
             if not os.access(path.parent, os.W_OK):
                 raise OSError(
-                    f"directory ``{path.parent}`` exists but it can not be "
-                    f"written"
+                    f'directory ``{path.parent}`` exists but it can not be '
+                    f'written'
                 )
     elif mode == 'a':
         if os.access(path, os.F_OK):
@@ -170,9 +176,9 @@ def check_file_access(filename, mode='r'):
     elif mode == 'r+':
         check_file_access(path, 'r')
         if not os.access(path, os.W_OK):
-            raise OSError(f"file ``{path}`` exists but it can not be written")
+            raise OSError(f'file ``{path}`` exists but it can not be written')
     else:
-        raise ValueError(f"invalid mode: {mode!r}")
+        raise ValueError(f'invalid mode: {mode!r}')
 
 
 def lazyattr(fget):
@@ -232,24 +238,24 @@ def show_stats(explain, tref, encoding=None):
     """Show the used memory (only works for Linux 2.6.x)."""
 
     for line in Path('/proc/self/status').read_text().splitlines():
-        if line.startswith("VmSize:"):
+        if line.startswith('VmSize:'):
             vmsize = int(line.split()[1])
-        elif line.startswith("VmRSS:"):
+        elif line.startswith('VmRSS:'):
             vmrss = int(line.split()[1])
-        elif line.startswith("VmData:"):
+        elif line.startswith('VmData:'):
             vmdata = int(line.split()[1])
-        elif line.startswith("VmStk:"):
+        elif line.startswith('VmStk:'):
             vmstk = int(line.split()[1])
-        elif line.startswith("VmExe:"):
+        elif line.startswith('VmExe:'):
             vmexe = int(line.split()[1])
-        elif line.startswith("VmLib:"):
+        elif line.startswith('VmLib:'):
             vmlib = int(line.split()[1])
-    print("Memory usage: ******* %s *******" % explain)
-    print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
-    print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
-    print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
+    print('Memory usage: ******* %s *******' % explain)
+    print(f'VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB')
+    print(f'VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB')
+    print(f'VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB')
     tnow = clock()
-    print(f"WallClock time: {tnow - tref:.3f}")
+    print(f'WallClock time: {tnow - tref:.3f}')
     return tnow
 
 
@@ -295,14 +301,14 @@ def string_to_classes(s):
         return s.split()
 
 
-def fetch_logged_instances(classes="*"):
+def fetch_logged_instances(classes='*'):
     classnames = string_to_classes(classes)
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
 
 def count_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
-        file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
+        file.write('%s: %d\n' % (classname, len(tracked_classes[classname])))
 
 
 def list_logged_instances(classes, file=sys.stdout):
@@ -407,17 +413,17 @@ def detect_number_of_cores():
     """
 
     # Linux, Unix and MacOS:
-    if hasattr(os, "sysconf"):
-        if "SC_NPROCESSORS_ONLN" in os.sysconf_names:
+    if hasattr(os, 'sysconf'):
+        if 'SC_NPROCESSORS_ONLN' in os.sysconf_names:
             # Linux & Unix:
-            ncpus = os.sysconf("SC_NPROCESSORS_ONLN")
+            ncpus = os.sysconf('SC_NPROCESSORS_ONLN')
             if isinstance(ncpus, int) and ncpus > 0:
                 return ncpus
         else:  # OSX:
-            return int(os.popen2("sysctl -n hw.ncpu")[1].read())
+            return int(os.popen2('sysctl -n hw.ncpu')[1].read())
     # Windows:
-    if "NUMBER_OF_PROCESSORS" in os.environ:
-        ncpus = int(os.environ["NUMBER_OF_PROCESSORS"])
+    if 'NUMBER_OF_PROCESSORS' in os.environ:
+        ncpus = int(os.environ['NUMBER_OF_PROCESSORS'])
         if ncpus > 0:
             return ncpus
     return 1  # Default
@@ -427,6 +433,7 @@ def _test():
     """Run ``doctest`` on this module."""
 
     import doctest
+
     doctest.testmod()
 
 

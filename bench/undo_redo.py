@@ -9,7 +9,6 @@ verbose = 0
 
 
 class BasicBenchmark:
-
     def __init__(self, filename, testname, vecsize, nobjects, niter):
 
         self.file = filename
@@ -26,7 +25,7 @@ class BasicBenchmark:
     def setUp(self):
 
         # Create an HDF5 file
-        self.fileh = tb.open_file(self.file, mode="w")
+        self.fileh = tb.open_file(self.file, mode='w')
         # open the do/undo
         self.fileh.enable_undo()
 
@@ -50,7 +49,7 @@ class BasicBenchmark:
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
-                    print("u", end=' ')
+                    print('u', end=' ')
             if verbose:
                 print()
             undo = clock() - t1
@@ -59,12 +58,12 @@ class BasicBenchmark:
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
-                    print("r", end=' ')
+                    print('r', end=' ')
             if verbose:
                 print()
             redo = clock() - t1
 
-            print("Time for Undo, Redo (createNode):", undo, "s, ", redo, "s")
+            print('Time for Undo, Redo (createNode):', undo, 's, ', redo, 's')
 
     def copy_children(self):
         """Checking a undo/redo copy_children."""
@@ -89,7 +88,7 @@ class BasicBenchmark:
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
-                    print("u", end=' ')
+                    print('u', end=' ')
             if verbose:
                 print()
             undo = clock() - t1
@@ -98,13 +97,20 @@ class BasicBenchmark:
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
-                    print("r", end=' ')
+                    print('r', end=' ')
             if verbose:
                 print()
             redo = clock() - t1
 
-            print(("Time for Undo, Redo (copy_children):", undo, "s, ",
-                  redo, "s"))
+            print(
+                (
+                    'Time for Undo, Redo (copy_children):',
+                    undo,
+                    's, ',
+                    redo,
+                    's',
+                )
+            )
 
     def set_attr(self):
         """Checking a undo/redo for setting attributes."""
@@ -113,7 +119,7 @@ class BasicBenchmark:
         self.fileh.create_array('/', 'array', self.a1)
         for i in range(self.nobjects):
             # Set an attribute
-            setattr(self.fileh.root.array.attrs, "attr" + str(i), str(self.a1))
+            setattr(self.fileh.root.array.attrs, 'attr' + str(i), str(self.a1))
             # Put a mark
             self.fileh.mark()
         # Unwind all marks sequentially
@@ -122,7 +128,7 @@ class BasicBenchmark:
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
-                    print("u", end=' ')
+                    print('u', end=' ')
             if verbose:
                 print()
             undo = clock() - t1
@@ -131,22 +137,22 @@ class BasicBenchmark:
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
-                    print("r", end=' ')
+                    print('r', end=' ')
             if verbose:
                 print()
             redo = clock() - t1
 
-            print("Time for Undo, Redo (set_attr):", undo, "s, ", redo, "s")
+            print('Time for Undo, Redo (set_attr):', undo, 's, ', redo, 's')
 
     def runall(self):
 
-        if testname == "all":
+        if testname == 'all':
             tests = [self.createNode, self.copy_children, self.set_attr]
-        elif testname == "createNode":
+        elif testname == 'createNode':
             tests = [self.createNode]
-        elif testname == "copy_children":
+        elif testname == 'copy_children':
             tests = [self.copy_children]
-        elif testname == "set_attr":
+        elif testname == 'set_attr':
             tests = [self.set_attr]
         for meth in tests:
             self.setUp()
@@ -158,13 +164,16 @@ if __name__ == '__main__':
     import sys
     import getopt
 
-    usage = """usage: %s [-v] [-p] [-t test] [-s vecsize] [-n niter] datafile
+    usage = (
+        '''usage: %s [-v] [-p] [-t test] [-s vecsize] [-n niter] datafile
               -v verbose  (total dump of profiling)
               -p do profiling
               -t {createNode|copy_children|set_attr|all} run the specified test
               -s the size of vectors that are undone/redone
               -n number of objects in operations
-              -i number of iterations for reading\n""" % sys.argv[0]
+              -i number of iterations for reading\n'''
+        % sys.argv[0]
+    )
 
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], 'vpt:s:n:i:')
@@ -180,7 +189,7 @@ if __name__ == '__main__':
     # default options
     verbose = 0
     profile = 0
-    testname = "all"
+    testname = 'all'
     vecsize = 10
     nobjects = 1
     niter = 1
@@ -193,8 +202,12 @@ if __name__ == '__main__':
             profile = 1
         elif option[0] == '-t':
             testname = option[1]
-            if testname not in ['createNode', 'copy_children', 'set_attr',
-                                'all']:
+            if testname not in [
+                'createNode',
+                'copy_children',
+                'set_attr',
+                'all',
+            ]:
                 sys.stderr.write(usage)
                 sys.exit(0)
         elif option[0] == '-s':
@@ -210,10 +223,11 @@ if __name__ == '__main__':
     if profile:
         import hotshot
         import hotshot.stats
-        prof = hotshot.Profile("do_undo.prof")
+
+        prof = hotshot.Profile('do_undo.prof')
         prof.runcall(bench.runall)
         prof.close()
-        stats = hotshot.stats.load("do_undo.prof")
+        stats = hotshot.stats.load('do_undo.prof')
         stats.strip_dirs()
         stats.sort_stats('time', 'calls')
         if verbose:

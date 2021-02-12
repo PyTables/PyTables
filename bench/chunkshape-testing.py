@@ -13,7 +13,7 @@ complevel = 1
 
 recarray = np.empty(shape=2, dtype='(2,2,2)i4,(2,3,3)f8,i4,i8')
 
-f = tb.open_file("chunkshape.h5", mode="w")
+f = tb.open_file('chunkshape.h5', mode='w')
 
 # t = f.create_table(f.root, 'table', recarray, "mdim recarray")
 
@@ -27,59 +27,84 @@ f = tb.open_file("chunkshape.h5", mode="w")
 #                     tables.Float64Atom(), (2,3,3),
 #                     "mdim float64 carray")
 
-f1 = tb.open_file("chunkshape1.h5", mode="w")
-c1 = f.create_carray(f1.root, 'cfield1',
-                     tb.Int32Atom(), (L, N, M),
-                     "scalar int32 carray", tb.Filters(complevel=0))
+f1 = tb.open_file('chunkshape1.h5', mode='w')
+c1 = f.create_carray(
+    f1.root,
+    'cfield1',
+    tb.Int32Atom(),
+    (L, N, M),
+    'scalar int32 carray',
+    tb.Filters(complevel=0),
+)
 
 t1 = clock()
-c1[:] = np.empty(shape=(L, 1, 1), dtype="int32")
-print("carray1 populate time:", clock() - t1)
+c1[:] = np.empty(shape=(L, 1, 1), dtype='int32')
+print('carray1 populate time:', clock() - t1)
 f1.close()
 
 
-f2 = tb.open_file("chunkshape2.h5", mode="w")
-c2 = f.create_carray(f2.root, 'cfield2',
-                     tb.Int32Atom(), (L, M, N),
-                     "scalar int32 carray", tb.Filters(complevel))
+f2 = tb.open_file('chunkshape2.h5', mode='w')
+c2 = f.create_carray(
+    f2.root,
+    'cfield2',
+    tb.Int32Atom(),
+    (L, M, N),
+    'scalar int32 carray',
+    tb.Filters(complevel),
+)
 
 t1 = clock()
-c2[:] = np.empty(shape=(L, 1, 1), dtype="int32")
-print("carray2 populate time:", clock() - t1)
+c2[:] = np.empty(shape=(L, 1, 1), dtype='int32')
+print('carray2 populate time:', clock() - t1)
 f2.close()
 
-f0 = tb.open_file("chunkshape0.h5", mode="w")
-e0 = f.create_earray(f0.root, 'efield0',
-                     tb.Int32Atom(), (0, L, M),
-                     "scalar int32 carray", tb.Filters(complevel),
-                     expectedrows=N)
+f0 = tb.open_file('chunkshape0.h5', mode='w')
+e0 = f.create_earray(
+    f0.root,
+    'efield0',
+    tb.Int32Atom(),
+    (0, L, M),
+    'scalar int32 carray',
+    tb.Filters(complevel),
+    expectedrows=N,
+)
 
 t1 = clock()
-e0.append(np.empty(shape=(N, L, M), dtype="int32"))
-print("earray0 populate time:", clock() - t1)
+e0.append(np.empty(shape=(N, L, M), dtype='int32'))
+print('earray0 populate time:', clock() - t1)
 f0.close()
 
-f1 = tb.open_file("chunkshape1.h5", mode="w")
-e1 = f.create_earray(f1.root, 'efield1',
-                     tb.Int32Atom(), (L, 0, M),
-                     "scalar int32 carray", tb.Filters(complevel),
-                     expectedrows=N)
+f1 = tb.open_file('chunkshape1.h5', mode='w')
+e1 = f.create_earray(
+    f1.root,
+    'efield1',
+    tb.Int32Atom(),
+    (L, 0, M),
+    'scalar int32 carray',
+    tb.Filters(complevel),
+    expectedrows=N,
+)
 
 t1 = clock()
-e1.append(np.empty(shape=(L, N, M), dtype="int32"))
-print("earray1 populate time:", clock() - t1)
+e1.append(np.empty(shape=(L, N, M), dtype='int32'))
+print('earray1 populate time:', clock() - t1)
 f1.close()
 
 
-f2 = tb.open_file("chunkshape2.h5", mode="w")
-e2 = f.create_earray(f2.root, 'efield2',
-                     tb.Int32Atom(), (L, M, 0),
-                     "scalar int32 carray", tb.Filters(complevel),
-                     expectedrows=N)
+f2 = tb.open_file('chunkshape2.h5', mode='w')
+e2 = f.create_earray(
+    f2.root,
+    'efield2',
+    tb.Int32Atom(),
+    (L, M, 0),
+    'scalar int32 carray',
+    tb.Filters(complevel),
+    expectedrows=N,
+)
 
 t1 = clock()
-e2.append(np.empty(shape=(L, M, N), dtype="int32"))
-print("earray2 populate time:", clock() - t1)
+e2.append(np.empty(shape=(L, M, N), dtype='int32'))
+print('earray2 populate time:', clock() - t1)
 f2.close()
 
 # t1=time()

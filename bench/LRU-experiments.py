@@ -4,9 +4,9 @@
 from time import perf_counter as clock
 import tables as tb
 
-print("PyTables version-->", tb.__version__)
+print('PyTables version-->', tb.__version__)
 
-filename = "/tmp/junk-tables-100.h5"
+filename = '/tmp/junk-tables-100.h5'
 NLEAVES = 2000
 NROWS = 1000
 
@@ -21,16 +21,17 @@ class Particle(tb.IsDescription):
 
 def create_junk():
     # Open a file in "w"rite mode
-    fileh = tb.open_file(filename, mode="w")
+    fileh = tb.open_file(filename, mode='w')
     # Create a new group
-    group = fileh.create_group(fileh.root, "newgroup")
+    group = fileh.create_group(fileh.root, 'newgroup')
 
     for i in range(NLEAVES):
         # Create a new table in newgroup group
-        table = fileh.create_table(group, 'table' + str(i), Particle,
-                                   "A table", tb.Filters(1))
+        table = fileh.create_table(
+            group, 'table' + str(i), Particle, 'A table', tb.Filters(1)
+        )
         particle = table.row
-        print("Creating table-->", table._v_name)
+        print('Creating table-->', table._v_name)
 
         # Fill the table with particles
         for i in range(NROWS):
@@ -46,12 +47,12 @@ def modify_junk_LRU():
     fileh = tb.open_file(filename, 'a')
     group = fileh.root.newgroup
     for j in range(5):
-        print("iter -->", j)
+        print('iter -->', j)
         for tt in fileh.walk_nodes(group):
             if isinstance(tt, tb.Table):
                 pass
-#                 for row in tt:
-#                     pass
+    #                 for row in tt:
+    #                     pass
     fileh.close()
 
 
@@ -61,11 +62,11 @@ def modify_junk_LRU2():
     for j in range(20):
         t1 = clock()
         for i in range(100):
-            #print("table-->", tt._v_name)
-            tt = getattr(group, "table" + str(i))
-            #for row in tt:
+            # print("table-->", tt._v_name)
+            tt = getattr(group, 'table' + str(i))
+            # for row in tt:
             #    pass
-        print(f"iter and time --> {j + 1} {clock() - t1:.3f}")
+        print(f'iter and time --> {j + 1} {clock() - t1:.3f}')
     fileh.close()
 
 
@@ -74,12 +75,13 @@ def modify_junk_LRU3():
     group = fileh.root.newgroup
     for j in range(3):
         t1 = clock()
-        for tt in fileh.walk_nodes(group, "Table"):
+        for tt in fileh.walk_nodes(group, 'Table'):
             tt.attrs.TITLE
             for row in tt:
                 pass
-        print(f"iter and time --> {j + 1} {clock() - t1:.3f}")
+        print(f'iter and time --> {j + 1} {clock() - t1:.3f}')
     fileh.close()
+
 
 if 1:
     # create_junk()
@@ -89,6 +91,7 @@ if 1:
 else:
     import profile
     import pstats
+
     profile.run('modify_junk_LRU2()', 'modify.prof')
     stats = pstats.Stats('modify.prof')
     stats.strip_dirs()

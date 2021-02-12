@@ -125,44 +125,44 @@ class Expr:
     """
 
     _exprvars_cache = {}
-    """Cache of variables participating in expressions.
+    '''Cache of variables participating in expressions.
 
     .. versionadded:: 3.0
 
-    """
+    '''
 
     def __init__(self, expr, uservars=None, **kwargs):
 
         self.append_mode = False
-        """The append mode for user-provided output containers."""
+        '''The append mode for user-provided output containers.'''
         self.maindim = 0
-        """Common main dimension for inputs in expression."""
+        '''Common main dimension for inputs in expression.'''
         self.names = []
-        """The names of variables in expression (list)."""
+        '''The names of variables in expression (list).'''
         self.out = None
-        """The user-provided container (if any) for the expression outcome."""
+        '''The user-provided container (if any) for the expression outcome.'''
         self.o_start = None
-        """The start range selection for the user-provided output."""
+        '''The start range selection for the user-provided output.'''
         self.o_stop = None
-        """The stop range selection for the user-provided output."""
+        '''The stop range selection for the user-provided output.'''
         self.o_step = None
-        """The step range selection for the user-provided output."""
+        '''The step range selection for the user-provided output.'''
         self.shape = None
-        """Common shape for the arrays in expression."""
+        '''Common shape for the arrays in expression.'''
         self.start, self.stop, self.step = (None,) * 3
         self.start = None
-        """The start range selection for the input."""
+        '''The start range selection for the input.'''
         self.stop = None
-        """The stop range selection for the input."""
+        '''The stop range selection for the input.'''
         self.step = None
-        """The step range selection for the input."""
+        '''The step range selection for the input.'''
         self.values = []
-        """The values of variables in expression (list)."""
+        '''The values of variables in expression (list).'''
 
         self._compiled_expr = None
-        """The compiled expression."""
+        '''The compiled expression.'''
         self._single_row_out = None
-        """A sample of the output with just a single row."""
+        '''A sample of the output with just a single row.'''
 
         # First, get the signature for the arrays in expression
         vars_ = self._required_expr_vars(expr, uservars)
@@ -174,13 +174,13 @@ class Expr:
             if type(var) in (int, float, str):
                 continue
             if not isinstance(var, (tb.Leaf, tb.Column)):
-                if hasattr(var, "dtype"):
+                if hasattr(var, 'dtype'):
                     # Quacks like a NumPy object
                     continue
-                raise TypeError("Unsupported variable type: %r" % var)
+                raise TypeError('Unsupported variable type: %r' % var)
             objname = var.__class__.__name__
-            if objname not in ("Array", "CArray", "EArray", "Column"):
-                raise TypeError("Unsupported variable type: %r" % var)
+            if objname not in ('Array', 'CArray', 'EArray', 'Column'):
+                raise TypeError('Unsupported variable type: %r' % var)
 
         # NumPy arrays to be copied? (we don't need to worry about
         # PyTables objects, as the reads always return contiguous and
@@ -212,8 +212,10 @@ class Expr:
             values.append(value)
 
         # Create a signature for the expression
-        signature = [(name, ne.necompiler.getType(type_))
-                     for (name, type_) in zip(self.names, types_)]
+        signature = [
+            (name, ne.necompiler.getType(type_))
+            for (name, type_) in zip(self.names, types_)
+        ]
 
         # Compile the expression
         self._compiled_expr = ne.necompiler.NumExpr(expr, signature, **kwargs)
@@ -254,9 +256,12 @@ class Expr:
                 for k in list(exprvars_cache)[:10]:
                     del exprvars_cache[k]
             cexpr = compile(expression, '<string>', 'eval')
-            exprvars = [var for var in cexpr.co_names
-                        if var not in ['None', 'False', 'True']
-                        and var not in ne.expressions.functions]
+            exprvars = [
+                var
+                for var in cexpr.co_names
+                if var not in ['None', 'False', 'True']
+                and var not in ne.expressions.functions
+            ]
             exprvars_cache[expression] = exprvars
         else:
             exprvars = exprvars_cache[expression]
@@ -281,22 +286,24 @@ class Expr:
             elif uservars is None and var in user_globals:
                 val = user_globals[var]
             else:
-                raise NameError("name ``%s`` is not defined" % var)
+                raise NameError('name ``%s`` is not defined' % var)
 
             # Check the value.
             if hasattr(val, 'dtype') and val.dtype.str[1:] == 'u8':
                 raise NotImplementedError(
-                    "variable ``%s`` refers to "
-                    "a 64-bit unsigned integer object, that is "
-                    "not yet supported in expressions, sorry; " % var)
+                    'variable ``%s`` refers to '
+                    'a 64-bit unsigned integer object, that is '
+                    'not yet supported in expressions, sorry; ' % var
+                )
             elif hasattr(val, '_v_colpathnames'):  # nested column
                 # This branch is never reached because the compile step
                 # above already raise a ``TypeError`` for nested
                 # columns, but that could change in the future.  So it
                 # is best to let this here.
                 raise TypeError(
-                    "variable ``%s`` refers to a nested column, "
-                    "not allowed in expressions" % var)
+                    'variable ``%s`` refers to a nested column, '
+                    'not allowed in expressions' % var
+                )
             reqvars[var] = val
         return reqvars
 
@@ -337,15 +344,17 @@ class Expr:
 
         """
 
-        if not (hasattr(out, "shape") and hasattr(out, "__setitem__")):
+        if not (hasattr(out, 'shape') and hasattr(out, '__setitem__')):
             raise ValueError(
-                "You need to pass a settable multidimensional container "
-                "as output")
+                'You need to pass a settable multidimensional container '
+                'as output'
+            )
         self.out = out
-        if append_mode and not hasattr(out, "append"):
+        if append_mode and not hasattr(out, 'append'):
             raise ValueError(
-                "For activating the ``append`` mode, you need a container "
-                "with an `append()` method (like the `EArray`)")
+                'For activating the ``append`` mode, you need a container '
+                'with an `append()` method (like the `EArray`)'
+            )
         self.append_mode = append_mode
 
     def set_output_range(self, start=None, stop=None, step=None):
@@ -360,7 +369,8 @@ class Expr:
 
         if self.out is None:
             raise IndexError(
-                "You need to pass an output object to `setOut()` first")
+                'You need to pass an output object to `setOut()` first'
+            )
         self.o_start = start
         self.o_stop = stop
         self.o_step = step
@@ -389,14 +399,16 @@ class Expr:
             # If rowsize is too large, issue a Performance warning
             maxrowsize = BUFFER_TIMES * buffersize
             if rowsize > maxrowsize:
-                warnings.warn("""\
+                warnings.warn(
+                    '''\
 The object ``%s`` is exceeding the maximum recommended rowsize (%d
 bytes); be ready to see PyTables asking for *lots* of memory and
 possibly slow I/O.  You may want to reduce the rowsize by trimming the
 value of dimensions that are orthogonal (and preferably close) to the
-*leading* dimension of this object."""
-                              % (object, maxrowsize),
-                              PerformanceWarning)
+*leading* dimension of this object.'''
+                    % (object, maxrowsize),
+                    PerformanceWarning,
+                )
 
         return nrowsinbuf
 
@@ -411,7 +423,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             # Get the minimum of the lengths
             if len(val.shape) > maxndim:
                 maxndim = len(val.shape)
-            if hasattr(val, "maindim"):
+            if hasattr(val, 'maindim'):
                 maindims.append(val.maindim)
         if maxndim == 0:
             self._single_row_out = out = self._compiled_expr(*self.values)
@@ -456,9 +468,9 @@ value of dimensions that are orthogonal (and preferably close) to the
         # the inputs range
         if maindim is not None:
             (start, stop, step) = slice(
-                self.start, self.stop, self.step).indices(shape[maindim])
-            shape[maindim] = min(
-                shape[maindim], len(range(start, stop, step)))
+                self.start, self.stop, self.step
+            ).indices(shape[maindim])
+            shape[maindim] = min(shape[maindim], len(range(start, stop, step)))
             i_nrows = shape[maindim]
         else:
             start, stop, step = 0, 0, None
@@ -477,7 +489,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             else:
                 out = self.out
                 # Out container already provided.  Do some sanity checks.
-                if hasattr(out, "maindim"):
+                if hasattr(out, 'maindim'):
                     o_maindim = out.maindim
 
                 # Refine the shape of the resulting container having in
@@ -486,8 +498,9 @@ value of dimensions that are orthogonal (and preferably close) to the
                 o_shape = list(out.shape)
                 s = slice(self.o_start, self.o_stop, self.o_step)
                 o_start, o_stop, o_step = s.indices(o_shape[o_maindim])
-                o_shape[o_maindim] = min(o_shape[o_maindim],
-                                         len(range(o_start, o_stop, o_step)))
+                o_shape[o_maindim] = min(
+                    o_shape[o_maindim], len(range(o_start, o_stop, o_step))
+                )
 
                 # Check that the shape of output is consistent with inputs
                 tr_oshape = list(o_shape)   # this implies a copy
@@ -499,7 +512,8 @@ value of dimensions that are orthogonal (and preferably close) to the
                     len_ = 1
                 if tr_oshape != tr_shape:
                     raise ValueError(
-                        "Shape for out container does not match expression")
+                        'Shape for out container does not match expression'
+                    )
                 # Force the input length to fit in `out`
                 if not self.append_mode and olen_ < len_:
                     shape[o_maindim] = olen_
@@ -508,8 +522,9 @@ value of dimensions that are orthogonal (and preferably close) to the
         # Get the positions of inputs that should be sliced (the others
         # will be broadcasted)
         ndim = len(shape)
-        slice_pos = [i for i, val in enumerate(self.values)
-                     if len(val.shape) == ndim]
+        slice_pos = [
+            i for i, val in enumerate(self.values) if len(val.shape) == ndim
+        ]
 
         # The size of the I/O buffer
         nrowsinbuf = 1
@@ -521,8 +536,19 @@ value of dimensions that are orthogonal (and preferably close) to the
                     nrowsinbuf = nrows
 
         if not itermode:
-            return (i_nrows, slice_pos, start, stop, step, nrowsinbuf,
-                    out, o_maindim, o_start, o_stop, o_step)
+            return (
+                i_nrows,
+                slice_pos,
+                start,
+                stop,
+                step,
+                nrowsinbuf,
+                out,
+                o_maindim,
+                o_start,
+                o_stop,
+                o_step,
+            )
         else:
             # For itermode, we don't need the out info
             return (i_nrows, slice_pos, start, stop, step, nrowsinbuf)
@@ -562,9 +588,19 @@ value of dimensions that are orthogonal (and preferably close) to the
         values, shape, maindim = self.values, self.shape, self.maindim
 
         # Get different info we need for the main computation loop
-        (i_nrows, slice_pos, start, stop, step, nrowsinbuf,
-         out, o_maindim, o_start, o_stop, o_step) = \
-            self._get_info(shape, maindim)
+        (
+            i_nrows,
+            slice_pos,
+            start,
+            stop,
+            step,
+            nrowsinbuf,
+            out,
+            o_maindim,
+            o_start,
+            o_stop,
+            o_step,
+        ) = self._get_info(shape, maindim)
 
         if i_nrows == 0:
             # No elements to compute
@@ -633,8 +669,9 @@ value of dimensions that are orthogonal (and preferably close) to the
         values, shape, maindim = self.values, self.shape, self.maindim
 
         # Get different info we need for the main computation loop
-        (i_nrows, slice_pos, start, stop, step, nrowsinbuf) = \
-            self._get_info(shape, maindim, itermode=True)
+        (i_nrows, slice_pos, start, stop, step, nrowsinbuf) = self._get_info(
+            shape, maindim, itermode=True
+        )
 
         if i_nrows == 0:
             # No elements to compute
@@ -677,25 +714,26 @@ value of dimensions that are orthogonal (and preferably close) to the
                 val._v_convert = True
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     # shape = (10000,10000)
     shape = (10, 10_000)
 
-    f = tb.open_file("/tmp/expression.h5", "w")
+    f = tb.open_file('/tmp/expression.h5', 'w')
 
     # Create some arrays
     a = f.create_carray(f.root, 'a', atom=tb.Float32Atom(dflt=1), shape=shape)
     b = f.create_carray(f.root, 'b', atom=tb.Float32Atom(dflt=2), shape=shape)
     c = f.create_carray(f.root, 'c', atom=tb.Float32Atom(dflt=3), shape=shape)
-    out = f.create_carray(f.root, 'out', atom=tb.Float32Atom(dflt=3),
-                          shape=shape)
+    out = f.create_carray(
+        f.root, 'out', atom=tb.Float32Atom(dflt=3), shape=shape
+    )
 
-    expr = Expr("a * b + c")
+    expr = Expr('a * b + c')
     expr.set_output(out)
     d = expr.eval()
 
-    print("returned-->", repr(d))
+    print('returned-->', repr(d))
     # print(`d[:]`)
 
     f.close()

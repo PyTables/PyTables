@@ -11,14 +11,15 @@ class Small(tb.IsDescription):
     var2 = tb.Int32Col(pos=1)
     var3 = tb.Float64Col(pos=0)
 
+
 # Define a user record to characterize some kind of particles
 
 
 class Medium(tb.IsDescription):
     name = tb.StringCol(itemsize=16, pos=0)    # 16-character String
     float1 = tb.Float64Col(shape=2, dflt=np.arange(2), pos=1)
-    #float1 = Float64Col(dflt=2.3)
-    #float2 = Float64Col(dflt=2.3)
+    # float1 = Float64Col(dflt=2.3)
+    # float2 = Float64Col(dflt=2.3)
     # zADCcount    = Int16Col()               # signed short integer
     ADCcount = tb.Int32Col(pos=6)              # signed short integer
     grid_i = tb.Int32Col(pos=7)                # integer
@@ -26,6 +27,7 @@ class Medium(tb.IsDescription):
     pressure = tb.Float32Col(pos=9)            # float  (single-precision)
     energy = tb.Float64Col(pos=2)              # double (double-precision)
     # unalig      = Int8Col()                 # just to unalign data
+
 
 # Define a user record to characterize some kind of particles
 
@@ -35,7 +37,7 @@ class Big(tb.IsDescription):
     float1 = tb.Float64Col(shape=32, dflt=np.arange(32))
     float2 = tb.Float64Col(shape=32, dflt=2.2)
     TDCcount = tb.Int8Col()                    # signed short integer
-    #ADCcount    = Int32Col()
+    # ADCcount    = Int32Col()
     # ADCcount = Int16Col()                   # signed short integer
     grid_i = tb.Int32Col()                       # integer
     grid_j = tb.Int32Col()                       # integer
@@ -46,45 +48,46 @@ class Big(tb.IsDescription):
 def createFile(filename, totalrows, filters, recsize):
 
     # Open a file in "w"rite mode
-    fileh = tb.open_file(filename, mode="w", title="Table Benchmark",
-                         filters=filters)
+    fileh = tb.open_file(
+        filename, mode='w', title='Table Benchmark', filters=filters
+    )
 
     # Table title
-    title = "This is the table title"
+    title = 'This is the table title'
 
     # Create a Table instance
     group = fileh.root
     rowswritten = 0
     for j in range(3):
         # Create a table
-        if recsize == "big":
-            table = fileh.create_table(group, 'tuple' + str(j), Big, title,
-                                       None,
-                                       totalrows)
-        elif recsize == "medium":
-            table = fileh.create_table(group, 'tuple' + str(j), Medium, title,
-                                       None,
-                                       totalrows)
-        elif recsize == "small":
-            table = fileh.create_table(group, 'tuple' + str(j), Small, title,
-                                       None,
-                                       totalrows)
+        if recsize == 'big':
+            table = fileh.create_table(
+                group, 'tuple' + str(j), Big, title, None, totalrows
+            )
+        elif recsize == 'medium':
+            table = fileh.create_table(
+                group, 'tuple' + str(j), Medium, title, None, totalrows
+            )
+        elif recsize == 'small':
+            table = fileh.create_table(
+                group, 'tuple' + str(j), Small, title, None, totalrows
+            )
         else:
-            raise RuntimeError("This should never happen")
+            raise RuntimeError('This should never happen')
 
         table.attrs.test = 2
         rowsize = table.rowsize
         # Get the row object associated with the new table
         d = table.row
         # Fill the table
-        if recsize == "big":
+        if recsize == 'big':
             for i in range(totalrows):
                 # d['name']  = 'Part: %6d' % (i)
                 d['TDCcount'] = i % 256
-                #d['float1'] = NP.array([i]*32, NP.float64)
-                #d['float2'] = NP.array([i**2]*32, NP.float64)
-                #d['float1'][0] = float(i)
-                #d['float2'][0] = float(i*2)
+                # d['float1'] = NP.array([i]*32, NP.float64)
+                # d['float2'] = NP.array([i**2]*32, NP.float64)
+                # d['float1'][0] = float(i)
+                # d['float2'][0] = float(i*2)
                 # Common part with medium
                 d['grid_i'] = i
                 d['grid_j'] = 10 - i
@@ -93,13 +96,13 @@ def createFile(filename, totalrows, filters, recsize):
                 d['energy'] = d['pressure']
                 # d['idnumber'] = i * (2 ** 34)
                 d.append()
-        elif recsize == "medium":
+        elif recsize == 'medium':
             for i in range(totalrows):
-                #d['name']  = 'Part: %6d' % (i)
-                #d['float1'] = NP.array([i]*2, NP.float64)
-                #d['float1'] = arr
-                #d['float1'] = i
-                #d['float2'] = float(i)
+                # d['name']  = 'Part: %6d' % (i)
+                # d['float1'] = NP.array([i]*2, NP.float64)
+                # d['float1'] = arr
+                # d['float1'] = i
+                # d['float2'] = float(i)
                 # Common part with big:
                 d['grid_i'] = i
                 d['grid_j'] = 10 - i
@@ -109,23 +112,23 @@ def createFile(filename, totalrows, filters, recsize):
                 d.append()
         else:  # Small record
             for i in range(totalrows):
-                #d['var1'] = str(random.randrange(1000000))
-                #d['var3'] = random.randrange(10000000)
+                # d['var1'] = str(random.randrange(1000000))
+                # d['var3'] = random.randrange(10000000)
                 d['var1'] = str(i)
-                #d['var2'] = random.randrange(totalrows)
+                # d['var2'] = random.randrange(totalrows)
                 d['var2'] = i
-                #d['var3'] = 12.1e10
+                # d['var3'] = 12.1e10
                 d['var3'] = totalrows - i
                 d.append()  # This is a 10% faster than table.append()
         rowswritten += totalrows
 
-        if recsize == "small":
+        if recsize == 'small':
             # Testing with indexing
             pass
-#            table._createIndex("var3", Filters(1,"zlib",shuffle=1))
+        #            table._createIndex("var3", Filters(1,"zlib",shuffle=1))
 
         # table.flush()
-        group._v_attrs.test2 = "just a test"
+        group._v_attrs.test2 = 'just a test'
         # Create a new group
         group2 = fileh.create_group(group, 'group' + str(j))
         # Iterate over this new group (group2)
@@ -140,96 +143,100 @@ def createFile(filename, totalrows, filters, recsize):
 def readFile(filename, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
-    fileh = tb.open_file(filename, mode="r")
+    fileh = tb.open_file(filename, mode='r')
     rowsread = 0
     for groupobj in fileh.walk_groups(fileh.root):
         # print "Group pathname:", groupobj._v_pathname
         row = 0
         for table in fileh.list_nodes(groupobj, 'Table'):
             rowsize = table.rowsize
-            print("reading", table)
+            print('reading', table)
             if verbose:
-                print("Max rows in buf:", table.nrowsinbuf)
-                print("Rows in", table._v_pathname, ":", table.nrows)
-                print("Buffersize:", table.rowsize * table.nrowsinbuf)
-                print("MaxTuples:", table.nrowsinbuf)
+                print('Max rows in buf:', table.nrowsinbuf)
+                print('Rows in', table._v_pathname, ':', table.nrows)
+                print('Buffersize:', table.rowsize * table.nrowsinbuf)
+                print('MaxTuples:', table.nrowsinbuf)
 
-            if recsize == "big" or recsize == "medium":
+            if recsize == 'big' or recsize == 'medium':
                 # e = [ p.float1 for p in table.iterrows()
                 #      if p.grid_i < 2 ]
-                #e = [ str(p) for p in table.iterrows() ]
+                # e = [ str(p) for p in table.iterrows() ]
                 #      if p.grid_i < 2 ]
-#                 e = [ p['grid_i'] for p in table.iterrows()
-#                       if p['grid_j'] == 20 and p['grid_i'] < 20 ]
-#                 e = [ p['grid_i'] for p in table
-#                       if p['grid_i'] <= 2 ]
-#                e = [ p['grid_i'] for p in table.where("grid_i<=20")]
-#                 e = [ p['grid_i'] for p in
-#                       table.where('grid_i <= 20')]
-                e = [p['grid_i'] for p in
-                     table.where('(grid_i <= 20) & (grid_j == 20)')]
-#                 e = [ p['grid_i'] for p in table.iterrows()
-#                       if p.nrow() == 20 ]
-#                 e = [ table.delrow(p.nrow()) for p in table.iterrows()
-#                       if p.nrow() == 20 ]
-                # The version with a for loop is only 1% better than
-                # comprenhension list
-                #e = []
-                # for p in table.iterrows():
-                #    if p.grid_i < 20:
-                #        e.append(p.grid_j)
+                #                 e = [ p['grid_i'] for p in table.iterrows()
+                #                       if p['grid_j'] == 20 and p['grid_i'] < 20 ]
+                #                 e = [ p['grid_i'] for p in table
+                #                       if p['grid_i'] <= 2 ]
+                #                e = [ p['grid_i'] for p in table.where("grid_i<=20")]
+                #                 e = [ p['grid_i'] for p in
+                #                       table.where('grid_i <= 20')]
+                e = [
+                    p['grid_i']
+                    for p in table.where('(grid_i <= 20) & (grid_j == 20)')
+                ]
+            #                 e = [ p['grid_i'] for p in table.iterrows()
+            #                       if p.nrow() == 20 ]
+            #                 e = [ table.delrow(p.nrow()) for p in table.iterrows()
+            #                       if p.nrow() == 20 ]
+            # The version with a for loop is only 1% better than
+            # comprenhension list
+            # e = []
+            # for p in table.iterrows():
+            #    if p.grid_i < 20:
+            #        e.append(p.grid_j)
             else:  # small record case
-#                 e = [ p['var3'] for p in table.iterrows()
-#                       if p['var2'] < 20 and p['var3'] < 20 ]
-#                e = [ p['var3'] for p in table.where("var3 <= 20")
-#                      if p['var2'] < 20 ]
-#               e = [ p['var3'] for p in table.where("var3 <= 20")]
-# Cuts 1) and 2) issues the same results but 2) is about 10 times faster
-# Cut 1)
-#                e = [ p.nrow() for p in
-#                      table.where(table.cols.var2 > 5)
-#                      if p["var2"] < 10]
-# Cut 2)
-#                 e = [ p.nrow() for p in
-#                       table.where(table.cols.var2 < 10)
-#                       if p["var2"] > 5]
-#                e = [ (p._nrow,p["var3"]) for p in
-#                e = [ p["var3"] for p in
-#                      table.where(table.cols.var3 < 10)]
-#                      table.where(table.cols.var3 < 10)]
-#                      table if p["var3"] <= 10]
-#               e = [ p['var3'] for p in table.where("var3 <= 20")]
-#                e = [ p['var3'] for p in
-# table.where(table.cols.var1 == "10")]  # More
-                     # than ten times faster than the next one
-#                e = [ p['var3'] for p in table
-#                      if p['var1'] == "10"]
-#                e = [ p['var3'] for p in table.where('var2 <= 20')]
-                e = [p['var3']
-                     for p in table.where('(var2 <= 20) & (var2 >= 3)')]
+                #                 e = [ p['var3'] for p in table.iterrows()
+                #                       if p['var2'] < 20 and p['var3'] < 20 ]
+                #                e = [ p['var3'] for p in table.where("var3 <= 20")
+                #                      if p['var2'] < 20 ]
+                #               e = [ p['var3'] for p in table.where("var3 <= 20")]
+                # Cuts 1) and 2) issues the same results but 2) is about 10 times faster
+                # Cut 1)
+                #                e = [ p.nrow() for p in
+                #                      table.where(table.cols.var2 > 5)
+                #                      if p["var2"] < 10]
+                # Cut 2)
+                #                 e = [ p.nrow() for p in
+                #                       table.where(table.cols.var2 < 10)
+                #                       if p["var2"] > 5]
+                #                e = [ (p._nrow,p["var3"]) for p in
+                #                e = [ p["var3"] for p in
+                #                      table.where(table.cols.var3 < 10)]
+                #                      table.where(table.cols.var3 < 10)]
+                #                      table if p["var3"] <= 10]
+                #               e = [ p['var3'] for p in table.where("var3 <= 20")]
+                #                e = [ p['var3'] for p in
+                # table.where(table.cols.var1 == "10")]  # More
+                # than ten times faster than the next one
+                #                e = [ p['var3'] for p in table
+                #                      if p['var1'] == "10"]
+                #                e = [ p['var3'] for p in table.where('var2 <= 20')]
+                e = [
+                    p['var3']
+                    for p in table.where('(var2 <= 20) & (var2 >= 3)')
+                ]
                 # e = [ p[0] for p in table.where('var2 <= 20')]
-                #e = [ p['var3'] for p in table if p['var2'] <= 20 ]
+                # e = [ p['var3'] for p in table if p['var2'] <= 20 ]
                 # e = [ p[:] for p in table if p[1] <= 20 ]
-#                  e = [ p['var3'] for p in table._whereInRange(table.cols.var2 <=20)]
-                #e = [ p['var3'] for p in table.iterrows(0,21) ]
-#                  e = [ p['var3'] for p in table.iterrows()
-#                       if p.nrow() <= 20 ]
-                #e = [ p['var3'] for p in table.iterrows(1,0,1000)]
-                #e = [ p['var3'] for p in table.iterrows(1,100)]
-                # e = [ p['var3'] for p in table.iterrows(step=2)
-                #      if p.nrow() < 20 ]
-                # e = [ p['var2'] for p in table.iterrows()
-                #      if p['var2'] < 20 ]
-                # for p in table.iterrows():
-                #      pass
+            #                  e = [ p['var3'] for p in table._whereInRange(table.cols.var2 <=20)]
+            # e = [ p['var3'] for p in table.iterrows(0,21) ]
+            #                  e = [ p['var3'] for p in table.iterrows()
+            #                       if p.nrow() <= 20 ]
+            # e = [ p['var3'] for p in table.iterrows(1,0,1000)]
+            # e = [ p['var3'] for p in table.iterrows(1,100)]
+            # e = [ p['var3'] for p in table.iterrows(step=2)
+            #      if p.nrow() < 20 ]
+            # e = [ p['var2'] for p in table.iterrows()
+            #      if p['var2'] < 20 ]
+            # for p in table.iterrows():
+            #      pass
             if verbose:
                 # print "Last record read:", p
-                print("resulting selection list ==>", e)
+                print('resulting selection list ==>', e)
 
             rowsread += table.nrows
             row += 1
             if verbose:
-                print("Total selected records ==> ", len(e))
+                print('Total selected records ==> ', len(e))
 
     # Close the file (eventually destroy the extended type)
     fileh.close()
@@ -238,41 +245,45 @@ def readFile(filename, recsize, verbose):
 
 
 def readField(filename, field, rng, verbose):
-    fileh = tb.open_file(filename, mode="r")
+    fileh = tb.open_file(filename, mode='r')
     rowsread = 0
     if rng is None:
         rng = [0, -1, 1]
-    if field == "all":
+    if field == 'all':
         field = None
     for groupobj in fileh.walk_groups(fileh.root):
         for table in fileh.list_nodes(groupobj, 'Table'):
             rowsize = table.rowsize
             # table.nrowsinbuf = 3 # For testing purposes
             if verbose:
-                print("Max rows in buf:", table.nrowsinbuf)
-                print("Rows in", table._v_pathname, ":", table.nrows)
-                print("Buffersize:", table.rowsize * table.nrowsinbuf)
-                print("MaxTuples:", table.nrowsinbuf)
-                print("(field, start, stop, step) ==>", (field, rng[0], rng[1],
-                                                         rng[2]))
+                print('Max rows in buf:', table.nrowsinbuf)
+                print('Rows in', table._v_pathname, ':', table.nrows)
+                print('Buffersize:', table.rowsize * table.nrowsinbuf)
+                print('MaxTuples:', table.nrowsinbuf)
+                print(
+                    '(field, start, stop, step) ==>',
+                    (field, rng[0], rng[1], rng[2]),
+                )
 
             e = table.read(rng[0], rng[1], rng[2], field)
 
             rowsread += table.nrows
             if verbose:
-                print("Selected rows ==> ", e)
-                print("Total selected rows ==> ", len(e))
+                print('Selected rows ==> ', e)
+                print('Total selected rows ==> ', len(e))
 
     # Close the file (eventually destroy the extended type)
     fileh.close()
     return (rowsread, rowsize)
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     import sys
     import getopt
 
     try:
         import psyco
+
         psyco_imported = 1
     except:
         psyco_imported = 0
@@ -280,7 +291,8 @@ if __name__ == "__main__":
     from time import perf_counter as clock
     from time import process_time as cpuclock
 
-    usage = """usage: %s [-v] [-p] [-P] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] [-S] [-F] file
+    usage = (
+        '''usage: %s [-v] [-p] [-P] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] [-S] [-F] file
             -v verbose
             -p use "psyco" if available
             -P do profile
@@ -293,7 +305,9 @@ if __name__ == "__main__":
             -S activate shuffling filter
             -F activate fletcher32 filter
             -l sets the compression library to be used ("zlib", "lzo", "blosc", "bzip2")
-            -i sets the number of rows in each table\n""" % sys.argv[0]
+            -i sets the number of rows in each table\n'''
+        % sys.argv[0]
+    )
 
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], 'vpPSFR:rwf:s:c:l:i:')
@@ -310,7 +324,7 @@ if __name__ == "__main__":
     verbose = 0
     profile = 0
     rng = None
-    recsize = "medium"
+    recsize = 'medium'
     fieldName = None
     testread = 1
     testwrite = 1
@@ -318,7 +332,7 @@ if __name__ == "__main__":
     complevel = 0
     shuffle = 0
     fletcher32 = 0
-    complib = "zlib"
+    complib = 'zlib'
     iterations = 100
 
     # Get the options
@@ -334,7 +348,7 @@ if __name__ == "__main__":
         if option[0] == '-F':
             fletcher32 = 1
         elif option[0] == '-R':
-            rng = [int(i) for i in option[1].split(",")]
+            rng = [int(i) for i in option[1].split(',')]
         elif option[0] == '-r':
             testwrite = 0
         elif option[0] == '-w':
@@ -343,7 +357,7 @@ if __name__ == "__main__":
             fieldName = option[1]
         elif option[0] == '-s':
             recsize = option[1]
-            if recsize not in ["big", "medium", "small"]:
+            if recsize not in ['big', 'medium', 'small']:
                 sys.stderr.write(usage)
                 sys.exit(0)
         elif option[0] == '-c':
@@ -354,23 +368,27 @@ if __name__ == "__main__":
             iterations = int(option[1])
 
     # Build the Filters instance
-    filters = tb.Filters(complevel=complevel, complib=complib,
-                         shuffle=shuffle, fletcher32=fletcher32)
+    filters = tb.Filters(
+        complevel=complevel,
+        complib=complib,
+        shuffle=shuffle,
+        fletcher32=fletcher32,
+    )
 
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
     if verbose:
-        print("numpy version:", np.__version__)
+        print('numpy version:', np.__version__)
         if psyco_imported and usepsyco:
-            print("Using psyco version:", psyco.version_info)
+            print('Using psyco version:', psyco.version_info)
 
     if testwrite:
-        print("Compression level:", complevel)
+        print('Compression level:', complevel)
         if complevel > 0:
-            print("Compression library:", complib)
+            print('Compression library:', complib)
             if shuffle:
-                print("Suffling...")
+                print('Suffling...')
         t1 = clock()
         cpu1 = cpuclock()
         if psyco_imported and usepsyco:
@@ -378,10 +396,12 @@ if __name__ == "__main__":
         if profile:
             import profile as prof
             import pstats
+
             prof.run(
                 '(rowsw, rowsz) = createFile(file, iterations, filters, '
                 'recsize)',
-                'table-bench.prof')
+                'table-bench.prof',
+            )
             stats = pstats.Stats('table-bench.prof')
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
@@ -392,12 +412,13 @@ if __name__ == "__main__":
         cpu2 = cpuclock()
         tapprows = t2 - t1
         cpuapprows = cpu2 - cpu1
-        print(f"Rows written: {rowsw}  Row size: {rowsz}")
+        print(f'Rows written: {rowsw}  Row size: {rowsz}')
         print(
-            f"Time writing rows: {tapprows:.3f} s (real) "
-            f"{cpuapprows:.3f} s (cpu)  {cpuapprows / tapprows:.0%}")
-        print(f"Write rows/sec:  {rowsw / tapprows}")
-        print(f"Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}")
+            f'Time writing rows: {tapprows:.3f} s (real) '
+            f'{cpuapprows:.3f} s (cpu)  {cpuapprows / tapprows:.0%}'
+        )
+        print(f'Write rows/sec:  {rowsw / tapprows}')
+        print(f'Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}')
 
     if testread:
         t1 = clock()
@@ -416,9 +437,10 @@ if __name__ == "__main__":
         cpu2 = cpuclock()
         treadrows = t2 - t1
         cpureadrows = cpu2 - cpu1
-        print(f"Rows read: {rowsw}  Row size: {rowsz}")
+        print(f'Rows read: {rowsw}  Row size: {rowsz}')
         print(
-            f"Time reading rows: {treadrows:.3f} s (real) "
-            f"{cpureadrows:.3f} s (cpu)  {cpureadrows / treadrows:.0%}")
-        print(f"Read rows/sec:  {rowsr / treadrows}")
-        print(f"Read KB/s : {rowsr * rowsz / (treadrows * 1024):.0f}")
+            f'Time reading rows: {treadrows:.3f} s (real) '
+            f'{cpureadrows:.3f} s (cpu)  {cpureadrows / treadrows:.0%}'
+        )
+        print(f'Read rows/sec:  {rowsr / treadrows}')
+        print(f'Read KB/s : {rowsr * rowsz / (treadrows * 1024):.0f}')

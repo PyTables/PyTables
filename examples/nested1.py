@@ -4,24 +4,24 @@
 import random
 import tables as tb
 
-fileout = "nested1.h5"
+fileout = 'nested1.h5'
 
 # An example of enumerated structure
 colors = tb.Enum(['red', 'green', 'blue'])
 
 
 def read(file):
-    fileh = tb.open_file(file, "r")
+    fileh = tb.open_file(file, 'r')
 
-    print("table (short)-->", fileh.root.table)
-    print("table (long)-->", repr(fileh.root.table))
-    print("table (contents)-->", repr(fileh.root.table[:]))
+    print('table (short)-->', fileh.root.table)
+    print('table (long)-->', repr(fileh.root.table))
+    print('table (contents)-->', repr(fileh.root.table[:]))
 
     fileh.close()
 
 
 def write(file, desc, indexed):
-    fileh = tb.open_file(file, "w")
+    fileh = tb.open_file(file, 'w')
     table = fileh.create_table(fileh.root, 'table', desc)
     for colname in indexed:
         table.colinstances[colname].create_index()
@@ -32,12 +32,13 @@ def write(file, desc, indexed):
         row['y'] = 10.2 - i
         row['z'] = i
         row['color'] = colors[random.choice(['red', 'green', 'blue'])]
-        row['info/name'] = "name%s" % i
+        row['info/name'] = 'name%s' % i
         row['info/info2/info3/z4'] = i
         # All the rest will be filled with defaults
         row.append()
 
     fileh.close()
+
 
 # The sample nested class description
 
@@ -75,6 +76,7 @@ class Test(tb.IsDescription):
                 value = tb.Time64Col()
                 y4 = tb.Float64Col(dflt=1, shape=(2, 3))
                 z4 = tb.UInt8Col(dflt=1)
+
 
 # Write the file and read it
 write(fileout, Test, ['info/info2/z3'])
