@@ -15,20 +15,20 @@ class Record(tb.IsDescription):
     var5 = tb.Col.from_kind('float', itemsize=4)  # float  (single-precision)
     var6 = tb.Col.from_kind('complex')  # double-precision
     var7 = tb.Col.from_kind('complex', itemsize=8)  # single-precision
-    if hasattr(tb, "Float16Atom"):
+    if hasattr(tb, 'Float16Atom'):
         var8 = tb.Col.from_kind('float', itemsize=2)  # half-precision
-    if hasattr(tb, "Float96Atom"):
+    if hasattr(tb, 'Float96Atom'):
         var9 = tb.Col.from_kind('float', itemsize=12)  # extended-precision
-    if hasattr(tb, "Float128Atom"):
+    if hasattr(tb, 'Float128Atom'):
         var10 = tb.Col.from_kind('float', itemsize=16)  # extended-precision
-    if hasattr(tb, "Complex192Atom"):
+    if hasattr(tb, 'Complex192Atom'):
         var11 = tb.Col.from_kind('complex', itemsize=24)  # extended-precision
-    if hasattr(tb, "Complex256Atom"):
+    if hasattr(tb, 'Complex256Atom'):
         var12 = tb.Col.from_kind('complex', itemsize=32)  # extended-precision
 
 
 class RangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
-    title = "This is the table title"
+    title = 'This is the table title'
     expectedrows = 100
     maxshort = 2 ** 15
     maxint = 2_147_483_648   # (2 ** 31)
@@ -39,8 +39,9 @@ class RangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.rootgroup = self.h5file.root
 
         # Create a table
-        self.table = self.h5file.create_table(self.rootgroup, 'table',
-                                              Record, self.title)
+        self.table = self.h5file.create_table(
+            self.rootgroup, 'table', Record, self.title
+        )
 
     def test00_range(self):
         """Testing the range check."""
@@ -56,24 +57,25 @@ class RangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         rec['var5'] = float(i)
         rec['var6'] = float(i)
         rec['var7'] = complex(i, i)
-        if hasattr(tb, "Float16Atom"):
+        if hasattr(tb, 'Float16Atom'):
             rec['var8'] = float(i)
-        if hasattr(tb, "Float96Atom"):
+        if hasattr(tb, 'Float96Atom'):
             rec['var9'] = float(i)
-        if hasattr(tb, "Float128Atom"):
+        if hasattr(tb, 'Float128Atom'):
             rec['var10'] = float(i)
         try:
             rec.append()
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next ValueError was catched!")
+                print('\nGreat!, the next ValueError was catched!')
                 print(value)
             pass
         else:
             if common.verbose:
                 print(
-                    "\nNow, the range overflow no longer issues a ValueError")
+                    '\nNow, the range overflow no longer issues a ValueError'
+                )
 
     def test01_type(self):
         """Testing the type check."""
@@ -87,21 +89,20 @@ class RangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         rec['var5'] = float(i)
 
         with self.assertRaises(TypeError):
-            rec['var4'] = "124c"
+            rec['var4'] = '124c'
 
         rec['var6'] = float(i)
         rec['var7'] = complex(i, i)
-        if hasattr(tb, "Float16Atom"):
+        if hasattr(tb, 'Float16Atom'):
             rec['var8'] = float(i)
-        if hasattr(tb, "Float96Atom"):
+        if hasattr(tb, 'Float96Atom'):
             rec['var9'] = float(i)
-        if hasattr(tb, "Float128Atom"):
+        if hasattr(tb, 'Float128Atom'):
             rec['var10'] = float(i)
 
 
 # Check the dtype read-only attribute
 class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test00a_table(self):
         """Check dtype accessor for Table objects."""
 
@@ -124,15 +125,17 @@ class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_carray(self):
         """Check dtype accessor for CArray objects."""
 
-        a = self.h5file.create_carray('/', 'array', atom=tb.FloatAtom(),
-                                      shape=[1, 2])
+        a = self.h5file.create_carray(
+            '/', 'array', atom=tb.FloatAtom(), shape=[1, 2]
+        )
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test03_carray(self):
         """Check dtype accessor for EArray objects."""
 
-        a = self.h5file.create_earray('/', 'array', atom=tb.FloatAtom(),
-                                      shape=[0, 2])
+        a = self.h5file.create_earray(
+            '/', 'array', atom=tb.FloatAtom(), shape=[0, 2]
+        )
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test04_vlarray(self):
@@ -143,7 +146,7 @@ class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class ReadFloatTestCase(common.TestFileMixin, common.PyTablesTestCase):
-    h5fname = common.test_filename("float.h5")
+    h5fname = common.test_filename('float.h5')
     nrows = 5
     ncols = 6
 
@@ -155,51 +158,51 @@ class ReadFloatTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.values = x + y
 
     def test01_read_float16(self):
-        dtype = "float16"
+        dtype = 'float16'
         if hasattr(np, dtype):
             ds = getattr(self.h5file.root, dtype)
             self.assertNotIsInstance(ds, tb.UnImplemented)
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
             self.assertEqual(ds.dtype, dtype)
-            self.assertTrue(common.allequal(
-                ds.read(), self.values.astype(dtype)))
+            self.assertTrue(
+                common.allequal(ds.read(), self.values.astype(dtype))
+            )
         else:
             with self.assertWarns(UserWarning):
                 ds = getattr(self.h5file.root, dtype)
             self.assertIsInstance(ds, tb.UnImplemented)
 
     def test02_read_float32(self):
-        dtype = "float32"
+        dtype = 'float32'
         ds = getattr(self.h5file.root, dtype)
         self.assertNotIsInstance(ds, tb.UnImplemented)
         self.assertEqual(ds.shape, (self.nrows, self.ncols))
         self.assertEqual(ds.dtype, dtype)
-        self.assertTrue(common.allequal(
-            ds.read(), self.values.astype(dtype)))
+        self.assertTrue(common.allequal(ds.read(), self.values.astype(dtype)))
 
     def test03_read_float64(self):
-        dtype = "float64"
+        dtype = 'float64'
         ds = getattr(self.h5file.root, dtype)
         self.assertNotIsInstance(ds, tb.UnImplemented)
         self.assertEqual(ds.shape, (self.nrows, self.ncols))
         self.assertEqual(ds.dtype, dtype)
-        self.assertTrue(common.allequal(
-            ds.read(), self.values.astype(dtype)))
+        self.assertTrue(common.allequal(ds.read(), self.values.astype(dtype)))
 
     def test04_read_longdouble(self):
-        dtype = "longdouble"
-        if hasattr(tb, "Float96Atom") or hasattr(tb, "Float128Atom"):
+        dtype = 'longdouble'
+        if hasattr(tb, 'Float96Atom') or hasattr(tb, 'Float128Atom'):
             ds = getattr(self.h5file.root, dtype)
             self.assertNotIsInstance(ds, tb.UnImplemented)
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
             self.assertEqual(ds.dtype, dtype)
-            self.assertTrue(common.allequal(
-                ds.read(), self.values.astype(dtype)))
+            self.assertTrue(
+                common.allequal(ds.read(), self.values.astype(dtype))
+            )
 
-            if hasattr(tb, "Float96Atom"):
-                self.assertEqual(ds.dtype, "float96")
-            elif hasattr(tb, "Float128Atom"):
-                self.assertEqual(ds.dtype, "float128")
+            if hasattr(tb, 'Float96Atom'):
+                self.assertEqual(ds.dtype, 'float96')
+            elif hasattr(tb, 'Float128Atom'):
+                self.assertEqual(ds.dtype, 'float128')
         else:
             # XXX: check
             # the behavior depends on the HDF5 lib configuration
@@ -210,7 +213,7 @@ class ReadFloatTestCase(common.TestFileMixin, common.PyTablesTestCase):
             except AssertionError:
                 if not tb.utilsextension._broken_hdf5_long_double():
                     ds = getattr(self.h5file.root, dtype)
-                    self.assertEqual(ds.dtype, "float64")
+                    self.assertEqual(ds.dtype, 'float64')
 
     def test05_read_quadprecision_float(self):
         # XXX: check
@@ -224,7 +227,7 @@ class ReadFloatTestCase(common.TestFileMixin, common.PyTablesTestCase):
             #       dataset actually uses 128 bits for each element, not just
             #       80 bits (longdouble)
             ds = self.h5file.root.quadprecision
-            self.assertEqual(ds.dtype, "longdouble")
+            self.assertEqual(ds.dtype, 'longdouble')
 
 
 class AtomTestCase(common.PyTablesTestCase):
@@ -238,8 +241,9 @@ class AtomTestCase(common.PyTablesTestCase):
     def test_init_parameters_02(self):
         atom1 = tb.StringAtom(itemsize=12)
         atom2 = atom1.copy(itemsize=100, shape=(2, 2))
-        self.assertEqual(atom2,
-                         tb.StringAtom(itemsize=100, shape=(2, 2), dflt=b''))
+        self.assertEqual(
+            atom2, tb.StringAtom(itemsize=100, shape=(2, 2), dflt=b'')
+        )
 
     def test_init_parameters_03(self):
         atom1 = tb.StringAtom(itemsize=12)
@@ -296,8 +300,9 @@ class AtomTestCase(common.PyTablesTestCase):
 
     def test_from_kind_05(self):
         # ValueError: no default item size for kind ``string``
-        self.assertRaises(ValueError, tb.Atom.from_kind, 'string',
-                          dflt=b'hello')
+        self.assertRaises(
+            ValueError, tb.Atom.from_kind, 'string', dflt=b'hello'
+        )
 
     def test_from_kind_06(self):
         # ValueError: unknown kind: 'Float'

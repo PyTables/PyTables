@@ -21,7 +21,7 @@ from .utilsextension import get_nested_field
 from .utils import lazyattr
 
 
-_no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")
+_no_matching_opcode = re.compile(r'[^a-z]([a-z]+)_([a-z]+)[^a-z]')
 # E.g. "gt" and "bfc" from "couldn't find matching opcode for 'gt_bfc'".
 
 
@@ -34,9 +34,10 @@ def _unsupported_operation_error(exception):
 
     message = exception.args[0]
     op, types = _no_matching_opcode.search(message).groups()
-    newmessage = "unsupported operand types for *%s*: " % op
+    newmessage = 'unsupported operand types for *%s*: ' % op
     newmessage += ', '.join(
-        ne.necompiler.typecode_to_kind[t] for t in types[1:])
+        ne.necompiler.typecode_to_kind[t] for t in types[1:]
+    )
     return exception.__class__(newmessage)
 
 
@@ -53,11 +54,13 @@ def _check_indexable_cmp(getidxcmp):
         if result[0] is not None:
             try:
                 ne.necompiler.typeCompileAst(
-                    ne.necompiler.expressionToAST(exprnode))
+                    ne.necompiler.expressionToAST(exprnode)
+                )
             except NotImplementedError as nie:
                 # Try to make this Numexpr error less cryptic.
                 raise _unsupported_operation_error(nie)
         return result
+
     newfunc.__name__ = getidxcmp.__name__
     newfunc.__doc__ = getidxcmp.__doc__
     return newfunc
@@ -77,25 +80,32 @@ def _get_indexable_cmp(exprnode, indexedcols):
     """
 
     not_indexable = (None, None, None)
-    turncmp = {'lt': 'gt',
-               'le': 'ge',
-               'eq': 'eq',
-               'ge': 'le',
-               'gt': 'lt', }
+    turncmp = {
+        'lt': 'gt',
+        'le': 'ge',
+        'eq': 'eq',
+        'ge': 'le',
+        'gt': 'lt',
+    }
 
     def get_cmp(var, const, op):
         var_value, const_value = var.value, const.value
-        if (var.astType == 'variable' and var_value in indexedcols
-           and const.astType in ['constant', 'variable']):
+        if (
+            var.astType == 'variable'
+            and var_value in indexedcols
+            and const.astType in ['constant', 'variable']
+        ):
             if const.astType == 'variable':
-                const_value = (const_value, )
+                const_value = (const_value,)
             return (var_value, op, const_value)
         return None
 
     def is_indexed_boolean(node):
-        return (node.astType == 'variable'
-                and node.astKind == 'bool'
-                and node.value in indexedcols)
+        return (
+            node.astType == 'variable'
+            and node.astKind == 'bool'
+            and node.value in indexedcols
+        )
 
     # Boolean variables are indexable by themselves.
     if is_indexed_boolean(exprnode):
@@ -107,7 +117,7 @@ def _get_indexable_cmp(exprnode, indexedcols):
             return (child.value, 'eq', False)
         # A negation of an expression will be returned as ``~child``.
         # The indexability of the negated expression will be decided later on.
-        if child.astKind == "bool":
+        if child.astKind == 'bool':
             return (child, 'invert', None)
 
     # Check node type.  Only comparisons are indexable from now on.
@@ -136,15 +146,18 @@ def _equiv_expr_node(x, y):
     return a new ExpressionNode.
 
     """
-    if (not isinstance(x, ne.expressions.ExpressionNode)
-            and not isinstance(y, ne.expressions.ExpressionNode)):
+    if not isinstance(x, ne.expressions.ExpressionNode) and not isinstance(
+        y, ne.expressions.ExpressionNode
+    ):
         return x == y
-    elif (type(x) is not type(y)
-          or not isinstance(x, ne.expressions.ExpressionNode)
-          or not isinstance(y, ne.expressions.ExpressionNode)
-          or x.value != y.value
-          or x.astKind != y.astKind
-          or len(x.children) != len(y.children)):
+    elif (
+        type(x) is not type(y)
+        or not isinstance(x, ne.expressions.ExpressionNode)
+        or not isinstance(y, ne.expressions.ExpressionNode)
+        or x.value != y.value
+        or x.astKind != y.astKind
+        or len(x.children) != len(y.children)
+    ):
         return False
     for xchild, ychild in zip(x.children, y.children):
         if not _equiv_expr_node(xchild, ychild):
@@ -181,7 +194,7 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     def fix_invert(idxcmp, exprnode, indexedcols):
         invert = False
         # Loop until all leading negations have been dealt with
-        while idxcmp[1] == "invert":
+        while idxcmp[1] == 'invert':
             invert ^= True
             # The information about the negated node is in first position
             exprnode = idxcmp[0]
@@ -226,8 +239,12 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     # ``(a <[=] x) & (x <[=] b)`` or ``(a >[=] x) & (x >[=] b)``
     # as ``a <[=] x <[=] b``, for the moment.
     op = exprnode.value
-    if (lcolvar is not None and rcolvar is not None
-            and _equiv_expr_node(lcolvar, rcolvar) and op == 'and'):
+    if (
+        lcolvar is not None
+        and rcolvar is not None
+        and _equiv_expr_node(lcolvar, rcolvar)
+        and op == 'and'
+    ):
         if lop in ['gt', 'ge'] and rop in ['lt', 'le']:  # l <= x <= r
             expr = (lcolvar, (lop, rop), (llim, rlim))
             return [expr]
@@ -248,19 +265,20 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
             lenexprs = len(idxexprs)
             # Mutate the strexpr string
             if lenexprs == 1:
-                strexpr[:] = ["e0"]
+                strexpr[:] = ['e0']
             else:
                 strexpr[:] = [
-                    "(%s %s e%d)" % (strexpr[0], op_conv[op], lenexprs - 1)]
+                    '(%s %s e%d)' % (strexpr[0], op_conv[op], lenexprs - 1)
+                ]
 
     # Add expressions to the indexable list when they are and'ed, or
     # they are both indexable.
-    if lexpr != not_indexable and (op == "and" or rexpr != not_indexable):
+    if lexpr != not_indexable and (op == 'and' or rexpr != not_indexable):
         add_expr(lexpr, idxexprs, strexpr)
         if rexpr != not_indexable:
             add_expr(rexpr, idxexprs, strexpr)
         return (idxexprs, strexpr)
-    if rexpr != not_indexable and op == "and":
+    if rexpr != not_indexable and op == 'and':
         add_expr(rexpr, idxexprs, strexpr)
         return (idxexprs, strexpr)
 
@@ -317,20 +335,22 @@ class CompiledCondition:
 
     def __init__(self, func, params, idxexprs, strexpr, **kwargs):
         self.function = func
-        """The compiled function object corresponding to this condition."""
+        '''The compiled function object corresponding to this condition.'''
         self.parameters = params
-        """A list of parameter names for this condition."""
+        '''A list of parameter names for this condition.'''
         self.index_expressions = idxexprs
-        """A list of expressions in the form ``(var, (ops), (limits))``."""
+        '''A list of expressions in the form ``(var, (ops), (limits))``.'''
         self.string_expression = strexpr
-        """The indexable expression in string format."""
+        '''The indexable expression in string format.'''
         self.kwargs = kwargs
-        """NumExpr kwargs (used to pass ex_uses_vml to numexpr)"""
+        '''NumExpr kwargs (used to pass ex_uses_vml to numexpr)'''
 
     def __repr__(self):
-        return ("idxexprs: %s\nstrexpr: %s\nidxvars: %s"
-                % (self.index_expressions, self.string_expression,
-                   self.index_variables))
+        return 'idxexprs: %s\nstrexpr: %s\nidxvars: %s' % (
+            self.index_expressions,
+            self.string_expression,
+            self.index_variables,
+        )
 
     def with_replaced_vars(self, condvars):
         """Replace index limit variables with their values in-place.
@@ -354,8 +374,12 @@ class CompiledCondition:
             exprs2.append((var, ops, tuple(limit_values)))
         # Create a new container for the converted values
         newcc = CompiledCondition(
-            self.function, self.parameters, exprs2, self.string_expression,
-            **self.kwargs)
+            self.function,
+            self.parameters,
+            exprs2,
+            self.string_expression,
+            **self.kwargs
+        )
         return newcc
 
 
@@ -392,8 +416,9 @@ def compile_condition(condition, typemap, indexedcols):
     # Get the expression tree and extract index conditions.
     expr = ne.necompiler.stringToExpression(condition, typemap, {})
     if expr.astKind != 'bool':
-        raise TypeError("condition ``%s`` does not have a boolean type"
-                        % condition)
+        raise TypeError(
+            'condition ``%s`` does not have a boolean type' % condition
+        )
     idxexprs = _get_idx_expr(expr, indexedcols)
     # Post-process the answer
     if isinstance(idxexprs, list):

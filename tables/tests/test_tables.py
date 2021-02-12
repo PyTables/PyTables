@@ -13,7 +13,7 @@ from tables.tests import common
 
 # To know whether the interpreter is 32 or 64 bit
 def is_python_64bit():
-    return struct.calcsize("P") == 8
+    return struct.calcsize('P') == 8
 
 
 # To know whether the os platform is 32 or 64 bit
@@ -23,18 +23,20 @@ def is_os_64bit():
 
 # Test Record class
 class Record(tb.IsDescription):
-    var1 = tb.StringCol(itemsize=4, dflt=b"abcd", pos=0)  # 4-character String
+    var1 = tb.StringCol(itemsize=4, dflt=b'abcd', pos=0)  # 4-character String
     var2 = tb.IntCol(dflt=1, pos=1)  # integer
     var3 = tb.Int16Col(dflt=2, pos=2)  # short integer
     var4 = tb.Float64Col(dflt=3.1, pos=3)  # double (double-precision)
     var5 = tb.Float32Col(dflt=4.2, pos=4)  # float  (single-precision)
     var6 = tb.UInt16Col(dflt=5, pos=5)  # unsigned short integer
-    var7 = tb.StringCol(itemsize=1, dflt=b"e", pos=6)  # 1-character String
+    var7 = tb.StringCol(itemsize=1, dflt=b'e', pos=6)  # 1-character String
     var8 = tb.BoolCol(dflt=True, pos=7)  # boolean
     var9 = tb.ComplexCol(
-        itemsize=8, dflt=(0.+1.j), pos=8)  # Complex single precision
+        itemsize=8, dflt=(0.0 + 1.0j), pos=8
+    )  # Complex single precision
     var10 = tb.ComplexCol(
-        itemsize=16, dflt=(1.-0.j), pos=9)  # Complex double precision
+        itemsize=16, dflt=(1.0 - 0.0j), pos=9
+    )  # Complex double precision
     if hasattr(tb, 'Float16Col'):
         var11 = tb.Float16Col(dflt=6.4)  # float  (half-precision)
     if hasattr(tb, 'Float96Col'):
@@ -43,27 +45,30 @@ class Record(tb.IsDescription):
         var13 = tb.Float128Col(dflt=6.4)  # float  (extended precision)
     if hasattr(tb, 'Complex192Col'):
         var14 = tb.ComplexCol(
-            itemsize=24, dflt=(1.-0.j))  # Complex double (extended precision)
+            itemsize=24, dflt=(1.0 - 0.0j)
+        )  # Complex double (extended precision)
     if hasattr(tb, 'Complex256Col'):
         var15 = tb.ComplexCol(
-            itemsize=32, dflt=(1.-0.j))  # Complex double (extended precision)
+            itemsize=32, dflt=(1.0 - 0.0j)
+        )  # Complex double (extended precision)
 
 
 #  Dictionary definition
 RecordDescriptionDict = {
-    'var1': tb.StringCol(itemsize=4, dflt=b"abcd", pos=0),  # 4-char String
+    'var1': tb.StringCol(itemsize=4, dflt=b'abcd', pos=0),  # 4-char String
     'var2': tb.IntCol(dflt=1, pos=1),  # integer
     'var3': tb.Int16Col(dflt=2, pos=2),  # short integer
     'var4': tb.Float64Col(dflt=3.1, pos=3),  # double (double-precision)
     'var5': tb.Float32Col(dflt=4.2, pos=4),  # float  (single-precision)
     'var6': tb.UInt16Col(dflt=5, pos=5),  # unsigned short integer
-    'var7': tb.StringCol(
-        itemsize=1, dflt=b"e", pos=6),  # 1-character String
-    'var8': tb.BoolCol(dflt=True, pos=7),   # boolean
+    'var7': tb.StringCol(itemsize=1, dflt=b'e', pos=6),  # 1-character String
+    'var8': tb.BoolCol(dflt=True, pos=7),  # boolean
     'var9': tb.ComplexCol(
-        itemsize=8, dflt=(0.+1.j), pos=8),  # Complex single precision
+        itemsize=8, dflt=(0.0 + 1.0j), pos=8
+    ),  # Complex single precision
     'var10': tb.ComplexCol(
-        itemsize=16, dflt=(1.-0.j), pos=9),  # Complex double precision
+        itemsize=16, dflt=(1.0 - 0.0j), pos=9
+    ),  # Complex double precision
 }
 
 if hasattr(tb, 'Float16Col'):
@@ -78,48 +83,50 @@ if hasattr(tb, 'Float128Col'):
 if hasattr(tb, 'Complex192Col'):
     # Complex double (extended precision)
     RecordDescriptionDict['var14'] = tb.ComplexCol(
-        itemsize=24, dflt=(1.-0.j))
+        itemsize=24, dflt=(1.0 - 0.0j)
+    )
 if hasattr(tb, 'Complex256Col'):
     # Complex double (extended precision)
     RecordDescriptionDict['var15'] = tb.ComplexCol(
-        itemsize=32, dflt=(1.-0.j))
+        itemsize=32, dflt=(1.0 - 0.0j)
+    )
 
 
 # Old fashion of defining tables (for testing backward compatibility)
 class OldRecord(tb.IsDescription):
-    var1 = tb.StringCol(itemsize=4, dflt=b"abcd", pos=0)
-    var2 = tb.Col.from_type("int32", (), 1, pos=1)
-    var3 = tb.Col.from_type("int16", (), 2, pos=2)
-    var4 = tb.Col.from_type("float64", (), 3.1, pos=3)
-    var5 = tb.Col.from_type("float32", (), 4.2, pos=4)
-    var6 = tb.Col.from_type("uint16", (), 5, pos=5)
-    var7 = tb.StringCol(itemsize=1, dflt=b"e", pos=6)
-    var8 = tb.Col.from_type("bool", shape=(), dflt=1, pos=7)
-    var9 = tb.ComplexCol(itemsize=8, shape=(), dflt=(0.+1.j), pos=8)
-    var10 = tb.ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos=9)
+    var1 = tb.StringCol(itemsize=4, dflt=b'abcd', pos=0)
+    var2 = tb.Col.from_type('int32', (), 1, pos=1)
+    var3 = tb.Col.from_type('int16', (), 2, pos=2)
+    var4 = tb.Col.from_type('float64', (), 3.1, pos=3)
+    var5 = tb.Col.from_type('float32', (), 4.2, pos=4)
+    var6 = tb.Col.from_type('uint16', (), 5, pos=5)
+    var7 = tb.StringCol(itemsize=1, dflt=b'e', pos=6)
+    var8 = tb.Col.from_type('bool', shape=(), dflt=1, pos=7)
+    var9 = tb.ComplexCol(itemsize=8, shape=(), dflt=(0.0 + 1.0j), pos=8)
+    var10 = tb.ComplexCol(itemsize=16, shape=(), dflt=(1.0 - 0.0j), pos=9)
     if hasattr(tb, 'Float16Col'):
-        var11 = tb.Col.from_type("float16", (), 6.4)
+        var11 = tb.Col.from_type('float16', (), 6.4)
     if hasattr(tb, 'Float96Col'):
-        var12 = tb.Col.from_type("float96", (), 6.4)
+        var12 = tb.Col.from_type('float96', (), 6.4)
     if hasattr(tb, 'Float128Col'):
-        var13 = tb.Col.from_type("float128", (), 6.4)
+        var13 = tb.Col.from_type('float128', (), 6.4)
     if hasattr(tb, 'Complex192Col'):
-        var14 = tb.ComplexCol(itemsize=24, shape=(), dflt=(1.-0.j))
+        var14 = tb.ComplexCol(itemsize=24, shape=(), dflt=(1.0 - 0.0j))
     if hasattr(tb, 'Complex256Col'):
-        var15 = tb.ComplexCol(itemsize=32, shape=(), dflt=(1.-0.j))
+        var15 = tb.ComplexCol(itemsize=32, shape=(), dflt=(1.0 - 0.0j))
 
 
 class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     # file  = "test.h5"
-    open_mode = "w"
-    title = "This is the table title"
+    open_mode = 'w'
+    title = 'This is the table title'
     expectedrows = 100
     appendrows = 20
     compress = 0
     shuffle = 0
     bitshuffle = 0
     fletcher32 = 0
-    complib = "zlib"  # Default compression library
+    complib = 'zlib'  # Default compression library
     record = Record
     recarrayinit = 0
     maxshort = 1 << 15
@@ -150,11 +157,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             else:
                 tmplist.append(float(i))
             if isinstance(row['var5'], np.ndarray):
-                tmplist.append(np.array((float(i),)*4))
+                tmplist.append(np.array((float(i),) * 4))
             else:
                 tmplist.append(float(i))
             # var6 will be like var3 but byteswaped
-            tmplist.append(((var3 >> 8) & 0xff) + ((var3 << 8) & 0xff00))
+            tmplist.append(((var3 >> 8) & 0xFF) + ((var3 << 8) & 0xFF00))
             var7 = var1[-1]
             tmplist.append(var7)
             if isinstance(row['var8'], np.ndarray):
@@ -162,43 +169,44 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             else:
                 tmplist.append(10)  # should be equivalent to 1
             if isinstance(row['var9'], np.ndarray):
-                tmplist.append([0.+float(i)*1j, float(i)+0.j])
+                tmplist.append([0.0 + float(i) * 1j, float(i) + 0.0j])
             else:
-                tmplist.append(float(i)+0j)
+                tmplist.append(float(i) + 0j)
             if isinstance(row['var10'], np.ndarray):
-                tmplist.append([float(i)+0j, 1 + float(i)*1j])
+                tmplist.append([float(i) + 0j, 1 + float(i) * 1j])
             else:
-                tmplist.append(1 + float(i)*1j)
+                tmplist.append(1 + float(i) * 1j)
             if hasattr(tb, 'Float16Col'):
                 if isinstance(row['var11'], np.ndarray):
-                    tmplist.append(np.array((float(i),)*4))
+                    tmplist.append(np.array((float(i),) * 4))
                 else:
                     tmplist.append(float(i))
             if hasattr(tb, 'Float96Col'):
                 if isinstance(row['var12'], np.ndarray):
-                    tmplist.append(np.array((float(i),)*4))
+                    tmplist.append(np.array((float(i),) * 4))
                 else:
                     tmplist.append(float(i))
             if hasattr(tb, 'Float128Col'):
                 if isinstance(row['var13'], np.ndarray):
-                    tmplist.append(np.array((float(i),)*4))
+                    tmplist.append(np.array((float(i),) * 4))
                 else:
                     tmplist.append(float(i))
             if hasattr(tb, 'Complex192Col'):
                 if isinstance(row['var14'], np.ndarray):
-                    tmplist.append([float(i)+0j, 1 + float(i)*1j])
+                    tmplist.append([float(i) + 0j, 1 + float(i) * 1j])
                 else:
-                    tmplist.append(1 + float(i)*1j)
+                    tmplist.append(1 + float(i) * 1j)
             if hasattr(tb, 'Complex256Col'):
                 if isinstance(row['var15'], np.ndarray):
-                    tmplist.append([float(i)+0j, 1 + float(i)*1j])
+                    tmplist.append([float(i) + 0j, 1 + float(i) * 1j])
                 else:
-                    tmplist.append(1 + float(i)*1j)
+                    tmplist.append(1 + float(i) * 1j)
 
             buflist.append(tuple(tmplist))
 
-        self.record = np.rec.array(buflist, dtype=record.dtype,
-                                   shape=self.expectedrows)
+        self.record = np.rec.array(
+            buflist, dtype=record.dtype, shape=self.expectedrows
+        )
 
     def populateFile(self):
         group = self.rootgroup
@@ -207,22 +215,27 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.initRecArray()
         for j in range(3):
             # Create a table
-            filterprops = tb.Filters(complevel=self.compress,
-                                     shuffle=self.shuffle,
-                                     bitshuffle=self.bitshuffle,
-                                     fletcher32=self.fletcher32,
-                                     complib=self.complib)
+            filterprops = tb.Filters(
+                complevel=self.compress,
+                shuffle=self.shuffle,
+                bitshuffle=self.bitshuffle,
+                fletcher32=self.fletcher32,
+                complib=self.complib,
+            )
             if j < 2:
                 byteorder = sys.byteorder
             else:
                 # table2 will be byteswapped
-                byteorder = {"little": "big", "big": "little"}[sys.byteorder]
-            table = self.h5file.create_table(group, 'table'+str(j),
-                                             self.record,
-                                             title=self.title,
-                                             filters=filterprops,
-                                             expectedrows=self.expectedrows,
-                                             byteorder=byteorder)
+                byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
+            table = self.h5file.create_table(
+                group,
+                'table' + str(j),
+                self.record,
+                title=self.title,
+                filters=filterprops,
+                expectedrows=self.expectedrows,
+                byteorder=byteorder,
+            )
             if not self.recarrayinit:
                 # Get the row object associated with the new table
                 row = table.row
@@ -243,53 +256,54 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     else:
                         row['var8'] = 1
                     if isinstance(row['var9'], np.ndarray):
-                        row['var9'] = [0.+float(i)*1j, float(i)+0.j]
+                        row['var9'] = [0.0 + float(i) * 1j, float(i) + 0.0j]
                     else:
-                        row['var9'] = float(i)+0.j
+                        row['var9'] = float(i) + 0.0j
                     if isinstance(row['var10'], np.ndarray):
-                        row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
+                        row['var10'] = [float(i) + 0.0j, 1.0 + float(i) * 1j]
                     else:
-                        row['var10'] = 1.+float(i)*1j
+                        row['var10'] = 1.0 + float(i) * 1j
                     if isinstance(row['var5'], np.ndarray):
-                        row['var5'] = np.array((float(i),)*4)
+                        row['var5'] = np.array((float(i),) * 4)
                     else:
                         row['var5'] = float(i)
                     if hasattr(tb, 'Float16Col'):
                         if isinstance(row['var11'], np.ndarray):
-                            row['var11'] = np.array((float(i),)*4)
+                            row['var11'] = np.array((float(i),) * 4)
                         else:
                             row['var11'] = float(i)
                     if hasattr(tb, 'Float96Col'):
                         if isinstance(row['var12'], np.ndarray):
-                            row['var12'] = np.array((float(i),)*4)
+                            row['var12'] = np.array((float(i),) * 4)
                         else:
                             row['var12'] = float(i)
                     if hasattr(tb, 'Float128Col'):
                         if isinstance(row['var13'], np.ndarray):
-                            row['var13'] = np.array((float(i),)*4)
+                            row['var13'] = np.array((float(i),) * 4)
                         else:
                             row['var13'] = float(i)
                     if hasattr(tb, 'Complex192Col'):
                         if isinstance(row['var14'], np.ndarray):
-                            row['var14'] = [float(i)+0j, 1 + float(i)*1j]
+                            row['var14'] = [float(i) + 0j, 1 + float(i) * 1j]
                         else:
-                            row['var14'] = 1 + float(i)*1j
+                            row['var14'] = 1 + float(i) * 1j
                     if hasattr(tb, 'Complex256Col'):
                         if isinstance(row['var15'], np.ndarray):
-                            row['var15'] = [float(i)+0j, 1 + float(i)*1j]
+                            row['var15'] = [float(i) + 0j, 1 + float(i) * 1j]
                         else:
-                            row['var15'] = 1 + float(i)*1j
+                            row['var15'] = 1 + float(i) * 1j
 
                     # var6 will be like var3 but byteswaped
-                    row['var6'] = (((row['var3'] >> 8) & 0xff) +
-                                   ((row['var3'] << 8) & 0xff00))
+                    row['var6'] = ((row['var3'] >> 8) & 0xFF) + (
+                        (row['var3'] << 8) & 0xFF00
+                    )
                     # print("Saving -->", row)
                     row.append()
 
             # Flush the buffer for this table
             table.flush()
             # Create a new group (descendant of group)
-            group2 = self.h5file.create_group(group, 'group'+str(j))
+            group2 = self.h5file.create_group(group, 'group' + str(j))
             # Iterate over this new group (group2)
             group = group2
 
@@ -319,7 +333,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Column names.
         fix_n_column = 10
         expectedNames = ['var%d' % n for n in range(1, fix_n_column + 1)]
-        types = ("float16", "float96", "float128", "complex192", "complex256")
+        types = ('float16', 'float96', 'float128', 'complex192', 'complex256')
         for n, typename in enumerate(types, fix_n_column + 1):
             name = typename.capitalize() + 'Col'
             if hasattr(tb, name):
@@ -330,36 +344,42 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Column instances.
         for colname in expectedNames:
-            self.assertTrue(tbl.colinstances[colname]
-                            is tbl.cols._f_col(colname))
+            self.assertTrue(
+                tbl.colinstances[colname] is tbl.cols._f_col(colname)
+            )
 
         # Column types.
-        expectedTypes = [columns[colname].dtype
-                         for colname in expectedNames]
-        self.assertEqual(expectedTypes,
-                         [tbl.coldtypes[v] for v in expectedNames])
-        self.assertEqual(expectedTypes,
-                         [desc._v_dtypes[v] for v in expectedNames])
+        expectedTypes = [columns[colname].dtype for colname in expectedNames]
+        self.assertEqual(
+            expectedTypes, [tbl.coldtypes[v] for v in expectedNames]
+        )
+        self.assertEqual(
+            expectedTypes, [desc._v_dtypes[v] for v in expectedNames]
+        )
 
         # Column string types.
-        expectedTypes = [columns[colname].type
-                         for colname in expectedNames]
-        self.assertEqual(expectedTypes,
-                         [tbl.coltypes[v] for v in expectedNames])
-        self.assertEqual(expectedTypes,
-                         [desc._v_types[v] for v in expectedNames])
+        expectedTypes = [columns[colname].type for colname in expectedNames]
+        self.assertEqual(
+            expectedTypes, [tbl.coltypes[v] for v in expectedNames]
+        )
+        self.assertEqual(
+            expectedTypes, [desc._v_types[v] for v in expectedNames]
+        )
 
         # Column defaults.
         for v in expectedNames:
             if common.verbose:
-                print("dflt-->", columns[v].dflt, type(columns[v].dflt))
-                print("coldflts-->", tbl.coldflts[v], type(tbl.coldflts[v]))
-                print("desc.dflts-->", desc._v_dflts[v],
-                      type(desc._v_dflts[v]))
+                print('dflt-->', columns[v].dflt, type(columns[v].dflt))
+                print('coldflts-->', tbl.coldflts[v], type(tbl.coldflts[v]))
+                print(
+                    'desc.dflts-->', desc._v_dflts[v], type(desc._v_dflts[v])
+                )
             self.assertTrue(
-                common.areArraysEqual(tbl.coldflts[v], columns[v].dflt))
+                common.areArraysEqual(tbl.coldflts[v], columns[v].dflt)
+            )
             self.assertTrue(
-                common.areArraysEqual(desc._v_dflts[v], columns[v].dflt))
+                common.areArraysEqual(desc._v_dflts[v], columns[v].dflt)
+            )
 
         # Column path names.
         self.assertEqual(expectedNames, list(desc._v_pathnames))
@@ -377,35 +397,45 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_readTable..." % self.__class__.__name__)
+            print('Running %s.test01_readTable...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Choose a small value for buffer size
         table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
         result = [rec['var2'] for rec in table.iterrows() if rec['var2'] < 20]
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", rec)
-            print("Total selected records in table ==> ", len(result))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last record in table ==>', rec)
+            print('Total selected records in table ==> ', len(result))
         nrows = self.expectedrows - 1
         rec = list(table.iterrows())[-1]
-        self.assertEqual((rec['var1'], rec['var2'], rec['var7']),
-                         (b"0001", nrows, b"1"))
+        self.assertEqual(
+            (rec['var1'], rec['var2'], rec['var7']), (b'0001', nrows, b'1')
+        )
         if isinstance(rec['var5'], np.ndarray):
-            self.assertTrue(common.allequal(
-                rec['var5'], np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(
+                common.allequal(
+                    rec['var5'], np.array((float(nrows),) * 4, np.float32)
+                )
+            )
         else:
             self.assertEqual(rec['var5'], float(nrows))
         if isinstance(rec['var9'], np.ndarray):
-            self.assertTrue(common.allequal(
-                rec['var9'], np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
-                                      np.complex64)))
+            self.assertTrue(
+                common.allequal(
+                    rec['var9'],
+                    np.array(
+                        [0.0 + float(nrows) * 1.0j, float(nrows) + 0.0j],
+                        np.complex64,
+                    ),
+                )
+            )
         else:
-            self.assertEqual((rec['var9']), float(nrows)+0.j)
+            self.assertEqual((rec['var9']), float(nrows) + 0.0j)
         self.assertEqual(len(result), 20)
 
     def test01a_fetch_all_fields(self):
@@ -413,40 +443,54 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a_fetch_all_fields..." %
-                  self.__class__.__name__)
+            print(
+                'Running %s.test01a_fetch_all_fields...'
+                % self.__class__.__name__
+            )
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Choose a small value for buffer size
         table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
-        result = [rec.fetch_all_fields() for rec in table.iterrows()
-                  if rec['var2'] < 20]
+        result = [
+            rec.fetch_all_fields()
+            for rec in table.iterrows()
+            if rec['var2'] < 20
+        ]
         rec = result[-1]
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", rec)
-            print("Total selected records in table ==> ", len(result))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last record in table ==>', rec)
+            print('Total selected records in table ==> ', len(result))
         nrows = 20 - 1
-        strnrows = "%04d" % (self.expectedrows - nrows)
+        strnrows = '%04d' % (self.expectedrows - nrows)
         strnrows = strnrows.encode('ascii')
-        self.assertEqual((rec['var1'], rec['var2'], rec['var7']),
-                         (strnrows, nrows, b"1"))
+        self.assertEqual(
+            (rec['var1'], rec['var2'], rec['var7']), (strnrows, nrows, b'1')
+        )
         if isinstance(rec['var5'], np.ndarray):
-            self.assertTrue(common.allequal(
-                rec['var5'], np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(
+                common.allequal(
+                    rec['var5'], np.array((float(nrows),) * 4, np.float32)
+                )
+            )
         else:
             self.assertEqual(rec['var5'], float(nrows))
         if isinstance(rec['var9'], np.ndarray):
-            self.assertTrue(common.allequal(
-                rec['var9'],
-                np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
-                         np.complex64)))
+            self.assertTrue(
+                common.allequal(
+                    rec['var9'],
+                    np.array(
+                        [0.0 + float(nrows) * 1.0j, float(nrows) + 0.0j],
+                        np.complex64,
+                    ),
+                )
+            )
         else:
-            self.assertEqual(rec['var9'], float(nrows)+0.j)
+            self.assertEqual(rec['var9'], float(nrows) + 0.0j)
         self.assertEqual(len(result), 20)
 
     def test01a_integer(self):
@@ -454,21 +498,20 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a_integer..." % self.__class__.__name__)
+            print('Running %s.test01a_integer...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Choose a small value for buffer size
         table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
-        result = [rec[1] for rec in table.iterrows()
-                  if rec['var2'] < 20]
+        result = [rec[1] for rec in table.iterrows() if rec['var2'] < 20]
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Total selected records in table ==> ", len(result))
-            print("All results ==>", result)
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Total selected records in table ==> ', len(result))
+            print('All results ==>', result)
         self.assertEqual(len(result), 20)
         self.assertEqual(result, list(range(20)))
 
@@ -477,38 +520,46 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a_extslice..." % self.__class__.__name__)
+            print('Running %s.test01a_extslice...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Choose a small value for buffer size
         table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
-        result = [rec[::2] for rec in table.iterrows()
-                  if rec['var2'] < 20]
+        result = [rec[::2] for rec in table.iterrows() if rec['var2'] < 20]
         rec = result[-1]
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", rec)
-            print("Total selected records in table ==> ", len(result))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last record in table ==>', rec)
+            print('Total selected records in table ==> ', len(result))
         nrows = 20 - 1
-        strnrows = "%04d" % (self.expectedrows - nrows)
+        strnrows = '%04d' % (self.expectedrows - nrows)
         strnrows = strnrows.encode('ascii')
         self.assertEqual(rec[:2], (strnrows, 19))
         self.assertEqual(rec[3], b'1')
         if isinstance(rec[2], np.ndarray):
-            self.assertTrue(common.allequal(
-                rec[2], np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(
+                common.allequal(
+                    rec[2], np.array((float(nrows),) * 4, np.float32)
+                )
+            )
         else:
             self.assertEqual(rec[2], nrows)
         if isinstance(rec[4], np.ndarray):
-            self.assertTrue(common.allequal(
-                rec[4], np.array([0.+float(nrows)*1.j, float(nrows)+0.j],
-                                 np.complex64)))
+            self.assertTrue(
+                common.allequal(
+                    rec[4],
+                    np.array(
+                        [0.0 + float(nrows) * 1.0j, float(nrows) + 0.0j],
+                        np.complex64,
+                    ),
+                )
+            )
         else:
-            self.assertEqual(rec[4], float(nrows)+0.j)
+            self.assertEqual(rec[4], float(nrows) + 0.0j)
         self.assertEqual(len(result), 20)
 
     def test01a_nofield(self):
@@ -516,11 +567,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a_nofield..." % self.__class__.__name__)
+            print('Running %s.test01a_nofield...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Check that a KeyError is raised
         # self.assertRaises only work with functions
@@ -535,12 +586,13 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a_badtypefield..." %
-                  self.__class__.__name__)
+            print(
+                'Running %s.test01a_badtypefield...' % self.__class__.__name__
+            )
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Check that a TypeError is raised
         # self.assertRaises only work with functions
@@ -555,66 +607,92 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01b_readTable..." % self.__class__.__name__)
+            print('Running %s.test01b_readTable...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Choose a small value for buffer size
         table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
-        result = [rec['var5'] for rec in table.iterrows()
-                  if rec['var2'] < 20]
+        result = [rec['var5'] for rec in table.iterrows() if rec['var2'] < 20]
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", rec)
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last record in table ==>', rec)
             print("rec['var5'] ==>", rec['var5'], end=' ')
-            print("nrows ==>", table.nrows)
-            print("Total selected records in table ==> ", len(result))
+            print('nrows ==>', table.nrows)
+            print('Total selected records in table ==> ', len(result))
         nrows = table.nrows
         rec = list(table.iterrows())[-1]
         if isinstance(rec['var5'], np.ndarray):
             np.testing.assert_array_equal(
-                result[0], np.array((float(0),)*4, np.float32))
+                result[0], np.array((float(0),) * 4, np.float32)
+            )
             np.testing.assert_array_equal(
-                result[1], np.array((float(1),)*4, np.float32))
+                result[1], np.array((float(1),) * 4, np.float32)
+            )
             np.testing.assert_array_equal(
-                result[2], np.array((float(2),)*4, np.float32))
+                result[2], np.array((float(2),) * 4, np.float32)
+            )
             np.testing.assert_array_equal(
-                result[3], np.array((float(3),)*4, np.float32))
+                result[3], np.array((float(3),) * 4, np.float32)
+            )
             np.testing.assert_array_equal(
-                result[10], np.array((float(10),)*4, np.float32))
+                result[10], np.array((float(10),) * 4, np.float32)
+            )
             np.testing.assert_array_equal(
-                rec['var5'], np.array((float(nrows-1),)*4, np.float32))
+                rec['var5'], np.array((float(nrows - 1),) * 4, np.float32)
+            )
         else:
             self.assertEqual(rec['var5'], float(nrows - 1))
 
         # Read the records and select those with "var2" file less than 20
-        result = [record['var10'] for record in table.iterrows()
-                  if record['var2'] < 20]
+        result = [
+            record['var10']
+            for record in table.iterrows()
+            if record['var2'] < 20
+        ]
         if isinstance(rec['var10'], np.ndarray):
             np.testing.assert_array_equal(
                 result[0],
-                np.array([float(0)+0.j, 1.+float(0)*1j], np.complex128))
+                np.array(
+                    [float(0) + 0.0j, 1.0 + float(0) * 1j], np.complex128
+                ),
+            )
             np.testing.assert_array_equal(
                 result[1],
-                np.array([float(1)+0.j, 1.+float(1)*1j], np.complex128))
+                np.array(
+                    [float(1) + 0.0j, 1.0 + float(1) * 1j], np.complex128
+                ),
+            )
             np.testing.assert_array_equal(
                 result[2],
-                np.array([float(2)+0.j, 1.+float(2)*1j], np.complex128))
+                np.array(
+                    [float(2) + 0.0j, 1.0 + float(2) * 1j], np.complex128
+                ),
+            )
             np.testing.assert_array_equal(
                 result[3],
-                np.array([float(3)+0.j, 1.+float(3)*1j], np.complex128))
+                np.array(
+                    [float(3) + 0.0j, 1.0 + float(3) * 1j], np.complex128
+                ),
+            )
             np.testing.assert_array_equal(
                 result[10],
-                np.array([float(10)+0.j, 1.+float(10)*1j], np.complex128))
+                np.array(
+                    [float(10) + 0.0j, 1.0 + float(10) * 1j], np.complex128
+                ),
+            )
             np.testing.assert_array_equal(
                 rec['var10'],
-                np.array([float(nrows-1)+0.j, 1.+float(nrows-1)*1j],
-                         np.complex128))
+                np.array(
+                    [float(nrows - 1) + 0.0j, 1.0 + float(nrows - 1) * 1j],
+                    np.complex128,
+                ),
+            )
         else:
-            self.assertEqual(rec['var10'], 1.+float(nrows-1)*1j)
+            self.assertEqual(rec['var10'], 1.0 + float(nrows - 1) * 1j)
         self.assertEqual(len(result), 20)
 
     def test01c_readTable(self):
@@ -622,11 +700,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01c_readTable..." % self.__class__.__name__)
+            print('Running %s.test01c_readTable...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Read the records and select those with "var2" file less than 20
         result = []
@@ -635,7 +713,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 if rec2['var2'] < 20:
                     result.append([rec['var2'], rec2['var2']])
         if common.verbose:
-            print("result ==>", result)
+            print('result ==>', result)
 
         self.assertEqual(result, [[0, 0], [0, 1], [1, 0], [1, 1]])
 
@@ -644,11 +722,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01d_readTable..." % self.__class__.__name__)
+            print('Running %s.test01d_readTable...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Read the records and select those with "var2" file less than 20
         result = []
@@ -656,7 +734,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for rec2 in table.where('var2 < 20', stop=2):
                 result.append([rec['var2'], rec2['var2']])
         if common.verbose:
-            print("result ==>", result)
+            print('result ==>', result)
 
         self.assertEqual(result, [[0, 0], [0, 1], [1, 0], [1, 1]])
 
@@ -665,11 +743,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01e_readTable..." % self.__class__.__name__)
+            print('Running %s.test01e_readTable...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Read the records and select those with "var2" file less than 20
         result = []
@@ -677,21 +755,22 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for rec2 in table.where('var2 < 3'):
                 result.append([rec['var2'], rec2['var3']])
         if common.verbose:
-            print("result ==>", result)
+            print('result ==>', result)
 
-        self.assertEqual(result,
-                         [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])
+        self.assertEqual(
+            result, [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]]
+        )
 
     def test01f_readTable(self):
         """Checking nested iterators (reading, break in the loop)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01f_readTable..." % self.__class__.__name__)
+            print('Running %s.test01f_readTable...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Read the records and select those with "var2" file less than 20
         result = []
@@ -701,24 +780,28 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     break
                 result.append([rec['var2'], rec2['var3']])
         if common.verbose:
-            print("result ==>", result)
+            print('result ==>', result)
 
-        self.assertEqual(result,
-                         [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])
+        self.assertEqual(
+            result, [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]]
+        )
 
     def test01g_readTable(self):
         """Checking iterator with an evanescent table."""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01g_readTable..." % self.__class__.__name__)
+            print('Running %s.test01g_readTable...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
 
         # Read from an evanescent table
-        result = [rec['var2'] for rec in self.h5file.get_node("/table0")
-                  if rec['var2'] < 20]
+        result = [
+            rec['var2']
+            for rec in self.h5file.get_node('/table0')
+            if rec['var2'] < 20
+        ]
 
         self.assertEqual(len(result), 20)
 
@@ -726,20 +809,20 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking whether appending record rows works or not."""
 
         # Now, open it, but in "append" mode
-        self.h5file = tb.open_file(self.h5fname, mode="a")
+        self.h5file = tb.open_file(self.h5fname, mode='a')
         self.rootgroup = self.h5file.root
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02_AppendRows..." % self.__class__.__name__)
+            print('Running %s.test02_AppendRows...' % self.__class__.__name__)
 
         # Get a table
-        table = self.h5file.get_node("/group0/table1")
+        table = self.h5file.get_node('/group0/table1')
         # Get their row object
         row = table.row
         if common.verbose:
-            print("Nrows in old", table._v_pathname, ":", table.nrows)
-            print("Record Format ==>", table.description._v_nested_formats)
-            print("Record Size ==>", table.rowsize)
+            print('Nrows in old', table._v_pathname, ':', table.nrows)
+            print('Record Format ==>', table.description._v_nested_formats)
+            print('Record Size ==>', table.rowsize)
         # Append some rows
         for i in range(self.appendrows):
             s = '%04d' % (self.appendrows - i)
@@ -756,42 +839,42 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             else:
                 row['var8'] = 1
             if isinstance(row['var9'], np.ndarray):
-                row['var9'] = [0.+float(i)*1j, float(i)+0.j]
+                row['var9'] = [0.0 + float(i) * 1j, float(i) + 0.0j]
             else:
-                row['var9'] = float(i)+0.j
+                row['var9'] = float(i) + 0.0j
             if isinstance(row['var10'], np.ndarray):
-                row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
+                row['var10'] = [float(i) + 0.0j, 1.0 + float(i) * 1j]
             else:
-                row['var10'] = 1.+float(i)*1j
+                row['var10'] = 1.0 + float(i) * 1j
             if isinstance(row['var5'], np.ndarray):
-                row['var5'] = np.array((float(i),)*4)
+                row['var5'] = np.array((float(i),) * 4)
             else:
                 row['var5'] = float(i)
             if hasattr(tb, 'Float16Col'):
                 if isinstance(row['var11'], np.ndarray):
-                    row['var11'] = np.array((float(i),)*4)
+                    row['var11'] = np.array((float(i),) * 4)
                 else:
                     row['var11'] = float(i)
             if hasattr(tb, 'Float96Col'):
                 if isinstance(row['var12'], np.ndarray):
-                    row['var12'] = np.array((float(i),)*4)
+                    row['var12'] = np.array((float(i),) * 4)
                 else:
                     row['var12'] = float(i)
             if hasattr(tb, 'Float128Col'):
                 if isinstance(row['var13'], np.ndarray):
-                    row['var13'] = np.array((float(i),)*4)
+                    row['var13'] = np.array((float(i),) * 4)
                 else:
                     row['var13'] = float(i)
             if hasattr(tb, 'Complex192Col'):
                 if isinstance(row['var14'], np.ndarray):
-                    row['var14'] = [float(i)+0j, 1 + float(i)*1j]
+                    row['var14'] = [float(i) + 0j, 1 + float(i) * 1j]
                 else:
-                    row['var14'] = 1 + float(i)*1j
+                    row['var14'] = 1 + float(i) * 1j
             if hasattr(tb, 'Complex256Col'):
                 if isinstance(row['var15'], np.ndarray):
-                    row['var15'] = [float(i)+0j, 1 + float(i)*1j]
+                    row['var15'] = [float(i) + 0j, 1 + float(i) * 1j]
                 else:
-                    row['var15'] = 1 + float(i)*1j
+                    row['var15'] = 1 + float(i) * 1j
 
             row.append()
 
@@ -801,11 +884,15 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         nrows = self.appendrows - 1
         row = list(table.iterrows())[-1]
-        self.assertEqual((row['var1'], row['var2'], row['var7']),
-                         (b"0001", nrows, b"1"))
+        self.assertEqual(
+            (row['var1'], row['var2'], row['var7']), (b'0001', nrows, b'1')
+        )
         if isinstance(row['var5'], np.ndarray):
-            self.assertTrue(common.allequal(
-                row['var5'], np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(
+                common.allequal(
+                    row['var5'], np.array((float(nrows),) * 4, np.float32)
+                )
+            )
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -821,24 +908,24 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking appending records without flushing explicitely."""
 
         # Now, open it, but in "append" mode
-        self.h5file = tb.open_file(self.h5fname, mode="a")
+        self.h5file = tb.open_file(self.h5fname, mode='a')
         self.rootgroup = self.h5file.root
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02a_AppendRows..." % self.__class__.__name__)
+            print('Running %s.test02a_AppendRows...' % self.__class__.__name__)
 
         group = self.rootgroup
         for group_i in range(3):
             # Get a table
-            table = self.h5file.get_node(group, 'table'+str(group_i))
+            table = self.h5file.get_node(group, 'table' + str(group_i))
             # Get the next group
-            group = self.h5file.get_node(group, 'group'+str(group_i))
+            group = self.h5file.get_node(group, 'group' + str(group_i))
             # Get their row object
             row = table.row
             if common.verbose:
-                print("Nrows in old", table._v_pathname, ":", table.nrows)
-                print("Record Format ==>", table.description._v_nested_formats)
-                print("Record Size ==>", table.rowsize)
+                print('Nrows in old', table._v_pathname, ':', table.nrows)
+                print('Record Format ==>', table.description._v_nested_formats)
+                print('Record Size ==>', table.rowsize)
             # Append some rows
             for row_i in range(self.appendrows):
                 row['var1'] = '%04d' % (self.appendrows - row_i)
@@ -854,42 +941,54 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 else:
                     row['var8'] = 1
                 if isinstance(row['var9'], np.ndarray):
-                    row['var9'] = [0.+float(row_i)*1j, float(row_i)+0.j]
+                    row['var9'] = [
+                        0.0 + float(row_i) * 1j,
+                        float(row_i) + 0.0j,
+                    ]
                 else:
-                    row['var9'] = float(row_i)+0.j
+                    row['var9'] = float(row_i) + 0.0j
                 if isinstance(row['var10'], np.ndarray):
-                    row['var10'] = [float(row_i)+0.j, 1.+float(row_i)*1j]
+                    row['var10'] = [
+                        float(row_i) + 0.0j,
+                        1.0 + float(row_i) * 1j,
+                    ]
                 else:
-                    row['var10'] = 1.+float(row_i)*1j
+                    row['var10'] = 1.0 + float(row_i) * 1j
                 if isinstance(row['var5'], np.ndarray):
-                    row['var5'] = np.array((float(row_i),)*4)
+                    row['var5'] = np.array((float(row_i),) * 4)
                 else:
                     row['var5'] = float(row_i)
                 if hasattr(tb, 'Float16Col'):
                     if isinstance(row['var11'], np.ndarray):
-                        row['var11'] = np.array((float(row_i),)*4)
+                        row['var11'] = np.array((float(row_i),) * 4)
                     else:
                         row['var11'] = float(row_i)
                 if hasattr(tb, 'Float96Col'):
                     if isinstance(row['var12'], np.ndarray):
-                        row['var12'] = np.array((float(row_i),)*4)
+                        row['var12'] = np.array((float(row_i),) * 4)
                     else:
                         row['var12'] = float(row_i)
                 if hasattr(tb, 'Float128Col'):
                     if isinstance(row['var13'], np.ndarray):
-                        row['var13'] = np.array((float(row_i),)*4)
+                        row['var13'] = np.array((float(row_i),) * 4)
                     else:
                         row['var13'] = float(row_i)
                 if hasattr(tb, 'Complex192Col'):
                     if isinstance(row['var14'], np.ndarray):
-                        row['var14'] = [float(row_i)+0j, 1 + float(row_i)*1j]
+                        row['var14'] = [
+                            float(row_i) + 0j,
+                            1 + float(row_i) * 1j,
+                        ]
                     else:
-                        row['var14'] = 1 + float(row_i)*1j
+                        row['var14'] = 1 + float(row_i) * 1j
                 if hasattr(tb, 'Complex256Col'):
                     if isinstance(row['var15'], np.ndarray):
-                        row['var15'] = [float(row_i)+0j, 1 + float(row_i)*1j]
+                        row['var15'] = [
+                            float(row_i) + 0j,
+                            1 + float(row_i) * 1j,
+                        ]
                     else:
-                        row['var15'] = 1 + float(row_i)*1j
+                        row['var15'] = 1 + float(row_i) * 1j
 
                 row.append()
             table.flush()
@@ -897,17 +996,21 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Close the file and re-open it.
         self.h5file.close()
 
-        self.h5file = tb.open_file(self.h5fname, mode="a")
+        self.h5file = tb.open_file(self.h5fname, mode='a')
         table = self.h5file.root.table0
         # Flush the buffer for this table and read it
         result = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         nrows = self.appendrows - 1
-        self.assertEqual((row['var1'], row['var2'], row['var7']),
-                         ("0001", nrows, "1"))
+        self.assertEqual(
+            (row['var1'], row['var2'], row['var7']), ('0001', nrows, '1')
+        )
         if isinstance(row['var5'], np.ndarray):
-            self.assertTrue(common.allequal(
-                row['var5'], np.array((float(nrows),)*4, np.float32)))
+            self.assertTrue(
+                common.allequal(
+                    row['var5'], np.array((float(nrows),) * 4, np.float32)
+                )
+            )
         else:
             self.assertEqual(row['var5'], float(nrows))
         if self.appendrows <= 20:
@@ -920,18 +1023,18 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking whether appending *and* reading rows works or not"""
 
         # Now, open it, but in "append" mode
-        self.h5file = tb.open_file(self.h5fname, mode="a")
+        self.h5file = tb.open_file(self.h5fname, mode='a')
         self.rootgroup = self.h5file.root
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02b_AppendRows..." % self.__class__.__name__)
+            print('Running %s.test02b_AppendRows...' % self.__class__.__name__)
 
         # Get a table
-        table = self.h5file.get_node("/group0/table1")
+        table = self.h5file.get_node('/group0/table1')
         if common.verbose:
-            print("Nrows in old", table._v_pathname, ":", table.nrows)
-            print("Record Format ==>", table.description._v_nested_formats)
-            print("Record Size ==>", table.rowsize)
+            print('Nrows in old', table._v_pathname, ':', table.nrows)
+            print('Record Format ==>', table.description._v_nested_formats)
+            print('Record Size ==>', table.rowsize)
         # Set a small number of buffer to make this test faster
         table.nrowsinbuf = 3
         # Get their row object
@@ -954,42 +1057,42 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             else:
                 row['var8'] = 1
             if isinstance(row['var9'], np.ndarray):
-                row['var9'] = [0.+float(i)*1j, float(i)+0.j]
+                row['var9'] = [0.0 + float(i) * 1j, float(i) + 0.0j]
             else:
-                row['var9'] = float(i)+0.j
+                row['var9'] = float(i) + 0.0j
             if isinstance(row['var10'], np.ndarray):
-                row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
+                row['var10'] = [float(i) + 0.0j, 1.0 + float(i) * 1j]
             else:
-                row['var10'] = 1.+float(i)*1j
+                row['var10'] = 1.0 + float(i) * 1j
             if isinstance(row['var5'], np.ndarray):
-                row['var5'] = np.array((float(i),)*4)
+                row['var5'] = np.array((float(i),) * 4)
             else:
                 row['var5'] = float(i)
             if hasattr(tb, 'Float16Col'):
                 if isinstance(row['var11'], np.ndarray):
-                    row['var11'] = np.array((float(i),)*4)
+                    row['var11'] = np.array((float(i),) * 4)
                 else:
                     row['var11'] = float(i)
             if hasattr(tb, 'Float96Col'):
                 if isinstance(row['var12'], np.ndarray):
-                    row['var12'] = np.array((float(i),)*4)
+                    row['var12'] = np.array((float(i),) * 4)
                 else:
                     row['var12'] = float(i)
             if hasattr(tb, 'Float128Col'):
                 if isinstance(row['var13'], np.ndarray):
-                    row['var13'] = np.array((float(i),)*4)
+                    row['var13'] = np.array((float(i),) * 4)
                 else:
                     row['var13'] = float(i)
             if hasattr(tb, 'Complex192Col'):
                 if isinstance(row['var14'], np.ndarray):
-                    row['var14'] = [float(i)+0j, 1 + float(i)*1j]
+                    row['var14'] = [float(i) + 0j, 1 + float(i) * 1j]
                 else:
-                    row['var14'] = 1 + float(i)*1j
+                    row['var14'] = 1 + float(i) * 1j
             if hasattr(tb, 'Complex256Col'):
                 if isinstance(row['var15'], np.ndarray):
-                    row['var15'] = [float(i)+0j, 1 + float(i)*1j]
+                    row['var15'] = [float(i) + 0j, 1 + float(i) * 1j]
                 else:
-                    row['var15'] = 1 + float(i)*1j
+                    row['var15'] = 1 + float(i) * 1j
 
             row.append()
             # the next call can mislead the counters
@@ -1009,12 +1112,43 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row3['var2'] for row3 in table.iterrows() if row3['var2'] < 20
         ]
         if common.verbose:
-            print("Result length ==>", len(result))
-            print("Result contents ==>", result)
+            print('Result length ==>', len(result))
+            print('Result contents ==>', result)
         self.assertEqual(len(result), 20 + 3 * table.nrowsinbuf)
-        self.assertEqual(result, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-                                  10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                                  0, 1, 2, 3, 4, 5, 6, 7, 8])
+        self.assertEqual(
+            result,
+            [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+            ],
+        )
         # Check consistency of I/O buffers when doing mixed I/O operations
         # That is, the next should work in these operations
         # row['var1'] = '%04d' % (self.appendrows - i)
@@ -1023,13 +1157,42 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row4['var7'] for row4 in table.iterrows() if row4['var2'] < 20
         ]
         if common.verbose:
-            print("Result7 length ==>", len(result7))
-            print("Result7 contents ==>", result7)
+            print('Result7 length ==>', len(result7))
+            print('Result7 contents ==>', result7)
         self.assertEqual(
             result7,
-            [b'0', b'9', b'8', b'7', b'6', b'5', b'4', b'3', b'2', b'1',
-             b'0', b'9', b'8', b'7', b'6', b'5', b'4', b'3', b'2', b'1',
-             b'0', b'9', b'8', b'7', b'6', b'5', b'4', b'3', b'2'])
+            [
+                b'0',
+                b'9',
+                b'8',
+                b'7',
+                b'6',
+                b'5',
+                b'4',
+                b'3',
+                b'2',
+                b'1',
+                b'0',
+                b'9',
+                b'8',
+                b'7',
+                b'6',
+                b'5',
+                b'4',
+                b'3',
+                b'2',
+                b'1',
+                b'0',
+                b'9',
+                b'8',
+                b'7',
+                b'6',
+                b'5',
+                b'4',
+                b'3',
+                b'2',
+            ],
+        )
 
     def test02d_AppendRows(self):
         """Checking appending using the same Row object after flushing."""
@@ -1037,18 +1200,18 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # This test is kind of magic, but it is a good sanity check anyway.
 
         # Now, open it, but in "append" mode
-        self.h5file = tb.open_file(self.h5fname, mode="a")
+        self.h5file = tb.open_file(self.h5fname, mode='a')
         self.rootgroup = self.h5file.root
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02d_AppendRows..." % self.__class__.__name__)
+            print('Running %s.test02d_AppendRows...' % self.__class__.__name__)
 
         # Get a table
-        table = self.h5file.get_node("/group0/table1")
+        table = self.h5file.get_node('/group0/table1')
         if common.verbose:
-            print("Nrows in old", table._v_pathname, ":", table.nrows)
-            print("Record Format ==>", table.description._v_nested_formats)
-            print("Record Size ==>", table.rowsize)
+            print('Nrows in old', table._v_pathname, ':', table.nrows)
+            print('Record Format ==>', table.description._v_nested_formats)
+            print('Record Size ==>', table.rowsize)
         # Set a small number of buffer to make this test faster
         table.nrowsinbuf = 3
         # Get their row object
@@ -1068,21 +1231,81 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             r['var2'] for r in table.iterrows() if 100 <= r['var2'] < 120
         ]
         if common.verbose:
-            print("Result length ==>", len(result))
-            print("Result contents ==>", result)
+            print('Result length ==>', len(result))
+            print('Result contents ==>', result)
         if table.nrows > 119:
             # Case for big tables
             self.assertEqual(len(result), 39)
-            self.assertEqual(result,
-                             [100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
-                              110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
-                              100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
-                              110, 111, 112, 113, 114, 115, 116, 117, 118])
+            self.assertEqual(
+                result,
+                [
+                    100,
+                    101,
+                    102,
+                    103,
+                    104,
+                    105,
+                    106,
+                    107,
+                    108,
+                    109,
+                    110,
+                    111,
+                    112,
+                    113,
+                    114,
+                    115,
+                    116,
+                    117,
+                    118,
+                    119,
+                    100,
+                    101,
+                    102,
+                    103,
+                    104,
+                    105,
+                    106,
+                    107,
+                    108,
+                    109,
+                    110,
+                    111,
+                    112,
+                    113,
+                    114,
+                    115,
+                    116,
+                    117,
+                    118,
+                ],
+            )
         else:
             self.assertEqual(len(result), 19)
-            self.assertEqual(result,
-                             [100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
-                              110, 111, 112, 113, 114, 115, 116, 117, 118])
+            self.assertEqual(
+                result,
+                [
+                    100,
+                    101,
+                    102,
+                    103,
+                    104,
+                    105,
+                    106,
+                    107,
+                    108,
+                    109,
+                    110,
+                    111,
+                    112,
+                    113,
+                    114,
+                    115,
+                    116,
+                    117,
+                    118,
+                ],
+            )
 
     def test02e_AppendRows(self):
         """Checking appending using the Row of an unreferenced table."""
@@ -1102,8 +1325,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         row.append()
         table.flush()
         newnrows = table.nrows
-        self.assertEqual(newnrows, oldnrows + 1,
-                         "Append to alive table failed.")
+        self.assertEqual(
+            newnrows, oldnrows + 1, 'Append to alive table failed.'
+        )
 
         if self.h5file._node_manager.cache.nslots == 0:
             # Skip this test from here on because the second case
@@ -1116,8 +1340,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         table = self.h5file.get_node('/group0/table1')
         table.flush()
         newnrows = table.nrows
-        self.assertEqual(newnrows, oldnrows + 2,
-                         "Append to dead table failed.")
+        self.assertEqual(
+            newnrows, oldnrows + 2, 'Append to dead table failed.'
+        )
 
     # CAVEAT: The next test only works for tables with rows < 2**15
     def test03_endianess(self):
@@ -1125,25 +1350,26 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_endianess..." % self.__class__.__name__)
+            print('Running %s.test03_endianess...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/group0/group1/table2")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/group0/group1/table2')
 
         # Read the records and select the ones with "var3" column less than 20
         result = [rec['var2'] for rec in table.iterrows() if rec['var3'] < 20]
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("On-disk byteorder ==>", table.byteorder)
-            print("Last record in table ==>", rec)
-            print("Selected records ==>", result)
-            print("Total selected records in table ==>", len(result))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('On-disk byteorder ==>', table.byteorder)
+            print('Last record in table ==>', rec)
+            print('Selected records ==>', result)
+            print('Total selected records in table ==>', len(result))
         nrows = self.expectedrows - 1
-        self.assertEqual(table.byteorder,
-                         {"little": "big", "big": "little"}[sys.byteorder])
+        self.assertEqual(
+            table.byteorder, {'little': 'big', 'big': 'little'}[sys.byteorder]
+        )
         rec = list(table.iterrows())[-1]
-        self.assertEqual((rec['var1'], rec['var3']), (b"0001", nrows))
+        self.assertEqual((rec['var1'], rec['var3']), (b'0001', nrows))
         self.assertEqual(len(result), 20)
 
     def test04_delete(self):
@@ -1151,19 +1377,19 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04_delete..." % self.__class__.__name__)
+            print('Running %s.test04_delete...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "a")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'a')
+        table = self.h5file.get_node('/table0')
 
         # Read the records and select the ones with "var2" column less than 20
         result = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result[-1])
-            print("Total selected records in table ==>", len(result))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result[-1])
+            print('Total selected records in table ==>', len(result))
 
         nrows = table.nrows
         table.nrowsinbuf = 3  # small value of the buffer
@@ -1174,9 +1400,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result2[-1])
-            print("Total selected records in table ==>", len(result2))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result2[-1])
+            print('Total selected records in table ==>', len(result2))
 
         self.assertEqual(table.nrows, nrows - 1)
         self.assertEqual(table.shape, (nrows - 1,))
@@ -1189,19 +1415,19 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04_delete..." % self.__class__.__name__)
+            print('Running %s.test04_delete...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "a")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'a')
+        table = self.h5file.get_node('/table0')
 
         # Read the records and select the ones with "var2" column less than 20
         result = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result[-1])
-            print("Total selected records in table ==>", len(result))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result[-1])
+            print('Total selected records in table ==>', len(result))
 
         nrows = table.nrows
         table.nrowsinbuf = 3  # small value of the buffer
@@ -1212,9 +1438,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result2[-1])
-            print("Total selected records in table ==>", len(result2))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result2[-1])
+            print('Total selected records in table ==>', len(result2))
 
         self.assertEqual(table.nrows, nrows - 1)
         self.assertEqual(table.shape, (nrows - 1,))
@@ -1227,19 +1453,19 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04b_delete..." % self.__class__.__name__)
+            print('Running %s.test04b_delete...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "a")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'a')
+        table = self.h5file.get_node('/table0')
 
         # Read the records and select the ones with "var2" column less than 20
         result = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result[-1])
-            print("Total selected records in table ==>", len(result))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result[-1])
+            print('Total selected records in table ==>', len(result))
 
         nrows = table.nrows
         table.nrowsinbuf = 4  # small value of the buffer
@@ -1250,9 +1476,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result2[-1])
-            print("Total selected records in table ==>", len(result2))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result2[-1])
+            print('Total selected records in table ==>', len(result2))
 
         self.assertEqual(table.nrows, nrows - 10)
         self.assertEqual(table.shape, (nrows - 10,))
@@ -1265,11 +1491,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04c_delete..." % self.__class__.__name__)
+            print('Running %s.test04c_delete...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "a")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'a')
+        table = self.h5file.get_node('/table0')
 
         # Read the records and select the ones with "var2" column less than 20
         result = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
@@ -1283,9 +1509,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         result2 = [r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result2[-1])
-            print("Total selected records in table ==>", len(result2))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result2[-1])
+            print('Total selected records in table ==>', len(result2))
 
         self.assertEqual(table.nrows, 10)
         self.assertEqual(table.shape, (10,))
@@ -1298,11 +1524,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04d_delete..." % self.__class__.__name__)
+            print('Running %s.test04d_delete...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "a")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'a')
+        table = self.h5file.get_node('/table0')
 
         # Read the records and select the ones with "var2" column less than 20
         result = [r['var2'] for r in table if r['var2'] < 20]
@@ -1333,42 +1559,42 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             else:
                 row['var8'] = 1
             if isinstance(row['var9'], np.ndarray):
-                row['var9'] = [0.+float(i)*1j, float(i)+0.j]
+                row['var9'] = [0.0 + float(i) * 1j, float(i) + 0.0j]
             else:
-                row['var9'] = float(i)+0.j
+                row['var9'] = float(i) + 0.0j
             if isinstance(row['var10'], np.ndarray):
-                row['var10'] = [float(i)+0.j, 1.+float(i)*1j]
+                row['var10'] = [float(i) + 0.0j, 1.0 + float(i) * 1j]
             else:
-                row['var10'] = 1.+float(i)*1j
+                row['var10'] = 1.0 + float(i) * 1j
             if isinstance(row['var5'], np.ndarray):
-                row['var5'] = np.array((float(i),)*4)
+                row['var5'] = np.array((float(i),) * 4)
             else:
                 row['var5'] = float(i)
             if hasattr(tb, 'Float16Col'):
                 if isinstance(row['var11'], np.ndarray):
-                    row['var11'] = np.array((float(i),)*4)
+                    row['var11'] = np.array((float(i),) * 4)
                 else:
                     row['var11'] = float(i)
             if hasattr(tb, 'Float96Col'):
                 if isinstance(row['var12'], np.ndarray):
-                    row['var12'] = np.array((float(i),)*4)
+                    row['var12'] = np.array((float(i),) * 4)
                 else:
                     row['var12'] = float(i)
             if hasattr(tb, 'Float128Col'):
                 if isinstance(row['var13'], np.ndarray):
-                    row['var13'] = np.array((float(i),)*4)
+                    row['var13'] = np.array((float(i),) * 4)
                 else:
                     row['var13'] = float(i)
             if hasattr(tb, 'Complex192Col'):
                 if isinstance(row['var14'], np.ndarray):
-                    row['var14'] = [float(i)+0j, 1 + float(i)*1j]
+                    row['var14'] = [float(i) + 0j, 1 + float(i) * 1j]
                 else:
-                    row['var14'] = 1 + float(i)*1j
+                    row['var14'] = 1 + float(i) * 1j
             if hasattr(tb, 'Complex256Col'):
                 if isinstance(row['var15'], np.ndarray):
-                    row['var15'] = [float(i)+0j, 1 + float(i)*1j]
+                    row['var15'] = [float(i) + 0j, 1 + float(i) * 1j]
                 else:
-                    row['var15'] = 1 + float(i)*1j
+                    row['var15'] = 1 + float(i) * 1j
 
             row.append()
         # Flush the buffer for this table
@@ -1381,9 +1607,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         result2 = [r['var2'] for r in table if r['var2'] < 20]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result2[-1])
-            print("Total selected records in table ==>", len(result2))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result2[-1])
+            print('Total selected records in table ==>', len(result2))
 
         self.assertEqual(table.nrows, nrows - 5)
         self.assertEqual(table.shape, (nrows - 5,))
@@ -1397,19 +1623,19 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04e_delete..." % self.__class__.__name__)
+            print('Running %s.test04e_delete...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "a")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'a')
+        table = self.h5file.get_node('/table0')
 
         # Read all records
         result = [r['var2'] for r in table.iterrows()]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result[-1])
-            print("Total selected records in table ==>", len(result))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result[-1])
+            print('Total selected records in table ==>', len(result))
 
         table.nrowsinbuf = 4  # small value of the buffer
         # Delete all rows
@@ -1419,8 +1645,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         result2 = [r['var2'] for r in table.iterrows()]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Total selected records in table ==>", len(result2))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Total selected records in table ==>', len(result2))
 
         self.assertEqual(table.nrows, 0)
         self.assertEqual(table.shape, (0,))
@@ -1431,19 +1657,19 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04e_delete..." % self.__class__.__name__)
+            print('Running %s.test04e_delete...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "a")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'a')
+        table = self.h5file.get_node('/table0')
 
         # Read all records
         result = [r['var2'] for r in table.iterrows()]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result[-1])
-            print("Total selected records in table ==>", len(result))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result[-1])
+            print('Total selected records in table ==>', len(result))
 
         table.nrowsinbuf = 4  # small value of the buffer
         # Delete 100 rows
@@ -1453,8 +1679,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         result2 = [r['var2'] for r in table.iterrows()]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Total selected records in table ==>", len(result2))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Total selected records in table ==>', len(result2))
 
         self.assertEqual(table.nrows, 0)
         self.assertEqual(table.shape, (0,))
@@ -1465,31 +1691,31 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04e_delete..." % self.__class__.__name__)
+            print('Running %s.test04e_delete...' % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "a")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'a')
+        table = self.h5file.get_node('/table0')
 
         # Read all records
         result = [r['var2'] for r in table.iterrows()]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last selected value ==>", result[-1])
-            print("Total selected records in table ==>", len(result))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Last selected value ==>', result[-1])
+            print('Total selected records in table ==>', len(result))
 
         nrows = table.nrows
         table.nrowsinbuf = 4  # small value of the buffer
         # Delete 100 rows
-        table.remove_rows(0, nrows+1, 5)
+        table.remove_rows(0, nrows + 1, 5)
 
         # Re-read the records
         result2 = [r['var2'] for r in table.iterrows()]
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Total selected records in table ==>", len(result2))
+            print('Nrows in', table._v_pathname, ':', table.nrows)
+            print('Total selected records in table ==>', len(result2))
 
         outnrows = nrows - nrows // 5
         self.assertEqual(table.nrows, outnrows)
@@ -1501,31 +1727,32 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05_filtersTable..." %
-                  self.__class__.__name__)
+            print(
+                'Running %s.test05_filtersTable...' % self.__class__.__name__
+            )
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         # Check filters:
         if self.compress != table.filters.complevel and common.verbose:
-            print("Error in compress. Class:", self.__class__.__name__)
-            print("self, table:", self.compress, table.filters.complevel)
+            print('Error in compress. Class:', self.__class__.__name__)
+            print('self, table:', self.compress, table.filters.complevel)
         self.assertEqual(table.filters.complevel, self.compress)
         if self.compress > 0 and tb.which_lib_version(self.complib):
             self.assertEqual(table.filters.complib, self.complib)
         if self.shuffle != table.filters.shuffle and common.verbose:
-            print("Error in shuffle. Class:", self.__class__.__name__)
-            print("self, table:", self.shuffle, table.filters.shuffle)
+            print('Error in shuffle. Class:', self.__class__.__name__)
+            print('self, table:', self.shuffle, table.filters.shuffle)
         self.assertEqual(self.shuffle, table.filters.shuffle)
         if self.bitshuffle != table.filters.bitshuffle and common.verbose:
-            print("Error in bitshuffle. Class:", self.__class__.__name__)
-            print("self, table:", self.bitshuffle, table.filters.bitshuffle)
+            print('Error in bitshuffle. Class:', self.__class__.__name__)
+            print('self, table:', self.bitshuffle, table.filters.bitshuffle)
         self.assertEqual(self.bitshuffle, table.filters.bitshuffle)
         if self.fletcher32 != table.filters.fletcher32 and common.verbose:
-            print("Error in fletcher32. Class:", self.__class__.__name__)
-            print("self, table:", self.fletcher32, table.filters.fletcher32)
+            print('Error in fletcher32. Class:', self.__class__.__name__)
+            print('self, table:', self.fletcher32, table.filters.fletcher32)
         self.assertEqual(self.fletcher32, table.filters.fletcher32)
 
     def test06_attributes(self):
@@ -1541,26 +1768,27 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # If members are stored 'out of order' make sure they are loaded
         # correctly
         self.h5file = tb.open_file(
-            common.test_filename("out_of_order_types.h5"))
+            common.test_filename('out_of_order_types.h5')
+        )
         row = self.h5file.get_node('/group/table')[0]
 
-        self.assertEqual(row[0], b'*'*14)
-        self.assertEqual(row[1], b'-'*9)
-        self.assertEqual(row[2], b'.'*4)
+        self.assertEqual(row[0], b'*' * 14)
+        self.assertEqual(row[1], b'-' * 9)
+        self.assertEqual(row[2], b'.' * 4)
 
 
 class BasicWriteTestCase(BasicTestCase):
-    title = "BasicWrite"
+    title = 'BasicWrite'
 
 
 class OldRecordBasicWriteTestCase(BasicTestCase):
-    title = "OldRecordBasicWrite"
+    title = 'OldRecordBasicWrite'
     record = OldRecord
 
 
 class DictWriteTestCase(BasicTestCase):
     # This checks also unidimensional arrays as columns
-    title = "DictWrite"
+    title = 'DictWrite'
     record = RecordDescriptionDict
     nrows = 21
     nrowsinbuf = 3  # Choose a small value for the buffer size
@@ -1571,8 +1799,8 @@ class DictWriteTestCase(BasicTestCase):
 
 # Pure NumPy dtype
 class NumPyDTWriteTestCase(BasicTestCase):
-    title = "NumPyDTWriteTestCase"
-    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    title = 'NumPyDTWriteTestCase'
+    formats = 'a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16'.split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
     if hasattr(tb, 'Float16Col'):
@@ -1596,8 +1824,8 @@ class NumPyDTWriteTestCase(BasicTestCase):
 
 
 class RecArrayOneWriteTestCase(BasicTestCase):
-    title = "RecArrayOneWrite"
-    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    title = 'RecArrayOneWrite'
+    formats = 'a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16'.split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
     if hasattr(tb, 'Float16Col'):
@@ -1617,14 +1845,15 @@ class RecArrayOneWriteTestCase(BasicTestCase):
         names.append('var15')
 
     record = np.rec.array(
-        None, shape=0, formats=','.join(formats), names=names)
+        None, shape=0, formats=','.join(formats), names=names
+    )
 
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
-    title = "RecArrayTwoWrite"
+    title = 'RecArrayTwoWrite'
     expectedrows = 100
     recarrayinit = 1
-    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    formats = 'a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16'.split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
     if hasattr(tb, 'Float16Col'):
@@ -1644,14 +1873,15 @@ class RecArrayTwoWriteTestCase(BasicTestCase):
         names.append('var15')
 
     recordtemplate = np.rec.array(
-        None, shape=1, formats=','.join(formats), names=names)
+        None, shape=1, formats=','.join(formats), names=names
+    )
 
 
 class RecArrayThreeWriteTestCase(BasicTestCase):
-    title = "RecArrayThreeWrite"
+    title = 'RecArrayThreeWrite'
     expectedrows = 100
     recarrayinit = 1
-    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    formats = 'a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16'.split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
     if hasattr(tb, 'Float16Col'):
@@ -1671,14 +1901,15 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
         names.append('var15')
 
     recordtemplate = np.rec.array(
-        None, shape=1, formats=','.join(formats), names=names)
+        None, shape=1, formats=','.join(formats), names=names
+    )
 
 
 class RecArrayAlignedWriteTestCase(BasicTestCase):
-    title = "RecArrayThreeWrite"
+    title = 'RecArrayThreeWrite'
     expectedrows = 100
     recarrayinit = 1
-    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    formats = 'a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16'.split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
     if hasattr(tb, 'Float16Col'):
@@ -1698,174 +1929,194 @@ class RecArrayAlignedWriteTestCase(BasicTestCase):
         names.append('var15')
 
     recordtemplate = np.rec.array(
-        None, shape=1, formats=','.join(formats), names=names, aligned=True)
+        None, shape=1, formats=','.join(formats), names=names, aligned=True
+    )
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    not common.blosc_avail, 'BLOSC compression library not available'
+)
 class CompressBloscTablesTestCase(BasicTestCase):
-    title = "CompressBloscTables"
+    title = 'CompressBloscTables'
     compress = 6
-    complib = "blosc"
+    complib = 'blosc'
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    not common.blosc_avail, 'BLOSC compression library not available'
+)
 class CompressBloscShuffleTablesTestCase(BasicTestCase):
-    title = "CompressBloscTables"
+    title = 'CompressBloscTables'
     compress = 1
     shuffle = 1
-    complib = "blosc"
+    complib = 'blosc'
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    not common.blosc_avail, 'BLOSC compression library not available'
+)
 @common.unittest.skipIf(
     common.blosc_version < common.min_blosc_bitshuffle_version,
-    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
+    f'BLOSC >= {common.min_blosc_bitshuffle_version} required',
+)
 class CompressBloscBitShuffleTablesTestCase(BasicTestCase):
-    title = "CompressBloscBitShuffleTables"
+    title = 'CompressBloscBitShuffleTables'
     compress = 1
     shuffle = 0
     bitshuffle = 1
-    complib = "blosc:blosclz"
+    complib = 'blosc:blosclz'
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    not common.blosc_avail, 'BLOSC compression library not available'
+)
 class CompressBloscBloscLZTablesTestCase(BasicTestCase):
-    title = "CompressBloscLZTables"
+    title = 'CompressBloscLZTables'
     compress = 1
     shuffle = 1
-    complib = "blosc:blosclz"
+    complib = 'blosc:blosclz'
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
 @common.unittest.skipIf(
-    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+    not common.blosc_avail, 'BLOSC compression library not available'
+)
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required'
+)
 class CompressBloscLZ4TablesTestCase(BasicTestCase):
-    title = "CompressLZ4Tables"
+    title = 'CompressLZ4Tables'
     compress = 1
     shuffle = 1
-    complib = "blosc:lz4"
+    complib = 'blosc:lz4'
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
 @common.unittest.skipIf(
-    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
+    not common.blosc_avail, 'BLOSC compression library not available'
+)
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required'
+)
 class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
-    title = "CompressLZ4HCTables"
+    title = 'CompressLZ4HCTables'
     compress = 1
     shuffle = 1
-    complib = "blosc:lz4hc"
+    complib = 'blosc:lz4hc'
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
-@common.unittest.skipIf('snappy' not in tb.blosc_compressor_list(),
-                        'snappy required')
+@common.unittest.skipIf(
+    not common.blosc_avail, 'BLOSC compression library not available'
+)
+@common.unittest.skipIf(
+    'snappy' not in tb.blosc_compressor_list(), 'snappy required'
+)
 class CompressBloscSnappyTablesTestCase(BasicTestCase):
-    title = "CompressSnappyTables"
+    title = 'CompressSnappyTables'
     compress = 1
     shuffle = 1
-    complib = "blosc:snappy"
+    complib = 'blosc:snappy'
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
 @common.unittest.skipIf(
-    'zlib' not in tb.blosc_compressor_list(), 'zlib required')
+    not common.blosc_avail, 'BLOSC compression library not available'
+)
+@common.unittest.skipIf(
+    'zlib' not in tb.blosc_compressor_list(), 'zlib required'
+)
 class CompressBloscZlibTablesTestCase(BasicTestCase):
-    title = "CompressZlibTables"
+    title = 'CompressZlibTables'
     compress = 1
     shuffle = 1
-    complib = "blosc:zlib"
+    complib = 'blosc:zlib'
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
 @common.unittest.skipIf(
-    'zstd' not in tb.blosc_compressor_list(), 'zstd required')
+    not common.blosc_avail, 'BLOSC compression library not available'
+)
+@common.unittest.skipIf(
+    'zstd' not in tb.blosc_compressor_list(), 'zstd required'
+)
 class CompressBloscZstdTablesTestCase(BasicTestCase):
-    title = "CompressZstdTables"
+    title = 'CompressZstdTables'
     compress = 1
     shuffle = 1
-    complib = "blosc:zstd"
+    complib = 'blosc:zstd'
 
 
-@common.unittest.skipIf(not common.lzo_avail,
-                        'LZO compression library not available')
+@common.unittest.skipIf(
+    not common.lzo_avail, 'LZO compression library not available'
+)
 class CompressLZOTablesTestCase(BasicTestCase):
-    title = "CompressLZOTables"
+    title = 'CompressLZOTables'
     compress = 1
-    complib = "lzo"
+    complib = 'lzo'
 
 
-@common.unittest.skipIf(not common.lzo_avail,
-                        'LZO compression library not available')
+@common.unittest.skipIf(
+    not common.lzo_avail, 'LZO compression library not available'
+)
 class CompressLZOShuffleTablesTestCase(BasicTestCase):
-    title = "CompressLZOTables"
+    title = 'CompressLZOTables'
     compress = 1
     shuffle = 1
-    complib = "lzo"
+    complib = 'lzo'
 
 
-@common.unittest.skipIf(not common.bzip2_avail,
-                        'BZIP2 compression library not available')
+@common.unittest.skipIf(
+    not common.bzip2_avail, 'BZIP2 compression library not available'
+)
 class CompressBzip2TablesTestCase(BasicTestCase):
-    title = "CompressBzip2Tables"
+    title = 'CompressBzip2Tables'
     compress = 1
-    complib = "bzip2"
+    complib = 'bzip2'
 
 
-@common.unittest.skipIf(not common.bzip2_avail,
-                        'BZIP2 compression library not available')
+@common.unittest.skipIf(
+    not common.bzip2_avail, 'BZIP2 compression library not available'
+)
 class CompressBzip2ShuffleTablesTestCase(BasicTestCase):
-    title = "CompressBzip2Tables"
+    title = 'CompressBzip2Tables'
     compress = 1
     shuffle = 1
-    complib = "bzip2"
+    complib = 'bzip2'
 
 
 class CompressZLIBTablesTestCase(BasicTestCase):
-    title = "CompressOneTables"
+    title = 'CompressOneTables'
     compress = 1
-    complib = "zlib"
+    complib = 'zlib'
 
 
 class CompressZLIBShuffleTablesTestCase(BasicTestCase):
-    title = "CompressOneTables"
+    title = 'CompressOneTables'
     compress = 1
     shuffle = 1
-    complib = "zlib"
+    complib = 'zlib'
 
 
 class Fletcher32TablesTestCase(BasicTestCase):
-    title = "Fletcher32Tables"
+    title = 'Fletcher32Tables'
     fletcher32 = 1
     shuffle = 0
-    complib = "zlib"
+    complib = 'zlib'
 
 
 class AllFiltersTablesTestCase(BasicTestCase):
-    title = "AllFiltersTables"
+    title = 'AllFiltersTables'
     compress = 1
     fletcher32 = 1
     shuffle = 1
-    complib = "zlib"
+    complib = 'zlib'
 
 
 class CompressTwoTablesTestCase(BasicTestCase):
-    title = "CompressTwoTables"
+    title = 'CompressTwoTables'
     compress = 1
     # This checks also unidimensional arrays as columns
     record = RecordDescriptionDict
 
 
 class BigTablesTestCase(BasicTestCase):
-    title = "BigTables"
+    title = 'BigTables'
     # 10000 rows takes much more time than we can afford for tests
     # reducing to 1000 would be more than enough
     # F. Alted 2004-01-19
@@ -1874,23 +2125,28 @@ class BigTablesTestCase(BasicTestCase):
     appendrows = 100
 
 
-class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
-                                         common.PyTablesTestCase):
+class SizeOnDiskInMemoryPropertyTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
     def setUp(self):
         super().setUp()
 
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
-        self.chunkshape = (1000, )
+        self.chunkshape = (1000,)
         self.dtype = np.format_parser(['i4'] * 10, [], []).dtype
         # approximate size (in bytes) of non-data portion of hdf5 file
         self.hdf_overhead = 6000
 
     def create_table(self, complevel):
         filters = tb.Filters(complevel=complevel, complib='blosc')
-        self.table = self.h5file.create_table('/', 'sometable', self.dtype,
-                                              filters=filters,
-                                              chunkshape=self.chunkshape)
+        self.table = self.h5file.create_table(
+            '/',
+            'sometable',
+            self.dtype,
+            filters=filters,
+            chunkshape=self.chunkshape,
+        )
 
     def test_zero_length(self):
         complevel = 0
@@ -1921,19 +2177,21 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
         self.table.append([tuple(range(10))] * self.chunkshape[0] * 10)
         file_size = Path(self.h5fname).stat().st_size
         self.assertTrue(
-            abs(self.table.size_on_disk - file_size) <= self.hdf_overhead)
+            abs(self.table.size_on_disk - file_size) <= self.hdf_overhead
+        )
         self.assertEqual(self.table.size_in_memory, 10 * 1000 * 10 * 4)
         self.assertLess(self.table.size_on_disk, self.table.size_in_memory)
 
 
-class NonNestedTableReadTestCase(common.TempFileMixin,
-                                 common.PyTablesTestCase):
+class NonNestedTableReadTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
     def setUp(self):
         super().setUp()
 
         self.dtype = np.format_parser(['i4'] * 10, [], []).dtype
         self.table = self.h5file.create_table('/', 'table', self.dtype)
-        self.shape = (100, )
+        self.shape = (100,)
         self.populate_file()
 
     def populate_file(self):
@@ -1976,7 +2234,7 @@ class NonNestedTableReadTestCase(common.TempFileMixin,
         np.testing.assert_array_equal(output, self.array)
 
     def test_read_slice1_out_arg(self):
-        output = np.empty((51, ), self.dtype)
+        output = np.empty((51,), self.dtype)
         self.table.read(0, 51, out=output)
         np.testing.assert_array_equal(output, self.array[0:51])
 
@@ -1986,33 +2244,34 @@ class NonNestedTableReadTestCase(common.TempFileMixin,
         np.testing.assert_array_equal(output, self.array['f1'])
 
     def test_read_slice1_specified_field_out_arg(self):
-        output = np.empty((63, ), 'i4')
+        output = np.empty((63,), 'i4')
         self.table.read(1, 64, field='f1', out=output)
         np.testing.assert_array_equal(output, self.array['f1'][1:64])
 
     def test_read_all_out_arg_sliced(self):
-        output = np.empty((200, ), self.dtype)
-        output['f0'] = np.random.randint(0, 10_000, (200, ))
+        output = np.empty((200,), self.dtype)
+        output['f0'] = np.random.randint(0, 10_000, (200,))
         output_orig = output.copy()
         self.table.read(out=output[0:100])
         np.testing.assert_array_equal(output[0:100], self.array)
         np.testing.assert_array_equal(output[100:], output_orig[100:])
 
     def test_all_fields_non_contiguous_slice_contiguous_buffer(self):
-        output = np.empty((50, ), self.dtype)
+        output = np.empty((50,), self.dtype)
         self.table.read(0, 100, 2, out=output)
         np.testing.assert_array_equal(output, self.array[0:100:2])
 
     def test_specified_field_non_contiguous_slice_contiguous_buffer(self):
-        output = np.empty((50, ), 'i4')
+        output = np.empty((50,), 'i4')
         self.table.read(0, 100, 2, field='f3', out=output)
         np.testing.assert_array_equal(output, self.array['f3'][0:100:2])
 
     def test_all_fields_non_contiguous_buffer(self):
-        output = np.empty((100, ), self.dtype)
+        output = np.empty((100,), self.dtype)
         output_slice = output[0:100:2]
-        self.assertRaises(ValueError, self.table.read, 0, 100, 2, None,
-                          output_slice)
+        self.assertRaises(
+            ValueError, self.table.read, 0, 100, 2, None, output_slice
+        )
         # once Python 2.6 support is dropped, this could change
         # to assertRaisesRegexp to check exception type and message at once
         try:
@@ -2021,17 +2280,18 @@ class NonNestedTableReadTestCase(common.TempFileMixin,
             self.assertEqual('output array not C contiguous', str(exc))
 
     def test_specified_field_non_contiguous_buffer(self):
-        output = np.empty((100, ), 'i4')
+        output = np.empty((100,), 'i4')
         output_slice = output[0:100:2]
-        self.assertRaises(ValueError, self.table.read, 0, 100, 2, 'f3',
-                          output_slice)
+        self.assertRaises(
+            ValueError, self.table.read, 0, 100, 2, 'f3', output_slice
+        )
         try:
             self.table.read(0, 100, 2, field='f3', out=output_slice)
         except ValueError as exc:
             self.assertEqual('output array not C contiguous', str(exc))
 
     def test_all_fields_buffer_too_small(self):
-        output = np.empty((99, ), self.dtype)
+        output = np.empty((99,), self.dtype)
         self.assertRaises(ValueError, lambda: self.table.read(out=output))
         try:
             self.table.read(out=output)
@@ -2039,16 +2299,17 @@ class NonNestedTableReadTestCase(common.TempFileMixin,
             self.assertIn('output array size invalid, got', str(exc))
 
     def test_specified_field_buffer_too_small(self):
-        output = np.empty((99, ), 'i4')
-        self.assertRaises(ValueError,
-                          lambda: self.table.read(field='f5', out=output))
+        output = np.empty((99,), 'i4')
+        self.assertRaises(
+            ValueError, lambda: self.table.read(field='f5', out=output)
+        )
         try:
             self.table.read(field='f5', out=output)
         except ValueError as exc:
             self.assertIn('output array size invalid, got', str(exc))
 
     def test_all_fields_buffer_too_large(self):
-        output = np.empty((101, ), self.dtype)
+        output = np.empty((101,), self.dtype)
         self.assertRaises(ValueError, lambda: self.table.read(out=output))
         try:
             self.table.read(out=output)
@@ -2056,22 +2317,25 @@ class NonNestedTableReadTestCase(common.TempFileMixin,
             self.assertIn('output array size invalid, got', str(exc))
 
 
-class TableReadByteorderTestCase(common.TempFileMixin,
-                                 common.PyTablesTestCase):
+class TableReadByteorderTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
     def setUp(self):
         super().setUp()
         self.system_byteorder = sys.byteorder
-        self.other_byteorder = {
-            'little': 'big', 'big': 'little'}[sys.byteorder]
+        self.other_byteorder = {'little': 'big', 'big': 'little'}[
+            sys.byteorder
+        ]
         self.reverse_byteorders = {'little': '<', 'big': '>'}
 
     def create_table(self, byteorder):
         table_dtype_code = self.reverse_byteorders[byteorder] + 'i4'
         table_dtype = np.format_parser([table_dtype_code, 'a1'], [], []).dtype
-        self.table = self.h5file.create_table('/', 'table', table_dtype,
-                                              byteorder=byteorder)
+        self.table = self.h5file.create_table(
+            '/', 'table', table_dtype, byteorder=byteorder
+        )
         input_dtype = np.format_parser(['i4', 'a1'], [], []).dtype
-        self.input_array = np.zeros((10, ), input_dtype)
+        self.input_array = np.zeros((10,), input_dtype)
         self.input_array['f0'] = np.arange(10)
         self.input_array['f1'] = b'a'
         self.table.append(self.input_array)
@@ -2079,42 +2343,50 @@ class TableReadByteorderTestCase(common.TempFileMixin,
     def test_table_system_byteorder_no_out_argument(self):
         self.create_table(self.system_byteorder)
         output = self.table.read()
-        self.assertEqual(tb.utils.byteorders[output['f0'].dtype.byteorder],
-                         self.system_byteorder)
+        self.assertEqual(
+            tb.utils.byteorders[output['f0'].dtype.byteorder],
+            self.system_byteorder,
+        )
         np.testing.assert_array_equal(output['f0'], np.arange(10))
 
     def test_table_other_byteorder_no_out_argument(self):
         self.create_table(self.other_byteorder)
         output = self.table.read()
-        self.assertEqual(tb.utils.byteorders[output['f0'].dtype.byteorder],
-                         self.system_byteorder)
+        self.assertEqual(
+            tb.utils.byteorders[output['f0'].dtype.byteorder],
+            self.system_byteorder,
+        )
         np.testing.assert_array_equal(output['f0'], np.arange(10))
 
     def test_table_system_byteorder_out_argument_system_byteorder(self):
         self.create_table(self.system_byteorder)
         out_dtype_code = self.reverse_byteorders[self.system_byteorder] + 'i4'
         out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
-        output = np.empty((10, ), out_dtype)
+        output = np.empty((10,), out_dtype)
         self.table.read(out=output)
-        self.assertEqual(tb.utils.byteorders[output['f0'].dtype.byteorder],
-                         self.system_byteorder)
+        self.assertEqual(
+            tb.utils.byteorders[output['f0'].dtype.byteorder],
+            self.system_byteorder,
+        )
         np.testing.assert_array_equal(output['f0'], np.arange(10))
 
     def test_table_other_byteorder_out_argument_system_byteorder(self):
         self.create_table(self.other_byteorder)
         out_dtype_code = self.reverse_byteorders[self.system_byteorder] + 'i4'
         out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
-        output = np.empty((10, ), out_dtype)
+        output = np.empty((10,), out_dtype)
         self.table.read(out=output)
-        self.assertEqual(tb.utils.byteorders[output['f0'].dtype.byteorder],
-                         self.system_byteorder)
+        self.assertEqual(
+            tb.utils.byteorders[output['f0'].dtype.byteorder],
+            self.system_byteorder,
+        )
         np.testing.assert_array_equal(output['f0'], np.arange(10))
 
     def test_table_system_byteorder_out_argument_other_byteorder(self):
         self.create_table(self.system_byteorder)
         out_dtype_code = self.reverse_byteorders[self.other_byteorder] + 'i4'
         out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
-        output = np.empty((10, ), out_dtype)
+        output = np.empty((10,), out_dtype)
         self.assertRaises(ValueError, lambda: self.table.read(out=output))
         try:
             self.table.read(out=output)
@@ -2125,7 +2397,7 @@ class TableReadByteorderTestCase(common.TempFileMixin,
         self.create_table(self.other_byteorder)
         out_dtype_code = self.reverse_byteorders[self.other_byteorder] + 'i4'
         out_dtype = np.format_parser([out_dtype_code, 'a1'], [], []).dtype
-        output = np.empty((10, ), out_dtype)
+        output = np.empty((10,), out_dtype)
         self.assertRaises(ValueError, lambda: self.table.read(out=output))
         try:
             self.table.read(out=output)
@@ -2135,8 +2407,8 @@ class TableReadByteorderTestCase(common.TempFileMixin,
 
 class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     # file  = "test.h5"
-    open_mode = "w"
-    title = "This is the table title"
+    open_mode = 'w'
+    title = 'This is the table title'
     record = Record
     maxshort = 1 << 15
     expectedrows = 100
@@ -2162,13 +2434,17 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         group = self.rootgroup
         for j in range(3):
             # Create a table
-            filterprops = tb.Filters(complevel=self.compress,
-                                     shuffle=self.shuffle)
-            table = self.h5file.create_table(group, 'table'+str(j),
-                                             self.record,
-                                             title=self.title,
-                                             filters=filterprops,
-                                             expectedrows=self.expectedrows)
+            filterprops = tb.Filters(
+                complevel=self.compress, shuffle=self.shuffle
+            )
+            table = self.h5file.create_table(
+                group,
+                'table' + str(j),
+                self.record,
+                title=self.title,
+                filters=filterprops,
+                expectedrows=self.expectedrows,
+            )
 
             # Get the row object associated with the new table
             row = table.row
@@ -2184,27 +2460,27 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 else:
                     row['var4'] = float(i)
                 if isinstance(row['var5'], np.ndarray):
-                    row['var5'] = np.array((float(i),)*4)
+                    row['var5'] = np.array((float(i),) * 4)
                 else:
                     row['var5'] = float(i)
 
                 # var6 will be like var3 but byteswaped
-                row['var6'] = (
-                    ((row['var3'] >> 8) & 0xff) + ((row['var3'] << 8) & 0xff00)
+                row['var6'] = ((row['var3'] >> 8) & 0xFF) + (
+                    (row['var3'] << 8) & 0xFF00
                 )
                 row.append()
 
             # Flush the buffer for this table
             table.flush()
             # Create a new group (descendant of group)
-            group2 = self.h5file.create_group(group, 'group'+str(j))
+            group2 = self.h5file.create_group(group, 'group' + str(j))
             # Iterate over this new group (group2)
             group = group2
 
     def check_range(self):
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
-        table = self.h5file.get_node("/table0")
+        self.h5file = tb.open_file(self.h5fname, 'r')
+        table = self.h5file.get_node('/table0')
 
         table.nrowsinbuf = self.nrowsinbuf
         resrange = slice(self.start, self.stop, self.step).indices(table.nrows)
@@ -2230,16 +2506,14 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         else:
             if 0 < self.step:
                 result = [
-                    rec['var2'] for rec in table.iterrows(self.start,
-                                                          self.stop,
-                                                          self.step)
+                    rec['var2']
+                    for rec in table.iterrows(self.start, self.stop, self.step)
                     if rec['var2'] < self.nrows
                 ]
             elif 0 > self.step:
                 result = [
-                    rec['var2'] for rec in table.iterrows(self.start,
-                                                          self.stop,
-                                                          self.step)
+                    rec['var2']
+                    for rec in table.iterrows(self.start, self.stop, self.step)
                     if rec['var2'] > self.nrows
                 ]
 
@@ -2264,47 +2538,55 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             stopr = self.nrows
 
         if common.verbose:
-            print("Nrows in", table._v_pathname, ":", table.nrows)
+            print('Nrows in', table._v_pathname, ':', table.nrows)
             if reslength:
                 if self.checkrecarray:
-                    print("Last record *read* in recarray ==>", recarray[-1])
+                    print('Last record *read* in recarray ==>', recarray[-1])
                 elif self.checkgetCol:
-                    print("Last value *read* in getCol ==>", column[-1])
+                    print('Last value *read* in getCol ==>', column[-1])
                 else:
-                    print("Last record *read* in table range ==>", rec)
-            print("Total number of selected records ==>", len(result))
-            print("Selected records:\n", result)
-            print("Selected records should look like:\n",
-                  list(range(startr, stopr, self.step)))
-            print("start, stop, step ==>", self.start, self.stop, self.step)
-            print("startr, stopr, step ==>", startr, stopr, self.step)
+                    print('Last record *read* in table range ==>', rec)
+            print('Total number of selected records ==>', len(result))
+            print('Selected records:\n', result)
+            print(
+                'Selected records should look like:\n',
+                list(range(startr, stopr, self.step)),
+            )
+            print('start, stop, step ==>', self.start, self.stop, self.step)
+            print('startr, stopr, step ==>', startr, stopr, self.step)
 
         self.assertEqual(result, list(range(startr, stopr, self.step)))
         if not (self.checkrecarray or self.checkgetCol):
             if startr < stopr and 0 < self.step:
-                rec = [r for r in table.iterrows(self.start, self.stop,
-                                                 self.step)
-                       if r['var2'] < self.nrows][-1]
+                rec = [
+                    r
+                    for r in table.iterrows(self.start, self.stop, self.step)
+                    if r['var2'] < self.nrows
+                ][-1]
                 if self.nrows < self.expectedrows:
                     self.assertEqual(
                         rec['var2'],
-                        list(range(self.start, self.stop, self.step))[-1])
+                        list(range(self.start, self.stop, self.step))[-1],
+                    )
                 else:
                     self.assertEqual(
-                        rec['var2'],
-                        list(range(startr, stopr, self.step))[-1])
+                        rec['var2'], list(range(startr, stopr, self.step))[-1]
+                    )
             elif startr > stopr and 0 > self.step:
-                rec = [r['var2'] for r in table.iterrows(self.start, self.stop,
-                                                         self.step)
-                       if r['var2'] > self.nrows][0]
+                rec = [
+                    r['var2']
+                    for r in table.iterrows(self.start, self.stop, self.step)
+                    if r['var2'] > self.nrows
+                ][0]
                 if self.nrows < self.expectedrows:
                     self.assertEqual(
                         rec,
-                        list(range(self.start, self.stop or -1, self.step))[0])
+                        list(range(self.start, self.stop or -1, self.step))[0],
+                    )
                 else:
                     self.assertEqual(
-                        rec,
-                        list(range(startr, stopr or -1, self.step))[0])
+                        rec, list(range(startr, stopr or -1, self.step))[0]
+                    )
 
         # Close the file
         self.h5file.close()
@@ -2314,7 +2596,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_range..." % self.__class__.__name__)
+            print('Running %s.test01_range...' % self.__class__.__name__)
 
         # Case where step < nrowsinbuf < 2 * step
         self.nrows = 21
@@ -2330,7 +2612,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a_range..." % self.__class__.__name__)
+            print('Running %s.test01a_range...' % self.__class__.__name__)
 
         # Case where step < nrowsinbuf < 2 * step
         self.nrows = 21
@@ -2346,7 +2628,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02_range..." % self.__class__.__name__)
+            print('Running %s.test02_range...' % self.__class__.__name__)
 
         # Case where step < nrowsinbuf < 10 * step
         self.nrows = 21
@@ -2362,7 +2644,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_range..." % self.__class__.__name__)
+            print('Running %s.test03_range...' % self.__class__.__name__)
 
         # Case where step < nrowsinbuf < 1.1 * step
         self.nrows = self.expectedrows
@@ -2378,7 +2660,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04_range..." % self.__class__.__name__)
+            print('Running %s.test04_range...' % self.__class__.__name__)
 
         # Case where step == nrowsinbuf
         self.nrows = self.expectedrows
@@ -2394,7 +2676,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05_range..." % self.__class__.__name__)
+            print('Running %s.test05_range...' % self.__class__.__name__)
 
         # Case where step > 1.1 * nrowsinbuf
         self.nrows = 21
@@ -2410,7 +2692,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test06_range..." % self.__class__.__name__)
+            print('Running %s.test06_range...' % self.__class__.__name__)
 
         # Case where step > 3 * nrowsinbuf
         self.nrows = 3
@@ -2426,7 +2708,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test07_range..." % self.__class__.__name__)
+            print('Running %s.test07_range...' % self.__class__.__name__)
 
         # Case where start == stop
         self.nrows = 2
@@ -2442,7 +2724,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08_range..." % self.__class__.__name__)
+            print('Running %s.test08_range...' % self.__class__.__name__)
 
         # Case where start > stop
         self.nrows = 2
@@ -2458,7 +2740,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09_range..." % self.__class__.__name__)
+            print('Running %s.test09_range...' % self.__class__.__name__)
 
         # Case where stop = None (last row)
         self.nrows = 100
@@ -2474,7 +2756,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test10_range..." % self.__class__.__name__)
+            print('Running %s.test10_range...' % self.__class__.__name__)
 
         # Case where start < 0 and stop = None (last row)
         self.nrows = self.expectedrows
@@ -2492,7 +2774,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test10a_range..." % self.__class__.__name__)
+            print('Running %s.test10a_range...' % self.__class__.__name__)
 
         # Case where start < 0 and stop = 0
         self.nrows = self.expectedrows
@@ -2510,7 +2792,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test11_range..." % self.__class__.__name__)
+            print('Running %s.test11_range...' % self.__class__.__name__)
 
         # Case where start < 0 and stop < 0
         self.nrows = self.expectedrows
@@ -2528,7 +2810,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test12_range..." % self.__class__.__name__)
+            print('Running %s.test12_range...' % self.__class__.__name__)
 
         # Case where start < 0 and stop < 0 and start > stop
         self.nrows = self.expectedrows
@@ -2546,7 +2828,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test13_range..." % self.__class__.__name__)
+            print('Running %s.test13_range...' % self.__class__.__name__)
 
         # Case where step < 0
         self.step = -11
@@ -2555,7 +2837,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next ValueError was catched!")
+                print('\nGreat!, the next ValueError was catched!')
                 print(value)
             self.h5file.close()
         # else:
@@ -2569,7 +2851,7 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except ValueError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
-                print("\nGreat!, the next ValueError was catched!")
+                print('\nGreat!, the next ValueError was catched!')
                 print(value)
             self.h5file.close()
         # else:
@@ -2593,13 +2875,15 @@ class GetColRangeTestCase(BasicRangeTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_nonexistentField..." %
-                  self.__class__.__name__)
+            print(
+                'Running %s.test01_nonexistentField...'
+                % self.__class__.__name__
+            )
 
         # Create an instance of an HDF5 Table
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         self.root = self.h5file.root
-        table = self.h5file.get_node("/table0")
+        table = self.h5file.get_node('/table0')
 
         with self.assertRaises(KeyError):
             # column = table.read(field='non-existent-column')
@@ -2607,8 +2891,8 @@ class GetColRangeTestCase(BasicRangeTestCase):
 
 
 class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
-    open_mode = "w"
-    title = "This is the table title"
+    open_mode = 'w'
+    title = 'This is the table title'
     record = Record
     maxshort = 1 << 15
     expectedrows = 100
@@ -2634,13 +2918,17 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
         group = self.rootgroup
         for j in range(3):
             # Create a table
-            filterprops = tb.Filters(complevel=self.compress,
-                                     shuffle=self.shuffle)
-            table = self.h5file.create_table(group, 'table'+str(j),
-                                             self.record,
-                                             title=self.title,
-                                             filters=filterprops,
-                                             expectedrows=self.expectedrows)
+            filterprops = tb.Filters(
+                complevel=self.compress, shuffle=self.shuffle
+            )
+            table = self.h5file.create_table(
+                group,
+                'table' + str(j),
+                self.record,
+                title=self.title,
+                filters=filterprops,
+                expectedrows=self.expectedrows,
+            )
             # Get the row object associated with the new table
             row = table.row
 
@@ -2655,18 +2943,19 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 else:
                     row['var4'] = float(i)
                 if isinstance(row['var5'], np.ndarray):
-                    row['var5'] = np.array((float(i),)*4)
+                    row['var5'] = np.array((float(i),) * 4)
                 else:
                     row['var5'] = float(i)
                 # var6 will be like var3 but byteswaped
-                row['var6'] = ((row['var3'] >> 8) & 0xff) + \
-                              ((row['var3'] << 8) & 0xff00)
+                row['var6'] = ((row['var3'] >> 8) & 0xFF) + (
+                    (row['var3'] << 8) & 0xFF00
+                )
                 row.append()
 
             # Flush the buffer for this table
             table.flush()
             # Create a new group (descendant of group)
-            group2 = self.h5file.create_group(group, 'group'+str(j))
+            group2 = self.h5file.create_group(group, 'group' + str(j))
             # Iterate over this new group (group2)
             group = group2
 
@@ -2675,144 +2964,151 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a_singleItem..." % self.__class__.__name__)
+            print('Running %s.test01a_singleItem...' % self.__class__.__name__)
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         result = table[2]
-        self.assertEqual(result["var2"], 2)
+        self.assertEqual(result['var2'], 2)
         result = table[25]
-        self.assertEqual(result["var2"], 25)
-        result = table[self.expectedrows-1]
-        self.assertEqual(result["var2"], self.expectedrows - 1)
+        self.assertEqual(result['var2'], 25)
+        result = table[self.expectedrows - 1]
+        self.assertEqual(result['var2'], self.expectedrows - 1)
 
     def test01b_singleItem(self):
         """Checking __getitem__ method with single parameter (neg. int)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01b_singleItem..." % self.__class__.__name__)
+            print('Running %s.test01b_singleItem...' % self.__class__.__name__)
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         result = table[-5]
-        self.assertEqual(result["var2"], self.expectedrows - 5)
+        self.assertEqual(result['var2'], self.expectedrows - 5)
         result = table[-1]
-        self.assertEqual(result["var2"], self.expectedrows - 1)
+        self.assertEqual(result['var2'], self.expectedrows - 1)
         result = table[-self.expectedrows]
-        self.assertEqual(result["var2"], 0)
+        self.assertEqual(result['var2'], 0)
 
     def test01c_singleItem(self):
         """Checking __getitem__ method with single parameter (long)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01c_singleItem..." % self.__class__.__name__)
+            print('Running %s.test01c_singleItem...' % self.__class__.__name__)
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         result = table[2]
-        self.assertEqual(result["var2"], 2)
+        self.assertEqual(result['var2'], 2)
         result = table[25]
-        self.assertEqual(result["var2"], 25)
-        result = table[self.expectedrows-1]
-        self.assertEqual(result["var2"], self.expectedrows - 1)
+        self.assertEqual(result['var2'], 25)
+        result = table[self.expectedrows - 1]
+        self.assertEqual(result['var2'], self.expectedrows - 1)
 
     def test01d_singleItem(self):
         """Checking __getitem__ method with single parameter (neg. long)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01d_singleItem..." % self.__class__.__name__)
+            print('Running %s.test01d_singleItem...' % self.__class__.__name__)
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         result = table[-5]
-        self.assertEqual(result["var2"], self.expectedrows - 5)
+        self.assertEqual(result['var2'], self.expectedrows - 5)
         result = table[-1]
-        self.assertEqual(result["var2"], self.expectedrows - 1)
+        self.assertEqual(result['var2'], self.expectedrows - 1)
         result = table[-self.expectedrows]
-        self.assertEqual(result["var2"], 0)
+        self.assertEqual(result['var2'], 0)
 
     def test01e_singleItem(self):
         """Checking __getitem__ method with single parameter (rank-0 ints)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01e_singleItem..." % self.__class__.__name__)
+            print('Running %s.test01e_singleItem...' % self.__class__.__name__)
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         result = table[np.array(2)]
-        self.assertEqual(result["var2"], 2)
+        self.assertEqual(result['var2'], 2)
         result = table[np.array(25)]
-        self.assertEqual(result["var2"], 25)
-        result = table[np.array(self.expectedrows-1)]
-        self.assertEqual(result["var2"], self.expectedrows - 1)
+        self.assertEqual(result['var2'], 25)
+        result = table[np.array(self.expectedrows - 1)]
+        self.assertEqual(result['var2'], self.expectedrows - 1)
 
     def test01f_singleItem(self):
         """Checking __getitem__ method with single parameter (np.uint64)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01f_singleItem..." % self.__class__.__name__)
+            print('Running %s.test01f_singleItem...' % self.__class__.__name__)
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
 
         result = table[np.uint64(2)]
-        self.assertEqual(result["var2"], 2)
+        self.assertEqual(result['var2'], 2)
 
     def test02_twoItems(self):
         """Checking __getitem__ method with start, stop parameters."""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02_twoItem..." % self.__class__.__name__)
+            print('Running %s.test02_twoItem...' % self.__class__.__name__)
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         result = table[2:6]
-        self.assertEqual(result["var2"].tolist(), list(range(2, 6)))
+        self.assertEqual(result['var2'].tolist(), list(range(2, 6)))
         result = table[2:-6]
-        self.assertEqual(result["var2"].tolist(), list(range(
-            2, self.expectedrows-6)))
+        self.assertEqual(
+            result['var2'].tolist(), list(range(2, self.expectedrows - 6))
+        )
         result = table[2:]
-        self.assertEqual(result["var2"].tolist(),
-                         list(range(2, self.expectedrows)))
+        self.assertEqual(
+            result['var2'].tolist(), list(range(2, self.expectedrows))
+        )
         result = table[-2:]
-        self.assertEqual(result["var2"].tolist(),
-                         list(range(self.expectedrows-2, self.expectedrows)))
+        self.assertEqual(
+            result['var2'].tolist(),
+            list(range(self.expectedrows - 2, self.expectedrows)),
+        )
 
     def test03_threeItems(self):
         """Checking __getitem__ method with start, stop, step parameters."""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_threeItem..." % self.__class__.__name__)
+            print('Running %s.test03_threeItem...' % self.__class__.__name__)
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         result = table[2:6:3]
-        self.assertEqual(result["var2"].tolist(), list(range(2, 6, 3)))
+        self.assertEqual(result['var2'].tolist(), list(range(2, 6, 3)))
         result = table[2::3]
-        self.assertEqual(result["var2"].tolist(), list(range(
-            2, self.expectedrows, 3)))
+        self.assertEqual(
+            result['var2'].tolist(), list(range(2, self.expectedrows, 3))
+        )
         result = table[:6:2]
-        self.assertEqual(result["var2"].tolist(), list(range(0, 6, 2)))
+        self.assertEqual(result['var2'].tolist(), list(range(0, 6, 2)))
         result = table[::]
-        self.assertEqual(result["var2"].tolist(), list(range(
-            0, self.expectedrows, 1)))
+        self.assertEqual(
+            result['var2'].tolist(), list(range(0, self.expectedrows, 1))
+        )
 
     def test04_negativeStep(self):
         """Checking __getitem__ method with negative step parameter."""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04_negativeStep..." %
-                  self.__class__.__name__)
+            print(
+                'Running %s.test04_negativeStep...' % self.__class__.__name__
+            )
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         with self.assertRaises(ValueError):
             table[2:3:-3]
@@ -2822,15 +3118,16 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test06a_singleItemCol..." %
-                  self.__class__.__name__)
+            print(
+                'Running %s.test06a_singleItemCol...' % self.__class__.__name__
+            )
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         colvar2 = table.cols.var2
         self.assertEqual(colvar2[2], 2)
         self.assertEqual(colvar2[25], 25)
-        self.assertEqual(colvar2[self.expectedrows-1], self.expectedrows - 1)
+        self.assertEqual(colvar2[self.expectedrows - 1], self.expectedrows - 1)
 
     def test06b_singleItemCol(self):
         """Checking __getitem__ method in Col with single parameter
@@ -2838,9 +3135,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test06b_singleItem..." % self.__class__.__name__)
+            print('Running %s.test06b_singleItem...' % self.__class__.__name__)
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         colvar2 = table.cols.var2
         self.assertEqual(colvar2[-5], self.expectedrows - 5)
@@ -2852,18 +3149,22 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test07_twoItemCol..." % self.__class__.__name__)
+            print('Running %s.test07_twoItemCol...' % self.__class__.__name__)
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         colvar2 = table.cols.var2
         self.assertEqual(colvar2[2:6].tolist(), list(range(2, 6)))
-        self.assertEqual(colvar2[2:-6].tolist(),
-                         list(range(2, self.expectedrows - 6)))
-        self.assertEqual(colvar2[2:].tolist(),
-                         list(range(2, self.expectedrows)))
-        self.assertEqual(colvar2[-2:].tolist(),
-                         list(range(self.expectedrows - 2, self.expectedrows)))
+        self.assertEqual(
+            colvar2[2:-6].tolist(), list(range(2, self.expectedrows - 6))
+        )
+        self.assertEqual(
+            colvar2[2:].tolist(), list(range(2, self.expectedrows))
+        )
+        self.assertEqual(
+            colvar2[-2:].tolist(),
+            list(range(self.expectedrows - 2, self.expectedrows)),
+        )
 
     def test08_threeItemsCol(self):
         """Checking __getitem__ method in Col with start, stop, step
@@ -2871,28 +3172,32 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08_threeItemCol..." %
-                  self.__class__.__name__)
+            print(
+                'Running %s.test08_threeItemCol...' % self.__class__.__name__
+            )
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         colvar2 = table.cols.var2
         self.assertEqual(colvar2[2:6:3].tolist(), list(range(2, 6, 3)))
-        self.assertEqual(colvar2[2::3].tolist(), list(range(
-            2, self.expectedrows, 3)))
+        self.assertEqual(
+            colvar2[2::3].tolist(), list(range(2, self.expectedrows, 3))
+        )
         self.assertEqual(colvar2[:6:2].tolist(), list(range(0, 6, 2)))
-        self.assertEqual(colvar2[::].tolist(),
-                         list(range(0, self.expectedrows, 1)))
+        self.assertEqual(
+            colvar2[::].tolist(), list(range(0, self.expectedrows, 1))
+        )
 
     def test09_negativeStep(self):
         """Checking __getitem__ method in Col with negative step parameter."""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09_negativeStep..." %
-                  self.__class__.__name__)
+            print(
+                'Running %s.test09_negativeStep...' % self.__class__.__name__
+            )
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         colvar2 = table.cols.var2
         with self.assertRaises(ValueError):
@@ -2901,30 +3206,30 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test10_list_integers(self):
         """Checking accessing Table with a list of integers."""
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         idx = list(range(10, 70, 11))
 
         result = table[idx]
-        self.assertEqual(result["var2"].tolist(), idx)
+        self.assertEqual(result['var2'].tolist(), idx)
 
         result = table.read_coordinates(idx)
-        self.assertEqual(result["var2"].tolist(), idx)
+        self.assertEqual(result['var2'].tolist(), idx)
 
     def test11_list_booleans(self):
         """Checking accessing Table with a list of boolean values."""
 
-        self.h5file = tb.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, 'r')
         table = self.h5file.root.table0
         idx = list(range(10, 70, 11))
 
         selection = [n in idx for n in range(self.expectedrows)]
 
         result = table[selection]
-        self.assertEqual(result["var2"].tolist(), idx)
+        self.assertEqual(result['var2'].tolist(), idx)
 
         result = table.read_coordinates(selection)
-        self.assertEqual(result["var2"].tolist(), idx)
+        self.assertEqual(result['var2'].tolist(), idx)
 
 
 class Rec(tb.IsDescription):
@@ -2943,17 +3248,24 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing row
         table[2] = (456, 'db2', 1.2)
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (456, b'db2', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (456, b'db2', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -2961,8 +3273,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -2975,17 +3287,24 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing row
         table[2] = (456, 'db2', 1.2)
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (456, b'db2', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (456, b'db2', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -2993,8 +3312,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3007,18 +3326,25 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify two existing rows
-        rows = np.rec.array([(457, b'db1', 1.2)], formats="i4,a3,f8")
+        rows = np.rec.array([(457, b'db1', 1.2)], formats='i4,a3,f8')
         table[1:3:2] = rows
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
-                           (457, b'db1', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (457, b'db1', 1.2),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3026,8 +3352,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3040,20 +3366,28 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify two existing rows
-        rows = np.rec.array([(457, b'db1', 1.2), (5, b'de1', 1.3)],
-                            formats="i4,a3,f8")
+        rows = np.rec.array(
+            [(457, b'db1', 1.2), (5, b'de1', 1.3)], formats='i4,a3,f8'
+        )
         # table.modify_rows(start=1, rows=rows)
         table[1:3] = rows
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
-                           (5, b'de1', 1.3), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3061,8 +3395,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3075,20 +3409,28 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify two existing rows
-        rows = np.rec.array([(457, b'db1', 1.2), (6, b'de2', 1.3)],
-                            formats="i4,a3,f8")
+        rows = np.rec.array(
+            [(457, b'db1', 1.2), (6, b'de2', 1.3)], formats='i4,a3,f8'
+        )
         # table[1:4:2] = rows
         table[1::2] = rows
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
-                           (457, b'db1', 1.2), (6, b'de2', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (457, b'db1', 1.2),
+                (457, b'db1', 1.2),
+                (6, b'de2', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3096,8 +3438,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3110,17 +3452,24 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         table.cols.col1[1] = -1
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (-1, b'ded', 1.3),
-                           (457, b'db1', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (-1, b'ded', 1.3),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3128,8 +3477,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3142,17 +3491,24 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         table.cols.col1[1:4] = [2, 3, 4]
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (3, b'db1', 1.2), (4, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (3, b'db1', 1.2),
+                (4, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3160,8 +3516,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3174,7 +3530,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
@@ -3185,23 +3542,23 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 row.append()
             table.flush()
 
-#         # Create the modified recarray
-#         r1=np.rec.array([[1,b'dbe',1.2],[2,b'ded',1.3],
-#                           [3,b'db1',1.2],[4,b'de1',1.3]],
-#                          formats="i4,a3,f8",
-#                          names = "col1,col2,col3")
-#         # Read the modified table
-#         if self.reopen:
-#             self.fileh.close()
-#             self.fileh = tables.open_file(self.file, "r")
-#             table = self.fileh.root.recarray
-#             table.nrowsinbuf = self.buffersize  # set buffer value
-#         r2 = table.read()
-#         if common.verbose:
-#             print "Original table-->", repr(r2)
-#             print "Should look like-->", repr(r1)
-#         self.assertEqual(r1.tobytes(), r2.tobytes())
-#         self.assertEqual(table.nrows, 4)
+    #         # Create the modified recarray
+    #         r1=np.rec.array([[1,b'dbe',1.2],[2,b'ded',1.3],
+    #                           [3,b'db1',1.2],[4,b'de1',1.3]],
+    #                          formats="i4,a3,f8",
+    #                          names = "col1,col2,col3")
+    #         # Read the modified table
+    #         if self.reopen:
+    #             self.fileh.close()
+    #             self.fileh = tables.open_file(self.file, "r")
+    #             table = self.fileh.root.recarray
+    #             table.nrowsinbuf = self.buffersize  # set buffer value
+    #         r2 = table.read()
+    #         if common.verbose:
+    #             print "Original table-->", repr(r2)
+    #             print "Should look like-->", repr(r1)
+    #         self.assertEqual(r1.tobytes(), r2.tobytes())
+    #         self.assertEqual(table.nrows, 4)
 
     def test07(self):
         """Modifying one column (several elements, __setitem__, step)"""
@@ -3212,16 +3569,23 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (1, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (1, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify just one existing column
         table.cols.col1[1:4:2] = [2, 3]
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (457, b'db1', 1.2), (3, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (457, b'db1', 1.2),
+                (3, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3229,8 +3593,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3243,17 +3607,24 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         table.cols.col1[1:4:3] = [2]
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (457, b'db1', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3261,8 +3632,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3275,19 +3646,27 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Try to modify beyond the extend
         # This will silently exclude the non-fitting rows
         rows = np.rec.array(
-            [(457, b'db1', 1.2), (6, b'de2', 1.3)], formats="i4,a3,f8")
+            [(457, b'db1', 1.2), (6, b'de2', 1.3)], formats='i4,a3,f8'
+        )
         table[1::2] = rows
         # How it should look like
-        r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
-                           (457, b'db1', 1.2), (6, b'de2', 1.3)],
-                          formats="i4,a3,f8")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (457, b'db1', 1.2),
+                (457, b'db1', 1.2),
+                (6, b'de2', 1.3),
+            ],
+            formats='i4,a3,f8',
+        )
 
         # Read the modified table
         if self.reopen:
@@ -3296,8 +3675,8 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3332,7 +3711,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
@@ -3341,10 +3721,16 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             (row['col1'], row['col2'], row['col3']) = (456, 'db2', 1.2)
             row.update()
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (456, b'db2', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (456, b'db2', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3352,8 +3738,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3366,7 +3752,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
@@ -3378,10 +3765,16 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 (row['col1'], row['col2'], row['col3']) = (6, 'de2', 1.3)
             row.update()
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
-                           (457, b'db1', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (457, b'db1', 1.2),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3389,8 +3782,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3403,7 +3796,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
@@ -3415,10 +3809,16 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 (row['col1'], row['col2'], row['col3']) = (5, 'de1', 1.3)
             row.update()
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
-                           (5, b'de1', 1.3), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3426,8 +3826,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3440,7 +3840,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
@@ -3452,10 +3853,16 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 (row['col1'], row['col2'], row['col3']) = (6, 'de2', 1.3)
             row.update()
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
-                           (457, b'db1', 1.2), (6, b'de2', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (457, b'db1', 1.2),
+                (457, b'db1', 1.2),
+                (6, b'de2', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3463,8 +3870,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3477,7 +3884,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
@@ -3486,10 +3894,16 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row['col1'] = -1
             row.update()
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (-1, b'ded', 1.3),
-                           (457, b'db1', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (-1, b'ded', 1.3),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3497,8 +3911,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3511,7 +3925,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
@@ -3520,10 +3935,16 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row['col1'] = row.nrow + 1
             row.update()
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (3, b'db1', 1.2), (4, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (3, b'db1', 1.2),
+                (4, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3531,8 +3952,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3545,7 +3966,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (1, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (1, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify just rows with col1 < 456
@@ -3554,10 +3976,16 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             row['col2'] = 'ada'
             row.update()
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ada', 1.3),
-                           (457, b'db1', 1.2), (2, b'ada', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ada', 1.3),
+                (457, b'db1', 1.2),
+                (2, b'ada', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
@@ -3565,8 +3993,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3581,8 +4009,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # append new rows
         row = table.row
         for i in range(nrows):
-            row['col1'] = i-1
-            row['col2'] = 'a'+str(i-1)
+            row['col1'] = i - 1
+            row['col2'] = 'a' + str(i - 1)
             row['col3'] = -1.0
             row.append()
         table.flush()
@@ -3590,16 +4018,17 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Modify all the rows
         for row in table:
             row['col1'] = row.nrow
-            row['col2'] = 'b'+str(row.nrow)
+            row['col2'] = 'b' + str(row.nrow)
             row['col3'] = 0.0
             row.update()
 
         # Create the modified recarray
         r1 = np.rec.array(
-            None, shape=nrows, formats="i4,a3,f8", names="col1,col2,col3")
+            None, shape=nrows, formats='i4,a3,f8', names='col1,col2,col3'
+        )
         for i in range(nrows):
             r1['col1'][i] = i
-            r1['col2'][i] = 'b'+str(i)
+            r1['col2'][i] = 'b' + str(i)
             r1['col3'][i] = 0.0
         # Read the modified table
         if self.reopen:
@@ -3608,8 +4037,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, nrows)
 
@@ -3624,8 +4053,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # append new rows
         row = table.row
         for i in range(nrows):
-            row['col1'] = i-1
-            row['col2'] = 'a'+str(i-1)
+            row['col1'] = i - 1
+            row['col2'] = 'a' + str(i - 1)
             row['col3'] = -1.0
             row.append()
         table.flush()
@@ -3633,16 +4062,17 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Modify all the rows (actually don't)
         for row in table:
             row['col1'] = row.nrow
-            row['col2'] = 'b'+str(row.nrow)
+            row['col2'] = 'b' + str(row.nrow)
             row['col3'] = 0.0
             # row.update()
 
         # Create the modified recarray
         r1 = np.rec.array(
-            None, shape=nrows, formats="i4,a3,f8", names="col1,col2,col3")
+            None, shape=nrows, formats='i4,a3,f8', names='col1,col2,col3'
+        )
         for i in range(nrows):
-            r1['col1'][i] = i-1
-            r1['col2'][i] = 'a'+str(i-1)
+            r1['col1'][i] = i - 1
+            r1['col2'][i] = 'a' + str(i - 1)
             r1['col3'][i] = -1.0
         # Read the modified table
         if self.reopen:
@@ -3651,8 +4081,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, nrows)
 
@@ -3667,8 +4097,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # append new rows
         row = table.row
         for i in range(nrows):
-            row['col1'] = i-1
-            row['col2'] = 'a'+str(i-1)
+            row['col1'] = i - 1
+            row['col2'] = 'a' + str(i - 1)
             row['col3'] = -1.0
             row.append()
         table.flush()
@@ -3676,20 +4106,21 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Modify selected rows
         for row in table.where('col1 > nrows-3'):
             row['col1'] = row.nrow
-            row['col2'] = 'b'+str(row.nrow)
+            row['col2'] = 'b' + str(row.nrow)
             row['col3'] = 0.0
             row.update()
 
         # Create the modified recarray
         r1 = np.rec.array(
-            None, shape=nrows, formats="i4,a3,f8", names="col1,col2,col3")
+            None, shape=nrows, formats='i4,a3,f8', names='col1,col2,col3'
+        )
         for i in range(nrows):
-            r1['col1'][i] = i-1
-            r1['col2'][i] = 'a'+str(i-1)
+            r1['col1'][i] = i - 1
+            r1['col2'][i] = 'a' + str(i - 1)
             r1['col3'][i] = -1.0
         # modify just the last line
         r1['col1'][i] = i
-        r1['col2'][i] = 'b'+str(i)
+        r1['col2'][i] = 'b' + str(i)
         r1['col3'][i] = 0.0
 
         # Read the modified table
@@ -3699,8 +4130,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, nrows)
 
@@ -3715,8 +4146,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # append new rows
         row = table.row
         for i in range(nrows):
-            row['col1'] = i-1
-            row['col2'] = 'a'+str(i-1)
+            row['col1'] = i - 1
+            row['col2'] = 'a' + str(i - 1)
             row['col3'] = -1.0
             row.append()
         table.flush()
@@ -3724,21 +4155,22 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Modify selected rows
         for row in table.iterrows(step=10):
             row['col1'] = row.nrow
-            row['col2'] = 'b'+str(row.nrow)
+            row['col2'] = 'b' + str(row.nrow)
             row['col3'] = 0.0
             row.update()
 
         # Create the modified recarray
         r1 = np.rec.array(
-            None, shape=nrows, formats="i4,a3,f8", names="col1,col2,col3")
+            None, shape=nrows, formats='i4,a3,f8', names='col1,col2,col3'
+        )
         for i in range(nrows):
             if i % 10 > 0:
-                r1['col1'][i] = i-1
-                r1['col2'][i] = 'a'+str(i-1)
+                r1['col1'][i] = i - 1
+                r1['col2'][i] = 'a' + str(i - 1)
                 r1['col3'][i] = -1.0
             else:
                 r1['col1'][i] = i
-                r1['col2'][i] = 'b'+str(i)
+                r1['col2'][i] = 'b' + str(i)
                 r1['col3'][i] = 0.0
 
         # Read the modified table
@@ -3748,8 +4180,8 @@ class UpdateRowTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, nrows)
 
@@ -3780,11 +4212,12 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test00..." % self.__class__.__name__)
+            print('Running %s.test00...' % self.__class__.__name__)
 
         # Create a recarray
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'de', 1.3)], names='col1,col2,col3')
+            [(456, b'dbe', 1.2), (2, b'de', 1.3)], names='col1,col2,col3'
+        )
 
         # Save it in a table:
         self.h5file.create_table(self.h5file.root, 'recarray', r)
@@ -3800,11 +4233,12 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01..." % self.__class__.__name__)
+            print('Running %s.test01...' % self.__class__.__name__)
 
         # Create a recarray
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'de', 1.3)], names='col1,col2,col3')
+            [(456, b'dbe', 1.2), (2, b'de', 1.3)], names='col1,col2,col3'
+        )
 
         # Get an offsetted bytearray
         r1 = r[1:]
@@ -3824,10 +4258,10 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02..." % self.__class__.__name__)
+            print('Running %s.test02...' % self.__class__.__name__)
 
         # Create a recarray
-        r = np.rec.array(b'a'*200_000, 'f4,3i4,a5,i2', 3000)
+        r = np.rec.array(b'a' * 200_000, 'f4,3i4,a5,i2', 3000)
 
         # Get an offsetted bytearray
         r1 = r[2000:]
@@ -3847,10 +4281,10 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03..." % self.__class__.__name__)
+            print('Running %s.test03...' % self.__class__.__name__)
 
         # Create a recarray
-        r = np.rec.array(b'a'*200_000, 'f4,3i4,a5,i2', 3000)
+        r = np.rec.array(b'a' * 200_000, 'f4,3i4,a5,i2', 3000)
 
         # Get an strided recarray
         r2 = r[::2]
@@ -3873,7 +4307,7 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04..." % self.__class__.__name__)
+            print('Running %s.test04...' % self.__class__.__name__)
 
         class Rec(tb.IsDescription):
             col1 = tb.IntCol(pos=1)
@@ -3885,22 +4319,29 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Create the complete table
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (457, b'db1', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the original table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = self.h5file.root.recarray.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3909,14 +4350,15 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05..." % self.__class__.__name__)
+            print('Running %s.test05...' % self.__class__.__name__)
 
         # Save it in a table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
@@ -3924,10 +4366,16 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         table = self.h5file.root.recarray
         # Create the complete table
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (457, b'db1', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
 
         # Read the original table
         if self.reopen:
@@ -3935,8 +4383,8 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
             table = self.h5file.root.recarray
         r2 = self.h5file.root.recarray.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3945,23 +4393,30 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test06a..." % self.__class__.__name__)
+            print('Running %s.test06a...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify just one existing rows
         table.modify_rows(start=1, rows=[(456, 'db1', 1.2)])
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (456, b'db1', 1.2),
-                           (457, b'db1', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (456, b'db1', 1.2),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
 
         # Read the modified table
         if self.reopen:
@@ -3969,8 +4424,8 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -3979,33 +4434,40 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test06b..." % self.__class__.__name__)
+            print('Running %s.test06b...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify just one existing rows
         table.modify_rows(
-            start=2,
-            rows=np.rec.array([(456, 'db2', 1.2)], formats="i4,a3,f8"))
+            start=2, rows=np.rec.array([(456, 'db2', 1.2)], formats='i4,a3,f8')
+        )
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (456, b'db2', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (456, b'db2', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4014,31 +4476,38 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test07a..." % self.__class__.__name__)
+            print('Running %s.test07a...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify two existing rows
         table.modify_rows(start=1, rows=[(457, 'db1', 1.2), (5, 'de1', 1.3)])
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
-                           (5, b'de1', 1.3), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4047,33 +4516,41 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test07b..." % self.__class__.__name__)
+            print('Running %s.test07b...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify two existing rows
-        rows = np.rec.array([(457, b'db1', 1.2), (5, b'de1', 1.3)],
-                            formats="i4,a3,f8")
+        rows = np.rec.array(
+            [(457, b'db1', 1.2), (5, b'de1', 1.3)], formats='i4,a3,f8'
+        )
         table.modify_rows(start=1, rows=rows)
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (457, b'db1', 1.2),
-                           (5, b'de1', 1.3), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4082,88 +4559,105 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test07c..." % self.__class__.__name__)
+            print('Running %s.test07c...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify two existing rows
         rows = np.rec.array(
-            [(457, b'db1', 1.2), (5, b'de1', 1.3)], formats="i4,a3,f8")
-        self.assertRaises(ValueError, table.modify_rows,
-                          start=1, stop=2, rows=rows)
+            [(457, b'db1', 1.2), (5, b'de1', 1.3)], formats='i4,a3,f8'
+        )
+        self.assertRaises(
+            ValueError, table.modify_rows, start=1, stop=2, rows=rows
+        )
 
     def test08a(self):
         """Checking modifying one column (single column version)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08a..." % self.__class__.__name__)
+            print('Running %s.test08a...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
-        table.modify_columns(start=1, columns=[[2, 3, 4]], names=["col1"])
+        table.modify_columns(start=1, columns=[[2, 3, 4]], names=['col1'])
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (3, b'db1', 1.2), (4, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (3, b'db1', 1.2),
+                (4, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test08a2(self):
         """Checking modifying one column (single column version,
-         modify_column)"""
+        modify_column)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08a2..." % self.__class__.__name__)
+            print('Running %s.test08a2...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
-        table.modify_column(start=1, column=[2, 3, 4], colname="col1")
+        table.modify_column(start=1, column=[2, 3, 4], colname='col1')
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (3, b'db1', 1.2), (4, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (3, b'db1', 1.2),
+                (4, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4172,33 +4666,40 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08b..." % self.__class__.__name__)
+            print('Running %s.test08b...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
-        columns = np.rec.fromarrays(np.array([[2, 3, 4]]), formats="i4")
-        table.modify_columns(start=1, columns=columns, names=["col1"])
+        columns = np.rec.fromarrays(np.array([[2, 3, 4]]), formats='i4')
+        table.modify_columns(start=1, columns=columns, names=['col1'])
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (3, b'db1', 1.2), (4, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (3, b'db1', 1.2),
+                (4, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4208,33 +4709,40 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08b2..." % self.__class__.__name__)
+            print('Running %s.test08b2...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
-        columns = np.rec.fromarrays(np.array([[2, 3, 4]]), formats="i4")
-        table.modify_column(start=1, column=columns, colname="col1")
+        columns = np.rec.fromarrays(np.array([[2, 3, 4]]), formats='i4')
+        table.modify_column(start=1, column=columns, colname='col1')
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'ded', 1.3),
-                           (3, b'db1', 1.2), (4, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'ded', 1.3),
+                (3, b'db1', 1.2),
+                (4, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4244,34 +4752,41 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08c..." % self.__class__.__name__)
+            print('Running %s.test08c...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify just one existing column
         # columns = np.rec.fromarrays(np.array([[4]]), formats="i4")
         # table.modify_columns(start=1, columns=columns, names=["col1"])
-        table.modify_columns(start=1, columns=[[4]], names=["col1"])
+        table.modify_columns(start=1, columns=[[4]], names=['col1'])
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (4, b'ded', 1.3),
-                           (457, b'db1', 1.2), (5, b'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (4, b'ded', 1.3),
+                (457, b'db1', 1.2),
+                (5, b'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4280,25 +4795,32 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09a..." % self.__class__.__name__)
+            print('Running %s.test09a...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify a couple of columns
-        columns = [["aaa", "bbb", "ccc"], [1.2, .1, .3]]
-        table.modify_columns(start=1, columns=columns, names=["col2", "col3"])
+        columns = [['aaa', 'bbb', 'ccc'], [1.2, 0.1, 0.3]]
+        table.modify_columns(start=1, columns=columns, names=['col2', 'col3'])
         # Create the modified recarray
-        r1 = np.rec.array([(456, b'dbe', 1.2), (2, b'aaa', 1.2),
-                           (457, b'bbb', .1), (5, b'ccc', .3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, b'dbe', 1.2),
+                (2, b'aaa', 1.2),
+                (457, b'bbb', 0.1),
+                (5, b'ccc', 0.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
 
         # Read the modified table
         if self.reopen:
@@ -4306,8 +4828,8 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4316,34 +4838,42 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09b..." % self.__class__.__name__)
+            print('Running %s.test09b...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify a couple of columns
-        columns = np.rec.array([("aaa", 1.2), ("bbb", .1), ("ccc", .3)],
-                               formats="a3,f8")
-        table.modify_columns(start=1, columns=columns, names=["col2", "col3"])
+        columns = np.rec.array(
+            [('aaa', 1.2), ('bbb', 0.1), ('ccc', 0.3)], formats='a3,f8'
+        )
+        table.modify_columns(start=1, columns=columns, names=['col2', 'col3'])
         # Create the modified recarray
-        r1 = np.rec.array([(456, 'dbe', 1.2), (2, 'aaa', 1.2),
-                           (457, 'bbb', .1), (5, 'ccc', .3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, 'dbe', 1.2),
+                (2, 'aaa', 1.2),
+                (457, 'bbb', 0.1),
+                (5, 'ccc', 0.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4352,33 +4882,41 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09c..." % self.__class__.__name__)
+            print('Running %s.test09c...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
         # Modify a couple of columns
-        columns = np.rec.array([("aaa", 1.2), ("bbb", .1)], formats="a3,f8")
-        table.modify_columns(start=1, step=2, columns=columns,
-                             names=["col2", "col3"])
+        columns = np.rec.array([('aaa', 1.2), ('bbb', 0.1)], formats='a3,f8')
+        table.modify_columns(
+            start=1, step=2, columns=columns, names=['col2', 'col3']
+        )
         # Create the modified recarray
-        r1 = np.rec.array([(456, 'dbe', 1.2), (2, 'aaa', 1.2),
-                           (457, 'db1', 1.2), (5, 'bbb', .1)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, 'dbe', 1.2),
+                (2, 'aaa', 1.2),
+                (457, 'db1', 1.2),
+                (5, 'bbb', 0.1),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4387,51 +4925,60 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09d..." % self.__class__.__name__)
+            print('Running %s.test09d...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
         # Modify a couple of columns
-        columns = np.rec.array([("aaa", 1.3), ("bbb", .1)], formats="a3,f8")
-        table.modify_columns(start=0, step=2, columns=columns,
-                             names=["col2", "col3"])
+        columns = np.rec.array([('aaa', 1.3), ('bbb', 0.1)], formats='a3,f8')
+        table.modify_columns(
+            start=0, step=2, columns=columns, names=['col2', 'col3']
+        )
         # Create the modified recarray
-        r1 = np.rec.array([(456, 'aaa', 1.3), (2, 'ded', 1.3),
-                           (457, 'bbb', .1), (5, 'de1', 1.3)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (456, 'aaa', 1.3),
+                (2, 'ded', 1.3),
+                (457, 'bbb', 0.1),
+                (5, 'de1', 1.3),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
     def test10a(self):
         """Checking modifying rows using coordinates
-         (readCoords/modifyCoords)."""
+        (readCoords/modifyCoords)."""
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test10a..." % self.__class__.__name__)
+            print('Running %s.test10a...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
@@ -4445,18 +4992,24 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         table.modify_coordinates([0, 3], columns)
 
         # Create the modified recarray
-        r1 = np.rec.array([(55, b'dbe', 1.9), (2, b'ded', 1.3),
-                           (457, b'db1', 1.2), (56, b'de1', 1.8)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (55, b'dbe', 1.9),
+                (2, b'ded', 1.3),
+                (457, b'db1', 1.2),
+                (56, b'de1', 1.8),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4465,14 +5018,15 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test10b..." % self.__class__.__name__)
+            print('Running %s.test10b...' % self.__class__.__name__)
 
         # Create a new table:
         table = self.h5file.create_table(self.h5file.root, 'recarray', Rec)
 
         # append new rows
         r = np.rec.array(
-            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats="i4,a3,f8")
+            [(456, b'dbe', 1.2), (2, b'ded', 1.3)], formats='i4,a3,f8'
+        )
         table.append(r)
         table.append([(457, b'db1', 1.2), (5, b'de1', 1.3)])
 
@@ -4486,18 +5040,24 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         table[[0, 3]] = columns
 
         # Create the modified recarray
-        r1 = np.rec.array([(55, b'dbe', 1.9), (2, b'ded', 1.3),
-                           (457, b'db1', 1.2), (56, b'de1', 1.8)],
-                          formats="i4,a3,f8",
-                          names="col1,col2,col3")
+        r1 = np.rec.array(
+            [
+                (55, b'dbe', 1.9),
+                (2, b'ded', 1.3),
+                (457, b'db1', 1.2),
+                (56, b'de1', 1.8),
+            ],
+            formats='i4,a3,f8',
+            names='col1,col2,col3',
+        )
         # Read the modified table
         if self.reopen:
             self._reopen()
             table = self.h5file.root.recarray
         r2 = table.read()
         if common.verbose:
-            print("Original table-->", repr(r2))
-            print("Should look like-->", repr(r1))
+            print('Original table-->', repr(r2))
+            print('Should look like-->', repr(r1))
         self.assertEqual(r1.tobytes(), r2.tobytes())
         self.assertEqual(table.nrows, 4)
 
@@ -4534,19 +5094,23 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_copy..." % self.__class__.__name__)
+            print('Running %s.test01_copy...' % self.__class__.__name__)
 
         # Create a recarray
         r = np.rec.array(
             [(456, b'dbe', 1.2), (2, b'de', 1.3)],
-            names='col1,col2,col3', formats=('i4,S3,f8'), aligned=self.aligned)
+            names='col1,col2,col3',
+            formats=('i4,S3,f8'),
+            aligned=self.aligned,
+        )
         # Save it in a table:
-        table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
-                                          "title table1")
+        table1 = self.h5file.create_table(
+            self.h5file.root, 'table1', r, 'title table1'
+        )
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen(mode='a')
             table1 = self.h5file.root.table1
 
@@ -4555,17 +5119,17 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen(mode='a')
             table1 = self.h5file.root.table1
             table2 = self.h5file.root.table2
 
         if common.verbose:
-            print("table1-->", table1.read())
-            print("table2-->", table2.read())
+            print('table1-->', table1.read())
+            print('table2-->', table2.read())
             # print "dirs-->", dir(table1), dir(table2)
-            print("attrs table1-->", repr(table1.attrs))
-            print("attrs table2-->", repr(table2.attrs))
+            print('attrs table1-->', repr(table1.attrs))
+            print('attrs table2-->', repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
@@ -4576,8 +5140,9 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for colname in table1.colnames:
                 # Both ways to compare works well
                 # self.assertEqual(row1[colname], table2[nrow][colname))
-                self.assertEqual(row1[colname],
-                                 table2.read(nrow, field=colname)[0])
+                self.assertEqual(
+                    row1[colname], table2.read(nrow, field=colname)[0]
+                )
 
         # Assert other properties in table
         self.assertEqual(table1.nrows, table2.nrows)
@@ -4593,10 +5158,12 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         else:
             self.assertEqual(table1.description._v_offsets, [0, 4, 7])
             self.assertEqual(table1.description._v_itemsize, 15)
-        self.assertEqual(table1.description._v_offsets,
-                         table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize,
-                         table2.description._v_itemsize)
+        self.assertEqual(
+            table1.description._v_offsets, table2.description._v_offsets
+        )
+        self.assertEqual(
+            table1.description._v_itemsize, table2.description._v_itemsize
+        )
 
         # This could be not the same when re-opening the file
         # self.assertEqual(table1.description._v_ColObjects,
@@ -4613,38 +5180,42 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02_copy..." % self.__class__.__name__)
+            print('Running %s.test02_copy...' % self.__class__.__name__)
 
         # Create a recarray
         r = np.rec.array(
             [(b'dbe', 456, 1.2), (b'de', 2, 1.3)],
-            names='col1,col2,col3', formats="S3,i4,f8", aligned=self.aligned)
+            names='col1,col2,col3',
+            formats='S3,i4,f8',
+            aligned=self.aligned,
+        )
         # Save it in a table:
-        table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
-                                          "title table1")
+        table1 = self.h5file.create_table(
+            self.h5file.root, 'table1', r, 'title table1'
+        )
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen(mode='a')
             table1 = self.h5file.root.table1
 
         # Copy to another table in another group
-        group1 = self.h5file.create_group("/", "group1")
+        group1 = self.h5file.create_group('/', 'group1')
         table2 = table1.copy(group1, 'table2')
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen()
             table1 = self.h5file.root.table1
             table2 = self.h5file.root.group1.table2
 
         if common.verbose:
-            print("table1-->", table1.read())
-            print("table2-->", table2.read())
-            print("attrs table1-->", repr(table1.attrs))
-            print("attrs table2-->", repr(table2.attrs))
+            print('table1-->', table1.read())
+            print('table2-->', table2.read())
+            print('attrs table1-->', repr(table1.attrs))
+            print('attrs table2-->', repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
@@ -4652,8 +5223,9 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for colname in table1.colnames:
                 # Both ways to compare works well
                 # self.assertEqual(row1[colname], table2[nrow][colname))
-                self.assertEqual(row1[colname],
-                                 table2.read(nrow, field=colname)[0])
+                self.assertEqual(
+                    row1[colname], table2.read(nrow, field=colname)[0]
+                )
 
         # Assert other properties in table
         self.assertEqual(table1.nrows, table2.nrows)
@@ -4669,10 +5241,12 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         else:
             self.assertEqual(table1.description._v_offsets, [0, 3, 7])
             self.assertEqual(table1.description._v_itemsize, 15)
-        self.assertEqual(table1.description._v_offsets,
-                         table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize,
-                         table2.description._v_itemsize)
+        self.assertEqual(
+            table1.description._v_offsets, table2.description._v_offsets
+        )
+        self.assertEqual(
+            table1.description._v_itemsize, table2.description._v_itemsize
+        )
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4686,7 +5260,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_copy..." % self.__class__.__name__)
+            print('Running %s.test03_copy...' % self.__class__.__name__)
 
         # Create a recarray exceeding buffers capability
         # This works, but takes too much CPU for a test
@@ -4695,34 +5269,37 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         #                 formats='2i2,i4, (2,3)u2, (1,)f4, f8',shape=700)
         r = np.rec.array(
             b'aaaabbbbccccddddeeeeffffgggg' * 200,
-            formats='2i2,i4, (2,3)u2, (1,)f4, f8', shape=7,
-            aligned=self.aligned)
+            formats='2i2,i4, (2,3)u2, (1,)f4, f8',
+            shape=7,
+            aligned=self.aligned,
+        )
         # Save it in a table:
-        table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
-                                          "title table1")
+        table1 = self.h5file.create_table(
+            self.h5file.root, 'table1', r, 'title table1'
+        )
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen(mode='a')
             table1 = self.h5file.root.table1
 
         # Copy to another table in another group and other title
-        group1 = self.h5file.create_group("/", "group1")
+        group1 = self.h5file.create_group('/', 'group1')
         table1.nrowsinbuf = 2  # small value of buffer
-        table2 = table1.copy(group1, 'table2', title="title table2")
+        table2 = table1.copy(group1, 'table2', title='title table2')
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen()
             table1 = self.h5file.root.table1
             table2 = self.h5file.root.group1.table2
 
         if common.verbose:
-            print("table1-->", table1.read())
-            print("table2-->", table2.read())
-            print("attrs table1-->", repr(table1.attrs))
-            print("attrs table2-->", repr(table2.attrs))
+            print('table1-->', table1.read())
+            print('table2-->', table2.read())
+            print('attrs table1-->', repr(table1.attrs))
+            print('attrs table2-->', repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
@@ -4730,8 +5307,11 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for colname in table1.colnames:
                 # self.assertTrue(allequal(row1[colname],
                 # table2[nrow][colname]))
-                self.assertTrue(common.allequal(
-                    row1[colname], table2.read(nrow, field=colname)[0]))
+                self.assertTrue(
+                    common.allequal(
+                        row1[colname], table2.read(nrow, field=colname)[0]
+                    )
+                )
 
         # Assert other properties in table
         self.assertEqual(table1.nrows, table2.nrows)
@@ -4747,13 +5327,15 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         else:
             self.assertEqual(table1.description._v_offsets, [0, 4, 8, 20, 24])
             self.assertEqual(table1.description._v_itemsize, 32)
-        self.assertEqual(table1.description._v_offsets,
-                         table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize,
-                         table2.description._v_itemsize)
+        self.assertEqual(
+            table1.description._v_offsets, table2.description._v_offsets
+        )
+        self.assertEqual(
+            table1.description._v_itemsize, table2.description._v_itemsize
+        )
 
         # Leaf attributes
-        self.assertEqual("title table2", table2.title)
+        self.assertEqual('title table2', table2.title)
         self.assertEqual(table1.filters.complevel, table2.filters.complevel)
         self.assertEqual(table1.filters.complib, table2.filters.complib)
         self.assertEqual(table1.filters.shuffle, table2.filters.shuffle)
@@ -4764,39 +5346,42 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04_copy..." % self.__class__.__name__)
+            print('Running %s.test04_copy...' % self.__class__.__name__)
 
         # Create a recarray
-        r = np.rec.array([(1.2, b'dbe', 456), (1.3, b'de', 2)],
-                         names='col1,col2,col3', formats="f8,S3,i4",
-                         aligned=self.aligned)
+        r = np.rec.array(
+            [(1.2, b'dbe', 456), (1.3, b'de', 2)],
+            names='col1,col2,col3',
+            formats='f8,S3,i4',
+            aligned=self.aligned,
+        )
         # Save it in a table:
-        table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
-                                          "title table1")
+        table1 = self.h5file.create_table(
+            self.h5file.root, 'table1', r, 'title table1'
+        )
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen(mode='a')
             table1 = self.h5file.root.table1
 
         # Copy to another table in another group
-        group1 = self.h5file.create_group("/", "group1")
-        table2 = table1.copy(group1, 'table2',
-                             filters=tb.Filters(complevel=6))
+        group1 = self.h5file.create_group('/', 'group1')
+        table2 = table1.copy(group1, 'table2', filters=tb.Filters(complevel=6))
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen()
             table1 = self.h5file.root.table1
             table2 = self.h5file.root.group1.table2
 
         if common.verbose:
-            print("table1-->", table1.read())
-            print("table2-->", table2.read())
-            print("attrs table1-->", repr(table1.attrs))
-            print("attrs table2-->", repr(table2.attrs))
+            print('table1-->', table1.read())
+            print('table2-->', table2.read())
+            print('attrs table1-->', repr(table1.attrs))
+            print('attrs table2-->', repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
@@ -4804,8 +5389,9 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
             for colname in table1.colnames:
                 # Both ways to compare works well
                 # self.assertEqual(row1[colname], table2[nrow][colname))
-                self.assertEqual(row1[colname],
-                                 table2.read(nrow, field=colname)[0])
+                self.assertEqual(
+                    row1[colname], table2.read(nrow, field=colname)[0]
+                )
 
         # Assert other properties in table
         self.assertEqual(table1.nrows, table2.nrows)
@@ -4821,10 +5407,12 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         else:
             self.assertEqual(table1.description._v_offsets, [0, 8, 11])
             self.assertEqual(table1.description._v_itemsize, 15)
-        self.assertEqual(table1.description._v_offsets,
-                         table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize,
-                         table2.description._v_itemsize)
+        self.assertEqual(
+            table1.description._v_offsets, table2.description._v_offsets
+        )
+        self.assertEqual(
+            table1.description._v_itemsize, table2.description._v_itemsize
+        )
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4837,51 +5425,56 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05_copy..." % self.__class__.__name__)
+            print('Running %s.test05_copy...' % self.__class__.__name__)
 
         # Create a recarray
-        r = np.rec.array([(456, b'dbe', 1.2), (2, b'de', 1.3)],
-                         names='col1,col2,col3', formats='i8,S3,f8',
-                         aligned=self.aligned)
+        r = np.rec.array(
+            [(456, b'dbe', 1.2), (2, b'de', 1.3)],
+            names='col1,col2,col3',
+            formats='i8,S3,f8',
+            aligned=self.aligned,
+        )
         # Save it in a table:
-        table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
-                                          "title table1")
+        table1 = self.h5file.create_table(
+            self.h5file.root, 'table1', r, 'title table1'
+        )
         # Add some user attributes
-        table1.attrs.attr1 = "attr1"
+        table1.attrs.attr1 = 'attr1'
         table1.attrs.attr2 = 2
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen(mode='a')
             table1 = self.h5file.root.table1
 
         # Copy to another table in another group
-        group1 = self.h5file.create_group("/", "group1")
-        table2 = table1.copy(group1, 'table2',
-                             copyuserattrs=1,
-                             filters=tb.Filters(complevel=6))
+        group1 = self.h5file.create_group('/', 'group1')
+        table2 = table1.copy(
+            group1, 'table2', copyuserattrs=1, filters=tb.Filters(complevel=6)
+        )
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen()
             table1 = self.h5file.root.table1
             table2 = self.h5file.root.group1.table2
 
         if common.verbose:
-            print("table1-->", table1.read())
-            print("table2-->", table2.read())
-            print("attrs table1-->", repr(table1.attrs))
-            print("attrs table2-->", repr(table2.attrs))
+            print('table1-->', table1.read())
+            print('table2-->', table2.read())
+            print('attrs table1-->', repr(table1.attrs))
+            print('attrs table2-->', repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
             nrow = row1.nrow   # current row
             for colname in table1.colnames:
                 # self.assertEqual(row1[colname], table2[nrow][colname))
-                self.assertEqual(row1[colname],
-                                 table2.read(nrow, field=colname)[0])
+                self.assertEqual(
+                    row1[colname], table2.read(nrow, field=colname)[0]
+                )
 
         # Assert other properties in table
         self.assertEqual(table1.nrows, table2.nrows)
@@ -4905,10 +5498,12 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         else:
             self.assertEqual(table1.description._v_offsets, [0, 8, 11])
             self.assertEqual(table1.description._v_itemsize, 19)
-        self.assertEqual(table1.description._v_offsets,
-                         table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize,
-                         table2.description._v_itemsize)
+        self.assertEqual(
+            table1.description._v_offsets, table2.description._v_offsets
+        )
+        self.assertEqual(
+            table1.description._v_itemsize, table2.description._v_itemsize
+        )
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4916,7 +5511,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(1, table2.filters.shuffle)
         self.assertEqual(table1.filters.fletcher32, table2.filters.fletcher32)
         # User attributes
-        self.assertEqual(table2.attrs.attr1, "attr1")
+        self.assertEqual(table2.attrs.attr1, 'attr1')
         self.assertEqual(table2.attrs.attr2, 2)
 
     def test05b_copy(self):
@@ -4924,52 +5519,57 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05b_copy..." % self.__class__.__name__)
+            print('Running %s.test05b_copy...' % self.__class__.__name__)
 
         # Create a recarray
-        r = np.rec.array([(456, b'dbe', 1.2), (2, b'de', 1.3)],
-                         names='col1,col2,col3', formats='i8,S3,f4',
-                         aligned=self.aligned)
+        r = np.rec.array(
+            [(456, b'dbe', 1.2), (2, b'de', 1.3)],
+            names='col1,col2,col3',
+            formats='i8,S3,f4',
+            aligned=self.aligned,
+        )
         # Save it in a table:
-        table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
-                                          "title table1")
+        table1 = self.h5file.create_table(
+            self.h5file.root, 'table1', r, 'title table1'
+        )
 
         # Add some user attributes
-        table1.attrs.attr1 = "attr1"
+        table1.attrs.attr1 = 'attr1'
         table1.attrs.attr2 = 2
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen(mode='a')
             table1 = self.h5file.root.table1
 
         # Copy to another table in another group
-        group1 = self.h5file.create_group("/", "group1")
-        table2 = table1.copy(group1, 'table2',
-                             copyuserattrs=0,
-                             filters=tb.Filters(complevel=6))
+        group1 = self.h5file.create_group('/', 'group1')
+        table2 = table1.copy(
+            group1, 'table2', copyuserattrs=0, filters=tb.Filters(complevel=6)
+        )
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen()
             table1 = self.h5file.root.table1
             table2 = self.h5file.root.group1.table2
 
         if common.verbose:
-            print("table1-->", table1.read())
-            print("table2-->", table2.read())
-            print("attrs table1-->", repr(table1.attrs))
-            print("attrs table2-->", repr(table2.attrs))
+            print('table1-->', table1.read())
+            print('table2-->', table2.read())
+            print('attrs table1-->', repr(table1.attrs))
+            print('attrs table2-->', repr(table2.attrs))
 
         # Check that all the elements are equal
         for row1 in table1:
             nrow = row1.nrow   # current row
             for colname in table1.colnames:
                 # self.assertEqual(row1[colname], table2[nrow][colname))
-                self.assertEqual(row1[colname],
-                                 table2.read(nrow, field=colname)[0])
+                self.assertEqual(
+                    row1[colname], table2.read(nrow, field=colname)[0]
+                )
 
         # Assert other properties in table
         self.assertEqual(table1.nrows, table2.nrows)
@@ -4985,10 +5585,12 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         else:
             self.assertEqual(table1.description._v_offsets, [0, 8, 11])
             self.assertEqual(table1.description._v_itemsize, 15)
-        self.assertEqual(table1.description._v_offsets,
-                         table2.description._v_offsets)
-        self.assertEqual(table1.description._v_itemsize,
-                         table2.description._v_itemsize)
+        self.assertEqual(
+            table1.description._v_offsets, table2.description._v_offsets
+        )
+        self.assertEqual(
+            table1.description._v_itemsize, table2.description._v_itemsize
+        )
 
         # Leaf attributes
         self.assertEqual(table1.title, table2.title)
@@ -4996,8 +5598,8 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(1, table2.filters.shuffle)
         self.assertEqual(table1.filters.fletcher32, table2.filters.fletcher32)
         # User attributes
-        self.assertEqual(hasattr(table2.attrs, "attr1"), 0)
-        self.assertEqual(hasattr(table2.attrs, "attr2"), 0)
+        self.assertEqual(hasattr(table2.attrs, 'attr1'), 0)
+        self.assertEqual(hasattr(table2.attrs, 'attr2'), 0)
 
 
 class CloseCopyTestCase(CopyTestCase):
@@ -5036,47 +5638,50 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_index..." % self.__class__.__name__)
+            print('Running %s.test01_index...' % self.__class__.__name__)
 
         # Create a recarray exceeding buffers capability
-        r = np.rec.array(b'aaaabbbbccccddddeeeeffffgggg' * 200,
-                         formats='2i2, (1,)i4, (2,3)u2, (1,)f4, (1,)f8',
-                         shape=10)
+        r = np.rec.array(
+            b'aaaabbbbccccddddeeeeffffgggg' * 200,
+            formats='2i2, (1,)i4, (2,3)u2, (1,)f4, (1,)f8',
+            shape=10,
+        )
         # The line below exposes a bug in numpy
         # formats='2i2, i4, (2,3)u2, f4, f8',shape=10)
         # Save it in a table:
-        table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
-                                          "title table1")
+        table1 = self.h5file.create_table(
+            self.h5file.root, 'table1', r, 'title table1'
+        )
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen(mode='a')
             table1 = self.h5file.root.table1
 
         # Copy to another table
         table1.nrowsinbuf = self.nrowsinbuf
-        table2 = table1.copy("/", 'table2',
-                             start=self.start,
-                             stop=self.stop,
-                             step=self.step)
+        table2 = table1.copy(
+            '/', 'table2', start=self.start, stop=self.stop, step=self.step
+        )
         if common.verbose:
-            print("table1-->", table1.read())
-            print("table2-->", table2.read())
-            print("attrs table1-->", repr(table1.attrs))
-            print("attrs table2-->", repr(table2.attrs))
+            print('table1-->', table1.read())
+            print('table2-->', table2.read())
+            print('attrs table1-->', repr(table1.attrs))
+            print('attrs table2-->', repr(table2.attrs))
 
         # Check that all the elements are equal
-        r2 = r[self.start:self.stop:self.step]
+        r2 = r[self.start : self.stop : self.step]
         for nrow in range(r2.shape[0]):
             for colname in table1.colnames:
-                self.assertTrue(common.allequal(
-                    r2[nrow][colname], table2[nrow][colname]))
+                self.assertTrue(
+                    common.allequal(r2[nrow][colname], table2[nrow][colname])
+                )
 
         # Assert the number of rows in table
         if common.verbose:
-            print("nrows in table2-->", table2.nrows)
-            print("and it should be-->", r2.shape[0])
+            print('nrows in table2-->', table2.nrows)
+            print('and it should be-->', r2.shape[0])
         self.assertEqual(r2.shape[0], table2.nrows)
 
     def test02_indexclosef(self):
@@ -5084,49 +5689,53 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02_indexclosef..." % self.__class__.__name__)
+            print('Running %s.test02_indexclosef...' % self.__class__.__name__)
 
         # Create a recarray exceeding buffers capability
-        r = np.rec.array(b'aaaabbbbccccddddeeeeffffgggg' * 200,
-                         formats='2i2, i4, (2,3)u2, f4, f8', shape=10)
+        r = np.rec.array(
+            b'aaaabbbbccccddddeeeeffffgggg' * 200,
+            formats='2i2, i4, (2,3)u2, f4, f8',
+            shape=10,
+        )
         # Save it in a table:
-        table1 = self.h5file.create_table(self.h5file.root, 'table1', r,
-                                          "title table1")
+        table1 = self.h5file.create_table(
+            self.h5file.root, 'table1', r, 'title table1'
+        )
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen(mode='a')
             table1 = self.h5file.root.table1
 
         # Copy to another table
         table1.nrowsinbuf = self.nrowsinbuf
-        table2 = table1.copy("/", 'table2',
-                             start=self.start,
-                             stop=self.stop,
-                             step=self.step)
+        table2 = table1.copy(
+            '/', 'table2', start=self.start, stop=self.stop, step=self.step
+        )
 
         self._reopen()
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
 
         if common.verbose:
-            print("table1-->", table1.read())
-            print("table2-->", table2.read())
-            print("attrs table1-->", repr(table1.attrs))
-            print("attrs table2-->", repr(table2.attrs))
+            print('table1-->', table1.read())
+            print('table2-->', table2.read())
+            print('attrs table1-->', repr(table1.attrs))
+            print('attrs table2-->', repr(table2.attrs))
 
         # Check that all the elements are equal
-        r2 = r[self.start:self.stop:self.step]
+        r2 = r[self.start : self.stop : self.step]
         for nrow in range(r2.shape[0]):
             for colname in table1.colnames:
-                self.assertTrue(common.allequal(
-                    r2[nrow][colname], table2[nrow][colname]))
+                self.assertTrue(
+                    common.allequal(r2[nrow][colname], table2[nrow][colname])
+                )
 
         # Assert the number of rows in table
         if common.verbose:
-            print("nrows in table2-->", table2.nrows)
-            print("and it should be-->", r2.shape[0])
+            print('nrows in table2-->', table2.nrows)
+            print('and it should be-->', r2.shape[0])
         self.assertEqual(r2.shape[0], table2.nrows)
 
 
@@ -5261,8 +5870,9 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
         """Checking saving a Table with default values (using the same Row)"""
 
         # Create a table
-        table = self.h5file.create_table(self.h5file.root, 'table',
-                                         self.record)
+        table = self.h5file.create_table(
+            self.h5file.root, 'table', self.record
+        )
 
         table.nrowsinbuf = 46   # minimum amount that reproduces a problem
         # Take a number of records a bit greater
@@ -5282,7 +5892,7 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1 + 0j]
+        values = [b'abcd', 1, 2, 3.1, 4.2, 5, 'e', 1, 1j, 1 + 0j]
         formats = 'a4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
 
         if hasattr(tb, 'Float16Col'):
@@ -5295,17 +5905,17 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
             values.append(6.4)
             formats.append('f16')
         if hasattr(tb, 'Complex192Col'):
-            values.append(1.-0.j)
+            values.append(1.0 - 0.0j)
             formats.append('c24')
         if hasattr(tb, 'Complex256Col'):
-            values.append(1.-0.j)
+            values.append(1.0 - 0.0j)
             formats.append('c32')
 
         r = np.rec.array([tuple(values)] * nrows, formats=','.join(formats))
 
         # Assign the value exceptions
-        r["f1"][3] = 2
-        r["f2"][4] = 3
+        r['f1'][3] = 2
+        r['f2'][4] = 3
 
         # Read the table in another recarray
         # r2 = table.read()
@@ -5314,12 +5924,12 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
         # This generates too much output. Activate only when
         # self.nrowsinbuf is very small (<10)
         if common.verbose:
-            print("First 10 table values:")
+            print('First 10 table values:')
             for row in table.iterrows(0, 10):
                 print(row)
-            print("The first 5 read recarray values:")
+            print('The first 5 read recarray values:')
             print(r2[:5])
-            print("Records should look like:")
+            print('Records should look like:')
             print(r[:5])
 
         for name1, name2 in zip(r.dtype.names, r2.dtype.names):
@@ -5336,8 +5946,9 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
         """Checking saving a Table with default values (using different Row)"""
 
         # Create a table
-        table = self.h5file.create_table(self.h5file.root, 'table',
-                                         self.record)
+        table = self.h5file.create_table(
+            self.h5file.root, 'table', self.record
+        )
 
         table.nrowsinbuf = 46   # minimum amount that reproduces a problem
         # Take a number of records a bit greater
@@ -5356,7 +5967,7 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
         table.flush()
 
         # Create a recarray with the same default values
-        values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1 + 0j]
+        values = [b'abcd', 1, 2, 3.1, 4.2, 5, 'e', 1, 1j, 1 + 0j]
         formats = 'a4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
 
         if hasattr(tb, 'Float16Col'):
@@ -5369,17 +5980,17 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
             values.append(6.4)
             formats.append('f16')
         if hasattr(tb, 'Complex192Col'):
-            values.append(1.-0.j)
+            values.append(1.0 - 0.0j)
             formats.append('c24')
         if hasattr(tb, 'Complex256Col'):
-            values.append(1.-0.j)
+            values.append(1.0 - 0.0j)
             formats.append('c32')
 
         r = np.rec.array([tuple(values)] * nrows, formats=','.join(formats))
 
         # Assign the value exceptions
-        r["f1"][3] = 2
-        r["f2"][4] = 3
+        r['f1'][3] = 2
+        r['f2'][4] = 3
 
         # Read the table in another recarray
         # r2 = table.read()
@@ -5388,12 +5999,12 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
         # This generates too much output. Activate only when
         # self.nrowsinbuf is very small (<10)
         if common.verbose:
-            print("First 10 table values:")
+            print('First 10 table values:')
             for row in table.iterrows(0, 10):
                 print(row)
-            print("The first 5 read recarray values:")
+            print('The first 5 read recarray values:')
             print(r2[:5])
-            print("Records should look like:")
+            print('Records should look like:')
             print(r[:5])
 
         for name1, name2 in zip(r.dtype.names, r2.dtype.names):
@@ -5408,12 +6019,12 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class OldRecordDefaultValues(DefaultValues):
-    title = "OldRecordDefaultValues"
+    title = 'OldRecordDefaultValues'
     record = OldRecord
 
 
 class Record2(tb.IsDescription):
-    var1 = tb.StringCol(itemsize=4, dflt=b"abcd")  # 4-character String
+    var1 = tb.StringCol(itemsize=4, dflt=b'abcd')  # 4-character String
     var2 = tb.IntCol(dflt=1)                       # integer
     var3 = tb.Int16Col(dflt=2)                     # short integer
     var4 = tb.Float64Col(dflt=3.1)                 # double (double-precision)
@@ -5432,8 +6043,9 @@ class LengthTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def populateFile(self):
         # Create a table
-        table = self.h5file.create_table(self.h5file.root, 'table',
-                                         self.record, title="__length__ test")
+        table = self.h5file.create_table(
+            self.h5file.root, 'table', self.record, title='__length__ test'
+        )
         # Get the row object associated with the new table
         row = table.row
 
@@ -5450,7 +6062,7 @@ class LengthTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01_lengthrows..." % self.__class__.__name__)
+            print('Running %s.test01_lengthrows...' % self.__class__.__name__)
 
         # Number of rows
         len(self.table) == self.nrows
@@ -5460,7 +6072,7 @@ class LengthTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02_lengthcols..." % self.__class__.__name__)
+            print('Running %s.test02_lengthcols...' % self.__class__.__name__)
 
         # Number of columns
         if self.record is Record:
@@ -5473,7 +6085,7 @@ class LengthTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03_lengthcol..." % self.__class__.__name__)
+            print('Running %s.test03_lengthcol...' % self.__class__.__name__)
 
         # Number of rows for all columns column
         for colname in self.table.colnames:
@@ -5530,8 +6142,11 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         it2 = iter(tbl2)
         for r1 in tbl1.where('id > 1'):
             r2 = next(it2)
-            self.assertTrue(r1['id'] == r2['id'] and r1['v1'] == r2['v1']
-                            and r1['v2'] == r2['v2'])
+            self.assertTrue(
+                r1['id'] == r2['id']
+                and r1['v1'] == r2['v1']
+                and r1['v2'] == r2['v2']
+            )
 
         # There are no more rows.
         self.assertRaises(StopIteration, next, it2)
@@ -5554,8 +6169,11 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         it2 = iter(tbl2)
         for r1 in tbl1.where('id > 1'):
             r2 = next(it2)
-            self.assertTrue(r1['id'] == r2['id'] and r1['v1'] == r2['v1']
-                            and r1['v2'] == r2['v2'])
+            self.assertTrue(
+                r1['id'] == r2['id']
+                and r1['v1'] == r2['v1']
+                and r1['v2'] == r2['v2']
+            )
 
         # There are no more rows.
         self.assertRaises(StopIteration, next, it2)
@@ -5577,8 +6195,11 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         it2 = iter(tbl2)
         for r1 in tbl1.where('id > 1'):
             r2 = next(it2)
-            self.assertTrue(r1['id'] == r2['id'] and int(r1['v1']) == r2['v1']
-                            and r1['v2'] == r2['v2'])
+            self.assertTrue(
+                r1['id'] == r2['id']
+                and int(r1['v1']) == r2['v1']
+                and r1['v2'] == r2['v2']
+            )
 
         # There are no more rows.
         self.assertRaises(StopIteration, next, it2)
@@ -5594,8 +6215,9 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.create_table('/', 'test2', DstTblDesc)
 
-        self.assertRaises(NotImplementedError,
-                          tbl1.append_where, tbl2, 'v1 == b"1"')
+        self.assertRaises(
+            NotImplementedError, tbl1.append_where, tbl2, 'v1 == b"1"'
+        )
 
     def test04_noColumn(self):
         """Query with storage lacking columns."""
@@ -5626,14 +6248,16 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # RW to RO.
             with tb.open_file(h5fname2, 'r') as h5file2:
                 tbl2 = h5file2.root.test
-                self.assertRaises(tb.FileModeError,
-                                  tbl1.append_where, tbl2, 'id > 1')
+                self.assertRaises(
+                    tb.FileModeError, tbl1.append_where, tbl2, 'id > 1'
+                )
 
                 # RO to RO.
                 self._reopen('r')
                 tbl1 = self.h5file.root.test
-                self.assertRaises(tb.FileModeError,
-                                  tbl1.append_where, tbl2, 'id > 1')
+                self.assertRaises(
+                    tb.FileModeError, tbl1.append_where, tbl2, 'id > 1'
+                )
 
             # RO to RW.
             with tb.open_file(h5fname2, 'a') as h5file2:
@@ -5657,8 +6281,11 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         it2 = iter(tbl2)
         for r1 in tbl1.__iter__():
             r2 = next(it2)
-            self.assertTrue(r1['id'] == r2['id'] and r1['v1'] == r2['v1']
-                            and r1['v2'] == r2['v2'])
+            self.assertTrue(
+                r1['id'] == r2['id']
+                and r1['v1'] == r2['v1']
+                and r1['v2'] == r2['v2']
+            )
 
         # There are no more rows.
         self.assertRaises(StopIteration, next, it2)
@@ -5688,7 +6315,7 @@ class ChunkshapeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tbl = self.h5file.root.table
         if common.verbose:
-            print("chunkshape-->", tbl.chunkshape)
+            print('chunkshape-->', tbl.chunkshape)
         self.assertEqual(tbl.chunkshape, (13,))
 
     def test01(self):
@@ -5698,7 +6325,7 @@ class ChunkshapeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file = tb.open_file(self.h5fname, 'r')
         tbl = self.h5file.root.table
         if common.verbose:
-            print("chunkshape-->", tbl.chunkshape)
+            print('chunkshape-->', tbl.chunkshape)
         self.assertEqual(tbl.chunkshape, (13,))
 
 
@@ -5708,8 +6335,9 @@ class ZeroSizedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         super().setUp()
 
         # Create a Table
-        t = self.h5file.create_table('/', 'table', {'c1': tb.Int32Col(),
-                                                    'c2': tb.Float64Col()})
+        t = self.h5file.create_table(
+            '/', 'table', {'c1': tb.Int32Col(), 'c2': tb.Float64Col()}
+        )
         # Append a single row
         t.append([(1, 2.2)])
 
@@ -5719,7 +6347,7 @@ class ZeroSizedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t = self.h5file.root.table
         a = np.empty(shape=(0,), dtype='i4,f8')
         t.append(a)
-        self.assertEqual(t.nrows, 1, "The number of rows should be 1.")
+        self.assertEqual(t.nrows, 1, 'The number of rows should be 1.')
 
 
 # Case for testing ticket #103, i.e. selections in columns which are
@@ -5750,12 +6378,14 @@ class IrregularStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         coords1 = table.get_where_list('c1<5')
         coords2 = table.get_where_list('c2<5')
         if common.verbose:
-            print("\nSelected coords1-->", coords1)
-            print("Selected coords2-->", coords2)
+            print('\nSelected coords1-->', coords1)
+            print('Selected coords2-->', coords2)
         self.assertTrue(
-            common.allequal(coords1, np.arange(5, dtype=tb.utils.SizeType)))
+            common.allequal(coords1, np.arange(5, dtype=tb.utils.SizeType))
+        )
         self.assertTrue(
-            common.allequal(coords2, np.arange(5, dtype=tb.utils.SizeType)))
+            common.allequal(coords2, np.arange(5, dtype=tb.utils.SizeType))
+        )
 
 
 class Issue262TestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -5795,9 +6425,9 @@ class Issue262TestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print()
-            print("Selected coords1-->", coords1)
-            print("Selected coords2-->", coords2)
-            print("Selected data-->", data)
+            print('Selected coords1-->', coords1)
+            print('Selected coords2-->', coords2)
+            print('Selected data-->', data)
         self.assertEqual(len(coords1) + len(coords2), len(data))
 
     def test_gh262_01(self):
@@ -5808,7 +6438,7 @@ class Issue262TestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print()
-            print("data -->", data)
+            print('data -->', data)
         self.assertEqual(len(data), 0)
 
     def test_gh262_02(self):
@@ -5819,7 +6449,7 @@ class Issue262TestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print()
-            print("data -->", data)
+            print('data -->', data)
         self.assertEqual(len(data), 0)
 
     def test_gh262_03(self):
@@ -5830,7 +6460,7 @@ class Issue262TestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print()
-            print("data -->", data)
+            print('data -->', data)
         self.assertEqual(len(data), 0)
 
     def test_gh262_04(self):
@@ -5841,7 +6471,7 @@ class Issue262TestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print()
-            print("data -->", data)
+            print('data -->', data)
         self.assertEqual(len(data), 0)
 
 
@@ -5868,12 +6498,12 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen()
             table = self.h5file.root.table
 
         if common.verbose:
-            print("table-->", table.read())
+            print('table-->', table.read())
 
         self.assertEqual(table.nrows, 0)
         for row in table:
@@ -5888,12 +6518,12 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen()
             table = self.h5file.root.table
 
         if common.verbose:
-            print("table-->", table.read())
+            print('table-->', table.read())
 
         self.assertEqual(table.nrows, 1)
         for row in table:
@@ -5908,12 +6538,12 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen()
             table = self.h5file.root.table
 
         if common.verbose:
-            print("table-->", table.read())
+            print('table-->', table.read())
 
         self.assertEqual(table.nrows, 2)
         for row in table:
@@ -5928,12 +6558,12 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if self.close:
             if common.verbose:
-                print("(closing file version)")
+                print('(closing file version)')
             self._reopen()
             table = self.h5file.root.table
 
         if common.verbose:
-            print("table-->", table.read())
+            print('table-->', table.read())
 
         self.assertEqual(table.nrows, 4)
         # Check the original values
@@ -5949,6 +6579,7 @@ class TruncateOpen1(TruncateTestCase):
     class IRecord(tb.IsDescription):
         c1 = tb.Int32Col(pos=1)
         c2 = tb.FloatCol(pos=2)
+
     close = 0
 
 
@@ -5956,6 +6587,7 @@ class TruncateOpen2(TruncateTestCase):
     class IRecord(tb.IsDescription):
         c1 = tb.Int32Col(pos=1, dflt=3)
         c2 = tb.FloatCol(pos=2, dflt=-3.1)
+
     close = 0
 
 
@@ -5963,6 +6595,7 @@ class TruncateClose1(TruncateTestCase):
     class IRecord(tb.IsDescription):
         c1 = tb.Int32Col(pos=1)
         c2 = tb.FloatCol(pos=2)
+
     close = 1
 
 
@@ -5970,6 +6603,7 @@ class TruncateClose2(TruncateTestCase):
     class IRecord(tb.IsDescription):
         c1 = tb.Int32Col(pos=1, dflt=4)
         c2 = tb.FloatCol(pos=2, dflt=3.1)
+
     close = 1
 
 
@@ -5985,8 +6619,8 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ]
         self.not_working_keyset = [
             [0, N],
-            [0, N+1],
-            [0, -N-1],
+            [0, N + 1],
+            [0, -N - 1],
         ]
 
         # Limits for selections
@@ -5994,16 +6628,17 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             (0, 1),  # just one element
             (20, -10),  # no elements
             (-10, 4),  # several elements
-            (0, 10),   # several elements (again)
+            (0, 10),  # several elements (again)
         ]
 
         # Create a sample tables
         self.data = data = np.arange(N)
-        self.recarr = recarr = np.empty(N, dtype="i4,f4")
-        recarr["f0"][:] = data
-        recarr["f1"][:] = data
-        self.table = self.h5file.create_table(self.h5file.root, 'table',
-                                              recarr)
+        self.recarr = recarr = np.empty(N, dtype='i4,f4')
+        recarr['f0'][:] = data
+        recarr['f1'][:] = data
+        self.table = self.h5file.create_table(
+            self.h5file.root, 'table', recarr
+        )
 
     def test01a_read(self):
         """Test for point-selections (read, boolean keys)."""
@@ -6014,14 +6649,15 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = (data >= value1) & (data < value2)
             if common.verbose:
-                print("Selection to test:", key)
+                print('Selection to test:', key)
             a = recarr[key]
             b = table[key]
             if common.verbose:
-                print("NumPy selection:", a)
-                print("PyTables selection:", b)
+                print('NumPy selection:', a)
+                print('PyTables selection:', b)
             np.testing.assert_array_equal(
-                a, b, "NumPy array and PyTables selections does not match.")
+                a, b, 'NumPy array and PyTables selections does not match.'
+            )
 
     def test01b_read(self):
         """Test for point-selections (read, tuples of integers keys)."""
@@ -6032,11 +6668,12 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))
             if common.verbose:
-                print("Selection to test:", key, type(key))
+                print('Selection to test:', key, type(key))
             a = recarr[key]
             b = table[key]
             np.testing.assert_array_equal(
-                a, b, "NumPy array and PyTables selections does not match.")
+                a, b, 'NumPy array and PyTables selections does not match.'
+            )
 
     def test01c_read(self):
         """Test for point-selections (read, tuples of floats keys)."""
@@ -6047,9 +6684,9 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))
             if common.verbose:
-                print("Selection to test:", key)
+                print('Selection to test:', key)
             recarr[key]
-            fkey = np.array(key, "f4")
+            fkey = np.array(key, 'f4')
             self.assertRaises(TypeError, table.__getitem__, fkey)
 
     def test01d_read(self):
@@ -6061,11 +6698,12 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))[0]
             if common.verbose:
-                print("Selection to test:", key, type(key))
+                print('Selection to test:', key, type(key))
             a = recarr[key]
             b = table[key]
             np.testing.assert_array_equal(
-                a, b, "NumPy array and PyTables selections does not match.")
+                a, b, 'NumPy array and PyTables selections does not match.'
+            )
 
     def test01e_read(self):
         """Test for point-selections (read, list keys)."""
@@ -6076,11 +6714,12 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))[0].tolist()
             if common.verbose:
-                print("Selection to test:", key, type(key))
+                print('Selection to test:', key, type(key))
             a = recarr[key]
             b = table[key]
             np.testing.assert_array_equal(
-                a, b, "NumPy array and PyTables selections does not match.")
+                a, b, 'NumPy array and PyTables selections does not match.'
+            )
 
     def test01f_read(self):
         recarr = self.recarr
@@ -6088,18 +6727,19 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         for key in self.working_keyset:
             if common.verbose:
-                print("Selection to test:", key)
+                print('Selection to test:', key)
             a = recarr[key]
             b = table[key]
             np.testing.assert_array_equal(
-                a, b, "NumPy array and PyTables selections does not match.")
+                a, b, 'NumPy array and PyTables selections does not match.'
+            )
 
     def test01g_read(self):
         table = self.table
 
         for key in self.not_working_keyset:
             if common.verbose:
-                print("Selection to test:", key)
+                print('Selection to test:', key)
 
             self.assertRaises(IndexError, table.__getitem__, key)
 
@@ -6112,18 +6752,19 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))
             if common.verbose:
-                print("Selection to test:", key)
+                print('Selection to test:', key)
             s = recarr[key]
             # Modify the s recarray
-            s["f0"][:] = data[:len(s)]*2
-            s["f1"][:] = data[:len(s)]*3
+            s['f0'][:] = data[: len(s)] * 2
+            s['f1'][:] = data[: len(s)] * 3
             # Modify recarr and table
             recarr[key] = s
             table[key] = s
             a = recarr[:]
             b = table[:]
             np.testing.assert_array_equal(
-                a, b, "NumPy array and PyTables modifications does not match.")
+                a, b, 'NumPy array and PyTables modifications does not match.'
+            )
 
     def test02b_write(self):
         """Test for point-selections (write, integer keys)."""
@@ -6134,25 +6775,26 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for value1, value2 in self.limits:
             key = np.where((data >= value1) & (data < value2))
             if common.verbose:
-                print("Selection to test:", key)
+                print('Selection to test:', key)
             s = recarr[key]
             # Modify the s recarray
-            s["f0"][:] = data[:len(s)]*2
-            s["f1"][:] = data[:len(s)]*3
+            s['f0'][:] = data[: len(s)] * 2
+            s['f1'][:] = data[: len(s)] * 3
             # Modify recarr and table
             recarr[key] = s
             table[key] = s
             a = recarr[:]
             b = table[:]
             np.testing.assert_array_equal(
-                a, b, "NumPy array and PyTables modifications does not match.")
+                a, b, 'NumPy array and PyTables modifications does not match.'
+            )
 
 
 # Test for building very large MD columns without defaults
 class MDLargeColTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_create(self):
         """Create a Table with a very large MD column.  Ticket #211."""
-        N = 2**18      # 4x larger than maximum object header size (64 KB)
+        N = 2 ** 18      # 4x larger than maximum object header size (64 KB)
         cols = {'col1': tb.Int8Col(shape=N, dflt=0)}
         tbl = self.h5file.create_table('/', 'test', cols)
         tbl.row.append()   # add a single row
@@ -6162,7 +6804,7 @@ class MDLargeColTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
         # Check the value
         if common.verbose:
-            print("First row-->", tbl[0]['col1'])
+            print('First row-->', tbl[0]['col1'])
         np.testing.assert_array_equal(tbl[0]['col1'], np.zeros(N, 'i1'))
 
 
@@ -6185,8 +6827,9 @@ class ExhaustedIter(common.TempFileMixin, common.PyTablesTestCase):
             scenario_id = tb.IntCol(pos=1)
             value = tb.Float32Col(pos=3)
 
-        table = self.h5file.create_table('/', 'observations', Observations,
-                                         chunkshape=32)
+        table = self.h5file.create_table(
+            '/', 'observations', Observations, chunkshape=32
+        )
 
         # fill the database
         observations = np.arange(225)
@@ -6210,8 +6853,9 @@ class ExhaustedIter(common.TempFileMixin, common.PyTablesTestCase):
         """Checking iterating an exhausted iterator (ticket #264)"""
         rows = self.h5file.root.observations.where('(market_id == 3)')
         scenario_means = []
-        for scenario_id, rows_grouped in itertools.groupby(rows,
-                                                           self.f_scenario):
+        for scenario_id, rows_grouped in itertools.groupby(
+            rows, self.f_scenario
+        ):
             vals = [row['value'] for row in rows_grouped]
             scenario_means.append(self.average(vals))
         if common.verbose:
@@ -6225,8 +6869,9 @@ class ExhaustedIter(common.TempFileMixin, common.PyTablesTestCase):
 
         rows = self.h5file.root.observations.where('(market_id == 3)')
         scenario_means = []
-        for scenario_id, rows_grouped in itertools.groupby(rows,
-                                                           self.f_scenario):
+        for scenario_id, rows_grouped in itertools.groupby(
+            rows, self.f_scenario
+        ):
             vals = [row['value'] for row in rows_grouped]
             scenario_means.append(self.average(vals))
         if common.verbose:
@@ -6237,24 +6882,25 @@ class ExhaustedIter(common.TempFileMixin, common.PyTablesTestCase):
 class SpecialColnamesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_check_names(self):
         f = self.h5file
-        a = np.array([(1, 2, 3)], dtype=[(
-            "a", int), ("_b", int), ("__c", int)])
-        t = f.create_table(f.root, "test", a)
-        self.assertEqual(len(t.colnames), 3, "Number of columns incorrect")
+        a = np.array(
+            [(1, 2, 3)], dtype=[('a', int), ('_b', int), ('__c', int)]
+        )
+        t = f.create_table(f.root, 'test', a)
+        self.assertEqual(len(t.colnames), 3, 'Number of columns incorrect')
         if common.verbose:
-            print("colnames -->", t.colnames)
-        for name, name2 in zip(t.colnames, ("a", "_b", "__c")):
+            print('colnames -->', t.colnames)
+        for name, name2 in zip(t.colnames, ('a', '_b', '__c')):
             self.assertEqual(name, name2)
 
 
 class RowContainsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_row_contains(self):
         f = self.h5file
-        a = np.array([(1, 2, 3)], dtype="i1,i2,i4")
-        t = f.create_table(f.root, "test", a)
+        a = np.array([(1, 2, 3)], dtype='i1,i2,i4')
+        t = f.create_table(f.root, 'test', a)
         row = [r for r in t.iterrows()][0]
         if common.verbose:
-            print("row -->", row[:])
+            print('row -->', row[:])
         for item in (1, 2, 3):
             self.assertIn(item, row)
         self.assertNotIn(4, row)
@@ -6264,7 +6910,8 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
         self.table = self.h5file.create_table(
-            self.h5file.root, 'table', Record)
+            self.h5file.root, 'table', Record
+        )
 
         row = self.table.row
         for i in range(10):
@@ -6276,51 +6923,49 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_read(self):
         self.h5file.close()
-        self.assertRaises(
-            tb.ClosedNodeError, self.table.read)
+        self.assertRaises(tb.ClosedNodeError, self.table.read)
 
     def test_getitem(self):
         self.h5file.close()
-        self.assertRaises(
-            tb.ClosedNodeError, self.table.__getitem__, 0)
+        self.assertRaises(tb.ClosedNodeError, self.table.__getitem__, 0)
 
     def test_setitem(self):
         data = self.table[0]
         self.h5file.close()
-        self.assertRaises(
-            tb.ClosedNodeError, self.table.__setitem__, 0, data)
+        self.assertRaises(tb.ClosedNodeError, self.table.__setitem__, 0, data)
 
     def test_append(self):
         data = self.table[0]
         self.h5file.close()
-        self.assertRaises(
-            tb.ClosedNodeError, self.table.append, data)
+        self.assertRaises(tb.ClosedNodeError, self.table.append, data)
 
     def test_readWhere(self):
         self.h5file.close()
         self.assertRaises(
-            tb.ClosedNodeError, self.table.read_where, 'var2 > 3')
+            tb.ClosedNodeError, self.table.read_where, 'var2 > 3'
+        )
 
     def test_whereAppend(self):
         self.h5file.close()
         self.assertRaises(
-            tb.ClosedNodeError,
-            self.table.append_where, self.table, 'var2 > 3')
+            tb.ClosedNodeError, self.table.append_where, self.table, 'var2 > 3'
+        )
 
     def test_getWhereList(self):
         self.h5file.close()
         self.assertRaises(
-            tb.ClosedNodeError, self.table.get_where_list, 'var2 > 3')
+            tb.ClosedNodeError, self.table.get_where_list, 'var2 > 3'
+        )
 
     def test_readSorted(self):
         self.h5file.close()
-        self.assertRaises(
-            tb.ClosedNodeError, self.table.read_sorted, 'var2')
+        self.assertRaises(tb.ClosedNodeError, self.table.read_sorted, 'var2')
 
     def test_readCoordinates(self):
         self.h5file.close()
         self.assertRaises(
-            tb.ClosedNodeError, self.table.read_coordinates, [2, 5])
+            tb.ClosedNodeError, self.table.read_coordinates, [2, 5]
+        )
 
 
 class ColumnIterationTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -6329,7 +6974,7 @@ class ColumnIterationTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.buffer_size = self.h5file.params['IO_BUFFER_SIZE']
 
     def create_non_nested_table(self, nrows, dtype):
-        array = np.empty((nrows, ), dtype)
+        array = np.empty((nrows,), dtype)
         for name in dtype.names:
             array[name] = np.random.randint(0, 10_000, nrows)
         table = self.h5file.create_table('/', 'table', dtype)
@@ -6358,8 +7003,9 @@ class ColumnIterationTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test_partially_filled_buffer(self):
         dtype = np.format_parser(['i8'] * 3, [], []).dtype
         rows_in_buffer = self.buffer_size // dtype[0].itemsize
-        array, table = self.create_non_nested_table(rows_in_buffer * 2 + 2,
-                                                    dtype)
+        array, table = self.create_non_nested_table(
+            rows_in_buffer * 2 + 2, dtype
+        )
         self.iterate(array, table)
 
     def test_zero_length_table(self):
@@ -6372,7 +7018,8 @@ class ColumnIterationTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
     obj = np.array(
         [('aaaa', 1, 2.1), ('bbbb', 2, 3.2)],
-        dtype=[('name', 'S4'), ('icol', np.int32), ('fcol', np.float32)])
+        dtype=[('name', 'S4'), ('icol', np.int32), ('fcol', np.float32)],
+    )
     where = '/'
     name = 'table'
     description, _ = tb.description.descr_from_dtype(obj.dtype)
@@ -6384,10 +7031,14 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
     createparents = False
 
     def test_positional_args_01(self):
-        self.h5file.create_table(self.where, self.name,
-                                 self.description,
-                                 self.title, self.filters,
-                                 self.expectedrows)
+        self.h5file.create_table(
+            self.where,
+            self.name,
+            self.description,
+            self.title,
+            self.filters,
+            self.expectedrows,
+        )
 
         self._reopen()
 
@@ -6399,11 +7050,14 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(tuple(ptarr.colnames), self.obj.dtype.names)
 
     def test_positional_args_02(self):
-        ptarr = self.h5file.create_table(self.where, self.name,
-                                         self.description,
-                                         self.title,
-                                         self.filters,
-                                         self.expectedrows)
+        ptarr = self.h5file.create_table(
+            self.where,
+            self.name,
+            self.description,
+            self.title,
+            self.filters,
+            self.expectedrows,
+        )
         ptarr.append(self.obj)
 
         self._reopen()
@@ -6419,15 +7073,18 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_positional_args_obj(self):
-        self.h5file.create_table(self.where, self.name,
-                                 None,
-                                 self.title,
-                                 self.filters,
-                                 self.expectedrows,
-                                 self.chunkshape,
-                                 self.byteorder,
-                                 self.createparents,
-                                 self.obj)
+        self.h5file.create_table(
+            self.where,
+            self.name,
+            None,
+            self.title,
+            self.filters,
+            self.expectedrows,
+            self.chunkshape,
+            self.byteorder,
+            self.createparents,
+            self.obj,
+        )
 
         self._reopen()
 
@@ -6441,8 +7098,9 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj(self):
-        self.h5file.create_table(self.where, self.name, title=self.title,
-                                 obj=self.obj)
+        self.h5file.create_table(
+            self.where, self.name, title=self.title, obj=self.obj
+        )
 
         self._reopen()
 
@@ -6456,9 +7114,12 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_description_01(self):
-        ptarr = self.h5file.create_table(self.where, self.name,
-                                         title=self.title,
-                                         description=self.description)
+        ptarr = self.h5file.create_table(
+            self.where,
+            self.name,
+            title=self.title,
+            description=self.description,
+        )
         ptarr.append(self.obj)
 
         self._reopen()
@@ -6473,9 +7134,12 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_description_02(self):
-        ptarr = self.h5file.create_table(self.where, self.name,
-                                         title=self.title,
-                                         description=self.description)
+        ptarr = self.h5file.create_table(
+            self.where,
+            self.name,
+            title=self.title,
+            description=self.description,
+        )
         # ptarr.append(self.obj)
         self._reopen()
 
@@ -6487,10 +7151,13 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(tuple(ptarr.colnames), self.obj.dtype.names)
 
     def test_kwargs_obj_description(self):
-        ptarr = self.h5file.create_table(self.where, self.name,
-                                         title=self.title,
-                                         obj=self.obj,
-                                         description=self.description)
+        ptarr = self.h5file.create_table(
+            self.where,
+            self.name,
+            title=self.title,
+            obj=self.obj,
+            description=self.description,
+        )
 
         self._reopen()
 
@@ -6504,31 +7171,37 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj_description_error_01(self):
-        self.assertRaises(TypeError,
-                          self.h5file.create_table,
-                          self.where,
-                          self.name,
-                          title=self.title,
-                          obj=self.obj,
-                          description=Record)
+        self.assertRaises(
+            TypeError,
+            self.h5file.create_table,
+            self.where,
+            self.name,
+            title=self.title,
+            obj=self.obj,
+            description=Record,
+        )
 
     def test_kwargs_obj_description_error_02(self):
-        self.assertRaises(TypeError,
-                          self.h5file.create_table,
-                          self.where,
-                          self.name,
-                          title=self.title,
-                          obj=self.obj,
-                          description=Record())
+        self.assertRaises(
+            TypeError,
+            self.h5file.create_table,
+            self.where,
+            self.name,
+            title=self.title,
+            obj=self.obj,
+            description=Record(),
+        )
 
     def test_kwargs_obj_description_error_03(self):
-        self.assertRaises(TypeError,
-                          self.h5file.create_table,
-                          self.where,
-                          self.name,
-                          title=self.title,
-                          obj=self.obj,
-                          description=RecordDescriptionDict)
+        self.assertRaises(
+            TypeError,
+            self.h5file.create_table,
+            self.where,
+            self.name,
+            title=self.title,
+            obj=self.obj,
+            description=RecordDescriptionDict,
+        )
 
 
 def suite():
@@ -6539,43 +7212,57 @@ def suite():
     for n in range(niter):
         theSuite.addTest(common.unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(OldRecordBasicWriteTestCase))
+            common.unittest.makeSuite(OldRecordBasicWriteTestCase)
+        )
         theSuite.addTest(common.unittest.makeSuite(DictWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(NumPyDTWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(common.unittest.makeSuite(RecArrayThreeWriteTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(RecArrayAlignedWriteTestCase))
+            common.unittest.makeSuite(RecArrayAlignedWriteTestCase)
+        )
         theSuite.addTest(
-            common.unittest.makeSuite(CompressBloscTablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(
-            CompressBloscShuffleTablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(
-            CompressBloscBitShuffleTablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(
-            CompressBloscBloscLZTablesTestCase))
+            common.unittest.makeSuite(CompressBloscTablesTestCase)
+        )
         theSuite.addTest(
-            common.unittest.makeSuite(CompressBloscLZ4TablesTestCase))
+            common.unittest.makeSuite(CompressBloscShuffleTablesTestCase)
+        )
         theSuite.addTest(
-            common.unittest.makeSuite(CompressBloscLZ4HCTablesTestCase))
+            common.unittest.makeSuite(CompressBloscBitShuffleTablesTestCase)
+        )
         theSuite.addTest(
-            common.unittest.makeSuite(CompressBloscSnappyTablesTestCase))
+            common.unittest.makeSuite(CompressBloscBloscLZTablesTestCase)
+        )
         theSuite.addTest(
-            common.unittest.makeSuite(CompressBloscZlibTablesTestCase))
+            common.unittest.makeSuite(CompressBloscLZ4TablesTestCase)
+        )
         theSuite.addTest(
-            common.unittest.makeSuite(CompressBloscZstdTablesTestCase))
+            common.unittest.makeSuite(CompressBloscLZ4HCTablesTestCase)
+        )
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscSnappyTablesTestCase)
+        )
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscZlibTablesTestCase)
+        )
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBloscZstdTablesTestCase)
+        )
         theSuite.addTest(common.unittest.makeSuite(CompressLZOTablesTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(CompressLZOShuffleTablesTestCase))
+            common.unittest.makeSuite(CompressLZOShuffleTablesTestCase)
+        )
         theSuite.addTest(common.unittest.makeSuite(CompressZLIBTablesTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(CompressZLIBShuffleTablesTestCase))
+            common.unittest.makeSuite(CompressZLIBShuffleTablesTestCase)
+        )
         theSuite.addTest(common.unittest.makeSuite(Fletcher32TablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(AllFiltersTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressTwoTablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(
-            SizeOnDiskInMemoryPropertyTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(SizeOnDiskInMemoryPropertyTestCase)
+        )
         theSuite.addTest(common.unittest.makeSuite(NonNestedTableReadTestCase))
         theSuite.addTest(common.unittest.makeSuite(TableReadByteorderTestCase))
         theSuite.addTest(common.unittest.makeSuite(IterRangeTestCase))
@@ -6597,7 +7284,8 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(AlignedOpenCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(AlignedCloseCopyTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(AlignedNoPaddingOpenCopyTestCase))
+            common.unittest.makeSuite(AlignedNoPaddingOpenCopyTestCase)
+        )
         theSuite.addTest(common.unittest.makeSuite(CopyIndex1TestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex2TestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex3TestCase))
@@ -6633,9 +7321,11 @@ def suite():
 
     if common.heavy:
         theSuite.addTest(
-            common.unittest.makeSuite(CompressBzip2TablesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(
-            CompressBzip2ShuffleTablesTestCase))
+            common.unittest.makeSuite(CompressBzip2TablesTestCase)
+        )
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBzip2ShuffleTablesTestCase)
+        )
         theSuite.addTest(common.unittest.makeSuite(CopyIndex10TestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex11TestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex12TestCase))

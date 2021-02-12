@@ -21,7 +21,7 @@ minRowIndex = 1000
 
 
 class Small(tb.IsDescription):
-    var1 = tb.StringCol(itemsize=4, dflt=b"")
+    var1 = tb.StringCol(itemsize=4, dflt=b'')
     var2 = tb.BoolCol(dflt=0)
     var3 = tb.IntCol(dflt=0)
     var4 = tb.FloatCol(dflt=0)
@@ -29,7 +29,7 @@ class Small(tb.IsDescription):
 
 class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     compress = 1
-    complib = "zlib"
+    complib = 'zlib'
     shuffle = 1
     fletcher32 = 0
     chunkshape = 10
@@ -43,28 +43,42 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create an instance of an HDF5 Table
         if common.verbose:
-            print("Checking index kind-->", self.kind)
+            print('Checking index kind-->', self.kind)
         self.rootgroup = self.h5file.root
         self.populateFile()
 
     def populateFile(self):
         # Set a seed for the random generator if needed.
         # This is useful when one need reproductible results.
-        if self.random and hasattr(self, "seed"):
+        if self.random and hasattr(self, 'seed'):
             random.seed(self.seed)
         group = self.rootgroup
         # Create an table
-        title = "This is the IndexArray title"
-        filters = tb.Filters(complevel=self.compress,
-                             complib=self.complib,
-                             shuffle=self.shuffle,
-                             fletcher32=self.fletcher32)
-        table1 = self.h5file.create_table(group, 'table1', Small, title,
-                                          filters, self.nrows,
-                                          chunkshape=(self.chunkshape,))
-        table2 = self.h5file.create_table(group, 'table2', Small, title,
-                                          filters, self.nrows,
-                                          chunkshape=(self.chunkshape,))
+        title = 'This is the IndexArray title'
+        filters = tb.Filters(
+            complevel=self.compress,
+            complib=self.complib,
+            shuffle=self.shuffle,
+            fletcher32=self.fletcher32,
+        )
+        table1 = self.h5file.create_table(
+            group,
+            'table1',
+            Small,
+            title,
+            filters,
+            self.nrows,
+            chunkshape=(self.chunkshape,),
+        )
+        table2 = self.h5file.create_table(
+            group,
+            'table2',
+            Small,
+            title,
+            filters,
+            self.nrows,
+            chunkshape=(self.chunkshape,),
+        )
         count = 0
         for i in range(0, self.nrows, self.nrep):
             for j in range(self.nrep):
@@ -99,10 +113,11 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Index all entries:
         for col in table1.colinstances.values():
             indexrows = col.create_index(
-                kind=self.kind, _blocksizes=self.blocksizes)
+                kind=self.kind, _blocksizes=self.blocksizes
+            )
         if common.verbose:
-            print("Number of written rows:", table1.nrows)
-            print("Number of indexed rows:", indexrows)
+            print('Number of written rows:', table1.nrows)
+            print('Number of indexed rows:', indexrows)
 
         if self.reopen:
             self._reopen(mode='a')  # flavor changes
@@ -114,7 +129,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01a..." % self.__class__.__name__)
+            print('Running %s.test01a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -126,59 +141,57 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Do some selections and check the results
         # First selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in
-                    table1.where('(il<=t1var1)&(t1var1<=sl)')]
-        results2 = [p["var1"] for p in table2
-                    if il <= p["var1"] <= sl]
+        results1 = [
+            p['var1'] for p in table1.where('(il<=t1var1)&(t1var1<=sl)')
+        ]
+        results2 = [p['var1'] for p in table2 if il <= p['var1'] <= sl]
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Should look like:", results2)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Should look like:', results2)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in
-                    table1.where('(il<=t1var1)&(t1var1<sl)')]
-        results2 = [p["var1"] for p in table2
-                    if il <= p["var1"] < sl]
+        results1 = [
+            p['var1'] for p in table1.where('(il<=t1var1)&(t1var1<sl)')
+        ]
+        results2 = [p['var1'] for p in table2 if il <= p['var1'] < sl]
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in
-                    table1.where('(il<t1var1)&(t1var1<=sl)')]
-        results2 = [p["var1"] for p in table2
-                    if il < p["var1"] <= sl]
+        results1 = [
+            p['var1'] for p in table1.where('(il<t1var1)&(t1var1<=sl)')
+        ]
+        results2 = [p['var1'] for p in table2 if il < p['var1'] <= sl]
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Forth selection
         t1var1 = table1.cols.var1
         self.assertIsNotNone(t1var1)
-        results1 = [p["var1"] for p in
-                    table1.where('(il<t1var1)&(t1var1<sl)')]
-        results2 = [p["var1"] for p in table2
-                    if il < p["var1"] < sl]
+        results1 = [p['var1'] for p in table1.where('(il<t1var1)&(t1var1<sl)')]
+        results2 = [p['var1'] for p in table2 if il < p['var1'] < sl]
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -187,7 +200,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test01b..." % self.__class__.__name__)
+            print('Running %s.test01b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -199,58 +212,54 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Do some selections and check the results
         # First selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where('t1var1 < sl')]
-        results2 = [p["var1"] for p in table2
-                    if p["var1"] < sl]
+        results1 = [p['var1'] for p in table1.where('t1var1 < sl')]
+        results2 = [p['var1'] for p in table2 if p['var1'] < sl]
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where('t1var1 <= sl')]
-        results2 = [p["var1"] for p in table2
-                    if p["var1"] <= sl]
+        results1 = [p['var1'] for p in table1.where('t1var1 <= sl')]
+        results2 = [p['var1'] for p in table2 if p['var1'] <= sl]
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where('t1var1 > sl')]
-        results2 = [p["var1"] for p in table2
-                    if p["var1"] > sl]
+        results1 = [p['var1'] for p in table1.where('t1var1 > sl')]
+        results2 = [p['var1'] for p in table2 if p['var1'] > sl]
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         t1var1 = table1.cols.var1
         self.assertIsNotNone(t1var1)
-        results1 = [p["var1"] for p in table1.where('t1var1 >= sl')]
-        results2 = [p["var1"] for p in table2
-                    if p["var1"] >= sl]
+        results1 = [p['var1'] for p in table1.where('t1var1 >= sl')]
+        results2 = [p['var1'] for p in table2 if p['var1'] >= sl]
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -259,7 +268,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02a..." % self.__class__.__name__)
+            print('Running %s.test02a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -267,11 +276,11 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Do some selections and check the results
         t1var2 = table1.cols.var2
         self.assertIsNotNone(t1var2)
-        results1 = [p["var2"] for p in table1.where('t1var2 == True')]
-        results2 = [p["var2"] for p in table2 if p["var2"] is True]
+        results1 = [p['var2'] for p in table1.where('t1var2 == True')]
+        results2 = [p['var2'] for p in table2 if p['var2'] is True]
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -280,7 +289,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test02b..." % self.__class__.__name__)
+            print('Running %s.test02b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -288,11 +297,11 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Do some selections and check the results
         t1var2 = table1.cols.var2
         self.assertIsNotNone(t1var2)
-        results1 = [p["var2"] for p in table1.where('t1var2 == False')]
-        results2 = [p["var2"] for p in table2 if p["var2"] is False]
+        results1 = [p['var2'] for p in table1.where('t1var2 == False')]
+        results2 = [p['var2'] for p in table2 if p['var2'] is False]
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -301,7 +310,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03a..." % self.__class__.__name__)
+            print('Running %s.test03a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -315,58 +324,54 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(t1col)
 
         # First selection
-        results1 = [p["var3"] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
-        results2 = [p["var3"] for p in table2
-                    if il <= p["var3"] <= sl]
+        results1 = [p['var3'] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
+        results2 = [p['var3'] for p in table2 if il <= p['var3'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
-        results1 = [p["var3"] for p in table1.where('(il<=t1col)&(t1col<sl)')]
-        results2 = [p["var3"] for p in table2
-                    if il <= p["var3"] < sl]
+        results1 = [p['var3'] for p in table1.where('(il<=t1col)&(t1col<sl)')]
+        results2 = [p['var3'] for p in table2 if il <= p['var3'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
-        results1 = [p["var3"] for p in table1.where('(il<t1col)&(t1col<=sl)')]
-        results2 = [p["var3"] for p in table2
-                    if il < p["var3"] <= sl]
+        results1 = [p['var3'] for p in table1.where('(il<t1col)&(t1col<=sl)')]
+        results2 = [p['var3'] for p in table2 if il < p['var3'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
-        results1 = [p["var3"] for p in table1.where('(il<t1col)&(t1col<sl)')]
-        results2 = [p["var3"] for p in table2
-                    if il < p["var3"] < sl]
+        results1 = [p['var3'] for p in table1.where('(il<t1col)&(t1col<sl)')]
+        results2 = [p['var3'] for p in table2 if il < p['var3'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -375,7 +380,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03b..." % self.__class__.__name__)
+            print('Running %s.test03b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -389,62 +394,58 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(t1col)
 
         # First selection
-        results1 = [p["var3"] for p in table1.where('t1col < sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] < sl]
+        results1 = [p['var3'] for p in table1.where('t1col < sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
-        results1 = [p["var3"] for p in table1.where('t1col <= sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] <= sl]
+        results1 = [p['var3'] for p in table1.where('t1col <= sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
-        results1 = [p["var3"] for p in table1.where('t1col > sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] > sl]
+        results1 = [p['var3'] for p in table1.where('t1col > sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
-        results1 = [p["var3"] for p in table1.where('t1col >= sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] >= sl]
+        results1 = [p['var3'] for p in table1.where('t1col >= sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -453,7 +454,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03c..." % self.__class__.__name__)
+            print('Running %s.test03c...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -467,62 +468,58 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(t1col)
 
         # First selection
-        results1 = [p["var3"] for p in table1.where('t1col < sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] < sl]
+        results1 = [p['var3'] for p in table1.where('t1col < sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
-        results1 = [p["var3"] for p in table1.where('t1col <= sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] <= sl]
+        results1 = [p['var3'] for p in table1.where('t1col <= sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
-        results1 = [p["var3"] for p in table1.where('t1col > sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] > sl]
+        results1 = [p['var3'] for p in table1.where('t1col > sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
-        results1 = [p["var3"] for p in table1.where('t1col >= sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] >= sl]
+        results1 = [p['var3'] for p in table1.where('t1col >= sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -531,7 +528,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test03d..." % self.__class__.__name__)
+            print('Running %s.test03d...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -545,62 +542,58 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(t1col)
 
         # First selection
-        results1 = [p["var3"] for p in table1.where('t1col < sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] < sl]
+        results1 = [p['var3'] for p in table1.where('t1col < sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
-        results1 = [p["var3"] for p in table1.where('t1col <= sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] <= sl]
+        results1 = [p['var3'] for p in table1.where('t1col <= sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
-        results1 = [p["var3"] for p in table1.where('t1col > sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] > sl]
+        results1 = [p['var3'] for p in table1.where('t1col > sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
-        results1 = [p["var3"] for p in table1.where('t1col >= sl')]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] >= sl]
+        results1 = [p['var3'] for p in table1.where('t1col >= sl')]
+        results2 = [p['var3'] for p in table2 if p['var3'] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -609,7 +602,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04a..." % self.__class__.__name__)
+            print('Running %s.test04a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -623,60 +616,56 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(t1col)
 
         # First selection
-        results1 = [p["var4"] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
-        results2 = [p["var4"] for p in table2
-                    if il <= p["var4"] <= sl]
+        results1 = [p['var4'] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
+        results2 = [p['var4'] for p in table2 if il <= p['var4'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 
         # Second selection
-        results1 = [p["var4"] for p in table1.where('(il<=t1col)&(t1col<sl)')]
-        results2 = [p["var4"] for p in table2
-                    if il <= p["var4"] < sl]
+        results1 = [p['var4'] for p in table1.where('(il<=t1col)&(t1col<sl)')]
+        results2 = [p['var4'] for p in table2 if il <= p['var4'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
-        results1 = [p["var4"] for p in table1.where('(il<t1col)&(t1col<=sl)')]
-        results2 = [p["var4"] for p in table2
-                    if il < p["var4"] <= sl]
+        results1 = [p['var4'] for p in table1.where('(il<t1col)&(t1col<=sl)')]
+        results2 = [p['var4'] for p in table2 if il < p['var4'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         self.assertEqual(results1, results2)
 
         # Fourth selection
-        results1 = [p["var4"] for p in table1.where('(il<t1col)&(t1col<sl)')]
-        results2 = [p["var4"] for p in table2
-                    if il < p["var4"] < sl]
+        results1 = [p['var4'] for p in table1.where('(il<t1col)&(t1col<sl)')]
+        results2 = [p['var4'] for p in table2 if il < p['var4'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -685,7 +674,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test04b..." % self.__class__.__name__)
+            print('Running %s.test04b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -699,62 +688,58 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(t1col)
 
         # First selection
-        results1 = [p["var4"] for p in table1.where('t1col < sl')]
-        results2 = [p["var4"] for p in table2
-                    if p["var4"] < sl]
+        results1 = [p['var4'] for p in table1.where('t1col < sl')]
+        results2 = [p['var4'] for p in table2 if p['var4'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
-        results1 = [p["var4"] for p in table1.where('t1col <= sl')]
-        results2 = [p["var4"] for p in table2
-                    if p["var4"] <= sl]
+        results1 = [p['var4'] for p in table1.where('t1col <= sl')]
+        results2 = [p['var4'] for p in table2 if p['var4'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
-        results1 = [p["var4"] for p in table1.where('t1col > sl')]
-        results2 = [p["var4"] for p in table2
-                    if p["var4"] > sl]
+        results1 = [p['var4'] for p in table1.where('t1col > sl')]
+        results2 = [p['var4'] for p in table2 if p['var4'] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
-        results1 = [p["var4"] for p in table1.where('t1col >= sl')]
-        results2 = [p["var4"] for p in table2
-                    if p["var4"] >= sl]
+        results1 = [p['var4'] for p in table1.where('t1col >= sl')]
+        results2 = [p['var4'] for p in table2 if p['var4'] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -763,7 +748,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05a..." % self.__class__.__name__)
+            print('Running %s.test05a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -777,60 +762,60 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var1"] for p in table2
-                    if il <= p["var1"] <= sl]
+        results2 = [p['var1'] for p in table2 if il <= p['var1'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 
         # Second selection
         condition = '(il<=t1col)&(t1col<sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var1"] for p in table2
-                    if il <= p["var1"] < sl]
+        results2 = [p['var1'] for p in table2 if il <= p['var1'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var1"] for p in table2
-                    if il < p["var1"] <= sl]
+        results2 = [p['var1'] for p in table2 if il < p['var1'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -839,20 +824,20 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Fourth selection
         condition = '(il<t1col)&(t1col<sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var1"] for p in table2
-                    if il < p["var1"] < sl]
+        results2 = [p['var1'] for p in table2 if il < p['var1'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -862,7 +847,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test05b..." % self.__class__.__name__)
+            print('Running %s.test05b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -877,80 +862,81 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't1col<sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var1"] for p in table2
-                    if p["var1"] < sl]
+        results2 = [p['var1'] for p in table2 if p['var1'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't1col<=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var1"] for p in table2
-                    if p["var1"] <= sl]
+        results2 = [p['var1'] for p in table2 if p['var1'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't1col>sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var1"] for p in table2
-                    if p["var1"] > sl]
+        results2 = [p['var1'] for p in table2 if p['var1'] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var1"] for p in table2 if p["var1"] >= sl]
+        results2 = [p['var1'] for p in table2 if p['var1'] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -959,7 +945,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test06a..." % self.__class__.__name__)
+            print('Running %s.test06a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -968,15 +954,16 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t1var2 = table1.cols.var2
         condition = 't1var2==True'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1var2.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1var2.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var2'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var2"] for p in table2 if p["var2"] is True]
+        results2 = [p['var2'] for p in table2 if p['var2'] is True]
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -986,7 +973,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test06b..." % self.__class__.__name__)
+            print('Running %s.test06b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -997,15 +984,16 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertFalse(false)     # silence pyflakes
         condition = 't1var2==false'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1var2.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1var2.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var2'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var2"] for p in table2 if p["var2"] is False]
+        results2 = [p['var2'] for p in table2 if p['var2'] is False]
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1014,7 +1002,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test07a..." % self.__class__.__name__)
+            print('Running %s.test07a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -1028,60 +1016,60 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var3"] for p in table2
-                    if il <= p["var3"] <= sl]
+        results2 = [p['var3'] for p in table2 if il <= p['var3'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 
         # Second selection
         condition = '(il<=t1col)&(t1col<sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var3"] for p in table2
-                    if il <= p["var3"] < sl]
+        results2 = [p['var3'] for p in table2 if il <= p['var3'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var3"] for p in table2
-                    if il < p["var3"] <= sl]
+        results2 = [p['var3'] for p in table2 if il < p['var3'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1090,20 +1078,20 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Fourth selection
         condition = '(il<t1col)&(t1col<sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var3"] for p in table2
-                    if il < p["var3"] < sl]
+        results2 = [p['var3'] for p in table2 if il < p['var3'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1113,7 +1101,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test07b..." % self.__class__.__name__)
+            print('Running %s.test07b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -1128,81 +1116,81 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't1col<sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] < sl]
+        results2 = [p['var3'] for p in table2 if p['var3'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't1col<=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] <= sl]
+        results2 = [p['var3'] for p in table2 if p['var3'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't1col>sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] > sl]
+        results2 = [p['var3'] for p in table2 if p['var3'] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var3"] for p in table2
-                    if p["var3"] >= sl]
+        results2 = [p['var3'] for p in table2 if p['var3'] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1211,7 +1199,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08a..." % self.__class__.__name__)
+            print('Running %s.test08a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -1226,59 +1214,60 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         condition = '(il<=t1col)&(t1col<=sl)'
         # results1 = [p["var4"] for p in table1.where(condition)]
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var4"] for p in table2
-                    if il <= p["var4"] <= sl]
+        results2 = [p['var4'] for p in table2 if il <= p['var4'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 
         # Second selection
         condition = '(il<=t1col)&(t1col<sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var4"] for p in table2
-                    if il <= p["var4"] < sl]
+        results2 = [p['var4'] for p in table2 if il <= p['var4'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var4"] for p in table2 if il < p["var4"] <= sl]
+        results2 = [p['var4'] for p in table2 if il < p['var4'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
@@ -1287,19 +1276,20 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Fourth selection
         condition = '(il<t1col)&(t1col<sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        table1.flavor = "python"
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        table1.flavor = 'python'
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var4"] for p in table2 if il < p["var4"] < sl]
+        results2 = [p['var4'] for p in table2 if il < p['var4'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1309,7 +1299,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test08b..." % self.__class__.__name__)
+            print('Running %s.test08b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -1324,76 +1314,80 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't1col<sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var4"] for p in table2 if p["var4"] < sl]
+        results2 = [p['var4'] for p in table2 if p['var4'] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't1col<=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var4"] for p in table2 if p["var4"] <= sl]
+        results2 = [p['var4'] for p in table2 if p['var4'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't1col>sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var4"] for p in table2 if p["var4"] > sl]
+        results2 = [p['var4'] for p in table2 if p['var4'] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
-        results2 = [p["var4"] for p in table2 if p["var4"] >= sl]
+        results2 = [p['var4'] for p in table2 if p['var4'] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1402,7 +1396,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09a..." % self.__class__.__name__)
+            print('Running %s.test09a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -1420,28 +1414,33 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't1col<=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var1'] for p in table1.where(
-            condition, start=2, stop=10)]
-        results2 = [p["var1"] for p in table2.iterrows(2, 10)
-                    if p["var1"] <= sl]
+        results1 = [
+            p['var1'] for p in table1.where(condition, start=2, stop=10)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(2, 10) if p['var1'] <= sl
+        ]
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = '(il<t1col)&(t1col<sl)'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=2, stop=30, step=2)]
-        results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
-                    if il < p["var1"] < sl]
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=2, stop=30, step=2)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(2, 30, 2) if il < p['var1'] < sl
+        ]
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1452,46 +1451,50 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             p['var1'] for p in table1.where(condition, start=2, stop=-5)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(2, -5)  # Negative indices
-            if (il > p["var1"] > sl)
+            p['var1']
+            for p in table2.iterrows(2, -5)  # Negative indices
+            if (il > p['var1'] > sl)
         ]
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # This selection to be commented out
-#         condition = 't1col>=sl'
-#         self.assertTrue(not table1.will_query_use_indexing(condition))
-#         results1 = [p['var1'] for p in table1.where(condition,start=2,
-#                                                     stop=-1,step=1)]
-#         results2 = [p["var1"] for p in table2.iterrows(2, -1, 1)
-#                     if p["var1"] >= sl]
-#         if verbose:
-#             print "Limit:", sl
-#             print "Selection results (in-kernel):", results1
-#             print "Should look like:", results2
-#             print "Length results:", len(results1)
-#             print "Should be:", len(results2)
-#         self.assertEqual(len(results1), len(results2))
-#         self.assertEqual(results1, results2)
+        #         condition = 't1col>=sl'
+        #         self.assertTrue(not table1.will_query_use_indexing(condition))
+        #         results1 = [p['var1'] for p in table1.where(condition,start=2,
+        #                                                     stop=-1,step=1)]
+        #         results2 = [p["var1"] for p in table2.iterrows(2, -1, 1)
+        #                     if p["var1"] >= sl]
+        #         if verbose:
+        #             print "Limit:", sl
+        #             print "Selection results (in-kernel):", results1
+        #             print "Should look like:", results2
+        #             print "Length results:", len(results1)
+        #             print "Should be:", len(results2)
+        #         self.assertEqual(len(results1), len(results2))
+        #         self.assertEqual(results1, results2)
 
         # Fourth selection
         # results1 = [p['var1'] for p in
         # table1.where(condition,start=2,stop=-1,step=3)]
         condition = 't1col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=2, stop=-1, step=3)]
-        results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
-                    if p["var1"] >= sl]
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=2, stop=-1, step=3)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(2, -1, 3) if p['var1'] >= sl
+        ]
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1505,7 +1508,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09b..." % self.__class__.__name__)
+            print('Running %s.test09b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -1523,28 +1526,33 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't1col<sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var4'] for p in
-                    table1.where(condition, start=2, stop=5)]
-        results2 = [p["var4"] for p in table2.iterrows(2, 5)
-                    if p["var4"] < sl]
+        results1 = [
+            p['var4'] for p in table1.where(condition, start=2, stop=5)
+        ]
+        results2 = [p['var4'] for p in table2.iterrows(2, 5) if p['var4'] < sl]
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = '(il<t1col)&(t1col<=sl)'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var4'] for p in
-                    table1.where(condition, start=2, stop=-1, step=2)]
-        results2 = [p["var4"] for p in table2.iterrows(2, -1, 2)
-                    if il < p["var4"] <= sl]
+        results1 = [
+            p['var4']
+            for p in table1.where(condition, start=2, stop=-1, step=2)
+        ]
+        results2 = [
+            p['var4']
+            for p in table2.iterrows(2, -1, 2)
+            if il < p['var4'] <= sl
+        ]
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1555,27 +1563,31 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             p['var4'] for p in table1.where(condition, start=2, stop=-5)
         ]
         results2 = [
-            p["var4"] for p in table2.iterrows(2, -5)  # Negative indices
-            if il <= p["var4"] <= sl
+            p['var4']
+            for p in table2.iterrows(2, -5)  # Negative indices
+            if il <= p['var4'] <= sl
         ]
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var4'] for p in
-                    table1.where(condition, start=0, stop=-1, step=3)]
-        results2 = [p["var4"] for p in table2.iterrows(0, -1, 3)
-                    if p["var4"] >= sl]
+        results1 = [
+            p['var4']
+            for p in table1.where(condition, start=0, stop=-1, step=3)
+        ]
+        results2 = [
+            p['var4'] for p in table2.iterrows(0, -1, 3) if p['var4'] >= sl
+        ]
         if common.verbose:
-            print("Limit:", sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limit:', sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1590,7 +1602,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09c..." % self.__class__.__name__)
+            print('Running %s.test09c...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -1608,72 +1620,84 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't1col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=2, stop=-1, step=3)]
-        results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
-                    if p["var1"] >= sl]
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=2, stop=-1, step=3)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(2, -1, 3) if p['var1'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't1col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=5, stop=-1, step=10)]
-        results2 = [p["var1"] for p in table2.iterrows(5, -1, 10)
-                    if p["var1"] >= sl]
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=5, stop=-1, step=10)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(5, -1, 10) if p['var1'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't1col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=5, stop=-3, step=11)]
-        results2 = [p["var1"] for p in table2.iterrows(5, -3, 11)
-                    if p["var1"] >= sl]
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=5, stop=-3, step=11)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(5, -3, 11) if p['var1'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=2, stop=-1, step=300)]
-        results2 = [p["var1"] for p in table2.iterrows(2, -1, 300)
-                    if p["var1"] >= sl]
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=2, stop=-1, step=300)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(2, -1, 300) if p['var1'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1688,7 +1712,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test09d..." % self.__class__.__name__)
+            print('Running %s.test09d...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -1706,72 +1730,84 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't3col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var3'] for p in
-                    table1.where(condition, start=2, stop=-1, step=3)]
-        results2 = [p["var3"] for p in table2.iterrows(2, -1, 3)
-                    if p["var3"] >= sl]
+        results1 = [
+            p['var3']
+            for p in table1.where(condition, start=2, stop=-1, step=3)
+        ]
+        results2 = [
+            p['var3'] for p in table2.iterrows(2, -1, 3) if p['var3'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't3col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var3'] for p in
-                    table1.where(condition, start=5, stop=-1, step=10)]
-        results2 = [p["var3"] for p in table2.iterrows(5, -1, 10)
-                    if p["var3"] >= sl]
+        results1 = [
+            p['var3']
+            for p in table1.where(condition, start=5, stop=-1, step=10)
+        ]
+        results2 = [
+            p['var3'] for p in table2.iterrows(5, -1, 10) if p['var3'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't3col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var3'] for p in
-                    table1.where(condition, start=5, stop=-3, step=11)]
-        results2 = [p["var3"] for p in table2.iterrows(5, -3, 11)
-                    if p["var3"] >= sl]
+        results1 = [
+            p['var3']
+            for p in table1.where(condition, start=5, stop=-3, step=11)
+        ]
+        results2 = [
+            p['var3'] for p in table2.iterrows(5, -3, 11) if p['var3'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't3col>=sl'
         self.assertTrue(not table1.will_query_use_indexing(condition))
-        results1 = [p['var3'] for p in
-                    table1.where(condition, start=2, stop=-1, step=300)]
-        results2 = [p["var3"] for p in table2.iterrows(2, -1, 300)
-                    if p["var3"] >= sl]
+        results1 = [
+            p['var3']
+            for p in table1.where(condition, start=2, stop=-1, step=300)
+        ]
+        results2 = [
+            p['var3'] for p in table2.iterrows(2, -1, 300) if p['var3'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1785,7 +1821,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test10a..." % self.__class__.__name__)
+            print('Running %s.test10a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -1799,119 +1835,126 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't1col<=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
             p['var1'] for p in table1.where(condition, start=2, stop=10)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(2, 10) if p["var1"] <= sl
+            p['var1'] for p in table2.iterrows(2, 10) if p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
-            p['var1'] for p in table1.where(condition, start=2, stop=30,
-                                            step=1)
+            p['var1']
+            for p in table1.where(condition, start=2, stop=30, step=1)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(2, 30, 1)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(2, 30, 1)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Repeat second selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
-            p['var1'] for p in table1.where(condition, start=2, stop=30,
-                                            step=2)
+            p['var1']
+            for p in table1.where(condition, start=2, stop=30, step=2)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(2, 30, 2)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(2, 30, 2)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Selection results (indexed):", results1)
-            print("Should look like:", results2)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Selection results (indexed):', results1)
+            print('Should look like:', results2)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<t1col)&(t1col<sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
             p['var1'] for p in table1.where(condition, start=2, stop=-5)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(2, -5)  # Negative indices
-            if (il < p["var1"] < sl)
+            p['var1']
+            for p in table2.iterrows(2, -5)  # Negative indices
+            if (il < p['var1'] < sl)
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
-            p['var1'] for p in table1.where(condition, start=1, stop=-1,
-                                            step=3)
+            p['var1']
+            for p in table1.where(condition, start=1, stop=-1, step=3)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(1, -1, 3)
-            if p["var1"] >= sl
+            p['var1'] for p in table2.iterrows(1, -1, 3) if p['var1'] >= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -1920,7 +1963,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test10b..." % self.__class__.__name__)
+            print('Running %s.test10b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -1934,90 +1977,98 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't3col<=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t3col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t3col.pathname])
+        )
         results1 = [
             p['var3'] for p in table1.where(condition, start=2, stop=10)
         ]
         results2 = [
-            p["var3"] for p in table2.iterrows(2, 10)
-            if p["var3"] <= sl
+            p['var3'] for p in table2.iterrows(2, 10) if p['var3'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = '(il<=t3col)&(t3col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t3col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t3col.pathname])
+        )
         results1 = [
-            p['var3'] for p in table1.where(condition, start=2, stop=30,
-                                            step=2)
+            p['var3']
+            for p in table1.where(condition, start=2, stop=30, step=2)
         ]
         results2 = [
-            p["var3"] for p in table2.iterrows(2, 30, 2)
-            if il <= p["var3"] <= sl
+            p['var3']
+            for p in table2.iterrows(2, 30, 2)
+            if il <= p['var3'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = '(il<t3col)&(t3col<sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t3col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t3col.pathname])
+        )
         results1 = [
             p['var3'] for p in table1.where(condition, start=2, stop=-5)
         ]
         results2 = [
-            p["var3"] for p in table2.iterrows(2, -5)  # Negative indices
-            if (il < p["var3"] < sl)
+            p['var3']
+            for p in table2.iterrows(2, -5)  # Negative indices
+            if (il < p['var3'] < sl)
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't3col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t3col.pathname]))
-        results1 = [p['var3'] for p in
-                    table1.where(condition, start=1, stop=-1, step=3)]
-        results2 = [p["var3"] for p in table2.iterrows(1, -1, 3)
-                    if p["var3"] >= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t3col.pathname])
+        )
+        results1 = [
+            p['var3']
+            for p in table1.where(condition, start=1, stop=-1, step=3)
+        ]
+        results2 = [
+            p['var3'] for p in table2.iterrows(1, -1, 3) if p['var3'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2027,7 +2078,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test10c..." % self.__class__.__name__)
+            print('Running %s.test10c...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -2042,80 +2093,96 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't1col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=2, stop=-1, step=3)]
-        results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
-                    if p["var1"] >= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=2, stop=-1, step=3)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(2, -1, 3) if p['var1'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't1col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=5, stop=-1, step=10)]
-        results2 = [p["var1"] for p in table2.iterrows(5, -1, 10)
-                    if p["var1"] >= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=5, stop=-1, step=10)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(5, -1, 10) if p['var1'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't1col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=5, stop=-3, step=11)]
-        results2 = [p["var1"] for p in table2.iterrows(5, -3, 11)
-                    if p["var1"] >= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=5, stop=-3, step=11)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(5, -3, 11) if p['var1'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't1col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=2, stop=-1, step=300)]
-        results2 = [p["var1"] for p in table2.iterrows(2, -1, 300)
-                    if p["var1"] >= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=2, stop=-1, step=300)
+        ]
+        results2 = [
+            p['var1'] for p in table2.iterrows(2, -1, 300) if p['var1'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2124,7 +2191,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test10d..." % self.__class__.__name__)
+            print('Running %s.test10d...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -2139,80 +2206,96 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # First selection
         condition = 't3col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t3col.pathname]))
-        results1 = [p['var3'] for p in
-                    table1.where(condition, start=2, stop=-1, step=3)]
-        results2 = [p["var3"] for p in table2.iterrows(2, -1, 3)
-                    if p["var3"] >= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t3col.pathname])
+        )
+        results1 = [
+            p['var3']
+            for p in table1.where(condition, start=2, stop=-1, step=3)
+        ]
+        results2 = [
+            p['var3'] for p in table2.iterrows(2, -1, 3) if p['var3'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection
         condition = 't3col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t3col.pathname]))
-        results1 = [p['var3'] for p in
-                    table1.where(condition, start=5, stop=-1, step=10)]
-        results2 = [p["var3"] for p in table2.iterrows(5, -1, 10)
-                    if p["var3"] >= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t3col.pathname])
+        )
+        results1 = [
+            p['var3']
+            for p in table1.where(condition, start=5, stop=-1, step=10)
+        ]
+        results2 = [
+            p['var3'] for p in table2.iterrows(5, -1, 10) if p['var3'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Third selection
         condition = 't3col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t3col.pathname]))
-        results1 = [p['var3'] for p in
-                    table1.where(condition, start=5, stop=-3, step=11)]
-        results2 = [p["var3"] for p in table2.iterrows(5, -3, 11)
-                    if p["var3"] >= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t3col.pathname])
+        )
+        results1 = [
+            p['var3']
+            for p in table1.where(condition, start=5, stop=-3, step=11)
+        ]
+        results2 = [
+            p['var3'] for p in table2.iterrows(5, -3, 11) if p['var3'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Fourth selection
         condition = 't3col>=sl'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t3col.pathname]))
-        results1 = [p['var3'] for p in
-                    table1.where(condition, start=2, stop=-1, step=300)]
-        results2 = [p["var3"] for p in table2.iterrows(2, -1, 300)
-                    if p["var3"] >= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t3col.pathname])
+        )
+        results1 = [
+            p['var3']
+            for p in table1.where(condition, start=2, stop=-1, step=300)
+        ]
+        results2 = [
+            p['var3'] for p in table2.iterrows(2, -1, 300) if p['var3'] >= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2221,7 +2304,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test11a..." % self.__class__.__name__)
+            print('Running %s.test11a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -2234,19 +2317,18 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t1var1 = table1.cols.var1
         condition = '(il<=t1var1)&(t1var1<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1var1.pathname])
+            table1.will_query_use_indexing(condition)
+            == fzset([t1var1.pathname])
         )
         coords1 = table1.get_where_list(condition)
-        table1.flavor = "python"
-        results1 = table1.read_coordinates(coords1, field="var1")
-        results2 = [p["var1"] for p in table2
-                    if il <= p["var1"] <= sl]
+        table1.flavor = 'python'
+        results1 = table1.read_coordinates(coords1, field='var1')
+        results2 = [p['var1'] for p in table2 if il <= p['var1'] <= sl]
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2255,14 +2337,14 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test12a..." % self.__class__.__name__)
+            print('Running %s.test12a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
 
         # Append more rows in already created indexes
         count = 0
-        for i in range(0, self.nrows//2, self.nrep):
+        for i in range(0, self.nrows // 2, self.nrep):
             for j in range(self.nrep):
                 if self.random:
                     k = random.randrange(self.nrows)
@@ -2302,25 +2384,25 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         il = str(self.il).encode('ascii')
         sl = str(self.sl).encode('ascii')
 
-        results1 = [p["var1"] for p in
-                    table1.where('(il<=t1var1)&(t1var1<=sl)')]
-        results2 = [p["var1"] for p in table2
-                    if il <= p["var1"] <= sl]
+        results1 = [
+            p['var1'] for p in table1.where('(il<=t1var1)&(t1var1<=sl)')
+        ]
+        results2 = [p['var1'] for p in table2 if il <= p['var1'] <= sl]
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Should look like:", results2)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Should look like:', results2)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Second selection: bool
-        results1 = [p["var2"] for p in table1.where('t1var2 == True')]
-        results2 = [p["var2"] for p in table2 if p["var2"] is True]
+        results1 = [p['var2'] for p in table1.where('t1var2 == True')]
+        results2 = [p['var2'] for p in table2 if p['var2'] is True]
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2330,17 +2412,17 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         sl = int(self.sl)
 
         t1var3 = table1.cols.var3
-        results1 = [p["var3"] for p in table1.where(
-            '(il<=t1var3)&(t1var3<=sl)')]
-        results2 = [p["var3"] for p in table2
-                    if il <= p["var3"] <= sl]
+        results1 = [
+            p['var3'] for p in table1.where('(il<=t1var3)&(t1var3<=sl)')
+        ]
+        results2 = [p['var3'] for p in table2 if il <= p['var3'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2350,17 +2432,17 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         sl = float(self.sl)
 
         # Do some selections and check the results
-        results1 = [p["var4"] for p in table1.where(
-            '(il<=t1var4)&(t1var4<=sl)')]
-        results2 = [p["var4"] for p in table2
-                    if il <= p["var4"] <= sl]
+        results1 = [
+            p['var4'] for p in table1.where('(il<=t1var4)&(t1var4<=sl)')
+        ]
+        results2 = [p['var4'] for p in table2 if il <= p['var4'] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1.sort(), results2.sort())
 
@@ -2369,7 +2451,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test13a..." % self.__class__.__name__)
+            print('Running %s.test13a...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -2382,48 +2464,52 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
-            p['var1'] for p in table1.where(condition, start=2, stop=30,
-                                            step=1)
+            p['var1']
+            for p in table1.where(condition, start=2, stop=30, step=1)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(2, 30, 1)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(2, 30, 1)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
-            p['var1'] for p in table1.where(condition, start=2, stop=30,
-                                            step=2)
+            p['var1']
+            for p in table1.where(condition, start=2, stop=30, step=2)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(2, 30, 2)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(2, 30, 2)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2432,7 +2518,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test13b..." % self.__class__.__name__)
+            print('Running %s.test13b...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -2445,48 +2531,52 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
-            p['var1'] for p in table1.where(condition, start=2, stop=30,
-                                            step=1)
+            p['var1']
+            for p in table1.where(condition, start=2, stop=30, step=1)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(2, 30, 1)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(2, 30, 1)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
-            p['var1'] for p in table1.where(condition, start=2, stop=30,
-                                            step=2)
+            p['var1']
+            for p in table1.where(condition, start=2, stop=30, step=2)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(2, 30, 2)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(2, 30, 2)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2495,7 +2585,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test13c..." % self.__class__.__name__)
+            print('Running %s.test13c...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -2508,46 +2598,50 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
             p['var1'] for p in table1.where(condition, start=0, stop=1, step=2)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(0, 1, 2)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(0, 1, 2)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
             p['var1'] for p in table1.where(condition, start=0, stop=5, step=1)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(0, 5, 1)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(0, 5, 1)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2557,7 +2651,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test13d..." % self.__class__.__name__)
+            print('Running %s.test13d...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -2570,47 +2664,50 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname])
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
         )
         results1 = [
             p['var1'] for p in table1.where(condition, start=0, stop=1, step=1)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(0, 1, 1)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(0, 1, 1)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Repeat the selection (testing caches)
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
             p['var1'] for p in table1.where(condition, start=0, stop=1, step=1)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(0, 1, 1)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(0, 1, 1)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2619,7 +2716,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test13e..." % self.__class__.__name__)
+            print('Running %s.test13e...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -2632,24 +2729,26 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
         results1 = [
-            p['var1'] for p in table1.where(condition, start=0, stop=10,
-                                            step=1)
+            p['var1']
+            for p in table1.where(condition, start=0, stop=10, step=1)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(0, 10, 1)
-            if il <= p["var1"] <= sl
+            p['var1']
+            for p in table2.iterrows(0, 10, 1)
+            if il <= p['var1'] <= sl
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2657,24 +2756,26 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t2col = table1.cols.var2
         condition = '(il<=t1col)&(t1col<=sl)&(t2col==True)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname, t2col.pathname]))
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname, t2col.pathname])
+        )
         results1 = [
-            p['var1'] for p in
-            table1.where(condition, start=0, stop=10, step=1)
+            p['var1']
+            for p in table1.where(condition, start=0, stop=10, step=1)
         ]
         results2 = [
-            p["var1"] for p in table2.iterrows(0, 10, 1)
-            if il <= p["var1"] <= sl and p["var2"] is True
+            p['var1']
+            for p in table2.iterrows(0, 10, 1)
+            if il <= p['var1'] <= sl and p['var2'] is True
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2683,7 +2784,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test13f..." % self.__class__.__name__)
+            print('Running %s.test13f...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -2702,42 +2803,52 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(t2col)
         condition = '(il<=t1col)&(t1col<=sl)&(t2col==True)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=0, stop=10, step=1)]
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=0, stop=10, step=1)
+        ]
         results2 = [
-            p["var1"] for p in table2.iterrows(0, 10, 1)
-            if il <= p["var1"] <= sl and p["var2"] is True
+            p['var1']
+            for p in table2.iterrows(0, 10, 1)
+            if il <= p['var1'] <= sl and p['var2'] is True
         ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Repeat the selection with a simpler condition
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il <= p["var1"] <= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=0, stop=10, step=1)
+        ]
+        results2 = [
+            p['var1']
+            for p in table2.iterrows(0, 10, 1)
+            if il <= p['var1'] <= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2745,20 +2856,26 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         constant = True
         condition = '(il<=t1col)&(t1col<=sl)&(t2col==constant)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il <= p["var1"] <= sl and p["var2"] == constant]
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=0, stop=10, step=1)
+        ]
+        results2 = [
+            p['var1']
+            for p in table2.iterrows(0, 10, 1)
+            if il <= p['var1'] <= sl and p['var2'] == constant
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2767,7 +2884,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         if common.verbose:
             print('\n', '-=' * 30)
-            print("Running %s.test13g..." % self.__class__.__name__)
+            print('Running %s.test13g...' % self.__class__.__name__)
 
         table1 = self.h5file.root.table1
         table2 = self.h5file.root.table2
@@ -2780,44 +2897,58 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         t1col = table1.cols.var1
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il <= p["var1"] <= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=0, stop=10, step=1)
+        ]
+        results2 = [
+            p['var1']
+            for p in table2.iterrows(0, 10, 1)
+            if il <= p['var1'] <= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
         # Repeat the selection with different limits
-        il, sl = (str(self.il + 1).encode(
-            'ascii'), str(self.sl-2).encode('ascii'))
+        il, sl = (
+            str(self.il + 1).encode('ascii'),
+            str(self.sl - 2).encode('ascii'),
+        )
         t2col = table1.cols.var2
         self.assertIsNotNone(t2col)
         condition = '(il<=t1col)&(t1col<=sl)'
         self.assertTrue(
-            table1.will_query_use_indexing(condition) ==
-            fzset([t1col.pathname]))
-        results1 = [p['var1'] for p in
-                    table1.where(condition, start=0, stop=10, step=1)]
-        results2 = [p["var1"] for p in table2.iterrows(0, 10, 1)
-                    if il <= p["var1"] <= sl]
+            table1.will_query_use_indexing(condition)
+            == fzset([t1col.pathname])
+        )
+        results1 = [
+            p['var1']
+            for p in table1.where(condition, start=0, stop=10, step=1)
+        ]
+        results2 = [
+            p['var1']
+            for p in table2.iterrows(0, 10, 1)
+            if il <= p['var1'] <= sl
+        ]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
         results2.sort()
         if common.verbose:
-            print("Limits:", il, sl)
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
+            print('Limits:', il, sl)
+            print('Length results:', len(results1))
+            print('Should be:', len(results2))
         self.assertEqual(len(results1), len(results2))
         self.assertEqual(results1, results2)
 
@@ -2836,7 +2967,7 @@ class SV1aTestCase(SelectValuesTestCase):
 
 class SV1bTestCase(SV1aTestCase):
     blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
-    chunkshape = blocksizes[2]//2**9
+    chunkshape = blocksizes[2] // 2 ** 9
     buffersize = chunkshape * 5
 
 
@@ -2845,7 +2976,7 @@ class SV2aTestCase(SelectValuesTestCase):
     chunkshape = 2
     buffersize = 2
     ss = blocksizes[2]
-    nrows = ss * 2-1
+    nrows = ss * 2 - 1
     reopen = 1
     nrep = 1
     il = 0
@@ -2854,7 +2985,7 @@ class SV2aTestCase(SelectValuesTestCase):
 
 class SV2bTestCase(SV2aTestCase):
     blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
-    chunkshape = blocksizes[2]//2**7
+    chunkshape = blocksizes[2] // 2 ** 7
     buffersize = chunkshape * 20
 
 
@@ -2863,7 +2994,7 @@ class SV3aTestCase(SelectValuesTestCase):
     chunkshape = 2
     buffersize = 3
     ss = blocksizes[2]
-    nrows = ss * 5-1
+    nrows = ss * 5 - 1
     reopen = 1
     nrep = 3
     il = 0
@@ -2872,8 +3003,8 @@ class SV3aTestCase(SelectValuesTestCase):
 
 class SV3bTestCase(SV3aTestCase):
     blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
-#    chunkshape = 4
-#    buffersize = 16
+    #    chunkshape = 4
+    #    buffersize = 16
     chunkshape = 3
     buffersize = 9
 
@@ -2932,7 +3063,7 @@ class SV7aTestCase(SelectValuesTestCase):
     nrows = ss * 5 + 3
     reopen = 0
     cs = blocksizes[3]
-    nrep = cs-1
+    nrep = cs - 1
     il = -10
     sl = nrows
 
@@ -2946,12 +3077,12 @@ class SV8aTestCase(SelectValuesTestCase):
     chunkshape = 1
     blocksizes = small_blocksizes
     ss = blocksizes[2]
-    nrows = ss * 5-3
+    nrows = ss * 5 - 3
     reopen = 0
     cs = blocksizes[3]
-    nrep = cs-1
+    nrep = cs - 1
     il = 10
-    sl = nrows-10
+    sl = nrows - 10
 
 
 class SV8bTestCase(SV8aTestCase):
@@ -2966,9 +3097,9 @@ class SV9aTestCase(SelectValuesTestCase):
     nrows = ss * 5 + 11
     reopen = 0
     cs = blocksizes[3]
-    nrep = cs-1
+    nrep = cs - 1
     il = 10
-    sl = nrows-10
+    sl = nrows - 10
 
 
 class SV9bTestCase(SV9aTestCase):
@@ -3111,7 +3242,7 @@ class SV14bTestCase(SelectValuesTestCase):
     nrep = 9
     il = 0
     cs = blocksizes[3]
-    sl = ss-cs + 1
+    sl = ss - cs + 1
 
 
 class SV15aTestCase(SelectValuesTestCase):
@@ -3127,7 +3258,7 @@ class SV15aTestCase(SelectValuesTestCase):
     nrows = ss * 5 + 1
     reopen = 0
     cs = blocksizes[3]
-    nrep = cs-1
+    nrep = cs - 1
     il = -10
     sl = nrows
 
@@ -3145,7 +3276,7 @@ class SV15bTestCase(SelectValuesTestCase):
     nrows = ss * 5 + 1
     reopen = 1
     cs = blocksizes[3]
-    nrep = cs-1
+    nrep = cs - 1
     il = -10
     sl = nrows
 
@@ -3162,7 +3293,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
 
     def setUp(self):
         super().setUp()
-        self.h5fname = tempfile.mktemp(".h5")
+        self.h5fname = tempfile.mktemp('.h5')
         self.h5file = None
 
     def tearDown(self):
@@ -3174,9 +3305,10 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
 
     def test00_lrucache(self):
         self.h5file = tb.open_file(self.h5fname, 'w', node_cache_slots=64)
-        ta = self.h5file.create_table('/', 'table', self.Record,
-                                      filters=tb.Filters(1))
-        id1 = np.random.randint(0, 2**15, self.nelem)
+        ta = self.h5file.create_table(
+            '/', 'table', self.Record, filters=tb.Filters(1)
+        )
+        id1 = np.random.randint(0, 2 ** 15, self.nelem)
         ta.append([id1])
 
         ta.cols.id1.create_index()
@@ -3185,16 +3317,17 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
+            self.assertGreater(len(idx), 0, f'idx--> {idx} {i} {nrow} {value}')
             self.assertTrue(
-                nrow in idx,
-                f"nrow not found: {idx} != {nrow}, {value}")
+                nrow in idx, f'nrow not found: {idx} != {nrow}, {value}'
+            )
 
     def test01_nocache(self):
         self.h5file = tb.open_file(self.h5fname, 'w', node_cache_slots=0)
-        ta = self.h5file.create_table('/', 'table', self.Record,
-                                      filters=tb.Filters(1))
-        id1 = np.random.randint(0, 2**15, self.nelem)
+        ta = self.h5file.create_table(
+            '/', 'table', self.Record, filters=tb.Filters(1)
+        )
+        id1 = np.random.randint(0, 2 ** 15, self.nelem)
         ta.append([id1])
 
         ta.cols.id1.create_index()
@@ -3203,16 +3336,17 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
+            self.assertGreater(len(idx), 0, f'idx--> {idx} {i} {nrow} {value}')
             self.assertTrue(
-                nrow in idx,
-                f"nrow not found: {idx} != {nrow}, {value}")
+                nrow in idx, f'nrow not found: {idx} != {nrow}, {value}'
+            )
 
     def test02_dictcache(self):
         self.h5file = tb.open_file(self.h5fname, 'w', node_cache_slots=-64)
-        ta = self.h5file.create_table('/', 'table', self.Record,
-                                      filters=tb.Filters(1))
-        id1 = np.random.randint(0, 2**15, self.nelem)
+        ta = self.h5file.create_table(
+            '/', 'table', self.Record, filters=tb.Filters(1)
+        )
+        id1 = np.random.randint(0, 2 ** 15, self.nelem)
         ta.append([id1])
 
         ta.cols.id1.create_index()
@@ -3221,46 +3355,66 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
             nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
+            self.assertGreater(len(idx), 0, f'idx--> {idx} {i} {nrow} {value}')
             self.assertTrue(
-                nrow in idx,
-                f"nrow not found: {idx} != {nrow}, {value}")
+                nrow in idx, f'nrow not found: {idx} != {nrow}, {value}'
+            )
 
 
 normal_tests = (
-    "SV1aTestCase", "SV2aTestCase", "SV3aTestCase",
+    'SV1aTestCase',
+    'SV2aTestCase',
+    'SV3aTestCase',
 )
 
 heavy_tests = (
     # The next are too hard to be in the 'normal' suite
-    "SV1bTestCase", "SV2bTestCase", "SV3bTestCase",
-    "SV4aTestCase", "SV5aTestCase", "SV6aTestCase",
-    "SV7aTestCase", "SV8aTestCase", "SV9aTestCase",
-    "SV10aTestCase", "SV11aTestCase", "SV12aTestCase",
-    "SV13aTestCase", "SV14aTestCase", "SV15aTestCase",
+    'SV1bTestCase',
+    'SV2bTestCase',
+    'SV3bTestCase',
+    'SV4aTestCase',
+    'SV5aTestCase',
+    'SV6aTestCase',
+    'SV7aTestCase',
+    'SV8aTestCase',
+    'SV9aTestCase',
+    'SV10aTestCase',
+    'SV11aTestCase',
+    'SV12aTestCase',
+    'SV13aTestCase',
+    'SV14aTestCase',
+    'SV15aTestCase',
     # This are properly heavy
-    "SV4bTestCase", "SV5bTestCase", "SV6bTestCase",
-    "SV7bTestCase", "SV8bTestCase", "SV9bTestCase",
-    "SV10bTestCase", "SV11bTestCase", "SV12bTestCase",
-    "SV13bTestCase", "SV14bTestCase", "SV15bTestCase",
-    )
+    'SV4bTestCase',
+    'SV5bTestCase',
+    'SV6bTestCase',
+    'SV7bTestCase',
+    'SV8bTestCase',
+    'SV9bTestCase',
+    'SV10bTestCase',
+    'SV11bTestCase',
+    'SV12bTestCase',
+    'SV13bTestCase',
+    'SV14bTestCase',
+    'SV15bTestCase',
+)
 
 
 # Base classes for the different type indexes.
 class UltraLightITableMixin:
-    kind = "ultralight"
+    kind = 'ultralight'
 
 
 class LightITableMixin:
-    kind = "light"
+    kind = 'light'
 
 
 class MediumITableMixin:
-    kind = "medium"
+    kind = 'medium'
 
 
 class FullITableMixin:
-    kind = "full"
+    kind = 'full'
 
 
 # Parameters for indexed queries.
@@ -3293,8 +3447,9 @@ for (cname, cbasenames, cdict) in iclassdata():
 
 
 # Test case for issue #319
-class BuffersizeMultipleChunksize(common.TempFileMixin,
-                                  common.PyTablesTestCase):
+class BuffersizeMultipleChunksize(
+    common.TempFileMixin, common.PyTablesTestCase
+):
     open_mode = 'w'
 
     def test01(self):
@@ -3304,16 +3459,23 @@ class BuffersizeMultipleChunksize(common.TempFileMixin,
         nchunks = n // cs
 
         arr = np.zeros(
-            (n,), dtype=[('index', 'i8'), ('o', 'i8'), ('value', 'f8')])
+            (n,), dtype=[('index', 'i8'), ('o', 'i8'), ('value', 'f8')]
+        )
         arr['index'] = np.arange(n)
         arr['o'] = np.random.randint(-20_000, -15_000, size=n)
         arr['value'] = np.random.randn(n)
 
         node = self.h5file.create_group('/', 'foo')
-        table = self.h5file.create_table(node, 'table', dict(
-            index=tb.Int64Col(),
-            o=tb.Int64Col(),
-            value=tb.FloatCol(shape=())), expectedrows=10_000_000)
+        table = self.h5file.create_table(
+            node,
+            'table',
+            dict(
+                index=tb.Int64Col(),
+                o=tb.Int64Col(),
+                value=tb.FloatCol(shape=()),
+            ),
+            expectedrows=10_000_000,
+        )
 
         table.append(arr)
 
@@ -3324,50 +3486,51 @@ class BuffersizeMultipleChunksize(common.TempFileMixin,
         res = np.array([v1, v2])
         selector = f'((o == {v1}) | (o == {v2}))'
         if common.verbose:
-            print("selecting values: %s" % selector)
+            print('selecting values: %s' % selector)
 
         table = self.h5file.root.foo.table
 
         result = np.unique(table.read_where(selector)['o'])
         np.testing.assert_almost_equal(result, res)
         if common.verbose:
-            print("select entire table:")
-            print(f"result: {result}\texpected: {res}")
+            print('select entire table:')
+            print(f'result: {result}\texpected: {res}')
 
         if common.verbose:
-            print("index the column o")
+            print('index the column o')
         table.cols.o.create_index()   # this was triggering the issue
 
         if common.verbose:
-            print("select via chunks")
+            print('select via chunks')
         for i in range(nchunks):
-            result = table.read_where(selector, start=i*cs, stop=(i+1)*cs)
+            result = table.read_where(
+                selector, start=i * cs, stop=(i + 1) * cs
+            )
             result = np.unique(result['o'])
             np.testing.assert_almost_equal(np.unique(result), res)
             if common.verbose:
-                print(f"result: {result}\texpected: {res}")
+                print(f'result: {result}\texpected: {res}')
 
 
 # Test case for issue #441
 class SideEffectNumPyQuicksort(common.PyTablesTestCase):
-
     def test01(self):
-        bug_file = common.test_filename("bug-idx.h5")
-        tmp_file = tempfile.mktemp(".h5")
+        bug_file = common.test_filename('bug-idx.h5')
+        tmp_file = tempfile.mktemp('.h5')
         tb.copy_file(bug_file, tmp_file)
-        h5 = tb.open_file(tmp_file, "a")
+        h5 = tb.open_file(tmp_file, 'a')
         o = h5.root.table
         vals = o.cols.path[:]
         npvals = set(np.where(vals == 6)[0])
 
         # Setting the chunkshape is critical for reproducing the bug
-        t = o.copy(newname="table2", chunkshape=2730)
+        t = o.copy(newname='table2', chunkshape=2730)
         t.cols.path.create_index()
         indexed = {r.nrow for r in t.where('path == 6')}
 
         if common.verbose:
             diffs = sorted(npvals - indexed)
-            print("ndiff:", len(diffs), diffs)
+            print('ndiff:', len(diffs), diffs)
         self.assertEqual(len(npvals), len(indexed))
 
         h5.close()
@@ -3394,13 +3557,15 @@ def suite():
                 theSuite.addTest(suite_)
         theSuite.addTest(common.unittest.makeSuite(LastRowReuseBuffers))
         theSuite.addTest(
-            common.unittest.makeSuite(BuffersizeMultipleChunksize))
+            common.unittest.makeSuite(BuffersizeMultipleChunksize)
+        )
         theSuite.addTest(common.unittest.makeSuite(SideEffectNumPyQuicksort))
     return theSuite
 
 
 if __name__ == '__main__':
     import sys
+
     common.parse_argv(sys.argv)
     common.print_versions()
     common.unittest.main(defaultTest='suite')

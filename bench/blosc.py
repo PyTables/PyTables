@@ -6,21 +6,21 @@ import tables as tb
 
 
 niter = 3
-dirname = "/scratch2/faltet/blosc-data/"
-#expression = "a**2 + b**3 + 2*a*b + 3"
-#expression = "a+b"
-#expression = "a**2 + 2*a/b + 3"
-#expression = "(a+b)**2 - (a**2 + b**2 + 2*a*b) + 1.1"
-expression = "3*a-2*b+1.1"
+dirname = '/scratch2/faltet/blosc-data/'
+# expression = "a**2 + b**3 + 2*a*b + 3"
+# expression = "a+b"
+# expression = "a**2 + 2*a/b + 3"
+# expression = "(a+b)**2 - (a**2 + b**2 + 2*a*b) + 1.1"
+expression = '3*a-2*b+1.1'
 shuffle = True
 
 
 def create_file(kind, prec, synth):
     prefix_orig = 'cellzome/cellzome-'
     iname = dirname + prefix_orig + 'none-' + prec + '.h5'
-    f = tb.open_file(iname, "r")
+    f = tb.open_file(iname, 'r')
 
-    if prec == "single":
+    if prec == 'single':
         type_ = tb.Float32Atom()
     else:
         type_ = tb.Float64Atom()
@@ -33,13 +33,14 @@ def create_file(kind, prec, synth):
     for clevel in range(10):
         oname = '%s/%s-%s%d-%s.h5' % (dirname, prefix, kind, clevel, prec)
         # print "creating...", iname
-        f2 = tb.open_file(oname, "w")
+        f2 = tb.open_file(oname, 'w')
 
-        if kind in ["none", "numpy"]:
+        if kind in ['none', 'numpy']:
             filters = None
         else:
             filters = tb.Filters(
-                complib=kind, complevel=clevel, shuffle=shuffle)
+                complib=kind, complevel=clevel, shuffle=shuffle
+            )
 
         for name in ['maxarea', 'mascotscore']:
             col = f.get_node('/', name)
@@ -59,9 +60,9 @@ def create_synth(kind, prec):
 
     prefix_orig = 'cellzome/cellzome-'
     iname = dirname + prefix_orig + 'none-' + prec + '.h5'
-    f = tb.open_file(iname, "r")
+    f = tb.open_file(iname, 'r')
 
-    if prec == "single":
+    if prec == 'single':
         type_ = tb.Float32Atom()
     else:
         type_ = tb.Float64Atom()
@@ -70,13 +71,14 @@ def create_synth(kind, prec):
     for clevel in range(10):
         oname = '%s/%s-%s%d-%s.h5' % (dirname, prefix, kind, clevel, prec)
         # print "creating...", iname
-        f2 = tb.open_file(oname, "w")
+        f2 = tb.open_file(oname, 'w')
 
-        if kind in ["none", "numpy"]:
+        if kind in ['none', 'numpy']:
             filters = None
         else:
             filters = tb.Filters(
-                complib=kind, complevel=clevel, shuffle=shuffle)
+                complib=kind, complevel=clevel, shuffle=shuffle
+            )
 
         for name in ['maxarea', 'mascotscore']:
             col = f.get_node('/', name)
@@ -95,8 +97,8 @@ def create_synth(kind, prec):
 
 def process_file(kind, prec, clevel, synth):
 
-    if kind == "numpy":
-        lib = "none"
+    if kind == 'numpy':
+        lib = 'none'
     else:
         lib = kind
     if synth:
@@ -104,27 +106,27 @@ def process_file(kind, prec, clevel, synth):
     else:
         prefix = 'cellzome/cellzome-'
     iname = '%s/%s-%s%d-%s.h5' % (dirname, prefix, kind, clevel, prec)
-    f = tb.open_file(iname, "r")
+    f = tb.open_file(iname, 'r')
     a_ = f.root.maxarea
     b_ = f.root.mascotscore
 
     oname = '%s/%s-%s%d-%s-r.h5' % (dirname, prefix, kind, clevel, prec)
-    f2 = tb.open_file(oname, "w")
-    if lib == "none":
+    f2 = tb.open_file(oname, 'w')
+    if lib == 'none':
         filters = None
     else:
         filters = tb.Filters(complib=lib, complevel=clevel, shuffle=shuffle)
-    if prec == "single":
+    if prec == 'single':
         type_ = tb.Float32Atom()
     else:
         type_ = tb.Float64Atom()
     r = f2.create_carray('/', 'r', type_, a_.shape, filters=filters)
 
-    if kind == "numpy":
+    if kind == 'numpy':
         a2, b2 = a_[:], b_[:]
         t0 = clock()
         r = eval(expression, {'a': a2, 'b': b2})
-        print(f"{clock() - t0:5.2f}")
+        print(f'{clock() - t0:5.2f}')
     else:
         expr = tb.Expr(expression, {'a': a_, 'b': b_})
         expr.set_output(r)
@@ -139,12 +141,12 @@ if __name__ == '__main__':
     if len(sys.argv) > 3:
         kind = sys.argv[1]
         prec = sys.argv[2]
-        if sys.argv[3] == "synth":
+        if sys.argv[3] == 'synth':
             synth = True
         else:
             synth = False
     else:
-        print("3 parameters required")
+        print('3 parameters required')
         sys.exit(1)
 
     # print "kind, precision, synth:", kind, prec, synth
@@ -161,4 +163,4 @@ if __name__ == '__main__':
             ts.append(clock() - t0)
             t0 = clock()
         ratio = size_orig / size
-        print(f"{min(ts):5.2f}, {ratio:5.2f}")
+        print(f'{min(ts):5.2f}, {ratio:5.2f}')

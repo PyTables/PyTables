@@ -11,7 +11,7 @@ from .utils import correct_byteorder, SizeType
 
 # default version for CARRAY objects
 # obversion = "1.0"    # Support for time & enumerated datatypes.
-obversion = "1.1"    # Numeric and numarray flavors are gone.
+obversion = '1.1'    # Numeric and numarray flavors are gone.
 
 
 class CArray(Array):
@@ -120,65 +120,76 @@ class CArray(Array):
     # Class identifier.
     _c_classid = 'CARRAY'
 
-    def __init__(self, parentnode, name,
-                 atom=None, shape=None,
-                 title="", filters=None,
-                 chunkshape=None, byteorder=None,
-                 _log=True, track_times=True):
+    def __init__(
+        self,
+        parentnode,
+        name,
+        atom=None,
+        shape=None,
+        title='',
+        filters=None,
+        chunkshape=None,
+        byteorder=None,
+        _log=True,
+        track_times=True,
+    ):
 
         self.atom = atom
-        """An `Atom` instance representing the shape, type of the atomic
+        '''An `Atom` instance representing the shape, type of the atomic
         objects to be saved.
-        """
+        '''
         self.shape = None
-        """The shape of the stored array."""
+        '''The shape of the stored array.'''
         self.extdim = -1  # `CArray` objects are not enlargeable by default
-        """The index of the enlargeable dimension."""
+        '''The index of the enlargeable dimension.'''
 
         # Other private attributes
         self._v_version = None
-        """The object version of this array."""
+        '''The object version of this array.'''
         self._v_new = new = atom is not None
-        """Is this the first time the node has been created?"""
+        '''Is this the first time the node has been created?'''
         self._v_new_title = title
-        """New title for this node."""
+        '''New title for this node.'''
         self._v_convert = True
-        """Whether the ``Array`` object must be converted or not."""
+        '''Whether the ``Array`` object must be converted or not.'''
         self._v_chunkshape = chunkshape
-        """Private storage for the `chunkshape` property of the leaf."""
+        '''Private storage for the `chunkshape` property of the leaf.'''
 
         # Miscellaneous iteration rubbish.
         self._start = None
-        """Starting row for the current iteration."""
+        '''Starting row for the current iteration.'''
         self._stop = None
-        """Stopping row for the current iteration."""
+        '''Stopping row for the current iteration.'''
         self._step = None
-        """Step size for the current iteration."""
+        '''Step size for the current iteration.'''
         self._nrowsread = None
-        """Number of rows read up to the current state of iteration."""
+        '''Number of rows read up to the current state of iteration.'''
         self._startb = None
-        """Starting row for current buffer."""
+        '''Starting row for current buffer.'''
         self._stopb = None
-        """Stopping row for current buffer. """
+        '''Stopping row for current buffer. '''
         self._row = None
-        """Current row in iterators (sentinel)."""
+        '''Current row in iterators (sentinel).'''
         self._init = False
-        """Whether we are in the middle of an iteration or not (sentinel)."""
+        '''Whether we are in the middle of an iteration or not (sentinel).'''
         self.listarr = None
-        """Current buffer in iterators."""
+        '''Current buffer in iterators.'''
 
         if new:
             if not isinstance(atom, Atom):
-                raise ValueError("atom parameter should be an instance of "
-                                 "tables.Atom and you passed a %s." %
-                                 type(atom))
+                raise ValueError(
+                    'atom parameter should be an instance of '
+                    'tables.Atom and you passed a %s.' % type(atom)
+                )
             if shape is None:
-                raise ValueError("you must specify a non-empty shape")
+                raise ValueError('you must specify a non-empty shape')
             try:
                 shape = tuple(shape)
             except TypeError:
-                raise TypeError("`shape` parameter must be a sequence "
-                                "and you passed a %s" % type(shape))
+                raise TypeError(
+                    '`shape` parameter must be a sequence '
+                    'and you passed a %s' % type(shape)
+                )
             self.shape = tuple(SizeType(s) for s in shape)
 
             if chunkshape is not None:
@@ -186,26 +197,30 @@ class CArray(Array):
                     chunkshape = tuple(chunkshape)
                 except TypeError:
                     raise TypeError(
-                        "`chunkshape` parameter must be a sequence "
-                        "and you passed a %s" % type(chunkshape))
+                        '`chunkshape` parameter must be a sequence '
+                        'and you passed a %s' % type(chunkshape)
+                    )
                 if len(shape) != len(chunkshape):
-                    raise ValueError(f"the shape ({shape}) and chunkshape "
-                                     f"({chunkshape}) ranks must be equal.")
+                    raise ValueError(
+                        f'the shape ({shape}) and chunkshape '
+                        f'({chunkshape}) ranks must be equal.'
+                    )
                 elif min(chunkshape) < 1:
-                    raise ValueError("chunkshape parameter cannot have "
-                                     "zero-dimensions.")
+                    raise ValueError(
+                        'chunkshape parameter cannot have ' 'zero-dimensions.'
+                    )
                 self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         # The `Array` class is not abstract enough! :(
-        super(Array, self).__init__(parentnode, name, new, filters,
-                                    byteorder, _log, track_times)
+        super(Array, self).__init__(
+            parentnode, name, new, filters, byteorder, _log, track_times
+        )
 
     def _g_create(self):
         """Create a new array in file (specific part)."""
 
         if min(self.shape) < 1:
-            raise ValueError(
-                "shape parameter cannot have zero-dimensions.")
+            raise ValueError('shape parameter cannot have zero-dimensions.')
         # Finish the common part of creation process
         return self._g_create_common(self.nrows)
 
@@ -217,7 +232,8 @@ class CArray(Array):
         if self._v_chunkshape is None:
             # Compute the optimal chunk size
             self._v_chunkshape = self._calc_chunkshape(
-                expectedrows, self.rowsize, self.atom.size)
+                expectedrows, self.rowsize, self.atom.size
+            )
         # Compute the optimal nrowsinbuf
         self.nrowsinbuf = self._calc_nrowsinbuf()
         # Correct the byteorder if needed
@@ -236,8 +252,19 @@ class CArray(Array):
 
         return self._v_objectid
 
-    def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+    def _g_copy_with_stats(
+        self,
+        group,
+        name,
+        start,
+        stop,
+        step,
+        title,
+        filters,
+        chunkshape,
+        _log,
+        **kwargs,
+    ):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)
@@ -252,9 +279,16 @@ class CArray(Array):
         # when copying buffers
         self._v_convert = False
         # Build the new CArray object
-        object = CArray(group, name, atom=self.atom, shape=shape,
-                        title=title, filters=filters, chunkshape=chunkshape,
-                        _log=_log)
+        object = CArray(
+            group,
+            name,
+            atom=self.atom,
+            shape=shape,
+            title=title,
+            filters=filters,
+            chunkshape=chunkshape,
+            _log=_log,
+        )
         # Start the copy itself
         for start2 in range(start, stop, step * nrowsinbuf):
             # Save the records on disk

@@ -30,10 +30,10 @@ import tables as tb
 
 
 NodeType = 'file'
-"""Value for NODE_TYPE node system attribute."""
+'''Value for NODE_TYPE node system attribute.'''
 
 NodeTypeVersions = [1, 2]
-"""Supported values for NODE_TYPE_VERSION node system attribute."""
+'''Supported values for NODE_TYPE_VERSION node system attribute.'''
 
 
 class RawPyTablesIO(io.RawIOBase):
@@ -43,7 +43,7 @@ class RawPyTablesIO(io.RawIOBase):
     _size_to_shape = [
         None,
         lambda l: (l, 1),
-        lambda l: (l, ),
+        lambda l: (l,),
     ]
 
     def __init__(self, node, mode=None):
@@ -101,17 +101,17 @@ class RawPyTablesIO(io.RawIOBase):
         # except AttributeError as err:
         #     raise TypeError("an integer is required") from err
         except AttributeError:
-            raise TypeError("an integer is required")
+            raise TypeError('an integer is required')
         if whence == 0:
             if pos < 0:
-                raise ValueError(f"negative seek position {pos!r}")
+                raise ValueError(f'negative seek position {pos!r}')
             self._pos = pos
         elif whence == 1:
             self._pos = max(0, self._pos + pos)
         elif whence == 2:
             self._pos = max(0, self._node.nrows + pos)
         else:
-            raise ValueError("invalid whence value")
+            raise ValueError('invalid whence value')
         return self._pos
 
     # def seekable(self) -> bool:
@@ -147,7 +147,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         if not self.closed:
             if getattr(self._node, '_v_file', None) is None:
-                warnings.warn("host PyTables file is already closed!")
+                warnings.warn('host PyTables file is already closed!')
 
         try:
             super().close()
@@ -183,10 +183,10 @@ class RawPyTablesIO(io.RawIOBase):
         if pos is None:
             pos = self._pos
         elif pos < 0:
-            raise ValueError(f"negative truncate position {pos!r}")
+            raise ValueError(f'negative truncate position {pos!r}')
 
         if pos < self._node.nrows:
-            raise OSError("truncating is only allowed for growing a file")
+            raise OSError('truncating is only allowed for growing a file')
         self._append_zeros(pos - self._node.nrows)
 
         return self.seek(pos)
@@ -313,7 +313,7 @@ class RawPyTablesIO(io.RawIOBase):
             elif lseplen > 1 and (limit <= 0 or remsize > 0):
                 # Seek back a little since the end of the read string
                 # may have fallen in the middle of the line separator.
-                obuff = ibuff[:-lseplen + 1]
+                obuff = ibuff[: -lseplen + 1]
                 self.seek(-lseplen + 1, 1)
                 remsize += lseplen - 1
             else:  # eolindex<0 and (lseplen<=1 or (limit>0 and remsize<=0))
@@ -359,7 +359,8 @@ class RawPyTablesIO(io.RawIOBase):
 
         # Append data.
         self._node.append(
-            np.ndarray(buffer=b, dtype=self._vtype, shape=self._vshape(n)))
+            np.ndarray(buffer=b, dtype=self._vtype, shape=self._vshape(n))
+        )
 
         self._pos += n
 
@@ -376,7 +377,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         super()._checkClosed()
         if getattr(self._node, '_v_file', None) is None:
-            raise ValueError("host PyTables file is already closed!")
+            raise ValueError('host PyTables file is already closed!')
 
     def _check_node(self, node):
         if not isinstance(node, tb.EArray):
@@ -386,20 +387,20 @@ class RawPyTablesIO(io.RawIOBase):
 
     def _check_mode(self, mode):
         if not isinstance(mode, str):
-            raise TypeError("invalid mode: %r" % mode)
+            raise TypeError('invalid mode: %r' % mode)
 
         modes = set(mode)
-        if modes - set("arwb+tU") or len(mode) > len(modes):
-            raise ValueError("invalid mode: %r" % mode)
+        if modes - set('arwb+tU') or len(mode) > len(modes):
+            raise ValueError('invalid mode: %r' % mode)
 
-        reading = "r" in modes
-        writing = "w" in modes
-        appending = "a" in modes
+        reading = 'r' in modes
+        writing = 'w' in modes
+        appending = 'a' in modes
         # updating = "+" in modes
-        text = "t" in modes
-        binary = "b" in modes
+        text = 't' in modes
+        binary = 'b' in modes
 
-        if "U" in modes:
+        if 'U' in modes:
             if writing or appending:
                 raise ValueError("can't use U and writing mode at once")
             reading = True
@@ -411,7 +412,7 @@ class RawPyTablesIO(io.RawIOBase):
             raise ValueError("can't have read/write/append mode at once")
 
         if not (reading or writing or appending):
-            raise ValueError("must have exactly one of read/write/append mode")
+            raise ValueError('must have exactly one of read/write/append mode')
 
     def _cross_check_mode(self, mode, h5filemode):
         # XXX: check
@@ -423,12 +424,15 @@ class RawPyTablesIO(io.RawIOBase):
         #                      "the underlying hdf5 file is not readable")
 
         writable = bool('w' in mode or 'a' in mode or '+' in mode)
-        h5writable = bool('w' in h5filemode or 'a' in h5filemode or
-                          '+' in h5filemode)
+        h5writable = bool(
+            'w' in h5filemode or 'a' in h5filemode or '+' in h5filemode
+        )
 
         if writable and not h5writable:
-            raise ValueError("RawPyTablesIO can't be open in write mode if "
-                             "the underlying hdf5 file is not writable")
+            raise ValueError(
+                "RawPyTablesIO can't be open in write mode if "
+                'the underlying hdf5 file is not writable'
+            )
 
     def _check_attributes(self, node):
         """Checks file node-specific attributes.
@@ -445,10 +449,11 @@ class RawPyTablesIO(io.RawIOBase):
         ltypever = getattr(attrs, 'NODE_TYPE_VERSION', None)
 
         if ltype != NodeType:
-            raise ValueError(f"invalid type of node object: {ltype}")
+            raise ValueError(f'invalid type of node object: {ltype}')
         if ltypever not in NodeTypeVersions:
             raise ValueError(
-                f"unsupported type version of node object: {ltypever}")
+                f'unsupported type version of node object: {ltypever}'
+            )
 
     def _append_zeros(self, size):
         """_append_zeros(size) -> None.  Appends a string of zeros.
@@ -464,7 +469,8 @@ class RawPyTablesIO(io.RawIOBase):
 
         # XXX This may be redone to avoid a potentially large in-memory array.
         self._node.append(
-            np.zeros(dtype=self._vtype, shape=self._vshape(size)))
+            np.zeros(dtype=self._vtype, shape=self._vshape(size))
+        )
 
 
 class FileNodeMixin:
@@ -487,17 +493,20 @@ class FileNodeMixin:
     def _set_attrs(self, value):
         """set_attrs(string) -> None.  Raises ValueError."""
 
-        raise ValueError("changing the whole attribute set is not allowed")
+        raise ValueError('changing the whole attribute set is not allowed')
 
     def _del_attrs(self):
         """del_attrs() -> None.  Raises ValueError."""
 
-        raise ValueError("deleting the whole attribute set is not allowed")
+        raise ValueError('deleting the whole attribute set is not allowed')
 
     # The attribute set property.
     attrs = property(
-        _get_attrs, _set_attrs, _del_attrs,
-        "A property pointing to the attribute set of the file node.")
+        _get_attrs,
+        _set_attrs,
+        _del_attrs,
+        'A property pointing to the attribute set of the file node.',
+    )
 
 
 class ROFileNode(FileNodeMixin, RawPyTablesIO):
@@ -582,7 +591,12 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
     ]
 
     __allowed_init_kwargs = [
-        'where', 'name', 'title', 'filters', 'expectedsize']
+        'where',
+        'name',
+        'title',
+        'filters',
+        'expectedsize',
+    ]
 
     def __init__(self, node, h5file, **kwargs):
         if node is not None:
@@ -595,7 +609,8 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
             for kwarg in kwargs:
                 if kwarg not in self.__allowed_init_kwargs:
                     raise TypeError(
-                        "%s keyword argument is not allowed" % repr(kwarg))
+                        '%s keyword argument is not allowed' % repr(kwarg)
+                    )
 
             # Turn 'expectedsize' into 'expectedrows'.
             if 'expectedsize' in kwargs:
@@ -609,7 +624,8 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
             self._version = NodeTypeVersions[-1]
             shape = self._byte_shape[self._version]
             node = h5file.create_earray(
-                atom=tb.UInt8Atom(), shape=shape, **kwargs)
+                atom=tb.UInt8Atom(), shape=shape, **kwargs
+            )
 
             # Set the node attributes, else remove the array itself.
             try:
@@ -670,11 +686,12 @@ def open_node(node, mode='r'):
     elif mode == 'a+':
         return RAFileNode(node, None)
     else:
-        raise OSError(f"invalid mode: {mode}")
+        raise OSError(f'invalid mode: {mode}')
 
 
-def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
-                     title="", filters=None):
+def save_to_filenode(
+    h5file, filename, where, name=None, overwrite=False, title='', filters=None
+):
     """Save a file's contents to a filenode inside a PyTables file.
 
     .. versionadded:: 3.2
@@ -718,7 +735,7 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
     # sanity checks
     if not os.access(path, os.R_OK):
         raise OSError(f"The file '{path}' could not be read")
-    if isinstance(h5file, tb.file.File) and h5file.mode == "r":
+    if isinstance(h5file, tb.file.File) and h5file.mode == 'r':
         raise OSError(f"The file '{h5file.filename}' is opened read-only")
 
     # guess filenode's name if necessary
@@ -726,20 +743,21 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
         if isinstance(where, tb.group.Group):
             name = os.path.split(filename)[1]
         if isinstance(where, str):
-            if where.endswith("/"):
+            if where.endswith('/'):
                 name = os.path.split(filename)[1]
             else:
-                nodepath = where.split("/")
-                where = "/" + "/".join(nodepath[:-1])
+                nodepath = where.split('/')
+                where = '/' + '/'.join(nodepath[:-1])
                 name = nodepath[-1]
 
     # sanitize name if necessary
     if not tb.path._python_id_re.match(name):
-        name = re.sub('(?![a-zA-Z0-9_]).', "_",
-                      re.sub('^(?![a-zA-Z_]).', "_", name))
+        name = re.sub(
+            '(?![a-zA-Z0-9_]).', '_', re.sub('^(?![a-zA-Z_]).', '_', name)
+        )
 
     new_h5file = not isinstance(h5file, tb.file.File)
-    f = tb.File(h5file, "a") if new_h5file else h5file
+    f = tb.File(h5file, 'a') if new_h5file else h5file
 
     # check for already existing filenode
     try:
@@ -773,8 +791,9 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
         f.close()
 
 
-def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
-                       create_target=False):
+def read_from_filenode(
+    h5file, filename, where, name=None, overwrite=False, create_target=False
+):
     r"""Read a filenode from a PyTables file and write its contents to a file.
 
     .. versionadded:: 3.2
@@ -809,19 +828,20 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
     path = Path(filename).resolve()
 
     new_h5file = not isinstance(h5file, tb.file.File)
-    f = tb.File(h5file, "r") if new_h5file else h5file
+    f = tb.File(h5file, 'r') if new_h5file else h5file
     try:
         fnode = open_node(f.get_node(where=where, name=name))
     except tb.NoSuchNodeError:
         fnode = None
-        for n in f.walk_nodes(where=where, classname="EArray"):
+        for n in f.walk_nodes(where=where, classname='EArray'):
             if n.attrs._filename == name:
                 fnode = open_node(n)
                 break
         if fnode is None:
             f.close()
-            raise tb.NoSuchNodeError("A filenode '%s' cannot be found at "
-                                     "'%s'" % (name, where))
+            raise tb.NoSuchNodeError(
+                "A filenode '%s' cannot be found at " "'%s'" % (name, where)
+            )
 
     # guess output filename if necessary
     # TODO: pathlib.Path strips trailing slash automatically :-(

@@ -22,11 +22,14 @@ class Record(tb.IsDescription):
 class TrackTimesMixin:
     def _add_datasets(self, group, j, track_times):
         # Create a table
-        table = self.h5file.create_table(group, f'table{j}',
-                                         Record,
-                                         title=self.title,
-                                         filters=None,
-                                         track_times=track_times)
+        table = self.h5file.create_table(
+            group,
+            f'table{j}',
+            Record,
+            title=self.title,
+            filters=None,
+            track_times=track_times,
+        )
         # Get the record object associated with the new table
         d = table.row
         # Fill the table
@@ -42,36 +45,47 @@ class TrackTimesMixin:
         var1List = [x['var1'] for x in table.iterrows()]
         var3List = [x['var3'] for x in table.iterrows()]
 
-        self.h5file.create_array(group, f'array{j}',
-                                 var1List, f"col {j}",
-                                 track_times=track_times)
+        self.h5file.create_array(
+            group, f'array{j}', var1List, f'col {j}', track_times=track_times
+        )
 
         # Create CArrays as well
-        self.h5file.create_carray(group, name=f'carray{j}',
-                                  obj=var3List,
-                                  title="col {}".format(j + 2),
-                                  track_times=track_times)
+        self.h5file.create_carray(
+            group,
+            name=f'carray{j}',
+            obj=var3List,
+            title='col {}'.format(j + 2),
+            track_times=track_times,
+        )
 
         # Create EArrays as well
-        ea = self.h5file.create_earray(group, f'earray{j}',
-                                       tb.StringAtom(itemsize=4), (0,),
-                                       "col {}".format(j + 4),
-                                       track_times=track_times)
+        ea = self.h5file.create_earray(
+            group,
+            f'earray{j}',
+            tb.StringAtom(itemsize=4),
+            (0,),
+            'col {}'.format(j + 4),
+            track_times=track_times,
+        )
         # And fill them with some values
         ea.append(var1List)
 
         # Finally VLArrays too
-        vla = self.h5file.create_vlarray(group, f'vlarray{j}',
-                                         tb.Int16Atom(),
-                                         "col {}".format(j + 6),
-                                         track_times=track_times)
+        vla = self.h5file.create_vlarray(
+            group,
+            f'vlarray{j}',
+            tb.Int16Atom(),
+            'col {}'.format(j + 6),
+            track_times=track_times,
+        )
         # And fill them with some values
         vla.append(var3List)
 
 
-class TimestampTestCase(TrackTimesMixin, common.TempFileMixin,
-                        common.PyTablesTestCase):
-    title = "A title"
+class TimestampTestCase(
+    TrackTimesMixin, common.TempFileMixin, common.PyTablesTestCase
+):
+    title = 'A title'
     nrows = 10
 
     def setUp(self):
@@ -87,11 +101,13 @@ class TimestampTestCase(TrackTimesMixin, common.TempFileMixin,
     def test00_checkTimestamps(self):
         """Checking retrieval of timestamps"""
 
-        for pattern in ('/table{}',
-                        '/array{}',
-                        '/carray{}',
-                        '/earray{}',
-                        '/vlarray{}'):
+        for pattern in (
+            '/table{}',
+            '/array{}',
+            '/carray{}',
+            '/earray{}',
+            '/vlarray{}',
+        ):
             # Verify that:
             # - if track_times was False, ctime is 0
             # - if track_times was True, ctime is not 0,
@@ -115,14 +131,15 @@ class TimestampTestCase(TrackTimesMixin, common.TempFileMixin,
             self.assertGreaterEqual(tracked_ctimes[1], tracked_ctimes[0])
 
 
-class BitForBitTestCase(TrackTimesMixin, common.TempFileMixin,
-                        common.PyTablesTestCase):
-    title = "A title"
+class BitForBitTestCase(
+    TrackTimesMixin, common.TempFileMixin, common.PyTablesTestCase
+):
+    title = 'A title'
     nrows = 10
 
     def repopulateFile(self, track_times):
         self.h5file.close()
-        self.h5file = tb.open_file(self.h5fname, mode="w")
+        self.h5file = tb.open_file(self.h5fname, mode='w')
         group = self.h5file.root
         self._add_datasets(group, 1, track_times)
         self.h5file.close()

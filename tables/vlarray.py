@@ -9,8 +9,14 @@ from .atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
 from .flavor import internal_to_flavor
 from .leaf import Leaf, calc_chunksize
 from .utils import (
-    convert_to_np_atom, convert_to_np_atom2, idx2long, correct_byteorder,
-    SizeType, is_idx, lazyattr)
+    convert_to_np_atom,
+    convert_to_np_atom2,
+    idx2long,
+    correct_byteorder,
+    SizeType,
+    is_idx,
+    lazyattr,
+)
 
 
 # default version for VLARRAY objects
@@ -19,7 +25,7 @@ from .utils import (
 # obversion = "1.1"    # This adds support for time datatypes.
 # obversion = "1.2"    # This adds support for enumerated datatypes.
 # obversion = "1.3"     # Introduced 'PSEUDOATOM' attribute.
-obversion = "1.4"    # Numeric and numarray flavors are gone.
+obversion = '1.4'    # Numeric and numarray flavors are gone.
 
 
 class VLArray(hdf5extension.VLArray, Leaf):
@@ -242,79 +248,88 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """
         return self._get_memory_size()
 
-    def __init__(self, parentnode, name, atom=None, title="",
-                 filters=None, expectedrows=None,
-                 chunkshape=None, byteorder=None,
-                 _log=True, track_times=True):
+    def __init__(
+        self,
+        parentnode,
+        name,
+        atom=None,
+        title='',
+        filters=None,
+        expectedrows=None,
+        chunkshape=None,
+        byteorder=None,
+        _log=True,
+        track_times=True,
+    ):
 
         self._v_version = None
-        """The object version of this array."""
+        '''The object version of this array.'''
 
         self._v_new = new = atom is not None
-        """Is this the first time the node has been created?"""
+        '''Is this the first time the node has been created?'''
 
         self._v_new_title = title
-        """New title for this node."""
+        '''New title for this node.'''
 
         self._v_new_filters = filters
-        """New filter properties for this array."""
+        '''New filter properties for this array.'''
 
         if expectedrows is None:
             expectedrows = parentnode._v_file.params['EXPECTED_ROWS_VLARRAY']
         self._v_expectedrows = expectedrows
-        """The expected number of rows to be stored in the array.
+        '''The expected number of rows to be stored in the array.
 
         .. versionadded:: 3.0
 
-        """
+        '''
 
         self._v_chunkshape = None
-        """Private storage for the `chunkshape` property of Leaf."""
+        '''Private storage for the `chunkshape` property of Leaf.'''
 
         # Miscellaneous iteration rubbish.
         self._start = None
-        """Starting row for the current iteration."""
+        '''Starting row for the current iteration.'''
 
         self._stop = None
-        """Stopping row for the current iteration."""
+        '''Stopping row for the current iteration.'''
 
         self._step = None
-        """Step size for the current iteration."""
+        '''Step size for the current iteration.'''
 
         self._nrowsread = None
-        """Number of rows read up to the current state of iteration."""
+        '''Number of rows read up to the current state of iteration.'''
 
         self._startb = None
-        """Starting row for current buffer."""
+        '''Starting row for current buffer.'''
 
         self._stopb = None
-        """Stopping row for current buffer. """
+        '''Stopping row for current buffer. '''
 
         self._row = None
-        """Current row in iterators (sentinel)."""
+        '''Current row in iterators (sentinel).'''
 
         self._init = False
-        """Whether we are in the middle of an iteration or not (sentinel)."""
+        '''Whether we are in the middle of an iteration or not (sentinel).'''
 
         self.listarr = None
-        """Current buffer in iterators."""
+        '''Current buffer in iterators.'''
 
         # Documented (*public*) attributes.
         self.atom = atom
-        """
+        '''
         An Atom (see :ref:`AtomClassDescr`) instance representing the
         *type* and *shape* of the atomic objects to be saved. You may
         use a *pseudo-atom* for storing a serialized object or
         variable length string per row.
-        """
+        '''
         self.nrow = None
-        """On iterators, this is the index of the current row."""
+        '''On iterators, this is the index of the current row.'''
 
         self.nrows = None
-        """The current number of rows in the array."""
+        '''The current number of rows in the array.'''
 
         self.extdim = 0   # VLArray only have one dimension currently
-        """The index of the enlargeable dimension (always 0 for vlarrays)."""
+        '''The index of the enlargeable dimension (always 0 for vlarrays).'''
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
@@ -324,15 +339,18 @@ class VLArray(hdf5extension.VLArray, Leaf):
                 chunkshape = tuple(chunkshape)
             except TypeError:
                 raise TypeError(
-                    "`chunkshape` parameter must be an integer or sequence "
-                    "and you passed a %s" % type(chunkshape))
+                    '`chunkshape` parameter must be an integer or sequence '
+                    'and you passed a %s' % type(chunkshape)
+                )
             if len(chunkshape) != 1:
-                raise ValueError("`chunkshape` rank (length) must be 1: %r"
-                                 % (chunkshape,))
+                raise ValueError(
+                    '`chunkshape` rank (length) must be 1: %r' % (chunkshape,)
+                )
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
-        super().__init__(parentnode, name, new, filters,
-                         byteorder, _log, track_times)
+        super().__init__(
+            parentnode, name, new, filters, byteorder, _log, track_times
+        )
 
     def _g_post_init_hook(self):
         super()._g_post_init_hook()
@@ -375,8 +393,10 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # Check for zero dims in atom shape (not allowed in VLArrays)
         zerodims = np.sum(np.array(atom.shape) == 0)
         if zerodims > 0:
-            raise ValueError("When creating VLArrays, none of the dimensions "
-                             "of the Atom instance can be zero.")
+            raise ValueError(
+                'When creating VLArrays, none of the dimensions '
+                'of the Atom instance can be zero.'
+            )
 
         if not hasattr(atom, 'size'):  # it is a pseudo-atom
             self._atomicdtype = atom.base.dtype
@@ -413,11 +433,15 @@ class VLArray(hdf5extension.VLArray, Leaf):
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        self._v_objectid, self.nrows, self._v_chunkshape, atom = \
-            self._open_array()
+        (
+            self._v_objectid,
+            self.nrows,
+            self._v_chunkshape,
+            atom,
+        ) = self._open_array()
 
         # Check if the atom can be a PseudoAtom
-        if "PSEUDOATOM" in self.attrs:
+        if 'PSEUDOATOM' in self.attrs:
             kind = self.attrs.PSEUDOATOM
             if kind == 'vlstring':
                 atom = VLStringAtom()
@@ -426,13 +450,12 @@ class VLArray(hdf5extension.VLArray, Leaf):
             elif kind == 'object':
                 atom = ObjectAtom()
             else:
-                raise ValueError(
-                    "pseudo-atom name ``%s`` not known." % kind)
-        elif self._v_file.format_version[:1] == "1":
+                raise ValueError('pseudo-atom name ``%s`` not known.' % kind)
+        elif self._v_file.format_version[:1] == '1':
             flavor1x = self.attrs.FLAVOR
-            if flavor1x == "VLString":
+            if flavor1x == 'VLString':
                 atom = VLStringAtom()
-            elif flavor1x == "Object":
+            elif flavor1x == 'Object':
                 atom = ObjectAtom()
 
         self.atom = atom
@@ -457,7 +480,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         diflen = shapelen - atomshapelen
         if shape == atom_shape:
             nobjects = 1
-        elif (diflen == 1 and shape[diflen:] == atom_shape):
+        elif diflen == 1 and shape[diflen:] == atom_shape:
             # Check if the leading dimensions are all ones
             # if shape[:diflen-1] == (1,)*(diflen-1):
             #    nobjects = shape[diflen-1]
@@ -470,9 +493,11 @@ class VLArray(hdf5extension.VLArray, Leaf):
             # Case where shape = (N,) and shape_atom = 1 or (1,)
             nobjects = shape[0]
         else:
-            raise ValueError("The object '%s' is composed of elements with "
-                             "shape '%s', which is not compatible with the "
-                             "atom shape ('%s')." % (nparr, shape, atom_shape))
+            raise ValueError(
+                "The object '%s' is composed of elements with "
+                "shape '%s', which is not compatible with the "
+                "atom shape ('%s')." % (nparr, shape, atom_shape)
+            )
         return nobjects
 
     def get_enum(self):
@@ -485,8 +510,9 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """
 
         if self.atom.kind != 'enum':
-            raise TypeError("array ``%s`` is not of an enumerated type"
-                            % self._v_pathname)
+            raise TypeError(
+                'array ``%s`` is not of an enumerated type' % self._v_pathname
+            )
 
         return self.atom.enum
 
@@ -513,7 +539,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             try:  # fastest check in most cases
                 len(sequence)
             except TypeError:
-                raise TypeError("argument is not a sequence")
+                raise TypeError('argument is not a sequence')
             statom = atom
 
         if len(sequence) > 0:
@@ -555,7 +581,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """
 
         (self._start, self._stop, self._step) = self._process_range(
-            start, stop, step)
+            start, stop, step
+        )
         self._init_loop()
         return self
 
@@ -654,7 +681,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
             # Index out of range protection
             if key >= self.nrows:
-                raise IndexError("Index out of range")
+                raise IndexError('Index out of range')
             if key < 0:
                 # To support negative values
                 key += self.nrows
@@ -662,21 +689,22 @@ class VLArray(hdf5extension.VLArray, Leaf):
             return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
             start, stop, step = self._process_range(
-                key.start, key.stop, key.step)
+                key.start, key.stop, key.step
+            )
             return self.read(start, stop, step)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
             coords = self._point_selection(key)
             return self._read_coordinates(coords)
         else:
-            raise IndexError(f"Invalid index or slice: {key!r}")
+            raise IndexError(f'Invalid index or slice: {key!r}')
 
     def _assign_values(self, coords, values):
         """Assign the `values` to the positions stated in `coords`."""
 
         for nrow, value in zip(coords, values):
             if nrow >= self.nrows:
-                raise IndexError("First index out of range")
+                raise IndexError('First index out of range')
             if nrow < 0:
                 # To support negative values
                 nrow += self.nrows
@@ -693,21 +721,24 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
             # Get the previous value
             nrow = idx2long(
-                nrow)   # To convert any possible numpy scalar value
+                nrow
+            )   # To convert any possible numpy scalar value
             nparr = self._read_array(nrow, nrow + 1, 1)[0]
             nobjects = len(nparr)
             if len(value) > nobjects:
-                raise ValueError("Length of value (%s) is larger than number "
-                                 "of elements in row (%s)" % (len(value),
-                                                              nobjects))
+                raise ValueError(
+                    'Length of value (%s) is larger than number '
+                    'of elements in row (%s)' % (len(value), nobjects)
+                )
             try:
                 nparr[:] = value
             except Exception as exc:  # XXX
-                raise ValueError("Value parameter:\n'%r'\n"
-                                 "cannot be converted into an array object "
-                                 "compliant vlarray[%s] row: \n'%r'\n"
-                                 "The error was: <%s>" % (value, nrow,
-                                                          nparr[:], exc))
+                raise ValueError(
+                    "Value parameter:\n'%r'\n"
+                    'cannot be converted into an array object '
+                    "compliant vlarray[%s] row: \n'%r'\n"
+                    'The error was: <%s>' % (value, nrow, nparr[:], exc)
+                )
 
             if nparr.size > 0:
                 self._modify(nrow, nparr, nobjects)
@@ -765,13 +796,14 @@ class VLArray(hdf5extension.VLArray, Leaf):
             value = [value]
         elif isinstance(key, slice):
             start, stop, step = self._process_range(
-                key.start, key.stop, key.step)
+                key.start, key.stop, key.step
+            )
             coords = range(start, stop, step)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
             coords = self._point_selection(key)
         else:
-            raise IndexError(f"Invalid index or slice: {key!r}")
+            raise IndexError(f'Invalid index or slice: {key!r}')
 
         # Do the assignment row by row
         self._assign_values(coords, value)
@@ -817,15 +849,32 @@ class VLArray(hdf5extension.VLArray, Leaf):
             rows.append(self.read(int(coord), int(coord) + 1, 1)[0])
         return rows
 
-    def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+    def _g_copy_with_stats(
+        self,
+        group,
+        name,
+        start,
+        stop,
+        step,
+        title,
+        filters,
+        chunkshape,
+        _log,
+        **kwargs,
+    ):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         # Build the new VLArray object
         object = VLArray(
-            group, name, self.atom, title=title, filters=filters,
-            expectedrows=self._v_expectedrows, chunkshape=chunkshape,
-            _log=_log)
+            group,
+            name,
+            self.atom,
+            title=title,
+            filters=filters,
+            expectedrows=self._v_expectedrows,
+            chunkshape=chunkshape,
+            _log=_log,
+        )
 
         # Now, fill the new vlarray with values from the old one
         # This is not buffered because we cannot forsee the length
@@ -857,8 +906,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return f"""{self}
+        return f'''{self}
   atom = {self.atom!r}
   byteorder = {self.byteorder!r}
   nrows = {self.nrows}
-  flavor = {self.flavor!r}"""
+  flavor = {self.flavor!r}'''

@@ -10,27 +10,31 @@ class Particle(tb.IsDescription):
     pressure = tb.Float32Col(pos=4)     # float  (single-precision)
     temperature = tb.Float64Col(pos=5)  # double (double-precision)
 
+
 # Open a file in "w"rite mode
-fileh = tb.open_file("add-column.h5", mode="w")
+fileh = tb.open_file('add-column.h5', mode='w')
 # Create a new group
-group = fileh.create_group(fileh.root, "newgroup")
+group = fileh.create_group(fileh.root, 'newgroup')
 
 # Create a new table in newgroup group
-table = fileh.create_table(group, 'table', Particle, "A table",
-                           tb.Filters(1))
+table = fileh.create_table(group, 'table', Particle, 'A table', tb.Filters(1))
 
 # Append several rows
-table.append([("Particle:     10", 10, 0, 10 * 10, 10 ** 2),
-              ("Particle:     11", 11, -1, 11 * 11, 11 ** 2),
-              ("Particle:     12", 12, -2, 12 * 12, 12 ** 2)])
+table.append(
+    [
+        ('Particle:     10', 10, 0, 10 * 10, 10 ** 2),
+        ('Particle:     11', 11, -1, 11 * 11, 11 ** 2),
+        ('Particle:     12', 12, -2, 12 * 12, 12 ** 2),
+    ]
+)
 
-print("Contents of the original table:", fileh.root.newgroup.table[:])
+print('Contents of the original table:', fileh.root.newgroup.table[:])
 
 # close the file
 fileh.close()
 
 # Open it again in append mode
-fileh = tb.open_file("add-column.h5", "a")
+fileh = tb.open_file('add-column.h5', 'a')
 group = fileh.root.newgroup
 table = group.table
 
@@ -39,11 +43,10 @@ descr = table.description._v_colobjects
 descr2 = descr.copy()
 
 # Add a column to description
-descr2["hot"] = tb.BoolCol(dflt=False)
+descr2['hot'] = tb.BoolCol(dflt=False)
 
 # Create a new table with the new description
-table2 = fileh.create_table(group, 'table2', descr2, "A table",
-                            tb.Filters(1))
+table2 = fileh.create_table(group, 'table2', descr2, 'A table', tb.Filters(1))
 
 # Copy the user attributes
 table.attrs._f_copy(table2)
@@ -59,7 +62,7 @@ for col in descr:
     getattr(table2.cols, col)[:] = getattr(table.cols, col)[:]
 
 # Fill the new column
-table2.cols.hot[:] = [row["temperature"] > 11 ** 2 for row in table]
+table2.cols.hot[:] = [row['temperature'] > 11 ** 2 for row in table]
 
 # Remove the original table
 table.remove()
@@ -68,7 +71,7 @@ table.remove()
 table2.move('/newgroup', 'table')
 
 # Print the new table
-print("Contents of the table with column added:", fileh.root.newgroup.table[:])
+print('Contents of the table with column added:', fileh.root.newgroup.table[:])
 
 # Finally, close the file
 fileh.close()

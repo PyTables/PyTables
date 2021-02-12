@@ -30,6 +30,7 @@ class PaddedArrayTestCase(common.TestFileMixin, common.PyTablesTestCase):
                } 16 bytes
 
     """
+
     h5fname = common.test_filename('itemsize.h5')
 
     def test(self):
@@ -37,8 +38,13 @@ class PaddedArrayTestCase(common.TestFileMixin, common.PyTablesTestCase):
         data = arr.read()
         expectedData = np.array(
             [(1, 11), (2, 12), (3, 13)],
-            dtype={'names': ['A', 'B'], 'formats': ['<u4', '<u4'],
-                   'offsets': [0, 4], 'itemsize': 16})
+            dtype={
+                'names': ['A', 'B'],
+                'formats': ['<u4', '<u4'],
+                'offsets': [0, 4],
+                'itemsize': 16,
+            },
+        )
         self.assertTrue(common.areArraysEqual(data, expectedData))
 
 
@@ -63,9 +69,20 @@ class EnumTestCase(common.TestFileMixin, common.PyTablesTestCase):
 
         data = list(arr.read())
         expectedData = [
-            enum[name] for name in
-            ['RED', 'GREEN', 'BLUE', 'WHITE', 'BLACK',
-             'RED', 'GREEN', 'BLUE', 'WHITE', 'BLACK']]
+            enum[name]
+            for name in [
+                'RED',
+                'GREEN',
+                'BLUE',
+                'WHITE',
+                'BLACK',
+                'RED',
+                'GREEN',
+                'BLUE',
+                'WHITE',
+                'BLACK',
+            ]
+        ]
         self.assertEqual(data, expectedData)
 
 
@@ -89,13 +106,17 @@ class NumericTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertEqual(arr.shape, (6, 5))
 
         data = arr.read()
-        expectedData = np.array([
-            [0, 1, 2, 3, 4],
-            [1, 2, 3, 4, 5],
-            [2, 3, 4, 5, 6],
-            [3, 4, 5, 6, 7],
-            [4, 5, 6, 7, 8],
-            [5, 6, 7, 8, 9]], dtype=self.type)
+        expectedData = np.array(
+            [
+                [0, 1, 2, 3, 4],
+                [1, 2, 3, 4, 5],
+                [2, 3, 4, 5, 6],
+                [3, 4, 5, 6, 7],
+                [4, 5, 6, 7, 8],
+                [5, 6, 7, 8, 9],
+            ],
+            dtype=self.type,
+        )
         self.assertTrue(common.areArraysEqual(data, expectedData))
 
 
@@ -153,7 +174,8 @@ class ChunkedCompoundTestCase(common.TestFileMixin, common.PyTablesTestCase):
 
         self.assertEqual(
             tbl.colnames,
-            ['a_name', 'c_name', 'd_name', 'e_name', 'f_name', 'g_name'])
+            ['a_name', 'c_name', 'd_name', 'e_name', 'f_name', 'g_name'],
+        )
 
         self.assertEqual(tbl.coltypes['a_name'], 'int32')
         self.assertEqual(tbl.coldtypes['a_name'].shape, ())
@@ -175,10 +197,10 @@ class ChunkedCompoundTestCase(common.TestFileMixin, common.PyTablesTestCase):
 
         for m in range(len(tbl)):
             row = tbl[m]
-        # This version of the loop seems to fail because of ``iterrows()``.
-        # for (m, row) in enumerate(tbl):
+            # This version of the loop seems to fail because of ``iterrows()``.
+            # for (m, row) in enumerate(tbl):
             self.assertEqual(row['a_name'], m)
-            self.assertEqual(row['c_name'], b"Hello!")
+            self.assertEqual(row['c_name'], b'Hello!')
             dRow = row['d_name']
             for n in range(5):
                 for o in range(10):
@@ -190,8 +212,9 @@ class ChunkedCompoundTestCase(common.TestFileMixin, common.PyTablesTestCase):
             self.assertEqual(row['g_name'], ord('m'))
 
 
-class ContiguousCompoundTestCase(common.TestFileMixin,
-                                 common.PyTablesTestCase):
+class ContiguousCompoundTestCase(
+    common.TestFileMixin, common.PyTablesTestCase
+):
     """Test for support of native contiguous compound datasets.
 
     This example has been provided by Dav Clark.
@@ -206,9 +229,7 @@ class ContiguousCompoundTestCase(common.TestFileMixin,
         tbl = self.h5file.get_node('/test_var/structure variable')
         self.assertIsInstance(tbl, tb.Table)
 
-        self.assertEqual(
-            tbl.colnames,
-            ['a', 'b', 'c', 'd'])
+        self.assertEqual(tbl.colnames, ['a', 'b', 'c', 'd'])
 
         self.assertEqual(tbl.coltypes['a'], 'float64')
         self.assertEqual(tbl.coldtypes['a'].shape, ())
@@ -225,15 +246,19 @@ class ContiguousCompoundTestCase(common.TestFileMixin,
         for row in tbl.iterrows():
             self.assertEqual(row['a'], 3.0)
             self.assertEqual(row['b'], 4.0)
-            self.assertTrue(common.allequal(
-                row['c'], np.array([2.0, 3.0], dtype="float64")))
-            self.assertEqual(row['d'], b"d")
+            self.assertTrue(
+                common.allequal(
+                    row['c'], np.array([2.0, 3.0], dtype='float64')
+                )
+            )
+            self.assertEqual(row['d'], b'd')
 
         self.h5file.close()
 
 
-class ContiguousCompoundAppendTestCase(common.TestFileMixin,
-                                       common.PyTablesTestCase):
+class ContiguousCompoundAppendTestCase(
+    common.TestFileMixin, common.PyTablesTestCase
+):
     """Test for appending data to native contiguous compound datasets."""
 
     h5fname = common.test_filename('non-chunked-table.h5')
@@ -242,7 +267,7 @@ class ContiguousCompoundAppendTestCase(common.TestFileMixin,
         self.assertIn('/test_var/structure variable', self.h5file)
         self.h5file.close()
         # Do a copy to a temporary to avoid modifying the original file
-        h5fname_copy = tempfile.mktemp(".h5")
+        h5fname_copy = tempfile.mktemp('.h5')
         shutil.copy(self.h5fname, h5fname_copy)
         # Reopen in 'a'ppend mode
         try:
@@ -252,8 +277,9 @@ class ContiguousCompoundAppendTestCase(common.TestFileMixin,
             return
         tbl = self.h5file.get_node('/test_var/structure variable')
         # Try to add rows to a non-chunked table (this should raise an error)
-        self.assertRaises(tb.HDF5ExtError, tbl.append,
-                          [(4.0, 5.0, [2.0, 3.0], 'd')])
+        self.assertRaises(
+            tb.HDF5ExtError, tbl.append, [(4.0, 5.0, [2.0, 3.0], 'd')]
+        )
         # Appending using the Row interface
         self.assertRaises(tb.HDF5ExtError, tbl.row.append)
         # Remove the file copy
@@ -283,17 +309,21 @@ class ExtendibleTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(arr), 10)
 
         data = arr.read()
-        expectedData = np.array([
-            [1, 1, 1, 3, 3],
-            [1, 1, 1, 3, 3],
-            [1, 1, 1, 0, 0],
-            [2, 0, 0, 0, 0],
-            [2, 0, 0, 0, 0],
-            [2, 0, 0, 0, 0],
-            [2, 0, 0, 0, 0],
-            [2, 0, 0, 0, 0],
-            [2, 0, 0, 0, 0],
-            [2, 0, 0, 0, 0]], dtype=arr.atom.type)
+        expectedData = np.array(
+            [
+                [1, 1, 1, 3, 3],
+                [1, 1, 1, 3, 3],
+                [1, 1, 1, 0, 0],
+                [2, 0, 0, 0, 0],
+                [2, 0, 0, 0, 0],
+                [2, 0, 0, 0, 0],
+                [2, 0, 0, 0, 0],
+                [2, 0, 0, 0, 0],
+                [2, 0, 0, 0, 0],
+                [2, 0, 0, 0, 0],
+            ],
+            dtype=arr.atom.type,
+        )
 
         self.assertTrue(common.areArraysEqual(data, expectedData))
 
@@ -307,8 +337,10 @@ class SzipTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertIn('/dset_szip', self.h5file)
 
         arr = self.h5file.get_node('/dset_szip')
-        filters = ("Filters(complib='szip', shuffle=False, bitshuffle=False, "
-                   "fletcher32=False, least_significant_digit=None)")
+        filters = (
+            "Filters(complib='szip', shuffle=False, bitshuffle=False, "
+            'fletcher32=False, least_significant_digit=None)'
+        )
         self.assertEqual(repr(arr.filters), filters)
 
 
@@ -340,12 +372,16 @@ class ObjectReferenceTestCase(common.TestFileMixin, common.PyTablesTestCase):
     def test_ref_utf_str(self):
         array = self.h5file.get_node('/ANN/my_arr')
 
-        self.assertTrue(common.areArraysEqual(
-            array[0][0][0], np.array([0, 0], dtype=np.uint64)))
+        self.assertTrue(
+            common.areArraysEqual(
+                array[0][0][0], np.array([0, 0], dtype=np.uint64)
+            )
+        )
 
 
-class ObjectReferenceRecursiveTestCase(common.TestFileMixin,
-                                       common.PyTablesTestCase):
+class ObjectReferenceRecursiveTestCase(
+    common.TestFileMixin, common.PyTablesTestCase
+):
     h5fname = common.test_filename('test_ref_array2.mat')
 
     def test_var(self):
@@ -355,16 +391,23 @@ class ObjectReferenceRecursiveTestCase(common.TestFileMixin,
     def test_ref_str(self):
         array = self.h5file.get_node('/var')
 
-        self.assertTrue(common.areArraysEqual(
-            array[1][0][0],
-            np.array([[116], [101], [115], [116]], dtype=np.uint16)))
+        self.assertTrue(
+            common.areArraysEqual(
+                array[1][0][0],
+                np.array([[116], [101], [115], [116]], dtype=np.uint16),
+            )
+        )
 
     def test_double_ref(self):
         array = self.h5file.get_node('/var')
-        self.assertTrue(common.areArraysEqual(
-            array[2][0][0][1][0],
-            np.array([[105], [110], [115], [105], [100], [101]],
-                     dtype=np.uint16)))
+        self.assertTrue(
+            common.areArraysEqual(
+                array[2][0][0][1][0],
+                np.array(
+                    [[105], [110], [115], [105], [100], [101]], dtype=np.uint16
+                ),
+            )
+        )
 
 
 def suite():
@@ -385,19 +428,22 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(ChunkedCompoundTestCase))
         theSuite.addTest(common.unittest.makeSuite(ContiguousCompoundTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(ContiguousCompoundAppendTestCase))
+            common.unittest.makeSuite(ContiguousCompoundAppendTestCase)
+        )
         theSuite.addTest(common.unittest.makeSuite(ExtendibleTestCase))
         theSuite.addTest(common.unittest.makeSuite(SzipTestCase))
         theSuite.addTest(common.unittest.makeSuite(MatlabFileTestCase))
         theSuite.addTest(common.unittest.makeSuite(ObjectReferenceTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(ObjectReferenceRecursiveTestCase))
+            common.unittest.makeSuite(ObjectReferenceRecursiveTestCase)
+        )
 
     return theSuite
 
 
 if __name__ == '__main__':
     import sys
+
     common.parse_argv(sys.argv)
     common.print_versions()
     common.unittest.main(defaultTest='suite')

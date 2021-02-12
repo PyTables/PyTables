@@ -20,10 +20,10 @@ Misc variables:
 # is avoiding circular imports!
 
 __docformat__ = 'reStructuredText'
-"""The format of documentation strings in this module."""
+'''The format of documentation strings in this module.'''
 
 class_name_dict = {}
-"""Node class name to class object mapping.
+'''Node class name to class object mapping.
 
 This dictionary maps class names (e.g. ``'Group'``) to actual class
 objects (e.g. `Group`).  Classes are registered here when they are
@@ -33,10 +33,10 @@ can be replaced when the module that defines them is reloaded.
 .. versionchanged:: 3.0
    The *classNameDict* dictionary has been renamed into *class_name_dict*.
 
-"""
+'''
 
 class_id_dict = {}
-"""Class identifier to class object mapping.
+'''Class identifier to class object mapping.
 
 This dictionary maps class identifiers (e.g. ``'GROUP'``) to actual
 class objects (e.g. `Group`).  Classes defining a new ``_c_classid``
@@ -47,7 +47,7 @@ module that defines them is reloaded.
 .. versionchanged:: 3.0
    The *classIdDict* dictionary has been renamed into *class_id_dict*.
 
-"""
+'''
 
 # Deprecated API
 classNameDict = class_name_dict
@@ -71,7 +71,8 @@ def get_class_by_name(classname):
 
     # Get the class object corresponding to `classname`.
     if classname not in class_name_dict:
-        raise TypeError("there is no registered node class named ``%s``"
-                        % (classname,))
+        raise TypeError(
+            'there is no registered node class named ``%s``' % (classname,)
+        )
 
     return class_name_dict[classname]

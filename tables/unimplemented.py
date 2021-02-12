@@ -42,14 +42,14 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         # UnImplemented objects always come from opening an existing node
         # (they can not be created).
         self._v_new = False
-        """Is this the first time the node has been created?"""
+        '''Is this the first time the node has been created?'''
         self.nrows = SizeType(0)
-        """The length of the first dimension of the data."""
+        '''The length of the first dimension of the data.'''
         self.shape = (SizeType(0),)
-        """The shape of the stored data."""
+        '''The shape of the stored data.'''
         self.byteorder = None
-        """The endianness of data in memory ('big', 'little' or
-        'irrelevant')."""
+        '''The endianness of data in memory ('big', 'little' or
+        'irrelevant').'''
 
         super().__init__(parentnode, name)
 
@@ -71,13 +71,20 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         """
 
         warnings.warn(
-            "UnImplemented node %r does not know how to copy itself; skipping"
-            % (self._v_pathname,))
+            'UnImplemented node %r does not know how to copy itself; skipping'
+            % (self._v_pathname,)
+        )
         return None  # Can you see it?
 
-    def _f_copy(self, newparent=None, newname=None,
-                overwrite=False, recursive=False, createparents=False,
-                **kwargs):
+    def _f_copy(
+        self,
+        newparent=None,
+        newname=None,
+        overwrite=False,
+        recursive=False,
+        createparents=False,
+        **kwargs,
+    ):
         """Do nothing.
 
         This method does nothing, since `UnImplemented` nodes can not
@@ -91,12 +98,14 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         return None  # Can you see it?
 
     def __repr__(self):
-        return """{}
+        return '''{}
   NOTE: <The UnImplemented object represents a PyTables unimplemented
          dataset present in the '{}' HDF5 file.  If you want to see this
          kind of HDF5 dataset implemented in PyTables, please contact the
          developers.>
-""".format(str(self), self._v_file.filename)
+'''.format(
+            str(self), self._v_file.filename
+        )
 
 
 # Classes reported as H5G_UNKNOWN by HDF5
@@ -134,14 +143,14 @@ class Unknown(Node):
     def __str__(self):
         pathname = self._v_pathname
         classname = self.__class__.__name__
-        return f"{pathname} ({classname})"
+        return f'{pathname} ({classname})'
 
     def __repr__(self):
-        return f"""{self!s}
+        return f'''{self!s}
   NOTE: <The Unknown object represents a node which is reported as
          unknown by the underlying HDF5 library, but that might be
          supported in more recent HDF5 versions.>
-"""
+'''
 
 
 # These are listed here for backward compatibility with PyTables 0.9.x indexes

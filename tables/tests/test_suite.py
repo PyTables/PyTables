@@ -85,7 +85,8 @@ def test(verbose=False, heavy=False):
     oldheavy, common.heavy = common.heavy, heavy
     try:
         result = common.unittest.TextTestRunner(
-            verbosity=1 + int(verbose)).run(suite())
+            verbosity=1 + int(verbose)
+        ).run(suite())
         if result.wasSuccessful():
             return 0
         else:

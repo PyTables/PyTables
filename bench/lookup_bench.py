@@ -20,24 +20,33 @@ def get_nrows(nrows_str):
         return int(float(nrows_str[:-1]) * 10 ** powers[nrows_str[-1]])
     except KeyError:
         raise ValueError(
-            "value of nrows must end with either 'k', 'm' or 'g' suffixes.")
+            "value of nrows must end with either 'k', 'm' or 'g' suffixes."
+        )
 
 
 class DB:
-
-    def __init__(self, nrows, dtype, chunksize, userandom, datadir,
-                 docompress=0, complib='zlib'):
+    def __init__(
+        self,
+        nrows,
+        dtype,
+        chunksize,
+        userandom,
+        datadir,
+        docompress=0,
+        complib='zlib',
+    ):
         self.dtype = dtype
         self.docompress = docompress
         self.complib = complib
-        self.filename = '-'.join([rdm_cod[userandom],
-                                  "n" + nrows, "s" + chunksize, dtype])
+        self.filename = '-'.join(
+            [rdm_cod[userandom], 'n' + nrows, 's' + chunksize, dtype]
+        )
         # Complete the filename
-        self.filename = "lookup-" + self.filename
+        self.filename = 'lookup-' + self.filename
         if docompress:
             self.filename += '-' + complib + str(docompress)
         self.filename = datadir + '/' + self.filename + '.h5'
-        print("Processing database:", self.filename)
+        print('Processing database:', self.filename)
         self.userandom = userandom
         self.nrows = get_nrows(nrows)
         self.chunksize = get_nrows(chunksize)
@@ -45,19 +54,20 @@ class DB:
         self.scale = NOISE
 
     def get_db_size(self):
-        sout = subprocess.Popen("sync;du -s %s" % self.filename, shell=True,
-                                stdout=subprocess.PIPE).stdout
+        sout = subprocess.Popen(
+            'sync;du -s %s' % self.filename, shell=True, stdout=subprocess.PIPE
+        ).stdout
         line = [l for l in sout][0]
         return int(line.split()[0])
 
     def print_mtime(self, t1, explain):
         mtime = clock() - t1
-        print(f"{explain}: {mtime:.6f}")
-        print(f"Krows/s: {self.nrows / 1000 / mtime:.6f}")
+        print(f'{explain}: {mtime:.6f}')
+        print(f'Krows/s: {self.nrows / 1000 / mtime:.6f}')
 
     def print_db_sizes(self, init, filled):
         array_size = (filled - init) / 1024
-        print(f"Array size (MB): {array_size:.3f}")
+        print(f'Array size (MB): {array_size:.3f}')
 
     def open_db(self, remove=0):
         if remove and Path(self.filename).is_file():
@@ -78,13 +88,17 @@ class DB:
 
     def create_array(self):
         # The filters chosen
-        filters = tb.Filters(complevel=self.docompress,
-                             complib=self.complib)
+        filters = tb.Filters(complevel=self.docompress, complib=self.complib)
         atom = tb.Atom.from_kind(self.dtype)
-        self.con.create_earray(self.con.root, 'earray', atom, (0,),
-                               filters=filters,
-                               expectedrows=self.nrows,
-                               chunkshape=(self.chunksize,))
+        self.con.create_earray(
+            self.con.root,
+            'earray',
+            atom,
+            (0,),
+            filters=filters,
+            expectedrows=self.nrows,
+            chunkshape=(self.chunksize,),
+        )
 
     def fill_array(self):
         "Fills the array"
@@ -109,8 +123,8 @@ class DB:
 
     def print_qtime(self, ltimes):
         ltimes = np.array(ltimes)
-        print("Raw query times:\n", ltimes)
-        print("Histogram times:\n", np.histogram(ltimes[1:]))
+        print('Raw query times:\n', ltimes)
+        print('Histogram times:\n', np.histogram(ltimes[1:]))
         ntimes = len(ltimes)
         qtime1 = ltimes[0]  # First measured time
         if ntimes > 5:
@@ -119,8 +133,8 @@ class DB:
             qtime2 = sum(ltimes[5:]) / (ntimes - 5)
         else:
             qtime2 = ltimes[-1]  # Last measured time
-        print(f"1st query time: {qtime1:.3f}")
-        print(f"Mean (skipping the first 5 meas.): {qtime2:.3f}")
+        print(f'1st query time: {qtime1:.3f}')
+        print(f'Mean (skipping the first 5 meas.): {qtime2:.3f}')
 
     def query_db(self, niter, avoidfscache, verbose):
         self.con = self.open_db()
@@ -146,11 +160,12 @@ class DB:
         self.con.close()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import sys
     import getopt
 
-    usage = """usage: %s [-v] [-m] [-c] [-q] [-x] [-z complevel] [-l complib] [-N niter] [-n nrows] [-d datadir] [-t] type [-s] chunksize
+    usage = (
+        '''usage: %s [-v] [-m] [-c] [-q] [-x] [-z complevel] [-l complib] [-N niter] [-n nrows] [-d datadir] [-t] type [-s] chunksize
             -v verbose
             -m use random values to fill the array
             -q do a (random) lookup
@@ -163,7 +178,9 @@ if __name__ == "__main__":
             -d directory to save data (default: data.nobackup)
             -t select the type for array ('int' or 'float'. def 'float')
             -s select the chunksize for array
-            \n""" % sys.argv[0]
+            \n'''
+        % sys.argv[0]
+    )
 
     try:
         opts, pargs = getopt.getopt(sys.argv[1:], 'vmcqxz:l:N:n:d:t:s:')
@@ -177,14 +194,14 @@ if __name__ == "__main__":
     docreate = 0
     optlevel = 0
     docompress = 0
-    complib = "zlib"
+    complib = 'zlib'
     doquery = False
     avoidfscache = 0
     krows = '1k'
     chunksize = '32k'
     niter = 50
-    datadir = "data.nobackup"
-    dtype = "float"
+    datadir = 'data.nobackup'
+    dtype = 'float'
 
     # Get the options
     for option in opts:
@@ -224,15 +241,15 @@ if __name__ == "__main__":
 
     if verbose:
         if userandom:
-            print("using random values")
+            print('using random values')
 
     db = DB(krows, dtype, chunksize, userandom, datadir, docompress, complib)
 
     if docreate:
         if verbose:
-            print("writing %s rows" % krows)
+            print('writing %s rows' % krows)
         db.create_db(verbose)
 
     if doquery:
-        print("Calling query_db() %s times" % niter)
+        print('Calling query_db() %s times' % niter)
         db.query_db(niter, avoidfscache, verbose)

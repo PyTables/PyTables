@@ -21,7 +21,7 @@ class Record(tb.IsDescription):
 def get_sliced_vars(npvars, start, stop, step):
     npvars_ = {}
     for name, var in npvars.items():
-        if hasattr(var, "__len__"):
+        if hasattr(var, '__len__'):
             npvars_[name] = var[start:stop:step]
         else:
             npvars_[name] = var
@@ -47,62 +47,75 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         super().setUp()
 
         # The expression
-        self.expr = "2 * a*b + c"
+        self.expr = '2 * a*b + c'
         # Define the NumPy variables to be used in expression
         N = np.prod(self.shape)
         self.a = a = np.arange(0, N, dtype='int32').reshape(self.shape)
         self.b = b = np.arange(N, 2 * N, dtype='int64').reshape(self.shape)
-        self.c = c = np.arange(2 * N, 3*N, dtype='int32').reshape(self.shape)
+        self.c = c = np.arange(2 * N, 3 * N, dtype='int32').reshape(self.shape)
         self.r1 = r1 = np.empty(N, dtype='int64').reshape(self.shape)
-        self.npvars = {"a": a, "b": b, "c": c, }
+        self.npvars = {
+            'a': a,
+            'b': b,
+            'c': c,
+        }
         # Define other variables, if needed
         root = self.h5file.root
-        if self.kind == "Array":
-            self.a = self.h5file.create_array(root, "a", a)
-            self.b = self.h5file.create_array(root, "b", b)
-            self.c = self.h5file.create_array(root, "c", c)
-            self.r1 = self.h5file.create_array(root, "r1", r1)
-        elif self.kind == "CArray":
+        if self.kind == 'Array':
+            self.a = self.h5file.create_array(root, 'a', a)
+            self.b = self.h5file.create_array(root, 'b', b)
+            self.c = self.h5file.create_array(root, 'c', c)
+            self.r1 = self.h5file.create_array(root, 'r1', r1)
+        elif self.kind == 'CArray':
             self.a = self.h5file.create_carray(
-                root, "a", atom=tb.Atom.from_dtype(a.dtype),
-                shape=self.shape)
+                root, 'a', atom=tb.Atom.from_dtype(a.dtype), shape=self.shape
+            )
             self.b = self.h5file.create_carray(
-                root, "b", atom=tb.Atom.from_dtype(b.dtype),
-                shape=self.shape)
+                root, 'b', atom=tb.Atom.from_dtype(b.dtype), shape=self.shape
+            )
             self.c = self.h5file.create_carray(
-                root, "c", atom=tb.Atom.from_dtype(c.dtype),
-                shape=self.shape)
+                root, 'c', atom=tb.Atom.from_dtype(c.dtype), shape=self.shape
+            )
             self.r1 = self.h5file.create_carray(
-                root, "r1", atom=tb.Atom.from_dtype(r1.dtype),
-                shape=self.shape)
+                root, 'r1', atom=tb.Atom.from_dtype(r1.dtype), shape=self.shape
+            )
             self.a[:] = a
             self.b[:] = b
             self.c[:] = c
-        elif self.kind == "EArray":
+        elif self.kind == 'EArray':
             shape = list(self.shape)
             shape[0] = 0
             self.a = self.h5file.create_earray(
-                root, "a", atom=tb.Atom.from_dtype(a.dtype), shape=shape)
+                root, 'a', atom=tb.Atom.from_dtype(a.dtype), shape=shape
+            )
             self.b = self.h5file.create_earray(
-                root, "b", atom=tb.Atom.from_dtype(b.dtype), shape=shape)
+                root, 'b', atom=tb.Atom.from_dtype(b.dtype), shape=shape
+            )
             self.c = self.h5file.create_earray(
-                root, "c", atom=tb.Atom.from_dtype(c.dtype), shape=shape)
+                root, 'c', atom=tb.Atom.from_dtype(c.dtype), shape=shape
+            )
             self.r1 = self.h5file.create_earray(
-                root, "r1", atom=tb.Atom.from_dtype(r1.dtype), shape=shape)
+                root, 'r1', atom=tb.Atom.from_dtype(r1.dtype), shape=shape
+            )
             self.a.append(a)
             self.b.append(b)
             self.c.append(c)
             self.r1.append(r1)   # Fill with uninitialized values
-        elif self.kind == "Column":
+        elif self.kind == 'Column':
             ra = np.rec.fromarrays(
                 [a, b, c, r1],
-                dtype="%si4,%si8,%si4,%si8" % ((self.shape[1:],)*4))
-            t = self.h5file.create_table(root, "t", ra)
+                dtype='%si4,%si8,%si4,%si8' % ((self.shape[1:],) * 4),
+            )
+            t = self.h5file.create_table(root, 't', ra)
             self.a = t.cols.f0
             self.b = t.cols.f1
             self.c = t.cols.f2
             self.d = t.cols.f3
-        self.vars = {"a": self.a, "b": self.b, "c": self.c, }
+        self.vars = {
+            'a': self.a,
+            'b': self.b,
+            'c': self.c,
+        }
 
     def test00_simple(self):
         """Checking that expression is correctly evaluated."""
@@ -111,10 +124,12 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval(self.expr, self.npvars)
         if common.verbose:
-            print("Computed expression:", repr(r1))
-            print("Should look like:", repr(r2))
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1))
+            print('Should look like:', repr(r2))
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01_out(self):
         """Checking that expression is correctly evaluated (`out` param)"""
@@ -122,14 +137,16 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr = tb.Expr(self.expr, self.vars)
         expr.set_output(self.r1)
         r1 = expr.eval()
-        if self.kind != "NumPy":
+        if self.kind != 'NumPy':
             r1 = r1[:]
         r2 = eval(self.expr, self.npvars)
         if common.verbose:
-            print("Computed expression:", repr(r1))
-            print("Should look like:", repr(r2))
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1))
+            print('Should look like:', repr(r2))
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test02_out(self):
         """Checking that expression is correctly evaluated when slice is
@@ -145,44 +162,45 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r2 = zeros[start:stop:step]
         self.assertListEqual(r1.tolist(), r2.tolist())
         if common.verbose:
-            print("Computed expression:", repr(r1))
-            print("Should look like:", repr(r2))
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1))
+            print('Should look like:', repr(r2))
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 class ExprNumPy(ExprTestCase):
-    kind = "NumPy"
+    kind = 'NumPy'
 
 
 class ExprArray(ExprTestCase):
-    kind = "Array"
+    kind = 'Array'
 
 
 class ExprCArray(ExprTestCase):
-    kind = "CArray"
+    kind = 'CArray'
 
 
 class ExprEArray(ExprTestCase):
-    kind = "EArray"
+    kind = 'EArray'
 
 
 class ExprColumn(ExprTestCase):
-    kind = "Column"
+    kind = 'Column'
 
 
 # Test for mixed containers
 class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def setUp(self):
         super().setUp()
 
         # The expression
-        self.expr = "2 * a*b + c**2+d**2+e-f+g"
+        self.expr = '2 * a*b + c**2+d**2+e-f+g'
 
         # Create a directory in file for outputs
         root = self.h5file.root
-        outs = self.h5file.create_group(root, "outs")
+        outs = self.h5file.create_group(root, 'outs')
 
         # Define the NumPy variables to be used in expression
         N = np.prod(self.shape)
@@ -190,14 +208,14 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Initial values for variables
         a = np.arange(0, N, dtype='int32').reshape(self.shape)
         b = np.arange(N, 2 * N, dtype='int64').reshape(self.shape)
-        c = np.arange(2 * N, 3*N, dtype='int32').reshape(self.shape)
-        d = np.arange(3 * N, 4*N, dtype='int32').reshape(self.shape)
-        e = np.arange(4 * N, 5*N, dtype='int32').reshape(self.shape)
+        c = np.arange(2 * N, 3 * N, dtype='int32').reshape(self.shape)
+        d = np.arange(3 * N, 4 * N, dtype='int32').reshape(self.shape)
+        e = np.arange(4 * N, 5 * N, dtype='int32').reshape(self.shape)
         self.f = f = int(3)   # a regular python type
         self.g = g = np.int16(2)   # a NumPy scalar type
 
         # Original values
-        self.npvars = {"a": a, "b": b, "c": c, "d": d, "e": e, "f": f, "g": g}
+        self.npvars = {'a': a, 'b': b, 'c': c, 'd': d, 'e': e, 'f': f, 'g': g}
         rnda = b.copy()
 
         # ndarray input and output
@@ -205,12 +223,13 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.rnda = rnda
 
         # Array input and output
-        self.b = self.h5file.create_array(root, "b", b)
+        self.b = self.h5file.create_array(root, 'b', b)
         self.rarr = self.b.copy(outs)
 
         # CArray input and output
         self.c = self.h5file.create_carray(
-            root, "c", atom=tb.Atom.from_dtype(c.dtype), shape=self.shape)
+            root, 'c', atom=tb.Atom.from_dtype(c.dtype), shape=self.shape
+        )
         self.c[:] = c
         self.rcarr = self.c.copy(outs)
 
@@ -218,7 +237,8 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         eshape = list(self.shape)
         eshape[0] = 0
         self.d = self.h5file.create_earray(
-            root, "d", atom=tb.Atom.from_dtype(d.dtype), shape=eshape)
+            root, 'd', atom=tb.Atom.from_dtype(d.dtype), shape=eshape
+        )
         self.d.append(d)
         self.rearr = self.d.copy(outs)
 
@@ -227,7 +247,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         colshape = self.shape[1:]
         for i, col in enumerate((a, b, c, d, e, rnda)):
             rtype['f%d' % i] = tb.Col.from_sctype(col.dtype.type, colshape)
-        t = self.h5file.create_table(root, "t", rtype)
+        t = self.h5file.create_table(root, 't', rtype)
         nrows = self.shape[0]
         row = t.row
         for nrow in range(nrows):
@@ -238,8 +258,15 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.e = t.cols.f4
         self.rcol = t.cols.f5
         # Input vars
-        self.vars = {"a": self.a, "b": self.b, "c": self.c, "d": self.d,
-                     "e": self.e, "f": self.f, "g": self.g, }
+        self.vars = {
+            'a': self.a,
+            'b': self.b,
+            'c': self.c,
+            'd': self.d,
+            'e': self.e,
+            'f': self.f,
+            'g': self.g,
+        }
 
     def test00a_simple(self):
         """Checking expressions with mixed objects."""
@@ -248,25 +275,28 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval(self.expr, self.npvars)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
 
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test00b_simple_scalars(self):
         """Checking that scalars in expression evaluate correctly."""
 
-        expr_str = "2 * f + g"
+        expr_str = '2 * f + g'
         expr = tb.Expr(expr_str, self.vars)
         r1 = expr.eval()
         r2 = eval(expr_str, self.npvars)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
         self.assertTrue(
             r1.shape == r2.shape and r1.dtype == r2.dtype and r1 == r2,
-            "Evaluate is returning a wrong value.")
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01a_out(self):
         """Checking expressions with mixed objects (`out` param)"""
@@ -274,17 +304,19 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr = tb.Expr(self.expr, self.vars)
         for r1 in self.rnda, self.rarr, self.rcarr, self.rearr, self.rcol:
             if common.verbose:
-                print("Checking output container:", type(r1))
+                print('Checking output container:', type(r1))
             expr.set_output(r1)
             r1 = expr.eval()
             if not isinstance(r1, type(self.rnda)):
                 r1 = r1[:]
             r2 = eval(self.expr, self.npvars)
             if common.verbose:
-                print("Computed expression:", repr(r1), r1.dtype)
-                print("Should look like:", repr(r2), r2.dtype)
-            self.assertTrue(common.areArraysEqual(r1, r2),
-                            "Evaluate is returning a wrong value.")
+                print('Computed expression:', repr(r1), r1.dtype)
+                print('Should look like:', repr(r2), r2.dtype)
+            self.assertTrue(
+                common.areArraysEqual(r1, r2),
+                'Evaluate is returning a wrong value.',
+            )
 
     def test01b_out_scalars(self):
         """Checking expressions with mixed objects (`out` param, scalars)"""
@@ -292,20 +324,22 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if len(self.shape) > 1:
             # This test is only meant for undimensional outputs
             return
-        expr_str = "2 * f + g"
+        expr_str = '2 * f + g'
         expr = tb.Expr(expr_str, self.vars)
         for r1 in self.rnda, self.rarr, self.rcarr, self.rearr, self.rcol:
             if common.verbose:
-                print("Checking output container:", type(r1))
+                print('Checking output container:', type(r1))
             expr.set_output(r1)
             r1 = expr.eval()
             r1 = r1[()]  # convert a 0-dim array into a scalar
             r2 = eval(expr_str, self.npvars)
             if common.verbose:
-                print("Computed expression:", repr(r1), r1.dtype)
-                print("Should look like:", repr(r2), r2.dtype)
-            self.assertTrue(common.areArraysEqual(r1, r2),
-                            "Evaluate is returning a wrong value.")
+                print('Computed expression:', repr(r1), r1.dtype)
+                print('Should look like:', repr(r2), r2.dtype)
+            self.assertTrue(
+                common.areArraysEqual(r1, r2),
+                'Evaluate is returning a wrong value.',
+            )
 
     def test02a_sss(self):
         """Checking mixed objects and start, stop, step (I)"""
@@ -317,10 +351,12 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test02b_sss(self):
         """Checking mixed objects and start, stop, step (II)"""
@@ -332,10 +368,12 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test02c_sss(self):
         """Checking mixed objects and start, stop, step (III)"""
@@ -347,26 +385,31 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test03_sss(self):
         """Checking start, stop, step as numpy.int64."""
 
-        start, stop, step = [np.int64(i) for i in
-                                     (self.start, self.stop, self.step)]
+        start, stop, step = [
+            np.int64(i) for i in (self.start, self.stop, self.step)
+        ]
         expr = tb.Expr(self.expr, self.vars)
         expr.set_inputs_range(start, stop, step)
         r1 = expr.eval()
         npvars = get_sliced_vars(self.npvars, start, stop, step)
         r2 = eval(self.expr, npvars)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 class MixedContainers0(MixedContainersTestCase):
@@ -391,13 +434,12 @@ class MixedContainers3(MixedContainersTestCase):
 
 # Test for unaligned objects
 class UnalignedObject(common.PyTablesTestCase):
-
     def test00_simple(self):
         """Checking expressions with unaligned objects."""
 
         # Build unaligned arrays
-        a0 = np.empty(10, dtype="int8")
-        a1 = np.arange(10, dtype="int32")
+        a0 = np.empty(10, dtype='int8')
+        a1 = np.arange(10, dtype='int32')
         a2 = a1.copy()
         a3 = a2.copy()
         ra = np.rec.fromarrays([a0, a1, a2, a3])
@@ -407,22 +449,24 @@ class UnalignedObject(common.PyTablesTestCase):
         self.assertEqual(a.flags.aligned, False)
         self.assertEqual(b.flags.aligned, False)
         # The expression
-        sexpr = "2 * a + b"
+        sexpr = '2 * a + b'
         expr = tb.Expr(sexpr)
         r1 = expr.eval()
         r2 = eval(sexpr)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01_md(self):
         """Checking expressions with unaligned objects (MD version)"""
 
         # Build unaligned arrays
-        a0 = np.empty((10, 4), dtype="int8")
-        a1 = np.arange(10 * 4, dtype="int32").reshape(10, 4)
+        a0 = np.empty((10, 4), dtype='int8')
+        a1 = np.arange(10 * 4, dtype='int32').reshape(10, 4)
         a2 = a1.copy()
         a3 = a2.copy()
         ra = np.rec.fromarrays([a0, a1, a2, a3])
@@ -432,79 +476,86 @@ class UnalignedObject(common.PyTablesTestCase):
         self.assertEqual(a.flags.aligned, False)
         self.assertEqual(b.flags.aligned, False)
         # The expression
-        sexpr = "2 * a + b"
+        sexpr = '2 * a + b'
         expr = tb.Expr(sexpr)
         r1 = expr.eval()
         r2 = eval(sexpr)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 # Test for non-contiguous objects
 class NonContiguousObject(common.PyTablesTestCase):
-
     def test00_simple(self):
         """Checking expressions with non-contiguous objects"""
 
         # Build non-contiguous arrays as inputs
-        a = np.arange(10, dtype="int32")
+        a = np.arange(10, dtype='int32')
         b = a[::2]
         a = b * 2
         self.assertEqual(b.flags.contiguous, False)
         self.assertEqual(b.flags.aligned, True)
         # The expression
-        sexpr = "2 * a + b"
+        sexpr = '2 * a + b'
         expr = tb.Expr(sexpr)
         r1 = expr.eval()
         r2 = eval(sexpr)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01a_md(self):
         """Checking expressions with non-contiguous objects (MD version, I)"""
 
         # Build non-contiguous arrays
-        a = np.arange(10 * 4, dtype="int32").reshape(10, 4)
+        a = np.arange(10 * 4, dtype='int32').reshape(10, 4)
         b = a[::2]
         a = b * 2
         self.assertEqual(b.flags.contiguous, False)
         self.assertEqual(b.flags.aligned, True)
         # The expression
-        sexpr = "2 * a + b"
+        sexpr = '2 * a + b'
         expr = tb.Expr(sexpr)
         r1 = expr.eval()
         r2 = eval(sexpr)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01b_md(self):
         """Checking expressions with non-contiguous objects (MD version, II)"""
 
         # Build non-contiguous arrays
-        a = np.arange(10 * 4, dtype="int32").reshape(10, 4)
+        a = np.arange(10 * 4, dtype='int32').reshape(10, 4)
         b = a[:, ::2]
         a = b * 2
         self.assertEqual(b.flags.contiguous, False)
         self.assertEqual(b.flags.aligned, True)
         # The expression
-        sexpr = "2 * a + b"
+        sexpr = '2 * a + b'
         expr = tb.Expr(sexpr)
         r1 = expr.eval()
         r2 = eval(sexpr)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 # Test for errors
@@ -526,9 +577,13 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
     def _test00_shape(self):
         """Checking that inconsistent shapes are detected."""
 
-        self.b = self.b.reshape(self.shape+(1,))
-        expr = "a * b + c"
-        vars_ = {"a": self.a, "b": self.b, "c": self.c, }
+        self.b = self.b.reshape(self.shape + (1,))
+        expr = 'a * b + c'
+        vars_ = {
+            'a': self.a,
+            'b': self.b,
+            'c': self.c,
+        }
         expr = tb.Expr(expr, vars_)
         self.assertRaises(ValueError, expr.eval)
 
@@ -536,8 +591,12 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
         """Checking that uint64 arrays in expression are detected."""
 
         self.b = self.b.view('uint64')
-        expr = "a * b + c"
-        vars_ = {"a": self.a, "b": self.b, "c": self.c, }
+        expr = 'a * b + c'
+        vars_ = {
+            'a': self.a,
+            'b': self.b,
+            'c': self.c,
+        }
         self.assertRaises(NotImplementedError, tb.Expr, expr, vars_)
 
     def test03_table(self):
@@ -547,9 +606,13 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
             col1 = tb.Int32Col()
             col2 = tb.Int64Col()
 
-        t = self.h5file.create_table("/", "a", Rec)
-        expr = "a * b + c"
-        vars_ = {"a": t, "b": self.b, "c": self.c, }
+        t = self.h5file.create_table('/', 'a', Rec)
+        expr = 'a * b + c'
+        vars_ = {
+            'a': t,
+            'b': self.b,
+            'c': self.c,
+        }
         self.assertRaises(TypeError, tb.Expr, expr, vars_)
 
     def test04_nestedcols(self):
@@ -561,60 +624,74 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
             class col2(tb.IsDescription):
                 col3 = tb.Int64Col()
 
-        t = self.h5file.create_table("/", "a", Nested)
-        expr = "a * b + c"
+        t = self.h5file.create_table('/', 'a', Nested)
+        expr = 'a * b + c'
         # The next non-nested column should work
         a = t.cols.col2.col3
-        vars_ = {"a": a, "b": self.b, "c": self.c, }
+        vars_ = {
+            'a': a,
+            'b': self.b,
+            'c': self.c,
+        }
         expr = tb.Expr(expr, vars_)
         r1 = expr.eval()
         self.assertIsNotNone(r1)
         # But a nested column should not
         a = t.cols.col2
-        vars_ = {"a": a, "b": self.b, "c": self.c, }
+        vars_ = {
+            'a': a,
+            'b': self.b,
+            'c': self.c,
+        }
         self.assertRaises(TypeError, tb.Expr, expr, vars_)
 
     def test05_vlarray(self):
         """Checking that VLArrays in expression are detected."""
 
-        vla = self.h5file.create_vlarray("/", "a", tb.Int32Col())
-        expr = "a * b + c"
-        vars_ = {"a": vla, "b": self.b, "c": self.c, }
+        vla = self.h5file.create_vlarray('/', 'a', tb.Int32Col())
+        expr = 'a * b + c'
+        vars_ = {
+            'a': vla,
+            'b': self.b,
+            'c': self.c,
+        }
         self.assertRaises(TypeError, tb.Expr, expr, vars_)
 
 
 # Test for broadcasting arrays
 class BroadcastTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test00_simple(self):
         """Checking broadcast in expression."""
 
         shapes = (self.shape1, self.shape2, self.shape3)
         # Build arrays with different shapes as inputs
-        a = np.arange(np.prod(shapes[0]), dtype="i4").reshape(shapes[0])
-        b = np.arange(np.prod(shapes[1]), dtype="i4").reshape(shapes[1])
-        c = np.arange(np.prod(shapes[2]), dtype="i4").reshape(shapes[2])
+        a = np.arange(np.prod(shapes[0]), dtype='i4').reshape(shapes[0])
+        b = np.arange(np.prod(shapes[1]), dtype='i4').reshape(shapes[1])
+        c = np.arange(np.prod(shapes[2]), dtype='i4').reshape(shapes[2])
         root = self.h5file.root
         if a.shape[0] > 0:
             a1 = self.h5file.create_array(root, 'a1', a)
         else:
             a1 = self.h5file.create_earray(
-                root, 'a1', atom=tb.Int32Col(), shape=a.shape)
+                root, 'a1', atom=tb.Int32Col(), shape=a.shape
+            )
         self.assertIsNotNone(a1)
         b1 = self.h5file.create_array(root, 'b1', b)
         self.assertIsNotNone(b1)
         c1 = self.h5file.create_array(root, 'c1', c)
         self.assertIsNotNone(c1)
         # The expression
-        expr = tb.Expr("2 * a1 + b1-c1")
+        expr = tb.Expr('2 * a1 + b1-c1')
         r1 = expr.eval()
-        r2 = eval("2 * a + b-c")
+        r2 = eval('2 * a + b-c')
         if common.verbose:
-            print("Tested shapes:", self.shape1, self.shape2, self.shape3)
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shapes:', self.shape1, self.shape2, self.shape3)
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 class Broadcast0(BroadcastTestCase):
@@ -630,7 +707,10 @@ class Broadcast1(BroadcastTestCase):
 
 
 class Broadcast2(BroadcastTestCase):
-    shape1 = (3, 4,)
+    shape1 = (
+        3,
+        4,
+    )
     shape2 = (3, 4)
     shape3 = (4,)
 
@@ -655,39 +735,45 @@ class Broadcast5(BroadcastTestCase):
 
 # Test for different length inputs
 class DiffLengthTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test00_simple(self):
         """Checking different length inputs in expression."""
 
         shapes = (list(self.shape1), list(self.shape2), list(self.shape3))
         # Build arrays with different shapes as inputs
-        a = np.arange(np.prod(shapes[0]), dtype="i4").reshape(shapes[0])
-        b = np.arange(np.prod(shapes[1]), dtype="i4").reshape(shapes[1])
-        c = np.arange(np.prod(shapes[2]), dtype="i4").reshape(shapes[2])
+        a = np.arange(np.prod(shapes[0]), dtype='i4').reshape(shapes[0])
+        b = np.arange(np.prod(shapes[1]), dtype='i4').reshape(shapes[1])
+        c = np.arange(np.prod(shapes[2]), dtype='i4').reshape(shapes[2])
         # The expression
-        expr = tb.Expr("2 * a + b-c")
+        expr = tb.Expr('2 * a + b-c')
         r1 = expr.eval()
         # Compute the minimum length for shapes
         maxdim = max([len(shape) for shape in shapes])
-        minlen = min([shape[0] for i, shape in enumerate(shapes)
-                      if len(shape) == maxdim])
+        minlen = min(
+            [
+                shape[0]
+                for i, shape in enumerate(shapes)
+                if len(shape) == maxdim
+            ]
+        )
         for i, shape in enumerate(shapes):
             if len(shape) == maxdim:
                 shape[0] = minlen
         # Build arrays with the new shapes as inputs
-        a = np.arange(np.prod(shapes[0]), dtype="i4").reshape(shapes[0])
+        a = np.arange(np.prod(shapes[0]), dtype='i4').reshape(shapes[0])
         self.assertIsNotNone(a)
-        b = np.arange(np.prod(shapes[1]), dtype="i4").reshape(shapes[1])
+        b = np.arange(np.prod(shapes[1]), dtype='i4').reshape(shapes[1])
         self.assertIsNotNone(b)
-        c = np.arange(np.prod(shapes[2]), dtype="i4").reshape(shapes[2])
+        c = np.arange(np.prod(shapes[2]), dtype='i4').reshape(shapes[2])
         self.assertIsNotNone(c)
-        r2 = eval("2 * a + b-c")
+        r2 = eval('2 * a + b-c')
         if common.verbose:
-            print("Tested shapes:", self.shape1, self.shape2, self.shape3)
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shapes:', self.shape1, self.shape2, self.shape3)
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 class DiffLength0(DiffLengthTestCase):
@@ -722,7 +808,6 @@ class DiffLength4(DiffLengthTestCase):
 
 # Test for different type inputs
 class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test00_bool(self):
         """Checking booleans in expression."""
 
@@ -734,21 +819,23 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(a1)
         b1 = self.h5file.create_array(root, 'b1', b)
         self.assertIsNotNone(b1)
-        expr = tb.Expr("a | b")
+        expr = tb.Expr('a | b')
         r1 = expr.eval()
-        r2 = eval("a | b")
+        r2 = eval('a | b')
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01_shortint(self):
         """Checking int8,uint8,int16,uint16 and int32 in expression."""
 
         for dtype in 'int8', 'uint8', 'int16', 'uint16', 'int32':
             if common.verbose:
-                print("Checking type:", dtype)
+                print('Checking type:', dtype)
             # Build arrays with different shapes as inputs
             a = np.array([1, 2, 3], dtype)
             b = np.array([3, 4, 5], dtype)
@@ -757,17 +844,19 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             b1 = self.h5file.create_array(root, 'b1', b)
             two = np.int32(2)
             self.assertIsInstance(two, np.integer)
-            expr = tb.Expr("two * a1-b1")
+            expr = tb.Expr('two * a1-b1')
             r1 = expr.eval()
             a = np.array([1, 2, 3], 'int32')
             b = np.array([3, 4, 5], 'int32')
-            r2 = eval("two * a-b")
+            r2 = eval('two * a-b')
             if common.verbose:
-                print("Computed expression:", repr(r1), r1.dtype)
-                print("Should look like:", repr(r2), r2.dtype)
+                print('Computed expression:', repr(r1), r1.dtype)
+                print('Should look like:', repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
-            self.assertTrue(common.areArraysEqual(r1, r2),
-                            "Evaluate is returning a wrong value.")
+            self.assertTrue(
+                common.areArraysEqual(r1, r2),
+                'Evaluate is returning a wrong value.',
+            )
             # Remove created leaves
             a1.remove()
             b1.remove()
@@ -777,24 +866,26 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         for dtype in 'uint32', 'int64':
             if common.verbose:
-                print("Checking type:", dtype)
+                print('Checking type:', dtype)
             # Build arrays with different shapes as inputs
             a = np.array([1, 2, 3], dtype)
             b = np.array([3, 4, 5], dtype)
             root = self.h5file.root
             a1 = self.h5file.create_array(root, 'a1', a)
             b1 = self.h5file.create_array(root, 'b1', b)
-            expr = tb.Expr("2 * a1-b1")
+            expr = tb.Expr('2 * a1-b1')
             r1 = expr.eval()
             a = np.array([1, 2, 3], 'int64')
             b = np.array([3, 4, 5], 'int64')
-            r2 = eval("2 * a-b")
+            r2 = eval('2 * a-b')
             if common.verbose:
-                print("Computed expression:", repr(r1), r1.dtype)
-                print("Should look like:", repr(r2), r2.dtype)
+                print('Computed expression:', repr(r1), r1.dtype)
+                print('Should look like:', repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
-            self.assertTrue(common.areArraysEqual(r1, r2),
-                            "Evaluate is returning a wrong value.")
+            self.assertTrue(
+                common.areArraysEqual(r1, r2),
+                'Evaluate is returning a wrong value.',
+            )
             # Remove created leaves
             a1.remove()
             b1.remove()
@@ -804,24 +895,26 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         for dtype in 'float32', 'float64':
             if common.verbose:
-                print("Checking type:", dtype)
+                print('Checking type:', dtype)
             # Build arrays with different shapes as inputs
             a = np.array([1, 2, 3], dtype)
             b = np.array([3, 4, 5], dtype)
             root = self.h5file.root
             a1 = self.h5file.create_array(root, 'a1', a)
             b1 = self.h5file.create_array(root, 'b1', b)
-            expr = tb.Expr("2 * a1-b1")
+            expr = tb.Expr('2 * a1-b1')
             r1 = expr.eval()
             a = np.array([1, 2, 3], dtype)
             b = np.array([3, 4, 5], dtype)
-            r2 = eval("2 * a-b")
+            r2 = eval('2 * a-b')
             if common.verbose:
-                print("Computed expression:", repr(r1), r1.dtype)
-                print("Should look like:", repr(r2), r2.dtype)
+                print('Computed expression:', repr(r1), r1.dtype)
+                print('Should look like:', repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
-            self.assertTrue(common.areArraysEqual(r1, r2),
-                            "Evaluate is returning a wrong value.")
+            self.assertTrue(
+                common.areArraysEqual(r1, r2),
+                'Evaluate is returning a wrong value.',
+            )
             # Remove created leaves
             a1.remove()
             b1.remove()
@@ -831,24 +924,26 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         for dtype in 'complex64', 'complex128':
             if common.verbose:
-                print("Checking type:", dtype)
+                print('Checking type:', dtype)
             # Build arrays with different shapes as inputs
             a = np.array([1, 2j, 3 + 2j], dtype)
             b = np.array([3, 4j, 5 + 1j], dtype)
             root = self.h5file.root
             a1 = self.h5file.create_array(root, 'a1', a)
             b1 = self.h5file.create_array(root, 'b1', b)
-            expr = tb.Expr("2 * a1-b1")
+            expr = tb.Expr('2 * a1-b1')
             r1 = expr.eval()
             a = np.array([1, 2j, 3 + 2j], 'complex128')
             b = np.array([3, 4j, 5 + 1j], 'complex128')
-            r2 = eval("2 * a-b")
+            r2 = eval('2 * a-b')
             if common.verbose:
-                print("Computed expression:", repr(r1), r1.dtype)
-                print("Should look like:", repr(r2), r2.dtype)
+                print('Computed expression:', repr(r1), r1.dtype)
+                print('Should look like:', repr(r2), r2.dtype)
             self.assertEqual(r1.dtype, r2.dtype)
-            self.assertTrue(common.areArraysEqual(r1, r2),
-                            "Evaluate is returning a wrong value.")
+            self.assertTrue(
+                common.areArraysEqual(r1, r2),
+                'Evaluate is returning a wrong value.',
+            )
             # Remove created leaves
             a1.remove()
             b1.remove()
@@ -868,110 +963,123 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = expr.eval()
         r2 = eval("(a > b'a') | ( b > b'b')")
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 # Test for different functions
 class FunctionsTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test00_simple(self):
         """Checking some math functions in expression."""
 
         # Build arrays with different shapes as inputs
-        a = np.array([.1, .2, .3])
-        b = np.array([.3, .4, .5])
+        a = np.array([0.1, 0.2, 0.3])
+        b = np.array([0.3, 0.4, 0.5])
         root = self.h5file.root
         a1 = self.h5file.create_array(root, 'a1', a)
         self.assertIsNotNone(a1)
         b1 = self.h5file.create_array(root, 'b1', b)
         self.assertIsNotNone(b1)
         # The expression
-        expr = tb.Expr("sin(a1) * sqrt(b1)")
+        expr = tb.Expr('sin(a1) * sqrt(b1)')
         r1 = expr.eval()
         r2 = np.sin(a) * np.sqrt(b)
         if common.verbose:
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 # Test for EArrays with maindim != 0
 class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test00_simple(self):
         """Checking other dimensions than 0 as main dimension."""
 
         shape = list(self.shape)
         # Build input arrays
-        a = np.arange(np.prod(shape), dtype="i4").reshape(shape)
+        a = np.arange(np.prod(shape), dtype='i4').reshape(shape)
         b = a.copy()
         c = a.copy()
         root = self.h5file.root
         shape[self.maindim] = 0
         a1 = self.h5file.create_earray(
-            root, 'a1', atom=tb.Int32Col(), shape=shape)
+            root, 'a1', atom=tb.Int32Col(), shape=shape
+        )
         b1 = self.h5file.create_earray(
-            root, 'b1', atom=tb.Int32Col(), shape=shape)
+            root, 'b1', atom=tb.Int32Col(), shape=shape
+        )
         c1 = self.h5file.create_earray(
-            root, 'c1', atom=tb.Int32Col(), shape=shape)
+            root, 'c1', atom=tb.Int32Col(), shape=shape
+        )
         a1.append(a)
         b1.append(b)
         c1.append(c)
         # The expression
-        expr = tb.Expr("2 * a1 + b1-c1")
+        expr = tb.Expr('2 * a1 + b1-c1')
         r1 = expr.eval()
-        r2 = eval("2 * a + b-c")
+        r2 = eval('2 * a + b-c')
         if common.verbose:
-            print("Tested shape:", shape)
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape:', shape)
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01_out(self):
         """Checking other dimensions than 0 as main dimension (out)"""
 
         shape = list(self.shape)
         # Build input arrays
-        a = np.arange(np.prod(shape), dtype="i4").reshape(shape)
+        a = np.arange(np.prod(shape), dtype='i4').reshape(shape)
         b = a.copy()
         c = a.copy()
         root = self.h5file.root
         shape[self.maindim] = 0
         a1 = self.h5file.create_earray(
-            root, 'a1', atom=tb.Int32Col(), shape=shape)
+            root, 'a1', atom=tb.Int32Col(), shape=shape
+        )
         b1 = self.h5file.create_earray(
-            root, 'b1', atom=tb.Int32Col(), shape=shape)
+            root, 'b1', atom=tb.Int32Col(), shape=shape
+        )
         c1 = self.h5file.create_earray(
-            root, 'c1', atom=tb.Int32Col(), shape=shape)
+            root, 'c1', atom=tb.Int32Col(), shape=shape
+        )
         r1 = self.h5file.create_earray(
-            root, 'r1', atom=tb.Int32Col(), shape=shape)
+            root, 'r1', atom=tb.Int32Col(), shape=shape
+        )
         a1.append(a)
         b1.append(b)
         c1.append(c)
         r1.append(c)
         # The expression
-        expr = tb.Expr("2 * a1 + b1-c1")
+        expr = tb.Expr('2 * a1 + b1-c1')
         expr.set_output(r1)
         expr.eval()
-        r2 = eval("2 * a + b-c")
+        r2 = eval('2 * a + b-c')
         if common.verbose:
-            print("Tested shape:", shape)
-            print("Computed expression:", repr(r1[:]), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1[:], r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape:', shape)
+            print('Computed expression:', repr(r1[:]), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1[:], r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test02_diff_in_maindims(self):
         """Checking different main dimensions in inputs."""
 
         shape = list(self.shape)
         # Build input arrays
-        a = np.arange(np.prod(shape), dtype="i4").reshape(shape)
+        a = np.arange(np.prod(shape), dtype='i4').reshape(shape)
         b = a.copy()
         c = a.copy()
         root = self.h5file.root
@@ -979,36 +1087,42 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         shape[self.maindim] = 0
         shape2[0] = 0
         a1 = self.h5file.create_earray(
-            root, 'a1', atom=tb.Int32Col(), shape=shape)
+            root, 'a1', atom=tb.Int32Col(), shape=shape
+        )
         self.assertEqual(a1.maindim, self.maindim)
         b1 = self.h5file.create_earray(
-            root, 'b1', atom=tb.Int32Col(), shape=shape2)
+            root, 'b1', atom=tb.Int32Col(), shape=shape2
+        )
         self.assertEqual(b1.maindim, 0)
         c1 = self.h5file.create_earray(
-            root, 'c1', atom=tb.Int32Col(), shape=shape)
+            root, 'c1', atom=tb.Int32Col(), shape=shape
+        )
         r1 = self.h5file.create_earray(
-            root, 'r1', atom=tb.Int32Col(), shape=shape)
+            root, 'r1', atom=tb.Int32Col(), shape=shape
+        )
         a1.append(a)
         b1.append(b)
         c1.append(c)
         r1.append(c)
         # The expression
-        expr = tb.Expr("2 * a1 + b1-c1")
+        expr = tb.Expr('2 * a1 + b1-c1')
         r1 = expr.eval()
-        r2 = eval("2 * a + b-c")
+        r2 = eval('2 * a + b-c')
         if common.verbose:
-            print("Tested shape:", shape)
-            print("Computed expression:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape:', shape)
+            print('Computed expression:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test03_diff_in_out_maindims(self):
         """Checking different maindims in inputs and output."""
 
         shape = list(self.shape)
         # Build input arrays
-        a = np.arange(np.prod(shape), dtype="i4").reshape(shape)
+        a = np.arange(np.prod(shape), dtype='i4').reshape(shape)
         b = a.copy()
         c = a.copy()
         root = self.h5file.root
@@ -1016,37 +1130,43 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         shape[self.maindim] = 0
         shape2[0] = 0
         a1 = self.h5file.create_earray(
-            root, 'a1', atom=tb.Int32Col(), shape=shape)
+            root, 'a1', atom=tb.Int32Col(), shape=shape
+        )
         self.assertEqual(a1.maindim, self.maindim)
         b1 = self.h5file.create_earray(
-            root, 'b1', atom=tb.Int32Col(), shape=shape)
+            root, 'b1', atom=tb.Int32Col(), shape=shape
+        )
         c1 = self.h5file.create_earray(
-            root, 'c1', atom=tb.Int32Col(), shape=shape)
+            root, 'c1', atom=tb.Int32Col(), shape=shape
+        )
         r1 = self.h5file.create_earray(
-            root, 'r1', atom=tb.Int32Col(), shape=shape2)
+            root, 'r1', atom=tb.Int32Col(), shape=shape2
+        )
         self.assertEqual(r1.maindim, 0)
         a1.append(a)
         b1.append(b)
         c1.append(c)
         r1.append(c)
         # The expression
-        expr = tb.Expr("2 * a1 + b1-c1")
+        expr = tb.Expr('2 * a1 + b1-c1')
         expr.set_output(r1)
         expr.eval()
-        r2 = eval("2 * a + b-c")
+        r2 = eval('2 * a + b-c')
         if common.verbose:
-            print("Tested shape:", shape)
-            print("Computed expression:", repr(r1[:]), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1[:], r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape:', shape)
+            print('Computed expression:', repr(r1[:]), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1[:], r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test04_diff_in_out_maindims_lengths(self):
         """Checking different maindims and lengths in inputs and output."""
 
         shape = list(self.shape)
         # Build input arrays
-        a = np.arange(np.prod(shape), dtype="i4").reshape(shape)
+        a = np.arange(np.prod(shape), dtype='i4').reshape(shape)
         b = a.copy()
         c = a.copy()
         root = self.h5file.root
@@ -1054,14 +1174,18 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         shape[self.maindim] = 0
         shape2[0] = 0
         a1 = self.h5file.create_earray(
-            root, 'a1', atom=tb.Int32Col(), shape=shape)
+            root, 'a1', atom=tb.Int32Col(), shape=shape
+        )
         self.assertEqual(a1.maindim, self.maindim)
         b1 = self.h5file.create_earray(
-            root, 'b1', atom=tb.Int32Col(), shape=shape)
+            root, 'b1', atom=tb.Int32Col(), shape=shape
+        )
         c1 = self.h5file.create_earray(
-            root, 'c1', atom=tb.Int32Col(), shape=shape)
+            root, 'c1', atom=tb.Int32Col(), shape=shape
+        )
         r1 = self.h5file.create_earray(
-            root, 'r1', atom=tb.Int32Col(), shape=shape2)
+            root, 'r1', atom=tb.Int32Col(), shape=shape2
+        )
         self.assertEqual(r1.maindim, 0)
         a1.append(a)
         a1.append(a)
@@ -1071,7 +1195,7 @@ class MaindimTestCase(common.TempFileMixin, common.PyTablesTestCase):
         c1.append(c)
         r1.append(c)   # just once so that output is smaller
         # The expression
-        expr = tb.Expr("2 * a1 + b1-c1")
+        expr = tb.Expr('2 * a1 + b1-c1')
         expr.set_output(r1)
         # This should raise an error
         self.assertRaises(ValueError, expr.eval)
@@ -1099,41 +1223,46 @@ class Maindim3(MaindimTestCase):
 
 # Test `append` mode flag in `set_output()`
 class AppendModeTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test01_append(self):
         """Checking append mode in `set_output()`"""
 
         shape = [3, 2]
         # Build input arrays
-        a = np.arange(np.prod(shape), dtype="i4").reshape(shape)
+        a = np.arange(np.prod(shape), dtype='i4').reshape(shape)
         b = a.copy()
         c = a.copy()
         shape[1] = 0
         root = self.h5file.root
         a1 = self.h5file.create_earray(
-            root, 'a1', atom=tb.Int32Col(), shape=shape)
+            root, 'a1', atom=tb.Int32Col(), shape=shape
+        )
         b1 = self.h5file.create_earray(
-            root, 'b1', atom=tb.Int32Col(), shape=shape)
+            root, 'b1', atom=tb.Int32Col(), shape=shape
+        )
         c1 = self.h5file.create_earray(
-            root, 'c1', atom=tb.Int32Col(), shape=shape)
+            root, 'c1', atom=tb.Int32Col(), shape=shape
+        )
         r1 = self.h5file.create_earray(
-            root, 'r1', atom=tb.Int32Col(), shape=shape)
+            root, 'r1', atom=tb.Int32Col(), shape=shape
+        )
         a1.append(a)
         b1.append(b)
         c1.append(c)
         if not self.append:
             r1.append(c)
         # The expression
-        expr = tb.Expr("2 * a1 + b1-c1")
+        expr = tb.Expr('2 * a1 + b1-c1')
         expr.set_output(r1, append_mode=self.append)
         expr.eval()
-        r2 = eval("2 * a + b-c")
+        r2 = eval('2 * a + b-c')
         if common.verbose:
-            print("Tested shape:", shape)
-            print("Computed expression:", repr(r1[:]), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1[:], r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape:', shape)
+            print('Computed expression:', repr(r1[:]), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1[:], r2),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 class AppendModeTrue(AppendModeTestCase):
@@ -1146,29 +1275,31 @@ class AppendModeFalse(AppendModeTestCase):
 
 # Test for `__iter__()` iterator
 class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def setUp(self):
         super().setUp()
         shape = list(self.shape)
         # Build input arrays
-        a = np.arange(np.prod(shape), dtype="i4").reshape(shape)
+        a = np.arange(np.prod(shape), dtype='i4').reshape(shape)
         b = a.copy()
         c = a.copy()
         self.npvars = {'a': a, 'b': b, 'c': c}
         shape[self.maindim] = 0
         root = self.h5file.root
         a1 = self.h5file.create_earray(
-            root, 'a1', atom=tb.Int32Col(), shape=shape)
+            root, 'a1', atom=tb.Int32Col(), shape=shape
+        )
         b1 = self.h5file.create_earray(
-            root, 'b1', atom=tb.Int32Col(), shape=shape)
+            root, 'b1', atom=tb.Int32Col(), shape=shape
+        )
         c1 = self.h5file.create_earray(
-            root, 'c1', atom=tb.Int32Col(), shape=shape)
+            root, 'c1', atom=tb.Int32Col(), shape=shape
+        )
         a1.append(a)
         b1.append(b)
         c1.append(c)
         self.vars = {'a': a1, 'b': b1, 'c': c1}
         # The expression
-        self.sexpr = "2 * a + b-c"
+        self.sexpr = '2 * a + b-c'
 
     def test00_iter(self):
         """Checking the __iter__ iterator."""
@@ -1177,11 +1308,13 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
         r1 = np.array([row for row in expr])
         r2 = eval(self.sexpr, self.npvars)
         if common.verbose:
-            print("Tested shape, maindim:", self.shape, self.maindim)
-            print("Computed expression:", repr(r1[:]), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1[:], r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape, maindim:', self.shape, self.maindim)
+            print('Computed expression:', repr(r1[:]), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1[:], r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01a_sss(self):
         """Checking the __iter__ iterator (with ranges, I)"""
@@ -1191,14 +1324,17 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr.set_inputs_range(start, stop, step)
         r1 = np.array([row for row in expr])
         npvars = get_sliced_vars2(
-            self.npvars, start, stop, step, self.shape, self.maindim)
+            self.npvars, start, stop, step, self.shape, self.maindim
+        )
         r2 = eval(self.sexpr, npvars)
         if common.verbose:
-            print("Tested shape, maindim:", self.shape, self.maindim)
-            print("Computed expression:", repr(r1[:]), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1[:], r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape, maindim:', self.shape, self.maindim)
+            print('Computed expression:', repr(r1[:]), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1[:], r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01b_sss(self):
         """Checking the __iter__ iterator (with ranges, II)"""
@@ -1208,14 +1344,17 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr.set_inputs_range(start, stop, step)
         r1 = np.array([row for row in expr])
         npvars = get_sliced_vars2(
-            self.npvars, start, stop, step, self.shape, self.maindim)
+            self.npvars, start, stop, step, self.shape, self.maindim
+        )
         r2 = eval(self.sexpr, npvars)
         if common.verbose:
-            print("Tested shape, maindim:", self.shape, self.maindim)
-            print("Computed expression:", repr(r1[:]), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1[:], r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape, maindim:', self.shape, self.maindim)
+            print('Computed expression:', repr(r1[:]), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1[:], r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01c_sss(self):
         """Checking the __iter__ iterator (with ranges, III)"""
@@ -1225,14 +1364,17 @@ class iterTestCase(common.TempFileMixin, common.PyTablesTestCase):
         expr.set_inputs_range(start, stop, step)
         r1 = np.array([row for row in expr])
         npvars = get_sliced_vars2(
-            self.npvars, start, stop, step, self.shape, self.maindim)
+            self.npvars, start, stop, step, self.shape, self.maindim
+        )
         r2 = eval(self.sexpr, npvars)
         if common.verbose:
-            print("Tested shape, maindim:", self.shape, self.maindim)
-            print("Computed expression:", repr(r1[:]), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1[:], r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape, maindim:', self.shape, self.maindim)
+            print('Computed expression:', repr(r1[:]), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1[:], r2),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 class iter0(iterTestCase):
@@ -1273,14 +1415,13 @@ class iter5(iterTestCase):
 
 # Test for set_output_range
 class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test00_simple(self):
         """Checking the range selection for output."""
 
         shape = list(self.shape)
         start, stop, step = self.range_
         # Build input arrays
-        a = np.arange(np.prod(shape), dtype="i4").reshape(shape)
+        a = np.arange(np.prod(shape), dtype='i4').reshape(shape)
         b = a.copy()
         r = a.copy()
         root = self.h5file.root
@@ -1290,18 +1431,20 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(b1)
         r1 = self.h5file.create_array(root, 'r1', r)
         # The expression
-        expr = tb.Expr("a1-b1-1")
+        expr = tb.Expr('a1-b1-1')
         expr.set_output(r1)
         expr.set_output_range(start, stop, step)
         expr.eval()
-        r2 = eval("a-b-1")
-        r[start:stop:step] = r2[:len(range(start, stop, step))]
+        r2 = eval('a-b-1')
+        r[start:stop:step] = r2[: len(range(start, stop, step))]
         if common.verbose:
-            print("Tested shape:", shape)
-            print("Computed expression:", repr(r1[:]), r1.dtype)
-            print("Should look like:", repr(r), r.dtype)
-        self.assertTrue(common.areArraysEqual(r1[:], r),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape:', shape)
+            print('Computed expression:', repr(r1[:]), r1.dtype)
+            print('Should look like:', repr(r), r.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1[:], r),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01_maindim(self):
         """Checking the range selection for output (maindim > 0)"""
@@ -1309,37 +1452,44 @@ class setOutputRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         shape = list(self.shape)
         start, stop, step = self.range_
         # Build input arrays
-        a = np.arange(np.prod(shape), dtype="i4").reshape(shape)
+        a = np.arange(np.prod(shape), dtype='i4').reshape(shape)
         b = a.copy()
         r = a.copy()
         shape[self.maindim] = 0
         root = self.h5file.root
         a1 = self.h5file.create_earray(
-            root, 'a1', atom=tb.Int32Col(), shape=shape)
+            root, 'a1', atom=tb.Int32Col(), shape=shape
+        )
         b1 = self.h5file.create_earray(
-            root, 'b1', atom=tb.Int32Col(), shape=shape)
+            root, 'b1', atom=tb.Int32Col(), shape=shape
+        )
         r1 = self.h5file.create_earray(
-            root, 'r1', atom=tb.Int32Col(), shape=shape)
+            root, 'r1', atom=tb.Int32Col(), shape=shape
+        )
         a1.append(a)
         b1.append(b)
         r1.append(r)
         # The expression
-        expr = tb.Expr("a1-b1-1")
+        expr = tb.Expr('a1-b1-1')
         expr.set_output(r1)
         expr.set_output_range(start, stop, step)
         expr.eval()
-        r2 = eval("a-b-1")
+        r2 = eval('a-b-1')
         lsl = tuple([slice(None)] * self.maindim)
         # print "lsl-->", lsl + (slice(start,stop,step),)
         lrange = len(range(start, stop, step))
-        r.__setitem__(lsl + (slice(start, stop, step),),
-                      r2.__getitem__(lsl + (slice(0, lrange),)))
+        r.__setitem__(
+            lsl + (slice(start, stop, step),),
+            r2.__getitem__(lsl + (slice(0, lrange),)),
+        )
         if common.verbose:
-            print("Tested shape:", shape)
-            print("Computed expression:", repr(r1[:]), r1.dtype)
-            print("Should look like:", repr(r), r.dtype)
-        self.assertTrue(common.areArraysEqual(r1[:], r),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape:', shape)
+            print('Computed expression:', repr(r1[:]), r1.dtype)
+            print('Should look like:', repr(r), r.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1[:], r),
+            'Evaluate is returning a wrong value.',
+        )
 
 
 class setOutputRange0(setOutputRangeTestCase):
@@ -1404,93 +1554,105 @@ class setOutputRange9(setOutputRangeTestCase):
 
 # Test for very large inputs
 class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     def test00_simple(self):
         """Checking very large inputs."""
 
         shape = self.shape
         # Use filters so as to not use too much space
-        if tb.which_lib_version("blosc") is not None:
-            filters = tb.Filters(complevel=1, complib='blosc',
-                                 shuffle=False)
-        elif tb.which_lib_version("lzo") is not None:
+        if tb.which_lib_version('blosc') is not None:
+            filters = tb.Filters(complevel=1, complib='blosc', shuffle=False)
+        elif tb.which_lib_version('lzo') is not None:
             filters = tb.Filters(complevel=1, complib='lzo', shuffle=False)
         else:
             filters = tb.Filters(complevel=1, shuffle=False)
         # Build input arrays
         root = self.h5file.root
-        a = self.h5file.create_carray(root, 'a',
-                                      atom=tb.Float64Atom(dflt=3),
-                                      shape=shape, filters=filters)
+        a = self.h5file.create_carray(
+            root,
+            'a',
+            atom=tb.Float64Atom(dflt=3),
+            shape=shape,
+            filters=filters,
+        )
         self.assertIsNotNone(a)
-        b = self.h5file.create_carray(root, 'b',
-                                      atom=tb.Float64Atom(dflt=2),
-                                      shape=shape, filters=filters)
+        b = self.h5file.create_carray(
+            root,
+            'b',
+            atom=tb.Float64Atom(dflt=2),
+            shape=shape,
+            filters=filters,
+        )
         self.assertIsNotNone(b)
-        r1 = self.h5file.create_carray(root, 'r1',
-                                       atom=tb.Float64Atom(dflt=3),
-                                       shape=shape, filters=filters)
+        r1 = self.h5file.create_carray(
+            root,
+            'r1',
+            atom=tb.Float64Atom(dflt=3),
+            shape=shape,
+            filters=filters,
+        )
         # The expression
-        expr = tb.Expr("a * b-6")   # Should give 0
+        expr = tb.Expr('a * b-6')   # Should give 0
         expr.set_output(r1)
         expr.eval()
         r1 = r1[-10:]  # Get the last ten rows
         r2 = np.zeros(10, dtype='float64')
         if common.verbose:
-            print("Tested shape:", shape)
-            print("Ten last rows:", repr(r1), r1.dtype)
-            print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+            print('Tested shape:', shape)
+            print('Ten last rows:', repr(r1), r1.dtype)
+            print('Should look like:', repr(r2), r2.dtype)
+        self.assertTrue(
+            common.areArraysEqual(r1, r2),
+            'Evaluate is returning a wrong value.',
+        )
 
     def test01_iter(self):
         """Checking very large inputs (__iter__ version)"""
 
         shape = self.shape
-        if shape[0] >= 2**24:
+        if shape[0] >= 2 ** 24:
             # The iterator is much more slower, so don't run it for
             # extremeley large arrays.
             if common.verbose:
-                print("Skipping this *very* long test")
+                print('Skipping this *very* long test')
             return
         # Use filters so as to not use too much space
-        if tb.which_lib_version("lzo") is not None:
+        if tb.which_lib_version('lzo') is not None:
             filters = tb.Filters(complevel=1, complib='lzo', shuffle=False)
         else:
             filters = tb.Filters(complevel=1, shuffle=False)
 
         # Build input arrays
         root = self.h5file.root
-        a = self.h5file.create_carray(root, 'a',
-                                      atom=tb.Int32Atom(dflt=1),
-                                      shape=shape, filters=filters)
+        a = self.h5file.create_carray(
+            root, 'a', atom=tb.Int32Atom(dflt=1), shape=shape, filters=filters
+        )
         self.assertIsNotNone(a)
-        b = self.h5file.create_carray(root, 'b',
-                                      atom=tb.Int32Atom(dflt=2),
-                                      shape=shape, filters=filters)
+        b = self.h5file.create_carray(
+            root, 'b', atom=tb.Int32Atom(dflt=2), shape=shape, filters=filters
+        )
         self.assertIsNotNone(b)
-        r1 = self.h5file.create_carray(root, 'r1',
-                                       atom=tb.Int32Atom(dflt=3),
-                                       shape=shape, filters=filters)
+        r1 = self.h5file.create_carray(
+            root, 'r1', atom=tb.Int32Atom(dflt=3), shape=shape, filters=filters
+        )
         # The expression
-        expr = tb.Expr("a-b + 1")
+        expr = tb.Expr('a-b + 1')
         r1 = sum(expr)     # Should give 0
         if common.verbose:
-            print("Tested shape:", shape)
-            print("Cummulated sum:", r1)
-            print("Should look like:", 0)
-        self.assertEqual(r1, 0, "Evaluate is returning a wrong value.")
+            print('Tested shape:', shape)
+            print('Cummulated sum:', r1)
+            print('Should look like:', 0)
+        self.assertEqual(r1, 0, 'Evaluate is returning a wrong value.')
 
 
 # The next can go on regular tests, as it should be light enough
 class VeryLargeInputs1(VeryLargeInputsTestCase):
-    shape = (2**20,)    # larger than any internal I/O buffers
+    shape = (2 ** 20,)    # larger than any internal I/O buffers
 
 
 # The next is only meant for 'heavy' mode as it can take more than 1 minute
 # on modern machines
 class VeryLargeInputs2(VeryLargeInputsTestCase):
-    shape = (2**32 + 1,)    # check that arrays > 32-bit are supported
+    shape = (2 ** 32 + 1,)    # check that arrays > 32-bit are supported
 
 
 def suite():
@@ -1556,6 +1718,7 @@ def suite():
 
 if __name__ == '__main__':
     import sys
+
     common.parse_argv(sys.argv)
     common.print_versions()
     common.unittest.main(defaultTest='suite')

@@ -1,13 +1,13 @@
 """Parameters for PyTables."""
 
 __docformat__ = 'reStructuredText'
-"""The format of documentation strings in this module."""
+'''The format of documentation strings in this module.'''
 
 _KB = 1024
-"""The size of a Kilobyte in bytes"""
+'''The size of a Kilobyte in bytes'''
 
 _MB = 1024 * _KB
-"""The size of a Megabyte in bytes"""
+'''The size of a Megabyte in bytes'''
 
 # Tunable parameters
 # ==================
@@ -17,40 +17,40 @@ _MB = 1024 * _KB
 # ----------------------------------------
 
 BOUNDS_MAX_SIZE = 1 * _MB
-"""The maximum size for bounds values cached during index lookups."""
+'''The maximum size for bounds values cached during index lookups.'''
 
 BOUNDS_MAX_SLOTS = 4 * _KB
-"""The maximum number of slots for the BOUNDS cache."""
+'''The maximum number of slots for the BOUNDS cache.'''
 
 ITERSEQ_MAX_ELEMENTS = 1 * _KB
-"""The maximum number of iterator elements cached in data lookups."""
+'''The maximum number of iterator elements cached in data lookups.'''
 
 ITERSEQ_MAX_SIZE = 1 * _MB
-"""The maximum space that will take ITERSEQ cache (in bytes)."""
+'''The maximum space that will take ITERSEQ cache (in bytes).'''
 
 ITERSEQ_MAX_SLOTS = 128
-"""The maximum number of slots in ITERSEQ cache."""
+'''The maximum number of slots in ITERSEQ cache.'''
 
 LIMBOUNDS_MAX_SIZE = 256 * _KB
-"""The maximum size for the query limits (for example, ``(lim1, lim2)``
+'''The maximum size for the query limits (for example, ``(lim1, lim2)``
 in conditions like ``lim1 <= col < lim2``) cached during index lookups
-(in bytes)."""
+(in bytes).'''
 
 LIMBOUNDS_MAX_SLOTS = 128
-"""The maximum number of slots for LIMBOUNDS cache."""
+'''The maximum number of slots for LIMBOUNDS cache.'''
 
 TABLE_MAX_SIZE = 1 * _MB
-"""The maximum size for table chunks cached during index queries."""
+'''The maximum size for table chunks cached during index queries.'''
 
 SORTED_MAX_SIZE = 1 * _MB
-"""The maximum size for sorted values cached during index lookups."""
+'''The maximum size for sorted values cached during index lookups.'''
 
 SORTEDLR_MAX_SIZE = 8 * _MB
-"""The maximum size for chunks in last row cached in index lookups (in
-bytes)."""
+'''The maximum size for chunks in last row cached in index lookups (in
+bytes).'''
 
 SORTEDLR_MAX_SLOTS = 1 * _KB
-"""The maximum number of chunks for SORTEDLR cache."""
+'''The maximum number of chunks for SORTEDLR cache.'''
 
 
 # Parameters for general cache behaviour
@@ -62,19 +62,19 @@ SORTEDLR_MAX_SLOTS = 1 * _KB
 # discouraged unless you know well what you are doing.
 
 DISABLE_EVERY_CYCLES = 10
-"""The number of cycles in which a cache will be forced to be disabled
+'''The number of cycles in which a cache will be forced to be disabled
 if the hit ratio is lower than the LOWEST_HIT_RATIO (see below).  This
 value should provide time enough to check whether the cache is being
-efficient or not."""
+efficient or not.'''
 
 ENABLE_EVERY_CYCLES = 50
-"""The number of cycles in which a cache will be forced to be
+'''The number of cycles in which a cache will be forced to be
 (re-)enabled, irregardingly of the hit ratio. This will provide a chance
-for checking if we are in a better scenario for doing caching again."""
+for checking if we are in a better scenario for doing caching again.'''
 
 LOWEST_HIT_RATIO = 0.6
-"""The minimum acceptable hit ratio for a cache to avoid disabling (and
-freeing) it."""
+'''The minimum acceptable hit ratio for a cache to avoid disabling (and
+freeing) it.'''
 
 
 # Tunable parameters
@@ -89,47 +89,47 @@ freeing) it."""
 # enough resources.
 
 MAX_COLUMNS = 512
-"""Maximum number of columns in :class:`tables.Table` objects before a
+'''Maximum number of columns in :class:`tables.Table` objects before a
 :exc:`tables.PerformanceWarning` is issued.  This limit is somewhat
 arbitrary and can be increased.
-"""
+'''
 
 MAX_NODE_ATTRS = 4 * _KB
-"""Maximum allowed number of attributes in a node."""
+'''Maximum allowed number of attributes in a node.'''
 
 MAX_GROUP_WIDTH = 16 * _KB
-"""Maximum allowed number of children hanging from a group."""
+'''Maximum allowed number of children hanging from a group.'''
 
 MAX_TREE_DEPTH = 2 * _KB
-"""Maximum depth in object tree allowed."""
+'''Maximum depth in object tree allowed.'''
 
 MAX_UNDO_PATH_LENGTH = 10 * _KB
-"""Maximum length of paths allowed in undo/redo operations."""
+'''Maximum length of paths allowed in undo/redo operations.'''
 
 
 # Cache limits
 # ------------
 
 COND_CACHE_SLOTS = 128
-"""Maximum number of conditions for table queries to be kept in memory."""
+'''Maximum number of conditions for table queries to be kept in memory.'''
 
 CHUNK_CACHE_NELMTS = 521
-"""Number of elements for HDF5 chunk cache."""
+'''Number of elements for HDF5 chunk cache.'''
 
 CHUNK_CACHE_PREEMPT = 0.0
-"""Chunk preemption policy.  This value should be between 0 and 1
+'''Chunk preemption policy.  This value should be between 0 and 1
 inclusive and indicates how much chunks that have been fully read are
 favored for preemption. A value of zero means fully read chunks are
 treated no differently than other chunks (the preemption is strictly
 LRU) while a value of one means fully read chunks are always preempted
-before other chunks."""
+before other chunks.'''
 
 CHUNK_CACHE_SIZE = 2 * _MB
-"""Size (in bytes) for HDF5 chunk cache."""
+'''Size (in bytes) for HDF5 chunk cache.'''
 
 # Size for new metadata cache system
 METADATA_CACHE_SIZE = 1 * _MB  # 1 MB is the default for HDF5
-"""Size (in bytes) of the HDF5 metadata cache."""
+'''Size (in bytes) of the HDF5 metadata cache.'''
 
 
 # NODE_CACHE_SLOTS tells the number of nodes that fits in the cache.
@@ -147,7 +147,7 @@ METADATA_CACHE_SIZE = 1 * _MB  # 1 MB is the default for HDF5
 # number of leaves, try increasing this value and see if it fits better
 # for you. Please report back your feedback.
 NODE_CACHE_SLOTS = 64
-"""Maximum number of nodes to be kept in the metadata cache.
+'''Maximum number of nodes to be kept in the metadata cache.
 
 It is the number of nodes to be kept in the metadata cache. Least recently
 used nodes are unloaded from memory when this number of loaded nodes is
@@ -163,72 +163,72 @@ be warned when the number of loaded nodes will reach the
 ``-NODE_CACHE_SLOTS`` value.
 
 Finally, a value of zero means that any cache mechanism is disabled.
-"""
+'''
 
 
 # Parameters for the I/O buffer in `Leaf` objects
 # -----------------------------------------------
 
 IO_BUFFER_SIZE = 1 * _MB
-"""The PyTables internal buffer size for I/O purposes.  Should not
-exceed the amount of highest level cache size in your CPU."""
+'''The PyTables internal buffer size for I/O purposes.  Should not
+exceed the amount of highest level cache size in your CPU.'''
 
 BUFFER_TIMES = 100
-"""The maximum buffersize/rowsize ratio before issuing a
-:exc:`tables.PerformanceWarning`."""
+'''The maximum buffersize/rowsize ratio before issuing a
+:exc:`tables.PerformanceWarning`.'''
 
 
 # Miscellaneous
 # -------------
 
 EXPECTED_ROWS_EARRAY = 1000
-"""Default expected number of rows for :class:`EArray` objects."""
+'''Default expected number of rows for :class:`EArray` objects.'''
 
 EXPECTED_ROWS_VLARRAY = 1000
-"""Default expected number of rows for :class:`VLArray` objects.
+'''Default expected number of rows for :class:`VLArray` objects.
 
 .. versionadded:: 3.0
 
-"""
+'''
 
 EXPECTED_ROWS_TABLE = 10_000
-"""Default expected number of rows for :class:`Table` objects."""
+'''Default expected number of rows for :class:`Table` objects.'''
 
 PYTABLES_SYS_ATTRS = True
-"""Set this to ``False`` if you don't want to create PyTables system
+'''Set this to ``False`` if you don't want to create PyTables system
 attributes in datasets.  Also, if set to ``False`` the possible existing
 system attributes are not considered for guessing the class of the node
 during its loading from disk (this work is delegated to the PyTables'
-class discoverer function for general HDF5 files)."""
+class discoverer function for general HDF5 files).'''
 
 MAX_NUMEXPR_THREADS = 4
-"""The maximum number of threads that PyTables should use internally in
+'''The maximum number of threads that PyTables should use internally in
 Numexpr.  If `None`, it is automatically set to the number of cores in
 your machine. In general, it is a good idea to set this to the number of
 cores in your machine or, when your machine has many of them (e.g. > 8),
-perhaps stay at 8 at maximum.  In general, 4 threads is a good tradeoff."""
+perhaps stay at 8 at maximum.  In general, 4 threads is a good tradeoff.'''
 
 MAX_BLOSC_THREADS = 1    # 1 is safe for concurrency
-"""The maximum number of threads that PyTables should use internally in
+'''The maximum number of threads that PyTables should use internally in
 Blosc.  If `None`, it is automatically set to the number of cores in
 your machine.  For applications that use several PyTables instances
 concurrently and so as to avoid locking problems, the recommended value
 is 1.  In other cases a value of 2 or 4 could make sense.
 
-"""
+'''
 
 USER_BLOCK_SIZE = 0
-"""Sets the user block size of a file.
+'''Sets the user block size of a file.
 
 The default user block size is 0; it may be set to any power of 2 equal
 to 512 or greater (512, 1024, 2048, etc.).
 
 .. versionadded:: 3.0
 
-"""
+'''
 
 ALLOW_PADDING = True
-"""Allow padding in compound data types.
+'''Allow padding in compound data types.
 
 Starting on version 3.5 padding is honored during copies, or when tables
 are created from NumPy structured arrays with padding (e.g. `align=True`).
@@ -237,13 +237,13 @@ datasets/attributes (i.e. the previous behaviour), set this to `False`.
 
 .. versionadded:: 3.5
 
-"""
+'''
 
 
 # HDF5 driver management
 # ----------------------
 DRIVER = None
-"""The HDF5 driver that should be used for reading/writing to the file.
+'''The HDF5 driver that should be used for reading/writing to the file.
 
 Following drivers are supported:
 
@@ -316,34 +316,34 @@ The following drivers are not currently supported:
     http://www.hdfgroup.org/HDF5/doc/UG/08_TheFile.html#Drivers
 .. _`HDF5 User's Guide`: http://www.hdfgroup.org/HDF5/doc/UG/index.html
 
-"""
+'''
 
 DRIVER_DIRECT_ALIGNMENT = 0
-"""Specifies the required alignment boundary in memory.
+'''Specifies the required alignment boundary in memory.
 
 A value of 0 (zero) means to use HDF5 Library’s default value.
 
 .. versionadded:: 3.0
 
-"""
+'''
 
 DRIVER_DIRECT_BLOCK_SIZE = 0
-"""Specifies the file system block size.
+'''Specifies the file system block size.
 
 A value of 0 (zero) means to use HDF5 Library’s default value of 4KB.
 
 .. versionadded:: 3.0
 
-"""
+'''
 
 DRIVER_DIRECT_CBUF_SIZE = 0
-"""Specifies the copy buffer size.
+'''Specifies the copy buffer size.
 
 A value of 0 (zero) means to use HDF5 Library’s default value.
 
 .. versionadded:: 3.0
 
-"""
+'''
 
 # DRIVER_LOG_FLAGS = 0x0001ffff
 # """Flags specifying the types of logging activity.
@@ -368,17 +368,17 @@ A value of 0 (zero) means to use HDF5 Library’s default value.
 # """
 
 DRIVER_CORE_INCREMENT = 64 * _KB
-"""Core driver memory increment.
+'''Core driver memory increment.
 
 Specifies the increment by which allocated memory is to be increased
 each time more memory is required.
 
 .. versionadded:: 3.0
 
-"""
+'''
 
 DRIVER_CORE_BACKING_STORE = 1
-"""Enables backing store for the core driver.
+'''Enables backing store for the core driver.
 
 With the H5FD_CORE driver, if the DRIVER_CORE_BACKING_STORE is set
 to 1 (True), the file contents are flushed to a file with the same name
@@ -397,10 +397,10 @@ memory or on file.
 
 .. versionadded:: 3.0
 
-"""
+'''
 
 DRIVER_CORE_IMAGE = None
-"""String containing an HDF5 file image.
+'''String containing an HDF5 file image.
 
 If this option is passed to the :func:`tables.open_file` function then the
 returned file object is set up using the specified image.
@@ -412,10 +412,10 @@ using the :meth:`tables.File.get_file_image` method.
 
 .. versionadded:: 3.0
 
-"""
+'''
 
 DRIVER_SPLIT_META_EXT = '-m.h5'
-"""The extension for the metadata file used by the H5FD_SPLIT driver.
+'''The extension for the metadata file used by the H5FD_SPLIT driver.
 
 If this option is passed to the :func:`tables.openFile` function along
 with driver='H5FD_SPLIT', the extension is appended to the name passed
@@ -425,10 +425,10 @@ by replacing '%s' with the name passed as the first parameter instead.
 
 .. versionadded:: 3.1
 
-"""
+'''
 
 DRIVER_SPLIT_RAW_EXT = '-r.h5'
-"""The extension for the raw data file used by the H5FD_SPLIT driver.
+'''The extension for the raw data file used by the H5FD_SPLIT driver.
 
 If this option is passed to the :func:`tables.openFile` function along
 with driver='H5FD_SPLIT', the extension is appended to the name passed
@@ -438,4 +438,4 @@ by replacing '%s' with the name passed as the first parameter instead.
 
 .. versionadded:: 3.1
 
-"""
+'''

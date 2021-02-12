@@ -25,61 +25,95 @@ def _get_parser():
         individual nodes, as well as summary information for the whole file.
 
         For a more verbose output (including metadata), see `ptdump`.
-        ''')
+        '''
+    )
 
     parser.add_argument(
-        '-L', '--max-level', type=int, dest='max_depth',
+        '-L',
+        '--max-level',
+        type=int,
+        dest='max_depth',
         help='maximum branch depth of tree to display (-1 == no limit)',
     )
     parser.add_argument(
-        '-S', '--sort-by', type=str, dest='sort_by',
-        help='artificially order nodes, can be either "size", "name" or "none"'
+        '-S',
+        '--sort-by',
+        type=str,
+        dest='sort_by',
+        help='artificially order nodes, can be either "size", "name" or "none"',
     )
     parser.add_argument(
-        '--print-size', action='store_true', dest='print_size',
+        '--print-size',
+        action='store_true',
+        dest='print_size',
         help='print size of each node/branch',
     )
     parser.add_argument(
-        '--no-print-size', action='store_false', dest='print_size',
+        '--no-print-size',
+        action='store_false',
+        dest='print_size',
     )
     parser.add_argument(
-        '--print-shape', action='store_true', dest='print_shape',
+        '--print-shape',
+        action='store_true',
+        dest='print_shape',
         help='print shape of each node',
     )
     parser.add_argument(
-        '--no-print-shape', action='store_false', dest='print_shape',
+        '--no-print-shape',
+        action='store_false',
+        dest='print_shape',
     )
     parser.add_argument(
-        '--print-compression', action='store_true', dest='print_compression',
+        '--print-compression',
+        action='store_true',
+        dest='print_compression',
         help='print compression library(level) for each compressed node',
     )
     parser.add_argument(
-        '--no-print-compression', action='store_false',
+        '--no-print-compression',
+        action='store_false',
         dest='print_compression',
     )
     parser.add_argument(
-        '--print-percent', action='store_true', dest='print_percent',
+        '--print-percent',
+        action='store_true',
+        dest='print_percent',
         help='print size of each node as a %% of the total tree size on disk',
     )
     parser.add_argument(
-        '--no-print-percent', action='store_false',
+        '--no-print-percent',
+        action='store_false',
         dest='print_percent',
     )
     parser.add_argument(
-        '--use-si-units', action='store_true', dest='use_si_units',
+        '--use-si-units',
+        action='store_true',
+        dest='use_si_units',
         help='report sizes in SI units (1 MB == 10^6 B)',
     )
     parser.add_argument(
-        '--use-binary-units', action='store_false', dest='use_si_units',
+        '--use-binary-units',
+        action='store_false',
+        dest='use_si_units',
         help='report sizes in binary units (1 MiB == 2^20 B)',
     )
 
-    parser.add_argument('src', metavar='filename[:nodepath]',
-                        help='path to the root of the tree structure')
+    parser.add_argument(
+        'src',
+        metavar='filename[:nodepath]',
+        help='path to the root of the tree structure',
+    )
 
-    parser.set_defaults(max_depth=1, sort_by="size", print_size=True,
-                        print_percent=True, print_shape=False,
-                        print_compression=False, use_si_units=False)
+    parser.set_defaults(
+        max_depth=1,
+        sort_by='size',
+        print_size=True,
+        print_percent=True,
+        print_shape=False,
+        print_compression=False,
+        use_si_units=False,
+    )
 
     return parser
 
@@ -92,12 +126,12 @@ def main():
     # Catch the files passed as the last arguments
     src = args.__dict__.pop('src').rsplit(':', 1)
     if len(src) == 1:
-        filename, nodename = src[0], "/"
+        filename, nodename = src[0], '/'
     else:
         filename, nodename = src
-        if nodename == "":
+        if nodename == '':
             # case where filename == "filename:" instead of "filename:/"
-            nodename = "/"
+            nodename = '/'
 
     with tb.open_file(filename, 'r') as f:
         tree_str = get_tree_str(f, nodename, **args.__dict__)
@@ -106,10 +140,19 @@ def main():
     pass
 
 
-def get_tree_str(f, where='/', max_depth=-1, print_class=True,
-                 print_size=True, print_percent=True, print_shape=False,
-                 print_compression=False, print_total=True, sort_by=None,
-                 use_si_units=False):
+def get_tree_str(
+    f,
+    where='/',
+    max_depth=-1,
+    print_class=True,
+    print_size=True,
+    print_percent=True,
+    print_shape=False,
+    print_compression=False,
+    print_total=True,
+    sort_by=None,
+    use_si_units=False,
+):
     """
     Generate the ASCII string representing the tree structure, and the summary
     info (if requested)
@@ -240,7 +283,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             # create a PrettyTree representation of this node
             name = node._v_name
             if print_class:
-                name += " (%s)" % node.__class__.__name__
+                name += ' (%s)' % node.__class__.__name__
 
             labels = []
             ratio = on_disk[path] / total_on_disk
@@ -249,22 +292,25 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             # multiple hardlinks
             if ref_count[hl_addresses[path]] > 1:
                 name += ', addr=%i, ref=%i/%i' % (
-                    hl_addresses[path], ref_idx[path],
-                    ref_count[hl_addresses[path]]
+                    hl_addresses[path],
+                    ref_idx[path],
+                    ref_count[hl_addresses[path]],
                 )
 
             if isinstance(node, tb.link.Link):
                 labels.append('softlink --> %s' % node.target)
 
             elif ref_idx[path] > 1:
-                labels.append('hardlink --> %s'
-                              % hl_targets[hl_addresses[path]])
+                labels.append(
+                    'hardlink --> %s' % hl_targets[hl_addresses[path]]
+                )
 
             elif isinstance(node, (tb.Array, tb.Table)):
 
                 if print_size:
                     sizestr = 'mem={}, disk={}'.format(
-                        b2h(in_mem[path]), b2h(on_disk[path]))
+                        b2h(in_mem[path]), b2h(on_disk[path])
+                    )
                     if print_percent:
                         sizestr += f' [{ratio:5.1%}]'
                     labels.append(sizestr)
@@ -287,7 +333,8 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                 itemstr = '... %i leaves' % leaf_count[path]
                 if print_size:
                     itemstr += ', mem={}, disk={}'.format(
-                        b2h(in_mem[path]), b2h(on_disk[path]))
+                        b2h(in_mem[path]), b2h(on_disk[path])
+                    )
                 if print_percent:
                     itemstr += f' [{ratio:5.1%}]'
                 labels.append(itemstr)
@@ -308,8 +355,9 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                     # root is not in root._v_children
                     pretty[path].sort_by = 0
                 else:
-                    pretty[path].sort_by = list(parent._v_children.values(
-                                                                )).index(node)
+                    pretty[path].sort_by = list(
+                        parent._v_children.values()
+                    ).index(node)
 
             # exclude root node or we'll get infinite recursions (since '/' is
             # the parent of '/')
@@ -338,7 +386,8 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
         out_str += '-' * 60 + '\n'
         out_str += 'Total branch leaves:    %i\n' % total_items
         out_str += 'Total branch size:      {} in memory, {} on disk\n'.format(
-            b2h(total_in_mem), b2h(total_on_disk))
+            b2h(total_in_mem), b2h(total_on_disk)
+        )
         out_str += 'Mean compression ratio: %.2f\n' % avg_ratio
         out_str += 'HDF5 file size:         %s\n' % b2h(fsize)
         out_str += '-' * 60 + '\n'
@@ -404,7 +453,7 @@ class PrettyTree:
                 prefix = '   ' if child is last else '|  '
 
     def __str__(self):
-        return "\n".join(self.tree_lines())
+        return '\n'.join(self.tree_lines())
 
     def __repr__(self):
         return f'<{self.__class__.__name__} at 0x{id(self):x}>'
@@ -414,7 +463,7 @@ def bytes2human(use_si_units=False):
 
     if use_si_units:
         prefixes = 'TB', 'GB', 'MB', 'kB', 'B'
-        values = 1E12, 1E9, 1E6, 1E3, 1
+        values = 1e12, 1e9, 1e6, 1e3, 1
     else:
         prefixes = 'TiB', 'GiB', 'MiB', 'KiB', 'B'
         values = 2 ** 40, 2 ** 30, 2 ** 20, 2 ** 10, 1
@@ -426,7 +475,7 @@ def bytes2human(use_si_units=False):
             if scaled >= 1:
                 break
 
-        return f"{scaled:.1f}{prefix}"
+        return f'{scaled:.1f}{prefix}'
 
     return b2h
 
@@ -441,10 +490,15 @@ def make_test_file(prefix='/tmp'):
     filters = tb.Filters(complevel=5, complib='bzip2')
 
     for gg in g1a, g1b:
-        f.create_carray(gg, 'zeros128b', obj=np.zeros(32, dtype=np.float64),
-                        filters=filters)
-        f.create_carray(gg, 'random128b', obj=np.random.rand(32),
-                        filters=filters)
+        f.create_carray(
+            gg,
+            'zeros128b',
+            obj=np.zeros(32, dtype=np.float64),
+            filters=filters,
+        )
+        f.create_carray(
+            gg, 'random128b', obj=np.random.rand(32), filters=filters
+        )
 
     g2 = f.create_group('/', 'group2')
 

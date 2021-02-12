@@ -18,17 +18,17 @@ import tables as tb
 from tables.req_versions import min_blosc_bitshuffle_version
 
 hdf5_version = LooseVersion(tb.hdf5_version)
-blosc_version = LooseVersion(tb.which_lib_version("blosc")[1])
+blosc_version = LooseVersion(tb.which_lib_version('blosc')[1])
 
 
 verbose = False
-"""Show detailed output of the testing process."""
+'''Show detailed output of the testing process.'''
 
 heavy = False
-"""Run all tests even when they take long to complete."""
+'''Run all tests even when they take long to complete.'''
 
 show_memory = False
-"""Show the progress of memory consumption."""
+'''Show the progress of memory consumption.'''
 
 
 def parse_argv(argv):
@@ -49,22 +49,24 @@ def parse_argv(argv):
     return argv
 
 
-zlib_avail = tb.which_lib_version("zlib") is not None
-lzo_avail = tb.which_lib_version("lzo") is not None
-bzip2_avail = tb.which_lib_version("bzip2") is not None
-blosc_avail = tb.which_lib_version("blosc") is not None
+zlib_avail = tb.which_lib_version('zlib') is not None
+lzo_avail = tb.which_lib_version('lzo') is not None
+bzip2_avail = tb.which_lib_version('bzip2') is not None
+blosc_avail = tb.which_lib_version('blosc') is not None
 
 
 def print_heavy(heavy):
     if heavy:
-        print("""Performing the complete test suite!""")
+        print('''Performing the complete test suite!''')
     else:
-        print("""\
+        print(
+            '''\
 Performing only a light (yet comprehensive) subset of the test suite.
 If you want a more complete test, try passing the --heavy flag to this script
 (or set the 'heavy' parameter in case you are using tables.test() call).
 The whole suite will take more than 4 hours to complete on a relatively
-modern CPU and around 512 MB of main memory.""")
+modern CPU and around 512 MB of main memory.'''
+        )
     print('-=' * 38)
 
 
@@ -72,41 +74,42 @@ def print_versions():
     """Print all the versions of software that PyTables relies on."""
 
     print('-=' * 38)
-    print("PyTables version:    %s" % tb.__version__)
-    print("HDF5 version:        %s" % tb.which_lib_version("hdf5")[1])
-    print("NumPy version:       %s" % np.__version__)
-    tinfo = tb.which_lib_version("zlib")
+    print('PyTables version:    %s' % tb.__version__)
+    print('HDF5 version:        %s' % tb.which_lib_version('hdf5')[1])
+    print('NumPy version:       %s' % np.__version__)
+    tinfo = tb.which_lib_version('zlib')
     if ne.use_vml:
         # Get only the main version number and strip out all the rest
         vml_version = ne.get_vml_version()
-        vml_version = re.findall("[0-9.]+", vml_version)[0]
-        vml_avail = "using VML/MKL %s" % vml_version
+        vml_version = re.findall('[0-9.]+', vml_version)[0]
+        vml_avail = 'using VML/MKL %s' % vml_version
     else:
         vml_avail = "not using Intel's VML/MKL"
-    print(f"Numexpr version:     {ne.__version__} ({vml_avail})")
+    print(f'Numexpr version:     {ne.__version__} ({vml_avail})')
     if tinfo is not None:
-        print(f"Zlib version:        {tinfo[1]} (in Python interpreter)")
-    tinfo = tb.which_lib_version("lzo")
+        print(f'Zlib version:        {tinfo[1]} (in Python interpreter)')
+    tinfo = tb.which_lib_version('lzo')
     if tinfo is not None:
-        print("LZO version:         {} ({})".format(tinfo[1], tinfo[2]))
-    tinfo = tb.which_lib_version("bzip2")
+        print('LZO version:         {} ({})'.format(tinfo[1], tinfo[2]))
+    tinfo = tb.which_lib_version('bzip2')
     if tinfo is not None:
-        print("BZIP2 version:       {} ({})".format(tinfo[1], tinfo[2]))
-    tinfo = tb.which_lib_version("blosc")
+        print('BZIP2 version:       {} ({})'.format(tinfo[1], tinfo[2]))
+    tinfo = tb.which_lib_version('blosc')
     if tinfo is not None:
         blosc_date = tinfo[2].split()[1]
-        print("Blosc version:       {} ({})".format(tinfo[1], blosc_date))
+        print('Blosc version:       {} ({})'.format(tinfo[1], blosc_date))
         blosc_cinfo = tb.blosc_get_complib_info()
         blosc_cinfo = [
-            "{} ({})".format(k, v[1]) for k, v in sorted(blosc_cinfo.items())
+            '{} ({})'.format(k, v[1]) for k, v in sorted(blosc_cinfo.items())
         ]
-        print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
+        print('Blosc compressors:   %s' % ', '.join(blosc_cinfo))
         blosc_finfo = ['shuffle']
         if tinfo[1] >= tb.req_versions.min_blosc_bitshuffle_version:
             blosc_finfo.append('bitshuffle')
-        print("Blosc filters:       %s" % ', '.join(blosc_finfo))
+        print('Blosc filters:       %s' % ', '.join(blosc_finfo))
     try:
         from Cython import __version__ as cython_version
+
         print('Cython version:      %s' % cython_version)
     except Exception:
         pass
@@ -128,6 +131,7 @@ def print_versions():
 
 def test_filename(filename):
     from pkg_resources import resource_filename
+
     return resource_filename('tables.tests', filename)
 
 
@@ -141,28 +145,29 @@ def verbosePrint(string, nonl=False):
         print(string)
 
 
-def allequal(a, b, flavor="numpy"):
+def allequal(a, b, flavor='numpy'):
     """Checks if two numerical objects are equal."""
 
     # print("a-->", repr(a))
     # print("b-->", repr(b))
-    if not hasattr(b, "shape"):
+    if not hasattr(b, 'shape'):
         # Scalar case
         return a == b
 
-    if ((not hasattr(a, "shape") or a.shape == ()) and
-            (not hasattr(b, "shape") or b.shape == ())):
+    if (not hasattr(a, 'shape') or a.shape == ()) and (
+        not hasattr(b, 'shape') or b.shape == ()
+    ):
         return a == b
 
     if a.shape != b.shape:
         if verbose:
-            print("Shape is not equal:", a.shape, "!=", b.shape)
+            print('Shape is not equal:', a.shape, '!=', b.shape)
         return 0
 
     # Way to check the type equality without byteorder considerations
-    if hasattr(b, "dtype") and a.dtype.str[1:] != b.dtype.str[1:]:
+    if hasattr(b, 'dtype') and a.dtype.str[1:] != b.dtype.str[1:]:
         if verbose:
-            print("dtype is not equal:", a.dtype, "!=", b.dtype)
+            print('dtype is not equal:', a.dtype, '!=', b.dtype)
         return 0
 
     # Rank-0 case
@@ -171,7 +176,7 @@ def allequal(a, b, flavor="numpy"):
             return 1
         else:
             if verbose:
-                print("Shape is not equal:", a.shape, "!=", b.shape)
+                print('Shape is not equal:', a.shape, '!=', b.shape)
             return 0
 
     # null arrays
@@ -180,16 +185,16 @@ def allequal(a, b, flavor="numpy"):
             return 1
         else:
             if verbose:
-                print("length is not equal")
-                print("len(a.data) ==>", len(a.data))
-                print("len(b.data) ==>", len(b.data))
+                print('length is not equal')
+                print('len(a.data) ==>', len(a.data))
+                print('len(b.data) ==>', len(b.data))
             return 0
 
     # Multidimensional case
-    result = (a == b)
+    result = a == b
     result = np.all(result)
     if not result and verbose:
-        print("Some of the elements in arrays are not equal")
+        print('Some of the elements in arrays are not equal')
 
     return result
 
@@ -206,8 +211,11 @@ def areArraysEqual(arr1, arr2):
     t1 = type(arr1)
     t2 = type(arr2)
 
-    if not ((hasattr(arr1, 'dtype') and arr1.dtype == arr2.dtype) or
-            issubclass(t1, t2) or issubclass(t2, t1)):
+    if not (
+        (hasattr(arr1, 'dtype') and arr1.dtype == arr2.dtype)
+        or issubclass(t1, t2)
+        or issubclass(t2, t1)
+    ):
         return False
 
     return np.all(arr1 == arr2)
@@ -235,47 +243,55 @@ class PyTablesTestCase(unittest.TestCase):
             name = self._getName()
             methodName = self._getMethodName()
 
-            title = f"Running {name}.{methodName}"
+            title = f'Running {name}.{methodName}'
             print('{}\n{}'.format(title, '-' * len(title)))
 
     # COMPATIBILITY: assertWarns is new in Python 3.2
     if not hasattr(unittest.TestCase, 'assertWarns'):
-        def assertWarns(self, expected_warning, callable_obj=None,
-                        *args, **kwargs):
+
+        def assertWarns(
+            self, expected_warning, callable_obj=None, *args, **kwargs
+        ):
             context = _AssertWarnsContext(expected_warning, self, callable_obj)
             return context.handle('assertWarns', callable_obj, args, kwargs)
 
     def _checkEqualityGroup(self, node1, node2, hardlink=False):
         if verbose:
-            print("Group 1:", node1)
-            print("Group 2:", node2)
+            print('Group 1:', node1)
+            print('Group 2:', node2)
         if hardlink:
             self.assertTrue(
                 node1._v_pathname != node2._v_pathname,
-                "node1 and node2 have the same pathnames.")
+                'node1 and node2 have the same pathnames.',
+            )
         else:
             self.assertTrue(
                 node1._v_pathname == node2._v_pathname,
-                "node1 and node2 does not have the same pathnames.")
+                'node1 and node2 does not have the same pathnames.',
+            )
         self.assertTrue(
             node1._v_children == node2._v_children,
-            "node1 and node2 does not have the same children.")
+            'node1 and node2 does not have the same children.',
+        )
 
     def _checkEqualityLeaf(self, node1, node2, hardlink=False):
         if verbose:
-            print("Leaf 1:", node1)
-            print("Leaf 2:", node2)
+            print('Leaf 1:', node1)
+            print('Leaf 2:', node2)
         if hardlink:
             self.assertTrue(
                 node1._v_pathname != node2._v_pathname,
-                "node1 and node2 have the same pathnames.")
+                'node1 and node2 have the same pathnames.',
+            )
         else:
             self.assertTrue(
                 node1._v_pathname == node2._v_pathname,
-                "node1 and node2 does not have the same pathnames.")
+                'node1 and node2 does not have the same pathnames.',
+            )
         self.assertTrue(
             areArraysEqual(node1[:], node2[:]),
-            "node1 and node2 does not have the same values.")
+            'node1 and node2 does not have the same values.',
+        )
 
 
 class TestFileMixin:
@@ -285,7 +301,8 @@ class TestFileMixin:
     def setUp(self):
         super().setUp()
         self.h5file = tb.open_file(
-            self.h5fname, title=self._getName(), **self.open_kwargs)
+            self.h5fname, title=self._getName(), **self.open_kwargs
+        )
 
     def tearDown(self):
         """Close ``h5file``."""
@@ -312,8 +329,11 @@ class TempFileMixin:
         super().setUp()
         self.h5fname = self._getTempFileName()
         self.h5file = tb.open_file(
-            self.h5fname, self.open_mode, title=self._getName(),
-            **self.open_kwargs)
+            self.h5fname,
+            self.open_mode,
+            title=self._getName(),
+            **self.open_kwargs,
+        )
 
     def tearDown(self):
         """Close ``h5file`` and remove ``h5fname``."""
@@ -338,27 +358,27 @@ class TempFileMixin:
 
 class ShowMemTime(PyTablesTestCase):
     tref = clock()
-    """Test for showing memory and time consumption."""
+    '''Test for showing memory and time consumption.'''
 
     def test00(self):
         """Showing memory and time consumption."""
 
         # Obtain memory info (only for Linux 2.6.x)
-        for line in Path("/proc/self/status").read_text().splitlines():
-            if line.startswith("VmSize:"):
+        for line in Path('/proc/self/status').read_text().splitlines():
+            if line.startswith('VmSize:'):
                 vmsize = int(line.split()[1])
-            elif line.startswith("VmRSS:"):
+            elif line.startswith('VmRSS:'):
                 vmrss = int(line.split()[1])
-            elif line.startswith("VmData:"):
+            elif line.startswith('VmData:'):
                 vmdata = int(line.split()[1])
-            elif line.startswith("VmStk:"):
+            elif line.startswith('VmStk:'):
                 vmstk = int(line.split()[1])
-            elif line.startswith("VmExe:"):
+            elif line.startswith('VmExe:'):
                 vmexe = int(line.split()[1])
-            elif line.startswith("VmLib:"):
+            elif line.startswith('VmLib:'):
                 vmlib = int(line.split()[1])
-        print("\nWallClock time:", clock() - self.tref)
-        print("Memory usage: ******* %s *******" % self._getName())
-        print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
-        print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
-        print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
+        print('\nWallClock time:', clock() - self.tref)
+        print('Memory usage: ******* %s *******' % self._getName())
+        print(f'VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB')
+        print(f'VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB')
+        print(f'VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB')

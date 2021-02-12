@@ -8,11 +8,11 @@ import numpy as np
 import tables as tb
 import numexpr as ne
 
-expr = ".25*x**3 + .75*x**2 - 1.5*x - 2"  # the polynomial to compute
+expr = '.25*x**3 + .75*x**2 - 1.5*x - 2'  # the polynomial to compute
 N = 10 * 1000 * 1000    # the number of points to compute expression (80 MB)
 step = 100 * 1000       # perform calculation in slices of `step` elements
 dtype = np.dtype('f8')  # the datatype
-#CHUNKSHAPE = (2**17,)
+# CHUNKSHAPE = (2**17,)
 CHUNKSHAPE = None
 
 # Global variable for the x values for pure numpy & numexpr
@@ -21,11 +21,11 @@ x = None
 # *** The next variables do not need to be changed ***
 
 # Filenames for numpy.memmap
-fprefix = "numpy.memmap"             # the I/O file prefix
-mpfnames = [fprefix + "-x.bin", fprefix + "-r.bin"]
+fprefix = 'numpy.memmap'             # the I/O file prefix
+mpfnames = [fprefix + '-x.bin', fprefix + '-r.bin']
 
 # Filename for tables.Expr
-h5fname = "tablesExpr.h5"     # the I/O file
+h5fname = 'tablesExpr.h5'     # the I/O file
 
 MB = 1024 * 1024               # a MegaByte
 
@@ -39,10 +39,12 @@ def print_filesize(filename, clib=None, clevel=0):
     else:
         filesize_bytes = Path(filename).stat().st_size
     print(
-        f"\t\tTotal file sizes: {filesize_bytes} -- "
-        f"({filesize_bytes / MB:.1f} MB)", end=' ')
+        f'\t\tTotal file sizes: {filesize_bytes} -- '
+        f'({filesize_bytes / MB:.1f} MB)',
+        end=' ',
+    )
     if clevel > 0:
-        print(f"(using {clib} lvl{clevel})")
+        print(f'(using {clib} lvl{clevel})')
     else:
         print()
 
@@ -57,33 +59,35 @@ def populate_x_numpy():
 def populate_x_memmap():
     """Populate the values in x axis for numpy.memmap."""
     # Create container for input
-    x = np.memmap(mpfnames[0], dtype=dtype, mode="w+", shape=(N,))
+    x = np.memmap(mpfnames[0], dtype=dtype, mode='w+', shape=(N,))
 
     # Populate x in range [-1, 1]
     for i in range(0, N, step):
-        chunk = np.linspace((2 * i - N) / N,
-                            (2 * (i + step) - N) / N, step)
-        x[i:i + step] = chunk
+        chunk = np.linspace((2 * i - N) / N, (2 * (i + step) - N) / N, step)
+        x[i : i + step] = chunk
     del x        # close x memmap
 
 
 def populate_x_tables(clib, clevel):
     """Populate the values in x axis for pytables."""
-    f = tb.open_file(h5fname, "w")
+    f = tb.open_file(h5fname, 'w')
 
     # Create container for input
     atom = tb.Atom.from_dtype(dtype)
     filters = tb.Filters(complib=clib, complevel=clevel)
-    x = f.create_carray(f.root, "x", atom=atom, shape=(N,),
-                        filters=filters,
-                        chunkshape=CHUNKSHAPE,
-                        )
+    x = f.create_carray(
+        f.root,
+        'x',
+        atom=atom,
+        shape=(N,),
+        filters=filters,
+        chunkshape=CHUNKSHAPE,
+    )
 
     # Populate x in range [-1, 1]
     for i in range(0, N, step):
-        chunk = np.linspace((2 * i - N) / N,
-                            (2 * (i + step) - N) / N, step)
-        x[i:i + step] = chunk
+        chunk = np.linspace((2 * i - N) / N, (2 * (i + step) - N) / N, step)
+        x[i : i + step] = chunk
     f.close()
 
 
@@ -102,7 +106,7 @@ def compute_memmap():
     # Reopen inputs in read-only mode
     x = np.memmap(mpfnames[0], dtype=dtype, mode='r', shape=(N,))
     # Create the array output
-    r = np.memmap(mpfnames[1], dtype=dtype, mode="w+", shape=(N,))
+    r = np.memmap(mpfnames[1], dtype=dtype, mode='w+', shape=(N,))
 
     # Do the computation by chunks and store in output
     r[:] = eval(expr)          # where is stored the result?
@@ -114,20 +118,24 @@ def compute_memmap():
 
 def compute_tables(clib, clevel):
     """Compute the polynomial with tables.Expr."""
-    f = tb.open_file(h5fname, "a")
+    f = tb.open_file(h5fname, 'a')
     x = f.root.x               # get the x input
     # Create container for output
     atom = tb.Atom.from_dtype(dtype)
     filters = tb.Filters(complib=clib, complevel=clevel)
-    r = f.create_carray(f.root, "r", atom=atom, shape=(N,),
-                        filters=filters,
-                        chunkshape=CHUNKSHAPE,
-                        )
+    r = f.create_carray(
+        f.root,
+        'r',
+        atom=atom,
+        shape=(N,),
+        filters=filters,
+        chunkshape=CHUNKSHAPE,
+    )
 
     # Do the actual computation and store in output
     ex = tb.Expr(expr)         # parse the expression
     ex.set_output(r)            # where is stored the result?
-                               # when commented out, the result goes in-memory
+    # when commented out, the result goes in-memory
     ex.eval()                  # evaluate!
 
     f.close()
@@ -138,51 +146,53 @@ if __name__ == '__main__':
 
     tb.print_versions()
 
-    print(f"Total size for datasets: {2 * N * dtype.itemsize / MB:.1f} MB")
+    print(f'Total size for datasets: {2 * N * dtype.itemsize / MB:.1f} MB')
 
     # Get the compression libraries supported
     # supported_clibs = [clib for clib in ("zlib", "lzo", "bzip2", "blosc")
     # supported_clibs = [clib for clib in ("zlib", "lzo", "blosc")
-    supported_clibs = [clib for clib in ("blosc",)
-                       if tb.which_lib_version(clib)]
+    supported_clibs = [
+        clib for clib in ('blosc',) if tb.which_lib_version(clib)
+    ]
 
     # Initialization code
     # for what in ["numpy", "numpy.memmap", "numexpr"]:
-    for what in ["numpy", "numexpr"]:
+    for what in ['numpy', 'numexpr']:
         # break
-        print("Populating x using %s with %d points..." % (what, N))
+        print('Populating x using %s with %d points...' % (what, N))
         t0 = clock()
-        if what == "numpy":
+        if what == 'numpy':
             populate_x_numpy()
             compute = compute_numpy
-        elif what == "numexpr":
+        elif what == 'numexpr':
             populate_x_numpy()
             compute = compute_numexpr
-        elif what == "numpy.memmap":
+        elif what == 'numpy.memmap':
             populate_x_memmap()
             compute = compute_memmap
-        print(f"*** Time elapsed populating: {clock() - t0:.3f}")
-        print(f"Computing: {expr!r} using {what}")
+        print(f'*** Time elapsed populating: {clock() - t0:.3f}')
+        print(f'Computing: {expr!r} using {what}')
         t0 = clock()
         compute()
-        print(f"**************** Time elapsed computing: {clock() - t0:.3f}")
+        print(f'**************** Time elapsed computing: {clock() - t0:.3f}')
 
-    for what in ["tables.Expr"]:
+    for what in ['tables.Expr']:
         t0 = clock()
         first = True    # Sentinel
         for clib in supported_clibs:
             # for clevel in (0, 1, 3, 6, 9):
             for clevel in range(10):
-            # for clevel in (1,):
+                # for clevel in (1,):
                 if not first and clevel == 0:
                     continue
-                print("Populating x using %s with %d points..." % (what, N))
+                print('Populating x using %s with %d points...' % (what, N))
                 populate_x_tables(clib, clevel)
-                print(f"*** Time elapsed populating: {clock() - t0:.3f}")
-                print(f"Computing: {expr!r} using {what}")
+                print(f'*** Time elapsed populating: {clock() - t0:.3f}')
+                print(f'Computing: {expr!r} using {what}')
                 t0 = clock()
                 compute_tables(clib, clevel)
                 print(
-                    f"**************** Time elapsed computing: "
-                    f"{clock() - t0:.3f}")
+                    f'**************** Time elapsed computing: '
+                    f'{clock() - t0:.3f}'
+                )
                 first = False
