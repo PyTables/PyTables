@@ -70,6 +70,7 @@ class Link(Node):
 
             def _g_close(self):
                 pass
+
         return NoAttrs(self)
 
     def __init__(self, parentnode, name, target=None, _log=False):
@@ -80,8 +81,11 @@ class Link(Node):
         super().__init__(parentnode, name, _log)
 
     # Public and tailored versions for copy, move, rename and remove methods
-    def copy(self, newparent=None, newname=None,
-             overwrite=False, createparents=False):
+    def copy(self,
+             newparent=None,
+             newname=None,
+             overwrite=False,
+             createparents=False):
         """Copy this link and return the new one.
 
         See :meth:`Node._f_copy` for a complete explanation of the arguments.
@@ -90,7 +94,8 @@ class Link(Node):
 
         """
 
-        newnode = self._f_copy(newparent=newparent, newname=newname,
+        newnode = self._f_copy(newparent=newparent,
+                               newname=newname,
                                overwrite=overwrite,
                                createparents=createparents)
         # Insert references to a `newnode` via `newname`
@@ -104,7 +109,8 @@ class Link(Node):
 
         """
 
-        return self._f_move(newparent=newparent, newname=newname,
+        return self._f_move(newparent=newparent,
+                            newname=newname,
                             overwrite=overwrite)
 
     def remove(self):
@@ -218,8 +224,8 @@ class SoftLink(linkextension.SoftLink, Link):
     def __getattribute__(self, attrname):
 
         # get attribute of the SoftLink itself
-        if (attrname in SoftLink._link_attrnames or
-                attrname[:3] in SoftLink._link_attrprefixes):
+        if (attrname in SoftLink._link_attrnames
+                or attrname[:3] in SoftLink._link_attrprefixes):
             return object.__getattribute__(self, attrname)
 
         # get attribute of the target node
@@ -239,8 +245,8 @@ class SoftLink(linkextension.SoftLink, Link):
     def __setattr__(self, attrname, value):
 
         # set attribute of the SoftLink itself
-        if (attrname in SoftLink._link_attrnames or
-                attrname[:3] in SoftLink._link_attrprefixes):
+        if (attrname in SoftLink._link_attrnames
+                or attrname[:3] in SoftLink._link_attrprefixes):
             object.__setattr__(self, attrname, value)
 
         # set attribute of the target node

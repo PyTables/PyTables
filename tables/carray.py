@@ -8,10 +8,9 @@ from .atom import Atom
 from .array import Array
 from .utils import correct_byteorder, SizeType
 
-
 # default version for CARRAY objects
 # obversion = "1.0"    # Support for time & enumerated datatypes.
-obversion = "1.1"    # Numeric and numarray flavors are gone.
+obversion = "1.1"  # Numeric and numarray flavors are gone.
 
 
 class CArray(Array):
@@ -120,11 +119,17 @@ class CArray(Array):
     # Class identifier.
     _c_classid = 'CARRAY'
 
-    def __init__(self, parentnode, name,
-                 atom=None, shape=None,
-                 title="", filters=None,
-                 chunkshape=None, byteorder=None,
-                 _log=True, track_times=True):
+    def __init__(self,
+                 parentnode,
+                 name,
+                 atom=None,
+                 shape=None,
+                 title="",
+                 filters=None,
+                 chunkshape=None,
+                 byteorder=None,
+                 _log=True,
+                 track_times=True):
 
         self.atom = atom
         """An `Atom` instance representing the shape, type of the atomic
@@ -197,15 +202,14 @@ class CArray(Array):
                 self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         # The `Array` class is not abstract enough! :(
-        super(Array, self).__init__(parentnode, name, new, filters,
-                                    byteorder, _log, track_times)
+        super(Array, self).__init__(parentnode, name, new, filters, byteorder,
+                                    _log, track_times)
 
     def _g_create(self):
         """Create a new array in file (specific part)."""
 
         if min(self.shape) < 1:
-            raise ValueError(
-                "shape parameter cannot have zero-dimensions.")
+            raise ValueError("shape parameter cannot have zero-dimensions.")
         # Finish the common part of creation process
         return self._g_create_common(self.nrows)
 
@@ -216,8 +220,9 @@ class CArray(Array):
 
         if self._v_chunkshape is None:
             # Compute the optimal chunk size
-            self._v_chunkshape = self._calc_chunkshape(
-                expectedrows, self.rowsize, self.atom.size)
+            self._v_chunkshape = self._calc_chunkshape(expectedrows,
+                                                       self.rowsize,
+                                                       self.atom.size)
         # Compute the optimal nrowsinbuf
         self.nrowsinbuf = self._calc_nrowsinbuf()
         # Correct the byteorder if needed
@@ -236,8 +241,8 @@ class CArray(Array):
 
         return self._v_objectid
 
-    def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+    def _g_copy_with_stats(self, group, name, start, stop, step, title,
+                           filters, chunkshape, _log, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)
@@ -252,8 +257,13 @@ class CArray(Array):
         # when copying buffers
         self._v_convert = False
         # Build the new CArray object
-        object = CArray(group, name, atom=self.atom, shape=shape,
-                        title=title, filters=filters, chunkshape=chunkshape,
+        object = CArray(group,
+                        name,
+                        atom=self.atom,
+                        shape=shape,
+                        title=title,
+                        filters=filters,
+                        chunkshape=chunkshape,
                         _log=_log)
         # Start the copy itself
         for start2 in range(start, stop, step * nrowsinbuf):

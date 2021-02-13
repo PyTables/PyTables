@@ -7,13 +7,11 @@ to efficiently cope with extremely large amounts of data.
 
 """
 
-
 # Necessary imports to get versions stored on the cython extension
-from .utilsextension import (
-    get_pytables_version, get_hdf5_version, blosc_compressor_list,
-    blosc_compcode_to_compname_ as blosc_compcode_to_compname,
-    blosc_get_complib_info_ as blosc_get_complib_info)
-
+from .utilsextension import (get_pytables_version, get_hdf5_version,
+                             blosc_compressor_list, blosc_compcode_to_compname_
+                             as blosc_compcode_to_compname,
+                             blosc_get_complib_info_ as blosc_get_complib_info)
 
 __version__ = get_pytables_version()
 """The PyTables version number."""
@@ -35,9 +33,8 @@ hdf5Version = hdf5_version
 
 """
 
-from .utilsextension import (is_hdf5_file, is_pytables_file,
-                             which_lib_version, set_blosc_max_threads,
-                             silence_hdf5_messages)
+from .utilsextension import (is_hdf5_file, is_pytables_file, which_lib_version,
+                             set_blosc_max_threads, silence_hdf5_messages)
 
 from .misc.enum import Enum
 from .atom import *
@@ -60,46 +57,108 @@ from .unimplemented import UnImplemented, Unknown
 from .expression import Expr
 from .tests import print_versions, test
 
-
 # List here only the objects we want to be publicly available
 __all__ = [
     # Exceptions and warnings:
     'HDF5ExtError',
-    'ClosedNodeError', 'ClosedFileError', 'FileModeError',
-    'NaturalNameWarning', 'NodeError', 'NoSuchNodeError',
-    'UndoRedoError', 'UndoRedoWarning',
+    'ClosedNodeError',
+    'ClosedFileError',
+    'FileModeError',
+    'NaturalNameWarning',
+    'NodeError',
+    'NoSuchNodeError',
+    'UndoRedoError',
+    'UndoRedoWarning',
     'PerformanceWarning',
-    'FlavorError', 'FlavorWarning',
-    'FiltersWarning', 'DataTypeWarning',
+    'FlavorError',
+    'FlavorWarning',
+    'FiltersWarning',
+    'DataTypeWarning',
     # Functions:
-    'is_hdf5_file', 'is_pytables_file', 'which_lib_version',
-    'copy_file', 'open_file', 'print_versions', 'test',
-    'split_type', 'restrict_flavors', 'set_blosc_max_threads',
+    'is_hdf5_file',
+    'is_pytables_file',
+    'which_lib_version',
+    'copy_file',
+    'open_file',
+    'print_versions',
+    'test',
+    'split_type',
+    'restrict_flavors',
+    'set_blosc_max_threads',
     'silence_hdf5_messages',
     # Helper classes:
-    'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
+    'IsDescription',
+    'Description',
+    'Filters',
+    'Cols',
+    'Column',
     # Types:
     'Enum',
     # Atom types:
-    'Atom', 'StringAtom', 'BoolAtom',
-    'IntAtom', 'UIntAtom', 'Int8Atom', 'UInt8Atom', 'Int16Atom', 'UInt16Atom',
-    'Int32Atom', 'UInt32Atom', 'Int64Atom', 'UInt64Atom',
-    'FloatAtom', 'Float32Atom', 'Float64Atom',
-    'ComplexAtom', 'Complex32Atom', 'Complex64Atom', 'Complex128Atom',
-    'TimeAtom', 'Time32Atom', 'Time64Atom',
+    'Atom',
+    'StringAtom',
+    'BoolAtom',
+    'IntAtom',
+    'UIntAtom',
+    'Int8Atom',
+    'UInt8Atom',
+    'Int16Atom',
+    'UInt16Atom',
+    'Int32Atom',
+    'UInt32Atom',
+    'Int64Atom',
+    'UInt64Atom',
+    'FloatAtom',
+    'Float32Atom',
+    'Float64Atom',
+    'ComplexAtom',
+    'Complex32Atom',
+    'Complex64Atom',
+    'Complex128Atom',
+    'TimeAtom',
+    'Time32Atom',
+    'Time64Atom',
     'EnumAtom',
-    'PseudoAtom', 'ObjectAtom', 'VLStringAtom', 'VLUnicodeAtom',
+    'PseudoAtom',
+    'ObjectAtom',
+    'VLStringAtom',
+    'VLUnicodeAtom',
     # Column types:
-    'Col', 'StringCol', 'BoolCol',
-    'IntCol', 'UIntCol', 'Int8Col', 'UInt8Col', 'Int16Col', 'UInt16Col',
-    'Int32Col', 'UInt32Col', 'Int64Col', 'UInt64Col',
-    'FloatCol', 'Float32Col', 'Float64Col',
-    'ComplexCol', 'Complex32Col', 'Complex64Col', 'Complex128Col',
-    'TimeCol', 'Time32Col', 'Time64Col',
+    'Col',
+    'StringCol',
+    'BoolCol',
+    'IntCol',
+    'UIntCol',
+    'Int8Col',
+    'UInt8Col',
+    'Int16Col',
+    'UInt16Col',
+    'Int32Col',
+    'UInt32Col',
+    'Int64Col',
+    'UInt64Col',
+    'FloatCol',
+    'Float32Col',
+    'Float64Col',
+    'ComplexCol',
+    'Complex32Col',
+    'Complex64Col',
+    'Complex128Col',
+    'TimeCol',
+    'Time32Col',
+    'Time64Col',
     'EnumCol',
     # Node classes:
-    'Node', 'Group', 'Leaf', 'Table', 'Array', 'CArray', 'EArray', 'VLArray',
-    'UnImplemented', 'Unknown',
+    'Node',
+    'Group',
+    'Leaf',
+    'Table',
+    'Array',
+    'CArray',
+    'EArray',
+    'VLArray',
+    'UnImplemented',
+    'Unknown',
     # The File class:
     'File',
     # Expr class
@@ -110,16 +169,15 @@ if 'Float16Atom' in locals():
     # float16 is new in numpy 1.6.0
     __all__.extend(('Float16Atom', 'Float16Col'))
 
-
 from .utilsextension import _broken_hdf5_long_double
 if not _broken_hdf5_long_double():
     if 'Float96Atom' in locals():
         __all__.extend(('Float96Atom', 'Float96Col'))
-        __all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
+        __all__.extend(('Complex192Atom', 'Complex192Col'))  # XXX check
 
     if 'Float128Atom' in locals():
         __all__.extend(('Float128Atom', 'Float128Col'))
-        __all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check
+        __all__.extend(('Complex256Atom', 'Complex256Col'))  # XXX check
 
 else:
 

@@ -13,7 +13,6 @@ from time import process_time as cpuclock
 
 import tables as tb
 
-
 # Global variables
 verbose = False
 regoldindexes = True
@@ -39,7 +38,8 @@ def newdst_group(dstfileh, dstgroup, title, filters):
             group2 = dstfileh.get_node(group, nodename)
         except tb.exceptions.NoSuchNodeError:
             # The group does not exist. Create it.
-            group2 = dstfileh.create_group(group, nodename,
+            group2 = dstfileh.create_group(group,
+                                           nodename,
                                            title=title,
                                            filters=filters)
         group = group2
@@ -66,10 +66,10 @@ def recreate_indexes(table, dstfileh, dsttable):
             colobj.create_index(filters=None)
 
 
-def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
-              filters, copyuserattrs, overwritefile, overwrtnodes, stats,
-              start, stop, step, chunkshape, sortby, check_CSI,
-              propindexes, upgradeflavors, allow_padding):
+def copy_leaf(srcfile, dstfile, srcnode, dstnode, title, filters,
+              copyuserattrs, overwritefile, overwrtnodes, stats, start, stop,
+              step, chunkshape, sortby, check_CSI, propindexes, upgradeflavors,
+              allow_padding):
     # Open the source file
     srcfileh = tb.open_file(srcfile, 'r', allow_padding=allow_padding)
     # Get the source node (that should exist)
@@ -77,7 +77,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
 
     # Get the destination node and its parent
     last_slash = dstnode.rindex('/')
-    if last_slash == len(dstnode)-1:
+    if last_slash == len(dstnode) - 1:
         # print("Detected a trailing slash in destination node. "
         #       "Interpreting it as a destination group.")
         dstgroup = dstnode[:-1]
@@ -90,7 +90,8 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
         dstleaf = srcnode.name
     # Check whether the destination group exists or not
     if Path(dstfile).is_file() and not overwritefile:
-        dstfileh = tb.open_file(dstfile, 'a',
+        dstfileh = tb.open_file(dstfile,
+                                'a',
                                 pytables_sys_attrs=createsysattrs,
                                 allow_padding=allow_padding)
         try:
@@ -107,7 +108,8 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
                     last_slash = dstgroup._v_pathname.rindex('/')
                     dstgroupname = dstgroup._v_pathname[last_slash + 1:]
                     dstgroup.remove()
-                    dstgroup = dstfileh.create_group(parent, dstgroupname,
+                    dstgroup = dstfileh.create_group(parent,
+                                                     dstgroupname,
                                                      title=title,
                                                      filters=filters)
                 else:
@@ -117,19 +119,29 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
                                        "flag if desired.")
     else:
         # The destination file does not exist or will be overwritten.
-        dstfileh = tb.open_file(dstfile, 'w', title=title, filters=filters,
+        dstfileh = tb.open_file(dstfile,
+                                'w',
+                                title=title,
+                                filters=filters,
                                 pytables_sys_attrs=createsysattrs,
                                 allow_padding=allow_padding)
         dstgroup = newdst_group(dstfileh, dstgroup, title="", filters=filters)
 
     # Finally, copy srcnode to dstnode
     try:
-        dstnode = srcnode.copy(
-            dstgroup, dstleaf, filters=filters,
-            copyuserattrs=copyuserattrs, overwrite=overwrtnodes,
-            stats=stats, start=start, stop=stop, step=step,
-            chunkshape=chunkshape,
-            sortby=sortby, check_CSI=check_CSI, propindexes=propindexes)
+        dstnode = srcnode.copy(dstgroup,
+                               dstleaf,
+                               filters=filters,
+                               copyuserattrs=copyuserattrs,
+                               overwrite=overwrtnodes,
+                               stats=stats,
+                               start=start,
+                               stop=stop,
+                               step=step,
+                               chunkshape=chunkshape,
+                               sortby=sortby,
+                               check_CSI=check_CSI,
+                               propindexes=propindexes)
     except Exception:
         (type_, value, traceback) = sys.exc_info()
         print("Problems doing the copy from '%s:%s' to '%s:%s'" %
@@ -161,14 +173,32 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
     dstfileh.close()
 
 
-def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
-                  recursive, filters, copyuserattrs, overwritefile,
-                  overwrtnodes, stats, start, stop, step,
-                  chunkshape, sortby, check_CSI, propindexes,
-                  upgradeflavors, allow_padding, use_hardlinks=True):
+def copy_children(srcfile,
+                  dstfile,
+                  srcgroup,
+                  dstgroup,
+                  title,
+                  recursive,
+                  filters,
+                  copyuserattrs,
+                  overwritefile,
+                  overwrtnodes,
+                  stats,
+                  start,
+                  stop,
+                  step,
+                  chunkshape,
+                  sortby,
+                  check_CSI,
+                  propindexes,
+                  upgradeflavors,
+                  allow_padding,
+                  use_hardlinks=True):
     """Copy the children from source group to destination group"""
     # Open the source file with srcgroup as root_uep
-    srcfileh = tb.open_file(srcfile, 'r', root_uep=srcgroup,
+    srcfileh = tb.open_file(srcfile,
+                            'r',
+                            root_uep=srcgroup,
                             allow_padding=allow_padding)
     #  Assign the root to srcgroup
     srcgroup = srcfileh.root
@@ -176,7 +206,8 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
     created_dstgroup = False
     # Check whether the destination group exists or not
     if Path(dstfile).is_file() and not overwritefile:
-        dstfileh = tb.open_file(dstfile, 'a',
+        dstfileh = tb.open_file(dstfile,
+                                'a',
                                 pytables_sys_attrs=createsysattrs,
                                 allow_padding=allow_padding)
         try:
@@ -194,7 +225,8 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                     last_slash = dstgroup._v_pathname.rindex('/')
                     dstgroupname = dstgroup._v_pathname[last_slash + 1:]
                     dstgroup.remove()
-                    dstgroup = dstfileh.create_group(parent, dstgroupname,
+                    dstgroup = dstfileh.create_group(parent,
+                                                     dstgroupname,
                                                      title=title,
                                                      filters=filters)
                 else:
@@ -204,7 +236,10 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                                        "flag if desired.")
     else:
         # The destination file does not exist or will be overwritten.
-        dstfileh = tb.open_file(dstfile, 'w', title=title, filters=filters,
+        dstfileh = tb.open_file(dstfile,
+                                'w',
+                                title=title,
+                                filters=filters,
                                 pytables_sys_attrs=createsysattrs,
                                 allow_padding=allow_padding)
         dstgroup = newdst_group(dstfileh, dstgroup, title="", filters=filters)
@@ -216,13 +251,20 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
 
     # Finally, copy srcgroup children to dstgroup
     try:
-        srcgroup._f_copy_children(
-            dstgroup, recursive=recursive, filters=filters,
-            copyuserattrs=copyuserattrs, overwrite=overwrtnodes,
-            stats=stats, start=start, stop=stop, step=step,
-            chunkshape=chunkshape,
-            sortby=sortby, check_CSI=check_CSI, propindexes=propindexes,
-            use_hardlinks=use_hardlinks)
+        srcgroup._f_copy_children(dstgroup,
+                                  recursive=recursive,
+                                  filters=filters,
+                                  copyuserattrs=copyuserattrs,
+                                  overwrite=overwrtnodes,
+                                  stats=stats,
+                                  start=start,
+                                  stop=stop,
+                                  step=step,
+                                  chunkshape=chunkshape,
+                                  sortby=sortby,
+                                  check_CSI=check_CSI,
+                                  propindexes=propindexes,
+                                  use_hardlinks=use_hardlinks)
     except Exception:
         (type_, value, traceback) = sys.exc_info()
         print("Problems doing the copy from '%s:%s' to '%s:%s'" %
@@ -273,122 +315,163 @@ def _get_parser():
         counterparts.''')
 
     parser.add_argument(
-        '-v', '--verbose', action='store_true',
+        '-v',
+        '--verbose',
+        action='store_true',
         help='show verbose information',
     )
     parser.add_argument(
-        '-o', '--overwrite', action='store_true', dest='overwritefile',
+        '-o',
+        '--overwrite',
+        action='store_true',
+        dest='overwritefile',
         help='overwrite destination file',
     )
     parser.add_argument(
-        '-R', '--range', dest='rng', metavar='RANGE',
+        '-R',
+        '--range',
+        dest='rng',
+        metavar='RANGE',
         help='''select a RANGE of rows (in the form "start,stop,step")
         during the copy of *all* the leaves.
         Default values are "None,None,1", which means a copy of all the
         rows.''',
     )
     parser.add_argument(
-        '--non-recursive', action='store_false', default=True,
+        '--non-recursive',
+        action='store_false',
+        default=True,
         dest='recursive',
         help='do not do a recursive copy. Default is to do it',
     )
     parser.add_argument(
-        '--dest-title', dest='title', default='',
+        '--dest-title',
+        dest='title',
+        default='',
         help='title for the new file (if not specified, the source is copied)',
     )
     parser.add_argument(
-        '--dont-create-sysattrs', action='store_false', default=True,
+        '--dont-create-sysattrs',
+        action='store_false',
+        default=True,
         dest='createsysattrs',
         help='do not create sys attrs (default is to do it)',
     )
     parser.add_argument(
-        '--dont-copy-userattrs', action='store_false', default=True,
+        '--dont-copy-userattrs',
+        action='store_false',
+        default=True,
         dest='copyuserattrs',
         help='do not copy the user attrs (default is to do it)',
     )
     parser.add_argument(
-        '--overwrite-nodes', action='store_true', dest='overwrtnodes',
+        '--overwrite-nodes',
+        action='store_true',
+        dest='overwrtnodes',
         help='''overwrite destination nodes if they exist.
         Default is to not overwrite them''',
     )
     parser.add_argument(
-        '--complevel', type=int, default=0,
+        '--complevel',
+        type=int,
+        default=0,
         help='''set a compression level (0 for no compression, which is the
         default)''',
     )
     parser.add_argument(
-        '--complib', choices=(
-            "zlib", "lzo", "bzip2", "blosc", "blosc:blosclz",
-            "blosc:lz4", "blosc:lz4hc", "blosc:snappy",
-            "blosc:zlib", "blosc:zstd"), default='zlib',
+        '--complib',
+        choices=("zlib", "lzo", "bzip2", "blosc", "blosc:blosclz", "blosc:lz4",
+                 "blosc:lz4hc", "blosc:snappy", "blosc:zlib", "blosc:zstd"),
+        default='zlib',
         help='''set the compression library to be used during the copy.
         Defaults to %(default)s''',
     )
     parser.add_argument(
-        '--shuffle', type=int, choices=(0, 1),
+        '--shuffle',
+        type=int,
+        choices=(0, 1),
         help='''activate or not the shuffle filter (default is active if
         complevel > 0)''',
     )
     parser.add_argument(
-        '--bitshuffle', type=int, choices=(0, 1),
+        '--bitshuffle',
+        type=int,
+        choices=(0, 1),
         help='activate or not the bitshuffle filter (not active by default)',
     )
     parser.add_argument(
-        '--fletcher32', type=int, choices=(0, 1),
+        '--fletcher32',
+        type=int,
+        choices=(0, 1),
         help='''whether to activate or not the fletcher32 filter (not active
         by default)''',
     )
     parser.add_argument(
-        '--keep-source-filters', action='store_true', dest='keepfilters',
+        '--keep-source-filters',
+        action='store_true',
+        dest='keepfilters',
         help='''use the original filters in source files.
         The default is not doing that if any of --complevel, --complib,
         --shuffle --bitshuffle or --fletcher32 option is specified''',
     )
     parser.add_argument(
-        '--chunkshape', default='keep',
+        '--chunkshape',
+        default='keep',
         help='''set a chunkshape.
         Possible options are: "keep" | "auto" | int | tuple.
         A value of "auto" computes a sensible value for the chunkshape of the
         leaves copied.  The default is to "keep" the original value''',
     )
     parser.add_argument(
-        '--upgrade-flavors', action='store_true', dest='upgradeflavors',
+        '--upgrade-flavors',
+        action='store_true',
+        dest='upgradeflavors',
         help='''when repacking PyTables 1.x or PyTables 2.x files, the flavor
         of leaves will be unset. With this, such a leaves will be serialized
         as objects with the internal flavor ('numpy' for 3.x series)''',
     )
     parser.add_argument(
-        '--dont-regenerate-old-indexes', action='store_false', default=True,
+        '--dont-regenerate-old-indexes',
+        action='store_false',
+        default=True,
         dest='regoldindexes',
         help='''disable regenerating old indexes.
         The default is to regenerate old indexes as they are found''',
     )
     parser.add_argument(
-        '--sortby', metavar='COLUMN',
+        '--sortby',
+        metavar='COLUMN',
         help='''do a table copy sorted by the index in "column".
         For reversing the order, use a negative value in the "step" part of
         "RANGE" (see "-r" flag).  Only applies to table objects''',
     )
     parser.add_argument(
-        '--checkCSI', action='store_true',
+        '--checkCSI',
+        action='store_true',
         help='force the check for a CSI index for the --sortby column',
     )
     parser.add_argument(
-        '--propindexes', action='store_true',
+        '--propindexes',
+        action='store_true',
         help='''propagate the indexes existing in original tables. The default
         is to not propagate them.  Only applies to table objects''',
     )
     parser.add_argument(
-        '--dont-allow-padding', action='store_true',
+        '--dont-allow-padding',
+        action='store_true',
         dest="dont_allow_padding",
         help='''remove the possible padding in compound types in source files.
         The default is to propagate it.  Only applies to table objects''',
     )
     parser.add_argument(
-        'src', metavar='sourcefile:sourcegroup', help='source file/group',
+        'src',
+        metavar='sourcefile:sourcegroup',
+        help='source file/group',
     )
     parser.add_argument(
-        'dst', metavar='destfile:destgroup', help='destination file/group',
+        'dst',
+        metavar='destfile:destgroup',
+        help='destination file/group',
     )
 
     return parser
@@ -414,8 +497,7 @@ def main():
 
     if args.complevel < 0 or args.complevel > 9:
         parser.error(
-            'invalid "complevel" value, it sould be in te range [0, 9]'
-        )
+            'invalid "complevel" value, it sould be in te range [0, 9]')
 
     # Catch the files passed as the last arguments
     src = args.src.rsplit(':', 1)
@@ -453,7 +535,7 @@ def main():
         args.bitshuffle,
         args.fletcher32,
     )
-    if (filter_params == (None,) * 4 or args.keepfilters):
+    if (filter_params == (None, ) * 4 or args.keepfilters):
         filters = None
     else:
         if args.complevel is None:
@@ -473,7 +555,8 @@ def main():
         if args.fletcher32 is None:
             args.fletcher32 = False
         filters = tb.leaf.Filters(complevel=args.complevel,
-                                  complib=args.complib, shuffle=args.shuffle,
+                                  complib=args.complib,
+                                  shuffle=args.shuffle,
                                   bitshuffle=args.bitshuffle,
                                   fletcher32=args.fletcher32)
 
@@ -513,27 +596,46 @@ def main():
 
     stats = {'groups': 0, 'leaves': 0, 'links': 0, 'bytes': 0, 'hardlinks': 0}
     if isinstance(srcnodeobject, tb.group.Group):
-        copy_children(
-            srcfile, dstfile, srcnode, dstnode,
-            title=args.title, recursive=args.recursive, filters=filters,
-            copyuserattrs=args.copyuserattrs, overwritefile=args.overwritefile,
-            overwrtnodes=args.overwrtnodes, stats=stats,
-            start=start, stop=stop, step=step, chunkshape=args.chunkshape,
-            sortby=args.sortby, check_CSI=args.checkCSI,
-            propindexes=args.propindexes,
-            upgradeflavors=args.upgradeflavors,
-            allow_padding=allow_padding,
-            use_hardlinks=True)
+        copy_children(srcfile,
+                      dstfile,
+                      srcnode,
+                      dstnode,
+                      title=args.title,
+                      recursive=args.recursive,
+                      filters=filters,
+                      copyuserattrs=args.copyuserattrs,
+                      overwritefile=args.overwritefile,
+                      overwrtnodes=args.overwrtnodes,
+                      stats=stats,
+                      start=start,
+                      stop=stop,
+                      step=step,
+                      chunkshape=args.chunkshape,
+                      sortby=args.sortby,
+                      check_CSI=args.checkCSI,
+                      propindexes=args.propindexes,
+                      upgradeflavors=args.upgradeflavors,
+                      allow_padding=allow_padding,
+                      use_hardlinks=True)
     else:
         # If not a Group, it should be a Leaf
         copy_leaf(
-            srcfile, dstfile, srcnode, dstnode,
-            title=args.title, filters=filters,
+            srcfile,
+            dstfile,
+            srcnode,
+            dstnode,
+            title=args.title,
+            filters=filters,
             copyuserattrs=args.copyuserattrs,
-            overwritefile=args.overwritefile, overwrtnodes=args.overwrtnodes,
-            stats=stats, start=start, stop=stop, step=step,
+            overwritefile=args.overwritefile,
+            overwrtnodes=args.overwrtnodes,
+            stats=stats,
+            start=start,
+            stop=stop,
+            step=step,
             chunkshape=args.chunkshape,
-            sortby=args.sortby, check_CSI=args.checkCSI,
+            sortby=args.sortby,
+            check_CSI=args.checkCSI,
             propindexes=args.propindexes,
             upgradeflavors=args.upgradeflavors,
             allow_padding=allow_padding,
@@ -553,18 +655,21 @@ def main():
         nnodes = ngroups + nleaves + nlinks + nhardlinks
 
         print(
-            "Groups copied:", ngroups,
-            ", Leaves copied:", nleaves,
-            ", Links copied:", nlinks,
-            ", Hard links copied:", nhardlinks,
+            "Groups copied:",
+            ngroups,
+            ", Leaves copied:",
+            nleaves,
+            ", Links copied:",
+            nlinks,
+            ", Hard links copied:",
+            nhardlinks,
         )
         if args.copyuserattrs:
             print("User attrs copied")
         else:
             print("User attrs not copied")
         print(f"KBytes copied: {nbytescopied / 1024:.3f}")
-        print(
-            f"Time copying: {tcopy:.3f} s (real) {cpucopy:.3f} s "
-            f"(cpu)  {cpucopy / tcopy:.0%}")
+        print(f"Time copying: {tcopy:.3f} s (real) {cpucopy:.3f} s "
+              f"(cpu)  {cpucopy / tcopy:.0%}")
         print(f"Copied nodes/sec: {nnodes / tcopy:.1f}")
         print(f"Copied KB/s : {nbytescopied / tcopy / 1024:.0f}")

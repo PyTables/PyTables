@@ -52,7 +52,6 @@ bytes)."""
 SORTEDLR_MAX_SLOTS = 1 * _KB
 """The maximum number of chunks for SORTEDLR cache."""
 
-
 # Parameters for general cache behaviour
 # --------------------------------------
 #
@@ -75,7 +74,6 @@ for checking if we are in a better scenario for doing caching again."""
 LOWEST_HIT_RATIO = 0.6
 """The minimum acceptable hit ratio for a cache to avoid disabling (and
 freeing) it."""
-
 
 # Tunable parameters
 # ==================
@@ -106,7 +104,6 @@ MAX_TREE_DEPTH = 2 * _KB
 MAX_UNDO_PATH_LENGTH = 10 * _KB
 """Maximum length of paths allowed in undo/redo operations."""
 
-
 # Cache limits
 # ------------
 
@@ -130,7 +127,6 @@ CHUNK_CACHE_SIZE = 2 * _MB
 # Size for new metadata cache system
 METADATA_CACHE_SIZE = 1 * _MB  # 1 MB is the default for HDF5
 """Size (in bytes) of the HDF5 metadata cache."""
-
 
 # NODE_CACHE_SLOTS tells the number of nodes that fits in the cache.
 #
@@ -165,7 +161,6 @@ be warned when the number of loaded nodes will reach the
 Finally, a value of zero means that any cache mechanism is disabled.
 """
 
-
 # Parameters for the I/O buffer in `Leaf` objects
 # -----------------------------------------------
 
@@ -176,7 +171,6 @@ exceed the amount of highest level cache size in your CPU."""
 BUFFER_TIMES = 100
 """The maximum buffersize/rowsize ratio before issuing a
 :exc:`tables.PerformanceWarning`."""
-
 
 # Miscellaneous
 # -------------
@@ -208,7 +202,7 @@ your machine. In general, it is a good idea to set this to the number of
 cores in your machine or, when your machine has many of them (e.g. > 8),
 perhaps stay at 8 at maximum.  In general, 4 threads is a good tradeoff."""
 
-MAX_BLOSC_THREADS = 1    # 1 is safe for concurrency
+MAX_BLOSC_THREADS = 1  # 1 is safe for concurrency
 """The maximum number of threads that PyTables should use internally in
 Blosc.  If `None`, it is automatically set to the number of cores in
 your machine.  For applications that use several PyTables instances
@@ -238,7 +232,6 @@ datasets/attributes (i.e. the previous behaviour), set this to `False`.
 .. versionadded:: 3.5
 
 """
-
 
 # HDF5 driver management
 # ----------------------

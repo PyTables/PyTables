@@ -14,7 +14,6 @@ Misc variables:
 
 """
 
-
 # Important: no modules from PyTables should be imported here
 # (but standard modules are OK), since the main reason for this module
 # is avoiding circular imports!
@@ -71,7 +70,7 @@ def get_class_by_name(classname):
 
     # Get the class object corresponding to `classname`.
     if classname not in class_name_dict:
-        raise TypeError("there is no registered node class named ``%s``"
-                        % (classname,))
+        raise TypeError("there is no registered node class named ``%s``" %
+                        (classname, ))
 
     return class_name_dict[classname]

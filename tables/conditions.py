@@ -20,7 +20,6 @@ import numexpr as ne
 from .utilsextension import get_nested_field
 from .utils import lazyattr
 
-
 _no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")
 # E.g. "gt" and "bfc" from "couldn't find matching opcode for 'gt_bfc'".
 
@@ -35,8 +34,8 @@ def _unsupported_operation_error(exception):
     message = exception.args[0]
     op, types = _no_matching_opcode.search(message).groups()
     newmessage = "unsupported operand types for *%s*: " % op
-    newmessage += ', '.join(
-        ne.necompiler.typecode_to_kind[t] for t in types[1:])
+    newmessage += ', '.join(ne.necompiler.typecode_to_kind[t]
+                            for t in types[1:])
     return exception.__class__(newmessage)
 
 
@@ -47,7 +46,6 @@ def _check_indexable_cmp(getidxcmp):
     the comparison if it was compiled within a complete condition.
 
     """
-
     def newfunc(exprnode, indexedcols):
         result = getidxcmp(exprnode, indexedcols)
         if result[0] is not None:
@@ -58,6 +56,7 @@ def _check_indexable_cmp(getidxcmp):
                 # Try to make this Numexpr error less cryptic.
                 raise _unsupported_operation_error(nie)
         return result
+
     newfunc.__name__ = getidxcmp.__name__
     newfunc.__doc__ = getidxcmp.__doc__
     return newfunc
@@ -77,24 +76,25 @@ def _get_indexable_cmp(exprnode, indexedcols):
     """
 
     not_indexable = (None, None, None)
-    turncmp = {'lt': 'gt',
-               'le': 'ge',
-               'eq': 'eq',
-               'ge': 'le',
-               'gt': 'lt', }
+    turncmp = {
+        'lt': 'gt',
+        'le': 'ge',
+        'eq': 'eq',
+        'ge': 'le',
+        'gt': 'lt',
+    }
 
     def get_cmp(var, const, op):
         var_value, const_value = var.value, const.value
         if (var.astType == 'variable' and var_value in indexedcols
-           and const.astType in ['constant', 'variable']):
+                and const.astType in ['constant', 'variable']):
             if const.astType == 'variable':
                 const_value = (const_value, )
             return (var_value, op, const_value)
         return None
 
     def is_indexed_boolean(node):
-        return (node.astType == 'variable'
-                and node.astKind == 'bool'
+        return (node.astType == 'variable' and node.astKind == 'bool'
                 and node.value in indexedcols)
 
     # Boolean variables are indexable by themselves.
@@ -142,8 +142,7 @@ def _equiv_expr_node(x, y):
     elif (type(x) is not type(y)
           or not isinstance(x, ne.expressions.ExpressionNode)
           or not isinstance(y, ne.expressions.ExpressionNode)
-          or x.value != y.value
-          or x.astKind != y.astKind
+          or x.value != y.value or x.astKind != y.astKind
           or len(x.children) != len(y.children)):
         return False
     for xchild, ychild in zip(x.children, y.children):
@@ -199,10 +198,10 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
                 value ^= True
             else:
                 op = negcmp[op]
-            expr = (var, (op,), (value,))
+            expr = (var, (op, ), (value, ))
             invert = False
         else:
-            expr = (idxcmp[0], (idxcmp[1],), (idxcmp[2],))
+            expr = (idxcmp[0], (idxcmp[1], ), (idxcmp[2], ))
         return [expr]
 
     # For now negations of complex expressions will be not supported as
@@ -251,7 +250,8 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
                 strexpr[:] = ["e0"]
             else:
                 strexpr[:] = [
-                    "(%s %s e%d)" % (strexpr[0], op_conv[op], lenexprs - 1)]
+                    "(%s %s e%d)" % (strexpr[0], op_conv[op], lenexprs - 1)
+                ]
 
     # Add expressions to the indexable list when they are and'ed, or
     # they are both indexable.
@@ -302,7 +302,6 @@ def _get_idx_expr(expr, indexedcols):
 
 class CompiledCondition:
     """Container for a compiled condition."""
-
     @lazyattr
     def index_variables(self):
         """The columns participating in the index expression."""
@@ -328,9 +327,9 @@ class CompiledCondition:
         """NumExpr kwargs (used to pass ex_uses_vml to numexpr)"""
 
     def __repr__(self):
-        return ("idxexprs: %s\nstrexpr: %s\nidxvars: %s"
-                % (self.index_expressions, self.string_expression,
-                   self.index_variables))
+        return ("idxexprs: %s\nstrexpr: %s\nidxvars: %s" %
+                (self.index_expressions, self.string_expression,
+                 self.index_variables))
 
     def with_replaced_vars(self, condvars):
         """Replace index limit variables with their values in-place.
@@ -353,9 +352,8 @@ class CompiledCondition:
             var, ops, _ = expr
             exprs2.append((var, ops, tuple(limit_values)))
         # Create a new container for the converted values
-        newcc = CompiledCondition(
-            self.function, self.parameters, exprs2, self.string_expression,
-            **self.kwargs)
+        newcc = CompiledCondition(self.function, self.parameters, exprs2,
+                                  self.string_expression, **self.kwargs)
         return newcc
 
 
@@ -392,8 +390,8 @@ def compile_condition(condition, typemap, indexedcols):
     # Get the expression tree and extract index conditions.
     expr = ne.necompiler.stringToExpression(condition, typemap, {})
     if expr.astKind != 'bool':
-        raise TypeError("condition ``%s`` does not have a boolean type"
-                        % condition)
+        raise TypeError("condition ``%s`` does not have a boolean type" %
+                        condition)
     idxexprs = _get_idx_expr(expr, indexedcols)
     # Post-process the answer
     if isinstance(idxexprs, list):

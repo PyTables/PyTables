@@ -130,7 +130,6 @@ class Expr:
     .. versionadded:: 3.0
 
     """
-
     def __init__(self, expr, uservars=None, **kwargs):
 
         self.append_mode = False
@@ -149,7 +148,7 @@ class Expr:
         """The step range selection for the user-provided output."""
         self.shape = None
         """Common shape for the arrays in expression."""
-        self.start, self.stop, self.step = (None,) * 3
+        self.start, self.stop, self.step = (None, ) * 3
         self.start = None
         """The start range selection for the input."""
         self.stop = None
@@ -254,9 +253,11 @@ class Expr:
                 for k in list(exprvars_cache)[:10]:
                     del exprvars_cache[k]
             cexpr = compile(expression, '<string>', 'eval')
-            exprvars = [var for var in cexpr.co_names
-                        if var not in ['None', 'False', 'True']
-                        and var not in ne.expressions.functions]
+            exprvars = [
+                var for var in cexpr.co_names
+                if var not in ['None', 'False', 'True']
+                and var not in ne.expressions.functions
+            ]
             exprvars_cache[expression] = exprvars
         else:
             exprvars = exprvars_cache[expression]
@@ -294,9 +295,8 @@ class Expr:
                 # above already raise a ``TypeError`` for nested
                 # columns, but that could change in the future.  So it
                 # is best to let this here.
-                raise TypeError(
-                    "variable ``%s`` refers to a nested column, "
-                    "not allowed in expressions" % var)
+                raise TypeError("variable ``%s`` refers to a nested column, "
+                                "not allowed in expressions" % var)
             reqvars[var] = val
         return reqvars
 
@@ -389,14 +389,14 @@ class Expr:
             # If rowsize is too large, issue a Performance warning
             maxrowsize = BUFFER_TIMES * buffersize
             if rowsize > maxrowsize:
-                warnings.warn("""\
+                warnings.warn(
+                    """\
 The object ``%s`` is exceeding the maximum recommended rowsize (%d
 bytes); be ready to see PyTables asking for *lots* of memory and
 possibly slow I/O.  You may want to reduce the rowsize by trimming the
 value of dimensions that are orthogonal (and preferably close) to the
-*leading* dimension of this object."""
-                              % (object, maxrowsize),
-                              PerformanceWarning)
+*leading* dimension of this object.""" % (object, maxrowsize),
+                    PerformanceWarning)
 
         return nrowsinbuf
 
@@ -424,7 +424,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             maindim = 0
 
         # The slices parameter for inputs
-        slices = (slice(None),) * maindim + (0,)
+        slices = (slice(None), ) * maindim + (0, )
 
         # Now, collect the values in first row of arrays with maximum dims
         vals = []
@@ -455,10 +455,9 @@ value of dimensions that are orthogonal (and preferably close) to the
         # in account new possible values of start, stop and step in
         # the inputs range
         if maindim is not None:
-            (start, stop, step) = slice(
-                self.start, self.stop, self.step).indices(shape[maindim])
-            shape[maindim] = min(
-                shape[maindim], len(range(start, stop, step)))
+            (start, stop, step) = slice(self.start, self.stop,
+                                        self.step).indices(shape[maindim])
+            shape[maindim] = min(shape[maindim], len(range(start, stop, step)))
             i_nrows = shape[maindim]
         else:
             start, stop, step = 0, 0, None
@@ -466,7 +465,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         if not itermode:
             # Create a container for output if not defined yet
-            o_maindim = 0    # Default maindim
+            o_maindim = 0  # Default maindim
             if self.out is None:
                 out = np.empty(shape, dtype=self._single_row_out.dtype)
                 # Get the trivial values for start, stop and step
@@ -490,9 +489,9 @@ value of dimensions that are orthogonal (and preferably close) to the
                                          len(range(o_start, o_stop, o_step)))
 
                 # Check that the shape of output is consistent with inputs
-                tr_oshape = list(o_shape)   # this implies a copy
+                tr_oshape = list(o_shape)  # this implies a copy
                 olen_ = tr_oshape.pop(o_maindim)
-                tr_shape = list(shape)      # do a copy
+                tr_shape = list(shape)  # do a copy
                 if maindim is not None:
                     len_ = tr_shape.pop(o_maindim)
                 else:
@@ -508,8 +507,9 @@ value of dimensions that are orthogonal (and preferably close) to the
         # Get the positions of inputs that should be sliced (the others
         # will be broadcasted)
         ndim = len(shape)
-        slice_pos = [i for i, val in enumerate(self.values)
-                     if len(val.shape) == ndim]
+        slice_pos = [
+            i for i, val in enumerate(self.values) if len(val.shape) == ndim
+        ]
 
         # The size of the I/O buffer
         nrowsinbuf = 1
@@ -521,8 +521,8 @@ value of dimensions that are orthogonal (and preferably close) to the
                     nrowsinbuf = nrows
 
         if not itermode:
-            return (i_nrows, slice_pos, start, stop, step, nrowsinbuf,
-                    out, o_maindim, o_start, o_stop, o_step)
+            return (i_nrows, slice_pos, start, stop, step, nrowsinbuf, out,
+                    o_maindim, o_start, o_stop, o_step)
         else:
             # For itermode, we don't need the out info
             return (i_nrows, slice_pos, start, stop, step, nrowsinbuf)
@@ -688,7 +688,9 @@ if __name__ == "__main__":
     a = f.create_carray(f.root, 'a', atom=tb.Float32Atom(dflt=1), shape=shape)
     b = f.create_carray(f.root, 'b', atom=tb.Float32Atom(dflt=2), shape=shape)
     c = f.create_carray(f.root, 'c', atom=tb.Float32Atom(dflt=3), shape=shape)
-    out = f.create_carray(f.root, 'out', atom=tb.Float32Atom(dflt=3),
+    out = f.create_carray(f.root,
+                          'out',
+                          atom=tb.Float32Atom(dflt=3),
                           shape=shape)
 
     expr = Expr("a * b + c")
