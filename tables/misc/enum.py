@@ -16,7 +16,6 @@ standard variables and constants are more adequate.
 
 """
 
-
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
@@ -100,7 +99,6 @@ class Enum:
     strings as concrete values.)
 
     """
-
     def __init__(self, enum):
         mydict = self.__dict__
 
@@ -132,17 +130,16 @@ sequences, mappings and other enumerations""")
                 f"name of enumerated value is not a string: {name!r}")
         if name.startswith('_'):
             raise ValueError(
-                "name of enumerated value can not start with ``_``: %r"
-                % name)
+                "name of enumerated value can not start with ``_``: %r" % name)
         # This check is only necessary with a sequence base object.
         if name in names:
-            raise ValueError(
-                "enumerated values contain duplicate names: %r" % name)
+            raise ValueError("enumerated values contain duplicate names: %r" %
+                             name)
         # This check is only necessary with a mapping base object.
         if value in values:
             raise ValueError(
-                "enumerated values contain duplicate concrete values: %r"
-                % value)
+                "enumerated values contain duplicate concrete values: %r" %
+                value)
 
         names[name] = value
         values[value] = name

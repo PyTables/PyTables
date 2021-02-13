@@ -4,7 +4,6 @@ import weakref
 
 class ProxyDict(dict):
     """A dictionary which uses a container object to store its values."""
-
     def __init__(self, container):
         self.containerref = weakref.ref(container)
         """A weak reference to the container object.

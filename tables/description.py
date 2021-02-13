@@ -8,7 +8,6 @@ import numpy as np
 from . import atom
 from .path import check_name_validity
 
-
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
@@ -21,6 +20,7 @@ def same_position(oldmethod):
         except AttributeError:
             return False  # not a column definition
         return self._v_pos == other._v_pos and oldmethod(self, other)
+
     newmethod.__name__ = oldmethod.__name__
     newmethod.__doc__ = oldmethod.__doc__
     return newmethod
@@ -69,7 +69,6 @@ class Col(atom.Atom, metaclass=type):
 
     _class_from_prefix = {}  # filled as column classes are created
     """Maps column prefixes to column classes."""
-
     @classmethod
     def prefix(cls):
         """Return the column class prefix."""
@@ -164,7 +163,6 @@ class Col(atom.Atom, metaclass=type):
             attribute.
 
             """
-
             def __init__(self, *args, **kwargs):
                 pos = kwargs.pop('pos', None)
                 offset = kwargs.pop('_offset', None)
@@ -419,7 +417,6 @@ class Description:
            types (non-nested) are honored and replicated during dataset
            and attribute copies.
     """
-
     def __init__(self, classdict, nestedlvl=-1, validate=True, ptparams=None):
 
         if not classdict:
@@ -428,7 +425,7 @@ class Description:
         # Do a shallow copy of classdict just in case this is going to
         # be shared by other instances
         newdict = self.__dict__
-        newdict["_v_name"] = "/"   # The name for root descriptor
+        newdict["_v_name"] = "/"  # The name for root descriptor
         newdict["_v_names"] = []
         newdict["_v_dtypes"] = {}
         newdict["_v_types"] = {}
@@ -452,20 +449,20 @@ class Description:
                 if name in newdict:
                     # print("Warning!")
                     # special methods &c: copy to newdict, warn about conflicts
-                    warnings.warn("Can't set attr %r in description class %r"
-                                  % (name, self))
+                    warnings.warn("Can't set attr %r in description class %r" %
+                                  (name, self))
                 else:
                     # print("Special variable!-->", name, classdict[name])
                     newdict[name] = descr
                 continue  # This variable is not needed anymore
 
             columns = None
-            if (type(descr) == type(IsDescription) and
-                    issubclass(descr, IsDescription)):
+            if (type(descr) == type(IsDescription)
+                    and issubclass(descr, IsDescription)):
                 # print("Nested object (type I)-->", name)
                 columns = descr().columns
-            elif (type(descr.__class__) == type(IsDescription) and
-                  issubclass(descr.__class__, IsDescription)):
+            elif (type(descr.__class__) == type(IsDescription)
+                  and issubclass(descr.__class__, IsDescription)):
                 # print("Nested object (type II)-->", name)
                 columns = descr.columns
             elif isinstance(descr, dict):
@@ -478,7 +475,8 @@ class Description:
             # provided by the user will remain unchanged even if we
             # tamper with the values of ``_v_pos`` here.
             if columns is not None:
-                descr = Description(copy.copy(columns), self._v_nestedlvl,
+                descr = Description(copy.copy(columns),
+                                    self._v_nestedlvl,
                                     ptparams=ptparams)
             classdict[name] = descr
 
@@ -509,7 +507,7 @@ class Description:
                 check_name_validity(k)
             # Class variables
             object = classdict[k]
-            newdict[k] = object    # To allow natural naming
+            newdict[k] = object  # To allow natural naming
             if not isinstance(object, (Col, Description)):
                 raise TypeError('Passing an incorrect value to a table column.'
                                 ' Expected a Col (or subclass) instance and '
@@ -560,11 +558,10 @@ class Description:
         # most of the unhandled situations.
         allow_padding = ptparams is None or ptparams['ALLOW_PADDING']
         # allow_padding = ptparams is not None and ptparams['ALLOW_PADDING']
-        if (allow_padding and
-                len(cols_offsets) > 1 and
-                len(keys) == len(cols_with_pos) and
-                len(keys) == len(cols_offsets) and
-                not nested):  # TODO: support offsets with nested types
+        if (allow_padding and len(cols_offsets) > 1
+                and len(keys) == len(cols_with_pos)
+                and len(keys) == len(cols_offsets)
+                and not nested):  # TODO: support offsets with nested types
             # We have to sort the offsets too, as they must follow the column
             # order. As the offsets and the pos should be place in the same
             # order, a single sort is enough here.
@@ -592,8 +589,10 @@ class Description:
         if valid_offsets:
             # TODO: support offsets within nested types
             dtype_fields = {
-                'names': newdict['_v_names'], 'formats': nestedFormats,
-                'offsets': cols_offsets}
+                'names': newdict['_v_names'],
+                'formats': nestedFormats,
+                'offsets': cols_offsets
+            }
             itemsize = newdict.get('_v_itemsize', None)
             if itemsize is not None:
                 dtype_fields['itemsize'] = itemsize
@@ -629,10 +628,11 @@ class Description:
         in this nested description.
 
         """
-
         def get_cols_in_order(description):
-            return [description._v_colobjects[colname]
-                    for colname in description._v_names]
+            return [
+                description._v_colobjects[colname]
+                for colname in description._v_names
+            ]
 
         def join_paths(path1, path2):
             if not path1:
@@ -728,9 +728,11 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
     def __repr__(self):
         """Gives a detailed Description column representation."""
 
-        rep = ['%s\"%s\": %r' %
-               ("  " * self._v_nestedlvl, k, self._v_colobjects[k])
-               for k in self._v_names]
+        rep = [
+            '%s\"%s\": %r' %
+            ("  " * self._v_nestedlvl, k, self._v_colobjects[k])
+            for k in self._v_names
+        ]
         return '{\n  %s}' % (',\n  '.join(rep))
 
     def __str__(self):
@@ -741,11 +743,12 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
 
 class MetaIsDescription(type):
     """Helper metaclass to return the class variables as a dictionary."""
-
     def __new__(mcs, classname, bases, classdict):
         """Return a new class with a "columns" attribute filled."""
 
-        newdict = {"columns": {}, }
+        newdict = {
+            "columns": {},
+        }
         if '__doc__' in classdict:
             newdict['__doc__'] = classdict['__doc__']
         for b in bases:
@@ -825,7 +828,7 @@ def descr_from_dtype(dtype_, ptparams=None):
         if kind in 'biufSUc':
             col = Col.from_dtype(dtype, pos=offset, _offset=offset)
         # Nested column
-        elif kind == 'V' and dtype.shape in [(), (1,)]:
+        elif kind == 'V' and dtype.shape in [(), (1, )]:
             if dtype.shape != ():
                 warnings.warn(
                     "nested descriptions will be converted to scalar")
@@ -869,7 +872,6 @@ def dtype_from_descr(descr, byteorder=None, ptparams=None):
 
 if __name__ == "__main__":
     """Test code."""
-
     class Info(IsDescription):
         _v_pos = 2
         Name = UInt32Col()
@@ -933,7 +935,8 @@ if __name__ == "__main__":
 #                     y4 = Col.from_kind('float', dflt=1, shape=(2,3))
 #                     z4 = UInt8Col(dflt=1)
 
-    # example cases of class Test
+# example cases of class Test
+
     klass = Test()
     # klass = Info()
     desc = Description(klass.columns)

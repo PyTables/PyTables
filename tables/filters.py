@@ -11,14 +11,11 @@ import tables as tb
 
 blosc_version = LooseVersion(tb.which_lib_version("blosc")[1])
 
-
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc']
 all_complibs += ['blosc:%s' % cname for cname in blosc_compressor_list()]
-
-
 """List of all compression libraries."""
 
 foreign_complibs = ['szip']
@@ -26,7 +23,6 @@ foreign_complibs = ['szip']
 
 default_complib = 'zlib'
 """The default compression library."""
-
 
 _shuffle_flag = 0x1
 _fletcher32_flag = 0x2
@@ -151,7 +147,6 @@ class Filters:
         Whether the *BitShuffle* filter is active or not (Blosc only).
 
     """
-
     @property
     def shuffle_bitshuffle(self):
         """Encode NoShuffle (0), Shuffle (1) and BitShuffle (2) filters."""
@@ -175,8 +170,11 @@ class Filters:
             filters_dict = {}  # not chunked
 
         # Keyword arguments are all off
-        kwargs = dict(complevel=0, shuffle=False, bitshuffle=False,
-                      fletcher32=False, least_significant_digit=None,
+        kwargs = dict(complevel=0,
+                      shuffle=False,
+                      bitshuffle=False,
+                      fletcher32=False,
+                      least_significant_digit=None,
                       _new=False)
         for (name, values) in filters_dict.items():
             if name == 'deflate':
@@ -235,8 +233,8 @@ class Filters:
         if complevel > 0:
             complib_id = int(packed & 0xff)
             if not (0 < complib_id <= len(all_complibs)):
-                raise ValueError("invalid compression library id: %d"
-                                 % complib_id)
+                raise ValueError("invalid compression library id: %d" %
+                                 complib_id)
             kwargs['complib'] = all_complibs[complib_id - 1]
         packed >>= 8
 
@@ -287,9 +285,14 @@ class Filters:
 
         return packed
 
-    def __init__(self, complevel=0, complib=default_complib,
-                 shuffle=True, bitshuffle=False, fletcher32=False,
-                 least_significant_digit=None, _new=True):
+    def __init__(self,
+                 complevel=0,
+                 complib=default_complib,
+                 shuffle=True,
+                 bitshuffle=False,
+                 fletcher32=False,
+                 least_significant_digit=None,
+                 _new=True):
 
         if not (0 <= complevel <= 9):
             raise ValueError("compression level must be between 0 and 9")
@@ -299,12 +302,13 @@ class Filters:
             if complib not in all_complibs:
                 raise ValueError(
                     "compression library ``%s`` is not supported; "
-                    "it must be one of: %s"
-                    % (complib, ", ".join(all_complibs)))
+                    "it must be one of: %s" %
+                    (complib, ", ".join(all_complibs)))
             if utilsextension.which_lib_version(complib) is None:
-                warnings.warn("compression library ``%s`` is not available; "
-                              "using ``%s`` instead"
-                              % (complib, default_complib), FiltersWarning)
+                warnings.warn(
+                    "compression library ``%s`` is not available; "
+                    "using ``%s`` instead" % (complib, default_complib),
+                    FiltersWarning)
                 complib = default_complib  # always available
 
         complevel = int(complevel)
@@ -338,9 +342,8 @@ class Filters:
         self.bitshuffle = bitshuffle
         """Whether the *BitShuffle* filter is active or not."""
 
-        if (self.complib and
-                self.bitshuffle and
-                not self.complib.startswith('blosc')):
+        if (self.complib and self.bitshuffle
+                and not self.complib.startswith('blosc')):
             raise ValueError("BitShuffle can only be used inside Blosc")
 
         if self.shuffle and self.bitshuffle:

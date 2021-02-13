@@ -5,8 +5,8 @@ import math
 
 import numpy as np
 
-from .flavor import (check_flavor, internal_flavor, toarray,
-                     alias_map as flavor_alias_map)
+from .flavor import (check_flavor, internal_flavor, toarray, alias_map as
+                     flavor_alias_map)
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
@@ -19,14 +19,14 @@ def csformula(expected_mb):
     # For a basesize of 8 KB, this will return:
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
-    basesize = 8 * 1024   # 8 KB is a good minimum
+    basesize = 8 * 1024  # 8 KB is a good minimum
     return basesize * int(2**math.log10(expected_mb))
 
 
 def limit_es(expected_mb):
     """Protection against creating too small or too large chunks."""
 
-    if expected_mb < 1:        # < 1 MB
+    if expected_mb < 1:  # < 1 MB
         expected_mb = 1
     elif expected_mb > 10**7:  # > 10 TB
         expected_mb = 10**7
@@ -116,7 +116,6 @@ class Leaf(Node):
     title = Node._v_title
     """A description for this node
     (This is an easier-to-write alias of :attr:`Node._v_title`)."""
-
     @property
     def name(self):
         """The name of this node in its parent group (This is an
@@ -222,9 +221,13 @@ class Leaf(Node):
         """
         return self._get_storage_size()
 
-    def __init__(self, parentnode, name,
-                 new=False, filters=None,
-                 byteorder=None, _log=True,
+    def __init__(self,
+                 parentnode,
+                 name,
+                 new=False,
+                 filters=None,
+                 byteorder=None,
+                 _log=True,
                  track_times=True):
         self._v_new = new
         """Is this the first time the node has been created?"""
@@ -311,7 +314,7 @@ class Leaf(Node):
 
         # In case of a scalar shape, return the unit chunksize
         if self.shape == ():
-            return (SizeType(1),)
+            return (SizeType(1), )
 
         # Compute the chunksize
         MB = 1024 * 1024
@@ -364,15 +367,15 @@ class Leaf(Node):
             # If rowsize is too large, issue a Performance warning
             maxrowsize = params['BUFFER_TIMES'] * buffersize
             if rowsize > maxrowsize:
-                warnings.warn("""\
+                warnings.warn(
+                    """\
 The Leaf ``%s`` is exceeding the maximum recommended rowsize (%d bytes);
 be ready to see PyTables asking for *lots* of memory and possibly slow
 I/O.  You may want to reduce the rowsize by trimming the value of
 dimensions that are orthogonal (and preferably close) to the *main*
 dimension of this leave.  Alternatively, in case you have specified a
-very small/large chunksize, you may want to increase/decrease it."""
-                              % (self._v_pathname, maxrowsize),
-                              PerformanceWarning)
+very small/large chunksize, you may want to increase/decrease it.""" %
+                    (self._v_pathname, maxrowsize), PerformanceWarning)
         return nrowsinbuf
 
     # This method is appropriate for calls to __getitem__ methods
@@ -406,7 +409,9 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:
                 stop = start + 1
         # Finally, get the correct values (over the main dimension)
-        start, stop, step = self._process_range(start, stop, step,
+        start, stop, step = self._process_range(start,
+                                                stop,
+                                                step,
                                                 warn_negstep=warn_negstep)
         return (start, stop, step)
 
@@ -423,7 +428,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         if chunkshape == 'keep':
             chunkshape = self.chunkshape  # Keep the original chunkshape
         elif chunkshape == 'auto':
-            chunkshape = None             # Will recompute chunkshape
+            chunkshape = None  # Will recompute chunkshape
 
         # Fix arguments with explicit None values for backwards compatibility.
         if title is None:
@@ -432,9 +437,9 @@ very small/large chunksize, you may want to increase/decrease it."""
             filters = self.filters
 
         # Create a copy of the object.
-        (new_node, bytes) = self._g_copy_with_stats(
-            newparent, newname, start, stop, step,
-            title, filters, chunkshape, _log, **kwargs)
+        (new_node, bytes) = self._g_copy_with_stats(newparent, newname, start,
+                                                    stop, step, title, filters,
+                                                    chunkshape, _log, **kwargs)
 
         # Copy user attributes if requested (or the flavor at least).
         if copyuserattrs:
@@ -572,8 +577,11 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_rename(newname)
 
-    def move(self, newparent=None, newname=None,
-             overwrite=False, createparents=False):
+    def move(self,
+             newparent=None,
+             newname=None,
+             overwrite=False,
+             createparents=False):
         """Move or rename this node.
 
         This method has the behavior described in :meth:`Node._f_move`
@@ -582,8 +590,12 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_move(newparent, newname, overwrite, createparents)
 
-    def copy(self, newparent=None, newname=None,
-             overwrite=False, createparents=False, **kwargs):
+    def copy(self,
+             newparent=None,
+             newname=None,
+             overwrite=False,
+             createparents=False,
+             **kwargs):
         """Copy this node and return the new one.
 
         This method has the behavior described in :meth:`Node._f_copy`. Please
@@ -630,8 +642,8 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         """
 
-        return self._f_copy(
-            newparent, newname, overwrite, createparents, **kwargs)
+        return self._f_copy(newparent, newname, overwrite, createparents,
+                            **kwargs)
 
     def truncate(self, size):
         """Truncate the main dimension to be size rows.

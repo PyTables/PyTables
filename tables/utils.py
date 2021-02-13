@@ -48,15 +48,17 @@ def is_idx(index):
             if isinstance(index, bool):
                 warnings.warn(
                     'using a boolean instead of an integer will result in an '
-                    'error in the future', DeprecationWarning, stacklevel=2)
+                    'error in the future',
+                    DeprecationWarning,
+                    stacklevel=2)
             return True
         except TypeError:
             return False
     elif isinstance(index, np.integer):
         return True
     # For Python 2.4 one should test 0-dim and 1-dim, 1-elem arrays as well
-    elif (isinstance(index, np.ndarray) and (index.shape == ()) and
-          index.dtype.str[1] == 'i'):
+    elif (isinstance(index, np.ndarray) and (index.shape == ())
+          and index.dtype.str[1] == 'i'):
         return True
 
     return False
@@ -160,8 +162,7 @@ def check_file_access(filename, mode='r'):
             if not os.access(path.parent, os.W_OK):
                 raise OSError(
                     f"directory ``{path.parent}`` exists but it can not be "
-                    f"written"
-                )
+                    f"written")
     elif mode == 'a':
         if os.access(path, os.F_OK):
             check_file_access(path, 'r+')
@@ -267,8 +268,8 @@ def quantize(data, least_significant_digit):
 
     exp = -least_significant_digit
     exp = math.floor(exp) if exp < 0 else math.ceil(exp)
-    bits = math.ceil(math.log2(10 ** -exp))
-    scale = 2 ** bits
+    bits = math.ceil(math.log2(10**-exp))
+    scale = 2**bits
     datout = np.around(scale * data) / scale
 
     return datout
@@ -330,7 +331,6 @@ def dump_logged_instances(classes, file=sys.stdout):
 #
 class CacheDict(dict):
     """A dictionary that prevents itself from growing too much."""
-
     def __init__(self, maxentries):
         self.maxentries = maxentries
         super().__init__(self)
@@ -347,7 +347,6 @@ class CacheDict(dict):
 
 class NailedDict:
     """A dictionary which ignores its items when it has nails on it."""
-
     def __init__(self, maxentries):
         self.maxentries = maxentries
         self._cache = {}

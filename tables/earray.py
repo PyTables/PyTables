@@ -5,13 +5,12 @@ import numpy as np
 from .utils import convert_to_np_atom2, SizeType
 from .carray import CArray
 
-
 # default version for EARRAY objects
 # obversion = "1.0"    # initial version
 # obversion = "1.1"    # support for complex datatypes
 # obversion = "1.2"    # This adds support for time datatypes.
 # obversion = "1.3"    # This adds support for enumerated datatypes.
-obversion = "1.4"    # Numeric and numarray flavors are gone.
+obversion = "1.4"  # Numeric and numarray flavors are gone.
 
 
 class EArray(CArray):
@@ -127,11 +126,18 @@ class EArray(CArray):
     # Class identifier.
     _c_classid = 'EARRAY'
 
-    def __init__(self, parentnode, name,
-                 atom=None, shape=None, title="",
-                 filters=None, expectedrows=None,
-                 chunkshape=None, byteorder=None,
-                 _log=True, track_times=True):
+    def __init__(self,
+                 parentnode,
+                 name,
+                 atom=None,
+                 shape=None,
+                 title="",
+                 filters=None,
+                 expectedrows=None,
+                 chunkshape=None,
+                 byteorder=None,
+                 _log=True,
+                 track_times=True):
 
         # Specific of EArray
         if expectedrows is None:
@@ -156,9 +162,8 @@ class EArray(CArray):
                     "Multiple enlargeable (0-)dimensions are not "
                     "supported.")
         else:
-            raise ValueError(
-                "When creating EArrays, you need to set one of "
-                "the dimensions of the Atom instance to zero.")
+            raise ValueError("When creating EArrays, you need to set one of "
+                             "the dimensions of the Atom instance to zero.")
 
         # Finish the common part of the creation process
         return self._g_create_common(self._v_expectedrows)
@@ -171,8 +176,8 @@ class EArray(CArray):
         narank = len(nparr.shape) - len(self.atom.shape)
         if myrank != narank:
             raise ValueError(("the ranks of the appended object (%d) and the "
-                              "``%s`` EArray (%d) differ")
-                             % (narank, self._v_pathname, myrank))
+                              "``%s`` EArray (%d) differ") %
+                             (narank, self._v_pathname, myrank))
         for i in range(myrank):
             if i != self.extdim and self.shape[i] != nparr.shape[i]:
                 raise ValueError(("the shapes of the appended object and the "
@@ -202,8 +207,8 @@ class EArray(CArray):
         if nparr.size > 0:
             self._append(nparr)
 
-    def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+    def _g_copy_with_stats(self, group, name, start, stop, step, title,
+                           filters, chunkshape, _log, **kwargs):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)
@@ -214,10 +219,15 @@ class EArray(CArray):
         # The number of final rows
         nrows = len(range(start, stop, step))
         # Build the new EArray object
-        object = EArray(
-            group, name, atom=self.atom, shape=shape, title=title,
-            filters=filters, expectedrows=nrows, chunkshape=chunkshape,
-            _log=_log)
+        object = EArray(group,
+                        name,
+                        atom=self.atom,
+                        shape=shape,
+                        title=title,
+                        filters=filters,
+                        expectedrows=nrows,
+                        chunkshape=chunkshape,
+                        _log=_log)
         # Now, fill the new earray with values from source
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__

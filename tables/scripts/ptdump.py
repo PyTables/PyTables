@@ -4,12 +4,10 @@ Pass the flag -h to this for help on usage.
 
 """
 
-
 import argparse
 import operator
 
 import tables as tb
-
 
 # default options
 options = argparse.Namespace(
@@ -28,7 +26,7 @@ def dump_leaf(leaf):
     else:
         print(str(leaf))
     if options.showattrs:
-        print("  "+repr(leaf.attrs))
+        print("  " + repr(leaf.attrs))
     if options.dump and not isinstance(leaf, tb.unimplemented.UnImplemented):
         print("  Data dump:")
         # print((leaf.read(options.rng.start, options.rng.stop,
@@ -75,7 +73,7 @@ def dump_group(pgroup, sort=False):
     for group in what:
         print(str(group))
         if options.showattrs:
-            print("  "+repr(group._v_attrs))
+            print("  " + repr(group._v_attrs))
         for kind in node_kinds:
             for node in group._f_list_nodes(kind):
                 if options.verbose or options.dump:
@@ -92,39 +90,55 @@ def _get_parser():
         the form of *attributes*).''')
 
     parser.add_argument(
-        '-v', '--verbose', action='store_true',
+        '-v',
+        '--verbose',
+        action='store_true',
         help='dump more metainformation on nodes',
     )
     parser.add_argument(
-        '-d', '--dump', action='store_true',
+        '-d',
+        '--dump',
+        action='store_true',
         help='dump data information on leaves',
     )
     parser.add_argument(
-        '-a', '--showattrs', action='store_true',
+        '-a',
+        '--showattrs',
+        action='store_true',
         help='show attributes in nodes (only useful when -v or -d are active)',
     )
     parser.add_argument(
-        '-s', '--sort', action='store_true',
+        '-s',
+        '--sort',
+        action='store_true',
         help='sort output by node name',
     )
     parser.add_argument(
-        '-c', '--colinfo', action='store_true',
+        '-c',
+        '--colinfo',
+        action='store_true',
         help='''show info of columns in tables (only useful when -v or -d
         are active)''',
     )
     parser.add_argument(
-        '-i', '--idxinfo', action='store_true',
+        '-i',
+        '--idxinfo',
+        action='store_true',
         help='''show info of indexed columns (only useful when -v or -d are
         active)''',
     )
     parser.add_argument(
-        '-R', '--range', dest='rng', metavar='RANGE',
+        '-R',
+        '--range',
+        dest='rng',
+        metavar='RANGE',
         help='''select a RANGE of rows (in the form "start,stop,step")
         during the copy of *all* the leaves.
         Default values are "None,None,1", which means a copy of all the
         rows.''',
     )
-    parser.add_argument('src', metavar='filename[:nodepath]',
+    parser.add_argument('src',
+                        metavar='filename[:nodepath]',
                         help='name of the HDF5 file to dump')
 
     return parser

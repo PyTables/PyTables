@@ -7,7 +7,6 @@ from .carray import CArray
 from .earray import EArray
 from . import indexesextension
 
-
 # Declarations for inheriting
 
 
@@ -67,9 +66,13 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         """The slicesize for this object."""
         return self.shape[1]
 
-    def __init__(self, parentnode, name,
-                 atom=None, title="",
-                 filters=None, byteorder=None):
+    def __init__(self,
+                 parentnode,
+                 name,
+                 atom=None,
+                 title="",
+                 filters=None,
+                 byteorder=None):
         """Create an IndexArray instance."""
 
         self._v_pathname = parentnode._g_join(name)
@@ -87,9 +90,14 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
             shape = None
             chunkshape = None
 
-        super().__init__(
-            parentnode, name, atom, shape, title, filters,
-            chunkshape=chunkshape, byteorder=byteorder)
+        super().__init__(parentnode,
+                         name,
+                         atom,
+                         shape,
+                         title,
+                         filters,
+                         chunkshape=chunkshape,
+                         byteorder=byteorder)
 
     # This version of searchBin uses both ranges (1st level) and
     # bounds (2nd level) caches. It uses a cache for boundary rows,

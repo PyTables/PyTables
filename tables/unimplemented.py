@@ -45,7 +45,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         """Is this the first time the node has been created?"""
         self.nrows = SizeType(0)
         """The length of the first dimension of the data."""
-        self.shape = (SizeType(0),)
+        self.shape = (SizeType(0), )
         """The shape of the stored data."""
         self.byteorder = None
         """The endianness of data in memory ('big', 'little' or
@@ -72,11 +72,15 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
 
         warnings.warn(
             "UnImplemented node %r does not know how to copy itself; skipping"
-            % (self._v_pathname,))
+            % (self._v_pathname, ))
         return None  # Can you see it?
 
-    def _f_copy(self, newparent=None, newname=None,
-                overwrite=False, recursive=False, createparents=False,
+    def _f_copy(self,
+                newparent=None,
+                newname=None,
+                overwrite=False,
+                recursive=False,
+                createparents=False,
                 **kwargs):
         """Do nothing.
 

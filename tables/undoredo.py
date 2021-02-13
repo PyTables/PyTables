@@ -18,7 +18,6 @@ Misc variables:
 
 from .path import split_path
 
-
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 

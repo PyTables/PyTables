@@ -4,7 +4,6 @@ import os
 import warnings
 import traceback
 
-
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
@@ -71,7 +70,6 @@ class HDF5ExtError(RuntimeError):
 
     .. versionadded:: 2.4
     """
-
     @classmethod
     def set_policy_from_env(cls):
         envmap = {
@@ -145,8 +143,7 @@ class HDF5ExtError(RuntimeError):
         if verbose and self.h5backtrace:
             bt = "\n".join([
                 "HDF5 error back trace\n",
-                self.format_h5_backtrace(),
-                "End of HDF5 error back trace"
+                self.format_h5_backtrace(), "End of HDF5 error back trace"
             ])
 
             if len(self.args) == 1 and isinstance(self.args[0], str):
@@ -180,9 +177,9 @@ class HDF5ExtError(RuntimeError):
 # Initialize the policy for HDF5 back trace handling
 HDF5ExtError.set_policy_from_env()
 
-
 # The following exceptions are concretions of the ``ValueError`` exceptions
 # raised by ``file`` objects on certain operations.
+
 
 class ClosedNodeError(ValueError):
     """The operation can not be completed because the node is closed.

@@ -17,7 +17,6 @@ from .exceptions import NaturalNameWarning
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
-
 _python_id_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 """Python identifier regular expression."""
 
@@ -45,8 +44,8 @@ not.
 """
 
 _warnInfo = (
-        "you will not be able to use natural naming to access this object; "
-        "using ``getattr()`` will still work, though")
+    "you will not be able to use natural naming to access this object; "
+    "using ``getattr()`` will still work, though")
 """Warning printed when a name will not be reachable through natural naming"""
 
 
@@ -85,22 +84,25 @@ def check_attribute_name(name):
     # Check whether `name` is a valid Python identifier.
     if not _python_id_re.match(name):
         warnings.warn("object name is not a valid Python identifier: %r; "
-                      "it does not match the pattern ``%s``; %s"
-                      % (name, _python_id_re.pattern, _warnInfo),
-                      NaturalNameWarning, stacklevel=2)
+                      "it does not match the pattern ``%s``; %s" %
+                      (name, _python_id_re.pattern, _warnInfo),
+                      NaturalNameWarning,
+                      stacklevel=2)
         return
 
     # However, Python identifiers and keywords have the same form.
     if keyword.iskeyword(name):
-        warnings.warn("object name is a Python keyword: %r; %s"
-                      % (name, _warnInfo), NaturalNameWarning, stacklevel=2)
+        warnings.warn("object name is a Python keyword: %r; %s" %
+                      (name, _warnInfo),
+                      NaturalNameWarning,
+                      stacklevel=2)
         return
 
     # Still, names starting with reserved prefixes are not allowed.
     if _reserved_id_re.match(name):
         raise ValueError("object name starts with a reserved prefix: %r; "
-                         "it matches the pattern ``%s``"
-                         % (name, _reserved_id_re.pattern))
+                         "it matches the pattern ``%s``" %
+                         (name, _reserved_id_re.pattern))
 
     # ``__members__`` is the only exception to that rule.
     if name == '__members__':

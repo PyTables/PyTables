@@ -40,7 +40,6 @@ import numpy as np
 
 from .exceptions import FlavorError, FlavorWarning
 
-
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
@@ -86,10 +85,9 @@ def check_flavor(flavor):
 
     if flavor not in all_flavors:
         available_flavs = ", ".join(flav for flav in all_flavors)
-        raise FlavorError(
-            "flavor ``%s`` is unsupported or unavailable; "
-            "available flavors in this system are: %s"
-            % (flavor, available_flavs))
+        raise FlavorError("flavor ``%s`` is unsupported or unavailable; "
+                          "available flavors in this system are: %s" %
+                          (flavor, available_flavs))
 
 
 def array_of_flavor2(array, src_flavor, dst_flavor):
@@ -108,8 +106,8 @@ def array_of_flavor2(array, src_flavor, dst_flavor):
     convkey = (src_flavor, dst_flavor)
     if convkey not in converter_map:
         raise FlavorError("conversion from flavor ``%s`` to flavor ``%s`` "
-                          "is unsupported or unavailable in this system"
-                          % (src_flavor, dst_flavor))
+                          "is unsupported or unavailable in this system" %
+                          (src_flavor, dst_flavor))
 
     convfunc = converter_map[convkey]
     return convfunc(array)
@@ -132,8 +130,9 @@ def flavor_to_flavor(array, src_flavor, dst_flavor):
     try:
         return array_of_flavor2(array, src_flavor, dst_flavor)
     except FlavorError as fe:
-        warnings.warn("%s; returning an object of the ``%s`` flavor instead"
-                      % (fe.args[0], src_flavor), FlavorWarning)
+        warnings.warn(
+            "%s; returning an object of the ``%s`` flavor instead" %
+            (fe.args[0], src_flavor), FlavorWarning)
         return array
 
 
@@ -193,7 +192,7 @@ def array_of_flavor(array, dst_flavor):
     return array_of_flavor2(array, flavor_of(array), dst_flavor)
 
 
-def restrict_flavors(keep=('python',)):
+def restrict_flavors(keep=('python', )):
     """Disable all flavors except those in keep.
 
     Providing an empty keep sequence implies disabling all flavors (but the
@@ -243,9 +242,9 @@ def _register_identifiers():
 
 def _register_converters():
     """Register converter functions between *available* flavors."""
-
     def identity(array):
         return array
+
     for src_flavor in all_flavors:
         for dst_flavor in all_flavors:
             # Converters with the same source and destination flavor
@@ -317,9 +316,13 @@ def _disable_flavor(flavor):
 
 # Implementation of flavors
 _python_aliases = [
-    'List', 'Tuple',
-    'Int', 'Float', 'String',
-    'VLString', 'Object',
+    'List',
+    'Tuple',
+    'Int',
+    'Float',
+    'String',
+    'VLString',
+    'Object',
 ]
 _python_desc = ("homogeneous list or tuple, "
                 "integer, float, complex or bytes")
@@ -332,8 +335,8 @@ def _is_python(array):
 _numpy_aliases = []
 _numpy_desc = "NumPy array, record or scalar"
 
-
 if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion('1.19.0'):
+
     def toarray(array, *args, **kwargs):
         with warnings.catch_warnings():
             warnings.simplefilter('error')
@@ -358,14 +361,13 @@ def _numpy_contiguous(convfunc):
     Note: When arrays are 0-strided, the copy is avoided.  This allows
     to use `array` to still carry info about the dtype and shape.
     """
-
     def conv_to_numpy(array):
         nparr = convfunc(array)
-        if (hasattr(nparr, 'flags') and
-                not nparr.flags.contiguous and
-                sum(nparr.strides) != 0):
+        if (hasattr(nparr, 'flags') and not nparr.flags.contiguous
+                and sum(nparr.strides) != 0):
             nparr = nparr.copy()  # copying the array makes it contiguous
         return nparr
+
     conv_to_numpy.__name__ = convfunc.__name__
     conv_to_numpy.__doc__ = convfunc.__doc__
     return conv_to_numpy

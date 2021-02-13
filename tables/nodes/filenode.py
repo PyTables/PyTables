@@ -28,7 +28,6 @@ import numpy as np
 
 import tables as tb
 
-
 NodeType = 'file'
 """Value for NODE_TYPE node system attribute."""
 
@@ -423,8 +422,8 @@ class RawPyTablesIO(io.RawIOBase):
         #                      "the underlying hdf5 file is not readable")
 
         writable = bool('w' in mode or 'a' in mode or '+' in mode)
-        h5writable = bool('w' in h5filemode or 'a' in h5filemode or
-                          '+' in h5filemode)
+        h5writable = bool('w' in h5filemode or 'a' in h5filemode
+                          or '+' in h5filemode)
 
         if writable and not h5writable:
             raise ValueError("RawPyTablesIO can't be open in write mode if "
@@ -463,8 +462,8 @@ class RawPyTablesIO(io.RawIOBase):
             return
 
         # XXX This may be redone to avoid a potentially large in-memory array.
-        self._node.append(
-            np.zeros(dtype=self._vtype, shape=self._vshape(size)))
+        self._node.append(np.zeros(dtype=self._vtype,
+                                   shape=self._vshape(size)))
 
 
 class FileNodeMixin:
@@ -529,7 +528,6 @@ class ROFileNode(FileNodeMixin, RawPyTablesIO):
        The only line separator used for binary I/O is ``\\n``.
 
     """
-
     def __init__(self, node):
         RawPyTablesIO.__init__(self, node, 'r')
         self._checkReadable()
@@ -578,11 +576,12 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
     _byte_shape = [
         None,
         (0, 1),
-        (0,),
+        (0, ),
     ]
 
     __allowed_init_kwargs = [
-        'where', 'name', 'title', 'filters', 'expectedsize']
+        'where', 'name', 'title', 'filters', 'expectedsize'
+    ]
 
     def __init__(self, node, h5file, **kwargs):
         if node is not None:
@@ -594,8 +593,8 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
             # to avoid unwanted arguments falling through to array constructor.
             for kwarg in kwargs:
                 if kwarg not in self.__allowed_init_kwargs:
-                    raise TypeError(
-                        "%s keyword argument is not allowed" % repr(kwarg))
+                    raise TypeError("%s keyword argument is not allowed" %
+                                    repr(kwarg))
 
             # Turn 'expectedsize' into 'expectedrows'.
             if 'expectedsize' in kwargs:
@@ -608,8 +607,9 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
             # Create a new array in the specified PyTables file.
             self._version = NodeTypeVersions[-1]
             shape = self._byte_shape[self._version]
-            node = h5file.create_earray(
-                atom=tb.UInt8Atom(), shape=shape, **kwargs)
+            node = h5file.create_earray(atom=tb.UInt8Atom(),
+                                        shape=shape,
+                                        **kwargs)
 
             # Set the node attributes, else remove the array itself.
             try:
@@ -673,8 +673,13 @@ def open_node(node, mode='r'):
         raise OSError(f"invalid mode: {mode}")
 
 
-def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
-                     title="", filters=None):
+def save_to_filenode(h5file,
+                     filename,
+                     where,
+                     name=None,
+                     overwrite=False,
+                     title="",
+                     filters=None):
     """Save a file's contents to a filenode inside a PyTables file.
 
     .. versionadded:: 3.2
@@ -748,8 +753,7 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
             if new_h5file:
                 f.close()
             raise OSError(
-                f"Specified node already exists in file '{f.filename}'"
-            )
+                f"Specified node already exists in file '{f.filename}'")
     except tb.NoSuchNodeError:
         pass
 
@@ -773,7 +777,11 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
         f.close()
 
 
-def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
+def read_from_filenode(h5file,
+                       filename,
+                       where,
+                       name=None,
+                       overwrite=False,
                        create_target=False):
     r"""Read a filenode from a PyTables file and write its contents to a file.
 

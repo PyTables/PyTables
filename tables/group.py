@@ -19,7 +19,6 @@ from .unimplemented import UnImplemented, Unknown
 
 from .link import Link, SoftLink, ExternalLink
 
-
 obversion = "1.0"
 
 
@@ -148,9 +147,9 @@ class Group(hdf5extension.Group, Node):
 
     # Children containers that should be loaded only in a lazy way.
     # These are documented in the ``Group._g_add_children_names`` method.
-    _c_lazy_children_attrs = (
-        '__members__', '_v_children', '_v_groups', '_v_leaves',
-        '_v_links', '_v_unknown', '_v_hidden')
+    _c_lazy_children_attrs = ('__members__', '_v_children', '_v_groups',
+                              '_v_leaves', '_v_links', '_v_unknown',
+                              '_v_hidden')
 
     # `_v_nchildren` is a direct read-only shorthand
     # for the number of *visible* children in a group.
@@ -187,8 +186,12 @@ class Group(hdf5extension.Group, Node):
         attribute, a default Filters instance is used.
         """)
 
-    def __init__(self, parentnode, name,
-                 title="", new=False, filters=None,
+    def __init__(self,
+                 parentnode,
+                 name,
+                 title="",
+                 new=False,
+                 filters=None,
                  _log=True):
 
         # Remember to assign these values in the root group constructor
@@ -236,8 +239,8 @@ class Group(hdf5extension.Group, Node):
                     # If no filters have been passed in the constructor,
                     # inherit them from the parent group, but only if they
                     # have been inherited or explicitly set.
-                    newfilters = getattr(
-                        self._v_parent._v_attrs, 'FILTERS', None)
+                    newfilters = getattr(self._v_parent._v_attrs, 'FILTERS',
+                                         None)
                 if newfilters is not None:
                     set_attr('FILTERS', newfilters)
         else:
@@ -250,9 +253,9 @@ class Group(hdf5extension.Group, Node):
             # since the most important ones are defined as properties.
 
     def __del__(self):
-        if (self._v_isopen and
-            self._v_pathname in self._v_file._node_manager.registry and
-                '_v_children' in self.__dict__):
+        if (self._v_isopen
+                and self._v_pathname in self._v_file._node_manager.registry
+                and '_v_children' in self.__dict__):
             # The group is going to be killed.  Rebuild weak references
             # (that Python cancelled just before calling this method) so
             # that they are still usable if the object is revived later.
@@ -309,13 +312,13 @@ class Group(hdf5extension.Group, Node):
                     if childCID is None:
                         warnings.warn(
                             "leaf ``%s`` is of an unsupported type; "
-                            "it will become an ``UnImplemented`` node"
-                            % self._g_join(childname))
+                            "it will become an ``UnImplemented`` node" %
+                            self._g_join(childname))
                     else:
                         warnings.warn(
                             ("leaf ``%s`` has an unknown class ID ``%s``; "
-                             "it will become an ``UnImplemented`` node")
-                            % (self._g_join(childname), childCID))
+                             "it will become an ``UnImplemented`` node") %
+                            (self._g_join(childname), childCID))
                 return UnImplemented
             assert childCID2 in class_id_dict
             return class_id_dict[childCID2]  # look up leaf class
@@ -349,10 +352,9 @@ class Group(hdf5extension.Group, Node):
 
         # Separate groups into visible groups and hidden nodes,
         # and leaves into visible leaves and hidden nodes.
-        for (childnames, childdict) in ((group_names, groups),
-                                        (leaf_names, leaves),
-                                        (link_names, links),
-                                        (unknown_names, unknown)):
+        for (childnames,
+             childdict) in ((group_names, groups), (leaf_names, leaves),
+                            (link_names, links), (unknown_names, unknown)):
 
             for childname in childnames:
                 # See whether the name implies that the node is hidden.
@@ -373,8 +375,8 @@ class Group(hdf5extension.Group, Node):
         node_type = self._g_get_objinfo(name)
         if node_type == "NoSuchNode":
             raise NoSuchNodeError(
-                "group ``%s`` does not have a child named ``%s``"
-                % (self._v_pathname, name))
+                "group ``%s`` does not have a child named ``%s``" %
+                (self._v_pathname, name))
         return node_type
 
     def __iter__(self):
@@ -470,11 +472,11 @@ class Group(hdf5extension.Group, Node):
     def _g_width_warning(self):
         """Issue a :exc:`PerformanceWarning` on too many children."""
 
-        warnings.warn("""\
+        warnings.warn(
+            """\
 group ``%s`` is exceeding the recommended maximum number of children (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
-                      % (self._v_pathname, self._v_max_group_width),
-                      PerformanceWarning)
+            % (self._v_pathname, self._v_max_group_width), PerformanceWarning)
 
     def _g_refnode(self, childnode, childname, validate=True):
         """Insert references to a `childnode` via a `childname`.
@@ -499,16 +501,16 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # using ``File.get_node`` so they already exist in `self`.
         if (not isinstance(childnode, Link)) and childname in self:
             raise NodeError(
-                "group ``%s`` already has a child node named ``%s``"
-                % (self._v_pathname, childname))
+                "group ``%s`` already has a child node named ``%s``" %
+                (self._v_pathname, childname))
 
         # Show a warning if there is an object attribute with that name.
         if childname in self.__dict__:
             warnings.warn(
                 "group ``%s`` already has an attribute named ``%s``; "
                 "you will not be able to use natural naming "
-                "to access the child node"
-                % (self._v_pathname, childname), NaturalNameWarning)
+                "to access the child node" % (self._v_pathname, childname),
+                NaturalNameWarning)
 
         # Check group width limits.
         if (len(self._v_children) + len(self._v_hidden) >=
@@ -588,8 +590,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             filters = getattr(self._v_attrs, 'FILTERS', None)
 
         # Create a copy of the object.
-        new_node = Group(newparent, newname,
-                         title, new=True, filters=filters, _log=_log)
+        new_node = Group(newparent,
+                         newname,
+                         title,
+                         new=True,
+                         filters=filters,
+                         _log=_log)
 
         # Copy user attributes if needed.
         if kwargs.get('copyuserattrs', True):
@@ -638,27 +644,24 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                     if rc > 1 and addr in address_map:
                         where, name = address_map[addr][0]
                         localsrc = os.path.join(where, name)
-                        dstparent._v_file.create_hard_link(dstparent,
-                                                           srcchild.name,
-                                                           localsrc)
+                        dstparent._v_file.create_hard_link(
+                            dstparent, srcchild.name, localsrc)
                         address_map[addr].append(
-                            (dstparent._v_pathname, srcchild.name)
-                        )
+                            (dstparent._v_pathname, srcchild.name))
 
                         # Update statistics if needed.
                         stats = kwargs.pop('stats', None)
                         if stats is not None:
                             stats['hardlinks'] += 1
                     else:
-                        dstchild = srcchild._g_copy_as_child(dstparent,
-                                                             **kwargs)
+                        dstchild = srcchild._g_copy_as_child(
+                            dstparent, **kwargs)
                         if isinstance(srcchild, Group):
                             parentstack.append((srcchild, dstchild))
 
                         if rc > 1:
-                            address_map[addr] = [
-                                (dstparent._v_pathname, srcchild.name)
-                            ]
+                            address_map[addr] = [(dstparent._v_pathname,
+                                                  srcchild.name)]
             else:
                 for srcchild in srcparent._v_children.values():
                     dstchild = srcchild._g_copy_as_child(dstparent, **kwargs)
@@ -724,8 +727,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             for name in sorted(self._v_links):
                 yield self._v_links[name]
         elif classname == 'IndexArray':
-            raise TypeError(
-                "listing ``IndexArray`` nodes is not allowed")
+            raise TypeError("listing ``IndexArray`` nodes is not allowed")
         else:
             class_ = get_class_by_name(classname)
             for childname, childnode in sorted(self._v_children.items()):
@@ -840,8 +842,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             warnings.warn(
                 "group ``%s`` already has a child node named ``%s``; "
                 "you will not be able to use natural naming "
-                "to access the child node"
-                % (self._v_pathname, name), NaturalNameWarning)
+                "to access the child node" % (self._v_pathname, name),
+                NaturalNameWarning)
 
         super().__setattr__(name, value)
 
@@ -909,8 +911,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             if not (recursive or force):
                 raise NodeError("group ``%s`` has child nodes; "
                                 "please set `recursive` or `force` to true "
-                                "to remove it"
-                                % (self._v_pathname,))
+                                "to remove it" % (self._v_pathname, ))
 
             # First close all the descendents hanging from this group,
             # so that it is not possible to use a node that no longer exists.
@@ -919,8 +920,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # Remove the node itself from the hierarchy.
         super()._g_remove(recursive, force)
 
-    def _f_copy(self, newparent=None, newname=None,
-                overwrite=False, recursive=False, createparents=False,
+    def _f_copy(self,
+                newparent=None,
+                newname=None,
+                overwrite=False,
+                recursive=False,
+                createparents=False,
                 **kwargs):
         """Copy this node and return the new one.
 
@@ -951,12 +956,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         """
 
-        return super()._f_copy(
-            newparent, newname,
-            overwrite, recursive, createparents, **kwargs)
+        return super()._f_copy(newparent, newname, overwrite, recursive,
+                               createparents, **kwargs)
 
-    def _f_copy_children(self, dstgroup, overwrite=False, recursive=False,
-                         createparents=False, **kwargs):
+    def _f_copy_children(self,
+                         dstgroup,
+                         overwrite=False,
+                         recursive=False,
+                         createparents=False,
+                         **kwargs):
         """Copy the children of this group into another group.
 
         Children hanging directly from this group are copied into dstgroup,
@@ -1000,8 +1008,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                     raise NodeError(
                         "destination group ``%s`` already has "
                         "a node named ``%s``; "
-                        "you may want to use the ``overwrite`` argument"
-                        % (dstparent._v_pathname, childname))
+                        "you may want to use the ``overwrite`` argument" %
+                        (dstparent._v_pathname, childname))
 
         use_hardlinks = kwargs.get('use_hardlinks', False)
         if use_hardlinks:
@@ -1015,8 +1023,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                     dstparent._v_file.create_hard_link(dstparent, child.name,
                                                        localsrc)
                     address_map[addr].append(
-                        (dstparent._v_pathname, child.name)
-                    )
+                        (dstparent._v_pathname, child.name))
 
                     # Update statistics if needed.
                     stats = kwargs.pop('stats', None)
@@ -1026,9 +1033,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                     child._f_copy(dstparent, None, overwrite, recursive,
                                   **kwargs)
                     if rc > 1:
-                        address_map[addr] = [
-                            (dstparent._v_pathname, child.name)
-                        ]
+                        address_map[addr] = [(dstparent._v_pathname,
+                                              child.name)]
         else:
             for child in self._v_children.values():
                 child._f_copy(dstparent, None, overwrite, recursive, **kwargs)
@@ -1074,7 +1080,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 # Special definition for group root
 class RootGroup(Group):
-
     def __init__(self, ptfile, name, title, new, filters):
         mydict = self.__dict__
 
@@ -1155,8 +1160,8 @@ class RootGroup(Group):
                 warnings.warn(
                     "problems loading leaf ``%s``::\n\n"
                     "  %s\n\n"
-                    "The leaf will become an ``UnImplemented`` node."
-                    % (self._g_join(childname), exc))
+                    "The leaf will become an ``UnImplemented`` node." %
+                    (self._g_join(childname), exc))
                 # If not, associate an UnImplemented object to it
                 return UnImplemented(self, childname)
         elif node_type == "SoftLink":
@@ -1180,21 +1185,22 @@ class TransactionGroupG(NotLoggedMixin, Group):
     _c_classid = 'TRANSGROUP'
 
     def _g_width_warning(self):
-        warnings.warn("""\
+        warnings.warn(
+            """\
 the number of transactions is exceeding the recommended maximum (%d);\
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                      % (self._v_max_group_width,), PerformanceWarning)
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O""" %
+            (self._v_max_group_width, ), PerformanceWarning)
 
 
 class TransactionG(NotLoggedMixin, Group):
     _c_classid = 'TRANSG'
 
     def _g_width_warning(self):
-        warnings.warn("""\
+        warnings.warn(
+            """\
 transaction ``%s`` is exceeding the recommended maximum number of marks (%d);\
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                      % (self._v_pathname, self._v_max_group_width),
-                      PerformanceWarning)
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O""" %
+            (self._v_pathname, self._v_max_group_width), PerformanceWarning)
 
 
 class MarkG(NotLoggedMixin, Group):
@@ -1205,11 +1211,11 @@ class MarkG(NotLoggedMixin, Group):
     _c_shadow_name_re = re.compile(r'^a[0-9]+$')
 
     def _g_width_warning(self):
-        warnings.warn("""\
+        warnings.warn(
+            """\
 mark ``%s`` is exceeding the recommended maximum action storage (%d nodes);\
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                      % (self._v_pathname, self._v_max_group_width),
-                      PerformanceWarning)
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O""" %
+            (self._v_pathname, self._v_max_group_width), PerformanceWarning)
 
     def _g_reset(self):
         """Empty action storage (nodes and attributes).

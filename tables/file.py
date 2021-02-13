@@ -28,8 +28,8 @@ from .exceptions import (ClosedFileError, FileModeError, NodeError,
 from .registry import get_class_by_name
 from .path import join_path, split_path
 from . import undoredo
-from .description import (IsDescription, UInt8Col, StringCol,
-                          descr_from_dtype, dtype_from_descr)
+from .description import (IsDescription, UInt8Col, StringCol, descr_from_dtype,
+                          dtype_from_descr)
 from .filters import Filters
 from .node import Node, NotLoggedMixin
 from .group import Group, RootGroup
@@ -47,7 +47,6 @@ from .flavor import flavor_of, array_as_internal
 from .atom import Atom
 
 from .link import SoftLink, ExternalLink
-
 
 # format_version = "1.0"  # Initial format
 # format_version = "1.1"  # Changes in ucl compression
@@ -134,7 +133,6 @@ _op_to_code = {
 
 _code_to_op = ["MARK", "CREATE", "REMOVE", "MOVE", "ADDATTR", "DELATTR"]
 
-
 # Paths and names for hidden nodes related with transactions.
 _trans_version = '1.0'
 
@@ -160,8 +158,7 @@ _shadow_path = join_path(_shadow_parent, _shadow_name)
 
 
 def _checkfilters(filters):
-    if not (filters is None or
-            isinstance(filters, Filters)):
+    if not (filters is None or isinstance(filters, Filters)):
         raise TypeError("filter parameter has to be None or a Filter "
                         "instance and the passed type is: '%s'" %
                         type(filters))
@@ -200,7 +197,11 @@ hdf5_version_tup = tuple(map(int, hdf5_version_str.split('-')[0].split('.')))
 _FILE_OPEN_POLICY = 'strict' if hdf5_version_tup < (1, 8, 7) else 'default'
 
 
-def open_file(filename, mode="r", title="", root_uep="/", filters=None,
+def open_file(filename,
+              mode="r",
+              title="",
+              root_uep="/",
+              filters=None,
               **kwargs):
     """Open a PyTables (or generic HDF5) file and return a File object.
 
@@ -269,31 +270,29 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
         # This policy do not allows to open the same file multiple times
         # even in read-only mode
         if filename in _open_files:
-            raise ValueError(
-                "The file '%s' is already opened.  "
-                "Please close it before reopening.  "
-                "HDF5 v.%s, FILE_OPEN_POLICY = '%s'" % (
-                    filename, utilsextension.get_hdf5_version(),
-                    _FILE_OPEN_POLICY))
+            raise ValueError("The file '%s' is already opened.  "
+                             "Please close it before reopening.  "
+                             "HDF5 v.%s, FILE_OPEN_POLICY = '%s'" %
+                             (filename, utilsextension.get_hdf5_version(),
+                              _FILE_OPEN_POLICY))
     else:
         for filehandle in _open_files.get_handlers_by_name(filename):
             omode = filehandle.mode
             # 'r' is incompatible with everything except 'r' itself
             if mode == 'r' and omode != 'r':
-                raise ValueError(
-                    "The file '%s' is already opened, but "
-                    "not in read-only mode (as requested)." % filename)
+                raise ValueError("The file '%s' is already opened, but "
+                                 "not in read-only mode (as requested)." %
+                                 filename)
             # 'a' and 'r+' are compatible with everything except 'r'
             elif mode in ('a', 'r+') and omode == 'r':
-                raise ValueError(
-                    "The file '%s' is already opened, but "
-                    "in read-only mode.  Please close it before "
-                    "reopening in append mode." % filename)
+                raise ValueError("The file '%s' is already opened, but "
+                                 "in read-only mode.  Please close it before "
+                                 "reopening in append mode." % filename)
             # 'w' means that we want to destroy existing contents
             elif mode == 'w':
-                raise ValueError(
-                    "The file '%s' is already opened.  Please "
-                    "close it before reopening in write mode." % filename)
+                raise ValueError("The file '%s' is already opened.  Please "
+                                 "close it before reopening in write mode." %
+                                 filename)
 
     # Finally, create the File instance, and return it
     return File(filename, mode, title, root_uep, filters, **kwargs)
@@ -334,8 +333,8 @@ class _DictCache(dict):
             warnings.warn(
                 "the dictionary of node cache is exceeding the recommended "
                 "maximum number (%d); be ready to see PyTables asking for "
-                "*lots* of memory and possibly slow I/O." % (
-                    self.nslots), PerformanceWarning)
+                "*lots* of memory and possibly slow I/O." % (self.nslots),
+                PerformanceWarning)
         super().__setitem__(key, value)
 
 
@@ -723,8 +722,13 @@ class File(hdf5extension.File):
         """
         return self._open_count
 
-    def __init__(self, filename, mode="r", title="",
-                 root_uep="/", filters=None, **kwargs):
+    def __init__(self,
+                 filename,
+                 mode="r",
+                 title="",
+                 root_uep="/",
+                 filters=None,
+                 **kwargs):
 
         self.filename = filename
         """The name of the opened file."""
@@ -737,12 +741,16 @@ class File(hdf5extension.File):
                              "'r', 'r+', 'a' and 'w'" % mode)
 
         # Get all the parameters in parameter file(s)
-        params = {k: v for k, v in parameters.__dict__.items()
-                  if k.isupper() and not k.startswith('_')}
+        params = {
+            k: v
+            for k, v in parameters.__dict__.items()
+            if k.isupper() and not k.startswith('_')
+        }
         # Update them with possible keyword arguments
         if [k for k in kwargs if k.isupper()]:
-            warnings.warn("The use of uppercase keyword parameters is "
-                          "deprecated", DeprecationWarning)
+            warnings.warn(
+                "The use of uppercase keyword parameters is "
+                "deprecated", DeprecationWarning)
 
         kwargs = {k.upper(): v for k, v in kwargs.items()}
         params.update(kwargs)
@@ -800,8 +808,8 @@ class File(hdf5extension.File):
         # Save the PyTables format version for this file.
         if new:
             if params['PYTABLES_SYS_ATTRS']:
-                root._v_attrs._g__setattr(
-                    'PYTABLES_FORMAT_VERSION', format_version)
+                root._v_attrs._g__setattr('PYTABLES_FORMAT_VERSION',
+                                          format_version)
 
         # If the file is old, and not opened in "read-only" mode,
         # check if it has a transaction log
@@ -883,7 +891,11 @@ class File(hdf5extension.File):
             parent = child
         return parent
 
-    def create_group(self, where, name, title="", filters=None,
+    def create_group(self,
+                     where,
+                     name,
+                     title="",
+                     filters=None,
                      createparents=False):
         """Create a new group.
 
@@ -917,13 +929,20 @@ class File(hdf5extension.File):
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        return Group(parentnode, name,
-                     title=title, new=True, filters=filters)
+        return Group(parentnode, name, title=title, new=True, filters=filters)
 
-    def create_table(self, where, name, description=None, title="",
-                     filters=None, expectedrows=10_000,
-                     chunkshape=None, byteorder=None,
-                     createparents=False, obj=None, track_times=True):
+    def create_table(self,
+                     where,
+                     name,
+                     description=None,
+                     title="",
+                     filters=None,
+                     expectedrows=10_000,
+                     chunkshape=None,
+                     byteorder=None,
+                     createparents=False,
+                     obj=None,
+                     track_times=True):
         """Create a new table with the given name in where location.
 
         Parameters
@@ -1018,9 +1037,8 @@ class File(hdf5extension.File):
                 raise TypeError('invalid obj parameter %r' % obj)
 
             descr, _ = descr_from_dtype(obj.dtype, ptparams=self.params)
-            if (description is not None and
-                    dtype_from_descr(description,
-                                     ptparams=self.params) != obj.dtype):
+            if (description is not None and dtype_from_descr(
+                    description, ptparams=self.params) != obj.dtype):
                 raise TypeError('the desctiption parameter is not consistent '
                                 'with the data type of the obj parameter')
             elif description is None:
@@ -1031,10 +1049,14 @@ class File(hdf5extension.File):
             raise ValueError("invalid table description: None")
         _checkfilters(filters)
 
-        ptobj = Table(parentnode, name,
-                      description=description, title=title,
-                      filters=filters, expectedrows=expectedrows,
-                      chunkshape=chunkshape, byteorder=byteorder,
+        ptobj = Table(parentnode,
+                      name,
+                      description=description,
+                      title=title,
+                      filters=filters,
+                      expectedrows=expectedrows,
+                      chunkshape=chunkshape,
+                      byteorder=byteorder,
                       track_times=track_times)
 
         if obj is not None:
@@ -1042,9 +1064,16 @@ class File(hdf5extension.File):
 
         return ptobj
 
-    def create_array(self, where, name, obj=None, title="",
-                     byteorder=None, createparents=False,
-                     atom=None, shape=None, track_times=True):
+    def create_array(self,
+                     where,
+                     name,
+                     obj=None,
+                     title="",
+                     byteorder=None,
+                     createparents=False,
+                     atom=None,
+                     shape=None,
+                     track_times=True):
         """Create a new array.
 
         Parameters
@@ -1117,8 +1146,10 @@ class File(hdf5extension.File):
                 # Making strides=(0,...) below is a trick to create the
                 # array fast and without memory consumption
                 dflt = np.zeros((), dtype=atom.dtype)
-                obj = np.ndarray(shape, dtype=atom.dtype, buffer=dflt,
-                                 strides=(0,)*len(shape))
+                obj = np.ndarray(shape,
+                                 dtype=atom.dtype,
+                                 buffer=dflt,
+                                 strides=(0, ) * len(shape))
         else:
             flavor = flavor_of(obj)
             # use a temporary object because converting obj at this stage
@@ -1134,13 +1165,24 @@ class File(hdf5extension.File):
                                 'the data type of the obj parameter')
 
         parentnode = self._get_or_create_path(where, createparents)
-        return Array(parentnode, name,
-                     obj=obj, title=title, byteorder=byteorder,
+        return Array(parentnode,
+                     name,
+                     obj=obj,
+                     title=title,
+                     byteorder=byteorder,
                      track_times=track_times)
 
-    def create_carray(self, where, name, atom=None, shape=None, title="",
-                      filters=None, chunkshape=None,
-                      byteorder=None, createparents=False, obj=None,
+    def create_carray(self,
+                      where,
+                      name,
+                      atom=None,
+                      shape=None,
+                      title="",
+                      filters=None,
+                      chunkshape=None,
+                      byteorder=None,
+                      createparents=False,
+                      obj=None,
                       track_times=True):
         """Create a new chunked array.
 
@@ -1239,9 +1281,14 @@ class File(hdf5extension.File):
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        ptobj = CArray(parentnode, name,
-                       atom=atom, shape=shape, title=title, filters=filters,
-                       chunkshape=chunkshape, byteorder=byteorder,
+        ptobj = CArray(parentnode,
+                       name,
+                       atom=atom,
+                       shape=shape,
+                       title=title,
+                       filters=filters,
+                       chunkshape=chunkshape,
+                       byteorder=byteorder,
                        track_times=track_times)
 
         if obj is not None:
@@ -1249,10 +1296,19 @@ class File(hdf5extension.File):
 
         return ptobj
 
-    def create_earray(self, where, name, atom=None, shape=None, title="",
-                      filters=None, expectedrows=1000,
-                      chunkshape=None, byteorder=None,
-                      createparents=False, obj=None, track_times=True):
+    def create_earray(self,
+                      where,
+                      name,
+                      atom=None,
+                      shape=None,
+                      title="",
+                      filters=None,
+                      expectedrows=1000,
+                      chunkshape=None,
+                      byteorder=None,
+                      createparents=False,
+                      obj=None,
+                      track_times=True):
         """Create a new enlargeable array.
 
         Parameters
@@ -1339,7 +1395,7 @@ class File(hdf5extension.File):
             flavor = flavor_of(obj)
             obj = array_as_internal(obj, flavor)
 
-            earray_shape = (0,) + obj.shape[1:]
+            earray_shape = (0, ) + obj.shape[1:]
 
             if shape is not None and shape != earray_shape:
                 raise TypeError('the shape parameter is not compatible '
@@ -1355,10 +1411,15 @@ class File(hdf5extension.File):
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        ptobj = EArray(parentnode, name,
-                       atom=atom, shape=shape, title=title,
-                       filters=filters, expectedrows=expectedrows,
-                       chunkshape=chunkshape, byteorder=byteorder,
+        ptobj = EArray(parentnode,
+                       name,
+                       atom=atom,
+                       shape=shape,
+                       title=title,
+                       filters=filters,
+                       expectedrows=expectedrows,
+                       chunkshape=chunkshape,
+                       byteorder=byteorder,
                        track_times=track_times)
 
         if obj is not None:
@@ -1366,10 +1427,17 @@ class File(hdf5extension.File):
 
         return ptobj
 
-    def create_vlarray(self, where, name, atom=None, title="",
-                       filters=None, expectedrows=None,
-                       chunkshape=None, byteorder=None,
-                       createparents=False, obj=None,
+    def create_vlarray(self,
+                       where,
+                       name,
+                       atom=None,
+                       title="",
+                       filters=None,
+                       expectedrows=None,
+                       chunkshape=None,
+                       byteorder=None,
+                       createparents=False,
+                       obj=None,
                        track_times=True):
         """Create a new variable-length array.
 
@@ -1467,10 +1535,14 @@ class File(hdf5extension.File):
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
-        ptobj = VLArray(parentnode, name,
-                        atom=atom, title=title, filters=filters,
+        ptobj = VLArray(parentnode,
+                        name,
+                        atom=atom,
+                        title=title,
+                        filters=filters,
                         expectedrows=expectedrows,
-                        chunkshape=chunkshape, byteorder=byteorder,
+                        chunkshape=chunkshape,
+                        byteorder=byteorder,
                         track_times=track_times)
 
         if obj is not None:
@@ -1516,7 +1588,7 @@ class File(hdf5extension.File):
         """
 
         if not isinstance(target, str):
-            if hasattr(target, '_v_pathname'):   # quacks like a Node
+            if hasattr(target, '_v_pathname'):  # quacks like a Node
                 target = target._v_pathname
             else:
                 raise ValueError(
@@ -1541,14 +1613,13 @@ class File(hdf5extension.File):
         """
 
         if not isinstance(target, str):
-            if hasattr(target, '_v_pathname'):   # quacks like a Node
+            if hasattr(target, '_v_pathname'):  # quacks like a Node
                 target = target._v_file.filename + ':' + target._v_pathname
             else:
                 raise ValueError(
                     "`target` has to be a string or a node object")
         elif target.find(':/') == -1:
-            raise ValueError(
-                "`target` must expressed as 'file:/path/to/node'")
+            raise ValueError("`target` must expressed as 'file:/path/to/node'")
         parentnode = self._get_or_create_path(where, createparents)
         elink = ExternalLink(parentnode, name, target)
         # Refresh children names in link's parent node
@@ -1613,8 +1684,7 @@ class File(hdf5extension.File):
             nodepath = join_path(basepath, name or '') or '/'
             node = self._get_node(nodepath)
         else:
-            raise TypeError(
-                f"``where`` must be a string or a node: {where!r}")
+            raise TypeError(f"``where`` must be a string or a node: {where!r}")
 
         # Finally, check whether the desired node is an instance
         # of the expected class.
@@ -1627,8 +1697,8 @@ class File(hdf5extension.File):
                 # for ``classname in [None, 'Node']``.
                 raise NoSuchNodeError(
                     "could not find a ``%s`` node at ``%s``; "
-                    "instead, a ``%s`` node has been found there"
-                    % (classname, npathname, nclassname))
+                    "instead, a ``%s`` node has been found there" %
+                    (classname, npathname, nclassname))
 
         return node
 
@@ -1661,8 +1731,13 @@ class File(hdf5extension.File):
         obj = self.get_node(where, name=name)
         obj._f_rename(newname, overwrite)
 
-    def move_node(self, where, newparent=None, newname=None, name=None,
-                  overwrite=False, createparents=False):
+    def move_node(self,
+                  where,
+                  newparent=None,
+                  newname=None,
+                  name=None,
+                  overwrite=False,
+                  createparents=False):
         """Move the node specified by where and name to newparent/newname.
 
         Parameters
@@ -1690,8 +1765,14 @@ class File(hdf5extension.File):
         obj = self.get_node(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
 
-    def copy_node(self, where, newparent=None, newname=None, name=None,
-                  overwrite=False, recursive=False, createparents=False,
+    def copy_node(self,
+                  where,
+                  newparent=None,
+                  newname=None,
+                  name=None,
+                  overwrite=False,
+                  recursive=False,
+                  createparents=False,
                   **kwargs):
         """Copy the node specified by where and name to newparent/newname.
 
@@ -1743,14 +1824,16 @@ class File(hdf5extension.File):
             npobj = self.get_node(newparent)
             if obj._v_file is not npobj._v_file:
                 # Special case for copying file1:/ --> file2:/path
-                self.root._f_copy_children(npobj, overwrite=overwrite,
-                                           recursive=recursive, **kwargs)
+                self.root._f_copy_children(npobj,
+                                           overwrite=overwrite,
+                                           recursive=recursive,
+                                           **kwargs)
                 return npobj
             else:
                 raise OSError(
                     "You cannot copy a root group over the same file")
-        return obj._f_copy(newparent, newname,
-                           overwrite, recursive, createparents, **kwargs)
+        return obj._f_copy(newparent, newname, overwrite, recursive,
+                           createparents, **kwargs)
 
     def remove_node(self, where, name=None, recursive=False):
         """Remove the object node *name* under *where* location.
@@ -1852,9 +1935,13 @@ class File(hdf5extension.File):
         dstobject = self.get_node(dstnode)
         srcobject._v_attrs._f_copy(dstobject)
 
-    def copy_children(self, srcgroup, dstgroup,
-                      overwrite=False, recursive=False,
-                      createparents=False, **kwargs):
+    def copy_children(self,
+                      srcgroup,
+                      dstgroup,
+                      overwrite=False,
+                      recursive=False,
+                      createparents=False,
+                      **kwargs):
         """Copy the children of a group into another group.
 
         Parameters
@@ -1882,8 +1969,8 @@ class File(hdf5extension.File):
         srcgroup = self.get_node(srcgroup)  # Does the source node exist?
         self._check_group(srcgroup)  # Is it a group?
 
-        srcgroup._f_copy_children(
-            dstgroup, overwrite, recursive, createparents, **kwargs)
+        srcgroup._f_copy_children(dstgroup, overwrite, recursive,
+                                  createparents, **kwargs)
 
     def copy_file(self, dstfilename, overwrite=False, **kwargs):
         """Copy the contents of this file to dstfilename.
@@ -1942,12 +2029,14 @@ class File(hdf5extension.File):
         if Path(dstfilename).is_file() and not overwrite:
             raise OSError(
                 f"file ``{dstfilename}`` already exists; you may want to "
-                f"use the ``overwrite`` argument"
-            )
+                f"use the ``overwrite`` argument")
 
         # Create destination file, overwriting it.
-        dstfileh = open_file(
-            dstfilename, mode="w", title=title, filters=filters, **kwargs)
+        dstfileh = open_file(dstfilename,
+                             mode="w",
+                             title=title,
+                             filters=filters,
+                             **kwargs)
 
         try:
             # Maybe copy the user attributes of the root group.
@@ -2141,22 +2230,22 @@ class File(hdf5extension.File):
             raise UndoRedoError("Undo/Redo feature is currently disabled!")
 
     def _create_transaction_group(self):
-        tgroup = TransactionGroupG(
-            self.root, _trans_group_name,
-            "Transaction information container", new=True)
+        tgroup = TransactionGroupG(self.root,
+                                   _trans_group_name,
+                                   "Transaction information container",
+                                   new=True)
         # The format of the transaction container.
         tgroup._v_attrs._g__setattr('FORMATVERSION', _trans_version)
         return tgroup
 
     def _create_transaction(self, troot, tid):
-        return TransactionG(
-            troot, _trans_name % tid,
-            "Transaction number %d" % tid, new=True)
+        return TransactionG(troot,
+                            _trans_name % tid,
+                            "Transaction number %d" % tid,
+                            new=True)
 
     def _create_mark(self, trans, mid):
-        return MarkG(
-            trans, _markName % mid,
-            "Mark number %d" % mid, new=True)
+        return MarkG(trans, _markName % mid, "Mark number %d" % mid, new=True)
 
     def enable_undo(self, filters=Filters(complevel=1)):
         """Enable the Undo/Redo mechanism.
@@ -2214,13 +2303,15 @@ class File(hdf5extension.File):
             tgroup = self._create_transaction_group()
 
             # Create a transaction.
-            self._trans = self._create_transaction(
-                tgroup, self._curtransaction)
+            self._trans = self._create_transaction(tgroup,
+                                                   self._curtransaction)
 
             # Create an action log
-            self._actionlog = ActionLog(
-                tgroup, _action_log_name, ActionLogDesc, "Action log",
-                filters=filters)
+            self._actionlog = ActionLog(tgroup,
+                                        _action_log_name,
+                                        ActionLogDesc,
+                                        "Action log",
+                                        filters=filters)
 
             # Create an implicit mark
             self._actionlog.append([(_op_to_code["MARK"], str(0), '')])
@@ -2236,8 +2327,8 @@ class File(hdf5extension.File):
         else:
             # The group seems to exist already
             # Get the default transaction
-            self._trans = tgroup._f_get_child(
-                _trans_name % self._curtransaction)
+            self._trans = tgroup._f_get_child(_trans_name %
+                                              self._curtransaction)
             # Open the action log and go to the end of it
             self._actionlog = tgroup.actionlog
             for row in self._actionlog:
@@ -2353,8 +2444,8 @@ class File(hdf5extension.File):
             self._actionlog.remove_rows(self._curaction + 1,
                                         self._actionlog.nrows)
             # Reset the current marker group
-            mnode = self.get_node(_markPath % (self._curtransaction,
-                                               self._curmark))
+            mnode = self.get_node(_markPath %
+                                  (self._curtransaction, self._curmark))
             mnode._g_reset()
             # Delete the marker groups with backup objects
             for mark in range(self._curmark + 1, self._nmarks):
@@ -2378,13 +2469,11 @@ class File(hdf5extension.File):
         else:  # INTERNAL
             raise UndoRedoError("Too many parameters for action log: "
                                 "%r").with_traceback(args)
-        if (len(arg1) > maxundo
-                or len(arg2) > maxundo):  # INTERNAL
+        if (len(arg1) > maxundo or len(arg2) > maxundo):  # INTERNAL
             raise UndoRedoError("Parameter arg1 or arg2 is too long: "
                                 "(%r, %r)" % (arg1, arg2))
         # print("Logging-->", (action, arg1, arg2))
-        self._actionlog.append([(_op_to_code[action],
-                                 arg1.encode('utf-8'),
+        self._actionlog.append([(_op_to_code[action], arg1.encode('utf-8'),
                                  arg2.encode('utf-8'))])
         self._curaction += 1
 
@@ -2445,24 +2534,26 @@ class File(hdf5extension.File):
                     #       _code_to_op[actionlog['opcode'][i]],\
                     #       actionlog['arg1'][i],\
                     #       actionlog['arg2'][i])
-                    undoredo.redo(self,
-                                  # _code_to_op[actionlog['opcode'][i]],
-                                  # The next is a workaround for python < 2.5
-                                  _code_to_op[int(actionlog['opcode'][i])],
-                                  actionlog['arg1'][i].decode('utf8'),
-                                  actionlog['arg2'][i].decode('utf8'))
+                    undoredo.redo(
+                        self,
+                        # _code_to_op[actionlog['opcode'][i]],
+                        # The next is a workaround for python < 2.5
+                        _code_to_op[int(actionlog['opcode'][i])],
+                        actionlog['arg1'][i].decode('utf8'),
+                        actionlog['arg2'][i].decode('utf8'))
                 else:
                     # Uncomment this for debugging
                     # print("undo-->", \
                     #       _code_to_op[actionlog['opcode'][i]],\
                     #       actionlog['arg1'][i].decode('utf8'),\
                     #       actionlog['arg2'][i].decode('utf8'))
-                    undoredo.undo(self,
-                                  # _code_to_op[actionlog['opcode'][i]],
-                                  # The next is a workaround for python < 2.5
-                                  _code_to_op[int(actionlog['opcode'][i])],
-                                  actionlog['arg1'][i].decode('utf8'),
-                                  actionlog['arg2'][i].decode('utf8'))
+                    undoredo.undo(
+                        self,
+                        # _code_to_op[actionlog['opcode'][i]],
+                        # The next is a workaround for python < 2.5
+                        _code_to_op[int(actionlog['opcode'][i])],
+                        actionlog['arg1'][i].decode('utf8'),
+                        actionlog['arg2'][i].decode('utf8'))
             else:
                 if direction > 0:
                     self._curmark = int(actionlog['arg1'][i])
@@ -2491,8 +2582,8 @@ class File(hdf5extension.File):
         self._check_open()
         self._check_undo_enabled()
 
-#         print("(pre)UNDO: (curaction, curmark) = (%s,%s)" % \
-#               (self._curaction, self._curmark))
+        #         print("(pre)UNDO: (curaction, curmark) = (%s,%s)" % \
+        #               (self._curaction, self._curmark))
         if mark is None:
             markid = self._curmark
             # Correction if we are settled on top of a mark
@@ -2506,7 +2597,7 @@ class File(hdf5extension.File):
         finalaction = self._get_final_action(markid)
         if finalaction > self._curaction:
             raise UndoRedoError("Mark ``%s`` is newer than the current mark. "
-                                "Use `redo()` or `goto()` instead." % (mark,))
+                                "Use `redo()` or `goto()` instead." % (mark, ))
 
         # The file is going to be changed.
         self._check_writable()
@@ -2536,8 +2627,8 @@ class File(hdf5extension.File):
         self._check_open()
         self._check_undo_enabled()
 
-#         print("(pre)REDO: (curaction, curmark) = (%s, %s)" % \
-#               (self._curaction, self._curmark))
+        #         print("(pre)REDO: (curaction, curmark) = (%s, %s)" % \
+        #               (self._curaction, self._curmark))
         if self._curaction >= self._actionlog.nrows - 1:
             # We are at the end of log, so no action
             return
@@ -2551,7 +2642,7 @@ class File(hdf5extension.File):
         finalaction = self._get_final_action(markid)
         if finalaction < self._curaction + 1:
             raise UndoRedoError("Mark ``%s`` is older than the current mark. "
-                                "Use `redo()` or `goto()` instead." % (mark,))
+                                "Use `redo()` or `goto()` instead." % (mark, ))
 
         # The file is going to be changed.
         self._check_writable()
@@ -2620,9 +2711,9 @@ class File(hdf5extension.File):
 
         """
 
-        parent = self.get_node(
-            _shadow_parent % (self._curtransaction, self._curmark))
-        name = _shadow_name % (self._curaction,)
+        parent = self.get_node(_shadow_parent %
+                               (self._curtransaction, self._curmark))
+        name = _shadow_name % (self._curaction, )
 
         return (parent, name)
 
@@ -2727,14 +2818,15 @@ class File(hdf5extension.File):
         # Print all the nodes (Group and Leaf objects) on object tree
         try:
             date = datetime.datetime.fromtimestamp(
-                Path(self.filename).stat().st_mtime, datetime.timezone.utc
-            ).isoformat(timespec='seconds')
+                Path(self.filename).stat().st_mtime,
+                datetime.timezone.utc).isoformat(timespec='seconds')
         except OSError:
             # in-memory file
             date = "<in-memory file>"
-        lines = [f'{self.filename} (File) {self.title!r}',
-                 f'Last modif.: {date!r}',
-                 'Object Tree: ']
+        lines = [
+            f'{self.filename} (File) {self.title!r}', f'Last modif.: {date!r}',
+            'Object Tree: '
+        ]
 
         for group in self.walk_groups("/"):
             lines.append(f'{group}')
@@ -2753,7 +2845,8 @@ class File(hdf5extension.File):
         lines = [
             f'File(filename={self.filename!s}, title={self.title!r}, '
             f'mode={self.mode!r}, root_uep={self.root_uep!r}, '
-            f'filters={self.filters!r})']
+            f'filters={self.filters!r})'
+        ]
         for group in self.walk_groups("/"):
             lines.append(f'{group}')
             for kind in self._node_kinds[1:]:

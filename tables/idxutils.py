@@ -3,7 +3,6 @@
 import math
 import numpy as np
 
-
 # Hints for chunk/slice/block/superblock computations:
 # - The slicesize should not exceed 2**32 elements (because of
 # implementation reasons).  Such an extreme case would make the
@@ -13,6 +12,7 @@ import numpy as np
 # mind that a very low value of chunksize for big datasets may hurt
 # the performance by requering the HDF5 to use a lot of memory and CPU
 # for its internal B-Tree.
+
 
 def csformula(nrows):
     """Return the fitted chunksize (a float value) for nrows."""
@@ -57,7 +57,7 @@ def computeslicesize(expectedrows, memlevel):
     ss = int(cs * memlevel**2)
     # We *need* slicesize to be an exact multiple of the actual chunksize
     ss = (ss // chunksize) * chunksize
-    ss *= 4    # slicesize should be at least divisible by 4
+    ss *= 4  # slicesize should be at least divisible by 4
     # ss cannot be bigger than 2**31 - 1 elements because of fundamental
     # reasons (this limitation comes mainly from the way of compute
     # indices for indexes, but also because C keysort is not implemented
@@ -207,7 +207,7 @@ def calcoptlevels(nblocks, optlevel, indsize):
 def col_light(nblocks, optlevel):
     """Compute the optimizations to be done for light indexes."""
 
-    optmedian, optstarts, optstops, optfull = (False,) * 4
+    optmedian, optstarts, optstops, optfull = (False, ) * 4
 
     if 0 < optlevel <= 3:
         optmedian = True
@@ -222,7 +222,7 @@ def col_light(nblocks, optlevel):
 def col_medium(nblocks, optlevel):
     """Compute the optimizations to be done for medium indexes."""
 
-    optmedian, optstarts, optstops, optfull = (False,) * 4
+    optmedian, optstarts, optstops, optfull = (False, ) * 4
 
     # Medium case
     if nblocks <= 1:
@@ -246,7 +246,7 @@ def col_medium(nblocks, optlevel):
 def col_full(nblocks, optlevel):
     """Compute the optimizations to be done for full indexes."""
 
-    optmedian, optstarts, optstops, optfull = (False,) * 4
+    optmedian, optstarts, optstops, optfull = (False, ) * 4
 
     # Full case
     if nblocks <= 1:
@@ -342,14 +342,11 @@ infinitymap = {
 }
 
 if hasattr(np, 'float16'):
-    infinitymap['float16'] = [-np.float16(np.inf),
-                              np.float16(np.inf)]
+    infinitymap['float16'] = [-np.float16(np.inf), np.float16(np.inf)]
 if hasattr(np, 'float96'):
-    infinitymap['float96'] = [-np.float96(np.inf),
-                              np.float96(np.inf)]
+    infinitymap['float96'] = [-np.float96(np.inf), np.float96(np.inf)]
 if hasattr(np, 'float128'):
-    infinitymap['float128'] = [-np.float128(np.inf),
-                               np.float128(np.inf)]
+    infinitymap['float128'] = [-np.float128(np.inf), np.float128(np.inf)]
 
 # deprecated API
 infinityMap = infinitymap
