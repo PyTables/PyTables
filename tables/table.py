@@ -29,6 +29,7 @@ from .path import join_path, split_path
 from .index import (
     OldIndex, default_index_filters, default_auto_index, Index, IndexesDescG,
     IndexesTableG)
+from .attributeset import ColumnAttributeSet
 
 
 profile = False
@@ -3674,3 +3675,15 @@ class Column:
         """A detailed string representation for this object."""
 
         return str(self)
+
+    @lazyattr
+    def _v_pos(self):
+        return self.descr._v_colobjects[self.name]._v_pos
+
+    @lazyattr
+    def _v_attrs(self):
+        return ColumnAttributeSet(self)
+
+    @lazyattr
+    def attrs(self):
+        return self._v_attrs
