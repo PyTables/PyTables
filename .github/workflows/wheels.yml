@@ -14,11 +14,12 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{matrix.arch}} for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         # os: [ubuntu-latest, windows-latest, macos-latest]
+        arch: [x86_64, aarch64]
         os: [ubuntu-latest]
 
     steps:
@@ -29,6 +30,10 @@ jobs:
         with:
           python-version: '3.7'
 
+      - uses: docker/setup-qemu-action@v1
+        if:  ${{matrix.arch}} == 'aarch64'
+        name: Set up QEMU
+
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade cibuildwheel
@@ -37,8 +42,9 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir wheelhouse
         env:
+          CIBW_ARCHS_LINUX: ${{matrix.arch}}
           CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-*"
-          CIBW_BEFORE_ALL_LINUX: "yum install -y epel-release && yum install -y hdf5-devel zlib-devel bzip2-devel lzo-devel"
+          CIBW_BEFORE_ALL_LINUX: "yum -y update && yum install -y epel-release && yum install -y hdf5-devel zlib-devel bzip2-devel lzo-devel blosc-devel"
           CIBW_BEFORE_BUILD: "pip install numpy numexpr cython>=0.29.21"
           CIBW_ENVIRONMENT: "DISABLE_AVX2='TRUE'"
 
