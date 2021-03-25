@@ -3684,6 +3684,5 @@ class Column:
     def _v_attrs(self):
         return ColumnAttributeSet(self)
 
-    @lazyattr
     def attrs(self):
         return self._v_attrs

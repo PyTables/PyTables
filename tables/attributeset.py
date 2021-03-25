@@ -5,6 +5,7 @@ import sys
 import warnings
 import pickle
 import numpy as np
+import weakref
 
 from . import hdf5extension
 from .utils import SizeType
@@ -684,13 +685,13 @@ class ColumnAttributeSet:
 
     def __init__(self, column):
 
-        self._v_tableattrs = column.table.attrs
+        self.__dict__['_v_tableattrs'] = column.table.attrs
         self.__dict__['_v_fieldindex'] = column._v_pos
-        self.__dict__['_v_column'] = column # Does this need to be a weak reference?
+        self.__dict__['_v_column_reference'] = weakref.ref(column)
 
     def issystemcolumnname(self, key):
         """Checks whether a key is a reserved attribute name, or should be passed through."""
-        return key in ['_v_tableattrs', '_v_fieldindex', '_v_column']
+        return key in ['_v_tableattrs', '_v_fieldindex', '_v_column_reference']
 
     def _prefix(self, string):
         """Prefixes a key with a special pattern for storing with table attributes"""
@@ -721,7 +722,7 @@ class ColumnAttributeSet:
     def __setitem__(self, key, value):
         """A dictionary-like interface for __setattr__"""
         if not self.issystemcolumnname(key):
-            self._v_tableattrs[self._prefix(key)] = value
+            raise Exception('Deleting system attributes is prohibited')
         else:
             self[key] = value
 
@@ -729,7 +730,7 @@ class ColumnAttributeSet:
         """Deletes the attribute for this column"""
         if self.issystemcolumnname(key):
             # This is a bad idea, but if the user really wants it, do it
-            super().__delattr__(key)
+            raise Exception('Deleting system attributes is prohibited')
         else:
             delattr(self._v_tableattrs, self._prefix(key))
 
@@ -747,6 +748,9 @@ class ColumnAttributeSet:
         if oldattrname == newattrname:
             # Do nothing
             return
+
+        if self.issystemcolumnname(oldattrname):
+            raise Exception('Renaming system attributes is prohibited')
 
         # First, fetch the value of the oldattrname
         attrvalue = getattr(self, oldattrname)
@@ -779,25 +783,12 @@ class ColumnAttributeSet:
         return key in self.keys()
 
     def __str__(self):
-        """A string representation of this object"""
-
-    def __repr__(self):
-        """A detailed string representation for this object"""
-        print('TODO')
-
-
-    def __str__(self):
         """The string representation for this object."""
 
-
-        # The pathname
         pathname = self._v_tableattrs._v__nodepath
-        # Get this class name
-        classname = self._v_column.__class__.__name__ #self._v_tableattrs._v_node.__class__.__name__
-        # The attribute names
+        classname = self._v_column_reference().__class__.__name__ #self._v_tableattrs._v_node.__class__.__name__
         attrnumber = sum(1 for _ in self.keys())
-        # The column name
-        columnname = self._v_column.name
+        columnname = self._v_column_reference().name
 
         return f"{pathname}.cols.{columnname}._v_attrs ({classname}), {attrnumber} attributes"
 
