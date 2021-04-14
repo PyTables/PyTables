@@ -670,6 +670,11 @@ VERSION attribute::
     >>> table.attrs.VERSION
     '2.6'
 
+Starting with PyTables 3.6.2, you can also set, delete, or rename attributes on individual columns. The API is designed to behave the same way as attributes on a table::
+
+    >>> table.cols.pressure.attrs['units'] = 'kPa'
+    >>> table.cols.energy.attrs['units'] = 'MeV'
+
 Ok, that's better. If you would terminate your session now, you would be able
 to use the h5ls command to read the /detector/readout attributes from the
 file written to disk.
