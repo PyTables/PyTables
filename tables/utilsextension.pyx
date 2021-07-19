@@ -163,8 +163,8 @@ NPExtPrefixesToPTKinds = npext_prefixes_to_ptkinds
 HDF5ClassToString = hdf5_class_to_string
 
 
-from numpy import typeDict
-cdef int have_float16 = ("float16" in typeDict)
+from numpy import sctypeDict
+cdef int have_float16 = ("float16" in sctypeDict)
 
 
 #----------------------------------------------------------------------
