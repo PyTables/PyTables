@@ -750,6 +750,7 @@ if __name__ == "__main__":
 
         if os.name == "nt" and package.tag in ["HDF5"]:
             # hdf5.dll usually depends on zlib.dll
+            import ctypes.util
             z_lib_path = ctypes.util.find_library("zlib.dll")
             if z_lib_path:
                 print(f"* Adding zlib.dll (hdf5 dependency): ``{z_lib_path}``")
