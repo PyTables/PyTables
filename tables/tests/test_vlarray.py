@@ -35,7 +35,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                              fletcher32=self.fletcher32)
         vlarray = self.h5file.create_vlarray(group, 'vlarray1',
                                              atom=tb.Int32Atom(),
-                                             title="ragged array if ints",
+                                             title="ragged array of ints",
                                              filters=filters,
                                              expectedrows=1000)
         vlarray.flavor = self.flavor
