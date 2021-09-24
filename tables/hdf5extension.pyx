@@ -150,7 +150,7 @@ cdef extern from "H5VLARRAY.h" nogil:
   herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *obversion,
                         int rank, hsize_t *dims, hid_t type_id,
                         hsize_t chunk_size, void *fill_data, int complevel,
-                        char *complib, int shuffle, int flecther32,
+                        char *complib, int shuffle, int fletcher32,
                         hbool_t track_times, void *data)
 
   herr_t H5VLARRAYappend_records( hid_t dataset_id, hid_t type_id,
