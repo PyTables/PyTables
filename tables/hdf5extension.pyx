@@ -1356,12 +1356,14 @@ cdef class Array(Leaf):
       atom.dflt = dflts
 
     # Create the CArray/EArray
-    self.dataset_id = H5ARRAYmake(
-      self.parent_id, encoded_name, version, self.rank,
-      self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
-      fill_data, self.filters.complevel, complib,
-        self.filters.shuffle_bitshuffle, self.filters.fletcher32,
-        self._want_track_times, rbuf)
+    self.dataset_id = H5ARRAYmake(self.parent_id, encoded_name, version,
+                                  self.rank, self.dims, self.extdim,
+                                  self.disk_type_id, self.dims_chunk,
+                                  fill_data,
+                                  self.filters.complevel, complib,
+                                  self.filters.shuffle_bitshuffle,
+                                  self.filters.fletcher32,
+                                  self._want_track_times, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
