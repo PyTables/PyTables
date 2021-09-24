@@ -360,14 +360,9 @@ class ShuffleComprTestCase(BasicTestCase):
     shuffle = 1
 
 
-class Fletcher32TestCase(BasicTestCase):
-    fletcher32 = 1
-
-
 class AllFiltersTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
-    fletcher32 = 1
 
 
 class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -4391,7 +4386,6 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(GetItemRangeTestCase))
         theSuite.addTest(common.unittest.makeSuite(SetRangeTestCase))
         theSuite.addTest(common.unittest.makeSuite(ShuffleComprTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Fletcher32TestCase))
         theSuite.addTest(common.unittest.makeSuite(AllFiltersTestCase))
         theSuite.addTest(common.unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(OpenCopyTestCase))
