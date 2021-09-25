@@ -150,7 +150,7 @@ cdef extern from "H5VLARRAY.h" nogil:
   herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *obversion,
                         int rank, hsize_t *dims, hid_t type_id,
                         hsize_t chunk_size, void *fill_data, int complevel,
-                        char *complib, int shuffle, int flecther32,
+                        char *complib, int shuffle, int fletcher32,
                         hbool_t track_times, void *data)
 
   herr_t H5VLARRAYappend_records( hid_t dataset_id, hid_t type_id,
@@ -1356,12 +1356,14 @@ cdef class Array(Leaf):
       atom.dflt = dflts
 
     # Create the CArray/EArray
-    self.dataset_id = H5ARRAYmake(
-      self.parent_id, encoded_name, version, self.rank,
-      self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
-      fill_data, self.filters.complevel, complib,
-        self.filters.shuffle_bitshuffle, self.filters.fletcher32,
-        self._want_track_times, rbuf)
+    self.dataset_id = H5ARRAYmake(self.parent_id, encoded_name, version,
+                                  self.rank, self.dims, self.extdim,
+                                  self.disk_type_id, self.dims_chunk,
+                                  fill_data,
+                                  self.filters.complevel, complib,
+                                  self.filters.shuffle_bitshuffle,
+                                  self.filters.fletcher32,
+                                  self._want_track_times, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
