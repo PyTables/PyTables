@@ -360,11 +360,6 @@ class ShuffleComprTestCase(BasicTestCase):
     shuffle = 1
 
 
-class AllFiltersTestCase(BasicTestCase):
-    compress = 1
-    shuffle = 1
-
-
 class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     open_mode = "w"
     compress = 0
@@ -4386,7 +4381,6 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(GetItemRangeTestCase))
         theSuite.addTest(common.unittest.makeSuite(SetRangeTestCase))
         theSuite.addTest(common.unittest.makeSuite(ShuffleComprTestCase))
-        theSuite.addTest(common.unittest.makeSuite(AllFiltersTestCase))
         theSuite.addTest(common.unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(common.unittest.makeSuite(CopyIndex1TestCase))
