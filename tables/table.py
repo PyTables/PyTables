@@ -2864,20 +2864,21 @@ very small/large chunksize, you may want to increase/decrease it."""
     def flush(self):
         """Flush the table buffers."""
 
-        # Flush rows that remains to be appended
-        if 'row' in self.__dict__:
-            self.row._flush_buffered_rows()
-        if self.indexed and self.autoindex:
-            # Flush any unindexed row
-            rowsadded = self.flush_rows_to_index(_lastrow=True)
-            assert rowsadded <= 0 or self._indexedrows == self.nrows, \
-                ("internal error: the number of indexed rows (%d) "
-                 "and rows in the table (%d) is not equal; "
-                 "please report this to the authors."
-                 % (self._indexedrows, self.nrows))
-            if self._dirtyindexes:
-                # Finally, re-index any dirty column
-                self.reindex_dirty()
+        if self._v_file._iswritable():
+            # Flush rows that remains to be appended
+            if 'row' in self.__dict__:
+                self.row._flush_buffered_rows()
+            if self.indexed and self.autoindex:
+                # Flush any unindexed row
+                rowsadded = self.flush_rows_to_index(_lastrow=True)
+                assert rowsadded <= 0 or self._indexedrows == self.nrows, \
+                    ("internal error: the number of indexed rows (%d) "
+                     "and rows in the table (%d) is not equal; "
+                     "please report this to the authors."
+                     % (self._indexedrows, self.nrows))
+                if self._dirtyindexes:
+                    # Finally, re-index any dirty column
+                    self.reindex_dirty()
 
         super().flush()
 
