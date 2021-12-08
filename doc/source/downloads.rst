@@ -46,8 +46,9 @@ the new github repository:
 
 https://github.com/PyTables/PyTables
 
-A `snapshot <https://github.com/PyTables/PyTables/archive/develop.zip>`_ of
-the code in development is also available on the `GitHub project page`_.
+A
+`snapshot <https://github.com/PyTables/PyTables/archive/refs/heads/master.zip>`_
+of the code in development is also available on the `GitHub project page`_.
 
 .. _`GitHub project page`: https://github.com/PyTables/PyTables
 

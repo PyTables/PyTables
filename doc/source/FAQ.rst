@@ -549,7 +549,7 @@ uninstall `Numeric`.
 .. _Cython: http://www.cython.org
 .. _`Francesc Alted`: http://www.pytables.org/moin/FrancescAlted
 .. _netCDF3: http://www.unidata.ucar.edu/software/netcdf
-.. _`Scientific Python`: http://dirac.cnrs-orleans.fr/plone/software/scientificpython
+.. _`Scientific Python`: http://dirac.cnrs-orleans.fr/ScientificPython.html
 .. _netCDF4: http://www.unidata.ucar.edu/software/netcdf
 .. _pydap: http://www.pydap.org
 .. _OPeNDAP: http://opendap.org
@@ -560,13 +560,13 @@ uninstall `Numeric`.
 .. _`advanced indexing capabilities`: http://www.pytables.org/moin/PyTablesPro
 .. _`automatic computation of optimal chunk sizes`: http://www.pytables.org/docs/manual/ch05.html#chunksizeFineTune
 .. _bzip2: http://www.bzip.org
-.. _Blosc: http://blosc.pytables.org
+.. _Blosc: https://www.blosc.org
 .. _`zlib`: http://zlib.net
 .. _numexpr: https://github.com/pydata/numexpr
 .. _`FAQ of h5py`: http://docs.h5py.org/en/latest/faq.html#what-s-the-difference-between-h5py-and-pytables
 .. _`issue tracker`: https://github.com/PyTables/PyTables/issues
 .. _GitHub: https://github.com
-.. _`HDF5 manual`: http://www.hdfgroup.org/HDF5/doc/RM/RM_H5T.html
+.. _`HDF5 manual`: https://portal.hdfgroup.org/display/HDF5/Datatypes
 .. _SQLObject: http://sqlobject.org
 .. _`PEP 335`: http://www.python.org/dev/peps/pep-0335
 .. _GnuWin32: http://gnuwin32.sourceforge.net

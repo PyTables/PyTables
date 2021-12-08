@@ -50,7 +50,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
           or filtered.
 
           Please refer to the `VLTypes Technical Note
-          <http://www.hdfgroup.org/HDF5/doc/TechNotes/VLTypes.html>`_
+          <https://support.hdfgroup.org/HDF5/doc/TechNotes/VLTypes.html>`_
           for more details on the topic.
 
     Parameters
