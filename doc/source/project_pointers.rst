@@ -12,8 +12,8 @@ Project pointers
 * `Developers Mailing List <https://groups.google.com/group/pytables-dev>`_
 * Continuous Integration:
 
-  - `OME <http://hudson.openmicroscopy.org.uk/job/PyTables>`_ (master branch)
-  - `Travis-CI <https://travis-ci.org/PyTables/PyTables>`_ (all branches)
+  - `GitHub Actions (GHA) <https://github.com/PyTables/PyTables/actions>`_
+  - `AppVeyor <https://ci.appveyor.com/project/PyTablesCI/pytables>`_
 
 * `Project page on PyPi <https://pypi.python.org/pypi/tables>`_
 * `Project Page on SourceForge.net <http://sourceforge.net/projects/pytables>`_
