@@ -30,9 +30,8 @@ Other resources for developers:
 * `Developers' Mailing List`_
 * Continuous Integration:
 
-  - `master <http://hudson.openmicroscopy.org.uk/job/PyTables>`_ branch at
-    OME_
-  - `all branches <https://travis-ci.org/PyTables/PyTables>`_ on `Travis-CI`_
+  - `GitHub Actions (GHA) <https://github.com/PyTables/PyTables/actions>`_
+  - `AppVeyor <https://ci.appveyor.com/project/PyTablesCI/pytables>`_
 
 * `Old trac site <http://www.pytables.org/trac-bck>`_
 
