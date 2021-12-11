@@ -6,7 +6,6 @@ on:
     branches:
       - master
       - 'releases/**'
-      - 'wheels_3.10'
     tags:
       - v*
   release:
