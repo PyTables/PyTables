@@ -43,7 +43,7 @@ jobs:
           python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_LINUX: ${{matrix.arch}}
-          CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-*"
+          CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-* cp310-*"
           CIBW_BEFORE_ALL_LINUX: "yum -y update && yum install -y epel-release && yum install -y hdf5-devel zlib-devel bzip2-devel lzo-devel blosc-devel"
           CIBW_BEFORE_BUILD: "pip install numpy numexpr cython>=0.29.21"
           CIBW_ENVIRONMENT: "DISABLE_AVX2='TRUE'"
