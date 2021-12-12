@@ -34,7 +34,7 @@ jobs:
         python setup.py sdist
     - name: Installation
       run: |
-        pip install dist/*.tar.gz
+        pip install -v dist/*.tar.gz
     - name: 'Run test'
       run: |
         cd .. && python -m tables.tests.test_all
