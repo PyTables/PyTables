@@ -689,11 +689,7 @@ if __name__ == "__main__":
             inc_dirs.append(Path(hdrdir))  # save header directory if needed
         if libdir not in default_library_dirs and libdir not in ("", True):
             # save library directory if needed
-            if os.name == "nt":
-                # Important to quote the libdir for Windows (Vista) systems
-                lib_dirs.append(Path(f'"{libdir}"'))
-            else:
-                lib_dirs.append(Path(libdir))
+            lib_dirs.append(Path(libdir))
 
         if package.tag not in ["HDF5"]:
             # Keep record of the optional libraries found.
