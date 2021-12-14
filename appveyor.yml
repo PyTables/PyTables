@@ -31,9 +31,10 @@ environment:
       PYTHON_VERSION: "3.9"
       PYTHON_ARCH: "64"
 
-    - PYTHON: "C:\\Miniconda37-x64"
-      PYTHON_VERSION: "3.10"
-      PYTHON_ARCH: "64"
+    # python 3.10 currently fails while compiling blosc
+    # - PYTHON: "C:\\Miniconda37-x64"
+    #   PYTHON_VERSION: "3.10"
+    #   PYTHON_ARCH: "64"
 
 install:
   - powershell .\\ci\\appveyor\\missing-headers.ps1
