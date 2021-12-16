@@ -17,6 +17,8 @@ jobs:
   build_wheels:
     name: Build wheels on ${{matrix.arch}} for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      HDF5_VERSION: 1.12.1
     strategy:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
@@ -37,35 +39,36 @@ jobs:
           python-version: '3.9'
 
       - uses: docker/setup-qemu-action@v1
-        if:  startsWith(matrix.os, 'ubuntu')
+        if: runner.os == 'Linux'
         name: Set up QEMU
 
       - name: Install prerequisites for macOS
-        if: contains(matrix.os, 'macos')
+        if: runner.os == 'macOS'
         env:
           # Best compatibility, even with older releases of macOS.
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: |
           brew install --build-from-source --no-binaries --force szip
-          brew reinstall --build-from-source --no-binaries --force c-blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
+          brew reinstall --build-from-source --no-binaries --force  bzip2 lz4 lzo snappy zstd zlib
           brew link --overwrite --force bzip2 zlib
 
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade cibuildwheel
 
-      - name: Build wheels for Linux or macOS (64-bit | aarch64)
+      - name: Build wheels for Linux or macOS (64-bit)
         run: |
           python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_LINUX: ${{ matrix.arch }}
           CIBW_ARCHS_MACOS: ${{ matrix.arch == 'aarch64' && 'arm64' || 'x86_64'}}
           CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-* cp310-*"
-          CIBW_BEFORE_ALL_LINUX: "yum -y update && yum install -y epel-release && yum install -y hdf5-devel zlib-devel bzip2-devel lzo-devel blosc-devel"
+          CIBW_BEFORE_ALL_LINUX: "yum -y update && yum install -y zlib-devel bzip2-devel lzo-devel ${{ matrix.arch == 'aarch64' && 'blosc-devel' || ''}} && ./ci/github/get_hdf5_if_needed.sh"
+          CIBW_BEFORE_ALL_MACOS: "./ci/github/get_hdf5_if_needed.sh"
           CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21"
-          CIBW_ENVIRONMENT: "DISABLE_AVX2='TRUE'"
+          CIBW_ENVIRONMENT: "DISABLE_AVX2='TRUE' HDF5_DIR=/tmp/hdf5 HDF5_VERSION=${{ env.HDF5_VERSION }} LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/tmp/hdf5/lib/"
           MACOSX_DEPLOYMENT_TARGET: "10.9"
-          CIBW_ENVIRONMENT_MACOS: BZIP2_DIR=/usr/local/opt/bzip2 LDFLAGS+="-L/usr/local/opt/bzip2/lib -L/usr/local/opt/zlib/lib" CPPFLAGS+="-I/usr/local/opt/bzip2/include -I/usr/local/opt/zlib/include" PKG_CONFIG_PATH="/usr/local/opt/zlib/lib/pkgconfig"
+          CIBW_ENVIRONMENT_MACOS: HDF5_DIR=/tmp/hdf5 HDF5_VERSION=${{ env.HDF5_VERSION }} LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/tmp/hdf5/lib/ BZIP2_DIR=/usr/local/opt/bzip2 LDFLAGS+="-L/usr/local/opt/bzip2/lib -L/usr/local/opt/zlib/lib" CPPFLAGS+="-I/usr/local/opt/bzip2/include -I/usr/local/opt/zlib/include" PKG_CONFIG_PATH="/usr/local/opt/zlib/lib/pkgconfig"
           CIBW_SKIP: '*-musllinux_*'
 
       - uses: actions/upload-artifact@v2
