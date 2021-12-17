@@ -64,6 +64,9 @@ class Col(atom.Atom, metaclass=type):
     pos : int
         Sets the position of column in table.  If unspecified, the position
         will be randomly selected.
+    attrs : dict
+        Attribute metadata stored in the column (see
+        :ref:`AttributeSetClassDescr`).
 
     """
 
@@ -161,6 +164,8 @@ class Col(atom.Atom, metaclass=type):
             The constructor accepts the same arguments as the equivalent
             `Atom` class, plus an additional ``pos`` argument for
             position information, which is assigned to the `_v_pos`
+            attribute and an ``attrs`` argument for storing additional metadata
+            similar to `table.attrs`, which is assigned to the `_v_col_attrs`
             attribute.
 
             """

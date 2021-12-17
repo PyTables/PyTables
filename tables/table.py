@@ -3266,6 +3266,10 @@ class Column:
         The complete pathname of the associated column (the same as
         Column.name if the column is not inside a nested column).
 
+    .. attribute:: attrs
+
+        Column attributes (see :ref:`ColClassDescr`).
+
     Parameters
     ----------
     table
