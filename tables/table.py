@@ -3682,6 +3682,10 @@ class Column:
         return self.descr._v_colobjects[self.name]._v_pos
 
     @lazyattr
+    def _v_col_attrs(self):
+        return self.descr._v_colobjects[self.name]._v_col_attrs
+
+    @lazyattr
     def _v_attrs(self):
         return ColumnAttributeSet(self)
 
@@ -3697,6 +3701,11 @@ class ColumnAttributeSet:
         self.__dict__['_v_tableattrs'] = column.table.attrs
         self.__dict__['_v_fieldindex'] = column._v_pos
         self.__dict__['_v_column_reference'] = weakref.ref(column)
+
+        # Check if this column has _v_col_attrs set and translate them into
+        # the table attribute format
+        for col_attr_key, col_attr_val in column._v_col_attrs.items():
+            self.__setitem__(col_attr_key, col_attr_val)
 
     def issystemcolumnname(self, key):
         """Checks whether a key is a reserved attribute name, or should be passed through."""
