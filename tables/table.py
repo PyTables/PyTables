@@ -3748,14 +3748,14 @@ class ColumnAttributeSet:
     def __delattr__(self, key):
         """Deletes the attribute for this column"""
         if self.issystemcolumnname(key):
-            raise Exception('Deleting system attributes is prohibited')
+            raise TypeError('Deleting system attributes is prohibited')
         else:
             delattr(self._v_tableattrs, self._prefix(key))
 
     def __delitem__(self, key):
         """A dictionary-like interface for __delattr__"""
         if self.issystemcolumnname(key):
-            raise Exception('Deleting system attributes is prohibited')
+            raise TypeError('Deleting system attributes is prohibited')
         else:
             del self._v_tableattrs[self._prefix(key)]
 
@@ -3767,7 +3767,7 @@ class ColumnAttributeSet:
             return
 
         if self.issystemcolumnname(oldattrname):
-            raise Exception('Renaming system attributes is prohibited')
+            raise TypeError('Renaming system attributes is prohibited')
 
         # First, fetch the value of the oldattrname
         attrvalue = getattr(self, oldattrname)
