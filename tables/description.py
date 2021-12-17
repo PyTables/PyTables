@@ -167,6 +167,7 @@ class Col(atom.Atom, metaclass=type):
 
             def __init__(self, *args, **kwargs):
                 pos = kwargs.pop('pos', None)
+                col_attrs = kwargs.pop('attrs', {})
                 offset = kwargs.pop('_offset', None)
                 class_from_prefix = self._class_from_prefix
                 atombase.__init__(self, *args, **kwargs)
@@ -178,6 +179,7 @@ class Col(atom.Atom, metaclass=type):
                     self.__class__ = colclass
                 self._v_pos = pos
                 self._v_offset = offset
+                self._v_col_attrs = col_attrs
 
             __eq__ = same_position(atombase.__eq__)
             _is_equal_to_atom = same_position(atombase._is_equal_to_atom)
@@ -203,6 +205,9 @@ class Col(atom.Atom, metaclass=type):
         rpar = atomrepr.rindex(')')
         atomargs = atomrepr[lpar + 1:rpar]
         classname = self.__class__.__name__
+        if self._v_col_attrs:
+            return (f'{classname}({atomargs}, pos={self._v_pos}'
+                    f', attrs={self._v_col_attrs})')
         return f'{classname}({atomargs}, pos={self._v_pos})'
 
     def _get_init_args(self):
