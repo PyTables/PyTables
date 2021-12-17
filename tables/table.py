@@ -3339,6 +3339,7 @@ class Column:
         self.descr = descr
         """The Description (see :ref:`DescriptionClassDescr`) instance of the
         parent table or nested column."""
+        self._v_attrs = ColumnAttributeSet(self)
 
     def _g_update_table_location(self, table):
         """Updates the location information about the associated `table`."""
@@ -3685,10 +3686,6 @@ class Column:
     def _v_col_attrs(self):
         return self.descr._v_colobjects[self.name]._v_col_attrs
 
-    @lazyattr
-    def _v_attrs(self):
-        return ColumnAttributeSet(self)
-
     @property
     def attrs(self):
         return self._v_attrs
@@ -3717,14 +3714,14 @@ class ColumnAttributeSet:
         return 'FIELD_%i_ATTR_%s' % (field_index, string)
 
     def __getattr__(self, key):
-        """Retrieves a PyTables attribute for this column"""        
+        """Retrieves a PyTables attribute for this column"""
         if not self.issystemcolumnname(key):
             return getattr(self._v_tableattrs, self._prefix(key))
         else:
             return super().__getattr__(key)
 
     def __setattr__(self, key, val):
-        """Sets a PyTables attribute for this column"""        
+        """Sets a PyTables attribute for this column"""
         if not self.issystemcolumnname(key):
             setattr(self._v_tableattrs, self._prefix(key), val)
         else:
@@ -3775,7 +3772,7 @@ class ColumnAttributeSet:
         setattr(self, newattrname, attrvalue)
 
         # Finally, remove the old attribute
-        delattr(self, oldattrname)        
+        delattr(self, oldattrname)
 
     def _f_copy(self, where):
         """Copy attributes to another column"""
@@ -3801,7 +3798,7 @@ class ColumnAttributeSet:
         """The string representation for this object."""
 
         pathname = self._v_tableattrs._v__nodepath
-        classname = self._v_column_reference().__class__.__name__ #self._v_tableattrs._v_node.__class__.__name__
+        classname = self._v_column_reference().__class__.__name__  # self._v_tableattrs._v_node.__class__.__name__
         attrnumber = sum(1 for _ in self.keys())
         columnname = self._v_column_reference().name
 
