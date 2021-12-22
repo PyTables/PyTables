@@ -1,0 +1,161 @@
+name: CI CMake
+on: [push, pull_request]
+jobs:
+  ci-cmake:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [
+          Ubuntu GCC,
+          Ubuntu GCC OSB,
+          Ubuntu GCC External LZ4,
+          Ubuntu GCC External SNAPPY,
+          Ubuntu GCC External ZLIB,
+          Ubuntu GCC External ZSTD,
+          Ubuntu Clang,
+          Ubuntu Clang No SSE2,
+          Ubuntu Clang No AVX2,
+          Ubuntu Clang No AVX2 No SSE2,
+          Ubuntu Clang No LZ4,
+          Ubuntu Clang No ZLIB,
+          Ubuntu Clang No ZSTD,
+          Windows MSVC Win32,
+          Windows MSVC Win64,
+          Windows GCC,
+          macOS Clang,
+          macOS GCC
+        ]
+        include:
+          - name: Ubuntu GCC
+            os: ubuntu-latest
+            compiler: gcc
+
+          # Out of source build
+          - name: Ubuntu GCC OSB
+            os: ubuntu-latest
+            compiler: gcc
+            build-dir: ../build
+            build-src-dir: ../c-blosc
+
+          - name: Ubuntu GCC External LZ4
+            os: ubuntu-latest
+            compiler: gcc
+            packages: liblz4-1 liblz4-dev
+            cmake-args: -DPREFER_EXTERNAL_LZ4=ON
+
+          - name: Ubuntu GCC External SNAPPY
+            os: ubuntu-latest
+            compiler: gcc
+            packages: libsnappy-dev
+            cmake-args: -DDEACTIVATE_SNAPPY=OFF
+
+          - name: Ubuntu GCC External ZLIB
+            os: ubuntu-latest
+            compiler: gcc
+            packages: zlib1g-dev
+            cmake-args: -DPREFER_EXTERNAL_ZLIB=ON
+
+          - name: Ubuntu GCC External ZSTD
+            os: ubuntu-latest
+            compiler: gcc
+            packages: zstd libzstd-dev
+            cmake-args: -DPREFER_EXTERNAL_ZSTD=ON
+
+          - name: Ubuntu Clang
+            os: ubuntu-latest
+            compiler: clang
+
+          - name: Ubuntu Clang No SSE2
+            os: ubuntu-latest
+            compiler: clang
+            cmake-args: -DDEACTIVATE_SSE2=ON
+
+          - name: Ubuntu Clang No AVX2
+            os: ubuntu-latest
+            compiler: clang
+            cmake-args: -DDEACTIVATE_AVX2=ON
+
+          - name: Ubuntu Clang No AVX2 No SSE2
+            os: ubuntu-latest
+            compiler: clang
+            cmake-args: -DDEACTIVATE_AVX2=ON -DDEACTIVATE_SSE2=ON
+
+          - name: Ubuntu Clang No LZ4
+            os: ubuntu-latest
+            compiler: clang
+            cmake-args: -DDEACTIVATE_LZ4=ON
+
+          - name: Ubuntu Clang No ZLIB
+            os: ubuntu-latest
+            compiler: clang
+            cmake-args: -DDEACTIVATE_ZLIB=ON
+
+          - name: Ubuntu Clang No ZSTD
+            os: ubuntu-latest
+            compiler: clang
+            cmake-args: -DDEACTIVATE_ZSTD=ON
+
+          - name: Windows MSVC Win32
+            os: windows-latest
+            compiler: cl
+            cmake-args: -A Win32
+
+          - name: Windows MSVC Win64
+            os: windows-latest
+            compiler: cl
+            cmake-args: -A x64
+
+          - name: Windows GCC
+            os: windows-latest
+            compiler: gcc
+            cmake-args: -G Ninja
+
+          - name: macOS Clang
+            os: macOS-latest
+            compiler: clang
+
+          - name: macOS GCC
+            os: macOS-latest
+            compiler: gcc
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install packages (Ubuntu)
+      if: runner.os == 'Linux' && matrix.packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.packages }}
+
+    - name: Install packages (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install ninja ${{ matrix.packages }}
+
+    - name: Install packages (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install ninja ${{ matrix.packages }}
+
+    - name: Generate project files
+      run: |
+        mkdir ${{ matrix.build-dir || '.not-used' }}
+        cd ${{ matrix.build-dir || '.' }}
+        cmake ${{ matrix.build-src-dir || '.' }} ${{ matrix.cmake-args }} -DCMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }} -DBUILD_SHARED_LIBS=OFF -DBUILD_FUZZERS=ON
+      env:
+        CC: ${{ matrix.compiler }}
+        CFLAGS: ${{ matrix.cflags }}
+        LDFLAGS: ${{ matrix.ldflags }}
+        CI: true
+
+    - name: Compile source code
+      run: |
+        cd ${{ matrix.build-dir || '.' }}
+        cmake --build . --config ${{ matrix.build-config || 'Release' }}
+
+    - name: Run test cases
+      run: |
+        cd ${{ matrix.build-dir || '.' }}
+        ctest -C Release --output-on-failure --max-width 120

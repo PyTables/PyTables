@@ -1,17 +1,15 @@
 ===============================================================
- Announcing C-Blosc 1.21.0
+ Announcing C-Blosc 1.21.1
  A blocking, shuffling and lossless compression library for C
 ===============================================================
 
 What is new?
 ============
 
-This is a maintenance release.  Vendored lz4 and zstd codecs have been
-updated to 1.9.3 and 1.4.8 respectively.
-
-Also, this should be the first release that is officially providing
-binary libraries via the Python wheels in its sibling project python-blosc.
-Thanks to Jeff Hammerbacher for his generous donation to make this happen.
+This is a maintenance release.  Fix pthread flag when linking on ppc64le.
+Vendored BloscLZ, Zlib and Zstd codecs have been updated to their latest
+versions too; this can bring important performance improvements, so if
+speed is a priority to you, an upgrade is recommended.
 
 For more info, please see the release notes in:
 

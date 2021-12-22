@@ -2,6 +2,17 @@
  Release notes for C-Blosc
 ===========================
 
+Changes from 1.21.0 to 1.21.1
+=============================
+
+* Fix pthread flag when linking on ppc64le.  See #318.  Thanks to Axel Huebl.
+
+* Updates in codecs (some bring important performance improvements):
+  * BloscLZ updated to 2.5.1.
+  * Zlib updated to 1.2.11
+  * Zstd updated to 1.5.0
+
+
 Changes from 1.20.1 to 1.21.0
 =============================
 

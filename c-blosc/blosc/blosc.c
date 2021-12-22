@@ -651,7 +651,7 @@ static int blosc_c(const struct blosc_context* context, int32_t blocksize,
     }
     if (context->compcode == BLOSC_BLOSCLZ) {
       cbytes = blosclz_compress(context->clevel, _tmp+j*neblock, neblock,
-                                dest, maxout);
+                                dest, maxout, !dont_split);
     }
     #if defined(HAVE_LZ4)
     else if (context->compcode == BLOSC_LZ4) {
