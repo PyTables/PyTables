@@ -45,6 +45,7 @@ Improvements
   that the version to which the program was linked to. This problem is known as "DLL Hell".
   With the renaming of the HDF5 DLL to `pytables_hdf5.dll` these problems should be solved.
 - Stop using ppveyor and deprecated ci-helpers (closes :issue:`827`).
+- Switch to `git submodule` for teh management of vendored c-blosc sources.
 
 Bugfixes
 --------

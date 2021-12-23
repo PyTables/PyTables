@@ -204,7 +204,7 @@ worry too much ;)
        The following command create a local copy of latest development version
        sources::
 
-        $ git clone https://github.com/PyTables/PyTables.git
+        $ git clone --recursive https://github.com/PyTables/PyTables.git
 
     #. sources in the git repository do not include pre-built documentation
        and pre-generated C code of Cython extension modules.  To be able to
