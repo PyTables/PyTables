@@ -24,6 +24,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - uses: actions/setup-python@v2
         name: Install Python
@@ -77,6 +80,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - uses: actions/setup-python@v2
         name: Install Python
@@ -149,6 +155,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - uses: actions/setup-python@v2
         name: Install Python
