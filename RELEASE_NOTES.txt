@@ -38,12 +38,13 @@ PyTables 3.6 no longer supports Python 2.7 see PR #747.
 
 Improvements
 ------------
- - Full python 3.8 support.
- - On Windows PyTables wheels on PyPI are linked to `pytables_hdf5.dll` instead of
-   `hdf5.dll` to prevent collisions with other packages/wheels that also vendor `hdf5.dll`.
-   This should prevent problems that arise when a different version of a dll is imported
-   that the version to which the program was linked to. This problem is known as "DLL Hell".
-   With the renaming of the HDF5 DLL to `pytables_hdf5.dll` these problems should be solved.
+- Full python 3.8 support.
+- On Windows PyTables wheels on PyPI are linked to `pytables_hdf5.dll` instead of
+  `hdf5.dll` to prevent collisions with other packages/wheels that also vendor `hdf5.dll`.
+  This should prevent problems that arise when a different version of a dll is imported
+  that the version to which the program was linked to. This problem is known as "DLL Hell".
+  With the renaming of the HDF5 DLL to `pytables_hdf5.dll` these problems should be solved.
+- Stop using ppveyor and deprecated ci-helpers (closes :issue:`827`).
 
 Bugfixes
 --------
