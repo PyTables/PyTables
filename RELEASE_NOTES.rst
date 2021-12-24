@@ -40,3 +40,7 @@ Bugfixes
   Thanks to Marco Sulla PR #792.
 - Fix ROFileNode fails to return the `fileno()` (:issue:`633`).
 - Do not flush read only files (:issue:`915` thanks to @lrepiton).
+
+Other changes
+-------------
+- Drop the deprecated `hdf5Version` and `File.open_count`.

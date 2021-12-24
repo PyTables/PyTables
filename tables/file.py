@@ -709,20 +709,6 @@ class File(hdf5extension.File):
     def filters(self):
         del self.root._v_filters
 
-    @property
-    def open_count(self):
-        """The number of times this file handle has been opened.
-
-        .. versionchanged:: 3.1
-           The mechanism for caching and sharing file handles has been
-           removed in PyTables 3.1.  Now this property should always
-           be 1 (or 0 for closed files).
-
-        .. deprecated:: 3.1
-
-        """
-        return self._open_count
-
     def __init__(self, filename, mode="r", title="",
                  root_uep="/", filters=None, **kwargs):
 

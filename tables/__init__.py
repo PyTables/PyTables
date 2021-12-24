@@ -25,16 +25,6 @@ hdf5_version = get_hdf5_version()
 
 """
 
-hdf5Version = hdf5_version
-"""The underlying HDF5 library version number.
-
-.. deprecated:: 3.0
-
-    hdf5Version is pending deprecation, use :data:`hdf5_version`
-    instead.
-
-"""
-
 from .utilsextension import (is_hdf5_file, is_pytables_file,
                              which_lib_version, set_blosc_max_threads,
                              silence_hdf5_messages)

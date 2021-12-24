@@ -31,8 +31,6 @@ File properties
 
 .. autoattribute:: File.filters
 
-.. autoattribute:: File.open_count
-
 
 File methods - file handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
