@@ -23,11 +23,13 @@ copyright = '2011–2021, PyTables maintainers'
 author = 'PyTables maintainers'
 
 # The short X.Y version
-VERSION = (Path(__file__).parent.parent.parent / 'VERSION').read_text().strip()
-version = VERSION
+import tables as tb
+# from packaging.version import Version
+# version = Version(tb.__version__).base_version
+version = tb.__version__
 
 # The full version, including alpha/beta/rc tags
-release = VERSION
+release = tb.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -205,4 +207,3 @@ extlinks = {
 autodoc_member_order = "groupwise"
 autoclass_content = "class"
 autosummary_generate = []
-

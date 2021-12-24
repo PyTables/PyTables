@@ -26,7 +26,22 @@ import distutils.spawn
 # This is also what pandas does.
 from setuptools.command.build_ext import build_ext
 
+
+def get_version(filename):
+    import re
+
+    with open(filename) as fd:
+        data = fd.read()
+
+    mobj = re.search(
+        r'''^__version__\s*=\s*(?P<quote>['"])(?P<version>.*)(?P=quote)''',
+        data, re.MULTILINE)
+    return mobj.group('version')
+
+
 ROOT = Path(__file__).resolve().parent
+VERSION = get_version(ROOT.joinpath("tables/__init__.py"))
+
 
 if __name__ == "__main__":
     # `cpuinfo.py` uses multiprocessing to check CPUID flags. On Windows, the
@@ -116,8 +131,6 @@ if __name__ == "__main__":
     min_blosc_bitshuffle_version = _min_versions[
         "min_blosc_bitshuffle_version"
     ]
-
-    VERSION = (ROOT / "VERSION").read_text().strip()
 
     # ----------------------------------------------------------------------
 
@@ -791,12 +804,6 @@ if __name__ == "__main__":
         return extfiles
 
     cython_extfiles = get_cython_extfiles(cython_extnames)
-
-    # Update the version.h file if this file is newer
-    if newer(ROOT / "VERSION", ROOT / "src" / "version.h"):
-        (ROOT / "src" / "version.h").write_text(
-            f'#define PYTABLES_VERSION "{VERSION}"\n'
-        )
 
     # --------------------------------------------------------------------
 

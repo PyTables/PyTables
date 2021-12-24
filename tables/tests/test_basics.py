@@ -1764,22 +1764,16 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.close()
 
         with tb.open_file(self.h5fname, "r") as h5file1:
-            self.assertEqual(h5file1.open_count, 1)
             if tb.file._FILE_OPEN_POLICY == 'strict':
                 self.assertRaises(ValueError, tb.open_file, self.h5fname, "r")
             else:
                 with tb.open_file(self.h5fname, "r") as h5file2:
-                    self.assertEqual(h5file1.open_count, 1)
-                    self.assertEqual(h5file2.open_count, 1)
                     if common.verbose:
-                        print("(h5file1) open_count:", h5file1.open_count)
                         print("(h5file1) test[1]:", h5file1.root.test[1])
                     self.assertEqual(h5file1.root.test[1], 2)
                     h5file1.close()
 
-                    self.assertEqual(h5file2.open_count, 1)
                     if common.verbose:
-                        print("(h5file2) open_count:", h5file2.open_count)
                         print("(h5file2) test[1]:", h5file2.root.test[1])
                     self.assertEqual(h5file2.root.test[1], 2)
 

@@ -2,7 +2,7 @@
 # sources exported from a repository.  For building and installing PyTables,
 # please use ``setup.py`` as described in the ``README.rst`` file.
 
-VERSION = $(shell cat VERSION)
+VERSION = $(grep "__version__ =" tables/__init__.py | cut -f 3 -d ' ' | sed s/\"//g)
 SRCDIRS = src doc
 GENERATED = ANNOUNCE.txt
 PYTHON = python3
@@ -53,7 +53,7 @@ latex:
 	$(RM) doc/usersguide-*.pdf
 	cp doc/build/latex/usersguide-$(VERSION).pdf doc
 
-%: %.in VERSION
+%: %.in tables/__init__.py
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
 
 build:

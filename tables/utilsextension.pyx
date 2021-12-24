@@ -176,7 +176,6 @@ cdef int have_float16 = ("float16" in sctypeDict)
 cdef extern from "utils.h":
 
   int getLibrary(char *libname) nogil
-  object _getTablesVersion()
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
   object get_filter_names( hid_t loc_id, char *dset_name)
@@ -605,15 +604,6 @@ def get_hdf5_version():
   """Get the underlying HDF5 library version"""
 
   return getHDF5VersionInfo()[1]
-
-
-
-
-def get_pytables_version():
-  """Return this extension version."""
-
-  return _getTablesVersion()
-
 
 
 def which_lib_version(str name):

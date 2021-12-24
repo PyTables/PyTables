@@ -7,27 +7,29 @@ to efficiently cope with extremely large amounts of data.
 
 """
 
-
 # Necessary imports to get versions stored on the cython extension
-from .utilsextension import (
-    get_pytables_version, get_hdf5_version, blosc_compressor_list,
-    blosc_compcode_to_compname_ as blosc_compcode_to_compname,
-    blosc_get_complib_info_ as blosc_get_complib_info)
+from .utilsextension import get_hdf5_version as _get_hdf5_version
 
 
-__version__ = get_pytables_version()
+__version__ = "3.7.0.dev0"
 """The PyTables version number."""
 
-hdf5_version = get_hdf5_version()
+hdf5_version = _get_hdf5_version()
 """The underlying HDF5 library version number.
 
 .. versionadded:: 3.0
 
 """
 
-from .utilsextension import (is_hdf5_file, is_pytables_file,
-                             which_lib_version, set_blosc_max_threads,
-                             silence_hdf5_messages)
+from .utilsextension import (
+    blosc_compcode_to_compname_ as blosc_compcode_to_compname,
+    blosc_get_complib_info_ as blosc_get_complib_info,
+)
+
+from .utilsextension import (
+    blosc_compressor_list, is_hdf5_file, is_pytables_file, which_lib_version,
+    set_blosc_max_threads, silence_hdf5_messages,
+)
 
 from .misc.enum import Enum
 from .atom import *
@@ -130,3 +132,18 @@ else:
             pass
     del _atom, _description
 del _broken_hdf5_long_double
+
+
+def get_pytables_version():
+    warnings.warn(
+        "the 'get_pytables_version()' function is deprecated and could be "
+        "removed in future versions. Please use 'tables.__version__'",
+        DeprecationWarning)
+    return __version__
+
+def get_hdf5_version():
+    warnings.warn(
+        "the 'get_hdf5_version()' function is deprecated and could be "
+        "removed in future versions. Please use 'tables.hdf5_version'",
+        DeprecationWarning)
+    return hdf5_version
