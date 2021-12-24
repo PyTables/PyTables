@@ -29,7 +29,7 @@ jobs:
         channel-priority: strict
     - name: Install dependencies
       run: |
-        conda install setuptools pip wheel numpy numexpr cython bzip2 hdf5 lzo
+        conda install setuptools pip wheel packaging numpy numexpr cython bzip2 hdf5 lzo
         # conda install sphinx sphinx_rtd_theme numpydoc ipython
     - name: Source distribution
       run: |
