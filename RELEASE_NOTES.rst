@@ -34,6 +34,7 @@ Improvements
 - Several improvements to wheels generation in CI
   (thanks to Andreas Motl @amotl and Matthias @xmatthias).
 - Simplified management of version information.
+- Drop dependency on the deprecated distutils.
 
 Bugfixes
 --------

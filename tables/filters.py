@@ -5,11 +5,11 @@ import numpy as np
 
 from . import utilsextension, blosc_compressor_list, blosc_compcode_to_compname
 from .exceptions import FiltersWarning
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 import tables as tb
 
-blosc_version = LooseVersion(tb.which_lib_version("blosc")[1])
+blosc_version = Version(tb.which_lib_version("blosc")[1])
 
 
 __docformat__ = 'reStructuredText'

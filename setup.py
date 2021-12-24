@@ -5,26 +5,41 @@
 import os
 import sys
 import ctypes
+import shutil
 import tempfile
 import textwrap
 import subprocess
 from pathlib import Path
 
 # Using ``setuptools`` enables lots of goodies
-from setuptools import setup, find_packages
-import pkg_resources
-
-from distutils.core import Extension
-from distutils.dep_util import newer
-from distutils.util import convert_path
-from distutils.ccompiler import new_compiler
-from distutils.version import LooseVersion
-import distutils.spawn
-
-# We need to avoid importing numpy until we can be sure it's installed
-# This approach is based on this SO answer http://stackoverflow.com/a/21621689
-# This is also what pandas does.
+from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
+import pkg_resources
+from packaging.version import Version
+
+
+# The name for the pkg-config utility
+PKG_CONFIG = "pkg-config"
+
+
+# Some functions for showing errors and warnings.
+def _print_admonition(kind, head, body):
+    tw = textwrap.TextWrapper(
+        initial_indent="   ", subsequent_indent="   "
+    )
+
+    print(f".. {kind.upper()}:: {head}")
+    for line in tw.wrap(body):
+        print(line)
+
+
+def exit_with_error(head, body=""):
+    _print_admonition("error", head, body)
+    sys.exit(1)
+
+
+def print_warning(head, body=""):
+    _print_admonition("warning", head, body)
 
 
 def get_version(filename):
@@ -39,11 +54,132 @@ def get_version(filename):
     return mobj.group('version')
 
 
-ROOT = Path(__file__).resolve().parent
-VERSION = get_version(ROOT.joinpath("tables/__init__.py"))
+# Get the HDF5 version provided the 'H5public.h' header
+def get_hdf5_version(headername):
+    major, minor, release = None, None, None
+    for line in headername.read_text().splitlines():
+        if "H5_VERS_MAJOR" in line:
+            major = int(line.split()[2])
+        elif "H5_VERS_MINOR" in line:
+            minor = int(line.split()[2])
+        elif "H5_VERS_RELEASE" in line:
+            release = int(line.split()[2])
+        if None not in (major, minor, release):
+            break
+    else:
+        exit_with_error("Unable to detect HDF5 library version!")
+    return Version(f"{major}.{minor}.{release}")
+
+
+# Get the Blosc version provided the 'blosc.h' header
+def get_blosc_version(headername):
+    major, minor, release = None, None, None
+    for line in headername.read_text().splitlines():
+        if "BLOSC_VERSION_MAJOR" in line:
+            major = int(line.split()[2])
+        elif "BLOSC_VERSION_MINOR" in line:
+            minor = int(line.split()[2])
+        elif "BLOSC_VERSION_RELEASE" in line:
+            release = int(line.split()[2])
+        if None not in (major, minor, release):
+            break
+    else:
+        exit_with_error("Unable to detect Blosc library version!")
+    return Version(f"{major}.{minor}.{release}")
+
+
+def newer(source, target):
+    """Return true if 'source' exists and is more recently modified than
+    'target', or if 'source' exists and 'target' doesn't.  Return false if
+    both exist and 'target' is the same age or younger than 'source'.
+    Raise FileNotFoundError if 'source' does not exist.
+    """
+    source = Path(source)
+    if not source.exists():
+        raise FileNotFoundError(f"file '{source.absolute()}' does not exist")
+    target = Path(target)
+    if not target.exists():
+        return True
+    return source.stat().st_mtime > target.stat().st_mtime
+
+
+# https://github.com/pypa/setuptools/issues/2806
+def new_compiler():
+    from setuptools import Distribution
+
+    d = Distribution()
+    build_ext = Distribution().get_command_obj("build_ext")
+    build_ext.finalize_options()
+    # register an extension to ensure a compiler is created
+    build_ext.extensions = [Extension("ignored", ["ignored.c"])]
+    # disable building fake extensions
+    build_ext.build_extensions = lambda: None
+    # run to populate self.compiler
+    build_ext.run()
+    return build_ext.compiler
+
+
+def add_from_path(envname, dirs):
+    dirs.extend(
+        Path(x) for x in os.environ.get(envname, "").split(os.pathsep) if x
+    )
+
+
+def add_from_flags(envname, flag_key, dirs):
+    dirs.extend(
+        Path(flag[len(flag_key):])
+        for flag in os.environ.get(envname, "").split()
+        if flag.startswith(flag_key)
+    )
+
+
+def _find_file_path(name, locations, prefixes=("",), suffixes=("",)):
+    for prefix in prefixes:
+        for suffix in suffixes:
+            for location in locations:
+                path = location / f"{prefix}{name}{suffix}"
+                if path.is_file():
+                    return str(path)
+    return None
+
+
+# We need to avoid importing numpy until we can be sure it's installed
+# This approach is based on this SO answer http://stackoverflow.com/a/21621689
+# This is also what pandas does.
+class BuildExtensions(build_ext):
+    """Subclass setuptools build_ext command
+
+    BuildExtensions does two things
+    1) it makes sure numpy is available
+    2) it injects numpy's core/include directory in the include_dirs
+       parameter of all extensions
+    3) it runs the original build_ext command
+    """
+
+    def run(self):
+        # According to
+        # https://pip.pypa.io/en/stable/reference/pip_install.html#installation-order
+        # at this point we can be sure pip has already installed numpy
+        numpy_incl = pkg_resources.resource_filename(
+            "numpy", "core/include"
+        )
+
+        for ext in self.extensions:
+            if (
+                hasattr(ext, "include_dirs")
+                and numpy_incl not in ext.include_dirs
+            ):
+                ext.include_dirs.append(numpy_incl)
+
+        build_ext.run(self)
 
 
 if __name__ == "__main__":
+    ROOT = Path(__file__).resolve().parent
+    VERSION = get_version(ROOT.joinpath("tables/__init__.py"))
+    # Fetch the requisites
+    requirements = (ROOT / "requirements.txt").read_text().splitlines()
+
     # `cpuinfo.py` uses multiprocessing to check CPUID flags. On Windows, the
     # entire setup script needs to be protected as a result
     # For guessing the capabilities of the CPU for C-Blosc
@@ -56,58 +192,8 @@ if __name__ == "__main__":
         print("cpuinfo failed, assuming no CPU features:", e)
         cpu_flags = []
 
-    # The name for the pkg-config utility
-    PKG_CONFIG = "pkg-config"
-
-    # Fetch the requisites
-    requirements = (ROOT / "requirements.txt").read_text().splitlines()
-
-    class BuildExtensions(build_ext):
-        """Subclass setuptools build_ext command
-
-        BuildExtensions does two things
-        1) it makes sure numpy is available
-        2) it injects numpy's core/include directory in the include_dirs
-           parameter of all extensions
-        3) it runs the original build_ext command
-        """
-
-        def run(self):
-            # According to
-            # https://pip.pypa.io/en/stable/reference/pip_install.html#installation-order
-            # at this point we can be sure pip has already installed numpy
-            numpy_incl = pkg_resources.resource_filename(
-                "numpy", "core/include"
-            )
-
-            for ext in self.extensions:
-                if (
-                    hasattr(ext, "include_dirs")
-                    and numpy_incl not in ext.include_dirs
-                ):
-                    ext.include_dirs.append(numpy_incl)
-
-            build_ext.run(self)
-
     cmdclass = {"build_ext": BuildExtensions}
     setuptools_kwargs = {}
-
-    # Some functions for showing errors and warnings.
-    def _print_admonition(kind, head, body):
-        tw = textwrap.TextWrapper(
-            initial_indent="   ", subsequent_indent="   "
-        )
-
-        print(f".. {kind.upper()}:: {head}")
-        for line in tw.wrap(body):
-            print(line)
-
-    def exit_with_error(head, body=""):
-        _print_admonition("error", head, body)
-        sys.exit(1)
-
-    def print_warning(head, body=""):
-        _print_admonition("warning", head, body)
 
     # The minimum required versions
     min_python_version = (3, 6)
@@ -145,18 +231,6 @@ if __name__ == "__main__":
     default_header_dirs = None
     default_library_dirs = None
     default_runtime_dirs = None
-
-    def add_from_path(envname, dirs):
-        dirs.extend(
-            Path(x) for x in os.environ.get(envname, "").split(os.pathsep) if x
-        )
-
-    def add_from_flags(envname, flag_key, dirs):
-        dirs.extend(
-            Path(flag[len(flag_key) :])
-            for flag in os.environ.get(envname, "").split()
-            if flag.startswith(flag_key)
-        )
 
     if os.name == "posix":
         prefixes = ("/usr/local", "/sw", "/opt", "/opt/local", "/usr", "/")
@@ -196,15 +270,6 @@ if __name__ == "__main__":
     if sys.platform.lower().startswith("darwin"):
         inc_dirs.extend(default_header_dirs)
         lib_dirs.extend(default_library_dirs)
-
-    def _find_file_path(name, locations, prefixes=("",), suffixes=("",)):
-        for prefix in prefixes:
-            for suffix in suffixes:
-                for location in locations:
-                    path = location / f"{prefix}{name}{suffix}"
-                    if path.is_file():
-                        return str(path)
-        return None
 
     class BasePackage:
         _library_prefixes = []
@@ -385,39 +450,6 @@ if __name__ == "__main__":
                 self._runtime_suffixes,
             )
 
-    # Get the HDF5 version provided the 'H5public.h' header
-    def get_hdf5_version(headername):
-        major, minor, release = None, None, None
-        for line in headername.read_text().splitlines():
-            if "H5_VERS_MAJOR" in line:
-                major = int(line.split()[2])
-            elif "H5_VERS_MINOR" in line:
-                minor = int(line.split()[2])
-            elif "H5_VERS_RELEASE" in line:
-                release = int(line.split()[2])
-            if None not in (major, minor, release):
-                break
-        else:
-            exit_with_error("Unable to detect HDF5 library version!")
-        return LooseVersion(f"{major}.{minor}.{release}")
-
-    # Get the Blosc version provided the 'blosc.h' header
-    def get_blosc_version(headername):
-        major, minor, release = None, None, None
-        for line in headername.read_text().splitlines():
-            if "BLOSC_VERSION_MAJOR" in line:
-                major = int(line.split()[2])
-            elif "BLOSC_VERSION_MINOR" in line:
-                minor = int(line.split()[2])
-            elif "BLOSC_VERSION_RELEASE" in line:
-                release = int(line.split()[2])
-            if None not in (major, minor, release):
-                break
-        else:
-            exit_with_error("Unable to detect Blosc library version!")
-        return LooseVersion(f"{major}.{minor}.{release}")
-
-    _cp = convert_path
     if os.name == "posix":
         _Package = PosixPackage
         _platdep = {  # package tag -> platform-dependent components
@@ -464,7 +496,7 @@ if __name__ == "__main__":
     hdf5_package = _Package("HDF5", "HDF5", "H5public", *_platdep["HDF5"])
     hdf5_package.target_function = "H5close"
     lzo2_package = _Package(
-        "LZO 2", "LZO2", _cp("lzo/lzo1x"), *_platdep["LZO2"]
+        "LZO 2", "LZO2", str(Path("lzo/lzo1x")), *_platdep["LZO2"]
     )
     lzo2_package.target_function = "lzo_version_date"
     lzo1_package = _Package("LZO 1", "LZO", "lzo1x", *_platdep["LZO"])
@@ -500,7 +532,7 @@ if __name__ == "__main__":
     CONDA_PREFIX = os.environ.get("CONDA_PREFIX", "")
     # We start using pkg-config since some distributions are putting HDF5
     # (and possibly other libraries) in exotic locations.  See issue #442.
-    if distutils.spawn.find_executable(PKG_CONFIG):
+    if shutil.which(PKG_CONFIG):
         USE_PKGCONFIG = os.environ.get("USE_PKGCONFIG", "TRUE")
     else:
         USE_PKGCONFIG = "FALSE"
@@ -573,34 +605,33 @@ if __name__ == "__main__":
 
     # Force the 1.8.x HDF5 API even if the library as been compiled to use the
     # 1.6.x API by default
-    CFLAGS.extend(
-        [
-            "-DH5_USE_18_API",
-            "-DH5Acreate_vers=2",
-            "-DH5Aiterate_vers=2",
-            "-DH5Dcreate_vers=2",
-            "-DH5Dopen_vers=2",
-            "-DH5Eclear_vers=2",
-            "-DH5Eprint_vers=2",
-            "-DH5Epush_vers=2",
-            "-DH5Eset_auto_vers=2",
-            "-DH5Eget_auto_vers=2",
-            "-DH5Ewalk_vers=2",
-            "-DH5E_auto_t_vers=2",
-            "-DH5Gcreate_vers=2",
-            "-DH5Gopen_vers=2",
-            "-DH5Pget_filter_vers=2",
-            "-DH5Pget_filter_by_id_vers=2",
-            # "-DH5Pinsert_vers=2",
-            # "-DH5Pregister_vers=2",
-            # "-DH5Rget_obj_type_vers=2",
-            "-DH5Tarray_create_vers=2",
-            # "-DH5Tcommit_vers=2",
-            "-DH5Tget_array_dims_vers=2",
-            # "-DH5Topen_vers=2",
-            "-DH5Z_class_t_vers=2",
-        ]
-    )
+    CFLAGS.extend([
+        "-DH5_USE_18_API",
+        "-DH5Acreate_vers=2",
+        "-DH5Aiterate_vers=2",
+        "-DH5Dcreate_vers=2",
+        "-DH5Dopen_vers=2",
+        "-DH5Eclear_vers=2",
+        "-DH5Eprint_vers=2",
+        "-DH5Epush_vers=2",
+        "-DH5Eset_auto_vers=2",
+        "-DH5Eget_auto_vers=2",
+        "-DH5Ewalk_vers=2",
+        "-DH5E_auto_t_vers=2",
+        "-DH5Gcreate_vers=2",
+        "-DH5Gopen_vers=2",
+        "-DH5Pget_filter_vers=2",
+        "-DH5Pget_filter_by_id_vers=2",
+        # "-DH5Pinsert_vers=2",
+        # "-DH5Pregister_vers=2",
+        # "-DH5Rget_obj_type_vers=2",
+        "-DH5Tarray_create_vers=2",
+        # "-DH5Tcommit_vers=2",
+        "-DH5Tget_array_dims_vers=2",
+        # "-DH5Topen_vers=2",
+        "-DH5Z_class_t_vers=2",
+    ])
+
     # H5Oget_info_by_name seems to have performance issues (see gh-402), so we
     # need to use teh deprecated H5Gget_objinfo function
     # CFLAGS.append("-DH5_NO_DEPRECATED_SYMBOLS")
@@ -647,7 +678,7 @@ if __name__ == "__main__":
                     f"required. Found version v{hdf5_version}"
                 )
 
-            if os.name == "nt" and hdf5_version < LooseVersion("1.8.10"):
+            if os.name == "nt" and hdf5_version < Version("1.8.10"):
                 # Change in DLL naming happened in 1.8.10
                 hdf5_old_dll_name = "hdf5dll" if not debug else "hdf5ddll"
                 package.library_name = hdf5_old_dll_name
@@ -1092,6 +1123,3 @@ interactively save and retrieve large amounts of data.
         },
         **setuptools_kwargs,
     )
-
-elif __name__ == "__mp_main__":
-    pass

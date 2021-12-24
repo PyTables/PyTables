@@ -2,7 +2,7 @@
 # sources exported from a repository.  For building and installing PyTables,
 # please use ``setup.py`` as described in the ``README.rst`` file.
 
-VERSION = $(grep "__version__ =" tables/__init__.py | cut -f 3 -d ' ' | sed s/\"//g)
+VERSION = $(shell grep "__version__ =" tables/__init__.py | cut -f 3 -d ' ' | sed s/\"//g)
 SRCDIRS = src doc
 GENERATED = ANNOUNCE.txt
 PYTHON = python3
@@ -22,7 +22,7 @@ dist: all latex
 	cp doc/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
 	tar cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz doc/html
 	cd dist && \
-	md5sum -b tables-$(VERSION).tar.gz RELEASE_NOTES-$(VERSION).txt \
+	md5sum -b tables-$(VERSION).tar.gz RELEASE_NOTES-$(VERSION).rst \
 	pytablesmanual-$(VERSION).pdf \
 	pytablesmanual-$(VERSION)-html.tar.gz > pytables-$(VERSION).md5 && \
 	cd -

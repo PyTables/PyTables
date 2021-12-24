@@ -28,7 +28,7 @@ configuration script in your program directory.
 
 The setup script will look like this::
 
-    from distutils.core import setup
+    from setuptools import setup
     import py2exe
     setup(console=['pytables_test.py'])
 

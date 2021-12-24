@@ -7,7 +7,7 @@ import platform
 import tempfile
 from pathlib import Path
 from time import perf_counter as clock
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 import unittest
 
@@ -17,8 +17,8 @@ import numpy as np
 import tables as tb
 from tables.req_versions import min_blosc_bitshuffle_version
 
-hdf5_version = LooseVersion(tb.hdf5_version)
-blosc_version = LooseVersion(tb.which_lib_version("blosc")[1])
+hdf5_version = Version(tb.hdf5_version)
+blosc_version = Version(tb.which_lib_version("blosc")[1])
 
 
 verbose = False
@@ -102,7 +102,7 @@ def print_versions():
         ]
         print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
         blosc_finfo = ['shuffle']
-        if tinfo[1] >= tb.req_versions.min_blosc_bitshuffle_version:
+        if Version(tinfo[1]) >= tb.req_versions.min_blosc_bitshuffle_version:
             blosc_finfo.append('bitshuffle')
         print("Blosc filters:       %s" % ', '.join(blosc_finfo))
     try:

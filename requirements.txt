@@ -2,3 +2,4 @@
 # doc/source/usersguide/installation.rst
 numpy>=1.19.0
 numexpr>=2.6.2
+packaging

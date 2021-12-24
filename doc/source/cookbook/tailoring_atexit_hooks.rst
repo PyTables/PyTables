@@ -19,6 +19,8 @@ register new ones to tailor the existing behaviour.
 For example, if you  register this function::
 
     def my_close_open_files(verbose):
+        from packaging import Version
+
         open_files = tables.file._open_files
 
         are_open_files = len(open_files) > 0
@@ -26,7 +28,7 @@ For example, if you  register this function::
         if verbose and are_open_files:
             sys.stderr.write("Closing remaining open files:")
 
-        if StrictVersion(tables.__version__) >= StrictVersion("3.1.0"):
+        if Version(tables.__version__) >= Version("3.1.0"):
             # make a copy of the open_files.handlers container for the iteration
             handlers = list(open_files.handlers)
         else:
@@ -50,7 +52,6 @@ For example, if you  register this function::
             sys.stderr.write("\n")
 
     import sys, atexit
-    from distutils.version import StrictVersion
     atexit.register(my_close_open_files, False)
 
 then, you won't get the closing messages anymore because the new registered
