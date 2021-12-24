@@ -18,7 +18,7 @@ all: $(GENERATED) build html
 
 dist: all latex
 	$(PYTHON) setup.py sdist
-	cp RELEASE_NOTES.txt dist/RELEASE_NOTES-$(VERSION).txt
+	cp RELEASE_NOTES.rst dist/RELEASE_NOTES-$(VERSION).rst
 	cp doc/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
 	tar cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz doc/html
 	cd dist && \
