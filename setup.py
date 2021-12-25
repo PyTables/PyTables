@@ -12,7 +12,7 @@ import subprocess
 from pathlib import Path
 
 # Using ``setuptools`` enables lots of goodies
-from setuptools import setup, find_packages, Extension
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 import pkg_resources
 from packaging.version import Version
@@ -107,7 +107,6 @@ def newer(source, target):
 def new_compiler():
     from setuptools import Distribution
 
-    d = Distribution()
     build_ext = Distribution().get_command_obj("build_ext")
     build_ext.finalize_options()
     # register an extension to ensure a compiler is created
