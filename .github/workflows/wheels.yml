@@ -21,6 +21,9 @@ jobs:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
         arch: [x86_64, aarch64]
+        exclude:
+        - os: 'macos-latest'
+          arch: 'aarch64'
 
     steps:
       - uses: actions/checkout@v2
