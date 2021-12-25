@@ -6,6 +6,7 @@ import os
 import sys
 import ctypes
 import shutil
+import platform
 import tempfile
 import textwrap
 import subprocess
@@ -892,29 +893,33 @@ if __name__ == "__main__":
             finally:
                 Path(fd.name).unlink()
 
-        # SSE2
-        if "sse2" in cpu_flags:
-            print("SSE2 detected and enabled")
-            CFLAGS.append("-DSHUFFLE_SSE2_ENABLED")
-            if os.name == "nt":
-                # Windows always should have support for SSE2
-                # (present in all x86/amd64 architectures since 2003)
-                def_macros += [("__SSE2__", 1)]
-            else:
-                # On UNIX, both gcc and clang understand -msse2
-                CFLAGS.append("-msse2")
-            blosc_sources += blosc_path.glob("*sse2*.c")
-        # AVX2
-        if "avx2" in cpu_flags and "DISABLE_AVX2" not in os.environ:
-            print("AVX2 detected and enabled")
-            if os.name == "nt":
-                def_macros += [("__AVX2__", 1)]
-                CFLAGS.append("-DSHUFFLE_AVX2_ENABLED")
-                blosc_sources += blosc_path.glob("*avx2*.c")
-            elif compiler_has_flags(compiler, ["-mavx2"]):
-                CFLAGS.append("-DSHUFFLE_AVX2_ENABLED")
-                CFLAGS.append("-mavx2")
-                blosc_sources += blosc_path.glob("*avx2*.c")
+        # Set flags for SSE2 and AVX2 preventing false detection in case
+        # of emulation
+        if platform.machine() != 'aarch64':
+            # SSE2
+            if "sse2" in cpu_flags and "DISABLE_SSE2" not in os.environ:
+                print("SSE2 detected and enabled")
+                CFLAGS.append("-DSHUFFLE_SSE2_ENABLED")
+                if os.name == "nt":
+                    # Windows always should have support for SSE2
+                    # (present in all x86/amd64 architectures since 2003)
+                    def_macros += [("__SSE2__", 1)]
+                else:
+                    # On UNIX, both gcc and clang understand -msse2
+                    CFLAGS.append("-msse2")
+                blosc_sources += blosc_path.glob("*sse2*.c")
+
+            # AVX2
+            if "avx2" in cpu_flags and "DISABLE_AVX2" not in os.environ:
+                print("AVX2 detected and enabled")
+                if os.name == "nt":
+                    def_macros += [("__AVX2__", 1)]
+                    CFLAGS.append("-DSHUFFLE_AVX2_ENABLED")
+                    blosc_sources += blosc_path.glob("*avx2*.c")
+                elif compiler_has_flags(compiler, ["-mavx2"]):
+                    CFLAGS.append("-DSHUFFLE_AVX2_ENABLED")
+                    CFLAGS.append("-mavx2")
+                    blosc_sources += blosc_path.glob("*avx2*.c")
     else:
         ADDLIBS += ["blosc"]
 
