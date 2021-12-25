@@ -18,12 +18,12 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
-        sudo apt install python3-all-dev python3-setuptools python3-six python3-numexpr  # python3-numpy cython3
+        sudo apt install python3-all-dev python3-setuptools python3-packaging python3-numexpr  # python3-numpy cython3
         sudo apt install python3-numpydoc python3-sphinx python3-sphinx-rtd-theme python3-ipython
         sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade setuptools pip wheel
+        python -m pip install --upgrade setuptools pip wheel build
         python -m pip install --upgrade cython>=0.29.21 numpy>=1.19
         python -c "import numpy as np; print('numpy:', np.__version__)"
     - name: Build PyTables
@@ -33,7 +33,7 @@ jobs:
     - name: Build HTML documentation
       run: make html
     - name: Build LaTeX documentation
-      run: make html
+      run: make latex
     - name: Source distribution
       run: make dist
     - name: Test

@@ -17,7 +17,7 @@ OPT = PYTHONPATH=$(PYBUILDDIR)
 all: $(GENERATED) build html
 
 dist: all latex
-	$(PYTHON) setup.py sdist
+	$(PYTHON) -m build --sdist
 	cp RELEASE_NOTES.rst dist/RELEASE_NOTES-$(VERSION).rst
 	cp doc/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
 	tar cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz doc/html
