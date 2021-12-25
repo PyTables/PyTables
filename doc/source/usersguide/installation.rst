@@ -423,15 +423,9 @@ A similar command can be used to install a specific tagged version::
 
   $ python3 -m pip install git+https://github.com/PyTables/PyTables.git@v.2.4.0#egg=tables
 
-Finally, PyTables developers provide a :file:`requirements.txt` file that
-can be used by :program:`pip` to install the PyTables dependencies::
-
-  $ wget https://raw.github.com/PyTables/PyTables/develop/requirements.txt
-  $ python3 -m pip install -r requirements.txt
-
-Of course the :file:`requirements.txt` file can be used to install only
-python packages.  Other dependencies like the HDF5 library of compression
-libraries have to be installed by the user.
+Of course the `pip` can be used to install only python packages.
+Other dependencies like the HDF5 library of compression libraries have to
+be installed by the user.
 
 .. note::
 

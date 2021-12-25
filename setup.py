@@ -192,9 +192,6 @@ if __name__ == "__main__":
         print("cpuinfo failed, assuming no CPU features:", e)
         cpu_flags = []
 
-    cmdclass = {"build_ext": BuildExtensions}
-    setuptools_kwargs = {}
-
     # The minimum required versions
     min_python_version = (3, 6)
     # Check for Python
@@ -224,7 +221,7 @@ if __name__ == "__main__":
 
     # Global variables
     lib_dirs = []
-    inc_dirs = [ROOT / "hdf5-blosc" / "src"]
+    inc_dirs = [Path("hdf5-blosc/src")]
     optional_libs = []
     data_files = []  # list of data files to add to packages (mainly for DLL's)
 
@@ -815,7 +812,7 @@ if __name__ == "__main__":
     ]
 
     def get_cython_extfiles(extnames):
-        extdir = ROOT / "tables"
+        extdir = Path("tables")
         extfiles = {}
 
         for extname in extnames:
@@ -838,60 +835,17 @@ if __name__ == "__main__":
 
     # --------------------------------------------------------------------
 
-    # Package information for ``setuptools``
-    # PyTables contains data files for tests.
-    setuptools_kwargs["zip_safe"] = False
-
-    setuptools_kwargs["install_requires"] = requirements
-
-    # Detect packages automatically.
-    setuptools_kwargs["packages"] = find_packages(exclude=["*.bench"])
-
-    # Entry points for automatic creation of scripts.
-    setuptools_kwargs["entry_points"] = {
-        "console_scripts": [
-            "ptdump = tables.scripts.ptdump:main",
-            "ptrepack = tables.scripts.ptrepack:main",
-            "pt2to3 = tables.scripts.pt2to3:main",
-            "pttree = tables.scripts.pttree:main",
-        ],
-    }
-
-    # Test suites.
-    setuptools_kwargs["test_suite"] = "tables.tests.test_all.suite"
-    setuptools_kwargs["scripts"] = []
-
-    # Copy additional data for packages that need it.
-    setuptools_kwargs["package_data"] = {
-        "tables.tests": ["*.h5", "*.mat"],
-        "tables.nodes.tests": ["*.dat", "*.xbm", "*.h5"],
-    }
-
-    # Having the Python version included in the package name makes managing a
-    # system with multiple versions of Python much easier.
-
-    def find_name(base="tables"):
-        """If "--name-with-python-version" is on the command line then
-        append "-pyX.Y" to the base name"""
-        name = base
-        if "--name-with-python-version" in sys.argv:
-            name += f"-py{sys.version_info[0]}.{sys.version_info[1]}"
-            sys.argv.remove("--name-with-python-version")
-        return name
-
-    name = find_name()
-
     if os.name == "nt":
         # Add DLL's to the final package for windows
-        data_files.append((Path("Lib") / "site-packages" / name, dll_files))
+        data_files.append((Path("Lib/site-packages/tables"), dll_files))
 
     ADDLIBS = [hdf5_package.library_name]
 
     # List of Blosc file dependencies
-    blosc_path = ROOT / "c-blosc" / "blosc"
-    int_complibs_path = ROOT / "c-blosc" / "internal-complibs"
+    blosc_path = Path("c-blosc/blosc")
+    int_complibs_path = Path("c-blosc/internal-complibs")
 
-    blosc_sources = [ROOT / "hdf5-blosc" / "src" / "blosc_filter.c"]
+    blosc_sources = [Path("hdf5-blosc/src/blosc_filter.c")]
     if "BLOSC" not in optional_libs:
         if not os.environ.get("PYTABLES_NO_EMBEDDED_LIBS", None) is None:
             exit_with_error(
@@ -1068,58 +1022,13 @@ if __name__ == "__main__":
         ),
     ]
 
-    classifiers = """\
-Development Status :: 5 - Production/Stable
-Intended Audience :: Developers
-Intended Audience :: Information Technology
-Intended Audience :: Science/Research
-License :: OSI Approved :: BSD License
-Operating System :: Microsoft :: Windows
-Operating System :: Unix
-Programming Language :: Python
-Programming Language :: Python :: 3
-Programming Language :: Python :: 3 :: Only
-Programming Language :: Python :: 3.6
-Programming Language :: Python :: 3.7
-Programming Language :: Python :: 3.8
-Programming Language :: Python :: 3.9
-Programming Language :: Python :: 3.10
-Topic :: Database
-Topic :: Software Development :: Libraries :: Python Modules
-"""
     setup(
-        name=name,
         version=VERSION,
-        description="Hierarchical datasets for Python",
-        long_description="""\
-PyTables is a package for managing hierarchical datasets and
-designed to efficiently cope with extremely large amounts of
-data. PyTables is built on top of the HDF5 library and the
-NumPy package and features an object-oriented interface
-that, combined with C-code generated from Cython sources,
-makes of it a fast, yet extremely easy to use tool for
-interactively save and retrieve large amounts of data.
-""",
-        classifiers=[c for c in classifiers.split("\n") if c],
-        author=(
-            "Francesc Alted, Ivan Vilata,"
-            "Antonio Valentino, Anthony Scopatz et al."
-        ),
-        author_email="pytables@pytables.org",
-        maintainer="PyTables maintainers",
-        maintainer_email="pytables@pytables.org",
-        url="http://www.pytables.org/",
-        license="BSD 2-Clause",
-        python_requires=">=3.6",
-        platforms=["any"],
+        install_requires=requirements,
         ext_modules=extensions,
-        cmdclass=cmdclass,
+        cmdclass={"build_ext": BuildExtensions},
         data_files=[
             (str(parent), [str(file) for file in files])
             for parent, files in data_files
         ],
-        extras_require={
-            "doc": ["sphinx >= 1.1", "sphinx_rtd_theme", "numpydoc", "ipython"]
-        },
-        **setuptools_kwargs,
     )

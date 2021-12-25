@@ -35,6 +35,7 @@ Improvements
   (thanks to Andreas Motl @amotl and Matthias @xmatthias).
 - Simplified management of version information.
 - Drop dependency on the deprecated distutils.
+- Modernize the setup script and add support for PEP517 (:issue:`907`).
 
 Bugfixes
 --------

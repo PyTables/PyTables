@@ -3,7 +3,7 @@
 from packaging.version import Version
 
 # **********************************************************************
-#   Keep these in sync with requirements.txt and user's guide
+#   Keep these in sync with setup.cfg and user's guide
 # **********************************************************************
 
 # Minimum recommended versions for mandatory packages
