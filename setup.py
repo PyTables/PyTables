@@ -834,8 +834,12 @@ if __name__ == "__main__":
     cython_extfiles = get_cython_extfiles(cython_extnames)
 
     # --------------------------------------------------------------------
-
     if os.name == "nt":
+        for dll_file in dll_files:
+            shutil.copy(dll_file, 'tables')
+        dll_dir = Path('tables')
+        dll_files = [dll_dir / Path(dll_file).name for dll_file in dll_files]
+
         # Add DLL's to the final package for windows
         data_files.append((Path("Lib/site-packages/tables"), dll_files))
 
