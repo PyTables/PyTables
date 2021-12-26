@@ -28,12 +28,7 @@ What are PyTables' licensing terms?
 -----------------------------------
 
 PyTables is free for both commercial and non-commercial use, under the terms
-of the BSD license.
-
-.. todo:
-
-    link to the BSD license http://opensource.org/licenses/BSD-3-Clause
-    or to a local copy
+of the `BSD 3-Clause License <http://opensource.org/licenses/BSD-3-Clause>`_.
 
 
 I'm having problems. How can I get support?
