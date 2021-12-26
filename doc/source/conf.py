@@ -200,7 +200,6 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 # -- External link options ----------------------------------------------------
 extlinks = {
     'issue': ('https://github.com/PyTables/PyTables/issues/%s', 'gh-'),
-    'irc': ('http://pytables.github.io/irc/%s.html', ''),
 }
 
 # -- Options for autodocumentation ---------------------------------------------

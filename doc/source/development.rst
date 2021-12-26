@@ -33,15 +33,8 @@ Other resources for developers:
   - `GitHub Actions (GHA) <https://github.com/PyTables/PyTables/actions>`_
   - `AppVeyor <https://ci.appveyor.com/project/PyTablesCI/pytables>`_
 
-* `Old trac site <http://www.pytables.org/trac-bck>`_
-
 .. _OME: http://www.openmicroscopy.org
 .. _`Shining Panda`: https://www.shiningpanda-ci.com
 .. _`Travis-CI`: https://travis-ci.org
-
-.. toctree::
-    :maxdepth: 1
-
-    irclogs
 
 .. todo:: improve this section
