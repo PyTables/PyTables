@@ -9,9 +9,6 @@
 .. image:: https://github.com/PyTables/PyTables/workflows/CI/badge.svg
    :target: https://github.com/PyTables/PyTables/actions?query=workflow%3ACI
 
-.. image:: https://ci.appveyor.com/api/projects/status/github/PyTables/PyTables?branch=master&svg=true
-   :target: https://ci.appveyor.com/project/PyTablesCI/pytables
-
 .. image:: https://img.shields.io/pypi/v/tables.svg
   :target: https://pypi.org/project/tables/
 

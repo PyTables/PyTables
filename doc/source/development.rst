@@ -31,10 +31,5 @@ Other resources for developers:
 * Continuous Integration:
 
   - `GitHub Actions (GHA) <https://github.com/PyTables/PyTables/actions>`_
-  - `AppVeyor <https://ci.appveyor.com/project/PyTablesCI/pytables>`_
-
-.. _OME: http://www.openmicroscopy.org
-.. _`Shining Panda`: https://www.shiningpanda-ci.com
-.. _`Travis-CI`: https://travis-ci.org
 
 .. todo:: improve this section
