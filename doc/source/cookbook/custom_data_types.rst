@@ -1,7 +1,5 @@
-:source: http://www.pytables.org/moin/UserDocuments/CustomDataTypes
-:revision: 1
-:date: 2009-07-14 21:51:07
 :author: KennethArnold
+:date: 2009-07-14 21:51:07
 
 
 ================================

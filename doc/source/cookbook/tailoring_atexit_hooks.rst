@@ -1,7 +1,5 @@
-:source: http://www.pytables.org/moin/UserDocuments/AtexitHooks
-:revision: 2
-:date: 2012-06-01 09:31:14
 :author: AskJakobsen
+:date: 2012-06-01 09:31:14
 
 ========================
 Tailoring `atexit` hooks

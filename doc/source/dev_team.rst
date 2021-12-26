@@ -17,7 +17,7 @@ The PyTables team includes:
 * `Tom Kooij`_
 * `Javier Sancho`_
 
-.. _Anthony Scopatz: http://www.scopatz.com/
+.. _Anthony Scopatz: https://github.com/scopatz
 .. _Antonio Valentino: https://github.com/avalentino
 .. _Josh Moore: https://github.com/joshmoore
 .. _Andrea Bedini: https://github.com/andreabedini

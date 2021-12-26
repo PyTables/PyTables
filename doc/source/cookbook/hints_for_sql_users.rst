@@ -1,7 +1,5 @@
-:source: http://www.pytables.org/moin/HintsForSQLUsers
-:revision: 56
-:date: 2012-06-18 10:15:15
 :author: valhallasw
+:date: 2012-06-18 10:15:15
 
 ===================
 Hints for SQL users
