@@ -1420,8 +1420,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         .. note::
 
             A special care should be taken when the query condition includes
-            string literals.  Indeed Python 2 string literals are string of
-            bytes while Python 3 strings are unicode objects.
+            string literals.
 
             Let's assume that the table ``table`` has the following
             structure::
@@ -1431,22 +1430,20 @@ very small/large chunksize, you may want to increase/decrease it."""
                     col2 = IntCol()
                     col3 = FloatCol()
 
-            The type of "col1" do not change depending on the Python version
-            used (of course) and it always corresponds to strings of bytes.
+            The type of "col1" corresponds to strings of bytes.
 
             Any condition involving "col1" should be written using the
             appropriate type for string literals in order to avoid
             :exc:`TypeError`\ s.
 
-            The code below will work fine in Python 2 but will fail with a
-            :exc:`TypeError` in Python 3::
+            The code below will fail with a :exc:`TypeError`::
 
                 condition = 'col1 == "AAAA"'
                 for record in table.where(condition):  # TypeError in Python3
                     # do something with "record"
 
             The reason is that in Python 3 "condition" implies a comparison
-            between a string of bytes ("col1" contents) and an unicode literal
+            between a string of bytes ("col1" contents) and a unicode literal
             ("AAAA").
 
             The correct way to write the condition is::

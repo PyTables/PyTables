@@ -238,7 +238,7 @@ if __name__ == "__main__":
             -T use Pytables
             -P use Postgres
             -v verbose
-            -f do a profile of the run (only query functionality & Python 2.5)
+            -f do a profile of the run (only query functionality)
             -k do a profile for kcachegrind use (out file is 'indexed_search.kcg')
             -p use "psyco" if available
             -m use random values to fill the table

@@ -16,8 +16,8 @@ other \*nix systems when your user account is not root.
 Installing the HDF5_ shared libraries and Python extension
 NumPy requires some non-trivial steps to work.
 We describe all steps needed.
-They only assumption is that you have Python 2.3 or higher and a C/C++ compiler
-(gcc) installed.
+They only assumption is that you have Python 3.6 or higher and a C/C++
+compiler (gcc) installed.
 
 
 Installing HDF5

@@ -2011,14 +2011,10 @@ class NonNestedTableReadTestCase(common.TempFileMixin,
     def test_all_fields_non_contiguous_buffer(self):
         output = np.empty((100, ), self.dtype)
         output_slice = output[0:100:2]
-        self.assertRaises(ValueError, self.table.read, 0, 100, 2, None,
-                          output_slice)
-        # once Python 2.6 support is dropped, this could change
-        # to assertRaisesRegexp to check exception type and message at once
-        try:
+
+        with self.assertRaisesRegex(ValueError,
+                                    'output array not C contiguous'):
             self.table.read(0, 100, 2, field=None, out=output_slice)
-        except ValueError as exc:
-            self.assertEqual('output array not C contiguous', str(exc))
 
     def test_specified_field_non_contiguous_buffer(self):
         output = np.empty((100, ), 'i4')

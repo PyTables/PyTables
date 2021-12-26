@@ -39,7 +39,7 @@ def is_idx(index):
 
     if type(index) is int:
         return True
-    elif hasattr(index, "__index__"):  # Only works on Python 2.5 (PEP 357)
+    elif hasattr(index, "__index__"):
         # Exclude the array([idx]) as working as an index.  Fixes #303.
         if (hasattr(index, "shape") and index.shape != ()):
             return False
