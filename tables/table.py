@@ -1412,10 +1412,10 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         ::
 
-            >>> passvalues = [ row['col3'] for row in
-            ...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
-            ...                if your_function(row['col2']) ]
-            >>> print("Values that pass the cuts:", passvalues)
+            passvalues = [ row['col3'] for row in
+                           table.where('(col1 > 0) & (col2 <= 20)', step=5)
+                           if your_function(row['col2']) ]
+            print("Values that pass the cuts:", passvalues)
 
         .. note::
 

@@ -191,7 +191,7 @@ def lazyattr(fget):
     ...         return 10
     ...
     >>> type(MyClass.attribute)
-    <type 'property'>
+    <class 'property'>
     >>> MyClass.attribute.__doc__
     'Attribute description.'
     >>> obj = MyClass()

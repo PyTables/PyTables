@@ -58,14 +58,15 @@ class Expr:
 
     Examples
     --------
-    The following shows an example of using Expr.
+    The following shows an example of using Expr::
 
+        >>> f = tb.open_file('/tmp/test_expr.h5', 'w')
         >>> a = f.create_array('/', 'a', np.array([1,2,3]))
         >>> b = f.create_array('/', 'b', np.array([3,4,5]))
         >>> c = np.array([4,5,6])
         >>> expr = tb.Expr("2 * a + b * c")   # initialize the expression
         >>> expr.eval()                 # evaluate it
-        array([14, 24, 36])
+        array([14, 24, 36], dtype=int64)
         >>> sum(expr)                   # use as an iterator
         74
 
@@ -80,9 +81,10 @@ class Expr:
         >>> expr = tb.Expr("2 * a2 + b2-c2")
         >>> expr.eval()
         array([[1, 3],
-               [7, 9]])
+               [7, 9]], dtype=int64)
         >>> sum(expr)
-        array([ 8, 12])
+        array([ 8, 12], dtype=int64)
+        >>> f.close()
 
     .. rubric:: Expr attributes
 

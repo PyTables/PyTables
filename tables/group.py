@@ -1041,9 +1041,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         ::
 
-            >>> f=tables.open_file('data/test.h5')
+            >>> import tables
+            >>> f = tables.open_file('tables/tests/Tables_lzo2.h5')
             >>> print(f.root.group0)
-            /group0 (Group) 'First Group'
+            /group0 (Group) ''
+            >>> f.close()
 
         """
 
@@ -1058,10 +1060,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         ::
 
-            >>> f = tables.open_file('data/test.h5')
+            >>> import tables
+            >>> f = tables.open_file('tables/tests/Tables_lzo2.h5')
             >>> f.root.group0
-            /group0 (Group) 'First Group'
-              children := ['tuple1' (Table), 'group1' (Group)]
+            /group0 (Group) ''
+              children := ['group1' (Group), 'tuple1' (Table)]
+            >>> f.close()
 
         """
 

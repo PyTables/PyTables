@@ -57,12 +57,13 @@ def check_attribute_name(name):
     valid but it can not be used with natural naming, a
     `NaturalNameWarning` is issued.
 
+    >>> warnings.simplefilter("ignore")
     >>> check_attribute_name('a')
     >>> check_attribute_name('a_b')
-    >>> check_attribute_name('a:b')
-    >>> check_attribute_name('/a/b')
-    >>> check_attribute_name('/')
-    >>> check_attribute_name('.')
+    >>> check_attribute_name('a:b')         # NaturalNameWarning
+    >>> check_attribute_name('/a/b')        # NaturalNameWarning
+    >>> check_attribute_name('/')           # NaturalNameWarning
+    >>> check_attribute_name('.')           # NaturalNameWarning
     >>> check_attribute_name('__members__')
     Traceback (most recent call last):
      ...
@@ -115,9 +116,10 @@ def check_name_validity(name):
     valid but it can not be used with natural naming, a
     `NaturalNameWarning` is issued.
 
+    >>> warnings.simplefilter("ignore")
     >>> check_name_validity('a')
     >>> check_name_validity('a_b')
-    >>> check_name_validity('a:b')
+    >>> check_name_validity('a:b')          # NaturalNameWarning
     >>> check_name_validity('/a/b')
     Traceback (most recent call last):
      ...

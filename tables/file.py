@@ -2692,18 +2692,20 @@ class File(hdf5extension.File):
 
         ::
 
-            >>> f = tables.open_file('data/test.h5')
+            >>> import tables
+            >>> f = tables.open_file('tables/tests/Tables_lzo2.h5')
             >>> print(f)
-            data/test.h5 (File) 'Table Benchmark'
-            Last modif.: 'Mon Sep 20 12:40:47 2004'
+            tables/tests/Tables_lzo2.h5 (File) 'Table Benchmark'
+            Last modif.: '2020-11-14T18:00:05+00:00'
             Object Tree:
-            / (Group) 'Table Benchmark'
-            /tuple0 (Table(100,)) 'This is the table title'
+            / (RootGroup) 'Table Benchmark'
+            /tuple0 (Table(100,)lzo(1)) 'This is the table title'
             /group0 (Group) ''
-            /group0/tuple1 (Table(100,)) 'This is the table title'
+            /group0/tuple1 (Table(100,)lzo(1)) 'This is the table title'
             /group0/group1 (Group) ''
-            /group0/group1/tuple2 (Table(100,)) 'This is the table title'
+            /group0/group1/tuple2 (Table(100,)lzo(1)) 'This is the table title'
             /group0/group1/group2 (Group) ''
+            >>> f.close()
 
         """
 

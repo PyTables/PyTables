@@ -102,8 +102,8 @@ class AttributeSet(hdf5extension.AttributeSet):
         >>> import os, tempfile
         >>> import tables as tb
         >>>
-        >>> class MyClass(object):
-        ...   foo = 'bar'
+        >>> class MyClass:
+        ...     foo = 'bar'
         ...
         >>> myObject = MyClass()  # save object of custom class in HDF5 attr
         >>> h5fname = tempfile.mktemp(suffix='.h5')
@@ -116,12 +116,12 @@ class AttributeSet(hdf5extension.AttributeSet):
         >>> del MyClass, myObject  # delete class of object and reopen file
         >>> h5f = tb.open_file(h5fname, 'r')
         >>> print(repr(h5f.root._v_attrs.obj))
-        'ccopy_reg\\n_reconstructor...
+        b'ccopy_reg\\n_reconstructor...
         >>> import pickle  # let's unpickle that to see what went wrong
         >>> pickle.loads(h5f.root._v_attrs.obj)
         Traceback (most recent call last):
         ...
-        AttributeError: 'module' object has no attribute 'MyClass'
+        AttributeError: Can't get attribute 'MyClass' ...
         >>> # So the problem was not in the stored object,
         ... # but in the *environment* where it was restored.
         ... h5f.close()

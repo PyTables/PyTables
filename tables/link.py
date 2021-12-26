@@ -154,25 +154,27 @@ class SoftLink(linkextension.SoftLink, Link):
 
     ::
 
+        >>> import numpy as np
         >>> f = tb.open_file('/tmp/test_softlink.h5', 'w')
         >>> a = f.create_array('/', 'A', np.arange(10))
         >>> link_a = f.create_soft_link('/', 'link_A', target='/A')
 
         # transparent read/write access to a softlinked node
         >>> link_a[0] = -1
-        >>> print(link_a[:], link_a.dtype)
+        >>> link_a[:], link_a.dtype
         (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
 
         # dereferencing a softlink using the __call__() method
-        >>> print(link_a() is a)
+        >>> link_a() is a
         True
 
         # SoftLink.remove() overrides Array.remove()
         >>> link_a.remove()
         >>> print(link_a)
-        <closed tables.link.SoftLink at 0x7febe97186e0>
-        >>> print(a[:], a.dtype)
+        <closed tables.link.SoftLink at ...>
+        >>> a[:], a.dtype
         (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
+        >>> f.close()
 
 
     """
@@ -195,11 +197,12 @@ class SoftLink(linkextension.SoftLink, Link):
 
         ::
 
-            >>> f=tb.open_file('data/test.h5')
-            >>> print(f.root.link0)
-            /link0 (SoftLink) -> /another/path
-            >>> print(f.root.link0())
-            /another/path (Group) ''
+            >>> f = tb.open_file('tables/tests/slink.h5')
+            >>> f.root.arr2
+            /arr2 (SoftLink) -> /arr
+            >>> print(f.root.arr2())
+            /arr (Array(2,)) ''
+            >>> f.close()
 
         """
         return self.dereference()
@@ -284,9 +287,10 @@ class SoftLink(linkextension.SoftLink, Link):
 
         ::
 
-            >>> f=tb.open_file('data/test.h5')
-            >>> print(f.root.link0)
-            /link0 (SoftLink) -> /path/to/node
+            >>> f = tb.open_file('tables/tests/slink.h5')
+            >>> f.root.arr2
+            /arr2 (SoftLink) -> /arr
+            >>> f.close()
 
         """
 
@@ -347,14 +351,15 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         ::
 
-            >>> f=tb.open_file('data1/test1.h5')
-            >>> print(f.root.link2)
-            /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
-            >>> plink2 = f.root.link2('a')  # open in 'a'ppend mode
-            >>> print(plink2)
-            /path/to/node (Group) ''
-            >>> print(plink2._v_filename)
-            'data2/test2.h5'        # belongs to referenced file
+            >>> f = tb.open_file('tables/tests/elink.h5')
+            >>> f.root.pep.pep2
+            /pep/pep2 (ExternalLink) -> elink2.h5:/pep
+            >>> pep2 = f.root.pep.pep2(mode='r')  # open in 'r'ead mode
+            >>> print(pep2)
+            /pep (Group) ''
+            >>> pep2._v_file.filename       # belongs to referenced file
+            'tables/tests/elink2.h5'
+            >>> f.close()
 
         """
 
@@ -397,9 +402,10 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         ::
 
-            >>> f=tb.open_file('data1/test1.h5')
-            >>> print(f.root.link2)
-            /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
+            >>> f = tb.open_file('tables/tests/elink.h5')
+            >>> f.root.pep.pep2
+            /pep/pep2 (ExternalLink) -> elink2.h5:/pep
+            >>> f.close()
 
         """
 
