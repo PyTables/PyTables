@@ -151,8 +151,8 @@ one single process (or thread) and communicate the results via sockets,
 :class:`Queue.Queue` objects (in case of using threads), or whatever, with the
 client process/thread.
 
-The examples directory contains two scripts demonstrating methods of accessing a
-PyTables file from multiple processes.
+The `examples` directory contains two scripts demonstrating methods of
+accessing a PyTables file from multiple processes.
 
 The first, *multiprocess_access_queues.py*, uses a
 :class:`multiprocessing.Queue` object to transfer read and write requests from
@@ -171,6 +171,8 @@ processes.  The four methods are:
  * Using a Unix domain socket.  Note that this example uses the 'abstract
    namespace' and will only work under Linux.
  * Using an IPv4 socket.
+
+See also the discussion in :issue:`790`.
 
 
 What kind of containers does PyTables implement?

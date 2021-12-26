@@ -1,8 +1,6 @@
 """Example showing how to access a PyTables file from multiple processes using
 queues."""
 
-import sys
-
 import queue
 
 import multiprocessing
@@ -138,6 +136,8 @@ def make_queues(num_processors):
 
 
 if __name__ == '__main__':
+    # See the discussion in :issue:`790`.
+    multiprocessing.set_start_method('spawn')
 
     file_path = 'test.h5'
     n = 10
