@@ -752,6 +752,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             # Sort the groups before delivering. This uses the groups names
             # for groups in tree (in order to sort() can classify them).
             for groupname in groupnames:
+                # TODO: check recursion
                 stack.append(objgroup._v_groups[groupname])
                 yield objgroup._v_groups[groupname]
 

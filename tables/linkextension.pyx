@@ -98,6 +98,8 @@ def _get_link_class(parent_id, name):
       return "SoftLink"
     elif link_type == H5L_TYPE_EXTERNAL:
       return "ExternalLink"
+    # elif link_type == H5L_TYPE_HARD:
+    #   return "HardLink"
     else:
       return "UnImplemented"
 
