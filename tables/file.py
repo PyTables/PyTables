@@ -1220,10 +1220,15 @@ class File(hdf5extension.File):
                 shape = obj.shape
 
             if atom is not None and atom.dtype != obj.dtype:
-                raise TypeError('the atom parameter is not consistent with '
-                                'the data type of the obj parameter')
+                raise TypeError("the 'atom' parameter is not consistent with "
+                                "the data type of the 'obj' parameter")
             elif atom is None:
                 atom = Atom.from_dtype(obj.dtype)
+        else:
+            if atom is None and shape is None:
+                raise TypeError(
+                    "the 'atom' and 'shape' parameters or the 'obj' parameter "
+                    "must be provided")
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
