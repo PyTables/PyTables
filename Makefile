@@ -17,7 +17,8 @@ OPT = PYTHONPATH=$(PYBUILDDIR)
 all: $(GENERATED) build html
 
 dist: all latex
-	$(PYTHON) -m build --sdist
+	# $(PYTHON) -m build --sdist # --no-isolation
+	$(PYTHON) setup.py sdist
 	cp RELEASE_NOTES.rst dist/RELEASE_NOTES-$(VERSION).rst
 	cp doc/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
 	tar cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz doc/html
@@ -42,7 +43,7 @@ distclean:	clean
 	$(RM) doc/usersguide-*.pdf
 	$(RM) -r doc/html
 	$(RM) -r .pytest_cache
-	#git clean -fdx
+	# git clean -fdx
 
 html: build
 	$(MAKE) -C doc $(OPT) html
