@@ -9,6 +9,8 @@ import subprocess
 import queue
 from pathlib import Path
 
+import tables
+
 try:
     import multiprocessing as mp
     multiprocessing_imported = True
@@ -168,6 +170,14 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         title = self.h5file.root.array.get_attr("TITLE")
 
         self.assertEqual(title, "Array example")
+
+    def test01_open_file_pathlib(self):
+        """Checking opening of an existing file."""
+        self.h5file.close()
+        h5fname = Path(self.h5fname)
+        with tables.open_file(h5fname) as h5file:
+            title = h5file.root.array.get_attr("TITLE")
+            self.assertEqual(title, "Array example")
 
     def test02_appendFile(self):
         """Checking appending objects to an existing file."""

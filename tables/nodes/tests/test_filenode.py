@@ -917,6 +917,11 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         shutil.rmtree(self.testdir)
         super().tearDown()
 
+    def test01_WriteToPathlibPath(self):
+        testh5fname = Path(self.testh5fname)
+        datafname = Path(self.datafname)
+        filenode.save_to_filenode(testh5fname, datafname, "/test1")
+
     def test01_WriteToFilename(self):
         # write contents of datafname to h5 testfile
         filenode.save_to_filenode(self.testh5fname, self.datafname, "/test1")

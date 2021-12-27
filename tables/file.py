@@ -10,6 +10,7 @@ nodes.
 
 import atexit
 import datetime
+import os
 import sys
 import weakref
 import warnings
@@ -261,7 +262,7 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
         advices about the integrated node cache engine.
 
     """
-
+    filename = os.fspath(filename)
     # XXX filename normalization ??
 
     # Check already opened files
@@ -713,7 +714,7 @@ class File(hdf5extension.File):
     def __init__(self, filename, mode="r", title="",
                  root_uep="/", filters=None, **kwargs):
 
-        self.filename = filename
+        self.filename = os.fspath(filename)
         """The name of the opened file."""
 
         self.mode = mode
