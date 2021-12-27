@@ -499,7 +499,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         point-wise selection.
 
         """
-
+        input_key = key
         if type(key) in (list, tuple):
             if isinstance(key, tuple) and len(key) > len(self.shape):
                 raise IndexError(f"Invalid index or slice: {key!r}")
@@ -538,6 +538,11 @@ very small/large chunksize, you may want to increase/decrease it."""
                 coords = np.asarray(key, dtype="i8")
 
             # handle negative indices
+            base = coords if coords.base is None else coords.base
+            if base is input_key:
+                # never modify the original "key" data
+                coords = coords.copy()
+
             idx = coords < 0
             coords[idx] = (coords + self.shape)[idx]
 
