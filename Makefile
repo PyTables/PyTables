@@ -41,6 +41,7 @@ distclean:	clean
 	$(RM) tables/_comp_*.c tables/*extension.c
 	$(RM) doc/usersguide-*.pdf
 	$(RM) -r doc/html
+	$(RM) -r .pytest_cache
 	#git clean -fdx
 
 html: build
@@ -60,6 +61,7 @@ build:
 	$(PYTHON) setup.py build
 
 check: build
+	cd build/lib.*-$(PYVER) && env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs tables -k "not AttributeSet"
 	cd build/lib.*-$(PYVER) && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py
 
 heavycheck: build
