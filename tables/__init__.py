@@ -11,7 +11,7 @@ to efficiently cope with extremely large amounts of data.
 from .utilsextension import get_hdf5_version as _get_hdf5_version
 
 
-__version__ = "3.7.0"
+__version__ = "3.7.1.dev0"
 """The PyTables version number."""
 
 hdf5_version = _get_hdf5_version()

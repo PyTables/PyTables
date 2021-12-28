@@ -8,6 +8,12 @@
 .. py:currentmodule:: tables
 
 
+Changes from 3.7.0 to 3.7.1
+===========================
+
+* TBW
+
+
 Changes from 3.6.1 to 3.7.0
 ===========================
 

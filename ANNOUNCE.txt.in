@@ -8,11 +8,7 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-This is a minor version of PyTables.  The main feature added is that
-compatibility with Python 3.10, numpy 1.21 and HDF5 1.12 has been improved,
-while support for Python 3.5 has been dropped.
-
-The CI infrastructure has been moved to GitHub Actions.
+#XXX version-specific blurb XXX#
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html
