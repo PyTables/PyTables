@@ -2703,7 +2703,7 @@ class File(hdf5extension.File):
             >>> f = tables.open_file('tables/tests/Tables_lzo2.h5')
             >>> print(f)
             tables/tests/Tables_lzo2.h5 (File) 'Table Benchmark'
-            Last modif.: '2020-11-14T18:00:05+00:00'
+            Last modif.: '...'
             Object Tree:
             / (RootGroup) 'Table Benchmark'
             /tuple0 (Table(100,)lzo(1)) 'This is the table title'
@@ -2715,7 +2715,6 @@ class File(hdf5extension.File):
             >>> f.close()
 
         """
-
         if not self.isopen:
             return "<closed File>"
 
