@@ -1,5 +1,6 @@
 """Utilities for PyTables' test suites."""
 
+import os
 import re
 import sys
 import locale
@@ -21,7 +22,7 @@ hdf5_version = Version(tb.hdf5_version)
 blosc_version = Version(tb.which_lib_version("blosc")[1])
 
 
-verbose = False
+verbose = os.environ.get("VERBOSE", "FALSE") == "TRUE"
 """Show detailed output of the testing process."""
 
 heavy = False
