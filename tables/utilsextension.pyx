@@ -306,41 +306,21 @@ def set_blosc_max_threads(nthreads):
   return blosc_set_nthreads(nthreads)
 
 
+# Initialize & register lzo
+try:
+  import tables._comp_lzo
+  lzo_version = tables._comp_lzo.register_()
+  lzo_version = lzo_version if lzo_version else None
+except ImportError:
+  lzo_version = None
 
-
-if sys.platform == "win32":
-  # We need a different approach in Windows, because it complains when
-  # trying to import the extension that is linked with a dynamic library
-  # that is not installed in the system.
-
-  # Initialize & register lzo
-  if getLibrary("lzo2") == 0 or getLibrary("lzo1") == 0:
-    import tables._comp_lzo
-    lzo_version = tables._comp_lzo.register_()
-  else:
-    lzo_version = None
-
-  # Initialize & register bzip2
-  if getLibrary("bzip2") == 0 or getLibrary("libbz2") == 0:
-    import tables._comp_bzip2
-    bzip2_version = tables._comp_bzip2.register_()
-  else:
-    bzip2_version = None
-
-else:  # Unix systems
-  # Initialize & register lzo
-  try:
-    import tables._comp_lzo
-    lzo_version = tables._comp_lzo.register_()
-  except ImportError:
-    lzo_version = None
-
-  # Initialize & register bzip2
-  try:
-    import tables._comp_bzip2
-    bzip2_version = tables._comp_bzip2.register_()
-  except ImportError:
-    bzip2_version = None
+# Initialize & register bzip2
+try:
+  import tables._comp_bzip2
+  bzip2_version = tables._comp_bzip2.register_()
+  bzip2_version = bzip2_version if bzip2_version else None
+except ImportError:
+  bzip2_version = None
 
 
 # End of initialization code
