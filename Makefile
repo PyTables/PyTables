@@ -3,7 +3,7 @@
 # please use ``setup.py`` as described in the ``README.rst`` file.
 
 VERSION = $(shell grep "__version__ =" tables/__init__.py | cut -f 3 -d ' ' | sed s/\"//g)
-SRCDIRS = src doc
+SRCDIRS = doc
 GENERATED = ANNOUNCE.txt
 PYTHON = python3
 PYPLATFORM = $(shell $(PYTHON) -c "from distutils.util import get_platform; print(get_platform())")
@@ -38,7 +38,6 @@ clean:
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
 
 distclean:	clean
-	$(MAKE) -C src $(OPT) $@
 	$(RM) tables/_comp_*.c tables/*extension.c
 	$(RM) doc/usersguide-*.pdf
 	$(RM) -r doc/html
