@@ -837,11 +837,6 @@ if __name__ == "__main__":
     if os.name == "nt":
         for dll_file in dll_files:
             shutil.copy(dll_file, 'tables')
-        dll_dir = Path('tables')
-        dll_files = [dll_dir / Path(dll_file).name for dll_file in dll_files]
-
-        # Add DLL's to the final package for windows
-        data_files.append((Path("Lib/site-packages/tables"), dll_files))
 
     ADDLIBS = [hdf5_package.library_name]
 
