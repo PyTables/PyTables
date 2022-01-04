@@ -239,13 +239,6 @@ class PyTablesTestCase(unittest.TestCase):
             title = f"Running {name}.{methodName}"
             print('{}\n{}'.format(title, '-' * len(title)))
 
-    # COMPATIBILITY: assertWarns is new in Python 3.2
-    if not hasattr(unittest.TestCase, 'assertWarns'):
-        def assertWarns(self, expected_warning, callable_obj=None,
-                        *args, **kwargs):
-            context = _AssertWarnsContext(expected_warning, self, callable_obj)
-            return context.handle('assertWarns', callable_obj, args, kwargs)
-
     def _checkEqualityGroup(self, node1, node2, hardlink=False):
         if verbose:
             print("Group 1:", node1)
