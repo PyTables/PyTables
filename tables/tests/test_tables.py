@@ -389,7 +389,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         result = [rec['var2'] for rec in table.iterrows() if rec['var2'] < 20]
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", rec)
+            print("Last record in table ==>", table[-1])
             print("Total selected records in table ==> ", len(result))
         nrows = self.expectedrows - 1
         rec = list(table.iterrows())[-1]
@@ -568,8 +568,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                   if rec['var2'] < 20]
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", rec)
-            print("rec['var5'] ==>", rec['var5'], end=' ')
+            print("Last record in table ==>", table[-1])
+            print("rec['var5'] ==>", table[-1]['var5'], end=' ')
             print("nrows ==>", table.nrows)
             print("Total selected records in table ==> ", len(result))
         nrows = table.nrows
@@ -1136,7 +1136,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
             print("On-disk byteorder ==>", table.byteorder)
-            print("Last record in table ==>", rec)
+            print("Last record in table ==>", table[-1])
             print("Selected records ==>", result)
             print("Total selected records in table ==>", len(result))
         nrows = self.expectedrows - 1
@@ -2267,6 +2267,8 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 elif self.checkgetCol:
                     print("Last value *read* in getCol ==>", column[-1])
                 else:
+                    rec = list(
+                        table.iterrows(self.start, self.stop, self.step))[-1]
                     print("Last record *read* in table range ==>", rec)
             print("Total number of selected records ==>", len(result))
             print("Selected records:\n", result)

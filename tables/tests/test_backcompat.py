@@ -30,7 +30,7 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
             result = [rec['var2'] for rec in table]
             if common.verbose:
                 print("Nrows in", table._v_pathname, ":", table.nrows)
-                print("Last record in table ==>", rec)
+                print("Last record in table ==>", table[-1])
                 print("Total selected records in table ==> ", len(result))
 
             self.assertEqual(len(result), 100)
