@@ -1,11 +1,11 @@
 include MANIFEST.in
 include *.txt THANKS README.rst
-include setup.py setup.cfg VERSION Makefile cpuinfo.py
+include setup.py setup.cfg Makefile cpuinfo.py
 
 recursive-include tables *.py *.pyx *.pxd *.c
 recursive-include tables/tests *.h5 *.mat
 recursive-include tables/nodes/tests *.h5 *.dat *.xbm
-recursive-include src *.c *.h Makefile
+recursive-include src *.c *.h
 
 include hdf5-blosc/src/blosc_filter.?
 recursive-include c-blosc/blosc *.c *.h *.inc
