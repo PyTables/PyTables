@@ -25,7 +25,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade setuptools pip wheel build
-        python -m pip install --upgrade "cython>=0.29.21" "numpy>=1.19,<1.22"
+        python -m pip install --upgrade cython>=0.29.21 numpy>=1.19
         python -c "import numpy as np; print('numpy:', np.__version__)"
     - name: Build PyTables
       run: make build

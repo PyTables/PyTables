@@ -2,6 +2,7 @@
 
 
 import numpy as np
+from numpy import testing as npt
 
 import tables as tb
 from tables.tests import common
@@ -895,8 +896,7 @@ class FunctionsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(common.areArraysEqual(r1, r2),
-                        "Evaluate is returning a wrong value.")
+        npt.assert_array_almost_equal_nulp(r1, r2)
 
 
 # Test for EArrays with maindim != 0
