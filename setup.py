@@ -21,6 +21,7 @@ from packaging.version import Version
 
 # The name for the pkg-config utility
 PKG_CONFIG = "pkg-config"
+COPY_DLLS = bool(os.environ.get('COPY_DLLS', 'FALSE') == 'TRUE')
 
 
 # Some functions for showing errors and warnings.
@@ -834,7 +835,7 @@ if __name__ == "__main__":
     cython_extfiles = get_cython_extfiles(cython_extnames)
 
     # --------------------------------------------------------------------
-    if os.name == "nt":
+    if os.name == "nt" and COPY_DLLS:
         for dll_file in dll_files:
             shutil.copy(dll_file, 'tables')
 
