@@ -247,3 +247,26 @@ jobs:
       - name: Run tests on ${{ matrix.python-version }}
         run: |
           python -m tables.tests.test_all
+
+  twine_check:
+    needs: [ build_sdist, build_wheels, build_wheels_windows, build_linux_arm_wheels ]
+    name: Twine check
+    runs-on: 'ubuntu-latest'
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          path: ./wheelhouse/
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install twine
+        run: |
+          python -m pip install twine
+
+      - name: Check sdist and wheels
+        run: |
+          python -m twine check wheelhouse/artifact/tables*.tar.gz wheelhouse/artifact/*.whl
