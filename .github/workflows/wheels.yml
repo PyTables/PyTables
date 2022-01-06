@@ -111,7 +111,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   build_linux_arm_wheels:
-    name: Build wheels on ${{matrix.arch}} for ${{ matrix.os }}
+    name: Build ${{ matrix.cibw_python }} wheels on ${{matrix.arch}} for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
       HDF5_VERSION: 1.12.1

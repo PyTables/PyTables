@@ -21,6 +21,7 @@ from packaging.version import Version
 
 # The name for the pkg-config utility
 PKG_CONFIG = "pkg-config"
+COPY_DLLS = bool(os.environ.get('COPY_DLLS', 'FALSE') == 'TRUE')
 
 
 # Some functions for showing errors and warnings.
@@ -223,7 +224,6 @@ if __name__ == "__main__":
     lib_dirs = []
     inc_dirs = [Path("hdf5-blosc/src")]
     optional_libs = []
-    data_files = []  # list of data files to add to packages (mainly for DLL's)
 
     default_header_dirs = None
     default_library_dirs = None
@@ -834,14 +834,9 @@ if __name__ == "__main__":
     cython_extfiles = get_cython_extfiles(cython_extnames)
 
     # --------------------------------------------------------------------
-    if os.name == "nt":
+    if os.name == "nt" and COPY_DLLS:
         for dll_file in dll_files:
             shutil.copy(dll_file, 'tables')
-        dll_dir = Path('tables')
-        dll_files = [dll_dir / Path(dll_file).name for dll_file in dll_files]
-
-        # Add DLL's to the final package for windows
-        data_files.append((Path("Lib/site-packages/tables"), dll_files))
 
     ADDLIBS = [hdf5_package.library_name]
 
@@ -1035,8 +1030,4 @@ if __name__ == "__main__":
         install_requires=requirements,
         ext_modules=extensions,
         cmdclass={"build_ext": BuildExtensions},
-        data_files=[
-            (str(parent), [str(file) for file in files])
-            for parent, files in data_files
-        ],
     )
