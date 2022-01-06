@@ -224,7 +224,6 @@ if __name__ == "__main__":
     lib_dirs = []
     inc_dirs = [Path("hdf5-blosc/src")]
     optional_libs = []
-    data_files = []  # list of data files to add to packages (mainly for DLL's)
 
     default_header_dirs = None
     default_library_dirs = None
@@ -1031,8 +1030,4 @@ if __name__ == "__main__":
         install_requires=requirements,
         ext_modules=extensions,
         cmdclass={"build_ext": BuildExtensions},
-        data_files=[
-            (str(parent), [str(file) for file in files])
-            for parent, files in data_files
-        ],
     )
