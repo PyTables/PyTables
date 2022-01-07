@@ -7,7 +7,7 @@ SRCDIRS = doc
 GENERATED = ANNOUNCE.txt
 PYTHON = python3
 PYPLATFORM = $(shell $(PYTHON) -c "from distutils.util import get_platform; print(get_platform())")
-PYVER = $(shell $(PYTHON) -V 2>&1 | cut -c 8-10)
+PYVER = $(shell $(PYTHON) -c "import sys; print('.'.join(map(str, sys.version_info[:2])))")
 PYBUILDDIR = $(PWD)/build/lib.$(PYPLATFORM)-$(PYVER)
 OPT = PYTHONPATH=$(PYBUILDDIR)
 

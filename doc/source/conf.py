@@ -23,13 +23,19 @@ copyright = '2011–2021, PyTables maintainers'
 author = 'PyTables maintainers'
 
 # The short X.Y version
-import tables as tb
-# from packaging.version import Version
-# version = Version(tb.__version__).base_version
-version = tb.__version__
+def _load_source(module_name, filepath):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(module_name, filepath)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+m = _load_source('setup', '../../setup.py')
+version = m.get_version('../../tables/__init__.py')
 
 # The full version, including alpha/beta/rc tags
-release = tb.__version__
+release = version
 
 
 # -- General configuration ---------------------------------------------------
