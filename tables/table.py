@@ -155,9 +155,11 @@ def _table__where_indexed(self, compiled, condition, condvars,
         # seq is a list.
         seq = np.array(seq, dtype='int64')
         # Correct the ranges in cached sequence
-        if (start, stop, step) != (0, self.nrows, 1):
+        if step < 0:
+            start, stop = stop + 1, start + 1
+        if (start, stop, abs(step)) != (0, self.nrows, 1):
             seq = seq[(seq >= start) & (
-                seq < stop) & ((seq - start) % step == 0)]
+                seq < stop) & ((seq - start) % abs(step) == 0)]
         return self.itersequence(seq)
     else:
         # No luck.  self._seqcache will be populated
@@ -1465,11 +1467,12 @@ very small/large chunksize, you may want to increase/decrease it."""
         if profile:
             show_stats("Entering table._where", tref)
         # Adjust the slice to be used.
-        (start, stop, step) = self._process_range_read(start, stop, step)
-        if start >= stop:  # empty range, reset conditions
-            self._use_index = False
-            self._where_condition = None
-            return iter([])
+        # remove neg range warn
+        (start, stop, step) = self._process_range_read(start, stop, step, warn_negstep=False)
+        # if start >= stop:  # empty range, reset conditions
+        #     self._use_index = False
+        #     self._where_condition = None
+        #     return iter([])
 
         # Compile the condition and extract usable index conditions.
         condvars = self._required_expr_vars(condition, condvars, depth=3)
