@@ -52,7 +52,7 @@ jobs:
     name: Build wheels on ${{matrix.arch}} for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      HDF5_VERSION: 1.12.1
+      HDF5_VERSION: 1.13.1
     strategy:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
@@ -114,7 +114,7 @@ jobs:
     name: Build ${{ matrix.cibw_python }} wheels on ${{matrix.arch}} for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      HDF5_VERSION: 1.12.1
+      HDF5_VERSION: 1.13.1
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
