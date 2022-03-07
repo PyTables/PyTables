@@ -15,8 +15,14 @@ else
         EXTRA_MPI_FLAGS="--enable-parallel --enable-shared"
     fi
 
+    MINOR_V=$(sed -e "s/.[0-9]\+\$//; s/^[0-9]\+.//" <<< $HDF5_VERSION)
+    MAJOR_V=${HDF5_VERSION/%.*.*}
     if [[ "$OSTYPE" == "darwin"* ]]; then
         lib_name=libhdf5.dylib
+        # universal binaries is only supported for v1.13+
+        if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 13 ]]; then
+          export CFLAGS="$CFLAGS -arch x86_64 -arch arm64"
+        else
     else
         lib_name=libhdf5.so
     fi
@@ -30,13 +36,16 @@ else
         tar -xzvf hdf5-$HDF5_VERSION.tar.gz
         pushd hdf5-$HDF5_VERSION
         chmod u+x autogen.sh
-        if [[ "${HDF5_VERSION%.*}" = "1.12" ]]; then
-          ./configure --prefix $HDF5_DIR $EXTRA_MPI_FLAGS --enable-build-mode=production
+        # production is supported from 1.12
+        if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 12 ]]; then
+          ./configure --prefix $HDF5_DIR $EXTRA_MPI_FLAGS --enable-build-mode=production 
         else
           ./configure --prefix $HDF5_DIR $EXTRA_MPI_FLAGS
         fi
         make -j $(nproc)
         make install
+        file $HDF5_DIR/lib/$lib_name
+
         popd
         popd
     fi
