@@ -89,7 +89,7 @@ jobs:
           CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21"
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' HDF5_DIR=/tmp/hdf5 CFLAGS=-g0 HDF5_VERSION=${{ env.HDF5_VERSION }} LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/tmp/hdf5/lib/" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           MACOSX_DEPLOYMENT_TARGET: "10.9"
-          CIBW_ENVIRONMENT_MACOS: RUNNER_OS=${{ runner.os }} HDF5_DIR=/tmp/hdf5 HDF5_VERSION=${{ env.HDF5_VERSION }} CFLAGS=-g0 LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/tmp/hdf5/lib/" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}
+          CIBW_ENVIRONMENT_MACOS: RUNNER_OS=${{ runner.os }} HDF5_DIR=/tmp/hdf5 HDF5_VERSION=${{ env.HDF5_VERSION }} CFLAGS=-g0 LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/tmp/hdf5/lib/" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_SKIP: "*-musllinux_* cp38-macosx_x86_64 cp39-macosx_x86_64 cp310-macosx_x86_64"
 
       - uses: actions/upload-artifact@v2
@@ -133,7 +133,7 @@ jobs:
           CIBW_BUILD: ${{ matrix.cibw_python }}
           CIBW_BEFORE_ALL_LINUX: "yum -y update && yum install -y zlib-devel bzip2-devel lzo-devel && ./ci/github/get_hdf5_if_needed.sh"
           CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21"
-          CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' HDF5_DIR=/tmp/hdf5 CFLAGS=-g0 HDF5_VERSION=${{ env.HDF5_VERSION }} LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/tmp/hdf5/lib/" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}
+          CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' HDF5_DIR=/tmp/hdf5 CFLAGS=-g0 HDF5_VERSION=${{ env.HDF5_VERSION }} LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/tmp/hdf5/lib/" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_SKIP: '*-musllinux_*'
 
       - uses: actions/upload-artifact@v2
