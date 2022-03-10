@@ -20,6 +20,7 @@ else
     MAJOR_V=${HDF5_VERSION/%.*.*}
     if [[ "$OSTYPE" == "darwin"* ]]; then
         lib_name=libhdf5.dylib
+        alias nproc="sysctl -n hw.logicalcpu"
     else
         lib_name=libhdf5.so
     fi
