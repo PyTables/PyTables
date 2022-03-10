@@ -49,7 +49,7 @@ jobs:
           path: dist/*
 
   build_wheels:
-    name: Build wheels for ${{matrix.arch}} on ${{ matrix.os }}
+    name: Build linux.macos wheels on ${{ matrix.os }}-${{matrix.arch}}
     runs-on: ${{ matrix.os }}
     env:
       HDF5_VERSION: 1.13.1
@@ -81,6 +81,7 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir wheelhouse
         env:
+          CIBW_BUILD_VERBOSITY_MACOS: 3
           CIBW_ARCHS_LINUX: ${{ matrix.arch }}
           CIBW_ARCHS_MACOS: "x86_64 universal2"
           CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-* cp310-*"
