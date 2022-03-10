@@ -55,7 +55,8 @@ else
             make install
             popd
             
-            mkdir -p "$HDF5_DIR"/lib
+            mkdir -p "$HDF5_DIR"/lib/pkgconfig
+            mkdir "$HDF5_DIR"/include
             pushd "$HDF5_DIR"_x86/lib
             for filename in *lzo*.dylib *lzo*.a; do
                 if [[ -f "$HDF5_DIR"_arm64/lib/$filename ]]; then
