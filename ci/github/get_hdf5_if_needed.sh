@@ -1,7 +1,7 @@
 #!/bin/bash
 # vendored from https://github.com/h5py/h5py/blob/master/ci/get_hdf5_if_needed.sh
 
-set -e
+set -e -x
 
 if [ -z ${HDF5_DIR+x} ]; then
     echo "Using OS HDF5"
@@ -20,9 +20,10 @@ else
     MAJOR_V=${HDF5_VERSION/%.*.*}
     if [[ "$OSTYPE" == "darwin"* ]]; then
         lib_name=libhdf5.dylib
-        alias nproc="sysctl -n hw.logicalcpu"
+        NPROC=$(sysctl -n hw.ncpu)
     else
         lib_name=libhdf5.so
+        NPROC=$(nproc)
     fi
 
     if [ -f "$HDF5_DIR/lib/$lib_name" ]; then
@@ -132,7 +133,7 @@ else
         else
           ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS"
         fi
-        make -j "$(nproc)"
+        make -j "$NPROC"
         make install
 
         file "$HDF5_DIR/lib/*"
