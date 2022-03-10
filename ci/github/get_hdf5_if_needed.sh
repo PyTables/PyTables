@@ -35,13 +35,44 @@ else
             export MACOSX_DEPLOYMENT_TARGET="10.9"
             pushd /tmp
 
+            # lzo
+            curl -sLO https://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz
+            tar xzf lzo-2.10.tar.gz
+            pushd lzo-2.10
+            CFLAGS= CXXFLAGS= CPPFLAGS= CC="/usr/bin/clang" CXX="/usr/bin/clang" ./configure \
+                --prefix="$HDF5_DIR"_arm64 CFLAGS="-arch arm64" CXXFLAGS="-arch arm64" \
+                --host="aarch64-apple-darwin"  --target="aarch64-apple-darwin" --enable-shared
+            make
+            make install
+            popd
+
+            rm -rf lzo-2.10
+            tar xzf lzo-2.10.tar.gz
+            pushd lzo-2.10
+            CFLAGS= CXXFLAGS= CPPFLAGS= CC="/usr/bin/clang" CXX="/usr/bin/clang" ./configure \
+                --prefix="$HDF5_DIR"_x86 --enable-shared
+            make
+            make install
+            popd
+            
+            pushd "$HDF5_DIR"_x86/lib
+            for filename in *lzo*.dylib *lzo*.a; do
+                if [[ -f "$HDF5_DIR"_arm64/lib/$filename ]]; then
+                    lipo "$HDF5_DIR"_x86/lib/$filename "$HDF5_DIR"_arm64/lib/$filename -output "$HDF5_DIR"/lib/$filename -create
+                fi
+            done
+            popd
+            cp -r "$HDF5_DIR"_x86/include/lzo "$HDF5_DIR"/include/lzo
+            cp "$HDF5_DIR"_x86/lib/pkgconfig/lzo2.pc "$HDF5_DIR"/lib/pkgconfig
+
+
             # snappy
             git clone https://github.com/google/snappy.git --branch 1.1.9 --depth 1
             pushd snappy
             git submodule update --init
             mkdir build
             cd build
-            cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" ../
+            cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" ../
             make
             make install
             popd
@@ -51,7 +82,7 @@ else
             tar xzf zstd-1.5.2.tar.gz
             pushd zstd-1.5.2
             cd build/cmake
-            cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+            cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
             make
             make install
             popd
@@ -81,28 +112,6 @@ else
             pushd bzip2-bzip2-1.0.8
             make install PREFIX="$HDF5_DIR"
             popd
-
-            # lzo
-            curl -sLO https://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz
-            tar xzf lzo-2.10.tar.gz
-            pushd lzo-2.10
-            CFLAGS= CXXFLAGS= CPPFLAGS= ./configure --prefix="$HDF5_DIR"_arm64 CFLAGS="-arch arm64" \
-                CXXFLAGS="-arch arm64" --host="aarch64-apple-darwin"  --target="aarch64-apple-darwin"
-            make
-            make install
-            popd
-
-            rm -rf lzo-2.10
-            tar xzf lzo-2.10.tar.gz
-            pushd lzo-2.10
-            CFLAGS= CXXFLAGS= CPPFLAGS= ./configure --prefix="$HDF5_DIR"_x86
-            make
-            make install
-            popd
-
-            lipo "$HDF5_DIR"_x86/lib/liblzo2.a "$HDF5_DIR"_arm64/lib/liblzo2.a -output "$HDF5_DIR"/lib/liblzo2.a -create
-            cp -r "$HDF5_DIR"_x86/include/lzo "$HDF5_DIR"/include/lzo
-            cp "$HDF5_DIR"_x86/lib/pkgconfig/lzo2.pc "$HDF5_DIR"/lib/pkgconfig
 
             # zlib
             curl -sLO https://zlib.net/zlib-1.2.11.tar.gz
