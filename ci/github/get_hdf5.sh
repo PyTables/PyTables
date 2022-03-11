@@ -54,8 +54,13 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         fi
     done
     popd
-    cp -r "$HDF5_DIR"_x86/include/lzo "$HDF5_DIR"/include/lzo
-    cp "$HDF5_DIR"_x86/lib/pkgconfig/lzo2.pc "$HDF5_DIR"/lib/pkgconfig
+    find "$HDF5_DIR"_x86
+    find "$HDF5_DIR"_arm64
+
+    cp -r "$HDF5_DIR"_arm64/include/lzo "$HDF5_DIR"/include/lzo
+    cp "$HDF5_DIR"_arm64/lib/pkgconfig/lzo2.pc "$HDF5_DIR"/lib/pkgconfig
+    cat "$HDF5_DIR"_x86/lib/pkgconfig/lzo2.pc
+    cat "$HDF5_DIR"_arm64/lib/pkgconfig/lzo2.pc
     cat "$HDF5_DIR"/lib/pkgconfig/lzo2.pc
     sed -i "" "s/_x86//g" "$HDF5_DIR"/lib/pkgconfig/lzo2.pc
     cat "$HDF5_DIR"/lib/pkgconfig/lzo2.pc
