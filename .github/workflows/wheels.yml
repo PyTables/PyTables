@@ -59,16 +59,21 @@ jobs:
         arch: [ 'x86_64' ]
         cibw_python: [ "cp36-* cp37-* cp38-* cp39-* cp310-*" ]
         include:
-           - cibw_archs: aarch64
+           - arch: aarch64
              cibw_python: cp36-*
-           - cibw_archs: aarch64
+             os: ubuntu-latest
+           - arch: aarch64
              cibw_python: cp37-*
-           - cibw_archs: aarch64
+             os: ubuntu-latest
+           - arch: aarch64
              cibw_python: cp38-*
-           - cibw_archs: aarch64
+             os: ubuntu-latest
+           - arch: aarch64
              cibw_python: cp39-*
-           - cibw_archs: aarch64
+             os: ubuntu-latest
+           - arch: aarch64
              cibw_python: cp310-*
+             os: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
