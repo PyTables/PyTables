@@ -167,7 +167,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   test_wheels:
-    needs: [ build_wheels, build_wheels_windows, build_linux_arm_wheels ]
+    needs: [ build_wheels, build_wheels_windows ]
     name: Test ${{ matrix.python-version }} ${{ matrix.arch }} wheels for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -203,7 +203,7 @@ jobs:
           python -m tables.tests.test_all
 
   twine_check:
-    needs: [ build_sdist, build_wheels, build_wheels_windows, build_linux_arm_wheels ]
+    needs: [ build_sdist, build_wheels, build_wheels_windows ]
     name: Twine check
     runs-on: 'ubuntu-latest'
 
