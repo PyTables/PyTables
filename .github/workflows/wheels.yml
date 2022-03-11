@@ -57,7 +57,7 @@ jobs:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
         arch: [ 'x86_64' ]
-        cibw_python: [ "cp38-* cp39-* cp310-*" ]
+        cibw_python: [ "cp36-* cp37-* cp38-* cp39-* cp310-*" ]
         include:
            - arch: aarch64
              cibw_python: cp36-*
