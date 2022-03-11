@@ -98,7 +98,7 @@ jobs:
 
       - name: Build dependencies
         if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
-        run:
+        run: |
           if [[ ${{ runner.os }} = 'Linux' ]]; then
             docker run --rm -e HDF5_DIR=/io/hdf5_build -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
           else
