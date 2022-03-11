@@ -90,21 +90,20 @@ jobs:
         if: runner.os == 'Linux'
         name: Set up QEMU
 
-      - name: Install system deps
-        if: runner.os == 'Linux'
-        run: |
-          yum -y update
-          yum install -y zlib-devel bzip2-devel lzo-devel
-
       - uses: actions/cache@v2
         id: deps-cache
         with:
-          path: /tmp/hdf5
-          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5_if_needed.sh') }}-${{ env.HDF5_VERSION }}-${{ hashFiles('**/wheels.yml') }}
+          path: hdf5_build
+          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-${{ hashFiles('**/wheels.yml') }}
 
       - name: Build dependencies
         if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
-        run: ./ci/github/get_hdf5_if_needed.sh
+        run:
+          if [[ ${{ runner.os }} = 'Linux' ]]; then
+            docker run --rm -e HDF5_DIR=/io/hdf5_build -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
+          else
+            ci/github/get_hdf5.sh
+          fi
 
       - name: Install cibuildwheel
         run: |
@@ -119,10 +118,14 @@ jobs:
           CIBW_BUILD: ${{ matrix.cibw_python }}
           CIBW_ARCHS_MACOS: "x86_64 universal2"
           CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21"
-          CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' HDF5_DIR=/tmp/hdf5 CFLAGS=-g0 HDF5_VERSION=${{ env.HDF5_VERSION }} LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/tmp/hdf5/lib/" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' HDF5_DIR=/tmp/hdf5 CFLAGS=-g0 HDF5_VERSION=${{ env.HDF5_VERSION }} LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           MACOSX_DEPLOYMENT_TARGET: "10.9"
-          CIBW_ENVIRONMENT_MACOS: RUNNER_OS=${{ runner.os }} HDF5_DIR=/tmp/hdf5 HDF5_VERSION=${{ env.HDF5_VERSION }} CFLAGS=-g0 LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/tmp/hdf5/lib/" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          CIBW_ENVIRONMENT_MACOS: HDF5_DIR=/tmp/hdf5 HDF5_VERSION=${{ env.HDF5_VERSION }} CFLAGS=-g0 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_SKIP: "*-musllinux_* cp38-macosx_x86_64 cp39-macosx_x86_64 cp310-macosx_x86_64"
+          CIBW_BEFORE_ALL_LINUX: >
+            cp -r `pwd`/hdf5_build /tmp/hdf5 &&
+            yum -y update &&
+            yum install -y zlib-devel bzip2-devel lzo-devel
 
       - uses: actions/upload-artifact@v2
         with:
