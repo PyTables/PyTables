@@ -140,7 +140,7 @@ fi
 make -j "$NPROC"
 make install
 
-file "$HDF5_DIR/lib/*"
+file "$HDF5_DIR"/lib/*
 
 popd
 popd
