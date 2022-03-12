@@ -29,7 +29,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     curl -sLO https://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz
     tar xzf lzo-2.10.tar.gz
     pushd lzo-2.10
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+    mkdir build
+    cd build
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" ../
     make
     make install
     popd
