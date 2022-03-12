@@ -121,14 +121,16 @@ jobs:
           CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21"
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' HDF5_DIR=/tmp/hdf5 CFLAGS=-g0 HDF5_VERSION=${{ env.HDF5_VERSION }} LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           MACOSX_DEPLOYMENT_TARGET: "10.9"
-          DYLD_FALLBACK_LIBRARY_PATH: /tmp/hdf5/lib
-          CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib HDF5_DIR=/tmp/hdf5 HDF5_VERSION=${{ env.HDF5_VERSION }} CFLAGS=-g0 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 HDF5_VERSION=${{ env.HDF5_VERSION }} CFLAGS=-g0 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_SKIP: "*-musllinux_* cp38-macosx_x86_64 cp39-macosx_x86_64 cp310-macosx_x86_64"
           CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
           CIBW_BEFORE_ALL_LINUX: >
             cp -r `pwd`/hdf5_build /tmp/hdf5 &&
             yum -y update &&
             yum install -y zlib-devel bzip2-devel lzo-devel
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+            DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-listdeps {wheel} &&
+            DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
 
       - uses: actions/upload-artifact@v2
         with:
