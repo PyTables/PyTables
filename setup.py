@@ -18,9 +18,6 @@ from setuptools.command.build_ext import build_ext
 import pkg_resources
 from packaging.version import Version
 
-import pprint
-pprint.pprint(os.environ)
-
 
 # The name for the pkg-config utility
 PKG_CONFIG = "pkg-config"
@@ -1028,10 +1025,6 @@ if __name__ == "__main__":
         ),
     ]
 
-    print('Before setup')
-    pprint.pprint(extension_kwargs)
-    print('Before setup env')
-    pprint.pprint(os.environ)
     setup(
         version=VERSION,
         install_requires=requirements,
