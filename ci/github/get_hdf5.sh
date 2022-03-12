@@ -80,6 +80,17 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     curl -sLO https://gitlab.com/bzip2/bzip2/-/archive/bzip2-1.0.8/bzip2-bzip2-1.0.8.tar.gz
     tar xzf bzip2-bzip2-1.0.8.tar.gz
     pushd bzip2-bzip2-1.0.8
+    cat << EOF >> Makefile
+
+libbz2.dylib: $(OBJS)
+	$(CC) $(LDFLAGS) -shared -Wl,-install_name -Wl,libbz2.dylib -o libbz2.1.0.8.dylib $(OBJS)
+	cp libbz2.1.0.8.dylib ${PREFIX}/lib/
+	ln -s libbz2.1.0.8.dylib ${PREFIX}/lib/libbz2.1.0.dylib
+	ln -s libbz2.1.0.8.dylib ${PREFIX}/lib/libbz2.dylib
+
+EOF
+    sed -i "" "s/CFLAGS=-Wall/CFLAGS=-fPIC -Wall/g" Makefile
+    sed -i "" "s/all: libbz2.a/all: libbz2.dylib libbz2.a/g" Makefile
     make install PREFIX="$HDF5_DIR"
     popd
 
