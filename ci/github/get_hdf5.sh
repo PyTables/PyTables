@@ -29,39 +29,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     curl -sLO https://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz
     tar xzf lzo-2.10.tar.gz
     pushd lzo-2.10
-    CFLAGS= CXXFLAGS= CPPFLAGS= CC="/usr/bin/clang" CXX="/usr/bin/clang" ./configure \
-        --prefix="$HDF5_DIR"_arm64 CFLAGS="-arch arm64" CXXFLAGS="-arch arm64" \
-        --host="aarch64-apple-darwin"  --target="aarch64-apple-darwin" --enable-shared
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
     make
     make install
     popd
-
-    rm -rf lzo-2.10
-    tar xzf lzo-2.10.tar.gz
-    pushd lzo-2.10
-    CFLAGS= CXXFLAGS= CPPFLAGS= CC="/usr/bin/clang" CXX="/usr/bin/clang" ./configure \
-        --prefix="$HDF5_DIR"_x86 --enable-shared
-    make
-    make install
-    popd
-
-    mkdir -p "$HDF5_DIR"/lib/pkgconfig
-    mkdir "$HDF5_DIR"/include
-    pushd "$HDF5_DIR"_x86/lib
-    for filename in *lzo*.dylib *lzo*.a; do
-        if [[ -f "$HDF5_DIR"_arm64/lib/$filename ]]; then
-            lipo "$HDF5_DIR"_x86/lib/$filename "$HDF5_DIR"_arm64/lib/$filename -output "$HDF5_DIR"/lib/$filename -create
-        fi
-    done
-    popd
-    find "$HDF5_DIR"_x86
-    find "$HDF5_DIR"_arm64
-
-    cp -r "$HDF5_DIR"_arm64/include/lzo "$HDF5_DIR"/include/lzo
-    cp "$HDF5_DIR"_arm64/lib/pkgconfig/lzo2.pc "$HDF5_DIR"/lib/pkgconfig
-    sed -i "" "s/_arm64//g" "$HDF5_DIR"/lib/pkgconfig/lzo2.pc
-    cat "$HDF5_DIR"/lib/pkgconfig/lzo2.pc
-
 
     # snappy
     git clone https://github.com/google/snappy.git --branch 1.1.9 --depth 1
