@@ -1,5 +1,5 @@
 #!/bin/bash
-# vendored from https://github.com/h5py/h5py/blob/master/ci/get_hdf5_if_needed.sh
+# inspired by https://github.com/h5py/h5py/blob/master/ci/get_hdf5_if_needed.sh
 
 set -e -x
 
@@ -17,6 +17,13 @@ MINOR_V=${HDF5_VERSION#*.}
 MINOR_V=${MINOR_V%.*}
 MAJOR_V=${HDF5_VERSION/%.*.*}
 
+LZO_VERSION="2.10"
+SNAPPY_VERSION="1.1.9"
+ZSTD_VERSION="1.5.2"
+LZ4_VERSION="1.9.3"
+BZIP_VERSION="1.0.8"
+ZLIB_VERSION="1.2.11"
+
 
 echo "building HDF5"
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -26,9 +33,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     pushd /tmp
 
     # lzo
-    curl -sLO https://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz
-    tar xzf lzo-2.10.tar.gz
-    pushd lzo-2.10
+    curl -sLO https://www.oberhumer.com/opensource/lzo/download/lzo-$LZO_VERSION.tar.gz
+    tar xzf lzo-$LZO_VERSION.tar.gz
+    pushd lzo-$LZO_VERSION
     mkdir build
     cd build
     cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" ../
@@ -37,7 +44,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     popd
 
     # snappy
-    git clone https://github.com/google/snappy.git --branch 1.1.9 --depth 1
+    git clone https://github.com/google/snappy.git --branch $SNAPPY_VERSION --depth 1
     pushd snappy
     git submodule update --init
     mkdir build
@@ -48,9 +55,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     popd
 
     # zstd
-    curl -sLO https://github.com/facebook/zstd/releases/download/v1.5.2/zstd-1.5.2.tar.gz
-    tar xzf zstd-1.5.2.tar.gz
-    pushd zstd-1.5.2
+    curl -sLO https://github.com/facebook/zstd/releases/download/v$ZSTD_VERSION/zstd-$ZSTD_VERSION.tar.gz
+    tar xzf zstd-$ZSTD_VERSION.tar.gz
+    pushd zstd-$ZSTD_VERSION
     cd build/cmake
     cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
     make
@@ -70,23 +77,23 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export CXX="/usr/bin/clang"
 
     # lz4
-    curl -sLO https://github.com/lz4/lz4/archive/refs/tags/v1.9.3.tar.gz
-    tar xzf v1.9.3.tar.gz
-    pushd lz4-1.9.3
+    curl -sLO https://github.com/lz4/lz4/archive/refs/tags/v$LZ4_VERSION.tar.gz
+    tar xzf v$LZ4_VERSION.tar.gz
+    pushd lz4-$LZ4_VERSION
     make install PREFIX="$HDF5_DIR"
     popd
 
     # bzip2
-    curl -sLO https://gitlab.com/bzip2/bzip2/-/archive/bzip2-1.0.8/bzip2-bzip2-1.0.8.tar.gz
-    tar xzf bzip2-bzip2-1.0.8.tar.gz
-    pushd bzip2-bzip2-1.0.8
+    curl -sLO https://gitlab.com/bzip2/bzip2/-/archive/bzip2-$BZIP_VERSION/bzip2-bzip2-$BZIP_VERSION.tar.gz
+    tar xzf bzip2-bzip2-$BZIP_VERSION.tar.gz
+    pushd bzip2-bzip2-$BZIP_VERSION
     cat << EOF >> Makefile
 
-libbz2.dylib: $(OBJS)
-	$(CC) $(LDFLAGS) -shared -Wl,-install_name -Wl,libbz2.dylib -o libbz2.1.0.8.dylib $(OBJS)
-	cp libbz2.1.0.8.dylib ${PREFIX}/lib/
-	ln -s libbz2.1.0.8.dylib ${PREFIX}/lib/libbz2.1.0.dylib
-	ln -s libbz2.1.0.8.dylib ${PREFIX}/lib/libbz2.dylib
+libbz2.dylib: \$(OBJS)
+	\$(CC) \$(LDFLAGS) -shared -Wl,-install_name -Wl,libbz2.dylib -o libbz2.$BZIP_VERSION.dylib \$(OBJS)
+	cp libbz2.$BZIP_VERSION.dylib \${PREFIX}/lib/
+	ln -s libbz2.$BZIP_VERSION.dylib \${PREFIX}/lib/libbz2.1.0.dylib
+	ln -s libbz2.$BZIP_VERSION.dylib \${PREFIX}/lib/libbz2.dylib
 
 EOF
     sed -i "" "s/CFLAGS=-Wall/CFLAGS=-fPIC -Wall/g" Makefile
@@ -95,9 +102,9 @@ EOF
     popd
 
     # zlib
-    curl -sLO https://zlib.net/zlib-1.2.11.tar.gz
-    tar xzf zlib-1.2.11.tar.gz
-    pushd zlib-1.2.11
+    curl -sLO https://zlib.net/zlib-$ZLIB_VERSION.tar.gz
+    tar xzf zlib-$ZLIB_VERSION.tar.gz
+    pushd zlib-$ZLIB_VERSION
     ./configure --prefix="$HDF5_DIR"
     make
     make install
