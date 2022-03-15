@@ -102,14 +102,13 @@ jobs:
 
       - name: Build dependencies
         env:
-          HDF5_DIR: /tmp/hdf5
           CFLAGS: -g0
           CIBW_ARCHS: ${{ matrix.arch }}
         if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
         run: |
           mkdir hdf5_build
           if [[ ${{ runner.os }} = 'Linux' ]]; then
-            docker run --rm -e HDF5_DIR=/io/hdf5_build -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
+            docker run --rm -e HDF5_DIR=/io/hdf5_build -e CFLAGS=-g0 -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
           else
             HDF5_DIR=`pwd`/hdf5_build ci/github/get_hdf5.sh
           fi
@@ -122,14 +121,13 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir wheelhouse
         env:
-          HDF5_DIR: /tmp/hdf5
           CFLAGS: -g0
           CIBW_BUILD_VERBOSITY_MACOS: 3
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.cibw_python }}
           CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21"
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
-          CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_SKIP: "*-musllinux_*"
           CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
           CIBW_BEFORE_ALL_LINUX: >
