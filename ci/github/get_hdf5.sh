@@ -34,6 +34,7 @@ echo "building HDF5"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install automake cmake pkg-config
 
+    extra_arch_flags=("-DCMAKE_OSX_ARCHITECTURES=$CMAKE_ARCHES")
     if [[ "$CIBW_ARCHS" = "universal2" ]]; then
         CMAKE_ARCHES="x86_64;arm64"
         ARCH_ARGS="-arch x86_64 -arch arm64"
@@ -46,11 +47,11 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     else
         if [[ "$CIBW_ARCHS" = "arm64" ]]; then
             HDF5_HOST="--host=aarch64-darwin"
+            extra_arch_flags=("-DCMAKE_OSX_ARCHITECTURES=$CMAKE_ARCHES" "-DCMAKE_CROSSCOMPILING:bool=on")
         fi
         CMAKE_ARCHES="$CIBW_ARCHS"
         ARCH_ARGS="-arch $CIBW_ARCHS"
     fi
-    extra_arch_flags=("-DCMAKE_OSX_ARCHITECTURES=$CMAKE_ARCHES")
     NPROC=$(sysctl -n hw.ncpu)
     pushd /tmp
 
