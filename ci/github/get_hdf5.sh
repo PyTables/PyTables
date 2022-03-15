@@ -33,6 +33,7 @@ echo "building HDF5"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install automake cmake pkg-config
 
+    CMAKE_CROSSCOMPILING=off
     if [[ "$CIBW_ARCHS" = "universal2" ]]; then
         CMAKE_ARCHES="x86_64;arm64"
         ARCH_ARGS="-arch x86_64 -arch arm64"
@@ -43,6 +44,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
             exit 1
         fi
     else
+        if [[ "$CIBW_ARCHS" = "arm64" ]]; then
+            CMAKE_CROSSCOMPILING=on
+        fi
         CMAKE_ARCHES="$CIBW_ARCHS"
         ARCH_ARGS="-arch $CIBW_ARCHS"
     fi
@@ -56,7 +60,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     pushd lzo-$LZO_VERSION
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DCMAKE_CROSSCOMPILING:bool=$CMAKE_CROSSCOMPILING -DENABLE_SHARED:bool=on \
+        -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
     make
     make install
     popd
@@ -67,7 +72,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     git submodule update --init
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DCMAKE_CROSSCOMPILING:bool=$CMAKE_CROSSCOMPILING -DENABLE_SHARED:bool=on \
+        -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
     make
     make install
     popd
@@ -77,7 +83,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     tar xzf zstd-$ZSTD_VERSION.tar.gz
     pushd zstd-$ZSTD_VERSION
     cd build/cmake
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES"
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DCMAKE_CROSSCOMPILING:bool=$CMAKE_CROSSCOMPILING -DENABLE_SHARED:bool=on \
+        -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES"
     make
     make install
     popd
@@ -142,7 +149,8 @@ pushd "hdf5-$HDF5_VERSION"
 if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 14 ]]; then
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on $EXTRA_CMAKE_MPI_FLAGS "${extra_arch_flags[@]}" ../
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DCMAKE_CROSSCOMPILING:bool=$CMAKE_CROSSCOMPILING -DENABLE_SHARED:bool=on \
+        $EXTRA_CMAKE_MPI_FLAGS "${extra_arch_flags[@]}" ../
 elif [[ $MAJOR_V -gt 1 || $MINOR_V -ge 12 ]]; then
     ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
 else
