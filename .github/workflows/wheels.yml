@@ -101,6 +101,10 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-${{ hashFiles('**/wheels.yml') }}
 
       - name: Build dependencies
+        env:
+          HDF5_DIR: /tmp/hdf5
+          CFLAGS: -g0
+          CIBW_ARCHS: ${{ matrix.arch }}
         if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
         run: |
           mkdir hdf5_build
