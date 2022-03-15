@@ -76,7 +76,7 @@ jobs:
              cibw_python: cp310-*
              os: ubuntu-latest
            - arch: arm64
-             cibw_python: *
+             cibw_python: "*"
              os: macos-latest
 
     steps:
