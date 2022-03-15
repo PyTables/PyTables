@@ -44,7 +44,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
             exit 1
         fi
     else
-        HDF5_HOST="--host=$CIBW_ARCHS-darwin"
+        if [[ "$CIBW_ARCHS" = "arm64" ]]; then
+            HDF5_HOST="--host=aarch64-darwin"
+        fi
         CMAKE_ARCHES="$CIBW_ARCHS"
         ARCH_ARGS="-arch $CIBW_ARCHS"
     fi
