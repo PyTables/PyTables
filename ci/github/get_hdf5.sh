@@ -6,6 +6,7 @@ set -e -x
 extra_arch_flags=()
 EXTRA_CMAKE_MPI_FLAGS=""
 EXTRA_MPI_FLAGS=''
+HDF5_HOST=""
 if [ -z ${HDF5_MPI+x} ]; then
     echo "Building serial"
 else
@@ -43,6 +44,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
             exit 1
         fi
     else
+        HDF5_HOST="--host=$CIBW_ARCHS-darwin"
         CMAKE_ARCHES="$CIBW_ARCHS"
         ARCH_ARGS="-arch $CIBW_ARCHS"
     fi
@@ -145,7 +147,7 @@ if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 14 ]]; then
     cd build
     cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on $EXTRA_CMAKE_MPI_FLAGS "${extra_arch_flags[@]}" ../
 elif [[ $MAJOR_V -gt 1 || $MINOR_V -ge 12 ]]; then
-    ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
+    ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production $HDF5_HOST
 else
     ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS"
 fi
