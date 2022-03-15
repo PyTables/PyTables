@@ -11,7 +11,7 @@ if [ -z ${HDF5_MPI+x} ]; then
     echo "Building serial"
 else
     echo "Building with MPI"
-    EXTRA_CMAKE_MPI_FLAGS="-DHDF5_ENABLE_PARALLEL:bool=on"
+    EXTRA_CMAKE_MPI_FLAGS="-DHDF5_ENABLE_PARALLEL:bool=on -DBUILD_SHARED_LIBS:bool=on"
     EXTRA_MPI_FLAGS="--enable-parallel --enable-shared"
 fi
 
@@ -145,10 +145,10 @@ curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/
 tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
 pushd "hdf5-$HDF5_VERSION"
 
-if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 12 ]]; then
+if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 14 ]]; then
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on $EXTRA_CMAKE_MPI_FLAGS "${extra_arch_flags[@]}" ../
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" $EXTRA_CMAKE_MPI_FLAGS "${extra_arch_flags[@]}" ../
 elif [[ $MAJOR_V -gt 1 || $MINOR_V -ge 12 ]]; then
     ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production $HDF5_HOST
 else
