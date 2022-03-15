@@ -36,6 +36,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     if [[ "$CIBW_ARCHS" = "universal2" ]]; then
         CMAKE_ARCHES="x86_64;arm64"
         ARCH_ARGS="-arch x86_64 -arch arm64"
+
+        # universal binaries is only supported for v1.14+
+        if [[ $MAJOR_V -eq 1 && $MINOR_V -lt 14 ]]; then
+            echo "MACOS universal wheels can only be built with HDF5 version 1.14+" 1>&2
+            exit 1
+        fi
     else
         CMAKE_ARCHES="$CIBW_ARCHS"
         ARCH_ARGS="-arch $CIBW_ARCHS"
@@ -75,12 +81,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     make
     make install
     popd
-
-    # universal binaries is only supported for v1.13+
-    if [[ $MAJOR_V -eq 1 && $MINOR_V -lt 13 ]]; then
-      echo "MACOS universal wheels can only be built with HDF5 version 1.13+" 1>&2
-      exit 1
-    fi
 
     export CFLAGS="$CFLAGS $ARCH_ARGS"
     export CPPFLAGS="$CPPFLAGS $ARCH_ARGS"
