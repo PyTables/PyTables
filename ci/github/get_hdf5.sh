@@ -3,13 +3,17 @@
 
 set -e -x
 
+extra_arch_flags=()
+EXTRA_CMAKE_MPI_FLAGS=""
+EXTRA_MPI_FLAGS=''
 if [ -z ${HDF5_MPI+x} ]; then
     echo "Building serial"
-    EXTRA_MPI_FLAGS=''
 else
     echo "Building with MPI"
+    EXTRA_CMAKE_MPI_FLAGS="-DHDF5_ENABLE_PARALLEL:bool=on"
     EXTRA_MPI_FLAGS="--enable-parallel --enable-shared"
 fi
+
 export LD_LIBRARY_PATH="$HDF5_DIR/lib:${LD_LIBRARY_PATH}"
 export PKG_CONFIG_PATH="$HDF5_DIR/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
@@ -28,7 +32,15 @@ ZLIB_VERSION="1.2.11"
 echo "building HDF5"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install automake cmake pkg-config
-    export MACOSX_DEPLOYMENT_TARGET="10.9"
+
+    if [[ "$CIBW_ARCHS" = "universal2" ]]; then
+        CMAKE_ARCHES="x86_64;arm64"
+        ARCH_ARGS="-arch x86_64 -arch arm64"
+    else
+        CMAKE_ARCHES="$CIBW_ARCHS"
+        ARCH_ARGS="-arch $CIBW_ARCHS"
+    fi
+    extra_arch_flags=("-DCMAKE_OSX_ARCHITECTURES=$CMAKE_ARCHES")
     NPROC=$(sysctl -n hw.ncpu)
     pushd /tmp
 
@@ -38,7 +50,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     pushd lzo-$LZO_VERSION
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" ../
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
     make
     make install
     popd
@@ -49,7 +61,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     git submodule update --init
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" ../
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
     make
     make install
     popd
@@ -59,7 +71,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     tar xzf zstd-$ZSTD_VERSION.tar.gz
     pushd zstd-$ZSTD_VERSION
     cd build/cmake
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES"
     make
     make install
     popd
@@ -70,9 +82,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
       exit 1
     fi
 
-    export CFLAGS="$CFLAGS -arch x86_64 -arch arm64"
-    export CPPFLAGS="$CPPFLAGS -arch x86_64 -arch arm64"
-    export CXXFLAGS="$CXXFLAGS -arch x86_64 -arch arm64"
+    export CFLAGS="$CFLAGS $ARCH_ARGS"
+    export CPPFLAGS="$CPPFLAGS $ARCH_ARGS"
+    export CXXFLAGS="$CXXFLAGS $ARCH_ARGS"
     export CC="/usr/bin/clang"
     export CXX="/usr/bin/clang"
 
@@ -127,11 +139,14 @@ curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/
 tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
 pushd "hdf5-$HDF5_VERSION"
 
-# production is supported from 1.12
-if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 12 ]]; then
-  CFLAGS="$CFLAGS -g0" ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
+if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 14 ]]; then
+    mkdir build
+    cd build
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on $EXTRA_CMAKE_MPI_FLAGS "${extra_arch_flags[@]}" ../
+elif [[ $MAJOR_V -gt 1 || $MINOR_V -ge 12 ]]; then
+    ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
 else
-  CFLAGS="$CFLAGS -g0" ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS"
+    ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS"
 fi
 make -j "$NPROC"
 make install

@@ -52,12 +52,13 @@ jobs:
     name: Build ${{ matrix.os }} wheels on ${{ matrix.arch }} for ${{ matrix.cibw_python }}
     runs-on: ${{ matrix.os }}
     env:
-      HDF5_VERSION: 1.13.1
+      HDF5_VERSION: 1.12.1
+      MACOSX_DEPLOYMENT_TARGET: "10.9"
     strategy:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
         arch: [ 'x86_64' ]
-        cibw_python: [ "cp36-* cp37-* cp38-* cp39-* cp310-*" ]
+        cibw_python: [ "*" ]
         include:
            - arch: aarch64
              cibw_python: cp36-*
@@ -74,6 +75,9 @@ jobs:
            - arch: aarch64
              cibw_python: cp310-*
              os: ubuntu-latest
+           - arch: arm64
+             cibw_python: *
+             os: macos-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -103,7 +107,7 @@ jobs:
           if [[ ${{ runner.os }} = 'Linux' ]]; then
             docker run --rm -e HDF5_DIR=/io/hdf5_build -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
           else
-            HDF5_DIR=`pwd`/hdf5_build HDF5_VERSION=${{ env.HDF5_VERSION }} ci/github/get_hdf5.sh
+            HDF5_DIR=`pwd`/hdf5_build ci/github/get_hdf5.sh
           fi
 
       - name: Install cibuildwheel
@@ -114,15 +118,15 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir wheelhouse
         env:
+          HDF5_DIR: /tmp/hdf5
+          CFLAGS: -g0
           CIBW_BUILD_VERBOSITY_MACOS: 3
-          CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+          CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.cibw_python }}
-          CIBW_ARCHS_MACOS: "x86_64 universal2"
           CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21"
-          CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' HDF5_DIR=/tmp/hdf5 CFLAGS=-g0 HDF5_VERSION=${{ env.HDF5_VERSION }} LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
-          MACOSX_DEPLOYMENT_TARGET: "10.9"
-          CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 HDF5_DIR=/tmp/hdf5 HDF5_VERSION=${{ env.HDF5_VERSION }} CFLAGS=-g0 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
-          CIBW_SKIP: "*-musllinux_* cp38-macosx_x86_64 cp39-macosx_x86_64 cp310-macosx_x86_64"
+          CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          CIBW_SKIP: "*-musllinux_*"
           CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
           CIBW_BEFORE_ALL_LINUX: >
             cp -r `pwd`/hdf5_build /tmp/hdf5 &&
