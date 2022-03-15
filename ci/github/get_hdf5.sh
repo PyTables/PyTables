@@ -144,7 +144,7 @@ curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/
 tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
 pushd "hdf5-$HDF5_VERSION"
 
-if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 14 ]]; then
+if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 12 ]]; then
     mkdir build
     cd build
     cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on $EXTRA_CMAKE_MPI_FLAGS "${extra_arch_flags[@]}" ../
