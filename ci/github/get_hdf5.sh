@@ -3,24 +3,17 @@
 
 set -e -x
 
-extra_arch_flags=()
-EXTRA_CMAKE_MPI_FLAGS=""
 EXTRA_MPI_FLAGS=''
-HDF5_HOST=""
 if [ -z ${HDF5_MPI+x} ]; then
     echo "Building serial"
 else
     echo "Building with MPI"
-    EXTRA_CMAKE_MPI_FLAGS="-DHDF5_ENABLE_PARALLEL:bool=on -DBUILD_SHARED_LIBS:bool=on"
     EXTRA_MPI_FLAGS="--enable-parallel --enable-shared"
 fi
 
 export LD_LIBRARY_PATH="$HDF5_DIR/lib:${LD_LIBRARY_PATH}"
 export PKG_CONFIG_PATH="$HDF5_DIR/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
-MINOR_V=${HDF5_VERSION#*.}
-MINOR_V=${MINOR_V%.*}
-MAJOR_V=${HDF5_VERSION/%.*.*}
 
 LZO_VERSION="2.10"
 SNAPPY_VERSION="1.1.9"
@@ -34,24 +27,8 @@ echo "building HDF5"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install automake cmake pkg-config
 
-    extra_arch_flags=("-DCMAKE_OSX_ARCHITECTURES=$CMAKE_ARCHES")
-    if [[ "$CIBW_ARCHS" = "universal2" ]]; then
-        CMAKE_ARCHES="x86_64;arm64"
-        ARCH_ARGS="-arch x86_64 -arch arm64"
-
-        # universal binaries is only supported for v1.14+
-        if [[ $MAJOR_V -eq 1 && $MINOR_V -lt 14 ]]; then
-            echo "MACOS universal wheels can only be built with HDF5 version 1.14+" 1>&2
-            exit 1
-        fi
-    else
-        if [[ "$CIBW_ARCHS" = "arm64" ]]; then
-            HDF5_HOST="--host=aarch64-darwin"
-            extra_arch_flags=("-DCMAKE_OSX_ARCHITECTURES=$CMAKE_ARCHES" "-DCMAKE_CROSSCOMPILING:bool=on")
-        fi
-        CMAKE_ARCHES="$CIBW_ARCHS"
-        ARCH_ARGS="-arch $CIBW_ARCHS"
-    fi
+    CMAKE_ARCHES="$CIBW_ARCHS"
+    ARCH_ARGS="-arch $CIBW_ARCHS"
     NPROC=$(sysctl -n hw.ncpu)
     pushd /tmp
 
@@ -66,18 +43,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     make install
     popd
 
-    # snappy
-    git clone https://github.com/google/snappy.git --branch $SNAPPY_VERSION --depth 1
-    pushd snappy
-    git submodule update --init
-    mkdir build
-    cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DRUN_HAVE_STD_REGEX=0 -DRUN_HAVE_POSIX_REGEX=0 -DENABLE_SHARED:bool=on \
-        -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
-    make
-    make install
-    popd
-
     # zstd
     curl -sLO https://github.com/facebook/zstd/releases/download/v$ZSTD_VERSION/zstd-$ZSTD_VERSION.tar.gz
     tar xzf zstd-$ZSTD_VERSION.tar.gz
@@ -88,6 +53,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     make install
     popd
 
+    CFLAGS_ORIG="$CFLAGS"
     export CFLAGS="$CFLAGS $ARCH_ARGS"
     export CPPFLAGS="$CPPFLAGS $ARCH_ARGS"
     export CXXFLAGS="$CXXFLAGS $ARCH_ARGS"
@@ -130,8 +96,17 @@ EOF
 
     popd
 
-    export CPPFLAGS=
-    export CXXFLAGS=
+    # snappy
+    git clone https://github.com/google/snappy.git --branch $SNAPPY_VERSION --depth 1
+    pushd snappy
+    git submodule update --init
+    mkdir build
+    cd build
+    CC= CXX= CPPFLAGS= CXXFLAGS= CFLAGS="$CFLAGS_ORIG" cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DRUN_HAVE_STD_REGEX=0 \
+        -DRUN_HAVE_POSIX_REGEX=0 -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
+    CC= CXX= CPPFLAGS= CXXFLAGS= CFLAGS="$CFLAGS_ORIG" make
+    make install
+    popd
 else
     yum -y update
     yum install -y zlib-devel bzip2-devel lzo-devel
@@ -145,14 +120,54 @@ curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/
 tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
 pushd "hdf5-$HDF5_VERSION"
 
-if [[ $MAJOR_V -gt 1 || $MINOR_V -ge 14 ]]; then
-    mkdir build
-    cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" $EXTRA_CMAKE_MPI_FLAGS "${extra_arch_flags[@]}" ../
-elif [[ $MAJOR_V -gt 1 || $MINOR_V -ge 12 ]]; then
-    ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production $HDF5_HOST
+if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then
+    # from https://github.com/conda-forge/hdf5-feedstock/commit/2cb83b63965985fa8795b0a13150bf0fd2525ebd
+    export ac_cv_sizeof_long_double=8
+    export hdf5_cv_ldouble_to_long_special=no
+    export hdf5_cv_long_to_ldouble_special=no
+    export hdf5_cv_ldouble_to_llong_accurate=yes
+    export hdf5_cv_llong_to_ldouble_correct=yes
+    export hdf5_cv_disable_some_ldouble_conv=no
+    export hdf5_cv_system_scope_threads=yes
+    export hdf5_cv_printf_ll="l"
+    export PAC_FC_MAX_REAL_PRECISION=15
+    export PAC_C_MAX_REAL_PRECISION=17
+    export PAC_FC_ALL_INTEGER_KINDS="{1,2,4,8,16}"
+    export PAC_FC_ALL_REAL_KINDS="{4,8}"
+    export H5CONFIG_F_NUM_RKIND="INTEGER, PARAMETER :: num_rkinds = 2"
+    export H5CONFIG_F_NUM_IKIND="INTEGER, PARAMETER :: num_ikinds = 5"
+    export H5CONFIG_F_RKIND="INTEGER, DIMENSION(1:num_rkinds) :: rkind = (/4,8/)"
+    export H5CONFIG_F_IKIND="INTEGER, DIMENSION(1:num_ikinds) :: ikind = (/1,2,4,8,16/)"
+    export PAC_FORTRAN_NATIVE_INTEGER_SIZEOF="                    4"
+    export PAC_FORTRAN_NATIVE_INTEGER_KIND="           4"
+    export PAC_FORTRAN_NATIVE_REAL_SIZEOF="                    4"
+    export PAC_FORTRAN_NATIVE_REAL_KIND="           4"
+    export PAC_FORTRAN_NATIVE_DOUBLE_SIZEOF="                    8"
+    export PAC_FORTRAN_NATIVE_DOUBLE_KIND="           8"
+    export PAC_FORTRAN_NUM_INTEGER_KINDS="5"
+    export PAC_FC_ALL_REAL_KINDS_SIZEOF="{4,8}"
+    export PAC_FC_ALL_INTEGER_KINDS_SIZEOF="{1,2,4,8,16}"
+
+    curl -sLO https://github.com/conda-forge/hdf5-feedstock/raw/2cb83b63965985fa8795b0a13150bf0fd2525ebd/recipe/patches/osx_cross_configure.patch
+    curl -sLO https://github.com/conda-forge/hdf5-feedstock/raw/2cb83b63965985fa8795b0a13150bf0fd2525ebd/recipe/patches/osx_cross_fortran_src_makefile.patch
+    curl -sLO https://github.com/conda-forge/hdf5-feedstock/raw/2cb83b63965985fa8795b0a13150bf0fd2525ebd/recipe/patches/osx_cross_hl_fortran_src_makefile.patch
+    curl -sLO https://github.com/conda-forge/hdf5-feedstock/raw/2cb83b63965985fa8795b0a13150bf0fd2525ebd/recipe/patches/osx_cross_src_makefile.patch
+    patch -p0 < osx_cross_configure.patch
+    patch -p0 < osx_cross_fortran_src_makefile.patch
+    patch -p0 < osx_cross_hl_fortran_src_makefile.patch
+    patch -p0 < osx_cross_src_makefile.patch
+
+    ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production \
+        --host=aarch64-apple-darwin --enable-tests=no
+
+    mkdir -p native-build/bin
+    pushd native-build/bin
+    CFLAGS= $CC ../../src/H5detect.c -I ../../src/ -o H5detect
+    CFLAGS= $CC ../../src/H5make_libsettings.c -I ../../src/ -o H5make_libsettings
+    popd
+    export PATH=$(pwd)/native-build/bin:$PATH
 else
-    ./configure --prefix "$HDF5_DIR" "$EXTRA_MPI_FLAGS"
+    ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
 fi
 make -j "$NPROC"
 make install
