@@ -727,10 +727,10 @@ if __name__ == "__main__":
             )
 
         if hdrdir not in default_header_dirs:
-            inc_dirs.append(Path(hdrdir))  # save header directory if needed
+            inc_dirs.insert(0, Path(hdrdir))  # save header directory if needed
         if libdir not in default_library_dirs and libdir not in ("", True):
             # save library directory if needed
-            lib_dirs.append(Path(libdir))
+            lib_dirs.insert(0, Path(libdir))
 
         if package.tag not in ["HDF5"]:
             # Keep record of the optional libraries found.
