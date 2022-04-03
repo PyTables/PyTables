@@ -20,7 +20,7 @@ SNAPPY_VERSION="1.1.9"
 ZSTD_VERSION="1.5.2"
 LZ4_VERSION="1.9.3"
 BZIP_VERSION="1.0.8"
-ZLIB_VERSION="1.2.11"
+ZLIB_VERSION="1.2.12"
 
 
 echo "building HDF5"
@@ -59,6 +59,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export CXXFLAGS="$CXXFLAGS $ARCH_ARGS"
     export CC="/usr/bin/clang"
     export CXX="/usr/bin/clang"
+    export cc=$CC
 
     # lz4
     curl -sLO https://github.com/lz4/lz4/archive/refs/tags/v$LZ4_VERSION.tar.gz
@@ -86,7 +87,7 @@ EOF
     popd
 
     # zlib
-    curl -sLO https://zlib.net/zlib-$ZLIB_VERSION.tar.gz
+    curl -sLO https://zlib.net/fossils/zlib-$ZLIB_VERSION.tar.gz
     tar xzf zlib-$ZLIB_VERSION.tar.gz
     pushd zlib-$ZLIB_VERSION
     ./configure --prefix="$HDF5_DIR"
