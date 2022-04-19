@@ -10,10 +10,6 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - name: Set up Python ${{ matrix.python }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python }}
     - name: Install APT packages
       run: |
         sudo apt-get update
@@ -24,9 +20,9 @@ jobs:
         sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade setuptools pip wheel build
-        python -m pip install --upgrade cython>=0.29.21 numpy>=1.19
-        python -c "import numpy as np; print('numpy:', np.__version__)"
+        python3 -m pip install --user --upgrade setuptools pip wheel build
+        python3 -m pip install --user --upgrade cython>=0.29.21 numpy>=1.19
+        python3 -c "import numpy as np; print('numpy:', np.__version__)"
     - name: Build PyTables
       run: make build
       env:
