@@ -212,9 +212,6 @@ if __name__ == "__main__":
     exec((ROOT / "tables" / "req_versions.py").read_text(), _min_versions)
     min_hdf5_version = _min_versions["min_hdf5_version"]
     min_blosc_version = _min_versions["min_blosc_version"]
-    min_blosc_bitshuffle_version = _min_versions[
-        "min_blosc_bitshuffle_version"
-    ]
 
     # ----------------------------------------------------------------------
 
@@ -745,13 +742,6 @@ if __name__ == "__main__":
                     f"Unsupported Blosc version installed! Blosc "
                     f"{min_blosc_version}+ required. Found version "
                     f"{blosc_version}.  Using internal Blosc sources."
-                )
-            if blosc_version < min_blosc_bitshuffle_version:
-                print_warning(
-                    f"This Blosc version does not support the BitShuffle "
-                    f"filter. Minimum desirable version is "
-                    f"{min_blosc_bitshuffle_version}.  "
-                    f"Found version: {blosc_version}"
                 )
 
         if not rundir:
