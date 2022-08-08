@@ -16,7 +16,6 @@ import numexpr as ne
 import numpy as np
 
 import tables as tb
-from tables.req_versions import min_blosc_bitshuffle_version
 
 hdf5_version = Version(tb.hdf5_version)
 blosc_version = Version(tb.which_lib_version("blosc")[1])
@@ -102,10 +101,19 @@ def print_versions():
             "{} ({})".format(k, v[1]) for k, v in sorted(blosc_cinfo.items())
         ]
         print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
-        blosc_finfo = ['shuffle']
-        if Version(tinfo[1]) >= tb.req_versions.min_blosc_bitshuffle_version:
-            blosc_finfo.append('bitshuffle')
+        blosc_finfo = ['shuffle', 'bitshuffle']
         print("Blosc filters:       %s" % ', '.join(blosc_finfo))
+    tinfo = tb.which_lib_version("blosc2")
+    if tinfo is not None:
+        blosc2_date = tinfo[2].split()[1]
+        print("Blosc2 version:      {} ({})".format(tinfo[1], blosc2_date))
+        blosc2_cinfo = tb.blosc2_get_complib_info()
+        blosc2_cinfo = [
+            "{} ({})".format(k, v[1]) for k, v in sorted(blosc2_cinfo.items())
+        ]
+        print("Blosc2 compressors:  %s" % ', '.join(blosc2_cinfo))
+        blosc2_finfo = ['shuffle', 'bitshuffle', 'FIXME: add the complete list here']
+        print("Blosc2 filters:      %s" % ', '.join(blosc2_finfo))
     try:
         from Cython import __version__ as cython_version
         print('Cython version:      %s' % cython_version)

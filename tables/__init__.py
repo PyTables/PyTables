@@ -10,7 +10,6 @@ to efficiently cope with extremely large amounts of data.
 # Necessary imports to get versions stored on the cython extension
 from .utilsextension import get_hdf5_version as _get_hdf5_version
 
-
 __version__ = "3.7.1.dev0"
 """The PyTables version number."""
 
@@ -24,6 +23,7 @@ hdf5_version = _get_hdf5_version()
 from .utilsextension import (
     blosc_compcode_to_compname_ as blosc_compcode_to_compname,
     blosc_get_complib_info_ as blosc_get_complib_info,
+    blosc2_get_complib_info_ as blosc2_get_complib_info,
 )
 
 from .utilsextension import (
