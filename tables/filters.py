@@ -67,13 +67,12 @@ class Filters:
         to be enabled, else shuffling is disabled. Shuffling can only
         be used when compression is enabled.
     bitshuffle : bool
-        Whether or not to use the *BitShuffle* filter in the Blosc
+        Whether to use the *BitShuffle* filter in the Blosc
         library. This is normally used to improve the compression
         ratio. A false value disables bitshuffling and a true one
         enables it. The default value is disabled.
     fletcher32 : bool
-        Whether or not to use the
-        *Fletcher32* filter in the HDF5 library.
+        Whether to use the *Fletcher32* filter in the HDF5 library.
         This is used to add a checksum on each data chunk. A false
         value (the default) disables the checksum.
     least_significant_digit : int
@@ -341,18 +340,11 @@ class Filters:
         if (self.complib and
                 self.bitshuffle and
                 not self.complib.startswith('blosc')):
-            raise ValueError("BitShuffle can only be used inside Blosc")
+            raise ValueError("BitShuffle can only be used inside Blosc/Blosc2")
 
         if self.shuffle and self.bitshuffle:
             # BitShuffle has priority in case both are specified
             self.shuffle = False
-
-        if (self.bitshuffle and
-                blosc_version < tb.req_versions.min_blosc_bitshuffle_version):
-            raise ValueError(f"This Blosc library does not have support for "
-                             f"the bitshuffle filter.  Please update to "
-                             f"Blosc >= "
-                             f"{tb.req_versions.min_blosc_bitshuffle_version}")
 
         self.fletcher32 = fletcher32
         """Whether the *Fletcher32* filter is active or not."""

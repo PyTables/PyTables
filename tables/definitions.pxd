@@ -563,6 +563,12 @@ cdef extern from "typeconv.h" nogil:
                               unsigned long nelements,
                               int sense)
 
+# Blosc2 registration
+cdef extern from "blosc2_filter.h" nogil:
+  int register_blosc2(char **version, char **date)
+  int FILTER_BLOSC
+
+
 # Blosc registration
 cdef extern from "blosc_filter.h" nogil:
   int register_blosc(char **version, char **date)

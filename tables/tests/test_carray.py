@@ -665,9 +665,6 @@ class BloscShuffleTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf(
-    common.blosc_version < common.min_blosc_bitshuffle_version,
-    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class BloscBitShuffleTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
