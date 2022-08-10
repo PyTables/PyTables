@@ -93,7 +93,6 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
 
   /* Set Blosc2 info in first two slots */
   values[0] = FILTER_BLOSC2_VERSION;
-  values[1] = BLOSC2_VERSION_FORMAT;
 
   ndims = H5Pget_chunk(dcpl, 32, chunkdims);
   if (ndims < 0)
@@ -102,6 +101,7 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
     PUSH_ERR("blosc2_set_local", H5E_CALLBACK, "Chunk rank exceeds limit");
     return -1;
   }
+  values[1] = ndims;
 
   typesize = H5Tget_size(type);
   if (typesize == 0) return -1;
@@ -163,29 +163,26 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   /* Filter params that are always set */
   typesize = cd_values[2];      /* The datatype size */
   outbuf_size = cd_values[3];   /* Precomputed buffer guess */
-  /* Optional params */
-  if (cd_nelmts >= 5) {
-    clevel = cd_values[4];        /* The compression level */
-  }
-  if (cd_nelmts >= 6) {
-    doshuffle = cd_values[5];  /* BLOSC_SHUFFLE, BLOSC_BITSHUFFLE */
-  }
-  if (cd_nelmts >= 7) {
-    compcode = cd_values[6];     /* The Blosc2 compressor used */
-    /* Check that we actually have support for the compressor code */
-    complist = blosc1_list_compressors();
-    code = blosc1_compcode_to_compname(compcode, &compname);
-    if (code == -1) {
-      PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-               "this Blosc2 library does not have support for "
-                 "the '%s' compressor, but only for: %s",
-               compname, complist);
-      goto failed;
-    }
-  }
 
   /* We're compressing */
   if (!(flags & H5Z_FLAG_REVERSE)) {
+
+    /* Compression params */
+    clevel = cd_values[4];        /* The compression level */
+    doshuffle = cd_values[5];     /* SHUFFLE, BITSHUFFLE, others */
+    if (cd_nelmts >= 7) {
+      compcode = cd_values[6];    /* The Blosc2 compressor used */
+      /* Check that we actually have support for the compressor code */
+      complist = blosc1_list_compressors();
+      code = blosc1_compcode_to_compname(compcode, &compname);
+      if (code == -1) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+                 "this Blosc2 library does not have support for "
+                 "the '%s' compressor, but only for: %s",
+                 compname, complist);
+        goto failed;
+      }
+    }
 
     /* Allocate an output buffer exactly as long as the input data; if
        the result is larger, we simply return 0.  The filter is flagged
@@ -197,24 +194,34 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
 #ifdef BLOSC2_DEBUG
     fprintf(stderr, "Blosc2: Compress %zd chunk w/buffer %zd\n",
-    nbytes, outbuf_size);
+            nbytes, outbuf_size);
 #endif
 
     outbuf = malloc(outbuf_size);
-
     if (outbuf == NULL) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                "Can't allocate compression buffer");
       goto failed;
     }
 
-    blosc1_set_compressor(compname);
-    status = blosc1_compress(clevel, doshuffle, typesize, nbytes,
-                            *buf, outbuf, nbytes);
+    blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
+    cparams.compcode = compcode;
+    cparams.typesize = typesize;
+    cparams.filters[BLOSC_LAST_FILTER] = doshuffle;
+    cparams.clevel = clevel;
+    cparams.nthreads = 1;
+    //cparams.blocksize = nbytes / 32;
+    blosc2_context *cctx = blosc2_create_cctx(cparams);
+//    blosc1_set_compressor(compname);
+//    status = blosc1_compress(clevel, doshuffle, typesize, nbytes,
+//                            *buf, outbuf, nbytes);
+    status = blosc2_compress_ctx(cctx, *buf, nbytes, outbuf, nbytes);
     if (status < 0) {
+      blosc2_free_ctx(cctx);
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 compression error");
       goto failed;
     }
+    blosc2_free_ctx(cctx);
 
     /* We're decompressing */
   } else {
@@ -226,9 +233,8 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     /* Extract the exact outbuf_size from the buffer header.
      *
      * NOTE: the guess value got from "cd_values" corresponds to the
-     * uncompressed chunk size but it should not be used in a general
-     * cases since other filters in the pipeline can modify the buffere
-     *  size.
+     * uncompressed chunk size but it should not be used in general
+     * since other filters in the pipeline can modify it.
      */
     blosc1_cbuffer_sizes(*buf, &outbuf_size, &cbytes, &blocksize);
 
@@ -237,21 +243,26 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 #endif
 
     outbuf = malloc(outbuf_size);
-
     if (outbuf == NULL) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Can't allocate decompression buffer");
       goto failed;
     }
 
-    status = blosc1_decompress(*buf, outbuf, outbuf_size);
+    blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
+    dparams.nthreads = 1;
+    blosc2_context *dctx = blosc2_create_dctx(dparams);
+//    status = blosc1_decompress(*buf, outbuf, outbuf_size);
+    status = blosc2_decompress_ctx(dctx, *buf, cbytes, outbuf, outbuf_size);
     if (status <= 0) {    /* decompression failed */
+      blosc2_free_ctx(dctx);
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 decompression error");
       goto failed;
     } /* if !status */
+    blosc2_free_ctx(dctx);
 
   } /* compressing vs decompressing */
 
-  if (status != 0) {
+  if (status > 0) {
     free(*buf);
     *buf = outbuf;
     *buf_size = outbuf_size;

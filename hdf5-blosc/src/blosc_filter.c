@@ -224,9 +224,8 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         /* Extract the exact outbuf_size from the buffer header.
          *
          * NOTE: the guess value got from "cd_values" corresponds to the
-         * uncompressed chunk size but it should not be used in a general
-         * cases since other filters in the pipeline can modify the buffere
-         *  size.
+         * uncompressed chunk size but it should not be used in general
+         * since other filters in the pipeline can modify it.
          */
         blosc_cbuffer_sizes(*buf, &outbuf_size, &cbytes, &blocksize);
 

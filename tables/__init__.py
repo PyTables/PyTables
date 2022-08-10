@@ -22,13 +22,19 @@ hdf5_version = _get_hdf5_version()
 
 from .utilsextension import (
     blosc_compcode_to_compname_ as blosc_compcode_to_compname,
+    blosc2_compcode_to_compname_ as blosc2_compcode_to_compname,
     blosc_get_complib_info_ as blosc_get_complib_info,
     blosc2_get_complib_info_ as blosc2_get_complib_info,
 )
 
 from .utilsextension import (
-    blosc_compressor_list, is_hdf5_file, is_pytables_file, which_lib_version,
-    set_blosc_max_threads, silence_hdf5_messages,
+    blosc_compressor_list,
+    blosc2_compressor_list,
+    is_hdf5_file,
+    is_pytables_file,
+    which_lib_version,
+    set_blosc_max_threads,
+    silence_hdf5_messages,
 )
 
 from .misc.enum import Enum

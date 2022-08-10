@@ -19,6 +19,7 @@ import tables as tb
 
 hdf5_version = Version(tb.hdf5_version)
 blosc_version = Version(tb.which_lib_version("blosc")[1])
+blosc2_version = Version(tb.which_lib_version("blosc2")[1])
 
 
 verbose = os.environ.get("VERBOSE", "FALSE") == "TRUE"

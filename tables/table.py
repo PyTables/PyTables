@@ -2182,18 +2182,25 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise HDF5ExtError(
                 "You cannot append rows to a non-chunked table.", h5bt=False)
 
-        # Try to convert the object into a recarray compliant with table
-        try:
-            iflavor = flavor_of(rows)
-            if iflavor != 'python':
-                rows = array_as_internal(rows, iflavor)
-            # Works for Python structures and always copies the original,
-            # so the resulting object is safe for in-place conversion.
-            wbufRA = np.rec.array(rows, dtype=self._v_dtype)
-        except Exception as exc:  # XXX
-            raise ValueError("rows parameter cannot be converted into a "
-                             "recarray object compliant with table '%s'. "
-                             "The error was: <%s>" % (str(self), exc))
+        if (hasattr(rows, "dtype") and
+                not self.description._v_is_nested and
+                rows.dtype == self.dtype):
+            # Shortcut for compliant arrays
+            # (for some reason, not valid for nested types)
+            wbufRA = rows
+        else:
+            # Try to convert the object into a recarray compliant with table
+            try:
+                iflavor = flavor_of(rows)
+                if iflavor != 'python':
+                    rows = array_as_internal(rows, iflavor)
+                # Works for Python structures and always copies the original,
+                # so the resulting object is safe for in-place conversion.
+                wbufRA = np.rec.array(rows, dtype=self._v_dtype)
+            except Exception as exc:  # XXX
+                raise ValueError("rows parameter cannot be converted into a "
+                                 "recarray object compliant with table '%s'. "
+                                 "The error was: <%s>" % (str(self), exc))
         lenrows = wbufRA.shape[0]
         # If the number of rows to append is zero, don't do anything else
         if lenrows > 0:

@@ -19,7 +19,7 @@ def csformula(expected_mb):
     # For a basesize of 8 KB, this will return:
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
-    basesize = 8 * 1024   # 8 KB is a good minimum
+    basesize = 8 * 1024  # 8 KB is a good minimum
     return basesize * int(2**math.log10(expected_mb))
 
 
@@ -317,6 +317,11 @@ class Leaf(Node):
         MB = 1024 * 1024
         expected_mb = (expectedrows * rowsize) // MB
         chunksize = calc_chunksize(expected_mb)
+        complib = self.filters.complib
+        if complib is not None and complib.startswith("blosc2"):
+            # Blosc2 can introspect into blocks, so no need to restrict
+            # chunksize too much.
+            chunksize *= 32
 
         maindim = self.maindim
         # Compute the chunknitems
