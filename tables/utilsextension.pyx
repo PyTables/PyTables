@@ -83,7 +83,7 @@ from .definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   H5Tget_member_offset,
   H5Tget_precision, H5Tget_sign, H5Tget_size, H5Tget_super, H5Tinsert,
   H5Tis_variable_str, H5Tpack, H5Tset_precision, H5Tset_size, H5Tvlen_create,
-  H5Zunregister, FILTER_BLOSC,
+  H5Zunregister, FILTER_BLOSC, FILTER_BLOSC2,
   PyArray_Scalar, create_ieee_complex128, create_ieee_complex64,
   create_ieee_float16, create_ieee_complex192, create_ieee_complex256,
   get_len_of_range, get_order, herr_t, hid_t, hsize_t,
@@ -613,7 +613,7 @@ def which_lib_version(str name):
   # get the C pointer
   cname = encoded_name
 
-  libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc')
+  libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc', 'blosc2')
 
   if strcmp(cname, "hdf5") == 0:
     binver, strver = getHDF5VersionInfo()

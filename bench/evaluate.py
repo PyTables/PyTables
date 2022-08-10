@@ -9,8 +9,8 @@ import tables as tb
 
 shape = (1000, 160_000)
 #shape = (10,1600)
-filters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
-ofilters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
+filters = tb.Filters(complevel=1, complib="blosc2", shuffle=1)
+ofilters = tb.Filters(complevel=1, complib="blosc2", shuffle=1)
 #filters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
 #ofilters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
 
@@ -108,7 +108,7 @@ def evaluate(ex, out=None, local_dict=None, global_dict=None, **kwargs):
     print("signature-->", signature)
 
     # Compile the expression
-    compiled_ex = ne.necompiler.NumExpr(ex, signature, [], **kwargs)
+    compiled_ex = ne.necompiler.NumExpr(ex, signature, **kwargs)
     print("fullsig-->", compiled_ex.fullsig)
 
     _compute(out, compiled_ex, arguments)
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     doprofile = 1
     dokprofile = 0
 
-    f = tb.open_file("/scratch2/faltet/evaluate.h5", "w")
+    f = tb.open_file("evaluate.h5", "w")
 
     # Create some arrays
     if iarrays:

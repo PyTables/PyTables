@@ -36,6 +36,7 @@
 #include "H5Zlzo.h"                    /* Import FILTER_LZO */
 #include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
 #include "blosc_filter.h"              /* Import FILTER_BLOSC */
+#include "blosc2_filter.h"             /* Import FILTER_BLOSC2 */
 
 /* Define this in order to shrink datasets after deleting */
 #if 1
@@ -138,7 +139,7 @@ hid_t H5TBOmake_table(  const char *table_title,
    if ( H5Pset_fletcher32( plist_id) < 0 )
      return -1;
  }
- /* Then shuffle (blosc shuffles inplace) */
+ /* Then shuffle (blosc/blosc2 shuffles inplace) */
  if ((shuffle && compress) && (strncmp(complib, "blosc", 5) != 0)) {
    if ( H5Pset_shuffle( plist_id) < 0 )
      return -1;
@@ -149,9 +150,27 @@ hid_t H5TBOmake_table(  const char *table_title,
    cd_values[0] = compress;
    cd_values[1] = (int)(atof(version) * 10);
    cd_values[2] = Table;
+
    /* The default compressor in HDF5 (zlib) */
    if (strcmp(complib, "zlib") == 0) {
      if ( H5Pset_deflate( plist_id, compress) < 0 )
+       return -1;
+   }
+   /* The Blosc2 compressor does accept parameters */
+   else if (strcmp(complib, "blosc2") == 0) {
+     cd_values[4] = compress;
+     cd_values[5] = shuffle;
+     if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
+       return -1;
+   }
+   /* The Blosc2 compressor can use other compressors */
+   else if (strncmp(complib, "blosc2:", 7) == 0) {
+     cd_values[4] = compress;
+     cd_values[5] = shuffle;
+     blosc_compname = complib + 7;
+     blosc_compcode = blosc1_compname_to_compcode(blosc_compname);
+     cd_values[6] = blosc_compcode;
+     if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0 )
        return -1;
    }
    /* The Blosc compressor does accept parameters */

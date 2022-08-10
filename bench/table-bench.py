@@ -271,18 +271,11 @@ if __name__ == "__main__":
     import sys
     import getopt
 
-    try:
-        import psyco
-        psyco_imported = 1
-    except:
-        psyco_imported = 0
-
     from time import perf_counter as clock
     from time import process_time as cpuclock
 
-    usage = """usage: %s [-v] [-p] [-P] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] [-S] [-F] file
+    usage = """usage: %s [-v] [-P] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] [-S] [-B] [-F] file
             -v verbose
-            -p use "psyco" if available
             -P do profile
             -R select a range in a field in the form "start,stop,step"
             -r only read test
@@ -290,13 +283,14 @@ if __name__ == "__main__":
             -s use [big] record, [medium] or [small]
             -f only read stated field name in tables ("all" means all fields)
             -c sets a compression level (do not set it or 0 for no compression)
-            -S activate shuffling filter
+            -S activate shuffle filter
+            -B activate bitshuffle filter
             -F activate fletcher32 filter
             -l sets the compression library to be used ("zlib", "lzo", "blosc", "bzip2")
             -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpPSFR:rwf:s:c:l:i:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vPSBFR:rwf:s:c:l:i:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -314,23 +308,22 @@ if __name__ == "__main__":
     fieldName = None
     testread = 1
     testwrite = 1
-    usepsyco = 0
-    complevel = 0
+    complevel = 9
     shuffle = 0
     fletcher32 = 0
-    complib = "zlib"
-    iterations = 100
+    complib = "blosc2:blosclz"
+    iterations = 1_000_000
 
     # Get the options
     for option in opts:
         if option[0] == '-v':
             verbose = 1
-        if option[0] == '-p':
-            usepsyco = 1
         if option[0] == '-P':
             profile = 1
         if option[0] == '-S':
             shuffle = 1
+        if option[0] == '-B':
+            shuffle = 2  # bitshuffle
         if option[0] == '-F':
             fletcher32 = 1
         elif option[0] == '-R':
@@ -355,26 +348,26 @@ if __name__ == "__main__":
 
     # Build the Filters instance
     filters = tb.Filters(complevel=complevel, complib=complib,
-                         shuffle=shuffle, fletcher32=fletcher32)
+                         shuffle=(True if shuffle == 1 else False),
+                         bitshuffle=(True if shuffle == 2 else False),
+                         fletcher32=fletcher32)
 
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
     if verbose:
         print("numpy version:", np.__version__)
-        if psyco_imported and usepsyco:
-            print("Using psyco version:", psyco.version_info)
 
     if testwrite:
         print("Compression level:", complevel)
         if complevel > 0:
             print("Compression library:", complib)
-            if shuffle:
-                print("Suffling...")
+            if shuffle == 1:
+                print("Shuffling...")
+            elif shuffle == 2:
+                print("Bitshuffling...")
         t1 = clock()
         cpu1 = cpuclock()
-        if psyco_imported and usepsyco:
-            psyco.bind(createFile)
         if profile:
             import profile as prof
             import pstats
@@ -396,16 +389,12 @@ if __name__ == "__main__":
         print(
             f"Time writing rows: {tapprows:.3f} s (real) "
             f"{cpuapprows:.3f} s (cpu)  {cpuapprows / tapprows:.0%}")
-        print(f"Write rows/sec:  {rowsw / tapprows}")
-        print(f"Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}")
+        print(f"Write Mrows/sec:  {rowsw / (tapprows * 1e6):.3f}")
+        print(f"Write MB/s : {rowsw * rowsz / (tapprows * 1024 * 1024):.3f}")
 
     if testread:
         t1 = clock()
         cpu1 = cpuclock()
-        if psyco_imported and usepsyco:
-            psyco.bind(readFile)
-            # psyco.bind(readField)
-            pass
         if rng or fieldName:
             (rowsr, rowsz) = readField(file, fieldName, rng, verbose)
             pass
@@ -420,5 +409,5 @@ if __name__ == "__main__":
         print(
             f"Time reading rows: {treadrows:.3f} s (real) "
             f"{cpureadrows:.3f} s (cpu)  {cpureadrows / treadrows:.0%}")
-        print(f"Read rows/sec:  {rowsr / treadrows}")
-        print(f"Read KB/s : {rowsr * rowsz / (treadrows * 1024):.0f}")
+        print(f"Read Mrows/sec:  {rowsr / (treadrows * 1e6):.3f}")
+        print(f"Read MB/s : {rowsr * rowsz / (treadrows * 1024 * 1024):.3f}")

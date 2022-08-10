@@ -566,7 +566,7 @@ cdef extern from "typeconv.h" nogil:
 # Blosc2 registration
 cdef extern from "blosc2_filter.h" nogil:
   int register_blosc2(char **version, char **date)
-  int FILTER_BLOSC
+  int FILTER_BLOSC2
 
 
 # Blosc registration
