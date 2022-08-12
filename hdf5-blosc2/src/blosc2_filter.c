@@ -154,27 +154,23 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   size_t outbuf_size;
   int clevel = 5;                /* Compression level default */
   int doshuffle = 1;             /* Shuffle default */
-  int compcode;                  /* Blosc2 compressor */
-  int code;
-  const char* compname = "blosclz";    /* The compressor by default */
-  const char* complist;
-  char errmsg[256];
+  int compcode = BLOSC_BLOSCLZ;  /* Codec by default */
 
   /* Filter params that are always set */
   typesize = cd_values[2];      /* The datatype size */
   outbuf_size = cd_values[3];   /* Precomputed buffer guess */
 
-  /* We're compressing */
   if (!(flags & H5Z_FLAG_REVERSE)) {
-
+    /* We're compressing */
     /* Compression params */
     clevel = cd_values[4];        /* The compression level */
     doshuffle = cd_values[5];     /* SHUFFLE, BITSHUFFLE, others */
     if (cd_nelmts >= 7) {
       compcode = cd_values[6];    /* The Blosc2 compressor used */
       /* Check that we actually have support for the compressor code */
-      complist = blosc1_list_compressors();
-      code = blosc1_compcode_to_compname(compcode, &compname);
+      const char* complist = blosc1_list_compressors();
+      const char* compname;
+      int code = blosc1_compcode_to_compname(compcode, &compname);
       if (code == -1) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                  "this Blosc2 library does not have support for "
@@ -184,25 +180,10 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       }
     }
 
-    /* Allocate an output buffer exactly as long as the input data; if
-       the result is larger, we simply return 0.  The filter is flagged
-       as optional, so HDF5 marks the chunk as uncompressed and
-       proceeds.
-    */
-
-    outbuf_size = (*buf_size);
-
 #ifdef BLOSC2_DEBUG
     fprintf(stderr, "Blosc2: Compress %zd chunk w/buffer %zd\n",
-            nbytes, outbuf_size);
+            nbytes, *buf_size);
 #endif
-
-    outbuf = malloc(outbuf_size);
-    if (outbuf == NULL) {
-      PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-               "Can't allocate compression buffer");
-      goto failed;
-    }
 
     blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
     cparams.compcode = compcode;
@@ -210,33 +191,54 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     cparams.filters[BLOSC_LAST_FILTER] = doshuffle;
     cparams.clevel = clevel;
     cparams.nthreads = 1;
-    //cparams.blocksize = nbytes / 32;
     blosc2_context *cctx = blosc2_create_cctx(cparams);
-//    blosc1_set_compressor(compname);
-//    status = blosc1_compress(clevel, doshuffle, typesize, nbytes,
-//                            *buf, outbuf, nbytes);
-    status = blosc2_compress_ctx(cctx, *buf, nbytes, outbuf, nbytes);
-    if (status < 0) {
-      blosc2_free_ctx(cctx);
-      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 compression error");
+    blosc2_storage storage = {.cparams=&cparams, .contiguous=false};
+    blosc2_schunk* schunk = blosc2_schunk_new(&storage);
+    if (schunk == NULL) {
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create a super-chunk");
       goto failed;
     }
+
+    status = blosc2_schunk_append_buffer(schunk, *buf, nbytes);
+    if (status < 0) {
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot append to buffer");
+      goto failed;
+    }
+
+    bool needs_free;
+    status = blosc2_schunk_to_buffer(schunk, (uint8_t **)&outbuf, &needs_free);
+    if (status < 0 || !needs_free) {
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot convert to buffer");
+      goto failed;
+    }
+    blosc2_schunk_free(schunk);
     blosc2_free_ctx(cctx);
 
-    /* We're decompressing */
+#ifdef BLOSC2_DEBUG
+    fprintf(stderr, "Blosc2: Compressed into %zd bytes\n", status);
+#endif
+
   } else {
+    /* We're decompressing */
     /* declare dummy variables */
     size_t cbytes, blocksize;
 
-    free(outbuf);
+    blosc2_schunk* schunk = blosc2_schunk_from_buffer(*buf, (int64_t)nbytes, false);
+    if (schunk == NULL) {
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot get super-chunk from buffer");
+      goto failed;
+    }
 
-    /* Extract the exact outbuf_size from the buffer header.
-     *
-     * NOTE: the guess value got from "cd_values" corresponds to the
-     * uncompressed chunk size but it should not be used in general
-     * since other filters in the pipeline can modify it.
-     */
-    blosc1_cbuffer_sizes(*buf, &outbuf_size, &cbytes, &blocksize);
+    uint8_t *chunk;
+    bool needs_free;
+    cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
+    if (cbytes < 0) {
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Get chunk error");
+      goto failed;
+    }
+
+    /* Get the exact outbuf_size from the buffer header */
+    blosc1_cbuffer_sizes(chunk, &outbuf_size, &cbytes, &blocksize);
 
 #ifdef BLOSC2_DEBUG
     fprintf(stderr, "Blosc2: Decompress %zd chunk w/buffer %zd\n", nbytes, outbuf_size);
@@ -251,14 +253,18 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
     dparams.nthreads = 1;
     blosc2_context *dctx = blosc2_create_dctx(dparams);
-//    status = blosc1_decompress(*buf, outbuf, outbuf_size);
-    status = blosc2_decompress_ctx(dctx, *buf, cbytes, outbuf, outbuf_size);
-    if (status <= 0) {    /* decompression failed */
-      blosc2_free_ctx(dctx);
+    status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, outbuf_size);
+    if (status <= 0) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 decompression error");
       goto failed;
-    } /* if !status */
+    }
+
+    // Cleanup
+    if (needs_free) {
+      free(chunk);
+    }
     blosc2_free_ctx(dctx);
+    blosc2_schunk_free(schunk);
 
   } /* compressing vs decompressing */
 
