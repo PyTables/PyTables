@@ -712,5 +712,3 @@ herr_t H5TBOdelete_records( hid_t   dataset_id,
 out:
  return -1;
 }
-
-

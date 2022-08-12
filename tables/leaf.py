@@ -319,9 +319,9 @@ class Leaf(Node):
         chunksize = calc_chunksize(expected_mb)
         complib = self.filters.complib
         if complib is not None and complib.startswith("blosc2"):
-            # Blosc2 can introspect into blocks, so no need to restrict
-            # chunksize too much.
-            chunksize *= 32
+            # Blosc2 can introspect into blocks, so we can increase the
+            # chunksize for improving HDF5 perf for its internal btree.
+            chunksize *= 16
 
         maindim = self.maindim
         # Compute the chunknitems
