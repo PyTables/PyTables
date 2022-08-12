@@ -274,7 +274,7 @@ if __name__ == "__main__":
     from time import perf_counter as clock
     from time import process_time as cpuclock
 
-    usage = """usage: %s [-v] [-P] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-i iterations] [-S] [-B] [-F] file
+    usage = """usage: %s [-v] [-P] [-R range] [-r] [-w] [-s recsize] [-f field] [-c level] [-l complib] [-n nrows] [-S] [-B] [-F] file
             -v verbose
             -P do profile
             -R select a range in a field in the form "start,stop,step"
@@ -287,10 +287,10 @@ if __name__ == "__main__":
             -B activate bitshuffle filter
             -F activate fletcher32 filter
             -l sets the compression library to be used ("zlib", "lzo", "blosc", "bzip2")
-            -i sets the number of rows in each table\n""" % sys.argv[0]
+            -n sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vPSBFR:rwf:s:c:l:i:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'vPSBFR:rwf:s:c:l:n:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -312,7 +312,7 @@ if __name__ == "__main__":
     shuffle = 0
     fletcher32 = 0
     complib = "blosc2:blosclz"
-    iterations = 1_000_000
+    nrows = 1_000_000
 
     # Get the options
     for option in opts:
@@ -343,8 +343,8 @@ if __name__ == "__main__":
             complevel = int(option[1])
         elif option[0] == '-l':
             complib = option[1]
-        elif option[0] == '-i':
-            iterations = int(option[1])
+        elif option[0] == '-n':
+            nrows = int(option[1])
 
     # Build the Filters instance
     filters = tb.Filters(complevel=complevel, complib=complib,
@@ -372,7 +372,7 @@ if __name__ == "__main__":
             import profile as prof
             import pstats
             prof.run(
-                '(rowsw, rowsz) = createFile(file, iterations, filters, '
+                '(rowsw, rowsz) = createFile(file, nrows, filters, '
                 'recsize)',
                 'table-bench.prof')
             stats = pstats.Stats('table-bench.prof')
@@ -380,7 +380,7 @@ if __name__ == "__main__":
             stats.sort_stats('time', 'calls')
             stats.print_stats(20)
         else:
-            (rowsw, rowsz) = createFile(file, iterations, filters, recsize)
+            (rowsw, rowsz) = createFile(file, nrows, filters, recsize)
         t2 = clock()
         cpu2 = cpuclock()
         tapprows = t2 - t1
