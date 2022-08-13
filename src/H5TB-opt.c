@@ -361,7 +361,7 @@ herr_t read_records_blosc2( char* filename,
   //printf("Cannot find filter id 256 (blosc2)\n");
   goto out;
  }
- printf("Filter name: %s\n", name);
+ //printf("Filter name: %s\n", name);
  if (strcmp(name, "blosc2") != 0) {
   printf("Filter %s is not blosc2\n", name);
   goto out;
@@ -382,7 +382,7 @@ herr_t read_records_blosc2( char* filename,
   printf("Cannot open schunk in %s\n", filename);
   goto out;
  }
- printf("chunk logical offset: %zd\n", chunk_offset);
+ //printf("chunk logical offset: %zd\n", chunk_offset);
 
  /* Get the exact chunk size from the chunk header */
  int32_t typesize1 = cd_values[2];
@@ -390,11 +390,9 @@ herr_t read_records_blosc2( char* filename,
  int32_t typesize = schunk->typesize;
  int32_t chunksize = schunk->chunksize;
  int32_t blocksize = schunk->blocksize;
- printf("typesizes: %d, %d\n", typesize1, typesize);
- printf("chunksizes: %d, %d\n", chunksize1, chunksize);
- if (typesize1 != typesize) {
-  printf("Blosc2: typesizes differ (%d != %d).  Using the actual one for retrieving data!\n", typesize1, typesize);
- }
+// if (typesize1 != typesize) {
+//  printf("Blosc2: typesizes differ (%d != %d).  Using the actual one for retrieving data!\n", typesize1, typesize);
+// }
  int32_t rowsize = typesize1;
 
  bool needs_free;
@@ -402,8 +400,6 @@ herr_t read_records_blosc2( char* filename,
  int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, (int64_t)chunk_idx, &chunk, &needs_free);
  if (cbytes < 0)
   goto out;
-
- printf("needs_free: %d\n", needs_free);
 
  blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
  dparams.nthreads = 1;
@@ -428,7 +424,7 @@ herr_t read_records_blosc2( char* filename,
  if (needs_free) {
   free(chunk);
  }
- printf("Read %d bytes\n", rbytes);
+ //printf("Read %d bytes\n", rbytes);
 
  return 0;
 
