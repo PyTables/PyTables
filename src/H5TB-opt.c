@@ -263,7 +263,8 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5TBOread_records( hid_t dataset_id,
+herr_t H5TBOread_records( char* filename,
+                          hid_t dataset_id,
                           hid_t mem_type_id,
                           hsize_t start,
                           hsize_t nrecords,
@@ -285,6 +286,11 @@ herr_t H5TBOread_records( hid_t dataset_id,
  if ( H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
   goto out;
 
+ /* Try to read using blosc2 */
+ if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
+                         start, nrecords, data) >= 0)
+  goto success;
+
  /* Create a memory dataspace handle */
  if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
   goto out;
@@ -296,6 +302,7 @@ herr_t H5TBOread_records( hid_t dataset_id,
  if ( H5Sclose( mem_space_id ) < 0 )
   goto out;
 
+ success:
  /* Terminate access to the dataspace */
  if ( H5Sclose( space_id ) < 0 )
   goto out;
@@ -306,6 +313,129 @@ out:
  return -1;
 
 }
+
+
+/*-------------------------------------------------------------------------
+ * Function: read_records_blosc2
+ *
+ * Purpose: Read records from an opened table using blosc2
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Francesc Alted, francesc@blosc.org
+ *
+ * Date: August 12, 2022
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t read_records_blosc2( char* filename,
+                            hid_t dataset_id,
+                            hid_t mem_type_id,
+                            hid_t space_id,
+                            hsize_t start,
+                            hsize_t nrecords,
+                            void *data )
+{
+ hid_t mem_space_id;
+ hsize_t count[1];
+ hsize_t offset[1];
+
+ // Complete for a number of records larger than 1
+ if (nrecords > 1) {
+  //printf("nrecords > 1!");
+  goto out;
+ }
+
+ // Get the dataset creation property list
+ hid_t dcpl = H5Dget_create_plist(dataset_id);
+ size_t cd_nelmts = 6;
+ unsigned cd_values[6];
+ char name[7];
+ if (H5Pget_filter_by_id2(dcpl, 256, NULL, &cd_nelmts,	cd_values, 7, name, NULL) < 0) {
+  //printf("Cannot find filter id 256 (blosc2)\n");
+  goto out;
+ }
+ printf("Filter name: %s\n", name);
+ if (strcmp(name, "blosc2") != 0) {
+  printf("Filter %s is not blosc2\n", name);
+  goto out;
+ }
+
+ // Open the schunk on-disk
+ unsigned flt_msk;
+ haddr_t address;
+ hsize_t cframe_size;
+ hsize_t chunk_idx = 0;
+ hsize_t chunk_offset;
+ if (H5Dget_chunk_info(dataset_id, space_id, chunk_idx, &chunk_offset, &flt_msk, &address, &cframe_size) < 0) {
+  printf("Get chunk info failed!\n");
+  goto out;
+ }
+ blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t)address);
+ if (schunk == NULL) {
+  printf("Cannot open schunk in %s\n", filename);
+  goto out;
+ }
+ printf("chunk logical offset: %zd\n", chunk_offset);
+
+ /* Get the exact chunk size from the chunk header */
+ int32_t typesize1 = cd_values[2];
+ int32_t chunksize1 = cd_values[3];
+ int32_t typesize = schunk->typesize;
+ int32_t chunksize = schunk->chunksize;
+ int32_t blocksize = schunk->blocksize;
+ printf("typesizes: %d, %d\n", typesize1, typesize);
+ printf("chunksizes: %d, %d\n", chunksize1, chunksize);
+ if (typesize1 != typesize) {
+  printf("Blosc2: typesizes differ (%d != %d).  Using the actual one for retrieving data!\n", typesize1, typesize);
+ }
+ int32_t rowsize = typesize1;
+
+ bool needs_free;
+ uint8_t *chunk;
+ int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, (int64_t)chunk_idx, &chunk, &needs_free);
+ if (cbytes < 0)
+  goto out;
+
+ printf("needs_free: %d\n", needs_free);
+
+ blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
+ dparams.nthreads = 1;
+ //dparams.schunk = schunk;  // not really necessary
+ blosc2_context *dctx;
+ dctx = blosc2_create_dctx(dparams);
+
+// /* Decompress chunk */
+// uint8_t *buffer_out = malloc(chunksize);
+// int32_t nbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, buffer_out, chunksize);
+// if (nbytes < 0)
+//  goto out;
+// /* Copy the interesting part */
+// memcpy(data, buffer_out, nrecords * rowsize);
+// free(buffer_out);
+
+ /* Gather data for the interesting part */
+ int32_t rbytes = nrecords * rowsize;
+ int32_t nbytes = blosc2_getitem_ctx(dctx, chunk, cbytes, (int)start, (int)nrecords, data, rbytes);
+ if (nbytes < 0 || nbytes != rbytes)
+  goto out;
+ if (needs_free) {
+  free(chunk);
+ }
+ printf("Read %d bytes\n", rbytes);
+
+ return 0;
+
+ out:
+ return -1;
+}
+
 
 /*-------------------------------------------------------------------------
  * Function: H5TBOread_elements
@@ -599,7 +729,8 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5TBOdelete_records( hid_t   dataset_id,
+herr_t H5TBOdelete_records( char* filename,
+                            hid_t   dataset_id,
                             hid_t   mem_type_id,
                             hsize_t ntotal_records,
                             size_t  src_size,
@@ -650,7 +781,7 @@ herr_t H5TBOdelete_records( hid_t   dataset_id,
        return -1;
 
      /* Read the records after the deleted one(s) */
-     if ( H5TBOread_records(dataset_id, mem_type_id, read_start,
+     if ( H5TBOread_records(filename, dataset_id, mem_type_id, read_start,
                             read_nbuf, tmp_buf ) < 0 )
        return -1;
 

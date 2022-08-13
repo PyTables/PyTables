@@ -405,7 +405,7 @@ if __name__ == "__main__":
         cpu2 = cpuclock()
         treadrows = t2 - t1
         cpureadrows = cpu2 - cpu1
-        print(f"Rows read: {rowsw}  Row size: {rowsz}")
+        print(f"Rows read: {rowsr}  Row size: {rowsz}")
         print(
             f"Time reading rows: {treadrows:.3f} s (real) "
             f"{cpureadrows:.3f} s (cpu)  {cpureadrows / treadrows:.0%}")

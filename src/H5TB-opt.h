@@ -17,14 +17,23 @@ hid_t H5TBOmake_table(  const char *table_title,
                         char *complib,
                         int shuffle,
                         int fletcher32,
-			hbool_t track_times,
+			                     hbool_t track_times,
                         const void *data );
 
-herr_t H5TBOread_records( hid_t dataset_id,
+herr_t H5TBOread_records( char *filename,
+                          hid_t dataset_id,
                           hid_t mem_type_id,
                           hsize_t start,
                           hsize_t nrecords,
                           void *data );
+
+herr_t read_records_blosc2( char* filename,
+                            hid_t dataset_id,
+                            hid_t mem_type_id,
+                            hid_t space_id,
+                            hsize_t start,
+                            hsize_t nrecords,
+                            void *data );
 
 herr_t H5TBOread_elements( hid_t dataset_id,
                            hid_t mem_type_id,
@@ -51,7 +60,8 @@ herr_t H5TBOwrite_elements( hid_t dataset_id,
                             const void *coords,
                             const void *data );
 
-herr_t H5TBOdelete_records( hid_t   dataset_id,
+herr_t H5TBOdelete_records( char* filename,
+                            hid_t   dataset_id,
                             hid_t   mem_type_id,
                             hsize_t ntotal_records,
                             size_t  src_size,
