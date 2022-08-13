@@ -120,8 +120,12 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   /* Limit large typesizes (they are pretty expensive to shuffle
      and, in addition, Blosc2 does not handle typesizes larger than
      255 bytes). */
-  if (basetypesize > BLOSC_MAX_TYPESIZE)
-    basetypesize = 1;
+  /* But for reads, it is useful to have the original typesize here.
+   * And there is no harm in storing the original typesize here, as Blosc2
+   * will decide internally to reduce it to 1 if > BLOSC_MAX_TYPESIZE.
+   */
+  // if (basetypesize > BLOSC_MAX_TYPESIZE)
+  //   basetypesize = 1;
   values[2] = basetypesize;
 
   /* Get the size of the chunk */
