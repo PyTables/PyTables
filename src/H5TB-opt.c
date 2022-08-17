@@ -38,6 +38,16 @@
 #include "blosc_filter.h"              /* Import FILTER_BLOSC */
 #include "blosc2_filter.h"             /* Import FILTER_BLOSC2 */
 
+#if defined(__GNUC__)
+#define PUSH_ERR(func, minor, str, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str, ##__VA_ARGS__)
+#elif defined(_MSC_VER)
+#define PUSH_ERR(func, minor, str, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str, __VA_ARGS__)
+#else
+/* This version is portable but it's better to use compiler-supported
+   approaches for handling the trailing comma issue when possible. */
+#define PUSH_ERR(func, minor, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, __VA_ARGS__)
+#endif	/* defined(__GNUC__) */
+
 /* Define this in order to shrink datasets after deleting */
 #if 1
 #define SHRINK
@@ -280,16 +290,16 @@ herr_t H5TBOread_records( char* filename,
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
 
+ /* Try to read using blosc2 */
+ if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
+                         start, nrecords, data) >= 0)
+  goto success;
+
  /* Define a hyperslab in the dataset of the size of the records */
  offset[0] = start;
  count[0]  = nrecords;
  if ( H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
   goto out;
-
- /* Try to read using blosc2 */
- if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
-                         start, nrecords, data) >= 0)
-  goto success;
 
  /* Create a memory dataspace handle */
  if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
@@ -342,89 +352,131 @@ herr_t read_records_blosc2( char* filename,
                             hsize_t nrecords,
                             void *data )
 {
- hid_t mem_space_id;
- hsize_t count[1];
- hsize_t offset[1];
-
- // Complete for a number of records larger than 1
- if (nrecords > 1) {
-  //printf("nrecords > 1!");
-  goto out;
- }
-
- // Get the dataset creation property list
+ /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
  size_t cd_nelmts = 6;
  unsigned cd_values[6];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, 256, NULL, &cd_nelmts,	cd_values, 7, name, NULL) < 0) {
-  //printf("Cannot find filter id 256 (blosc2)\n");
   goto out;
  }
- //printf("Filter name: %s\n", name);
+ /* Double check that the compressor name is correct */
  if (strcmp(name, "blosc2") != 0) {
-  printf("Filter %s is not blosc2\n", name);
+  PUSH_ERR("blosc2", H5E_CALLBACK, "Filter %s is not blosc2\n", name);
   goto out;
  }
 
- // Open the schunk on-disk
- unsigned flt_msk;
- haddr_t address;
- hsize_t cframe_size;
- hsize_t chunk_idx = 0;
- hsize_t chunk_offset;
- if (H5Dget_chunk_info(dataset_id, space_id, chunk_idx, &chunk_offset, &flt_msk, &address, &cframe_size) < 0) {
-  printf("Get chunk info failed!\n");
-  goto out;
+ int32_t typesize = cd_values[2];
+ int32_t chunksize = cd_values[3];
+
+ /* Buffer for reading a chunk */
+ uint8_t *buffer_out = malloc(chunksize);
+
+ hsize_t total_records = 0;
+ int32_t chunkshape = chunksize / typesize;
+ hsize_t start_nchunk = start / chunkshape;
+ int32_t start_chunk = start % chunkshape;
+ hsize_t stop_nchunk = (start + nrecords) / chunkshape;
+ if (nrecords % chunkshape) {
+  stop_nchunk += 1;
  }
- blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t)address);
- if (schunk == NULL) {
-  printf("Cannot open schunk in %s\n", filename);
-  goto out;
+ for (hsize_t nchunk = start_nchunk; nchunk < stop_nchunk && total_records < nrecords; nchunk++) {
+  /* Open the schunk on-disk */
+  unsigned flt_msk;
+  haddr_t address;
+  hsize_t cframe_size;
+  hsize_t chunk_offset;
+  if (H5Dget_chunk_info(dataset_id, space_id, nchunk, &chunk_offset, &flt_msk,
+                        &address, &cframe_size) < 0) {
+   PUSH_ERR("blosc2", H5E_CALLBACK, "Get chunk info failed!\n");
+   goto out;
+  }
+  blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
+  if (schunk == NULL) {
+   PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot open schunk in %s\n", filename);
+   goto out;
+  }
+
+  bool needs_free;
+  uint8_t *chunk;
+  int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
+  if (cbytes < 0) {
+   PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot get lazy chunk %zd in %s\n", nchunk, filename);
+   goto out;
+  }
+
+  blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
+  // Experiments say that 4 threads do not harm performance
+  dparams.nthreads = 4;
+  dparams.schunk = schunk;
+  blosc2_context *dctx = blosc2_create_dctx(dparams);
+
+  /* Gather data for the interesting part */
+  hsize_t nrecords_chunk = chunkshape - start_chunk;
+  if (nrecords_chunk > nrecords - total_records) {
+   nrecords_chunk = nrecords - total_records;
+  }
+
+  int32_t blockshape = schunk->blocksize / typesize;
+  //printf("blocksize: %d,", schunk->blocksize);
+  int32_t nblocks = chunkshape / blockshape;
+  int32_t start_nblock = start_chunk / blockshape;
+  int32_t stop_nblock = (start_chunk + nrecords_chunk) / blockshape;
+  if (nrecords_chunk > blockshape) {
+   /* We have a considerable amount of records to read, so use a masked read */
+   //printf("d:%d,", nrecords_chunk);
+   bool *block_maskout = calloc(nblocks, 1);
+   int32_t nblocks_set = 0;
+   for (int32_t nblock = 0; nblock < nblocks; nblock++) {
+    if ((nblock < start_nblock) || (nblock > stop_nblock)) {
+     block_maskout[nblock] = true;
+     nblocks_set++;
+    }
+   }
+   //printf("nblocks_set: %d, ", nblocks_set);
+   if (blosc2_set_maskout(dctx, block_maskout, nblocks) != BLOSC2_ERROR_SUCCESS) {
+    PUSH_ERR("blosc2", H5E_CALLBACK, "Error setting the maskout");
+    goto out;
+   }
+   int32_t nbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, buffer_out, chunksize);
+   if (nbytes < 0) {
+    PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot decompress lazy chunk");
+    goto out;
+   }
+   /* Copy data to destination */
+   int rbytes = nrecords_chunk * typesize;
+   memcpy(data, buffer_out + start_chunk * typesize, rbytes);
+   data += rbytes;
+   total_records += nrecords_chunk;
+   //printf("rbytes (decompress): %d,", rbytes);
+   free(block_maskout);
+  }
+  else {
+   /* A small amount of records: use a getitem call */
+   //printf("i:%d,", nrecords_chunk);
+   int rbytes = blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, nrecords_chunk, buffer_out, chunksize);
+   if (rbytes < 0) {
+    PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot get items for lazychunk\n");
+    goto out;
+   }
+   /* Copy data to destination */
+   memcpy(data, buffer_out, rbytes);
+   data += rbytes;
+   total_records += nrecords_chunk;
+   //printf("rbytes (getitem): %d\n", rbytes);
+  }
+
+  if (needs_free) {
+   free(chunk);
+  }
+  blosc2_free_ctx(dctx);
+  blosc2_schunk_free(schunk);
+
+  /* Next chunk starts at 0 */
+  start_chunk = 0;
  }
- //printf("chunk logical offset: %zd\n", chunk_offset);
 
- /* Get the exact chunk size from the chunk header */
- int32_t typesize1 = cd_values[2];
- int32_t chunksize1 = cd_values[3];
- int32_t typesize = schunk->typesize;
- int32_t chunksize = schunk->chunksize;
- int32_t blocksize = schunk->blocksize;
-// if (typesize1 != typesize) {
-//  printf("Blosc2: typesizes differ (%d != %d).  Using the actual one for retrieving data!\n", typesize1, typesize);
-// }
- int32_t rowsize = typesize1;
-
- bool needs_free;
- uint8_t *chunk;
- int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, (int64_t)chunk_idx, &chunk, &needs_free);
- if (cbytes < 0)
-  goto out;
-
- blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
- dparams.nthreads = 1;
- //dparams.schunk = schunk;  // not really necessary
- blosc2_context *dctx;
- dctx = blosc2_create_dctx(dparams);
-
-// /* Decompress chunk */
-// uint8_t *buffer_out = malloc(chunksize);
-// int32_t nbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, buffer_out, chunksize);
-// if (nbytes < 0)
-//  goto out;
-// /* Copy the interesting part */
-// memcpy(data, buffer_out, nrecords * rowsize);
-// free(buffer_out);
-
- /* Gather data for the interesting part */
- int32_t rbytes = nrecords * rowsize;
- int32_t nbytes = blosc2_getitem_ctx(dctx, chunk, cbytes, (int)start, (int)nrecords, data, rbytes);
- if (nbytes < 0 || nbytes != rbytes)
-  goto out;
- if (needs_free) {
-  free(chunk);
- }
- //printf("Read %d bytes\n", rbytes);
+ free(buffer_out);
 
  return 0;
 
