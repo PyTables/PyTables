@@ -21,6 +21,7 @@ hid_t H5TBOmake_table(  const char *table_title,
                         const void *data );
 
 herr_t H5TBOread_records( char *filename,
+                          hbool_t native_order,
                           hid_t dataset_id,
                           hid_t mem_type_id,
                           hsize_t start,
@@ -61,6 +62,7 @@ herr_t H5TBOwrite_elements( hid_t dataset_id,
                             const void *data );
 
 herr_t H5TBOdelete_records( char* filename,
+                            hbool_t native_order,
                             hid_t   dataset_id,
                             hid_t   mem_type_id,
                             hsize_t ntotal_records,

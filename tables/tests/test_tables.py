@@ -1123,10 +1123,6 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_endianess(self):
         """Checking if table is endianess aware."""
 
-        if self.complib.startswith("blosc2"):
-            # TODO: Blosc2 does not support byteorder changes (yet)
-            return
-
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03_endianess..." % self.__class__.__name__)
