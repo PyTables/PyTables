@@ -54,6 +54,7 @@ zlib_avail = tb.which_lib_version("zlib") is not None
 lzo_avail = tb.which_lib_version("lzo") is not None
 bzip2_avail = tb.which_lib_version("bzip2") is not None
 blosc_avail = tb.which_lib_version("blosc") is not None
+blosc2_avail = tb.which_lib_version("blosc2") is not None
 
 
 def print_heavy(heavy):
