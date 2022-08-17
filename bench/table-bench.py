@@ -3,8 +3,6 @@
 import numpy as np
 import tables as tb
 
-# This class is accessible only for the examples
-
 
 class Small(tb.IsDescription):
     var1 = tb.StringCol(itemsize=4, pos=2)

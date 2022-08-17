@@ -321,7 +321,7 @@ class Leaf(Node):
         if complib is not None and complib.startswith("blosc2"):
             # Blosc2 can introspect into blocks, so we can increase the
             # chunksize for improving HDF5 perf for its internal btree.
-            chunksize *= 16
+            chunksize *= 32
 
         maindim = self.maindim
         # Compute the chunknitems

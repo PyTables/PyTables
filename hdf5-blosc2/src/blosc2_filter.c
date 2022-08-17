@@ -124,8 +124,9 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
    * And there is no harm in storing the original typesize here, as Blosc2
    * will decide internally to reduce it to 1 if > BLOSC_MAX_TYPESIZE.
    */
-  // if (basetypesize > BLOSC_MAX_TYPESIZE)
-  //   basetypesize = 1;
+  /* if (basetypesize > BLOSC_MAX_TYPESIZE)
+   *  basetypesize = 1;
+   */
   values[2] = basetypesize;
 
   /* Get the size of the chunk */
@@ -194,7 +195,11 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     cparams.typesize = typesize;
     cparams.filters[BLOSC_LAST_FILTER] = doshuffle;
     cparams.clevel = clevel;
-    cparams.nthreads = 1;
+    cparams.nthreads = 4;
+    /* Use 64 KB for the blocksize.  In the future it should be allowed to
+     * set this for the public API.
+     */
+    cparams.blocksize = 65536;
     blosc2_context *cctx = blosc2_create_cctx(cparams);
     blosc2_storage storage = {.cparams=&cparams, .contiguous=false};
     blosc2_schunk* schunk = blosc2_schunk_new(&storage);
@@ -255,7 +260,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     }
 
     blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
-    dparams.nthreads = 1;
+    dparams.nthreads = 4;
     blosc2_context *dctx = blosc2_create_dctx(dparams);
     status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, outbuf_size);
     if (status <= 0) {
