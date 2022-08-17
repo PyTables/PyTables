@@ -274,6 +274,7 @@ out:
  */
 
 herr_t H5TBOread_records( char* filename,
+                          hbool_t native_order,
                           hid_t dataset_id,
                           hid_t mem_type_id,
                           hsize_t start,
@@ -290,10 +291,12 @@ herr_t H5TBOread_records( char* filename,
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
 
- /* Try to read using blosc2 */
- if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
-                         start, nrecords, data) >= 0)
-  goto success;
+ if (native_order) {
+  /* Try to read using blosc2 (only supports native byteorder) */
+  if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
+                          start, nrecords, data) >= 0)
+   goto success;
+ }
 
  /* Define a hyperslab in the dataset of the size of the records */
  offset[0] = start;
@@ -778,6 +781,7 @@ out:
  */
 
 herr_t H5TBOdelete_records( char* filename,
+                            hbool_t native_order,
                             hid_t   dataset_id,
                             hid_t   mem_type_id,
                             hsize_t ntotal_records,
@@ -829,7 +833,7 @@ herr_t H5TBOdelete_records( char* filename,
        return -1;
 
      /* Read the records after the deleted one(s) */
-     if ( H5TBOread_records(filename, dataset_id, mem_type_id, read_start,
+     if ( H5TBOread_records(filename, native_order, dataset_id, mem_type_id, read_start,
                             read_nbuf, tmp_buf ) < 0 )
        return -1;
 
