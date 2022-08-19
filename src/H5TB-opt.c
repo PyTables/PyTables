@@ -36,6 +36,17 @@
 #include "H5Zlzo.h"                    /* Import FILTER_LZO */
 #include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
 #include "blosc_filter.h"              /* Import FILTER_BLOSC */
+#include "blosc2_filter.h"             /* Import FILTER_BLOSC2 */
+
+#if defined(__GNUC__)
+#define PUSH_ERR(func, minor, str, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str, ##__VA_ARGS__)
+#elif defined(_MSC_VER)
+#define PUSH_ERR(func, minor, str, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str, __VA_ARGS__)
+#else
+/* This version is portable but it's better to use compiler-supported
+   approaches for handling the trailing comma issue when possible. */
+#define PUSH_ERR(func, minor, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, __VA_ARGS__)
+#endif	/* defined(__GNUC__) */
 
 /* Define this in order to shrink datasets after deleting */
 #if 1
@@ -138,7 +149,7 @@ hid_t H5TBOmake_table(  const char *table_title,
    if ( H5Pset_fletcher32( plist_id) < 0 )
      return -1;
  }
- /* Then shuffle (blosc shuffles inplace) */
+ /* Then shuffle (blosc/blosc2 shuffles inplace) */
  if ((shuffle && compress) && (strncmp(complib, "blosc", 5) != 0)) {
    if ( H5Pset_shuffle( plist_id) < 0 )
      return -1;
@@ -149,9 +160,27 @@ hid_t H5TBOmake_table(  const char *table_title,
    cd_values[0] = compress;
    cd_values[1] = (int)(atof(version) * 10);
    cd_values[2] = Table;
+
    /* The default compressor in HDF5 (zlib) */
    if (strcmp(complib, "zlib") == 0) {
      if ( H5Pset_deflate( plist_id, compress) < 0 )
+       return -1;
+   }
+   /* The Blosc2 compressor does accept parameters */
+   else if (strcmp(complib, "blosc2") == 0) {
+     cd_values[4] = compress;
+     cd_values[5] = shuffle;
+     if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
+       return -1;
+   }
+   /* The Blosc2 compressor can use other compressors */
+   else if (strncmp(complib, "blosc2:", 7) == 0) {
+     cd_values[4] = compress;
+     cd_values[5] = shuffle;
+     blosc_compname = complib + 7;
+     blosc_compcode = blosc1_compname_to_compcode(blosc_compname);
+     cd_values[6] = blosc_compcode;
+     if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0 )
        return -1;
    }
    /* The Blosc compressor does accept parameters */
@@ -244,7 +273,9 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5TBOread_records( hid_t dataset_id,
+herr_t H5TBOread_records( char* filename,
+                          hbool_t native_order,
+                          hid_t dataset_id,
                           hid_t mem_type_id,
                           hsize_t start,
                           hsize_t nrecords,
@@ -259,6 +290,13 @@ herr_t H5TBOread_records( hid_t dataset_id,
  /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
+
+ if (native_order) {
+  /* Try to read using blosc2 (only supports native byteorder) */
+  if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
+                          start, nrecords, data) >= 0)
+   goto success;
+ }
 
  /* Define a hyperslab in the dataset of the size of the records */
  offset[0] = start;
@@ -277,6 +315,7 @@ herr_t H5TBOread_records( hid_t dataset_id,
  if ( H5Sclose( mem_space_id ) < 0 )
   goto out;
 
+ success:
  /* Terminate access to the dataspace */
  if ( H5Sclose( space_id ) < 0 )
   goto out;
@@ -287,6 +326,167 @@ out:
  return -1;
 
 }
+
+
+/*-------------------------------------------------------------------------
+ * Function: read_records_blosc2
+ *
+ * Purpose: Read records from an opened table using blosc2
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Francesc Alted, francesc@blosc.org
+ *
+ * Date: August 12, 2022
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t read_records_blosc2( char* filename,
+                            hid_t dataset_id,
+                            hid_t mem_type_id,
+                            hid_t space_id,
+                            hsize_t start,
+                            hsize_t nrecords,
+                            void *data )
+{
+ /* Get the dataset creation property list */
+ hid_t dcpl = H5Dget_create_plist(dataset_id);
+ size_t cd_nelmts = 6;
+ unsigned cd_values[6];
+ char name[7];
+ if (H5Pget_filter_by_id2(dcpl, 256, NULL, &cd_nelmts,	cd_values, 7, name, NULL) < 0) {
+  goto out;
+ }
+ /* Double check that the compressor name is correct */
+ if (strcmp(name, "blosc2") != 0) {
+  PUSH_ERR("blosc2", H5E_CALLBACK, "Filter %s is not blosc2\n", name);
+  goto out;
+ }
+
+ int32_t typesize = cd_values[2];
+ int32_t chunksize = cd_values[3];
+
+ /* Buffer for reading a chunk */
+ uint8_t *buffer_out = malloc(chunksize);
+
+ hsize_t total_records = 0;
+ int32_t chunkshape = chunksize / typesize;
+ hsize_t start_nchunk = start / chunkshape;
+ int32_t start_chunk = start % chunkshape;
+ hsize_t stop_nchunk = (start + nrecords) / chunkshape;
+ if (nrecords % chunkshape) {
+  stop_nchunk += 1;
+ }
+ for (hsize_t nchunk = start_nchunk; nchunk < stop_nchunk && total_records < nrecords; nchunk++) {
+  /* Open the schunk on-disk */
+  unsigned flt_msk;
+  haddr_t address;
+  hsize_t cframe_size;
+  hsize_t chunk_offset;
+  if (H5Dget_chunk_info(dataset_id, space_id, nchunk, &chunk_offset, &flt_msk,
+                        &address, &cframe_size) < 0) {
+   PUSH_ERR("blosc2", H5E_CALLBACK, "Get chunk info failed!\n");
+   goto out;
+  }
+  blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
+  if (schunk == NULL) {
+   PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot open schunk in %s\n", filename);
+   goto out;
+  }
+
+  bool needs_free;
+  uint8_t *chunk;
+  int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
+  if (cbytes < 0) {
+   PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot get lazy chunk %zd in %s\n", nchunk, filename);
+   goto out;
+  }
+
+  blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
+  // Experiments say that 4 threads do not harm performance
+  dparams.nthreads = 4;
+  dparams.schunk = schunk;
+  blosc2_context *dctx = blosc2_create_dctx(dparams);
+
+  /* Gather data for the interesting part */
+  hsize_t nrecords_chunk = chunkshape - start_chunk;
+  if (nrecords_chunk > nrecords - total_records) {
+   nrecords_chunk = nrecords - total_records;
+  }
+
+  int32_t blockshape = schunk->blocksize / typesize;
+  //printf("blocksize: %d,", schunk->blocksize);
+  int32_t nblocks = chunkshape / blockshape;
+  int32_t start_nblock = start_chunk / blockshape;
+  int32_t stop_nblock = (start_chunk + nrecords_chunk) / blockshape;
+  if (nrecords_chunk > blockshape) {
+   /* We have a considerable amount of records to read, so use a masked read */
+   //printf("d:%d,", nrecords_chunk);
+   bool *block_maskout = calloc(nblocks, 1);
+   int32_t nblocks_set = 0;
+   for (int32_t nblock = 0; nblock < nblocks; nblock++) {
+    if ((nblock < start_nblock) || (nblock > stop_nblock)) {
+     block_maskout[nblock] = true;
+     nblocks_set++;
+    }
+   }
+   //printf("nblocks_set: %d, ", nblocks_set);
+   if (blosc2_set_maskout(dctx, block_maskout, nblocks) != BLOSC2_ERROR_SUCCESS) {
+    PUSH_ERR("blosc2", H5E_CALLBACK, "Error setting the maskout");
+    goto out;
+   }
+   int32_t nbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, buffer_out, chunksize);
+   if (nbytes < 0) {
+    PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot decompress lazy chunk");
+    goto out;
+   }
+   /* Copy data to destination */
+   int rbytes = nrecords_chunk * typesize;
+   memcpy(data, buffer_out + start_chunk * typesize, rbytes);
+   data += rbytes;
+   total_records += nrecords_chunk;
+   //printf("rbytes (decompress): %d,", rbytes);
+   free(block_maskout);
+  }
+  else {
+   /* A small amount of records: use a getitem call */
+   //printf("i:%d,", nrecords_chunk);
+   int rbytes = blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, nrecords_chunk, buffer_out, chunksize);
+   if (rbytes < 0) {
+    PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot get items for lazychunk\n");
+    goto out;
+   }
+   /* Copy data to destination */
+   memcpy(data, buffer_out, rbytes);
+   data += rbytes;
+   total_records += nrecords_chunk;
+   //printf("rbytes (getitem): %d\n", rbytes);
+  }
+
+  if (needs_free) {
+   free(chunk);
+  }
+  blosc2_free_ctx(dctx);
+  blosc2_schunk_free(schunk);
+
+  /* Next chunk starts at 0 */
+  start_chunk = 0;
+ }
+
+ free(buffer_out);
+
+ return 0;
+
+ out:
+ return -1;
+}
+
 
 /*-------------------------------------------------------------------------
  * Function: H5TBOread_elements
@@ -580,7 +780,9 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5TBOdelete_records( hid_t   dataset_id,
+herr_t H5TBOdelete_records( char* filename,
+                            hbool_t native_order,
+                            hid_t   dataset_id,
                             hid_t   mem_type_id,
                             hsize_t ntotal_records,
                             size_t  src_size,
@@ -631,7 +833,7 @@ herr_t H5TBOdelete_records( hid_t   dataset_id,
        return -1;
 
      /* Read the records after the deleted one(s) */
-     if ( H5TBOread_records(dataset_id, mem_type_id, read_start,
+     if ( H5TBOread_records(filename, native_order, dataset_id, mem_type_id, read_start,
                             read_nbuf, tmp_buf ) < 0 )
        return -1;
 
@@ -693,5 +895,3 @@ herr_t H5TBOdelete_records( hid_t   dataset_id,
 out:
  return -1;
 }
-
-

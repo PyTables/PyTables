@@ -9,7 +9,6 @@ from packaging.version import Version
 # Minimum recommended versions for mandatory packages
 min_numpy_version = Version('1.9.3')
 min_numexpr_version = Version('2.6.2')
-min_hdf5_version = Version('1.8.4')
-min_blosc_version = Version("1.4.1")
-min_blosc_bitshuffle_version = Version("1.8.0")
-"""The minumum Blosc version where BitShuffle can be used safely."""
+min_hdf5_version = Version('1.10.2')
+min_blosc_version = Version('1.11.1')
+min_blosc2_version = Version('2.3.0')

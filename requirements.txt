@@ -2,4 +2,5 @@
 # doc/source/usersguide/installation.rst
 numpy>=1.19.0
 numexpr>=2.6.2
+blosc2>=2.2.0
 packaging

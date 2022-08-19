@@ -1708,6 +1708,13 @@ class CompressBloscTablesTestCase(BasicTestCase):
     compress = 6
     complib = "blosc"
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class CompressBlosc2TablesTestCase(BasicTestCase):
+    title = "Compress2BloscTables"
+    compress = 6
+    complib = "blosc2"
+
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
@@ -1718,17 +1725,33 @@ class CompressBloscShuffleTablesTestCase(BasicTestCase):
     complib = "blosc"
 
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class CompressBlosc2ShuffleTablesTestCase(BasicTestCase):
+    title = "CompressBloscTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2"
+
+
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf(
-    common.blosc_version < common.min_blosc_bitshuffle_version,
-    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class CompressBloscBitShuffleTablesTestCase(BasicTestCase):
     title = "CompressBloscBitShuffleTables"
     compress = 1
     shuffle = 0
     bitshuffle = 1
     complib = "blosc:blosclz"
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class CompressBlosc2BitShuffleTablesTestCase(BasicTestCase):
+    title = "CompressBloscBit2ShuffleTables"
+    compress = 1
+    shuffle = 0
+    bitshuffle = 1
+    complib = "blosc2:blosclz"
 
 
 @common.unittest.skipIf(not common.blosc_avail,
@@ -1738,6 +1761,15 @@ class CompressBloscBloscLZTablesTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
     complib = "blosc:blosclz"
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC compression library not available')
+class CompressBlosc2BloscLZTablesTestCase(BasicTestCase):
+    title = "CompressBloscLZTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2:blosclz"
 
 
 @common.unittest.skipIf(not common.blosc_avail,
@@ -1751,6 +1783,17 @@ class CompressBloscLZ4TablesTestCase(BasicTestCase):
     complib = "blosc:lz4"
 
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc2_compressor_list(), 'lz4 required')
+class CompressBlosc2LZ4TablesTestCase(BasicTestCase):
+    title = "CompressLZ4Tables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2:lz4"
+
+
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
 @common.unittest.skipIf(
@@ -1760,6 +1803,17 @@ class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
     complib = "blosc:lz4hc"
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc2_compressor_list(), 'lz4 required')
+class CompressBlosc2LZ4HCTablesTestCase(BasicTestCase):
+    title = "CompressLZ4HCTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2:lz4hc"
 
 
 @common.unittest.skipIf(not common.blosc_avail,
@@ -1784,6 +1838,17 @@ class CompressBloscZlibTablesTestCase(BasicTestCase):
     complib = "blosc:zlib"
 
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    'zlib' not in tb.blosc2_compressor_list(), 'zlib required')
+class CompressBlosc2ZlibTablesTestCase(BasicTestCase):
+    title = "CompressZlibTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2:zlib"
+
+
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
 @common.unittest.skipIf(
@@ -1793,6 +1858,17 @@ class CompressBloscZstdTablesTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
     complib = "blosc:zstd"
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    'zstd' not in tb.blosc2_compressor_list(), 'zstd required')
+class CompressBlosc2ZstdTablesTestCase(BasicTestCase):
+    title = "CompressZstdTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2:zstd"
 
 
 @common.unittest.skipIf(not common.lzo_avail,
@@ -6547,22 +6623,38 @@ def suite():
             common.unittest.makeSuite(RecArrayAlignedWriteTestCase))
         theSuite.addTest(
             common.unittest.makeSuite(CompressBloscTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBlosc2TablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(
             CompressBloscShuffleTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(
+            CompressBlosc2ShuffleTablesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
             CompressBloscBitShuffleTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(
+            CompressBlosc2BitShuffleTablesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
             CompressBloscBloscLZTablesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            CompressBlosc2BloscLZTablesTestCase))
         theSuite.addTest(
             common.unittest.makeSuite(CompressBloscLZ4TablesTestCase))
         theSuite.addTest(
+            common.unittest.makeSuite(CompressBlosc2LZ4TablesTestCase))
+        theSuite.addTest(
             common.unittest.makeSuite(CompressBloscLZ4HCTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBlosc2LZ4HCTablesTestCase))
         theSuite.addTest(
             common.unittest.makeSuite(CompressBloscSnappyTablesTestCase))
         theSuite.addTest(
             common.unittest.makeSuite(CompressBloscZlibTablesTestCase))
         theSuite.addTest(
+            common.unittest.makeSuite(CompressBlosc2ZlibTablesTestCase))
+        theSuite.addTest(
             common.unittest.makeSuite(CompressBloscZstdTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBlosc2ZstdTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressLZOTablesTestCase))
         theSuite.addTest(
             common.unittest.makeSuite(CompressLZOShuffleTablesTestCase))

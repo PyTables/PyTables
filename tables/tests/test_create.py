@@ -678,9 +678,6 @@ class FiltersCaseBloscZstd(FiltersTreeTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf(
-    common.blosc_version < common.min_blosc_bitshuffle_version,
-    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class FiltersCaseBloscBitShuffle(FiltersTreeTestCase):
     filters = tb.Filters(shuffle=False, complevel=1, complib="blosc:blosclz")
     gfilters = tb.Filters(complevel=5, shuffle=False, bitshuffle=True,

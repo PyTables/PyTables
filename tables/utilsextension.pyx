@@ -35,6 +35,25 @@ from libc.string cimport strchr, strcmp, strncmp, strlen
 from cpython.bytes cimport PyBytes_Check, PyBytes_FromStringAndSize
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 
+# For some reason, Blosc2 headers must precede Blosc1 headers
+# Functions from Blosc2
+cdef extern from "blosc2.h" nogil:
+  void blosc1_init()
+  int blosc1_set_nthreads(int nthreads)
+  const char* blosc1_list_compressors()
+  int blosc1_compcode_to_compname(int compcode, char **compname)
+  int blosc1_get_complib_info(char *compname, char **complib, char **version)
+
+
+# Functions from Blosc
+cdef extern from "blosc.h" nogil:
+  void blosc_init()
+  int blosc_set_nthreads(int nthreads)
+  const char* blosc_list_compressors()
+  int blosc_compcode_to_compname(int compcode, char **compname)
+  int blosc_get_complib_info(char *compname, char **complib, char **version)
+
+
 from numpy cimport (import_array, ndarray, dtype,
   npy_int64, PyArray_DATA, PyArray_GETPTR1, PyArray_DescrFromType, npy_intp,
   NPY_BOOL, NPY_STRING, NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64,
@@ -64,11 +83,11 @@ from .definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   H5Tget_member_offset,
   H5Tget_precision, H5Tget_sign, H5Tget_size, H5Tget_super, H5Tinsert,
   H5Tis_variable_str, H5Tpack, H5Tset_precision, H5Tset_size, H5Tvlen_create,
-  H5Zunregister, FILTER_BLOSC,
+  H5Zunregister, FILTER_BLOSC, FILTER_BLOSC2,
   PyArray_Scalar, create_ieee_complex128, create_ieee_complex64,
   create_ieee_float16, create_ieee_complex192, create_ieee_complex256,
   get_len_of_range, get_order, herr_t, hid_t, hsize_t,
-  hssize_t, htri_t, is_complex, register_blosc, set_order,
+  hssize_t, htri_t, is_complex, register_blosc, register_blosc2, set_order,
   pt_H5free_memory, H5T_STD_REF_OBJ, H5Rdereference, H5R_OBJECT, H5I_DATASET, H5I_REFERENCE,
   H5Iget_type, hobj_ref_t, H5Oclose)
 
@@ -184,14 +203,6 @@ cdef extern from "utils.h":
                              hid_t *type_id, hid_t *dataset_id) nogil
 
 
-# Functions from Blosc
-cdef extern from "blosc.h" nogil:
-  void blosc_init()
-  int blosc_set_nthreads(int nthreads)
-  const char* blosc_list_compressors()
-  int blosc_compcode_to_compname(int compcode, char **compname)
-  int blosc_get_complib_info(char *compname, char **complib, char **version)
-
 cdef extern from "H5ARRAY.h" nogil:
   herr_t H5ARRAYread(hid_t dataset_id, hid_t type_id,
                      hsize_t start, hsize_t nrows, hsize_t step,
@@ -266,25 +277,19 @@ cdef register_blosc_():
 
 blosc_version = register_blosc_()
 
-# Old versions (<1.4) of the blosc compression library
-# rely on unaligned memory access, so they are not functional on some
-# platforms (see https://github.com/FrancescAlted/blosc/issues/3 and
-# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=661286).
-# This function has been written by Julian Taylor <jtaylor@ubuntu.com>.
-def _arch_without_blosc():
-  import platform
-  arch = platform.machine().lower()
-  for a in ("arm", "sparc", "mips", "aarch64"):
-    if a in arch:
-      return True
-  return False
+cdef register_blosc2_():
+  cdef char *version
+  cdef char *date
 
-if blosc_version and blosc_version < ('1', '4') and _arch_without_blosc():
-  # Only use bloc compressor on platforms that actually support it.
-  H5Zunregister(FILTER_BLOSC)
-  blosc_version = None
-else:
-  blosc_init()  # from 1.2 on, Blosc library must be initialized
+  register_blosc2(&version, &date)
+  compinfo = (version, date)
+  free(version)
+  free(date)
+  return compinfo[0].decode('ascii'), compinfo[1].decode('ascii')
+
+blosc2_version = register_blosc2_()
+
+blosc_init()  # from 1.2 on, Blosc library must be initialized
 
 
 # Important: Blosc calls that modifies global variables in Blosc must be
@@ -608,7 +613,7 @@ def which_lib_version(str name):
   # get the C pointer
   cname = encoded_name
 
-  libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc')
+  libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc', 'blosc2')
 
   if strcmp(cname, "hdf5") == 0:
     binver, strver = getHDF5VersionInfo()
@@ -624,6 +629,10 @@ def which_lib_version(str name):
     if bzip2_version:
       (bzip2_version_string, bzip2_version_date) = bzip2_version
       return (bzip2_version, bzip2_version_string, bzip2_version_date)
+  elif strncmp(cname, "blosc2", 6) == 0:
+    if blosc2_version:
+      (blosc2_version_string, blosc2_version_date) = blosc2_version
+      return (blosc2_version, blosc2_version_string, blosc2_version_date)
   elif strncmp(cname, "blosc", 5) == 0:
     if blosc_version:
       (blosc_version_string, blosc_version_date) = blosc_version
@@ -638,11 +647,9 @@ def which_lib_version(str name):
 
 
 
-# A function returning all the compressors supported by local Blosc
+# A function returning all the compressors supported by Blosc
 def blosc_compressor_list():
   """
-  blosc_compressor_list()
-
   Returns a list of compressors available in the Blosc build.
 
   Parameters
@@ -659,11 +666,28 @@ def blosc_compressor_list():
   return clist
 
 
+# A function returning all the compressors supported by Blosc2
+def blosc2_compressor_list():
+  """
+  Returns a list of compressors available in the Blosc build.
+
+  Parameters
+  ----------
+  None
+
+  Returns
+  -------
+  out : list
+      The list of names.
+  """
+  list_compr = blosc1_list_compressors().decode()
+  clist = [str(cname) for cname in list_compr.split(',')]
+  return clist
+
+
 # Convert compressor code to compressor name
 def blosc_compcode_to_compname_(compcode):
   """
-  blosc_compcode_to_compname()
-
   Returns the compressor name associated with compressor code.
 
   Parameters
@@ -684,9 +708,31 @@ def blosc_compcode_to_compname_(compcode):
   return compname.decode()
 
 
+# Convert compressor code to compressor name
+def blosc2_compcode_to_compname_(compcode):
+  """
+  Returns the compressor name associated with compressor code.
+
+  Parameters
+  ----------
+  None
+
+  Returns
+  -------
+  out : string
+      The name of the compressor.
+  """
+  cdef const char *cname
+  cdef object compname
+
+  compname = b"unknown (report this to developers)"
+  if blosc1_compcode_to_compname(compcode, &cname) >= 0:
+    compname = cname
+  return compname.decode()
+
+
 def blosc_get_complib_info_():
-  """Get info from compression libraries included in the current build
-  of blosc.
+  """Get info from compression libraries included in Blosc.
 
   Returns a mapping containing the compressor names as keys and the
   tuple (complib, version) as values.
@@ -699,6 +745,31 @@ def blosc_get_complib_info_():
   cinfo = {}
   for name in blosc_list_compressors().split(b','):
     ret = blosc_get_complib_info(name, &complib, &version)
+    if ret < 0:
+      continue
+    if isinstance(name, str):
+      cinfo[name] = (complib, version)
+    else:
+      cinfo[name.decode()] = (complib.decode(), version.decode())
+    free(complib)
+    free(version)
+
+  return cinfo
+
+def blosc2_get_complib_info_():
+  """Get info from compression libraries included in Blosc2.
+
+  Returns a mapping containing the compressor names as keys and the
+  tuple (complib, version) as values.
+
+  """
+
+  cdef char *complib
+  cdef char *version
+
+  cinfo = {}
+  for name in blosc1_list_compressors().split(b','):
+    ret = blosc1_get_complib_info(name, &complib, &version)
     if ret < 0:
       continue
     if isinstance(name, str):
