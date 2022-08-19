@@ -34,6 +34,7 @@ from .utilsextension import (
     is_pytables_file,
     which_lib_version,
     set_blosc_max_threads,
+    set_blosc2_max_threads,
     silence_hdf5_messages,
 )
 
@@ -72,7 +73,8 @@ __all__ = [
     # Functions:
     'is_hdf5_file', 'is_pytables_file', 'which_lib_version',
     'copy_file', 'open_file', 'print_versions', 'test',
-    'split_type', 'restrict_flavors', 'set_blosc_max_threads',
+    'split_type', 'restrict_flavors',
+    'set_blosc_max_threads', 'set_blosc2_max_threads',
     'silence_hdf5_messages',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
