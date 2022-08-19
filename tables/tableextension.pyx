@@ -72,7 +72,8 @@ cdef extern from "H5TB-opt.h" nogil:
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
                           char *version, char *class_,
                           hid_t mem_type_id, hsize_t nrecords,
-                          hsize_t chunk_size, void *fill_data, int compress,
+                          hsize_t chunk_size, hsize_t block_size,
+                          void *fill_data, int compress,
                           char *complib, int shuffle, int fletcher32,
                           hbool_t track_times, void *data )
 
@@ -198,10 +199,11 @@ cdef class Table(Leaf):
       data = NULL
 
     class_ = self._c_classid.encode('utf-8')
+    cdef hsize_t blocksize = self._v_blocksize if hasattr(self, "_v_blocksize") else 0
     self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, encoded_name,
                                       cobversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
-                                      fill_data,
+                                      blocksize, fill_data,
                                       self.filters.complevel, encoded_complib,
                                       self.filters.shuffle_bitshuffle,
                                       self.filters.fletcher32,

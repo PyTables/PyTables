@@ -94,11 +94,11 @@ def get_blosc_version(headername):
 def get_blosc2_version(headername):
     major, minor, release = None, None, None
     for line in headername.read_text().splitlines():
-        if "BLOSC2_VERSION_MAJOR" in line:
+        if "BLOSC2_VERSION_MAJOR" in line and "major" in line:
             major = int(line.split()[2])
-        elif "BLOSC2_VERSION_MINOR" in line:
+        elif "BLOSC2_VERSION_MINOR" in line and "minor" in line:
             minor = int(line.split()[2])
-        elif "BLOSC2_VERSION_RELEASE" in line:
+        elif "BLOSC2_VERSION_RELEASE" in line and "tweaks" in line:
             release = int(line.split()[2])
         if None not in (major, minor, release):
             break
