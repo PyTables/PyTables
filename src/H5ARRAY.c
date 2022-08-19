@@ -144,7 +144,7 @@ hid_t H5ARRAYmake(  hid_t loc_id,
        cd_values[4] = compress;
        cd_values[5] = shuffle;
        blosc_compname = complib + 7;
-       blosc_compcode = blosc1_compname_to_compcode(blosc_compname);
+       blosc_compcode = blosc2_compname_to_compcode(blosc_compname);
        cd_values[6] = blosc_compcode;
        if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0 )
          return -1;

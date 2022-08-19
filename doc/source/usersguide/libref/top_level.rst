@@ -23,6 +23,8 @@ Global functions
 
 .. autofunction:: set_blosc_max_threads
 
+.. autofunction:: set_blosc2_max_threads
+
 .. autofunction:: print_versions
 
 .. autofunction:: restrict_flavors

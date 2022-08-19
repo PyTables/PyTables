@@ -35,16 +35,6 @@ from libc.string cimport strchr, strcmp, strncmp, strlen
 from cpython.bytes cimport PyBytes_Check, PyBytes_FromStringAndSize
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 
-# For some reason, Blosc2 headers must precede Blosc1 headers
-# Functions from Blosc2
-cdef extern from "blosc2.h" nogil:
-  void blosc1_init()
-  int blosc1_set_nthreads(int nthreads)
-  const char* blosc1_list_compressors()
-  int blosc1_compcode_to_compname(int compcode, char **compname)
-  int blosc1_get_complib_info(char *compname, char **complib, char **version)
-
-
 # Functions from Blosc
 cdef extern from "blosc.h" nogil:
   void blosc_init()
@@ -53,6 +43,13 @@ cdef extern from "blosc.h" nogil:
   int blosc_compcode_to_compname(int compcode, char **compname)
   int blosc_get_complib_info(char *compname, char **complib, char **version)
 
+# Functions from Blosc2
+cdef extern from "blosc2.h" nogil:
+  void blosc2_init()
+  int blosc2_set_nthreads(int nthreads)
+  const char* blosc2_list_compressors()
+  int blosc2_compcode_to_compname(int compcode, char **compname)
+  int blosc2_get_complib_info(char *compname, char **complib, char **version)
 
 from numpy cimport (import_array, ndarray, dtype,
   npy_int64, PyArray_DATA, PyArray_GETPTR1, PyArray_DescrFromType, npy_intp,
@@ -290,25 +287,40 @@ cdef register_blosc2_():
 blosc2_version = register_blosc2_()
 
 blosc_init()  # from 1.2 on, Blosc library must be initialized
-
+blosc2_init()
 
 # Important: Blosc calls that modifies global variables in Blosc must be
 # called from the same extension where Blosc is registered in HDF5.
 def set_blosc_max_threads(nthreads):
-  """set_blosc_max_threads(nthreads)
+    """set_blosc_max_threads(nthreads)
 
-  Set the maximum number of threads that Blosc can use.
+    Set the maximum number of threads that Blosc can use.
 
-  This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
-  setting in :mod:`tables.parameters`, so the new value will be effective until
-  this function is called again or a new file with a different
-  :data:`tables.parameters.MAX_BLOSC_THREADS` value is specified.
+    This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
+    setting in :mod:`tables.parameters`, so the new value will be effective until
+    this function is called again or a new file with a different
+    :data:`tables.parameters.MAX_BLOSC_THREADS` value is specified.
 
-  Returns the previous setting for maximum threads.
+    Returns the previous setting for maximum threads.
+    """
+    return blosc_set_nthreads(nthreads)
 
-  """
 
-  return blosc_set_nthreads(nthreads)
+# Important: Blosc2 calls that modifies global variables in Blosc2 must be
+# called from the same extension where Blosc2 is registered in HDF5.
+def set_blosc2_max_threads(nthreads):
+    """set_blosc2_max_threads(nthreads)
+
+    Set the maximum number of threads that Blosc2 can use.
+
+    This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
+    setting in :mod:`tables.parameters`, so the new value will be effective until
+    this function is called again or a new file with a different
+    :data:`tables.parameters.MAX_BLOSC_THREADS` value is specified.
+
+    Returns the previous setting for maximum threads.
+    """
+    return blosc2_set_nthreads(nthreads)
 
 
 # Initialize & register lzo
@@ -680,7 +692,7 @@ def blosc2_compressor_list():
   out : list
       The list of names.
   """
-  list_compr = blosc1_list_compressors().decode()
+  list_compr = blosc2_list_compressors().decode()
   clist = [str(cname) for cname in list_compr.split(',')]
   return clist
 
@@ -726,7 +738,7 @@ def blosc2_compcode_to_compname_(compcode):
   cdef object compname
 
   compname = b"unknown (report this to developers)"
-  if blosc1_compcode_to_compname(compcode, &cname) >= 0:
+  if blosc2_compcode_to_compname(compcode, &cname) >= 0:
     compname = cname
   return compname.decode()
 
@@ -768,8 +780,8 @@ def blosc2_get_complib_info_():
   cdef char *version
 
   cinfo = {}
-  for name in blosc1_list_compressors().split(b','):
-    ret = blosc1_get_complib_info(name, &complib, &version)
+  for name in blosc2_list_compressors().split(b','):
+    ret = blosc2_get_complib_info(name, &complib, &version)
     if ret < 0:
       continue
     if isinstance(name, str):
