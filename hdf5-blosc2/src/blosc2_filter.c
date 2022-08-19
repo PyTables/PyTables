@@ -101,7 +101,6 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
     PUSH_ERR("blosc2_set_local", H5E_CALLBACK, "Chunk rank exceeds limit");
     return -1;
   }
-  values[1] = ndims;
 
   typesize = H5Tget_size(type);
   if (typesize == 0) return -1;
@@ -155,6 +154,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
   void* outbuf = NULL;
   int status = 0;                /* Return code from Blosc2 routines */
+  size_t blocksize;
   size_t typesize;
   size_t outbuf_size;
   int clevel = 5;                /* Compression level default */
@@ -162,8 +162,11 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   int compcode = BLOSC_BLOSCLZ;  /* Codec by default */
 
   /* Filter params that are always set */
+  blocksize = cd_values[1];      /* The block size */
   typesize = cd_values[2];      /* The datatype size */
   outbuf_size = cd_values[3];   /* Precomputed buffer guess */
+
+  blosc2_init();
 
   if (!(flags & H5Z_FLAG_REVERSE)) {
     /* We're compressing */
@@ -173,9 +176,9 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     if (cd_nelmts >= 7) {
       compcode = cd_values[6];    /* The Blosc2 compressor used */
       /* Check that we actually have support for the compressor code */
-      const char* complist = blosc1_list_compressors();
+      const char* complist = blosc2_list_compressors();
       const char* compname;
-      int code = blosc1_compcode_to_compname(compcode, &compname);
+      int code = blosc2_compcode_to_compname(compcode, &compname);
       if (code == -1) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                  "this Blosc2 library does not have support for "
@@ -195,9 +198,12 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     cparams.typesize = typesize;
     cparams.filters[BLOSC_LAST_FILTER] = doshuffle;
     cparams.clevel = clevel;
+    /* Use 4 threads for the threads.  In the future it should be allowed to
+     * set this from the public API.
+     */
     cparams.nthreads = 4;
-    /* Use 64 KB for the blocksize.  In the future it should be allowed to
-     * set this for the public API.
+    //cparams.blocksize = blocksize;
+    /* The above is not getting great performance. Use 64 KB for the blocksize.
      */
     cparams.blocksize = 65536;
     blosc2_context *cctx = blosc2_create_cctx(cparams);
@@ -230,7 +236,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   } else {
     /* We're decompressing */
     /* declare dummy variables */
-    size_t cbytes, blocksize;
+    int32_t cbytes;
 
     blosc2_schunk* schunk = blosc2_schunk_from_buffer(*buf, (int64_t)nbytes, false);
     if (schunk == NULL) {
@@ -247,7 +253,9 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     }
 
     /* Get the exact outbuf_size from the buffer header */
-    blosc1_cbuffer_sizes(chunk, &outbuf_size, &cbytes, &blocksize);
+    int32_t nbytes;
+    blosc2_cbuffer_sizes(chunk, &nbytes, NULL, NULL);
+    outbuf_size = nbytes;
 
 #ifdef BLOSC2_DEBUG
     fprintf(stderr, "Blosc2: Decompress %zd chunk w/buffer %zd\n", nbytes, outbuf_size);
@@ -260,6 +268,9 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     }
 
     blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
+    /* Use 4 threads for the threads.  In the future it should be allowed to
+     * set this from the public API.
+     */
     dparams.nthreads = 4;
     blosc2_context *dctx = blosc2_create_dctx(dparams);
     status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, outbuf_size);
@@ -286,6 +297,8 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
   failed:
   free(outbuf);
+  blosc2_destroy();
+
   return 0;
 
 } /* End filter function */

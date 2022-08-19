@@ -9,7 +9,7 @@ M = 1_000_000
 # Number of rows in table
 N = 100 * M
 
-filename = "simple-table.h5"
+filename = "simple-table-blosc2.h5"
 filters = tb.Filters(9, "blosc2", shuffle=True)
 #filters = tb.Filters(9, "zlib", shuffle=True)
 #dt = np.dtype([('int32', np.int32), ('float32', np.float32, 10)])
