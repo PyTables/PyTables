@@ -107,6 +107,24 @@ def get_blosc2_version(headername):
     return Version(f"{major}.{minor}.{release}")
 
 
+def get_blosc2_directories():
+    import blosc2
+    from pathlib import Path
+    version = blosc2.__version__
+    basepath = Path(os.path.dirname(blosc2.__file__))
+    recinfo = basepath / '..' / f'blosc2-{version}.dist-info' / 'RECORD'
+    library_path = None
+    for line in open(recinfo):
+        if 'include' in line:
+            library_path = basepath / '..' / Path(line[:line.find('include')])
+            break
+    if not library_path:
+        raise NotADirectoryError("Include directory not found for blosc2!")
+    include_path = os.path.abspath(library_path / 'include')
+    lib_path = os.path.abspath(Path(library_path) / 'lib')
+    return Path(include_path), Path(lib_path)
+
+
 def newer(source, target):
     """Return true if 'source' exists and is more recently modified than
     'target', or if 'source' exists and 'target' doesn't.  Return false if
@@ -211,10 +229,10 @@ if __name__ == "__main__":
         cpu_flags = []
 
     # The minimum required versions
-    min_python_version = (3, 6)
+    min_python_version = (3, 8)
     # Check for Python
     if sys.version_info < min_python_version:
-        exit_with_error("You need Python 3.6 or greater to install PyTables!")
+        exit_with_error("You need Python 3.8 or greater to install PyTables!")
     print(f"* Using Python {sys.version.splitlines()[0]}")
 
     try:
@@ -235,9 +253,11 @@ if __name__ == "__main__":
 
     debug = "--debug" in sys.argv
 
+    blosc2_inc, blosc2_lib = get_blosc2_directories()
+
     # Global variables
-    lib_dirs = []
-    inc_dirs = [Path("hdf5-blosc/src"), Path("hdf5-blosc2/src")]
+    lib_dirs = [blosc2_lib]
+    inc_dirs = [Path("hdf5-blosc/src"), Path("hdf5-blosc2/src"), blosc2_inc]
     optional_libs = []
 
     default_header_dirs = None
@@ -947,6 +967,8 @@ if __name__ == "__main__":
     if "BLOSC2" in optional_libs:
         blosc_sources += [Path("hdf5-blosc2/src/blosc2_filter.c")]
         ADDLIBS += ["blosc2"]
+    else:
+        exit_with_error("Unable to find the blosc2 library.")
 
     utilsExtension_libs = LIBS + ADDLIBS
     hdf5Extension_libs = LIBS + ADDLIBS
@@ -967,15 +989,17 @@ if __name__ == "__main__":
             complibs.extend([hdf5_package.library_name, package.library_name])
 
     # Extension expects strings, so we have to convert Path to str
-    blosc_sources = [str(x) for x in blosc_sources]
-    inc_dirs = [str(x) for x in inc_dirs]
+    # We remove duplicates too
+    blosc_sources = list(set([str(x) for x in blosc_sources]))
+    inc_dirs = list(set([str(x) for x in inc_dirs]))
+    lib_dirs = list(set([str(x) for x in lib_dirs]))
 
     extension_kwargs = {
         "extra_compile_args": CFLAGS,
         "extra_link_args": LFLAGS,
-        "library_dirs": [str(x) for x in lib_dirs],
+        "library_dirs": lib_dirs,
         "define_macros": def_macros,
-        "include_dirs": [str(x) for x in inc_dirs],
+        "include_dirs": inc_dirs,
     }
 
     extensions = [
