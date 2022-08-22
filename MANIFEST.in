@@ -8,6 +8,7 @@ recursive-include tables/nodes/tests *.h5 *.dat *.xbm
 recursive-include src *.c *.h
 
 include hdf5-blosc/src/blosc_filter.?
+include hdf5-blosc2/src/blosc2_filter.?
 recursive-include c-blosc/blosc *.c *.h *.inc
 recursive-include c-blosc/internal-complibs *.c *.cc *.h
 
