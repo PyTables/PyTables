@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Install APT packages
         if: contains(${{ matrix.os }}, 'ubuntu')
@@ -60,12 +60,12 @@ jobs:
         arch: [ 'x86_64' ]
         cibw_python: [ "cp*" ]
         include:
-           - arch: aarch64
-             cibw_python: cp36-*
-             os: ubuntu-latest
-           - arch: aarch64
-             cibw_python: cp37-*
-             os: ubuntu-latest
+#           - arch: aarch64
+#             cibw_python: cp36-*
+#             os: ubuntu-latest
+#           - arch: aarch64
+#             cibw_python: cp37-*
+#             os: ubuntu-latest
            - arch: aarch64
              cibw_python: cp38-*
              os: ubuntu-latest
@@ -174,7 +174,8 @@ jobs:
       - name: Build wheels for Windows (${{ matrix.arch }})
         run: cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp36-${{ matrix.arch }} cp37-${{ matrix.arch }} cp38-${{ matrix.arch }} cp39-${{ matrix.arch }} cp310-${{ matrix.arch }}"
+          # CIBW_BUILD: "cp36-${{ matrix.arch }} cp37-${{ matrix.arch }} cp38-${{ matrix.arch }} cp39-${{ matrix.arch }} cp310-${{ matrix.arch }}"
+          CIBW_BUILD: "cp38-${{ matrix.arch }} cp39-${{ matrix.arch }} cp310-${{ matrix.arch }}"
           CIBW_BEFORE_ALL_WINDOWS: "conda create --yes --name=build && conda activate build && conda config --env --set subdir ${{ matrix.arch == 'win32' && 'win-32' || 'win-64' }} && conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib"
           CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build" PATH="$PATH;C:\\Miniconda\\envs\\build\\Library\\bin"'
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
@@ -193,7 +194,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
-        python-version: ['3.7', '3.8', '3.9','3.10']
+        # python-version: ['3.7', '3.8', '3.9','3.10']
+        python-version: [3.8', '3.9','3.10']
         arch: ['x64', 'x86']
         exclude:
         - os: 'ubuntu-latest'
