@@ -108,21 +108,33 @@ def get_blosc2_version(headername):
 
 
 def get_blosc2_directories():
-    import blosc2
     from pathlib import Path
-    version = blosc2.__version__
-    basepath = Path(os.path.dirname(blosc2.__file__))
-    recinfo = basepath / '..' / f'blosc2-{version}.dist-info' / 'RECORD'
+    import os
     library_path = None
-    for line in open(recinfo):
-        if 'include' in line:
-            library_path = basepath / '..' / Path(line[:line.find('include')])
-            break
-    if not library_path:
-        raise NotADirectoryError("Include directory not found for blosc2!")
-    include_path = os.path.abspath(library_path / 'include')
-    lib_path = os.path.abspath(Path(library_path) / 'lib')
-    return Path(include_path), Path(lib_path)
+    # First try with the conda package
+    if 'CONDA_PREFIX' in os.environ:
+        library_path = Path(os.environ['CONDA_PREFIX'])
+        if not os.path.isfile(library_path / 'include' / 'blosc2.h'):
+            library_path = None
+    if library_path is None:
+        # Then, the wheel
+        try:
+            import blosc2
+        except ImportError:
+            raise EnvironmentError("Cannot find neither the c-blosc2 package nor the python-blosc2 wheel")
+        version = blosc2.__version__
+        basepath = Path(os.path.dirname(blosc2.__file__))
+        recinfo = basepath / '..' / f'blosc2-{version}.dist-info' / 'RECORD'
+        for line in open(recinfo):
+            if 'include' in line:
+                library_path = basepath / '..' / Path(line[:line.find('include')])
+                break
+    include_path = Path(library_path) / 'include'
+    lib_path = Path(library_path) / 'lib'
+    if not os.path.isfile(include_path / 'blosc2.h'):
+        library_path = os.path.abspath(library_path)
+        raise NotADirectoryError("Install directory for blosc2 not found in %s" % library_path)
+    return os.path.abspath(include_path), os.path.abspath(lib_path)
 
 
 def newer(source, target):
