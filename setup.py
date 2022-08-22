@@ -11,6 +11,7 @@ import tempfile
 import textwrap
 import subprocess
 from pathlib import Path
+import re
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, Extension
@@ -108,32 +109,52 @@ def get_blosc2_version(headername):
 
 
 def get_blosc2_directories():
-    from pathlib import Path
-    import os
     library_path = None
+    lib_dir = None
+
     # First try with the conda package
     if 'CONDA_PREFIX' in os.environ:
         library_path = Path(os.environ['CONDA_PREFIX'])
+        if os.name == "nt":
+            library_path /= 'Library'
+            if os.path.isdir(library_path / 'lib'):
+                lib_dir = 'lib'
+        else:
+            if os.path.isdir(library_path / 'lib64'):
+                lib_dir = 'lib64'
+            elif os.path.isdir(library_path / 'lib'):
+                lib_dir = 'lib'
+        print("lib_dir(0):", lib_dir)
         if not os.path.isfile(library_path / 'include' / 'blosc2.h'):
             library_path = None
+
+    # If not found in conda, then try the wheel
     if library_path is None:
-        # Then, the wheel
         try:
             import blosc2
-        except ImportError:
+        except ModuleNotFoundError:
             raise EnvironmentError("Cannot find neither the c-blosc2 package nor the python-blosc2 wheel")
         version = blosc2.__version__
         basepath = Path(os.path.dirname(blosc2.__file__))
         recinfo = basepath / '..' / f'blosc2-{version}.dist-info' / 'RECORD'
         for line in open(recinfo):
-            if 'include' in line:
-                library_path = basepath / '..' / Path(line[:line.find('include')])
+            if 'lib' in line:
+                print("line ->", line)
+                library_path = basepath / '..' / Path(line[:line.find('lib')])
+                # Check for lib or lib64 (or whatever comes after 'lib')
+                lib_dir = re.findall('\/(lib.*)\/', line)[0]
+                print("lib_dir:", lib_dir)
                 break
+        if not library_path:
+            raise NotADirectoryError("Library directory not found for blosc2!")
+
     include_path = Path(library_path) / 'include'
-    lib_path = Path(library_path) / 'lib'
+    lib_path = Path(library_path) / lib_dir
     if not os.path.isfile(include_path / 'blosc2.h'):
         library_path = os.path.abspath(library_path)
         raise NotADirectoryError("Install directory for blosc2 not found in %s" % library_path)
+
+    print("blosc2 paths ->", os.path.abspath(include_path), os.path.abspath(lib_path))
     return os.path.abspath(include_path), os.path.abspath(lib_path)
 
 
