@@ -329,6 +329,11 @@ if __name__ == "__main__":
         default_runtime_dirs.append(
             Path(sys.prefix) / "Lib" / "site-packages" / "tables"
         )
+        # Attempt at finding the Blosc2 DLL
+        # (at Library/bin/libblosc2.dll in c-blosc2 conda-forge package)
+        default_runtime_dirs.append(
+            Path(blosc2_lib) / '..' / "bin"
+        )
 
     # Gcc 4.0.1 on Mac OS X 10.4 does not seem to include the default
     # header and library paths.  See ticket #18.
