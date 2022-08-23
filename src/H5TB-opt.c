@@ -296,7 +296,7 @@ herr_t H5TBOread_records( char* filename,
  if (native_order) {
   /* Try to read using blosc2 (only supports native byteorder) */
   if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
-                          start, nrecords, data) >= 0)
+                          start, nrecords, (uint8_t*)data) >= 0)
    goto success;
  }
 
@@ -355,7 +355,7 @@ herr_t read_records_blosc2( char* filename,
                             hid_t space_id,
                             hsize_t start,
                             hsize_t nrecords,
-                            void *data )
+                            uint8_t *data )
 {
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);

@@ -35,7 +35,7 @@ herr_t read_records_blosc2( char* filename,
                             hid_t space_id,
                             hsize_t start,
                             hsize_t nrecords,
-                            void *data );
+                            uint8_t *data );
 
 herr_t H5TBOread_elements( hid_t dataset_id,
                            hid_t mem_type_id,
