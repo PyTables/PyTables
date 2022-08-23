@@ -840,34 +840,34 @@ if __name__ == "__main__":
                 "nt": "any of the directories in %%PATH%%",
             }[os.name]
 
-            if "bdist_wheel" in sys.argv and os.name == "nt":
-                exit_with_error(
-                    f"Could not find the {package.name} runtime.",
-                    f"The {package.name} shared library was *not* found in "
-                    f"{loc}. Cannot build wheel without the runtime.",
-                )
-            else:
-                if package.name == "blosc2":
-                    # We will copy this into the tables directory
-                    print("  * Copying blosc2 runtime library to 'tables' dir"
-                          " because it was not found in standard locations")
-                    platform_system = platform.system()
-                    if platform_system == "Linux":
-                        shutil.copy(libdir / 'libblosc2.so', 'tables')
-                        copy_libs += ['libblosc2.so']
-                    elif platform_system == "Darwin":
-                        shutil.copy(libdir / 'libblosc2.dylib', 'tables')
-                        copy_libs += ['libblosc2.dylib']
-                    else:
-                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
-                        copy_libs += ['libblosc2.dll']
+            if package.name == "blosc2":
+                # We will copy this into the tables directory
+                print("  * Copying blosc2 runtime library to 'tables' dir"
+                      " because it was not found in standard locations")
+                platform_system = platform.system()
+                if platform_system == "Linux":
+                    shutil.copy(libdir / 'libblosc2.so', 'tables')
+                    copy_libs += ['libblosc2.so']
+                elif platform_system == "Darwin":
+                    shutil.copy(libdir / 'libblosc2.dylib', 'tables')
+                    copy_libs += ['libblosc2.dylib']
                 else:
-                    print_warning(
+                    shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
+                    copy_libs += ['libblosc2.dll']
+            else:
+                if "bdist_wheel" in sys.argv and os.name == "nt":
+                    exit_with_error(
                         f"Could not find the {package.name} runtime.",
-                        f"The {package.name} shared library was *not* found "
-                        f"in {loc}. In case of runtime problems, please "
-                        f"remember to install it.",
+                        f"The {package.name} shared library was *not* found in "
+                        f"{loc}. Cannot build wheel without the runtime.",
                     )
+
+                print_warning(
+                    f"Could not find the {package.name} runtime.",
+                    f"The {package.name} shared library was *not* found "
+                    f"in {loc}. In case of runtime problems, please "
+                    f"remember to install it.",
+                )
 
 
         if os.name == "nt":
