@@ -117,14 +117,10 @@ def get_blosc2_directories():
         library_path = Path(os.environ['CONDA_PREFIX'])
         if os.name == "nt":
             library_path /= 'Library'
-            if os.path.isdir(library_path / 'lib'):
-                lib_dir = 'lib'
-        else:
-            if os.path.isdir(library_path / 'lib64'):
-                lib_dir = 'lib64'
-            elif os.path.isdir(library_path / 'lib'):
-                lib_dir = 'lib'
-        print("lib_dir(0):", lib_dir)
+        if os.path.isdir(library_path / 'lib64'):
+            lib_dir = 'lib64'
+        elif os.path.isdir(library_path / 'lib'):
+            lib_dir = 'lib'
         if not os.path.isfile(library_path / 'include' / 'blosc2.h'):
             library_path = None
 
@@ -133,28 +129,29 @@ def get_blosc2_directories():
         try:
             import blosc2
         except ModuleNotFoundError:
-            raise EnvironmentError("Cannot find neither the c-blosc2 package nor the python-blosc2 wheel")
+            raise EnvironmentError(
+                "Cannot find neither the c-blosc2 package nor the "
+                "python-blosc2 wheel")
         version = blosc2.__version__
         basepath = Path(os.path.dirname(blosc2.__file__))
-        recinfo = basepath / '..' / f'blosc2-{version}.dist-info' / 'RECORD'
+        recinfo = basepath.parent / f'blosc2-{version}.dist-info' / 'RECORD'
         for line in open(recinfo):
-            if 'lib' in line:
-                print("line ->", line)
-                library_path = basepath / '..' / Path(line[:line.find('lib')])
+            if 'libblosc2' in line:
+                library_path = basepath.parent / \
+                               Path(line[:line.find('libblosc2')]) / '..'
                 # Check for lib or lib64 (or whatever comes after 'lib')
                 lib_dir = re.findall('\/(lib.*)\/', line)[0]
-                print("lib_dir:", lib_dir)
                 break
         if not library_path:
             raise NotADirectoryError("Library directory not found for blosc2!")
 
-    include_path = Path(library_path) / 'include'
     lib_path = Path(library_path) / lib_dir
+    include_path = Path(library_path) / 'include'
     if not os.path.isfile(include_path / 'blosc2.h'):
         library_path = os.path.abspath(library_path)
         raise NotADirectoryError("Install directory for blosc2 not found in %s" % library_path)
 
-    print("blosc2 paths ->", os.path.abspath(include_path), os.path.abspath(lib_path))
+    # print("blosc2 paths ->", os.path.abspath(include_path), os.path.abspath(lib_path))
     return os.path.abspath(include_path), os.path.abspath(lib_path)
 
 
@@ -328,11 +325,6 @@ if __name__ == "__main__":
         # Add the \path_to_python\DLLs and tables package to the list
         default_runtime_dirs.append(
             Path(sys.prefix) / "Lib" / "site-packages" / "tables"
-        )
-        # Attempt at finding the Blosc2 DLL
-        # (at Library/bin/libblosc2.dll in c-blosc2 conda-forge package)
-        default_runtime_dirs.append(
-            Path(blosc2_lib) / '..' / "bin"
         )
 
     # Gcc 4.0.1 on Mac OS X 10.4 does not seem to include the default
@@ -719,6 +711,9 @@ if __name__ == "__main__":
     # Try to locate the compulsory and optional libraries.
     lzo2_enabled = False
     compiler = new_compiler()
+    if not BLOSC2_DIR:
+        # Inject the blosc2 directory as detected
+        BLOSC2_DIR = os.path.dirname(blosc2_inc)
     for (package, location) in [
         (hdf5_package, HDF5_DIR),
         (lzo2_package, LZO_DIR),
@@ -851,12 +846,25 @@ if __name__ == "__main__":
                     f"{loc}. Cannot build wheel without the runtime.",
                 )
             else:
-                print_warning(
-                    f"Could not find the {package.name} runtime.",
-                    f"The {package.name} shared library was *not* found "
-                    f"in {loc}. In case of runtime problems, please "
-                    f"remember to install it.",
-                )
+                if package.name == 'blosc2':
+                    # We will copy this into the tables directory
+                    print("  * Copying blosc2 runtime library to 'tables' dir"
+                          " because it was not found in standard locations")
+                    platform_system = platform.system()
+                    if platform_system == "Linux":
+                        shutil.copy(libdir / 'libblosc2.so', 'tables')
+                    elif platform_system == "Darwin":
+                        shutil.copy(libdir / 'libblosc2.dylib', 'tables')
+                    else:
+                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
+                else:
+                    print_warning(
+                        f"Could not find the {package.name} runtime.",
+                        f"The {package.name} shared library was *not* found "
+                        f"in {loc}. In case of runtime problems, please "
+                        f"remember to install it.",
+                    )
+
 
         if os.name == "nt":
             # LZO DLLs cannot be copied to the binary package for license
