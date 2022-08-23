@@ -289,6 +289,7 @@ if __name__ == "__main__":
     lib_dirs = [blosc2_lib]
     inc_dirs = [Path("hdf5-blosc/src"), Path("hdf5-blosc2/src"), blosc2_inc]
     optional_libs = []
+    copy_libs = []
 
     default_header_dirs = None
     default_library_dirs = None
@@ -846,17 +847,20 @@ if __name__ == "__main__":
                     f"{loc}. Cannot build wheel without the runtime.",
                 )
             else:
-                if package.name == 'blosc2':
+                if package.name == "blosc2":
                     # We will copy this into the tables directory
                     print("  * Copying blosc2 runtime library to 'tables' dir"
                           " because it was not found in standard locations")
                     platform_system = platform.system()
                     if platform_system == "Linux":
                         shutil.copy(libdir / 'libblosc2.so', 'tables')
+                        copy_libs += ['libblosc2.so']
                     elif platform_system == "Darwin":
                         shutil.copy(libdir / 'libblosc2.dylib', 'tables')
+                        copy_libs += ['libblosc2.dylib']
                     else:
                         shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
+                        copy_libs += ['libblosc2.dll']
                 else:
                     print_warning(
                         f"Could not find the {package.name} runtime.",
@@ -1126,8 +1130,12 @@ if __name__ == "__main__":
     ]
 
     setup(
+        name='tables',
         version=VERSION,
         install_requires=requirements,
         ext_modules=extensions,
         cmdclass={"build_ext": BuildExtensions},
+        package_dir={"tables": "tables"},
+        # packages=["tables", "tables.scripts", "tables.tests", "tables.nodes", "tables.misc"],
+        package_data={"tables": copy_libs},
     )
