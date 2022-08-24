@@ -2,5 +2,7 @@
 # doc/source/usersguide/installation.rst
 numpy>=1.19.0
 numexpr>=2.6.2
+# blosc2 wheel is actually only needed when compiling on conda envs.
+# Otherwise, lib comes bundled in PyTables wheels (but it doesn't hurt either).
 blosc2>=0.3.1
 packaging
