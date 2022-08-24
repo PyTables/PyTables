@@ -423,13 +423,12 @@ herr_t read_records_blosc2( char* filename,
   }
 
   int32_t blockshape = schunk->blocksize / typesize;
-  //printf("blocksize: %d,", schunk->blocksize);
   int32_t nblocks = chunkshape / blockshape;
   int32_t start_nblock = start_chunk / blockshape;
   int32_t stop_nblock = (start_chunk + nrecords_chunk) / blockshape;
+
   if (nrecords_chunk > blockshape) {
-   /* We have a considerable amount of records to read, so use a masked read */
-   //printf("d:%d,", nrecords_chunk);
+   /* We have more than 1 block to read, so use a masked read */
    bool *block_maskout = calloc(nblocks, 1);
    int32_t nblocks_set = 0;
    for (int32_t nblock = 0; nblock < nblocks; nblock++) {
@@ -438,7 +437,6 @@ herr_t read_records_blosc2( char* filename,
      nblocks_set++;
     }
    }
-   //printf("nblocks_set: %d, ", nblocks_set);
    if (blosc2_set_maskout(dctx, block_maskout, nblocks) != BLOSC2_ERROR_SUCCESS) {
     PUSH_ERR("blosc2", H5E_CALLBACK, "Error setting the maskout");
     goto out;
@@ -453,12 +451,10 @@ herr_t read_records_blosc2( char* filename,
    memcpy(data, buffer_out + start_chunk * typesize, rbytes);
    data += rbytes;
    total_records += nrecords_chunk;
-   //printf("rbytes (decompress): %d,", rbytes);
    free(block_maskout);
   }
   else {
-   /* A small amount of records: use a getitem call */
-   //printf("i:%d,", nrecords_chunk);
+   /* Less than 1 block to read; use a getitem call */
    int rbytes = blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, nrecords_chunk, buffer_out, chunksize);
    if (rbytes < 0) {
     PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot get items for lazychunk\n");
@@ -468,7 +464,6 @@ herr_t read_records_blosc2( char* filename,
    memcpy(data, buffer_out, rbytes);
    data += rbytes;
    total_records += nrecords_chunk;
-   //printf("rbytes (getitem): %d\n", rbytes);
   }
 
   if (needs_free) {

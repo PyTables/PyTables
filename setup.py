@@ -115,8 +115,6 @@ def get_blosc2_directories():
     # First try with the conda package
     if 'CONDA_PREFIX' in os.environ:
         library_path = Path(os.environ['CONDA_PREFIX'])
-        # if os.name == "nt":
-        #     library_path /= 'Library'
         if os.path.isdir(library_path / 'lib64'):
             lib_dir = 'lib64'
         elif os.path.isdir(library_path / 'lib'):
