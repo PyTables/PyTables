@@ -66,3 +66,4 @@ check: build
 
 heavycheck: build
 	cd build/lib.* && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py --heavy
+
