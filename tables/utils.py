@@ -207,7 +207,7 @@ def lazyattr(fget):
     >>> del obj.attribute
     Traceback (most recent call last):
       ...
-    AttributeError: can't delete attribute
+    AttributeError: can't delete attribute 'attribute'
 
     .. warning::
 
