@@ -137,8 +137,11 @@ def get_blosc2_directories():
             if 'libblosc2' in line:
                 library_path = basepath.parent / \
                                Path(line[:line.find('libblosc2')]) / '..'
-                # Check for lib or lib64 (or whatever comes after 'lib')
-                lib_dir = re.findall('\/(lib.*)\/', line)[0]
+                if os.name == "nt":
+                    lib_dir = "Lib"
+                else:
+                    # Check for lib or lib64 (or whatever comes after 'lib')
+                    lib_dir = re.findall('\/(lib.*)\/', line)[0]
                 break
         if not library_path:
             raise NotADirectoryError("Library directory not found for blosc2!")
