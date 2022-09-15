@@ -583,7 +583,7 @@ cdef class Table(Leaf):
     rbuf = PyArray_DATA(recarr)
 
     # Read the records from disk
-    cdef hbool_t native_order = self.byteorder == platform_byteorder
+    cdef hbool_t native_order = self.byteorder == sys.byteorder
     with nogil:
         ret = H5TBOread_records(filename, native_order, self.dataset_id,
                                 self.type_id, start, nrecords, rbuf)
@@ -604,7 +604,7 @@ cdef class Table(Leaf):
     cdef NumCache chunkcache
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
-    cdef hbool_t native_order = self.byteorder == platform_byteorder
+    cdef hbool_t native_order = self.byteorder == sys.byteorder
 
     chunkcache = self._chunkcache
     chunkshape = chunkcache.slotsize
@@ -660,7 +660,7 @@ cdef class Table(Leaf):
     cdef hsize_t i
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
-    cdef hbool_t native_order = self.byteorder == platform_byteorder
+    cdef hbool_t native_order = self.byteorder == sys.byteorder
 
     if step == 1:
       nrecords = stop - start
