@@ -11,7 +11,8 @@ extern "C" {
 #define FILTER_BLOSC2_VERSION 1
 
 /* Filter ID registered with the HDF Group */
-#define FILTER_BLOSC2 256  /* Register with THG later on */
+/* See https://portal.hdfgroup.org/display/support/Filters */
+#define FILTER_BLOSC2 32026
 
 /* Registers the filter with the HDF5 library. */
 #if defined(_MSC_VER)
