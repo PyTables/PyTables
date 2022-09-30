@@ -292,7 +292,6 @@ herr_t H5TBOread_records( char* filename,
  /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
-
  if (native_order) {
   /* Try to read using blosc2 (only supports native byteorder) */
   if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
@@ -362,15 +361,13 @@ herr_t read_records_blosc2( char* filename,
  size_t cd_nelmts = 6;
  unsigned cd_values[6];
  char name[7];
- if (H5Pget_filter_by_id2(dcpl, 256, NULL, &cd_nelmts,	cd_values, 7, name, NULL) < 0) {
+ if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
   goto out;
  }
- /* Double check that the compressor name is correct */
+ /* Check that the compressor name is correct */
  if (strcmp(name, "blosc2") != 0) {
-  PUSH_ERR("blosc2", H5E_CALLBACK, "Filter %s is not blosc2\n", name);
   goto out;
  }
-
  int32_t typesize = cd_values[2];
  int32_t chunksize = cd_values[3];
 
@@ -410,6 +407,13 @@ herr_t read_records_blosc2( char* filename,
    goto out;
   }
 
+  int32_t blocksize;
+  if (blosc2_cbuffer_sizes(chunk, NULL, NULL, &blocksize) < 0) {
+    printf("CBUFFER ERR\n");
+    goto out;
+  }
+ // printf("Blocksize: %d, blockshape: %d\n", blocksize, (blocksize / typesize));
+
   blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
   // Experiments say that 4 threads do not harm performance
   dparams.nthreads = 4;
@@ -422,7 +426,8 @@ herr_t read_records_blosc2( char* filename,
    nrecords_chunk = nrecords - total_records;
   }
 
-  int32_t blockshape = schunk->blocksize / typesize;
+  int32_t blockshape = blocksize / typesize;
+// printf("DEBUG\n");
   int32_t nblocks = chunkshape / blockshape;
   int32_t start_nblock = start_chunk / blockshape;
   int32_t stop_nblock = (start_chunk + nrecords_chunk) / blockshape;
@@ -596,6 +601,12 @@ herr_t H5TBOappend_records( hid_t dataset_id,
  if ( (space_id = H5Dget_space(dataset_id)) < 0 )
   return -1;
 
+  /* Try to read using blosc2 (only supports native byteorder) */
+ if (append_records_blosc2(dataset_id, mem_type_id, space_id,
+                           nrecords, nrecords_orig,
+                           (uint8_t*)data) >= 0)
+  goto success;
+
  /* Define a hyperslab in the dataset */
  offset[0] = nrecords_orig;
  if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
@@ -604,6 +615,7 @@ herr_t H5TBOappend_records( hid_t dataset_id,
  if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
   goto out;
 
+ success:
  /* Terminate access to the dataspace */
  if ( H5Sclose( mem_space_id ) < 0 )
   goto out;
@@ -616,6 +628,115 @@ out:
  return -1;
 
 }
+
+
+/*-------------------------------------------------------------------------
+ * Function: append_records_blosc2
+ *
+ * Purpose: Append records to a table using blosc2
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Francesc Alted, francesc@blosc.org
+ *
+ * Date: September 5, 2022
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t append_records_blosc2( hid_t dataset_id,
+                              hid_t mem_type_id,
+                              hid_t space_id,
+                              hsize_t nrecords,
+                              hsize_t nrecords_orig,
+                              uint8_t *data )
+{
+ /* Get the dataset creation property list */
+ hid_t dcpl = H5Dget_create_plist(dataset_id);
+ size_t cd_nelmts = 6;
+ unsigned cd_values[6];
+ char name[7];
+ if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
+  goto out;
+ }
+ int32_t typesize = cd_values[2];
+ int32_t chunksize = cd_values[3];
+ int chunkshape;
+ H5Pget_chunk(dcpl, 1, &chunkshape);
+
+ /* Check that the compressor name is correct */
+ if (strcmp(name, "blosc2") != 0) {
+  printf("OUT2\n");
+ goto out;
+ }
+
+ /* Compress data into superchunk and get frame */
+ blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
+ // Experiments say that 4 threads do not harm performance
+ cparams.nthreads = 4;
+ cparams.typesize = typesize;
+ blosc2_context *cctx = blosc2_create_cctx(cparams);
+ blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
+
+ blosc2_storage storage = {.cparams=&cparams, .dparams=&dparams,
+                           .contiguous=true};
+ size_t chunk_size = nrecords * typesize;
+ blosc2_schunk *sc = blosc2_schunk_new(&storage);
+ if (blosc2_schunk_append_buffer(sc, data, chunk_size) <= 0) {
+  printf("OUT3\n");
+  goto out;
+ }
+ uint8_t* cframe;
+ bool needs_free2;
+ int cfsize = blosc2_schunk_to_buffer(sc, &cframe, &needs_free2);
+ if (cfsize <= 0) {
+  printf("OUT4\n");
+  goto out;
+ }
+ printf("chunkshape %d\n", chunkshape);
+
+ /* Write frame bypassing HDF5 filter pipeline */
+ unsigned flt_msk = 0;
+ haddr_t offset[8];
+ printf("\nParticle %d to append\n", ((int32_t*) data)[4]);
+
+ int num_chunks;
+ if (H5Dget_num_chunks(dataset_id, H5S_ALL, &num_chunks) < 0) {
+  printf("OUT5\n");
+  goto out;
+ }
+ printf("Num chunks %d\n", num_chunks);
+ printf("chunkshape %d\n", chunkshape);
+
+ int storage_size = H5Dget_storage_size(dataset_id);
+ if (storage_size < 0) {
+  printf("OUT6\n");
+  goto out;
+ }
+ printf("Storage size %d\n", storage_size);
+ printf("Cf size %d\n", cfsize);
+
+ offset[0] = num_chunks * chunkshape;
+ printf("New Offset %d num_chunks %d chunkshape %d\n", offset[0], num_chunks, chunkshape);
+
+ int err = H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk, offset, cfsize, cframe);
+ if (err < 0) {
+  printf("WRITE_CHUNK ERROR: %d\n", err);
+  goto out;
+ }
+
+ return 0;
+
+ out:
+  //printf("Blosc2 append not optimized\n");
+  return -1;
+}
+
 
 /*-------------------------------------------------------------------------
  * Function: H5TBOwrite_records
