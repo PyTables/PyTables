@@ -49,6 +49,13 @@ herr_t H5TBOappend_records( hid_t dataset_id,
                             hsize_t nrecords_orig,
                             const void *data );
 
+herr_t append_records_blosc2( hid_t dataset_id,
+                              hid_t mem_type_id,
+                              hid_t space_id,
+                              hsize_t nrecords,
+                              hsize_t nrecords_orig,
+                              const void *data );
+
 herr_t H5TBOwrite_records( hid_t dataset_id,
                            hid_t mem_type_id,
                            hsize_t start,
