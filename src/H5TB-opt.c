@@ -725,7 +725,7 @@ out:
 
 herr_t append_records_blosc2( hid_t dataset_id,
                               hsize_t nrecords,
-                              uint8_t *data )
+                              const void *data )
 {
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
