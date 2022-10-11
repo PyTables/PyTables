@@ -993,18 +993,35 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
             row.append()
             # the next call can mislead the counters
+            #table.flush()
+            self.h5file.close()
+            self.h5file = tb.open_file(self.h5fname, mode="r")
+            table = self.h5file.get_node("/group0/table1")
+            table.nrowsinbuf = 3
+            row = table.row
             result = [row2['var2'] for row2 in table]
             # warning! the next will result into wrong results
             # result = [ row['var2'] for row in table ]
             # This is because the iterator for writing and for reading
             # cannot be shared!
+            self.h5file.close()
+            self.h5file = tb.open_file(self.h5fname, mode="a")
+            table = self.h5file.get_node("/group0/table1")
+            table.nrowsinbuf = 3
+            row = table.row
 
         # Do not flush the buffer for this table and try to read it
         # We are forced now to flush tables after append operations
         # because of unsolved issues with the LRU cache that are too
         # difficult to track.
         # F. Alted 2006-08-03
-        table.flush()
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname, mode="r")
+        table = self.h5file.get_node("/group0/table1")
+        table.nrowsinbuf = 3
+
+        #print(table.read())
+
         result = [
             row3['var2'] for row3 in table.iterrows() if row3['var2'] < 20
         ]
@@ -1118,6 +1135,200 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         newnrows = table.nrows
         self.assertEqual(newnrows, oldnrows + 2,
                          "Append to dead table failed.")
+
+    def test02f_AppendRows(self):
+        """Checking whether blosc2 optimized appending *and* reading rows works or not"""
+
+        class Particle(tb.IsDescription):
+            name = tb.StringCol(16, pos=1)  # 16-character String
+            lati = tb.Int32Col(pos=2)  # integer
+            longi = tb.Int32Col(pos=3)  # integer
+            pressure = tb.Float32Col(pos=4)  # float  (single-precision)
+            temperature = tb.Float64Col(pos=5)  # double (double-precision)
+
+        # Now, open it, but in "append" mode
+        self.h5file = tb.open_file(self.h5fname, mode="a")
+
+        # Create a new group
+        group = self.h5file.create_group(self.h5file.root, "newgroup")
+
+        # Create a new table in newgroup group
+        table = self.h5file.create_table(group, 'table', Particle, "A table",
+                                   tb.Filters(1, complib='blosc2'), chunkshape=3)
+
+        self.rootgroup = self.h5file.root.newgroup
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test02f_AppendRows..." % self.__class__.__name__)
+
+        if common.verbose:
+            print("Nrows in old", table._v_pathname, ":", table.nrows)
+            print("Record Format ==>", table.description._v_nested_formats)
+            print("Record Size ==>", table.rowsize)
+
+        # Add a couple of user attrs
+        table.attrs.user_attr1 = 1.023
+        table.attrs.user_attr2 = "This is the second user attr"
+
+        # Append several rows in only one call
+        for i in range(10):
+            table.append([('Particle: %6d' % (i), i, 10 - i, float(i * i), float(i ** 2))])
+
+        table.append([("Particle:     10", 10, 0, 10 * 10, 10 ** 2),
+                      ("Particle:     11", 11, -1, 11 * 11, 11 ** 2),
+                      ("Particle:     12", 12, -2, 12 * 12, 12 ** 2)])
+
+        table.append([("Particle:     13", 13, -3, 13 * 13, 13 ** 2),
+                      ("Particle:     14", 14, -4, 14 * 14, 14 ** 2)])
+
+        for i in range(10):
+            j = i + 1
+            k = i * i
+            l = k + 1
+            table.append([('Particle:     %6d' % (i), i, 10 - i, float(i * i), float(i ** 2)),
+                          ('Particle:     %6d' % (j), j, 10 - j, float(j * j), float(j ** 2)),
+                          ('Particle:     %6d' % (k), k, 10 - k, float(k * k), float(k ** 2)),
+                          ('Particle:     %6d' % (l), l, 10 - l, float(l * l), float(l ** 2))])
+
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname, mode="r")
+        self.rootgroup = self.h5file.root.newgroup
+        table = self.rootgroup.table
+
+        result = [
+            row[:] for row in table.iterrows()
+        ]
+        if common.verbose:
+            print("Result length ==>", len(result))
+            print("Result contents ==>", result)
+        self.assertEqual(len(result), 10 + 3 + 2 + 10 * 4)
+        self.assertEqual(result, [(b'Particle:      0', 0, 10, 0.0, 0.0),
+                                  (b'Particle:      1', 1, 9, 1.0, 1.0),
+                                  (b'Particle:      2', 2, 8, 4.0, 4.0),
+                                  (b'Particle:      3', 3, 7, 9.0, 9.0),
+                                  (b'Particle:      4', 4, 6, 16.0, 16.0),
+                                  (b'Particle:      5', 5, 5, 25.0, 25.0),
+                                  (b'Particle:      6', 6, 4, 36.0, 36.0),
+                                  (b'Particle:      7', 7, 3, 49.0, 49.0),
+                                  (b'Particle:      8', 8, 2, 64.0, 64.0),
+                                  (b'Particle:      9', 9, 1, 81.0, 81.0),
+                                  (b'Particle:     10', 10, 0, 100.0, 100.0),
+                                  (b'Particle:     11', 11, -1, 121.0, 121.0),
+                                  (b'Particle:     12', 12, -2, 144.0, 144.0),
+                                  (b'Particle:     13', 13, -3, 169.0, 169.0),
+                                  (b'Particle:     14', 14, -4, 196.0, 196.0),
+                                  (b'Particle:       ', 0, 10, 0.0, 0.0),
+                                  (b'Particle:       ', 1, 9, 1.0, 1.0),
+                                  (b'Particle:       ', 0, 10, 0.0, 0.0),
+                                  (b'Particle:       ', 1, 9, 1.0, 1.0),
+                                  (b'Particle:       ', 1, 9, 1.0, 1.0),
+                                  (b'Particle:       ', 2, 8, 4.0, 4.0),
+                                  (b'Particle:       ', 1, 9, 1.0, 1.0),
+                                  (b'Particle:       ', 2, 8, 4.0, 4.0),
+                                  (b'Particle:       ', 2, 8, 4.0, 4.0),
+                                  (b'Particle:       ', 3, 7, 9.0, 9.0),
+                                  (b'Particle:       ', 4, 6, 16.0, 16.0),
+                                  (b'Particle:       ', 5, 5, 25.0, 25.0),
+                                  (b'Particle:       ', 3, 7, 9.0, 9.0),
+                                  (b'Particle:       ', 4, 6, 16.0, 16.0),
+                                  (b'Particle:       ', 9, 1, 81.0, 81.0),
+                                  (b'Particle:       ', 10, 0, 100.0, 100.0),
+                                  (b'Particle:       ', 4, 6, 16.0, 16.0),
+                                  (b'Particle:       ', 5, 5, 25.0, 25.0),
+                                  (b'Particle:       ', 16, -6, 256.0, 256.0),
+                                  (b'Particle:       ', 17, -7, 289.0, 289.0),
+                                  (b'Particle:       ', 5, 5, 25.0, 25.0),
+                                  (b'Particle:       ', 6, 4, 36.0, 36.0),
+                                  (b'Particle:       ', 25, -15, 625.0, 625.0),
+                                  (b'Particle:       ', 26, -16, 676.0, 676.0),
+                                  (b'Particle:       ', 6, 4, 36.0, 36.0),
+                                  (b'Particle:       ', 7, 3, 49.0, 49.0),
+                                  (b'Particle:       ', 36, -26, 1296.0, 1296.0),
+                                  (b'Particle:       ', 37, -27, 1369.0, 1369.0),
+                                  (b'Particle:       ', 7, 3, 49.0, 49.0),
+                                  (b'Particle:       ', 8, 2, 64.0, 64.0),
+                                  (b'Particle:       ', 49, -39, 2401.0, 2401.0),
+                                  (b'Particle:       ', 50, -40, 2500.0, 2500.0),
+                                  (b'Particle:       ', 8, 2, 64.0, 64.0),
+                                  (b'Particle:       ', 9, 1, 81.0, 81.0),
+                                  (b'Particle:       ', 64, -54, 4096.0, 4096.0),
+                                  (b'Particle:       ', 65, -55, 4225.0, 4225.0),
+                                  (b'Particle:       ', 9, 1, 81.0, 81.0),
+                                  (b'Particle:       ', 10, 0, 100.0, 100.0),
+                                  (b'Particle:       ', 81, -71, 6561.0, 6561.0),
+                                  (b'Particle:       ', 82, -72, 6724.0, 6724.0)])
+
+    def test02g_AppendRows(self):
+        """Checking whether blosc2 optimized appending *and* reading rows works or not"""
+
+        class Particle(tb.IsDescription):
+            name = tb.StringCol(16, pos=1)  # 16-character String
+            lati = tb.Int32Col(pos=2)  # integer
+            longi = tb.Int32Col(pos=3)  # integer
+            pressure = tb.Float32Col(pos=4)  # float  (single-precision)
+            temperature = tb.Float64Col(pos=5)  # double (double-precision)
+
+        # Now, open it, but in "append" mode
+        self.h5file = tb.open_file(self.h5fname, mode="a")
+
+        # Create a new group
+        group = self.h5file.create_group(self.h5file.root, "newgroup")
+
+        # Create a new table in newgroup group
+        table = self.h5file.create_table(group, 'table', Particle, "A table",
+                                   tb.Filters(1, shuffle=False, bitshuffle=False, complib=self.complib), chunkshape=3)
+
+        self.rootgroup = self.h5file.root.newgroup
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test02g_AppendRows..." % self.__class__.__name__)
+
+        if common.verbose:
+            print("Nrows in old", table._v_pathname, ":", table.nrows)
+            print("Record Format ==>", table.description._v_nested_formats)
+            print("Record Size ==>", table.rowsize)
+
+        # Add a couple of user attrs
+        table.attrs.user_attr1 = 1.023
+        table.attrs.user_attr2 = "This is the second user attr"
+
+        # Append several rows in only one call
+        for j in range(50):
+            i = 13 * j
+            table.append([('Particle: %6d' % (i), i, 10 - i, float(i * i), float(i ** 2))])
+
+            table.append([('Particle: %6d' % (i + 1), i + 1, 10 - (i + 1), float((i + 1) * (i + 1)), float((i + 1) ** 2)),
+                          ('Particle: %6d' % (i + 2), i + 2, 10 - (i + 2), float((i + 2) * (i + 2)), float((i + 2) ** 2)),
+                          ('Particle: %6d' % (i + 3), i + 3, 10 - (i + 3), float((i + 3) * (i + 3)), float((i + 3) ** 2))])
+
+            table.append([('Particle: %6d' % (i + 4), i + 4, 10 - (i + 4), float((i + 4) * (i + 4)), float((i + 4) ** 2)),
+                          ('Particle: %6d' % (i + 5), i + 5, 10 - (i + 5), float((i + 5) * (i + 5)), float((i + 5) ** 2)),
+                          ('Particle: %6d' % (i + 6), i + 6, 10 - (i + 6), float((i + 6) * (i + 6)), float((i + 6) ** 2)),
+                          ('Particle: %6d' % (i + 7), i + 7, 10 - (i + 7), float((i + 7) * (i + 7)), float((i + 7) ** 2))])
+
+            table.append([('Particle: %6d' % (i + 8), i + 8, 10 - (i + 8), float((i + 8) * (i + 8)), float((i + 8) ** 2)),
+                          ('Particle: %6d' % (i + 9), i + 9, 10 - (i + 9), float((i + 9) * (i + 9)), float((i + 9) ** 2)),
+                          ('Particle: %6d' % (i + 10), i + 10, 10 - (i + 10), float((i + 10) * (i + 10)), float((i + 10) ** 2)),
+                          ('Particle: %6d' % (i + 11), i + 11, 10 - (i + 11), float((i + 11) * (i + 11)), float((i + 11) ** 2)),
+                          ('Particle: %6d' % (i + 12), i + 12, 10 - (i + 12), float((i + 12) * (i + 12)), float((i + 12) ** 2))])
+
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname, mode="r")
+        self.rootgroup = self.h5file.root.newgroup
+        table = self.rootgroup.table
+        result = [
+            row[:] for row in table.iterrows()
+        ]
+        if common.verbose:
+            print("Result length ==>", len(result))
+            print("Result contents ==>", result)
+
+        particles = []
+        for i in range (50 * 13):
+            particles.append((b'Particle: %6d' % (i), i, 10 - i, float(i * i), float(i ** 2)))
+
+        self.assertEqual(len(result), 50 * 13)
+        self.assertEqual(result, particles)
 
     # CAVEAT: The next test only works for tables with rows < 2**15
     def test03_endianess(self):
