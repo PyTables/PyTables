@@ -43,7 +43,7 @@ jobs:
         pip install -v dist/*.tar.gz
     - name: 'Run test'
       run: |
-        cd .. && python -m tables.tests.test_all
+        cd .. && python -m tables.tests.test_all -v
         pt2to3 -h
         ptrepack -h
         ptdump -h
