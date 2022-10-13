@@ -1199,9 +1199,10 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.rootgroup = self.h5file.root.newgroup
         table = self.rootgroup.table
 
-        result = [
-            row[:] for row in table.iterrows()
-        ]
+        # result = [
+        #     row[:] for row in table.iterrows()
+        # ]
+        result = table[:].tolist()
         if common.verbose:
             print("Result length ==>", len(result))
             print("Result contents ==>", result)
@@ -1324,9 +1325,10 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file = tb.open_file(self.h5fname, mode="r")
         self.rootgroup = self.h5file.root.newgroup
         table = self.rootgroup.table
-        result = [
-            row[:] for row in table.iterrows()
-        ]
+        # result = [
+        #     row[:] for row in table.iterrows()
+        # ]
+        result = table[:].tolist()
         if common.verbose:
             print("Result length ==>", len(result))
             print("Result contents ==>", result)
