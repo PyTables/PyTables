@@ -177,6 +177,7 @@ hid_t H5TBOmake_table(  const char *table_title,
    }
    /* The Blosc2 compressor can use other compressors */
    else if (strncmp(complib, "blosc2:", 7) == 0) {
+     cd_values[1] = block_size;  /* can be useful in the future */
      cd_values[4] = compress;
      cd_values[5] = shuffle;
      blosc_compname = complib + 7;
@@ -598,8 +599,8 @@ herr_t H5TBOappend_records( hid_t dataset_id,
   goto regular_write;
  }
  /* Check if the compressor name is blosc2 */
- if (strcmp(name, "blosc2") == 0) {
-  int32_t typesize = cd_values[2];
+ if ((strncmp(name, "blosc2", 6)) == 0) {
+  int typesize = cd_values[2];
   int chunkshape;
   H5Pget_chunk(dcpl, 1, &chunkshape);
   int cstart = nrecords_orig / chunkshape;
@@ -729,8 +730,8 @@ herr_t append_records_blosc2( hid_t dataset_id,
 {
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
- size_t cd_nelmts = 6;
- unsigned cd_values[6];
+ size_t cd_nelmts = 7;
+ unsigned cd_values[7];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
   goto out;
@@ -744,8 +745,12 @@ herr_t append_records_blosc2( hid_t dataset_id,
  blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
  // Experiments say that 4 threads do not harm performance
  cparams.nthreads = 1;
- cparams.compcode = 1;
  cparams.typesize = typesize;
+ if (strncmp(name, "blosc2:", 7) == 0) {
+  cparams.clevel = cd_values[4];
+  cparams.filters[5] = cd_values[5];
+  cparams.compcode = cd_values[6];
+ }
  blosc2_context *cctx = blosc2_create_cctx(cparams);
  blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
 
@@ -771,8 +776,14 @@ herr_t append_records_blosc2( hid_t dataset_id,
  unsigned flt_msk = 0;
  haddr_t offset[8];
 
+ /* Workarround for avoiding the use of H5S_ALL in older HDF5 versions */
+ /* H5S_ALL works well with 1.12.2, but not in HDF5 1.10.7 */
+ hid_t d_space = H5Dget_space(dataset_id);
  hsize_t num_chunks;
- if (H5Dget_num_chunks(dataset_id, H5S_ALL, &num_chunks) < 0) {
+ if (H5Dget_num_chunks(dataset_id, d_space, &num_chunks) < 0) {
+  goto out;
+ }
+ if (H5Sclose(d_space) < 0) {
   goto out;
  }
 

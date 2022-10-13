@@ -1154,7 +1154,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create a new table in newgroup group
         table = self.h5file.create_table(group, 'table', Particle, "A table",
-                                   tb.Filters(1, complib='blosc2'), chunkshape=3)
+                                         tb.Filters(complevel=self.compress,
+                                                    shuffle=bool(self.shuffle),
+                                                    bitshuffle=bool(self.bitshuffle),
+                                                    complib=self.complib),
+                                         chunkshape=3)
 
         self.rootgroup = self.h5file.root.newgroup
         if common.verbose:
@@ -1172,7 +1176,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Append several rows in only one call
         for i in range(10):
-            table.append([('Particle: %6d' % (i), i, 10 - i, float(i * i), float(i ** 2))])
+            table.append([(f'Particle: {i:6d}', i, 10 - i, float(i * i), float(i ** 2))])
 
         table.append([("Particle:     10", 10, 0, 10 * 10, 10 ** 2),
                       ("Particle:     11", 11, -1, 11 * 11, 11 ** 2),
@@ -1185,10 +1189,10 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             j = i + 1
             k = i * i
             l = k + 1
-            table.append([('Particle:     %6d' % (i), i, 10 - i, float(i * i), float(i ** 2)),
-                          ('Particle:     %6d' % (j), j, 10 - j, float(j * j), float(j ** 2)),
-                          ('Particle:     %6d' % (k), k, 10 - k, float(k * k), float(k ** 2)),
-                          ('Particle:     %6d' % (l), l, 10 - l, float(l * l), float(l ** 2))])
+            table.append([(f'Particle: {i:6d}', i, 10 - i, float(i * i), float(i ** 2)),
+                          (f'Particle: {j:6d}', j, 10 - j, float(j * j), float(j ** 2)),
+                          (f'Particle: {k:6d}', k, 10 - k, float(k * k), float(k ** 2)),
+                          (f'Particle: {l:6d}', l, 10 - l, float(l * l), float(l ** 2))])
 
         self.h5file.close()
         self.h5file = tb.open_file(self.h5fname, mode="r")
@@ -1217,46 +1221,46 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                   (b'Particle:     12', 12, -2, 144.0, 144.0),
                                   (b'Particle:     13', 13, -3, 169.0, 169.0),
                                   (b'Particle:     14', 14, -4, 196.0, 196.0),
-                                  (b'Particle:       ', 0, 10, 0.0, 0.0),
-                                  (b'Particle:       ', 1, 9, 1.0, 1.0),
-                                  (b'Particle:       ', 0, 10, 0.0, 0.0),
-                                  (b'Particle:       ', 1, 9, 1.0, 1.0),
-                                  (b'Particle:       ', 1, 9, 1.0, 1.0),
-                                  (b'Particle:       ', 2, 8, 4.0, 4.0),
-                                  (b'Particle:       ', 1, 9, 1.0, 1.0),
-                                  (b'Particle:       ', 2, 8, 4.0, 4.0),
-                                  (b'Particle:       ', 2, 8, 4.0, 4.0),
-                                  (b'Particle:       ', 3, 7, 9.0, 9.0),
-                                  (b'Particle:       ', 4, 6, 16.0, 16.0),
-                                  (b'Particle:       ', 5, 5, 25.0, 25.0),
-                                  (b'Particle:       ', 3, 7, 9.0, 9.0),
-                                  (b'Particle:       ', 4, 6, 16.0, 16.0),
-                                  (b'Particle:       ', 9, 1, 81.0, 81.0),
-                                  (b'Particle:       ', 10, 0, 100.0, 100.0),
-                                  (b'Particle:       ', 4, 6, 16.0, 16.0),
-                                  (b'Particle:       ', 5, 5, 25.0, 25.0),
-                                  (b'Particle:       ', 16, -6, 256.0, 256.0),
-                                  (b'Particle:       ', 17, -7, 289.0, 289.0),
-                                  (b'Particle:       ', 5, 5, 25.0, 25.0),
-                                  (b'Particle:       ', 6, 4, 36.0, 36.0),
-                                  (b'Particle:       ', 25, -15, 625.0, 625.0),
-                                  (b'Particle:       ', 26, -16, 676.0, 676.0),
-                                  (b'Particle:       ', 6, 4, 36.0, 36.0),
-                                  (b'Particle:       ', 7, 3, 49.0, 49.0),
-                                  (b'Particle:       ', 36, -26, 1296.0, 1296.0),
-                                  (b'Particle:       ', 37, -27, 1369.0, 1369.0),
-                                  (b'Particle:       ', 7, 3, 49.0, 49.0),
-                                  (b'Particle:       ', 8, 2, 64.0, 64.0),
-                                  (b'Particle:       ', 49, -39, 2401.0, 2401.0),
-                                  (b'Particle:       ', 50, -40, 2500.0, 2500.0),
-                                  (b'Particle:       ', 8, 2, 64.0, 64.0),
-                                  (b'Particle:       ', 9, 1, 81.0, 81.0),
-                                  (b'Particle:       ', 64, -54, 4096.0, 4096.0),
-                                  (b'Particle:       ', 65, -55, 4225.0, 4225.0),
-                                  (b'Particle:       ', 9, 1, 81.0, 81.0),
-                                  (b'Particle:       ', 10, 0, 100.0, 100.0),
-                                  (b'Particle:       ', 81, -71, 6561.0, 6561.0),
-                                  (b'Particle:       ', 82, -72, 6724.0, 6724.0)])
+                                  (b'Particle:      0', 0, 10, 0.0, 0.0),
+                                  (b'Particle:      1', 1, 9, 1.0, 1.0),
+                                  (b'Particle:      0', 0, 10, 0.0, 0.0),
+                                  (b'Particle:      1', 1, 9, 1.0, 1.0),
+                                  (b'Particle:      1', 1, 9, 1.0, 1.0),
+                                  (b'Particle:      2', 2, 8, 4.0, 4.0),
+                                  (b'Particle:      1', 1, 9, 1.0, 1.0),
+                                  (b'Particle:      2', 2, 8, 4.0, 4.0),
+                                  (b'Particle:      2', 2, 8, 4.0, 4.0),
+                                  (b'Particle:      3', 3, 7, 9.0, 9.0),
+                                  (b'Particle:      4', 4, 6, 16.0, 16.0),
+                                  (b'Particle:      5', 5, 5, 25.0, 25.0),
+                                  (b'Particle:      3', 3, 7, 9.0, 9.0),
+                                  (b'Particle:      4', 4, 6, 16.0, 16.0),
+                                  (b'Particle:      9', 9, 1, 81.0, 81.0),
+                                  (b'Particle:     10', 10, 0, 100.0, 100.0),
+                                  (b'Particle:      4', 4, 6, 16.0, 16.0),
+                                  (b'Particle:      5', 5, 5, 25.0, 25.0),
+                                  (b'Particle:     16', 16, -6, 256.0, 256.0),
+                                  (b'Particle:     17', 17, -7, 289.0, 289.0),
+                                  (b'Particle:      5', 5, 5, 25.0, 25.0),
+                                  (b'Particle:      6', 6, 4, 36.0, 36.0),
+                                  (b'Particle:     25', 25, -15, 625.0, 625.0),
+                                  (b'Particle:     26', 26, -16, 676.0, 676.0),
+                                  (b'Particle:      6', 6, 4, 36.0, 36.0),
+                                  (b'Particle:      7', 7, 3, 49.0, 49.0),
+                                  (b'Particle:     36', 36, -26, 1296.0, 1296.0),
+                                  (b'Particle:     37', 37, -27, 1369.0, 1369.0),
+                                  (b'Particle:      7', 7, 3, 49.0, 49.0),
+                                  (b'Particle:      8', 8, 2, 64.0, 64.0),
+                                  (b'Particle:     49', 49, -39, 2401.0, 2401.0),
+                                  (b'Particle:     50', 50, -40, 2500.0, 2500.0),
+                                  (b'Particle:      8', 8, 2, 64.0, 64.0),
+                                  (b'Particle:      9', 9, 1, 81.0, 81.0),
+                                  (b'Particle:     64', 64, -54, 4096.0, 4096.0),
+                                  (b'Particle:     65', 65, -55, 4225.0, 4225.0),
+                                  (b'Particle:      9', 9, 1, 81.0, 81.0),
+                                  (b'Particle:     10', 10, 0, 100.0, 100.0),
+                                  (b'Particle:     81', 81, -71, 6561.0, 6561.0),
+                                  (b'Particle:     82', 82, -72, 6724.0, 6724.0)])
 
     def test02g_AppendRows(self):
         """Checking whether blosc2 optimized appending *and* reading rows works or not"""
@@ -1276,7 +1280,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create a new table in newgroup group
         table = self.h5file.create_table(group, 'table', Particle, "A table",
-                                   tb.Filters(1, shuffle=False, bitshuffle=False, complib=self.complib), chunkshape=3)
+                                         tb.Filters(complevel=self.compress,
+                                                    shuffle=bool(self.shuffle),
+                                                    bitshuffle=bool(self.bitshuffle),
+                                                    complib=self.complib),
+                                         chunkshape=3)
 
         self.rootgroup = self.h5file.root.newgroup
         if common.verbose:
@@ -1295,22 +1303,22 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Append several rows in only one call
         for j in range(50):
             i = 13 * j
-            table.append([('Particle: %6d' % (i), i, 10 - i, float(i * i), float(i ** 2))])
+            table.append([(f'Particle: {i:6d}', i, 10 - i, float(i * i), float(i ** 2))])
 
-            table.append([('Particle: %6d' % (i + 1), i + 1, 10 - (i + 1), float((i + 1) * (i + 1)), float((i + 1) ** 2)),
-                          ('Particle: %6d' % (i + 2), i + 2, 10 - (i + 2), float((i + 2) * (i + 2)), float((i + 2) ** 2)),
-                          ('Particle: %6d' % (i + 3), i + 3, 10 - (i + 3), float((i + 3) * (i + 3)), float((i + 3) ** 2))])
+            table.append([(f'Particle: {i+1:6d}', i + 1, 10 - (i + 1), float((i + 1) * (i + 1)), float((i + 1) ** 2)),
+                          (f'Particle: {i+2:6d}', i + 2, 10 - (i + 2), float((i + 2) * (i + 2)), float((i + 2) ** 2)),
+                          (f'Particle: {i+3:6d}', i + 3, 10 - (i + 3), float((i + 3) * (i + 3)), float((i + 3) ** 2))])
 
-            table.append([('Particle: %6d' % (i + 4), i + 4, 10 - (i + 4), float((i + 4) * (i + 4)), float((i + 4) ** 2)),
-                          ('Particle: %6d' % (i + 5), i + 5, 10 - (i + 5), float((i + 5) * (i + 5)), float((i + 5) ** 2)),
-                          ('Particle: %6d' % (i + 6), i + 6, 10 - (i + 6), float((i + 6) * (i + 6)), float((i + 6) ** 2)),
-                          ('Particle: %6d' % (i + 7), i + 7, 10 - (i + 7), float((i + 7) * (i + 7)), float((i + 7) ** 2))])
+            table.append([(f'Particle: {i+4:6d}', i + 4, 10 - (i + 4), float((i + 4) * (i + 4)), float((i + 4) ** 2)),
+                          (f'Particle: {i+5:6d}', i + 5, 10 - (i + 5), float((i + 5) * (i + 5)), float((i + 5) ** 2)),
+                          (f'Particle: {i+6:6d}', i + 6, 10 - (i + 6), float((i + 6) * (i + 6)), float((i + 6) ** 2)),
+                          (f'Particle: {i+7:6d}', i + 7, 10 - (i + 7), float((i + 7) * (i + 7)), float((i + 7) ** 2))])
 
-            table.append([('Particle: %6d' % (i + 8), i + 8, 10 - (i + 8), float((i + 8) * (i + 8)), float((i + 8) ** 2)),
-                          ('Particle: %6d' % (i + 9), i + 9, 10 - (i + 9), float((i + 9) * (i + 9)), float((i + 9) ** 2)),
-                          ('Particle: %6d' % (i + 10), i + 10, 10 - (i + 10), float((i + 10) * (i + 10)), float((i + 10) ** 2)),
-                          ('Particle: %6d' % (i + 11), i + 11, 10 - (i + 11), float((i + 11) * (i + 11)), float((i + 11) ** 2)),
-                          ('Particle: %6d' % (i + 12), i + 12, 10 - (i + 12), float((i + 12) * (i + 12)), float((i + 12) ** 2))])
+            table.append([(f'Particle: {i+8:6d}', i + 8, 10 - (i + 8), float((i + 8) * (i + 8)), float((i + 8) ** 2)),
+                          (f'Particle: {i+9:6d}', i + 9, 10 - (i + 9), float((i + 9) * (i + 9)), float((i + 9) ** 2)),
+                          (f'Particle: {i+10:6d}', i + 10, 10 - (i + 10), float((i + 10) * (i + 10)), float((i + 10) ** 2)),
+                          (f'Particle: {i+11:6d}', i + 11, 10 - (i + 11), float((i + 11) * (i + 11)), float((i + 11) ** 2)),
+                          (f'Particle: {i+12:6d}', i + 12, 10 - (i + 12), float((i + 12) * (i + 12)), float((i + 12) ** 2))])
 
         self.h5file.close()
         self.h5file = tb.open_file(self.h5fname, mode="r")
@@ -1325,7 +1333,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         particles = []
         for i in range (50 * 13):
-            particles.append((b'Particle: %6d' % (i), i, 10 - i, float(i * i), float(i ** 2)))
+            particles.append((f'Particle: {i:6d}'.encode(), i, 10 - i, float(i * i), float(i ** 2)))
 
         self.assertEqual(len(result), 50 * 13)
         self.assertEqual(result, particles)
@@ -2055,8 +2063,9 @@ class CompressBloscZlibTablesTestCase(BasicTestCase):
     'zlib' not in tb.blosc2_compressor_list(), 'zlib required')
 class CompressBlosc2ZlibTablesTestCase(BasicTestCase):
     title = "CompressZlibTables"
-    compress = 1
-    shuffle = 1
+    compress = 5
+    shuffle = 0
+    bitshuffle = 1
     complib = "blosc2:zlib"
 
 
