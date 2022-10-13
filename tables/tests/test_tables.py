@@ -1140,7 +1140,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking whether blosc2 optimized appending *and* reading rows works or not"""
 
         class Particle(tb.IsDescription):
-            name = tb.StringCol(20, pos=1)  # 20-character String
+            name = tb.StringCol(16, pos=1)  # 16-character String
             lati = tb.Int32Col(pos=2)  # integer
             longi = tb.Int32Col(pos=3)  # integer
             pressure = tb.Float32Col(pos=4)  # float  (single-precision)
@@ -1267,7 +1267,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking whether blosc2 optimized appending *and* reading rows works or not"""
 
         class Particle(tb.IsDescription):
-            name = tb.StringCol(20, pos=1)  # 20-character String
+            name = tb.StringCol(16, pos=1)  # 16-character String
             lati = tb.Int32Col(pos=2)  # integer
             longi = tb.Int32Col(pos=3)  # integer
             pressure = tb.Float32Col(pos=4)  # float  (single-precision)
