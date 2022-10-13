@@ -1531,14 +1531,13 @@ cdef class Row:
         # Try with __getitem__()
         return row[key]
 
-    # if PyArray_NDIM(field) == 1:
-    #   # For an scalar it is not needed a copy (immutable object)
-    #   return PyArray_GETITEM(field, PyArray_BYTES(field) + offset * self._stride)
-    # else:
-    #   # Do a copy of the array, so that it can be overwritten by the user
-    #   # without damaging the internal self.rfields buffer
-    #   return field[offset].copy()
-    return field[offset].copy()
+    if PyArray_NDIM(field) == 1:
+      # For an scalar it is not needed a copy (immutable object)
+      return PyArray_GETITEM(field, PyArray_BYTES(field) + offset * self._stride)
+    else:
+      # Do a copy of the array, so that it can be overwritten by the user
+      # without damaging the internal self.rfields buffer
+      return field[offset].copy()
 
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, object key, object value):
