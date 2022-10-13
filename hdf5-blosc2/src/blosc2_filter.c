@@ -102,14 +102,14 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
     return -1;
   }
 
-  typesize = H5Tget_size(type);
+  typesize = (unsigned int) H5Tget_size(type);
   if (typesize == 0) return -1;
   /* Get the size of the base type, even for ARRAY types */
   classt = H5Tget_class(type);
   if (classt == H5T_ARRAY) {
     /* Get the array base component */
     super_type = H5Tget_super(type);
-    basetypesize = H5Tget_size(super_type);
+    basetypesize = (unsigned int) H5Tget_size(super_type);
     /* Release resources */
     H5Tclose(super_type);
   } else {
@@ -131,7 +131,7 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   /* Get the size of the chunk */
   bufsize = typesize;
   for (i = 0; i < ndims; i++) {
-    bufsize *= chunkdims[i];
+    bufsize *= (unsigned int) chunkdims[i];
   }
   values[3] = bufsize;
 
@@ -195,7 +195,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
     blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
     cparams.compcode = compcode;
-    cparams.typesize = typesize;
+    cparams.typesize = (int32_t) typesize;
     cparams.filters[BLOSC_LAST_FILTER] = doshuffle;
     cparams.clevel = clevel;
     /* Use 4 threads for the threads.  In the future it should be allowed to
@@ -214,14 +214,14 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       goto failed;
     }
 
-    status = blosc2_schunk_append_buffer(schunk, *buf, nbytes);
+    status = (int) blosc2_schunk_append_buffer(schunk, *buf, nbytes);
     if (status < 0) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot append to buffer");
       goto failed;
     }
 
     bool needs_free;
-    status = blosc2_schunk_to_buffer(schunk, (uint8_t **)&outbuf, &needs_free);
+    status = (int) blosc2_schunk_to_buffer(schunk, (uint8_t **)&outbuf, &needs_free);
     if (status < 0 || !needs_free) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot convert to buffer");
       goto failed;
@@ -273,7 +273,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
      */
     dparams.nthreads = 4;
     blosc2_context *dctx = blosc2_create_dctx(dparams);
-    status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, outbuf_size);
+    status = (int) blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, outbuf_size);
     if (status <= 0) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 decompression error");
       goto failed;
