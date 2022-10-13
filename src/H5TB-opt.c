@@ -295,9 +295,13 @@ herr_t H5TBOread_records( char* filename,
   goto out;
  if (native_order) {
   /* Try to read using blosc2 (only supports native byteorder) */
+  printf("Before read_records_blosc2\n");
   if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
-                          start, nrecords, (uint8_t*)data) >= 0)
+                          start, nrecords, (uint8_t*)data) >= 0) {
+   printf("After read_records_blosc2 (success)\n");
    goto success;
+  }
+  printf("After read_records_blosc2 (not success)\n");
  }
 
  /* Define a hyperslab in the dataset of the size of the records */
