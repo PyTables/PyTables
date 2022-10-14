@@ -367,10 +367,12 @@ herr_t read_records_blosc2( char* filename,
  unsigned cd_values[6];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
+   printf("H5Pget_filter_by_id2\n");
   goto out;
  }
  /* Check that the compressor name is correct */
  if (strcmp(name, "blosc2") != 0) {
+  printf("strcmp\n");
   goto out;
  }
  int32_t typesize = cd_values[2];
@@ -396,11 +398,13 @@ herr_t read_records_blosc2( char* filename,
   if (H5Dget_chunk_info(dataset_id, space_id, nchunk, &chunk_offset, &flt_msk,
                         &address, &cframe_size) < 0) {
    PUSH_ERR("blosc2", H5E_CALLBACK, "Get chunk info failed!\n");
+   printf("Get chunk info failed!\n");
    goto out;
   }
   blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
   if (schunk == NULL) {
    PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot open schunk in %s\n", filename);
+   printf("Cannot open schunk in %s\n", filename);
    goto out;
   }
 
@@ -409,11 +413,13 @@ herr_t read_records_blosc2( char* filename,
   int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
   if (cbytes < 0) {
    PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot get lazy chunk %zd in %s\n", nchunk, filename);
+   printf("Cannot get lazy chunk %zd in %s\n", nchunk, filename);
    goto out;
   }
 
   int32_t blocksize;
   if (blosc2_cbuffer_sizes(chunk, NULL, NULL, &blocksize) < 0) {
+    printf("blosc2_cbuffer_sizes\n");
     goto out;
   }
 
@@ -446,11 +452,13 @@ herr_t read_records_blosc2( char* filename,
    }
    if (blosc2_set_maskout(dctx, block_maskout, nblocks) != BLOSC2_ERROR_SUCCESS) {
     PUSH_ERR("blosc2", H5E_CALLBACK, "Error setting the maskout");
+    printf("Error setting the maskout\n");
     goto out;
    }
    int32_t nbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, buffer_out, chunksize);
    if (nbytes < 0) {
     PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot decompress lazy chunk");
+    printf("Cannot decompress lazy chunk\n");
     goto out;
    }
    /* Copy data to destination */
@@ -465,6 +473,7 @@ herr_t read_records_blosc2( char* filename,
    int rbytes = (int) blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, (int) nrecords_chunk, buffer_out, chunksize);
    if (rbytes < 0) {
     PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot get items for lazychunk\n");
+    printf("Cannot get items for lazychunk\n");
     goto out;
    }
    /* Copy data to destination */
