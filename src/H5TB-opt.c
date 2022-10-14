@@ -277,7 +277,7 @@ out:
  */
 
 herr_t H5TBOread_records( char* filename,
-                          hbool_t native_order,
+                          hbool_t blosc2_support,
                           hid_t dataset_id,
                           hid_t mem_type_id,
                           hsize_t start,
@@ -293,15 +293,12 @@ herr_t H5TBOread_records( char* filename,
  /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
- if (native_order) {
+ if (blosc2_support) {
   /* Try to read using blosc2 (only supports native byteorder) */
-  printf("Before read_records_blosc2\n");
   if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
                           start, nrecords, (uint8_t*)data) >= 0) {
-   printf("After read_records_blosc2 (success)\n");
    goto success;
   }
-  printf("After read_records_blosc2 (not success)\n");
  }
 
  /* Define a hyperslab in the dataset of the size of the records */
@@ -364,16 +361,20 @@ herr_t read_records_blosc2( char* filename,
  uint8_t *buffer_out = NULL;
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
+ if (dcpl == H5I_INVALID_HID) {
+  goto out;
+ }
  size_t cd_nelmts = 6;
  unsigned cd_values[6];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
-   printf("H5Pget_filter_by_id2\n");
+  H5Pclose(dcpl);
   goto out;
  }
+ if (H5Pclose(dcpl) < 0)
+  goto out;
  /* Check that the compressor name is correct */
  if (strcmp(name, "blosc2") != 0) {
-  printf("strcmp\n");
   goto out;
  }
  int32_t typesize = cd_values[2];
@@ -398,14 +399,12 @@ herr_t read_records_blosc2( char* filename,
   hsize_t chunk_offset;
   if (H5Dget_chunk_info(dataset_id, space_id, nchunk, &chunk_offset, &flt_msk,
                         &address, &cframe_size) < 0) {
-   PUSH_ERR("blosc2", H5E_CALLBACK, "Get chunk info failed!\n");
-   printf("Get chunk info failed!\n");
+   BLOSC_TRACE_ERROR("Get chunk info failed!\n");
    goto out;
   }
   blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
   if (schunk == NULL) {
-   PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot open schunk in %s\n", filename);
-   printf("Cannot open schunk in %s\n", filename);
+   BLOSC_TRACE_ERROR("Cannot open schunk in %s\n", filename);
    goto out;
   }
 
@@ -413,14 +412,12 @@ herr_t read_records_blosc2( char* filename,
   uint8_t *chunk;
   int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
   if (cbytes < 0) {
-   PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot get lazy chunk %zd in %s\n", nchunk, filename);
-   printf("Cannot get lazy chunk %zd in %s\n", nchunk, filename);
+   BLOSC_TRACE_ERROR("Cannot get lazy chunk %zd in %s\n", nchunk, filename);
    goto out;
   }
 
   int32_t blocksize;
   if (blosc2_cbuffer_sizes(chunk, NULL, NULL, &blocksize) < 0) {
-    printf("blosc2_cbuffer_sizes\n");
     goto out;
   }
 
@@ -452,14 +449,12 @@ herr_t read_records_blosc2( char* filename,
     }
    }
    if (blosc2_set_maskout(dctx, block_maskout, nblocks) != BLOSC2_ERROR_SUCCESS) {
-    PUSH_ERR("blosc2", H5E_CALLBACK, "Error setting the maskout");
-    printf("Error setting the maskout\n");
+    BLOSC_TRACE_ERROR("Error setting the maskout");
     goto out;
    }
    int32_t nbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, buffer_out, chunksize);
    if (nbytes < 0) {
-    PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot decompress lazy chunk");
-    printf("Cannot decompress lazy chunk\n");
+    BLOSC_TRACE_ERROR("Cannot decompress lazy chunk");
     goto out;
    }
    /* Copy data to destination */
@@ -473,8 +468,7 @@ herr_t read_records_blosc2( char* filename,
    /* Less than 1 block to read; use a getitem call */
    int rbytes = (int) blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, (int) nrecords_chunk, buffer_out, chunksize);
    if (rbytes < 0) {
-    PUSH_ERR("blosc2", H5E_CALLBACK, "Cannot get items for lazychunk\n");
-    printf("Cannot get items for lazychunk\n");
+    BLOSC_TRACE_ERROR("Cannot get items for lazychunk\n");
     goto out;
    }
    /* Copy data to destination */
@@ -609,10 +603,15 @@ herr_t H5TBOappend_records( hid_t dataset_id,
 
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
+ if (dcpl == H5I_INVALID_HID) {
+  goto out;
+ }
  size_t cd_nelmts = 6;
  unsigned cd_values[6];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
+  if (H5Pclose(dcpl) < 0)
+   goto out;
   goto regular_write;
  }
  /* Check if the compressor name is blosc2 */
@@ -620,6 +619,8 @@ herr_t H5TBOappend_records( hid_t dataset_id,
   int typesize = cd_values[2];
   hsize_t cshape[1];
   H5Pget_chunk(dcpl, 1, cshape);
+  if (H5Pclose(dcpl) < 0)
+   goto out;
   int chunkshape = (int) cshape[0];
   int cstart = (int) (nrecords_orig / chunkshape);
   int cstop = (int) (nrecords_orig + nrecords - 1) / chunkshape + 1;
@@ -746,6 +747,9 @@ herr_t append_records_blosc2( hid_t dataset_id,
 {
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
+ if (dcpl == H5I_INVALID_HID) {
+  goto out;
+ }
  size_t cd_nelmts = 7;
  unsigned cd_values[7];
  char name[7];
@@ -756,6 +760,8 @@ herr_t append_records_blosc2( hid_t dataset_id,
  int32_t chunksize = cd_values[3];
  hsize_t chunkshape;
  H5Pget_chunk(dcpl, 1, &chunkshape);
+ if (H5Pclose(dcpl) < 0)
+  goto out;
 
  /* Compress data into superchunk and get frame */
  blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
@@ -983,7 +989,7 @@ out:
  */
 
 herr_t H5TBOdelete_records( char* filename,
-                            hbool_t native_order,
+                            hbool_t blosc2_support,
                             hid_t   dataset_id,
                             hid_t   mem_type_id,
                             hsize_t ntotal_records,
@@ -1035,7 +1041,7 @@ herr_t H5TBOdelete_records( char* filename,
        return -1;
 
      /* Read the records after the deleted one(s) */
-     if ( H5TBOread_records(filename, native_order, dataset_id, mem_type_id, read_start,
+     if ( H5TBOread_records(filename, blosc2_support, dataset_id, mem_type_id, read_start,
                             read_nbuf, tmp_buf ) < 0 )
        return -1;
 
