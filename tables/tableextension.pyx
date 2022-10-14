@@ -24,6 +24,7 @@ Misc variables:
 import sys
 import numpy
 from time import time
+import platform
 
 from .description import Col
 from .exceptions import HDF5ExtError
@@ -77,7 +78,7 @@ cdef extern from "H5TB-opt.h" nogil:
                           char *complib, int shuffle, int fletcher32,
                           hbool_t track_times, void *data )
 
-  herr_t H5TBOread_records( char* filename, hbool_t native_order, hid_t dataset_id, hid_t mem_type_id,
+  herr_t H5TBOread_records( char* filename, hbool_t blosc2_support, hid_t dataset_id, hid_t mem_type_id,
                             hsize_t start, hsize_t nrecords, void *data )
 
   herr_t H5TBOread_elements( hid_t dataset_id, hid_t mem_type_id,
@@ -94,7 +95,7 @@ cdef extern from "H5TB-opt.h" nogil:
   herr_t H5TBOwrite_elements( hid_t dataset_id, hid_t mem_type_id,
                               hsize_t nrecords, void *coords, void *data )
 
-  herr_t H5TBOdelete_records( char* filename, hbool_t native_order,
+  herr_t H5TBOdelete_records( char* filename, hbool_t blosc2_support,
                               hid_t   dataset_id, hid_t   mem_type_id,
                               hsize_t ntotal_records, size_t  src_size,
                               hsize_t start, hsize_t nrecords,
@@ -583,9 +584,9 @@ cdef class Table(Leaf):
     rbuf = PyArray_DATA(recarr)
 
     # Read the records from disk
-    cdef hbool_t native_order = self.byteorder == sys.byteorder
+    cdef hbool_t blosc2_support = self.byteorder == sys.byteorder
     with nogil:
-        ret = H5TBOread_records(filename, native_order, self.dataset_id,
+        ret = H5TBOread_records(filename, blosc2_support, self.dataset_id,
                                 self.type_id, start, nrecords, rbuf)
 
     if ret < 0:
@@ -604,7 +605,7 @@ cdef class Table(Leaf):
     cdef NumCache chunkcache
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
-    cdef hbool_t native_order = self.byteorder == sys.byteorder
+    cdef hbool_t blosc2_support = self.byteorder == sys.byteorder
 
     chunkcache = self._chunkcache
     chunkshape = chunkcache.slotsize
@@ -621,7 +622,7 @@ cdef class Table(Leaf):
     else:
       # Chunk is not in cache. Read it and put it in the LRU cache.
       with nogil:
-          ret = H5TBOread_records(filename, native_order, self.dataset_id,
+          ret = H5TBOread_records(filename, blosc2_support, self.dataset_id,
                                   self.type_id, start, nrecords, rbuf)
 
       if ret < 0:
@@ -660,13 +661,16 @@ cdef class Table(Leaf):
     cdef hsize_t i
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
-    cdef hbool_t native_order = self.byteorder == sys.byteorder
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   ((platform.system().lower() != 'windows') or
+                                    ((platform.system().lower() == 'windows') and
+                                     (self._v_file.mode == 'r'))))
 
     if step == 1:
       nrecords = stop - start
       rowsize = self.rowsize
       # Using self.disk_type_id should be faster (i.e. less conversions)
-      if (H5TBOdelete_records(filename, native_order, self.dataset_id,
+      if (H5TBOdelete_records(filename, blosc2_support, self.dataset_id,
                               self.disk_type_id, self.nrows, rowsize,
                               start, nrecords, self.nrowsinbuf) < 0):
         raise HDF5ExtError("Problems deleting records.")
