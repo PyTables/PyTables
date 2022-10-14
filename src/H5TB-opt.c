@@ -361,6 +361,7 @@ herr_t read_records_blosc2( char* filename,
                             hsize_t nrecords,
                             uint8_t *data )
 {
+ uint8_t *buffer_out = NULL;
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
  size_t cd_nelmts = 6;
@@ -379,7 +380,7 @@ herr_t read_records_blosc2( char* filename,
  int32_t chunksize = cd_values[3];
 
  /* Buffer for reading a chunk */
- uint8_t *buffer_out = malloc(chunksize);
+ buffer_out = malloc(chunksize);
 
  hsize_t total_records = 0;
  int32_t chunkshape = chunksize / typesize;
@@ -497,6 +498,9 @@ herr_t read_records_blosc2( char* filename,
  return 0;
 
  out:
+ if (buffer_out != NULL) {
+  free(buffer_out);
+ }
  return -1;
 }
 
