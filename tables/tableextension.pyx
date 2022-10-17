@@ -588,7 +588,7 @@ cdef class Table(Leaf):
                                    ((platform.system().lower() != 'windows') or
                                     ((platform.system().lower() == 'windows') and
                                      (self._v_file.mode == 'r'))))
-    print("Blosc2_sup: ", blosc2_support);
+    print("Platform: ", platform.system().lower());
 
     with nogil:
         ret = H5TBOread_records(filename, blosc2_support, self.dataset_id,
