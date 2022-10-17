@@ -584,7 +584,12 @@ cdef class Table(Leaf):
     rbuf = PyArray_DATA(recarr)
 
     # Read the records from disk
-    cdef hbool_t blosc2_support = self.byteorder == sys.byteorder
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   ((platform.system().lower() != 'windows') or
+                                    ((platform.system().lower() == 'windows') and
+                                     (self._v_file.mode == 'r'))))
+    print("Blosc2_sup: ", blosc2_support);
+
     with nogil:
         ret = H5TBOread_records(filename, blosc2_support, self.dataset_id,
                                 self.type_id, start, nrecords, rbuf)
@@ -605,7 +610,10 @@ cdef class Table(Leaf):
     cdef NumCache chunkcache
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
-    cdef hbool_t blosc2_support = self.byteorder == sys.byteorder
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   ((platform.system().lower() != 'windows') or
+                                    ((platform.system().lower() == 'windows') and
+                                     (self._v_file.mode == 'r'))))
 
     chunkcache = self._chunkcache
     chunkshape = chunkcache.slotsize
