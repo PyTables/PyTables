@@ -381,6 +381,9 @@ herr_t read_records_blosc2( char* filename,
 
  /* Buffer for reading a chunk */
  buffer_out = malloc(chunksize);
+ if (buffer_out == NULL) {
+  return -1;
+ }
 
  hsize_t total_records = 0;
  int32_t chunkshape = chunksize / typesize;
@@ -440,6 +443,9 @@ herr_t read_records_blosc2( char* filename,
   if (nrecords_chunk > blockshape) {
    /* We have more than 1 block to read, so use a masked read */
    bool *block_maskout = calloc(nblocks, 1);
+   if (block_maskout == NULL) {
+    return -1;
+   }
    int32_t nblocks_set = 0;
    for (int32_t nblock = 0; nblock < nblocks; nblock++) {
     if ((nblock < start_nblock) || (nblock > stop_nblock)) {
