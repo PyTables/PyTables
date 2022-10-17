@@ -284,7 +284,6 @@ herr_t H5TBOread_records( char* filename,
                           hsize_t nrecords,
                           void *data )
 {
-
  hid_t    space_id;
  hid_t    mem_space_id;
  hsize_t  count[1];
