@@ -361,17 +361,22 @@ herr_t read_records_blosc2( char* filename,
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
  if (dcpl == H5I_INVALID_HID) {
+  BLOSC_TRACE_ERROR("Fail getting plist");
   goto out;
  }
+
+ /* Get blosc2 params */
  size_t cd_nelmts = 6;
  unsigned cd_values[6];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
   H5Pclose(dcpl);
+  BLOSC_TRACE_ERROR("Fail getting blosc2 params");
   goto out;
  }
  if (H5Pclose(dcpl) < 0)
   goto out;
+
  /* Check that the compressor name is correct */
  if (strcmp(name, "blosc2") != 0) {
   goto out;
@@ -382,6 +387,7 @@ herr_t read_records_blosc2( char* filename,
  /* Buffer for reading a chunk */
  buffer_out = malloc(chunksize);
  if (buffer_out == NULL) {
+  BLOSC_TRACE_ERROR("Malloc failed for buffer_out");
   return -1;
  }
 
@@ -410,6 +416,7 @@ herr_t read_records_blosc2( char* filename,
    goto out;
   }
 
+  /* Get chunk */
   bool needs_free;
   uint8_t *chunk;
   int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
@@ -444,6 +451,7 @@ herr_t read_records_blosc2( char* filename,
    /* We have more than 1 block to read, so use a masked read */
    bool *block_maskout = calloc(nblocks, 1);
    if (block_maskout == NULL) {
+    BLOSC_TRACE_ERROR("Calloc failed for block_maskout");
     return -1;
    }
    int32_t nblocks_set = 0;
@@ -753,12 +761,17 @@ herr_t append_records_blosc2( hid_t dataset_id,
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
  if (dcpl == H5I_INVALID_HID) {
+  BLOSC_TRACE_ERROR("Fail getting plist");
   goto out;
  }
+
+ /* Get blosc2 params*/
  size_t cd_nelmts = 7;
  unsigned cd_values[7];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
+  H5Pclose(dcpl);
+  BLOSC_TRACE_ERROR("Fail getting blosc2 params");
   goto out;
  }
  int32_t typesize = cd_values[2];
@@ -786,16 +799,19 @@ herr_t append_records_blosc2( hid_t dataset_id,
  int32_t chunk_size = (int32_t) nrecords * typesize;
  blosc2_schunk *sc = blosc2_schunk_new(&storage);
  if (sc == NULL) {
+  BLOSC_TRACE_ERROR("Failed creating superchunk");
   goto out;
  }
 
  if (blosc2_schunk_append_buffer(sc, (void*) data, chunk_size) <= 0) {
+  BLOSC_TRACE_ERROR("Failed appending buffer");
   goto out;
  }
  uint8_t* cframe;
  bool needs_free2;
  int cfsize = (int) blosc2_schunk_to_buffer(sc, &cframe, &needs_free2);
  if (cfsize <= 0) {
+  BLOSC_TRACE_ERROR("Failed converting schunk to cframe");
   goto out;
  }
 
@@ -808,21 +824,16 @@ herr_t append_records_blosc2( hid_t dataset_id,
  hid_t d_space = H5Dget_space(dataset_id);
  hsize_t num_chunks;
  if (H5Dget_num_chunks(dataset_id, d_space, &num_chunks) < 0) {
+  BLOSC_TRACE_ERROR("Failed getting number of chunks");
   goto out;
  }
  if (H5Sclose(d_space) < 0) {
   goto out;
  }
 
- int storage_size = (int) H5Dget_storage_size(dataset_id);
- if (storage_size < 0) {
-  goto out;
- }
-
  offset[0] = num_chunks * chunkshape;
-
- int err = H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk, offset, cfsize, cframe);
- if (err < 0) {
+ if (H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk, offset, cfsize, cframe) < 0) {
+  BLOSC_TRACE_ERROR("Failed HDF5 writing chunk");
   goto out;
  }
 

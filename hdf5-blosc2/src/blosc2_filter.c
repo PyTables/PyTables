@@ -213,7 +213,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       goto failed;
     }
 
-    status = (int) blosc2_schunk_append_buffer(schunk, *buf, nbytes);
+    status = (int) blosc2_schunk_append_buffer(schunk, *buf, (int32_t) nbytes);
     if (status < 0) {
       BLOSC_TRACE_ERROR("Cannot append to buffer");
       goto failed;
@@ -272,7 +272,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
      */
     dparams.nthreads = 4;
     blosc2_context *dctx = blosc2_create_dctx(dparams);
-    status = (int) blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, outbuf_size);
+    status = (int) blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
     if (status <= 0) {
       BLOSC_TRACE_ERROR("Blosc2 decompression error");
       goto failed;
