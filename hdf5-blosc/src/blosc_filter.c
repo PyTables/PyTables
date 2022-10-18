@@ -102,14 +102,14 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
         return -1;
     }
 
-    typesize = H5Tget_size(type);
+    typesize = (unsigned int) H5Tget_size(type);
     if (typesize==0) return -1;
     /* Get the size of the base type, even for ARRAY types */
     classt = H5Tget_class(type);
     if (classt == H5T_ARRAY) {
       /* Get the array base component */
       super_type = H5Tget_super(type);
-      basetypesize = H5Tget_size(super_type);
+      basetypesize = (unsigned int) H5Tget_size(super_type);
       /* Release resources */
       H5Tclose(super_type);
     }
@@ -126,7 +126,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     /* Get the size of the chunk */
     bufsize = typesize;
     for (i=0; i<ndims; i++) {
-        bufsize *= chunkdims[i];
+        bufsize *= (unsigned int) chunkdims[i];
     }
     values[3] = bufsize;
 
