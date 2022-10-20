@@ -1769,6 +1769,88 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(row[1], b'-'*9)
         self.assertEqual(row[2], b'.'*4)
 
+    def test08_AppendModifyRows(self):
+        """Checking whether blosc2 optimized appending *and* reading rows works or not"""
+
+        class Particle(tb.IsDescription):
+            name = tb.StringCol(16, pos=1)  # 16-character String
+            lati = tb.Int32Col(pos=2)  # integer
+            longi = tb.Int32Col(pos=3)  # integer
+            pressure = tb.Float32Col(pos=4)  # float  (single-precision)
+            temperature = tb.Float64Col(pos=5)  # double (double-precision)
+
+        # Now, open it, but in "append" mode
+        self.h5file = tb.open_file(self.h5fname, mode="a")
+
+        # Create a new group
+        group = self.h5file.create_group(self.h5file.root, "newgroup")
+
+        # Create a new table in newgroup group
+        table = self.h5file.create_table(group, 'table', Particle, "A table",
+                                         tb.Filters(complevel=self.compress,
+                                                    shuffle=bool(self.shuffle),
+                                                    bitshuffle=bool(self.bitshuffle),
+                                                    complib=self.complib),
+                                         chunkshape=3)
+
+        self.rootgroup = self.h5file.root.newgroup
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test08_AppendModifyRows..." % self.__class__.__name__)
+
+        if common.verbose:
+            print("Nrows in old", table._v_pathname, ":", table.nrows)
+            print("Record Format ==>", table.description._v_nested_formats)
+            print("Record Size ==>", table.rowsize)
+
+        # Add a couple of user attrs
+        table.attrs.user_attr1 = 1.023
+        table.attrs.user_attr2 = "This is the second user attr"
+
+        # Append several rows in only one call
+        for j in range(200):
+            i = 13 * j
+            table.append([(f'Particle: {i:6d}', i, 10 - i, float(i * i), float(i ** 2))])
+
+            table.append([(f'Particle: {i+1:6d}', i + 1, 10 - (i + 1), float((i + 1) * (i + 1)), float((i + 1) ** 2)),
+                          (f'Particle: {i+2:6d}', i + 2, 10 - (i + 2), float((i + 2) * (i + 2)), float((i + 2) ** 2)),
+                          (f'Particle: {i+3:6d}', i + 3, 10 - (i + 3), float((i + 3) * (i + 3)), float((i + 3) ** 2))])
+
+            table.append([(f'Particle: {i+4:6d}', i + 4, 10 - (i + 4), float((i + 4) * (i + 4)), float((i + 4) ** 2)),
+                          (f'Particle: {i+5:6d}', i + 5, 10 - (i + 5), float((i + 5) * (i + 5)), float((i + 5) ** 2)),
+                          (f'Particle: {i+6:6d}', i + 6, 10 - (i + 6), float((i + 6) * (i + 6)), float((i + 6) ** 2)),
+                          (f'Particle: {i+7:6d}', i + 7, 10 - (i + 7), float((i + 7) * (i + 7)), float((i + 7) ** 2))])
+
+            table.append([(f'Particle: {i+8:6d}', i + 8, 10 - (i + 8), float((i + 8) * (i + 8)), float((i + 8) ** 2)),
+                          (f'Particle: {i+9:6d}', i + 9, 10 - (i + 9), float((i + 9) * (i + 9)), float((i + 9) ** 2)),
+                          (f'Particle: {i+10:6d}', i + 10, 10 - (i + 10), float((i + 10) * (i + 10)), float((i + 10) ** 2)),
+                          (f'Particle: {i+11:6d}', i + 11, 10 - (i + 11), float((i + 11) * (i + 11)), float((i + 11) ** 2)),
+                          (f'Particle: {i+12:6d}', i + 12, 10 - (i + 12), float((i + 12) * (i + 12)), float((i + 12) ** 2))])
+            table.modify_rows(i + 10, i + 11, None, [(f'Particle: {i:6d}', i, 10 - i, float(i * i), float(i ** 2))])
+
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname, mode="r")
+        self.rootgroup = self.h5file.root.newgroup
+        table = self.rootgroup.table
+        result = [
+            row[:] for row in table.iterrows()
+        ]
+        # result = table[:].tolist()
+        if common.verbose:
+            print("Result length ==>", len(result))
+            print("Result contents ==>", result)
+
+        particles = []
+        for i in range (200 * 13):
+            particles.append((f'Particle: {i:6d}'.encode(), i, 10 - i, float(i * i), float(i ** 2)))
+        for j in range (200):
+            i = 13 * j
+            particles.pop(i + 10)
+            particles.insert(i + 10, (f'Particle: {i:6d}'.encode(), i, 10 - i, float(i * i), float(i ** 2)))
+
+        self.assertEqual(len(result), 200 * 13)
+        self.assertEqual(result, particles)
+
 
 class BasicWriteTestCase(BasicTestCase):
     title = "BasicWrite"
