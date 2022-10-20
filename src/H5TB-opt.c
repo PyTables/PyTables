@@ -392,11 +392,11 @@ herr_t read_records_blosc2( char* filename,
  }
 
  hsize_t total_records = 0;
- int32_t chunkshape = chunksize / typesize;
- hsize_t start_nchunk = start / chunkshape;
- int32_t start_chunk = start % chunkshape;
- hsize_t stop_nchunk = (start + nrecords) / chunkshape;
- if (nrecords % chunkshape) {
+ int32_t chunklen = chunksize / typesize;
+ hsize_t start_nchunk = start / chunklen;
+ int32_t start_chunk = start % chunklen;
+ hsize_t stop_nchunk = (start + nrecords) / chunklen;
+ if (nrecords % chunklen) {
   stop_nchunk += 1;
  }
  for (hsize_t nchunk = start_nchunk; nchunk < stop_nchunk && total_records < nrecords; nchunk++) {
@@ -432,18 +432,17 @@ herr_t read_records_blosc2( char* filename,
 
   blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
   // Experiments say that 4 threads do not harm performance
-  dparams.nthreads = 4;
   dparams.schunk = schunk;
   blosc2_context *dctx = blosc2_create_dctx(dparams);
 
   /* Gather data for the interesting part */
-  hsize_t nrecords_chunk = chunkshape - start_chunk;
+  hsize_t nrecords_chunk = chunklen - start_chunk;
   if (nrecords_chunk > nrecords - total_records) {
    nrecords_chunk = nrecords - total_records;
   }
 
   int32_t blockshape = blocksize / typesize;
-  int32_t nblocks = chunkshape / blockshape;
+  int32_t nblocks = chunklen / blockshape;
   int32_t start_nblock = start_chunk / blockshape;
   int32_t stop_nblock = (int32_t) (start_chunk + nrecords_chunk) / blockshape;
 
@@ -634,21 +633,21 @@ herr_t H5TBOappend_records( hid_t dataset_id,
   H5Pget_chunk(dcpl, 1, cshape);
   if (H5Pclose(dcpl) < 0)
    goto out;
-  int chunkshape = (int) cshape[0];
-  int cstart = (int) (nrecords_orig / chunkshape);
-  int cstop = (int) (nrecords_orig + nrecords - 1) / chunkshape + 1;
+  int chunklen = (int) cshape[0];
+  int cstart = (int) (nrecords_orig / chunklen);
+  int cstop = (int) (nrecords_orig + nrecords - 1) / chunklen + 1;
   int data_offset = 0;
   for (int ci = cstart; ci < cstop; ci ++) {
    if (ci == cstart) {
-    if ((nrecords_orig % chunkshape == 0) && (nrecords >= chunkshape)) {
-     if (append_records_blosc2(dataset_id, chunkshape, data) < 0)
+    if ((nrecords_orig % chunklen == 0) && (nrecords >= chunklen)) {
+     if (append_records_blosc2(dataset_id, chunklen, data) < 0)
       goto out;
     } else {
      /* Create a simple memory data space */
-     if ((nrecords_orig % chunkshape) + nrecords <= chunkshape) {
+     if ((nrecords_orig % chunklen) + nrecords <= chunklen) {
       count[0] = nrecords;
      } else {
-      count[0] = chunkshape - (nrecords_orig % chunkshape);
+      count[0] = chunklen - (nrecords_orig % chunklen);
      }
      if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
       return -1;
@@ -667,9 +666,9 @@ herr_t H5TBOappend_records( hid_t dataset_id,
 
     }
    } else if (ci == cstop - 1) {
-    data_offset = chunkshape - (nrecords_orig % chunkshape) + (ci - cstart - 1) * chunkshape;
+    data_offset = chunklen - (nrecords_orig % chunklen) + (ci - cstart - 1) * chunklen;
     count[0] = nrecords - data_offset;
-    if (count[0] == chunkshape) {
+    if (count[0] == chunklen) {
      if (append_records_blosc2(dataset_id, count[0],
                               (const void *) (data2 + data_offset * typesize)) < 0)
       goto out;
@@ -692,8 +691,8 @@ herr_t H5TBOappend_records( hid_t dataset_id,
       goto out;
     }
    } else {
-    data_offset = chunkshape - (nrecords_orig % chunkshape) + (ci - cstart - 1) * chunkshape;
-    if (append_records_blosc2(dataset_id, chunkshape,
+    data_offset = chunklen - (nrecords_orig % chunklen) + (ci - cstart - 1) * chunklen;
+    if (append_records_blosc2(dataset_id, chunklen,
                               data2 + data_offset * typesize) < 0)
      goto out;
    }
@@ -776,15 +775,14 @@ herr_t append_records_blosc2( hid_t dataset_id,
  }
  int32_t typesize = cd_values[2];
  int32_t chunksize = cd_values[3];
- hsize_t chunkshape;
- H5Pget_chunk(dcpl, 1, &chunkshape);
+ hsize_t chunklen;
+ H5Pget_chunk(dcpl, 1, &chunklen);
  if (H5Pclose(dcpl) < 0)
   goto out;
 
  /* Compress data into superchunk and get frame */
  blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
  // Experiments say that 4 threads do not harm performance
- cparams.nthreads = 1;
  cparams.typesize = typesize;
  cparams.clevel = cd_values[4];
  cparams.filters[5] = cd_values[5];
@@ -819,7 +817,7 @@ herr_t append_records_blosc2( hid_t dataset_id,
  unsigned flt_msk = 0;
  haddr_t offset[8];
 
- /* Workarround for avoiding the use of H5S_ALL in older HDF5 versions */
+ /* Workaround for avoiding the use of H5S_ALL in older HDF5 versions */
  /* H5S_ALL works well with 1.12.2, but not in HDF5 1.10.7 */
  hid_t d_space = H5Dget_space(dataset_id);
  hsize_t num_chunks;
@@ -831,7 +829,7 @@ herr_t append_records_blosc2( hid_t dataset_id,
   goto out;
  }
 
- offset[0] = num_chunks * chunkshape;
+ offset[0] = num_chunks * chunklen;
  if (H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk, offset, cfsize, cframe) < 0) {
   BLOSC_TRACE_ERROR("Failed HDF5 writing chunk");
   goto out;

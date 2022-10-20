@@ -52,7 +52,7 @@ int register_blosc2(char **version, char **date){
 
     retval = H5Zregister(&filter_class);
     if(retval<0){
-        BLOSC_TRACE_ERROR("Can't register Blosc2 filter");
+        PUSH_ERR("register_blosc2", H5E_CANTREGISTER, "Can't register Blosc2 filter");
     }
     if (version != NULL && date != NULL) {
         *version = strdup(BLOSC2_VERSION_STRING);
@@ -98,7 +98,7 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   if (ndims < 0)
     return -1;
   if (ndims > 32) {
-    BLOSC_TRACE_ERROR("Chunk rank exceeds limit");
+    PUSH_ERR("blosc2_set_local", H5E_CALLBACK, "Chunk rank exceeds limit");
     return -1;
   }
 
@@ -180,9 +180,10 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       const char* compname;
       int code = blosc2_compcode_to_compname(compcode, &compname);
       if (code == -1) {
-        BLOSC_TRACE_ERROR("this Blosc2 library does not have support for "
-                          "the '%s' compressor, but only for: %s",
-                          compname, complist);
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+                 "this Blosc2 library does not have support for "
+                 "the '%s' compressor, but only for: %s",
+                 compname, complist);
         goto failed;
       }
     }
@@ -209,20 +210,20 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     blosc2_storage storage = {.cparams=&cparams, .contiguous=false};
     blosc2_schunk* schunk = blosc2_schunk_new(&storage);
     if (schunk == NULL) {
-      BLOSC_TRACE_ERROR("Cannot create a super-chunk");
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create a super-chunk");
       goto failed;
     }
 
     status = (int) blosc2_schunk_append_buffer(schunk, *buf, (int32_t) nbytes);
     if (status < 0) {
-      BLOSC_TRACE_ERROR("Cannot append to buffer");
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot append to buffer");
       goto failed;
     }
 
     bool needs_free;
     status = (int) blosc2_schunk_to_buffer(schunk, (uint8_t **)&outbuf, &needs_free);
     if (status < 0 || !needs_free) {
-      BLOSC_TRACE_ERROR("Cannot convert to buffer");
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot convert to buffer");
       goto failed;
     }
     blosc2_schunk_free(schunk);
@@ -239,7 +240,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
     blosc2_schunk* schunk = blosc2_schunk_from_buffer(*buf, (int64_t)nbytes, false);
     if (schunk == NULL) {
-      BLOSC_TRACE_ERROR("Cannot get super-chunk from buffer");
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot get super-chunk from buffer");
       goto failed;
     }
 
@@ -247,7 +248,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     bool needs_free;
     cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
     if (cbytes < 0) {
-      BLOSC_TRACE_ERROR("Get chunk error");
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Get chunk error");
       goto failed;
     }
 
@@ -262,7 +263,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
     outbuf = malloc(outbuf_size);
     if (outbuf == NULL) {
-      BLOSC_TRACE_ERROR("Can't allocate decompression buffer");
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Can't allocate decompression buffer");
       goto failed;
     }
 
@@ -274,7 +275,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     blosc2_context *dctx = blosc2_create_dctx(dparams);
     status = (int) blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
     if (status <= 0) {
-      BLOSC_TRACE_ERROR("Blosc2 decompression error");
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 decompression error");
       goto failed;
     }
 
