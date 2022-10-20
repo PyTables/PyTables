@@ -786,9 +786,9 @@ herr_t append_records_blosc2( hid_t dataset_id,
  // Experiments say that 4 threads do not harm performance
  cparams.nthreads = 1;
  cparams.typesize = typesize;
+ cparams.clevel = cd_values[4];
+ cparams.filters[5] = cd_values[5];
  if (strncmp(name, "blosc2:", 7) == 0) {
-  cparams.clevel = cd_values[4];
-  cparams.filters[5] = cd_values[5];
   cparams.compcode = cd_values[6];
  }
  blosc2_context *cctx = blosc2_create_cctx(cparams);
