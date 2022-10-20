@@ -585,9 +585,10 @@ cdef class Table(Leaf):
 
     # Read the records from disk
     cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2") and
                                    ((platform.system().lower() != 'windows') or
-                                    ((platform.system().lower() == 'windows') and
-                                     (self._v_file.mode == 'r'))))
+                                    ((self._v_file.mode == 'r'))))
 
     with nogil:
         ret = H5TBOread_records(filename, blosc2_support, self.dataset_id,
@@ -610,9 +611,10 @@ cdef class Table(Leaf):
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
     cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2") and
                                    ((platform.system().lower() != 'windows') or
-                                    ((platform.system().lower() == 'windows') and
-                                     (self._v_file.mode == 'r'))))
+                                    ((self._v_file.mode == 'r'))))
 
     chunkcache = self._chunkcache
     chunkshape = chunkcache.slotsize
@@ -669,9 +671,10 @@ cdef class Table(Leaf):
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
     cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2") and
                                    ((platform.system().lower() != 'windows') or
-                                    ((platform.system().lower() == 'windows') and
-                                     (self._v_file.mode == 'r'))))
+                                    ((self._v_file.mode == 'r'))))
 
     if step == 1:
       nrecords = stop - start

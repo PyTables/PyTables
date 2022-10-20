@@ -1010,11 +1010,6 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             table.nrowsinbuf = 3
             row = table.row
 
-        # Do not flush the buffer for this table and try to read it
-        # We are forced now to flush tables after append operations
-        # because of unsolved issues with the LRU cache that are too
-        # difficult to track.
-        # F. Alted 2006-08-03
         self.h5file.close()
         self.h5file = tb.open_file(self.h5fname, mode="r")
         table = self.h5file.get_node("/group0/table1")
