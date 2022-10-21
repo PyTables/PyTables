@@ -229,7 +229,8 @@ hid_t H5TBOmake_table(  const char *table_title,
  if ( data )
  {
    /* Write data to the dataset. */
-   if ( H5Dwrite( dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+   if ( H5TBOappend_records( dataset_id, type_id, nrecords, 0, data ) < 0)
+//   if ( H5Dwrite( dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
      goto out;
 
  }
@@ -717,7 +718,7 @@ herr_t append_records_blosc2( hid_t dataset_id,
  for (int ci = cstart; ci < cstop; ci ++) {
   if (ci == cstart) {
    if ((nrecords_orig % chunklen == 0) && (nrecords >= chunklen)) {
-    if (write_records_blosc2(dataset_id, ci * chunklen, chunklen, data) < 0)
+    if (insert_records_blosc2(dataset_id, ci * chunklen, chunklen, data) < 0)
      goto out;
    } else {
     /* Create a simple memory data space */
@@ -742,8 +743,8 @@ herr_t append_records_blosc2( hid_t dataset_id,
    data_offset = chunklen - (nrecords_orig % chunklen) + (ci - cstart - 1) * chunklen;
    count[0] = nrecords - data_offset;
    if (count[0] == chunklen) {
-    if (write_records_blosc2(dataset_id, ci * chunklen, count[0],
-                             (const void *) (data2 + data_offset * typesize)) < 0)
+    if (insert_records_blosc2(dataset_id, ci * chunklen, count[0],
+                              (const void *) (data2 + data_offset * typesize)) < 0)
      goto out;
    } else {
     /* Create a simple memory data space */
@@ -762,8 +763,8 @@ herr_t append_records_blosc2( hid_t dataset_id,
    }
   } else {
    data_offset = chunklen - (nrecords_orig % chunklen) + (ci - cstart - 1) * chunklen;
-   if (write_records_blosc2(dataset_id, ci * chunklen, chunklen,
-                            data2 + data_offset * typesize) < 0)
+   if (insert_records_blosc2(dataset_id, ci * chunklen, chunklen,
+                             data2 + data_offset * typesize) < 0)
     goto out;
   }
  }
@@ -856,9 +857,9 @@ out:
 
 
 /*-------------------------------------------------------------------------
- * Function: write_records_blosc2
+ * Function: insert_records_blosc2
  *
- * Purpose: Write records to a table using blosc2
+ * Purpose: Write records to a specified position of a table using blosc2
  *
  * Return: Success: 0, Failure: -1
  *
@@ -874,7 +875,7 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t write_records_blosc2( hid_t dataset_id,
+herr_t insert_records_blosc2( hid_t dataset_id,
                              hsize_t start,
                              hsize_t nrecords,
                              const void *data )
