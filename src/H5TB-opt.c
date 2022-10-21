@@ -605,103 +605,31 @@ herr_t H5TBOappend_records( hid_t dataset_id,
  hsize_t  offset[1];
  hid_t    mem_space_id = -1;    /* Shut up the compiler */
  hsize_t  dims[1];
- uint8_t  *data2 = (uint8_t *) data;
 
  /* Extend the dataset */
  dims[0] = nrecords_orig;
  dims[0] += nrecords;
  if ( H5Dset_extent(dataset_id, dims) < 0 )
-  goto out;
+  return -1;
 
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
  if (dcpl == H5I_INVALID_HID) {
-  goto out;
+  return -1;
  }
  size_t cd_nelmts = 6;
  unsigned cd_values[6];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
   if (H5Pclose(dcpl) < 0)
-   goto out;
-  goto regular_write;
+  return -1;
  }
  /* Check if the compressor name is blosc2 */
- if ((strncmp(name, "blosc2", 6)) == 0) {
-  int typesize = cd_values[2];
-  hsize_t cshape[1];
-  H5Pget_chunk(dcpl, 1, cshape);
-  if (H5Pclose(dcpl) < 0)
-   goto out;
-  int chunklen = (int) cshape[0];
-  int cstart = (int) (nrecords_orig / chunklen);
-  int cstop = (int) (nrecords_orig + nrecords - 1) / chunklen + 1;
-  int data_offset = 0;
-  for (int ci = cstart; ci < cstop; ci ++) {
-   if (ci == cstart) {
-    if ((nrecords_orig % chunklen == 0) && (nrecords >= chunklen)) {
-     if (append_records_blosc2(dataset_id, chunklen, data) < 0)
-      goto out;
-    } else {
-     /* Create a simple memory data space */
-     if ((nrecords_orig % chunklen) + nrecords <= chunklen) {
-      count[0] = nrecords;
-     } else {
-      count[0] = chunklen - (nrecords_orig % chunklen);
-     }
-     if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
-      return -1;
-
-     /* Get the file data space */
-     if ( (space_id = H5Dget_space(dataset_id)) < 0 )
-      return -1;
-
-     /* Define a hyperslab in the dataset */
-     offset[0] = nrecords_orig;
-     if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
-      goto out;
-
-     if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
-      goto out;
-
-    }
-   } else if (ci == cstop - 1) {
-    data_offset = chunklen - (nrecords_orig % chunklen) + (ci - cstart - 1) * chunklen;
-    count[0] = nrecords - data_offset;
-    if (count[0] == chunklen) {
-     if (append_records_blosc2(dataset_id, count[0],
-                              (const void *) (data2 + data_offset * typesize)) < 0)
-      goto out;
-    } else {
-     /* Create a simple memory data space */
-     if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
-      return -1;
-
-     /* Get the file data space */
-     if ( (space_id = H5Dget_space(dataset_id)) < 0 )
-      return -1;
-
-     /* Define a hyperslab in the dataset */
-     offset[0] = nrecords_orig + data_offset;
-     if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
-      goto out;
-
-     if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT,
-                    (const void *) (data2 + data_offset * typesize) ) < 0 )
-      goto out;
-    }
-   } else {
-    data_offset = chunklen - (nrecords_orig % chunklen) + (ci - cstart - 1) * chunklen;
-    if (append_records_blosc2(dataset_id, chunklen,
-                              data2 + data_offset * typesize) < 0)
-     goto out;
-   }
-  }
-
-  goto success;
+ if ((name != NULL) && (strncmp(name, "blosc2", 6)) == 0) {
+  if (append_records_blosc2(dataset_id, mem_type_id, nrecords, nrecords_orig, data) == 0)
+   goto success;
  }
 
- regular_write:
  /* Create a simple memory data space */
  count[0]=nrecords;
  if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
@@ -714,38 +642,36 @@ herr_t H5TBOappend_records( hid_t dataset_id,
  /* Define a hyperslab in the dataset */
  offset[0] = nrecords_orig;
  if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
-  goto out;
+  return -1;
 
  if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
-  goto out;
+  return -1;
 
  /* Terminate access to the dataspace */
  if ( H5Sclose( mem_space_id ) < 0 )
-  goto out;
+  return -1;
  if ( H5Sclose( space_id ) < 0 )
-  goto out;
+  return -1;
 
- success:
-return 0;
-
-out:
- return -1;
+success:
+ return 0;
 
 }
 
 
 /*-------------------------------------------------------------------------
- * Function: append_records_blosc2
+ * Function: H5TBOappend_records
  *
- * Purpose: Append records to a table using blosc2
+ * Purpose: Appends records to a table
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, francesc@blosc.org
+ * Programmers:
+ *  Francesc Alted, faltet@pytables.com
  *
- * Date: September 5, 2022
+ * Date: April 20, 2003
  *
- * Comments:
+ * Comments: Uses memory offsets
  *
  * Modifications:
  *
@@ -754,93 +680,100 @@ out:
  */
 
 herr_t append_records_blosc2( hid_t dataset_id,
+                              hid_t mem_type_id,
                               hsize_t nrecords,
+                              hsize_t nrecords_orig,
                               const void *data )
 {
+
+ hid_t    space_id = -1;        /* Shut up the compiler */
+ hsize_t  count[1];
+ hsize_t  offset[1];
+ hid_t    mem_space_id = -1;    /* Shut up the compiler */
+ hsize_t  dims[1];
+ uint8_t  *data2 = (uint8_t *) data;
+
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
  if (dcpl == H5I_INVALID_HID) {
-  BLOSC_TRACE_ERROR("Fail getting plist");
   goto out;
  }
-
- /* Get blosc2 params*/
- size_t cd_nelmts = 7;
- unsigned cd_values[7];
+ size_t cd_nelmts = 6;
+ unsigned cd_values[6];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
   H5Pclose(dcpl);
-  BLOSC_TRACE_ERROR("Fail getting blosc2 params");
   goto out;
  }
- int32_t typesize = cd_values[2];
- int32_t chunksize = cd_values[3];
- hsize_t chunklen;
- H5Pget_chunk(dcpl, 1, &chunklen);
+ int typesize = cd_values[2];
+ hsize_t cshape[1];
+ H5Pget_chunk(dcpl, 1, cshape);
  if (H5Pclose(dcpl) < 0)
   goto out;
-
- /* Compress data into superchunk and get frame */
- blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
- // Experiments say that 4 threads do not harm performance
- cparams.typesize = typesize;
- cparams.clevel = cd_values[4];
- cparams.filters[5] = cd_values[5];
- if (strncmp(name, "blosc2:", 7) == 0) {
-  cparams.compcode = cd_values[6];
- }
- blosc2_context *cctx = blosc2_create_cctx(cparams);
- blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
-
- blosc2_storage storage = {.cparams=&cparams, .dparams=&dparams,
-                           .contiguous=true};
- int32_t chunk_size = (int32_t) nrecords * typesize;
- blosc2_schunk *sc = blosc2_schunk_new(&storage);
- if (sc == NULL) {
-  BLOSC_TRACE_ERROR("Failed creating superchunk");
-  goto out;
- }
-
- if (blosc2_schunk_append_buffer(sc, (void*) data, chunk_size) <= 0) {
-  BLOSC_TRACE_ERROR("Failed appending buffer");
-  goto out;
- }
- uint8_t* cframe;
- bool needs_free2;
- int cfsize = (int) blosc2_schunk_to_buffer(sc, &cframe, &needs_free2);
- if (cfsize <= 0) {
-  BLOSC_TRACE_ERROR("Failed converting schunk to cframe");
-  goto out;
- }
-
- /* Write frame bypassing HDF5 filter pipeline */
- unsigned flt_msk = 0;
- haddr_t offset[8];
-
- /* Workaround for avoiding the use of H5S_ALL in older HDF5 versions */
- /* H5S_ALL works well with 1.12.2, but not in HDF5 1.10.7 */
- hid_t d_space = H5Dget_space(dataset_id);
- hsize_t num_chunks;
- if (H5Dget_num_chunks(dataset_id, d_space, &num_chunks) < 0) {
-  BLOSC_TRACE_ERROR("Failed getting number of chunks");
-  goto out;
- }
- if (H5Sclose(d_space) < 0) {
-  goto out;
- }
-
- offset[0] = num_chunks * chunklen;
- if (H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk, offset, cfsize, cframe) < 0) {
-  BLOSC_TRACE_ERROR("Failed HDF5 writing chunk");
-  goto out;
+ int chunklen = (int) cshape[0];
+ int cstart = (int) (nrecords_orig / chunklen);
+ int cstop = (int) (nrecords_orig + nrecords - 1) / chunklen + 1;
+ int data_offset = 0;
+ for (int ci = cstart; ci < cstop; ci ++) {
+  if (ci == cstart) {
+   if ((nrecords_orig % chunklen == 0) && (nrecords >= chunklen)) {
+    if (write_records_blosc2(dataset_id, ci * chunklen, chunklen, data) < 0)
+     goto out;
+   } else {
+    /* Create a simple memory data space */
+    if ((nrecords_orig % chunklen) + nrecords <= chunklen) {
+     count[0] = nrecords;
+    } else {
+     count[0] = chunklen - (nrecords_orig % chunklen);
+    }
+    if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
+     goto out;
+    /* Get the file data space */
+    if ( (space_id = H5Dget_space(dataset_id)) < 0 )
+     goto out;
+    /* Define a hyperslab in the dataset */
+    offset[0] = nrecords_orig;
+    if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
+     goto out;
+    if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+     goto out;
+   }
+  } else if (ci == cstop - 1) {
+   data_offset = chunklen - (nrecords_orig % chunklen) + (ci - cstart - 1) * chunklen;
+   count[0] = nrecords - data_offset;
+   if (count[0] == chunklen) {
+    if (write_records_blosc2(dataset_id, ci * chunklen, count[0],
+                             (const void *) (data2 + data_offset * typesize)) < 0)
+     goto out;
+   } else {
+    /* Create a simple memory data space */
+    if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
+     goto out;
+    /* Get the file data space */
+    if ( (space_id = H5Dget_space(dataset_id)) < 0 )
+     goto out;
+    /* Define a hyperslab in the dataset */
+    offset[0] = nrecords_orig + data_offset;
+    if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
+     goto out;
+    if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT,
+                   (const void *) (data2 + data_offset * typesize) ) < 0 )
+     goto out;
+   }
+  } else {
+   data_offset = chunklen - (nrecords_orig % chunklen) + (ci - cstart - 1) * chunklen;
+   if (write_records_blosc2(dataset_id, ci * chunklen, chunklen,
+                            data2 + data_offset * typesize) < 0)
+    goto out;
+  }
  }
 
  return 0;
 
- out:
-  return -1;
-}
+out:
+ return -1;
 
+}
 
 /*-------------------------------------------------------------------------
  * Function: H5TBOwrite_records
@@ -920,6 +853,103 @@ out:
  return -1;
 
 }
+
+
+/*-------------------------------------------------------------------------
+ * Function: write_records_blosc2
+ *
+ * Purpose: Write records to a table using blosc2
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Francesc Alted, francesc@blosc.org
+ *
+ * Date: September 5, 2022
+ *
+ * Comments:
+ *
+ * Modifications:
+ *
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t write_records_blosc2( hid_t dataset_id,
+                             hsize_t start,
+                             hsize_t nrecords,
+                             const void *data )
+{
+ /* Get the dataset creation property list */
+ hid_t dcpl = H5Dget_create_plist(dataset_id);
+ if (dcpl == H5I_INVALID_HID) {
+  BLOSC_TRACE_ERROR("Fail getting plist");
+  goto out;
+ }
+
+ /* Get blosc2 params*/
+ size_t cd_nelmts = 7;
+ unsigned cd_values[7];
+ char name[7];
+ if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
+  H5Pclose(dcpl);
+  BLOSC_TRACE_ERROR("Fail getting blosc2 params");
+  goto out;
+ }
+ int32_t typesize = cd_values[2];
+ int32_t chunksize = cd_values[3];
+ hsize_t chunklen;
+ H5Pget_chunk(dcpl, 1, &chunklen);
+ if (H5Pclose(dcpl) < 0)
+  goto out;
+
+ /* Compress data into superchunk and get frame */
+ blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
+ // Experiments say that 4 threads do not harm performance
+ cparams.typesize = typesize;
+ cparams.clevel = cd_values[4];
+ cparams.filters[5] = cd_values[5];
+ if (strncmp(name, "blosc2:", 7) == 0) {
+  cparams.compcode = cd_values[6];
+ }
+ blosc2_context *cctx = blosc2_create_cctx(cparams);
+ blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
+
+ blosc2_storage storage = {.cparams=&cparams, .dparams=&dparams,
+                           .contiguous=true};
+ int32_t chunk_size = (int32_t) nrecords * typesize;
+ blosc2_schunk *sc = blosc2_schunk_new(&storage);
+ if (sc == NULL) {
+  BLOSC_TRACE_ERROR("Failed creating superchunk");
+  goto out;
+ }
+
+ if (blosc2_schunk_append_buffer(sc, (void*) data, chunk_size) <= 0) {
+  BLOSC_TRACE_ERROR("Failed appending buffer");
+  goto out;
+ }
+ uint8_t* cframe;
+ bool needs_free2;
+ int cfsize = (int) blosc2_schunk_to_buffer(sc, &cframe, &needs_free2);
+ if (cfsize <= 0) {
+  BLOSC_TRACE_ERROR("Failed converting schunk to cframe");
+  goto out;
+ }
+
+ /* Write frame bypassing HDF5 filter pipeline */
+ unsigned flt_msk = 0;
+ haddr_t offset[8];
+ offset[0] = start;
+ if (H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk, offset, cfsize, cframe) < 0) {
+  BLOSC_TRACE_ERROR("Failed HDF5 writing chunk");
+  goto out;
+ }
+
+ return 0;
+
+ out:
+  return -1;
+}
+
 
 /*-------------------------------------------------------------------------
  * Function: H5TBOwrite_elements
