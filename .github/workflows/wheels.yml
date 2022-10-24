@@ -49,7 +49,7 @@ jobs:
           path: dist/*
 
   build_wheels:
-    name: Build ${{ matrix.os }} ${{ matrix.cibw_pythonn }} wheels for ${{ matrix.arch }}
+    name: Build ${{ matrix.os }} ${{ matrix.cibw_python }} wheels for ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     env:
       HDF5_VERSION: 1.12.1
