@@ -76,17 +76,19 @@ cdef extern from "H5TB-opt.h" nogil:
                           hsize_t chunk_size, hsize_t block_size,
                           void *fill_data, int compress,
                           char *complib, int shuffle, int fletcher32,
-                          hbool_t track_times, void *data )
+                          hbool_t track_times, hbool_t blosc2_support,
+                          void *data )
 
-  herr_t H5TBOread_records( char* filename, hbool_t blosc2_support, hid_t dataset_id, hid_t mem_type_id,
+  herr_t H5TBOread_records( char* filename, hbool_t blosc2_support,
+                            hid_t dataset_id, hid_t mem_type_id,
                             hsize_t start, hsize_t nrecords, void *data )
 
   herr_t H5TBOread_elements( hid_t dataset_id, hid_t mem_type_id,
                              hsize_t nrecords, void *coords, void *data )
 
-  herr_t H5TBOappend_records( hid_t dataset_id, hid_t mem_type_id,
-                              hsize_t nrecords, hsize_t nrecords_orig,
-                              void *data )
+  herr_t H5TBOappend_records( hbool_t blosc2_support, hid_t dataset_id,
+                              hid_t mem_type_id, hsize_t start,
+                              hsize_t nrecords, void *data )
 
   herr_t H5TBOwrite_records ( hid_t dataset_id, hid_t mem_type_id,
                               hsize_t start, hsize_t nrecords,
@@ -201,6 +203,9 @@ cdef class Table(Leaf):
 
     class_ = self._c_classid.encode('utf-8')
     cdef hsize_t blocksize = self._v_blocksize if hasattr(self, "_v_blocksize") else 0
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2"))
     self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, encoded_name,
                                       cobversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
@@ -208,7 +213,8 @@ cdef class Table(Leaf):
                                       self.filters.complevel, encoded_complib,
                                       self.filters.shuffle_bitshuffle,
                                       self.filters.fletcher32,
-                                      self._want_track_times, data)
+                                      self._want_track_times,
+                                      blosc2_support, data)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the table")
 
@@ -489,11 +495,14 @@ cdef class Table(Leaf):
     self._convert_types(self._v_recarray, nrecords, 0)
 
     nrows = self.nrows
-    # release GIL (allow other threads to use the Python interpreter)
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2"))
+      # release GIL (allow other threads to use the Python interpreter)
     with nogil:
         # Append the records:
-        ret = H5TBOappend_records(self.dataset_id, self.type_id,
-                                  nrecords, nrows, self.wbuf)
+        ret = H5TBOappend_records(blosc2_support, self.dataset_id,
+                                  self.type_id, nrows, nrecords, self.wbuf)
 
     if ret < 0:
       raise HDF5ExtError("Problems appending the records.")

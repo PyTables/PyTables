@@ -99,6 +99,7 @@ hid_t H5TBOmake_table(  const char *table_title,
                         int shuffle,
                         int fletcher32,
                         hbool_t track_times,
+                        hbool_t blosc2_support,
                         const void *data )
 {
 
@@ -229,8 +230,8 @@ hid_t H5TBOmake_table(  const char *table_title,
  if ( data )
  {
    /* Write data to the dataset. */
-   if ( H5TBOappend_records( dataset_id, type_id, nrecords, 0, data ) < 0)
-//   if ( H5Dwrite( dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+   if ( H5TBOappend_records( blosc2_support, dataset_id, type_id,
+                             0, nrecords, data ) < 0)
      goto out;
 
  }
@@ -367,8 +368,8 @@ herr_t read_records_blosc2( char* filename,
  }
 
  /* Get blosc2 params */
- size_t cd_nelmts = 6;
- unsigned cd_values[6];
+ size_t cd_nelmts = 7;
+ unsigned cd_values[7];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
   H5Pclose(dcpl);
@@ -434,6 +435,12 @@ herr_t read_records_blosc2( char* filename,
   blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
   // Experiments say that 4 threads do not harm performance
   dparams.schunk = schunk;
+  char* envvar = getenv("BLOSC_NTHREADS");
+  if (envvar != NULL) {
+   long nthreads;
+   nthreads = strtol(envvar, NULL, 10);
+   dparams.nthreads = (int16_t) nthreads;
+  }
   blosc2_context *dctx = blosc2_create_dctx(dparams);
 
   /* Gather data for the interesting part */
@@ -595,10 +602,11 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5TBOappend_records( hid_t dataset_id,
+herr_t H5TBOappend_records( hbool_t blosc2_support,
+                            hid_t dataset_id,
                             hid_t mem_type_id,
+                            hsize_t start,
                             hsize_t nrecords,
-                            hsize_t nrecords_orig,
                             const void *data )
 {
  hid_t    space_id = -1;        /* Shut up the compiler */
@@ -608,7 +616,7 @@ herr_t H5TBOappend_records( hid_t dataset_id,
  hsize_t  dims[1];
 
  /* Extend the dataset */
- dims[0] = nrecords_orig;
+ dims[0] = start;
  dims[0] += nrecords;
  if ( H5Dset_extent(dataset_id, dims) < 0 )
   return -1;
@@ -618,16 +626,10 @@ herr_t H5TBOappend_records( hid_t dataset_id,
  if (dcpl == H5I_INVALID_HID) {
   return -1;
  }
- size_t cd_nelmts = 6;
- unsigned cd_values[6];
- char name[7];
- if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
-  if (H5Pclose(dcpl) < 0)
-  return -1;
- }
+
  /* Check if the compressor name is blosc2 */
- if ((name != NULL) && (strncmp(name, "blosc2", 6)) == 0) {
-  if (append_records_blosc2(dataset_id, mem_type_id, nrecords, nrecords_orig, data) == 0)
+ if (blosc2_support) {
+  if (append_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
    goto success;
  }
 
@@ -641,7 +643,7 @@ herr_t H5TBOappend_records( hid_t dataset_id,
   return -1;
 
  /* Define a hyperslab in the dataset */
- offset[0] = nrecords_orig;
+ offset[0] = start;
  if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
   return -1;
 
@@ -661,18 +663,19 @@ success:
 
 
 /*-------------------------------------------------------------------------
- * Function: H5TBOappend_records
+ * Function: append_records_blosc2
  *
- * Purpose: Appends records to a table
+ * Purpose: Append records to a table using blosc2
  *
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Alted, faltet@pytables.com
+ *  Francesc Alted, francesc@blosc.org
+ *  Oscar Guiñon, soscargm98@gmail.com
  *
- * Date: April 20, 2003
+ * Date: September 30, 2022
  *
- * Comments: Uses memory offsets
+ * Comments:
  *
  * Modifications:
  *
@@ -682,8 +685,8 @@ success:
 
 herr_t append_records_blosc2( hid_t dataset_id,
                               hid_t mem_type_id,
+                              hsize_t start,
                               hsize_t nrecords,
-                              hsize_t nrecords_orig,
                               const void *data )
 {
 
@@ -699,8 +702,8 @@ herr_t append_records_blosc2( hid_t dataset_id,
  if (dcpl == H5I_INVALID_HID) {
   goto out;
  }
- size_t cd_nelmts = 6;
- unsigned cd_values[6];
+ size_t cd_nelmts = 7;
+ unsigned cd_values[7];
  char name[7];
  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
   H5Pclose(dcpl);
@@ -712,20 +715,20 @@ herr_t append_records_blosc2( hid_t dataset_id,
  if (H5Pclose(dcpl) < 0)
   goto out;
  int chunklen = (int) cshape[0];
- int cstart = (int) (nrecords_orig / chunklen);
- int cstop = (int) (nrecords_orig + nrecords - 1) / chunklen + 1;
+ int cstart = (int) (start / chunklen);
+ int cstop = (int) (start + nrecords - 1) / chunklen + 1;
  int data_offset = 0;
  for (int ci = cstart; ci < cstop; ci ++) {
   if (ci == cstart) {
-   if ((nrecords_orig % chunklen == 0) && (nrecords >= chunklen)) {
+   if ((start % chunklen == 0) && (nrecords >= chunklen)) {
     if (insert_records_blosc2(dataset_id, ci * chunklen, chunklen, data) < 0)
      goto out;
    } else {
     /* Create a simple memory data space */
-    if ((nrecords_orig % chunklen) + nrecords <= chunklen) {
+    if ((start % chunklen) + nrecords <= chunklen) {
      count[0] = nrecords;
     } else {
-     count[0] = chunklen - (nrecords_orig % chunklen);
+     count[0] = chunklen - (start % chunklen);
     }
     if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
      goto out;
@@ -733,14 +736,14 @@ herr_t append_records_blosc2( hid_t dataset_id,
     if ( (space_id = H5Dget_space(dataset_id)) < 0 )
      goto out;
     /* Define a hyperslab in the dataset */
-    offset[0] = nrecords_orig;
+    offset[0] = start;
     if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
      goto out;
     if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
      goto out;
    }
   } else if (ci == cstop - 1) {
-   data_offset = chunklen - (nrecords_orig % chunklen) + (ci - cstart - 1) * chunklen;
+   data_offset = chunklen - (start % chunklen) + (ci - cstart - 1) * chunklen;
    count[0] = nrecords - data_offset;
    if (count[0] == chunklen) {
     if (insert_records_blosc2(dataset_id, ci * chunklen, count[0],
@@ -754,7 +757,7 @@ herr_t append_records_blosc2( hid_t dataset_id,
     if ( (space_id = H5Dget_space(dataset_id)) < 0 )
      goto out;
     /* Define a hyperslab in the dataset */
-    offset[0] = nrecords_orig + data_offset;
+    offset[0] = start + data_offset;
     if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, NULL, count, NULL) < 0 )
      goto out;
     if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT,
@@ -762,7 +765,7 @@ herr_t append_records_blosc2( hid_t dataset_id,
      goto out;
    }
   } else {
-   data_offset = chunklen - (nrecords_orig % chunklen) + (ci - cstart - 1) * chunklen;
+   data_offset = chunklen - (start % chunklen) + (ci - cstart - 1) * chunklen;
    if (insert_records_blosc2(dataset_id, ci * chunklen, chunklen,
                              data2 + data_offset * typesize) < 0)
     goto out;
@@ -864,8 +867,9 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmer: Francesc Alted, francesc@blosc.org
+ *  Oscar Guiñon, soscargm98@gmail.com
  *
- * Date: September 5, 2022
+ * Date: October 21, 2022
  *
  * Comments:
  *
@@ -906,6 +910,12 @@ herr_t insert_records_blosc2( hid_t dataset_id,
  /* Compress data into superchunk and get frame */
  blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
  // Experiments say that 4 threads do not harm performance
+ char* envvar = getenv("BLOSC_NTHREADS");
+ if (envvar != NULL) {
+  long nthreads;
+  nthreads = strtol(envvar, NULL, 10);
+  cparams.nthreads = (int16_t) nthreads;
+ }
  cparams.typesize = typesize;
  cparams.clevel = cd_values[4];
  cparams.filters[5] = cd_values[5];
