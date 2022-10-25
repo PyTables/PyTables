@@ -90,9 +90,13 @@ cdef extern from "H5TB-opt.h" nogil:
                               hid_t mem_type_id, hsize_t start,
                               hsize_t nrecords, void *data )
 
-  herr_t H5TBOwrite_records ( hid_t dataset_id, hid_t mem_type_id,
-                              hsize_t start, hsize_t nrecords,
-                              hsize_t step, void *data )
+  herr_t H5TBOwrite_records ( hbool_t blosc2_support, hid_t dataset_id,
+                              hid_t mem_type_id, hsize_t start,
+                              hsize_t nrecords, hsize_t step, void *data )
+
+  herr_t write_records_blosc2( hid_t dataset_id, hid_t mem_type_id,
+                               hsize_t start, hsize_t nrecords,
+                               const void *data )
 
   herr_t H5TBOwrite_elements( hid_t dataset_id, hid_t mem_type_id,
                               hsize_t nrecords, void *coords, void *data )
@@ -543,9 +547,13 @@ cdef class Table(Leaf):
     # Convert some NumPy types to HDF5 before storing.
     self._convert_types(recarr, nrecords, 0)
     # Update the records:
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2") and
+                                   (step == 1))
     with nogil:
-        ret = H5TBOwrite_records(self.dataset_id, self.type_id,
-                                 start, nrecords, step, rbuf )
+        ret = H5TBOwrite_records(blosc2_support, self.dataset_id,
+                                 self.type_id, start, nrecords, step, rbuf )
 
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")

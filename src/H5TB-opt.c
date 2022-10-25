@@ -433,7 +433,6 @@ herr_t read_records_blosc2( char* filename,
   }
 
   blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
-  // Experiments say that 4 threads do not harm performance
   dparams.schunk = schunk;
   char* envvar = getenv("BLOSC_NTHREADS");
   if (envvar != NULL) {
@@ -621,15 +620,9 @@ herr_t H5TBOappend_records( hbool_t blosc2_support,
  if ( H5Dset_extent(dataset_id, dims) < 0 )
   return -1;
 
- /* Get the dataset creation property list */
- hid_t dcpl = H5Dget_create_plist(dataset_id);
- if (dcpl == H5I_INVALID_HID) {
-  return -1;
- }
-
- /* Check if the compressor name is blosc2 */
+ /* Check if the compressor is blosc2 */
  if (blosc2_support) {
-  if (append_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
+  if (write_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
    goto success;
  }
 
@@ -663,9 +656,97 @@ success:
 
 
 /*-------------------------------------------------------------------------
- * Function: append_records_blosc2
+ * Function: H5TBOwrite_records
  *
- * Purpose: Append records to a table using blosc2
+ * Purpose: Writes records
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
+ *
+ * Date: November 19, 2001
+ *
+ * Comments: Uses memory offsets
+ *
+ * Modifications:
+ * -  Added a step parameter in order to support strided writing.
+ *    Francesc Alted, faltet@pytables.com. 2004-08-12
+ *
+ * -  Removed the type_size which was unnecessary
+ *    Francesc Alted, 2005-10-25
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5TBOwrite_records( hbool_t blosc2_support,
+                           hid_t dataset_id,
+                           hid_t mem_type_id,
+                           hsize_t start,
+                           hsize_t nrecords,
+                           hsize_t step,
+                           const void *data )
+{
+
+ hsize_t  count[1];
+ hsize_t  stride[1];
+ hsize_t  offset[1];
+ hid_t    space_id;
+ hid_t    mem_space_id;
+ hsize_t  dims[1];
+
+ /* Check if the compressor is blosc2 */
+ if (blosc2_support) {
+  if (write_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
+   goto success;
+ }
+
+ /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  goto out;
+
+  /* Get records */
+ if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
+  goto out;
+
+/*  if ( start + nrecords > dims[0] ) */
+ if ( start + (nrecords-1) * step + 1 > dims[0] )
+  goto out;
+
+ /* Define a hyperslab in the dataset of the size of the records */
+ offset[0] = start;
+ stride[0] = step;
+ count[0] = nrecords;
+ if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
+  goto out;
+
+ /* Create a memory dataspace handle */
+ if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
+  goto out;
+
+ if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+  goto out;
+
+ /* Terminate access to the memory dataspace */
+ if ( H5Sclose( mem_space_id ) < 0 )
+  goto out;
+
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
+
+success:
+ return 0;
+
+out:
+ return -1;
+
+}
+
+
+/*-------------------------------------------------------------------------
+ * Function: write_records_blosc2
+ *
+ * Purpose: Write records to a table using blosc2
  *
  * Return: Success: 0, Failure: -1
  *
@@ -673,7 +754,7 @@ success:
  *  Francesc Alted, francesc@blosc.org
  *  Oscar Guiñon, soscargm98@gmail.com
  *
- * Date: September 30, 2022
+ * Date: October 25, 2022
  *
  * Comments:
  *
@@ -683,18 +764,17 @@ success:
  *-------------------------------------------------------------------------
  */
 
-herr_t append_records_blosc2( hid_t dataset_id,
-                              hid_t mem_type_id,
-                              hsize_t start,
-                              hsize_t nrecords,
-                              const void *data )
+herr_t write_records_blosc2( hid_t dataset_id,
+                             hid_t mem_type_id,
+                             hsize_t start,
+                             hsize_t nrecords,
+                             const void *data )
 {
 
  hid_t    space_id = -1;        /* Shut up the compiler */
  hsize_t  count[1];
  hsize_t  offset[1];
  hid_t    mem_space_id = -1;    /* Shut up the compiler */
- hsize_t  dims[1];
  uint8_t  *data2 = (uint8_t *) data;
 
  /* Get the dataset creation property list */
@@ -779,85 +859,6 @@ out:
 
 }
 
-/*-------------------------------------------------------------------------
- * Function: H5TBOwrite_records
- *
- * Purpose: Writes records
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
- *
- * Date: November 19, 2001
- *
- * Comments: Uses memory offsets
- *
- * Modifications:
- * -  Added a step parameter in order to support strided writing.
- *    Francesc Alted, faltet@pytables.com. 2004-08-12
- *
- * -  Removed the type_size which was unnecessary
- *    Francesc Alted, 2005-10-25
- *
- *-------------------------------------------------------------------------
- */
-
-herr_t H5TBOwrite_records( hid_t dataset_id,
-                           hid_t mem_type_id,
-                           hsize_t start,
-                           hsize_t nrecords,
-                           hsize_t step,
-                           const void *data )
-{
-
- hsize_t  count[1];
- hsize_t  stride[1];
- hsize_t  offset[1];
- hid_t    space_id;
- hid_t    mem_space_id;
- hsize_t  dims[1];
-
- /* Get the dataspace handle */
- if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-  goto out;
-
-  /* Get records */
- if ( H5Sget_simple_extent_dims( space_id, dims, NULL) < 0 )
-  goto out;
-
-/*  if ( start + nrecords > dims[0] ) */
- if ( start + (nrecords-1) * step + 1 > dims[0] )
-  goto out;
-
- /* Define a hyperslab in the dataset of the size of the records */
- offset[0] = start;
- stride[0] = step;
- count[0] = nrecords;
- if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
-  goto out;
-
- /* Create a memory dataspace handle */
- if ( (mem_space_id = H5Screate_simple( 1, count, NULL )) < 0 )
-  goto out;
-
- if ( H5Dwrite( dataset_id, mem_type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
-  goto out;
-
- /* Terminate access to the memory dataspace */
- if ( H5Sclose( mem_space_id ) < 0 )
-  goto out;
-
- /* Terminate access to the dataspace */
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
-
-return 0;
-
-out:
- return -1;
-
-}
-
 
 /*-------------------------------------------------------------------------
  * Function: insert_records_blosc2
@@ -909,7 +910,6 @@ herr_t insert_records_blosc2( hid_t dataset_id,
 
  /* Compress data into superchunk and get frame */
  blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
- // Experiments say that 4 threads do not harm performance
  char* envvar = getenv("BLOSC_NTHREADS");
  if (envvar != NULL) {
   long nthreads;
