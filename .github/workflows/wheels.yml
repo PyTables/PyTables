@@ -192,7 +192,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
-        python-version: ['3.8', '3.9','3.10', '3.11-dev']
+        python-version: ['3.8', '3.9','3.10', '3.11']
         arch: ['x64', 'x86']
         exclude:
         - os: 'ubuntu-latest'
@@ -213,7 +213,7 @@ jobs:
 
       - name: Install tables on ${{ matrix.python-version }}
         run: |
-          pip install numpy>=1.19.0 numexpr>=2.6.2
+          pip install numpy>=1.19.0 numexpr>=2.6.2 packaging
           pip install --no-index --find-links wheelhouse/artifact/ tables
 
       - name: Run tests on ${{ matrix.python-version }}
