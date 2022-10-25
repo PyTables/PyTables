@@ -51,18 +51,19 @@ herr_t H5TBOappend_records( hbool_t blosc2_support,
                             hsize_t nrecords,
                             const void *data );
 
-herr_t append_records_blosc2( hid_t dataset_id,
-                              hid_t mem_type_id,
-                              hsize_t start,
-                              hsize_t nrecords,
-                              const void *data );
-
-herr_t H5TBOwrite_records( hid_t dataset_id,
+herr_t H5TBOwrite_records( hbool_t blosc2_support,
+                           hid_t dataset_id,
                            hid_t mem_type_id,
                            hsize_t start,
                            hsize_t nrecords,
                            hsize_t step,
                            const void *data );
+
+herr_t write_records_blosc2( hid_t dataset_id,
+                             hid_t mem_type_id,
+                             hsize_t start,
+                             hsize_t nrecords,
+                             const void *data );
 
 herr_t insert_records_blosc2( hid_t dataset_id,
                               hsize_t start,
