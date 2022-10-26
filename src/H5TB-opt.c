@@ -801,7 +801,7 @@ herr_t write_records_blosc2( hid_t dataset_id,
  for (int ci = cstart; ci < cstop; ci ++) {
   if (ci == cstart) {
    if ((start % chunklen == 0) && (nrecords >= chunklen)) {
-    if (insert_records_blosc2(dataset_id, ci * chunklen, chunklen, data) < 0)
+    if (insert_chunk_blosc2(dataset_id, ci * chunklen, chunklen, data) < 0)
      goto out;
    } else {
     /* Create a simple memory data space */
@@ -826,8 +826,8 @@ herr_t write_records_blosc2( hid_t dataset_id,
    data_offset = chunklen - (start % chunklen) + (ci - cstart - 1) * chunklen;
    count[0] = nrecords - data_offset;
    if (count[0] == chunklen) {
-    if (insert_records_blosc2(dataset_id, ci * chunklen, count[0],
-                              (const void *) (data2 + data_offset * typesize)) < 0)
+    if (insert_chunk_blosc2(dataset_id, ci * chunklen, count[0],
+                            (const void *) (data2 + data_offset * typesize)) < 0)
      goto out;
    } else {
     /* Create a simple memory data space */
@@ -846,8 +846,8 @@ herr_t write_records_blosc2( hid_t dataset_id,
    }
   } else {
    data_offset = chunklen - (start % chunklen) + (ci - cstart - 1) * chunklen;
-   if (insert_records_blosc2(dataset_id, ci * chunklen, chunklen,
-                             data2 + data_offset * typesize) < 0)
+   if (insert_chunk_blosc2(dataset_id, ci * chunklen, chunklen,
+                           data2 + data_offset * typesize) < 0)
     goto out;
   }
  }
@@ -861,9 +861,10 @@ out:
 
 
 /*-------------------------------------------------------------------------
- * Function: insert_records_blosc2
+ * Function: insert_chunk_blosc2
  *
- * Purpose: Write records to a specified position of a table using blosc2
+ * Purpose: Compress a chunk using Blosc2 and write it to a specified
+ * position of a table
  *
  * Return: Success: 0, Failure: -1
  *
@@ -880,10 +881,10 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t insert_records_blosc2( hid_t dataset_id,
-                             hsize_t start,
-                             hsize_t nrecords,
-                             const void *data )
+herr_t insert_chunk_blosc2( hid_t dataset_id,
+                            hsize_t start,
+                            hsize_t nrecords,
+                            const void *data )
 {
  /* Get the dataset creation property list */
  hid_t dcpl = H5Dget_create_plist(dataset_id);
