@@ -65,10 +65,10 @@ herr_t write_records_blosc2( hid_t dataset_id,
                              hsize_t nrecords,
                              const void *data );
 
-herr_t insert_records_blosc2( hid_t dataset_id,
-                              hsize_t start,
-                              hsize_t nrecords,
-                              const void *data );
+herr_t insert_chunk_blosc2( hid_t dataset_id,
+                            hsize_t start,
+                            hsize_t nrecords,
+                            const void *data );
 
 herr_t H5TBOwrite_elements( hid_t dataset_id,
                             hid_t mem_type_id,
