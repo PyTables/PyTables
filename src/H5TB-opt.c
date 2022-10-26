@@ -379,10 +379,6 @@ herr_t read_records_blosc2( char* filename,
  if (H5Pclose(dcpl) < 0)
   goto out;
 
- /* Check that the compressor name is correct */
- if (strcmp(name, "blosc2") != 0) {
-  goto out;
- }
  int32_t typesize = cd_values[2];
  int32_t chunksize = cd_values[3];
 
@@ -429,7 +425,8 @@ herr_t read_records_blosc2( char* filename,
 
   int32_t blocksize;
   if (blosc2_cbuffer_sizes(chunk, NULL, NULL, &blocksize) < 0) {
-    goto out;
+   BLOSC_TRACE_ERROR("Cannot get compressed buffer sizes\n");
+   goto out;
   }
 
   blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
@@ -923,10 +920,8 @@ herr_t insert_chunk_blosc2( hid_t dataset_id,
  if (strncmp(name, "blosc2:", 7) == 0) {
   cparams.compcode = cd_values[6];
  }
- blosc2_context *cctx = blosc2_create_cctx(cparams);
- blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
 
- blosc2_storage storage = {.cparams=&cparams, .dparams=&dparams,
+ blosc2_storage storage = {.cparams=&cparams, .dparams=NULL,
                            .contiguous=true};
  int32_t chunk_size = (int32_t) nrecords * typesize;
  blosc2_schunk *sc = blosc2_schunk_new(&storage);

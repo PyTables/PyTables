@@ -153,7 +153,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
                               size_t* buf_size, void** buf) {
 
   void* outbuf = NULL;
-  int status = 0;                /* Return code from Blosc2 routines */
+  int64_t status = 0;                /* Return code from Blosc2 routines */
   size_t blocksize;
   size_t typesize;
   size_t outbuf_size;
@@ -214,14 +214,14 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       goto failed;
     }
 
-    status = (int) blosc2_schunk_append_buffer(schunk, *buf, (int32_t) nbytes);
+    status = blosc2_schunk_append_buffer(schunk, *buf, (int32_t) nbytes);
     if (status < 0) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot append to buffer");
       goto failed;
     }
 
     bool needs_free;
-    status = (int) blosc2_schunk_to_buffer(schunk, (uint8_t **)&outbuf, &needs_free);
+    status = blosc2_schunk_to_buffer(schunk, (uint8_t **)&outbuf, &needs_free);
     if (status < 0 || !needs_free) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot convert to buffer");
       goto failed;
@@ -273,7 +273,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
      */
     dparams.nthreads = 4;
     blosc2_context *dctx = blosc2_create_dctx(dparams);
-    status = (int) blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
+    status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
     if (status <= 0) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 decompression error");
       goto failed;
