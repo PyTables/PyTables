@@ -1,5 +1,5 @@
 =======================================
- Release notes for PyTables 3.7 series
+ Release notes for PyTables 3.8 series
 =======================================
 
 :Author: PyTables Developers
