@@ -992,7 +992,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     row['var15'] = 1 + float(i)*1j
 
             row.append()
-            # the next call can mislead the counters
+            # We are closing and reopening in 'r'ead-only instead of flushing for
+            # making Windows use the Blosc2 optimized path for reading chunks
             #table.flush()
             self.h5file.close()
             self.h5file = tb.open_file(self.h5fname, mode="r")
