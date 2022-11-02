@@ -131,32 +131,9 @@ if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then
     export hdf5_cv_disable_some_ldouble_conv=no
     export hdf5_cv_system_scope_threads=yes
     export hdf5_cv_printf_ll="l"
-    export PAC_FC_MAX_REAL_PRECISION=15
-    export PAC_C_MAX_REAL_PRECISION=17
-    export PAC_FC_ALL_INTEGER_KINDS="{1,2,4,8,16}"
-    export PAC_FC_ALL_REAL_KINDS="{4,8}"
-    export H5CONFIG_F_NUM_RKIND="INTEGER, PARAMETER :: num_rkinds = 2"
-    export H5CONFIG_F_NUM_IKIND="INTEGER, PARAMETER :: num_ikinds = 5"
-    export H5CONFIG_F_RKIND="INTEGER, DIMENSION(1:num_rkinds) :: rkind = (/4,8/)"
-    export H5CONFIG_F_IKIND="INTEGER, DIMENSION(1:num_ikinds) :: ikind = (/1,2,4,8,16/)"
-    export PAC_FORTRAN_NATIVE_INTEGER_SIZEOF="                    4"
-    export PAC_FORTRAN_NATIVE_INTEGER_KIND="           4"
-    export PAC_FORTRAN_NATIVE_REAL_SIZEOF="                    4"
-    export PAC_FORTRAN_NATIVE_REAL_KIND="           4"
-    export PAC_FORTRAN_NATIVE_DOUBLE_SIZEOF="                    8"
-    export PAC_FORTRAN_NATIVE_DOUBLE_KIND="           8"
-    export PAC_FORTRAN_NUM_INTEGER_KINDS="5"
-    export PAC_FC_ALL_REAL_KINDS_SIZEOF="{4,8}"
-    export PAC_FC_ALL_INTEGER_KINDS_SIZEOF="{1,2,4,8,16}"
 
-    curl -sLO https://github.com/conda-forge/hdf5-feedstock/raw/2cb83b63965985fa8795b0a13150bf0fd2525ebd/recipe/patches/osx_cross_configure.patch
-    curl -sLO https://github.com/conda-forge/hdf5-feedstock/raw/2cb83b63965985fa8795b0a13150bf0fd2525ebd/recipe/patches/osx_cross_fortran_src_makefile.patch
-    curl -sLO https://github.com/conda-forge/hdf5-feedstock/raw/2cb83b63965985fa8795b0a13150bf0fd2525ebd/recipe/patches/osx_cross_hl_fortran_src_makefile.patch
-    curl -sLO https://github.com/conda-forge/hdf5-feedstock/raw/2cb83b63965985fa8795b0a13150bf0fd2525ebd/recipe/patches/osx_cross_src_makefile.patch
-    patch -p0 < osx_cross_configure.patch
-    patch -p0 < osx_cross_fortran_src_makefile.patch
-    patch -p0 < osx_cross_hl_fortran_src_makefile.patch
-    patch -p0 < osx_cross_src_makefile.patch
+    patch -p0 < ../osx_cross_configure.patch
+    patch -p0 < ../osx_cross_src_makefile.patch
 
     ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production \
         --host=aarch64-apple-darwin --enable-tests=no

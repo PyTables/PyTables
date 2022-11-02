@@ -52,7 +52,7 @@ jobs:
     name: Build ${{ matrix.os }} ${{ matrix.cibw_python }} wheels for ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     env:
-      HDF5_VERSION: 1.12.1
+      HDF5_VERSION: 1.12.2
       MACOSX_DEPLOYMENT_TARGET: "10.9"
       # Skip 3.6 and 3.7 wheels
       CIBW_SKIP: "cp36-* cp37-*"
