@@ -16,7 +16,6 @@ export PKG_CONFIG_PATH="$HDF5_DIR/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
 
 LZO_VERSION="2.10"
-SNAPPY_VERSION="1.1.9"
 ZSTD_VERSION="1.5.2"
 LZ4_VERSION="1.9.3"
 BZIP_VERSION="1.0.8"
@@ -95,18 +94,6 @@ EOF
     make install
     popd
 
-    popd
-
-    # snappy
-    git clone https://github.com/google/snappy.git --branch $SNAPPY_VERSION --depth 1
-    pushd snappy
-    git submodule update --init
-    mkdir build
-    cd build
-    CC= CXX= CPPFLAGS= CXXFLAGS= CFLAGS="$CFLAGS_ORIG" cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DRUN_HAVE_STD_REGEX=0 \
-        -DRUN_HAVE_POSIX_REGEX=0 -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
-    CC= CXX= CPPFLAGS= CXXFLAGS= CFLAGS="$CFLAGS_ORIG" make
-    make install
     popd
 else
     yum -y update
