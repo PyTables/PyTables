@@ -398,9 +398,6 @@ herr_t read_records_blosc2( char* filename,
   stop_nchunk += 1;
  }
  for (hsize_t nchunk = start_nchunk; nchunk < stop_nchunk && total_records < nrecords; nchunk++) {
-  if (nchunk != start_nchunk) {
-   start_chunk = 0;
-  }
   /* Open the schunk on-disk */
   unsigned flt_msk;
   haddr_t address;
@@ -448,60 +445,24 @@ herr_t read_records_blosc2( char* filename,
    nrecords_chunk = nrecords - total_records;
   }
 
-  int32_t blockshape = blocksize / typesize;
-  int32_t nblocks = chunklen / blockshape;
-  int32_t start_nblock = start_chunk / blockshape;
-  int32_t stop_nblock = (int32_t) (start_chunk + nrecords_chunk) / blockshape;
-
+  int rbytes;
   if (nrecords_chunk == chunklen) {
-   int32_t nbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, data, chunksize);
-   if (nbytes < 0) {
+   rbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, data, chunksize);
+   if (rbytes < 0) {
     BLOSC_TRACE_ERROR("Cannot decompress lazy chunk");
     goto out;
    }
-   data += nbytes;
-   total_records += nrecords_chunk;
-  } else if (nrecords_chunk > blockshape) {
-   /* We have more than 1 block to read, so use a masked read */
-   bool *block_maskout = calloc(nblocks, 1);
-   if (block_maskout == NULL) {
-    BLOSC_TRACE_ERROR("Calloc failed for block_maskout");
-    return -1;
-   }
-   int32_t nblocks_set = 0;
-   for (int32_t nblock = 0; nblock < nblocks; nblock++) {
-    if ((nblock < start_nblock) || (nblock > stop_nblock)) {
-     block_maskout[nblock] = true;
-     nblocks_set++;
-    }
-   }
-   if (blosc2_set_maskout(dctx, block_maskout, nblocks) != BLOSC2_ERROR_SUCCESS) {
-    BLOSC_TRACE_ERROR("Error setting the maskout");
-    goto out;
-   }
-   int32_t nbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, buffer_out, chunksize);
-   if (nbytes < 0) {
-    BLOSC_TRACE_ERROR("Cannot decompress lazy chunk");
-    goto out;
-   }
-   /* Copy data to destination */
-   int rbytes = (int) nrecords_chunk * typesize;
-   memcpy(data, buffer_out + start_chunk * typesize, rbytes);
-   data += rbytes;
-   total_records += nrecords_chunk;
-   free(block_maskout);
-  } else {
-   /* Less than 1 block to read; use a getitem call */
-   int rbytes = (int) blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, (int) nrecords_chunk, buffer_out, chunksize);
+  }
+  else {
+   /* Less than 1 chunk to read; use a getitem call */
+   int rbytes = (int) blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, (int) nrecords_chunk, data, chunksize);
    if (rbytes < 0) {
     BLOSC_TRACE_ERROR("Cannot get items for lazychunk\n");
     goto out;
    }
-   /* Copy data to destination */
-   memcpy(data, buffer_out, rbytes);
-   data += rbytes;
-   total_records += nrecords_chunk;
   }
+  data += rbytes;
+  total_records += nrecords_chunk;
 
   if (needs_free) {
    free(chunk);
