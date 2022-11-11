@@ -459,6 +459,8 @@ herr_t read_records_blosc2( char* filename,
     BLOSC_TRACE_ERROR("Cannot decompress lazy chunk");
     goto out;
    }
+   data += nbytes;
+   total_records += nrecords_chunk;
   } else if (nrecords_chunk > blockshape) {
    /* We have more than 1 block to read, so use a masked read */
    bool *block_maskout = calloc(nblocks, 1);
