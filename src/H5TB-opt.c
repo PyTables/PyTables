@@ -398,6 +398,9 @@ herr_t read_records_blosc2( char* filename,
   stop_nchunk += 1;
  }
  for (hsize_t nchunk = start_nchunk; nchunk < stop_nchunk && total_records < nrecords; nchunk++) {
+  if (nchunk != start_nchunk) {
+   start_chunk = 0;
+  }
   /* Open the schunk on-disk */
   unsigned flt_msk;
   haddr_t address;
@@ -450,7 +453,13 @@ herr_t read_records_blosc2( char* filename,
   int32_t start_nblock = start_chunk / blockshape;
   int32_t stop_nblock = (int32_t) (start_chunk + nrecords_chunk) / blockshape;
 
-  if (nrecords_chunk > blockshape) {
+  if (nrecords_chunk == chunklen) {
+   int32_t nbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, data, chunksize);
+   if (nbytes < 0) {
+    BLOSC_TRACE_ERROR("Cannot decompress lazy chunk");
+    goto out;
+   }
+  } else if (nrecords_chunk > blockshape) {
    /* We have more than 1 block to read, so use a masked read */
    bool *block_maskout = calloc(nblocks, 1);
    if (block_maskout == NULL) {
@@ -479,8 +488,7 @@ herr_t read_records_blosc2( char* filename,
    data += rbytes;
    total_records += nrecords_chunk;
    free(block_maskout);
-  }
-  else {
+  } else {
    /* Less than 1 block to read; use a getitem call */
    int rbytes = (int) blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, (int) nrecords_chunk, buffer_out, chunksize);
    if (rbytes < 0) {
