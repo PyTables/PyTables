@@ -8,6 +8,7 @@ import platform
 import tempfile
 from pathlib import Path
 from time import perf_counter as clock
+from packaging import version
 from packaging.version import Version
 
 import unittest
@@ -18,8 +19,8 @@ import numpy as np
 import tables as tb
 from tables.req_versions import min_blosc_bitshuffle_version
 
-hdf5_version = Version(tb.hdf5_version)
-blosc_version = Version(tb.which_lib_version("blosc")[1])
+hdf5_version = version.parse(tb.hdf5_version)
+blosc_version = version.parse(tb.which_lib_version("blosc")[1])
 
 
 verbose = os.environ.get("VERBOSE", "FALSE") == "TRUE"
