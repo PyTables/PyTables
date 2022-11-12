@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 from time import perf_counter as clock
 from packaging import version
+from packaging.version import Version
 
 import unittest
 
