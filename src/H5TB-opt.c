@@ -589,10 +589,15 @@ herr_t H5TBOappend_records( hbool_t blosc2_support,
   return -1;
 
  /* Check if the compressor is blosc2 */
- if (blosc2_support) {
-  if (write_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
-   goto success;
- }
+ /* Disable this, as we are having issues when using BLOSC_NTHREADS > 8.
+  * We will try to come up with a minimal version
+  * reproducing this and creating an issue in github. */
+ /*
+  * if (blosc2_support) {
+  * if (write_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
+  *  goto success;
+  * }
+  */
 
  /* Create a simple memory data space */
  count[0]=nrecords;
@@ -663,10 +668,15 @@ herr_t H5TBOwrite_records( hbool_t blosc2_support,
  hsize_t  dims[1];
 
  /* Check if the compressor is blosc2 */
- if (blosc2_support) {
-  if (write_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
-   goto success;
- }
+ /* Disable this, as we are having issues when using BLOSC_NTHREADS > 8.
+  * We will try to come up with a minimal version
+  * reproducing this and creating an issue in github. */
+ /*
+  * if (blosc2_support) {
+  * if (write_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
+  *  goto success;
+  * }
+  */
 
  /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
