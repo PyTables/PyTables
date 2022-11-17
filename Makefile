@@ -7,26 +7,32 @@ SRCDIRS = doc
 GENERATED = ANNOUNCE.txt
 PYTHON = python3
 PYPLATFORM = $(shell $(PYTHON) -c "from distutils.util import get_platform; print(get_platform())")
-PYVER = $(shell $(PYTHON) -c "import sys; print('.'.join(map(str, sys.version_info[:2])))")
+PYVER = $(shell $(PYTHON) -c "import sys; print(sys.implementation.cache_tag)")
 PYBUILDDIR = $(PWD)/build/lib.$(PYPLATFORM)-$(PYVER)
-OPT = PYTHONPATH=$(PYBUILDDIR)
+OPT = PYTHONPATH="$(PYBUILDDIR)"
+MD5SUM = md5sum
 
 
-.PHONY: all dist build check heavycheck clean distclean html
+.PHONY: default dist sdist build check heavycheck clean distclean html latex
 
-all: $(GENERATED) build html
+default: $(GENERATED) build
 
-dist: all latex
-	# $(PYTHON) -m build --sdist # --no-isolation
-	$(PYTHON) setup.py sdist
+dist: sdist html latex
 	cp RELEASE_NOTES.rst dist/RELEASE_NOTES-$(VERSION).rst
-	cp doc/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
+	cp doc/build/latex/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
 	tar cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz doc/html
 	cd dist && \
-	md5sum -b tables-$(VERSION).tar.gz RELEASE_NOTES-$(VERSION).rst \
+	$(MD5SUM) -b tables-$(VERSION).tar.gz RELEASE_NOTES-$(VERSION).rst \
 	pytablesmanual-$(VERSION).pdf \
 	pytablesmanual-$(VERSION)-html.tar.gz > pytables-$(VERSION).md5 && \
 	cd -
+
+sdist: $(GENERATED)
+	# $(RM) -r MANIFEST tables/__pycache__ tables/*/__pycache__
+	# $(RM) tables/_comp_*.c tables/*extension.c
+	# $(RM) tables/*.so
+	# $(PYTHON) -m build --sdist # --no-isolation
+	$(PYTHON) setup.py sdist
 
 clean:
 	$(RM) -r MANIFEST build dist tmp tables/__pycache__
@@ -35,9 +41,9 @@ clean:
 	$(RM) -r *.egg-info
 	$(RM) $(GENERATED) tables/*.so a.out
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
-	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
+	for srcdir in $(SRCDIRS) ; do $(MAKE) $(OPT) -C $$srcdir $@ ; done
 
-distclean:	clean
+distclean: clean
 	$(RM) tables/_comp_*.c tables/*extension.c
 	$(RM) doc/usersguide-*.pdf
 	$(RM) -r doc/html
@@ -45,12 +51,12 @@ distclean:	clean
 	# git clean -fdx
 
 html: build
-	$(MAKE) -C doc $(OPT) html
+	$(MAKE) $(OPT) -C doc html
 	$(RM) -r doc/html
 	cp -R doc/build/html doc/html
 
-latex:
-	$(MAKE) -C doc $(OPT) latexpdf
+latex: build
+	$(MAKE) $(OPT) -C doc latexpdf
 	$(RM) doc/usersguide-*.pdf
 	cp doc/build/latex/usersguide-$(VERSION).pdf doc
 
