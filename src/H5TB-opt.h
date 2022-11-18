@@ -65,6 +65,11 @@ herr_t write_records_blosc2( hid_t dataset_id,
                              hsize_t nrecords,
                              const void *data );
 
+herr_t write_chunks_blosc2( hid_t dataset_id,
+                            hsize_t start,
+                            hsize_t nrecords,
+                            const void *data );
+
 herr_t insert_chunk_blosc2( hid_t dataset_id,
                             hsize_t start,
                             hsize_t nrecords,
