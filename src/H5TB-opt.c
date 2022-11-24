@@ -455,7 +455,7 @@ herr_t read_records_blosc2( char* filename,
   }
   else {
    /* Less than 1 chunk to read; use a getitem call */
-   int rbytes = (int) blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, (int) nrecords_chunk, data, chunksize);
+   rbytes = (int) blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, (int) nrecords_chunk, data, chunksize);
    if (rbytes < 0) {
     BLOSC_TRACE_ERROR("Cannot get items for lazychunk\n");
     goto out;
