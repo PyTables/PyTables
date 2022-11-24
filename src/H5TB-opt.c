@@ -393,11 +393,7 @@ herr_t read_records_blosc2( char* filename,
  int32_t chunklen = chunksize / typesize;
  hsize_t start_nchunk = start / chunklen;
  int32_t start_chunk = start % chunklen;
- hsize_t stop_nchunk = (start + nrecords) / chunklen;
- if (nrecords % chunklen) {
-  stop_nchunk += 1;
- }
- for (hsize_t nchunk = start_nchunk; nchunk < stop_nchunk && total_records < nrecords; nchunk++) {
+ for (hsize_t nchunk = start_nchunk; total_records < nrecords; nchunk++) {
   /* Open the schunk on-disk */
   unsigned flt_msk;
   haddr_t address;
@@ -420,12 +416,6 @@ herr_t read_records_blosc2( char* filename,
   int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
   if (cbytes < 0) {
    BLOSC_TRACE_ERROR("Cannot get lazy chunk %zd in %s\n", nchunk, filename);
-   goto out;
-  }
-
-  int32_t blocksize;
-  if (blosc2_cbuffer_sizes(chunk, NULL, NULL, &blocksize) < 0) {
-   BLOSC_TRACE_ERROR("Cannot get compressed buffer sizes\n");
    goto out;
   }
 
@@ -456,8 +446,8 @@ herr_t read_records_blosc2( char* filename,
   else {
    /* Less than 1 chunk to read; use a getitem call */
    rbytes = (int) blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, (int) nrecords_chunk, data, chunksize);
-   if (rbytes < 0) {
-    BLOSC_TRACE_ERROR("Cannot get items for lazychunk\n");
+   if (rbytes != nrecords_chunk * typesize) {
+    BLOSC_TRACE_ERROR("Cannot get (all) items for lazychunk\n");
     goto out;
    }
   }
