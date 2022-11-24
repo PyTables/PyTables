@@ -502,7 +502,7 @@ cdef class Table(Leaf):
     cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
                                    (self.filters.complib != None) and
                                    (self.filters.complib[0:6] == "blosc2"))
-      # release GIL (allow other threads to use the Python interpreter)
+    # release GIL (allow other threads to use the Python interpreter)
     with nogil:
         # Append the records:
         ret = H5TBOappend_records(blosc2_support, self.dataset_id,
