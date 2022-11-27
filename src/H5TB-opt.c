@@ -994,6 +994,12 @@ herr_t insert_chunk_blosc2( hid_t dataset_id,
   goto out;
  }
 
+ /* Free resources */
+ if (needs_free2) {
+  free(cframe);
+ }
+ blosc2_schunk_free(sc);
+
  return 0;
 
  out:
