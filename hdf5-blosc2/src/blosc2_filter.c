@@ -198,14 +198,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     cparams.typesize = (int32_t) typesize;
     cparams.filters[BLOSC_LAST_FILTER] = doshuffle;
     cparams.clevel = clevel;
-    /* Use 4 threads for the threads.  In the future it should be allowed to
-     * set this from the public API.
-     */
-    cparams.nthreads = 4;
-    //cparams.blocksize = blocksize;
-    /* The above is not getting great performance. Use 64 KB for the blocksize.
-     */
-    cparams.blocksize = 65536;
+
     blosc2_context *cctx = blosc2_create_cctx(cparams);
     blosc2_storage storage = {.cparams=&cparams, .contiguous=false};
     blosc2_schunk* schunk = blosc2_schunk_new(&storage);
@@ -268,10 +261,6 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     }
 
     blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
-    /* Use 4 threads for the threads.  In the future it should be allowed to
-     * set this from the public API.
-     */
-    dparams.nthreads = 4;
     blosc2_context *dctx = blosc2_create_dctx(dparams);
     status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
     if (status <= 0) {

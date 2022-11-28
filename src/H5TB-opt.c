@@ -589,15 +589,20 @@ herr_t H5TBOappend_records( hbool_t blosc2_support,
   return -1;
 
  /* Check if the compressor is blosc2 */
- /* Disable this, as we are having issues when using BLOSC_NTHREADS > 8.
-  * We will try to come up with a minimal version
-  * reproducing this and creating an issue in github. */
+ /* Enable optimized appends for > 1 chunk only for single threading as
+    we are having issues when using multithreading */
 
  if (blosc2_support) {
-//  if (write_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
-//  if (write_chunks_blosc2(dataset_id, start, nrecords, data) >= 0)
   if (insert_chunk_blosc2(dataset_id, start, nrecords, data) >= 0)
    goto success;
+  long nthreads = 1;
+  char* envvar = getenv("BLOSC_NTHREADS");
+  if (envvar != NULL)
+   nthreads = strtol(envvar, NULL, 10);
+  if (nthreads == 1) {
+   if (write_chunks_blosc2(dataset_id, start, nrecords, data) >= 0)
+    goto success;
+  }
  }
 
  /* Create a simple memory data space */
