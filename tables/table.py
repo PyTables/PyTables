@@ -3113,7 +3113,6 @@ class Cols:
         be used as shorthands for the :meth:`Table.read` method.
 
         """
-
         table = self._v_table
         nrows = table.nrows
         if is_idx(key):
