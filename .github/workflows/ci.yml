@@ -47,4 +47,3 @@ jobs:
         ptrepack -h
         ptdump -h
         pttree -h
-

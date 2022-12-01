@@ -2,7 +2,8 @@ include MANIFEST.in
 include *.txt THANKS README.rst
 include setup.py setup.cfg Makefile cpuinfo.py
 
-recursive-include tables *.py *.pyx *.pxd *.c
+recursive-include tables *.py *.pyx *.pxd
+recursive-exclude tables *.c
 recursive-include tables/tests *.h5 *.mat
 recursive-include tables/nodes/tests *.h5 *.dat *.xbm
 recursive-include src *.c *.h
