@@ -421,12 +421,6 @@ herr_t read_records_blosc2( char* filename,
 
   blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
   dparams.schunk = schunk;
-  char* envvar = getenv("BLOSC_NTHREADS");
-  if (envvar != NULL) {
-   long nthreads;
-   nthreads = strtol(envvar, NULL, 10);
-   dparams.nthreads = (int16_t) nthreads;
-  }
   blosc2_context *dctx = blosc2_create_dctx(dparams);
 
   /* Gather data for the interesting part */
@@ -819,74 +813,6 @@ out:
 
 
 /*-------------------------------------------------------------------------
- * Function: write_chunks_blosc2
- *
- * Purpose: Write chunks to a table using blosc2
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmers:
- *  Francesc Alted, francesc@blosc.org
- *  Oscar Guiñon, soscargm98@gmail.com
- *
- * Date: October 25, 2022
- *
- * Comments:
- *
- * Modifications:
- *
- *
- *-------------------------------------------------------------------------
- */
-
-herr_t write_chunks_blosc2( hid_t dataset_id,
-                            hsize_t start,
-                            hsize_t nrecords,
-                            const void *data )
-{
-
- /* Get the dataset properties */
- hid_t dcpl = H5Dget_create_plist(dataset_id);
- if (dcpl == H5I_INVALID_HID) {
-  goto out;
- }
- size_t cd_nelmts = 7;
- unsigned cd_values[7];
- char name[7];
- if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
-  H5Pclose(dcpl);
-  goto out;
- }
- int typesize = cd_values[2];
- hsize_t cshape[1];
- H5Pget_chunk(dcpl, 1, cshape);
- if (H5Pclose(dcpl) < 0)
-  goto out;
- int chunklen = (int) cshape[0];
- if ((start % chunklen != 0) || (nrecords % chunklen != 0))
-  goto out;
-
- /* Insert chunks */
- int cstart = (int) (start / chunklen);
- int cstop = (int) (start + nrecords - 1) / chunklen + 1;
- int data_offset = 0;
- uint8_t *data2 = (uint8_t *) data;
- for (int ci = cstart; ci < cstop; ci ++) {
-  data_offset = chunklen - (start % chunklen) + (ci - cstart - 1) * chunklen;
-  if (insert_chunk_blosc2(dataset_id, ci * chunklen, chunklen,
-                          data2 + data_offset * typesize) < 0)
-   goto out;
- }
-
- return 0;
-
-out:
- return -1;
-
-}
-
-
-/*-------------------------------------------------------------------------
  * Function: insert_chunk_blosc2
  *
  * Purpose: Compress a chunk using Blosc2 and write it to a specified
@@ -940,12 +866,6 @@ herr_t insert_chunk_blosc2( hid_t dataset_id,
 
  /* Compress data into superchunk and get frame */
  blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
- char* envvar = getenv("BLOSC_NTHREADS");
- if (envvar != NULL) {
-  long nthreads;
-  nthreads = strtol(envvar, NULL, 10);
-  cparams.nthreads = (int16_t) nthreads;
- }
  cparams.typesize = typesize;
  cparams.clevel = cd_values[4];
  cparams.filters[5] = cd_values[5];
