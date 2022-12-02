@@ -294,7 +294,13 @@ herr_t H5TBOread_records( char* filename,
  /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
- if (blosc2_support) {
+
+ long blosc2_filter = 0;
+ char* envvar = getenv("BLOSC2_FILTER");
+ if (envvar != NULL)
+  blosc2_filter = strtol(envvar, NULL, 10);
+
+ if (blosc2_support && !((int) blosc2_filter)) {
   /* Try to read using blosc2 (only supports native byteorder) */
   if (read_records_blosc2(filename, dataset_id, mem_type_id, space_id,
                           start, nrecords, (uint8_t*)data) >= 0) {
@@ -573,7 +579,12 @@ herr_t H5TBOappend_records( hbool_t blosc2_support,
   return -1;
 
  /* Check if the compressor is blosc2 */
- if (blosc2_support) {
+ long blosc2_filter = 0;
+ char* envvar = getenv("BLOSC2_FILTER");
+ if (envvar != NULL)
+  blosc2_filter = strtol(envvar, NULL, 10);
+
+ if (blosc2_support && !((int) blosc2_filter)) {
   if (write_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
    goto success;
  }
@@ -647,8 +658,13 @@ herr_t H5TBOwrite_records( hbool_t blosc2_support,
  hsize_t  dims[1];
 
  /* Check if the compressor is blosc2 */
- if (blosc2_support) {
-  if (write_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
+ long blosc2_filter = 0;
+ char* envvar = getenv("BLOSC2_FILTER");
+ if (envvar != NULL)
+  blosc2_filter = strtol(envvar, NULL, 10);
+
+ if (blosc2_support && !((int) blosc2_filter)) {
+   if (write_records_blosc2(dataset_id, mem_type_id, start, nrecords, data) == 0)
    goto success;
  }
 
