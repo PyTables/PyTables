@@ -172,7 +172,7 @@ Finally, a value of zero means that any cache mechanism is disabled.
 # Parameters for the I/O buffer in `Leaf` objects
 # -----------------------------------------------
 
-IO_BUFFER_SIZE = 1 * _MB
+IO_BUFFER_SIZE = 16 * _MB
 """The PyTables internal buffer size for I/O purposes.  Should not
 exceed the amount of highest level cache size in your CPU."""
 

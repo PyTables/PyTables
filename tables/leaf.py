@@ -322,9 +322,9 @@ class Leaf(Node):
             # Blosc2 can introspect into blocks, so we can increase the
             # chunksize for improving HDF5 perf for its internal btree.
             # In Blosc2, the role of HDF5 chunksize could played by the
-            # Blosc2 blocksize (but more experiments are required).
+            # Blosc2 blocksize.
             self._v_blocksize = chunksize
-            chunksize *= 32
+            chunksize *= 64
             # In Blosc2, the chunksize cannot be larger than 2 GB - BLOSC2_MAX_BUFFERSIZE
             if chunksize > 2**31 - 32:
                 chunksize = 2**31 - 32
