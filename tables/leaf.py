@@ -4,6 +4,7 @@ import warnings
 import math
 
 import numpy as np
+import cpuinfo
 
 from .flavor import (check_flavor, internal_flavor, toarray,
                      alias_map as flavor_alias_map)
@@ -318,13 +319,29 @@ class Leaf(Node):
         expected_mb = (expectedrows * rowsize) // MB
         chunksize = calc_chunksize(expected_mb)
         complib = self.filters.complib
-        if complib is not None and complib.startswith("blosc2"):
+        if (complib is not None and
+            complib.startswith("blosc2") and
+            self._c_classid == 'TABLE'):
             # Blosc2 can introspect into blocks, so we can increase the
             # chunksize for improving HDF5 perf for its internal btree.
+            # For the time being, this has been implemented efficiently
+            # just for tables, but in the future *Array objects could also
+            # be included.
             # In Blosc2, the role of HDF5 chunksize could played by the
             # Blosc2 blocksize.
             self._v_blocksize = chunksize
-            chunksize *= 64
+            # Use a decent default value for chunksize
+            chunksize *= 16
+            # Now, go explore the L3 size
+            cpu_info = cpuinfo.get_cpu_info()
+            if 'l3_cache_size' in cpu_info:
+                # In general, is a good idea to set the chunksize equal to L3
+                l3_cache_size = cpu_info['l3_cache_size']
+                # cpuinfo sometimes returns cache sizes as strings (like,
+                # "4096 KB"), so refuse the temptation to guess and use the
+                # value only when it is an actual int.
+                if type(l3_cache_size) is int:
+                    chunksize = l3_cache_size
             # In Blosc2, the chunksize cannot be larger than 2 GB - BLOSC2_MAX_BUFFERSIZE
             if chunksize > 2**31 - 32:
                 chunksize = 2**31 - 32
