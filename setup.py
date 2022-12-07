@@ -967,7 +967,8 @@ if __name__ == "__main__":
         inc_dirs += int_complibs_path.glob("zstd*/common")
         inc_dirs += int_complibs_path.glob("zstd*")
         # ...and the macros for all the compressors supported
-        def_macros += [("HAVE_LZ4", 1), ("HAVE_ZLIB", 1), ("HAVE_ZSTD", 1)]
+        def_macros += [("HAVE_LZ4", 1), ("HAVE_ZLIB", 1), ("HAVE_ZSTD", 1),
+                       ("ZSTD_DISABLE_ASM", 1)]
 
         # Add extra flags for optimizing shuffle in include Blosc
         def compiler_has_flags(compiler, flags):
