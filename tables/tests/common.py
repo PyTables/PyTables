@@ -8,7 +8,6 @@ import platform
 import tempfile
 from pathlib import Path
 from time import perf_counter as clock
-from packaging import version
 from packaging.version import Version
 
 import unittest
@@ -115,7 +114,7 @@ def print_versions():
             "{} ({})".format(k, v[1]) for k, v in sorted(blosc2_cinfo.items())
         ]
         print("Blosc2 compressors:  %s" % ', '.join(blosc2_cinfo))
-        blosc2_finfo = ['shuffle', 'bitshuffle', 'FIXME: add the complete list here']
+        blosc2_finfo = ['shuffle', 'bitshuffle']
         print("Blosc2 filters:      %s" % ', '.join(blosc2_finfo))
     try:
         from Cython import __version__ as cython_version
