@@ -19,6 +19,7 @@ Improvements
 - Added optimized paths for Blosc2 reading and writing in tables. This
   bypasses the HDF5 filter pipeline by building the Blosc2 CFrames and
   sending them to the HDF5 direct chunking machinery (PR #969).
+- Internal C-Blosc sources updated to 1.21.2.
 - Thanks to Oscar Guiñon, Francesc Alted for implementing Blosc2 the
   support and NumFOCUS for providing a grant for that.
   
