@@ -332,7 +332,7 @@ class Leaf(Node):
             self._v_blocksize = chunksize
             # Use a decent default value for chunksize
             chunksize *= 16
-            # Now, go explore the L3 size
+            # Now, go explore the L3 size and try to find a smarter chunksize
             cpu_info = cpuinfo.get_cpu_info()
             if 'l3_cache_size' in cpu_info:
                 # In general, is a good idea to set the chunksize equal to L3
@@ -340,7 +340,12 @@ class Leaf(Node):
                 # cpuinfo sometimes returns cache sizes as strings (like,
                 # "4096 KB"), so refuse the temptation to guess and use the
                 # value only when it is an actual int.
-                if type(l3_cache_size) is int:
+                # Also, sometimes cpuinfo does not return a correct L3 size;
+                # so in general, enforcing L3 > L2 is a good sanity check.
+                l2_cache_size = cpu_info.get('l2_cache_size', "Not found")
+                if (type(l3_cache_size) is int and
+                    type(l2_cache_size) is int and
+                    l3_cache_size > l2_cache_size):
                     chunksize = l3_cache_size
             # In Blosc2, the chunksize cannot be larger than 2 GB - BLOSC2_MAX_BUFFERSIZE
             if chunksize > 2**31 - 32:
