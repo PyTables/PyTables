@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """Setup script for the tables package"""
-
+import glob
 import os
 import sys
 import ctypes
@@ -848,7 +848,8 @@ if __name__ == "__main__":
                 platform_system = platform.system()
                 if platform_system == "Linux":
                     shutil.copy(libdir / 'libblosc2.so', 'tables')
-                    copy_libs += ['libblosc2.so']
+                    shared_libs = glob.glob(str(libdir) + '/libblosc2.so*')
+                    copy_libs += shared_libs
                 elif platform_system == "Darwin":
                     shutil.copy(libdir / 'libblosc2.dylib', 'tables')
                     copy_libs += ['libblosc2.dylib']
@@ -1139,6 +1140,7 @@ if __name__ == "__main__":
         cmdclass={"build_ext": BuildExtensions},
         package_dir={"tables": "tables"},
         packages=["tables", "tables.scripts", "tables.tests", "tables.nodes", "tables.misc"],
-        include_package_data=True,
-        package_data={"tables": copy_libs},
+        #include_package_data=True,
+        #package_data={"tables": copy_libs},
+        data_files={"tables": copy_libs},
     )
