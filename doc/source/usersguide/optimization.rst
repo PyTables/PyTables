@@ -322,6 +322,33 @@ external regular selections in conditions of small to medium complexity.
 See :ref:`condition_syntax` for more information on in-kernel condition
 syntax.
 
+As mentioned before Blosc and Blosc2 can bring a lot of acceleration to your
+queries.  Just as comparison point, below there is a profile of 6 different
+in-kernel queries using the standard Zlib, Blosc and Blosc2 compressors:
+
+.. _inkernelPerformance-Blosc-Blosc2:
+
+.. figure:: images/inkernel-zlib-blosc.png
+    :align: center
+
+    **Times for 6 complex queries in a large table with 100 million of rows.
+      Data comes from an actual set of meteorological measurements.**
+
+As you can see, Blosc, but specially Blosc2, can get much better performance
+than the Zlib compressor when doing complex queries.  Blosc can be up to
+7x faster, whereas Blosc2 can be more than 18x times faster (i.e. processing
+on-disk data at more than 13 GB/s).  And despite that the dataset is 3.3 GB
+in size, the memory consumption after the 6 queries is still less than 250 MB.
+That means that you can do queries of large, on-disk datasets with machines
+with much less RAM than the dataset and still get very good speed.
+
+The drawback of using Blosc and Blosc2 is that compression ratios with the
+default codec (BloscLZ) are usually smaller than Zlib.  However, you can still
+use the `zstd` codec, which is included inside them (like e.g.
+'blosc2:zstd') for improved compression ratios.
+
+You can see more info about Blosc2 and how it collaborates with HDF5 for achieving
+high speed in our blog at ...
 
 Indexed searches
 ~~~~~~~~~~~~~~~~
