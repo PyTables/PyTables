@@ -93,11 +93,11 @@ jobs:
         if: runner.os == 'Linux'
         name: Set up QEMU
 
-      - uses: actions/cache@v2
-        id: deps-cache
-        with:
-          path: hdf5_build
-          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-${{ hashFiles('**/wheels.yml') }}
+#      - uses: actions/cache@v2
+#        id: deps-cache
+#        with:
+#          path: hdf5_build
+#          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-${{ hashFiles('**/wheels.yml') }}
 
       - name: Build dependencies
         env:
@@ -178,7 +178,7 @@ jobs:
           CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build" PATH="$PATH;C:\\Miniconda\\envs\\build\\Library\\bin"'
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
           CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21 blosc2>=0.6.2 delvewheel"
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path tables/libblosc2.dll -w {dest_dir} {wheel}"
 
       - uses: actions/upload-artifact@v3
         with:
