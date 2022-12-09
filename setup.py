@@ -848,8 +848,7 @@ if __name__ == "__main__":
                 platform_system = platform.system()
                 if platform_system == "Linux":
                     shutil.copy(libdir / 'libblosc2.so', 'tables')
-                    shared_libs = glob.glob(str(libdir) + '/libblosc2.so*')
-                    copy_libs += shared_libs
+                    copy_libs += ['libblosc2.so']
                 elif platform_system == "Darwin":
                     shutil.copy(libdir / 'libblosc2.dylib', 'tables')
                     copy_libs += ['libblosc2.dylib']
