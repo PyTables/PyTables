@@ -293,14 +293,11 @@ class FiltersTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ea1.append(var1List)
             ea2.append(var3List)
 
-            # Finally a couple of VLArrays too
-            vla1 = self.h5file.create_vlarray(
-                group, 'vlarray1', tb.StringAtom(itemsize=4), "col 1")
-            vla2 = self.h5file.create_vlarray(
-                group, 'vlarray2', tb.Int16Atom(), "col 3")
-            # And fill them with some values
-            vla1.append(var1List)
-            vla2.append(var3List)
+            # Finally a couple of carrays too
+            vla1 = self.h5file.create_carray(
+                group, 'carray1', tb.StringAtom(itemsize=4), (2,))
+            vla2 = self.h5file.create_carray(
+                group, 'carray2', tb.Int16Atom(), (2,))
 
             # Create a new group (descendant of group)
             if j == 1:  # The second level
@@ -336,7 +333,7 @@ class FiltersTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # The next nodes have to have the same filter properties as
         # self.filters
         nodelist = [
-            '/table1', '/group0/earray1', '/group0/vlarray1', '/group0',
+            '/table1', '/group0/earray1', '/group0/carray1', '/group0',
         ]
         for node in nodelist:
             obj = self.h5file.get_node(node)
@@ -364,7 +361,7 @@ class FiltersTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # gfilters
         nodelist = [
             '/group0/group1', '/group0/group1/earray1',
-            '/group0/group1/vlarray1',
+            '/group0/group1/carray1',
             '/group0/group1/table1', '/group0/group1/group2/table1',
         ]
         for node in nodelist:
@@ -395,7 +392,7 @@ class FiltersTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nodelist = [
             '/group0/group1/group2/group3',
             '/group0/group1/group2/group3/earray1',
-            '/group0/group1/group2/group3/vlarray1',
+            '/group0/group1/group2/group3/carray1',
             '/group0/group1/group2/group3/table1',
             '/group0/group1/group2/group3/group4',
         ]
@@ -446,7 +443,7 @@ class FiltersTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # The next nodes have to have the same filter properties as
         # self.filters
         nodelist = [
-            '/table1', '/group0/earray1', '/group0/vlarray1', '/group0',
+            '/table1', '/group0/earray1', '/group0/carray1', '/group0',
         ]
         for node in nodelist:
             object_ = self.h5file.get_node(node)
@@ -474,7 +471,7 @@ class FiltersTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # gfilters
         nodelist = [
             '/group0/group1', '/group0/group1/earray1',
-            '/group0/group1/vlarray1',
+            '/group0/group1/carray1',
             '/group0/group1/table1', '/group0/group1/group2/table1',
         ]
         for node in nodelist:
@@ -503,7 +500,7 @@ class FiltersTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nodelist = [
             '/group0/group1/group2/group3',
             '/group0/group1/group2/group3/earray1',
-            '/group0/group1/group2/group3/vlarray1',
+            '/group0/group1/group2/group3/carray1',
             '/group0/group1/group2/group3/table1',
             '/group0/group1/group2/group3/group4',
         ]
