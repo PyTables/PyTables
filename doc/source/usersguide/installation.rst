@@ -57,7 +57,7 @@ First, make sure that you have
 * c-blosc_ >= 1.11.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the `--blosc` flag of the :file:`setup.py`)
-* blosc2_ >= 0.6.2 This is the Python wheel containing *both* the C-Blosc2 libs
+* blosc2_ >= 0.6.3 This is the Python wheel containing *both* the C-Blosc2 libs
   and headers (>= 2.3.0), as well as the Python wrapper for Blosc2 (not used).
 
 installed (for testing purposes, we are using HDF5_ 1.10.7, NumPy_ 1.23.2

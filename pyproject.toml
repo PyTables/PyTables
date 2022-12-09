@@ -2,12 +2,10 @@
 requires = [
     "setuptools >=42.0",
     "wheel",
-    #"oldest-supported-numpy",
-    # We need a relatively new NumPy for Blosc2
-    "numpy",
+    "oldest-supported-numpy",
     "packaging",
     "py-cpuinfo",
     "Cython >=0.29.21",
-    "blosc2 >=0.6.2"
+    "blosc2 >=0.6.3"
 ]
 build-backend = "setuptools.build_meta"
