@@ -1138,8 +1138,8 @@ if __name__ == "__main__":
         ext_modules=extensions,
         cmdclass={"build_ext": BuildExtensions},
         package_dir={"tables": "tables"},
-        packages=["tables", "tables.scripts", "tables.tests", "tables.nodes", "tables.nodes.tests", "tables.misc"],
-        include_package_data=True,
+        #packages=["tables", "tables.scripts", "tables.tests", "tables.nodes", "tables.nodes.tests", "tables.misc"],
+        #include_package_data=True,
         package_data={"tables": copy_libs},
         #data_files=[("tables", copy_libs)],
     )
