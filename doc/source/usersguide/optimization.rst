@@ -170,9 +170,11 @@ Accelerating your searches
 
     Many of the explanations and plots in this section and the forthcoming
     ones still need to be updated to include Blosc (see
-    :ref:`[BLOSC] <BLOSC>`), the new and powerful compressor added in
-    PyTables 2.2 series.  You should expect it to be the fastest compressor
-    among all the described here, and its use is strongly recommended
+    :ref:`[BLOSC] <BLOSC>`) or Blosc2 (see :ref:`[BLOSC2] <BLOSC2>`),
+    the new and powerful compressors added in
+    PyTables 2.2 and PyTables 3.8 respectively.  You should expect them to be
+    the fastest compressors
+    among all the described here, and their use is strongly recommended
     whenever you need extreme speed and not a very high compression ratio.
 
 Searching in tables is one of the most common and time consuming operations
@@ -886,82 +888,6 @@ much improved compression level), it is a good thing to have such a filter
 enabled by default in the battle for discovering redundancy when you want to
 compress your data, just as PyTables does.
 
-
-Using Psyco
------------
-Psyco (see :ref:`[PSYCO] <PSYCO>`) is a kind of specialized compiler for
-Python that typically accelerates Python applications with no change in
-source code. You can think of Psyco as a kind of just-in-time (JIT) compiler,
-a little bit like Java's, that emits machine code on the fly instead of
-interpreting your Python program step by step. The result is that your
-unmodified Python programs run faster.
-
-Psyco is very easy to install and use, so in most scenarios it is worth to
-give it a try. However, it only runs on Intel 386 architectures, so if you
-are using other architectures, you are out of luck (and, moreover, it seems
-that there are no plans to support other platforms).  Besides, with the
-addition of flexible (and very fast) in-kernel queries (by the way, they
-cannot be optimized at all by Psyco), the use of Psyco will only help in
-rather few scenarios.  In fact, the only important situation that you might
-benefit right now from using Psyco (I mean, in PyTables contexts) is for
-speeding-up the write speed in tables when using the Row interface (see
-:ref:`RowClassDescr`).  But again, this latter case can also be accelerated
-by using the :meth:`Table.append` method and building your own buffers [4]_.
-
-As an example, imagine that you have a small script that reads and selects
-data over a series of datasets, like this::
-
-    def read_file(filename):
-        "Select data from all the tables in filename"
-        fileh = open_file(filename, mode = "r")
-        result = []
-        for table in fileh("/", 'Table'):
-            result = [p['var3'] for p in table if p['var2'] <= 20]
-        fileh.close()
-        return result
-
-    if __name__=="__main__":
-        print(read_file("myfile.h5"))
-
-In order to accelerate this piece of code, you can rewrite your main program
-to look like::
-
-    if __name__=="__main__":
-        import psyco
-        psyco.bind(read_file)
-        print(read_file("myfile.h5"))
-
-That's all!  From now on, each time that you execute your Python script,
-Psyco will deploy its sophisticated algorithms so as to accelerate your
-calculations.
-
-You can see in the graphs :ref:`Figure 24 <psycoWriteComparison>` and
-:ref:`Figure 25 <psycoReadComparison>` how much I/O speed improvement you can
-get by using Psyco. By looking at this figures you can get an idea if these
-improvements are of your interest or not. In general, if you are not going to
-use compression you will take advantage of Psyco if your tables are medium
-sized (from a thousand to a million rows), and this advantage will disappear
-progressively when the number of rows grows well over one million. However if
-you use compression, you will probably see improvements even beyond this
-limit (see :ref:`compressionIssues`).
-As always, there is no substitute for experimentation with your own dataset.
-
-.. _psycoWriteComparison:
-
-.. figure:: images/write-medium-psyco-nopsyco-comparison.png
-    :align: center
-
-    **Figure 24. Writing tables with/without Psyco.**
-
-
-.. _psycoReadComparison:
-
-.. figure:: images/read-medium-psyco-nopsyco-comparison.png
-    :align: center
-
-    **Figure 25. Reading tables with/without Psyco.**
-
-
 .. _LRUOptim:
 
 Getting the most from the node LRU cache
@@ -1132,7 +1058,4 @@ support for these filters.
 .. [3] Some users reported that the typical improvement with real
        data is between a factor 1.5x and 2.5x over the already compressed
        datasets.
-
-.. [4] So, there is not much point in using Psyco
-       with recent versions of PyTables anymore.
 

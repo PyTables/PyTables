@@ -6,10 +6,30 @@ PyTables is a package for managing hierarchical datasets and designed
 to efficiently cope with extremely large amounts of data.
 
 """
+import os
+from ctypes import cdll
+import platform
+
+
+# Load the blosc2 library, and if not found in standard locations,
+# try this directory (it should be automatically copied in setup.py).
+current_dir = os.path.dirname(__file__)
+platform_system = platform.system()
+blosc2_lib = "libblosc2"
+if platform_system == "Linux":
+    blosc2_lib += ".so"
+elif platform_system == "Darwin":
+    blosc2_lib += ".dylib"
+else:
+    blosc2_lib += ".dll"
+try:
+    cdll.LoadLibrary(blosc2_lib)
+except OSError:
+    cdll.LoadLibrary(os.path.join(current_dir, blosc2_lib))
+
 
 # Necessary imports to get versions stored on the cython extension
 from .utilsextension import get_hdf5_version as _get_hdf5_version
-
 
 __version__ = "3.7.1.dev0"
 """The PyTables version number."""
@@ -23,12 +43,20 @@ hdf5_version = _get_hdf5_version()
 
 from .utilsextension import (
     blosc_compcode_to_compname_ as blosc_compcode_to_compname,
+    blosc2_compcode_to_compname_ as blosc2_compcode_to_compname,
     blosc_get_complib_info_ as blosc_get_complib_info,
+    blosc2_get_complib_info_ as blosc2_get_complib_info,
 )
 
 from .utilsextension import (
-    blosc_compressor_list, is_hdf5_file, is_pytables_file, which_lib_version,
-    set_blosc_max_threads, silence_hdf5_messages,
+    blosc_compressor_list,
+    blosc2_compressor_list,
+    is_hdf5_file,
+    is_pytables_file,
+    which_lib_version,
+    set_blosc_max_threads,
+    set_blosc2_max_threads,
+    silence_hdf5_messages,
 )
 
 from .misc.enum import Enum
@@ -66,7 +94,8 @@ __all__ = [
     # Functions:
     'is_hdf5_file', 'is_pytables_file', 'which_lib_version',
     'copy_file', 'open_file', 'print_versions', 'test',
-    'split_type', 'restrict_flavors', 'set_blosc_max_threads',
+    'split_type', 'restrict_flavors',
+    'set_blosc_max_threads', 'set_blosc2_max_threads',
     'silence_hdf5_messages',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',

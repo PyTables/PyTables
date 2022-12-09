@@ -5,6 +5,7 @@
 #include "H5Zlzo.h"                    /* Import FILTER_LZO */
 #include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
 #include "blosc_filter.h"              /* Import FILTER_BLOSC */
+#include "blosc2_filter.h"             /* Import FILTER_BLOSC2 */
 
 #include <string.h>
 #include <stdlib.h>
@@ -129,6 +130,23 @@ hid_t H5ARRAYmake(  hid_t loc_id,
      /* The default compressor in HDF5 (zlib) */
      if (strcmp(complib, "zlib") == 0) {
        if ( H5Pset_deflate( plist_id, compress) < 0 )
+         return -1;
+     }
+     /* The Blosc2 compressor does accept parameters */
+     else if (strcmp(complib, "blosc2") == 0) {
+       cd_values[4] = compress;
+       cd_values[5] = shuffle;
+       if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
+         return -1;
+      }
+      /* The Blosc2 compressor can use other compressors */
+     else if (strncmp(complib, "blosc2:", 7) == 0) {
+       cd_values[4] = compress;
+       cd_values[5] = shuffle;
+       blosc_compname = complib + 7;
+       blosc_compcode = blosc2_compname_to_compcode(blosc_compname);
+       cd_values[6] = blosc_compcode;
+       if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0 )
          return -1;
      }
      /* The Blosc compressor does accept parameters */

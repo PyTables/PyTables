@@ -11,6 +11,7 @@ import tempfile
 import textwrap
 import subprocess
 from pathlib import Path
+import re
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, Extension
@@ -88,6 +89,71 @@ def get_blosc_version(headername):
     else:
         exit_with_error("Unable to detect Blosc library version!")
     return Version(f"{major}.{minor}.{release}")
+
+
+# Get the Blosc2 version provided the 'blosc2.h' header
+def get_blosc2_version(headername):
+    major, minor, release = None, None, None
+    for line in headername.read_text().splitlines():
+        if "BLOSC2_VERSION_MAJOR" in line and "major" in line:
+            major = int(line.split()[2])
+        elif "BLOSC2_VERSION_MINOR" in line and "minor" in line:
+            minor = int(line.split()[2])
+        elif "BLOSC2_VERSION_RELEASE" in line and "tweaks" in line:
+            release = int(line.split()[2])
+        if None not in (major, minor, release):
+            break
+    else:
+        exit_with_error("Unable to detect Blosc2 library version!")
+    return Version(f"{major}.{minor}.{release}")
+
+
+def get_blosc2_directories():
+    library_path = None
+    lib_dir = None
+
+    # First try with the conda package
+    if 'CONDA_PREFIX' in os.environ:
+        library_path = Path(os.environ['CONDA_PREFIX'])
+        if os.path.isdir(library_path / 'lib64'):
+            lib_dir = 'lib64'
+        elif os.path.isdir(library_path / 'lib'):
+            lib_dir = 'lib'
+        if not os.path.isfile(library_path / 'include' / 'blosc2.h'):
+            library_path = None
+
+    # If not found in conda, then try the wheel
+    if library_path is None:
+        try:
+            import blosc2
+        except ModuleNotFoundError:
+            raise EnvironmentError(
+                "Cannot find neither the c-blosc2 package nor the "
+                "python-blosc2 wheel")
+        version = blosc2.__version__
+        basepath = Path(os.path.dirname(blosc2.__file__))
+        recinfo = basepath.parent / f'blosc2-{version}.dist-info' / 'RECORD'
+        for line in open(recinfo):
+            if 'libblosc2' in line:
+                library_path = basepath.parent / \
+                               Path(line[:line.find('libblosc2')]) / '..'
+                if os.name == "nt":
+                    lib_dir = "Lib"
+                else:
+                    # Check for lib or lib64 (or whatever comes after 'lib')
+                    lib_dir = re.findall('\/(lib.*)\/', line)[0]
+                break
+        if not library_path:
+            raise NotADirectoryError("Library directory not found for blosc2!")
+
+    lib_path = Path(library_path) / lib_dir
+    include_path = Path(library_path) / 'include'
+    if not os.path.isfile(include_path / 'blosc2.h'):
+        library_path = os.path.abspath(library_path)
+        raise NotADirectoryError("Install directory for blosc2 not found in %s" % library_path)
+
+    # print("blosc2 paths ->", os.path.abspath(include_path), os.path.abspath(lib_path))
+    return os.path.abspath(include_path), os.path.abspath(lib_path)
 
 
 def newer(source, target):
@@ -194,10 +260,10 @@ if __name__ == "__main__":
         cpu_flags = []
 
     # The minimum required versions
-    min_python_version = (3, 6)
+    min_python_version = (3, 8)
     # Check for Python
     if sys.version_info < min_python_version:
-        exit_with_error("You need Python 3.6 or greater to install PyTables!")
+        exit_with_error("You need Python 3.8 or greater to install PyTables!")
     print(f"* Using Python {sys.version.splitlines()[0]}")
 
     try:
@@ -212,18 +278,19 @@ if __name__ == "__main__":
     exec((ROOT / "tables" / "req_versions.py").read_text(), _min_versions)
     min_hdf5_version = _min_versions["min_hdf5_version"]
     min_blosc_version = _min_versions["min_blosc_version"]
-    min_blosc_bitshuffle_version = _min_versions[
-        "min_blosc_bitshuffle_version"
-    ]
+    min_blosc2_version = _min_versions["min_blosc2_version"]
 
     # ----------------------------------------------------------------------
 
     debug = "--debug" in sys.argv
 
+    blosc2_inc, blosc2_lib = get_blosc2_directories()
+
     # Global variables
-    lib_dirs = []
-    inc_dirs = [Path("hdf5-blosc/src")]
+    lib_dirs = [blosc2_lib]
+    inc_dirs = [Path("hdf5-blosc/src"), Path("hdf5-blosc2/src"), blosc2_inc]
     optional_libs = []
+    copy_libs = []
 
     default_header_dirs = None
     default_library_dirs = None
@@ -455,6 +522,7 @@ if __name__ == "__main__":
             "LZO": ["lzo"],
             "BZ2": ["bz2"],
             "BLOSC": ["blosc"],
+            "BLOSC2": ["blosc2"],
         }
 
     elif os.name == "nt":
@@ -465,6 +533,7 @@ if __name__ == "__main__":
             "LZO": ["liblzo", "lzo1"],
             "BZ2": ["bzip2", "bzip2"],
             "BLOSC": ["blosc", "blosc"],
+            "BLOSC2": ["blosc2", "blosc2"],
         }
 
         # Copy the next DLL's to binaries by default.
@@ -501,7 +570,9 @@ if __name__ == "__main__":
     bzip2_package = _Package("bzip2", "BZ2", "bzlib", *_platdep["BZ2"])
     bzip2_package.target_function = "BZ2_bzlibVersion"
     blosc_package = _Package("blosc", "BLOSC", "blosc", *_platdep["BLOSC"])
-    blosc_package.target_function = "blosc_list_compressors"  # Blosc >= 1.3
+    blosc_package.target_function = "blosc_list_compressors"
+    blosc2_package = _Package("blosc2", "BLOSC2", "blosc2", *_platdep["BLOSC2"])
+    blosc2_package.target_function = "blosc2_list_compressors"
 
     # -----------------------------------------------------------------
 
@@ -519,6 +590,7 @@ if __name__ == "__main__":
     LZO_DIR = os.environ.get("LZO_DIR", "")
     BZIP2_DIR = os.environ.get("BZIP2_DIR", "")
     BLOSC_DIR = os.environ.get("BLOSC_DIR", "")
+    BLOSC2_DIR = os.environ.get("BLOSC2_DIR", "")
     LFLAGS = os.environ.get("LFLAGS", "").split()
     # in GCC-style compilers, -w in extra flags will get rid of copious
     # 'uninitialized variable' Cython warnings. However, this shouldn't be
@@ -547,6 +619,8 @@ if __name__ == "__main__":
             BZIP2_DIR = Path(val).expanduser()
         elif key == "--blosc":
             BLOSC_DIR = Path(val).expanduser()
+        elif key == "--blosc2":
+            BLOSC2_DIR = Path(val).expanduser()
         elif key == "--lflags":
             LFLAGS = val.split()
         elif key == "--cflags":
@@ -639,12 +713,16 @@ if __name__ == "__main__":
     # Try to locate the compulsory and optional libraries.
     lzo2_enabled = False
     compiler = new_compiler()
+    if not BLOSC2_DIR:
+        # Inject the blosc2 directory as detected
+        BLOSC2_DIR = os.path.dirname(blosc2_inc)
     for (package, location) in [
         (hdf5_package, HDF5_DIR),
         (lzo2_package, LZO_DIR),
         (lzo1_package, LZO_DIR),
         (bzip2_package, BZIP2_DIR),
         (blosc_package, BLOSC_DIR),
+        (blosc2_package, BLOSC2_DIR),
     ]:
 
         if package.tag == "LZO" and lzo2_enabled:
@@ -740,18 +818,21 @@ if __name__ == "__main__":
         if hdrdir and package.tag == "BLOSC":
             blosc_version = get_blosc_version(Path(hdrdir) / "blosc.h")
             if blosc_version < min_blosc_version:
-                optional_libs.pop()  # Remove Blosc from the discovered libs
+                optional_libs.pop()
                 print_warning(
                     f"Unsupported Blosc version installed! Blosc "
                     f"{min_blosc_version}+ required. Found version "
                     f"{blosc_version}.  Using internal Blosc sources."
                 )
-            if blosc_version < min_blosc_bitshuffle_version:
+
+        if hdrdir and package.tag == "BLOSC2":
+            blosc2_version = get_blosc2_version(Path(hdrdir) / "blosc2.h")
+            if blosc2_version < min_blosc2_version:
+                optional_libs.pop()
                 print_warning(
-                    f"This Blosc version does not support the BitShuffle "
-                    f"filter. Minimum desirable version is "
-                    f"{min_blosc_bitshuffle_version}.  "
-                    f"Found version: {blosc_version}"
+                    f"Unsupported Blosc2 version installed! Blosc2 "
+                    f"{min_blosc2_version}+ required. Found version "
+                    f"{blosc2_version}.  Update it via `pip install blosc2 -U.`"
                 )
 
         if not rundir:
@@ -760,19 +841,35 @@ if __name__ == "__main__":
                 "nt": "any of the directories in %%PATH%%",
             }[os.name]
 
-            if "bdist_wheel" in sys.argv and os.name == "nt":
-                exit_with_error(
-                    f"Could not find the {package.name} runtime.",
-                    f"The {package.name} shared library was *not* found in "
-                    f"{loc}. Cannot build wheel without the runtime.",
-                )
+            if package.name == "blosc2":
+                # We will copy this into the tables directory
+                print("  * Copying blosc2 runtime library to 'tables' dir"
+                      " because it was not found in standard locations")
+                platform_system = platform.system()
+                if platform_system == "Linux":
+                    shutil.copy(libdir / 'libblosc2.so', 'tables')
+                    copy_libs += ['libblosc2.so']
+                elif platform_system == "Darwin":
+                    shutil.copy(libdir / 'libblosc2.dylib', 'tables')
+                    copy_libs += ['libblosc2.dylib']
+                else:
+                    shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
+                    copy_libs += ['libblosc2.dll']
             else:
+                if "bdist_wheel" in sys.argv and os.name == "nt":
+                    exit_with_error(
+                        f"Could not find the {package.name} runtime.",
+                        f"The {package.name} shared library was *not* found in "
+                        f"{loc}. Cannot build wheel without the runtime.",
+                    )
+
                 print_warning(
                     f"Could not find the {package.name} runtime.",
                     f"The {package.name} shared library was *not* found "
                     f"in {loc}. In case of runtime problems, please "
                     f"remember to install it.",
                 )
+
 
         if os.name == "nt":
             # LZO DLLs cannot be copied to the binary package for license
@@ -870,7 +967,8 @@ if __name__ == "__main__":
         inc_dirs += int_complibs_path.glob("zstd*/common")
         inc_dirs += int_complibs_path.glob("zstd*")
         # ...and the macros for all the compressors supported
-        def_macros += [("HAVE_LZ4", 1), ("HAVE_ZLIB", 1), ("HAVE_ZSTD", 1)]
+        def_macros += [("HAVE_LZ4", 1), ("HAVE_ZLIB", 1), ("HAVE_ZSTD", 1),
+                       ("ZSTD_DISABLE_ASM", 1)]
 
         # Add extra flags for optimizing shuffle in include Blosc
         def compiler_has_flags(compiler, flags):
@@ -918,6 +1016,12 @@ if __name__ == "__main__":
     else:
         ADDLIBS += ["blosc"]
 
+    if "BLOSC2" in optional_libs:
+        blosc_sources += [Path("hdf5-blosc2/src/blosc2_filter.c")]
+        ADDLIBS += ["blosc2"]
+    else:
+        exit_with_error("Unable to find the blosc2 library.")
+
     utilsExtension_libs = LIBS + ADDLIBS
     hdf5Extension_libs = LIBS + ADDLIBS
     tableExtension_libs = LIBS + ADDLIBS
@@ -937,15 +1041,17 @@ if __name__ == "__main__":
             complibs.extend([hdf5_package.library_name, package.library_name])
 
     # Extension expects strings, so we have to convert Path to str
-    blosc_sources = [str(x) for x in blosc_sources]
-    inc_dirs = [str(x) for x in inc_dirs]
+    # We remove duplicates too
+    blosc_sources = list(set([str(x) for x in blosc_sources]))
+    inc_dirs = list(set([str(x) for x in inc_dirs]))
+    lib_dirs = list(set([str(x) for x in lib_dirs]))
 
     extension_kwargs = {
         "extra_compile_args": CFLAGS,
         "extra_link_args": LFLAGS,
-        "library_dirs": [str(x) for x in lib_dirs],
+        "library_dirs": lib_dirs,
         "define_macros": def_macros,
-        "include_dirs": [str(x) for x in inc_dirs],
+        "include_dirs": inc_dirs,
     }
 
     extensions = [
@@ -1026,8 +1132,12 @@ if __name__ == "__main__":
     ]
 
     setup(
+        name='tables',
         version=VERSION,
         install_requires=requirements,
         ext_modules=extensions,
         cmdclass={"build_ext": BuildExtensions},
+        package_dir={"tables": "tables"},
+        # packages=["tables", "tables.scripts", "tables.tests", "tables.nodes", "tables.misc"],
+        package_data={"tables": copy_libs},
     )

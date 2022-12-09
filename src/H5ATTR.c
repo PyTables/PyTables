@@ -449,9 +449,6 @@ static herr_t find_attr( hid_t loc_id,
 
  char *attr_name = (char*)op_data;
 
- /* Shut the compiler up */
- loc_id=loc_id;
-
  /* Define a positive value for return value if the attribute was
   * found. This will cause the iterator to immediately return that
   * positive value, indicating short-circuit success

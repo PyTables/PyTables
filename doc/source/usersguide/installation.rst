@@ -50,16 +50,18 @@ Prerequisites
 First, make sure that you have
 
 * Python_ >= 3.6 (PyTables-3.5 was the last release with Python 2.7 support)
-* HDF5_ >= 1.8.4 (>=1.8.15 is strongly recommended)
+* HDF5_ >= 1.10.5
 * NumPy_ >= 1.19.0
 * Numexpr_ >= 2.6.2
 * Cython_ >= 0.29.21
-* c-blosc_ >= 1.4.1 (sources are bundled with PyTables sources but the user can
+* c-blosc_ >= 1.11.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the `--blosc` flag of the :file:`setup.py`)
+* blosc2_ >= 0.6.2 This is the Python wheel containing *both* the C-Blosc2 libs
+  and headers (>= 2.3.0), as well as the Python wrapper for Blosc2 (not used).
 
-installed (for testing purposes, we are using HDF5_ 1.8.15, NumPy_ 1.10.2
-and Numexpr_ 2.5.2 currently). If you don't, fetch and install them before
+installed (for testing purposes, we are using HDF5_ 1.10.7, NumPy_ 1.23.2
+and Numexpr_ 2.8.1 currently). If you don't, fetch and install them before
 proceeding.
 
 .. _Python: http://www.python.org
@@ -67,7 +69,8 @@ proceeding.
 .. _NumPy: http://www.numpy.org
 .. _Numexpr: http://code.google.com/p/numexpr
 .. _Cython: http://www.cython.org
-.. _c-blosc: http://blosc.org
+.. _c-blosc: https://github.com/Blosc/c-blosc
+.. _blosc2_: https://github.com/Blosc/python-blosc2
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
 instructions on how to install pre-compiled binaries if you are not willing

@@ -319,8 +319,11 @@ def _get_parser():
     parser.add_argument(
         '--complib', choices=(
             "zlib", "lzo", "bzip2", "blosc", "blosc:blosclz",
-            "blosc:lz4", "blosc:lz4hc", "blosc:snappy",
-            "blosc:zlib", "blosc:zstd"), default='zlib',
+            "blosc:lz4", "blosc:lz4hc", "blosc:zlib", "blosc:zstd",
+            "blosc2", "blosc2:blosclz",
+            "blosc2:lz4", "blosc2:lz4hc", "blosc2:zlib", "blosc2:zstd"
+        ),
+        default='zlib',
         help='''set the compression library to be used during the copy.
         Defaults to %(default)s''',
     )

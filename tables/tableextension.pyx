@@ -24,6 +24,7 @@ Misc variables:
 import sys
 import numpy
 from time import time
+import platform
 
 from .description import Col
 from .exceptions import HDF5ExtError
@@ -72,28 +73,36 @@ cdef extern from "H5TB-opt.h" nogil:
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
                           char *version, char *class_,
                           hid_t mem_type_id, hsize_t nrecords,
-                          hsize_t chunk_size, void *fill_data, int compress,
+                          hsize_t chunk_size, hsize_t block_size,
+                          void *fill_data, int compress,
                           char *complib, int shuffle, int fletcher32,
-                          hbool_t track_times, void *data )
+                          hbool_t track_times, hbool_t blosc2_support,
+                          void *data )
 
-  herr_t H5TBOread_records( hid_t dataset_id, hid_t mem_type_id,
+  herr_t H5TBOread_records( char* filename, hbool_t blosc2_support,
+                            hid_t dataset_id, hid_t mem_type_id,
                             hsize_t start, hsize_t nrecords, void *data )
 
   herr_t H5TBOread_elements( hid_t dataset_id, hid_t mem_type_id,
                              hsize_t nrecords, void *coords, void *data )
 
-  herr_t H5TBOappend_records( hid_t dataset_id, hid_t mem_type_id,
-                              hsize_t nrecords, hsize_t nrecords_orig,
-                              void *data )
+  herr_t H5TBOappend_records( hbool_t blosc2_support, hid_t dataset_id,
+                              hid_t mem_type_id, hsize_t start,
+                              hsize_t nrecords, void *data )
 
-  herr_t H5TBOwrite_records ( hid_t dataset_id, hid_t mem_type_id,
-                              hsize_t start, hsize_t nrecords,
-                              hsize_t step, void *data )
+  herr_t H5TBOwrite_records ( hbool_t blosc2_support, hid_t dataset_id,
+                              hid_t mem_type_id, hsize_t start,
+                              hsize_t nrecords, hsize_t step, void *data )
+
+  herr_t write_records_blosc2( hid_t dataset_id, hid_t mem_type_id,
+                               hsize_t start, hsize_t nrecords,
+                               const void *data )
 
   herr_t H5TBOwrite_elements( hid_t dataset_id, hid_t mem_type_id,
                               hsize_t nrecords, void *coords, void *data )
 
-  herr_t H5TBOdelete_records( hid_t   dataset_id, hid_t   mem_type_id,
+  herr_t H5TBOdelete_records( char* filename, hbool_t blosc2_support,
+                              hid_t   dataset_id, hid_t   mem_type_id,
                               hsize_t ntotal_records, size_t  src_size,
                               hsize_t start, hsize_t nrecords,
                               hsize_t maxtuples )
@@ -197,14 +206,19 @@ cdef class Table(Leaf):
       data = NULL
 
     class_ = self._c_classid.encode('utf-8')
+    cdef hsize_t blocksize = self._v_blocksize if hasattr(self, "_v_blocksize") else 0
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2"))
     self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, encoded_name,
                                       cobversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
-                                      fill_data,
+                                      blocksize, fill_data,
                                       self.filters.complevel, encoded_complib,
                                       self.filters.shuffle_bitshuffle,
                                       self.filters.fletcher32,
-                                      self._want_track_times, data)
+                                      self._want_track_times,
+                                      blosc2_support, data)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the table")
 
@@ -485,11 +499,14 @@ cdef class Table(Leaf):
     self._convert_types(self._v_recarray, nrecords, 0)
 
     nrows = self.nrows
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2"))
     # release GIL (allow other threads to use the Python interpreter)
     with nogil:
         # Append the records:
-        ret = H5TBOappend_records(self.dataset_id, self.type_id,
-                                  nrecords, nrows, self.wbuf)
+        ret = H5TBOappend_records(blosc2_support, self.dataset_id,
+                                  self.type_id, nrows, nrecords, self.wbuf)
 
     if ret < 0:
       raise HDF5ExtError("Problems appending the records.")
@@ -530,9 +547,13 @@ cdef class Table(Leaf):
     # Convert some NumPy types to HDF5 before storing.
     self._convert_types(recarr, nrecords, 0)
     # Update the records:
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2") and
+                                   (step == 1))
     with nogil:
-        ret = H5TBOwrite_records(self.dataset_id, self.type_id,
-                                 start, nrecords, step, rbuf )
+        ret = H5TBOwrite_records(blosc2_support, self.dataset_id,
+                                 self.type_id, start, nrecords, step, rbuf )
 
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
@@ -569,6 +590,8 @@ cdef class Table(Leaf):
   def _read_records(self, hsize_t start, hsize_t nrecords, ndarray recarr):
     cdef void *rbuf
     cdef int ret
+    cdef bytes fname = self._v_file.filename.encode('utf8')
+    cdef char* filename = fname
 
     # Correct the number of records to read, if needed
     if (start + nrecords) > self.nrows:
@@ -578,9 +601,15 @@ cdef class Table(Leaf):
     rbuf = PyArray_DATA(recarr)
 
     # Read the records from disk
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2") and
+                                   ((platform.system().lower() != 'windows') or
+                                    ((self._v_file.mode == 'r'))))
+
     with nogil:
-        ret = H5TBOread_records(self.dataset_id, self.type_id, start,
-                                nrecords, rbuf)
+        ret = H5TBOread_records(filename, blosc2_support, self.dataset_id,
+                                self.type_id, start, nrecords, rbuf)
 
     if ret < 0:
       raise HDF5ExtError("Problems reading records.")
@@ -596,6 +625,13 @@ cdef class Table(Leaf):
     cdef int ret
     cdef void *rbuf
     cdef NumCache chunkcache
+    cdef bytes fname = self._v_file.filename.encode('utf8')
+    cdef char* filename = fname
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2") and
+                                   ((platform.system().lower() != 'windows') or
+                                    ((self._v_file.mode == 'r'))))
 
     chunkcache = self._chunkcache
     chunkshape = chunkcache.slotsize
@@ -612,8 +648,8 @@ cdef class Table(Leaf):
     else:
       # Chunk is not in cache. Read it and put it in the LRU cache.
       with nogil:
-          ret = H5TBOread_records(self.dataset_id, self.type_id,
-                                  start, nrecords, rbuf)
+          ret = H5TBOread_records(filename, blosc2_support, self.dataset_id,
+                                  self.type_id, start, nrecords, rbuf)
 
       if ret < 0:
         raise HDF5ExtError("Problems reading chunk records.")
@@ -649,14 +685,21 @@ cdef class Table(Leaf):
     cdef size_t rowsize
     cdef hsize_t nrecords=0, nrecords2
     cdef hsize_t i
+    cdef bytes fname = self._v_file.filename.encode('utf8')
+    cdef char* filename = fname
+    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
+                                   (self.filters.complib != None) and
+                                   (self.filters.complib[0:6] == "blosc2") and
+                                   ((platform.system().lower() != 'windows') or
+                                    ((self._v_file.mode == 'r'))))
 
     if step == 1:
       nrecords = stop - start
       rowsize = self.rowsize
       # Using self.disk_type_id should be faster (i.e. less conversions)
-      if (H5TBOdelete_records(self.dataset_id, self.disk_type_id,
-                              self.nrows, rowsize, start, nrecords,
-                              self.nrowsinbuf) < 0):
+      if (H5TBOdelete_records(filename, blosc2_support, self.dataset_id,
+                              self.disk_type_id, self.nrows, rowsize,
+                              start, nrecords, self.nrowsinbuf) < 0):
         raise HDF5ExtError("Problems deleting records.")
 
       self.nrows = self.nrows - nrecords
