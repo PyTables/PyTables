@@ -142,8 +142,13 @@ def get_blosc2_directories():
                     lib_dir = "Lib"
                 else:
                     print("libblosc2 line:", line)
-                    # Check for lib or lib64 (or whatever comes after 'lib')
-                    lib_dir = re.findall('\/(lib.*)\/', line)[0]
+                    if line.startswith('..'):
+                        # A relative path means that the wheel has been built in this CI run
+                        library_path = basepath.parent
+                        lib_dir = line[:line.find("libblosc2")]
+                    else:
+                        # Check for lib or lib64 (or whatever comes after 'lib')
+                        lib_dir = re.findall('\/(lib.*)\/', line)[0]
                 break
         if not library_path:
             raise NotADirectoryError("Library directory not found for blosc2!")
