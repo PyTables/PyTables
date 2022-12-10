@@ -110,37 +110,23 @@ def get_blosc2_version(headername):
 
 def get_blosc2_directories():
     library_path = None
-    lib_dir = None
-
-    # First try with the conda package
-    if 'CONDA_PREFIX' in os.environ:
-        library_path = Path(os.environ['CONDA_PREFIX'])
-        if os.path.isdir(library_path / 'lib64'):
-            lib_dir = 'lib64'
-        elif os.path.isdir(library_path / 'lib'):
-            lib_dir = 'lib'
-        if not os.path.isfile(library_path / 'include' / 'blosc2.h'):
-            library_path = None
-
-    # If not found in conda, then try the wheel
-    if library_path is None:
-        try:
-            import blosc2
-        except ModuleNotFoundError:
-            raise EnvironmentError(
-                "Cannot find neither the c-blosc2 package nor the "
-                "python-blosc2 wheel")
-        version = blosc2.__version__
-        basepath = Path(os.path.dirname(blosc2.__file__))
-        recinfo = basepath.parent / f'blosc2-{version}.dist-info' / 'RECORD'
-        for line in open(recinfo):
-            print("RECORD line:", line)
-            if 'libblosc2' in line:
-                library_path = Path(os.path.abspath(basepath.parent /
-                                                    Path(line[:line.find('libblosc2')])))
-                break
-        if not library_path:
-            raise NotADirectoryError("Library directory not found for blosc2!")
+    try:
+        import blosc2
+    except ModuleNotFoundError:
+        raise EnvironmentError(
+            "Cannot find neither the c-blosc2 package nor the "
+            "python-blosc2 wheel")
+    version = blosc2.__version__
+    basepath = Path(os.path.dirname(blosc2.__file__))
+    recinfo = basepath.parent / f'blosc2-{version}.dist-info' / 'RECORD'
+    for line in open(recinfo):
+        print("RECORD line:", line)
+        if 'libblosc2' in line:
+            library_path = Path(os.path.abspath(basepath.parent /
+                                                Path(line[:line.find('libblosc2')])))
+            break
+    if not library_path:
+        raise NotADirectoryError("Library directory not found for blosc2!")
 
     include_path = library_path.parent / 'include'
     if not os.path.isfile(include_path / 'blosc2.h'):
