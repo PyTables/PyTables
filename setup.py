@@ -136,31 +136,19 @@ def get_blosc2_directories():
         for line in open(recinfo):
             print("RECORD line:", line)
             if 'libblosc2' in line:
-                library_path = basepath.parent / \
-                               Path(line[:line.find('libblosc2')]) / '..'
-                if os.name == "nt":
-                    lib_dir = "Lib"
-                else:
-                    print("libblosc2 line:", line)
-                    if line.startswith('..'):
-                        # A relative path means that the wheel has been built in this CI run
-                        library_path = basepath.parent
-                        lib_dir = line[:line.find("libblosc2")]
-                    else:
-                        # Check for lib or lib64 (or whatever comes after 'lib')
-                        lib_dir = re.findall('\/(lib.*)\/', line)[0]
+                library_path = Path(os.path.abspath(basepath.parent /
+                                                    Path(line[:line.find('libblosc2')])))
                 break
         if not library_path:
             raise NotADirectoryError("Library directory not found for blosc2!")
 
-    lib_path = Path(library_path) / lib_dir
-    include_path = Path(library_path) / 'include'
+    include_path = library_path.parent / 'include'
     if not os.path.isfile(include_path / 'blosc2.h'):
         library_path = os.path.abspath(library_path)
         raise NotADirectoryError("Install directory for blosc2 not found in %s" % library_path)
 
-    # print("blosc2 paths ->", os.path.abspath(include_path), os.path.abspath(lib_path))
-    return os.path.abspath(include_path), os.path.abspath(lib_path)
+    print("blosc2 paths ->", include_path, library_path)
+    return include_path, library_path
 
 
 def newer(source, target):
