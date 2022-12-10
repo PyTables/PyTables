@@ -852,13 +852,21 @@ if __name__ == "__main__":
                     if "bdist_wheel" in sys.argv:
                         shared_libs = glob.glob(str(libdir) + '/libblosc2.so*')
                         for lib in shared_libs:
-                            shutil.copy(lib, '/tmp/hdf5/lib')
+                            # shutil.copy(lib, '/tmp/hdf5/lib')
+                            shutil.copy(lib, 'tables')
                 elif platform_system == "Darwin":
                     shutil.copy(libdir / 'libblosc2.dylib', 'tables')
                     copy_libs += ['libblosc2.dylib']
+                    if "bdist_wheel" in sys.argv:
+                        shared_libs = glob.glob(str(libdir) + '/libblosc2*.dylib')
+                        for lib in shared_libs:
+                            shutil.copy(lib, 'tables')
                 else:
                     shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
                     copy_libs += ['libblosc2.dll']
+                    if "bdist_wheel" in sys.argv:
+                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll',
+                                    'C:\\Miniconda\\envs\\build\\Library\\bin')
             else:
                 if "bdist_wheel" in sys.argv and os.name == "nt":
                     exit_with_error(
