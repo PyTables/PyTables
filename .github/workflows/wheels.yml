@@ -74,9 +74,9 @@ jobs:
            - arch: aarch64
              cibw_python: cp311-*
              os: ubuntu-latest
-           - arch: arm64
-             cibw_python: "cp*"
-             os: macos-latest
+#           - arch: arm64
+#             cibw_python: "cp*"
+#             os: macos-latest
 
     steps:
       - uses: actions/checkout@v3
