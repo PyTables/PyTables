@@ -213,7 +213,7 @@ jobs:
 
       - name: Install tables on ${{ matrix.python-version }}
         run: |
-          pip install numpy>=1.19.0 numexpr>=2.6.2 packaging py-cpuinfo>=9.0.0 blosc2
+          pip install cython>=0.29.21 numpy>=1.19.0 numexpr>=2.6.2 packaging py-cpuinfo>=9.0.0 blosc2
           pip install --no-index --find-links wheelhouse/artifact/ tables
 
       - name: Run tests on ${{ matrix.python-version }}
