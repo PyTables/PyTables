@@ -213,7 +213,8 @@ jobs:
 
       - name: Install tables on ${{ matrix.python-version }}
         run: |
-          pip install numpy>=1.19.0 numexpr>=2.6.2 packaging py-cpuinfo>=9.0.0
+          # pip install numpy>=1.19.0 numexpr>=2.6.2 packaging py-cpuinfo>=9.0.0
+          pip install -r requirements.txt
           pip install --no-index --find-links wheelhouse/artifact/ tables
 
       - name: Run tests on ${{ matrix.python-version }}
