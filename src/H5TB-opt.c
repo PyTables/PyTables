@@ -885,7 +885,7 @@ herr_t insert_chunk_blosc2( hid_t dataset_id,
  cparams.typesize = typesize;
  cparams.clevel = cd_values[4];
  cparams.filters[5] = cd_values[5];
- if (strncmp(name, "blosc2:", 7) == 0) {
+ if (cd_nelmts >= 7) {
   cparams.compcode = cd_values[6];
  }
 
