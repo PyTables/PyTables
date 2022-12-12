@@ -109,7 +109,7 @@ def get_blosc2_version(headername):
 
 
 def get_blosc2_directories():
-    library_path = None
+    """Get Blosc2 directories for the C library by using wheel metadata"""
     try:
         import blosc2
     except ModuleNotFoundError:
@@ -119,8 +119,8 @@ def get_blosc2_directories():
     version = blosc2.__version__
     basepath = Path(os.path.dirname(blosc2.__file__))
     recinfo = basepath.parent / f'blosc2-{version}.dist-info' / 'RECORD'
+    library_path = None
     for line in open(recinfo):
-        print("RECORD line:", line)
         if 'libblosc2' in line:
             library_path = Path(os.path.abspath(basepath.parent /
                                                 Path(line[:line.find('libblosc2')])))
@@ -130,10 +130,9 @@ def get_blosc2_directories():
 
     include_path = library_path.parent / 'include'
     if not os.path.isfile(include_path / 'blosc2.h'):
-        library_path = os.path.abspath(library_path)
-        raise NotADirectoryError("Install directory for blosc2 not found in %s" % library_path)
+        install_path = os.path.abspath(library_path.parent)
+        raise NotADirectoryError("Install directory for blosc2 not found in %s" % install_path)
 
-    print("blosc2 paths ->", include_path, library_path)
     return include_path, library_path
 
 
@@ -830,23 +829,28 @@ if __name__ == "__main__":
                 if platform_system == "Linux":
                     shutil.copy(libdir / 'libblosc2.so', 'tables')
                     copy_libs += ['libblosc2.so']
-                    if "bdist_wheel" in sys.argv:
+                    dll_dir = '/tmp/hdf5/lib'
+                    # Copy dlls when producing the wheels in CI
+                    if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
                         shared_libs = glob.glob(str(libdir) + '/libblosc2.so*')
                         for lib in shared_libs:
-                            shutil.copy(lib, '/tmp/hdf5/lib')
+                            shutil.copy(lib, dll_dir)
                 elif platform_system == "Darwin":
                     shutil.copy(libdir / 'libblosc2.dylib', 'tables')
                     copy_libs += ['libblosc2.dylib']
-                    if "bdist_wheel" in sys.argv:
+                    dll_dir = '/tmp/hdf5/lib'
+                    # Copy dlls when producing the wheels in CI
+                    if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
                         shared_libs = glob.glob(str(libdir) + '/libblosc2*.dylib')
                         for lib in shared_libs:
-                            shutil.copy(lib, '/tmp/hdf5/lib')
+                            shutil.copy(lib, dll_dir)
                 else:
                     shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
                     copy_libs += ['libblosc2.dll']
-                    if "bdist_wheel" in sys.argv:
-                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll',
-                                    'C:\\Miniconda\\envs\\build\\Library\\bin')
+                    dll_dir = 'C:\\Miniconda\\envs\\build\\Library\\bin'
+                    # Copy dlls when producing the wheels in CI
+                    if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
+                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', dll_dir)
             else:
                 if "bdist_wheel" in sys.argv and os.name == "nt":
                     exit_with_error(
