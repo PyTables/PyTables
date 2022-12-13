@@ -175,7 +175,7 @@ Accelerating your searches
     PyTables 2.2 and PyTables 3.8 respectively.  You should expect them to be
     the fastest compressors
     among all the described here, and their use is strongly recommended
-    whenever you need extreme speed and not a very high compression ratio.
+    whenever you need extreme speed while keeping good compression ratios.
     However, below you can still find some sections describing the advantages
     of using Blosc/Blosc2 in PyTables.
 
@@ -368,13 +368,15 @@ two worlds: amazing speed while keeping good compression ratios.
     **Compression ratio for different codecs and the 100 million rows table.
       Data comes from an actual set of meteorological measurements.**
 
-Finally, and despite that the dataset is 3.1 GB in size, the memory consumption
-after the 6 queries is still less than 250 MB.
+Finally, and despite that the dataset is 3.1 GB in size, the memory
+consumption after the 6 queries is still less than 250 MB.
 That means that you can do queries of large, on-disk datasets with machines
 with much less RAM than the dataset and still get very good speed.
 
-You can see more info about Blosc2 and how it collaborates with HDF5 for achieving
-high speed in our blog at ...
+You can see more info about Blosc2 and how it collaborates with HDF5 for
+achieving such a high I/O speed in our blog at:
+https://www.blosc.org/posts/blosc2-pytables-perf/
+
 
 Indexed searches
 ~~~~~~~~~~~~~~~~
