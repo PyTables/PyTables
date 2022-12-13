@@ -147,7 +147,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        arch: [win32, win_amd64]
+        arch: [win_amd64]
 
     steps:
       - uses: actions/checkout@v3
@@ -193,12 +193,7 @@ jobs:
       matrix:
         os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
         python-version: ['3.8', '3.9', '3.10', '3.11']
-        arch: ['x64', 'x86']
-        exclude:
-        - os: 'ubuntu-latest'
-          arch: 'x86'
-        - os: 'macos-latest'
-          arch: 'x86'
+        arch: ['x64']
 
     steps:
       - uses: actions/download-artifact@v3
