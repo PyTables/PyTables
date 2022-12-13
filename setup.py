@@ -827,7 +827,6 @@ if __name__ == "__main__":
                       " because it was not found in standard locations")
                 platform_system = platform.system()
                 if platform_system == "Linux":
-                    shutil.copy(libdir / 'libblosc2.so', 'tables')
                     copy_libs += ['libblosc2.so']
                     dll_dir = '/tmp/hdf5/lib'
                     # Copy dlls when producing the wheels in CI
@@ -835,8 +834,9 @@ if __name__ == "__main__":
                         shared_libs = glob.glob(str(libdir) + '/libblosc2.so*')
                         for lib in shared_libs:
                             shutil.copy(lib, dll_dir)
+                    else:
+                        shutil.copy(libdir / 'libblosc2.so', 'tables')
                 elif platform_system == "Darwin":
-                    shutil.copy(libdir / 'libblosc2.dylib', 'tables')
                     copy_libs += ['libblosc2.dylib']
                     dll_dir = '/tmp/hdf5/lib'
                     # Copy dlls when producing the wheels in CI
@@ -844,13 +844,16 @@ if __name__ == "__main__":
                         shared_libs = glob.glob(str(libdir) + '/libblosc2*.dylib')
                         for lib in shared_libs:
                             shutil.copy(lib, dll_dir)
+                    else:
+                        shutil.copy(libdir / 'libblosc2.dylib', 'tables')
                 else:
-                    shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
                     copy_libs += ['libblosc2.dll']
                     dll_dir = 'C:\\Miniconda\\envs\\build\\Library\\bin'
                     # Copy dlls when producing the wheels in CI
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
                         shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', dll_dir)
+                    else:
+                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
             else:
                 if "bdist_wheel" in sys.argv and os.name == "nt":
                     exit_with_error(
@@ -1136,6 +1139,6 @@ if __name__ == "__main__":
         package_dir={"tables": "tables"},
         #packages=["tables", "tables.scripts", "tables.tests", "tables.nodes", "tables.nodes.tests", "tables.misc"],
         #include_package_data=True,
-        package_data={"tables": copy_libs},
+        #package_data={"tables": copy_libs},
         #data_files=[("tables", copy_libs)],
     )
