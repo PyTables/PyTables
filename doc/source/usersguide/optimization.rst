@@ -371,7 +371,8 @@ two worlds: amazing speed while keeping good compression ratios.
 Finally, and despite that the dataset is 3.1 GB in size, the memory
 consumption after the 6 queries is still less than 250 MB.
 That means that you can do queries of large, on-disk datasets with machines
-with much less RAM than the dataset and still get very good speed.
+with much less RAM than the dataset and still get all the speed that the disk
+can provide (and then more; remember that Blosc2 can be faster than memory).
 
 You can see more info about Blosc2 and how it collaborates with HDF5 for
 achieving such a high I/O speed in our blog at:
