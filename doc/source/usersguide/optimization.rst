@@ -176,6 +176,8 @@ Accelerating your searches
     the fastest compressors
     among all the described here, and their use is strongly recommended
     whenever you need extreme speed and not a very high compression ratio.
+    However, below you can still find some sections describing the advantages
+    of using Blosc/Blosc2 in PyTables.
 
 Searching in tables is one of the most common and time consuming operations
 that a typical user faces in the process of mining through his data.  Being
@@ -323,29 +325,53 @@ See :ref:`condition_syntax` for more information on in-kernel condition
 syntax.
 
 As mentioned before Blosc and Blosc2 can bring a lot of acceleration to your
-queries.  Just as comparison point, below there is a profile of 6 different
+queries.  Blosc2 is the new generation of the Blosc compressor, and PyTables
+uses it in a way that complements the existing Blosc HDF5 filter.
+Just as comparison point, below there is a profile of 6 different
 in-kernel queries using the standard Zlib, Blosc and Blosc2 compressors:
 
-.. _inkernelPerformance-Blosc-Blosc2:
+.. _inkernelPerformance-Zlib-Blosc-Blosc2:
 
-.. figure:: images/inkernel-zlib-blosc.png
+.. figure:: images/inkernel-zlib-blosc-blosc2.png
     :align: center
 
-    **Times for 6 complex queries in a large table with 100 million of rows.
+    **Times for 6 complex queries in a large table with 100 million rows.
       Data comes from an actual set of meteorological measurements.**
 
 As you can see, Blosc, but specially Blosc2, can get much better performance
 than the Zlib compressor when doing complex queries.  Blosc can be up to
-7x faster, whereas Blosc2 can be more than 18x times faster (i.e. processing
-on-disk data at more than 13 GB/s).  And despite that the dataset is 3.3 GB
-in size, the memory consumption after the 6 queries is still less than 250 MB.
+6x faster, whereas Blosc2 can be more than 13x times faster (i.e. processing
+data at more than 8 GB/s).  Perhaps more interestingly, Blosc2 can make
+inkernel queries *faster* than using uncompressed data; and although it might
+seem that we are dealing with on-disk data, it is actually in memory because,
+after the first query, all the data has been cached in memory by the
+OS filesystem cache.  That also means that for actual data that is on-disk,
+the advantages of using Blosc/Blosc2 can be much more than this.
+
+In case you might want to compress as much as possible, Blosc and Blosc2 allow
+to use different compression codecs underneath.  For example, in the same
+:ref:`figure <inkernelPerformance-Zlib-Blosc-Blosc2>` that we are discussing,
+one can see another line where Blosc2 is used in combination with
+Zstd, and this combination is providing a compression ratio of 9x; this is
+actually larger than the one achieved by the Zlib compressor embedded in HDF5,
+which is 7.6x --BTW, the compression ratio of Blosc2 using the default compressor
+is 7.4x, not that far from standalone Zlib.
+And quite amazingly, the Blosc2 + Zstd combination still makes inkernel queries
+faster than with no using compression; so with Blosc2 you can have the best of the
+two worlds: amazing speed while keeping good compression ratios.
+
+.. _CompressionRatio-Zlib-Blosc-Blosc2:
+
+.. figure:: images/cratio-zlib-blosc-blosc2.png
+    :align: center
+
+    **Compression ratio for different codecs and the 100 million rows table.
+      Data comes from an actual set of meteorological measurements.**
+
+Finally, and despite that the dataset is 3.1 GB in size, the memory consumption
+after the 6 queries is still less than 250 MB.
 That means that you can do queries of large, on-disk datasets with machines
 with much less RAM than the dataset and still get very good speed.
-
-The drawback of using Blosc and Blosc2 is that compression ratios with the
-default codec (BloscLZ) are usually smaller than Zlib.  However, you can still
-use the `zstd` codec, which is included inside them (like e.g.
-'blosc2:zstd') for improved compression ratios.
 
 You can see more info about Blosc2 and how it collaborates with HDF5 for achieving
 high speed in our blog at ...
