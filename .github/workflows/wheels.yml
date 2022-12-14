@@ -194,10 +194,11 @@ jobs:
         os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
         python-version: ['3.8', '3.9', '3.10', '3.11']
         arch: ['x64']
-        include:
-           - arch: arm64
-             cibw_python: "cp*"
-             os: macos-latest
+#        include:
+#           This cannot be tested because NumPy does not distribute wheels for arm64
+#           - arch: arm64
+#             cibw_python: "cp*"
+#             os: macos-latest
 
     steps:
       - uses: actions/download-artifact@v3
