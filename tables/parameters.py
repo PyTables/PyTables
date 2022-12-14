@@ -205,7 +205,7 @@ system attributes are not considered for guessing the class of the node
 during its loading from disk (this work is delegated to the PyTables'
 class discoverer function for general HDF5 files)."""
 
-MAX_NUMEXPR_THREADS = _os.environ.get("NUMEXPR_MAX_THREADS", 4)
+MAX_NUMEXPR_THREADS = int(_os.environ.get("NUMEXPR_MAX_THREADS", 4))
 """The maximum number of threads that PyTables should use internally in
 Numexpr.  If `None`, it is automatically set to the number of cores in
 your machine. In general, it is a good idea to set this to the number of
