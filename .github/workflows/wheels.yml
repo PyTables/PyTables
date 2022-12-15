@@ -63,16 +63,7 @@ jobs:
         cibw_python: [ "cp*" ]
         include:
            - arch: aarch64
-             cibw_python: cp38-*
-             os: ubuntu-latest
-           - arch: aarch64
-             cibw_python: cp39-*
-             os: ubuntu-latest
-           - arch: aarch64
-             cibw_python: cp310-*
-             os: ubuntu-latest
-           - arch: aarch64
-             cibw_python: cp311-*
+             cibw_python: "cp*"
              os: ubuntu-latest
            - arch: arm64
              cibw_python: "cp*"
