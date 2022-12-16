@@ -59,15 +59,12 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
-        arch: [ 'x86_64' ]
+        arch: [ 'x86_64',  'aarch64' ]
         cibw_python: [ "cp*" ]
-        include:
-           - arch: aarch64
-             cibw_python: "cp*"
-             os: ubuntu-latest
-           - arch: arm64
-             cibw_python: "cp*"
-             os: macos-latest
+        exclude:
+          # This will be handled via CIBW_ARCHS_MACOS env var
+          - os: macos-latest
+            arch: aarch64
 
     steps:
       - uses: actions/checkout@v3
@@ -120,6 +117,7 @@ jobs:
           CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_SKIP: "*-musllinux_* ${{ env.CIBW_SKIP}}"
           CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
+          CIBW_ARCHS_MACOS: "x86_64 arm64"
           CIBW_BEFORE_ALL_LINUX: >
             cp -r `pwd`/hdf5_build /tmp/hdf5 &&
             yum -y update &&
