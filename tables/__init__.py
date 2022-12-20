@@ -8,25 +8,19 @@ to efficiently cope with extremely large amounts of data.
 """
 import os
 from ctypes import cdll
-import platform
+from importlib.metadata import files as import_metadata_files
 
-
-# Load the blosc2 library, and if not found in standard locations,
-# try this directory (it should be automatically copied in setup.py).
-current_dir = os.path.dirname(__file__)
-platform_system = platform.system()
-blosc2_lib = "libblosc2"
-if platform_system == "Linux":
-    blosc2_lib += ".so"
-elif platform_system == "Darwin":
-    blosc2_lib += ".dylib"
-else:
-    blosc2_lib += ".dll"
 try:
-    cdll.LoadLibrary(blosc2_lib)
-except OSError:
-    cdll.LoadLibrary(os.path.join(current_dir, blosc2_lib))
-
+    # if blosc2 is not installed, move on
+    import blosc2
+    for f in import_metadata_files('blosc2'):
+        if f.name in {"libblosc2.dll", "libblosc2.so", "libblosc2.dylib"}:
+            cdll.LoadLibrary(str(f.locate().resolve().parent))
+            break
+    else:
+        raise FileNotFoundError('Unable to locate the blosc2 binary')
+except ImportError:
+    pass
 
 # Necessary imports to get versions stored on the cython extension
 from .utilsextension import get_hdf5_version as _get_hdf5_version

@@ -17,6 +17,7 @@ import re
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 import pkg_resources
+from importlib.metadata import files as import_metadata_files
 from packaging.version import Version
 
 
@@ -116,22 +117,25 @@ def get_blosc2_directories():
         raise EnvironmentError(
             "Cannot find neither the c-blosc2 package nor the "
             "python-blosc2 wheel")
-    version = blosc2.__version__
-    basepath = Path(os.path.dirname(blosc2.__file__))
-    recinfo = basepath.parent / f'blosc2-{version}.dist-info' / 'RECORD'
-    library_path = None
-    for line in open(recinfo):
-        if 'libblosc2' in line:
-            library_path = Path(os.path.abspath(basepath.parent /
-                                                Path(line[:line.find('libblosc2')])))
-            break
-    if not library_path:
-        raise NotADirectoryError("Library directory not found for blosc2!")
 
-    include_path = library_path.parent / 'include'
-    if not os.path.isfile(include_path / 'blosc2.h'):
-        install_path = os.path.abspath(library_path.parent)
-        raise NotADirectoryError("Install directory for blosc2 not found in %s" % install_path)
+    files = import_metadata_files('blosc2')
+    library_path = None
+    include_path = None
+
+    for f in files:
+        if f.name in {"libblosc2.dll", "libblosc2.so", "libblosc2.dylib"}:
+            library_path = str(f.locate().resolve().parent)
+            break
+
+    for f in files:
+        if f.name == "blosc2.h":
+            include_path = str(f.locate().resolve().parent)
+            break
+
+    if library_path is None:
+        raise NotADirectoryError("Library directory not found for blosc2")
+    if include_path is None:
+        raise NotADirectoryError("Include directory not found for blosc2")
 
     return include_path, library_path
 
@@ -821,40 +825,7 @@ if __name__ == "__main__":
                 "nt": "any of the directories in %%PATH%%",
             }[os.name]
 
-            if package.name == "blosc2":
-                # We will copy this into the tables directory
-                print("  * Copying blosc2 runtime library to 'tables' dir"
-                      " because it was not found in standard locations")
-                platform_system = platform.system()
-                if platform_system == "Linux":
-                    copy_libs += ['libblosc2.so']
-                    dll_dir = '/tmp/hdf5/lib'
-                    # Copy dlls when producing the wheels in CI
-                    if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
-                        shared_libs = glob.glob(str(libdir) + '/libblosc2.so*')
-                        for lib in shared_libs:
-                            shutil.copy(lib, dll_dir)
-                    else:
-                        shutil.copy(libdir / 'libblosc2.so', 'tables')
-                elif platform_system == "Darwin":
-                    copy_libs += ['libblosc2.dylib']
-                    dll_dir = '/tmp/hdf5/lib'
-                    # Copy dlls when producing the wheels in CI
-                    if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
-                        shared_libs = glob.glob(str(libdir) + '/libblosc2*.dylib')
-                        for lib in shared_libs:
-                            shutil.copy(lib, dll_dir)
-                    else:
-                        shutil.copy(libdir / 'libblosc2.dylib', 'tables')
-                else:
-                    copy_libs += ['libblosc2.dll']
-                    dll_dir = 'C:\\Miniconda\\envs\\build\\Library\\bin'
-                    # Copy dlls when producing the wheels in CI
-                    if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
-                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', dll_dir)
-                    else:
-                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
-            else:
+            if package.name != "blosc2":
                 if "bdist_wheel" in sys.argv and os.name == "nt":
                     exit_with_error(
                         f"Could not find the {package.name} runtime.",
@@ -868,7 +839,6 @@ if __name__ == "__main__":
                     f"in {loc}. In case of runtime problems, please "
                     f"remember to install it.",
                 )
-
 
         if os.name == "nt":
             # LZO DLLs cannot be copied to the binary package for license

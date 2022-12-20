@@ -1,4 +1,4 @@
-name: ubuntu
+name: makefile
 
 on: [push, pull_request]
 
