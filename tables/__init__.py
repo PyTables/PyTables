@@ -15,7 +15,7 @@ try:
     import blosc2
     for f in import_metadata_files('blosc2'):
         if f.name in {"libblosc2.dll", "libblosc2.so", "libblosc2.dylib"}:
-            cdll.LoadLibrary(str(f.locate().resolve().parent))
+            cdll.LoadLibrary(str(f.locate().resolve()))
             break
     else:
         raise FileNotFoundError('Unable to locate the blosc2 binary')
