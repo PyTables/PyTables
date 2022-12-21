@@ -1,4 +1,4 @@
-name: pip sdist
+name: sdist
 
 on: [push, pull_request]
 
@@ -29,15 +29,49 @@ jobs:
         channel-priority: strict
     - name: Install dependencies
       run: |
+        # get blosc2 through python
         conda install setuptools pip wheel build packaging numpy cython bzip2 hdf5 lzo 'typing_extensions<4.2'
-        # We can use either the c-blosc2 package in conda/conda-forge or the official wheel (blosc2 in PyPI) from requirements.
-        # conda install c-blosc2
     - name: Source distribution
       run: |
         python -m build --sdist
     - name: Installation
       run: |
         pip install -v dist/*.tar.gz
+    - name: 'Run test'
+      run: |
+        cd .. && python -m tables.tests.test_all -v
+        pt2to3 -h
+        ptrepack -h
+        ptdump -h
+        pttree -h
+
+  build_cblosc:
+    name: Sdist with cblosc2
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - name: Set up Python
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        channels: conda-forge
+        channel-priority: strict
+    - name: Install dependencies
+      run: |
+        conda install setuptools pip wheel build packaging py-cpuinfo numpy cython numexpr bzip2 hdf5 lzo 'typing_extensions<4.2' c-blosc2
+    - name: Source distribution
+      run: |
+        python -m build --sdist
+    - name: Installation
+      run: |
+        pip install -v dist/*.tar.gz --no-deps
     - name: 'Run test'
       run: |
         cd .. && python -m tables.tests.test_all -v
