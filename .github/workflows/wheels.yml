@@ -1,4 +1,4 @@
-name: Wheels
+@name: Wheels
 
 # Publish when a (published) GitHub Release is created.
 on:
@@ -113,7 +113,7 @@ jobs:
           CIBW_BUILD_VERBOSITY_MACOS: 3
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.cibw_python }}
-          CIBW_BEFORE_BUILD: "pip install -r requirements.txt"
+          CIBW_BEFORE_BUILD: "python -m pip install -r requirements.txt"
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_SKIP: "*-musllinux_* ${{ env.CIBW_SKIP}}"
@@ -166,7 +166,7 @@ jobs:
           CIBW_BEFORE_ALL_WINDOWS: "conda create --yes --name=build && conda activate build && conda config --env --set subdir ${{ matrix.arch == 'win32' && 'win-32' || 'win-64' }} && conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib"
           CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build" PATH="$PATH;C:\\Miniconda\\envs\\build\\Library\\bin"'
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
-          CIBW_BEFORE_BUILD: "pip install -r requirements.txt delvewheel"
+          CIBW_BEFORE_BUILD: "python -m pip install -r requirements.txt delvewheel"
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
 
       - uses: actions/upload-artifact@v3
@@ -202,8 +202,8 @@ jobs:
 
       - name: Install tables on ${{ matrix.python-version }}
         run: |
-          pip install cython>=0.29.21 numpy>=1.19.0 numexpr>=2.6.2 packaging py-cpuinfo>=9.0.0 blosc2
-          pip install --no-index --find-links wheelhouse/artifact/ tables
+          python -m pip install cython>=0.29.21 numpy>=1.19.0 numexpr>=2.6.2 packaging py-cpuinfo>=9.0.0 blosc2
+          python -m pip install --no-index --find-links wheelhouse/artifact/ tables
 
       - name: Run tests on ${{ matrix.python-version }}
         run: |
