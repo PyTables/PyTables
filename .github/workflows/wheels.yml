@@ -1,4 +1,4 @@
-@name: Wheels
+name: Wheels
 
 # Publish when a (published) GitHub Release is created.
 on:
