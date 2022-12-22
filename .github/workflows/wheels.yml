@@ -55,12 +55,12 @@ jobs:
       HDF5_VERSION: 1.12.2
       MACOSX_DEPLOYMENT_TARGET: "10.9"
       # Skip 3.6 and 3.7 wheels
-      CIBW_SKIP: "cp36-* cp37-*"
+      CIBW_SKIP: "*-musllinux_* cp36-* cp37-*"
+      CIBW_BUILD: "cp*"
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ]
         arch: [ 'x86_64',  'aarch64' ]
-        cibw_python: [ "cp*" ]
         include:
           - os: macos-latest
             arch: x86_64
@@ -116,7 +116,6 @@ jobs:
           CIBW_BEFORE_BUILD: "python -m pip install -r requirements.txt"
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
-          CIBW_SKIP: "*-musllinux_*"
           CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
           CIBW_BEFORE_ALL_LINUX: >
             cp -r `pwd`/hdf5_build /tmp/hdf5 &&
