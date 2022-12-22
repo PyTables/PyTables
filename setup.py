@@ -113,9 +113,7 @@ def get_blosc2_directories():
     try:
         import blosc2
     except ModuleNotFoundError:
-        raise EnvironmentError(
-            "Cannot find neither the c-blosc2 package nor the "
-            "python-blosc2 wheel")
+        raise EnvironmentError("Cannot import the blosc2 requirement")
     version = blosc2.__version__
     basepath = Path(os.path.dirname(blosc2.__file__))
     recinfo = basepath.parent / f'blosc2-{version}.dist-info' / 'RECORD'

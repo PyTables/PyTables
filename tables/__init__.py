@@ -31,7 +31,7 @@ except OSError:
 # Necessary imports to get versions stored on the cython extension
 from .utilsextension import get_hdf5_version as _get_hdf5_version
 
-__version__ = "3.7.1.dev0"
+__version__ = "3.8.0"
 """The PyTables version number."""
 
 hdf5_version = _get_hdf5_version()

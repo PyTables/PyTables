@@ -348,7 +348,7 @@ class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         row = tbl.row
         for i in range(nrows):
-            row['i8col'] = i
+            row['i8col'] = np.array(i).astype('i1')
             row['t32col'] = i
             j = i * 2
             row['t64col'] = (j + 0.012, j+1+0.012)

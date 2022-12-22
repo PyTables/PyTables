@@ -548,24 +548,24 @@ class TableReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Modify row 1
         # From PyTables 2.0 on, assignments to records can be done
         # only as tuples (see http://projects.scipy.org/scipy/numpy/ticket/315)
-        # table[coords[0]] = ["aasa","x"]+[232]*12
+        # table[coords[0]] = ["aasa","x"]+[123]*12
 
         n = len(Record.columns) - 2
 
-        table[coords[0]] = tuple(["aasa", "x"]+[232]*n)     # XXX
+        table[coords[0]] = tuple(["aasa", "x"]+[123]*n)     # XXX
         # record = list(table[coords[0]])
         record = table.read(coords[0], coords[0] + 1)
         if common.verbose:
             print("Original row:\n"
-                  "['aasa', 'x', True, -24, 232, 232, 232, 232, 232L, "
-                  "232, 232.0, 232.0, (232 + 0j), (232+0j), 232.0, "
-                  "(232+0j)]\n")
+                  "['aasa', 'x', True, 123, 123, 123, 123, 123, 123L, "
+                  "123, 123.0, 123.0, (123 + 0j), (123+0j), 123.0, "
+                  "(123+0j)]\n")
             print("Read row:\n", record)
         self.assertEqual(record['var1'], b'aasa')
         self.assertEqual(record['var2'], b'x')
         self.assertEqual(record['var3'], True)
-        self.assertEqual(record['var4'], -24)
-        self.assertEqual(record['var7'], 232)
+        self.assertEqual(record['var4'], 123)
+        self.assertEqual(record['var7'], 123)
 
 
 # The declaration of the nested table:
