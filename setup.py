@@ -113,7 +113,7 @@ def get_blosc2_directories():
     try:
         import blosc2
     except ModuleNotFoundError:
-        raise EnvironmentError("Cannot import the python-blosc2 package")
+        raise EnvironmentError("Cannot import the blosc2 requirement")
     version = blosc2.__version__
     basepath = Path(os.path.dirname(blosc2.__file__))
     recinfo = basepath.parent / f'blosc2-{version}.dist-info' / 'RECORD'
@@ -828,27 +828,30 @@ if __name__ == "__main__":
                     copy_libs += ['libblosc2.so']
                     dll_dir = '/tmp/hdf5/lib'
                     # Copy dlls when producing the wheels in CI
-                    shutil.copy(libdir / 'libblosc2.so', 'tables')
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
                         shared_libs = glob.glob(str(libdir) + '/libblosc2.so*')
                         for lib in shared_libs:
                             shutil.copy(lib, dll_dir)
+                    else:
+                        shutil.copy(libdir / 'libblosc2.so', 'tables')
                 elif platform_system == "Darwin":
                     copy_libs += ['libblosc2.dylib']
                     dll_dir = '/tmp/hdf5/lib'
                     # Copy dlls when producing the wheels in CI
-                    shutil.copy(libdir / 'libblosc2.dylib', 'tables')
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
                         shared_libs = glob.glob(str(libdir) + '/libblosc2*.dylib')
                         for lib in shared_libs:
                             shutil.copy(lib, dll_dir)
+                    else:
+                        shutil.copy(libdir / 'libblosc2.dylib', 'tables')
                 else:
                     copy_libs += ['libblosc2.dll']
                     dll_dir = 'C:\\Miniconda\\envs\\build\\Library\\bin'
                     # Copy dlls when producing the wheels in CI
-                    shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
                         shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', dll_dir)
+                    else:
+                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
             else:
                 if "bdist_wheel" in sys.argv and os.name == "nt":
                     exit_with_error(
@@ -1134,6 +1137,6 @@ if __name__ == "__main__":
         package_dir={"tables": "tables"},
         #packages=["tables", "tables.scripts", "tables.tests", "tables.nodes", "tables.nodes.tests", "tables.misc"],
         #include_package_data=True,
-        #package_data={"tables": copy_libs},
+        package_data={"tables": copy_libs},
         #data_files=[("tables", copy_libs)],
     )
