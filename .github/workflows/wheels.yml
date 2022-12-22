@@ -49,7 +49,7 @@ jobs:
           path: dist/*
 
   build_wheels:
-    name: Build ${{ matrix.os }} ${{ matrix.cibw_python }} wheels for ${{ matrix.arch }}
+    name: Build ${{ matrix.os }} wheels for ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     env:
       HDF5_VERSION: 1.12.2
@@ -113,11 +113,10 @@ jobs:
           CFLAGS: -g0
           CIBW_BUILD_VERBOSITY_MACOS: 3
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_BUILD: ${{ matrix.cibw_python }}
           CIBW_BEFORE_BUILD: "python -m pip install -r requirements.txt"
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
-          CIBW_SKIP: "*-musllinux_* ${{ env.CIBW_SKIP}}"
+          CIBW_SKIP: "*-musllinux_*"
           CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
           CIBW_BEFORE_ALL_LINUX: >
             cp -r `pwd`/hdf5_build /tmp/hdf5 &&
