@@ -583,7 +583,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                              atom=tb.BoolAtom(),
                                              title="Ragged array of Booleans")
         vlarray.append([1, 0, 3])
-        vlarray.append([-1, 0])
+        vlarray.append([1, 0])
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -616,11 +616,11 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                              atom=tb.BoolAtom(),
                                              title="Ragged array of Booleans")
         vlarray.append([1, 0, 3])
-        vlarray.append([-1, 0])
+        vlarray.append([1, 0])
 
         # Modify the rows
         vlarray[0] = (0, 1, 3)
-        vlarray[1] = (0, -1)
+        vlarray[1] = (0, 1)
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -663,7 +663,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
-            vlarray.append([-1, 0])
+            vlarray.append([1, 0])
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -682,7 +682,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(
                 common.allequal(row[0], np.array([1, 2, 3], dtype=atype)))
             self.assertTrue(
-                common.allequal(row[1], np.array([-1, 0], dtype=atype)))
+                common.allequal(row[1], np.array([1, 0], dtype=atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -710,7 +710,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray.append(a0)
-            a1 = np.array([-1, 0], dtype=atype)
+            a1 = np.array([1, 0], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray.append(a1)
@@ -732,7 +732,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(common.allequal(
                 row[0], np.array([1, 2, 3], dtype=ttypes[atype])))
             self.assertTrue(common.allequal(
-                row[1], np.array([-1, 0], dtype=ttypes[atype])))
+                row[1], np.array([1, 0], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -757,11 +757,11 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
-            vlarray.append([-1, 0])
+            vlarray.append([1, 0])
 
             # Modify rows
             vlarray[0] = (3, 2, 1)
-            vlarray[1] = (0, -1)
+            vlarray[1] = (0, 1)
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -780,7 +780,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(
                 common.allequal(row[0], np.array([3, 2, 1], dtype=atype)))
             self.assertTrue(
-                common.allequal(row[1], np.array([0, -1], dtype=atype)))
+                common.allequal(row[1], np.array([0, 1], dtype=atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -806,7 +806,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 '/', atype, atom=tb.Atom.from_sctype(ttypes[atype]))
             a0 = np.array([1, 2, 3], dtype=atype)
             vlarray.append(a0)
-            a1 = np.array([-1, 0], dtype=atype)
+            a1 = np.array([1, 0], dtype=atype)
             vlarray.append(a1)
 
             # Modify rows
@@ -814,7 +814,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray[0] = a0
-            a1 = np.array([0, -1], dtype=atype)
+            a1 = np.array([0, 1], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray[1] = a1
@@ -836,7 +836,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(common.allequal(
                 row[0], np.array([3, 2, 1], dtype=ttypes[atype])))
             self.assertTrue(common.allequal(
-                row[1], np.array([0, -1], dtype=ttypes[atype])))
+                row[1], np.array([0, 1], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -864,7 +864,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 byteorder=byteorder)
             a0 = np.array([1, 2, 3], dtype=atype)
             vlarray.append(a0)
-            a1 = np.array([-1, 0], dtype=atype)
+            a1 = np.array([1, 0], dtype=atype)
             vlarray.append(a1)
 
             # Modify rows
@@ -872,7 +872,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray[0] = a0
-            a1 = np.array([0, -1], dtype=atype)
+            a1 = np.array([0, 1], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray[1] = a1
@@ -899,7 +899,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(common.allequal(
                 row[0], np.array([3, 2, 1], dtype=ttypes[atype])))
             self.assertTrue(common.allequal(
-                row[1], np.array([0, -1], dtype=ttypes[atype])))
+                row[1], np.array([0, 1], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -923,7 +923,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([1.3, 2.2, 3.3])
-            vlarray.append([-1.3e34, 1.e-32])
+            vlarray.append([5.96, .597])
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -942,7 +942,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(common.allequal(
                 row[0], np.array([1.3, 2.2, 3.3], atype)))
             self.assertTrue(common.allequal(
-                row[1], np.array([-1.3e34, 1.e-32], atype)))
+                row[1], np.array([5.96, .597], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -971,7 +971,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray.append(a0)
-            a1 = np.array([-1.3e34, 1.e-32], dtype=atype)
+            a1 = np.array([5.96, .597], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray.append(a1)
@@ -993,7 +993,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(common.allequal(
                 row[0], np.array([1.3, 2.2, 3.3], dtype=ttypes[atype])))
             self.assertTrue(common.allequal(
-                row[1], np.array([-1.3e34, 1.e-32], dtype=ttypes[atype])))
+                row[1], np.array([5.96, .597], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1017,11 +1017,11 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([1.3, 2.2, 3.3])
-            vlarray.append([-1.3e34, 1.e-32])
+            vlarray.append([5.96, .597])
 
             # Modifiy some rows
             vlarray[0] = (4.3, 2.2, 4.3)
-            vlarray[1] = (-1.1e34, 1.3e-32)
+            vlarray[1] = (1.123, 1.1e-3)
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -1040,7 +1040,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(common.allequal(
                 row[0], np.array([4.3, 2.2, 4.3], atype)))
             self.assertTrue(
-                common.allequal(row[1], np.array([-1.1e34, 1.3e-32], atype)))
+                common.allequal(row[1], np.array([1.123, 1.1e-3], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1067,7 +1067,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 '/', atype, atom=tb.Atom.from_sctype(ttypes[atype]))
             a0 = np.array([1.3, 2.2, 3.3], dtype=atype)
             vlarray.append(a0)
-            a1 = np.array([-1, 0], dtype=atype)
+            a1 = np.array([1, 0], dtype=atype)
             vlarray.append(a1)
 
             # Modify rows
@@ -1075,7 +1075,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray[0] = a0
-            a1 = np.array([-1.1e34, 1.3e-32], dtype=atype)
+            a1 = np.array([1.123, 1.1e-3], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray[1] = a1
@@ -1097,7 +1097,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(common.allequal(
                 row[0], np.array([4.3, 2.2, 4.3], dtype=ttypes[atype])))
             self.assertTrue(common.allequal(
-                row[1], np.array([-1.1e34, 1.3e-32], dtype=ttypes[atype])))
+                row[1], np.array([1.123, 1.1e-3], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1126,7 +1126,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 byteorder=byteorder)
             a0 = np.array([1.3, 2.2, 3.3], dtype=atype)
             vlarray.append(a0)
-            a1 = np.array([-1, 0], dtype=atype)
+            a1 = np.array([1, 0], dtype=atype)
             vlarray.append(a1)
 
             # Modify rows
@@ -1134,7 +1134,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray[0] = a0
-            a1 = np.array([-1.1e34, 1.3e-32], dtype=atype)
+            a1 = np.array([1.123, 1.1e-3], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray[1] = a1
@@ -1159,7 +1159,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(common.allequal(
                 row[0], np.array([4.3, 2.2, 4.3], dtype=ttypes[atype])))
             self.assertTrue(common.allequal(
-                row[1], np.array([-1.1e34, 1.3e-32], dtype=ttypes[atype])))
+                row[1], np.array([1.123, 1.1e-3], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1184,7 +1184,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([(1.3 + 0j), (0+2.2j), (3.3+3.3j)])
-            vlarray.append([(0-1.3e34j), (1.e-32 + 0j)])
+            vlarray.append([(0-5.96j), (.597 + 0j)])
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -1203,7 +1203,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(common.allequal(
                 row[0], np.array([(1.3 + 0j), (0+2.2j), (3.3+3.3j)], atype)))
             self.assertTrue(common.allequal(
-                row[1], np.array([(0-1.3e34j), (1.e-32 + 0j)], atype)))
+                row[1], np.array([(0-5.96j), (.597 + 0j)], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1229,11 +1229,11 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             vlarray = self.h5file.create_vlarray(
                 '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([(1.3 + 0j), (0+2.2j), (3.3+3.3j)])
-            vlarray.append([(0-1.3e34j), (1.e-32 + 0j)])
+            vlarray.append([(0-5.96j), (.597 + 0j)])
 
             # Modify the rows
             vlarray[0] = ((1.4 + 0j), (0+4.2j), (3.3+4.3j))
-            vlarray[1] = ((4-1.3e34j), (1.e-32 + 4j))
+            vlarray[1] = ((4-5.96j), (.597 + 4j))
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -1252,7 +1252,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertTrue(common.allequal(
                 row[0], np.array([(1.4 + 0j), (0+4.2j), (3.3+4.3j)], atype)))
             self.assertTrue(common.allequal(
-                row[1], np.array([(4-1.3e34j), (1.e-32 + 4j)], atype)))
+                row[1], np.array([(4-5.96j), (.597 + 4j)], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1741,7 +1741,7 @@ class MDTypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                              tb.BoolAtom(shape=(3,)),
                                              "Ragged array of Booleans")
         vlarray.append([(1, 0, 3), (1, 1, 1), (0, 0, 0)])
-        vlarray.append([(-1, 0, 0)])
+        vlarray.append([(1, 0, 0)])
 
         # Read all the rows:
         row = vlarray.read()
@@ -1773,7 +1773,7 @@ class MDTypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         a = np.array(
             [(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], dtype='bool')
         vlarray.append(a[1:])  # Create an offset
-        a = np.array([(1, 1, 1), (-1, 0, 0)], dtype='bool')
+        a = np.array([(1, 1, 1), (1, 0, 0)], dtype='bool')
         vlarray.append(a[1:])  # Create an offset
 
         # Read all the rows:
@@ -1806,7 +1806,7 @@ class MDTypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         a = np.array(
             [(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], dtype='bool')
         vlarray.append(a[1::2])  # Create an strided array
-        a = np.array([(1, 1, 1), (-1, 0, 0), (0, 0, 0)], dtype='bool')
+        a = np.array([(1, 1, 1), (1, 0, 0), (0, 0, 0)], dtype='bool')
         vlarray.append(a[::2])  # Create an strided array
 
         # Read all the rows:
@@ -2360,7 +2360,7 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
             vlarray.flavor = self.flavor
             vlarray.append([1.3, 2.2, 3.3])
             vlarray.append(())
-            vlarray.append([-1.3e34, 1.e-32])
+            vlarray.append([5.96, .597])
 
             # Read all the rows:
             row = vlarray.read()
@@ -2377,11 +2377,11 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if self.flavor == "python":
                 arr1 = list(np.array([1.3, 2.2, 3.3], atype))
                 arr2 = list(np.array([], atype))
-                arr3 = list(np.array([-1.3e34, 1.e-32], atype))
+                arr3 = list(np.array([5.96, .597], atype))
             elif self.flavor == "numpy":
                 arr1 = np.array([1.3, 2.2, 3.3], dtype=atype)
                 arr2 = np.array([], dtype=atype)
-                arr3 = np.array([-1.3e34, 1.e-32], dtype=atype)
+                arr3 = np.array([5.96, .597], dtype=atype)
 
             if self.flavor == "numpy":
                 self.assertTrue(common.allequal(row[0], arr1, self.flavor))
