@@ -1,11 +1,17 @@
 =======================================
- Release notes for PyTables 3.8 series
+ Release notes for PyTables 3.9 series
 =======================================
 
 :Author: PyTables Developers
 :Contact: pytables-dev@googlegroups.com
 
 .. py:currentmodule:: tables
+
+
+Changes from 3.8.0 to 3.9.0
+===========================
+
+XXX version-specific blurb XXX
 
 
 Changes from 3.7.0 to 3.8.0
