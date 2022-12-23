@@ -182,10 +182,11 @@ jobs:
         os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
         python-version: ['3.8', '3.9', '3.10', '3.11']
         arch: ['x64']
-        include:
-          - arch: aarch64
-            cibw_python: "cp*"
-            os: ubuntu-latest
+        #include:
+          # For aarch64 we should need QEMU or similar
+          # - arch: aarch64
+          #   cibw_python: "cp*"
+          #   os: ubuntu-latest
           # Still having issues with wheels for Mac arm64
           # - arch: arm64
           #   cibw_python: "cp*"

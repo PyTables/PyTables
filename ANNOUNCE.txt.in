@@ -8,7 +8,16 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-#XXX version-specific blurb XXX#
+Added support for the Blosc2 compression library, as well as optimized paths
+for Blosc2 reading and writing in tables. Such optimized path bypasses the
+HDF5 filter pipeline (using the HDF5 direct chunking machinery) for a better
+performance.  See how this works more in-depth and some benchmarks at:
+https://www.blosc.org/posts/blosc2-pytables-perf/
+
+Last, but not least, Python 3.11 is supported, and binary wheels have been
+generated for the main architectures, with the exception of Mac OSX arm64,
+which we has resisted our efforts so far; however, building from sources
+should work well in this case.
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html

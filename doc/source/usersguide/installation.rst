@@ -71,7 +71,7 @@ proceeding.
 .. _Numexpr: http://code.google.com/p/numexpr
 .. _Cython: http://www.cython.org
 .. _c-blosc: https://github.com/Blosc/c-blosc
-.. _python-blosc2_: https://github.com/Blosc/python-blosc2
+.. _python-blosc2: https://github.com/Blosc/python-blosc2
 
 Compile and install these packages (but see :ref:`prerequisitesBinInst` for
 instructions on how to install pre-compiled binaries if you are not willing

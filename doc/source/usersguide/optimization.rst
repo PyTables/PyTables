@@ -356,9 +356,11 @@ Zstd, and this combination is providing a compression ratio of 9x; this is
 actually larger than the one achieved by the Zlib compressor embedded in HDF5,
 which is 7.6x --BTW, the compression ratio of Blosc2 using the default compressor
 is 7.4x, not that far from standalone Zlib.
-And quite amazingly, the Blosc2 + Zstd combination still makes inkernel queries
+
+In this case, the Blosc2 + Zstd combination still makes inkernel queries
 faster than with no using compression; so with Blosc2 you can have the best of the
-two worlds: amazing speed while keeping good compression ratios.
+two worlds: top-class speed while keeping good compression ratios (see
+:ref:`figure <CompressionRatio-Zlib-Blosc-Blosc2>`).
 
 .. _CompressionRatio-Zlib-Blosc-Blosc2:
 
