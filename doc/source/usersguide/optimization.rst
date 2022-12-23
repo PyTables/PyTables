@@ -336,7 +336,7 @@ in-kernel queries using the standard Zlib, Blosc and Blosc2 compressors:
     :align: center
 
     **Times for 6 complex queries in a large table with 100 million rows.
-      Data comes from an actual set of meteorological measurements.**
+    Data comes from an actual set of meteorological measurements.**
 
 As you can see, Blosc, but specially Blosc2, can get much better performance
 than the Zlib compressor when doing complex queries.  Blosc can be up to
@@ -368,13 +368,29 @@ two worlds: top-class speed while keeping good compression ratios (see
     :align: center
 
     **Compression ratio for different codecs and the 100 million rows table.
-      Data comes from an actual set of meteorological measurements.**
+    Data comes from an actual set of meteorological measurements.**
 
-Finally, and despite that the dataset is 3.1 GB in size, the memory
+Furthermore, and despite that the dataset is 3.1 GB in size, the memory
 consumption after the 6 queries is still less than 250 MB.
 That means that you can do queries of large, on-disk datasets with machines
 with much less RAM than the dataset and still get all the speed that the disk
-can provide (and then more; remember that Blosc2 can be faster than memory).
+can provide.
+
+But that is not all, provided that Blosc2 can be faster than memory, it
+can accelerate memory access too.  For example, in
+:ref:`figure <inkernelPerformance-vs-pandas>` we can see that, when the
+HDF5 file is in the operating system cache, inkernel queries using Blosc2
+can be very close in performance even when compared with pandas.  That
+is because the boost provided by Blosc2 compression almost compensate the
+overhead of HDF5 and the filesystem layers.
+
+.. _inkernelPerformance-vs-pandas:
+
+.. figure:: images/inkernel-vs-pandas.png
+    :align: center
+
+    **Performance for 6 complex queries in a large table with 100 million rows.
+    Both PyTables and pandas use the numexpr engine behind the scenes.**
 
 You can see more info about Blosc2 and how it collaborates with HDF5 for
 achieving such a high I/O speed in our blog at:
