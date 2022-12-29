@@ -273,7 +273,7 @@ if __name__ == "__main__":
     default_runtime_dirs = None
 
     blosc2_inc = blosc2_lib = None
-    if os.environ.get("PYTABLES_NO_BLOASC2_WHEEL", None) is None:
+    if os.environ.get("PYTABLES_NO_BLOSC2_WHEEL", None) is None:
         try:
             blosc2_inc, blosc2_lib = get_blosc2_directories()
             lib_dirs.append(blosc2_lib)
