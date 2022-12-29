@@ -262,17 +262,24 @@ if __name__ == "__main__":
 
     debug = "--debug" in sys.argv
 
-    blosc2_inc, blosc2_lib = get_blosc2_directories()
-
     # Global variables
-    lib_dirs = [blosc2_lib]
-    inc_dirs = [Path("hdf5-blosc/src"), Path("hdf5-blosc2/src"), blosc2_inc]
+    lib_dirs = []
+    inc_dirs = [Path("hdf5-blosc/src"), Path("hdf5-blosc2/src")]
     optional_libs = []
     copy_libs = []
 
     default_header_dirs = None
     default_library_dirs = None
     default_runtime_dirs = None
+
+    blosc2_inc = blosc2_lib = None
+    if os.environ.get("PYTABLES_NO_BLOASC2_WHEEL", None) is None:
+        try:
+            blosc2_inc, blosc2_lib = get_blosc2_directories()
+            lib_dirs.append(blosc2_lib)
+            inc_dirs.append(blosc2_inc)
+        except EnvironmentError:
+            pass
 
     if os.name == "posix":
         prefixes = ("/usr/local", "/sw", "/opt", "/opt/local", "/usr", "/")
@@ -691,7 +698,7 @@ if __name__ == "__main__":
     # Try to locate the compulsory and optional libraries.
     lzo2_enabled = False
     compiler = new_compiler()
-    if not BLOSC2_DIR:
+    if not BLOSC2_DIR and blosc2_inc is not None:
         # Inject the blosc2 directory as detected
         BLOSC2_DIR = os.path.dirname(blosc2_inc)
     for (package, location) in [
