@@ -1,11 +1,131 @@
 [build-system]
 requires = [
-    "setuptools >=42.0",
+    "setuptools >=61.0.0",
     "wheel",
     "oldest-supported-numpy",
     "packaging",
     "py-cpuinfo",
     "Cython >=0.29.21",
-    "blosc2 ~=2.0.0"
+    "blosc2 <2.0.0",
 ]
 build-backend = "setuptools.build_meta"
+
+
+# [build-system]
+# build-backend = "mesonpy"
+# requires = [
+#     "meson-python",
+#     "wheel",
+#     "oldest-supported-numpy",
+#     "packaging",
+#     "py-cpuinfo",
+#     "Cython >=0.29.21",
+#     "blosc2 <2.0.0",
+# ]
+
+
+[project]
+name = "tables"
+dynamic = [
+    "version",
+    "dependencies",
+]
+description = "Hierarchical datasets for Python"
+requires-python = ">=3.8"
+license = { text = "BSD 3-Clause License" }
+keywords = [ "hdf5" ]
+authors = [
+    { name = "Francesc Alted" },
+    { name = "Ivan Vilata" },
+    { name = "Antonio Valentino" },
+    { name = "Anthony Scopatz" },
+    { name = "et al." },
+    { email = "pytables@pytables.org" },
+]
+maintainers = [
+    { name = "PyTables maintainers", email = "pytables@pytables.org" },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Database",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+# dependencies = [
+#     "numpy >= 1.19.0",
+#     "numexpr >= 2.6.2",
+#     "packaging",
+#     "py-cpuinfo",
+# ]
+
+
+[project.optional-dependencies]
+doc = [
+    "sphinx >= 1.1",
+    "sphinx_rtd_theme",
+    "numpydoc",
+    "ipython",
+]
+
+
+[project.readme]
+text = """
+PyTables is a package for managing hierarchical datasets and
+designed to efficiently cope with extremely large amounts of
+data. PyTables is built on top of the HDF5 library and the
+NumPy package and features an object-oriented interface
+that, combined with C-code generated from Cython sources,
+makes of it a fast, yet extremely easy to use tool for
+interactively save and retrieve large amounts of data.
+"""
+content-type = "text/x-rst"
+
+
+[project.urls]
+homepage = "http://www.pytables.org"
+documentation = "http://www.pytables.org"
+repository = "https://github.com/PyTables/PyTables"
+changelog = "http://www.pytables.org/release_notes.html"
+tracker = "https://github.com/PyTables/PyTables/issues"
+
+
+[project.scripts]
+ptdump = "tables.scripts.ptdump:main"
+ptrepack = "tables.scripts.ptrepack:main"
+pt2to3 = "tables.scripts.pt2to3:main"
+pttree = "tables.scripts.pttree:main"
+
+
+[tool.setuptools]
+platforms = [ "any" ]
+zip-safe = false
+# include-package-data = true
+license-files = [ "LICENSE.txt" ]
+
+
+[tool.setuptools.dynamic]
+version = { attr = "tables._version.__version__" }
+dependencies = { file = "requirements.txt" }
+
+
+[tool.setuptools.packages.find]
+exclude = [ "bench" ]
+namespaces = false
+
+
+[tool.setuptools.package-data]
+tables = [ "*.dll", "*.so*", "*.dylib" ]
+"tables.tests" = [ "*.h5", "*.mat" ]
+"tables.nodes.tests" = [ "*.dat", "*.xbm", "*.h5" ]

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 """Setup script for the tables package"""
-import glob
+
 import os
 import sys
+import glob
 import ctypes
 import shutil
 import platform
@@ -11,7 +12,6 @@ import tempfile
 import textwrap
 import subprocess
 from pathlib import Path
-import re
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, Extension
@@ -43,18 +43,6 @@ def exit_with_error(head, body=""):
 
 def print_warning(head, body=""):
     _print_admonition("warning", head, body)
-
-
-def get_version(filename):
-    import re
-
-    with open(filename) as fd:
-        data = fd.read()
-
-    mobj = re.search(
-        r'''^__version__\s*=\s*(?P<quote>['"])(?P<version>.*)(?P=quote)''',
-        data, re.MULTILINE)
-    return mobj.group('version')
 
 
 # Get the HDF5 version provided the 'H5public.h' header
@@ -129,7 +117,9 @@ def get_blosc2_directories():
     include_path = library_path.parent / 'include'
     if not os.path.isfile(include_path / 'blosc2.h'):
         install_path = os.path.abspath(library_path.parent)
-        raise NotADirectoryError("Install directory for blosc2 not found in %s" % install_path)
+        raise NotADirectoryError(
+            f"Install directory for blosc2 not found in {install_path}"
+        )
 
     return include_path, library_path
 
@@ -221,9 +211,6 @@ class BuildExtensions(build_ext):
 
 if __name__ == "__main__":
     ROOT = Path(__file__).resolve().parent
-    VERSION = get_version(ROOT.joinpath("tables/__init__.py"))
-    # Fetch the requisites
-    requirements = (ROOT / "requirements.txt").read_text().splitlines()
 
     # `cpuinfo.py` uses multiprocessing to check CPUID flags. On Windows, the
     # entire setup script needs to be protected as a result
@@ -279,7 +266,7 @@ if __name__ == "__main__":
             lib_dirs.append(blosc2_lib)
             inc_dirs.append(blosc2_inc)
         except EnvironmentError:
-            pass
+            print("Unable to find blosc2 wheel.")
 
     if os.name == "posix":
         prefixes = ("/usr/local", "/sw", "/opt", "/opt/local", "/usr", "/")
@@ -834,25 +821,27 @@ if __name__ == "__main__":
                       " because it was not found in standard locations")
                 platform_system = platform.system()
                 if platform_system == "Linux":
+                    shutil.copy(libdir / 'libblosc2.so', ROOT / "tables")
                     copy_libs += ['libblosc2.so']
+
                     dll_dir = '/tmp/hdf5/lib'
                     # Copy dlls when producing the wheels in CI
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
                         shared_libs = glob.glob(str(libdir) + '/libblosc2.so*')
                         for lib in shared_libs:
                             shutil.copy(lib, dll_dir)
-                    else:
-                        shutil.copy(libdir / 'libblosc2.so', 'tables')
+
                 elif platform_system == "Darwin":
+                    shutil.copy(libdir / 'libblosc2.dylib', ROOT / 'tables')
                     copy_libs += ['libblosc2.dylib']
+
                     dll_dir = '/tmp/hdf5/lib'
                     # Copy dlls when producing the wheels in CI
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
                         shared_libs = glob.glob(str(libdir) + '/libblosc2*.dylib')
                         for lib in shared_libs:
                             shutil.copy(lib, dll_dir)
-                    else:
-                        shutil.copy(libdir / 'libblosc2.dylib', 'tables')
+                        
                 else:
                     copy_libs += ['libblosc2.dll']
                     dll_dir = 'C:\\Miniconda\\envs\\build\\Library\\bin'
@@ -1138,14 +1127,6 @@ if __name__ == "__main__":
     ]
 
     setup(
-        name='tables',
-        version=VERSION,
-        install_requires=requirements,
         ext_modules=extensions,
         cmdclass={"build_ext": BuildExtensions},
-        package_dir={"tables": "tables"},
-        #packages=["tables", "tables.scripts", "tables.tests", "tables.nodes", "tables.nodes.tests", "tables.misc"],
-        #include_package_data=True,
-        package_data={"tables": copy_libs},
-        #data_files=[("tables", copy_libs)],
     )

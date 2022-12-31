@@ -3,7 +3,17 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-from pathlib import Path
+
+def get_version(filename):
+    import re
+
+    with open(filename) as fd:
+        data = fd.read()
+
+    mobj = re.search(
+        r'''^__version__\s*=\s*(?P<quote>['"])(?P<version>.*)(?P=quote)''',
+        data, re.MULTILINE)
+    return mobj.group('version')
 
 
 # -- Project information -----------------------------------------------------
@@ -14,16 +24,7 @@ copyright = '2011–2022, PyTables maintainers'
 author = 'PyTables maintainers'
 
 # The short X.Y version
-def _load_source(module_name, filepath):
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(module_name, filepath)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-m = _load_source('setup', '../../setup.py')
-version = m.get_version('../../tables/__init__.py')
+version = get_version('../../tables/_version.py')
 
 # The full version, including alpha/beta/rc tags
 release = version

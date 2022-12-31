@@ -124,9 +124,15 @@ jobs:
             DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-listdeps {wheel} &&
             DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
 
+      - name: Copy requirements.txt
+        run: |
+          cp requirements.txt ./wheelhouse/
+
       - uses: actions/upload-artifact@v3
         with:
-          path: ./wheelhouse/*.whl
+          path: |
+            ./wheelhouse/*.whl
+            ./wheelhouse/*.txt
 
   build_wheels_windows:
     name: Build wheels for ${{matrix.arch}} on ${{ matrix.os }}
@@ -204,7 +210,7 @@ jobs:
 
       - name: Install tables on ${{ matrix.python-version }}
         run: |
-          python -m pip install cython>=0.29.21 numpy>=1.19.0 numexpr>=2.6.2 packaging py-cpuinfo>=9.0.0 blosc2~=2.0.0
+          python -m pip install -r wheelhouse/artifact/requirements.txt
           python -m pip install --no-index --find-links wheelhouse/artifact/ tables
 
       - name: Run tests on ${{ matrix.python-version }}

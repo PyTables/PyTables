@@ -2,7 +2,7 @@
 # sources exported from a repository.  For building and installing PyTables,
 # please use ``setup.py`` as described in the ``README.rst`` file.
 
-VERSION = $(shell grep "__version__ =" tables/__init__.py | cut -f 3 -d ' ' | sed s/\"//g)
+VERSION = $(shell grep "__version__ =" tables/_version.py | cut -f 3 -d ' ' | sed s/\"//g)
 SRCDIRS = doc
 GENERATED = ANNOUNCE.txt
 PYTHON = python3
@@ -31,8 +31,7 @@ sdist: $(GENERATED)
 	# $(RM) -r MANIFEST tables/__pycache__ tables/*/__pycache__
 	# $(RM) tables/_comp_*.c tables/*extension.c
 	# $(RM) tables/*.so
-	# $(PYTHON) -m build --sdist # --no-isolation
-	$(PYTHON) setup.py sdist
+	$(PYTHON) -m build --sdist
 
 clean:
 	$(RM) -r MANIFEST build dist tmp tables/__pycache__

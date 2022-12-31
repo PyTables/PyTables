@@ -30,14 +30,14 @@ jobs:
     - name: Install dependencies
       run: |
         conda install setuptools pip wheel build packaging numpy cython bzip2 hdf5 lzo 'typing_extensions<4.2'
-        pip install -r requirements.txt
+        python -m pip install -r requirements.txt
         # conda install sphinx sphinx_rtd_theme numpydoc ipython
     - name: Source distribution
       run: |
         python -m build --sdist
     - name: Installation
       run: |
-        pip install -v dist/*.tar.gz
+        python -m pip install -v dist/*.tar.gz
     - name: 'Run test'
       run: |
         cd .. && python -m tables.tests.test_all -v
@@ -73,7 +73,7 @@ jobs:
         python -m build --sdist
     - name: Installation
       run: |
-        pip install -v dist/*.tar.gz --no-deps
+        python -m pip install -v dist/*.tar.gz --no-deps
     - name: 'Run test'
       run: |
         cd .. && python -m tables.tests.test_all -v
