@@ -831,7 +831,7 @@ cdef class Row:
     self.modified_fields = set()
 
   def _iter(self, start=0, stop=0, step=1, coords=None, chunkmap=None):
-    """Return an iterator for traversiong the data in table."""
+    """Return an iterator for traversing the data in table."""
     self._init_loop(start, stop, step, coords, chunkmap)
     return iter(self)
 
@@ -880,6 +880,7 @@ cdef class Row:
     self.step = step
     self.coords = coords
     self.startb = 0
+    self.absstep = abs(step)
     if step > 0:
         self._row = -1  # a sentinel
         self.nrowsread = start
@@ -897,14 +898,12 @@ cdef class Row:
       self.nrowsread = start
       self.nextelement = start
       self.stop = min(stop, len(coords))
-      self.absstep = abs(step)
       return
     elif coords is not None and 0 > step:
       #self.nrowsread = 0
       #self.nextelement = start
       #self.stop = min(stop, len(coords))
       #self.stop = max(stop, start - len(coords))
-      self.absstep = abs(step)
       return
 
     if table._where_condition:
@@ -928,8 +927,13 @@ cdef class Row:
       self.chunkmap_data = PyArray_BYTES(self.chunkmap)
       table._use_index = False
       self.lenbuf = self.nrowsinbuf
+      if self.step < 0:
+        # neg step corrections, switch the start and stop params
+        self.start, self.stop = self.stop + 1, self.start + 1
+        self.nrowsread = self.start
+        self._row = -1
       # Check if we have limitations on start, stop, step
-      self.sss_on = (self.start > 0 or self.stop < self.nrows or self.step > 1)
+      self.sss_on = (self.start > 0 or self.stop < self.nrows or self.absstep > 1)
 
     self.seqcache_key = table._seqcache_key
     table._seqcache_key = None
@@ -959,7 +963,7 @@ cdef class Row:
   cdef __next__indexed(self):
     """The version of next() for indexed columns and a chunkmap."""
 
-    cdef long recout, j, cs, vlen, rowsize
+    cdef long recout, j, cs, vlen, rowsize, nchunk, rcount
     cdef hsize_t nchunksread
     cdef object tmp_range
     cdef Table table
@@ -979,14 +983,21 @@ cdef class Row:
 
         table = self.table
         iobuf = self.iobuf
-        j = 0;  recout = 0;  cs = self.chunksize
+        j = 0;  recout = 0;  cs = self.chunksize; rcount = 0;
         nchunksread = self.nrowsread // cs
         tmp_range = numpy.arange(0, cs, dtype='int64')
         self.bufcoords = numpy.empty(self.nrowsinbuf, dtype='int64')
         # Fetch valid chunks until the I/O buffer is full
         while nchunksread < self.totalchunks:
-          if self.chunkmap_data[nchunksread]:
-            self.bufcoords[j*cs:(j+1)*cs] = tmp_range + self.nrowsread
+          if self.step < 0:
+            nchunk = self.totalchunks - nchunksread - 1
+          else:
+            nchunk = nchunksread
+          if self.chunkmap_data[nchunk]:
+            rcount = table._read_chunk(nchunk, iobuf, recout)
+            self.bufcoords[recout:recout+rcount] = (tmp_range + nchunk * cs)[:rcount]
+            if self.step < 0:
+                self.bufcoords[recout:recout+rcount] = self.bufcoords[recout:recout+rcount][::-1]
             # Not optimized read
             #  recout = recout + table._read_records(
             #    nchunksread*cs, cs, iobuf[j*cs:])
@@ -995,7 +1006,9 @@ cdef class Row:
             # more or less the same speed than the integrated HDF5 chunk
             # cache, but using the PyTables one has the advantage that the
             # user can easily change this parameter.
-            recout = recout + table._read_chunk(nchunksread, iobuf, j*cs)
+            if self.step < 0:
+               iobuf[recout:recout+rcount] = iobuf[recout:recout+rcount][::-1]
+            recout = recout + rcount
             j = j + 1
           self.nrowsread = (nchunksread+1)*cs
           if self.nrowsread > self.stop:
@@ -1046,12 +1059,12 @@ cdef class Row:
         if (self._nrow < self.start or self._nrow >= self.stop):
           self.nextelement = self.nextelement + 1
           continue
-        if (self.step > 1 and
-            ((self._nrow - self.start) % self.step > 0)):
+        if (self.absstep > 1 and
+            ((self._nrow - self.start) % self.absstep > 0)):
           self.nextelement = self.nextelement + 1
           continue
       # Return this row
-      self.nextelement = self._nrow + 1
+      self.nextelement = self.nextelement + 1
       return self
     else:
       # All the elements have been read for this mode
@@ -1151,7 +1164,7 @@ cdef class Row:
           else:
             self.nextelement = self.nextelement + self.nrowsinbuf
             # Correction for step size > 1
-            if self.step > 1:
+            if self.absstep > 1:
               correct = (self.nextelement - self.start) % self.step
               self.nextelement = self.nextelement - correct
           continue
