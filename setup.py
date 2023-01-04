@@ -983,7 +983,7 @@ if __name__ == "__main__":
 
         # Set flags for SSE2 and AVX2 preventing false detection in case
         # of emulation
-        if platform.machine() != 'aarch64':
+        if platform.machine() not in ('aarch64', 'ARM64'):
             # SSE2
             if "sse2" in cpu_flags and "DISABLE_SSE2" not in os.environ:
                 print("SSE2 detected and enabled")
