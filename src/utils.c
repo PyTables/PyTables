@@ -1,7 +1,5 @@
 #include <stdarg.h>
 #include "utils.h"
-#include "H5Zlzo.h"                /* Import FILTER_LZO */
-#include "H5Zbzip2.h"              /* Import FILTER_BZIP2 */
 
 #define PyString_FromString PyUnicode_FromString
 
