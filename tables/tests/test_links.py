@@ -587,6 +587,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if Path(h5fname2).is_file():
                 Path(h5fname2).unlink()
 
+
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
