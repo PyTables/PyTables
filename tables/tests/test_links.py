@@ -574,6 +574,18 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if Path(h5fname2).is_file():
                 Path(h5fname2).unlink()
 
+    def test11_copy_entire_file_with_hardlink_option(self):
+        """Checking copying the entire file (that contains external links)
+        in a similar way ptrepack does (with hardlink kwargs activated) """
+
+        h5fname2 = tempfile.mktemp(".h5")
+        try:
+            with tb.open_file(h5fname2, "a") as h5file2:
+                self.h5file.root._f_copy_children(h5file2.root, recursive=True, use_hardlinks=True)
+                self.assertIn('/lgroup1', h5file2)
+        finally:
+            if Path(h5fname2).is_file():
+                Path(h5fname2).unlink()
 
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
