@@ -265,6 +265,10 @@ cdef class ExternalLink(Link):
     free(clinkval)
     return 0  # Object ID is zero'ed, as HDF5 does not assign one for links
 
+  def _get_obj_info(self):
+    # ExternalLink do not have ObjectId. Hardcode addr and rc to 0, 1
+    return 0, 1
+
 
 ## Local Variables:
 ## mode: python
