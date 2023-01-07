@@ -31,6 +31,7 @@ jobs:
       - name: Install APT packages
         if: contains(${{ matrix.os }}, 'ubuntu')
         run: |
+          sudo apt update
           sudo apt install libbz2-dev libhdf5-serial-dev liblzo2-dev
           sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
 
