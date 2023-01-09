@@ -1,7 +1,6 @@
 """Here is defined the AttributeSet class."""
 
 import re
-import sys
 import warnings
 import pickle
 import numpy as np
@@ -9,7 +8,7 @@ import numpy as np
 from . import hdf5extension
 from .utils import SizeType
 from .registry import class_name_dict
-from .exceptions import ClosedNodeError, PerformanceWarning
+from .exceptions import ClosedNodeError, FiltersWarning, PerformanceWarning
 from .path import check_attribute_name
 from .undoredo import attr_to_shadow
 from .filters import Filters
@@ -361,8 +360,7 @@ class AttributeSet(hdf5extension.AttributeSet):
             try:
                 retval = Filters._unpack(value)
             except ValueError:
-                sys.stderr.write('Failed parsing FILTERS key\n')
-                sys.stderr.flush()
+                warnings.warn(FiltersWarning('Failed parsing FILTERS key'))
                 retval = None
         elif name == 'TITLE' and not isinstance(value, str):
             retval = value.decode('utf-8')
