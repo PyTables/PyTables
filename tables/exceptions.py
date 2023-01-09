@@ -5,6 +5,27 @@ import warnings
 import traceback
 
 
+__all__ = [
+    "ClosedFileError",
+    "ClosedNodeError",
+    "DataTypeWarning",
+    "ExperimentalFeatureWarning",
+    "FileModeError",
+    "FiltersWarning",
+    "FlavorError",
+    "FlavorWarning",
+    "HDF5ExtError",
+    "NaturalNameWarning",
+    "NoSuchNodeError",
+    "NodeError",
+    "OldIndexWarning",
+    "PerformanceWarning",
+    "UnclosedFileWarning",
+    "UndoRedoError",
+    "UndoRedoWarning",
+]
+
+
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
@@ -362,5 +383,14 @@ class ExperimentalFeatureWarning(Warning):
     This warning is issued when using a functionality that is still
     experimental and that users have to use with care.
 
+    """
+    pass
+
+
+class UnclosedFileWarning(Warning):
+    """Warning raised when there are still open files at program exit
+
+    Pytables will close remaining open files at exit, but raise 
+    this warning.
     """
     pass
