@@ -19,8 +19,7 @@ Improvements:
   variables using scale_factor and add_offset netCDF variable
   attributes. --quantize quantize data to improve compression using
   least_significant_digit netCDF variable attribute (not active by
-  default).  See
-  http://www.esrl.noaa.gov/psd/data/gridded/conventions/cdc_netcdf_standard.shtml
+  default).  See https://www.ogc.org/standards/netcdf
   for further explanation of what this attribute means. Thanks to Jeff
   Whitaker for providing this.
 

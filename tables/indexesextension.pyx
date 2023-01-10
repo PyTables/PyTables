@@ -603,11 +603,12 @@ cdef class IndexArray(Array):
   def _read_index_slice(self, hsize_t irow, hsize_t start, hsize_t stop,
                       ndarray idx):
     cdef herr_t ret
+    cdef void *buf = PyArray_DATA(idx)
 
     # Do the physical read
     with nogil:
         ret = H5ARRAYOread_readSlice(self.dataset_id, self.type_id,
-                                     irow, start, stop, PyArray_DATA(idx))
+                                     irow, start, stop, buf)
 
     if ret < 0:
       raise HDF5ExtError("Problems reading the index indices.")
@@ -1497,9 +1498,10 @@ cdef class LastRowArray(Array):
   def _read_index_slice(self, hsize_t start, hsize_t stop, ndarray idx):
     """Read the reverse index part of an LR index."""
 
+    cdef void *buf = PyArray_DATA(idx)
     with nogil:
         ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
-                                  start, stop, PyArray_DATA(idx))
+                                  start, stop, buf)
 
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data in Last Row.")

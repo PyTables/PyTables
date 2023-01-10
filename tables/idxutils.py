@@ -90,7 +90,7 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
     return size
 
 
-def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
+def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4, node=None):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -103,6 +103,12 @@ def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
 
     chunksize = computechunksize(expectedrows)
     slicesize = computeslicesize(expectedrows, memlevel)
+
+    # Avoid excessive slicesize in Indexes, see https://github.com/PyTables/PyTables/issues/879
+    if node is not None:
+        maxsize = node._v_file.params['BUFFER_TIMES'] * node._v_file.params['IO_BUFFER_SIZE']
+        while (slicesize * node.dtype.itemsize) > maxsize:
+            slicesize = slicesize // 2
 
     # Correct the slicesize and the chunksize based on optlevel
     if indsize == 1:  # ultralight

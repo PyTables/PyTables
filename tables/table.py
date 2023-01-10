@@ -2865,20 +2865,21 @@ very small/large chunksize, you may want to increase/decrease it."""
     def flush(self):
         """Flush the table buffers."""
 
-        # Flush rows that remains to be appended
-        if 'row' in self.__dict__:
-            self.row._flush_buffered_rows()
-        if self.indexed and self.autoindex:
-            # Flush any unindexed row
-            rowsadded = self.flush_rows_to_index(_lastrow=True)
-            assert rowsadded <= 0 or self._indexedrows == self.nrows, \
-                ("internal error: the number of indexed rows (%d) "
-                 "and rows in the table (%d) is not equal; "
-                 "please report this to the authors."
-                 % (self._indexedrows, self.nrows))
-            if self._dirtyindexes:
-                # Finally, re-index any dirty column
-                self.reindex_dirty()
+        if self._v_file._iswritable():
+            # Flush rows that remains to be appended
+            if 'row' in self.__dict__:
+                self.row._flush_buffered_rows()
+            if self.indexed and self.autoindex:
+                # Flush any unindexed row
+                rowsadded = self.flush_rows_to_index(_lastrow=True)
+                assert rowsadded <= 0 or self._indexedrows == self.nrows, \
+                    ("internal error: the number of indexed rows (%d) "
+                     "and rows in the table (%d) is not equal; "
+                     "please report this to the authors."
+                     % (self._indexedrows, self.nrows))
+                if self._dirtyindexes:
+                    # Finally, re-index any dirty column
+                    self.reindex_dirty()
 
         super().flush()
 
@@ -3265,6 +3266,10 @@ class Column:
         The complete pathname of the associated column (the same as
         Column.name if the column is not inside a nested column).
 
+    .. attribute:: attrs
+
+        Column attributes (see :ref:`ColClassDescr`).
+
     Parameters
     ----------
     table
@@ -3338,6 +3343,7 @@ class Column:
         self.descr = descr
         """The Description (see :ref:`DescriptionClassDescr`) instance of the
         parent table or nested column."""
+        self._v_attrs = ColumnAttributeSet(self)
 
     def _g_update_table_location(self, table):
         """Updates the location information about the associated `table`."""
@@ -3681,8 +3687,8 @@ class Column:
         return self.descr._v_colobjects[self.name]._v_pos
 
     @lazyattr
-    def _v_attrs(self):
-        return ColumnAttributeSet(self)
+    def _v_col_attrs(self):
+        return self.descr._v_colobjects[self.name]._v_col_attrs
 
     @property
     def attrs(self):
@@ -3697,6 +3703,11 @@ class ColumnAttributeSet:
         self.__dict__['_v_fieldindex'] = column._v_pos
         self.__dict__['_v_column_reference'] = weakref.ref(column)
 
+        # Check if this column has _v_col_attrs set and translate them into
+        # the table attribute format
+        for col_attr_key, col_attr_val in column._v_col_attrs.items():
+            self.__setitem__(col_attr_key, col_attr_val)
+
     def issystemcolumnname(self, key):
         """Checks whether a key is a reserved attribute name, or should be passed through."""
         return key in ['_v_tableattrs', '_v_fieldindex', '_v_column_reference']
@@ -3707,14 +3718,14 @@ class ColumnAttributeSet:
         return 'FIELD_%i_ATTR_%s' % (field_index, string)
 
     def __getattr__(self, key):
-        """Retrieves a PyTables attribute for this column"""        
+        """Retrieves a PyTables attribute for this column"""
         if not self.issystemcolumnname(key):
             return getattr(self._v_tableattrs, self._prefix(key))
         else:
             return super().__getattr__(key)
 
     def __setattr__(self, key, val):
-        """Sets a PyTables attribute for this column"""        
+        """Sets a PyTables attribute for this column"""
         if not self.issystemcolumnname(key):
             setattr(self._v_tableattrs, self._prefix(key), val)
         else:
@@ -3737,14 +3748,14 @@ class ColumnAttributeSet:
     def __delattr__(self, key):
         """Deletes the attribute for this column"""
         if self.issystemcolumnname(key):
-            raise Exception('Deleting system attributes is prohibited')
+            raise TypeError('Deleting system attributes is prohibited')
         else:
             delattr(self._v_tableattrs, self._prefix(key))
 
     def __delitem__(self, key):
         """A dictionary-like interface for __delattr__"""
         if self.issystemcolumnname(key):
-            raise Exception('Deleting system attributes is prohibited')
+            raise TypeError('Deleting system attributes is prohibited')
         else:
             del self._v_tableattrs[self._prefix(key)]
 
@@ -3756,7 +3767,7 @@ class ColumnAttributeSet:
             return
 
         if self.issystemcolumnname(oldattrname):
-            raise Exception('Renaming system attributes is prohibited')
+            raise TypeError('Renaming system attributes is prohibited')
 
         # First, fetch the value of the oldattrname
         attrvalue = getattr(self, oldattrname)
@@ -3765,7 +3776,7 @@ class ColumnAttributeSet:
         setattr(self, newattrname, attrvalue)
 
         # Finally, remove the old attribute
-        delattr(self, oldattrname)        
+        delattr(self, oldattrname)
 
     def _f_copy(self, where):
         """Copy attributes to another column"""
@@ -3791,7 +3802,7 @@ class ColumnAttributeSet:
         """The string representation for this object."""
 
         pathname = self._v_tableattrs._v__nodepath
-        classname = self._v_column_reference().__class__.__name__ #self._v_tableattrs._v_node.__class__.__name__
+        classname = self._v_column_reference().__class__.__name__  # self._v_tableattrs._v_node.__class__.__name__
         attrnumber = sum(1 for _ in self.keys())
         columnname = self._v_column_reference().name
 

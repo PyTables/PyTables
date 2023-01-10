@@ -504,7 +504,7 @@ class Basic2DOneTestCase(BasicTestCase):
 class Basic2DTwoTestCase(BasicTestCase):
     # 2D case, with a multidimensional dtype
     title = "Rank-2 case 2"
-    tupleInt = np.array(np.arange(4), dtype=(np.int_, (4,)))
+    tupleInt = np.tile(np.arange(4, dtype=np.int64), [4, 1])
     tupleChar = np.array(["abc"]*3, dtype=("S3", (3,)))
     endiancheck = True
 
@@ -2442,7 +2442,7 @@ class BroadcastTest(common.TempFileMixin, common.PyTablesTestCase):
         array_shape = (2, 3)
         element_shape = (3,)
 
-        dtype = np.dtype((np.int, element_shape))
+        dtype = np.dtype((np.int64, element_shape))
         atom = tb.Atom.from_dtype(dtype)
         h5arr = self.h5file.create_array(self.h5file.root, 'array',
                                          atom=atom, shape=array_shape)

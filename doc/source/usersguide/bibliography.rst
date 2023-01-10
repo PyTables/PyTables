@@ -6,7 +6,7 @@ Bibliography
 :ref:`[HDFG1] <HDFG1>`
     The HDF Group. What is HDF5?. Concise description about HDF5 capabilities
     and its differences from earlier versions (HDF4).
-    `<http://www.hdfgroup.org/HDF5/whatishdf5.html>`_.
+    `<https://www.hdfgroup.org/solutions/hdf5>`_.
 
 .. _HDFG2:
 
@@ -60,7 +60,7 @@ Bibliography
 :ref:`[ZLIB] <ZLIB>`
     JeanLoup Gailly and Mark Adler. zlib. A Massively Spiffy Yet Delicately
     Unobtrusive Compression Library. A standard library for compression
-    purposes. `<http://www.gzip.org/zlib/>`_.
+    purposes. `<https://zlib.net>`_.
 
 .. _LZO:
 

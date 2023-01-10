@@ -689,11 +689,7 @@ if __name__ == "__main__":
             inc_dirs.append(Path(hdrdir))  # save header directory if needed
         if libdir not in default_library_dirs and libdir not in ("", True):
             # save library directory if needed
-            if os.name == "nt":
-                # Important to quote the libdir for Windows (Vista) systems
-                lib_dirs.append(Path(f'"{libdir}"'))
-            else:
-                lib_dirs.append(Path(libdir))
+            lib_dirs.append(Path(libdir))
 
         if package.tag not in ["HDF5"]:
             # Keep record of the optional libraries found.
@@ -750,6 +746,7 @@ if __name__ == "__main__":
 
         if os.name == "nt" and package.tag in ["HDF5"]:
             # hdf5.dll usually depends on zlib.dll
+            import ctypes.util
             z_lib_path = ctypes.util.find_library("zlib.dll")
             if z_lib_path:
                 print(f"* Adding zlib.dll (hdf5 dependency): ``{z_lib_path}``")
@@ -1048,6 +1045,7 @@ Programming Language :: Python :: 3.6
 Programming Language :: Python :: 3.7
 Programming Language :: Python :: 3.8
 Programming Language :: Python :: 3.9
+Programming Language :: Python :: 3.10
 Topic :: Database
 Topic :: Software Development :: Libraries :: Python Modules
 """

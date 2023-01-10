@@ -451,7 +451,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         # (in case these parameters haven't been passed to the constructor)
         if self.blocksizes is None:
             self.blocksizes = calc_chunksize(
-                self.expectedrows, self.optlevel, self.indsize)
+                self.expectedrows, self.optlevel, self.indsize, node=self)
         (self.superblocksize, self.blocksize,
          self.slicesize, self.chunksize) = self.blocksizes
         if debug:

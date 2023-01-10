@@ -6,6 +6,7 @@ on:
     branches:
       - master
       - 'releases/**'
+      - 'ci/**'
     tags:
       - v*
   release:
@@ -14,12 +15,12 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{matrix.arch}} for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest]
+        os: [ 'ubuntu-latest', 'macos-latest' ]
+        arch: [x86_64, aarch64]
 
     steps:
       - uses: actions/checkout@v2
@@ -27,24 +28,121 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.7'
+          python-version: '3.9'
+
+      - uses: docker/setup-qemu-action@v1
+        if:  startsWith(matrix.os, 'ubuntu')
+        name: Set up QEMU
+
+      - name: Install prerequisites for macOS
+        if: contains(matrix.os, 'macos')
+        env:
+          # Best compatibility, even with older releases of macOS.
+          MACOSX_DEPLOYMENT_TARGET: "10.9"
+        run: |
+          brew install --build-from-source --no-binaries --force szip
+          brew reinstall --build-from-source --no-binaries --force c-blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
+          brew link --overwrite --force bzip2 zlib
 
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade cibuildwheel
 
-      - name: Build wheels
+      - name: Build wheels for Linux or macOS (64-bit | aarch64)
         run: |
           python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-*"
-          CIBW_BEFORE_ALL_LINUX: "yum install -y epel-release && yum install -y hdf5-devel zlib-devel bzip2-devel lzo-devel"
-          CIBW_BEFORE_BUILD: "pip install numpy numexpr cython>=0.29.21"
+          CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+          CIBW_ARCHS_MACOS: ${{ matrix.arch == 'aarch64' && 'arm64' || 'x86_64'}}
+          CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-* cp310-*"
+          CIBW_BEFORE_ALL_LINUX: "yum -y update && yum install -y epel-release && yum install -y hdf5-devel zlib-devel bzip2-devel lzo-devel blosc-devel"
+          CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21"
           CIBW_ENVIRONMENT: "DISABLE_AVX2='TRUE'"
+          MACOSX_DEPLOYMENT_TARGET: "10.9"
+          CIBW_ENVIRONMENT_MACOS: BZIP2_DIR=/usr/local/opt/bzip2 LDFLAGS+="-L/usr/local/opt/bzip2/lib -L/usr/local/opt/zlib/lib" CPPFLAGS+="-I/usr/local/opt/bzip2/include -I/usr/local/opt/zlib/include" PKG_CONFIG_PATH="/usr/local/opt/zlib/lib/pkgconfig"
+          CIBW_SKIP: '*-musllinux_*'
 
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
+
+
+  build_wheels_windows:
+    name: Build wheels on ${{matrix.arch}} for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        arch: [win32, win_amd64]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.9'
+
+      - name: Install Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          channels: defaults,conda-forge
+          use-only-tar-bz2: true
+
+      - name: Install cibuildwheel
+        run: |
+          python -m pip install --upgrade cibuildwheel
+
+      - name: Build wheels for Windows (${{ matrix.arch }})
+        run: cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: "cp36-${{ matrix.arch }} cp37-${{ matrix.arch }} cp38-${{ matrix.arch }} cp39-${{ matrix.arch }} cp310-${{ matrix.arch }}"
+
+          CIBW_BEFORE_ALL_WINDOWS: "conda create --yes --name=build && conda activate build && conda config --env --set subdir ${{ matrix.arch == 'win32' && 'win-32' || 'win-64' }} && conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib"
+          CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build" PATH="$PATH;C:\\Miniconda\\envs\\build\\Library\\bin"'
+          CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
+          CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21 delvewheel"
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+
+  test_wheels:
+    needs: [ build_wheels, build_wheels_windows ]
+    name: Test ${{ matrix.python-version }} ${{ matrix.arch }} wheels for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
+        python-version: ['3.7', '3.8', '3.9','3.10']
+        arch: ['x64', 'x86']
+        exclude:
+        - os: 'ubuntu-latest'
+          arch: 'x86'
+        - os: 'macos-latest'
+          arch: 'x86'
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          path: ./wheelhouse/
+
+      - name: Install Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.arch }}
+
+      - name: Install tables on ${{ matrix.python-version }}
+        run: |
+          pip install numpy>=1.19.0 numexpr>=2.6.2
+          pip install --no-index --find-links wheelhouse/artifact/ tables
+
+      - name: Run tests on ${{ matrix.python-version }}
+        run: |
+          python -m tables.tests.test_all
 
   build_sdist:
     name: Build source distribution
