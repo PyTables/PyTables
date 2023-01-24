@@ -431,7 +431,7 @@ herr_t read_records_blosc2( char* filename,
 
   /* Gather data for the interesting part */
   hsize_t nrecords_chunk = chunklen - start_chunk;
-  if (nrecords_chunk > nrecords - total_records) {
+  if (nrecords_chunk > (nrecords - total_records)) {
    nrecords_chunk = nrecords - total_records;
   }
 
@@ -758,15 +758,14 @@ herr_t write_records_blosc2( hid_t dataset_id,
   goto out;
  }
  int typesize = cd_values[2];
- hsize_t cshape[1];
- H5Pget_chunk(dcpl, 1, cshape);
+ hsize_t chunklen;
+ H5Pget_chunk(dcpl, 1, &chunklen);
  if (H5Pclose(dcpl) < 0)
   goto out;
- int chunklen = (int) cshape[0];
- int cstart = (int) (start / chunklen);
- int cstop = (int) (start + nrecords - 1) / chunklen + 1;
- int data_offset = 0;
- for (int ci = cstart; ci < cstop; ci ++) {
+ hsize_t cstart = start / chunklen;
+ hsize_t cstop = (start + nrecords - 1) / chunklen + 1;
+ hsize_t data_offset = 0;
+ for (hsize_t ci = cstart; ci < cstop; ci ++) {
   if (ci == cstart) {
    if ((start % chunklen == 0) && (nrecords >= chunklen)) {
     if (insert_chunk_blosc2(dataset_id, ci * chunklen, chunklen, data) < 0)
@@ -871,7 +870,6 @@ herr_t insert_chunk_blosc2( hid_t dataset_id,
   goto out;
  }
  int32_t typesize = cd_values[2];
- int32_t chunksize = cd_values[3];
  hsize_t chunklen;
  H5Pget_chunk(dcpl, 1, &chunklen);
  if (H5Pclose(dcpl) < 0)
@@ -904,7 +902,7 @@ herr_t insert_chunk_blosc2( hid_t dataset_id,
  }
  uint8_t* cframe;
  bool needs_free2;
- int cfsize = (int) blosc2_schunk_to_buffer(sc, &cframe, &needs_free2);
+ int64_t cfsize = blosc2_schunk_to_buffer(sc, &cframe, &needs_free2);
  if (cfsize <= 0) {
   BLOSC_TRACE_ERROR("Failed converting schunk to cframe");
   goto out;
@@ -912,9 +910,7 @@ herr_t insert_chunk_blosc2( hid_t dataset_id,
 
  /* Write frame bypassing HDF5 filter pipeline */
  unsigned flt_msk = 0;
- haddr_t offset[8];
- offset[0] = start;
- if (H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk, offset, cfsize, cframe) < 0) {
+ if (H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk, &start, (size_t)cfsize, cframe) < 0) {
   BLOSC_TRACE_ERROR("Failed HDF5 writing chunk");
   goto out;
  }
