@@ -430,7 +430,7 @@ herr_t read_records_blosc2( char* filename,
   blosc2_context *dctx = blosc2_create_dctx(dparams);
 
   /* Gather data for the interesting part */
-  int32_t nrecords_chunk = chunklen - start_chunk;
+  int nrecords_chunk = chunklen - start_chunk;
   if (nrecords_chunk > (nrecords - total_records)) {
    nrecords_chunk = nrecords - total_records;
   }
@@ -445,7 +445,7 @@ herr_t read_records_blosc2( char* filename,
   }
   else {
    /* Less than 1 chunk to read; use a getitem call */
-   rbytes = (int) blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, (int) nrecords_chunk, data, chunksize);
+   rbytes = blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, nrecords_chunk, data, chunksize);
    if (rbytes != nrecords_chunk * typesize) {
     BLOSC_TRACE_ERROR("Cannot get (all) items for lazychunk\n");
     goto out;
@@ -764,8 +764,8 @@ herr_t write_records_blosc2( hid_t dataset_id,
   goto out;
  hsize_t cstart = start / chunklen;
  hsize_t cstop = (start + nrecords - 1) / chunklen + 1;
- hsize_t data_offset = 0;
  for (hsize_t ci = cstart; ci < cstop; ci ++) {
+  hsize_t data_offset = chunklen - (start % chunklen) + (ci - cstart - 1) * chunklen;
   if (ci == cstart) {
    if ((start % chunklen == 0) && (nrecords >= chunklen)) {
     if (insert_chunk_blosc2(dataset_id, ci * chunklen, chunklen, data) < 0)
@@ -790,7 +790,6 @@ herr_t write_records_blosc2( hid_t dataset_id,
      goto out;
    }
   } else if (ci == cstop - 1) {
-   data_offset = chunklen - (start % chunklen) + (ci - cstart - 1) * chunklen;
    count[0] = nrecords - data_offset;
    if (count[0] == chunklen) {
     if (insert_chunk_blosc2(dataset_id, ci * chunklen, count[0],
@@ -812,7 +811,6 @@ herr_t write_records_blosc2( hid_t dataset_id,
      goto out;
    }
   } else {
-   data_offset = chunklen - (start % chunklen) + (ci - cstart - 1) * chunklen;
    if (insert_chunk_blosc2(dataset_id, ci * chunklen, chunklen,
                            data2 + data_offset * typesize) < 0)
     goto out;
