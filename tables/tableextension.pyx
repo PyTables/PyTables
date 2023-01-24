@@ -753,11 +753,11 @@ cdef class Row:
 
   cdef npy_intp _stride
   cdef long _row, _unsaved_nrows, _mod_nrows
-  cdef hsize_t start, absstep
+  cdef long long start, absstep
   cdef long long stop, step, nextelement, _nrow, stopb  # has to be long long, not hsize_t, for negative step sizes
-  cdef hsize_t nrowsinbuf, nrows, nrowsread
-  cdef hsize_t chunksize, nchunksinbuf, totalchunks
-  cdef hsize_t startb, lenbuf
+  cdef long long nrowsinbuf, nrows, nrowsread
+  cdef long long chunksize, nchunksinbuf, totalchunks
+  cdef long long startb, lenbuf
   cdef long long indexchunk
   cdef int     bufcounter, counter
   cdef int     exist_enum_cols
@@ -765,7 +765,7 @@ cdef class Row:
   cdef int     wherecond, indexed
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done, sss_on
-  cdef int     iterseq_max_elements
+  cdef long long iterseq_max_elements
   cdef ndarray bufcoords, indexvalid, indexvalues, chunkmap
   cdef hsize_t *bufcoords_data
   cdef hsize_t *index_values_data
@@ -870,7 +870,7 @@ cdef class Row:
     self._rowsize = self.dtype.itemsize
     self.nrows = table.nrows  # This value may change
 
-  cdef _init_loop(self, hsize_t start, long long stop, long long step,
+  cdef _init_loop(self, long long start, long long stop, long long step,
                  object coords, object chunkmap):
     """Initialization for the __iter__ iterator"""
     table = self.table
@@ -960,7 +960,7 @@ cdef class Row:
     """The version of next() for indexed columns and a chunkmap."""
 
     cdef long recout, j, cs, vlen, rowsize
-    cdef hsize_t nchunksread
+    cdef long long nchunksread
     cdef object tmp_range
     cdef Table table
     cdef ndarray iobuf
@@ -1246,7 +1246,7 @@ cdef class Row:
     """Read a field from a table on disk and put the result in result"""
 
     cdef hsize_t startr, istartb
-    cdef hsize_t istart, inrowsinbuf, inextelement
+    cdef long long istart, inrowsinbuf, inextelement
     cdef long long stopr, istopb, i, j, inrowsread
     cdef long long istop, istep
     cdef object fields

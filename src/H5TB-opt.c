@@ -430,7 +430,7 @@ herr_t read_records_blosc2( char* filename,
   blosc2_context *dctx = blosc2_create_dctx(dparams);
 
   /* Gather data for the interesting part */
-  hsize_t nrecords_chunk = chunklen - start_chunk;
+  int32_t nrecords_chunk = chunklen - start_chunk;
   if (nrecords_chunk > (nrecords - total_records)) {
    nrecords_chunk = nrecords - total_records;
   }
