@@ -327,7 +327,7 @@ class Leaf(Node):
             # For the time being, this has been implemented efficiently
             # just for tables, but in the future *Array objects could also
             # be included.
-            # In Blosc2, the role of HDF5 chunksize could played by the
+            # In Blosc2, the role of HDF5 chunksize could be played by the
             # Blosc2 blocksize.
             self._v_blocksize = chunksize
             # Use a decent default value for chunksize
