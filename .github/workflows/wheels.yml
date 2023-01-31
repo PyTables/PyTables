@@ -52,7 +52,7 @@ jobs:
     name: Build ${{ matrix.os }} wheels for ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     env:
-      HDF5_VERSION: 1.12.2
+      HDF5_VERSION: 1.14.0  # needed for H5Dchunk_iter
       MACOSX_DEPLOYMENT_TARGET: "10.9"
       # Skip 3.6 and 3.7 wheels
       CIBW_SKIP: "*-musllinux_* cp36-* cp37-*"
