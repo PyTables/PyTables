@@ -41,7 +41,7 @@ from hdf5extension cimport Leaf
 from cpython cimport PyErr_Clear
 from libc.stdio cimport snprintf
 from libc.stdlib cimport malloc, free
-from libc.stdint cimport uint32_t
+from libc.stdint cimport int32_t
 from libc.string cimport memcpy, strdup, strcmp, strlen
 from numpy cimport (import_array, ndarray, npy_intp, PyArray_GETITEM,
   PyArray_SETITEM, PyArray_BYTES, PyArray_DATA, PyArray_NDIM, PyArray_STRIDE)
@@ -71,12 +71,9 @@ from .lrucacheextension cimport ObjectCache, NumCache
 cdef extern from "H5TB-opt.h" nogil:
 
   ctypedef struct chunk_iter_op:
-    size_t itemsize
-    size_t chunkshape
-    haddr_t *addrs
-
-  int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, size_t itemsize, chunk_iter_op chunk_op)
-  int clean_chunk_addrs(chunk_iter_op chunk_op)
+    int32_t itemsize
+    int32_t chunkshape
+    haddr_t addrs
 
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
                           char *version, char *class_,
@@ -280,7 +277,7 @@ cdef class Table(Leaf):
     self._chunked = True  # Accessible from python
 
     # Initialize blosc2 struct for chunk addresses
-    self.chunk_op = chunk_iter_op(0, self.chunkshape[0], NULL)
+    self.chunk_op = chunk_iter_op(self.description._v_itemsize, self.chunkshape[0], 0)
 
     # Finally, return the object identifier.
     return self.dataset_id
@@ -450,7 +447,7 @@ cdef class Table(Leaf):
       desc['_v_itemsize'] = type_size
 
     # Initialize blosc2 struct for chunk addresses
-    self.chunk_op = chunk_iter_op(0, chunksize[0], NULL)
+    self.chunk_op = chunk_iter_op(type_size, chunksize[0], 0)
 
     # Return the object ID and the description
     return (self.dataset_id, desc, SizeType(chunksize[0]))
@@ -890,11 +887,6 @@ cdef class Row:
     self._nrow = start - self.step
     self.wherecond = 0
     self.indexed = 0
-    if table.blosc2_support_read:
-      # Grab the addresses for the blosc2 frames (HDF5 chunks)
-      nchunks = math.ceil(self.nrows / self.table.chunkshape[0])
-      fill_chunk_addrs(table.dataset_id, nchunks, self.dtype.itemsize, table.chunk_op)
-
     self.nrows = table.nrows   # Update the row counter
 
     if coords is not None and 0 < step:
@@ -1228,10 +1220,6 @@ cdef class Row:
     """Clean-up things after iterator has been done"""
     cdef ObjectCache seqcache
     cdef Table table = self.table
-
-    # Clean address cache
-    if table.blosc2_support_read:
-      clean_chunk_addrs(table.chunk_op)
 
     self.rfieldscache = {}     # empty rfields cache
     self.wfieldscache = {}     # empty wfields cache

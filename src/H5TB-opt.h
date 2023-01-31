@@ -6,15 +6,11 @@ extern "C" {
 
 // For H5Dchunk_iter() callback
 typedef struct {
-  size_t itemsize;
-  size_t chunkshape;
-  haddr_t *addrs;
+  int32_t itemsize;
+  int32_t chunkshape;
+  haddr_t addrs;
 } chunk_iter_op;
 
-
-int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, size_t itemsize, chunk_iter_op chunk_op);
-
-int clean_chunk_addrs(chunk_iter_op chunk_op);
 
 hid_t H5TBOmake_table(  const char *table_title,
                         hid_t loc_id,

@@ -57,25 +57,8 @@
 int chunk_cb(const hsize_t *offset, uint32_t filter_mask,
              haddr_t addr, uint32_t nbytes, void *op_data) {
   chunk_iter_op *chunk_op = (chunk_iter_op*)op_data;
-  hsize_t nchunk = offset[0] / chunk_op->chunkshape;
-  chunk_op->addrs[nchunk] = addr;
+  chunk_op->addrs = addr;
   return 0;
-}
-
-int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, size_t itemsize, chunk_iter_op chunk_op) {
-  chunk_op.itemsize = itemsize;
-#if H5_VERS_MAJOR >=1 && H5_VERS_MINOR >= 14
-  chunk_op.addrs = (haddr_t*)malloc(nchunks * sizeof(haddr_t));
-  // Fill the addresses for the chunks in this dataset
-  H5Dchunk_iter(dataset_id, H5P_DEFAULT, (H5D_chunk_iter_op_t)chunk_cb, (void*)&chunk_op);
-#endif
-}
-
-int clean_chunk_addrs(chunk_iter_op chunk_op) {
-  if (chunk_op.addrs != NULL) {
-    free(chunk_op.addrs);
-  }
-  chunk_op.addrs = NULL;
 }
 
 
@@ -393,47 +376,9 @@ herr_t read_records_blosc2( char* filename,
                             hsize_t nrecords,
                             uint8_t *data )
 {
- uint8_t *buffer_out = NULL;
-
- size_t cd_nelmts = 7;
- unsigned cd_values[7];
- char name[7];
- int32_t typesize;
- int32_t chunklen;
- int32_t chunksize;
- hid_t dcpl;
- if (chunk_op.addrs == NULL) {
-  /* Chunk meta info not available */
-  /* Get blosc2 params */
-  dcpl = H5Dget_create_plist(dataset_id);
-  if (dcpl == H5I_INVALID_HID) {
-   BLOSC_TRACE_ERROR("Fail getting plist");
-   goto out;
-  }
-  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
-   H5Pclose(dcpl);
-   BLOSC_TRACE_ERROR("Fail getting blosc2 params");
-   goto out;
-  }
-  if (H5Pclose(dcpl) < 0)
-   goto out;
-
-  typesize = cd_values[2];
-  chunksize = cd_values[3];
-  chunklen = chunksize / typesize;
- }
- else {
-  typesize = chunk_op.itemsize;
-  chunklen = chunk_op.chunkshape;
-  chunksize = chunklen * typesize;
- }
-
- /* Buffer for reading a chunk */
- buffer_out = malloc(chunksize);
- if (buffer_out == NULL) {
-  BLOSC_TRACE_ERROR("Malloc failed for buffer_out");
-  return -1;
- }
+ int32_t typesize = chunk_op.itemsize;
+ int32_t chunklen = chunk_op.chunkshape;
+ int32_t chunksize = chunklen * typesize;
 
  hsize_t total_records = 0;
  hsize_t start_nchunk = start / chunklen;
@@ -444,16 +389,16 @@ herr_t read_records_blosc2( char* filename,
   haddr_t address;
   hsize_t cframe_size;
   hsize_t chunk_offset;
-  if (chunk_op.addrs == NULL) {
+#if H5_VERS_MAJOR >= 1 && H5_VERS_MINOR >= 14
+   H5Dchunk_iter(dataset_id, H5P_DEFAULT, (H5D_chunk_iter_op_t)chunk_cb, (void*)&chunk_op);
+   address = chunk_op.addrs;
+#else
    if (H5Dget_chunk_info(dataset_id, space_id, nchunk, &chunk_offset, &flt_msk,
                          &address, &cframe_size) < 0) {
     BLOSC_TRACE_ERROR("Get chunk info failed!\n");
     goto out;
    }
-  }
-  else {
-   address = chunk_op.addrs[nchunk];
-  }
+#endif
 
   /* Open the schunk on-disk */
   blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
@@ -510,14 +455,9 @@ herr_t read_records_blosc2( char* filename,
   start_chunk = 0;
  }
 
- free(buffer_out);
-
  return 0;
 
  out:
- if (buffer_out != NULL) {
-  free(buffer_out);
- }
  return -1;
 }
 
