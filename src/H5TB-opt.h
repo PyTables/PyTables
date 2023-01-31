@@ -8,7 +8,7 @@ extern "C" {
 typedef struct {
   int32_t itemsize;
   int32_t chunkshape;
-  haddr_t addrs;
+  haddr_t *addrs;
 } chunk_iter_op;
 
 

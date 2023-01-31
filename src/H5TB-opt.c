@@ -57,7 +57,8 @@
 int chunk_cb(const hsize_t *offset, uint32_t filter_mask,
              haddr_t addr, uint32_t nbytes, void *op_data) {
   chunk_iter_op *chunk_op = (chunk_iter_op*)op_data;
-  chunk_op->addrs = addr;
+  hsize_t nchunk = offset[0] / chunk_op->chunkshape;
+  chunk_op->addrs[nchunk] = addr;
   return 0;
 }
 
@@ -380,6 +381,17 @@ herr_t read_records_blosc2( char* filename,
  int32_t chunklen = chunk_op.chunkshape;
  int32_t chunksize = chunklen * typesize;
 
+#if H5_VERS_MAJOR >= 1 && H5_VERS_MINOR >= 14
+ // Fill the addresses for chunks
+ hsize_t nrows;
+ if ( H5Sget_simple_extent_dims( space_id, &nrows, NULL) < 0 )
+  goto out;
+ hsize_t nchunks = nrows / chunklen + 1;
+ chunk_op.addrs = (haddr_t *) malloc(nchunks * sizeof(haddr_t));
+ if (H5Dchunk_iter(dataset_id, H5P_DEFAULT, (H5D_chunk_iter_op_t)chunk_cb, (void*)&chunk_op) < 0)
+  goto out;
+#endif
+
  hsize_t total_records = 0;
  hsize_t start_nchunk = start / chunklen;
  int32_t start_chunk = start % chunklen;
@@ -389,16 +401,16 @@ herr_t read_records_blosc2( char* filename,
   haddr_t address;
   hsize_t cframe_size;
   hsize_t chunk_offset;
-#if H5_VERS_MAJOR >= 1 && H5_VERS_MINOR >= 14
-   H5Dchunk_iter(dataset_id, H5P_DEFAULT, (H5D_chunk_iter_op_t)chunk_cb, (void*)&chunk_op);
-   address = chunk_op.addrs;
-#else
+  if (chunk_op.addrs == NULL) {
    if (H5Dget_chunk_info(dataset_id, space_id, nchunk, &chunk_offset, &flt_msk,
                          &address, &cframe_size) < 0) {
     BLOSC_TRACE_ERROR("Get chunk info failed!\n");
     goto out;
    }
-#endif
+  }
+  else {
+   address = chunk_op.addrs[nchunk];
+  }
 
   /* Open the schunk on-disk */
   blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
@@ -455,9 +467,14 @@ herr_t read_records_blosc2( char* filename,
   start_chunk = 0;
  }
 
+ if (chunk_op.addrs != NULL)
+  free(chunk_op.addrs);
+
  return 0;
 
  out:
+ if (chunk_op.addrs != NULL)
+  free(chunk_op.addrs);
  return -1;
 }
 

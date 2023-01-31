@@ -73,7 +73,7 @@ cdef extern from "H5TB-opt.h" nogil:
   ctypedef struct chunk_iter_op:
     int32_t itemsize
     int32_t chunkshape
-    haddr_t addrs
+    haddr_t *addrs
 
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
                           char *version, char *class_,
@@ -277,7 +277,7 @@ cdef class Table(Leaf):
     self._chunked = True  # Accessible from python
 
     # Initialize blosc2 struct for chunk addresses
-    self.chunk_op = chunk_iter_op(self.description._v_itemsize, self.chunkshape[0], 0)
+    self.chunk_op = chunk_iter_op(self.description._v_itemsize, self.chunkshape[0], NULL)
 
     # Finally, return the object identifier.
     return self.dataset_id
@@ -447,7 +447,7 @@ cdef class Table(Leaf):
       desc['_v_itemsize'] = type_size
 
     # Initialize blosc2 struct for chunk addresses
-    self.chunk_op = chunk_iter_op(type_size, chunksize[0], 0)
+    self.chunk_op = chunk_iter_op(type_size, chunksize[0], NULL)
 
     # Return the object ID and the description
     return (self.dataset_id, desc, SizeType(chunksize[0]))
