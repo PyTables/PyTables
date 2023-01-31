@@ -75,6 +75,9 @@ cdef extern from "H5TB-opt.h" nogil:
     int32_t chunkshape
     haddr_t *addrs
 
+  int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, size_t itemsize, chunk_iter_op chunk_op)
+  int clean_chunk_addrs(chunk_iter_op chunk_op)
+
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
                           char *version, char *class_,
                           hid_t mem_type_id, hsize_t nrecords,
@@ -878,16 +881,20 @@ cdef class Row:
     self.coords = coords
     self.startb = 0
     if step > 0:
-        self._row = -1  # a sentinel
-        self.nrowsread = start
+      self._row = -1  # a sentinel
+      self.nrowsread = start
     elif step < 0:
-        self._row = 0
-        self.nrowsread = 0
-        self.nextelement = start
+      self._row = 0
+      self.nrowsread = 0
+      self.nextelement = start
     self._nrow = start - self.step
     self.wherecond = 0
     self.indexed = 0
     self.nrows = table.nrows   # Update the row counter
+    if table.blosc2_support_read:
+      # Grab the addresses for the blosc2 frames (HDF5 chunks)
+      nchunks = math.ceil(self.nrows / self.table.chunkshape[0])
+      fill_chunk_addrs(table.dataset_id, nchunks, self.dtype.itemsize, table.chunk_op)
 
     if coords is not None and 0 < step:
       self.nrowsread = start
@@ -1220,6 +1227,10 @@ cdef class Row:
     """Clean-up things after iterator has been done"""
     cdef ObjectCache seqcache
     cdef Table table = self.table
+
+    # Clean address cache
+    if table.blosc2_support_read:
+        clean_chunk_addrs(table.chunk_op)
 
     self.rfieldscache = {}     # empty rfields cache
     self.wfieldscache = {}     # empty wfields cache
