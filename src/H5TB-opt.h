@@ -4,6 +4,18 @@
 extern "C" {
 #endif
 
+// For H5Dchunk_iter() callback
+typedef struct {
+  size_t itemsize;
+  size_t chunksize;
+  haddr_t *addrs;
+} chunk_iter_op;
+
+
+int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, size_t itemsize, chunk_iter_op chunk_op);
+
+int clean_chunk_addrs(chunk_iter_op chunk_op);
+
 hid_t H5TBOmake_table(  const char *table_title,
                         hid_t loc_id,
                         const char *dset_name,
@@ -24,6 +36,7 @@ hid_t H5TBOmake_table(  const char *table_title,
 
 herr_t H5TBOread_records( char *filename,
                           hbool_t blosc2_support,
+                          chunk_iter_op chunk_op,
                           hid_t dataset_id,
                           hid_t mem_type_id,
                           hsize_t start,
@@ -31,6 +44,7 @@ herr_t H5TBOread_records( char *filename,
                           void *data );
 
 herr_t read_records_blosc2( char* filename,
+                            chunk_iter_op chunk_op,
                             hid_t dataset_id,
                             hid_t mem_type_id,
                             hid_t space_id,
@@ -83,6 +97,7 @@ herr_t H5TBOwrite_elements( hid_t dataset_id,
 
 herr_t H5TBOdelete_records( char* filename,
                             hbool_t blosc2_support,
+                            chunk_iter_op chunk_op,
                             hid_t   dataset_id,
                             hid_t   mem_type_id,
                             hsize_t ntotal_records,

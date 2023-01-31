@@ -154,7 +154,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
   void* outbuf = NULL;
   int64_t status = 0;                /* Return code from Blosc2 routines */
-  size_t blocksize;
+  // size_t blocksize;
   size_t typesize;
   size_t outbuf_size;
   int clevel = 5;                /* Compression level default */
@@ -162,7 +162,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   int compcode = BLOSC_BLOSCLZ;  /* Codec by default */
 
   /* Filter params that are always set */
-  blocksize = cd_values[1];      /* The block size */
+  // blocksize = cd_values[1];      /* The block size */
   typesize = cd_values[2];      /* The datatype size */
   outbuf_size = cd_values[3];   /* Precomputed buffer guess */
 
