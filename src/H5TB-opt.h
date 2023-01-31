@@ -12,8 +12,8 @@ typedef struct {
 } chunk_iter_op;
 
 
-int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, chunk_iter_op chunk_op);
-int clean_chunk_addrs(chunk_iter_op chunk_op);
+int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, chunk_iter_op *chunk_op);
+int clean_chunk_addrs(chunk_iter_op *chunk_op);
 
 hid_t H5TBOmake_table(  const char *table_title,
                         hid_t loc_id,

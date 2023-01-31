@@ -54,27 +54,27 @@
 #endif
 
 // Callback for H5Dchunk_iter
-int chunk_cb(const hsize_t *offset, uint32_t filter_mask,
-             haddr_t addr, uint32_t nbytes, void *op_data) {
+static int chunk_cb(const hsize_t *offset, uint32_t filter_mask,
+                    haddr_t addr, uint32_t nbytes, void *op_data) {
   chunk_iter_op *chunk_op = (chunk_iter_op*)op_data;
   hsize_t nchunk = offset[0] / chunk_op->chunkshape;
   chunk_op->addrs[nchunk] = addr;
   return 0;
 }
 
-int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, chunk_iter_op chunk_op) {
+int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, chunk_iter_op *chunk_op) {
 #if H5_VERS_MAJOR >=1 && H5_VERS_MINOR >= 14
-  chunk_op.addrs = (haddr_t*)malloc(nchunks * sizeof(haddr_t));
+  chunk_op->addrs = (haddr_t*)malloc(nchunks * sizeof(haddr_t));
   // Fill the addresses for the chunks in this dataset
-  H5Dchunk_iter(dataset_id, H5P_DEFAULT, (H5D_chunk_iter_op_t)chunk_cb, (void*)&chunk_op);
+  H5Dchunk_iter(dataset_id, H5P_DEFAULT, (H5D_chunk_iter_op_t)chunk_cb, (void*)chunk_op);
 #endif
 }
 
-int clean_chunk_addrs(chunk_iter_op chunk_op) {
-  if (chunk_op.addrs != NULL) {
-    free(chunk_op.addrs);
+int clean_chunk_addrs(chunk_iter_op *chunk_op) {
+  if (chunk_op->addrs != NULL) {
+    free(chunk_op->addrs);
   }
-  chunk_op.addrs = NULL;
+  chunk_op->addrs = NULL;
 }
 
 
