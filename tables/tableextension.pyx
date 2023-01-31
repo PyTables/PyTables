@@ -71,11 +71,11 @@ from .lrucacheextension cimport ObjectCache, NumCache
 cdef extern from "H5TB-opt.h" nogil:
 
   ctypedef struct chunk_iter_op:
-    int32_t itemsize
-    int32_t chunkshape
+    size_t itemsize
+    size_t chunkshape
     haddr_t *addrs
 
-  int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, size_t itemsize, chunk_iter_op chunk_op)
+  int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, chunk_iter_op chunk_op)
   int clean_chunk_addrs(chunk_iter_op chunk_op)
 
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
@@ -894,7 +894,7 @@ cdef class Row:
     if table.blosc2_support_read:
       # Grab the addresses for the blosc2 frames (HDF5 chunks)
       nchunks = math.ceil(self.nrows / self.table.chunkshape[0])
-      fill_chunk_addrs(table.dataset_id, nchunks, self.dtype.itemsize, table.chunk_op)
+      fill_chunk_addrs(table.dataset_id, nchunks, table.chunk_op)
 
     if coords is not None and 0 < step:
       self.nrowsread = start
@@ -1230,7 +1230,7 @@ cdef class Row:
 
     # Clean address cache
     if table.blosc2_support_read:
-        clean_chunk_addrs(table.chunk_op)
+      clean_chunk_addrs(table.chunk_op)
 
     self.rfieldscache = {}     # empty rfields cache
     self.wfieldscache = {}     # empty wfields cache

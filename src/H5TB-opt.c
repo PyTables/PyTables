@@ -62,8 +62,7 @@ int chunk_cb(const hsize_t *offset, uint32_t filter_mask,
   return 0;
 }
 
-int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, size_t itemsize, chunk_iter_op chunk_op) {
-  chunk_op.itemsize = itemsize;
+int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, chunk_iter_op chunk_op) {
 #if H5_VERS_MAJOR >=1 && H5_VERS_MINOR >= 14
   chunk_op.addrs = (haddr_t*)malloc(nchunks * sizeof(haddr_t));
   // Fill the addresses for the chunks in this dataset
@@ -393,9 +392,9 @@ herr_t read_records_blosc2( char* filename,
                             hsize_t nrecords,
                             uint8_t *data )
 {
- int32_t typesize = chunk_op.itemsize;
- int32_t chunklen = chunk_op.chunkshape;
- int32_t chunksize = chunklen * typesize;
+ size_t typesize = chunk_op.itemsize;
+ size_t chunklen = chunk_op.chunkshape;
+ size_t chunksize = chunklen * typesize;
 
  hsize_t total_records = 0;
  hsize_t start_nchunk = start / chunklen;
