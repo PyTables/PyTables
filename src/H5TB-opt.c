@@ -57,7 +57,7 @@
 int chunk_cb(const hsize_t *offset, uint32_t filter_mask,
              haddr_t addr, uint32_t nbytes, void *op_data) {
   chunk_iter_op *chunk_op = (chunk_iter_op*)op_data;
-  hsize_t nchunk = offset[0] / chunk_op->chunksize;
+  hsize_t nchunk = offset[0] / chunk_op->chunkshape;
   chunk_op->addrs[nchunk] = addr;
   return 0;
 }
@@ -424,7 +424,7 @@ herr_t read_records_blosc2( char* filename,
  }
  else {
   typesize = chunk_op.itemsize;
-  chunklen = chunk_op.chunksize;
+  chunklen = chunk_op.chunkshape;
   chunksize = chunklen * typesize;
  }
 

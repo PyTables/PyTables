@@ -72,7 +72,7 @@ cdef extern from "H5TB-opt.h" nogil:
 
   ctypedef struct chunk_iter_op:
     size_t itemsize
-    size_t chunksize
+    size_t chunkshape
     haddr_t *addrs
 
   int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, size_t itemsize, chunk_iter_op chunk_op)

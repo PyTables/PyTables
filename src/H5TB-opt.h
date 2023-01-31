@@ -7,7 +7,7 @@ extern "C" {
 // For H5Dchunk_iter() callback
 typedef struct {
   size_t itemsize;
-  size_t chunksize;
+  size_t chunkshape;
   haddr_t *addrs;
 } chunk_iter_op;
 
