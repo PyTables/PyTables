@@ -51,7 +51,7 @@ int register_blosc2(char **version, char **date){
     };
 
     retval = H5Zregister(&filter_class);
-    if(retval<0){
+    if (retval < 0){
         PUSH_ERR("register_blosc2", H5E_CANTREGISTER, "Can't register Blosc2 filter");
     }
     if (version != NULL && date != NULL) {
@@ -116,16 +116,6 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
     basetypesize = typesize;
   }
 
-  /* Limit large typesizes (they are pretty expensive to shuffle
-     and, in addition, Blosc2 does not handle typesizes larger than
-     255 bytes). */
-  /* But for reads, it is useful to have the original typesize here.
-   * And there is no harm in storing the original typesize here, as Blosc2
-   * will decide internally to reduce it to 1 if > BLOSC_MAX_TYPESIZE.
-   */
-  /* if (basetypesize > BLOSC_MAX_TYPESIZE)
-   *  basetypesize = 1;
-   */
   values[2] = basetypesize;
 
   /* Get the size of the chunk */
@@ -195,6 +185,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
     blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
     cparams.compcode = compcode;
+    cparams.blocksize = blocksize;
     cparams.typesize = (int32_t) typesize;
     cparams.filters[BLOSC_LAST_FILTER] = doshuffle;
     cparams.clevel = clevel;

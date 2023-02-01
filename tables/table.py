@@ -3,6 +3,7 @@
 import functools
 import math
 import operator
+import platform
 import sys
 import warnings
 from pathlib import Path
@@ -816,6 +817,19 @@ class Table(tableextension.Table, Leaf):
         # `Leaf._g_post_init_hook()`.
         self._flavor, self._descflavor = self._descflavor, None
         super()._g_post_init_hook()
+
+        self.blosc2_support_write = (
+                (self.byteorder == sys.byteorder) and
+                (self.filters.complib != None) and
+                (self.filters.complib.startswith("blosc2")))
+        # For reading, Windows does not support re-opening a file twice
+        # in not read-only mode (for good reason), so we cannot use the
+        # blosc2 opt
+        self.blosc2_support_read = (
+                self.blosc2_support_write and
+                ((platform.system().lower() != 'windows') or
+                ((self._v_file.mode == 'r')))
+        )
 
         # Create a cols accessor.
         self.cols = Cols(self, self.description)

@@ -40,8 +40,6 @@ cdef extern from "hdf5.h" nogil:
   ctypedef int hbool_t
   ctypedef int herr_t
   ctypedef int htri_t
-  # hsize_t should be unsigned, but Windows platform does not support
-  # such an unsigned long long type.
   ctypedef unsigned long long hsize_t
   ctypedef signed long long hssize_t
   ctypedef long long int64_t

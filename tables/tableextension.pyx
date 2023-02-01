@@ -20,11 +20,10 @@ Functions:
 Misc variables:
 
 """
-
+import math
 import sys
 import numpy
 from time import time
-import platform
 
 from .description import Col
 from .exceptions import HDF5ExtError
@@ -42,10 +41,11 @@ from hdf5extension cimport Leaf
 from cpython cimport PyErr_Clear
 from libc.stdio cimport snprintf
 from libc.stdlib cimport malloc, free
+from libc.stdint cimport int32_t
 from libc.string cimport memcpy, strdup, strcmp, strlen
 from numpy cimport (import_array, ndarray, npy_intp, PyArray_GETITEM,
   PyArray_SETITEM, PyArray_BYTES, PyArray_DATA, PyArray_NDIM, PyArray_STRIDE)
-from .definitions cimport (hid_t, herr_t, hsize_t, htri_t, hbool_t,
+from .definitions cimport (hid_t, herr_t, hsize_t, haddr_t, htri_t, hbool_t,
   H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
   H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, H5T_COMPOUND, H5Tget_order,
   H5Fflush, H5Dget_create_plist, H5T_ORDER_LE,
@@ -70,6 +70,14 @@ from .lrucacheextension cimport ObjectCache, NumCache
 # Optimized HDF5 API for PyTables
 cdef extern from "H5TB-opt.h" nogil:
 
+  ctypedef struct chunk_iter_op:
+    size_t itemsize
+    size_t chunkshape
+    haddr_t *addrs
+
+  int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, chunk_iter_op *chunk_op)
+  int clean_chunk_addrs(chunk_iter_op *chunk_op)
+
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
                           char *version, char *class_,
                           hid_t mem_type_id, hsize_t nrecords,
@@ -80,6 +88,7 @@ cdef extern from "H5TB-opt.h" nogil:
                           void *data )
 
   herr_t H5TBOread_records( char* filename, hbool_t blosc2_support,
+                            chunk_iter_op chunk_op,
                             hid_t dataset_id, hid_t mem_type_id,
                             hsize_t start, hsize_t nrecords, void *data )
 
@@ -102,8 +111,9 @@ cdef extern from "H5TB-opt.h" nogil:
                               hsize_t nrecords, void *coords, void *data )
 
   herr_t H5TBOdelete_records( char* filename, hbool_t blosc2_support,
-                              hid_t   dataset_id, hid_t   mem_type_id,
-                              hsize_t ntotal_records, size_t  src_size,
+                              chunk_iter_op chunk_op,
+                              hid_t dataset_id, hid_t mem_type_id,
+                              hsize_t ntotal_records, size_t src_size,
                               hsize_t start, hsize_t nrecords,
                               hsize_t maxtuples )
 
@@ -153,7 +163,8 @@ cdef join_path(object parent, object name):
 
 cdef class Table(Leaf):
   # instance variables
-  cdef void     *wbuf
+  cdef void *wbuf
+  cdef chunk_iter_op chunk_op
 
   def _create_table(self, title, complib, obversion):
     cdef int     offset
@@ -205,11 +216,13 @@ cdef class Table(Leaf):
     else:
       data = NULL
 
+    blosc2_support_write = (
+            (self.byteorder == sys.byteorder) and
+            (self.filters.complib != None) and
+            (self.filters.complib.startswith("blosc2")))
+
     class_ = self._c_classid.encode('utf-8')
     cdef hsize_t blocksize = self._v_blocksize if hasattr(self, "_v_blocksize") else 0
-    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
-                                   (self.filters.complib != None) and
-                                   (self.filters.complib[0:6] == "blosc2"))
     self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, encoded_name,
                                       cobversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
@@ -218,7 +231,7 @@ cdef class Table(Leaf):
                                       self.filters.shuffle_bitshuffle,
                                       self.filters.fletcher32,
                                       self._want_track_times,
-                                      blosc2_support, data)
+                                      blosc2_support_write, data)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the table")
 
@@ -265,6 +278,9 @@ cdef class Table(Leaf):
 
     # If created in PyTables, the table is always chunked
     self._chunked = True  # Accessible from python
+
+    # Initialize blosc2 struct for chunk addresses
+    self.chunk_op = chunk_iter_op(self.description._v_itemsize, self.chunkshape[0], NULL)
 
     # Finally, return the object identifier.
     return self.dataset_id
@@ -388,9 +404,8 @@ cdef class Table(Leaf):
     cdef H5D_layout_t layout
     cdef bytes encoded_name
 
-    encoded_name = self.name.encode('utf-8')
-
     # Open the dataset
+    encoded_name = self.name.encode('utf-8')
     self.dataset_id = H5Dopen(self.parent_id, encoded_name, H5P_DEFAULT)
     if self.dataset_id < 0:
       raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" %
@@ -434,6 +449,8 @@ cdef class Table(Leaf):
       # Trailing padding, set the itemsize to the correct type_size (see #765)
       desc['_v_itemsize'] = type_size
 
+    # Initialize blosc2 struct for chunk addresses
+    self.chunk_op = chunk_iter_op(type_size, chunksize[0], NULL)
 
     # Return the object ID and the description
     return (self.dataset_id, desc, SizeType(chunksize[0]))
@@ -494,14 +511,12 @@ cdef class Table(Leaf):
   def _append_records(self, hsize_t nrecords):
     cdef int ret
     cdef hsize_t nrows
+    cdef hbool_t blosc2_support = self.blosc2_support_write
 
     # Convert some NumPy types to HDF5 before storing.
     self._convert_types(self._v_recarray, nrecords, 0)
 
     nrows = self.nrows
-    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
-                                   (self.filters.complib != None) and
-                                   (self.filters.complib[0:6] == "blosc2"))
     # release GIL (allow other threads to use the Python interpreter)
     with nogil:
         # Append the records:
@@ -547,13 +562,10 @@ cdef class Table(Leaf):
     # Convert some NumPy types to HDF5 before storing.
     self._convert_types(recarr, nrecords, 0)
     # Update the records:
-    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
-                                   (self.filters.complib != None) and
-                                   (self.filters.complib[0:6] == "blosc2") and
-                                   (step == 1))
+    cdef hbool_t blosc2_support = (self.blosc2_support_write and (step == 1))
     with nogil:
         ret = H5TBOwrite_records(blosc2_support, self.dataset_id,
-                                 self.type_id, start, nrecords, step, rbuf )
+                                 self.type_id, start, nrecords, step, rbuf)
 
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
@@ -592,6 +604,7 @@ cdef class Table(Leaf):
     cdef int ret
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
+    cdef hbool_t blosc2_support = self.blosc2_support_read
 
     # Correct the number of records to read, if needed
     if (start + nrecords) > self.nrows:
@@ -601,15 +614,10 @@ cdef class Table(Leaf):
     rbuf = PyArray_DATA(recarr)
 
     # Read the records from disk
-    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
-                                   (self.filters.complib != None) and
-                                   (self.filters.complib[0:6] == "blosc2") and
-                                   ((platform.system().lower() != 'windows') or
-                                    ((self._v_file.mode == 'r'))))
-
     with nogil:
-        ret = H5TBOread_records(filename, blosc2_support, self.dataset_id,
-                                self.type_id, start, nrecords, rbuf)
+        ret = H5TBOread_records(filename, blosc2_support, self.chunk_op,
+                                self.dataset_id, self.type_id, start,
+                                nrecords, rbuf)
 
     if ret < 0:
       raise HDF5ExtError("Problems reading records.")
@@ -627,11 +635,7 @@ cdef class Table(Leaf):
     cdef NumCache chunkcache
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
-    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
-                                   (self.filters.complib != None) and
-                                   (self.filters.complib[0:6] == "blosc2") and
-                                   ((platform.system().lower() != 'windows') or
-                                    ((self._v_file.mode == 'r'))))
+    cdef hbool_t blosc2_support = self.blosc2_support_read
 
     chunkcache = self._chunkcache
     chunkshape = chunkcache.slotsize
@@ -648,8 +652,9 @@ cdef class Table(Leaf):
     else:
       # Chunk is not in cache. Read it and put it in the LRU cache.
       with nogil:
-          ret = H5TBOread_records(filename, blosc2_support, self.dataset_id,
-                                  self.type_id, start, nrecords, rbuf)
+          ret = H5TBOread_records(filename, blosc2_support, self.chunk_op,
+                                  self.dataset_id, self.type_id, start,
+                                  nrecords, rbuf)
 
       if ret < 0:
         raise HDF5ExtError("Problems reading chunk records.")
@@ -687,17 +692,12 @@ cdef class Table(Leaf):
     cdef hsize_t i
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
-    cdef hbool_t blosc2_support = ((self.byteorder == sys.byteorder) and
-                                   (self.filters.complib != None) and
-                                   (self.filters.complib[0:6] == "blosc2") and
-                                   ((platform.system().lower() != 'windows') or
-                                    ((self._v_file.mode == 'r'))))
-
     if step == 1:
       nrecords = stop - start
       rowsize = self.rowsize
       # Using self.disk_type_id should be faster (i.e. less conversions)
-      if (H5TBOdelete_records(filename, blosc2_support, self.dataset_id,
+      if (H5TBOdelete_records(filename, self.blosc2_support_read, self.chunk_op,
+                              self.dataset_id,
                               self.disk_type_id, self.nrows, rowsize,
                               start, nrecords, self.nrowsinbuf) < 0):
         raise HDF5ExtError("Problems deleting records.")
@@ -873,7 +873,7 @@ cdef class Row:
   cdef _init_loop(self, long long start, long long stop, long long step,
                  object coords, object chunkmap):
     """Initialization for the __iter__ iterator"""
-    table = self.table
+    cdef Table table = self.table
     self._riterator = 1   # We are inside a read iterator
     self.start = start
     self.stop = stop
@@ -881,17 +881,20 @@ cdef class Row:
     self.coords = coords
     self.startb = 0
     if step > 0:
-        self._row = -1  # a sentinel
-        self.nrowsread = start
+      self._row = -1  # a sentinel
+      self.nrowsread = start
     elif step < 0:
-        self._row = 0
-        self.nrowsread = 0
-        self.nextelement = start
+      self._row = 0
+      self.nrowsread = 0
+      self.nextelement = start
     self._nrow = start - self.step
     self.wherecond = 0
     self.indexed = 0
-
     self.nrows = table.nrows   # Update the row counter
+    if table.blosc2_support_read:
+      # Grab the addresses for the blosc2 frames (HDF5 chunks)
+      nchunks = math.ceil(self.nrows / self.table.chunkshape[0])
+      fill_chunk_addrs(table.dataset_id, nchunks, &table.chunk_op)
 
     if coords is not None and 0 < step:
       self.nrowsread = start
@@ -1223,6 +1226,11 @@ cdef class Row:
   cdef _finish_riterator(self):
     """Clean-up things after iterator has been done"""
     cdef ObjectCache seqcache
+    cdef Table table = self.table
+
+    # Clean address cache
+    if table.blosc2_support_read:
+      clean_chunk_addrs(&table.chunk_op)
 
     self.rfieldscache = {}     # empty rfields cache
     self.wfieldscache = {}     # empty wfields cache
