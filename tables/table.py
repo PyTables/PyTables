@@ -2962,6 +2962,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         if cols is not None:
             cols._g_close()
 
+        # Clean address cache
+        self._clean_chunk_addrs()
+
         # Close myself as a leaf.
         super()._f_close(False)
 

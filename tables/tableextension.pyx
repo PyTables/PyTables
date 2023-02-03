@@ -514,8 +514,7 @@ cdef class Table(Leaf):
     cdef hbool_t blosc2_support = self.blosc2_support_write
 
     # Clean address cache
-    if self.blosc2_support_write:
-      clean_chunk_addrs(&self.chunk_op)
+    self._clean_chunk_addrs()
 
     # Convert some NumPy types to HDF5 before storing.
     self._convert_types(self._v_recarray, nrecords, 0)
@@ -545,9 +544,7 @@ cdef class Table(Leaf):
     # Set the caches to dirty (in fact, and for the append case,
     # it should be only the caches based on limits, but anyway)
     self._dirtycache = True
-    # Clean address cache
-    if self.blosc2_support_write:
-      clean_chunk_addrs(&self.chunk_op)
+    self._clean_chunk_addrs()
     # Delete the reference to recarray as we doesn't need it anymore
     self._v_recarray = None
 
@@ -579,9 +576,7 @@ cdef class Table(Leaf):
 
     # Set the caches to dirty
     self._dirtycache = True
-    # Clean address cache
-    if self.blosc2_support_read:
-      clean_chunk_addrs(&self.chunk_op)
+    self._clean_chunk_addrs()
 
 
   def _update_elements(self, hsize_t nrecords, ndarray coords,
@@ -609,9 +604,7 @@ cdef class Table(Leaf):
 
     # Set the caches to dirty
     self._dirtycache = True
-    # Clean address cache
-    if self.blosc2_support_read:
-      clean_chunk_addrs(&self.chunk_op)
+    self._clean_chunk_addrs()
 
 
   def _read_records(self, hsize_t start, hsize_t nrecords, ndarray recarr):
@@ -736,9 +729,7 @@ cdef class Table(Leaf):
                             0, NULL, <char *>&nrecords2)
       # Set the caches to dirty
       self._dirtycache = True
-      # Clean address cache
-      if self.blosc2_support_read:
-        clean_chunk_addrs(&self.chunk_op)
+      self._clean_chunk_addrs()
     elif step == -1:
       nrecords = self._remove_rows(stop+1, start+1, 1)
     elif step >= 1:
@@ -754,6 +745,11 @@ cdef class Table(Leaf):
 
     # Return the number of records removed
     return nrecords
+
+  # Clean address cache
+  def _clean_chunk_addrs(self):
+    clean_chunk_addrs(&self.chunk_op)
+
 
 cdef class Row:
   """Table row iterator and field accessor.
