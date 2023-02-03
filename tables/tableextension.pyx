@@ -513,6 +513,10 @@ cdef class Table(Leaf):
     cdef hsize_t nrows
     cdef hbool_t blosc2_support = self.blosc2_support_write
 
+    # Clean address cache
+    if self.blosc2_support_write:
+      clean_chunk_addrs(&self.chunk_op)
+
     # Convert some NumPy types to HDF5 before storing.
     self._convert_types(self._v_recarray, nrecords, 0)
 
@@ -541,6 +545,9 @@ cdef class Table(Leaf):
     # Set the caches to dirty (in fact, and for the append case,
     # it should be only the caches based on limits, but anyway)
     self._dirtycache = True
+    # Clean address cache
+    if self.blosc2_support_write:
+      clean_chunk_addrs(&self.chunk_op)
     # Delete the reference to recarray as we doesn't need it anymore
     self._v_recarray = None
 
@@ -572,6 +579,10 @@ cdef class Table(Leaf):
 
     # Set the caches to dirty
     self._dirtycache = True
+    # Clean address cache
+    if self.blosc2_support_read:
+      clean_chunk_addrs(&self.chunk_op)
+
 
   def _update_elements(self, hsize_t nrecords, ndarray coords,
                        ndarray recarr):
@@ -598,6 +609,10 @@ cdef class Table(Leaf):
 
     # Set the caches to dirty
     self._dirtycache = True
+    # Clean address cache
+    if self.blosc2_support_read:
+      clean_chunk_addrs(&self.chunk_op)
+
 
   def _read_records(self, hsize_t start, hsize_t nrecords, ndarray recarr):
     cdef void *rbuf
@@ -605,6 +620,11 @@ cdef class Table(Leaf):
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
     cdef hbool_t blosc2_support = self.blosc2_support_read
+
+    if self.blosc2_support_read:
+      # Grab the addresses for the blosc2 frames (HDF5 chunks)
+      nchunks = math.ceil(self.nrows / self.chunkshape[0])
+      fill_chunk_addrs(self.dataset_id, nchunks, &self.chunk_op)
 
     # Correct the number of records to read, if needed
     if (start + nrecords) > self.nrows:
@@ -636,6 +656,11 @@ cdef class Table(Leaf):
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
     cdef hbool_t blosc2_support = self.blosc2_support_read
+
+    if self.blosc2_support_read:
+      # Grab the addresses for the blosc2 frames (HDF5 chunks)
+      nchunks = math.ceil(self.nrows / self.chunkshape[0])
+      fill_chunk_addrs(self.dataset_id, nchunks, &self.chunk_op)
 
     chunkcache = self._chunkcache
     chunkshape = chunkcache.slotsize
@@ -692,6 +717,7 @@ cdef class Table(Leaf):
     cdef hsize_t i
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
+
     if step == 1:
       nrecords = stop - start
       rowsize = self.rowsize
@@ -710,6 +736,9 @@ cdef class Table(Leaf):
                             0, NULL, <char *>&nrecords2)
       # Set the caches to dirty
       self._dirtycache = True
+      # Clean address cache
+      if self.blosc2_support_read:
+        clean_chunk_addrs(&self.chunk_op)
     elif step == -1:
       nrecords = self._remove_rows(stop+1, start+1, 1)
     elif step >= 1:
@@ -1227,10 +1256,6 @@ cdef class Row:
     """Clean-up things after iterator has been done"""
     cdef ObjectCache seqcache
     cdef Table table = self.table
-
-    # Clean address cache
-    if table.blosc2_support_read:
-      clean_chunk_addrs(&table.chunk_op)
 
     self.rfieldscache = {}     # empty rfields cache
     self.wfieldscache = {}     # empty wfields cache
