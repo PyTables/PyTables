@@ -64,9 +64,12 @@ static int chunk_cb(const hsize_t *offset, uint32_t filter_mask,
 
 int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, chunk_iter_op *chunk_op) {
 #if H5_VERS_MAJOR >=1 && H5_VERS_MINOR >= 14
-  chunk_op->addrs = (haddr_t*)malloc(nchunks * sizeof(haddr_t));
-  // Fill the addresses for the chunks in this dataset
-  H5Dchunk_iter(dataset_id, H5P_DEFAULT, (H5D_chunk_iter_op_t)chunk_cb, (void*)chunk_op);
+  // Only fill the address cache when needed
+  if (chunk_op->addrs == NULL) {
+    chunk_op->addrs = (haddr_t*)malloc(nchunks * sizeof(haddr_t));
+    // Fill the addresses for the chunks in this dataset
+    H5Dchunk_iter(dataset_id, H5P_DEFAULT, (H5D_chunk_iter_op_t)chunk_cb, (void*)chunk_op);
+  }
 #endif
 }
 
