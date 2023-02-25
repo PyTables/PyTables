@@ -1,8 +1,8 @@
-# Keep in sync with tables/req_versions.py and
-# doc/source/usersguide/installation.rst *and*
+# Build requirements
+# Keep in sync with doc/source/usersguide/installation.rst *and*
 # pyproject.toml
 cython>=0.29.21
 numpy>=1.19.0
-numexpr>=2.6.2
 packaging
 py-cpuinfo
+# provide blosc2 wheel or c-blosc2 headers externally!

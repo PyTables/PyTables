@@ -31,6 +31,7 @@ jobs:
       run: |
         conda install setuptools pip wheel build packaging numpy cython bzip2 hdf5 lzo 'typing_extensions<4.2'
         python -m pip install -r requirements.txt
+        python -m pip install blosc2
         # conda install sphinx sphinx_rtd_theme numpydoc ipython
     - name: Source distribution
       run: |
