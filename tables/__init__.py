@@ -8,6 +8,7 @@ to efficiently cope with extremely large amounts of data.
 """
 import os
 from ctypes import cdll
+from ctypes.util import find_library
 import platform
 
 
@@ -15,18 +16,27 @@ import platform
 # try this directory (it should be automatically copied in setup.py).
 current_dir = os.path.dirname(__file__)
 platform_system = platform.system()
-blosc2_lib = "libblosc2"
+blosc2_lib_hardcoded = "libblosc2"
 if platform_system == "Linux":
-    blosc2_lib += ".so"
+    blosc2_lib_hardcoded += ".so"
 elif platform_system == "Darwin":
-    blosc2_lib += ".dylib"
+    blosc2_lib_hardcoded += ".dylib"
 else:
-    blosc2_lib += ".dll"
-try:
-    cdll.LoadLibrary(blosc2_lib)
-except OSError:
-    cdll.LoadLibrary(os.path.join(current_dir, blosc2_lib))
-
+    blosc2_lib_hardcoded += ".dll"
+blosc2_found = False
+blosc2_search_paths = [blosc2_lib_hardcoded,
+                       os.path.join(current_dir, blosc2_lib_hardcoded),
+                       find_library("blosc2")]
+for blosc2_lib in blosc2_search_paths:
+    try:
+        cdll.LoadLibrary(blosc2_lib)
+        blosc2_found = True
+        break
+    except OSError:
+        pass
+if not blosc2_found:
+    raise RuntimeError("Blosc2 library not found. "
+                       f"I looked for \"{', '.join(blosc2_search_paths)}\"")
 
 # Necessary imports to get versions stored on the cython extension
 from .utilsextension import get_hdf5_version as _get_hdf5_version
