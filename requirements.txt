@@ -1,11 +1,8 @@
-# Keep in sync with tables/req_versions.py and
-# doc/source/usersguide/installation.rst *and*
+# Build requirements
+# Keep in sync with doc/source/usersguide/installation.rst *and*
 # pyproject.toml
 cython>=0.29.21
 numpy>=1.19.0
-numexpr>=2.6.2
-# blosc2 wheel is actually only needed when compiling on conda envs.
-# Otherwise, lib comes bundled in PyTables wheels (but it doesn't hurt either).
-blosc2~=2.0.0
 packaging
 py-cpuinfo
+# provide blosc2 wheel or c-blosc2 headers externally!

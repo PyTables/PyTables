@@ -97,7 +97,28 @@ def get_blosc2_version(headername):
 
 
 def get_blosc2_directories():
-    """Get Blosc2 directories for the C library by using wheel metadata"""
+    """Get Blosc2 directories for the C library"""
+    # If the system provides the library and headers,
+    # get them from environment variables or find by pkg-config
+    if platform.system() in ["Linux", "Darwin"]:
+        try:
+            include_path = Path(os.environ.get(
+                    "BLOSC2_INCDIR",
+                    subprocess.check_output(
+                        [PKG_CONFIG, '--variable=includedir', 'blosc2'],
+                        text=True).strip()))
+            library_path = Path(os.environ.get(
+                    "BLOSC2_LIBDIR",
+                    subprocess.check_output(
+                        [PKG_CONFIG, '--variable=libdir', 'blosc2'],
+                        text=True).strip()))
+        except subprocess.CalledProcessError:
+            pass
+        else:
+            return include_path, library_path
+
+    # Otherwise get them from the PyPI published wheels for blosc2
+    # They package the library and headers directly
     try:
         import blosc2
     except ModuleNotFoundError:
@@ -841,7 +862,7 @@ if __name__ == "__main__":
                         shared_libs = glob.glob(str(libdir) + '/libblosc2*.dylib')
                         for lib in shared_libs:
                             shutil.copy(lib, dll_dir)
-                        
+
                 else:
                     copy_libs += ['libblosc2.dll']
                     dll_dir = 'C:\\Miniconda\\envs\\build\\Library\\bin'

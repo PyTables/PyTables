@@ -3,9 +3,36 @@ name: CI
 on: [push, pull_request]
 
 jobs:
+
+  sdist:
+    name: Create sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: actions/setup-python@v4
+        name: Install Python
+        with:
+          python-version: 3.x
+      - name: Ubuntu library headers
+        run:  sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
+      - name: Source distribution
+        run: |
+          pip install build
+          python -m build --sdist
+      - name: Save source distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: tables-sdist
+          path: dist/*.tar.gz
+      
+
   build:
     name: ${{ matrix.os }} ${{ matrix.python }} ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    needs: sdist
     defaults:
       run:
         shell: bash -l {0}
@@ -29,15 +56,17 @@ jobs:
         channel-priority: strict
     - name: Install dependencies
       run: |
-        conda install setuptools pip wheel build packaging numpy cython bzip2 hdf5 lzo 'typing_extensions<4.2'
+        conda install -q setuptools pip wheel build packaging numpy cython bzip2 hdf5 lzo
+        python -m pip install blosc2
         python -m pip install -r requirements.txt
         # conda install sphinx sphinx_rtd_theme numpydoc ipython
-    - name: Source distribution
-      run: |
-        python -m build --sdist
+    - name: Get source distrubtion
+      uses: actions/download-artifact@v3
+      with:
+        name: tables-sdist
     - name: Installation
       run: |
-        python -m pip install -v dist/*.tar.gz
+        python -m pip install -v tables-*.tar.gz
     - name: 'Run test'
       run: |
         cd .. && python -m tables.tests.test_all -v
@@ -50,6 +79,7 @@ jobs:
   build_cblosc:
     name: Sdist with cblosc2
     runs-on: ubuntu-latest
+    needs: sdist
     defaults:
       run:
         shell: bash -l {0}
@@ -68,12 +98,16 @@ jobs:
     - name: Install dependencies
       run: |
         conda install setuptools pip wheel build packaging py-cpuinfo numpy cython numexpr bzip2 hdf5 lzo 'typing_extensions<4.2' c-blosc2
-    - name: Source distribution
-      run: |
-        python -m build --sdist
+    - name: Get source distrubtion
+      uses: actions/download-artifact@v3
+      with:
+        name: tables-sdist
     - name: Installation
       run: |
-        python -m pip install -v dist/*.tar.gz --no-deps
+        python -m pip install -v tables-*.tar.gz --no-deps
+    - name: Python blosc2 wheel or conda pkg is not installed
+      run: |
+        ! conda list | grep -E '^(python-)?blosc2'
     - name: 'Run test'
       run: |
         cd .. && python -m tables.tests.test_all -v
