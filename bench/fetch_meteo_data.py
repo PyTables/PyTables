@@ -31,16 +31,16 @@ def open_zarr(year, month, datestart, dateend, path):
 		dset = dset.sel(time0=slice(np.datetime64(datestart), np.datetime64(dateend)))
 	else:
 		dset = dset.sel(time1=slice(np.datetime64(datestart), np.datetime64(dateend)))
-	var_dict = {path: "src"}
-	dset = dset.rename_vars(name_dict=var_dict)
-	#print(dset)
-	#print(dset.src.shape)
-
-	return dset.src
+	return getattr(dset, path)
 
 # Choose the datasets for table
-datasets = ["precipitation_amount_1hour_Accumulation", "integral_wrt_time_of_surface_direct_downwelling_shortwave_flux_in_air_1hour_Accumulation",
-			"air_pressure_at_mean_sea_level", "snow_density", "eastward_wind_at_10_metres"]
+datasets = [
+	"precipitation_amount_1hour_Accumulation",
+	"integral_wrt_time_of_surface_direct_downwelling_shortwave_flux_in_air_1hour_Accumulation",
+	"air_pressure_at_mean_sea_level",
+	"snow_density",
+	"eastward_wind_at_10_metres"
+]
 
 # Create the table
 f = tb.open_file("blosc_table.h5", "w")
