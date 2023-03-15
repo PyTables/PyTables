@@ -6,7 +6,7 @@ requires = [
     "oldest-supported-numpy",
     "packaging",
     "py-cpuinfo",
-    "Cython >=0.29.21",
+    "Cython >=0.29.32",
     # Included here for seamless wheel builds.
     # Packagers can choose to replace it by externally provided
     # c-blosc2 library and headers
