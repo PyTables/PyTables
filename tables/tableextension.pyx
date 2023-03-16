@@ -37,7 +37,7 @@ from .utils import SizeType
 from .utilsextension cimport get_native_type, cstr_to_pystr
 
 # numpy functions & objects
-from hdf5extension cimport Leaf
+from .hdf5extension cimport Leaf
 from cpython cimport PyErr_Clear
 from libc.stdio cimport snprintf
 from libc.stdlib cimport malloc, free

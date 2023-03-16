@@ -344,7 +344,7 @@ except ImportError:
 #---------------------------------------------------------------------
 
 # Error handling helpers
-cdef herr_t e_walk_cb(unsigned n, const H5E_error_t *err, void *data) with gil:
+cdef herr_t e_walk_cb(unsigned n, const H5E_error_t *err, void *data) noexcept with gil:
     cdef object bt = <object>data   # list
     #cdef char major_msg[256]
     #cdef char minor_msg[256]
