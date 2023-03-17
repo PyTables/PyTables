@@ -1,7 +1,7 @@
 # Build requirements
 # Keep in sync with doc/source/usersguide/installation.rst *and*
 # pyproject.toml
-cython>=0.29.21
+cython>=0.29.32
 numpy>=1.19.0
 packaging
 py-cpuinfo

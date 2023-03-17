@@ -54,7 +54,7 @@ If you don't, fetch and install them before proceeding.
 * HDF5_ >= 1.10.5
 * NumPy_ >= 1.19.0
 * Numexpr_ >= 2.6.2
-* Cython_ >= 0.29.21
+* Cython_ >= 0.29.32
 * c-blosc_ >= 1.11.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the `--blosc` flag of the :file:`setup.py`)

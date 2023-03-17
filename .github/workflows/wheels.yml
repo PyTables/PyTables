@@ -43,6 +43,7 @@ jobs:
           python -m pip install --upgrade setuptools pip wheel build
           python -m pip install -r requirements.txt
           python -m pip install sphinx>=1.1 sphinx_rtd_theme numpydoc ipython
+          python -m pip install blosc2
 
       - name: Build sdist
         run: make PYTHON=python dist
@@ -116,7 +117,9 @@ jobs:
           CFLAGS: -g0
           CIBW_BUILD_VERBOSITY_MACOS: 3
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_BEFORE_BUILD: "python -m pip install -r requirements.txt"
+          CIBW_BEFORE_BUILD: >
+            python -m pip install -r requirements.txt &&
+            python -m pip install blosc2
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
@@ -171,10 +174,14 @@ jobs:
         run: cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD: "cp38-${{ matrix.arch }} cp39-${{ matrix.arch }} cp310-${{ matrix.arch }} cp311-${{ matrix.arch }}"
-          CIBW_BEFORE_ALL_WINDOWS: "conda create --yes --name=build && conda activate build && conda config --env --set subdir ${{ matrix.arch == 'win32' && 'win-32' || 'win-64' }} && conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib"
+          CIBW_BEFORE_ALL_WINDOWS: >
+            conda create --yes --name=build &&
+            conda activate build &&
+            conda config --env --set subdir ${{ matrix.arch == 'win32' && 'win-32' || 'win-64' }} &&
+            conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
           CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build" PATH="$PATH;C:\\Miniconda\\envs\\build\\Library\\bin"'
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
-          CIBW_BEFORE_BUILD: "python -m pip install -r requirements.txt delvewheel"
+          CIBW_BEFORE_BUILD: "python -m pip install -r requirements.txt delvewheel blosc2"
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
 
       - uses: actions/upload-artifact@v3
@@ -214,8 +221,7 @@ jobs:
 
       - name: Install tables on ${{ matrix.python-version }}
         run: |
-          python -m pip install -r wheelhouse/artifact/requirements.txt
-          python -m pip install --no-index --find-links wheelhouse/artifact/ tables
+          python -m pip install --find-links wheelhouse/artifact/ tables
 
       - name: Run tests on ${{ matrix.python-version }}
         run: |
