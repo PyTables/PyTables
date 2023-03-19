@@ -221,7 +221,7 @@ jobs:
 
       - name: Install tables on ${{ matrix.python-version }}
         run: |
-          python -m pip install --find-links wheelhouse/artifact/ tables
+          python -m pip install --pre --find-links wheelhouse/artifact/ tables
 
       - name: Run tests on ${{ matrix.python-version }}
         run: |
