@@ -23,7 +23,7 @@ build-backend = "setuptools.build_meta"
 #     "oldest-supported-numpy",
 #     "packaging",
 #     "py-cpuinfo",
-#     "Cython >=0.29.21",
+#     "Cython >=0.29.32",
 #     # for seamless wheel builds. Packagers can choose to replace
 #     # it by externally provided c-blosc2 library and headers
 #     "blosc2 >=2.0.0",
