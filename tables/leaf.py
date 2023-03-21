@@ -316,7 +316,7 @@ class Leaf(Node):
 
         # Compute the chunksize
         MB = 1024 * 1024
-        expected_mb = (expectedrows * rowsize) // MB
+        expected_mb = np.int32((np.int64(expectedrows) * rowsize) // MB)
         chunksize = calc_chunksize(expected_mb)
         complib = self.filters.complib
         if (complib is not None and
