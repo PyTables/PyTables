@@ -20,7 +20,9 @@ jobs:
         with:
           python-version: 3.x
       - name: Ubuntu library headers
-        run:  sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
+        run:  |
+          sudo apt update
+          sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
       - name: Source distribution
         run: |
           pip install build
