@@ -4,7 +4,11 @@ import warnings
 import math
 
 import numpy as np
-import cpuinfo
+try:
+    import cpuinfo
+    cpu_info = cpuinfo.get_cpu_info()
+except ImportError:
+    cpu_info = {}
 
 from .flavor import (check_flavor, internal_flavor, toarray,
                      alias_map as flavor_alias_map)
@@ -336,7 +340,6 @@ class Leaf(Node):
             # Use a decent default value for chunksize
             chunksize *= 16
             # Now, go explore the L3 size and try to find a smarter chunksize
-            cpu_info = cpuinfo.get_cpu_info()
             if 'l3_cache_size' in cpu_info:
                 # In general, is a good idea to set the chunksize equal to L3
                 l3_cache_size = cpu_info['l3_cache_size']
