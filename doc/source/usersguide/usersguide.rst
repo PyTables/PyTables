@@ -19,7 +19,7 @@ PyTables User's Guide
 
             |copy| 2008, 2009, 2010 - Francesc Alted
 
-            |copy| 2011–2022 - PyTables maintainers
+            |copy| 2011–2023 - PyTables maintainers
 :Date:      |today|
 :Version:   |version|
 :Home Page: http://www.pytables.org

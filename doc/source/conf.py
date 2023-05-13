@@ -20,7 +20,7 @@ def get_version(filename):
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'PyTables'
-copyright = '2011–2022, PyTables maintainers'
+copyright = '2011–2023, PyTables maintainers'
 author = 'PyTables maintainers'
 
 # The short X.Y version
