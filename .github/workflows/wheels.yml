@@ -43,7 +43,7 @@ jobs:
           python -m pip install --upgrade setuptools pip wheel build
           python -m pip install -r requirements.txt
           python -m pip install sphinx>=1.1 sphinx_rtd_theme numpydoc ipython
-          python -m pip install blosc2
+          python -m pip install "blosc2!=2.2.1,!=2.2.2"
 
       - name: Build sdist
         run: make PYTHON=python dist
