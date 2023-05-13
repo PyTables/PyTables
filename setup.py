@@ -7,6 +7,7 @@ import sys
 import glob
 import ctypes
 import shutil
+import fnmatch
 import platform
 import tempfile
 import textwrap
@@ -98,27 +99,6 @@ def get_blosc2_version(headername):
 
 def get_blosc2_directories():
     """Get Blosc2 directories for the C library"""
-    # If the system provides the library and headers,
-    # get them from environment variables or find by pkg-config
-    if platform.system() in ["Linux", "Darwin"]:
-        try:
-            include_path = Path(os.environ.get(
-                    "BLOSC2_INCDIR",
-                    subprocess.check_output(
-                        [PKG_CONFIG, '--variable=includedir', 'blosc2'],
-                        text=True).strip()))
-            library_path = Path(os.environ.get(
-                    "BLOSC2_LIBDIR",
-                    subprocess.check_output(
-                        [PKG_CONFIG, '--variable=libdir', 'blosc2'],
-                        text=True).strip()))
-        except subprocess.CalledProcessError:
-            pass
-        else:
-            return include_path, library_path
-
-    # Otherwise get them from the PyPI published wheels for blosc2
-    # They package the library and headers directly
     try:
         import blosc2
     except ModuleNotFoundError:
@@ -126,23 +106,51 @@ def get_blosc2_directories():
     version = blosc2.__version__
     basepath = Path(os.path.dirname(blosc2.__file__))
     recinfo = basepath.parent / f'blosc2-{version}.dist-info' / 'RECORD'
-    library_path = None
+    include_path = library_path = runtime_path = None
     for line in open(recinfo):
-        if 'libblosc2' in line:
-            library_path = Path(os.path.abspath(basepath.parent /
-                                                Path(line[:line.find('libblosc2')])))
-            break
+        path, _ = line.split(",", 1)
+        if fnmatch.fnmatch(path, '**/bin/libblosc2*'):
+            runtime_path = basepath.parent.joinpath(path).resolve()
+            if not runtime_path.is_file():
+                raise FileNotFoundError(f"File does not exixts: {runtime_path}")
+            runtime_path = runtime_path.parent.resolve()
+        elif fnmatch.fnmatch(path, '**/libblosc2*'):
+            library_path = basepath.parent.joinpath(path).resolve()
+            if not library_path.is_file():
+                raise FileNotFoundError(f"File does not exixts: {library_path}")
+            library_path = library_path.parent.resolve()
+        elif fnmatch.fnmatch(path, '**/include/blosc2.h'):
+            include_path = basepath.parent.joinpath(path).resolve()
+            if not include_path.is_file():
+                raise FileNotFoundError(f"File does not exixts: {include_path}")
+            include_path = include_path.parent.resolve()
+
     if not library_path:
         raise NotADirectoryError("Library directory not found for blosc2!")
 
-    include_path = library_path.parent / 'include'
-    if not os.path.isfile(include_path / 'blosc2.h'):
-        install_path = os.path.abspath(library_path.parent)
-        raise NotADirectoryError(
-            f"Install directory for blosc2 not found in {install_path}"
-        )
+    if not include_path:
+        raise NotADirectoryError("Header directory not found for blosc2!")
 
-    return include_path, library_path
+    return include_path, library_path, runtime_path
+
+
+def blosc2_find_directories_hook():
+    print("* Run 'blosc2_find_directories_hook'")
+    header_dirs = library_dirs = None
+    if os.environ.get("PYTABLES_NO_BLOSC2_WHEEL", None) is None:
+        try:
+            header_dirs, library_dirs, runtime_dirs = get_blosc2_directories()
+        except OSError:
+            print("* Unable to find blosc2 wheel.")
+    
+    if header_dirs is not None:
+        header_dirs = [header_dirs]
+    if library_dirs is not None:
+        library_dirs = [library_dirs]
+    if runtime_dirs is not None:
+        runtime_dirs = [runtime_dirs]
+
+    return header_dirs, library_dirs, runtime_dirs
 
 
 def newer(source, target):
@@ -280,15 +288,6 @@ if __name__ == "__main__":
     default_library_dirs = None
     default_runtime_dirs = None
 
-    blosc2_inc = blosc2_lib = None
-    if os.environ.get("PYTABLES_NO_BLOSC2_WHEEL", None) is None:
-        try:
-            blosc2_inc, blosc2_lib = get_blosc2_directories()
-            lib_dirs.append(blosc2_lib)
-            inc_dirs.append(blosc2_inc)
-        except EnvironmentError:
-            print("Unable to find blosc2 wheel.")
-
     if os.name == "posix":
         prefixes = ("/usr/local", "/sw", "/opt", "/opt/local", "/usr", "/")
         prefix_paths = [Path(x) for x in prefixes]
@@ -387,7 +386,7 @@ if __name__ == "__main__":
             else:
                 return config.decode().strip().split()
 
-        def find_directories(self, location, use_pkgconfig=False):
+        def find_directories(self, location, use_pkgconfig=False, hook=None):
             dirdata = [
                 (self.header_name, self.find_header_path, default_header_dirs),
                 (
@@ -452,10 +451,15 @@ if __name__ == "__main__":
             else:
                 pkgconfig_dirs = [None, None, None]
 
+            hook_dirs = hook() if hook is not None else [None, None, None]
+
             directories = [None, None, None]  # headers, libraries, runtime
             for idx, (name, find_path, default_dirs) in enumerate(dirdata):
                 path = find_path(
-                    pkgconfig_dirs[idx] or locations or default_dirs
+                    pkgconfig_dirs[idx]
+                    or hook_dirs[idx]
+                    or locations
+                    or default_dirs
                 )
                 if path:
                     if path is True:
@@ -637,6 +641,12 @@ if __name__ == "__main__":
     USE_PKGCONFIG = USE_PKGCONFIG.upper() == "TRUE"
     print("* USE_PKGCONFIG:", USE_PKGCONFIG)
 
+    if CONDA_PREFIX:
+        CONDA_PREFIX = Path(CONDA_PREFIX)
+        print(f"* Found conda env: ``{CONDA_PREFIX}``")
+        if os.name == "nt":
+            CONDA_PREFIX = CONDA_PREFIX / "Library"
+
     # For windows, search for the hdf5 dll in the path and use it if found.
     # This is much more convenient than having to manually set an environment
     # variable to rebuild pytables
@@ -656,12 +666,6 @@ if __name__ == "__main__":
             # Strip off the filename and the 'bin' directory
             HDF5_DIR = Path(libdir).parent.parent
             print(f"* Found HDF5 using system PATH ('{libdir}')")
-
-    if CONDA_PREFIX:
-        CONDA_PREFIX = Path(CONDA_PREFIX)
-        print(f"* Found conda env: ``{CONDA_PREFIX}``")
-        if os.name == "nt":
-            CONDA_PREFIX = CONDA_PREFIX / "Library"
 
     # The next flag for the C compiler is needed for finding the C headers for
     # the Cython extensions
@@ -706,9 +710,7 @@ if __name__ == "__main__":
     # Try to locate the compulsory and optional libraries.
     lzo2_enabled = False
     compiler = new_compiler()
-    if not BLOSC2_DIR and blosc2_inc is not None:
-        # Inject the blosc2 directory as detected
-        BLOSC2_DIR = os.path.dirname(blosc2_inc)
+
     for (package, location) in [
         (hdf5_package, HDF5_DIR),
         (lzo2_package, LZO_DIR),
@@ -733,8 +735,12 @@ if __name__ == "__main__":
         # '/usr/include/lzo'
         use_pkgconfig = USE_PKGCONFIG and package.tag != "LZO2"
 
+        hook = None
+        if package.tag == "BLOSC2":
+            hook = blosc2_find_directories_hook
+            
         (hdrdir, libdir, rundir) = package.find_directories(
-            location, use_pkgconfig=use_pkgconfig
+            location, use_pkgconfig=use_pkgconfig, hook=hook
         )
 
         # check if HDF5 library uses old DLL naming scheme
@@ -753,7 +759,7 @@ if __name__ == "__main__":
                 package.runtime_name = hdf5_old_dll_name
                 _platdep["HDF5"] = [hdf5_old_dll_name, hdf5_old_dll_name]
                 _, libdir, rundir = package.find_directories(
-                    location, use_pkgconfig=USE_PKGCONFIG
+                    location, use_pkgconfig=USE_PKGCONFIG, hook=hook
                 )
 
         # check if the library is in the standard compiler paths
@@ -765,7 +771,7 @@ if __name__ == "__main__":
             )
 
         if not (hdrdir and libdir):
-            if package.tag in ["HDF5"]:  # these are compulsory!
+            if package.tag in ["HDF5", "BLOSC2"]:  # these are compulsory!
                 pname, ptag = package.name, package.tag
                 exit_with_error(
                     f"Could not find a local {pname} installation.",
@@ -774,7 +780,7 @@ if __name__ == "__main__":
                     f"the ``{ptag}_DIR`` environment variable or by using "
                     f"the ``--{ptag.lower()}`` command-line option.",
                 )
-            if package.tag == "BLOSC":
+            elif package.tag == "BLOSC":
                 # this is optional, but comes with sources
                 print(
                     f"* Could not find {package.name} headers and library; "
