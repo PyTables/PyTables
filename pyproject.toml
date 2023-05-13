@@ -10,7 +10,7 @@ requires = [
     # Included here for seamless wheel builds.
     # Packagers can choose to replace it by externally provided
     # c-blosc2 library and headers
-    "blosc2 >=2.0.0",
+    "blosc2 >=2.0.0,!=2.2.1,!=2.2.2",
 ]
 build-backend = "setuptools.build_meta"
 
