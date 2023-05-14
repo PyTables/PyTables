@@ -99,7 +99,7 @@ def get_blosc2_directories():
     try:
         import blosc2
     except ModuleNotFoundError:
-        raise EnvironmentError("Cannot import the blosc2 requirement")
+        raise OSError("Cannot import the blosc2 requirement")
     version = blosc2.__version__
     basepath = Path(os.path.dirname(blosc2.__file__))
     recinfo = basepath.parent / f"blosc2-{version}.dist-info" / "RECORD"
@@ -381,11 +381,16 @@ if __name__ == "__main__":
         def _pkg_config(self, flags):
             try:
                 cmd = [PKG_CONFIG] + flags.split() + [self.library_name]
-                config = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+                config = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    check=True,
+                    text=True,
+                ).stdout
             except (OSError, subprocess.CalledProcessError):
                 return []
             else:
-                return config.decode().strip().split()
+                return config.strip().split()
 
         def find_directories(self, location, use_pkgconfig=False, hook=None):
             dirdata = [
@@ -1078,9 +1083,9 @@ if __name__ == "__main__":
 
     # Extension expects strings, so we have to convert Path to str
     # We remove duplicates too
-    blosc_sources = list(set([str(x) for x in blosc_sources]))
-    inc_dirs = list(set([str(x) for x in inc_dirs]))
-    lib_dirs = list(set([str(x) for x in lib_dirs]))
+    blosc_sources = list({str(x) for x in blosc_sources})
+    inc_dirs = list({str(x) for x in inc_dirs})
+    lib_dirs = list({str(x) for x in lib_dirs})
 
     extension_kwargs = {
         "extra_compile_args": CFLAGS,
