@@ -23,14 +23,12 @@ from packaging.version import Version
 
 # The name for the pkg-config utility
 PKG_CONFIG = "pkg-config"
-COPY_DLLS = bool(os.environ.get('COPY_DLLS', 'FALSE') == 'TRUE')
+COPY_DLLS = bool(os.environ.get("COPY_DLLS", "FALSE") == "TRUE")
 
 
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):
-    tw = textwrap.TextWrapper(
-        initial_indent="   ", subsequent_indent="   "
-    )
+    tw = textwrap.TextWrapper(initial_indent="   ", subsequent_indent="   ")
 
     print(f".. {kind.upper()}:: {head}")
     for line in tw.wrap(body):
@@ -105,24 +103,30 @@ def get_blosc2_directories():
         raise EnvironmentError("Cannot import the blosc2 requirement")
     version = blosc2.__version__
     basepath = Path(os.path.dirname(blosc2.__file__))
-    recinfo = basepath.parent / f'blosc2-{version}.dist-info' / 'RECORD'
+    recinfo = basepath.parent / f"blosc2-{version}.dist-info" / "RECORD"
     include_path = library_path = runtime_path = None
     for line in open(recinfo):
         path, _ = line.split(",", 1)
-        if fnmatch.fnmatch(path, '**/bin/libblosc2*'):
+        if fnmatch.fnmatch(path, "**/bin/libblosc2*"):
             runtime_path = basepath.parent.joinpath(path).resolve()
             if not runtime_path.is_file():
-                raise FileNotFoundError(f"File does not exixts: {runtime_path}")
+                raise FileNotFoundError(
+                    f"File does not exixts: {runtime_path}"
+                )
             runtime_path = runtime_path.parent.resolve()
-        elif fnmatch.fnmatch(path, '**/libblosc2*'):
+        elif fnmatch.fnmatch(path, "**/libblosc2*"):
             library_path = basepath.parent.joinpath(path).resolve()
             if not library_path.is_file():
-                raise FileNotFoundError(f"File does not exixts: {library_path}")
+                raise FileNotFoundError(
+                    f"File does not exixts: {library_path}"
+                )
             library_path = library_path.parent.resolve()
-        elif fnmatch.fnmatch(path, '**/include/blosc2.h'):
+        elif fnmatch.fnmatch(path, "**/include/blosc2.h"):
             include_path = basepath.parent.joinpath(path).resolve()
             if not include_path.is_file():
-                raise FileNotFoundError(f"File does not exixts: {include_path}")
+                raise FileNotFoundError(
+                    f"File does not exixts: {include_path}"
+                )
             include_path = include_path.parent.resolve()
 
     if not library_path:
@@ -142,7 +146,7 @@ def blosc2_find_directories_hook():
             header_dirs, library_dirs, runtime_dirs = get_blosc2_directories()
         except OSError:
             print("* Unable to find blosc2 wheel.")
-    
+
     if header_dirs is not None:
         header_dirs = [header_dirs]
     if library_dirs is not None:
@@ -191,7 +195,7 @@ def add_from_path(envname, dirs):
 
 def add_from_flags(envname, flag_key, dirs):
     dirs.extend(
-        Path(flag[len(flag_key):])
+        Path(flag[len(flag_key) :])
         for flag in os.environ.get(envname, "").split()
         if flag.startswith(flag_key)
     )
@@ -224,9 +228,7 @@ class BuildExtensions(build_ext):
         # According to
         # https://pip.pypa.io/en/stable/reference/pip_install.html#installation-order
         # at this point we can be sure pip has already installed numpy
-        numpy_incl = pkg_resources.resource_filename(
-            "numpy", "core/include"
-        )
+        numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
 
         for ext in self.extensions:
             if (
@@ -262,6 +264,7 @@ if __name__ == "__main__":
 
     try:
         import cython
+
         print(f"* Found cython {cython.__version__}")
         del cython
     except ImportError:
@@ -568,7 +571,9 @@ if __name__ == "__main__":
     bzip2_package.target_function = "BZ2_bzlibVersion"
     blosc_package = _Package("blosc", "BLOSC", "blosc", *_platdep["BLOSC"])
     blosc_package.target_function = "blosc_list_compressors"
-    blosc2_package = _Package("blosc2", "BLOSC2", "blosc2", *_platdep["BLOSC2"])
+    blosc2_package = _Package(
+        "blosc2", "BLOSC2", "blosc2", *_platdep["BLOSC2"]
+    )
     blosc2_package.target_function = "blosc2_list_compressors"
 
     # -----------------------------------------------------------------
@@ -711,7 +716,7 @@ if __name__ == "__main__":
     lzo2_enabled = False
     compiler = new_compiler()
 
-    for (package, location) in [
+    for package, location in [
         (hdf5_package, HDF5_DIR),
         (lzo2_package, LZO_DIR),
         (lzo1_package, LZO_DIR),
@@ -719,7 +724,6 @@ if __name__ == "__main__":
         (blosc_package, BLOSC_DIR),
         (blosc2_package, BLOSC2_DIR),
     ]:
-
         if package.tag == "LZO" and lzo2_enabled:
             print(
                 f"* Skipping detection of {lzo1_package.name} "
@@ -738,7 +742,7 @@ if __name__ == "__main__":
         hook = None
         if package.tag == "BLOSC2":
             hook = blosc2_find_directories_hook
-            
+
         (hdrdir, libdir, rundir) = package.find_directories(
             location, use_pkgconfig=use_pkgconfig, hook=hook
         )
@@ -767,7 +771,7 @@ if __name__ == "__main__":
             libdir = compiler.has_function(
                 package.target_function,
                 includes=(package.header_name + ".h",),
-                libraries=(package.library_name,)
+                libraries=(package.library_name,),
             )
 
         if not (hdrdir and libdir):
@@ -833,7 +837,8 @@ if __name__ == "__main__":
                 print_warning(
                     f"Unsupported Blosc2 version installed! Blosc2 "
                     f"{min_blosc2_version}+ required. Found version "
-                    f"{blosc2_version}.  Update it via `pip install blosc2 -U.`"
+                    f"{blosc2_version}.  "
+                    f"Update it via `pip install blosc2 -U.`"
                 )
 
         if not rundir:
@@ -844,45 +849,53 @@ if __name__ == "__main__":
 
             if package.name == "blosc2":
                 # We will copy this into the tables directory
-                print("  * Copying blosc2 runtime library to 'tables' dir"
-                      " because it was not found in standard locations")
+                print(
+                    "  * Copying blosc2 runtime library to 'tables' dir"
+                    " because it was not found in standard locations"
+                )
                 platform_system = platform.system()
                 if platform_system == "Linux":
-                    shutil.copy(libdir / 'libblosc2.so', ROOT / "tables")
-                    copy_libs += ['libblosc2.so']
+                    shutil.copy(libdir / "libblosc2.so", ROOT / "tables")
+                    copy_libs += ["libblosc2.so"]
 
-                    dll_dir = '/tmp/hdf5/lib'
+                    dll_dir = "/tmp/hdf5/lib"
                     # Copy dlls when producing the wheels in CI
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
-                        shared_libs = glob.glob(str(libdir) + '/libblosc2.so*')
+                        shared_libs = glob.glob(str(libdir) + "/libblosc2.so*")
                         for lib in shared_libs:
                             shutil.copy(lib, dll_dir)
 
                 elif platform_system == "Darwin":
-                    shutil.copy(libdir / 'libblosc2.dylib', ROOT / 'tables')
-                    copy_libs += ['libblosc2.dylib']
+                    shutil.copy(libdir / "libblosc2.dylib", ROOT / "tables")
+                    copy_libs += ["libblosc2.dylib"]
 
-                    dll_dir = '/tmp/hdf5/lib'
+                    dll_dir = "/tmp/hdf5/lib"
                     # Copy dlls when producing the wheels in CI
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
-                        shared_libs = glob.glob(str(libdir) + '/libblosc2*.dylib')
+                        shared_libs = glob.glob(
+                            str(libdir) + "/libblosc2*.dylib"
+                        )
                         for lib in shared_libs:
                             shutil.copy(lib, dll_dir)
 
                 else:
-                    copy_libs += ['libblosc2.dll']
-                    dll_dir = 'C:\\Miniconda\\envs\\build\\Library\\bin'
+                    copy_libs += ["libblosc2.dll"]
+                    dll_dir = "C:\\Miniconda\\envs\\build\\Library\\bin"
                     # Copy dlls when producing the wheels in CI
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
-                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', dll_dir)
+                        shutil.copy(
+                            libdir.parent / "bin" / "libblosc2.dll", dll_dir
+                        )
                     else:
-                        shutil.copy(libdir.parent / 'bin' / 'libblosc2.dll', 'tables')
+                        shutil.copy(
+                            libdir.parent / "bin" / "libblosc2.dll", "tables"
+                        )
             else:
                 if "bdist_wheel" in sys.argv and os.name == "nt":
                     exit_with_error(
                         f"Could not find the {package.name} runtime.",
-                        f"The {package.name} shared library was *not* found in "
-                        f"{loc}. Cannot build wheel without the runtime.",
+                        f"The {package.name} shared library was *not* found "
+                        f"in {loc}. Cannot build wheel without the runtime.",
                     )
 
                 print_warning(
@@ -891,7 +904,6 @@ if __name__ == "__main__":
                     f"in {loc}. In case of runtime problems, please "
                     f"remember to install it.",
                 )
-
 
         if os.name == "nt":
             # LZO DLLs cannot be copied to the binary package for license
@@ -907,6 +919,7 @@ if __name__ == "__main__":
         if os.name == "nt" and package.tag in ["HDF5"]:
             # hdf5.dll usually depends on zlib.dll
             import ctypes.util
+
             z_lib_path = ctypes.util.find_library("zlib.dll")
             if z_lib_path:
                 print(f"* Adding zlib.dll (hdf5 dependency): ``{z_lib_path}``")
@@ -955,7 +968,7 @@ if __name__ == "__main__":
     # --------------------------------------------------------------------
     if os.name == "nt" and COPY_DLLS:
         for dll_file in dll_files:
-            shutil.copy(dll_file, 'tables')
+            shutil.copy(dll_file, "tables")
 
     ADDLIBS = [hdf5_package.library_name]
 
@@ -989,8 +1002,12 @@ if __name__ == "__main__":
         inc_dirs += int_complibs_path.glob("zstd*/common")
         inc_dirs += int_complibs_path.glob("zstd*")
         # ...and the macros for all the compressors supported
-        def_macros += [("HAVE_LZ4", 1), ("HAVE_ZLIB", 1), ("HAVE_ZSTD", 1),
-                       ("ZSTD_DISABLE_ASM", 1)]
+        def_macros += [
+            ("HAVE_LZ4", 1),
+            ("HAVE_ZLIB", 1),
+            ("HAVE_ZSTD", 1),
+            ("ZSTD_DISABLE_ASM", 1),
+        ]
 
         # Add extra flags for optimizing shuffle in include Blosc
         def compiler_has_flags(compiler, flags):
@@ -1010,7 +1027,7 @@ if __name__ == "__main__":
 
         # Set flags for SSE2 and AVX2 preventing false detection in case
         # of emulation
-        if platform.machine() not in ('aarch64', 'ARM64'):
+        if platform.machine() not in ("aarch64", "ARM64"):
             # SSE2
             if "sse2" in cpu_flags and "DISABLE_SSE2" not in os.environ:
                 print("SSE2 detected and enabled")
@@ -1044,21 +1061,20 @@ if __name__ == "__main__":
     else:
         exit_with_error("Unable to find the blosc2 library.")
 
-    utilsExtension_libs = LIBS + ADDLIBS
-    hdf5Extension_libs = LIBS + ADDLIBS
-    tableExtension_libs = LIBS + ADDLIBS
-    linkExtension_libs = LIBS + ADDLIBS
-    indexesExtension_libs = LIBS + ADDLIBS
-    lrucacheExtension_libs = []  # Doesn't need external libraries
+    utilsextension_libs = LIBS + ADDLIBS
+    hdf5extension_libs = LIBS + ADDLIBS
+    tableextension_libs = LIBS + ADDLIBS
+    linkextension_libs = LIBS + ADDLIBS
+    indexesextension_libs = LIBS + ADDLIBS
+    lrucacheextension_libs = []  # Doesn't need external libraries
 
     # Compressor modules only need other libraries if they are enabled.
     _comp_lzo_libs = LIBS[:]
     _comp_bzip2_libs = LIBS[:]
-    for (package, complibs) in [
+    for package, complibs in [
         (lzo_package, _comp_lzo_libs),
         (bzip2_package, _comp_bzip2_libs),
     ]:
-
         if package.tag in optional_libs:
             complibs.extend([hdf5_package.library_name, package.library_name])
 
@@ -1086,7 +1102,7 @@ if __name__ == "__main__":
                 "src/H5ATTR.c",
             ]
             + blosc_sources,
-            libraries=utilsExtension_libs,
+            libraries=utilsextension_libs,
             **extension_kwargs,
         ),
         Extension(
@@ -1101,7 +1117,7 @@ if __name__ == "__main__":
                 "src/H5ATTR.c",
             ]
             + blosc_sources,
-            libraries=hdf5Extension_libs,
+            libraries=hdf5extension_libs,
             **extension_kwargs,
         ),
         Extension(
@@ -1114,7 +1130,7 @@ if __name__ == "__main__":
                 "src/H5ATTR.c",
             ]
             + blosc_sources,
-            libraries=tableExtension_libs,
+            libraries=tableextension_libs,
             **extension_kwargs,
         ),
         Extension(
@@ -1132,13 +1148,13 @@ if __name__ == "__main__":
         Extension(
             "tables.linkextension",
             sources=[str(cython_extfiles["linkextension"])],
-            libraries=tableExtension_libs,
+            libraries=tableextension_libs,
             **extension_kwargs,
         ),
         Extension(
             "tables.lrucacheextension",
             sources=[str(cython_extfiles["lrucacheextension"])],
-            libraries=lrucacheExtension_libs,
+            libraries=lrucacheextension_libs,
             **extension_kwargs,
         ),
         Extension(
@@ -1148,7 +1164,7 @@ if __name__ == "__main__":
                 "src/H5ARRAY-opt.c",
                 "src/idx-opt.c",
             ],
-            libraries=indexesExtension_libs,
+            libraries=indexesextension_libs,
             **extension_kwargs,
         ),
     ]
