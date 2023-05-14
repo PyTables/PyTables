@@ -17,7 +17,6 @@ from pathlib import Path
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-import pkg_resources
 from packaging.version import Version
 
 
@@ -225,10 +224,9 @@ class BuildExtensions(build_ext):
     """
 
     def run(self):
-        # According to
-        # https://pip.pypa.io/en/stable/reference/pip_install.html#installation-order
-        # at this point we can be sure pip has already installed numpy
-        numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
+        from numpy import get_include
+
+        numpy_incl = get_include()
 
         for ext in self.extensions:
             if (
