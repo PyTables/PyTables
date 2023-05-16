@@ -139,19 +139,19 @@ def get_blosc2_directories():
 
 def blosc2_find_directories_hook():
     print("* Run 'blosc2_find_directories_hook'")
-    header_dirs = library_dirs = None
+    header_dirs = library_dirs = runtime_dirs = None
     if os.environ.get("PYTABLES_NO_BLOSC2_WHEEL", None) is None:
         try:
             header_dirs, library_dirs, runtime_dirs = get_blosc2_directories()
         except OSError:
             print("* Unable to find blosc2 wheel.")
-
-    if header_dirs is not None:
-        header_dirs = [header_dirs]
-    if library_dirs is not None:
-        library_dirs = [library_dirs]
-    if runtime_dirs is not None:
-        runtime_dirs = [runtime_dirs]
+        else:
+            if header_dirs is not None:
+                header_dirs = [header_dirs]
+            if library_dirs is not None:
+                library_dirs = [library_dirs]
+            if runtime_dirs is not None:
+                runtime_dirs = [runtime_dirs]
 
     return header_dirs, library_dirs, runtime_dirs
 
