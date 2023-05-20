@@ -457,9 +457,9 @@ class BasePackage:
         directories = [None, None, None]  # headers, libraries, runtime
         for idx, (name, find_path, default_dirs) in enumerate(dirdata):
             path = find_path(
-                pkgconfig_dirs[idx]
+                locations
+                or pkgconfig_dirs[idx]
                 or hook_dirs[idx]
-                or locations
                 or default_dirs
             )
             if path:
