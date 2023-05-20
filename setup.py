@@ -238,6 +238,196 @@ class BuildExtensions(build_ext):
         build_ext.run(self)
 
 
+class BasePackage:
+    _library_prefixes = []
+    _library_suffixes = []
+    _runtime_prefixes = []
+    _runtime_suffixes = []
+    _component_dirs = []
+
+    def __init__(
+        self, name, tag, header_name, library_name, target_function=None
+    ):
+        self.name = name
+        self.tag = tag
+        self.header_name = header_name
+        self.library_name = library_name
+        self.runtime_name = library_name
+        self.target_function = target_function
+
+    def find_header_path(self, locations):
+        return _find_file_path(self.header_name, locations, suffixes=[".h"])
+
+    def find_library_path(self, locations):
+        return _find_file_path(
+            self.library_name,
+            locations,
+            self._library_prefixes,
+            self._library_suffixes,
+        )
+
+    def find_runtime_path(self, locations=None):
+        """
+        returns True if the runtime can be found
+        returns None otherwise
+        """
+        # An explicit path can not be provided for runtime libraries.
+        # (The argument is accepted for compatibility with previous
+        # methods.)
+
+        # dlopen() won't tell us where the file is, just whether
+        # success occurred, so this returns True instead of a filename
+        for prefix in self._runtime_prefixes:
+            for suffix in self._runtime_suffixes:
+                try:
+                    ctypes.CDLL(f"{prefix}{self.runtime_name}{suffix}")
+                except OSError:
+                    pass
+                else:
+                    return True
+
+    def _pkg_config(self, flags):
+        try:
+            cmd = [PKG_CONFIG] + flags.split() + [self.library_name]
+            config = subprocess.run(
+                cmd,
+                capture_output=True,
+                check=True,
+                text=True,
+            ).stdout
+        except (OSError, subprocess.CalledProcessError):
+            return []
+        else:
+            return config.strip().split()
+
+    def find_directories(self, location, use_pkgconfig=False, hook=None):
+        dirdata = [
+            (self.header_name, self.find_header_path, default_header_dirs),
+            (
+                self.library_name,
+                self.find_library_path,
+                default_library_dirs,
+            ),
+            (
+                self.runtime_name,
+                self.find_runtime_path,
+                default_runtime_dirs,
+            ),
+        ]
+
+        locations = []
+        if location:
+            # The path of a custom install of the package has been
+            # provided, so the directories where the components
+            # (headers, libraries, runtime) are going to be searched
+            # are constructed by appending platform-dependent
+            # component directories to the given path.
+            # Remove leading and trailing '"' chars that can mislead
+            # the finding routines on Windows machines
+            locations = [
+                Path(str(location).strip('"')) / compdir
+                for compdir in self._component_dirs
+            ]
+
+        if use_pkgconfig:
+            # header
+            pkgconfig_header_dirs = [
+                Path(d[2:])
+                for d in self._pkg_config("--cflags")
+                if d.startswith("-I")
+            ]
+            if pkgconfig_header_dirs:
+                print(
+                    f"* pkg-config header dirs for {self.name}:",
+                    ", ".join(str(x) for x in pkgconfig_header_dirs),
+                )
+
+            # library
+            pkgconfig_library_dirs = [
+                Path(d[2:])
+                for d in self._pkg_config("--libs-only-L")
+                if d.startswith("-L")
+            ]
+            if pkgconfig_library_dirs:
+                print(
+                    f"* pkg-config library dirs for {self.name}:",
+                    ", ".join(str(x) for x in pkgconfig_library_dirs),
+                )
+
+            # runtime
+            pkgconfig_runtime_dirs = pkgconfig_library_dirs
+
+            pkgconfig_dirs = [
+                pkgconfig_header_dirs,
+                pkgconfig_library_dirs,
+                pkgconfig_runtime_dirs,
+            ]
+        else:
+            pkgconfig_dirs = [None, None, None]
+
+        hook_dirs = hook() if hook is not None else [None, None, None]
+
+        directories = [None, None, None]  # headers, libraries, runtime
+        for idx, (name, find_path, default_dirs) in enumerate(dirdata):
+            path = find_path(
+                pkgconfig_dirs[idx]
+                or hook_dirs[idx]
+                or locations
+                or default_dirs
+            )
+            if path:
+                if path is True:
+                    directories[idx] = True
+                    continue
+
+                # Take care of not returning a directory component
+                # included in the name.  For instance, if name is
+                # 'foo/bar' and path is '/path/foo/bar.h', do *not*
+                # take '/path/foo', but just '/path'.  This also works
+                # for name 'libfoo.so' and path '/path/libfoo.so'.
+                # This has been modified to just work over include files.
+                # For libraries, its names can be something like 'bzip2'
+                # and if they are located in places like:
+                #  \stuff\bzip2-1.0.3\lib\bzip2.lib
+                # then, the directory will be returned as '\stuff' (!!)
+                # F. Alted 2006-02-16
+                if idx == 0:
+                    directories[idx] = Path(path[: path.rfind(name)])
+                else:
+                    directories[idx] = Path(path).parent
+
+        return tuple(directories)
+
+
+class PosixPackage(BasePackage):
+    _library_prefixes = ["lib"]
+    _library_suffixes = [".so", ".dylib", ".a"]
+    _runtime_prefixes = _library_prefixes
+    _runtime_suffixes = [".so", ".dylib"]
+    _component_dirs = ["include", "lib", "lib64"]
+
+
+class WindowsPackage(BasePackage):
+    _library_prefixes = [""]
+    _library_suffixes = [".lib"]
+    _runtime_prefixes = [""]
+    _runtime_suffixes = [".dll"]
+
+    # lookup in '.' seems necessary for LZO2
+    _component_dirs = ["include", "lib", "dll", "bin", "."]
+
+    def find_runtime_path(self, locations=None):
+        # An explicit path can not be provided for runtime libraries.
+        # (The argument is accepted for compatibility with previous
+        # methods.)
+        return _find_file_path(
+            self.runtime_name,
+            locations,
+            self._runtime_prefixes,
+            self._runtime_suffixes,
+        )
+
+
 if __name__ == "__main__":
     ROOT = Path(__file__).resolve().parent
 
@@ -249,8 +439,8 @@ if __name__ == "__main__":
 
         cpu_info = cpuinfo.get_cpu_info()
         cpu_flags = cpu_info["flags"]
-    except Exception as e:
-        print("cpuinfo failed, assuming no CPU features:", e)
+    except Exception as exc:
+        print("cpuinfo failed, assuming no CPU features:", exc)
         cpu_flags = []
 
     # The minimum required versions
@@ -277,7 +467,71 @@ if __name__ == "__main__":
 
     # ----------------------------------------------------------------------
 
-    debug = "--debug" in sys.argv
+    # Allow setting the HDF5 dir and additional link flags either in
+    # the environment or on the command line.
+    # First check the environment...
+    HDF5_DIR = os.environ.get("HDF5_DIR", "")
+    LZO_DIR = os.environ.get("LZO_DIR", "")
+    BZIP2_DIR = os.environ.get("BZIP2_DIR", "")
+    BLOSC_DIR = os.environ.get("BLOSC_DIR", "")
+    BLOSC2_DIR = os.environ.get("BLOSC2_DIR", "")
+    LFLAGS = os.environ.get("LFLAGS", "").split()
+    # in GCC-style compilers, -w in extra flags will get rid of copious
+    # 'uninitialized variable' Cython warnings. However, this shouldn't be
+    # the default as it will suppress *all* the warnings, which definitely
+    # is not a good idea.
+    CFLAGS = os.environ.get("CFLAGS", "").split()
+    LIBS = os.environ.get("LIBS", "").split()
+    CONDA_PREFIX = os.environ.get("CONDA_PREFIX", "")
+    # We start using pkg-config since some distributions are putting HDF5
+    # (and possibly other libraries) in exotic locations.  See issue #442.
+    if shutil.which(PKG_CONFIG):
+        USE_PKGCONFIG = os.environ.get("USE_PKGCONFIG", "TRUE")
+    else:
+        USE_PKGCONFIG = "FALSE"
+
+    # ...then the command line.
+    # Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH] --blosc=[PATH]
+    # --lflags=[FLAGS] --cflags=[FLAGS] and --debug
+    debug = False
+    for arg in list(sys.argv):
+        key, _, val = arg.partition("=")
+        if key == "--hdf5":
+            HDF5_DIR = Path(val).expanduser()
+        elif key == "--lzo":
+            LZO_DIR = Path(val).expanduser()
+        elif key == "--bzip2":
+            BZIP2_DIR = Path(val).expanduser()
+        elif key == "--blosc":
+            BLOSC_DIR = Path(val).expanduser()
+        elif key == "--blosc2":
+            BLOSC2_DIR = Path(val).expanduser()
+        elif key == "--lflags":
+            LFLAGS = val.split()
+        elif key == "--cflags":
+            CFLAGS = val.split()
+        elif key == "--debug":
+            debug = True
+            # Don't delete this argument. It maybe useful for distutils
+            # when adding more flags later on
+            continue
+        elif key == "--use-pkgconfig":
+            USE_PKGCONFIG = val
+            CONDA_PREFIX = ""
+        elif key == "--no-conda":
+            CONDA_PREFIX = ""
+        else:
+            continue
+        sys.argv.remove(arg)
+
+    USE_PKGCONFIG = USE_PKGCONFIG.upper() == "TRUE"
+    print("* USE_PKGCONFIG:", USE_PKGCONFIG)
+
+    if CONDA_PREFIX:
+        CONDA_PREFIX = Path(CONDA_PREFIX)
+        print(f"* Found conda env: ``{CONDA_PREFIX}``")
+        if os.name == "nt":
+            CONDA_PREFIX = CONDA_PREFIX / "Library"
 
     # Global variables
     lib_dirs = []
@@ -327,195 +581,6 @@ if __name__ == "__main__":
     if sys.platform.lower().startswith("darwin"):
         inc_dirs.extend(default_header_dirs)
         lib_dirs.extend(default_library_dirs)
-
-    class BasePackage:
-        _library_prefixes = []
-        _library_suffixes = []
-        _runtime_prefixes = []
-        _runtime_suffixes = []
-        _component_dirs = []
-
-        def __init__(
-            self, name, tag, header_name, library_name, target_function=None
-        ):
-            self.name = name
-            self.tag = tag
-            self.header_name = header_name
-            self.library_name = library_name
-            self.runtime_name = library_name
-            self.target_function = target_function
-
-        def find_header_path(self, locations=default_header_dirs):
-            return _find_file_path(
-                self.header_name, locations, suffixes=[".h"]
-            )
-
-        def find_library_path(self, locations=default_library_dirs):
-            return _find_file_path(
-                self.library_name,
-                locations,
-                self._library_prefixes,
-                self._library_suffixes,
-            )
-
-        def find_runtime_path(self, locations=default_runtime_dirs):
-            """
-            returns True if the runtime can be found
-            returns None otherwise
-            """
-            # An explicit path can not be provided for runtime libraries.
-            # (The argument is accepted for compatibility with previous
-            # methods.)
-
-            # dlopen() won't tell us where the file is, just whether
-            # success occurred, so this returns True instead of a filename
-            for prefix in self._runtime_prefixes:
-                for suffix in self._runtime_suffixes:
-                    try:
-                        ctypes.CDLL(f"{prefix}{self.runtime_name}{suffix}")
-                    except OSError:
-                        pass
-                    else:
-                        return True
-
-        def _pkg_config(self, flags):
-            try:
-                cmd = [PKG_CONFIG] + flags.split() + [self.library_name]
-                config = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    check=True,
-                    text=True,
-                ).stdout
-            except (OSError, subprocess.CalledProcessError):
-                return []
-            else:
-                return config.strip().split()
-
-        def find_directories(self, location, use_pkgconfig=False, hook=None):
-            dirdata = [
-                (self.header_name, self.find_header_path, default_header_dirs),
-                (
-                    self.library_name,
-                    self.find_library_path,
-                    default_library_dirs,
-                ),
-                (
-                    self.runtime_name,
-                    self.find_runtime_path,
-                    default_runtime_dirs,
-                ),
-            ]
-
-            locations = []
-            if location:
-                # The path of a custom install of the package has been
-                # provided, so the directories where the components
-                # (headers, libraries, runtime) are going to be searched
-                # are constructed by appending platform-dependent
-                # component directories to the given path.
-                # Remove leading and trailing '"' chars that can mislead
-                # the finding routines on Windows machines
-                locations = [
-                    Path(str(location).strip('"')) / compdir
-                    for compdir in self._component_dirs
-                ]
-
-            if use_pkgconfig:
-                # header
-                pkgconfig_header_dirs = [
-                    Path(d[2:])
-                    for d in self._pkg_config("--cflags")
-                    if d.startswith("-I")
-                ]
-                if pkgconfig_header_dirs:
-                    print(
-                        f"* pkg-config header dirs for {self.name}:",
-                        ", ".join(str(x) for x in pkgconfig_header_dirs),
-                    )
-
-                # library
-                pkgconfig_library_dirs = [
-                    Path(d[2:])
-                    for d in self._pkg_config("--libs-only-L")
-                    if d.startswith("-L")
-                ]
-                if pkgconfig_library_dirs:
-                    print(
-                        f"* pkg-config library dirs for {self.name}:",
-                        ", ".join(str(x) for x in pkgconfig_library_dirs),
-                    )
-
-                # runtime
-                pkgconfig_runtime_dirs = pkgconfig_library_dirs
-
-                pkgconfig_dirs = [
-                    pkgconfig_header_dirs,
-                    pkgconfig_library_dirs,
-                    pkgconfig_runtime_dirs,
-                ]
-            else:
-                pkgconfig_dirs = [None, None, None]
-
-            hook_dirs = hook() if hook is not None else [None, None, None]
-
-            directories = [None, None, None]  # headers, libraries, runtime
-            for idx, (name, find_path, default_dirs) in enumerate(dirdata):
-                path = find_path(
-                    pkgconfig_dirs[idx]
-                    or hook_dirs[idx]
-                    or locations
-                    or default_dirs
-                )
-                if path:
-                    if path is True:
-                        directories[idx] = True
-                        continue
-
-                    # Take care of not returning a directory component
-                    # included in the name.  For instance, if name is
-                    # 'foo/bar' and path is '/path/foo/bar.h', do *not*
-                    # take '/path/foo', but just '/path'.  This also works
-                    # for name 'libfoo.so' and path '/path/libfoo.so'.
-                    # This has been modified to just work over include files.
-                    # For libraries, its names can be something like 'bzip2'
-                    # and if they are located in places like:
-                    #  \stuff\bzip2-1.0.3\lib\bzip2.lib
-                    # then, the directory will be returned as '\stuff' (!!)
-                    # F. Alted 2006-02-16
-                    if idx == 0:
-                        directories[idx] = Path(path[: path.rfind(name)])
-                    else:
-                        directories[idx] = Path(path).parent
-
-            return tuple(directories)
-
-    class PosixPackage(BasePackage):
-        _library_prefixes = ["lib"]
-        _library_suffixes = [".so", ".dylib", ".a"]
-        _runtime_prefixes = _library_prefixes
-        _runtime_suffixes = [".so", ".dylib"]
-        _component_dirs = ["include", "lib", "lib64"]
-
-    class WindowsPackage(BasePackage):
-        _library_prefixes = [""]
-        _library_suffixes = [".lib"]
-        _runtime_prefixes = [""]
-        _runtime_suffixes = [".dll"]
-
-        # lookup in '.' seems necessary for LZO2
-        _component_dirs = ["include", "lib", "dll", "bin", "."]
-
-        def find_runtime_path(self, locations=default_runtime_dirs):
-            # An explicit path can not be provided for runtime libraries.
-            # (The argument is accepted for compatibility with previous
-            # methods.)
-            return _find_file_path(
-                self.runtime_name,
-                default_runtime_dirs,
-                self._runtime_prefixes,
-                self._runtime_suffixes,
-            )
 
     if os.name == "posix":
         _Package = PosixPackage
@@ -582,78 +647,17 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------
 
     def_macros = [("NDEBUG", 1)]
+
     # Define macros for Windows platform
     if os.name == "nt":
+        if debug:
+            # For debugging (mainly compression filters)
+            # to prevent including dlfcn.h by utils.c!!!
+            def_macros = [("DEBUG", 1)]
+
         def_macros.append(("WIN32", 1))
         def_macros.append(("_HDF5USEDLL_", 1))
         def_macros.append(("H5_BUILT_AS_DYNAMIC_LIB", 1))
-
-    # Allow setting the HDF5 dir and additional link flags either in
-    # the environment or on the command line.
-    # First check the environment...
-    HDF5_DIR = os.environ.get("HDF5_DIR", "")
-    LZO_DIR = os.environ.get("LZO_DIR", "")
-    BZIP2_DIR = os.environ.get("BZIP2_DIR", "")
-    BLOSC_DIR = os.environ.get("BLOSC_DIR", "")
-    BLOSC2_DIR = os.environ.get("BLOSC2_DIR", "")
-    LFLAGS = os.environ.get("LFLAGS", "").split()
-    # in GCC-style compilers, -w in extra flags will get rid of copious
-    # 'uninitialized variable' Cython warnings. However, this shouldn't be
-    # the default as it will suppress *all* the warnings, which definitely
-    # is not a good idea.
-    CFLAGS = os.environ.get("CFLAGS", "").split()
-    LIBS = os.environ.get("LIBS", "").split()
-    CONDA_PREFIX = os.environ.get("CONDA_PREFIX", "")
-    # We start using pkg-config since some distributions are putting HDF5
-    # (and possibly other libraries) in exotic locations.  See issue #442.
-    if shutil.which(PKG_CONFIG):
-        USE_PKGCONFIG = os.environ.get("USE_PKGCONFIG", "TRUE")
-    else:
-        USE_PKGCONFIG = "FALSE"
-
-    # ...then the command line.
-    # Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH] --blosc=[PATH]
-    # --lflags=[FLAGS] --cflags=[FLAGS] and --debug
-    for arg in list(sys.argv):
-        key, _, val = arg.partition("=")
-        if key == "--hdf5":
-            HDF5_DIR = Path(val).expanduser()
-        elif key == "--lzo":
-            LZO_DIR = Path(val).expanduser()
-        elif key == "--bzip2":
-            BZIP2_DIR = Path(val).expanduser()
-        elif key == "--blosc":
-            BLOSC_DIR = Path(val).expanduser()
-        elif key == "--blosc2":
-            BLOSC2_DIR = Path(val).expanduser()
-        elif key == "--lflags":
-            LFLAGS = val.split()
-        elif key == "--cflags":
-            CFLAGS = val.split()
-        elif key == "--debug":
-            # For debugging (mainly compression filters)
-            if os.name != "nt":  # to prevent including dlfcn.h by utils.c!!!
-                def_macros = [("DEBUG", 1)]
-            # Don't delete this argument. It maybe useful for distutils
-            # when adding more flags later on
-            continue
-        elif key == "--use-pkgconfig":
-            USE_PKGCONFIG = val
-            CONDA_PREFIX = ""
-        elif key == "--no-conda":
-            CONDA_PREFIX = ""
-        else:
-            continue
-        sys.argv.remove(arg)
-
-    USE_PKGCONFIG = USE_PKGCONFIG.upper() == "TRUE"
-    print("* USE_PKGCONFIG:", USE_PKGCONFIG)
-
-    if CONDA_PREFIX:
-        CONDA_PREFIX = Path(CONDA_PREFIX)
-        print(f"* Found conda env: ``{CONDA_PREFIX}``")
-        if os.name == "nt":
-            CONDA_PREFIX = CONDA_PREFIX / "Library"
 
     # For windows, search for the hdf5 dll in the path and use it if found.
     # This is much more convenient than having to manually set an environment
