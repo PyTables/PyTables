@@ -13,6 +13,7 @@ import tempfile
 import textwrap
 import subprocess
 from pathlib import Path
+from typing import NamedTuple, Optional
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, Extension
@@ -238,6 +239,76 @@ class BuildExtensions(build_ext):
         build_ext.run(self)
 
 
+class DefaultDirs(NamedTuple):
+    header: Optional[Path] = None
+    library: Optional[Path] = None
+    runtime: Optional[Path] = None
+
+
+def get_default_dirs(conda_prefix: Optional[Path] = None) -> DefaultDirs:
+    # Order:
+    # * C/CXX flags
+    # * conda prefix
+    # * hardcoded system paths
+
+    header_dirs = None
+    library_dirs = None
+    runtime_dirs = None
+    if conda_prefix:
+        conda_prefix = Path(conda_prefix)
+
+    if os.name == "posix":
+        prefixes = ("/usr/local", "/sw", "/opt", "/opt/local", "/usr", "/")
+        prefix_paths = [Path(x) for x in prefixes]
+
+        header_dirs = []
+        # C/CXX flags
+        add_from_path("CPATH", header_dirs)
+        add_from_path("C_INCLUDE_PATH", header_dirs)
+        add_from_flags("CPPFLAGS", "-I", header_dirs)
+        add_from_flags("CFLAGS", "-I", header_dirs)
+        # conda prefix
+        if conda_prefix:
+            header_dirs.append(conda_prefix / "include")
+        # hardcoded system paths
+        header_dirs.extend(_tree / "include" for _tree in prefix_paths)
+
+        library_dirs = []
+        # C/CXX flags
+        add_from_flags("LDFLAGS", "-L", library_dirs)
+        _archs = ("lib64", "lib")
+        # conda prefix
+        if conda_prefix:
+            library_dirs.extend(
+                conda_prefix / _arch for _arch in _archs
+            )
+        # hardcoded system paths
+        library_dirs.extend(
+            _tree / _arch for _tree in prefix_paths for _arch in _archs
+        )
+        runtime_dirs = library_dirs
+
+    elif os.name == "nt":
+        header_dirs = []  # no default, must be given explicitly
+        library_dirs = []  # no default, must be given explicitly
+        runtime_dirs = []  # look for DLL files in ``%PATH%``
+        if conda_prefix:
+            runtime_dirs.append(conda_prefix / "Library")
+        runtime_dirs.extend(
+            Path(_path) for _path in os.environ["PATH"].split(";")
+        )
+        # Add the \Windows\system to the runtime list (necessary for Vista)
+        runtime_dirs.append(Path("\\windows\\system"))
+        # Add the \path_to_python\DLLs and tables package to the list
+        runtime_dirs.append(
+            Path(sys.prefix) / "Lib" / "site-packages" / "tables"
+        )
+
+    return DefaultDirs(
+        header_dirs, library_dirs, runtime_dirs
+    )
+
+
 class BasePackage:
     _library_prefixes = []
     _library_suffixes = []
@@ -246,14 +317,26 @@ class BasePackage:
     _component_dirs = []
 
     def __init__(
-        self, name, tag, header_name, library_name, target_function=None
+        self,
+        name,
+        tag,
+        header_name,
+        library_name,
+        runtime_name,
+        target_function=None,
+        default_dirs=None,
     ):
         self.name = name
         self.tag = tag
         self.header_name = header_name
         self.library_name = library_name
-        self.runtime_name = library_name
+        self.runtime_name = (
+            library_name if runtime_name is None else runtime_name
+        )
         self.target_function = target_function
+        self.default_dirs = (
+            DefaultDirs() if default_dirs is None else default_dirs
+        )
 
     def find_header_path(self, locations):
         return _find_file_path(self.header_name, locations, suffixes=[".h"])
@@ -302,16 +385,20 @@ class BasePackage:
 
     def find_directories(self, location, use_pkgconfig=False, hook=None):
         dirdata = [
-            (self.header_name, self.find_header_path, default_header_dirs),
+            (
+                self.header_name,
+                self.find_header_path,
+                self.default_dirs.header,
+            ),
             (
                 self.library_name,
                 self.find_library_path,
-                default_library_dirs,
+                self.default_dirs.library,
             ),
             (
                 self.runtime_name,
                 self.find_runtime_path,
-                default_runtime_dirs,
+                self.default_dirs.runtime,
             ),
         ]
 
@@ -530,8 +617,6 @@ if __name__ == "__main__":
     if CONDA_PREFIX:
         CONDA_PREFIX = Path(CONDA_PREFIX)
         print(f"* Found conda env: ``{CONDA_PREFIX}``")
-        if os.name == "nt":
-            CONDA_PREFIX = CONDA_PREFIX / "Library"
 
     # Global variables
     lib_dirs = []
@@ -539,58 +624,23 @@ if __name__ == "__main__":
     optional_libs = []
     copy_libs = []
 
-    default_header_dirs = None
-    default_library_dirs = None
-    default_runtime_dirs = None
-
-    if os.name == "posix":
-        prefixes = ("/usr/local", "/sw", "/opt", "/opt/local", "/usr", "/")
-        prefix_paths = [Path(x) for x in prefixes]
-
-        default_header_dirs = []
-        add_from_path("CPATH", default_header_dirs)
-        add_from_path("C_INCLUDE_PATH", default_header_dirs)
-        add_from_flags("CPPFLAGS", "-I", default_header_dirs)
-        add_from_flags("CFLAGS", "-I", default_header_dirs)
-        default_header_dirs.extend(_tree / "include" for _tree in prefix_paths)
-
-        default_library_dirs = []
-        add_from_flags("LDFLAGS", "-L", default_library_dirs)
-        default_library_dirs.extend(
-            _tree / _arch
-            for _tree in prefix_paths
-            for _arch in ("lib64", "lib")
-        )
-        default_runtime_dirs = default_library_dirs
-
-    elif os.name == "nt":
-        default_header_dirs = []  # no default, must be given explicitly
-        default_library_dirs = []  # no default, must be given explicitly
-        default_runtime_dirs = [  # look for DLL files in ``%PATH%``
-            Path(_path) for _path in os.environ["PATH"].split(";")
-        ]
-        # Add the \Windows\system to the runtime list (necessary for Vista)
-        default_runtime_dirs.append(Path("\\windows\\system"))
-        # Add the \path_to_python\DLLs and tables package to the list
-        default_runtime_dirs.append(
-            Path(sys.prefix) / "Lib" / "site-packages" / "tables"
-        )
+    default_dirs = get_default_dirs(conda_prefix=CONDA_PREFIX)
 
     # Gcc 4.0.1 on Mac OS X 10.4 does not seem to include the default
     # header and library paths.  See ticket #18.
     if sys.platform.lower().startswith("darwin"):
-        inc_dirs.extend(default_header_dirs)
-        lib_dirs.extend(default_library_dirs)
+        inc_dirs.extend(default_dirs.header)
+        lib_dirs.extend(default_dirs.library)
 
     if os.name == "posix":
         _Package = PosixPackage
         _platdep = {  # package tag -> platform-dependent components
-            "HDF5": ["hdf5"],
-            "LZO2": ["lzo2"],
-            "LZO": ["lzo"],
-            "BZ2": ["bz2"],
-            "BLOSC": ["blosc"],
-            "BLOSC2": ["blosc2"],
+            "HDF5": ["hdf5", None],
+            "LZO2": ["lzo2", None],
+            "LZO": ["lzo", None],
+            "BZ2": ["bz2", None],
+            "BLOSC": ["blosc", None],
+            "BLOSC2": ["blosc2", None],
         }
 
     elif os.name == "nt":
@@ -627,22 +677,60 @@ if __name__ == "__main__":
         _platdep = {}
         exit_with_error(f"Unsupported OS: {os.name}")
 
-    hdf5_package = _Package("HDF5", "HDF5", "H5public", *_platdep["HDF5"])
-    hdf5_package.target_function = "H5close"
+    hdf5_package = _Package(
+        name="HDF5",
+        tag="HDF5",
+        header_name="H5public",
+        library_name=_platdep["HDF5"][0],
+        runtime_name=_platdep["HDF5"][1],
+        target_function="H5close",
+        default_dirs=default_dirs,
+    )
     lzo2_package = _Package(
-        "LZO 2", "LZO2", str(Path("lzo/lzo1x")), *_platdep["LZO2"]
+        name="LZO 2",
+        tag="LZO2",
+        header_name="lzo/lzo1x",
+        library_name=_platdep["LZO2"][0],
+        runtime_name=_platdep["LZO2"][1],
+        target_function="lzo_version_date",
+        default_dirs=default_dirs,
     )
-    lzo2_package.target_function = "lzo_version_date"
-    lzo1_package = _Package("LZO 1", "LZO", "lzo1x", *_platdep["LZO"])
-    lzo1_package.target_function = "lzo_version_date"
-    bzip2_package = _Package("bzip2", "BZ2", "bzlib", *_platdep["BZ2"])
-    bzip2_package.target_function = "BZ2_bzlibVersion"
-    blosc_package = _Package("blosc", "BLOSC", "blosc", *_platdep["BLOSC"])
-    blosc_package.target_function = "blosc_list_compressors"
+    lzo1_package = _Package(
+        name="LZO 1",
+        tag="LZO",
+        header_name="lzo1x",
+        library_name=_platdep["LZO"][0],
+        runtime_name=_platdep["LZO"][1],
+        target_function="lzo_version_date",
+        default_dirs=default_dirs,
+    )
+    bzip2_package = _Package(
+        name="bzip2",
+        tag="BZ2",
+        header_name="bzlib",
+        library_name=_platdep["BZ2"][0],
+        runtime_name=_platdep["BZ2"][1],
+        target_function="BZ2_bzlibVersion",
+        default_dirs=default_dirs,
+    )
+    blosc_package = _Package(
+        name="blosc",
+        tag="BLOSC",
+        header_name="blosc",
+        library_name=_platdep["BLOSC"][0],
+        runtime_name=_platdep["BLOSC"][1],
+        target_function="blosc_list_compressors",
+        default_dirs=default_dirs,
+    )
     blosc2_package = _Package(
-        "blosc2", "BLOSC2", "blosc2", *_platdep["BLOSC2"]
+        name="blosc2",
+        tag="BLOSC2",
+        header_name="blosc2",
+        library_name=_platdep["BLOSC2"][0],
+        runtime_name=_platdep["BLOSC2"][1],
+        target_function="blosc2_list_compressors",
+        default_dirs=default_dirs,
     )
-    blosc2_package.target_function = "blosc2_list_compressors"
 
     # -----------------------------------------------------------------
 
@@ -738,10 +826,6 @@ if __name__ == "__main__":
             )
             continue  # do not use LZO 1 if LZO 2 is available
 
-        # if a package location is not specified, try to find it in conda env
-        if not location and CONDA_PREFIX:
-            location = CONDA_PREFIX
-
         # looking for lzo/lzo1x.h but pkgconfig already returns
         # '/usr/include/lzo'
         use_pkgconfig = USE_PKGCONFIG and package.tag != "LZO2"
@@ -816,9 +900,9 @@ if __name__ == "__main__":
                 f"library at ``{libdir}``."
             )
 
-        if hdrdir not in default_header_dirs:
+        if hdrdir not in default_dirs.header:
             inc_dirs.insert(0, Path(hdrdir))  # save header directory if needed
-        if libdir not in default_library_dirs and libdir not in ("", True):
+        if libdir not in default_dirs.library and libdir not in ("", True):
             # save library directory if needed
             lib_dirs.insert(0, Path(libdir))
 
