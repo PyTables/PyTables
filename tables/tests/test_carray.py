@@ -665,9 +665,6 @@ class BloscShuffleTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf(
-    common.blosc_version < common.min_blosc_bitshuffle_version,
-    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class BloscBitShuffleTestCase(BasicTestCase):
     shape = (20, 30)
     compress = 1
@@ -1087,14 +1084,10 @@ class ReadOutArgumentTests(common.TempFileMixin, common.PyTablesTestCase):
         array, disk_array = self.create_array()
         out_buffer = np.empty((self.size, ), 'i8')
         out_buffer_slice = out_buffer[0:self.size:2]
-        # once Python 2.6 support is dropped, this could change
-        # to assertRaisesRegexp to check exception type and message at once
-        self.assertRaises(ValueError, disk_array.read, 0, self.size, 2,
-                          out_buffer_slice)
-        try:
+
+        with self.assertRaisesRegex(ValueError,
+                                    'output array not C contiguous'):
             disk_array.read(0, self.size, 2, out_buffer_slice)
-        except ValueError as exc:
-            self.assertEqual('output array not C contiguous', str(exc))
 
     def test_buffer_too_small(self):
         array, disk_array = self.create_array()

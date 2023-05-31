@@ -68,7 +68,7 @@ Bug fixed
 - Fix issues with Cython 0.23. See :issue:`481`.
 - Only run `tables.tests.test_basics.UnicodeFilename` if the filesystem
   encoding is utf-8. Closes :issue:`485`.
-- Fix missing PyErr_Clear. See :issue:`#486`.
+- Fix missing PyErr_Clear. See :issue:`486`.
 - Fix the C type of some numpy attributes. See :issue:`494`.
 - Cast selection indices to integer. See :issue:`496`.
 - Fix indexesextension._keysort_string. Closes :issue:`497` and :issue:`498`.

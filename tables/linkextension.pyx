@@ -98,6 +98,8 @@ def _get_link_class(parent_id, name):
       return "SoftLink"
     elif link_type == H5L_TYPE_EXTERNAL:
       return "ExternalLink"
+    # elif link_type == H5L_TYPE_HARD:
+    #   return "HardLink"
     else:
       return "UnImplemented"
 
@@ -262,6 +264,10 @@ cdef class ExternalLink(Link):
     # Release resources
     free(clinkval)
     return 0  # Object ID is zero'ed, as HDF5 does not assign one for links
+
+  def _get_obj_info(self):
+    # ExternalLink do not have ObjectId. Hardcode addr and rc to 0, 1
+    return 0, 1
 
 
 ## Local Variables:

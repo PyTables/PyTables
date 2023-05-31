@@ -1,7 +1,5 @@
-:source: http://www.pytables.org/moin/UserDocuments/PyTables%20%26%20py2exe
-:revision: 8
-:date: 2008-04-21 11:12:45
 :author: localhost
+:date: 2008-04-21 11:12:45
 
 .. todo:: update the code example to numpy
 
@@ -28,7 +26,7 @@ configuration script in your program directory.
 
 The setup script will look like this::
 
-    from distutils.core import setup
+    from setuptools import setup
     import py2exe
     setup(console=['pytables_test.py'])
 
@@ -37,10 +35,10 @@ included and excluded::
 
     [py2exe]
     excludes= Tkconstants,Tkinter,tcl
-    includes= encodings.*, tables.*, numarray.*
+    includes= encodings.*, tables.*, numpy.*
 
-As you can see I have included everything from tables (tables.*) and numarray
-(numarray.*).
+As you can see I have included everything from tables (tables.*) and numpy
+(numpy.*).
 
 Now you are ready to build the executable file (:file:`pytable_test.exe`).
 During the build process a subfolder called *dist* will be created.

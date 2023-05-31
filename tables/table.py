@@ -3,6 +3,7 @@
 import functools
 import math
 import operator
+import platform
 import sys
 import warnings
 from pathlib import Path
@@ -818,6 +819,19 @@ class Table(tableextension.Table, Leaf):
         self._flavor, self._descflavor = self._descflavor, None
         super()._g_post_init_hook()
 
+        self.blosc2_support_write = (
+                (self.byteorder == sys.byteorder) and
+                (self.filters.complib != None) and
+                (self.filters.complib.startswith("blosc2")))
+        # For reading, Windows does not support re-opening a file twice
+        # in not read-only mode (for good reason), so we cannot use the
+        # blosc2 opt
+        self.blosc2_support_read = (
+                self.blosc2_support_write and
+                ((platform.system().lower() != 'windows') or
+                ((self._v_file.mode == 'r')))
+        )
+
         # Create a cols accessor.
         self.cols = Cols(self, self.description)
 
@@ -1413,16 +1427,15 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         ::
 
-            >>> passvalues = [ row['col3'] for row in
-            ...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
-            ...                if your_function(row['col2']) ]
-            >>> print("Values that pass the cuts:", passvalues)
+            passvalues = [ row['col3'] for row in
+                           table.where('(col1 > 0) & (col2 <= 20)', step=5)
+                           if your_function(row['col2']) ]
+            print("Values that pass the cuts:", passvalues)
 
         .. note::
 
             A special care should be taken when the query condition includes
-            string literals.  Indeed Python 2 string literals are string of
-            bytes while Python 3 strings are unicode objects.
+            string literals.
 
             Let's assume that the table ``table`` has the following
             structure::
@@ -1432,22 +1445,20 @@ very small/large chunksize, you may want to increase/decrease it."""
                     col2 = IntCol()
                     col3 = FloatCol()
 
-            The type of "col1" do not change depending on the Python version
-            used (of course) and it always corresponds to strings of bytes.
+            The type of "col1" corresponds to strings of bytes.
 
             Any condition involving "col1" should be written using the
             appropriate type for string literals in order to avoid
             :exc:`TypeError`\ s.
 
-            The code below will work fine in Python 2 but will fail with a
-            :exc:`TypeError` in Python 3::
+            The code below will fail with a :exc:`TypeError`::
 
                 condition = 'col1 == "AAAA"'
                 for record in table.where(condition):  # TypeError in Python3
                     # do something with "record"
 
             The reason is that in Python 3 "condition" implies a comparison
-            between a string of bytes ("col1" contents) and an unicode literal
+            between a string of bytes ("col1" contents) and a unicode literal
             ("AAAA").
 
             The correct way to write the condition is::
@@ -2186,18 +2197,25 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise HDF5ExtError(
                 "You cannot append rows to a non-chunked table.", h5bt=False)
 
-        # Try to convert the object into a recarray compliant with table
-        try:
-            iflavor = flavor_of(rows)
-            if iflavor != 'python':
-                rows = array_as_internal(rows, iflavor)
-            # Works for Python structures and always copies the original,
-            # so the resulting object is safe for in-place conversion.
-            wbufRA = np.rec.array(rows, dtype=self._v_dtype)
-        except Exception as exc:  # XXX
-            raise ValueError("rows parameter cannot be converted into a "
-                             "recarray object compliant with table '%s'. "
-                             "The error was: <%s>" % (str(self), exc))
+        if (hasattr(rows, "dtype") and
+                not self.description._v_is_nested and
+                rows.dtype == self.dtype):
+            # Shortcut for compliant arrays
+            # (for some reason, not valid for nested types)
+            wbufRA = rows
+        else:
+            # Try to convert the object into a recarray compliant with table
+            try:
+                iflavor = flavor_of(rows)
+                if iflavor != 'python':
+                    rows = array_as_internal(rows, iflavor)
+                # Works for Python structures and always copies the original,
+                # so the resulting object is safe for in-place conversion.
+                wbufRA = np.rec.array(rows, dtype=self._v_dtype)
+            except Exception as exc:  # XXX
+                raise ValueError("rows parameter cannot be converted into a "
+                                 "recarray object compliant with table '%s'. "
+                                 "The error was: <%s>" % (str(self), exc))
         lenrows = wbufRA.shape[0]
         # If the number of rows to append is zero, don't do anything else
         if lenrows > 0:
@@ -2945,6 +2963,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         if cols is not None:
             cols._g_close()
 
+        # Clean address cache
+        self._clean_chunk_addrs()
+
         # Close myself as a leaf.
         super()._f_close(False)
 
@@ -3110,7 +3131,6 @@ class Cols:
         be used as shorthands for the :meth:`Table.read` method.
 
         """
-
         table = self._v_table
         nrows = table.nrows
         if is_idx(key):

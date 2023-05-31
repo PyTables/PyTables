@@ -3,20 +3,28 @@
 import warnings
 import numpy as np
 
-from . import utilsextension, blosc_compressor_list, blosc_compcode_to_compname
+from . import (
+    utilsextension,
+    blosc_compressor_list,
+    blosc_compcode_to_compname,
+    blosc2_compressor_list,
+    blosc2_compcode_to_compname,
+)
 from .exceptions import FiltersWarning
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 import tables as tb
 
-blosc_version = LooseVersion(tb.which_lib_version("blosc")[1])
+blosc_version = Version(tb.which_lib_version("blosc")[1])
+blosc2_version = Version(tb.which_lib_version("blosc2")[1])
 
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
-all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc']
+all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc', 'blosc2']
 all_complibs += ['blosc:%s' % cname for cname in blosc_compressor_list()]
+all_complibs += ['blosc2:%s' % cname for cname in blosc2_compressor_list()]
 
 
 """List of all compression libraries."""
@@ -51,29 +59,33 @@ class Filters:
         compression.
     complib : str
         Specifies the compression library to be used. Right now, 'zlib' (the
-        default), 'lzo', 'bzip2' and 'blosc' are supported. Additional
-        compressors for Blosc like 'blosc:blosclz' ('blosclz' is the default in
-        case the additional compressor is not specified), 'blosc:lz4',
-        'blosc:lz4hc', 'blosc:snappy', 'blosc:zlib' and 'blosc:zstd' are
-        supported too. Specifying a compression library which is not available
+        default), 'lzo', 'bzip2', 'blosc' and 'blosc2' are supported.
+        Additional compressors for Blosc like 'blosc:blosclz' ('blosclz' is
+        the default in case the additional compressor is not specified),
+        'blosc:lz4', 'blosc:lz4hc', 'blosc:zlib' and 'blosc:zstd' are
+        supported too.
+        Also, additional compressors for Blosc2 like 'blosc2:blosclz'
+        ('blosclz' is the default in case the additional compressor is not
+        specified), 'blosc2:lz4', 'blosc2:lz4hc', 'blosc2:zlib' and
+        'blosc2:zstd' are supported too.
+        Specifying a compression library which is not available
         in the system issues a FiltersWarning and sets the library to the
         default one.
     shuffle : bool
-        Whether or not to use the *Shuffle* filter in the HDF5
-        library. This is normally used to improve the compression
-        ratio. A false value disables shuffling and a true one enables
+        Whether to use the *Shuffle* filter in the HDF5 library.
+        This is normally used to improve the compression ratio.
+        A false value disables shuffling and a true one enables
         it. The default value depends on whether compression is
         enabled or not; if compression is enabled, shuffling defaults
         to be enabled, else shuffling is disabled. Shuffling can only
         be used when compression is enabled.
     bitshuffle : bool
-        Whether or not to use the *BitShuffle* filter in the Blosc
-        library. This is normally used to improve the compression
+        Whether to use the *BitShuffle* filter in the Blosc/Blosc2
+        libraries. This is normally used to improve the compression
         ratio. A false value disables bitshuffling and a true one
         enables it. The default value is disabled.
     fletcher32 : bool
-        Whether or not to use the
-        *Fletcher32* filter in the HDF5 library.
+        Whether to use the *Fletcher32* filter in the HDF5 library.
         This is used to add a checksum on each data chunk. A false
         value (the default) disables the checksum.
     least_significant_digit : int
@@ -148,7 +160,7 @@ class Filters:
 
     .. attribute:: bitshuffle
 
-        Whether the *BitShuffle* filter is active or not (Blosc only).
+        Whether the *BitShuffle* filter is active or not (Blosc/Blosc2 only).
 
     """
 
@@ -183,18 +195,22 @@ class Filters:
                 name = 'zlib'
             if name in all_complibs:
                 kwargs['complib'] = name
-                if name == "blosc":
+                if name in ('blosc', 'blosc2'):
                     kwargs['complevel'] = values[4]
                     if values[5] == 1:
-                        # Shuffle filter is internal to blosc
+                        # Shuffle filter is internal to blosc/blosc2
                         kwargs['shuffle'] = True
                     elif values[5] == 2:
-                        # Shuffle filter is internal to blosc
+                        # Shuffle filter is internal to blosc/blosc2
                         kwargs['bitshuffle'] = True
                     # From Blosc 1.3 on, parameter 6 is used for the compressor
                     if len(values) > 6:
-                        cname = blosc_compcode_to_compname(values[6])
-                        kwargs['complib'] = "blosc:%s" % cname
+                        if name == "blosc":
+                            cname = blosc_compcode_to_compname(values[6])
+                            kwargs['complib'] = "blosc:%s" % cname
+                        else:
+                            cname = blosc2_compcode_to_compname(values[6])
+                            kwargs['complib'] = "blosc2:%s" % cname
                 else:
                     kwargs['complevel'] = values[0]
             elif name in foreign_complibs:
@@ -341,18 +357,11 @@ class Filters:
         if (self.complib and
                 self.bitshuffle and
                 not self.complib.startswith('blosc')):
-            raise ValueError("BitShuffle can only be used inside Blosc")
+            raise ValueError("BitShuffle can only be used inside Blosc/Blosc2")
 
         if self.shuffle and self.bitshuffle:
             # BitShuffle has priority in case both are specified
             self.shuffle = False
-
-        if (self.bitshuffle and
-                blosc_version < tb.req_versions.min_blosc_bitshuffle_version):
-            raise ValueError(f"This Blosc library does not have support for "
-                             f"the bitshuffle filter.  Please update to "
-                             f"Blosc >= "
-                             f"{tb.req_versions.min_blosc_bitshuffle_version}")
 
         self.fletcher32 = fletcher32
         """Whether the *Fletcher32* filter is active or not."""

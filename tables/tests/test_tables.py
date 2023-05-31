@@ -389,7 +389,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         result = [rec['var2'] for rec in table.iterrows() if rec['var2'] < 20]
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", rec)
+            print("Last record in table ==>", table[-1])
             print("Total selected records in table ==> ", len(result))
         nrows = self.expectedrows - 1
         rec = list(table.iterrows())[-1]
@@ -568,8 +568,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                   if rec['var2'] < 20]
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", rec)
-            print("rec['var5'] ==>", rec['var5'], end=' ')
+            print("Last record in table ==>", table[-1])
+            print("rec['var5'] ==>", table[-1]['var5'], end=' ')
             print("nrows ==>", table.nrows)
             print("Total selected records in table ==> ", len(result))
         nrows = table.nrows
@@ -992,19 +992,32 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                     row['var15'] = 1 + float(i)*1j
 
             row.append()
-            # the next call can mislead the counters
+            # We are closing and reopening in 'r'ead-only instead of flushing for
+            # making Windows use the Blosc2 optimized path for reading chunks
+            #table.flush()
+            self.h5file.close()
+            self.h5file = tb.open_file(self.h5fname, mode="r")
+            table = self.h5file.get_node("/group0/table1")
+            table.nrowsinbuf = 3
+            row = table.row
             result = [row2['var2'] for row2 in table]
             # warning! the next will result into wrong results
             # result = [ row['var2'] for row in table ]
             # This is because the iterator for writing and for reading
             # cannot be shared!
+            self.h5file.close()
+            self.h5file = tb.open_file(self.h5fname, mode="a")
+            table = self.h5file.get_node("/group0/table1")
+            table.nrowsinbuf = 3
+            row = table.row
 
-        # Do not flush the buffer for this table and try to read it
-        # We are forced now to flush tables after append operations
-        # because of unsolved issues with the LRU cache that are too
-        # difficult to track.
-        # F. Alted 2006-08-03
-        table.flush()
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname, mode="r")
+        table = self.h5file.get_node("/group0/table1")
+        table.nrowsinbuf = 3
+
+        #print(table.read())
+
         result = [
             row3['var2'] for row3 in table.iterrows() if row3['var2'] < 20
         ]
@@ -1119,6 +1132,210 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(newnrows, oldnrows + 2,
                          "Append to dead table failed.")
 
+    def test02f_AppendRows(self):
+        """Checking whether blosc2 optimized appending *and* reading rows works or not"""
+
+        class Particle(tb.IsDescription):
+            name = tb.StringCol(16, pos=1)  # 16-character String
+            lati = tb.Int32Col(pos=2)  # integer
+            longi = tb.Int32Col(pos=3)  # integer
+            pressure = tb.Float32Col(pos=4)  # float  (single-precision)
+            temperature = tb.Float64Col(pos=5)  # double (double-precision)
+
+        # Now, open it, but in "append" mode
+        self.h5file = tb.open_file(self.h5fname, mode="a")
+
+        # Create a new group
+        group = self.h5file.create_group(self.h5file.root, "newgroup")
+
+        # Create a new table in newgroup group
+        table = self.h5file.create_table(group, 'table', Particle, "A table",
+                                         tb.Filters(complevel=self.compress,
+                                                    shuffle=bool(self.shuffle),
+                                                    bitshuffle=bool(self.bitshuffle),
+                                                    complib=self.complib),
+                                         chunkshape=3)
+
+        self.rootgroup = self.h5file.root.newgroup
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test02f_AppendRows..." % self.__class__.__name__)
+
+        if common.verbose:
+            print("Nrows in old", table._v_pathname, ":", table.nrows)
+            print("Record Format ==>", table.description._v_nested_formats)
+            print("Record Size ==>", table.rowsize)
+
+        # Add a couple of user attrs
+        table.attrs.user_attr1 = 1.023
+        table.attrs.user_attr2 = "This is the second user attr"
+
+        # Append several rows in only one call
+        for i in range(10):
+            table.append([(f'Particle: {i:6d}', i, 10 - i, float(i * i), float(i ** 2))])
+
+        table.append([("Particle:     10", 10, 0, 10 * 10, 10 ** 2),
+                      ("Particle:     11", 11, -1, 11 * 11, 11 ** 2),
+                      ("Particle:     12", 12, -2, 12 * 12, 12 ** 2)])
+
+        table.append([("Particle:     13", 13, -3, 13 * 13, 13 ** 2),
+                      ("Particle:     14", 14, -4, 14 * 14, 14 ** 2)])
+
+        for i in range(10):
+            j = i + 1
+            k = i * i
+            l = k + 1
+            table.append([(f'Particle: {i:6d}', i, 10 - i, float(i * i), float(i ** 2)),
+                          (f'Particle: {j:6d}', j, 10 - j, float(j * j), float(j ** 2)),
+                          (f'Particle: {k:6d}', k, 10 - k, float(k * k), float(k ** 2)),
+                          (f'Particle: {l:6d}', l, 10 - l, float(l * l), float(l ** 2))])
+
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname, mode="r")
+        self.rootgroup = self.h5file.root.newgroup
+        table = self.rootgroup.table
+
+        result = [
+            row[:] for row in table.iterrows()
+        ]
+        # result = table[:].tolist()
+        if common.verbose:
+            print("Result length ==>", len(result))
+            print("Result contents ==>", result)
+        self.assertEqual(len(result), 10 + 3 + 2 + 10 * 4)
+        self.assertEqual(result, [(b'Particle:      0', 0, 10, 0.0, 0.0),
+                                  (b'Particle:      1', 1, 9, 1.0, 1.0),
+                                  (b'Particle:      2', 2, 8, 4.0, 4.0),
+                                  (b'Particle:      3', 3, 7, 9.0, 9.0),
+                                  (b'Particle:      4', 4, 6, 16.0, 16.0),
+                                  (b'Particle:      5', 5, 5, 25.0, 25.0),
+                                  (b'Particle:      6', 6, 4, 36.0, 36.0),
+                                  (b'Particle:      7', 7, 3, 49.0, 49.0),
+                                  (b'Particle:      8', 8, 2, 64.0, 64.0),
+                                  (b'Particle:      9', 9, 1, 81.0, 81.0),
+                                  (b'Particle:     10', 10, 0, 100.0, 100.0),
+                                  (b'Particle:     11', 11, -1, 121.0, 121.0),
+                                  (b'Particle:     12', 12, -2, 144.0, 144.0),
+                                  (b'Particle:     13', 13, -3, 169.0, 169.0),
+                                  (b'Particle:     14', 14, -4, 196.0, 196.0),
+                                  (b'Particle:      0', 0, 10, 0.0, 0.0),
+                                  (b'Particle:      1', 1, 9, 1.0, 1.0),
+                                  (b'Particle:      0', 0, 10, 0.0, 0.0),
+                                  (b'Particle:      1', 1, 9, 1.0, 1.0),
+                                  (b'Particle:      1', 1, 9, 1.0, 1.0),
+                                  (b'Particle:      2', 2, 8, 4.0, 4.0),
+                                  (b'Particle:      1', 1, 9, 1.0, 1.0),
+                                  (b'Particle:      2', 2, 8, 4.0, 4.0),
+                                  (b'Particle:      2', 2, 8, 4.0, 4.0),
+                                  (b'Particle:      3', 3, 7, 9.0, 9.0),
+                                  (b'Particle:      4', 4, 6, 16.0, 16.0),
+                                  (b'Particle:      5', 5, 5, 25.0, 25.0),
+                                  (b'Particle:      3', 3, 7, 9.0, 9.0),
+                                  (b'Particle:      4', 4, 6, 16.0, 16.0),
+                                  (b'Particle:      9', 9, 1, 81.0, 81.0),
+                                  (b'Particle:     10', 10, 0, 100.0, 100.0),
+                                  (b'Particle:      4', 4, 6, 16.0, 16.0),
+                                  (b'Particle:      5', 5, 5, 25.0, 25.0),
+                                  (b'Particle:     16', 16, -6, 256.0, 256.0),
+                                  (b'Particle:     17', 17, -7, 289.0, 289.0),
+                                  (b'Particle:      5', 5, 5, 25.0, 25.0),
+                                  (b'Particle:      6', 6, 4, 36.0, 36.0),
+                                  (b'Particle:     25', 25, -15, 625.0, 625.0),
+                                  (b'Particle:     26', 26, -16, 676.0, 676.0),
+                                  (b'Particle:      6', 6, 4, 36.0, 36.0),
+                                  (b'Particle:      7', 7, 3, 49.0, 49.0),
+                                  (b'Particle:     36', 36, -26, 1296.0, 1296.0),
+                                  (b'Particle:     37', 37, -27, 1369.0, 1369.0),
+                                  (b'Particle:      7', 7, 3, 49.0, 49.0),
+                                  (b'Particle:      8', 8, 2, 64.0, 64.0),
+                                  (b'Particle:     49', 49, -39, 2401.0, 2401.0),
+                                  (b'Particle:     50', 50, -40, 2500.0, 2500.0),
+                                  (b'Particle:      8', 8, 2, 64.0, 64.0),
+                                  (b'Particle:      9', 9, 1, 81.0, 81.0),
+                                  (b'Particle:     64', 64, -54, 4096.0, 4096.0),
+                                  (b'Particle:     65', 65, -55, 4225.0, 4225.0),
+                                  (b'Particle:      9', 9, 1, 81.0, 81.0),
+                                  (b'Particle:     10', 10, 0, 100.0, 100.0),
+                                  (b'Particle:     81', 81, -71, 6561.0, 6561.0),
+                                  (b'Particle:     82', 82, -72, 6724.0, 6724.0)])
+
+    def test02g_AppendRows(self):
+        """Checking whether blosc2 optimized appending *and* reading rows works or not"""
+
+        class Particle(tb.IsDescription):
+            name = tb.StringCol(16, pos=1)  # 16-character String
+            lati = tb.Int32Col(pos=2)  # integer
+            longi = tb.Int32Col(pos=3)  # integer
+            pressure = tb.Float32Col(pos=4)  # float  (single-precision)
+            temperature = tb.Float64Col(pos=5)  # double (double-precision)
+
+        # Now, open it, but in "append" mode
+        self.h5file = tb.open_file(self.h5fname, mode="a")
+
+        # Create a new group
+        group = self.h5file.create_group(self.h5file.root, "newgroup")
+
+        # Create a new table in newgroup group
+        table = self.h5file.create_table(group, 'table', Particle, "A table",
+                                         tb.Filters(complevel=self.compress,
+                                                    shuffle=bool(self.shuffle),
+                                                    bitshuffle=bool(self.bitshuffle),
+                                                    complib=self.complib),
+                                         chunkshape=3)
+
+        self.rootgroup = self.h5file.root.newgroup
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test02g_AppendRows..." % self.__class__.__name__)
+
+        if common.verbose:
+            print("Nrows in old", table._v_pathname, ":", table.nrows)
+            print("Record Format ==>", table.description._v_nested_formats)
+            print("Record Size ==>", table.rowsize)
+
+        # Add a couple of user attrs
+        table.attrs.user_attr1 = 1.023
+        table.attrs.user_attr2 = "This is the second user attr"
+
+        # Append several rows in only one call
+        for j in range(50):
+            i = 13 * j
+            table.append([(f'Particle: {i:6d}', i, 10 - i, float(i * i), float(i ** 2))])
+
+            table.append([(f'Particle: {i+1:6d}', i + 1, 10 - (i + 1), float((i + 1) * (i + 1)), float((i + 1) ** 2)),
+                          (f'Particle: {i+2:6d}', i + 2, 10 - (i + 2), float((i + 2) * (i + 2)), float((i + 2) ** 2)),
+                          (f'Particle: {i+3:6d}', i + 3, 10 - (i + 3), float((i + 3) * (i + 3)), float((i + 3) ** 2))])
+
+            table.append([(f'Particle: {i+4:6d}', i + 4, 10 - (i + 4), float((i + 4) * (i + 4)), float((i + 4) ** 2)),
+                          (f'Particle: {i+5:6d}', i + 5, 10 - (i + 5), float((i + 5) * (i + 5)), float((i + 5) ** 2)),
+                          (f'Particle: {i+6:6d}', i + 6, 10 - (i + 6), float((i + 6) * (i + 6)), float((i + 6) ** 2)),
+                          (f'Particle: {i+7:6d}', i + 7, 10 - (i + 7), float((i + 7) * (i + 7)), float((i + 7) ** 2))])
+
+            table.append([(f'Particle: {i+8:6d}', i + 8, 10 - (i + 8), float((i + 8) * (i + 8)), float((i + 8) ** 2)),
+                          (f'Particle: {i+9:6d}', i + 9, 10 - (i + 9), float((i + 9) * (i + 9)), float((i + 9) ** 2)),
+                          (f'Particle: {i+10:6d}', i + 10, 10 - (i + 10), float((i + 10) * (i + 10)), float((i + 10) ** 2)),
+                          (f'Particle: {i+11:6d}', i + 11, 10 - (i + 11), float((i + 11) * (i + 11)), float((i + 11) ** 2)),
+                          (f'Particle: {i+12:6d}', i + 12, 10 - (i + 12), float((i + 12) * (i + 12)), float((i + 12) ** 2))])
+
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname, mode="r")
+        self.rootgroup = self.h5file.root.newgroup
+        table = self.rootgroup.table
+        result = [
+            row[:] for row in table.iterrows()
+        ]
+        # result = table[:].tolist()
+        if common.verbose:
+            print("Result length ==>", len(result))
+            print("Result contents ==>", result)
+
+        particles = []
+        for i in range (50 * 13):
+            particles.append((f'Particle: {i:6d}'.encode(), i, 10 - i, float(i * i), float(i ** 2)))
+
+        self.assertEqual(len(result), 50 * 13)
+        self.assertEqual(result, particles)
+
     # CAVEAT: The next test only works for tables with rows < 2**15
     def test03_endianess(self):
         """Checking if table is endianess aware."""
@@ -1136,7 +1353,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
             print("On-disk byteorder ==>", table.byteorder)
-            print("Last record in table ==>", rec)
+            print("Last record in table ==>", table[-1])
             print("Selected records ==>", result)
             print("Total selected records in table ==>", len(result))
         nrows = self.expectedrows - 1
@@ -1548,6 +1765,88 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(row[1], b'-'*9)
         self.assertEqual(row[2], b'.'*4)
 
+    def test08_AppendModifyRows(self):
+        """Checking whether blosc2 optimized appending *and* reading rows works or not"""
+
+        class Particle(tb.IsDescription):
+            name = tb.StringCol(16, pos=1)  # 16-character String
+            lati = tb.Int32Col(pos=2)  # integer
+            longi = tb.Int32Col(pos=3)  # integer
+            pressure = tb.Float32Col(pos=4)  # float  (single-precision)
+            temperature = tb.Float64Col(pos=5)  # double (double-precision)
+
+        # Now, open it, but in "append" mode
+        self.h5file = tb.open_file(self.h5fname, mode="a")
+
+        # Create a new group
+        group = self.h5file.create_group(self.h5file.root, "newgroup")
+
+        # Create a new table in newgroup group
+        table = self.h5file.create_table(group, 'table', Particle, "A table",
+                                         tb.Filters(complevel=self.compress,
+                                                    shuffle=bool(self.shuffle),
+                                                    bitshuffle=bool(self.bitshuffle),
+                                                    complib=self.complib),
+                                         chunkshape=3)
+
+        self.rootgroup = self.h5file.root.newgroup
+        if common.verbose:
+            print('\n', '-=' * 30)
+            print("Running %s.test08_AppendModifyRows..." % self.__class__.__name__)
+
+        if common.verbose:
+            print("Nrows in old", table._v_pathname, ":", table.nrows)
+            print("Record Format ==>", table.description._v_nested_formats)
+            print("Record Size ==>", table.rowsize)
+
+        # Add a couple of user attrs
+        table.attrs.user_attr1 = 1.023
+        table.attrs.user_attr2 = "This is the second user attr"
+
+        # Append several rows in only one call
+        for j in range(200):
+            i = 13 * j
+            table.append([(f'Particle: {i:6d}', i, 10 - i, float(i * i), float(i ** 2))])
+
+            table.append([(f'Particle: {i+1:6d}', i + 1, 10 - (i + 1), float((i + 1) * (i + 1)), float((i + 1) ** 2)),
+                          (f'Particle: {i+2:6d}', i + 2, 10 - (i + 2), float((i + 2) * (i + 2)), float((i + 2) ** 2)),
+                          (f'Particle: {i+3:6d}', i + 3, 10 - (i + 3), float((i + 3) * (i + 3)), float((i + 3) ** 2))])
+
+            table.append([(f'Particle: {i+4:6d}', i + 4, 10 - (i + 4), float((i + 4) * (i + 4)), float((i + 4) ** 2)),
+                          (f'Particle: {i+5:6d}', i + 5, 10 - (i + 5), float((i + 5) * (i + 5)), float((i + 5) ** 2)),
+                          (f'Particle: {i+6:6d}', i + 6, 10 - (i + 6), float((i + 6) * (i + 6)), float((i + 6) ** 2)),
+                          (f'Particle: {i+7:6d}', i + 7, 10 - (i + 7), float((i + 7) * (i + 7)), float((i + 7) ** 2))])
+
+            table.append([(f'Particle: {i+8:6d}', i + 8, 10 - (i + 8), float((i + 8) * (i + 8)), float((i + 8) ** 2)),
+                          (f'Particle: {i+9:6d}', i + 9, 10 - (i + 9), float((i + 9) * (i + 9)), float((i + 9) ** 2)),
+                          (f'Particle: {i+10:6d}', i + 10, 10 - (i + 10), float((i + 10) * (i + 10)), float((i + 10) ** 2)),
+                          (f'Particle: {i+11:6d}', i + 11, 10 - (i + 11), float((i + 11) * (i + 11)), float((i + 11) ** 2)),
+                          (f'Particle: {i+12:6d}', i + 12, 10 - (i + 12), float((i + 12) * (i + 12)), float((i + 12) ** 2))])
+            table.modify_rows(i + 10, i + 11, None, [(f'Particle: {i:6d}', i, 10 - i, float(i * i), float(i ** 2))])
+
+        self.h5file.close()
+        self.h5file = tb.open_file(self.h5fname, mode="r")
+        self.rootgroup = self.h5file.root.newgroup
+        table = self.rootgroup.table
+        result = [
+            row[:] for row in table.iterrows()
+        ]
+        # result = table[:].tolist()
+        if common.verbose:
+            print("Result length ==>", len(result))
+            print("Result contents ==>", result)
+
+        particles = []
+        for i in range (200 * 13):
+            particles.append((f'Particle: {i:6d}'.encode(), i, 10 - i, float(i * i), float(i ** 2)))
+        for j in range (200):
+            i = 13 * j
+            particles.pop(i + 10)
+            particles.insert(i + 10, (f'Particle: {i:6d}'.encode(), i, 10 - i, float(i * i), float(i ** 2)))
+
+        self.assertEqual(len(result), 200 * 13)
+        self.assertEqual(result, particles)
+
 
 class BasicWriteTestCase(BasicTestCase):
     title = "BasicWrite"
@@ -1708,6 +2007,13 @@ class CompressBloscTablesTestCase(BasicTestCase):
     compress = 6
     complib = "blosc"
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class CompressBlosc2TablesTestCase(BasicTestCase):
+    title = "Compress2BloscTables"
+    compress = 6
+    complib = "blosc2"
+
 
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
@@ -1718,17 +2024,33 @@ class CompressBloscShuffleTablesTestCase(BasicTestCase):
     complib = "blosc"
 
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class CompressBlosc2ShuffleTablesTestCase(BasicTestCase):
+    title = "CompressBloscTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2"
+
+
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
-@common.unittest.skipIf(
-    common.blosc_version < common.min_blosc_bitshuffle_version,
-    f'BLOSC >= {common.min_blosc_bitshuffle_version} required')
 class CompressBloscBitShuffleTablesTestCase(BasicTestCase):
     title = "CompressBloscBitShuffleTables"
     compress = 1
     shuffle = 0
     bitshuffle = 1
     complib = "blosc:blosclz"
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class CompressBlosc2BitShuffleTablesTestCase(BasicTestCase):
+    title = "CompressBloscBit2ShuffleTables"
+    compress = 1
+    shuffle = 0
+    bitshuffle = 1
+    complib = "blosc2:blosclz"
 
 
 @common.unittest.skipIf(not common.blosc_avail,
@@ -1738,6 +2060,15 @@ class CompressBloscBloscLZTablesTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
     complib = "blosc:blosclz"
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC compression library not available')
+class CompressBlosc2BloscLZTablesTestCase(BasicTestCase):
+    title = "CompressBloscLZTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2:blosclz"
 
 
 @common.unittest.skipIf(not common.blosc_avail,
@@ -1751,6 +2082,17 @@ class CompressBloscLZ4TablesTestCase(BasicTestCase):
     complib = "blosc:lz4"
 
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc2_compressor_list(), 'lz4 required')
+class CompressBlosc2LZ4TablesTestCase(BasicTestCase):
+    title = "CompressLZ4Tables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2:lz4"
+
+
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
 @common.unittest.skipIf(
@@ -1760,6 +2102,17 @@ class CompressBloscLZ4HCTablesTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
     complib = "blosc:lz4hc"
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc2_compressor_list(), 'lz4 required')
+class CompressBlosc2LZ4HCTablesTestCase(BasicTestCase):
+    title = "CompressLZ4HCTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2:lz4hc"
 
 
 @common.unittest.skipIf(not common.blosc_avail,
@@ -1784,6 +2137,18 @@ class CompressBloscZlibTablesTestCase(BasicTestCase):
     complib = "blosc:zlib"
 
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    'zlib' not in tb.blosc2_compressor_list(), 'zlib required')
+class CompressBlosc2ZlibTablesTestCase(BasicTestCase):
+    title = "CompressZlibTables"
+    compress = 5
+    shuffle = 0
+    bitshuffle = 1
+    complib = "blosc2:zlib"
+
+
 @common.unittest.skipIf(not common.blosc_avail,
                         'BLOSC compression library not available')
 @common.unittest.skipIf(
@@ -1793,6 +2158,17 @@ class CompressBloscZstdTablesTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
     complib = "blosc:zstd"
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    'zstd' not in tb.blosc2_compressor_list(), 'zstd required')
+class CompressBlosc2ZstdTablesTestCase(BasicTestCase):
+    title = "CompressZstdTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc2:zstd"
 
 
 @common.unittest.skipIf(not common.lzo_avail,
@@ -2011,14 +2387,10 @@ class NonNestedTableReadTestCase(common.TempFileMixin,
     def test_all_fields_non_contiguous_buffer(self):
         output = np.empty((100, ), self.dtype)
         output_slice = output[0:100:2]
-        self.assertRaises(ValueError, self.table.read, 0, 100, 2, None,
-                          output_slice)
-        # once Python 2.6 support is dropped, this could change
-        # to assertRaisesRegexp to check exception type and message at once
-        try:
+
+        with self.assertRaisesRegex(ValueError,
+                                    'output array not C contiguous'):
             self.table.read(0, 100, 2, field=None, out=output_slice)
-        except ValueError as exc:
-            self.assertEqual('output array not C contiguous', str(exc))
 
     def test_specified_field_non_contiguous_buffer(self):
         output = np.empty((100, ), 'i4')
@@ -2271,6 +2643,8 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 elif self.checkgetCol:
                     print("Last value *read* in getCol ==>", column[-1])
                 else:
+                    rec = list(
+                        table.iterrows(self.start, self.stop, self.step))[-1]
                     print("Last record *read* in table range ==>", rec)
             print("Total number of selected records ==>", len(result))
             print("Selected records:\n", result)
@@ -6625,22 +6999,38 @@ def suite():
             common.unittest.makeSuite(RecArrayAlignedWriteTestCase))
         theSuite.addTest(
             common.unittest.makeSuite(CompressBloscTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBlosc2TablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(
             CompressBloscShuffleTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(
+            CompressBlosc2ShuffleTablesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
             CompressBloscBitShuffleTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(
+            CompressBlosc2BitShuffleTablesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
             CompressBloscBloscLZTablesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            CompressBlosc2BloscLZTablesTestCase))
         theSuite.addTest(
             common.unittest.makeSuite(CompressBloscLZ4TablesTestCase))
         theSuite.addTest(
+            common.unittest.makeSuite(CompressBlosc2LZ4TablesTestCase))
+        theSuite.addTest(
             common.unittest.makeSuite(CompressBloscLZ4HCTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBlosc2LZ4HCTablesTestCase))
         theSuite.addTest(
             common.unittest.makeSuite(CompressBloscSnappyTablesTestCase))
         theSuite.addTest(
             common.unittest.makeSuite(CompressBloscZlibTablesTestCase))
         theSuite.addTest(
+            common.unittest.makeSuite(CompressBlosc2ZlibTablesTestCase))
+        theSuite.addTest(
             common.unittest.makeSuite(CompressBloscZstdTablesTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(CompressBlosc2ZstdTablesTestCase))
         theSuite.addTest(common.unittest.makeSuite(CompressLZOTablesTestCase))
         theSuite.addTest(
             common.unittest.makeSuite(CompressLZOShuffleTablesTestCase))

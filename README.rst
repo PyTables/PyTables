@@ -9,9 +9,6 @@
 .. image:: https://github.com/PyTables/PyTables/workflows/CI/badge.svg
    :target: https://github.com/PyTables/PyTables/actions?query=workflow%3ACI
 
-.. image:: https://ci.appveyor.com/api/projects/status/github/PyTables/PyTables?branch=master&svg=true
-   :target: https://ci.appveyor.com/project/PyTablesCI/pytables
-
 .. image:: https://img.shields.io/pypi/v/tables.svg
   :target: https://pypi.org/project/tables/
 
@@ -111,7 +108,7 @@ optional.
 Installation
 ------------
 
-1. Make sure you have HDF5 version 1.8.4 or above.
+1. Make sure you have HDF5 version 1.10.5 or above.
 
    On OSX you can install HDF5 using `Homebrew <http://brew.sh>`_::
 

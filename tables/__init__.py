@@ -6,38 +6,67 @@ PyTables is a package for managing hierarchical datasets and designed
 to efficiently cope with extremely large amounts of data.
 
 """
+import os
+from ctypes import cdll
+from ctypes.util import find_library
+import platform
 
+
+# Load the blosc2 library, and if not found in standard locations,
+# try this directory (it should be automatically copied in setup.py).
+current_dir = os.path.dirname(__file__)
+platform_system = platform.system()
+blosc2_lib_hardcoded = "libblosc2"
+if platform_system == "Linux":
+    blosc2_lib_hardcoded += ".so"
+elif platform_system == "Darwin":
+    blosc2_lib_hardcoded += ".dylib"
+else:
+    blosc2_lib_hardcoded += ".dll"
+blosc2_found = False
+blosc2_search_paths = [blosc2_lib_hardcoded,
+                       os.path.join(current_dir, blosc2_lib_hardcoded),
+                       find_library("blosc2")]
+for blosc2_lib in blosc2_search_paths:
+    try:
+        cdll.LoadLibrary(blosc2_lib)
+        blosc2_found = True
+        break
+    except OSError:
+        pass
+if not blosc2_found:
+    raise RuntimeError("Blosc2 library not found. "
+                       f"I looked for \"{', '.join(blosc2_search_paths)}\"")
 
 # Necessary imports to get versions stored on the cython extension
-from .utilsextension import (
-    get_pytables_version, get_hdf5_version, blosc_compressor_list,
-    blosc_compcode_to_compname_ as blosc_compcode_to_compname,
-    blosc_get_complib_info_ as blosc_get_complib_info)
+from .utilsextension import get_hdf5_version as _get_hdf5_version
 
+from ._version import __version__
 
-__version__ = get_pytables_version()
-"""The PyTables version number."""
-
-hdf5_version = get_hdf5_version()
+hdf5_version = _get_hdf5_version()
 """The underlying HDF5 library version number.
 
 .. versionadded:: 3.0
 
 """
 
-hdf5Version = hdf5_version
-"""The underlying HDF5 library version number.
+from .utilsextension import (
+    blosc_compcode_to_compname_ as blosc_compcode_to_compname,
+    blosc2_compcode_to_compname_ as blosc2_compcode_to_compname,
+    blosc_get_complib_info_ as blosc_get_complib_info,
+    blosc2_get_complib_info_ as blosc2_get_complib_info,
+)
 
-.. deprecated:: 3.0
-
-    hdf5Version is pending deprecation, use :data:`hdf5_version`
-    instead.
-
-"""
-
-from .utilsextension import (is_hdf5_file, is_pytables_file,
-                             which_lib_version, set_blosc_max_threads,
-                             silence_hdf5_messages)
+from .utilsextension import (
+    blosc_compressor_list,
+    blosc2_compressor_list,
+    is_hdf5_file,
+    is_pytables_file,
+    which_lib_version,
+    set_blosc_max_threads,
+    set_blosc2_max_threads,
+    silence_hdf5_messages,
+)
 
 from .misc.enum import Enum
 from .atom import *
@@ -74,7 +103,8 @@ __all__ = [
     # Functions:
     'is_hdf5_file', 'is_pytables_file', 'which_lib_version',
     'copy_file', 'open_file', 'print_versions', 'test',
-    'split_type', 'restrict_flavors', 'set_blosc_max_threads',
+    'split_type', 'restrict_flavors',
+    'set_blosc_max_threads', 'set_blosc2_max_threads',
     'silence_hdf5_messages',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
@@ -140,3 +170,18 @@ else:
             pass
     del _atom, _description
 del _broken_hdf5_long_double
+
+
+def get_pytables_version():
+    warnings.warn(
+        "the 'get_pytables_version()' function is deprecated and could be "
+        "removed in future versions. Please use 'tables.__version__'",
+        DeprecationWarning)
+    return __version__
+
+def get_hdf5_version():
+    warnings.warn(
+        "the 'get_hdf5_version()' function is deprecated and could be "
+        "removed in future versions. Please use 'tables.hdf5_version'",
+        DeprecationWarning)
+    return hdf5_version

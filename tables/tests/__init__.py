@@ -8,3 +8,5 @@ functionality.
 
 from tables.tests.common import print_versions
 from tables.tests.test_suite import test, suite
+# Necessary for the test suite
+import tables.req_versions

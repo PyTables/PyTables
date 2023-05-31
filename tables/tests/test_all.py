@@ -3,6 +3,8 @@
 import sys
 
 import numpy as np
+from packaging.version import Version
+
 import tables as tb
 from tables.tests import common
 from tables.tests.test_suite import suite, test
@@ -21,11 +23,11 @@ if __name__ == '__main__':
 
     hdf5_version = get_tuple_version(tb.which_lib_version("hdf5")[0])
     hdf5_version_str = "%s.%s.%s" % hdf5_version
-    if hdf5_version_str < tb.req_versions.min_hdf5_version:
+    if Version(hdf5_version_str) < tb.req_versions.min_hdf5_version:
         print(f"*Warning*: HDF5 version is lower than recommended: "
               f"{hdf5_version} < {tb.req_versions.min_hdf5_version}")
 
-    if np.__version__ < tb.req_versions.min_numpy_version:
+    if Version(np.__version__) < tb.req_versions.min_numpy_version:
         print(f"*Warning*: NumPy version is lower than recommended: "
               f"{np.__version__} < {tb.req_versions.min_numpy_version}")
 

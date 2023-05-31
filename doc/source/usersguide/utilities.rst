@@ -496,11 +496,4 @@ and all sub-directories:
         mv temp.txt $f
     done
 
-.. note::
-
-    :program:`pt2to3` uses the :mod:`argparse` module that is part of the
-    Python standard library since Python 2.7.
-    Users of Python 2.6 should install :mod:`argparse` separately
-    (e.g. via :program:`pip`).
-
 .. _PEP 8: http://www.python.org/dev/peps/pep-0008/

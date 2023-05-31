@@ -10,7 +10,7 @@ nodes.
 
 import atexit
 import datetime
-import sys
+import os
 import weakref
 import warnings
 from collections import defaultdict
@@ -23,7 +23,7 @@ from . import hdf5extension
 from . import utilsextension
 from . import parameters
 from .exceptions import (ClosedFileError, FileModeError, NodeError,
-                         NoSuchNodeError, UndoRedoError, ClosedNodeError,
+                         NoSuchNodeError, UnclosedFileWarning, UndoRedoError, ClosedNodeError,
                          PerformanceWarning)
 from .registry import get_class_by_name
 from .path import join_path, split_path
@@ -107,16 +107,11 @@ class _FileRegistry:
         return self._name_mapping[filename]
 
     def close_all(self):
-        are_open_files = len(self._handlers) > 0
-        if are_open_files:
-            sys.stderr.write("Closing remaining open files:")
         handlers = list(self._handlers)  # make a copy
         for fileh in handlers:
-            sys.stderr.write("%s..." % fileh.filename)
+            msg = f"Closing remaining open file: {fileh.filename}"
+            warnings.warn(UnclosedFileWarning(msg))
             fileh.close()
-            sys.stderr.write("done")
-        if are_open_files:
-            sys.stderr.write("\n")
 
 
 # Dict of opened files (keys are filenames and values filehandlers)
@@ -261,7 +256,7 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
         advices about the integrated node cache engine.
 
     """
-
+    filename = os.fspath(filename)
     # XXX filename normalization ??
 
     # Check already opened files
@@ -365,6 +360,7 @@ class NodeManager:
         if key in self.registry:
             if not self.registry[key]._v_isopen:
                 del self.registry[key]
+                self.registry[key] = node
             elif self.registry[key] is not node:
                 raise RuntimeError('trying to register a node with an '
                                    'existing key: ``%s``' % key)
@@ -709,24 +705,10 @@ class File(hdf5extension.File):
     def filters(self):
         del self.root._v_filters
 
-    @property
-    def open_count(self):
-        """The number of times this file handle has been opened.
-
-        .. versionchanged:: 3.1
-           The mechanism for caching and sharing file handles has been
-           removed in PyTables 3.1.  Now this property should always
-           be 1 (or 0 for closed files).
-
-        .. deprecated:: 3.1
-
-        """
-        return self._open_count
-
     def __init__(self, filename, mode="r", title="",
                  root_uep="/", filters=None, **kwargs):
 
-        self.filename = filename
+        self.filename = os.fspath(filename)
         """The name of the opened file."""
 
         self.mode = mode
@@ -1232,10 +1214,15 @@ class File(hdf5extension.File):
                 shape = obj.shape
 
             if atom is not None and atom.dtype != obj.dtype:
-                raise TypeError('the atom parameter is not consistent with '
-                                'the data type of the obj parameter')
+                raise TypeError("the 'atom' parameter is not consistent with "
+                                "the data type of the 'obj' parameter")
             elif atom is None:
                 atom = Atom.from_dtype(obj.dtype)
+        else:
+            if atom is None and shape is None:
+                raise TypeError(
+                    "the 'atom' and 'shape' parameters or the 'obj' parameter "
+                    "must be provided")
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
@@ -2706,21 +2693,22 @@ class File(hdf5extension.File):
 
         ::
 
-            >>> f = tables.open_file('data/test.h5')
+            >>> import tables
+            >>> f = tables.open_file('tables/tests/Tables_lzo2.h5')
             >>> print(f)
-            data/test.h5 (File) 'Table Benchmark'
-            Last modif.: 'Mon Sep 20 12:40:47 2004'
+            tables/tests/Tables_lzo2.h5 (File) 'Table Benchmark'
+            Last modif.: '...'
             Object Tree:
-            / (Group) 'Table Benchmark'
-            /tuple0 (Table(100,)) 'This is the table title'
+            / (RootGroup) 'Table Benchmark'
+            /tuple0 (Table(100,)lzo(1)) 'This is the table title'
             /group0 (Group) ''
-            /group0/tuple1 (Table(100,)) 'This is the table title'
+            /group0/tuple1 (Table(100,)lzo(1)) 'This is the table title'
             /group0/group1 (Group) ''
-            /group0/group1/tuple2 (Table(100,)) 'This is the table title'
+            /group0/group1/tuple2 (Table(100,)lzo(1)) 'This is the table title'
             /group0/group1/group2 (Group) ''
+            >>> f.close()
 
         """
-
         if not self.isopen:
             return "<closed File>"
 

@@ -248,7 +248,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Table:", repr(table))
             print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", r)
+            print("Last record in table ==>", table[-1])
             print("Total selected records in table ==> ", len(result))
         nrows = self.expectedrows - 1
         r = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
@@ -283,7 +283,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         result1 = [r['var5'] for r in table.iterrows() if r['var2'][0][0] < 20]
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
-            print("Last record in table ==>", r)
+            print("Last record in table ==>", table[-1])
             print("Total selected records in table ==> ", len(result1))
         nrows = table.nrows
         result2 = [r for r in table.iterrows() if r['var2'][0][0] < 20][-1]
@@ -422,7 +422,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Nrows in", table._v_pathname, ":", table.nrows)
             print("On-disk byteorder ==>", table.byteorder)
-            print("Last record in table ==>", r)
+            print("Last record in table ==>", table[-1])
             print("Total selected records in table ==>", len(result))
         nrows = self.expectedrows - 1
         r = list(table.iterrows())[-1]
@@ -678,6 +678,8 @@ class BasicRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 elif self.checkgetCol:
                     print("Last value *read* in getCol ==>", column[-1])
                 else:
+                    r = list(
+                        table.iterrows(self.start, self.stop, self.step))[-1]
                     print("Last record *read* in table range ==>", r)
             print("Total number of selected records ==>", len(result))
             print("Selected records:\n", result)

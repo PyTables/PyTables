@@ -8,14 +8,7 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-This is a minor version of PyTables.  The main feature added is that
-the padding in original HDF5 files is respected when copied via PyTables.
-Also, when the `description` is a NumPy struct array with padding, this
-is honored now.  The previous behaviour (i.e. getting rid of paddings) can
-be replicated by passing the new `allow_padding` parameter when opening
-a file.
-
-Also, support for AVX2 has been added on Windows.
+XXX version-specific blurb XXX
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html

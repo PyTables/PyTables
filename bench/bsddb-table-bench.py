@@ -11,12 +11,7 @@ import cPickle
 import numpy as np
 import tables as tb
 
-try:
-    # For Python 2.3
-    from bsddb import db
-except ImportError:
-    # For earlier Pythons w/distutils pybsddb
-    from bsddb3 import db
+from bsddb import db
 import psyco
 
 

@@ -104,11 +104,11 @@ New indexing system
 ===================
 
 The indexing system has been totally rewritten from scratch for PyTables 2.0
-Pro Edition (http://www.pytables.com/moin/PyTablesPro).  The new indexing
-system has been included into PyTables with release 2.3.  Due to this,
-your existing indexes created with PyTables 1.x will be useless, and although
-you will be able to continue using the actual data in files, you won't be
-able to take advantage of any improvement in speed.
+Pro Edition.  The new indexing system has been included into PyTables with
+release 2.3.  Due to this, your existing indexes created with PyTables 1.x
+will be useless, and although you will be able to continue using the actual
+data in files, you won't be able to take advantage of any improvement in
+speed.
 
 You will be offered the possibility to automatically re-create the indexes
 in PyTables 1.x format to the new 2.0 format by using the ``ptrepack``

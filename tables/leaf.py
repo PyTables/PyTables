@@ -4,6 +4,11 @@ import warnings
 import math
 
 import numpy as np
+try:
+    import cpuinfo
+    cpu_info = cpuinfo.get_cpu_info()
+except ImportError:
+    cpu_info = {}
 
 from .flavor import (check_flavor, internal_flavor, toarray,
                      alias_map as flavor_alias_map)
@@ -19,7 +24,7 @@ def csformula(expected_mb):
     # For a basesize of 8 KB, this will return:
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
-    basesize = 8 * 1024   # 8 KB is a good minimum
+    basesize = 8 * 1024  # 8 KB is a good minimum
     return basesize * int(2**math.log10(expected_mb))
 
 
@@ -317,6 +322,40 @@ class Leaf(Node):
         MB = 1024 * 1024
         expected_mb = (expectedrows * rowsize) // MB
         chunksize = calc_chunksize(expected_mb)
+        complib = self.filters.complib
+        if (complib is not None and
+            complib.startswith("blosc2") and
+            self._c_classid == 'TABLE'):
+            # Blosc2 can introspect into blocks, so we can increase the
+            # chunksize for improving HDF5 perf for its internal btree.
+            # For the time being, this has been implemented efficiently
+            # just for tables, but in the future *Array objects could also
+            # be included.
+            # In Blosc2, the role of HDF5 chunksize could be played by the
+            # Blosc2 blocksize...
+            # self._v_blocksize = chunksize
+            # but let's use the internal machinery in Blosc2 decide the actual
+            # blocksize.
+            self._v_blocksize = 0
+            # Use a decent default value for chunksize
+            chunksize *= 16
+            # Now, go explore the L3 size and try to find a smarter chunksize
+            if 'l3_cache_size' in cpu_info:
+                # In general, is a good idea to set the chunksize equal to L3
+                l3_cache_size = cpu_info['l3_cache_size']
+                # cpuinfo sometimes returns cache sizes as strings (like,
+                # "4096 KB"), so refuse the temptation to guess and use the
+                # value only when it is an actual int.
+                # Also, sometimes cpuinfo does not return a correct L3 size;
+                # so in general, enforcing L3 > L2 is a good sanity check.
+                l2_cache_size = cpu_info.get('l2_cache_size', "Not found")
+                if (type(l3_cache_size) is int and
+                    type(l2_cache_size) is int and
+                    l3_cache_size > l2_cache_size):
+                    chunksize = l3_cache_size
+            # In Blosc2, the chunksize cannot be larger than 2 GB - BLOSC2_MAX_BUFFERSIZE
+            if chunksize > 2**31 - 32:
+                chunksize = 2**31 - 32
 
         maindim = self.maindim
         # Compute the chunknitems
@@ -499,7 +538,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         point-wise selection.
 
         """
-
+        input_key = key
         if type(key) in (list, tuple):
             if isinstance(key, tuple) and len(key) > len(self.shape):
                 raise IndexError(f"Invalid index or slice: {key!r}")
@@ -538,6 +577,11 @@ very small/large chunksize, you may want to increase/decrease it."""
                 coords = np.asarray(key, dtype="i8")
 
             # handle negative indices
+            base = coords if coords.base is None else coords.base
+            if base is input_key:
+                # never modify the original "key" data
+                coords = coords.copy()
+
             idx = coords < 0
             coords[idx] = (coords + self.shape)[idx]
 

@@ -1,5 +1,6 @@
 """Utilities for PyTables' test suites."""
 
+import os
 import re
 import sys
 import locale
@@ -7,7 +8,7 @@ import platform
 import tempfile
 from pathlib import Path
 from time import perf_counter as clock
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 import unittest
 
@@ -15,13 +16,13 @@ import numexpr as ne
 import numpy as np
 
 import tables as tb
-from tables.req_versions import min_blosc_bitshuffle_version
 
-hdf5_version = LooseVersion(tb.hdf5_version)
-blosc_version = LooseVersion(tb.which_lib_version("blosc")[1])
+hdf5_version = Version(tb.hdf5_version)
+blosc_version = Version(tb.which_lib_version("blosc")[1])
+blosc2_version = Version(tb.which_lib_version("blosc2")[1])
 
 
-verbose = False
+verbose = os.environ.get("VERBOSE", "FALSE") == "TRUE"
 """Show detailed output of the testing process."""
 
 heavy = False
@@ -53,6 +54,7 @@ zlib_avail = tb.which_lib_version("zlib") is not None
 lzo_avail = tb.which_lib_version("lzo") is not None
 bzip2_avail = tb.which_lib_version("bzip2") is not None
 blosc_avail = tb.which_lib_version("blosc") is not None
+blosc2_avail = tb.which_lib_version("blosc2") is not None
 
 
 def print_heavy(heavy):
@@ -101,10 +103,19 @@ def print_versions():
             "{} ({})".format(k, v[1]) for k, v in sorted(blosc_cinfo.items())
         ]
         print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
-        blosc_finfo = ['shuffle']
-        if tinfo[1] >= tb.req_versions.min_blosc_bitshuffle_version:
-            blosc_finfo.append('bitshuffle')
+        blosc_finfo = ['shuffle', 'bitshuffle']
         print("Blosc filters:       %s" % ', '.join(blosc_finfo))
+    tinfo = tb.which_lib_version("blosc2")
+    if tinfo is not None:
+        blosc2_date = tinfo[2].split()[1]
+        print("Blosc2 version:      {} ({})".format(tinfo[1], blosc2_date))
+        blosc2_cinfo = tb.blosc2_get_complib_info()
+        blosc2_cinfo = [
+            "{} ({})".format(k, v[1]) for k, v in sorted(blosc2_cinfo.items())
+        ]
+        print("Blosc2 compressors:  %s" % ', '.join(blosc2_cinfo))
+        blosc2_finfo = ['shuffle', 'bitshuffle']
+        print("Blosc2 filters:      %s" % ', '.join(blosc2_finfo))
     try:
         from Cython import __version__ as cython_version
         print('Cython version:      %s' % cython_version)
@@ -237,13 +248,6 @@ class PyTablesTestCase(unittest.TestCase):
 
             title = f"Running {name}.{methodName}"
             print('{}\n{}'.format(title, '-' * len(title)))
-
-    # COMPATIBILITY: assertWarns is new in Python 3.2
-    if not hasattr(unittest.TestCase, 'assertWarns'):
-        def assertWarns(self, expected_warning, callable_obj=None,
-                        *args, **kwargs):
-            context = _AssertWarnsContext(expected_warning, self, callable_obj)
-            return context.handle('assertWarns', callable_obj, args, kwargs)
 
     def _checkEqualityGroup(self, node1, node2, hardlink=False):
         if verbose:

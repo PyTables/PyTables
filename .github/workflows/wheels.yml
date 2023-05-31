@@ -13,75 +13,152 @@ on:
     types:
       - published
 
+permissions:
+  contents: read
+
 jobs:
-  build_wheels:
-    name: Build wheels on ${{matrix.arch}} for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ 'ubuntu-latest', 'macos-latest' ]
-        arch: [x86_64, aarch64]
-
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         name: Install Python
         with:
-          python-version: '3.9'
+          python-version: 3.x
+
+      - name: Install APT packages
+        if: contains(${{ matrix.os }}, 'ubuntu')
+        run: |
+          sudo apt update
+          sudo apt install libbz2-dev libhdf5-serial-dev liblzo2-dev
+          sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade setuptools pip wheel build
+          python -m pip install -r requirements.txt
+          python -m pip install sphinx>=1.1 sphinx_rtd_theme numpydoc ipython
+          python -m pip install "blosc2!=2.2.1,!=2.2.2"
+
+      - name: Build sdist
+        run: make PYTHON=python dist
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: dist/*
+
+  build_wheels:
+    name: Build ${{ matrix.os }} wheels for ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    env:
+      HDF5_VERSION: 1.14.1-2  # needed for H5Dchunk_iter
+      MACOSX_DEPLOYMENT_TARGET: "10.9"
+      # Skip 3.6 and 3.7 wheels
+      CIBW_SKIP: "*-musllinux_* cp36-* cp37-*"
+      CIBW_BUILD: "cp*"
+    strategy:
+      matrix:
+        os: [ 'ubuntu-latest' ]
+        arch: [ 'x86_64',  'aarch64' ]
+        include:
+          - os: macos-latest
+            arch: x86_64
+          # Still having issues here: https://github.com/PyTables/PyTables/pull/979
+          # - os: macos-latest
+          #   arch: arm64
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - uses: actions/setup-python@v4
+        name: Install Python
+        with:
+          python-version: 3.x
 
       - uses: docker/setup-qemu-action@v1
-        if:  startsWith(matrix.os, 'ubuntu')
+        if: runner.os == 'Linux'
         name: Set up QEMU
 
-      - name: Install prerequisites for macOS
-        if: contains(matrix.os, 'macos')
+      - uses: actions/cache@v2
+        id: deps-cache
+        with:
+          path: hdf5_build
+          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-${{ hashFiles('**/wheels.yml') }}
+
+      - name: Build dependencies
         env:
-          # Best compatibility, even with older releases of macOS.
-          MACOSX_DEPLOYMENT_TARGET: "10.9"
+          CFLAGS: -g0
+          CIBW_ARCHS: ${{ matrix.arch }}
+        if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
         run: |
-          brew install --build-from-source --no-binaries --force szip
-          brew reinstall --build-from-source --no-binaries --force c-blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
-          brew link --overwrite --force bzip2 zlib
+          mkdir hdf5_build
+          if [[ ${{ runner.os }} = 'Linux' ]]; then
+            docker run --rm -e HDF5_DIR=/io/hdf5_build -e CFLAGS=-g0 -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
+          else
+            HDF5_DIR=`pwd`/hdf5_build ci/github/get_hdf5.sh
+          fi
 
       - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade cibuildwheel
 
-      - name: Build wheels for Linux or macOS (64-bit | aarch64)
+      - name: Build wheels
         run: |
           python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_ARCHS_LINUX: ${{ matrix.arch }}
-          CIBW_ARCHS_MACOS: ${{ matrix.arch == 'aarch64' && 'arm64' || 'x86_64'}}
-          CIBW_BUILD: "cp36-* cp37-* cp38-* cp39-* cp310-*"
-          CIBW_BEFORE_ALL_LINUX: "yum -y update && yum install -y epel-release && yum install -y hdf5-devel zlib-devel bzip2-devel lzo-devel blosc-devel"
-          CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21"
-          CIBW_ENVIRONMENT: "DISABLE_AVX2='TRUE'"
-          MACOSX_DEPLOYMENT_TARGET: "10.9"
-          CIBW_ENVIRONMENT_MACOS: BZIP2_DIR=/usr/local/opt/bzip2 LDFLAGS+="-L/usr/local/opt/bzip2/lib -L/usr/local/opt/zlib/lib" CPPFLAGS+="-I/usr/local/opt/bzip2/include -I/usr/local/opt/zlib/include" PKG_CONFIG_PATH="/usr/local/opt/zlib/lib/pkgconfig"
-          CIBW_SKIP: '*-musllinux_*'
+          CFLAGS: -g0
+          CIBW_BUILD_VERBOSITY_MACOS: 3
+          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_BEFORE_BUILD: >
+            python -m pip install -r requirements.txt &&
+            python -m pip install blosc2
+          CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
+          CIBW_BEFORE_ALL_LINUX: >
+            cp -r `pwd`/hdf5_build /tmp/hdf5 &&
+            yum -y update &&
+            yum install -y zlib-devel bzip2-devel lzo-devel
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+            DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-listdeps {wheel} &&
+            DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
 
-      - uses: actions/upload-artifact@v2
+      - name: Copy requirements.txt
+        run: |
+          cp requirements.txt ./wheelhouse/
+
+      - uses: actions/upload-artifact@v3
         with:
-          path: ./wheelhouse/*.whl
-
+          path: |
+            ./wheelhouse/*.whl
+            ./wheelhouse/*.txt
 
   build_wheels_windows:
-    name: Build wheels on ${{matrix.arch}} for ${{ matrix.os }}
+    name: Build wheels for ${{matrix.arch}} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [windows-latest]
-        arch: [win32, win_amd64]
+        arch: [win_amd64]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         name: Install Python
         with:
-          python-version: '3.9'
+          python-version: 3.x
 
       - name: Install Miniconda
         uses: conda-incubator/setup-miniconda@v2
@@ -96,15 +173,18 @@ jobs:
       - name: Build wheels for Windows (${{ matrix.arch }})
         run: cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp36-${{ matrix.arch }} cp37-${{ matrix.arch }} cp38-${{ matrix.arch }} cp39-${{ matrix.arch }} cp310-${{ matrix.arch }}"
-
-          CIBW_BEFORE_ALL_WINDOWS: "conda create --yes --name=build && conda activate build && conda config --env --set subdir ${{ matrix.arch == 'win32' && 'win-32' || 'win-64' }} && conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib"
+          CIBW_BUILD: "cp38-${{ matrix.arch }} cp39-${{ matrix.arch }} cp310-${{ matrix.arch }} cp311-${{ matrix.arch }}"
+          CIBW_BEFORE_ALL_WINDOWS: >
+            conda create --yes --name=build &&
+            conda activate build &&
+            conda config --env --set subdir ${{ matrix.arch == 'win32' && 'win-32' || 'win-64' }} &&
+            conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
           CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build" PATH="$PATH;C:\\Miniconda\\envs\\build\\Library\\bin"'
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
-          CIBW_BEFORE_BUILD: "pip install -r requirements.txt cython>=0.29.21 delvewheel"
+          CIBW_BEFORE_BUILD: "python -m pip install -r requirements.txt delvewheel blosc2"
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: ./wheelhouse/*.whl
 
@@ -116,80 +196,56 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
-        python-version: ['3.7', '3.8', '3.9','3.10']
-        arch: ['x64', 'x86']
-        exclude:
-        - os: 'ubuntu-latest'
-          arch: 'x86'
-        - os: 'macos-latest'
-          arch: 'x86'
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+        arch: ['x64']
+        #include:
+          # For aarch64 we should need QEMU or similar
+          # - arch: aarch64
+          #   cibw_python: "cp*"
+          #   os: ubuntu-latest
+          # Still having issues with wheels for Mac arm64
+          # - arch: arm64
+          #   cibw_python: "cp*"
+          #   os: macos-latest
 
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           path: ./wheelhouse/
 
       - name: Install Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.arch }}
 
       - name: Install tables on ${{ matrix.python-version }}
         run: |
-          pip install numpy>=1.19.0 numexpr>=2.6.2
-          pip install --no-index --find-links wheelhouse/artifact/ tables
+          python -m pip install --pre --find-links wheelhouse/artifact/ tables
 
       - name: Run tests on ${{ matrix.python-version }}
         run: |
           python -m tables.tests.test_all
 
-  build_sdist:
-    name: Build source distribution
-    runs-on: ubuntu-latest
+  twine_check:
+    needs: [ build_sdist, build_wheels, build_wheels_windows ]
+    name: Twine check
+    runs-on: 'ubuntu-latest'
+
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-python@v2
-        name: Install Python
+      - uses: actions/download-artifact@v3
         with:
-          python-version: '3.7'
+          path: ./wheelhouse/
 
-      - name: Install APT packages
-        if: contains(${{ matrix.os }}, 'ubuntu')
-        run: |
-          sudo apt install libbz2-dev libhdf5-serial-dev liblzo2-dev
-          sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade setuptools pip wheel
-          python -m pip install -r requirements.txt
-          python -m pip install cython
-          python -m pip install sphinx>=1.1 sphinx_rtd_theme numpydoc ipython
-
-      - name: Build sdist
-        run: make PYTHON=python dist
-
-      - uses: actions/upload-artifact@v2
+      - name: Install Python
+        uses: actions/setup-python@v4
         with:
-          path: dist/*
+          python-version: '3.x'
 
-#  upload_pypi:
-#    needs: [build_wheels, build_sdist]
-#    runs-on: ubuntu-latest
-#    # upload to PyPI on every tag starting with 'v'
-#    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
-#    # alternatively, to publish when a GitHub Release is created, use the following rule:
-#    # if: github.event_name == 'release' && github.event.action == 'published'
-#    steps:
-#      - uses: actions/download-artifact@v2
-#        with:
-#          name: artifact
-#          path: dist
-#
-#      - uses: pypa/gh-action-pypi-publish@master
-#        with:
-#          user: __token__
-#          password: ${{ secrets.pypi_password }}
-#          # To test: repository_url: https://test.pypi.org/legacy/
+      - name: Install twine
+        run: |
+          python -m pip install twine
+
+      - name: Check sdist and wheels
+        run: |
+          python -m twine check wheelhouse/artifact/tables*.tar.gz wheelhouse/artifact/*.whl

@@ -1,8 +1,5 @@
-:source: http://www.pytables.org/moin/UserDocuments/InstallingPyTablesWhenNotRoot
-:revision: 50
-:date: 2008-04-21 11:12:44
 :author: localhost
-
+:date: 2008-04-21 11:12:44
 
 .. todo:: update to use new SW versions
 
@@ -16,11 +13,11 @@ By `Koen van de Sande <http://www.tibed.net>`_.
 
 This guide describes how to install PyTables and its dependencies on Linux or
 other \*nix systems when your user account is not root.
-Installing the HDF5_ shared libraries and Python extensions NumArray and
+Installing the HDF5_ shared libraries and Python extension
 NumPy requires some non-trivial steps to work.
 We describe all steps needed.
-They only assumption is that you have Python 2.3 or higher and a C/C++ compiler
-(gcc) installed.
+They only assumption is that you have Python 3.6 or higher and a C/C++
+compiler (gcc) installed.
 
 
 Installing HDF5
@@ -29,17 +26,14 @@ Installing HDF5
 * First go to or make a temporary folder where we can download and compile
   software.
   We'll assume you're in this temporary folder in the rest of this section.
-* Download `hdf5-1.6.5.tar.gz` from ftp://ftp.hdfgroup.org/HDF5/current16/src/::
-
-    wget ftp://ftp.hdfgroup.org/HDF5/current16/src/hdf5-1.6.5.tar.gz
-
+* Download `hdf5-1.12.1.tar.gz` from https://www.hdfgroup.org/downloads/hdf5
 * Extract the archive to the current folder::
 
-    tar xzvf hdf5-1.6.5.tar.gz
+    tar xzvf hdf5-1.12.1.tar.gz
 
 * Go to the extracted HDF5 folder::
 
-    cd hdf5-1.6.5
+    cd hdf5-1.12.1
 
 * Run the configure script::
 
@@ -61,55 +55,18 @@ Installing HDF5
     mv hdf5 ~/software/
 
 
-Installing NumArray
--------------------
+Installing NumPy
+----------------
 
-* From the `NumArray SourceForge page
-  <http://sourceforge.net/projects/numpy/files>`_ download
-  NumArray 1.5.2 to our temporary folder.
+* From the `NumPy page on PyPI <https://pypi.org/project/numpy/>`_
+  download NumPy 1.21.5 (at time of writing) to our temporary folder.
 * Extract the archive::
 
-    tar xzvf numarray-1.5.2.tar.gz
-
-* Go to the NumArray folder::
-
-    cd numarray-1.5.2
-
-* Build and install the Python module into our software folder (it will
-  actually end up in `~/software/lib/python`::
-
-    python3 setup.py install --home=~/software
-
-  We will also need to copy the header files of NumArray so PyTables can use
-  them later on for compilation.
-  Skipping this step will lead to compilation errors for PyTables.
-* Go into the header file folder::
-
-    cd include
-
-* Copy the header files. We'll put them together with the HDF5_ header files::
-
-    cp -r numarray ~/software/hdf5/include/
-
-
-Installing NumPy (optional)
----------------------------
-
-It is not required to install NumPy; PyTables will work with just NumArray
-installed.
-However, I do recommend that you install NumPy as well, because PyTables
-can optionally use it.
-
-* From the `NumPy SourceForge page
-  <http://sourceforge.net/projects/numpy/files>`_ download
-  NumPy 1.0 (at time of writing) to our temporary folder.
-* Extract the archive::
-
-    tar xzvf numpy-1.0.tar.gz
+    tar xzvf numpy-1.21.5.tar.gz
 
 * Go to the NumPy folder::
 
-    cd numpy-1.0
+    cd numpy-1.21.5
 * Build and install the Python module into our software folder::
 
     python3 setup.py install --home=~/software
@@ -148,15 +105,10 @@ help a bit.
 
     p
 
-* It should now start Python. And you should be able to import `numarray`
-  (and optionally `numpy`) without errors::
+* It should now start Python. And you should be able to import `numpy`
+  without errors::
 
-    Python 2.3.4 (#1, Feb  2 2005, 12:11:53)
-    [GCC 3.4.2 20041017 (Red Hat 3.4.2-6.fc3)] on linux2
-    Type "help", "copyright", "credits" or "license" for more information.
-    >>> import numarray
     >>> import numpy
-    >>>
 
 
 .. note::
@@ -169,28 +121,19 @@ help a bit.
 Installing PyTables
 -------------------
 
-* From the `SourceForge page <http://sourceforge.net/projects/pytables/files>`_
-  download PyTables 1.3.3 (at time of writing) to our temporary folder.
+* From the `PyPI page <https://pypi.org/project/tables/>`_
+  download PyTables 3.7.0 (at time of writing) to our temporary folder.
 * Extract the archive::
 
-    tar xzvf pytables-1.3.3.tar.gz
+    tar xzvf pytables-3.7.0.tar.gz
 
 * Go to the PyTables folder::
 
-    cd pytables-1.3.3
+    cd pytables-3.7.0
 
 * Install PyTables using our wrapper script::
 
     p setup.py install --home=~/software
-
-* If you get the following error then you are not using the wrapper script
-  properly!
-
-  ::
-
-    .. ERROR:: Can't find a local numarray Python installation.
-       Please, read carefully the ``README`` file and remember that
-       PyTables needs the numarray package to compile and run.}}}
 
 
 Running Python with PyTables support
@@ -202,13 +145,9 @@ Running Python with PyTables support
 
 * You can now import `tables` without errors::
 
-    Python 2.3.4 (#1, Feb  2 2005, 12:11:53)
-    [GCC 3.4.2 20041017 (Red Hat 3.4.2-6.fc3)] on linux2
-    Type "help", "copyright", "credits" or "license" for more information.
     >>> import tables
     >>> tables.__version__
-    '1.3.3'
-    >>>
+    '3.7.0'
 
 
 Concluding remarks
@@ -216,8 +155,8 @@ Concluding remarks
 
 * It is safe to remove the temporary folder we have used in this guide,
   there are no dependencies on it.
-* This guide was written for and tested with HDF5 1.6.5, PyTables 1.3.3 and
-  NumArray 1.5.2.
+* This guide was written for and tested with HDF5 1.12.1, PyTables 3.7.6 and
+  Numpy 1.21.5.
 
 
 Enjoy working with PyTables!

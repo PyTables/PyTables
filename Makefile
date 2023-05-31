@@ -2,30 +2,36 @@
 # sources exported from a repository.  For building and installing PyTables,
 # please use ``setup.py`` as described in the ``README.rst`` file.
 
-VERSION = $(shell cat VERSION)
-SRCDIRS = src doc
+VERSION = $(shell grep "__version__ =" tables/_version.py | cut -f 3 -d ' ' | sed s/\"//g)
+SRCDIRS = doc
 GENERATED = ANNOUNCE.txt
 PYTHON = python3
 PYPLATFORM = $(shell $(PYTHON) -c "from distutils.util import get_platform; print(get_platform())")
-PYVER = $(shell $(PYTHON) -V 2>&1 | cut -c 8-10)
+PYVER = $(shell $(PYTHON) -c "import sys; print(sys.implementation.cache_tag)")
 PYBUILDDIR = $(PWD)/build/lib.$(PYPLATFORM)-$(PYVER)
-OPT = PYTHONPATH=$(PYBUILDDIR)
+OPT = PYTHONPATH="$(PYBUILDDIR)"
+MD5SUM = md5sum
 
 
-.PHONY: all dist build check heavycheck clean distclean html
+.PHONY: default dist sdist build check heavycheck clean distclean html latex
 
-all: $(GENERATED) build html
+default: $(GENERATED) build
 
-dist: all latex
-	$(PYTHON) setup.py sdist
-	cp RELEASE_NOTES.txt dist/RELEASE_NOTES-$(VERSION).txt
-	cp doc/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
+dist: sdist html latex
+	cp RELEASE_NOTES.rst dist/RELEASE_NOTES-$(VERSION).rst
+	cp doc/build/latex/usersguide-$(VERSION).pdf dist/pytablesmanual-$(VERSION).pdf
 	tar cvzf dist/pytablesmanual-$(VERSION)-html.tar.gz doc/html
 	cd dist && \
-	md5sum -b tables-$(VERSION).tar.gz RELEASE_NOTES-$(VERSION).txt \
+	$(MD5SUM) -b tables-$(VERSION).tar.gz RELEASE_NOTES-$(VERSION).rst \
 	pytablesmanual-$(VERSION).pdf \
 	pytablesmanual-$(VERSION)-html.tar.gz > pytables-$(VERSION).md5 && \
 	cd -
+
+sdist: $(GENERATED)
+	# $(RM) -r MANIFEST tables/__pycache__ tables/*/__pycache__
+	# $(RM) tables/_comp_*.c tables/*extension.c
+	# $(RM) tables/*.so
+	$(PYTHON) -m build --sdist
 
 clean:
 	$(RM) -r MANIFEST build dist tmp tables/__pycache__
@@ -34,33 +40,35 @@ clean:
 	$(RM) -r *.egg-info
 	$(RM) $(GENERATED) tables/*.so a.out
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
-	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $(OPT) $@ ; done
+	for srcdir in $(SRCDIRS) ; do $(MAKE) $(OPT) -C $$srcdir $@ ; done
 
-distclean:	clean
-	$(MAKE) -C src $(OPT) $@
+distclean: clean
 	$(RM) tables/_comp_*.c tables/*extension.c
 	$(RM) doc/usersguide-*.pdf
 	$(RM) -r doc/html
-	#git clean -fdx
+	$(RM) -r .pytest_cache
+	# git clean -fdx
 
 html: build
-	$(MAKE) -C doc $(OPT) html
+	$(MAKE) $(OPT) -C doc html
 	$(RM) -r doc/html
 	cp -R doc/build/html doc/html
 
-latex:
-	$(MAKE) -C doc $(OPT) latexpdf
+latex: build
+	$(MAKE) $(OPT) -C doc latexpdf
 	$(RM) doc/usersguide-*.pdf
 	cp doc/build/latex/usersguide-$(VERSION).pdf doc
 
-%: %.in VERSION
+%: %.in tables/__init__.py
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
 
 build:
 	$(PYTHON) setup.py build
 
 check: build
-	cd build/lib.*-$(PYVER) && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py
+	cd build/lib.* && env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs tables -k "not AttributeSet"
+	cd build/lib.* && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py
 
 heavycheck: build
-	cd build/lib.*-$(PYVER) && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py --heavy
+	cd build/lib.* && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py --heavy
+

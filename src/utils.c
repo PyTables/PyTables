@@ -1,8 +1,5 @@
 #include <stdarg.h>
 #include "utils.h"
-#include "version.h"
-#include "H5Zlzo.h"                /* Import FILTER_LZO */
-#include "H5Zbzip2.h"              /* Import FILTER_BZIP2 */
 
 #define PyString_FromString PyUnicode_FromString
 
@@ -94,10 +91,6 @@ herr_t set_cache_size(hid_t file_id, size_t cache_size) {
 
   return code;
 
-}
-
-PyObject *_getTablesVersion() {
-  return PyString_FromString(PYTABLES_VERSION);
 }
 
 PyObject *getHDF5VersionInfo(void) {

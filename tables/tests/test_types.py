@@ -51,7 +51,7 @@ class RangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         i = self.maxshort
         rec['var1'] = '%04d' % (i)
         rec['var2'] = i
-        rec['var3'] = i
+        rec['var3'] = np.array(i).astype('i2')
         rec['var4'] = float(i)
         rec['var5'] = float(i)
         rec['var6'] = float(i)
@@ -83,7 +83,7 @@ class RangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         i = self.maxshort
         rec['var1'] = '%04d' % (i)
         rec['var2'] = i
-        rec['var3'] = i % self.maxshort
+        rec['var3'] = np.array(i % self.maxshort).astype('i2')
         rec['var5'] = float(i)
 
         with self.assertRaises(TypeError):

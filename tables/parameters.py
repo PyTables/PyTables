@@ -1,5 +1,8 @@
 """Parameters for PyTables."""
 
+import os as _os
+
+
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
@@ -124,7 +127,7 @@ treated no differently than other chunks (the preemption is strictly
 LRU) while a value of one means fully read chunks are always preempted
 before other chunks."""
 
-CHUNK_CACHE_SIZE = 2 * _MB
+CHUNK_CACHE_SIZE = 16 * _MB
 """Size (in bytes) for HDF5 chunk cache."""
 
 # Size for new metadata cache system
@@ -146,7 +149,8 @@ METADATA_CACHE_SIZE = 1 * _MB  # 1 MB is the default for HDF5
 # with tons of memory, and if you are touching regularly a very large
 # number of leaves, try increasing this value and see if it fits better
 # for you. Please report back your feedback.
-NODE_CACHE_SLOTS = 64
+# Using a lower value than 64 provides a workaround for issue #977.
+NODE_CACHE_SLOTS = 32  
 """Maximum number of nodes to be kept in the metadata cache.
 
 It is the number of nodes to be kept in the metadata cache. Least recently
@@ -169,7 +173,7 @@ Finally, a value of zero means that any cache mechanism is disabled.
 # Parameters for the I/O buffer in `Leaf` objects
 # -----------------------------------------------
 
-IO_BUFFER_SIZE = 1 * _MB
+IO_BUFFER_SIZE = 16 * _MB
 """The PyTables internal buffer size for I/O purposes.  Should not
 exceed the amount of highest level cache size in your CPU."""
 
@@ -201,7 +205,7 @@ system attributes are not considered for guessing the class of the node
 during its loading from disk (this work is delegated to the PyTables'
 class discoverer function for general HDF5 files)."""
 
-MAX_NUMEXPR_THREADS = 4
+MAX_NUMEXPR_THREADS = int(_os.environ.get("NUMEXPR_MAX_THREADS", 4))
 """The maximum number of threads that PyTables should use internally in
 Numexpr.  If `None`, it is automatically set to the number of cores in
 your machine. In general, it is a good idea to set this to the number of

@@ -48,7 +48,8 @@ from .atom import Atom
 
 from .description import descr_from_dtype
 
-from .utilsextension import (encode_filename, set_blosc_max_threads,
+from .utilsextension import (
+  encode_filename, set_blosc_max_threads, set_blosc2_max_threads,
   atom_to_hdf5_type, atom_from_hdf5_type, hdf5_to_np_ext_type, create_nested_type,
   pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
   platform_byteorder)
@@ -228,9 +229,6 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
       else:
         retvalue = numpy.bytes_(b'')
     elif cset == H5T_CSET_UTF8:
-      if size == 1 and attr_value[0] == 0:
-        # compatibility with PyTables <= 3.1.1
-        retvalue = numpy.unicode_('')
       retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
       retvalue = numpy.unicode_(retvalue)
     else:
@@ -493,6 +491,7 @@ cdef class File:
 
     # Set the maximum number of threads for Blosc
     set_blosc_max_threads(params["MAX_BLOSC_THREADS"])
+    set_blosc2_max_threads(params["MAX_BLOSC_THREADS"])
 
   # XXX: add the possibility to pass a pre-allocated buffer
   def get_file_image(self):
@@ -761,9 +760,6 @@ cdef class AttributeSet:
           retvalue = numpy.bytes_(b'')
 
       elif cset == H5T_CSET_UTF8:
-        if type_size == 1 and str_value[0] == 0:
-          # compatibility with PyTables <= 3.1.1
-          retvalue = numpy.unicode_('')
         retvalue = PyUnicode_DecodeUTF8(str_value, type_size, NULL)
         retvalue = numpy.unicode_(retvalue)
       else:

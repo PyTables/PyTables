@@ -3,7 +3,7 @@
 import datetime
 import sys
 import warnings
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 import numpy as np
 
@@ -1691,18 +1691,18 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
 class CompatibilityTestCase(common.TestFileMixin, common.PyTablesTestCase):
     h5fname = common.test_filename('issue_368.h5')
 
-    @common.unittest.skipIf(LooseVersion(np.__version__) < '1.9.0',
+    @common.unittest.skipIf(Version(np.__version__) < Version('1.9.0'),
                             'requires numpy >= 1.9')
     def test_pickled_unicode_attrs(self):
         # See also gh-368 and https://github.com/numpy/numpy/issues/4879.
         #
         # This is a compatibility test. In PyTables < 3.0 unicode
-        # attributes were stored as pickld unicode stings.
+        # attributes were stored as pickled unicode strings.
         # In PyTables >= 3.0 unicode strings are stored as encoded utf-8
         # strings (the utf-8 marker is set at HDF5 level).
         #
         # In any case PyTables (>= 3.0) should be able to handle correctly
-        # also data files genetated with older versions of PyTables.
+        # also data files generated with older versions of PyTables.
         # Unfortunately a bug in numpy < 1.9
         # (https://github.com/numpy/numpy/issues/4879) makes it impossible
         # unpickle numpy arrays with dtype "U" resulting in an incorrect

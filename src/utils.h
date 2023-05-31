@@ -75,8 +75,6 @@ int getLibrary(char *libname);
 
 herr_t set_cache_size(hid_t file_id, size_t cache_size);
 
-PyObject *_getTablesVersion(void);
-
 /* PyObject *getZLIBVersionInfo(void); */
 
 PyObject *getHDF5VersionInfo(void);
