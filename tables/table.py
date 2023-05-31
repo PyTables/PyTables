@@ -7,6 +7,7 @@ import platform
 import sys
 import warnings
 from pathlib import Path
+import weakref
 
 from time import perf_counter as clock
 
@@ -3285,6 +3286,10 @@ class Column:
         The complete pathname of the associated column (the same as
         Column.name if the column is not inside a nested column).
 
+    .. attribute:: attrs
+
+        Column attributes (see :ref:`ColClassDescr`).
+
     Parameters
     ----------
     table
@@ -3358,6 +3363,7 @@ class Column:
         self.descr = descr
         """The Description (see :ref:`DescriptionClassDescr`) instance of the
         parent table or nested column."""
+        self._v_attrs = ColumnAttributeSet(self)
 
     def _g_update_table_location(self, table):
         """Updates the location information about the associated `table`."""
@@ -3695,3 +3701,140 @@ class Column:
         """A detailed string representation for this object."""
 
         return str(self)
+
+    @lazyattr
+    def _v_pos(self):
+        return self.descr._v_colobjects[self.name]._v_pos
+
+    @lazyattr
+    def _v_col_attrs(self):
+        return self.descr._v_colobjects[self.name]._v_col_attrs
+
+    @property
+    def attrs(self):
+        return self._v_attrs
+
+
+class ColumnAttributeSet:
+
+    def __init__(self, column):
+
+        self.__dict__['_v_tableattrs'] = column.table.attrs
+        self.__dict__['_v_fieldindex'] = column._v_pos
+        self.__dict__['_v_column_reference'] = weakref.ref(column)
+
+        # Check if this column has _v_col_attrs set and translate them into
+        # the table attribute format
+        for col_attr_key, col_attr_val in column._v_col_attrs.items():
+            self.__setitem__(col_attr_key, col_attr_val)
+
+    def issystemcolumnname(self, key):
+        """Checks whether a key is a reserved attribute name, or should be passed through."""
+        return key in ['_v_tableattrs', '_v_fieldindex', '_v_column_reference']
+
+    def _prefix(self, string):
+        """Prefixes a key with a special pattern for storing with table attributes"""
+        field_index = self.__dict__['_v_fieldindex']
+        return 'FIELD_%i_ATTR_%s' % (field_index, string)
+
+    def __getattr__(self, key):
+        """Retrieves a PyTables attribute for this column"""
+        if not self.issystemcolumnname(key):
+            return getattr(self._v_tableattrs, self._prefix(key))
+        else:
+            return super().__getattr__(key)
+
+    def __setattr__(self, key, val):
+        """Sets a PyTables attribute for this column"""
+        if not self.issystemcolumnname(key):
+            setattr(self._v_tableattrs, self._prefix(key), val)
+        else:
+            return super().__setattr__(key, val)
+
+    def __getitem__(self, key):
+        """A dictionary-like interface for __getattr__"""
+        if not self.issystemcolumnname(key):
+            return self._v_tableattrs[self._prefix(key)]
+        else:
+            return self[key]
+
+    def __setitem__(self, key, value):
+        """A dictionary-like interface for __setattr__"""
+        if not self.issystemcolumnname(key):
+            self._v_tableattrs[self._prefix(key)] = value
+        else:
+            self[key] = value
+
+    def __delattr__(self, key):
+        """Deletes the attribute for this column"""
+        if self.issystemcolumnname(key):
+            raise TypeError('Deleting system attributes is prohibited')
+        else:
+            delattr(self._v_tableattrs, self._prefix(key))
+
+    def __delitem__(self, key):
+        """A dictionary-like interface for __delattr__"""
+        if self.issystemcolumnname(key):
+            raise TypeError('Deleting system attributes is prohibited')
+        else:
+            del self._v_tableattrs[self._prefix(key)]
+
+    def _f_rename(self, oldattrname, newattrname):
+        """Rename an attribute from oldattrname to newattrname."""
+
+        if oldattrname == newattrname:
+            # Do nothing
+            return
+
+        if self.issystemcolumnname(oldattrname):
+            raise TypeError('Renaming system attributes is prohibited')
+
+        # First, fetch the value of the oldattrname
+        attrvalue = getattr(self, oldattrname)
+
+        # Now, create the new attribute
+        setattr(self, newattrname, attrvalue)
+
+        # Finally, remove the old attribute
+        delattr(self, oldattrname)
+
+    def _f_copy(self, where):
+        """Copy attributes to another column"""
+
+        # Is there a better way to do this?
+        if not isinstance(where, Column):
+            raise TypeError(f"destination object is not a column: {where!r}")
+
+        for key in self.keys():
+            where.attrs[key] = self[key]
+
+    def keys(self):
+        """Returns the list of attributes for this column"""
+        col_prefix = self._prefix('')
+        length = len(col_prefix)
+        return [key[length:] for key in self._v_tableattrs._v_attrnames if key.startswith(col_prefix)]
+
+    def contains(self, key):
+        """Returns whether a key is in the attribute set"""
+        return key in self.keys()
+
+    def __str__(self):
+        """The string representation for this object."""
+
+        pathname = self._v_tableattrs._v__nodepath
+        classname = self._v_column_reference().__class__.__name__  # self._v_tableattrs._v_node.__class__.__name__
+        attrnumber = sum(1 for _ in self.keys())
+        columnname = self._v_column_reference().name
+
+        return f"{pathname}.cols.{columnname}._v_attrs ({classname}), {attrnumber} attributes"
+
+    def __repr__(self):
+        """A detailed string representation for this object."""
+
+        # print additional info only if there are attributes to show
+        attrnames = self.keys()
+        if attrnames:
+            rep = [f'{attr} := {getattr(self, attr)!r}' for attr in attrnames]
+            return f"{self!s}:\n   [" + ',\n    '.join(rep) + "]"
+        else:
+            return str(self)

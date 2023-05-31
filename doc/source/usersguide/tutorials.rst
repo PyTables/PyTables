@@ -743,6 +743,12 @@ file written to disk.
 Attributes are a useful mechanism to add persistent (meta) information to
 your data.
 
+Starting with PyTables 3.9.0, you can also set, delete, or rename attributes on individual columns. The API is designed to behave the same way as attributes on a table::
+
+    >>> table.cols.pressure.attrs['units'] = 'kPa'
+    >>> table.cols.energy.attrs['units'] = 'MeV'
+
+
 
 Getting object metadata
 ~~~~~~~~~~~~~~~~~~~~~~~

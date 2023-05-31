@@ -6905,6 +6905,82 @@ class TestCreateTableArgs(common.TempFileMixin, common.PyTablesTestCase):
                           description=RecordDescriptionDict)
 
 
+class TestCreateTableColumnAttrs(common.TempFileMixin, common.PyTablesTestCase):
+    """
+    Testing the attachment of column attributes (metadata) during table layout
+    creation using an `IsDescription` subclass.
+    """
+    where = '/'
+    name = 'table'
+    freq_attrs = {'val': 13.3, 'unit': 'Hz', 'description': 'Ref. freq'}
+    labels_attrs = {'nbits': 10}
+
+    def test_col_attr_01(self):
+        """
+        Tests if the set column attrs set via `IsDescription` subclass are
+        availalbe in the table.
+        """
+        class TableEntry(tb.IsDescription):
+            # Adding column attrs at description level
+            freq = tb.Float32Col(attrs=self.freq_attrs)
+            labels = tb.StringCol(itemsize=2, attrs=self.labels_attrs)
+
+        self.h5file.create_table(self.where, self.name, TableEntry)
+
+        self._reopen()
+
+        table = self.h5file.get_node(self.where, self.name)
+        # for k, v in self.freq_attrs.items():
+        #     # self.assertTrue(table.cols.freq.attrs.contains(k))
+        #     self.assertTrue(table.cols.freq.attrs[k] == self.freq_attrs[k])
+        for k, v in self.labels_attrs.items():
+            # self.assertTrue(table.cols.labels.attrs.contains(k))
+            self.assertTrue(table.cols.labels.attrs[k] == self.labels_attrs[k])
+
+    def test_col_attr_02(self):
+        """
+        Tests if the `ColumnAttributeSet` works for adding and changing attrs
+        per column in the existing table.
+        """
+        class TableEntry(tb.IsDescription):
+            # Not adding attrs
+            freq = tb.Float32Col()
+            labels = tb.StringCol(itemsize=2)
+
+        table = self.h5file.create_table(self.where, self.name, TableEntry)
+        for k, v in self.freq_attrs.items():
+            table.cols.freq.attrs[k] = v
+        for k, v in self.labels_attrs.items():
+            table.cols.labels.attrs[k] = v
+
+        self._reopen()
+
+        table = self.h5file.get_node(self.where, self.name)
+        for k, v in self.freq_attrs.items():
+            self.assertTrue(table.cols.freq.attrs.contains(k))
+            self.assertTrue(table.cols.freq.attrs[k] == self.freq_attrs[k])
+        for k, v in self.labels_attrs.items():
+            self.assertTrue(table.cols.labels.attrs.contains(k))
+            self.assertTrue(table.cols.labels.attrs[k] == self.labels_attrs[k])
+
+    def test_col_attr_03(self):
+        """
+        Similar test as *_02 but using the .name access.
+        """
+        class TableEntry(tb.IsDescription):
+            col1 = tb.Float32Col()
+
+        table = self.h5file.create_table(self.where, self.name, TableEntry)
+        table.cols.col1.attrs.val = 1
+        table.cols.col1.attrs.unit = 'N'
+
+        self._reopen()
+
+        table = self.h5file.get_node(self.where, self.name)
+        self.assertTrue(table.cols.col1.attrs.val == 1)
+        self.assertTrue(table.cols.col1.attrs.unit == 'N')
+
+
 def suite():
     theSuite = common.unittest.TestSuite()
     niter = 1
@@ -7020,6 +7096,7 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(AccessClosedTestCase))
         theSuite.addTest(common.unittest.makeSuite(ColumnIterationTestCase))
         theSuite.addTest(common.unittest.makeSuite(TestCreateTableArgs))
+        theSuite.addTest(common.unittest.makeSuite(TestCreateTableColumnAttrs))
 
     if common.heavy:
         theSuite.addTest(
