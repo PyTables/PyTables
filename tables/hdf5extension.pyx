@@ -28,6 +28,7 @@ Misc variables:
 """
 
 import os
+import sys
 import warnings
 from collections import namedtuple
 
@@ -109,6 +110,43 @@ from .utilsextension cimport malloc_dims, get_native_type, cstr_to_pystr, load_r
 cdef extern from "Python.h":
 
     object PyByteArray_FromStringAndSize(char *s, Py_ssize_t len)
+
+cdef extern from "H5ARRAY-opt.h" nogil:
+  hid_t H5ARRAYOmake( hid_t loc_id,
+                      const char *dset_name,
+                      const char *obversion,
+                      const int rank,
+                      const hsize_t *dims,
+                      int   extdim,
+                      hid_t type_id,
+                      hsize_t *dims_chunk,
+                      void  *fill_data,
+                      int   compress,
+                      char  *complib,
+                      int   shuffle,
+                      int   fletcher32,
+                      hbool_t track_times,
+                      hbool_t blosc2_support,
+                      const void *data);
+
+  herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
+                               hid_t dataset_id,
+                               hid_t type_id,
+                               const int rank,
+                               hsize_t *start,
+                               hsize_t *step,
+                               hsize_t *count,
+                               const void *data);
+
+
+  herr_t H5ARRAYOreadSlice(char* filename,
+                           hid_t dataset_id,
+                           hid_t type_id,
+                           hsize_t *start,
+                           hsize_t *stop,
+                           hsize_t *step,
+                           void *data);
+
 
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
 cdef extern from "H5ARRAY.h" nogil:
@@ -1351,15 +1389,21 @@ cdef class Array(Leaf):
     else:
       atom.dflt = dflts
 
+    blosc2_support_write = (
+            (self.byteorder == sys.byteorder) and
+            (self.filters.complib is not None) and
+            (self.filters.complib.startswith("blosc2")))
+
     # Create the CArray/EArray
-    self.dataset_id = H5ARRAYmake(self.parent_id, encoded_name, version,
+    self.dataset_id = H5ARRAYOmake(self.parent_id, encoded_name, version,
                                   self.rank, self.dims, self.extdim,
                                   self.disk_type_id, self.dims_chunk,
                                   fill_data,
                                   self.filters.complevel, complib,
                                   self.filters.shuffle_bitshuffle,
                                   self.filters.fletcher32,
-                                  self._want_track_times, rbuf)
+                                  self._want_track_times,
+                                  blosc2_support_write, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
@@ -1574,10 +1618,12 @@ cdef class Array(Leaf):
     else:
       rbuf = PyArray_DATA(nparr)
 
+    cdef bytes fname = self._v_file.filename.encode('utf8')
+    cdef char *filename = fname
     # Do the physical read
     with nogil:
-        ret = H5ARRAYreadSlice(self.dataset_id, self.type_id,
-                               start, stop, step, rbuf)
+        ret = H5ARRAYOreadSlice(filename, self.dataset_id, self.type_id,
+                                start, stop, step, rbuf)
     try:
       if ret < 0:
         raise HDF5ExtError("Problems reading the array data.")
@@ -1798,9 +1844,13 @@ cdef class Array(Leaf):
     if self.atom.type == 'time64':
       self._convert_time64(nparr, 0)
 
+    cdef hbool_t blosc2_support_write = (
+            (self.byteorder == sys.byteorder) and
+            (self.filters.complib is not None) and
+            (self.filters.complib.startswith("blosc2")))
     # Modify the elements:
     with nogil:
-        ret = H5ARRAYwrite_records(self.dataset_id, self.type_id, self.rank,
+        ret = H5ARRAYOwrite_records(blosc2_support_write, self.dataset_id, self.type_id, self.rank,
                                    start, step, count, rbuf)
 
     if ret < 0:

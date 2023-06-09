@@ -12,7 +12,7 @@
 
 /* WARNING: This is a highly stripped down and modified version of the
    original H5TB.c that comes with the HDF5 library. These
-   modifications has been done in order to serve the needs of
+   modifications have been done in order to serve the needs of
    PyTables, and specially for supporting nested datatypes. In
    particular, the VERSION attribute is out of sync so it is not
    guaranteed that the resulting PyTables objects will be identical

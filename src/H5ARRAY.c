@@ -7,6 +7,8 @@
 #include "blosc_filter.h"              /* Import FILTER_BLOSC */
 #include "blosc2_filter.h"             /* Import FILTER_BLOSC2 */
 
+#include "H5TB-opt.h"
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -46,7 +48,7 @@ hid_t H5ARRAYmake(  hid_t loc_id,
                     char  *complib,
                     int   shuffle,
                     int   fletcher32,
-		    hbool_t track_times,
+		                hbool_t track_times,
                     const void *data)
 {
 

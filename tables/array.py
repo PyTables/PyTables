@@ -116,7 +116,7 @@ class Array(hdf5extension.Array, Leaf):
                  obj=None, title="",
                  byteorder=None, _log=True, _atom=None,
                  track_times=True):
-
+        print("init Array")
         self._v_version = None
         """The object version of this array."""
         self._v_new = new = obj is not None
@@ -464,7 +464,7 @@ class Array(hdf5extension.Array, Leaf):
         def translate_slice(exp, length):
             """Given a slice object, return a 3-tuple (start, count, step)
 
-            This is for for use with the hyperslab selection routines.
+            This is for use with the hyperslab selection routines.
 
             """
 

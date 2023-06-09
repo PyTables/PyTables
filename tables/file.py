@@ -261,7 +261,7 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
 
     # Check already opened files
     if _FILE_OPEN_POLICY == 'strict':
-        # This policy do not allows to open the same file multiple times
+        # This policy does not allow to open the same file multiple times
         # even in read-only mode
         if filename in _open_files:
             raise ValueError(

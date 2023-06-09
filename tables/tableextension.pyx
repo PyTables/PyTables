@@ -218,7 +218,7 @@ cdef class Table(Leaf):
 
     blosc2_support_write = (
             (self.byteorder == sys.byteorder) and
-            (self.filters.complib != None) and
+            (self.filters.complib is not None) and
             (self.filters.complib.startswith("blosc2")))
 
     class_ = self._c_classid.encode('utf-8')

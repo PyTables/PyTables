@@ -500,7 +500,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Do an additional in-place byteswap of data if the in-memory
         # byteorder doesn't match that of the on-disk.  This is the only
         # place that we have to do the conversion manually. In all the
-        # other cases, it will be HDF5 the responsible of doing the
+        # other cases, it will be HDF5 the responsible for doing the
         # byteswap properly.
         if dbyteorder in ['little', 'big']:
             if dbyteorder != self.byteorder:
@@ -524,7 +524,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         * A numpy array (or list or tuple) with the point coordinates.
           This has to be a two-dimensional array of size len(self.shape)
-          by num_elements containing a list of of zero-based values
+          by num_elements containing a list of zero-based values
           specifying the coordinates in the dataset of the selected
           elements. The order of the element coordinates in the array
           specifies the order in which the array elements are iterated
