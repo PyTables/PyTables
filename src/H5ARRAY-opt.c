@@ -8,6 +8,146 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+
+herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
+                          hid_t dataset_id,
+                          hid_t type_id,
+                          const int rank,
+                          hsize_t *start,
+                          hsize_t *stop,
+                          hsize_t *step,
+                          const void *data,
+                          hbool_t set)
+{
+  uint8_t *data2 = (uint8_t *) data;
+  /* Get the file data space */
+  if ((space_id = H5Dget_space(dataset_id)) < 0)
+    goto out;
+
+  /* Get the dataset creation property list */
+  hid_t dcpl = H5Dget_create_plist(dataset_id);
+  if (dcpl == H5I_INVALID_HID) {
+    return -1; //goto out;
+  }
+  size_t cd_nelmts = 7;
+  unsigned cd_values[7];
+  char name[7];
+  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
+    H5Pclose(dcpl);
+    return -1; //goto out;
+  }
+  int typesize = cd_values[2];
+  hsize_t chunkshape[rank];
+  H5Pget_chunk(dcpl, rank, &chunkshape);
+
+  if (H5Pclose(dcpl) < 0)
+    return -1; // goto out;
+
+  hsize_t shape[rank];
+  H5Sget_simple_extent_dims(space_id, shape, NULL);
+  int64_t extshape[rank];
+
+  for (int i = 0; i < rank; i++) {
+    if (shape[i] % chunkshape[i] != 0) {
+      extshape[i] = shape[i] + chunkshape[i] - shape[i] % chunkshape[i];
+    } else {
+      extshape[i] = shape[i];
+    }
+  }
+
+  int64_t chunks_in_array[rank];
+  for (int i = 0; i < rank; ++i) {
+    chunks_in_array[i] = extshape[i] / chunkshape[i];
+  }
+  int64_t chunks_in_array_strides[rank];
+  chunks_in_array_strides[rank - 1] = 1;
+  for (int i = rank - 2; i >= 0; --i) {
+    chunks_in_array_strides[i] = chunks_in_array_strides[i + 1] * chunks_in_array[i + 1];
+  }
+
+  // Compute the number of chunks to update
+  int64_t update_start[rank];
+  int64_t update_shape[rank];
+
+  int64_t update_nchunks = 1;
+  for (int i = 0; i < rank; ++i) {
+    int64_t pos = 0;
+    while (pos <= start[i]) {
+      pos += chunkshape[i];
+    }
+    update_start[i] = pos / chunkshape[i] - 1;
+    while (pos < stop[i]) {
+      pos += chunkshape[i];
+    }
+    update_shape[i] = pos / chunkshape[i] - update_start[i];
+    update_nchunks *= update_shape[i];
+  }
+
+  for (int update_nchunk = 0; update_nchunk < update_nchunks; ++update_nchunk) {
+    int64_t nchunk_ndim[rank];
+    blosc2_unidim_to_multidim(rank, update_shape, update_nchunk, nchunk_ndim);
+    for (int i = 0; i < rank; ++i) {
+      nchunk_ndim[i] += update_start[i];
+    }
+    int64_t nchunk;
+    blosc2_multidim_to_unidim(nchunk_ndim, rank, chunks_in_array_strides, &nchunk);
+
+    // Check if the chunk needs to be updated
+    int64_t chunk_start[rank];
+    int64_t chunk_stop[rank];
+    int32_t chunksize = typesize;
+    for (int i = 0; i < rank; ++i) {
+      chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
+      chunk_stop[i] = chunk_start[i] + chunkshape[i];
+      if (chunk_stop[i] > shape[i]) {
+        chunk_stop[i] = shape[i];
+      }
+      chunksize *= (chunk_stop[i] - chunk_start[i]);
+    }
+
+    bool dont_read = false;
+    for (int i = 0; i < rank; ++i) {
+      dont_read |= (chunk_stop[i] <= start[i] || chunk_start[i] >= stop[i]);
+    }
+    if (dont_read) {
+      continue;
+    }
+
+    // Check if all the chunk is going to be updated and avoid the decompression
+    bool decompress_chunk = false;
+    for (int i = 0; i < rank; ++i) {
+      decompress_chunk |= (chunk_start[i] < start[i] || chunk_stop[i] > stop[i]);
+    }
+    /*
+    if (decompress_chunk) {
+        int err = blosc2_schunk_decompress_chunk(array->sc, nchunk, data, data_nbytes);
+        if (err < 0) {
+          BLOSC_TRACE_ERROR("Error decompressing chunk");
+          BLOSC_ERROR(BLOSC2_ERROR_FAILURE);
+        }
+    }else {
+    }*/
+    if (!decompress_chunk) {
+      if (!set) {
+        read_chunk_blosc2_ndim(filename, dataset_id, space_id, nchunk, chunk_start, chunksize, data2);
+      }
+      else {
+        insert_chunk_blosc2_ndim(dataset_id, chunk_start, chunksize, data2);
+      }
+    }
+    data2 += chunksize;
+  }
+
+  if (H5Sclose(space_id) < 0)
+    goto out;
+
+    return 0;
+
+  out:
+  return -1;
+}
+
 /*-------------------------------------------------------------------------
  * Function: H5ARRAYwrite_records
  *
@@ -47,7 +187,11 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
   if (envvar != NULL)
     blosc2_filter = strtol(envvar, NULL, 10);
   if (blosc2_support && !((int) blosc2_filter)) {
-    if (write_records_blosc2_ndim(dataset_id, type_id, rank, start, step, count, data) == 0)
+    hsize_t stop[rank];
+    for (int i = 0; i < rank; ++i) {
+      stop[i] = start[i] + count[i];
+    }
+    if (get_set_blosc2_slice(NULL, dataset_id, type_id, rank, start, stop, step, data, true) == 0)
       return 0;
   }
 
@@ -76,166 +220,6 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
 
   /* Everything went smoothly */
   return 0;
-}
-
-
-/*-------------------------------------------------------------------------
- * Function: write_records_blosc2
- *
- * Purpose: Write records to a table using blosc2
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmers:
- *  Francesc Alted, francesc@blosc.org
- *  Oscar Guiñon, soscargm98@gmail.com
- *
- * Date: October 25, 2022
- *
- * Comments:
- *
- * Modifications:
- *
- *
- *-------------------------------------------------------------------------
- */
-
-
-herr_t write_records_blosc2_ndim(hid_t dataset_id,
-                                 hid_t type_id,
-                                 const int rank,
-                                 hsize_t *start,
-                                 hsize_t *step,
-                                 hsize_t *count,
-                                 const void *data) {
-  hid_t space_id = -1;        /* Shut up the compiler */
-  hsize_t offset[1];
-  hid_t mem_space_id = -1;    /* Shut up the compiler */
-  uint8_t *data2 = (uint8_t *) data;
-
-  /* Get the dataset creation property list */
-  hid_t dcpl = H5Dget_create_plist(dataset_id);
-  if (dcpl == H5I_INVALID_HID) {
-    return -1; //goto out;
-  }
-  size_t cd_nelmts = 7;
-  unsigned cd_values[7];
-  char name[7];
-  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
-    H5Pclose(dcpl);
-    return -1; //goto out;
-  }
-  int typesize = cd_values[2];
-  hsize_t chunkshape[rank];
-  H5Pget_chunk(dcpl, rank, &chunkshape);
-  if (H5Pclose(dcpl) < 0)
-    return -1; // goto out;
-
-  hid_t dspace = H5Dget_space(dataset_id);
-  hsize_t shape[rank];
-  H5Sget_simple_extent_dims(dspace, shape, NULL);
-  if (H5Sclose(dspace) < 0)
-    return -1;
-
-  int64_t extshape[rank];
-
-  for (int i = 0; i < rank; i++) {
-    if (shape[i] % chunkshape[i] != 0) {
-      extshape[i] = shape[i] + chunkshape[i] - shape[i] % chunkshape[i];
-    } else {
-      extshape[i] = shape[i];
-    }
-  }
-  int64_t chunks_in_array[rank];
-  for (int i = 0; i < rank; ++i) {
-    chunks_in_array[i] = extshape[i] / chunkshape[i];
-  }
-  int64_t chunks_in_array_strides[rank];
-  chunks_in_array_strides[rank - 1] = 1;
-  for (int i = rank - 2; i >= 0; --i) {
-    chunks_in_array_strides[i] = chunks_in_array_strides[i + 1] * chunks_in_array[i + 1];
-  }
-
-  int64_t stop[rank];
-  for (int i = 0; i < rank; i++) {
-    stop[i] = start[i] + count[i];
-  }
-
-  // Compute the number of chunks to update
-  int64_t update_start[rank];
-  int64_t update_shape[rank];
-
-  int64_t update_nchunks = 1;
-  for (int i = 0; i < rank; ++i) {
-    int64_t pos = 0;
-    while (pos <= start[i]) {
-      pos += chunkshape[i];
-    }
-    update_start[i] = pos / chunkshape[i] - 1;
-    while (pos < stop[i]) {
-      pos += chunkshape[i];
-    }
-    update_shape[i] = pos / chunkshape[i] - update_start[i];
-    update_nchunks *= update_shape[i];
-  }
-
-
-  for (int update_nchunk = 0; update_nchunk < update_nchunks; ++update_nchunk) {
-    int64_t nchunk_ndim[rank];
-    blosc2_unidim_to_multidim(rank, update_shape, update_nchunk, nchunk_ndim);
-    for (int i = 0; i < rank; ++i) {
-      nchunk_ndim[i] += update_start[i];
-    }
-    int64_t nchunk;
-    blosc2_multidim_to_unidim(nchunk_ndim, rank, chunks_in_array_strides, &nchunk);
-
-    // Check if the chunk needs to be updated
-    int64_t chunk_start[rank];
-    int64_t chunk_stop[rank];
-    int32_t chunksize = typesize;
-    for (int i = 0; i < rank; ++i) {
-      chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
-      chunk_stop[i] = chunk_start[i] + chunkshape[i];
-      if (chunk_stop[i] > shape[i]) {
-        chunk_stop[i] = shape[i];
-      }
-      chunksize *= (chunk_stop[i] - chunk_start[i]);
-    }
-
-    bool dont_write = false;
-    for (int i = 0; i < rank; ++i) {
-      dont_write |= (chunk_stop[i] <= start[i] || chunk_start[i] >= stop[i]);
-    }
-    if (dont_write) {
-      continue;
-    }
-
-    // Check if all the chunk is going to be updated and avoid the decompression
-    bool decompress_chunk = false;
-    for (int i = 0; i < rank; ++i) {
-      decompress_chunk |= (chunk_start[i] < start[i] || chunk_stop[i] > stop[i]);
-    }
-    /*
-    if (decompress_chunk) {
-        int err = blosc2_schunk_decompress_chunk(array->sc, nchunk, data, data_nbytes);
-        if (err < 0) {
-          BLOSC_TRACE_ERROR("Error decompressing chunk");
-          BLOSC_ERROR(BLOSC2_ERROR_FAILURE);
-        }
-    }else {
-        printf("ara per ara va bé\n");
-    }*/
-    if (!decompress_chunk) {
-      insert_chunk_blosc2_ndim(dataset_id, chunk_start, chunksize, data2);
-    }
-    data2 += chunksize;
-  }
-
-  return 0;
-
-  out:
-  return -1;
-
 }
 
 
@@ -522,151 +506,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
 }
 
 
-/*-------------------------------------------------------------------------
- * Function: read_records_blosc2
- *
- * Purpose: Read records from an opened table using blosc2
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmer: Francesc Alted, francesc@blosc.org
- *
- * Date: August 12, 2022
- *
- * Comments:
- *
- * Modifications:
- *
- *
- *-------------------------------------------------------------------------
- */
 
-
-herr_t read_slice_blosc2(char *filename,
-                         hid_t dataset_id,
-                         hid_t type_id,
-                         hid_t space_id,
-                         hsize_t *start,
-                         hsize_t *stop,
-                         hsize_t *step,
-                         hsize_t rank,
-                         uint8_t *data) {
-  uint8_t *data2 = (uint8_t *) data;
-
-  /* Get the dataset creation property list */
-  hid_t dcpl = H5Dget_create_plist(dataset_id);
-  if (dcpl == H5I_INVALID_HID) {
-    return -1; //goto out;
-  }
-  size_t cd_nelmts = 7;
-  unsigned cd_values[7];
-  char name[7];
-  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
-    H5Pclose(dcpl);
-    return -1; //goto out;
-  }
-  int typesize = cd_values[2];
-  hsize_t chunkshape[rank];
-  H5Pget_chunk(dcpl, rank, &chunkshape);
-
-  if (H5Pclose(dcpl) < 0)
-    return -1; // goto out;
-
-  hsize_t shape[rank];
-  H5Sget_simple_extent_dims(space_id, shape, NULL);
-  int64_t extshape[rank];
-
-  for (int i = 0; i < rank; i++) {
-    if (shape[i] % chunkshape[i] != 0) {
-      extshape[i] = shape[i] + chunkshape[i] - shape[i] % chunkshape[i];
-    } else {
-      extshape[i] = shape[i];
-    }
-  }
-
-  int64_t chunks_in_array[rank];
-  for (int i = 0; i < rank; ++i) {
-    chunks_in_array[i] = extshape[i] / chunkshape[i];
-  }
-  int64_t chunks_in_array_strides[rank];
-  chunks_in_array_strides[rank - 1] = 1;
-  for (int i = rank - 2; i >= 0; --i) {
-    chunks_in_array_strides[i] = chunks_in_array_strides[i + 1] * chunks_in_array[i + 1];
-  }
-
-  // Compute the number of chunks to update
-  int64_t update_start[rank];
-  int64_t update_shape[rank];
-
-  int64_t update_nchunks = 1;
-  for (int i = 0; i < rank; ++i) {
-    int64_t pos = 0;
-    while (pos <= start[i]) {
-      pos += chunkshape[i];
-    }
-    update_start[i] = pos / chunkshape[i] - 1;
-    while (pos < stop[i]) {
-      pos += chunkshape[i];
-    }
-    update_shape[i] = pos / chunkshape[i] - update_start[i];
-    update_nchunks *= update_shape[i];
-  }
-
-  for (int update_nchunk = 0; update_nchunk < update_nchunks; ++update_nchunk) {
-    int64_t nchunk_ndim[rank];
-    blosc2_unidim_to_multidim(rank, update_shape, update_nchunk, nchunk_ndim);
-    for (int i = 0; i < rank; ++i) {
-      nchunk_ndim[i] += update_start[i];
-    }
-    int64_t nchunk;
-    blosc2_multidim_to_unidim(nchunk_ndim, rank, chunks_in_array_strides, &nchunk);
-
-    // Check if the chunk needs to be updated
-    int64_t chunk_start[rank];
-    int64_t chunk_stop[rank];
-    int32_t chunksize = typesize;
-    for (int i = 0; i < rank; ++i) {
-      chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
-      chunk_stop[i] = chunk_start[i] + chunkshape[i];
-      if (chunk_stop[i] > shape[i]) {
-        chunk_stop[i] = shape[i];
-      }
-      chunksize *= (chunk_stop[i] - chunk_start[i]);
-    }
-
-    bool dont_read = false;
-    for (int i = 0; i < rank; ++i) {
-      dont_read |= (chunk_stop[i] <= start[i] || chunk_start[i] >= stop[i]);
-    }
-    if (dont_read) {
-      continue;
-    }
-
-    // Check if all the chunk is going to be updated and avoid the decompression
-    bool decompress_chunk = false;
-    for (int i = 0; i < rank; ++i) {
-      decompress_chunk |= (chunk_start[i] < start[i] || chunk_stop[i] > stop[i]);
-    }
-    /*
-    if (decompress_chunk) {
-        int err = blosc2_schunk_decompress_chunk(array->sc, nchunk, data, data_nbytes);
-        if (err < 0) {
-          BLOSC_TRACE_ERROR("Error decompressing chunk");
-          BLOSC_ERROR(BLOSC2_ERROR_FAILURE);
-        }
-    }else {
-    }*/
-    if (!decompress_chunk) {
-      read_chunk_blosc2_ndim(filename, dataset_id, space_id, nchunk, chunk_start, chunksize, data2);
-    }
-    data2 += chunksize;
-  }
-
-  return 0;
-
-  out:
-  return -1;
-}
 
 
 herr_t read_chunk_blosc2_ndim(char *filename,
@@ -805,7 +645,7 @@ herr_t H5ARRAYOreadSlice(char *filename,
 
     if (blosc2_support && !((int) blosc2_filter)) {
       /* Try to read using blosc2 (only supports native byteorder and step=1 for now) */
-      read_slice_blosc2(filename, dataset_id, type_id, space_id, start, stop, step, rank, data);
+      get_set_blosc2_slice(filename, dataset_id, type_id, space_id, rank, start, stop, step, data, false);
       goto success;
     }
 
