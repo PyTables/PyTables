@@ -140,6 +140,7 @@ cdef extern from "H5ARRAY-opt.h" nogil:
 
 
   herr_t H5ARRAYOreadSlice(char* filename,
+                           hbool_t blosc2_support,
                            hid_t dataset_id,
                            hid_t type_id,
                            hsize_t *start,
@@ -1620,9 +1621,11 @@ cdef class Array(Leaf):
 
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char *filename = fname
+    print("gread slice support ", self.blosc2_support_read)
+    cdef hbool_t blosc2_support = self.blosc2_support_read
     # Do the physical read
     with nogil:
-        ret = H5ARRAYOreadSlice(filename, self.dataset_id, self.type_id,
+        ret = H5ARRAYOreadSlice(filename, blosc2_support, self.dataset_id, self.type_id,
                                 start, stop, step, rbuf)
     try:
       if ret < 0:

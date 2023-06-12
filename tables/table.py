@@ -40,7 +40,7 @@ if profile:
 
 
 # 2.2: Added support for complex types. Introduced in version 0.9.
-# 2.2.1: Added suport for time types.
+# 2.2.1: Added support for time types.
 # 2.3: Changed the indexes naming schema.
 # 2.4: Changed indexes naming schema (again).
 # 2.5: Added the FIELD_%d_FILL attributes.
@@ -821,7 +821,7 @@ class Table(tableextension.Table, Leaf):
 
         self.blosc2_support_write = (
                 (self.byteorder == sys.byteorder) and
-                (self.filters.complib != None) and
+                (self.filters.complib is not None) and
                 (self.filters.complib.startswith("blosc2")))
         # For reading, Windows does not support re-opening a file twice
         # in not read-only mode (for good reason), so we cannot use the

@@ -20,29 +20,32 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
                           const void *data,
                           hbool_t set)
 {
+  printf("get_set_blosc2_slice\n");
+  printf("rank %d\n", rank);
   uint8_t *data2 = (uint8_t *) data;
   /* Get the file data space */
+  hid_t space_id;
   if ((space_id = H5Dget_space(dataset_id)) < 0)
-    goto out;
+    return -1;
 
   /* Get the dataset creation property list */
   hid_t dcpl = H5Dget_create_plist(dataset_id);
   if (dcpl == H5I_INVALID_HID) {
-    return -1; //goto out;
+    return -2;
   }
   size_t cd_nelmts = 7;
   unsigned cd_values[7];
   char name[7];
   if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
     H5Pclose(dcpl);
-    return -1; //goto out;
+    return -3;
   }
   int typesize = cd_values[2];
   hsize_t chunkshape[rank];
   H5Pget_chunk(dcpl, rank, &chunkshape);
 
   if (H5Pclose(dcpl) < 0)
-    return -1; // goto out;
+    return -4;
 
   hsize_t shape[rank];
   H5Sget_simple_extent_dims(space_id, shape, NULL);
@@ -54,6 +57,9 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
     } else {
       extshape[i] = shape[i];
     }
+    printf("extshape[%d] = %d\n", i, extshape[i]);
+    printf("shape[%d] = %d\n", i, shape[i]);
+    printf("chunkshape[%d] = %d\n", i, chunkshape[i]);
   }
 
   int64_t chunks_in_array[rank];
@@ -92,6 +98,7 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
     }
     int64_t nchunk;
     blosc2_multidim_to_unidim(nchunk_ndim, rank, chunks_in_array_strides, &nchunk);
+    printf("nchunk %d\n", nchunk);
 
     // Check if the chunk needs to be updated
     int64_t chunk_start[rank];
@@ -128,6 +135,7 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
         }
     }else {
     }*/
+    printf("chunksize %d\n", chunksize);
     if (!decompress_chunk) {
       if (!set) {
         read_chunk_blosc2_ndim(filename, dataset_id, space_id, nchunk, chunk_start, chunksize, data2);
@@ -140,12 +148,9 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
   }
 
   if (H5Sclose(space_id) < 0)
-    goto out;
+    return -5;
 
     return 0;
-
-  out:
-  return -1;
 }
 
 /*-------------------------------------------------------------------------
@@ -605,11 +610,8 @@ herr_t H5ARRAYOreadSlice(char *filename,
                          hsize_t *stop,
                          hsize_t *step,
                          void *data) {
-
   hid_t space_id;
   hid_t mem_space_id;
-  hsize_t *dims = NULL;
-  hsize_t *count = NULL;
   hsize_t *stride = (hsize_t *) step;
   hsize_t *offset = (hsize_t *) start;
   int rank;
@@ -617,21 +619,24 @@ herr_t H5ARRAYOreadSlice(char *filename,
 
   /* Get the dataspace handle */
   if ((space_id = H5Dget_space(dataset_id)) < 0)
-    goto out;
+    return -1;
 
   /* Get the rank */
   if ((rank = H5Sget_simple_extent_ndims(space_id)) < 0)
-    goto out;
+    return -2;
+
+  hsize_t dims[rank];
+  hsize_t count[rank];
 
   if (rank) {                    /* Array case */
     /* Get dataset dimensionality */
     if (H5Sget_simple_extent_dims(space_id, dims, NULL) < 0)
-      goto out;
+      return -3;
 
     for (i = 0; i < rank; i++) {
       if (stop[i] > dims[i]) {
         printf("Asking for a range of rows exceeding the available ones!.\n");
-        goto out;
+        return -4;
       }
       if (step[i] != 1) {
         blosc2_support = false;
@@ -645,55 +650,41 @@ herr_t H5ARRAYOreadSlice(char *filename,
 
     if (blosc2_support && !((int) blosc2_filter)) {
       /* Try to read using blosc2 (only supports native byteorder and step=1 for now) */
-      get_set_blosc2_slice(filename, dataset_id, type_id, space_id, rank, start, stop, step, data, false);
+      get_set_blosc2_slice(filename, dataset_id, type_id, rank, start, stop, step, data, false);
       goto success;
     }
-
-    /* Book some memory for the selections */
-    dims = (hsize_t *) malloc(rank * sizeof(hsize_t));
-    count = (hsize_t *) malloc(rank * sizeof(hsize_t));
 
     /* Define a hyperslab in the dataset of the size of the records */
     if (H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride,
                             count, NULL) < 0)
-      goto out;
+      return -5;
 
     /* Create a memory dataspace handle */
     if ((mem_space_id = H5Screate_simple(rank, count, NULL)) < 0)
-      goto out;
+      return -6;
 
     /* Read */
     if (H5Dread(dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT,
                 data) < 0)
-      goto out;
-
-    /* Release resources */
-    free(dims);
-    free(count);
+      return -7;
 
     /* Terminate access to the memory dataspace */
     if (H5Sclose(mem_space_id) < 0)
-      goto out;
+      return -8;
   } else {                     /* Scalar case */
 
     /* Read all the dataset */
     if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
-      goto out;
+      return -9;
   }
 
   success:
   /* Terminate access to the dataspace */
-  if (H5Sclose(space_id) < 0)
-    goto out;
+  if (H5Sclose(space_id) < 0){
+    return -10;
+  }
 
   return 0;
-
-  out:
-/*  H5Dclose( dataset_id ); */
-  if (dims) free(dims);
-  if (count) free(count);
-  return -1;
-
 }
 
 

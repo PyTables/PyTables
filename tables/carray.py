@@ -1,5 +1,6 @@
 """Here is defined the CArray class."""
 
+import platform
 import sys
 
 import numpy as np
@@ -199,6 +200,26 @@ class CArray(Array):
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentnode, name, new, filters,
                                     byteorder, _log, track_times)
+
+    def _g_post_init_hook(self):
+        # Fill general info for carray
+        print("_g_post_init_hook")
+        # First, get back the flavor of input data (if any) for
+        # `Leaf._g_post_init_hook()`.
+        super()._g_post_init_hook()
+
+        self.blosc2_support_write = (
+                (self.byteorder == sys.byteorder) and
+                (self.filters.complib is not None) and
+                (self.filters.complib.startswith("blosc2")))
+        # For reading, Windows does not support re-opening a file twice
+        # in not read-only mode (for good reason), so we cannot use the
+        # blosc2 opt
+        self.blosc2_support_read = (
+                self.blosc2_support_write and
+                ((platform.system().lower() != 'windows') or
+                (self._v_file.mode == 'r'))
+        )
 
     def _g_create(self):
         """Create a new array in file (specific part)."""
