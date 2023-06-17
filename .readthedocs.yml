@@ -9,7 +9,8 @@ conda:
   file: environment.yml
 
 python:
-  - method: pip
+  install:
+    - method: pip
       path: .
       extra_requirements:
         - docs
