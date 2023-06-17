@@ -19,3 +19,5 @@ dependencies:
   - sphinx_rtd_theme
   - numpydoc
   - ipython
+  - pkg-config
+
