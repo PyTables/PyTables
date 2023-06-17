@@ -381,7 +381,7 @@ cdef void _keysort_string(char* start1, size_t ss, char* start2, size_t ts, size
     cdef char *ipt
 
     while True:
-        while pr - pl > SMALL_QUICKSORT * ss:
+        while pr - pl > <long>(SMALL_QUICKSORT * ss):
             pm  = pl + ((pr - pl)//ss >> 1)*ss
             ipm  = ipl + ((ipr - ipl)//ts >> 1)*ts
 

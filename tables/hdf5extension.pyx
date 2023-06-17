@@ -1428,7 +1428,7 @@ cdef class Array(Leaf):
     # Get the extendable dimension (if any)
     self.extdim = -1  # default is non-extensible Array
     for i from 0 <= i < self.rank:
-      if self.maxdims[i] == -1:
+      if self.maxdims[i] == <hsize_t>-1:
         self.extdim = i
         break
 
@@ -2130,7 +2130,7 @@ cdef class VLArray(Leaf):
         "VLArray._read_array: Problems reading the array data.")
 
     datalist = []
-    for i from 0 <= i < nrows:
+    for i in range(<long long>nrows):
       # Number of atoms in row
       vllen = rdata[i].len
       # Get the pointer to the buffer data area

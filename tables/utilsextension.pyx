@@ -390,7 +390,7 @@ def _dump_h5_backtrace():
 # Initialization of the _dump_h5_backtrace method of HDF5ExtError.
 # The unusual machinery is needed in order to avoid cirdular dependencies
 # between modules.
-HDF5ExtError._dump_h5_backtrace = _dump_h5_backtrace
+HDF5ExtError._dump_h5_backtrace = staticmethod(_dump_h5_backtrace)
 
 
 def silence_hdf5_messages(silence=True):
@@ -840,7 +840,7 @@ def which_class(hid_t loc_id, object name):
       classId = "CARRAY"
       # Check whether some dimension is enlargeable
       for i in range(rank):
-        if maxdims[i] == -1:
+        if maxdims[i] == <hsize_t>-1:
           classId = "EARRAY"
           break
       free(<void *>dims)
@@ -1229,7 +1229,7 @@ def hdf5_to_np_nested_type(hid_t type_id):
   # Get the number of members
   nfields = H5Tget_nmembers(type_id)
   # Iterate thru the members
-  for i in range(nfields):
+  for i in range(<long>nfields):
     # Get the member name
     c_colname = H5Tget_member_name(type_id, i)
     colname = cstr_to_pystr(c_colname)
@@ -1452,7 +1452,7 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
 
   try:
 
-    for i in range(nelements):
+    for i in range(<long>nelements):
       refobj_id = H5Rdereference(dataset_id, H5R_OBJECT, &refbuf[i])
       if H5Iget_type(refobj_id) != H5I_DATASET:
         raise ValueError('Invalid reference type %d %d' % (H5Iget_type(refobj_id), item_size))
@@ -1474,7 +1474,7 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
       # Get the extendable dimension (if any)
       extdim = -1  # default is non-extensible Array
       for j in range(rank):
-        if maxdims[j] == -1:
+        if maxdims[j] == <hsize_t>-1:
           extdim = j
           break
       if extdim < 0:
