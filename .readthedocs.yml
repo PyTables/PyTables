@@ -6,10 +6,16 @@ submodules:
 build:
   os: "ubuntu-20.04"
   tools:
-    python: "mambaforge-4.10"
-
-conda:
-  environment: environment.yml
+    python: "3"
+  apt_packages:
+    - libblosc-dev
+    - libbz2-dev
+    - libhdf5-dev
+    - liblz4-dev
+    - liblzo2-dev
+    - libsnappy-dev
+    - libzstd-dev
+    - zlib1g-dev
 
 python:
   install:
