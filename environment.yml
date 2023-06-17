@@ -14,7 +14,7 @@ dependencies:
   - hdf5
   - lzo
   - blosc
-  - blosc2
+  - c-blosc2
   - sphinx
   - sphinx_rtd_theme
   - numpydoc
