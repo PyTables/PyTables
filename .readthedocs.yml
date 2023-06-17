@@ -6,7 +6,7 @@ build:
     python: "3"
 
 conda:
-  file: environment.yml
+  environment: environment.yml
 
 python:
   install:
