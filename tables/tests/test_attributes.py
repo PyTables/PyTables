@@ -578,7 +578,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # In the views old implementation PyTAbles performa a copy of the
         # array:
         #
-        #     value = numpy.array(value)
+        #     value = np.array(value)
         #
         # in order to get a contiguous array.
         # Unfortunately array with swapped axis are copyed as they are so
@@ -1374,7 +1374,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # The next raises a `TypeError` when unpickled. See:
         # http://projects.scipy.org/numpy/ticket/1037
-        # self.array.attrs.pq = numpy.array([''])
+        # self.array.attrs.pq = np.array([''])
         self.array.attrs.pq = np.array([''], dtype="U1")
 
         # Check the results

@@ -644,7 +644,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             a_list = vlarray[4:1000:2]
             a_list2 = vlarray[[0,2]]   # get list of coords
             a_list3 = vlarray[[0,-2]]  # negative values accepted
-            a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools
+            a_list4 = vlarray[np.array([True,...,False])]  # array of bools
 
         """
 
@@ -814,7 +814,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """Read rows specified in `coords`."""
         rows = []
         for coord in coords:
-            rows.append(self.read(int(coord), int(coord) + 1, 1)[0])
+            rows.append(self.read(idx2long(coord), idx2long(coord) + 1, 1)[0])
         return rows
 
     def _g_copy_with_stats(self, group, name, start, stop, step,

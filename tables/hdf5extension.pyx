@@ -37,7 +37,7 @@ ObjTimestamps = namedtuple('ObjTimestamps', ['atime', 'mtime',
 
 import pickle
 
-import numpy
+import numpy as np
 
 from .exceptions import HDF5ExtError, DataTypeWarning
 
@@ -225,12 +225,12 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
     size = H5ATTRget_attribute_string(node_id, attr_name, &attr_value, &cset)
     if size == 0:
       if cset == H5T_CSET_UTF8:
-        retvalue = numpy.unicode_('')
+        retvalue = np.unicode_('')
       else:
-        retvalue = numpy.bytes_(b'')
+        retvalue = np.bytes_(b'')
     elif cset == H5T_CSET_UTF8:
       retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
-      retvalue = numpy.unicode_(retvalue)
+      retvalue = np.unicode_(retvalue)
     else:
       retvalue = PyBytes_FromStringAndSize(attr_value, size)
       # AV: oct 2012
@@ -239,9 +239,9 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
       # The entire process is quite odd but due to a bug (??) in the way
       # numpy arrays are pickled in python 3 we can't assume that
       # strlen(attr_value) is the actual length of the attribute
-      # and numpy.bytes_(attr_value) can give a truncated pickle string
+      # and np.bytes_(attr_value) can give a truncated pickle string
       retvalue = retvalue.rstrip(b'\x00')
-      retvalue = numpy.bytes_(retvalue)
+      retvalue = np.bytes_(retvalue)
 
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
@@ -274,7 +274,7 @@ cdef object get_dtype_scalar(hid_t type_id, H5T_class_t class_id,
 
   # Try to get a NumPy type.  If this can't be done, return None.
   try:
-    ntype = numpy.dtype(stype)
+    ntype = np.dtype(stype)
   except TypeError:
     ntype = None
   return ntype
@@ -661,14 +661,14 @@ cdef class AttributeSet:
     dset_id = node._v_objectid
 
     # Convert a NumPy scalar into a NumPy 0-dim ndarray
-    if isinstance(value, numpy.generic):
-      value = numpy.array(value)
+    if isinstance(value, np.generic):
+      value = np.array(value)
 
     # Check if value is a NumPy ndarray and of a supported type
-    if (isinstance(value, numpy.ndarray) and
+    if (isinstance(value, np.ndarray) and
         value.dtype.kind in ('V', 'S', 'b', 'i', 'u', 'f', 'c')):
       # get a contiguous array: fixes #270 and gh-176
-      #value = numpy.ascontiguousarray(value)
+      #value = np.ascontiguousarray(value)
       value = value.copy()
       if value.dtype.kind == 'V':
         description, rabyteorder = descr_from_dtype(value.dtype, ptparams=node._v_file.params)
@@ -695,7 +695,7 @@ cdef class AttributeSet:
       H5Tclose(type_id)
     else:
       # Object cannot be natively represented in HDF5.
-      if (isinstance(value, numpy.ndarray) and
+      if (isinstance(value, np.ndarray) and
           value.dtype.kind == 'U' and
           value.shape == ()):
         value = value[()].encode('utf-8')
@@ -755,13 +755,13 @@ cdef class AttributeSet:
                                              &cset)
       if type_size == 0:
         if cset == H5T_CSET_UTF8:
-          retvalue = numpy.unicode_('')
+          retvalue = np.unicode_('')
         else:
-          retvalue = numpy.bytes_(b'')
+          retvalue = np.bytes_(b'')
 
       elif cset == H5T_CSET_UTF8:
         retvalue = PyUnicode_DecodeUTF8(str_value, type_size, NULL)
-        retvalue = numpy.unicode_(retvalue)
+        retvalue = np.unicode_(retvalue)
       else:
         retvalue = PyBytes_FromStringAndSize(str_value, type_size)
         # AV: oct 2012
@@ -770,9 +770,9 @@ cdef class AttributeSet:
         # The entire process is quite odd but due to a bug (??) in the way
         # numpy arrays are pickled in python 3 we can't assume that
         # strlen(attr_value) is the actual length of the attibute
-        # and numpy.bytes_(attr_value) can give a truncated pickle sting
+        # and np.bytes_(attr_value) can give a truncated pickle sting
         retvalue = retvalue.rstrip(b'\x00')
-        retvalue = numpy.bytes_(retvalue)     # bytes
+        retvalue = np.bytes_(retvalue)     # bytes
       # Important to release attr_value, because it has been malloc'ed!
       if str_value:
         free(str_value)
@@ -803,7 +803,7 @@ cdef class AttributeSet:
       # Get the NumPy dtype from the type_id
       try:
         stype_, shape_ = hdf5_to_np_ext_type(type_id, pure_numpy_types=True, ptparams=node._v_file.params)
-        dtype_ = numpy.dtype(stype_, shape_)
+        dtype_ = np.dtype(stype_, shape_)
       except TypeError:
         if class_id == H5T_STRING and H5Tis_variable_str(type_id):
           nelements = H5ATTRget_attribute_vlen_string_array(dset_id, cattrname,
@@ -814,21 +814,21 @@ cdef class AttributeSet:
 
           # The following generator expressions do not work with Cython 0.15.1
           if cset == H5T_CSET_UTF8:
-            #retvalue = numpy.fromiter(
+            #retvalue = np.fromiter(
             #  PyUnicode_DecodeUTF8(<char*>str_values[i],
             #                        strlen(<char*>str_values[i]),
             #                        NULL)
             #    for i in range(nelements), "O8")
-            retvalue = numpy.array([
+            retvalue = np.array([
               PyUnicode_DecodeUTF8(<char*>str_values[i],
                                     strlen(<char*>str_values[i]),
                                     NULL)
                 for i in range(nelements)], "O8")
 
           else:
-            #retvalue = numpy.fromiter(
+            #retvalue = np.fromiter(
             #  <char*>str_values[i] for i in range(nelements), "O8")
-            retvalue = numpy.array(
+            retvalue = np.array(
               [<char*>str_values[i] for i in range(nelements)], "O8")
           retvalue.shape = shape
 
@@ -849,7 +849,7 @@ cdef class AttributeSet:
         return None
 
     # Get the container for data
-    ndvalue = numpy.empty(dtype=dtype_, shape=shape)
+    ndvalue = np.empty(dtype=dtype_, shape=shape)
     # Get the pointer to the buffer data area
     rbuf = PyArray_DATA(ndvalue)
     # Actually read the attribute from disk
@@ -1273,7 +1273,7 @@ cdef class Array(Leaf):
             self.__class__.__name__, atom_))
 
     # Allocate space for the dimension axis info and fill it
-    dims = numpy.array(shape, dtype=numpy.intp)
+    dims = np.array(shape, dtype=np.intp)
     self.rank = len(shape)
     self.dims = npy_malloc_dims(self.rank, <npy_intp *>PyArray_DATA(dims))
     rbuf = _array_data(nparr)
@@ -1339,11 +1339,11 @@ cdef class Array(Leaf):
     class_ = self._c_classid.encode('utf-8')
 
     # Get the fill values
-    if isinstance(atom.dflt, numpy.ndarray) or atom.dflt:
-      dflts = numpy.array(atom.dflt, dtype=atom.dtype)
+    if isinstance(atom.dflt, np.ndarray) or atom.dflt:
+      dflts = np.array(atom.dflt, dtype=atom.dtype)
       fill_data = PyArray_DATA(dflts)
     else:
-      dflts = numpy.zeros((), dtype=atom.dtype)
+      dflts = np.zeros((), dtype=atom.dtype)
       fill_data = NULL
     if atom.shape == ():
       # The default is preferred as a scalar value instead of 0-dim array
@@ -1372,7 +1372,7 @@ cdef class Array(Leaf):
       H5ATTRset_attribute_string(self.dataset_id, "TITLE", encoded_title,
                                  len(encoded_title), H5T_CSET_ASCII)
       if self.extdim >= 0:
-        extdim = <ndarray>numpy.array([self.extdim], dtype="int32")
+        extdim = <ndarray>np.array([self.extdim], dtype="int32")
         # Attach the EXTDIM attribute in case of enlargeable arrays
         H5ATTRset_attribute(self.dataset_id, "EXTDIM", H5T_NATIVE_INT,
                             0, NULL, PyArray_BYTES(extdim))
@@ -1447,7 +1447,7 @@ cdef class Array(Leaf):
     # object arrays should not be read directly into memory
     if atom.dtype != object:
       # Get the fill value
-      dflts = numpy.zeros((), dtype=atom.dtype)
+      dflts = np.zeros((), dtype=atom.dtype)
       fill_data = PyArray_DATA(dflts)
       H5ARRAYget_fill_value(self.dataset_id, self.type_id,
                             &fill_status, fill_data);
@@ -1692,9 +1692,9 @@ cdef class Array(Leaf):
         startl.append(start)
         countl.append(count)
         stepl.append(step)
-    start_ = numpy.array(startl, dtype="i8")
-    count_ = numpy.array(countl, dtype="i8")
-    step_ = numpy.array(stepl, dtype="i8")
+    start_ = np.array(startl, dtype="i8")
+    count_ = np.array(countl, dtype="i8")
+    step_ = np.array(stepl, dtype="i8")
 
     # Get the pointers to array data
     startp = <hsize_t *>PyArray_DATA(start_)
@@ -2146,7 +2146,7 @@ cdef class VLArray(Leaf):
       # Compute the shape for the read array
       shape = list(self._atomicshape)
       shape.insert(0, vllen)  # put the length at the beginning of the shape
-      nparr = numpy.ndarray(
+      nparr = np.ndarray(
         buffer=buf, dtype=self._atomicdtype.base, shape=shape)
       # Set the writeable flag for this ndarray object
       nparr.flags.writeable = True

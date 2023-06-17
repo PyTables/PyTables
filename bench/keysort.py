@@ -28,6 +28,6 @@ for dtype1 in ('S6', 'b1',
         tb.indexesextension.keysort(a, b)
         tks = clock() - t1
         print("keysort time-->", tks, "    {:.2f}x".format(tref / tks))
-        assert np.alltrue(a == e)
-        #assert numpy.alltrue(b == d)
-        assert np.alltrue(f == d)
+        assert np.all(a == e)
+        #assert np.all(b == d)
+        assert np.all(f == d)

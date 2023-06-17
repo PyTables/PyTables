@@ -20,7 +20,7 @@ try:
 except ImportError:
   zlib_imported = False
 
-import numpy
+import numpy as np
 
 from .description import Description, Col
 from .misc.enum import Enum
@@ -528,7 +528,7 @@ def encode_filename(object filename):
   if hasattr(os, 'fspath'):
     filename = os.fspath(filename)
 
-  if isinstance(filename, (unicode, numpy.str_)):
+  if isinstance(filename, (unicode, np.str_)):
 #  if type(filename) is unicode:
     encoding = sys.getfilesystemencoding()
     encname = filename.encode(encoding, 'replace')
@@ -949,16 +949,16 @@ def read_f_attr(hid_t file_id, str attr_name):
     size = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
     if size == 0:
       if cset == H5T_CSET_UTF8:
-        retvalue = numpy.unicode_('')
+        retvalue = np.unicode_('')
       else:
-        retvalue = numpy.bytes_(b'')
+        retvalue = np.bytes_(b'')
     else:
       retvalue = <bytes>(attr_value).rstrip(b'\x00')
       if cset == H5T_CSET_UTF8:
         retvalue = retvalue.decode('utf-8')
-        retvalue = numpy.str_(retvalue)
+        retvalue = np.str_(retvalue)
       else:
-        retvalue = numpy.bytes_(retvalue)     # bytes
+        retvalue = np.bytes_(retvalue)     # bytes
 
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
@@ -1041,7 +1041,7 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
                               "supported at this moment")
 
   dtype = atom.dtype
-  npvalue = numpy.array((0,), dtype=dtype)
+  npvalue = np.array((0,), dtype=dtype)
   rbuf = PyArray_DATA(npvalue)
 
   # Get the name and value of each of the members
@@ -1485,15 +1485,15 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
       # read entire dataset as numpy array
       stype_, shape_ = hdf5_to_np_ext_type(reftype_id, pure_numpy_types=True, atom=True)
       if stype_ == "_ref_":
-        dtype_ = numpy.dtype("O", shape_)
+        dtype_ = np.dtype("O", shape_)
       else:
-        dtype_ = numpy.dtype(stype_, shape_)
+        dtype_ = np.dtype(stype_, shape_)
       shape = []
       for j in range(rank):
         shape.append(<int>dims[j])
       shape = tuple(shape)
 
-      nprefarr = numpy.empty(dtype=dtype_, shape=shape)
+      nprefarr = np.empty(dtype=dtype_, shape=shape)
       nparr[i] = [nprefarr]  # box the array in a list to store it as one object
       if stype_ == "_ref_":
         newrefbuf = <hobj_ref_t *>malloc(nprefarr.size * item_size)

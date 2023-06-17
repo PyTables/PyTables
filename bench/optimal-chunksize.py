@@ -61,7 +61,7 @@ def bench(chunkshape, filters):
     # Fill the array
     t1 = clock()
     for i in range(N):
-        # e.append([numpy.random.rand(M)])  # use this for less compressibility
+        # e.append([np.random.rand(M)])  # use this for less compressibility
         e.append([quantize(np.random.rand(M), 6)])
     # os.system("sync")
     print(f"Creation time: {clock() - t1:.3f}", end=' ')

@@ -229,8 +229,10 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
                          "Stored and retrieved values do not match.")
 
         comp = (recarr['t64col'][0] == np.array((wtime, wtime)))
-        self.assertTrue(np.alltrue(comp),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            np.all(comp),
+            "Stored and retrieved values do not match."
+        )
 
     def test02b_CompareTable(self):
         """Comparing several written and read time values in a Table."""
@@ -262,8 +264,10 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['t32col'][:])
-        self.assertTrue(np.alltrue(recarr['t32col'][:] == orig_val),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            np.all(recarr['t32col'][:] == orig_val),
+            "Stored and retrieved values do not match."
+        )
 
         # Time64 column.
         orig_val = np.arange(0, nrows * 2, dtype=np.int32) + 0.012
@@ -365,16 +369,20 @@ class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['i8col'][:])
-        self.assertTrue(np.alltrue(recarr['i8col'][:] == orig_val),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            np.all(recarr['i8col'][:] == orig_val),
+            "Stored and retrieved values do not match."
+        )
 
         # Time32 column.
         orig_val = np.arange(nrows, dtype=np.int32)
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", recarr['t32col'][:])
-        self.assertTrue(np.alltrue(recarr['t32col'][:] == orig_val),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            np.all(recarr['t32col'][:] == orig_val),
+            "Stored and retrieved values do not match."
+        )
 
         # Time64 column.
         orig_val = np.arange(0, nrows * 2, dtype=np.int32) + 0.012
@@ -413,8 +421,10 @@ class BigEndianTestCase(common.PyTablesTestCase):
         if common.verbose:
             print("Retrieved values:", earr)
             print("Should look like:", orig_val)
-        self.assertTrue(np.alltrue(earr == orig_val),
-                        "Retrieved values do not match the expected values.")
+        self.assertTrue(
+            np.all(earr == orig_val),
+            "Retrieved values do not match the expected values."
+        )
 
     def test00b_Read64Array(self):
         """Checking Time64 type in arrays."""
@@ -448,8 +458,10 @@ class BigEndianTestCase(common.PyTablesTestCase):
         if common.verbose:
             print("Retrieved values:", t32)
             print("Should look like:", orig_val)
-        self.assertTrue(np.alltrue(t32 == orig_val),
-                        "Retrieved values do not match the expected values.")
+        self.assertTrue(
+            np.all(t32 == orig_val),
+            "Retrieved values do not match the expected values."
+        )
 
     def test01b_ReadNestedColumn(self):
         """Checking Time64 type in nested columns."""

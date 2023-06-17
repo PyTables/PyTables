@@ -46,8 +46,8 @@ one needs to specify to use the CORE driver::
 
     >>> import tables
     >>> h5file = tables.open_file("new_sample.h5", "w", driver="H5FD_CORE")
-    >>> import numpy
-    >>> a = h5file.create_array(h5file.root, "array", numpy.zeros((300, 300)))
+    >>> import numpy as np
+    >>> a = h5file.create_array(h5file.root, "array", np.zeros((300, 300)))
     >>> h5file.close()
 
 
