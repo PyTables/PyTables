@@ -10,7 +10,7 @@
 
 
 
-herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
+herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
                           hid_t dataset_id,
                           hid_t type_id,
                           const int rank,
@@ -20,8 +20,6 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
                           const void *data,
                           hbool_t set)
 {
-  printf("get_set_blosc2_slice\n");
-  printf("rank %d\n", rank);
   uint8_t *data2 = (uint8_t *) data;
   /* Get the file data space */
   hid_t space_id;
@@ -57,9 +55,6 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
     } else {
       extshape[i] = shape[i];
     }
-    printf("extshape[%d] = %d\n", i, extshape[i]);
-    printf("shape[%d] = %d\n", i, shape[i]);
-    printf("chunkshape[%d] = %d\n", i, chunkshape[i]);
   }
 
   int64_t chunks_in_array[rank];
@@ -98,7 +93,6 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
     }
     int64_t nchunk;
     blosc2_multidim_to_unidim(nchunk_ndim, rank, chunks_in_array_strides, &nchunk);
-    printf("nchunk %d\n", nchunk);
 
     // Check if the chunk needs to be updated
     int64_t chunk_start[rank];
@@ -135,10 +129,9 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL for writing
         }
     }else {
     }*/
-    printf("chunksize %d\n", chunksize);
     if (!decompress_chunk) {
       if (!set) {
-        read_chunk_blosc2_ndim(filename, dataset_id, space_id, nchunk, chunk_start, chunksize, data2);
+        read_chunk_blosc2_ndim(filename, dataset_id, space_id, nchunk, chunk_start, chunk_stop, chunksize, data2);
       }
       else {
         insert_chunk_blosc2_ndim(dataset_id, chunk_start, chunksize, data2);
@@ -264,18 +257,36 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
 
   blosc2_storage storage = {.cparams=&cparams, .dparams=NULL,
     .contiguous=true};
+  // b2nd_context_t *ctx = b2nd_create_ctx(const blosc2_storage *b2_storage, int8_t ndim, const int64_t *shape, const int32_t *chunkshape,
+  //                const int32_t *blockshape, const char *dtype, int8_t dtype_format, NULL,
+  //                0)
+  // b2nd_zeros(b2nd_context_t *ctx, b2nd_array_t **array)
+  // To remove:
+  // blosc2_schunk *sc = blosc2_schunk_new(&storage);
+  //  if (sc == NULL) {
+  //    BLOSC_TRACE_ERROR("Failed creating superchunk");
+  //    goto out;
+  //  }
   blosc2_schunk *sc = blosc2_schunk_new(&storage);
   if (sc == NULL) {
     BLOSC_TRACE_ERROR("Failed creating superchunk");
     goto out;
   }
 
+  // b2nd_set_slice_cbuffer(data, const int64_t *buffershape, int64_t buffersize,
+  //                                        const int64_t *start, const int64_t *stop, b2nd_array_t *array)
+  // To remove:
+  //   if (blosc2_schunk_append_buffer(sc, (void *) data, chunksize) <= 0) {
+  //    BLOSC_TRACE_ERROR("Failed appending buffer");
+  //    goto out;
+  //  }
   if (blosc2_schunk_append_buffer(sc, (void *) data, chunksize) <= 0) {
     BLOSC_TRACE_ERROR("Failed appending buffer");
     goto out;
   }
   uint8_t *cframe;
   bool needs_free2;
+  // blosc2_schunk_to_buffer(array->sc, &cframe, &needs_free2)
   int64_t cfsize = blosc2_schunk_to_buffer(sc, &cframe, &needs_free2);
   if (cfsize <= 0) {
     BLOSC_TRACE_ERROR("Failed converting schunk to cframe");
@@ -518,7 +529,8 @@ herr_t read_chunk_blosc2_ndim(char *filename,
                               hid_t dataset_id,
                               hid_t space_id,
                               hsize_t nchunk,
-                              hsize_t chunk_start,
+                              hsize_t *chunk_start,
+                              hsize_t *chunk_stop,
                               hsize_t chunksize,
                               uint8_t *data) {
   /* Get the address of the schunk on-disk */
@@ -533,11 +545,21 @@ herr_t read_chunk_blosc2_ndim(char *filename,
   }
 
   /* Open the schunk on-disk */
+  // b2nd_open_offset(const char *urlpath, b2nd_array_t **array, (int64_t) address)
+  // To remove:
+  //   blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
+  //  if (schunk == NULL) {
+  //    BLOSC_TRACE_ERROR("Cannot open schunk in %s\n", filename);
+  //    goto out;
+  //  }
   blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
   if (schunk == NULL) {
     BLOSC_TRACE_ERROR("Cannot open schunk in %s\n", filename);
     goto out;
   }
+
+  //  b2nd_set_slice_cbuffer(data, const int64_t *buffershape, int64_t buffersize,
+  // const int64_t *start, stop, b2nd_array_t *array)
 
   /* Get chunk */
   bool needs_free;

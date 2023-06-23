@@ -49,7 +49,8 @@ herr_t H5ARRAYOreadSlice(char *filename,
                          hsize_t *step,
                          void *data);
 
-herr_t read_chunk_blosc2_ndim(char *filename, hid_t dataset_id, hid_t space_id, hsize_t nchunk, hsize_t chunk_start,
+herr_t read_chunk_blosc2_ndim(char *filename, hid_t dataset_id, hid_t space_id, hsize_t nchunk,
+                              hsize_t *start, hsize_t *stop,
                               hsize_t chunksize,
                               uint8_t *data);
 
