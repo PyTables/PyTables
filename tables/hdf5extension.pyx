@@ -1847,14 +1847,11 @@ cdef class Array(Leaf):
     if self.atom.type == 'time64':
       self._convert_time64(nparr, 0)
 
-    cdef hbool_t blosc2_support_write = (
-            (self.byteorder == sys.byteorder) and
-            (self.filters.complib is not None) and
-            (self.filters.complib.startswith("blosc2")))
+    cdef hbool_t blosc2_support = self.blosc2_support_write
     # Modify the elements:
     with nogil:
-        ret = H5ARRAYOwrite_records(blosc2_support_write, self.dataset_id, self.type_id, self.rank,
-                                   start, step, count, rbuf)
+        ret = H5ARRAYOwrite_records(blosc2_support, self.dataset_id, self.type_id, self.rank,
+                                    start, step, count, rbuf)
 
     if ret < 0:
       raise HDF5ExtError("Internal error modifying the elements "
