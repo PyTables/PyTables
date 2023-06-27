@@ -203,9 +203,6 @@ class CArray(Array):
 
     def _g_post_init_hook(self):
         # Fill general info for carray
-        print("_g_post_init_hook")
-        # First, get back the flavor of input data (if any) for
-        # `Leaf._g_post_init_hook()`.
         super()._g_post_init_hook()
 
         self.blosc2_support_write = (
