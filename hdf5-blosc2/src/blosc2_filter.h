@@ -6,7 +6,6 @@ extern "C" {
 #endif
 
 #include "blosc2.h"
-#include "b2nd.h"
 
 /* Filter revision number, starting at 1 */
 #define FILTER_BLOSC2_VERSION 1
