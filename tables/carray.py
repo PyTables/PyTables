@@ -147,6 +147,10 @@ class CArray(Array):
         """Whether the ``Array`` object must be converted or not."""
         self._v_chunkshape = chunkshape
         """Private storage for the `chunkshape` property of the leaf."""
+        self._v_blosc2_support_read = False
+        """Whether Blosc2 optimized reads can be used."""
+        self._v_blosc2_support_write = False
+        """Whether Blosc2 optimized writes can be used."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
@@ -205,15 +209,15 @@ class CArray(Array):
         # Fill general info for carray
         super()._g_post_init_hook()
 
-        self.blosc2_support_write = (
+        self._v_blosc2_support_write = (
                 (self.byteorder == sys.byteorder) and
                 (self.filters.complib is not None) and
                 (self.filters.complib.startswith("blosc2")))
         # For reading, Windows does not support re-opening a file twice
         # in not read-only mode (for good reason), so we cannot use the
         # blosc2 opt
-        self.blosc2_support_read = (
-                self.blosc2_support_write and
+        self._v_blosc2_support_read = (
+                self._v_blosc2_support_write and
                 ((platform.system().lower() != 'windows') or
                 (self._v_file.mode == 'r'))
         )

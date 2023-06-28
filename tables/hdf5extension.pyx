@@ -1621,8 +1621,8 @@ cdef class Array(Leaf):
 
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char *filename = fname
-    print("gread slice support ", self.blosc2_support_read)
-    cdef hbool_t blosc2_support = self.blosc2_support_read
+    print("gread slice support ", self._v_blosc2_support_read)
+    cdef hbool_t blosc2_support = self._v_blosc2_support_read
     # Do the physical read
     with nogil:
         ret = H5ARRAYOreadSlice(filename, blosc2_support, self.dataset_id, self.type_id,
@@ -1847,7 +1847,7 @@ cdef class Array(Leaf):
     if self.atom.type == 'time64':
       self._convert_time64(nparr, 0)
 
-    cdef hbool_t blosc2_support = self.blosc2_support_write
+    cdef hbool_t blosc2_support = self._v_blosc2_support_write
     # Modify the elements:
     with nogil:
         ret = H5ARRAYOwrite_records(blosc2_support, self.dataset_id, self.type_id, self.rank,
