@@ -135,6 +135,10 @@ class Array(hdf5extension.Array, Leaf):
 
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
+        self._v_blosc2_support_read = False  # always, no filters
+        """Whether Blosc2 optimized reads can be used."""
+        self._v_blosc2_support_write = False  # always, no filters
+        """Whether Blosc2 optimized writes can be used."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
