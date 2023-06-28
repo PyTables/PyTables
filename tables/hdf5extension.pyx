@@ -28,6 +28,7 @@ Misc variables:
 """
 
 import os
+import platform
 import sys
 import warnings
 from collections import namedtuple
@@ -1317,6 +1318,10 @@ cdef class Array(Leaf):
     self.dims = npy_malloc_dims(self.rank, <npy_intp *>PyArray_DATA(dims))
     rbuf = _array_data(nparr)
 
+    # Blosc2 optimized operations cannot be used (no chunking nor filters).
+    self.blosc2_support_read = False
+    self.blosc2_support_wirte = False
+
     # Save the array
     complib = (self.filters.complib or '').encode('utf-8')
     version = self._v_version.encode('utf-8')
@@ -1371,6 +1376,19 @@ cdef class Array(Leaf):
     if self.chunkshape:
       self.dims_chunk = malloc_dims(self.chunkshape)
 
+    # Decide whether Blosc2 optimized operations can be used.
+    self.blosc2_support_write = (
+        (self.byteorder == sys.byteorder) and
+        (self.filters.complib is not None) and
+        (self.filters.complib.startswith("blosc2")))
+    # For reading, Windows does not support re-opening a file twice
+    # in not read-only mode (for good reason), so we cannot use the
+    # blosc2 opt
+    self.blosc2_support_read = (
+        self.blosc2_support_write and
+        ((platform.system().lower() != 'windows') or
+         (self._v_file.mode == 'r')))
+
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Encode strings
     complib = (self.filters.complib or '').encode('utf-8')
@@ -1390,7 +1408,6 @@ cdef class Array(Leaf):
     else:
       atom.dflt = dflts
 
-    cdef hbool_t blosc2_support = self._v_blosc2_support_write
     # Create the CArray/EArray
     self.dataset_id = H5ARRAYOmake(self.parent_id, encoded_name, version,
                                   self.rank, self.dims, self.extdim,
@@ -1400,7 +1417,7 @@ cdef class Array(Leaf):
                                   self.filters.shuffle_bitshuffle,
                                   self.filters.fletcher32,
                                   self._want_track_times,
-                                  blosc2_support, rbuf)
+                                  self.blosc2_support_write, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
@@ -1617,11 +1634,10 @@ cdef class Array(Leaf):
 
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char *filename = fname
-    print("gread slice support ", self._v_blosc2_support_read)
-    cdef hbool_t blosc2_support = self._v_blosc2_support_read
+    print("gread slice support ", self.blosc2_support_read)
     # Do the physical read
     with nogil:
-        ret = H5ARRAYOreadSlice(filename, blosc2_support, self.dataset_id, self.type_id,
+        ret = H5ARRAYOreadSlice(filename, self.blosc2_support_read, self.dataset_id, self.type_id,
                                 start, stop, step, rbuf)
     try:
       if ret < 0:
@@ -1843,10 +1859,9 @@ cdef class Array(Leaf):
     if self.atom.type == 'time64':
       self._convert_time64(nparr, 0)
 
-    cdef hbool_t blosc2_support = self._v_blosc2_support_write
     # Modify the elements:
     with nogil:
-        ret = H5ARRAYOwrite_records(blosc2_support, self.dataset_id, self.type_id, self.rank,
+        ret = H5ARRAYOwrite_records(self.blosc2_support_write, self.dataset_id, self.type_id, self.rank,
                                     start, step, count, rbuf)
 
     if ret < 0:

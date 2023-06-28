@@ -30,6 +30,8 @@ cdef class Array(Leaf):
   cdef int      rank
   cdef hsize_t *maxdims
   cdef hsize_t *dims_chunk
+  cdef hbool_t blosc2_support_read
+  cdef hbool_t blosc2_support_write
 
 
 ## Local Variables:
