@@ -205,23 +205,6 @@ class CArray(Array):
         super(Array, self).__init__(parentnode, name, new, filters,
                                     byteorder, _log, track_times)
 
-    def _g_post_init_hook(self):
-        # Fill general info for carray
-        super()._g_post_init_hook()
-
-        self._v_blosc2_support_write = (
-                (self.byteorder == sys.byteorder) and
-                (self.filters.complib is not None) and
-                (self.filters.complib.startswith("blosc2")))
-        # For reading, Windows does not support re-opening a file twice
-        # in not read-only mode (for good reason), so we cannot use the
-        # blosc2 opt
-        self._v_blosc2_support_read = (
-                self._v_blosc2_support_write and
-                ((platform.system().lower() != 'windows') or
-                (self._v_file.mode == 'r'))
-        )
-
     def _g_create(self):
         """Create a new array in file (specific part)."""
 
@@ -245,6 +228,19 @@ class CArray(Array):
         # Correct the byteorder if needed
         if self.byteorder is None:
             self.byteorder = correct_byteorder(self.atom.type, sys.byteorder)
+
+        # Decide whether Blosc2 optimized operations can be used.
+        self._v_blosc2_support_write = (
+            (self.byteorder == sys.byteorder) and
+            (self.filters.complib is not None) and
+            (self.filters.complib.startswith("blosc2")))
+        # For reading, Windows does not support re-opening a file twice
+        # in not read-only mode (for good reason), so we cannot use the
+        # blosc2 opt
+        self._v_blosc2_support_read = (
+            self._v_blosc2_support_write and
+            ((platform.system().lower() != 'windows') or
+             (self._v_file.mode == 'r')))
 
         try:
             # ``self._v_objectid`` needs to be set because would be

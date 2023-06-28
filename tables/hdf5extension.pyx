@@ -1390,11 +1390,7 @@ cdef class Array(Leaf):
     else:
       atom.dflt = dflts
 
-    blosc2_support_write = (
-            (self.byteorder == sys.byteorder) and
-            (self.filters.complib is not None) and
-            (self.filters.complib.startswith("blosc2")))
-
+    cdef hbool_t blosc2_support = self._v_blosc2_support_write
     # Create the CArray/EArray
     self.dataset_id = H5ARRAYOmake(self.parent_id, encoded_name, version,
                                   self.rank, self.dims, self.extdim,
@@ -1404,7 +1400,7 @@ cdef class Array(Leaf):
                                   self.filters.shuffle_bitshuffle,
                                   self.filters.fletcher32,
                                   self._want_track_times,
-                                  blosc2_support_write, rbuf)
+                                  blosc2_support, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
