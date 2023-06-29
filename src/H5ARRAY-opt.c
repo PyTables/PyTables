@@ -87,7 +87,7 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
 
   int64_t update_nchunks = 1;
   for (int i = 0; i < rank; ++i) {
-    int64_t pos = 0;
+    hsize_t pos = 0;
     while (pos <= start[i]) {
       pos += chunkshape[i];
     }
@@ -109,8 +109,8 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
     blosc2_multidim_to_unidim(nchunk_ndim, rank, chunks_in_array_strides, &nchunk);
 
     // Check if the chunk needs to be updated
-    int64_t chunk_start[rank];
-    int64_t chunk_stop[rank];
+    hsize_t chunk_start[rank];
+    hsize_t chunk_stop[rank];
     int32_t chunksize = typesize;
     for (int i = 0; i < rank; ++i) {
       chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
