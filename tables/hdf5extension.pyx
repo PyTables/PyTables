@@ -1634,7 +1634,6 @@ cdef class Array(Leaf):
 
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char *filename = fname
-    print("gread slice support ", self.blosc2_support_read)
     # Do the physical read
     with nogil:
         ret = H5ARRAYOreadSlice(filename, self.blosc2_support_read, self.dataset_id, self.type_id,
