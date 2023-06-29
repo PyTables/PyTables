@@ -63,13 +63,13 @@ func_info = {'log10': np.log10, 'log': np.log, 'exp': np.exp,
 if hasattr(np, 'float16'):
     type_info['float16'] = (np.float16, float)
 # if hasattr(numpy, 'float96'):
-#    type_info['float96'] = (numpy.float96, float)
+#    type_info['float96'] = (np.float96, float)
 # if hasattr(numpy, 'float128'):
-#    type_info['float128'] = (numpy.float128, float)
+#    type_info['float128'] = (np.float128, float)
 # if hasattr(numpy, 'complex192'):
-#    type_info['complex192'] = (numpy.complex192, complex)
+#    type_info['complex192'] = (np.complex192, complex)
 # if hasattr(numpy, 'complex256'):
-#    type_info['complex256'] = (numpy.complex256, complex)
+#    type_info['complex256'] = (np.complex256, complex)
 
 sctype_from_type = {type_: info[0] for (type_, info) in type_info.items()}
 """Maps PyTables types to NumPy scalar types."""

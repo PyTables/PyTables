@@ -20,7 +20,7 @@ try:
 except ImportError:
   zlib_imported = False
 
-import numpy
+import numpy as np
 
 from .description import Description, Col
 from .misc.enum import Enum
@@ -390,7 +390,7 @@ def _dump_h5_backtrace():
 # Initialization of the _dump_h5_backtrace method of HDF5ExtError.
 # The unusual machinery is needed in order to avoid cirdular dependencies
 # between modules.
-HDF5ExtError._dump_h5_backtrace = _dump_h5_backtrace
+HDF5ExtError._dump_h5_backtrace = staticmethod(_dump_h5_backtrace)
 
 
 def silence_hdf5_messages(silence=True):
@@ -528,7 +528,7 @@ def encode_filename(object filename):
   if hasattr(os, 'fspath'):
     filename = os.fspath(filename)
 
-  if isinstance(filename, (unicode, numpy.str_)):
+  if isinstance(filename, (unicode, np.str_)):
 #  if type(filename) is unicode:
     encoding = sys.getfilesystemencoding()
     encname = filename.encode(encoding, 'replace')
@@ -840,7 +840,7 @@ def which_class(hid_t loc_id, object name):
       classId = "CARRAY"
       # Check whether some dimension is enlargeable
       for i in range(rank):
-        if maxdims[i] == -1:
+        if maxdims[i] == <hsize_t>-1:
           classId = "EARRAY"
           break
       free(<void *>dims)
@@ -949,16 +949,16 @@ def read_f_attr(hid_t file_id, str attr_name):
     size = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
     if size == 0:
       if cset == H5T_CSET_UTF8:
-        retvalue = numpy.unicode_('')
+        retvalue = np.unicode_('')
       else:
-        retvalue = numpy.bytes_(b'')
+        retvalue = np.bytes_(b'')
     else:
       retvalue = <bytes>(attr_value).rstrip(b'\x00')
       if cset == H5T_CSET_UTF8:
         retvalue = retvalue.decode('utf-8')
-        retvalue = numpy.str_(retvalue)
+        retvalue = np.str_(retvalue)
       else:
-        retvalue = numpy.bytes_(retvalue)     # bytes
+        retvalue = np.bytes_(retvalue)     # bytes
 
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
@@ -1041,7 +1041,7 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
                               "supported at this moment")
 
   dtype = atom.dtype
-  npvalue = numpy.array((0,), dtype=dtype)
+  npvalue = np.array((0,), dtype=dtype)
   rbuf = PyArray_DATA(npvalue)
 
   # Get the name and value of each of the members
@@ -1229,7 +1229,7 @@ def hdf5_to_np_nested_type(hid_t type_id):
   # Get the number of members
   nfields = H5Tget_nmembers(type_id)
   # Iterate thru the members
-  for i in range(nfields):
+  for i in range(<long>nfields):
     # Get the member name
     c_colname = H5Tget_member_name(type_id, i)
     colname = cstr_to_pystr(c_colname)
@@ -1452,7 +1452,7 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
 
   try:
 
-    for i in range(nelements):
+    for i in range(<long>nelements):
       refobj_id = H5Rdereference(dataset_id, H5R_OBJECT, &refbuf[i])
       if H5Iget_type(refobj_id) != H5I_DATASET:
         raise ValueError('Invalid reference type %d %d' % (H5Iget_type(refobj_id), item_size))
@@ -1474,7 +1474,7 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
       # Get the extendable dimension (if any)
       extdim = -1  # default is non-extensible Array
       for j in range(rank):
-        if maxdims[j] == -1:
+        if maxdims[j] == <hsize_t>-1:
           extdim = j
           break
       if extdim < 0:
@@ -1485,15 +1485,15 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
       # read entire dataset as numpy array
       stype_, shape_ = hdf5_to_np_ext_type(reftype_id, pure_numpy_types=True, atom=True)
       if stype_ == "_ref_":
-        dtype_ = numpy.dtype("O", shape_)
+        dtype_ = np.dtype("O", shape_)
       else:
-        dtype_ = numpy.dtype(stype_, shape_)
+        dtype_ = np.dtype(stype_, shape_)
       shape = []
       for j in range(rank):
         shape.append(<int>dims[j])
       shape = tuple(shape)
 
-      nprefarr = numpy.empty(dtype=dtype_, shape=shape)
+      nprefarr = np.empty(dtype=dtype_, shape=shape)
       nparr[i] = [nprefarr]  # box the array in a list to store it as one object
       if stype_ == "_ref_":
         newrefbuf = <hobj_ref_t *>malloc(nprefarr.size * item_size)

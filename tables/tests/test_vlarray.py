@@ -697,7 +697,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "int32": np.int32,
             "uint32": np.uint32,
             "int64": np.int64,
-            # "UInt64": numpy.int64,  # Unavailable in some platforms
+            # "uint64": np.int64,  # Unavailable in some platforms
         }
         if common.verbose:
             print('\n', '-=' * 30)
@@ -795,7 +795,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "int32": np.int32,
             "uint32": np.uint32,
             "int64": np.int64,
-            # "UInt64": numpy.int64,  # Unavailable in some platforms
+            # "uint64": np.int64,  # Unavailable in some platforms
         }
         if common.verbose:
             print('\n', '-=' * 30)
@@ -851,7 +851,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             "int32": np.int32,
             "uint32": np.uint32,
             "int64": np.int64,
-            # "UInt64": numpy.int64,  # Unavailable in some platforms
+            # "uint64": np.int64,  # Unavailable in some platforms
         }
         if common.verbose:
             print('\n', '-=' * 30)

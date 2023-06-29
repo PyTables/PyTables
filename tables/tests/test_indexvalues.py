@@ -868,7 +868,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
-        # il = numpy.string_(self.il)
+        # il = np.string_(self.il)
         sl = np.string_(self.sl)
 
         # Do some selections and check the results
@@ -1119,7 +1119,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
-        # il = numpy.int32(self.il)
+        # il = np.int32(self.il)
         sl = np.uint16(self.sl)
 
         # Do some selections and check the results
@@ -1315,7 +1315,7 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
-        # il = numpy.float32(self.il)
+        # il = np.float32(self.il)
         sl = np.float64(self.sl)
 
         # Do some selections and check the results

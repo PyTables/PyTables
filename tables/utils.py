@@ -66,7 +66,10 @@ def idx2long(index):
     """Convert a possible index into a long int."""
 
     try:
-        return int(index)
+        if hasattr(index, "item"):
+            return index.item()
+        else:
+            return int(index)
     except Exception:
         raise TypeError("not an integer type.")
 
@@ -207,7 +210,7 @@ def lazyattr(fget):
     >>> del obj.attribute
     Traceback (most recent call last):
       ...
-    AttributeError: can't delete attribute 'attribute'
+    AttributeError: ...
 
     .. warning::
 

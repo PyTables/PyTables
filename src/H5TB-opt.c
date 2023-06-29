@@ -54,6 +54,7 @@
 #endif
 
 // Callback for H5Dchunk_iter
+#if H5_VERS_MAJOR >=1 && H5_VERS_MINOR >= 14
 static int chunk_cb(const hsize_t *offset, uint32_t filter_mask,
                     haddr_t addr, uint32_t nbytes, void *op_data) {
   chunk_iter_op *chunk_op = (chunk_iter_op*)op_data;
@@ -61,6 +62,7 @@ static int chunk_cb(const hsize_t *offset, uint32_t filter_mask,
   chunk_op->addrs[nchunk] = addr;
   return 0;
 }
+#endif
 
 int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, chunk_iter_op *chunk_op) {
 #if H5_VERS_MAJOR >=1 && H5_VERS_MINOR >= 14
@@ -71,6 +73,7 @@ int fill_chunk_addrs(hid_t dataset_id, hsize_t nchunks, chunk_iter_op *chunk_op)
     H5Dchunk_iter(dataset_id, H5P_DEFAULT, (H5D_chunk_iter_op_t)chunk_cb, (void*)chunk_op);
   }
 #endif
+  return 0;
 }
 
 int clean_chunk_addrs(chunk_iter_op *chunk_op) {
@@ -78,6 +81,7 @@ int clean_chunk_addrs(chunk_iter_op *chunk_op) {
     free(chunk_op->addrs);
   }
   chunk_op->addrs = NULL;
+  return 0;
 }
 
 
@@ -441,12 +445,12 @@ herr_t read_records_blosc2( char* filename,
 
   /* Gather data for the interesting part */
   int nrecords_chunk = chunklen - start_chunk;
-  if (nrecords_chunk > (nrecords - total_records)) {
+  if (nrecords_chunk > (int)(nrecords - total_records)) {
    nrecords_chunk = nrecords - total_records;
   }
 
   int rbytes;
-  if (nrecords_chunk == chunklen) {
+  if (nrecords_chunk == (int)(chunklen)) {
    rbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, data, chunksize);
    if (rbytes < 0) {
     BLOSC_TRACE_ERROR("Cannot decompress lazy chunk");
@@ -456,7 +460,7 @@ herr_t read_records_blosc2( char* filename,
   else {
    /* Less than 1 chunk to read; use a getitem call */
    rbytes = blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, nrecords_chunk, data, chunksize);
-   if (rbytes != nrecords_chunk * typesize) {
+   if (rbytes != (int)(nrecords_chunk * typesize)) {
     BLOSC_TRACE_ERROR("Cannot get (all) items for lazychunk\n");
     goto out;
    }

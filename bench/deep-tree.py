@@ -35,7 +35,7 @@ def show_stats(explain, tref):
 
 def populate(f, nlevels):
     g = f.root
-    #arr = numpy.zeros((10,), "f4")
+    #arr = np.zeros((10,), "f4")
     #descr = {'f0': tables.Int32Col(), 'f1': tables.Float32Col()}
     for i in range(nlevels):
         #dset = f.create_array(g, "DS1", arr)

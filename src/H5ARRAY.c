@@ -274,7 +274,7 @@ herr_t H5ARRAYappend_records( hid_t dataset_id,
    start[i] = 0;
  }
  dims[extdim] += dims_new[extdim];
- start[extdim] = (hsize_t )dims_orig[extdim];
+ start[extdim] = (hsize_t)dims_orig[extdim];
 
  /* Extend the dataset */
  if ( H5Dset_extent( dataset_id, dims ) < 0 )

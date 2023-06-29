@@ -207,11 +207,11 @@ class DB:
 #                     print "Results len:", results
 #                 self.print_qtime_idx(colname, ltimes, True, verbose)
                 # Print internal PyTables index tprof statistics
-                #tprof = numpy.array(tprof)
+                #tprof = np.array(tprof)
                 #tmean, tstd = self.norm_times(tprof)
                 # print "tprof-->", round(tmean, prec), "+-", round(tstd, prec)
                 # print "tprof hist-->", \
-                #    numpy.histogram(tprof)
+                #    np.histogram(tprof)
                 # print "tprof raw-->", tprof
                 # Always reopen the file after *every* query loop.
                 # Necessary to make the benchmark to run correctly.

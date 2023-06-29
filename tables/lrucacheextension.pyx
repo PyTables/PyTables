@@ -27,7 +27,7 @@ cdef extern from "Python.h":
 
 import sys
 
-import numpy
+import numpy as np
 from libc.string cimport memcpy, strcmp
 from cpython.unicode cimport PyUnicode_Check
 from numpy cimport import_array, ndarray, PyArray_DATA
@@ -202,7 +202,7 @@ cdef class BaseCache:
     self.name = name
     self.incsetcount = False
     # The array for keeping the access times (using long ints here)
-    self.atimes = <ndarray>numpy.zeros(shape=nslots, dtype=numpy.int_)
+    self.atimes = <ndarray>np.zeros(shape=nslots, dtype=np.int_)
     self.ratimes = <long *>PyArray_DATA(self.atimes)
 
   def __len__(self):
@@ -331,7 +331,7 @@ cdef class ObjectCache(BaseCache):
     self.__dict = {}
     self.mrunode = <ObjectNode>None   # Most Recent Used node
     # The array for keeping the object size (using long ints here)
-    self.sizes = <ndarray>numpy.zeros(shape=nslots, dtype=numpy.int_)
+    self.sizes = <ndarray>np.zeros(shape=nslots, dtype=np.int_)
     self.rsizes = <long *>PyArray_DATA(self.sizes)
 
   # Clear cache
@@ -505,11 +505,11 @@ cdef class NumCache(BaseCache):
     # The cache object where all data will go
     # The last slot is to allow the setitem1_ method to still return
     # a valid scratch area for writing purposes
-    self.cacheobj = <ndarray>numpy.empty(shape=(nslots+1, self.slotsize),
+    self.cacheobj = <ndarray>np.empty(shape=(nslots+1, self.slotsize),
                                          dtype=dtype)
     self.rcache = PyArray_DATA(self.cacheobj)
     # The array for keeping the keys of slots
-    self.keys = <ndarray>(-numpy.ones(shape=nslots, dtype=numpy.int64))
+    self.keys = <ndarray>(-np.ones(shape=nslots, dtype=np.int64))
     self.rkeys = <long long *>PyArray_DATA(self.keys)
 
   # Returns the address of nslot
@@ -623,7 +623,7 @@ cdef class NumCache(BaseCache):
     elif self.containscount > 0:
       hitratio = <double>self.getcount / self.containscount
     else:
-      hitratio = numpy.nan
+      hitratio = np.nan
     return """<%s(%s)
   (%d maxslots, %d slots used, %.3f KB cachesize,
   hit ratio: %.3f, disabled? %s)>

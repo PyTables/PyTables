@@ -86,7 +86,8 @@ class RangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
         rec['var3'] = np.array(i % self.maxshort).astype('i2')
         rec['var5'] = float(i)
 
-        with self.assertRaises(TypeError):
+        # Numpy 1.25 -> ValueError
+        with self.assertRaises((TypeError, ValueError)):
             rec['var4'] = "124c"
 
         rec['var6'] = float(i)

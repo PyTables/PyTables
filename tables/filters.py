@@ -278,7 +278,7 @@ class Filters:
 
         # Byte 3: least significant digit.
         if self.least_significant_digit is not None:
-            # assert isinstance(self.least_significant_digit, numpy.int8)
+            # assert isinstance(self.least_significant_digit, np.int8)
             packed |= self.least_significant_digit
         packed <<= 8
 

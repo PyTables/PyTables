@@ -22,7 +22,7 @@ Misc variables:
 """
 import math
 import sys
-import numpy
+import numpy as np
 from time import time
 
 from .description import Col
@@ -378,13 +378,13 @@ cdef class Table(Leaf):
     if colpath == "":
       # Compute a byteorder for the entire table
       if len(field_byteorders) > 0:
-        field_byteorders = numpy.array(field_byteorders)
+        field_byteorders = np.array(field_byteorders)
         # Cython doesn't interpret well the extended comparison
         # operators so this: field_byteorders == "little" doesn't work
         # as expected
-        if numpy.alltrue(field_byteorders.__eq__("little")):
+        if np.all(field_byteorders.__eq__("little")):
           byteorder = "little"
-        elif numpy.alltrue(field_byteorders.__eq__("big")):
+        elif np.all(field_byteorders.__eq__("big")):
           byteorder = "big"
         else:  # Yes! someone has done it!
           byteorder = "mixed"
@@ -869,7 +869,7 @@ cdef class Row:
 
     wdflts = table._v_wdflts
     if wdflts is None:
-      self.wrec = numpy.zeros(1, dtype=self.dtype)  # Defaults are zero
+      self.wrec = np.zeros(1, dtype=self.dtype)  # Defaults are zero
     else:
       self.wrec = table._v_wdflts.copy()
     self.wreccpy = self.wrec.copy()  # A copy of the defaults
@@ -1009,8 +1009,8 @@ cdef class Row:
         iobuf = self.iobuf
         j = 0;  recout = 0;  cs = self.chunksize
         nchunksread = self.nrowsread // cs
-        tmp_range = numpy.arange(0, cs, dtype='int64')
-        self.bufcoords = numpy.empty(self.nrowsinbuf, dtype='int64')
+        tmp_range = np.arange(0, cs, dtype='int64')
+        self.bufcoords = np.empty(self.nrowsinbuf, dtype='int64')
         # Fetch valid chunks until the I/O buffer is full
         while nchunksread < self.totalchunks:
           if self.chunkmap_data[nchunksread]:
@@ -1100,7 +1100,7 @@ cdef class Row:
             lenbuf = self.nrowsinbuf
           tmp = self.coords[self.nrowsread:self.nrowsread+lenbuf:self.step]
           # We have to get a contiguous buffer, so numpy.array is the way to go
-          self.bufcoords = numpy.array(tmp, dtype="uint64")
+          self.bufcoords = np.array(tmp, dtype="uint64")
           self._row = -1
           if self.bufcoords.size > 0:
             recout = self.table._read_elements(self.bufcoords, self.iobuf)
@@ -1126,7 +1126,7 @@ cdef class Row:
             tmp = self.coords[0:self.nextelement + 1]
           else:
             tmp = self.coords[self.nextelement - (<long long> self.nrowsinbuf) + 1:self.nextelement + 1]
-          self.bufcoords = numpy.array(tmp, dtype="uint64")
+          self.bufcoords = np.array(tmp, dtype="uint64")
           recout = self.table._read_elements(self.bufcoords, self.iobuf)
           self.bufcoords_data = <hsize_t*>PyArray_DATA(self.bufcoords)
           self.nrowsread = self.nrowsread + self.nrowsinbuf
@@ -1172,7 +1172,7 @@ cdef class Row:
         self.index_valid_data = PyArray_BYTES(self.indexvalid)
 
         # Is there any interesting information in this buffer?
-        if not numpy.sometrue(self.indexvalid):
+        if not np.any(self.indexvalid):
           # No, so take the next one
           if self.step >= self.nrowsinbuf:
             self.nextelement = self.nextelement + self.step
@@ -1477,7 +1477,7 @@ cdef class Row:
     if self.mod_elements is None:
       # Initialize an array for keeping the modified elements
       # (just in case Row.update() would be used)
-      self.mod_elements = numpy.empty(shape=self.nrowsinbuf, dtype=SizeType)
+      self.mod_elements = np.empty(shape=self.nrowsinbuf, dtype=SizeType)
       # We need a different copy for self.iobuf here
       self.iobufcpy = self.iobuf.copy()
 
@@ -1649,7 +1649,7 @@ cdef class Row:
     if self.exist_enum_cols:
       if key in self.colenums:
         enum = self.colenums[key]
-        for cenval in numpy.asarray(value).flat:
+        for cenval in np.asarray(value).flat:
           enum(cenval)  # raises ``ValueError`` on invalid values
 
     # Get the field to be modified

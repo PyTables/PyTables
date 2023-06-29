@@ -311,8 +311,8 @@ structure described above::
     tbl.append(rows)
 
     # Using a NumPy container.
-    import numpy
-    rows = numpy.rec.array(rows)
+    import numpy as np
+    rows = np.rec.array(rows)
     tbl.append(rows)
 
 

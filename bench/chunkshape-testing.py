@@ -83,7 +83,7 @@ print("earray2 populate time:", clock() - t1)
 f2.close()
 
 # t1=time()
-# c2[:] = numpy.empty(shape=(M, N), dtype="int32")
+# c2[:] = np.empty(shape=(M, N), dtype="int32")
 # print "carray populate time:", time()-t1
 
 # f3 = f.create_carray(f.root, 'cfield3',
@@ -94,7 +94,7 @@ f2.close()
 #                     tables.Int32Atom(), (0, M),
 #                     "scalar int32 carray", expectedrows=N)
 # t1=time()
-# e2.append(numpy.empty(shape=(N, M), dtype="int32"))
+# e2.append(np.empty(shape=(N, M), dtype="int32"))
 # print "earray populate time:", time()-t1
 
 # t1=time()

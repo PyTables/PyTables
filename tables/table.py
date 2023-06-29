@@ -1532,8 +1532,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             cstart, cstop = coords[0], coords[-1] + 1
             if cstop - cstart == len(coords):
                 # Chances for monotonically increasing row values. Refine.
-                inc_seq = np.alltrue(
-                    np.arange(cstart, cstop) == np.array(coords))
+                inc_seq = np.all(np.arange(cstart, cstop) == np.array(coords))
                 if inc_seq:
                     return self.read(cstart, cstop, field=field)
         return self.read_coordinates(coords, field)
@@ -2094,8 +2093,9 @@ very small/large chunksize, you may want to increase/decrease it."""
             table[2] = [456,'db2',1.2]
 
             # Modify two existing rows
-            rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
-                                   formats='i4,a3,f8')
+            rows = np.rec.array(
+                [[457,'db1',1.2],[6,'de2',1.3]], formats='i4,a3,f8'
+            )
             table[1:30:2] = rows             # modify a table slice
             table[[1,3]] = rows              # only modifies rows 1 and 3
             table[[True,False,True]] = rows  # only modifies rows 0 and 2
@@ -2103,8 +2103,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         Which is equivalent to::
 
             table.modify_rows(start=2, rows=[456,'db2',1.2])
-            rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
-                                   formats='i4,a3,f8')
+            rows = np.rec.array(
+                [[457,'db1',1.2],[6,'de2',1.3]], formats='i4,a3,f8'
+            )
             table.modify_rows(start=1, stop=3, step=2, rows=rows)
             table.modify_coordinates([1,3,2], rows)
             table.modify_coordinates([True, False, True], rows)
@@ -3489,7 +3490,7 @@ class Column:
             table.modify_columns(start=1, columns=[[-1]], names=['col1'])
 
             # Modify rows 1 and 3
-            columns = numpy.rec.fromarrays([[2,3]], formats='i4')
+            columns = np.rec.fromarrays([[2,3]], formats='i4')
             table.modify_columns(start=1, step=2, columns=columns,
                                  names=['col1'])
 

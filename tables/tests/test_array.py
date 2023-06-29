@@ -2031,8 +2031,9 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = nparr[key]
             b = tbarr[key]
             self.assertTrue(
-                np.alltrue(a == b),
-                "NumPy array and PyTables selections does not match.")
+                np.all(a == b),
+                "NumPy array and PyTables selections does not match."
+            )
 
     def test01b_read(self):
         """Test for point-selections (read, integer keys)."""
@@ -2046,7 +2047,7 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = nparr[key]
             b = tbarr[key]
             self.assertTrue(
-                np.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables selections does not match.")
 
     def test01c_read(self):
@@ -2100,7 +2101,7 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = nparr[:]
             b = tbarr[:]
             self.assertTrue(
-                np.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
     def test02b_write(self):
@@ -2118,7 +2119,7 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = nparr[:]
             b = tbarr[:]
             self.assertTrue(
-                np.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
     def test02c_write(self):
@@ -2136,7 +2137,7 @@ class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = nparr[:]
             b = tbarr[:]
             self.assertTrue(
-                np.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
 
@@ -2281,7 +2282,7 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = nparr[key]
             b = tbarr[key]
             self.assertTrue(
-                np.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables selections does not match.")
 
     def test01b_read(self):
@@ -2333,8 +2334,9 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             a = nparr[:]
             b = tbarr[:]
             self.assertTrue(
-                np.alltrue(a == b),
-                "NumPy array and PyTables modifications does not match.")
+                np.all(a == b),
+                "NumPy array and PyTables modifications does not match."
+            )
 
     def test02b_write(self):
         """Test for fancy-selections (working selections, write, broadcast)."""
@@ -2353,7 +2355,7 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
 #                 print("NumPy modified array:", a)
 #                 print("PyTables modifyied array:", b)
             self.assertTrue(
-                np.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
 
@@ -2603,7 +2605,7 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           atom=atom)
 
     def test_kwargs_obj_shape_error(self):
-        # atom = Atom.from_dtype(numpy.dtype('complex'))
+        # atom = Atom.from_dtype(np.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,

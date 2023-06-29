@@ -2674,7 +2674,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           atom=atom)
 
     def test_kwargs_obj_shape_error(self):
-        # atom = Atom.from_dtype(numpy.dtype('complex'))
+        # atom = Atom.from_dtype(np.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_carray,
@@ -2697,7 +2697,7 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           shape=self.shape)
 
     def test_kwargs_obj_atom_shape_error_02(self):
-        # atom = Atom.from_dtype(numpy.dtype('complex'))
+        # atom = Atom.from_dtype(np.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_carray,
