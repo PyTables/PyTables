@@ -1,4 +1,11 @@
+#ifndef _H5ARRAY_OPT_H
+#define _H5ARRAY_OPT_H
+
 #include <hdf5.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 hid_t H5ARRAYOmake(hid_t loc_id,
                    const char *dset_name,
@@ -69,4 +76,8 @@ herr_t H5ARRAYOreadSliceLR( hid_t dataset_id,
                             hsize_t start,
                             hsize_t stop,
                             void *data );
+#ifdef __cplusplus
+}
+#endif
 
+#endif
