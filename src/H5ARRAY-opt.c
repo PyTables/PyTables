@@ -9,6 +9,20 @@
 #include <string.h>
 
 
+herr_t read_chunk_blosc2_ndim(char *filename,
+                              hid_t dataset_id,
+                              hid_t space_id,
+                              hsize_t nchunk,
+                              hsize_t *chunk_start,
+                              hsize_t *chunk_stop,
+                              hsize_t chunksize,
+                              uint8_t *data);
+
+herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
+                                hsize_t *start,
+                                hsize_t chunksize,
+                                const void *data);
+
 
 herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
                           hid_t dataset_id,
