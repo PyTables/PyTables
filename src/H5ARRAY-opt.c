@@ -661,10 +661,10 @@ herr_t H5ARRAYOreadSlice(char *filename,
   if ((rank = H5Sget_simple_extent_ndims(space_id)) < 0)
     return -2;
 
-  hsize_t dims[rank];
-  hsize_t count[rank];
-
   if (rank) {                    /* Array case */
+    hsize_t dims[rank];
+    hsize_t count[rank];
+
     /* Get dataset dimensionality */
     if (H5Sget_simple_extent_dims(space_id, dims, NULL) < 0)
       return -3;
