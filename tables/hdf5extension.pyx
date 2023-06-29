@@ -1641,7 +1641,8 @@ cdef class Array(Leaf):
                                 start, stop, step, rbuf)
     try:
       if ret < 0:
-        raise HDF5ExtError("Problems reading the array data.")
+        raise HDF5ExtError("Internal error reading the elements "
+                           "(H5ARRAYOreadSlice returned errorcode %i)" % ret)
 
       # Get the pointer to the buffer data area
       if self.atom.kind == "reference":
@@ -1866,7 +1867,7 @@ cdef class Array(Leaf):
 
     if ret < 0:
       raise HDF5ExtError("Internal error modifying the elements "
-                "(H5ARRAYwrite_records returned errorcode -%i)" % (-ret))
+                         "(H5ARRAYOwrite_records returned errorcode %i)" % ret)
 
     return
 
