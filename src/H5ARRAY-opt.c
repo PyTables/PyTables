@@ -157,7 +157,7 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
   if (H5Sclose(space_id) < 0)
     return -5;
 
-    return 0;
+  return 0;
 }
 
 /*-------------------------------------------------------------------------
