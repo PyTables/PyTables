@@ -21,6 +21,7 @@ Misc variables:
 
 """
 import math
+import platform
 import sys
 import numpy as np
 from time import time
@@ -165,6 +166,8 @@ cdef class Table(Leaf):
   # instance variables
   cdef void *wbuf
   cdef chunk_iter_op chunk_op
+  cdef hbool_t blosc2_support_read
+  cdef hbool_t blosc2_support_write
 
   def _create_table(self, title, complib, obversion):
     cdef int     offset
@@ -216,10 +219,18 @@ cdef class Table(Leaf):
     else:
       data = NULL
 
-    blosc2_support_write = (
-            (self.byteorder == sys.byteorder) and
-            (self.filters.complib is not None) and
-            (self.filters.complib.startswith("blosc2")))
+    # Decide whether Blosc2 optimized operations can be used.
+    self.blosc2_support_write = (
+        (self.byteorder == sys.byteorder) and
+        (self.filters.complib is not None) and
+        (self.filters.complib.startswith("blosc2")))
+    # For reading, Windows does not support re-opening a file twice
+    # in not read-only mode (for good reason), so we cannot use the
+    # blosc2 opt
+    self.blosc2_support_read = (
+        self.blosc2_support_write and
+        ((platform.system().lower() != 'windows') or
+         (self._v_file.mode == 'r')))
 
     class_ = self._c_classid.encode('utf-8')
     cdef hsize_t blocksize = self._v_blocksize if hasattr(self, "_v_blocksize") else 0
@@ -231,7 +242,7 @@ cdef class Table(Leaf):
                                       self.filters.shuffle_bitshuffle,
                                       self.filters.fletcher32,
                                       self._want_track_times,
-                                      blosc2_support_write, data)
+                                      self.blosc2_support_write, data)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the table")
 
@@ -511,7 +522,6 @@ cdef class Table(Leaf):
   def _append_records(self, hsize_t nrecords):
     cdef int ret
     cdef hsize_t nrows
-    cdef hbool_t blosc2_support = self.blosc2_support_write
 
     # Clean address cache
     self._clean_chunk_addrs()
@@ -523,7 +533,7 @@ cdef class Table(Leaf):
     # release GIL (allow other threads to use the Python interpreter)
     with nogil:
         # Append the records:
-        ret = H5TBOappend_records(blosc2_support, self.dataset_id,
+        ret = H5TBOappend_records(self.blosc2_support_write, self.dataset_id,
                                   self.type_id, nrows, nrecords, self.wbuf)
 
     if ret < 0:
@@ -566,9 +576,8 @@ cdef class Table(Leaf):
     # Convert some NumPy types to HDF5 before storing.
     self._convert_types(recarr, nrecords, 0)
     # Update the records:
-    cdef hbool_t blosc2_support = (self.blosc2_support_write and (step == 1))
     with nogil:
-        ret = H5TBOwrite_records(blosc2_support, self.dataset_id,
+        ret = H5TBOwrite_records(self.blosc2_support_write and (step == 1), self.dataset_id,
                                  self.type_id, start, nrecords, step, rbuf)
 
     if ret < 0:
@@ -612,7 +621,6 @@ cdef class Table(Leaf):
     cdef int ret
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
-    cdef hbool_t blosc2_support = self.blosc2_support_read
 
     if self.blosc2_support_read:
       # Grab the addresses for the blosc2 frames (HDF5 chunks)
@@ -628,7 +636,7 @@ cdef class Table(Leaf):
 
     # Read the records from disk
     with nogil:
-        ret = H5TBOread_records(filename, blosc2_support, self.chunk_op,
+        ret = H5TBOread_records(filename, self.blosc2_support_read, self.chunk_op,
                                 self.dataset_id, self.type_id, start,
                                 nrecords, rbuf)
 
@@ -648,7 +656,6 @@ cdef class Table(Leaf):
     cdef NumCache chunkcache
     cdef bytes fname = self._v_file.filename.encode('utf8')
     cdef char* filename = fname
-    cdef hbool_t blosc2_support = self.blosc2_support_read
 
     if self.blosc2_support_read:
       # Grab the addresses for the blosc2 frames (HDF5 chunks)
@@ -670,7 +677,7 @@ cdef class Table(Leaf):
     else:
       # Chunk is not in cache. Read it and put it in the LRU cache.
       with nogil:
-          ret = H5TBOread_records(filename, blosc2_support, self.chunk_op,
+          ret = H5TBOread_records(filename, self.blosc2_support_read, self.chunk_op,
                                   self.dataset_id, self.type_id, start,
                                   nrecords, rbuf)
 
