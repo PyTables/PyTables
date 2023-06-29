@@ -54,7 +54,7 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
   }
   int typesize = cd_values[2];
   hsize_t chunkshape[rank];
-  H5Pget_chunk(dcpl, rank, &chunkshape);
+  H5Pget_chunk(dcpl, rank, chunkshape);
 
   if (H5Pclose(dcpl) < 0)
     return -4;
