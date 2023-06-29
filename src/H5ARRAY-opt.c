@@ -1,5 +1,7 @@
 #include "H5ARRAY-opt.h"
+
 #include "tables.h"
+#include "utils.h"
 #include "H5Zlzo.h"                    /* Import FILTER_LZO */
 #include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
 #include "blosc_filter.h"              /* Import FILTER_BLOSC */
@@ -670,6 +672,7 @@ herr_t H5ARRAYOreadSlice(char *filename,
       return -3;
 
     for (i = 0; i < rank; i++) {
+      count[i] = get_len_of_range(start[i], stop[i], step[i]);
       if (stop[i] > dims[i]) {
         printf("Asking for a range of rows exceeding the available ones!.\n");
         return -4;
