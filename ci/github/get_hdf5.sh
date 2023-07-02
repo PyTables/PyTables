@@ -18,9 +18,9 @@ export PKG_CONFIG_PATH="$HDF5_DIR/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
 LZO_VERSION="2.10"
 ZSTD_VERSION="1.5.2"
-LZ4_VERSION="1.9.4"
+LZ4_VERSION="1.9.3"
 BZIP_VERSION="1.0.8"
-ZLIB_VERSION="1.2.13"
+ZLIB_VERSION="1.2.12"
 
 
 echo "building HDF5"
@@ -105,7 +105,7 @@ fi
 pushd /tmp
 
 #                                   Remove trailing .*, to get e.g. '1.12' ↓
-curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/src/hdf5-${HDF5_VERSION}.tar.gz"
+curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-$HDF5_VERSION/src/hdf5-$HDF5_VERSION.tar.gz"
 tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
 pushd "hdf5-$HDF5_VERSION"
 
