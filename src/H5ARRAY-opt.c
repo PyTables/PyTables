@@ -531,8 +531,6 @@ hid_t H5ARRAYOmake(hid_t loc_id,
   H5Sclose(space_id);
   if (maxdims)
     free(maxdims);
-  if (dims_chunk)
-    free(dims_chunk);
   return -1;
 
 }
