@@ -779,6 +779,53 @@ class BloscZstdTestCase(BasicTestCase):
     step = 7
 
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2ComprTestCase(BasicTestCase):
+    compress = 1  # sss
+    complib = "blosc2"
+    chunkshape = (10, 10)
+    start = 3
+    stop = 10
+    step = 3
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2CrossChunkTestCase(BasicTestCase):
+    shape = (10, 10)
+    compress = 1  # sss
+    complib = "blosc2"
+    chunkshape = (4, 4)
+    start = 3
+    stop = 6
+    step = 3
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2CrossChunkOptTestCase(Blosc2CrossChunkTestCase):
+    step = 1  # optimized
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2PastLastChunkTestCase(BasicTestCase):
+    shape = (10, 10)
+    compress = 1  # sss
+    complib = "blosc2"
+    chunkshape = (4, 4)
+    start = 8
+    stop = 100
+    step = 3
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2PastLastChunkOptTestCase(Blosc2PastLastChunkTestCase):
+    step = 1  # optimized
+
+
 @common.unittest.skipIf(not common.lzo_avail,
                         'LZO compression library not available')
 class LZOComprTestCase(BasicTestCase):
@@ -2755,6 +2802,11 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(BloscSnappyTestCase))
         theSuite.addTest(common.unittest.makeSuite(BloscZlibTestCase))
         theSuite.addTest(common.unittest.makeSuite(BloscZstdTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2ComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2CrossChunkTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2CrossChunkOptTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2PastLastChunkTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2PastLastChunkOptTestCase))
         theSuite.addTest(common.unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(common.unittest.makeSuite(LZOShuffleTestCase))
         theSuite.addTest(common.unittest.makeSuite(Bzip2ComprTestCase))
