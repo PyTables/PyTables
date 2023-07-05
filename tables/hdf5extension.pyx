@@ -121,6 +121,7 @@ cdef extern from "H5ARRAY-opt.h" nogil:
                       int   extdim,
                       hid_t type_id,
                       hsize_t *dims_chunk,
+                      hsize_t block_size,
                       void  *fill_data,
                       int   compress,
                       char  *complib,
@@ -1408,11 +1409,12 @@ cdef class Array(Leaf):
     else:
       atom.dflt = dflts
 
+    cdef hsize_t blocksize = self._v_blocksize if hasattr(self, "_v_blocksize") else 0
     # Create the CArray/EArray
     self.dataset_id = H5ARRAYOmake(self.parent_id, encoded_name, version,
                                   self.rank, self.dims, self.extdim,
                                   self.disk_type_id, self.dims_chunk,
-                                  fill_data,
+                                  blocksize, fill_data,
                                   self.filters.complevel, complib,
                                   self.filters.shuffle_bitshuffle,
                                   self.filters.fletcher32,
