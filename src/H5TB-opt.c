@@ -200,7 +200,7 @@ hid_t H5TBOmake_table(  const char *table_title,
      if ( H5Pset_deflate( plist_id, compress) < 0 )
        return -1;
    }
-   /* The Blosc2 compressor does accept parameters */
+   /* The Blosc2 compressor does accept parameters (see blosc2_filter.c) */
    else if (strcmp(complib, "blosc2") == 0) {
      cd_values[1] = (unsigned int) block_size;  /* can be useful in the future */
      cd_values[4] = compress;
@@ -208,7 +208,7 @@ hid_t H5TBOmake_table(  const char *table_title,
      if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
        return -1;
    }
-   /* The Blosc2 compressor can use other compressors */
+   /* The Blosc2 compressor can use other compressors (see blosc2_filter.c) */
    else if (strncmp(complib, "blosc2:", 7) == 0) {
      cd_values[1] = (unsigned int) block_size;  /* can be useful in the future */
      cd_values[4] = compress;

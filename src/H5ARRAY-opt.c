@@ -480,7 +480,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
         if (H5Pset_deflate(plist_id, compress) < 0)
           return -1;
       }
-        /* The Blosc2 compressor does accept parameters */
+      /* The Blosc2 compressor does accept parameters (see blosc2_filter.c) */
       else if (strcmp(complib, "blosc2") == 0) {
         size_t type_size = H5Tget_size(type_id);
         if (type_size < 0) return -1;
@@ -490,7 +490,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
         if (H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0)
           return -1;
       }
-        /* The Blosc2 compressor can use other compressors */
+      /* The Blosc2 compressor can use other compressors (see blosc2_filter.c) */
       else if (strncmp(complib, "blosc2:", 7) == 0) {
         size_t type_size = H5Tget_size(type_id);
         if (type_size < 0) return -1;
