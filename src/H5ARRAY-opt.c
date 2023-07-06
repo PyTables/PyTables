@@ -512,7 +512,8 @@ hid_t H5ARRAYOmake(hid_t loc_id,
       /* The Blosc2 compressor does accept parameters (see blosc2_filter.c) */
       else if (strcmp(complib, "blosc2") == 0) {
         size_t type_size = H5Tget_size(type_id);
-        if (type_size < 0) return -1;
+        if (type_size < 0)
+          return -1;
         cd_values[1] = (unsigned int) compute_block_size(block_size, type_size, rank, dims_chunk);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
@@ -522,7 +523,8 @@ hid_t H5ARRAYOmake(hid_t loc_id,
       /* The Blosc2 compressor can use other compressors (see blosc2_filter.c) */
       else if (strncmp(complib, "blosc2:", 7) == 0) {
         size_t type_size = H5Tget_size(type_id);
-        if (type_size < 0) return -1;
+        if (type_size < 0)
+          return -1;
         cd_values[1] = (unsigned int) compute_block_size(block_size, type_size, rank, dims_chunk);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
