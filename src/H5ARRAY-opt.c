@@ -13,7 +13,7 @@
 
 /* 128KiB should let both the decompressed and the compressed blocks fit in
    the L2 cache of most current CPUs. */
-#define BLOSC2_DEFAULT_BLOCK_SIZE (2 << 16)
+#define BLOSC2_DEFAULT_BLOCK_SIZE (1 << 17)
 
 herr_t read_chunk_blosc2_ndim(char *filename,
                               hid_t dataset_id,
