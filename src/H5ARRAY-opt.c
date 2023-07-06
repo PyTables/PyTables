@@ -360,8 +360,24 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
     nitems_new *= dims_block[i];
   }
 
-  // TODO: increase block dimensions from right to left while block is under nitems.
-
+  // Double block dimensions (bound by chunk dimensions) from right to left
+  // while block is under nitems.
+  while (nitems_new <= nitems) {
+    hsize_t nitems_prev = nitems_new;
+    for (int i = rank - 1; i >= 0; i--) {
+      if (dims_block[i] * 2 <= dims_chunk[i]) {
+        if (nitems_new * 2 <= nitems) {
+          nitems_new *= 2;
+          dims_block[i] *= 2;
+        }
+      } else {
+        nitems_new = (nitems_new / dims_block[i]) * dims_chunk[i];
+        dims_block[i] = dims_chunk[i];
+      }
+    }
+    if (nitems_new == nitems_prev)
+      break;  // not progressing anymore
+  }
   return nitems_new * type_size;
 }
 
