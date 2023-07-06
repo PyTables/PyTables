@@ -334,11 +334,12 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
 
 
 /* Get the maximum block size which is not greater than the given block_size
- * and fits within the given chunk dimensions dims_chunk.
+ * and fits within the given chunk dimensions dims_chunk. An zero block_size
+ * means using an automatic value that fits most L2 CPU caches.
  *
  * Block dimensions start with 2 (unless the respective chunk dimension is 1),
- * and are grown starting from the innermost (rightmost) ones, to leverage the
- * locality of C array arrangement.
+ * and are doubled starting from the innermost (rightmost) ones, to leverage
+ * the locality of C array arrangement.
  *
  * Based on Python-Blosc2's blosc2.core.compute_chunks_blocks and compute_partition.
  */
