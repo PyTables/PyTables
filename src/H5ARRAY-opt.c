@@ -334,24 +334,26 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
 
 
 /* Get the maximum block size which is not greater than the given block_size
- * and fits within the given chunk dimensions dims_chunk. An zero block_size
+ * and fits within the given chunk dimensions dims_chunk. A zero block_size
  * means using an automatic value that fits most L2 CPU caches.
  *
  * Block dimensions start with 2 (unless the respective chunk dimension is 1),
  * and are doubled starting from the innermost (rightmost) ones, to leverage
  * the locality of C array arrangement.
  *
- * Based on Python-Blosc2's blosc2.core.compute_chunks_blocks and compute_partition.
+ * Based on Python-Blosc2's blosc2.core.compute_chunks_blocks and
+ * compute_partition.
  */
 hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
                            hsize_t type_size,
                            const int rank,
                            const hsize_t *dims_chunk) {
-  if (block_size == 0)
+  if (block_size == 0) {
     block_size = BLOSC2_DEFAULT_BLOCK_SIZE;
+  }
   hsize_t nitems = block_size / type_size;
 
-  /* Start with the smallest possible block dimensions (1 or 2). */
+  // Start with the smallest possible block dimensions (1 or 2).
   hsize_t dims_block[rank];
   hsize_t nitems_new = 1;
   for (int i = 0; i < rank; i++) {
@@ -360,10 +362,12 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
     nitems_new *= dims_block[i];
   }
 
-  if (nitems_new > nitems)
+  if (nitems_new > nitems) {
     BLOSC_TRACE_ERROR("Target block size is too small, raising to %lu", nitems_new);
-  if (nitems_new >= nitems)
+  }
+  if (nitems_new >= nitems) {
     return nitems_new * type_size;
+  }
 
   // Double block dimensions (bound by chunk dimensions) from right to left
   // while block is under nitems.
@@ -378,10 +382,13 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
       } else if (dims_block[i] < dims_chunk[i]) {
         nitems_new = (nitems_new / dims_block[i]) * dims_chunk[i];
         dims_block[i] = dims_chunk[i];
-      } else assert(dims_block[i] == dims_chunk[i]);
+      } else {
+        assert(dims_block[i] == dims_chunk[i]);  // nothing to change
+      }
     }
-    if (nitems_new == nitems_prev)
+    if (nitems_new == nitems_prev) {
       break;  // not progressing anymore
+    }
   }
   return nitems_new * type_size;
 }
