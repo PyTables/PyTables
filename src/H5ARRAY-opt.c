@@ -360,6 +360,11 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
     nitems_new *= dims_block[i];
   }
 
+  if (nitems_new > nitems)
+    BLOSC_TRACE_ERROR("Target block size is too small, raising to %lu", nitems_new);
+  if (nitems_new >= nitems)
+    return nitems_new * type_size;
+
   // Double block dimensions (bound by chunk dimensions) from right to left
   // while block is under nitems.
   while (nitems_new <= nitems) {
