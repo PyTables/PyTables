@@ -370,10 +370,10 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
           nitems_new *= 2;
           dims_block[i] *= 2;
         }
-      } else {
+      } else if (dims_block[i] < dims_chunk[i]) {
         nitems_new = (nitems_new / dims_block[i]) * dims_chunk[i];
         dims_block[i] = dims_chunk[i];
-      }
+      } else assert(dims_block[i] == dims_chunk[i]);
     }
     if (nitems_new == nitems_prev)
       break;  // not progressing anymore
