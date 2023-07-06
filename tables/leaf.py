@@ -325,7 +325,7 @@ class Leaf(Node):
         complib = self.filters.complib
         if (complib is not None and
             complib.startswith("blosc2") and
-            self._c_classid == 'TABLE'):
+            self._c_classid in ('TABLE', 'CARRAY', 'EARRAY')):
             # Blosc2 can introspect into blocks, so we can increase the
             # chunksize for improving HDF5 perf for its internal btree.
             # For the time being, this has been implemented efficiently
