@@ -11,6 +11,10 @@
 #include <string.h>
 
 
+/* 128KiB should let both the decompressed and the compressed blocks fit in
+   the L2 cache of most current CPUs. */
+#define BLOSC2_DEFAULT_BLOCK_SIZE (2 << 16)
+
 herr_t read_chunk_blosc2_ndim(char *filename,
                               hid_t dataset_id,
                               hid_t space_id,
@@ -329,6 +333,38 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
 }
 
 
+/* Get the maximum block size which is not greater than the given block_size
+ * and fits within the given chunk dimensions dims_chunk.
+ *
+ * Block dimensions start with 2 (unless the respective chunk dimension is 1),
+ * and are grown starting from the innermost (rightmost) ones, to leverage the
+ * locality of C array arrangement.
+ *
+ * Based on Python-Blosc2's blosc2.core.compute_chunks_blocks and compute_partition.
+ */
+hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
+                           hsize_t type_size,
+                           const int rank,
+                           const hsize_t *dims_chunk) {
+  if (block_size == 0)
+    block_size = BLOSC2_DEFAULT_BLOCK_SIZE;
+  hsize_t nitems = block_size / type_size;
+
+  /* Start with the smallest possible block dimensions (1 or 2). */
+  hsize_t dims_block[rank];
+  hsize_t nitems_new = 1;
+  for (int i = 0; i < rank; i++) {
+    assert(dims_chunk[i] != 0);
+    dims_block[i] = dims_chunk[i] == 1 ? 1 : 2;
+    nitems_new *= dims_block[i];
+  }
+
+  // TODO: increase block dimensions from right to left while block is under nitems.
+
+  return nitems_new * type_size;
+}
+
+
 /*-------------------------------------------------------------------------
  * Function: H5ARRAYmake
  *
@@ -446,7 +482,9 @@ hid_t H5ARRAYOmake(hid_t loc_id,
       }
         /* The Blosc2 compressor does accept parameters */
       else if (strcmp(complib, "blosc2") == 0) {
-        cd_values[1] = (unsigned int) block_size;  /* can be useful in the future */
+        size_t type_size = H5Tget_size(type_id);
+        if (type_size < 0) return -1;
+        cd_values[1] = (unsigned int) compute_block_size(block_size, type_size, rank, dims_chunk);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         if (H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0)
@@ -454,7 +492,9 @@ hid_t H5ARRAYOmake(hid_t loc_id,
       }
         /* The Blosc2 compressor can use other compressors */
       else if (strncmp(complib, "blosc2:", 7) == 0) {
-        cd_values[1] = (unsigned int) block_size;  /* can be useful in the future */
+        size_t type_size = H5Tget_size(type_id);
+        if (type_size < 0) return -1;
+        cd_values[1] = (unsigned int) compute_block_size(block_size, type_size, rank, dims_chunk);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         blosc_compname = complib + 7;
