@@ -432,9 +432,9 @@ hid_t H5ARRAYOmake(hid_t loc_id,
                    hbool_t blosc2_support,
                    const void *data) {
 
-  hid_t dataset_id, space_id;
+  hid_t dataset_id = -1, space_id = -1;
   hsize_t *maxdims = NULL;
-  hid_t plist_id = 0;
+  hid_t plist_id = -1;
   unsigned int cd_values[7];
   int blosc_compcode;
   char *blosc_compname = NULL;
@@ -604,8 +604,11 @@ hid_t H5ARRAYOmake(hid_t loc_id,
   return dataset_id;
 
   out:
-  H5Dclose(dataset_id);
-  H5Sclose(space_id);
+  H5E_BEGIN_TRY {
+    H5Dclose(dataset_id);
+    H5Sclose(space_id);
+    H5Pclose(plist_id);
+  } H5E_END_TRY;
   if (maxdims)
     free(maxdims);
   return -1;
