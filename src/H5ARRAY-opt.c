@@ -729,8 +729,8 @@ herr_t H5ARRAYOreadSlice(char *filename,
                          hsize_t *stop,
                          hsize_t *step,
                          void *data) {
-  hid_t space_id;
-  hid_t mem_space_id;
+  hid_t space_id = -1;
+  hid_t mem_space_id = -1;
   hsize_t *stride = (hsize_t *) step;
   hsize_t *offset = (hsize_t *) start;
   int rank;
@@ -800,10 +800,10 @@ herr_t H5ARRAYOreadSlice(char *filename,
 
   out:
   /* Terminate access to the dataspace */
-  if (H5Sclose(space_id) < 0){
-    return -10;
-  }
-
+  H5E_BEGIN_TRY {
+    H5Sclose(mem_space_id);
+    H5Sclose(space_id);
+  } H5E_END_TRY;
   return 0;
 }
 
