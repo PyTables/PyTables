@@ -205,11 +205,13 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
   if (envvar != NULL)
     blosc2_filter = strtol(envvar, NULL, 10);
   if (blosc2_support && !((int) blosc2_filter)) {
-    hsize_t stop[rank];
+    hsize_t *stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
     for (int i = 0; i < rank; ++i) {
       stop[i] = start[i] + count[i];
     }
-    if (get_set_blosc2_slice(NULL, dataset_id, type_id, rank, start, stop, step, data, true) == 0)
+    herr_t setval = get_set_blosc2_slice(NULL, dataset_id, type_id, rank, start, stop, step, data, true);
+    free(stop);
+    if (setval == 0)
       return 0;
   }
 
@@ -447,8 +449,9 @@ hid_t H5ARRAYOmake(hid_t loc_id,
   }
 
   if (chunked) {
-    maxdims = malloc(rank * sizeof(hsize_t));
-    if (!maxdims) return -1;
+    maxdims = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
+    if (!maxdims)
+      goto out;
 
     for (i = 0; i < rank; i++) {
       if (i == extdim) {
@@ -461,27 +464,27 @@ hid_t H5ARRAYOmake(hid_t loc_id,
 
   /* Create the data space for the dataset. */
   if ((space_id = H5Screate_simple(rank, dims, maxdims)) < 0)
-    return -1;
+    goto out;
 
   /* Create dataset creation property list with default values */
   plist_id = H5Pcreate(H5P_DATASET_CREATE);
 
   /* Enable or disable recording dataset times */
   if (H5Pset_obj_track_times(plist_id, track_times) < 0)
-    return -1;
+    goto out;
 
   if (chunked) {
     /* Modify dataset creation properties, i.e. enable chunking  */
     if (H5Pset_chunk(plist_id, rank, dims_chunk) < 0)
-      return -1;
+      goto out;
 
     /* Set the fill value using a struct as the data type. */
     if (fill_data) {
       if (H5Pset_fill_value(plist_id, type_id, fill_data) < 0)
-        return -1;
+        goto out;
     } else {
       if (H5Pset_fill_time(plist_id, H5D_FILL_TIME_ALLOC) < 0)
-        return -1;
+        goto out;
     }
 
     /*
@@ -491,12 +494,12 @@ hid_t H5ARRAYOmake(hid_t loc_id,
     /* Fletcher must be first */
     if (fletcher32) {
       if (H5Pset_fletcher32(plist_id) < 0)
-        return -1;
+        goto out;
     }
     /* Then shuffle (blosc shuffles inplace) */
     if ((shuffle && compress) && (strncmp(complib, "blosc", 5) != 0)) {
       if (H5Pset_shuffle(plist_id) < 0)
-        return -1;
+        goto out;
     }
     /* Finally compression */
     if (compress) {
@@ -510,24 +513,24 @@ hid_t H5ARRAYOmake(hid_t loc_id,
       /* The default compressor in HDF5 (zlib) */
       if (strcmp(complib, "zlib") == 0) {
         if (H5Pset_deflate(plist_id, compress) < 0)
-          return -1;
+          goto out;
       }
       /* The Blosc2 compressor does accept parameters (see blosc2_filter.c) */
       else if (strcmp(complib, "blosc2") == 0) {
         size_t type_size = H5Tget_size(type_id);
         if (type_size < 0)
-          return -1;
+          goto out;
         cd_values[1] = (unsigned int) compute_block_size(block_size, type_size, rank, dims_chunk);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         if (H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0)
-          return -1;
+          goto out;
       }
       /* The Blosc2 compressor can use other compressors (see blosc2_filter.c) */
       else if (strncmp(complib, "blosc2:", 7) == 0) {
         size_t type_size = H5Tget_size(type_id);
         if (type_size < 0)
-          return -1;
+          goto out;
         cd_values[1] = (unsigned int) compute_block_size(block_size, type_size, rank, dims_chunk);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
@@ -535,14 +538,14 @@ hid_t H5ARRAYOmake(hid_t loc_id,
         blosc_compcode = blosc2_compname_to_compcode(blosc_compname);
         cd_values[6] = blosc_compcode;
         if (H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0)
-          return -1;
+          goto out;
       }
         /* The Blosc compressor does accept parameters */
       else if (strcmp(complib, "blosc") == 0) {
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         if (H5Pset_filter(plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0)
-          return -1;
+          goto out;
       }
         /* The Blosc compressor can use other compressors */
       else if (strncmp(complib, "blosc:", 6) == 0) {
@@ -552,21 +555,21 @@ hid_t H5ARRAYOmake(hid_t loc_id,
         blosc_compcode = blosc_compname_to_compcode(blosc_compname);
         cd_values[6] = blosc_compcode;
         if (H5Pset_filter(plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0)
-          return -1;
+          goto out;
       }
         /* The LZO compressor does accept parameters */
       else if (strcmp(complib, "lzo") == 0) {
         if (H5Pset_filter(plist_id, FILTER_LZO, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0)
-          return -1;
+          goto out;
       }
         /* The bzip2 compress does accept parameters */
       else if (strcmp(complib, "bzip2") == 0) {
         if (H5Pset_filter(plist_id, FILTER_BZIP2, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0)
-          return -1;
+          goto out;
       } else {
         /* Compression library not supported */
         fprintf(stderr, "Compression library not supported\n");
-        return -1;
+        goto out;
       }
     }
 
@@ -590,7 +593,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
 
   /* Terminate access to the data space. */
   if (H5Sclose(space_id) < 0)
-    return -1;
+    goto out;
 
   /* End access to the property list */
   if (plist_id)
@@ -768,7 +771,7 @@ herr_t H5ARRAYOreadSlice(char *filename,
     if (blosc2_support && !((int) blosc2_filter)) {
       /* Try to read using blosc2 (only supports native byteorder and step=1 for now) */
       get_set_blosc2_slice(filename, dataset_id, type_id, rank, start, stop, step, data, false);
-      goto success;
+      goto out;
     }
 
     /* Define a hyperslab in the dataset of the size of the records */
@@ -795,7 +798,7 @@ herr_t H5ARRAYOreadSlice(char *filename,
       return -9;
   }
 
-  success:
+  out:
   /* Terminate access to the dataspace */
   if (H5Sclose(space_id) < 0){
     return -10;
