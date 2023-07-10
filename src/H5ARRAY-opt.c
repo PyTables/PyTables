@@ -354,7 +354,7 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
   hsize_t nitems = block_size / type_size;
 
   // Start with the smallest possible block dimensions (1 or 2).
-  hsize_t dims_block[rank];
+  hsize_t *dims_block = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
   hsize_t nitems_new = 1;
   for (int i = 0; i < rank; i++) {
     assert(dims_chunk[i] != 0);
@@ -366,7 +366,7 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
     BLOSC_TRACE_ERROR("Target block size is too small, raising to %lu", nitems_new);
   }
   if (nitems_new >= nitems) {
-    return nitems_new * type_size;
+    goto out;
   }
 
   // Double block dimensions (bound by chunk dimensions) from right to left
@@ -390,6 +390,9 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
       break;  // not progressing anymore
     }
   }
+
+  out:
+  free(dims_block);
   return nitems_new * type_size;
 }
 
