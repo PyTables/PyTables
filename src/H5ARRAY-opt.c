@@ -744,19 +744,24 @@ herr_t H5ARRAYOreadSlice(char *filename,
   if ((rank = H5Sget_simple_extent_ndims(space_id)) < 0)
     return -2;
 
+  herr_t retval = 0;
+  hsize_t *dims = NULL;
+  hsize_t *count = NULL;
+
   if (rank) {                    /* Array case */
-    hsize_t dims[rank];
-    hsize_t count[rank];
+    dims = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
+    count = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
 
     /* Get dataset dimensionality */
-    if (H5Sget_simple_extent_dims(space_id, dims, NULL) < 0)
-      return -3;
+    if (H5Sget_simple_extent_dims(space_id, dims, NULL) < 0) {
+      retval = -3; goto out;
+    }
 
     for (i = 0; i < rank; i++) {
       count[i] = get_len_of_range(start[i], stop[i], step[i]);
       if (stop[i] > dims[i]) {
         printf("Asking for a range of rows exceeding the available ones!.\n");
-        return -4;
+        retval = -4; goto out;
       }
       if (step[i] != 1) {
         blosc2_support = false;
@@ -771,40 +776,53 @@ herr_t H5ARRAYOreadSlice(char *filename,
     if (blosc2_support && !((int) blosc2_filter)) {
       /* Try to read using blosc2 (only supports native byteorder and step=1 for now) */
       get_set_blosc2_slice(filename, dataset_id, type_id, rank, start, stop, step, data, false);
-      goto out;
+      retval = 0; goto out;
     }
 
     /* Define a hyperslab in the dataset of the size of the records */
     if (H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride,
-                            count, NULL) < 0)
-      return -5;
+                            count, NULL) < 0) {
+      retval = -5; goto out;
+    }
 
     /* Create a memory dataspace handle */
-    if ((mem_space_id = H5Screate_simple(rank, count, NULL)) < 0)
-      return -6;
+    if ((mem_space_id = H5Screate_simple(rank, count, NULL)) < 0) {
+      retval = -6; goto out;
+    }
 
     /* Read */
     if (H5Dread(dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT,
-                data) < 0)
-      return -7;
+                data) < 0) {
+      retval = -7; goto out;
+    }
 
     /* Terminate access to the memory dataspace */
-    if (H5Sclose(mem_space_id) < 0)
-      return -8;
+    if (H5Sclose(mem_space_id) < 0) {
+      retval = -8; goto out;
+    }
+
+    /* Terminate access to the dataspace */
+    if (H5Sclose(space_id) < 0) {
+      retval = -9; goto out;
+    }
   } else {                     /* Scalar case */
 
     /* Read all the dataset */
-    if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
-      return -9;
+    if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0) {
+      retval = -10; goto out;
+    }
   }
 
   out:
-  /* Terminate access to the dataspace */
   H5E_BEGIN_TRY {
     H5Sclose(mem_space_id);
     H5Sclose(space_id);
   } H5E_END_TRY;
-  return 0;
+  if (count)
+    free(count);
+  if (dims)
+    free(dims);
+  return retval;
 }
 
 
