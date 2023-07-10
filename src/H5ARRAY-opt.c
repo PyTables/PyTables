@@ -177,12 +177,10 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
     data2 += chunksize;
   }
 
-  if (H5Sclose(space_id) < 0) {
-    retval = -5; goto out;
-  }
-
   out:
-  // TODO: release HDF5 resources
+  if (H5Sclose(space_id) < 0) {
+    retval = -5;
+  }
   if (chunk_stop)
     free(chunk_stop);
   if (chunk_start)
