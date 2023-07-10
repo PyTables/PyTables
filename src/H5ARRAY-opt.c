@@ -40,34 +40,50 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
                           const void *data,
                           hbool_t set)
 {
+  herr_t retval = 0;
+
+  /* All these have "rank" elements; remember to free them in the "out" block at the end. */
+  hsize_t *chunkshape = NULL;
+  hsize_t *shape = NULL;
+  int64_t *extshape = NULL;
+  int64_t *chunks_in_array = NULL;
+  int64_t *chunks_in_array_strides = NULL;
+  int64_t *update_start = NULL;
+  int64_t *update_shape = NULL;
+  int64_t *nchunk_ndim = NULL;
+  hsize_t *chunk_start = NULL;
+  hsize_t *chunk_stop = NULL;
+
   uint8_t *data2 = (uint8_t *) data;
   /* Get the file data space */
   hid_t space_id;
-  if ((space_id = H5Dget_space(dataset_id)) < 0)
-    return -1;
+  if ((space_id = H5Dget_space(dataset_id)) < 0) {
+    retval = -1; goto out;
+  }
 
   /* Get the dataset creation property list */
   hid_t dcpl = H5Dget_create_plist(dataset_id);
   if (dcpl == H5I_INVALID_HID) {
-    return -2;
+    retval = -2; goto out;
   }
   size_t cd_nelmts = 7;
   unsigned cd_values[7];
   char name[7];
   if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
     H5Pclose(dcpl);
-    return -3;
+    retval = -3; goto out;
   }
   int typesize = cd_values[2];
-  hsize_t chunkshape[rank];
+  chunkshape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
   H5Pget_chunk(dcpl, rank, chunkshape);
 
-  if (H5Pclose(dcpl) < 0)
-    return -4;
+  if (H5Pclose(dcpl) < 0) {
+    retval = -4; goto out;
+  }
 
-  hsize_t shape[rank];
+  shape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
   H5Sget_simple_extent_dims(space_id, shape, NULL);
-  int64_t extshape[rank];
+  extshape = (int64_t *)(malloc(rank * sizeof(int64_t)));
 
   for (int i = 0; i < rank; i++) {
     if (shape[i] % chunkshape[i] != 0) {
@@ -77,19 +93,19 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
     }
   }
 
-  int64_t chunks_in_array[rank];
+  chunks_in_array = (int64_t *)(malloc(rank * sizeof(int64_t)));
   for (int i = 0; i < rank; ++i) {
     chunks_in_array[i] = extshape[i] / chunkshape[i];
   }
-  int64_t chunks_in_array_strides[rank];
+  chunks_in_array_strides = (int64_t *)(malloc(rank * sizeof(int64_t)));
   chunks_in_array_strides[rank - 1] = 1;
   for (int i = rank - 2; i >= 0; --i) {
     chunks_in_array_strides[i] = chunks_in_array_strides[i + 1] * chunks_in_array[i + 1];
   }
 
   // Compute the number of chunks to update
-  int64_t update_start[rank];
-  int64_t update_shape[rank];
+  update_start = (int64_t *)(malloc(rank * sizeof(int64_t)));
+  update_shape = (int64_t *)(malloc(rank * sizeof(int64_t)));
 
   int64_t update_nchunks = 1;
   for (int i = 0; i < rank; ++i) {
@@ -105,8 +121,11 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
     update_nchunks *= update_shape[i];
   }
 
+  /* These dimension arrays are completely rewritten on each iteration. */
+  nchunk_ndim = (int64_t *)(malloc(rank * sizeof(int64_t)));
+  chunk_start = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
+  chunk_stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
   for (int update_nchunk = 0; update_nchunk < update_nchunks; ++update_nchunk) {
-    int64_t nchunk_ndim[rank];
     blosc2_unidim_to_multidim(rank, update_shape, update_nchunk, nchunk_ndim);
     for (int i = 0; i < rank; ++i) {
       nchunk_ndim[i] += update_start[i];
@@ -115,8 +134,6 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
     blosc2_multidim_to_unidim(nchunk_ndim, rank, chunks_in_array_strides, &nchunk);
 
     // Check if the chunk needs to be updated
-    hsize_t chunk_start[rank];
-    hsize_t chunk_stop[rank];
     int32_t chunksize = typesize;
     for (int i = 0; i < rank; ++i) {
       chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
@@ -160,10 +177,33 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
     data2 += chunksize;
   }
 
-  if (H5Sclose(space_id) < 0)
-    return -5;
+  if (H5Sclose(space_id) < 0) {
+    retval = -5; goto out;
+  }
 
-  return 0;
+  out:
+  // TODO: release HDF5 resources
+  if (chunk_stop)
+    free(chunk_stop);
+  if (chunk_start)
+    free(chunk_start);
+  if (nchunk_ndim)
+    free(nchunk_ndim);
+  if (update_shape)
+    free(update_shape);
+  if (update_start)
+    free(update_start);
+  if (chunks_in_array_strides)
+    free(chunks_in_array_strides);
+  if (chunks_in_array)
+    free(chunks_in_array);
+  if (extshape)
+    free(extshape);
+  if (shape)
+    free(shape);
+  if (chunkshape)
+    free(chunkshape);
+  return retval;
 }
 
 /*-------------------------------------------------------------------------
