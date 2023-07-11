@@ -15,6 +15,18 @@
    the L2 cache of most current CPUs. */
 #define BLOSC2_DEFAULT_BLOCK_SIZE (1 << 17)
 
+/* Error handling in this module:
+ *
+ * 1. Declare "retval" with default error value < 0.
+ * 2. Declare "hid_t" variables with initial -1 value
+ *    (to avoid closing uninitialized identifiers on cleanup).
+ * 3. Close HDF5 objects with error detection when no longer needed.
+ * 4. Go to "out" (cleanup) on error; set "retval" < 0 before for optional finer reporting.
+ * 5. Reach end of function on success (sets non-error "retval" before cleanup).
+ * 6. In all cases, normal resources (allocated arrays & Blosc2 objects) are freed on cleanup.
+ * 7. On error ("retval" < 0), HDF5 objects are closed without error detection on cleanup.
+ */
+
 herr_t read_chunk_blosc2_ndim(char *filename,
                               hid_t dataset_id,
                               hid_t space_id,
@@ -40,7 +52,9 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
                           const void *data,
                           hbool_t set)
 {
-  herr_t retval = 0;
+  herr_t retval = -1;
+  hid_t space_id = -1;
+  hid_t dcpl = -1;
 
   /* All these have "rank" elements; remember to free them in the "out" block at the end. */
   hsize_t *chunkshape = NULL;
@@ -55,14 +69,14 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
   hsize_t *chunk_stop = NULL;
 
   uint8_t *data2 = (uint8_t *) data;
+
   /* Get the file data space */
-  hid_t space_id;
   if ((space_id = H5Dget_space(dataset_id)) < 0) {
     retval = -1; goto out;
   }
 
   /* Get the dataset creation property list */
-  hid_t dcpl = H5Dget_create_plist(dataset_id);
+  dcpl = H5Dget_create_plist(dataset_id);
   if (dcpl == H5I_INVALID_HID) {
     retval = -2; goto out;
   }
@@ -177,30 +191,31 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
     data2 += chunksize;
   }
 
-  out:
   if (H5Sclose(space_id) < 0) {
-    retval = -5;
+    retval = -5; goto out;
   }
-  if (chunk_stop)
-    free(chunk_stop);
-  if (chunk_start)
-    free(chunk_start);
-  if (nchunk_ndim)
-    free(nchunk_ndim);
-  if (update_shape)
-    free(update_shape);
-  if (update_start)
-    free(update_start);
-  if (chunks_in_array_strides)
-    free(chunks_in_array_strides);
-  if (chunks_in_array)
-    free(chunks_in_array);
-  if (extshape)
-    free(extshape);
-  if (shape)
-    free(shape);
-  if (chunkshape)
-    free(chunkshape);
+
+  //out_success:
+  retval = 0;
+
+  out:
+  if (chunk_stop) free(chunk_stop);
+  if (chunk_start) free(chunk_start);
+  if (nchunk_ndim) free(nchunk_ndim);
+  if (update_shape) free(update_shape);
+  if (update_start) free(update_start);
+  if (chunks_in_array_strides) free(chunks_in_array_strides);
+  if (chunks_in_array) free(chunks_in_array);
+  if (extshape) free(extshape);
+  if (shape) free(shape);
+  if (chunkshape) free(chunkshape);
+  if (retval >= 0)
+    return retval;
+
+  H5E_BEGIN_TRY {
+    H5Pclose(dcpl);
+    H5Sclose(space_id);
+  } H5E_END_TRY;
   return retval;
 }
 
@@ -234,8 +249,9 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
                              hsize_t *step,
                              hsize_t *count,
                              const void *data) {
-  hid_t space_id;
-  hid_t mem_space_id;
+  herr_t retval = -1;
+  hid_t space_id = -1;
+  hid_t mem_space_id = -1;
 
   /* Check if the compressor is blosc2 */
   long blosc2_filter = 0;
@@ -247,37 +263,54 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
     for (int i = 0; i < rank; ++i) {
       stop[i] = start[i] + count[i];
     }
-    herr_t setval = get_set_blosc2_slice(NULL, dataset_id, type_id, rank, start, stop, step, data, true);
+    herr_t rv = get_set_blosc2_slice(NULL, dataset_id, type_id, rank, start, stop, step, data, true);
     free(stop);
-    if (setval == 0)
-      return 0;
+    if (rv >= 0) {
+      goto out_success;
+    }
   }
 
   /* Create a simple memory data space */
-  if ((mem_space_id = H5Screate_simple(rank, count, NULL)) < 0)
-    return -3;
+  if ((mem_space_id = H5Screate_simple(rank, count, NULL)) < 0) {
+    retval = -3; goto out;
+  }
 
   /* Get the file data space */
-  if ((space_id = H5Dget_space(dataset_id)) < 0)
-    return -4;
+  if ((space_id = H5Dget_space(dataset_id)) < 0) {
+    retval = -4; goto out;
+  }
 
   /* Define a hyperslab in the dataset */
   if (rank != 0 && H5Sselect_hyperslab(space_id, H5S_SELECT_SET, start,
-                                       step, count, NULL) < 0)
-    return -5;
+                                       step, count, NULL) < 0) {
+    retval = -5; goto out;
+  }
 
-  if (H5Dwrite(dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data) < 0)
-    return -6;
+  if (H5Dwrite(dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data) < 0) {
+    retval = -6; goto out;
+  }
 
   /* Terminate access to the dataspace */
-  if (H5Sclose(mem_space_id) < 0)
-    return -7;
+  if (H5Sclose(mem_space_id) < 0) {
+    retval = -7; goto out;
+  }
 
-  if (H5Sclose(space_id) < 0)
-    return -8;
+  if (H5Sclose(space_id) < 0) {
+    retval = -8; goto out;
+  }
 
-  /* Everything went smoothly */
-  return 0;
+  out_success:
+  retval = 0;
+
+  out:
+  if (retval >= 0)
+    return retval;
+
+  H5E_BEGIN_TRY {
+    H5Sclose(mem_space_id);
+    H5Sclose(space_id);
+  } H5E_END_TRY;
+  return retval;
 }
 
 
@@ -285,8 +318,14 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 hsize_t *start,
                                 hsize_t chunksize,
                                 const void *data) {
+  herr_t retval = -1;
+  hid_t dcpl = -1;
+  blosc2_schunk *sc = NULL;
+  bool needs_free2 = false;
+  uint8_t *cframe = NULL;
+
   /* Get the dataset creation property list */
-  hid_t dcpl = H5Dget_create_plist(dataset_id);
+  dcpl = H5Dget_create_plist(dataset_id);
   if (dcpl == H5I_INVALID_HID) {
     BLOSC_TRACE_ERROR("Fail getting plist");
     goto out;
@@ -327,7 +366,7 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
   //    BLOSC_TRACE_ERROR("Failed creating superchunk");
   //    goto out;
   //  }
-  blosc2_schunk *sc = blosc2_schunk_new(&storage);
+  sc = blosc2_schunk_new(&storage);
   if (sc == NULL) {
     BLOSC_TRACE_ERROR("Failed creating superchunk");
     goto out;
@@ -344,8 +383,6 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
     BLOSC_TRACE_ERROR("Failed appending buffer");
     goto out;
   }
-  uint8_t *cframe;
-  bool needs_free2;
   // blosc2_schunk_to_buffer(array->sc, &cframe, &needs_free2)
   int64_t cfsize = blosc2_schunk_to_buffer(sc, &cframe, &needs_free2);
   if (cfsize <= 0) {
@@ -360,16 +397,19 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
     goto out;
   }
 
-  /* Free resources */
-  if (needs_free2) {
-    free(cframe);
-  }
-  blosc2_schunk_free(sc);
-
-  return 0;
+  //out_success:
+  retval = 0;
 
   out:
-  return -1;
+  if (cframe && needs_free2) free(cframe);
+  if (sc) blosc2_schunk_free(sc);
+  if (retval >= 0)
+    return retval;
+
+  H5E_BEGIN_TRY {
+    H5Pclose(dcpl);
+  } H5E_END_TRY;
+  return retval;
 }
 
 
@@ -472,9 +512,12 @@ hid_t H5ARRAYOmake(hid_t loc_id,
                    hbool_t blosc2_support,
                    const void *data) {
 
-  hid_t dataset_id = -1, space_id = -1;
-  hsize_t *maxdims = NULL;
+  hid_t retval = -1;
+  hid_t dataset_id = -1;
+  hid_t space_id = -1;
   hid_t plist_id = -1;
+  hsize_t *maxdims = NULL;
+
   unsigned int cd_values[7];
   int blosc_compcode;
   char *blosc_compname = NULL;
@@ -638,21 +681,20 @@ hid_t H5ARRAYOmake(hid_t loc_id,
     if (H5Pclose(plist_id) < 0)
       goto out;
 
-  /* Release resources */
-  if (maxdims)
-    free(maxdims);
-
-  return dataset_id;
+  //out_success:
+  retval = dataset_id;
 
   out:
+  if (maxdims) free(maxdims);
+  if (retval >= 0)
+    return retval;
+
   H5E_BEGIN_TRY {
     H5Dclose(dataset_id);
     H5Sclose(space_id);
     H5Pclose(plist_id);
   } H5E_END_TRY;
-  if (maxdims)
-    free(maxdims);
-  return -1;
+  return retval;
 
 }
 
@@ -668,6 +710,12 @@ herr_t read_chunk_blosc2_ndim(char *filename,
                               hsize_t *chunk_stop,
                               hsize_t chunksize,
                               uint8_t *data) {
+  herr_t retval = -1;
+  blosc2_schunk *schunk = NULL;
+  bool needs_free = false;
+  uint8_t *chunk = NULL;
+  blosc2_context *dctx = NULL;
+
   /* Get the address of the schunk on-disk */
   unsigned flt_msk;
   haddr_t address;
@@ -687,7 +735,7 @@ herr_t read_chunk_blosc2_ndim(char *filename,
   //    BLOSC_TRACE_ERROR("Cannot open schunk in %s\n", filename);
   //    goto out;
   //  }
-  blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
+  schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
   if (schunk == NULL) {
     BLOSC_TRACE_ERROR("Cannot open schunk in %s\n", filename);
     goto out;
@@ -697,8 +745,6 @@ herr_t read_chunk_blosc2_ndim(char *filename,
   // const int64_t *start, stop, b2nd_array_t *array)
 
   /* Get chunk */
-  bool needs_free;
-  uint8_t *chunk;
   int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
   if (cbytes < 0) {
     BLOSC_TRACE_ERROR("Cannot get lazy chunk %zd in %s\n", nchunk, filename);
@@ -707,7 +753,7 @@ herr_t read_chunk_blosc2_ndim(char *filename,
 
   blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
   dparams.schunk = schunk;
-  blosc2_context *dctx = blosc2_create_dctx(dparams);
+  dctx = blosc2_create_dctx(dparams);
 
   /* Gather data for the interesting part */
   //int nrecords_chunk = chunksize - chunk_start;
@@ -729,17 +775,14 @@ herr_t read_chunk_blosc2_ndim(char *filename,
     }
   }*/
 
-
-  if (needs_free) {
-    free(chunk);
-  }
-  blosc2_free_ctx(dctx);
-  blosc2_schunk_free(schunk);
-
-  return 0;
+  //out_success:
+  retval = 0;
 
   out:
-  return -1;
+  if (chunk && needs_free) free(chunk);
+  if (dctx) blosc2_free_ctx(dctx);
+  if (schunk) blosc2_schunk_free(schunk);
+  return retval;
 
 
 }
@@ -767,24 +810,26 @@ herr_t H5ARRAYOreadSlice(char *filename,
                          hsize_t *stop,
                          hsize_t *step,
                          void *data) {
+  herr_t retval = -1;
   hid_t space_id = -1;
   hid_t mem_space_id = -1;
+  hsize_t *dims = NULL;
+  hsize_t *count = NULL;
+
   hsize_t *stride = (hsize_t *) step;
   hsize_t *offset = (hsize_t *) start;
   int rank;
   int i;
 
   /* Get the dataspace handle */
-  if ((space_id = H5Dget_space(dataset_id)) < 0)
-    return -1;
+  if ((space_id = H5Dget_space(dataset_id)) < 0) {
+    retval = -1; goto out;
+  }
 
   /* Get the rank */
-  if ((rank = H5Sget_simple_extent_ndims(space_id)) < 0)
-    return -2;
-
-  herr_t retval = 0;
-  hsize_t *dims = NULL;
-  hsize_t *count = NULL;
+  if ((rank = H5Sget_simple_extent_ndims(space_id)) < 0) {
+    retval = -2; goto out;
+  }
 
   if (rank) {                    /* Array case */
     dims = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
@@ -812,9 +857,15 @@ herr_t H5ARRAYOreadSlice(char *filename,
       blosc2_filter = strtol(envvar, NULL, 10);
 
     if (blosc2_support && !((int) blosc2_filter)) {
+      if (H5Sclose(space_id) < 0) {  // no longer usable here
+        retval = -40; goto out;
+      }
       /* Try to read using blosc2 (only supports native byteorder and step=1 for now) */
-      get_set_blosc2_slice(filename, dataset_id, type_id, rank, start, stop, step, data, false);
-      retval = 0; goto out;
+      herr_t rv;
+      if ((rv = get_set_blosc2_slice(filename, dataset_id, type_id, rank, start, stop, step, data, false)) < 0) {
+        retval = rv - 40; goto out;
+      }
+      goto out_success;
     }
 
     /* Define a hyperslab in the dataset of the size of the records */
@@ -851,15 +902,19 @@ herr_t H5ARRAYOreadSlice(char *filename,
     }
   }
 
+  out_success:
+  retval = 0;
+
   out:
+  if (count) free(count);
+  if (dims) free(dims);
+  if (retval >= 0)
+    return retval;
+
   H5E_BEGIN_TRY {
     H5Sclose(mem_space_id);
     H5Sclose(space_id);
   } H5E_END_TRY;
-  if (count)
-    free(count);
-  if (dims)
-    free(dims);
   return retval;
 }
 
@@ -892,8 +947,10 @@ herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
                                hsize_t stop,
                                void *data )
 {
- hid_t    space_id;
- hid_t    mem_space_id;
+ herr_t   retval = -1;
+ hid_t    space_id = -1;
+ hid_t    mem_space_id = -1;
+
  hsize_t  count[2];
  int      rank = 2;
  hsize_t  offset[2];
@@ -929,11 +986,18 @@ herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
  if ( H5Sclose( space_id ) < 0 )
   goto out;
 
-return 0;
+ //out_success:
+ retval = 0;
 
-out:
- H5Dclose( dataset_id );
- return -1;
+ out:
+ if (retval >= 0)
+   return retval;
+
+ H5E_BEGIN_TRY {
+   H5Sclose(mem_space_id);
+   H5Sclose(space_id);
+ } H5E_END_TRY;
+ return retval;
 
 }
 
@@ -965,7 +1029,9 @@ herr_t H5ARRAYOinit_readSlice( hid_t dataset_id,
                                hsize_t count)
 
 {
- hid_t    space_id;
+ herr_t   retval = -1;
+ hid_t    space_id = -1;
+
  int      rank = 2;
  hsize_t  count2[2] = {1, count};
 
@@ -981,11 +1047,17 @@ herr_t H5ARRAYOinit_readSlice( hid_t dataset_id,
  if ( H5Sclose( space_id ) < 0 )
   goto out;
 
- return 0;
+ //out_success:
+ retval = 0;
 
-out:
- H5Dclose(dataset_id);
- return -1;
+ out:
+ if (retval >= 0)
+   return retval;
+
+ H5E_BEGIN_TRY {
+   H5Sclose(space_id);
+ } H5E_END_TRY;
+ return retval;
 
 }
 
@@ -1018,7 +1090,9 @@ herr_t H5ARRAYOread_readSortedSlice( hid_t dataset_id,
                                      hsize_t stop,
                                      void *data )
 {
- hid_t    space_id;
+ herr_t   retval = -1;
+ hid_t    space_id = -1;
+
  hsize_t  count[2] = {1, stop-start};
  hsize_t  offset[2] = {irow, start};
  hsize_t  stride[2] = {1, 1};
@@ -1039,11 +1113,17 @@ herr_t H5ARRAYOread_readSortedSlice( hid_t dataset_id,
  if ( H5Sclose( space_id ) < 0 )
   goto out;
 
-return 0;
+ //out_success:
+ retval = 0;
 
-out:
- H5Dclose( dataset_id );
- return -1;
+ out:
+ if (retval >= 0)
+   return retval;
+
+ H5E_BEGIN_TRY {
+   H5Sclose(space_id);
+ } H5E_END_TRY;
+ return retval;
 
 }
 
@@ -1076,7 +1156,8 @@ herr_t H5ARRAYOread_readBoundsSlice( hid_t dataset_id,
                                      hsize_t stop,
                                      void *data )
 {
- hid_t    space_id;
+ herr_t   retval = -1;
+ hid_t    space_id = -1;
  hsize_t  count[2] = {1, stop-start};
  hsize_t  offset[2] = {irow, start};
  hsize_t  stride[2] = {1, 1};
@@ -1097,11 +1178,17 @@ herr_t H5ARRAYOread_readBoundsSlice( hid_t dataset_id,
  if ( H5Sclose( space_id ) < 0 )
   goto out;
 
-return 0;
+ //out_success:
+ retval = 0;
 
-out:
- H5Dclose( dataset_id );
- return -1;
+ out:
+ if (retval >= 0)
+   return retval;
+
+ H5E_BEGIN_TRY {
+   H5Sclose(space_id);
+ } H5E_END_TRY;
+ return retval;
 
 }
 
@@ -1126,8 +1213,10 @@ herr_t H5ARRAYOreadSliceLR(hid_t dataset_id,
                            hsize_t stop,
                            void *data)
 {
- hid_t    space_id;
- hid_t    mem_space_id;
+ herr_t   retval = -1;
+ hid_t    space_id = -1;
+ hid_t    mem_space_id = -1;
+
  hsize_t  count[1] = {stop - start};
  hsize_t  stride[1] = {1};
  hsize_t  offset[1] = {start};
@@ -1158,10 +1247,17 @@ herr_t H5ARRAYOreadSliceLR(hid_t dataset_id,
  if ( H5Sclose( space_id ) < 0 )
    goto out;
 
- return 0;
+ //out_success:
+ retval = 0;
 
-out:
- H5Dclose( dataset_id );
- return -1;
+ out:
+ if (retval >= 0)
+   return retval;
+
+ H5E_BEGIN_TRY {
+   H5Sclose(mem_space_id);
+   H5Sclose(space_id);
+ } H5E_END_TRY;
+ return retval;
 
 }
