@@ -84,7 +84,6 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
   unsigned cd_values[7];
   char name[7];
   if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
-    H5Pclose(dcpl);
     retval = -3; goto out;
   }
   int typesize = cd_values[2];
@@ -336,7 +335,6 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
   unsigned cd_values[7];
   char name[7];
   if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
-    H5Pclose(dcpl);
     BLOSC_TRACE_ERROR("Fail getting blosc2 params");
     goto out;
   }
