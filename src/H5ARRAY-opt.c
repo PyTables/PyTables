@@ -27,6 +27,27 @@
  * 7. On error ("retval" < 0), HDF5 objects are closed without error detection on cleanup.
  */
 
+/* All these macros depend on an "out" tag for cleanup. */
+#define IF_TRUE_OUT(_COND) { if (_COND) goto out; }
+#define IF_FALSE_OUT(_COND) IF_TRUE_OUT(!(_COND))
+#define IF_NEG_OUT(_EXPR) IF_TRUE_OUT((_EXPR) < 0)
+
+#define IF_TRUE_OUT_DO(_COND, _STMT) { if (_COND) { _STMT; goto out; } }
+#define IF_FALSE_OUT_DO(_COND, _STMT) IF_TRUE_OUT_DO(!(_COND), _STMT)
+#define IF_NEG_OUT_DO(_EXPR, _STMT) IF_TRUE_OUT_DO((_EXPR) < 0, _STMT)
+
+#define IF_TRUE_OUT_BTRACE(_COND, _MESG, ...) \
+  IF_TRUE_OUT_DO(_COND, BLOSC_TRACE_ERROR(_MESG, ##__VA_ARGS__))
+#define IF_FALSE_OUT_BTRACE(_COND, _MESG, ...) \
+  IF_TRUE_OUT_DO(!(_COND), BLOSC_TRACE_ERROR(_MESG, ##__VA_ARGS__))
+#define IF_NEG_OUT_BTRACE(_EXPR, _MESG, ...) \
+  IF_TRUE_OUT_DO((_EXPR) < 0, BLOSC_TRACE_ERROR(_MESG, ##__VA_ARGS__))
+
+/* These also depend on a "retval" variable of the return type. */
+#define IF_TRUE_OUT_RET(_COND, _RETVAL) IF_TRUE_OUT_DO(_COND, retval = (_RETVAL))
+#define IF_FALSE_OUT_RET(_COND, _RETVAL) IF_TRUE_OUT_RET(!(_COND), _RETVAL)
+#define IF_NEG_OUT_RET(_EXPR, _RETVAL) IF_TRUE_OUT_RET((_EXPR) < 0, _RETVAL)
+
 herr_t read_chunk_blosc2_ndim(char *filename,
                               hid_t dataset_id,
                               hid_t space_id,
@@ -71,28 +92,21 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
   uint8_t *data2 = (uint8_t *) data;
 
   /* Get the file data space */
-  if ((space_id = H5Dget_space(dataset_id)) < 0) {
-    retval = -1; goto out;
-  }
+  IF_NEG_OUT_RET(space_id = H5Dget_space(dataset_id), -1);
 
   /* Get the dataset creation property list */
   dcpl = H5Dget_create_plist(dataset_id);
-  if (dcpl == H5I_INVALID_HID) {
-    retval = -2; goto out;
-  }
+  IF_TRUE_OUT_RET(dcpl == H5I_INVALID_HID, -2);
   size_t cd_nelmts = 7;
   unsigned cd_values[7];
   char name[7];
-  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
-    retval = -3; goto out;
-  }
+  IF_NEG_OUT_RET(H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL,
+                                      &cd_nelmts, cd_values, 7, name, NULL), -3);
   int typesize = cd_values[2];
   chunkshape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
   H5Pget_chunk(dcpl, rank, chunkshape);
 
-  if (H5Pclose(dcpl) < 0) {
-    retval = -4; goto out;
-  }
+  IF_NEG_OUT_RET(H5Pclose(dcpl), -4);
 
   shape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
   H5Sget_simple_extent_dims(space_id, shape, NULL);
@@ -190,9 +204,7 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
     data2 += chunksize;
   }
 
-  if (H5Sclose(space_id) < 0) {
-    retval = -5; goto out;
-  }
+  IF_NEG_OUT_RET(H5Sclose(space_id), -5);
 
   //out_success:
   retval = 0;
@@ -270,33 +282,24 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
   }
 
   /* Create a simple memory data space */
-  if ((mem_space_id = H5Screate_simple(rank, count, NULL)) < 0) {
-    retval = -3; goto out;
-  }
+  IF_NEG_OUT_RET(mem_space_id = H5Screate_simple(rank, count, NULL), -3);
 
   /* Get the file data space */
-  if ((space_id = H5Dget_space(dataset_id)) < 0) {
-    retval = -4; goto out;
-  }
+  IF_NEG_OUT_RET(space_id = H5Dget_space(dataset_id), -4);
 
   /* Define a hyperslab in the dataset */
-  if (rank != 0 && H5Sselect_hyperslab(space_id, H5S_SELECT_SET, start,
-                                       step, count, NULL) < 0) {
-    retval = -5; goto out;
+  if (rank != 0) {
+    IF_NEG_OUT_RET(H5Sselect_hyperslab(space_id, H5S_SELECT_SET,
+                                       start, step, count, NULL), -5);
   }
 
-  if (H5Dwrite(dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data) < 0) {
-    retval = -6; goto out;
-  }
+  IF_NEG_OUT_RET(H5Dwrite(dataset_id, type_id, mem_space_id, space_id,
+                          H5P_DEFAULT, data), -6);
 
   /* Terminate access to the dataspace */
-  if (H5Sclose(mem_space_id) < 0) {
-    retval = -7; goto out;
-  }
+  IF_NEG_OUT_RET(H5Sclose(mem_space_id), -7);
 
-  if (H5Sclose(space_id) < 0) {
-    retval = -8; goto out;
-  }
+  IF_NEG_OUT_RET(H5Sclose(space_id), -8);
 
   out_success:
   retval = 0;
@@ -325,22 +328,17 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
 
   /* Get the dataset creation property list */
   dcpl = H5Dget_create_plist(dataset_id);
-  if (dcpl == H5I_INVALID_HID) {
-    BLOSC_TRACE_ERROR("Fail getting plist");
-    goto out;
-  }
+  IF_TRUE_OUT_BTRACE(dcpl == H5I_INVALID_HID, "Fail getting plist");
 
   /* Get blosc2 params*/
   size_t cd_nelmts = 7;
   unsigned cd_values[7];
   char name[7];
-  if (H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL, &cd_nelmts, cd_values, 7, name, NULL) < 0) {
-    BLOSC_TRACE_ERROR("Fail getting blosc2 params");
-    goto out;
-  }
+  IF_NEG_OUT_BTRACE(H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL,
+                                         &cd_nelmts, cd_values, 7, name, NULL),
+                    "Fail getting blosc2 params");
   int32_t typesize = cd_values[2];
-  if (H5Pclose(dcpl) < 0)
-    goto out;
+  IF_NEG_OUT(H5Pclose(dcpl));
 
 
   /* Compress data into superchunk and get frame */
@@ -359,41 +357,27 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
   //                0)
   // b2nd_zeros(b2nd_context_t *ctx, b2nd_array_t **array)
   // To remove:
-  // blosc2_schunk *sc = blosc2_schunk_new(&storage);
-  //  if (sc == NULL) {
-  //    BLOSC_TRACE_ERROR("Failed creating superchunk");
-  //    goto out;
-  //  }
+  //  blosc2_schunk *sc = blosc2_schunk_new(&storage);
+  //  IF_FALSE_OUT_BTRACE(sc, "Failed creating superchunk");
   sc = blosc2_schunk_new(&storage);
-  if (sc == NULL) {
-    BLOSC_TRACE_ERROR("Failed creating superchunk");
-    goto out;
-  }
+  IF_FALSE_OUT_BTRACE(sc, "Failed creating superchunk");
 
   // b2nd_set_slice_cbuffer(data, const int64_t *buffershape, int64_t buffersize,
   //                                        const int64_t *start, const int64_t *stop, b2nd_array_t *array)
   // To remove:
-  //   if (blosc2_schunk_append_buffer(sc, (void *) data, chunksize) <= 0) {
-  //    BLOSC_TRACE_ERROR("Failed appending buffer");
-  //    goto out;
-  //  }
-  if (blosc2_schunk_append_buffer(sc, (void *) data, chunksize) <= 0) {
-    BLOSC_TRACE_ERROR("Failed appending buffer");
-    goto out;
-  }
+  //   IF_TRUE_OUT_BTRACE(blosc2_schunk_append_buffer(sc, (void *) data, chunksize) <= 0,
+  //                      "Failed appending buffer");
+  IF_TRUE_OUT_BTRACE(blosc2_schunk_append_buffer(sc, (void *) data, chunksize) <= 0,
+                     "Failed appending buffer");
   // blosc2_schunk_to_buffer(array->sc, &cframe, &needs_free2)
   int64_t cfsize = blosc2_schunk_to_buffer(sc, &cframe, &needs_free2);
-  if (cfsize <= 0) {
-    BLOSC_TRACE_ERROR("Failed converting schunk to cframe");
-    goto out;
-  }
+  IF_TRUE_OUT_BTRACE(cfsize <= 0, "Failed converting schunk to cframe");
 
   /* Write frame bypassing HDF5 filter pipeline */
   unsigned flt_msk = 0;
-  if (H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk, start, (size_t) cfsize, cframe) < 0) {
-    BLOSC_TRACE_ERROR("Failed HDF5 writing chunk");
-    goto out;
-  }
+  IF_NEG_OUT_BTRACE(H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk,
+                                   start, (size_t) cfsize, cframe),
+                    "Failed HDF5 writing chunk");
 
   //out_success:
   retval = 0;
@@ -443,9 +427,7 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
   if (nitems_new > nitems) {
     BLOSC_TRACE_ERROR("Target block size is too small, raising to %lu", nitems_new);
   }
-  if (nitems_new >= nitems) {
-    goto out;
-  }
+  IF_TRUE_OUT(nitems_new >= nitems);
 
   // Double block dimensions (bound by chunk dimensions) from right to left
   // while block is under nitems.
@@ -529,8 +511,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
 
   if (chunked) {
     maxdims = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
-    if (!maxdims)
-      goto out;
+    IF_FALSE_OUT(maxdims);
 
     for (i = 0; i < rank; i++) {
       if (i == extdim) {
@@ -542,28 +523,23 @@ hid_t H5ARRAYOmake(hid_t loc_id,
   }
 
   /* Create the data space for the dataset. */
-  if ((space_id = H5Screate_simple(rank, dims, maxdims)) < 0)
-    goto out;
+  IF_NEG_OUT(space_id = H5Screate_simple(rank, dims, maxdims));
 
   /* Create dataset creation property list with default values */
   plist_id = H5Pcreate(H5P_DATASET_CREATE);
 
   /* Enable or disable recording dataset times */
-  if (H5Pset_obj_track_times(plist_id, track_times) < 0)
-    goto out;
+  IF_NEG_OUT(H5Pset_obj_track_times(plist_id, track_times));
 
   if (chunked) {
     /* Modify dataset creation properties, i.e. enable chunking  */
-    if (H5Pset_chunk(plist_id, rank, dims_chunk) < 0)
-      goto out;
+    IF_NEG_OUT(H5Pset_chunk(plist_id, rank, dims_chunk));
 
     /* Set the fill value using a struct as the data type. */
     if (fill_data) {
-      if (H5Pset_fill_value(plist_id, type_id, fill_data) < 0)
-        goto out;
+      IF_NEG_OUT(H5Pset_fill_value(plist_id, type_id, fill_data));
     } else {
-      if (H5Pset_fill_time(plist_id, H5D_FILL_TIME_ALLOC) < 0)
-        goto out;
+      IF_NEG_OUT(H5Pset_fill_time(plist_id, H5D_FILL_TIME_ALLOC));
     }
 
     /*
@@ -572,13 +548,11 @@ hid_t H5ARRAYOmake(hid_t loc_id,
 
     /* Fletcher must be first */
     if (fletcher32) {
-      if (H5Pset_fletcher32(plist_id) < 0)
-        goto out;
+      IF_NEG_OUT(H5Pset_fletcher32(plist_id));
     }
     /* Then shuffle (blosc shuffles inplace) */
     if ((shuffle && compress) && (strncmp(complib, "blosc", 5) != 0)) {
-      if (H5Pset_shuffle(plist_id) < 0)
-        goto out;
+      IF_NEG_OUT(H5Pset_shuffle(plist_id));
     }
     /* Finally compression */
     if (compress) {
@@ -591,40 +565,34 @@ hid_t H5ARRAYOmake(hid_t loc_id,
 
       /* The default compressor in HDF5 (zlib) */
       if (strcmp(complib, "zlib") == 0) {
-        if (H5Pset_deflate(plist_id, compress) < 0)
-          goto out;
+        IF_NEG_OUT(H5Pset_deflate(plist_id, compress));
       }
       /* The Blosc2 compressor does accept parameters (see blosc2_filter.c) */
       else if (strcmp(complib, "blosc2") == 0) {
         size_t type_size = H5Tget_size(type_id);
-        if (type_size < 0)
-          goto out;
+        IF_NEG_OUT(type_size);
         cd_values[1] = (unsigned int) compute_block_size(block_size, type_size, rank, dims_chunk);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
-        if (H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0)
-          goto out;
+        IF_NEG_OUT(H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values));
       }
       /* The Blosc2 compressor can use other compressors (see blosc2_filter.c) */
       else if (strncmp(complib, "blosc2:", 7) == 0) {
         size_t type_size = H5Tget_size(type_id);
-        if (type_size < 0)
-          goto out;
+        IF_NEG_OUT(type_size);
         cd_values[1] = (unsigned int) compute_block_size(block_size, type_size, rank, dims_chunk);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         blosc_compname = complib + 7;
         blosc_compcode = blosc2_compname_to_compcode(blosc_compname);
         cd_values[6] = blosc_compcode;
-        if (H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0)
-          goto out;
+        IF_NEG_OUT(H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 7, cd_values));
       }
         /* The Blosc compressor does accept parameters */
       else if (strcmp(complib, "blosc") == 0) {
         cd_values[4] = compress;
         cd_values[5] = shuffle;
-        if (H5Pset_filter(plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0)
-          goto out;
+        IF_NEG_OUT(H5Pset_filter(plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 6, cd_values));
       }
         /* The Blosc compressor can use other compressors */
       else if (strncmp(complib, "blosc:", 6) == 0) {
@@ -633,51 +601,42 @@ hid_t H5ARRAYOmake(hid_t loc_id,
         blosc_compname = complib + 6;
         blosc_compcode = blosc_compname_to_compcode(blosc_compname);
         cd_values[6] = blosc_compcode;
-        if (H5Pset_filter(plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0)
-          goto out;
+        IF_NEG_OUT(H5Pset_filter(plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 7, cd_values));
       }
         /* The LZO compressor does accept parameters */
       else if (strcmp(complib, "lzo") == 0) {
-        if (H5Pset_filter(plist_id, FILTER_LZO, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0)
-          goto out;
+        IF_NEG_OUT(H5Pset_filter(plist_id, FILTER_LZO, H5Z_FLAG_OPTIONAL, 3, cd_values));
       }
         /* The bzip2 compress does accept parameters */
       else if (strcmp(complib, "bzip2") == 0) {
-        if (H5Pset_filter(plist_id, FILTER_BZIP2, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0)
-          goto out;
+        IF_NEG_OUT(H5Pset_filter(plist_id, FILTER_BZIP2, H5Z_FLAG_OPTIONAL, 3, cd_values));
       } else {
         /* Compression library not supported */
-        fprintf(stderr, "Compression library not supported\n");
-        goto out;
+        IF_TRUE_OUT_DO(true, fprintf(stderr, "Compression library not supported\n"));
       }
     }
 
     /* Create the (chunked) dataset */
-    if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id, space_id,
-                                H5P_DEFAULT, plist_id, H5P_DEFAULT)) < 0)
-      goto out;
+    IF_NEG_OUT(dataset_id = H5Dcreate(loc_id, dset_name, type_id, space_id,
+                                      H5P_DEFAULT, plist_id, H5P_DEFAULT));
   } else {         /* Not chunked case */
     /* Create the dataset. */
-    if ((dataset_id = H5Dcreate(loc_id, dset_name, type_id, space_id,
-                                H5P_DEFAULT, plist_id, H5P_DEFAULT)) < 0)
-      goto out;
+    IF_NEG_OUT(dataset_id = H5Dcreate(loc_id, dset_name, type_id, space_id,
+                                      H5P_DEFAULT, plist_id, H5P_DEFAULT));
   }
 
   /* Write the dataset only if there is data to write */
 
   if (data) {
-    if (H5Dwrite(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0)
-      goto out;
+    IF_NEG_OUT(H5Dwrite(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data));
   }
 
   /* Terminate access to the data space. */
-  if (H5Sclose(space_id) < 0)
-    goto out;
+  IF_NEG_OUT(H5Sclose(space_id));
 
   /* End access to the property list */
   if (plist_id)
-    if (H5Pclose(plist_id) < 0)
-      goto out;
+    IF_NEG_OUT(H5Pclose(plist_id));
 
   //out_success:
   retval = dataset_id;
@@ -719,35 +678,24 @@ herr_t read_chunk_blosc2_ndim(char *filename,
   haddr_t address;
   hsize_t cframe_size;
   hsize_t chunk_offset[2];
-  if (H5Dget_chunk_info(dataset_id, space_id, nchunk, chunk_offset, &flt_msk,
-                        &address, &cframe_size) < 0) {
-    BLOSC_TRACE_ERROR("Get chunk info failed!\n");
-    goto out;
-  }
+  IF_NEG_OUT_BTRACE(H5Dget_chunk_info(dataset_id, space_id, nchunk, chunk_offset, &flt_msk,
+                                      &address, &cframe_size),
+                    "Get chunk info failed!\n");
 
   /* Open the schunk on-disk */
   // b2nd_open_offset(const char *urlpath, b2nd_array_t **array, (int64_t) address)
   // To remove:
   //   blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
-  //  if (schunk == NULL) {
-  //    BLOSC_TRACE_ERROR("Cannot open schunk in %s\n", filename);
-  //    goto out;
-  //  }
+  //  IF_FALSE_OUT_BTRACE(schunk, "Cannot open schunk in %s\n", filename);
   schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
-  if (schunk == NULL) {
-    BLOSC_TRACE_ERROR("Cannot open schunk in %s\n", filename);
-    goto out;
-  }
+  IF_FALSE_OUT_BTRACE(schunk, "Cannot open schunk in %s\n", filename);
 
   //  b2nd_set_slice_cbuffer(data, const int64_t *buffershape, int64_t buffersize,
   // const int64_t *start, stop, b2nd_array_t *array)
 
   /* Get chunk */
   int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
-  if (cbytes < 0) {
-    BLOSC_TRACE_ERROR("Cannot get lazy chunk %zd in %s\n", nchunk, filename);
-    goto out;
-  }
+  IF_NEG_OUT_BTRACE(cbytes, "Cannot get lazy chunk %zd in %s\n", nchunk, filename);
 
   blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
   dparams.schunk = schunk;
@@ -759,18 +707,13 @@ herr_t read_chunk_blosc2_ndim(char *filename,
   int rbytes;
   //if (nrecords_chunk == chunklen) {
   rbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, data, chunksize);
-  if (rbytes < 0) {
-    BLOSC_TRACE_ERROR("Cannot decompress lazy chunk");
-    goto out;
-  }
+  IF_NEG_OUT_BTRACE(rbytes, "Cannot decompress lazy chunk");
   //}
   /*else {
     /* Less than 1 chunk to read; use a getitem call
     rbytes = blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, nrecords_chunk, data, chunksize);
-    if (rbytes != nrecords_chunk * typesize) {
-      BLOSC_TRACE_ERROR("Cannot get (all) items for lazychunk\n");
-      goto out;
-    }
+    IF_TRUE_OUT_BTRACE(rbytes != nrecords_chunk * typesize,
+                       "Cannot get (all) items for lazychunk\n");
   }*/
 
   //out_success:
@@ -820,29 +763,23 @@ herr_t H5ARRAYOreadSlice(char *filename,
   int i;
 
   /* Get the dataspace handle */
-  if ((space_id = H5Dget_space(dataset_id)) < 0) {
-    retval = -1; goto out;
-  }
+  IF_NEG_OUT_RET(space_id = H5Dget_space(dataset_id), -1);
 
   /* Get the rank */
-  if ((rank = H5Sget_simple_extent_ndims(space_id)) < 0) {
-    retval = -2; goto out;
-  }
+  IF_NEG_OUT_RET(rank = H5Sget_simple_extent_ndims(space_id), -2);
 
   if (rank) {                    /* Array case */
     dims = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
     count = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
 
     /* Get dataset dimensionality */
-    if (H5Sget_simple_extent_dims(space_id, dims, NULL) < 0) {
-      retval = -3; goto out;
-    }
+    IF_NEG_OUT_RET(H5Sget_simple_extent_dims(space_id, dims, NULL), -3);
 
     for (i = 0; i < rank; i++) {
       count[i] = get_len_of_range(start[i], stop[i], step[i]);
       if (stop[i] > dims[i]) {
         printf("Asking for a range of rows exceeding the available ones!.\n");
-        retval = -4; goto out;
+        IF_TRUE_OUT_RET(true, -4);
       }
       if (step[i] != 1) {
         blosc2_support = false;
@@ -855,49 +792,35 @@ herr_t H5ARRAYOreadSlice(char *filename,
       blosc2_filter = strtol(envvar, NULL, 10);
 
     if (blosc2_support && !((int) blosc2_filter)) {
-      if (H5Sclose(space_id) < 0) {  // no longer usable here
-        retval = -40; goto out;
-      }
+      IF_NEG_OUT_RET(H5Sclose(space_id), -40);  // no longer usable here
       /* Try to read using blosc2 (only supports native byteorder and step=1 for now) */
       herr_t rv;
-      if ((rv = get_set_blosc2_slice(filename, dataset_id, type_id, rank, start, stop, step, data, false)) < 0) {
-        retval = rv - 40; goto out;
-      }
+      IF_NEG_OUT_RET(rv = get_set_blosc2_slice(filename, dataset_id, type_id,
+                                               rank, start, stop, step, data, false),
+                     rv - 40);
       goto out_success;
     }
 
     /* Define a hyperslab in the dataset of the size of the records */
-    if (H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride,
-                            count, NULL) < 0) {
-      retval = -5; goto out;
-    }
+    IF_NEG_OUT_RET(H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride,
+                                       count, NULL), -5);
 
     /* Create a memory dataspace handle */
-    if ((mem_space_id = H5Screate_simple(rank, count, NULL)) < 0) {
-      retval = -6; goto out;
-    }
+    IF_NEG_OUT_RET(mem_space_id = H5Screate_simple(rank, count, NULL), -6);
 
     /* Read */
-    if (H5Dread(dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT,
-                data) < 0) {
-      retval = -7; goto out;
-    }
+    IF_NEG_OUT_RET(H5Dread(dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT,
+                           data), -7);
 
     /* Terminate access to the memory dataspace */
-    if (H5Sclose(mem_space_id) < 0) {
-      retval = -8; goto out;
-    }
+    IF_NEG_OUT_RET(H5Sclose(mem_space_id), -8);
 
     /* Terminate access to the dataspace */
-    if (H5Sclose(space_id) < 0) {
-      retval = -9; goto out;
-    }
+    IF_NEG_OUT_RET(H5Sclose(space_id), -9);
   } else {                     /* Scalar case */
 
     /* Read all the dataset */
-    if (H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data) < 0) {
-      retval = -10; goto out;
-    }
+    IF_NEG_OUT_RET(H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data), -10);
   }
 
   out_success:
@@ -961,28 +884,22 @@ herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
  offset[1] = start;
 
  /* Get the dataspace handle */
- if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-  goto out;
+ IF_NEG_OUT(space_id = H5Dget_space( dataset_id ));
 
  /* Create a memory dataspace handle */
- if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
-   goto out;
+ IF_NEG_OUT(mem_space_id = H5Screate_simple( rank, count, NULL ));
 
  /* Define a hyperslab in the dataset of the size of the records */
- if ( H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL));
 
  /* Read */
- if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ));
 
  /* Terminate access to the memory dataspace */
- if ( H5Sclose( mem_space_id ) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Sclose( mem_space_id ));
 
  /* Terminate access to the dataspace */
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
+ IF_NEG_OUT(H5Sclose( space_id ));
 
  //out_success:
  retval = 0;
@@ -1034,16 +951,13 @@ herr_t H5ARRAYOinit_readSlice( hid_t dataset_id,
  hsize_t  count2[2] = {1, count};
 
  /* Get the dataspace handle */
- if ( (space_id = H5Dget_space(dataset_id )) < 0 )
-  goto out;
+ IF_NEG_OUT(space_id = H5Dget_space(dataset_id ));
 
  /* Create a memory dataspace handle */
- if ( (*mem_space_id = H5Screate_simple(rank, count2, NULL)) < 0 )
-   goto out;
+ IF_NEG_OUT(*mem_space_id = H5Screate_simple(rank, count2, NULL));
 
  /* Terminate access to the dataspace */
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
+ IF_NEG_OUT(H5Sclose( space_id ));
 
  //out_success:
  retval = 0;
@@ -1096,20 +1010,16 @@ herr_t H5ARRAYOread_readSortedSlice( hid_t dataset_id,
  hsize_t  stride[2] = {1, 1};
 
  /* Get the dataspace handle */
- if ( (space_id = H5Dget_space(dataset_id)) < 0 )
-  goto out;
+ IF_NEG_OUT(space_id = H5Dget_space(dataset_id));
 
  /* Define a hyperslab in the dataset of the size of the records */
- if ( H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL));
 
  /* Read */
- if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ));
 
  /* Terminate access to the dataspace */
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
+ IF_NEG_OUT(H5Sclose( space_id ));
 
  //out_success:
  retval = 0;
@@ -1161,20 +1071,16 @@ herr_t H5ARRAYOread_readBoundsSlice( hid_t dataset_id,
  hsize_t  stride[2] = {1, 1};
 
  /* Get the dataspace handle */
- if ( (space_id = H5Dget_space(dataset_id)) < 0 )
-  goto out;
+ IF_NEG_OUT(space_id = H5Dget_space(dataset_id));
 
  /* Define a hyperslab in the dataset of the size of the records */
- if ( H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL));
 
  /* Read */
- if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ));
 
  /* Terminate access to the dataspace */
- if ( H5Sclose( space_id ) < 0 )
-  goto out;
+ IF_NEG_OUT(H5Sclose( space_id ));
 
  //out_success:
  retval = 0;
@@ -1220,30 +1126,24 @@ herr_t H5ARRAYOreadSliceLR(hid_t dataset_id,
  hsize_t  offset[1] = {start};
 
   /* Get the dataspace handle */
- if ( (space_id = H5Dget_space(dataset_id)) < 0 )
-  goto out;
+ IF_NEG_OUT(space_id = H5Dget_space(dataset_id));
 
  /* Define a hyperslab in the dataset of the size of the records */
- if ( H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL));
 
  /* Create a memory dataspace handle */
- if ( (mem_space_id = H5Screate_simple(1, count, NULL)) < 0 )
-   goto out;
+ IF_NEG_OUT(mem_space_id = H5Screate_simple(1, count, NULL));
 
  /* Read */
- if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ));
 
  /* Release resources */
 
  /* Terminate access to the memory dataspace */
- if ( H5Sclose( mem_space_id ) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Sclose( mem_space_id ));
 
  /* Terminate access to the dataspace */
- if ( H5Sclose( space_id ) < 0 )
-   goto out;
+ IF_NEG_OUT(H5Sclose( space_id ));
 
  //out_success:
  retval = 0;
