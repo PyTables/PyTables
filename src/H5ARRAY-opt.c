@@ -268,6 +268,13 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
   char *envvar = getenv("BLOSC2_FILTER");
   if (envvar != NULL)
     blosc2_filter = strtol(envvar, NULL, 10);
+  /* blosc2 only supports step=1 for now. */
+  for (int i = 0; i < rank; ++i) {
+    if (step[i] != 1) {
+      blosc2_support = false;
+      break;
+    }
+  }
   if (blosc2_support && !((int) blosc2_filter)) {
     hsize_t *stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
     for (int i = 0; i < rank; ++i) {
