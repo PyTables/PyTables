@@ -69,7 +69,6 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
                           const int rank,
                           hsize_t *start,
                           hsize_t *stop,
-                          hsize_t *step,
                           const void *data,
                           hbool_t set)
 {
@@ -274,7 +273,7 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
     for (int i = 0; i < rank; ++i) {
       stop[i] = start[i] + count[i];
     }
-    herr_t rv = get_set_blosc2_slice(NULL, dataset_id, type_id, rank, start, stop, step, data, true);
+    herr_t rv = get_set_blosc2_slice(NULL, dataset_id, type_id, rank, start, stop, data, true);
     free(stop);
     if (rv >= 0) {
       goto out_success;
@@ -796,7 +795,7 @@ herr_t H5ARRAYOreadSlice(char *filename,
       /* Try to read using blosc2 (only supports native byteorder and step=1 for now) */
       herr_t rv;
       IF_NEG_OUT_RET(rv = get_set_blosc2_slice(filename, dataset_id, type_id,
-                                               rank, start, stop, step, data, false),
+                                               rank, start, stop, data, false),
                      rv - 40);
       goto out_success;
     }
