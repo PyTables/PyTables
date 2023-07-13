@@ -63,14 +63,13 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 const void *data);
 
 
-herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
+herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
                           hid_t dataset_id,
                           hid_t type_id,
                           const int rank,
                           hsize_t *start,
                           hsize_t *stop,
-                          const void *data,
-                          hbool_t set)
+                          const void *data)
 {
   herr_t retval = -1;
   hid_t space_id = -1;
@@ -193,7 +192,7 @@ herr_t get_set_blosc2_slice(char *filename, // can be NULL when writing
     }else {
     }*/
     if (!decompress_chunk) {
-      if (!set) {
+      if (filename) {
         read_chunk_blosc2_ndim(filename, dataset_id, space_id, nchunk, chunk_start, chunk_stop, chunksize, data2);
       }
       else {
@@ -280,7 +279,7 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
     for (int i = 0; i < rank; ++i) {
       stop[i] = start[i] + count[i];
     }
-    herr_t rv = get_set_blosc2_slice(NULL, dataset_id, type_id, rank, start, stop, data, true);
+    herr_t rv = get_set_blosc2_slice(NULL, dataset_id, type_id, rank, start, stop, data);
     free(stop);
     if (rv >= 0) {
       goto out_success;
@@ -802,7 +801,7 @@ herr_t H5ARRAYOreadSlice(char *filename,
       /* Try to read using blosc2 (only supports native byteorder and step=1 for now) */
       herr_t rv;
       IF_NEG_OUT_RET(rv = get_set_blosc2_slice(filename, dataset_id, type_id,
-                                               rank, start, stop, data, false),
+                                               rank, start, stop, data),
                      rv - 40);
       goto out_success;
     }
