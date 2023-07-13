@@ -78,7 +78,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   /* All these have "rank" elements; remember to free them in the "out" block at the end. */
   hsize_t *chunkshape = NULL;
   hsize_t *shape = NULL;
-  int64_t *extshape = NULL;
   int64_t *chunks_in_array = NULL;
   int64_t *chunks_in_array_strides = NULL;
   int64_t *update_start = NULL;
@@ -109,19 +108,11 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
 
   shape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
   H5Sget_simple_extent_dims(space_id, shape, NULL);
-  extshape = (int64_t *)(malloc(rank * sizeof(int64_t)));
-
-  for (int i = 0; i < rank; i++) {
-    if (shape[i] % chunkshape[i] != 0) {
-      extshape[i] = shape[i] + chunkshape[i] - shape[i] % chunkshape[i];
-    } else {
-      extshape[i] = shape[i];
-    }
-  }
 
   chunks_in_array = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
   for (int i = 0; i < rank; ++i) {
-    chunks_in_array[i] = extshape[i] / chunkshape[i];
+    chunks_in_array[i] = ((shape[i] / chunkshape[i])
+                          + ((shape[i] % chunkshape[i]) ? 1 : 0));
   }
 
   chunks_in_array_strides = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
@@ -215,7 +206,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   if (update_start) free(update_start);
   if (chunks_in_array_strides) free(chunks_in_array_strides);
   if (chunks_in_array) free(chunks_in_array);
-  if (extshape) free(extshape);
   if (shape) free(shape);
   if (chunkshape) free(chunkshape);
   if (retval >= 0)
