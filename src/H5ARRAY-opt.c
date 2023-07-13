@@ -95,9 +95,10 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   /* Get the dataset creation property list */
   dcpl = H5Dget_create_plist(dataset_id);
   IF_TRUE_OUT_RET(dcpl == H5I_INVALID_HID, -2);
+
   size_t cd_nelmts = 7;
   unsigned cd_values[7];
-  char name[7];
+  char name[7];  // "blosc2\0", unused
   IF_NEG_OUT_RET(H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL,
                                       &cd_nelmts, cd_values, 7, name, NULL), -3);
   int typesize = cd_values[2];
@@ -118,20 +119,20 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     }
   }
 
-  chunks_in_array = (int64_t *)(malloc(rank * sizeof(int64_t)));
+  chunks_in_array = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
   for (int i = 0; i < rank; ++i) {
     chunks_in_array[i] = extshape[i] / chunkshape[i];
   }
-  chunks_in_array_strides = (int64_t *)(malloc(rank * sizeof(int64_t)));
+
+  chunks_in_array_strides = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
   chunks_in_array_strides[rank - 1] = 1;
   for (int i = rank - 2; i >= 0; --i) {
     chunks_in_array_strides[i] = chunks_in_array_strides[i + 1] * chunks_in_array[i + 1];
   }
 
-  // Compute the number of chunks to update
-  update_start = (int64_t *)(malloc(rank * sizeof(int64_t)));
-  update_shape = (int64_t *)(malloc(rank * sizeof(int64_t)));
-
+  /* Compute the number of chunks to update */
+  update_start = (int64_t *)(malloc(rank * sizeof(int64_t)));  // chunk index
+  update_shape = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
   int64_t update_nchunks = 1;
   for (int i = 0; i < rank; ++i) {
     hsize_t pos = 0;
@@ -146,10 +147,10 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     update_nchunks *= update_shape[i];
   }
 
-  /* These dimension arrays are completely rewritten on each iteration. */
-  nchunk_ndim = (int64_t *)(malloc(rank * sizeof(int64_t)));
-  chunk_start = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
-  chunk_stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
+  /* These dimension arrays are completely rewritten on each iteration */
+  nchunk_ndim = (int64_t *)(malloc(rank * sizeof(int64_t)));  // chunk index
+  chunk_start = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
+  chunk_stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
   for (int update_nchunk = 0; update_nchunk < update_nchunks; ++update_nchunk) {
     blosc2_unidim_to_multidim(rank, update_shape, update_nchunk, nchunk_ndim);
     for (int i = 0; i < rank; ++i) {
@@ -158,8 +159,8 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     int64_t nchunk;
     blosc2_multidim_to_unidim(nchunk_ndim, rank, chunks_in_array_strides, &nchunk);
 
-    // Check if the chunk needs to be updated
-    int32_t chunksize = typesize;
+    /* Check if the chunk needs to be updated */
+    int32_t chunksize = typesize;  // in bytes
     for (int i = 0; i < rank; ++i) {
       chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
       chunk_stop[i] = chunk_start[i] + chunkshape[i];
@@ -169,15 +170,15 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       chunksize *= (chunk_stop[i] - chunk_start[i]);
     }
 
-    bool dont_read = false;
+    bool disjoint = false;
     for (int i = 0; i < rank; ++i) {
-      dont_read |= (chunk_stop[i] <= start[i] || chunk_start[i] >= stop[i]);
+      disjoint |= (chunk_stop[i] <= start[i] || chunk_start[i] >= stop[i]);
     }
-    if (dont_read) {
-      continue;
+    if (disjoint) {
+      continue;  // no overlap between chunk and slice
     }
 
-    // Check if all the chunk is going to be updated and avoid the decompression
+    /* Check if all the chunk is going to be updated and avoid the decompression */
     bool decompress_chunk = false;
     for (int i = 0; i < rank; ++i) {
       decompress_chunk |= (chunk_start[i] < start[i] || chunk_stop[i] > stop[i]);
@@ -194,8 +195,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     if (!decompress_chunk) {
       if (filename) {
         read_chunk_blosc2_ndim(filename, dataset_id, space_id, nchunk, chunk_start, chunk_stop, chunksize, data2);
-      }
-      else {
+      } else {
         insert_chunk_blosc2_ndim(dataset_id, chunk_start, chunksize, data2);
       }
     }
