@@ -169,27 +169,28 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       continue;  // no overlap between chunk and slice
     }
 
-    /* Check if all the chunk is going to be updated and avoid the decompression */
-    bool decompress_chunk = false;
-    for (int i = 0; i < rank; ++i) {
-      decompress_chunk |= (chunk_start[i] < start[i] || chunk_stop[i] > stop[i]);
-    }
-    /*
-    if (decompress_chunk) {
-        int err = blosc2_schunk_decompress_chunk(array->sc, nchunk, data, data_nbytes);
-        if (err < 0) {
-          BLOSC_TRACE_ERROR("Error decompressing chunk");
-          BLOSC_ERROR(BLOSC2_ERROR_FAILURE);
-        }
-    }else {
-    }*/
-    if (!decompress_chunk) {
-      if (filename) {
-        read_chunk_blosc2_ndim(filename, dataset_id, space_id, nchunk, chunk_start, chunk_stop, chunksize, data2);
-      } else {
+    if (filename) {  // read
+      read_chunk_blosc2_ndim(filename, dataset_id, space_id, nchunk, chunk_start, chunk_stop, chunksize, data2);
+    } else {  // write
+      /* Check if all the chunk is going to be updated and avoid the decompression */
+      bool decompress_chunk = false;
+      for (int i = 0; i < rank; ++i) {
+        decompress_chunk |= (chunk_start[i] < start[i] || chunk_stop[i] > stop[i]);
+      }
+      /*
+      if (decompress_chunk) {
+          int err = blosc2_schunk_decompress_chunk(array->sc, nchunk, data, data_nbytes);
+          if (err < 0) {
+            BLOSC_TRACE_ERROR("Error decompressing chunk");
+            BLOSC_ERROR(BLOSC2_ERROR_FAILURE);
+          }
+      } else
+      */
+      if (!decompress_chunk) {
         insert_chunk_blosc2_ndim(dataset_id, chunk_start, chunksize, data2);
       }
     }
+
     data2 += chunksize;
   }
 
