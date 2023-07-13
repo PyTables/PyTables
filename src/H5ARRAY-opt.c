@@ -397,22 +397,23 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
  *
  * Block dimensions start with 2 (unless the respective chunk dimension is 1),
  * and are doubled starting from the innermost (rightmost) ones, to leverage
- * the locality of C array arrangement.
+ * the locality of C array arrangement.  The resulting block dimensions are
+ * placed in the last (output) argument.
  *
  * Based on Python-Blosc2's blosc2.core.compute_chunks_blocks and
  * compute_partition.
  */
-hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
-                           hsize_t type_size,
-                           const int rank,
-                           const hsize_t *dims_chunk) {
+hsize_t compute_blocks(hsize_t block_size,  // desired target, 0 for auto
+                       hsize_t type_size,
+                       const int rank,
+                       const hsize_t *dims_chunk,
+                       hsize_t *dims_block) {
   if (block_size == 0) {
     block_size = BLOSC2_DEFAULT_BLOCK_SIZE;
   }
   hsize_t nitems = block_size / type_size;
 
   // Start with the smallest possible block dimensions (1 or 2).
-  hsize_t *dims_block = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
   hsize_t nitems_new = 1;
   for (int i = 0; i < rank; i++) {
     assert(dims_chunk[i] != 0);
@@ -423,7 +424,9 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
   if (nitems_new > nitems) {
     BLOSC_TRACE_ERROR("Target block size is too small, raising to %lu", nitems_new);
   }
-  IF_TRUE_OUT(nitems_new >= nitems);
+  if (nitems_new >= nitems) {
+    return nitems_new * type_size;
+  }
 
   // Double block dimensions (bound by chunk dimensions) from right to left
   // while block is under nitems.
@@ -446,9 +449,6 @@ hsize_t compute_block_size(hsize_t block_size,  // desired target, 0 for auto
       break;  // not progressing anymore
     }
   }
-
-  out:
-  free(dims_block);
   return nitems_new * type_size;
 }
 
@@ -493,6 +493,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
   hid_t space_id = -1;
   hid_t plist_id = -1;
   hsize_t *maxdims = NULL;
+  hsize_t *dims_block = NULL;
 
   unsigned int cd_values[7];
   int blosc_compcode;
@@ -567,7 +568,9 @@ hid_t H5ARRAYOmake(hid_t loc_id,
       else if (strcmp(complib, "blosc2") == 0) {
         size_t type_size = H5Tget_size(type_id);
         IF_NEG_OUT(type_size);
-        cd_values[1] = (unsigned int) compute_block_size(block_size, type_size, rank, dims_chunk);
+        dims_block = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
+        cd_values[1] = (unsigned int) compute_blocks(block_size, type_size,
+                                                     rank, dims_chunk, dims_block);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         IF_NEG_OUT(H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values));
@@ -576,7 +579,9 @@ hid_t H5ARRAYOmake(hid_t loc_id,
       else if (strncmp(complib, "blosc2:", 7) == 0) {
         size_t type_size = H5Tget_size(type_id);
         IF_NEG_OUT(type_size);
-        cd_values[1] = (unsigned int) compute_block_size(block_size, type_size, rank, dims_chunk);
+        dims_block = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
+        cd_values[1] = (unsigned int) compute_blocks(block_size, type_size,
+                                                     rank, dims_chunk, dims_block);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         blosc_compname = complib + 7;
@@ -638,6 +643,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
   retval = dataset_id;
 
   out:
+  if (dims_block) free(dims_block);
   if (maxdims) free(maxdims);
   if (retval >= 0)
     return retval;
