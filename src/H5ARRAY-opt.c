@@ -160,7 +160,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     blosc2_multidim_to_unidim(nchunk_ndim, rank, chunks_in_array_strides, &nchunk);
 
     /* Check if the chunk needs to be updated */
-    int32_t chunksize = typesize;  // in bytes
+    hsize_t chunksize = typesize;  // in bytes
     for (int i = 0; i < rank; ++i) {
       chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
       chunk_stop[i] = chunk_start[i] + chunkshape[i];
