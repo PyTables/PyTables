@@ -59,8 +59,7 @@ herr_t read_chunk_blosc2_ndim(char *filename,
                               uint8_t *data);
 
 herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
-                                size_t cd_nelmts,
-                                const unsigned *cd_values,
+                                const blosc2_cparams cparams,
                                 const int rank,
                                 const int64_t *arrayshape,  // in fact also chunk shape
                                 const int32_t *chunkshape,
@@ -137,8 +136,17 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     chunks_in_array_strides[i] = chunks_in_array_strides[i + 1] * chunks_in_array[i + 1];
   }
 
+  blosc2_cparams cparams;
   if (!filename) {  // write
     /* Compute some Blosc2-specific parameters */
+    cparams = BLOSC2_CPARAMS_DEFAULTS;
+    cparams.typesize = typesize;
+    cparams.clevel = cd_values[4];
+    cparams.filters[5] = cd_values[5];
+    if (cd_nelmts >= 7) {
+      cparams.compcode = cd_values[6];
+    }
+
     chunkshape_b2 = (int32_t *)(malloc(rank * sizeof(int32_t)));  // in items
     for (int i = 0; i < rank; ++i) {
       chunkshape_b2[i] = chunkshape[i];
@@ -213,7 +221,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
           }
         */
       } else {
-        insert_chunk_blosc2_ndim(dataset_id, cd_nelmts, cd_values,
+        insert_chunk_blosc2_ndim(dataset_id, cparams,
                                  rank, (int64_t*)(chunkshape), chunkshape_b2, blockshape,
                                  (int64_t*)(chunk_start), (int64_t*)(chunk_stop),
                                  chunksize, data2);
@@ -344,8 +352,7 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
 
 
 herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
-                                size_t cd_nelmts,
-                                const unsigned *cd_values,
+                                blosc2_cparams cparams,  // by value, to be modified
                                 const int rank,
                                 const int64_t *arrayshape,  // in fact also chunk shape
                                 const int32_t *chunkshape,
@@ -361,13 +368,6 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
   uint8_t *cframe = NULL;
 
   /* Compress data into superchunk and get frame */
-  blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
-  cparams.typesize = cd_values[2];
-  cparams.clevel = cd_values[4];
-  cparams.filters[5] = cd_values[5];
-  if (cd_nelmts >= 7) {
-    cparams.compcode = cd_values[6];
-  }
 
   blosc2_storage storage = {.cparams=&cparams, .dparams=NULL, .contiguous=true};
   /* Only one chunk to store, so array shape == chunk shape */
