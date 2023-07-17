@@ -60,7 +60,11 @@ herr_t read_chunk_blosc2_ndim(char *filename,
 herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 size_t cd_nelmts,
                                 const unsigned *cd_values,
-                                hsize_t *start,
+                                const int rank,
+                                const int64_t *arrayshape,  // in fact also chunk shape
+                                const int32_t *chunkshape,
+                                const int32_t *blockshape,
+                                const hsize_t *start,
                                 hsize_t chunksize,
                                 const void *data);
 
@@ -88,6 +92,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   hsize_t *shape = NULL;
   int64_t *chunks_in_array = NULL;
   int64_t *chunks_in_array_strides = NULL;
+  int32_t *chunkshape_b2 = NULL;
   int32_t *blockshape = NULL;
   int64_t *update_start = NULL;
   int64_t *update_shape = NULL;
@@ -131,6 +136,12 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   }
 
   if (!filename) {  // write
+    /* Compute some Blosc2-specific parameters */
+    chunkshape_b2 = (int32_t *)(malloc(rank * sizeof(int32_t)));  // in items
+    for (int i = 0; i < rank; ++i) {
+      chunkshape_b2[i] = chunkshape[i];
+    }
+
     blockshape = (int32_t *)(malloc(rank * sizeof(int32_t)));  // in items
     compute_blocks(cd_values[1], typesize, rank, chunkshape, blockshape);
   }
@@ -200,7 +211,9 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
           }
         */
       } else {
-        insert_chunk_blosc2_ndim(dataset_id, cd_nelmts, cd_values, chunk_start, chunksize, data2);
+        insert_chunk_blosc2_ndim(dataset_id, cd_nelmts, cd_values,
+                                 rank, (int64_t*)(chunkshape), chunkshape_b2, blockshape,
+                                 chunk_start, chunksize, data2);
       }
     }
 
@@ -219,6 +232,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   if (update_shape) free(update_shape);
   if (update_start) free(update_start);
   if (blockshape) free(blockshape);
+  if (chunkshape_b2) free(chunkshape_b2);
   if (chunks_in_array_strides) free(chunks_in_array_strides);
   if (chunks_in_array) free(chunks_in_array);
   if (shape) free(shape);
@@ -329,7 +343,11 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
 herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 size_t cd_nelmts,
                                 const unsigned *cd_values,
-                                hsize_t *start,
+                                const int rank,
+                                const int64_t *arrayshape,  // in fact also chunk shape
+                                const int32_t *chunkshape,
+                                const int32_t *blockshape,
+                                const hsize_t *start,
                                 hsize_t chunksize,
                                 const void *data) {
   herr_t retval = -1;
