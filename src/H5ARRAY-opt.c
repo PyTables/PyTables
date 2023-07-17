@@ -6,6 +6,7 @@
 #include "H5Zbzip2.h"                  /* Import FILTER_BZIP2 */
 #include "blosc_filter.h"              /* Import FILTER_BLOSC */
 #include "blosc2_filter.h"             /* Import FILTER_BLOSC2 */
+#include "b2nd.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -354,7 +355,8 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 hsize_t chunksize,
                                 const void *data) {
   herr_t retval = -1;
-  blosc2_schunk *sc = NULL;
+  b2nd_context_t *ctx = NULL;
+  b2nd_array_t *array = NULL;
   bool needs_free2 = false;
   uint8_t *cframe = NULL;
 
@@ -367,27 +369,20 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
     cparams.compcode = cd_values[6];
   }
 
-  blosc2_storage storage = {.cparams=&cparams, .dparams=NULL,
-    .contiguous=true};
-  // b2nd_context_t *ctx = b2nd_create_ctx(const blosc2_storage *b2_storage, int8_t ndim, const int64_t *shape, const int32_t *chunkshape,
-  //                const int32_t *blockshape, const char *dtype, int8_t dtype_format, NULL,
-  //                0)
-  // b2nd_zeros(b2nd_context_t *ctx, b2nd_array_t **array)
-  // To remove:
-  //  blosc2_schunk *sc = blosc2_schunk_new(&storage);
-  //  IF_FALSE_OUT_BTRACE(sc, "Failed creating superchunk");
-  sc = blosc2_schunk_new(&storage);
-  IF_FALSE_OUT_BTRACE(sc, "Failed creating superchunk");
+  blosc2_storage storage = {.cparams=&cparams, .dparams=NULL, .contiguous=true};
+  /* Only one chunk to store, so array shape == chunk shape */
+  IF_FALSE_OUT_BTRACE(ctx = b2nd_create_ctx(&storage,
+                                            rank, arrayshape, chunkshape, blockshape,
+                                            NULL, 0, NULL, 0),
+                      "Failed creating context");
+  IF_TRUE_OUT_BTRACE(b2nd_zeros(ctx, &array) != BLOSC2_ERROR_SUCCESS,
+                     "Failed creating array");
 
-  // b2nd_set_slice_cbuffer(data, const int64_t *buffershape, int64_t buffersize,
-  //                                        const int64_t *start, const int64_t *stop, b2nd_array_t *array)
-  // To remove:
-  //   IF_TRUE_OUT_BTRACE(blosc2_schunk_append_buffer(sc, (void *) data, chunksize) <= 0,
-  //                      "Failed appending buffer");
-  IF_TRUE_OUT_BTRACE(blosc2_schunk_append_buffer(sc, (void *) data, chunksize) <= 0,
-                     "Failed appending buffer");
-  // blosc2_schunk_to_buffer(array->sc, &cframe, &needs_free2)
-  int64_t cfsize = blosc2_schunk_to_buffer(sc, &cframe, &needs_free2);
+  IF_TRUE_OUT_BTRACE(b2nd_set_slice_cbuffer(data, arrayshape, chunksize, start, stop,
+                                            array) != BLOSC2_ERROR_SUCCESS,
+                     "Failed setting slice of array");
+
+  int64_t cfsize = blosc2_schunk_to_buffer(array->sc, &cframe, &needs_free2);
   IF_TRUE_OUT_BTRACE(cfsize <= 0, "Failed converting schunk to cframe");
 
   /* Write frame bypassing HDF5 filter pipeline */
@@ -401,7 +396,8 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
 
   out:
   if (cframe && needs_free2) free(cframe);
-  if (sc) blosc2_schunk_free(sc);
+  if (array) b2nd_free(array);
+  if (ctx) b2nd_free_ctx(ctx);
   return retval;
 }
 
