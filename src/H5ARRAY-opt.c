@@ -62,6 +62,12 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 hsize_t chunksize,
                                 const void *data);
 
+// See description below.
+hsize_t compute_blocks(hsize_t block_size,
+                       hsize_t type_size,
+                       const int rank,
+                       const hsize_t *dims_chunk,
+                       hsize_t *dims_block);
 
 herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
                           hid_t dataset_id,
@@ -80,6 +86,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   hsize_t *shape = NULL;
   int64_t *chunks_in_array = NULL;
   int64_t *chunks_in_array_strides = NULL;
+  hsize_t *blockshape = NULL;
   int64_t *update_start = NULL;
   int64_t *update_shape = NULL;
   int64_t *nchunk_ndim = NULL;
@@ -119,6 +126,11 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   chunks_in_array_strides[rank - 1] = 1;
   for (int i = rank - 2; i >= 0; --i) {
     chunks_in_array_strides[i] = chunks_in_array_strides[i + 1] * chunks_in_array[i + 1];
+  }
+
+  if (!filename) {  // write
+    blockshape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
+    compute_blocks(cd_values[1], typesize, rank, chunkshape, blockshape);
   }
 
   /* Compute the number of chunks to update */
@@ -205,6 +217,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   if (nchunk_ndim) free(nchunk_ndim);
   if (update_shape) free(update_shape);
   if (update_start) free(update_start);
+  if (blockshape) free(blockshape);
   if (chunks_in_array_strides) free(chunks_in_array_strides);
   if (chunks_in_array) free(chunks_in_array);
   if (shape) free(shape);
