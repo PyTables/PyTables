@@ -69,7 +69,7 @@ hsize_t compute_blocks(hsize_t block_size,
                        hsize_t type_size,
                        const int rank,
                        const hsize_t *dims_chunk,
-                       hsize_t *dims_block);
+                       int32_t *dims_block);
 
 herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
                           hid_t dataset_id,
@@ -88,7 +88,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   hsize_t *shape = NULL;
   int64_t *chunks_in_array = NULL;
   int64_t *chunks_in_array_strides = NULL;
-  hsize_t *blockshape = NULL;
+  int32_t *blockshape = NULL;
   int64_t *update_start = NULL;
   int64_t *update_shape = NULL;
   int64_t *nchunk_ndim = NULL;
@@ -131,7 +131,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   }
 
   if (!filename) {  // write
-    blockshape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
+    blockshape = (int32_t *)(malloc(rank * sizeof(int32_t)));  // in items
     compute_blocks(cd_values[1], typesize, rank, chunkshape, blockshape);
   }
 
@@ -401,7 +401,7 @@ hsize_t compute_blocks(hsize_t block_size,  // desired target, 0 for auto
                        hsize_t type_size,
                        const int rank,
                        const hsize_t *dims_chunk,
-                       hsize_t *dims_block) {
+                       int32_t *dims_block) {
   if (block_size == 0) {
     block_size = BLOSC2_DEFAULT_BLOCK_SIZE;
   }
@@ -427,12 +427,12 @@ hsize_t compute_blocks(hsize_t block_size,  // desired target, 0 for auto
   while (nitems_new <= nitems) {
     hsize_t nitems_prev = nitems_new;
     for (int i = rank - 1; i >= 0; i--) {
-      if (dims_block[i] * 2 <= dims_chunk[i]) {
+      if ((hsize_t)(dims_block[i]) * 2 <= dims_chunk[i]) {
         if (nitems_new * 2 <= nitems) {
           nitems_new *= 2;
           dims_block[i] *= 2;
         }
-      } else if (dims_block[i] < dims_chunk[i]) {
+      } else if ((hsize_t)(dims_block[i]) < dims_chunk[i]) {
         nitems_new = (nitems_new / dims_block[i]) * dims_chunk[i];
         dims_block[i] = dims_chunk[i];
       } else {
@@ -487,7 +487,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
   hid_t space_id = -1;
   hid_t plist_id = -1;
   hsize_t *maxdims = NULL;
-  hsize_t *dims_block = NULL;
+  int32_t *dims_block = NULL;
 
   unsigned int cd_values[7];
   int blosc_compcode;
@@ -562,7 +562,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
       else if (strcmp(complib, "blosc2") == 0) {
         size_t type_size = H5Tget_size(type_id);
         IF_NEG_OUT(type_size);
-        dims_block = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
+        dims_block = (int32_t *)(malloc(rank * sizeof(int32_t)));
         cd_values[1] = (unsigned int) compute_blocks(block_size, type_size,
                                                      rank, dims_chunk, dims_block);
         cd_values[4] = compress;
@@ -573,7 +573,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
       else if (strncmp(complib, "blosc2:", 7) == 0) {
         size_t type_size = H5Tget_size(type_id);
         IF_NEG_OUT(type_size);
-        dims_block = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
+        dims_block = (int32_t *)(malloc(rank * sizeof(int32_t)));
         cd_values[1] = (unsigned int) compute_blocks(block_size, type_size,
                                                      rank, dims_chunk, dims_block);
         cd_values[4] = compress;
