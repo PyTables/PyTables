@@ -58,6 +58,8 @@ herr_t read_chunk_blosc2_ndim(char *filename,
                               uint8_t *data);
 
 herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
+                                size_t cd_nelmts,
+                                const unsigned *cd_values,
                                 hsize_t *start,
                                 hsize_t chunksize,
                                 const void *data);
@@ -189,17 +191,16 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       for (int i = 0; i < rank; ++i) {
         decompress_chunk |= (chunk_start[i] < start[i] || chunk_stop[i] > stop[i]);
       }
-      /*
       if (decompress_chunk) {
+        /*
           int err = blosc2_schunk_decompress_chunk(array->sc, nchunk, data, data_nbytes);
           if (err < 0) {
             BLOSC_TRACE_ERROR("Error decompressing chunk");
             BLOSC_ERROR(BLOSC2_ERROR_FAILURE);
           }
-      } else
-      */
-      if (!decompress_chunk) {
-        insert_chunk_blosc2_ndim(dataset_id, chunk_start, chunksize, data2);
+        */
+      } else {
+        insert_chunk_blosc2_ndim(dataset_id, cd_nelmts, cd_values, chunk_start, chunksize, data2);
       }
     }
 
@@ -326,33 +327,19 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
 
 
 herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
+                                size_t cd_nelmts,
+                                const unsigned *cd_values,
                                 hsize_t *start,
                                 hsize_t chunksize,
                                 const void *data) {
   herr_t retval = -1;
-  hid_t dcpl = -1;
   blosc2_schunk *sc = NULL;
   bool needs_free2 = false;
   uint8_t *cframe = NULL;
 
-  /* Get the dataset creation property list */
-  dcpl = H5Dget_create_plist(dataset_id);
-  IF_TRUE_OUT_BTRACE(dcpl == H5I_INVALID_HID, "Fail getting plist");
-
-  /* Get blosc2 params*/
-  size_t cd_nelmts = 7;
-  unsigned cd_values[7];
-  char name[7];
-  IF_NEG_OUT_BTRACE(H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL,
-                                         &cd_nelmts, cd_values, 7, name, NULL),
-                    "Fail getting blosc2 params");
-  int32_t typesize = cd_values[2];
-  IF_NEG_OUT(H5Pclose(dcpl));
-
-
   /* Compress data into superchunk and get frame */
   blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
-  cparams.typesize = typesize;
+  cparams.typesize = cd_values[2];
   cparams.clevel = cd_values[4];
   cparams.filters[5] = cd_values[5];
   if (cd_nelmts >= 7) {
@@ -394,12 +381,6 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
   out:
   if (cframe && needs_free2) free(cframe);
   if (sc) blosc2_schunk_free(sc);
-  if (retval >= 0)
-    return retval;
-
-  H5E_BEGIN_TRY {
-    H5Pclose(dcpl);
-  } H5E_END_TRY;
   return retval;
 }
 
