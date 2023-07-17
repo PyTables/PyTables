@@ -64,7 +64,8 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 const int64_t *arrayshape,  // in fact also chunk shape
                                 const int32_t *chunkshape,
                                 const int32_t *blockshape,
-                                const hsize_t *start,
+                                const int64_t *start,
+                                const int64_t *stop,
                                 hsize_t chunksize,
                                 const void *data);
 
@@ -213,7 +214,8 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       } else {
         insert_chunk_blosc2_ndim(dataset_id, cd_nelmts, cd_values,
                                  rank, (int64_t*)(chunkshape), chunkshape_b2, blockshape,
-                                 chunk_start, chunksize, data2);
+                                 (int64_t*)(chunk_start), (int64_t*)(chunk_stop),
+                                 chunksize, data2);
       }
     }
 
@@ -347,7 +349,8 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 const int64_t *arrayshape,  // in fact also chunk shape
                                 const int32_t *chunkshape,
                                 const int32_t *blockshape,
-                                const hsize_t *start,
+                                const int64_t *start,
+                                const int64_t *stop,
                                 hsize_t chunksize,
                                 const void *data) {
   herr_t retval = -1;
@@ -390,7 +393,7 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
   /* Write frame bypassing HDF5 filter pipeline */
   unsigned flt_msk = 0;
   IF_NEG_OUT_BTRACE(H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk,
-                                   start, (size_t) cfsize, cframe),
+                                   (hsize_t*) start, (size_t) cfsize, cframe),
                     "Failed HDF5 writing chunk");
 
   //out_success:
