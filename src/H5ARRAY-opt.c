@@ -292,18 +292,19 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
   hid_t space_id = -1;
   hid_t mem_space_id = -1;
 
-  /* Check if the compressor is blosc2 */
+  /* Check if the compressor is Blosc2 */
   long blosc2_filter = 0;
   char *envvar = getenv("BLOSC2_FILTER");
   if (envvar != NULL)
     blosc2_filter = strtol(envvar, NULL, 10);
-  /* blosc2 only supports step=1 for now. */
+
   for (int i = 0; i < rank; ++i) {
     if (step[i] != 1) {
-      blosc2_support = false;
+      blosc2_support = false;  // Blosc2 only supports step=1 for now
       break;
     }
   }
+
   if (blosc2_support && !((int) blosc2_filter)) {
     hsize_t *stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
     for (int i = 0; i < rank; ++i) {
@@ -796,10 +797,11 @@ herr_t H5ARRAYOreadSlice(char *filename,
         IF_TRUE_OUT_RET(true, -4);
       }
       if (step[i] != 1) {
-        blosc2_support = false;
+        blosc2_support = false;  // Blosc2 only supports step=1 for now
       }
     }
 
+    /* Check if the compressor is Blosc2 */
     long blosc2_filter = 0;
     char *envvar = getenv("BLOSC2_FILTER");
     if (envvar != NULL)
@@ -807,7 +809,6 @@ herr_t H5ARRAYOreadSlice(char *filename,
 
     if (blosc2_support && !((int) blosc2_filter)) {
       IF_NEG_OUT_RET(H5Sclose(space_id), -40);  // no longer usable here
-      /* Try to read using blosc2 (only supports native byteorder and step=1 for now) */
       herr_t rv;
       IF_NEG_OUT_RET(rv = get_set_blosc2_slice(filename, dataset_id, type_id,
                                                rank, start, stop, data),
