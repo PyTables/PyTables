@@ -1,15 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: January 14, 2004
-# Author:  Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the UnImplemented class."""
 
 import warnings
@@ -48,7 +36,6 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
     # Class identifier.
     _c_classid = 'UNIMPLEMENTED'
 
-
     def __init__(self, parentnode, name):
         """Create the `UnImplemented` instance."""
 
@@ -64,7 +51,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         """The endianness of data in memory ('big', 'little' or
         'irrelevant')."""
 
-        super(UnImplemented, self).__init__(parentnode, name)
+        super().__init__(parentnode, name)
 
     def _g_open(self):
         (self.shape, self.byteorder, object_id) = self._open_unimplemented()
@@ -104,12 +91,12 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         return None  # Can you see it?
 
     def __repr__(self):
-        return """%s
+        return """{}
   NOTE: <The UnImplemented object represents a PyTables unimplemented
-         dataset present in the '%s' HDF5 file.  If you want to see this
+         dataset present in the '{}' HDF5 file.  If you want to see this
          kind of HDF5 dataset implemented in PyTables, please contact the
          developers.>
-""" % (str(self), self._v_file.filename)
+""".format(str(self), self._v_file.filename)
 
 
 # Classes reported as H5G_UNKNOWN by HDF5
@@ -125,12 +112,11 @@ class Unknown(Node):
     # Class identifier
     _c_classid = 'UNKNOWN'
 
-
     def __init__(self, parentnode, name):
         """Create the `Unknown` instance."""
 
         self._v_new = False
-        super(Unknown, self).__init__(parentnode, name)
+        super().__init__(parentnode, name)
 
     def _g_new(self, parentnode, name, init=False):
         pass
@@ -148,17 +134,16 @@ class Unknown(Node):
     def __str__(self):
         pathname = self._v_pathname
         classname = self.__class__.__name__
-        return "%s (%s)" % (pathname, classname)
+        return f"{pathname} ({classname})"
 
     def __repr__(self):
-        return """%s
+        return f"""{self!s}
   NOTE: <The Unknown object represents a node which is reported as
          unknown by the underlying HDF5 library, but that might be
          supported in more recent HDF5 versions.>
-""" % (str(self))
+"""
 
 
 # These are listed here for backward compatibility with PyTables 0.9.x indexes
 class OldIndexArray(UnImplemented):
     _c_classid = 'IndexArray'
-

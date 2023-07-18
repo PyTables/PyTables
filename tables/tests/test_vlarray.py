@@ -1,27 +1,16 @@
-# -*- coding: latin-1 -*-
-
 import sys
 
-import numpy
-import numpy.testing as npt
+import numpy as np
 
-import tables
-from tables import (
-    Atom, StringAtom, BoolAtom, IntAtom, Int16Atom, Int32Atom,
-    ObjectAtom, VLStringAtom, VLUnicodeAtom,
-)
+import tables as tb
 from tables.tests import common
-from tables.tests.common import allequal
-from tables.tests.common import unittest, test_filename, blosc_version
-from tables.tests.common import PyTablesTestCase as TestCase
-from tables.utils import byteorders
 
 
 class C:
     c = (3, 4.5)
 
 
-class BasicTestCase(common.TempFileMixin, TestCase):
+class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     compress = 0
     complib = "zlib"
     shuffle = 0
@@ -30,7 +19,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     flavor = "numpy"
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
         self.rootgroup = self.h5file.root
@@ -39,14 +28,14 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        filters = tables.Filters(complevel=self.compress,
-                                 complib=self.complib,
-                                 shuffle=self.shuffle,
-                                 bitshuffle=self.bitshuffle,
-                                 fletcher32=self.fletcher32)
+        filters = tb.Filters(complevel=self.compress,
+                             complib=self.complib,
+                             shuffle=self.shuffle,
+                             bitshuffle=self.bitshuffle,
+                             fletcher32=self.fletcher32)
         vlarray = self.h5file.create_vlarray(group, 'vlarray1',
-                                             atom=Int32Atom(),
-                                             title="ragged array if ints",
+                                             atom=tb.Int32Atom(),
+                                             title="ragged array of ints",
                                              filters=filters,
                                              expectedrows=1000)
         vlarray.flavor = self.flavor
@@ -54,8 +43,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         # Fill it with 5 rows
         vlarray.append([1, 2])
         if self.flavor == "numpy":
-            vlarray.append(numpy.array([3, 4, 5], dtype='int32'))
-            vlarray.append(numpy.array([], dtype='int32'))     # Empty entry
+            vlarray.append(np.array([3, 4, 5], dtype='int32'))
+            vlarray.append(np.array([], dtype='int32'))     # Empty entry
         elif self.flavor == "python":
             vlarray.append((3, 4, 5))
             vlarray.append(())         # Empty entry
@@ -63,7 +52,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         vlarray.append([10, 11, 12, 13, 14])
 
     def test00_attributes(self):
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
         obj = self.h5file.get_node("/vlarray1")
 
         self.assertEqual(obj.flavor, self.flavor)
@@ -80,7 +69,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_read..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
         vlarray = self.h5file.get_node("/vlarray1")
 
         # Choose a small value for buffer size
@@ -96,11 +85,11 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         nrows = 5
         self.assertEqual(nrows, vlarray.nrows)
         if self.flavor == "numpy":
-            self.assertEqual(type(row), numpy.ndarray)
-            self.assertTrue(
-                allequal(row, numpy.array([1, 2], dtype='int32'), self.flavor))
-            self.assertTrue(
-                allequal(row2, numpy.array([], dtype='int32'), self.flavor))
+            self.assertEqual(type(row), np.ndarray)
+            self.assertTrue(common.allequal(
+                row, np.array([1, 2], dtype='int32'), self.flavor))
+            self.assertTrue(common.allequal(
+                row2, np.array([], dtype='int32'), self.flavor))
         elif self.flavor == "python":
             self.assertEqual(row, [1, 2])
             self.assertEqual(row2, [])
@@ -111,7 +100,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Error in compress. Class:", self.__class__.__name__)
             print("self, vlarray:", self.compress, vlarray.filters.complevel)
         self.assertEqual(vlarray.filters.complevel, self.compress)
-        if self.compress > 0 and tables.which_lib_version(self.complib):
+        if self.compress > 0 and tb.which_lib_version(self.complib):
             self.assertEqual(vlarray.filters.complib, self.complib)
         if self.shuffle != vlarray.filters.shuffle and common.verbose:
             print("Error in shuffle. Class:", self.__class__.__name__)
@@ -119,7 +108,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.shuffle, vlarray.filters.shuffle)
         if self.bitshuffle != vlarray.filters.bitshuffle and common.verbose:
             print("Error in shuffle. Class:", self.__class__.__name__)
-            print("self, vlarray:", self.bitshuffle, vlarray.filters.bitshuffle)
+            print("self, vlarray:", self.bitshuffle,
+                  vlarray.filters.bitshuffle)
         self.assertEqual(self.shuffle, vlarray.filters.shuffle)
         if self.fletcher32 != vlarray.filters.fletcher32 and common.verbose:
             print("Error in fletcher32. Class:", self.__class__.__name__)
@@ -135,7 +125,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02a_getitem..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
         vlarray = self.h5file.get_node("/vlarray1")
 
         rows = [[1, 2], [3, 4, 5], [], [6, 7, 8, 9], [10, 11, 12, 13, 14]]
@@ -159,11 +149,12 @@ class BasicTestCase(common.TempFileMixin, TestCase):
 
             if self.flavor == "numpy":
                 for val in rows1:
-                    rows1f.append(numpy.array(val, dtype='int32'))
+                    rows1f.append(np.array(val, dtype='int32'))
                 for i in range(len(rows1f)):
-                    self.assertTrue(allequal(rows2[i], rows1f[i], self.flavor))
+                    self.assertTrue(common.allequal(
+                        rows2[i], rows1f[i], self.flavor))
             elif self.flavor == "python":
-                    self.assertEqual(rows2, rows1)
+                self.assertEqual(rows2, rows1)
 
     def test02b_getitem(self):
         """Checking vlarray __getitem__ (scalars)"""
@@ -177,13 +168,13 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             return
 
         # Create an instance of an HDF5 Table
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
         vlarray = self.h5file.get_node("/vlarray1")
 
         # Get a numpy array of objects
-        rows = numpy.array(vlarray[:], dtype=numpy.object)
+        rows = np.array(vlarray[:], dtype=object)
 
-        for slc in [0, numpy.array(1), 2, numpy.array([3]), [4]]:
+        for slc in [0, np.array(1), 2, np.array([3]), [4]]:
             # Read the rows in slc
             rows2 = vlarray[slc]
             rows1 = rows[slc]
@@ -194,7 +185,8 @@ class BasicTestCase(common.TempFileMixin, TestCase):
                 print("Rows read in vlarray ==>", rows2)
 
             for i in range(len(rows1)):
-                self.assertTrue(allequal(rows2[i], rows1[i], self.flavor))
+                self.assertTrue(common.allequal(
+                    rows2[i], rows1[i], self.flavor))
 
     def test03_append(self):
         """Checking vlarray append."""
@@ -204,7 +196,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test03_append..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
-        self.h5file = tables.open_file(self.h5fname, "a")
+        self.h5file = tb.open_file(self.h5fname, "a")
         vlarray = self.h5file.get_node("/vlarray1")
 
         # Append a new row
@@ -225,15 +217,13 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         nrows = 6
         self.assertEqual(nrows, vlarray.nrows)
         if self.flavor == "numpy":
-            self.assertEqual(type(row1), type(numpy.array([1, 2])))
-            self.assertTrue(
-                allequal(row1, numpy.array([1, 2], dtype='int32'),
-                         self.flavor))
-            self.assertTrue(
-                allequal(row2, numpy.array([], dtype='int32'), self.flavor))
-            self.assertTrue(
-                allequal(row3, numpy.array([7, 8, 9, 10], dtype='int32'),
-                         self.flavor))
+            self.assertEqual(type(row1), type(np.array([1, 2])))
+            self.assertTrue(common.allequal(
+                row1, np.array([1, 2], dtype='int32'), self.flavor))
+            self.assertTrue(common.allequal(
+                row2, np.array([], dtype='int32'), self.flavor))
+            self.assertTrue(common.allequal(
+                row3, np.array([7, 8, 9, 10], dtype='int32'), self.flavor))
         elif self.flavor == "python":
             self.assertEqual(row1, [1, 2])
             self.assertEqual(row2, [])
@@ -243,7 +233,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
     def test04_get_row_size(self):
         """Checking get_row_size method."""
 
-        self.h5file = tables.open_file(self.h5fname, "a")
+        self.h5file = tb.open_file(self.h5fname, "a")
         vlarray = self.h5file.get_node("/vlarray1")
 
         self.assertEqual(vlarray.get_row_size(0), 2 * vlarray.atom.size)
@@ -266,91 +256,97 @@ class ZlibComprTestCase(BasicTestCase):
     complib = "zlib"
 
 
-@unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
 class BloscComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 0
     complib = "blosc"
 
 
-@unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
 class BloscShuffleComprTestCase(BasicTestCase):
     compress = 6
     shuffle = 1
     complib = "blosc"
 
-@unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@unittest.skipIf(blosc_version < common.min_blosc_bitshuffle_version,
-                 'BLOSC >= %s required' % common.min_blosc_bitshuffle_version)
+
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
 class BloscBitShuffleComprTestCase(BasicTestCase):
     compress = 9
     bitshuffle = 1
     complib = "blosc"
 
-@unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
+
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
 class BloscBloscLZComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:blosclz"
 
 
-@unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4ComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:lz4"
 
 
-@unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@unittest.skipIf('lz4' not in tables.blosc_compressor_list(), 'lz4 required')
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'lz4' not in tb.blosc_compressor_list(), 'lz4 required')
 class BloscLZ4HCComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:lz4hc"
 
 
-@unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@unittest.skipIf('snappy' not in tables.blosc_compressor_list(),
-                 'snappy required')
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
+@common.unittest.skipIf('snappy' not in tb.blosc_compressor_list(),
+                        'snappy required')
 class BloscSnappyComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:snappy"
 
 
-@unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@unittest.skipIf('zlib' not in tables.blosc_compressor_list(), 'zlib required')
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'zlib' not in tb.blosc_compressor_list(), 'zlib required')
 class BloscZlibComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:zlib"
 
-@unittest.skipIf(not common.blosc_avail,
-                 'BLOSC compression library not available')
-@unittest.skipIf('zstd' not in tables.blosc_compressor_list(), 'zstd required')
+
+@common.unittest.skipIf(not common.blosc_avail,
+                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    'zstd' not in tb.blosc_compressor_list(), 'zstd required')
 class BloscZstdComprTestCase(BasicTestCase):
     compress = 9
     shuffle = 1
     complib = "blosc:zstd"
 
 
-@unittest.skipIf(not common.lzo_avail, 'LZO compression library not available')
+@common.unittest.skipIf(
+    not common.lzo_avail, 'LZO compression library not available')
 class LZOComprTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
 
 
-@unittest.skipIf(not common.bzip2_avail,
-                 'BZIP2 compression library not available')
+@common.unittest.skipIf(not common.bzip2_avail,
+                        'BZIP2 compression library not available')
 class Bzip2ComprTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"
@@ -361,17 +357,7 @@ class ShuffleComprTestCase(BasicTestCase):
     shuffle = 1
 
 
-class Fletcher32TestCase(BasicTestCase):
-    fletcher32 = 1
-
-
-class AllFiltersTestCase(BasicTestCase):
-    compress = 1
-    shuffle = 1
-    fletcher32 = 1
-
-
-class TypesTestCase(common.TempFileMixin, TestCase):
+class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
@@ -384,11 +370,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray('/', 'stringAtom',
-                                             atom=StringAtom(itemsize=3),
+                                             atom=tb.StringAtom(itemsize=3),
                                              title="Ragged array of strings")
         vlarray.flavor = "numpy"
-        vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
-        vlarray.append(numpy.array(["1", "12345"]))
+        vlarray.append(np.array(["1", "12", "123", "1234", "12345"]))
+        vlarray.append(np.array(["1", "12345"]))
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -403,9 +389,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        npt.assert_array_equal(
-            row[0], numpy.array(["1", "12", "123", "123", "123"], 'S'))
-        npt.assert_array_equal(row[1], numpy.array(["1", "123"], 'S'))
+        np.testing.assert_array_equal(
+            row[0], np.array(["1", "12", "123", "123", "123"], 'S'))
+        np.testing.assert_array_equal(row[1], np.array(["1", "123"], 'S'))
         self.assertEqual(len(row[0]), 5)
         self.assertEqual(len(row[1]), 2)
 
@@ -418,11 +404,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01a_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray('/', 'stringAtom',
-                                             atom=StringAtom(itemsize=3),
+                                             atom=tb.StringAtom(itemsize=3),
                                              title="Ragged array of strings")
         vlarray.flavor = "numpy"
-        vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"][::2]))
-        vlarray.append(numpy.array(["1", "12345", "2", "321"])[::3])
+        vlarray.append(np.array(["1", "12", "123", "1234", "12345"][::2]))
+        vlarray.append(np.array(["1", "12345", "2", "321"])[::3])
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -437,8 +423,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        npt.assert_array_equal(row[0], numpy.array(["1", "123", "123"], 'S'))
-        npt.assert_array_equal(row[1], numpy.array(["1", "321"], 'S'))
+        np.testing.assert_array_equal(row[0],
+                                      np.array(["1", "123", "123"], 'S'))
+        np.testing.assert_array_equal(row[1], np.array(["1", "321"], 'S'))
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 2)
 
@@ -451,11 +438,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray('/', 'stringAtom',
-                                             atom=StringAtom(itemsize=3),
+                                             atom=tb.StringAtom(itemsize=3),
                                              title="Ragged array of strings")
         vlarray.flavor = "numpy"
-        vlarray.append(numpy.array(["1", "12", "123", "123"]))
-        vlarray.append(numpy.array(["1", "2", "321"]))
+        vlarray.append(np.array(["1", "12", "123", "123"]))
+        vlarray.append(np.array(["1", "2", "321"]))
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -470,9 +457,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        npt.assert_array_equal(
-            row[0], numpy.array(["1", "12", "123", "123"], 'S'))
-        npt.assert_array_equal(row[1], numpy.array(["1", "2", "321"], 'S'))
+        np.testing.assert_array_equal(
+            row[0], np.array(["1", "12", "123", "123"], 'S'))
+        np.testing.assert_array_equal(row[1], np.array(["1", "2", "321"], 'S'))
         self.assertEqual(len(row[0]), 4)
         self.assertEqual(len(row[1]), 3)
 
@@ -484,7 +471,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01b_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray('/', 'stringAtom2',
-                                             atom=StringAtom(itemsize=3),
+                                             atom=tb.StringAtom(itemsize=3),
                                              title="Ragged array of strings")
         vlarray.flavor = "python"
         vlarray.append(["1", "12", "123", "1234", "12345"])
@@ -518,15 +505,15 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01c_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray('/', 'stringAtom',
-                                             atom=StringAtom(itemsize=3),
+                                             atom=tb.StringAtom(itemsize=3),
                                              title="Ragged array of strings")
         vlarray.flavor = "numpy"
-        vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
-        vlarray.append(numpy.array(["1", "12345"]))
+        vlarray.append(np.array(["1", "12", "123", "1234", "12345"]))
+        vlarray.append(np.array(["1", "12345"]))
 
         # Modify the rows
-        vlarray[0] = numpy.array(["1", "123", "12", "", "12345"])
-        vlarray[1] = numpy.array(["44", "4"])  # This should work as well
+        vlarray[0] = np.array(["1", "123", "12", "", "12345"])
+        vlarray[1] = np.array(["44", "4"])  # This should work as well
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -541,9 +528,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(
-            allequal(row[0], numpy.array([b"1", b"123", b"12", b"", b"123"])))
-        self.assertTrue(allequal(row[1], numpy.array(["44", "4"], dtype="S3")))
+        self.assertTrue(common.allequal(
+            row[0], np.array([b"1", b"123", b"12", b"", b"123"])))
+        self.assertTrue(common.allequal(
+            row[1], np.array(["44", "4"], dtype="S3")))
         self.assertEqual(len(row[0]), 5)
         self.assertEqual(len(row[1]), 2)
 
@@ -555,7 +543,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01d_StringAtom..." % self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray('/', 'stringAtom2',
-                                             atom=StringAtom(itemsize=3),
+                                             atom=tb.StringAtom(itemsize=3),
                                              title="Ragged array of strings")
         vlarray.flavor = "python"
         vlarray.append(["1", "12", "123", "1234", "12345"])
@@ -591,10 +579,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02_BoolAtom..." % self.__class__.__name__)
 
-        vlarray = self.h5file.create_vlarray('/', 'BoolAtom', atom=BoolAtom(),
+        vlarray = self.h5file.create_vlarray('/', 'BoolAtom',
+                                             atom=tb.BoolAtom(),
                                              title="Ragged array of Booleans")
         vlarray.append([1, 0, 3])
-        vlarray.append([-1, 0])
+        vlarray.append([1, 0])
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -609,8 +598,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(allequal(row[0], numpy.array([1, 0, 1], dtype='bool')))
-        self.assertTrue(allequal(row[1], numpy.array([1, 0], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([1, 0, 1], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([1, 0], dtype='bool')))
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 2)
 
@@ -621,14 +612,15 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test02b_BoolAtom..." % self.__class__.__name__)
 
-        vlarray = self.h5file.create_vlarray('/', 'BoolAtom', atom=BoolAtom(),
+        vlarray = self.h5file.create_vlarray('/', 'BoolAtom',
+                                             atom=tb.BoolAtom(),
                                              title="Ragged array of Booleans")
         vlarray.append([1, 0, 3])
-        vlarray.append([-1, 0])
+        vlarray.append([1, 0])
 
         # Modify the rows
         vlarray[0] = (0, 1, 3)
-        vlarray[1] = (0, -1)
+        vlarray[1] = (0, 1)
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -643,8 +635,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(allequal(row[0], numpy.array([0, 1, 1], dtype='bool')))
-        self.assertTrue(allequal(row[1], numpy.array([0, 1], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([0, 1, 1], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([0, 1], dtype='bool')))
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 2)
 
@@ -659,17 +653,17 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             "int32",
             "uint32",
             "int64",
-            #"UInt64",  # Unavailable in some platforms
+            # "UInt64",  # Unavailable in some platforms
         ]
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03_IntAtom..." % self.__class__.__name__)
 
         for atype in ttypes:
-            vlarray = self.h5file.create_vlarray('/', atype,
-                                                 atom=Atom.from_sctype(atype))
+            vlarray = self.h5file.create_vlarray(
+                '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
-            vlarray.append([-1, 0])
+            vlarray.append([1, 0])
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -685,10 +679,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(allequal(row[
-                            0], numpy.array([1, 2, 3], dtype=atype)))
-            self.assertTrue(allequal(row[
-                            1], numpy.array([-1, 0], dtype=atype)))
+            self.assertTrue(
+                common.allequal(row[0], np.array([1, 2, 3], dtype=atype)))
+            self.assertTrue(
+                common.allequal(row[1], np.array([1, 0], dtype=atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -696,14 +690,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with integer atoms (byteorder swapped)"""
 
         ttypes = {
-            "int8": numpy.int8,
-            "uint8": numpy.uint8,
-            "int16": numpy.int16,
-            "uint16": numpy.uint16,
-            "int32": numpy.int32,
-            "uint32": numpy.uint32,
-            "int64": numpy.int64,
-            #"UInt64": numpy.int64,  # Unavailable in some platforms
+            "int8": np.int8,
+            "uint8": np.uint8,
+            "int16": np.int16,
+            "uint16": np.uint16,
+            "int32": np.int32,
+            "uint32": np.uint32,
+            "int64": np.int64,
+            # "uint64": np.int64,  # Unavailable in some platforms
         }
         if common.verbose:
             print('\n', '-=' * 30)
@@ -711,12 +705,12 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(ttypes[atype]))
-            a0 = numpy.array([1, 2, 3], dtype=atype)
+                '/', atype, atom=tb.Atom.from_sctype(ttypes[atype]))
+            a0 = np.array([1, 2, 3], dtype=atype)
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray.append(a0)
-            a1 = numpy.array([-1, 0], dtype=atype)
+            a1 = np.array([1, 0], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray.append(a1)
@@ -735,10 +729,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(
-                allequal(row[0], numpy.array([1, 2, 3], dtype=ttypes[atype])))
-            self.assertTrue(
-                allequal(row[1], numpy.array([-1, 0], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[0], np.array([1, 2, 3], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[1], np.array([1, 0], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -753,7 +747,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             "int32",
             "uint32",
             "int64",
-            #"UInt64",  # Unavailable in some platforms
+            # "UInt64",  # Unavailable in some platforms
         ]
         if common.verbose:
             print('\n', '-=' * 30)
@@ -761,13 +755,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(atype))
+                '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([1, 2, 3])
-            vlarray.append([-1, 0])
+            vlarray.append([1, 0])
 
             # Modify rows
             vlarray[0] = (3, 2, 1)
-            vlarray[1] = (0, -1)
+            vlarray[1] = (0, 1)
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -783,10 +777,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(allequal(row[
-                            0], numpy.array([3, 2, 1], dtype=atype)))
-            self.assertTrue(allequal(row[
-                            1], numpy.array([0, -1], dtype=atype)))
+            self.assertTrue(
+                common.allequal(row[0], np.array([3, 2, 1], dtype=atype)))
+            self.assertTrue(
+                common.allequal(row[1], np.array([0, 1], dtype=atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -794,14 +788,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking updating vlarray with integer atoms (byteorder swapped)"""
 
         ttypes = {
-            "int8": numpy.int8,
-            "uint8": numpy.uint8,
-            "int16": numpy.int16,
-            "uint16": numpy.uint16,
-            "int32": numpy.int32,
-            "uint32": numpy.uint32,
-            "int64": numpy.int64,
-            #"UInt64": numpy.int64,  # Unavailable in some platforms
+            "int8": np.int8,
+            "uint8": np.uint8,
+            "int16": np.int16,
+            "uint16": np.uint16,
+            "int32": np.int32,
+            "uint32": np.uint32,
+            "int64": np.int64,
+            # "uint64": np.int64,  # Unavailable in some platforms
         }
         if common.verbose:
             print('\n', '-=' * 30)
@@ -809,18 +803,18 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(ttypes[atype]))
-            a0 = numpy.array([1, 2, 3], dtype=atype)
+                '/', atype, atom=tb.Atom.from_sctype(ttypes[atype]))
+            a0 = np.array([1, 2, 3], dtype=atype)
             vlarray.append(a0)
-            a1 = numpy.array([-1, 0], dtype=atype)
+            a1 = np.array([1, 0], dtype=atype)
             vlarray.append(a1)
 
             # Modify rows
-            a0 = numpy.array([3, 2, 1], dtype=atype)
+            a0 = np.array([3, 2, 1], dtype=atype)
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray[0] = a0
-            a1 = numpy.array([0, -1], dtype=atype)
+            a1 = np.array([0, 1], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray[1] = a1
@@ -839,10 +833,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(
-                allequal(row[0], numpy.array([3, 2, 1], dtype=ttypes[atype])))
-            self.assertTrue(
-                allequal(row[1], numpy.array([0, -1], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[0], np.array([3, 2, 1], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[1], np.array([0, 1], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -850,14 +844,14 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking updating vlarray with integer atoms (another byteorder)"""
 
         ttypes = {
-            "int8": numpy.int8,
-            "uint8": numpy.uint8,
-            "int16": numpy.int16,
-            "uint16": numpy.uint16,
-            "int32": numpy.int32,
-            "uint32": numpy.uint32,
-            "int64": numpy.int64,
-            #"UInt64": numpy.int64,  # Unavailable in some platforms
+            "int8": np.int8,
+            "uint8": np.uint8,
+            "int16": np.int16,
+            "uint16": np.uint16,
+            "int32": np.int32,
+            "uint32": np.uint32,
+            "int64": np.int64,
+            # "uint64": np.int64,  # Unavailable in some platforms
         }
         if common.verbose:
             print('\n', '-=' * 30)
@@ -866,19 +860,19 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(ttypes[atype]),
+                '/', atype, atom=tb.Atom.from_sctype(ttypes[atype]),
                 byteorder=byteorder)
-            a0 = numpy.array([1, 2, 3], dtype=atype)
+            a0 = np.array([1, 2, 3], dtype=atype)
             vlarray.append(a0)
-            a1 = numpy.array([-1, 0], dtype=atype)
+            a1 = np.array([1, 0], dtype=atype)
             vlarray.append(a1)
 
             # Modify rows
-            a0 = numpy.array([3, 2, 1], dtype=atype)
+            a0 = np.array([3, 2, 1], dtype=atype)
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray[0] = a0
-            a1 = numpy.array([0, -1], dtype=atype)
+            a1 = np.array([0, 1], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray[1] = a1
@@ -896,16 +890,16 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
                 print("First row in vlarray ==>", row[0])
 
-            byteorder2 = byteorders[row[0].dtype.byteorder]
+            byteorder2 = tb.utils.byteorders[row[0].dtype.byteorder]
             if byteorder2 != "irrelevant":
-                self.assertEqual(byteorders[row[0].dtype.byteorder],
+                self.assertEqual(tb.utils.byteorders[row[0].dtype.byteorder],
                                  sys.byteorder)
                 self.assertEqual(vlarray.byteorder, byteorder)
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(
-                allequal(row[0], numpy.array([3, 2, 1], dtype=ttypes[atype])))
-            self.assertTrue(
-                allequal(row[1], numpy.array([0, -1], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[0], np.array([3, 2, 1], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[1], np.array([0, 1], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -918,7 +912,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         ]
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + 'Atom'
-            if hasattr(tables, atomname):
+            if hasattr(tb, atomname):
                 ttypes.append(name)
 
         if common.verbose:
@@ -927,9 +921,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(atype))
+                '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([1.3, 2.2, 3.3])
-            vlarray.append([-1.3e34, 1.e-32])
+            vlarray.append([5.96, .597])
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -945,10 +939,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(allequal(row[
-                            0], numpy.array([1.3, 2.2, 3.3], atype)))
-            self.assertTrue(allequal(row[
-                            1], numpy.array([-1.3e34, 1.e-32], atype)))
+            self.assertTrue(common.allequal(
+                row[0], np.array([1.3, 2.2, 3.3], atype)))
+            self.assertTrue(common.allequal(
+                row[1], np.array([5.96, .597], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -956,15 +950,15 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking vlarray with float atoms (byteorder swapped)"""
 
         ttypes = {
-            "float32": numpy.float32,
-            "float64": numpy.float64,
+            "float32": np.float32,
+            "float64": np.float64,
         }
-        if hasattr(tables, "Float16Atom"):
-            ttypes["float16"] = numpy.float16
-        if hasattr(tables, "Float96Atom"):
-            ttypes["float96"] = numpy.float96
-        if hasattr(tables, "Float128Atom"):
-            ttypes["float128"] = numpy.float128
+        if hasattr(tb, "Float16Atom"):
+            ttypes["float16"] = np.float16
+        if hasattr(tb, "Float96Atom"):
+            ttypes["float96"] = np.float96
+        if hasattr(tb, "Float128Atom"):
+            ttypes["float128"] = np.float128
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -972,12 +966,12 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(ttypes[atype]))
-            a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
+                '/', atype, atom=tb.Atom.from_sctype(ttypes[atype]))
+            a0 = np.array([1.3, 2.2, 3.3], dtype=atype)
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray.append(a0)
-            a1 = numpy.array([-1.3e34, 1.e-32], dtype=atype)
+            a1 = np.array([5.96, .597], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray.append(a1)
@@ -996,10 +990,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(allequal(row[0], numpy.array([1.3, 2.2, 3.3],
-                                                         dtype=ttypes[atype])))
-            self.assertTrue(allequal(row[1], numpy.array([-1.3e34, 1.e-32],
-                                                         dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[0], np.array([1.3, 2.2, 3.3], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[1], np.array([5.96, .597], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1012,7 +1006,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         ]
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + 'Atom'
-            if hasattr(tables, atomname):
+            if hasattr(tb, atomname):
                 ttypes.append(name)
 
         if common.verbose:
@@ -1021,13 +1015,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(atype))
+                '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([1.3, 2.2, 3.3])
-            vlarray.append([-1.3e34, 1.e-32])
+            vlarray.append([5.96, .597])
 
             # Modifiy some rows
             vlarray[0] = (4.3, 2.2, 4.3)
-            vlarray[1] = (-1.1e34, 1.3e-32)
+            vlarray[1] = (1.123, 1.1e-3)
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -1043,10 +1037,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(allequal(row[
-                            0], numpy.array([4.3, 2.2, 4.3], atype)))
+            self.assertTrue(common.allequal(
+                row[0], np.array([4.3, 2.2, 4.3], atype)))
             self.assertTrue(
-                allequal(row[1], numpy.array([-1.1e34, 1.3e-32], atype)))
+                common.allequal(row[1], np.array([1.123, 1.1e-3], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1054,15 +1048,15 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking updating vlarray with float atoms (byteorder swapped)"""
 
         ttypes = {
-            "float32": numpy.float32,
-            "float64": numpy.float64,
+            "float32": np.float32,
+            "float64": np.float64,
         }
-        if hasattr(tables, "Float16Atom"):
-            ttypes["float16"] = numpy.float16
-        if hasattr(tables, "Float96Atom"):
-            ttypes["float96"] = numpy.float96
-        if hasattr(tables, "Float128Atom"):
-            ttypes["float128"] = numpy.float128
+        if hasattr(tb, "Float16Atom"):
+            ttypes["float16"] = np.float16
+        if hasattr(tb, "Float96Atom"):
+            ttypes["float96"] = np.float96
+        if hasattr(tb, "Float128Atom"):
+            ttypes["float128"] = np.float128
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1070,18 +1064,18 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(ttypes[atype]))
-            a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
+                '/', atype, atom=tb.Atom.from_sctype(ttypes[atype]))
+            a0 = np.array([1.3, 2.2, 3.3], dtype=atype)
             vlarray.append(a0)
-            a1 = numpy.array([-1, 0], dtype=atype)
+            a1 = np.array([1, 0], dtype=atype)
             vlarray.append(a1)
 
             # Modify rows
-            a0 = numpy.array([4.3, 2.2, 4.3], dtype=atype)
+            a0 = np.array([4.3, 2.2, 4.3], dtype=atype)
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray[0] = a0
-            a1 = numpy.array([-1.1e34, 1.3e-32], dtype=atype)
+            a1 = np.array([1.123, 1.1e-3], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray[1] = a1
@@ -1100,10 +1094,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(allequal(row[0], numpy.array([4.3, 2.2, 4.3],
-                                                         dtype=ttypes[atype])))
-            self.assertTrue(allequal(row[1], numpy.array([-1.1e34, 1.3e-32],
-                                                         dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[0], np.array([4.3, 2.2, 4.3], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[1], np.array([1.123, 1.1e-3], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1111,15 +1105,15 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         """Checking updating vlarray with float atoms (another byteorder)"""
 
         ttypes = {
-            "float32": numpy.float32,
-            "float64": numpy.float64,
+            "float32": np.float32,
+            "float64": np.float64,
         }
-        if hasattr(tables, "Float16Atom"):
-            ttypes["float16"] = numpy.float16
-        if hasattr(tables, "Float96Atom"):
-            ttypes["float96"] = numpy.float96
-        if hasattr(tables, "Float128Atom"):
-            ttypes["float128"] = numpy.float128
+        if hasattr(tb, "Float16Atom"):
+            ttypes["float16"] = np.float16
+        if hasattr(tb, "Float96Atom"):
+            ttypes["float96"] = np.float96
+        if hasattr(tb, "Float128Atom"):
+            ttypes["float128"] = np.float128
 
         if common.verbose:
             print('\n', '-=' * 30)
@@ -1128,19 +1122,19 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(ttypes[atype]),
+                '/', atype, atom=tb.Atom.from_sctype(ttypes[atype]),
                 byteorder=byteorder)
-            a0 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
+            a0 = np.array([1.3, 2.2, 3.3], dtype=atype)
             vlarray.append(a0)
-            a1 = numpy.array([-1, 0], dtype=atype)
+            a1 = np.array([1, 0], dtype=atype)
             vlarray.append(a1)
 
             # Modify rows
-            a0 = numpy.array([4.3, 2.2, 4.3], dtype=atype)
+            a0 = np.array([4.3, 2.2, 4.3], dtype=atype)
             a0 = a0.byteswap()
             a0 = a0.newbyteorder()
             vlarray[0] = a0
-            a1 = numpy.array([-1.1e34, 1.3e-32], dtype=atype)
+            a1 = np.array([1.123, 1.1e-3], dtype=atype)
             a1 = a1.byteswap()
             a1 = a1.newbyteorder()
             vlarray[1] = a1
@@ -1159,12 +1153,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.byteorder, byteorder)
-            self.assertEqual(byteorders[row[0].dtype.byteorder], sys.byteorder)
+            self.assertEqual(tb.utils.byteorders[row[0].dtype.byteorder],
+                             sys.byteorder)
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(allequal(row[0], numpy.array([4.3, 2.2, 4.3],
-                                                         dtype=ttypes[atype])))
-            self.assertTrue(allequal(row[1], numpy.array([-1.1e34, 1.3e-32],
-                                                         dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[0], np.array([4.3, 2.2, 4.3], dtype=ttypes[atype])))
+            self.assertTrue(common.allequal(
+                row[1], np.array([1.123, 1.1e-3], dtype=ttypes[atype])))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1176,9 +1171,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             "complex128",
         ]
 
-        if hasattr(tables, "Complex192Atom"):
+        if hasattr(tb, "Complex192Atom"):
             ttypes.append("complex192")
-        if hasattr(tables, "Complex256Atom"):
+        if hasattr(tb, "Complex256Atom"):
             ttypes.append("complex256")
 
         if common.verbose:
@@ -1187,9 +1182,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(atype))
+                '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([(1.3 + 0j), (0+2.2j), (3.3+3.3j)])
-            vlarray.append([(0-1.3e34j), (1.e-32 + 0j)])
+            vlarray.append([(0-5.96j), (.597 + 0j)])
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -1205,13 +1200,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(
-                allequal(row[0],
-                         numpy.array([(1.3 + 0j), (0+2.2j), (3.3+3.3j)],
-                                     atype)))
-            self.assertTrue(
-                allequal(row[1],
-                         numpy.array([(0-1.3e34j), (1.e-32 + 0j)], atype)))
+            self.assertTrue(common.allequal(
+                row[0], np.array([(1.3 + 0j), (0+2.2j), (3.3+3.3j)], atype)))
+            self.assertTrue(common.allequal(
+                row[1], np.array([(0-5.96j), (.597 + 0j)], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1223,9 +1215,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             "complex128",
         ]
 
-        if hasattr(tables, "Complex192Atom"):
+        if hasattr(tb, "Complex192Atom"):
             ttypes.append("complex192")
-        if hasattr(tables, "Complex256Atom"):
+        if hasattr(tb, "Complex256Atom"):
             ttypes.append("complex256")
 
         if common.verbose:
@@ -1235,13 +1227,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
 
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                '/', atype, atom=Atom.from_sctype(atype))
+                '/', atype, atom=tb.Atom.from_sctype(atype))
             vlarray.append([(1.3 + 0j), (0+2.2j), (3.3+3.3j)])
-            vlarray.append([(0-1.3e34j), (1.e-32 + 0j)])
+            vlarray.append([(0-5.96j), (.597 + 0j)])
 
             # Modify the rows
             vlarray[0] = ((1.4 + 0j), (0+4.2j), (3.3+4.3j))
-            vlarray[1] = ((4-1.3e34j), (1.e-32 + 4j))
+            vlarray[1] = ((4-5.96j), (.597 + 4j))
 
             if self.reopen:
                 name = vlarray._v_pathname
@@ -1257,13 +1249,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                 print("First row in vlarray ==>", row[0])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(
-                allequal(row[0],
-                         numpy.array([(1.4 + 0j), (0+4.2j), (3.3+4.3j)],
-                                     atype)))
-            self.assertTrue(
-                allequal(row[1],
-                         numpy.array([(4-1.3e34j), (1.e-32 + 4j)], atype)))
+            self.assertTrue(common.allequal(
+                row[0], np.array([(1.4 + 0j), (0+4.2j), (3.3+4.3j)], atype)))
+            self.assertTrue(common.allequal(
+                row[1], np.array([(4-5.96j), (.597 + 4j)], atype)))
             self.assertEqual(len(row[0]), 3)
             self.assertEqual(len(row[1]), 2)
 
@@ -1280,7 +1269,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray(
-            '/', "VLStringAtom", atom=VLStringAtom())
+            '/', "VLStringAtom", atom=tb.VLStringAtom())
         vlarray.append(b"asd")
         vlarray.append(b"asd\xe4")
         vlarray.append(b"aaana")
@@ -1288,7 +1277,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
         # Check for ticket #62.
         self.assertRaises(TypeError, vlarray.append, [b"foo", b"bar"])
         # `VLStringAtom` makes no encoding assumptions.  See ticket #51.
-        self.assertRaises(UnicodeEncodeError, vlarray.append, u"asd\xe4")
+        self.assertRaises(UnicodeEncodeError, vlarray.append, "asd\xe4")
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1321,7 +1310,7 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray(
-            '/', "VLStringAtom", atom=VLStringAtom())
+            '/', "VLStringAtom", atom=tb.VLStringAtom())
         vlarray.append(b"asd")
         vlarray.append(b"aaana")
 
@@ -1358,8 +1347,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test06a_Object..." % self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray(
-            '/', "Object", atom=ObjectAtom())
-        vlarray.append([[1, 2, 3], "aaa", u"aaaççç"])
+            '/', "Object", atom=tb.ObjectAtom())
+        vlarray.append(
+            [[1, 2, 3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"])
         vlarray.append([3, 4, C()])
         vlarray.append(42)
 
@@ -1376,7 +1366,9 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
-        self.assertEqual(row[0], [[1, 2, 3], "aaa", u"aaaççç"])
+        self.assertEqual(
+            row[0],
+            [[1, 2, 3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"])
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [3, 4])
@@ -1393,17 +1385,19 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06b_Object..." % self.__class__.__name__)
 
-        vlarray = self.h5file.create_vlarray('/', "Object", atom=ObjectAtom())
+        vlarray = self.h5file.create_vlarray('/', "Object",
+                                             atom=tb.ObjectAtom())
         # When updating an object, this seems to change the number
         # of bytes that pickle.dumps generates
-        # vlarray.append(([1,2,3], "aaa", u"aaaççç"))
-        vlarray.append(([1, 2, 3], "aaa", u"çç4"))
+        # vlarray.append(
+        #     ([1,2,3], "aaa", "aaa\xef\xbf\xbd\xef\xbf\xbd\xef\xbf\xbd"))
+        vlarray.append(([1, 2, 3], "aaa", "\xef\xbf\xbd\xef\xbf\xbd4"))
         # vlarray.append([3,4, C()])
         vlarray.append([3, 4, [24]])
 
         # Modify the rows
-        # vlarray[0] = ([1,2,4], "aa4", u"aaaçç4")
-        vlarray[0] = ([1, 2, 4], "aa4", u"çç5")
+        # vlarray[0] = ([1,2,4], "aa4", "aaa\xef\xbf\xbd\xef\xbf\xbd4")
+        vlarray[0] = ([1, 2, 4], "aa4", "\xef\xbf\xbd\xef\xbf\xbd5")
         # vlarray[1] = (3,4, C())
         vlarray[1] = [4, 4, [24]]
 
@@ -1420,7 +1414,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], ([1, 2, 4], "aa4", u"çç5"))
+        self.assertEqual(row[0],
+                         ([1, 2, 4], "aa4", "\xef\xbf\xbd\xef\xbf\xbd5"))
         list1 = list(row[1])
         obj = list1.pop()
         self.assertEqual(list1, [4, 4])
@@ -1437,10 +1432,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06c_Object..." % self.__class__.__name__)
 
-        vlarray = self.h5file.create_vlarray('/', "Object", atom=ObjectAtom())
-        vlarray.append(numpy.array([[1, 2], [0, 4]], 'i4'))
-        vlarray.append(numpy.array([0, 1, 2, 3], 'i8'))
-        vlarray.append(numpy.array(42, 'i1'))
+        vlarray = self.h5file.create_vlarray('/', "Object",
+                                             atom=tb.ObjectAtom())
+        vlarray.append(np.array([[1, 2], [0, 4]], 'i4'))
+        vlarray.append(np.array([0, 1, 2, 3], 'i8'))
+        vlarray.append(np.array(42, 'i1'))
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1455,9 +1451,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
-        self.assertTrue(allequal(row[0], numpy.array([[1, 2], [0, 4]], 'i4')))
-        self.assertTrue(allequal(row[1], numpy.array([0, 1, 2, 3], 'i8')))
-        self.assertTrue(allequal(row[2], numpy.array(42, 'i1')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([[1, 2], [0, 4]], 'i4')))
+        self.assertTrue(common.allequal(row[1], np.array([0, 1, 2, 3], 'i8')))
+        self.assertTrue(common.allequal(row[2], np.array(42, 'i1')))
 
     def test06d_Object(self):
         """Checking updating vlarray with object atoms (numpy arrays)"""
@@ -1466,17 +1463,18 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print('\n', '-=' * 30)
             print("Running %s.test06d_Object..." % self.__class__.__name__)
 
-        vlarray = self.h5file.create_vlarray('/', "Object", atom=ObjectAtom())
-        vlarray.append(numpy.array([[1, 2], [0, 4]], 'i4'))
-        vlarray.append(numpy.array([0, 1, 2, 3], 'i8'))
-        vlarray.append(numpy.array(42, 'i1'))
+        vlarray = self.h5file.create_vlarray('/', "Object",
+                                             atom=tb.ObjectAtom())
+        vlarray.append(np.array([[1, 2], [0, 4]], 'i4'))
+        vlarray.append(np.array([0, 1, 2, 3], 'i8'))
+        vlarray.append(np.array(42, 'i1'))
 
         # Modify the rows.  Since PyTables 2.2.1 we use a binary
         # pickle for arrays and ObjectAtoms, so the next should take
         # the same space than the above.
-        vlarray[0] = numpy.array([[1, 0], [0, 4]], 'i4')
-        vlarray[1] = numpy.array([0, 1, 0, 3], 'i8')
-        vlarray[2] = numpy.array(22, 'i1')
+        vlarray[0] = np.array([[1, 0], [0, 4]], 'i4')
+        vlarray[1] = np.array([0, 1, 0, 3], 'i8')
+        vlarray[2] = np.array(22, 'i1')
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1491,9 +1489,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 3)
-        self.assertTrue(allequal(row[0], numpy.array([[1, 0], [0, 4]], 'i4')))
-        self.assertTrue(allequal(row[1], numpy.array([0, 1, 0, 3], 'i8')))
-        self.assertTrue(allequal(row[2], numpy.array(22, 'i1')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([[1, 0], [0, 4]], 'i4')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([0, 1, 0, 3], 'i8')))
+        self.assertTrue(common.allequal(row[2], np.array(22, 'i1')))
 
     def test07_VLUnicodeAtom(self):
         """Checking vlarray with variable length Unicode strings."""
@@ -1508,11 +1508,11 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray(
-            '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
+            '/', "VLUnicodeAtom", atom=tb.VLUnicodeAtom())
         vlarray.append("asd")
-        vlarray.append(u"asd\u0140")
-        vlarray.append(u"aaana")
-        vlarray.append(u"")
+        vlarray.append("asd\u0140")
+        vlarray.append("aaana")
+        vlarray.append("")
         # Check for ticket #62.
         self.assertRaises(TypeError, vlarray.append, ["foo", "bar"])
         # `VLUnicodeAtom` makes no encoding assumptions.
@@ -1531,10 +1531,10 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", row[0])
 
         self.assertEqual(vlarray.nrows, 4)
-        self.assertEqual(row[0], u"asd")
-        self.assertEqual(row[1], u"asd\u0140")
-        self.assertEqual(row[2], u"aaana")
-        self.assertEqual(row[3], u"")
+        self.assertEqual(row[0], "asd")
+        self.assertEqual(row[1], "asd\u0140")
+        self.assertEqual(row[2], "aaana")
+        self.assertEqual(row[3], "")
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 4)
         self.assertEqual(len(row[2]), 5)
@@ -1549,13 +1549,13 @@ class TypesTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         vlarray = self.h5file.create_vlarray(
-            '/', "VLUnicodeAtom", atom=VLUnicodeAtom())
+            '/', "VLUnicodeAtom", atom=tb.VLUnicodeAtom())
         vlarray.append("asd")
-        vlarray.append(u"aaan\xe4")
+        vlarray.append("aaan\xe4")
 
         # Modify values
-        vlarray[0] = u"as\xe4"
-        vlarray[1] = u"aaan\u0140"
+        vlarray[0] = "as\xe4"
+        vlarray[1] = "aaan\u0140"
         self.assertRaises(ValueError, vlarray.__setitem__, 1, "shrt")
         self.assertRaises(ValueError, vlarray.__setitem__, 1, "toolong")
 
@@ -1573,8 +1573,8 @@ class TypesTestCase(common.TempFileMixin, TestCase):
             print("Second row in vlarray ==>", repr(row[1]))
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertEqual(row[0], u"as\xe4")
-        self.assertEqual(row[1], u"aaan\u0140")
+        self.assertEqual(row[0], "as\xe4")
+        self.assertEqual(row[1], "aaan\u0140")
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 5)
 
@@ -1589,13 +1589,13 @@ class TypesNoReopenTestCase(TypesTestCase):
     reopen = False
 
 
-class MDTypesTestCase(common.TempFileMixin, TestCase):
+class MDTypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(MDTypesTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
 
     def test01_StringAtom(self):
@@ -1608,7 +1608,7 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(
-            root, 'stringAtom', StringAtom(itemsize=3, shape=(2,)),
+            root, 'stringAtom', tb.StringAtom(itemsize=3, shape=(2,)),
             "Ragged array of strings")
         vlarray.append([["123", "45"], ["45", "123"]])
         vlarray.append([["s", "abc"], ["abc", "f"],
@@ -1622,11 +1622,11 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
             print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
-        npt.assert_array_equal(
-            row[0], numpy.array([["123", "45"], ["45", "123"]], 'S'))
-        npt.assert_array_equal(
-            row[1], numpy.array([["s", "abc"], ["abc", "f"],
-                                 ["s", "ab"], ["ab", "f"]], 'S'))
+        np.testing.assert_array_equal(
+            row[0], np.array([["123", "45"], ["45", "123"]], 'S'))
+        np.testing.assert_array_equal(
+            row[1], np.array([["s", "abc"], ["abc", "f"],
+                              ["s", "ab"], ["ab", "f"]], 'S'))
         self.assertEqual(len(row[0]), 2)
         self.assertEqual(len(row[1]), 4)
 
@@ -1640,7 +1640,7 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(
-            root, 'stringAtom', StringAtom(itemsize=3, shape=(2,)),
+            root, 'stringAtom', tb.StringAtom(itemsize=3, shape=(2,)),
             "Ragged array of strings")
         vlarray.flavor = "python"
         vlarray.append([["123", "45"], ["45", "123"]])
@@ -1671,14 +1671,14 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(
-            root, 'stringAtom', StringAtom(itemsize=3, shape=(2,)),
+            root, 'stringAtom', tb.StringAtom(itemsize=3, shape=(2,)),
             "Ragged array of strings")
         vlarray.flavor = "python"
-        a = numpy.array([["a", "b"], ["123", "45"], ["45", "123"]], dtype="S3")
+        a = np.array([["a", "b"], ["123", "45"], ["45", "123"]], dtype="S3")
         vlarray.append(a[1:])
-        a = numpy.array([["s", "a"], ["ab", "f"],
-                         ["s", "abc"], ["abc", "f"],
-                         ["s", "ab"], ["ab", "f"]])
+        a = np.array([["s", "a"], ["ab", "f"],
+                      ["s", "abc"], ["abc", "f"],
+                      ["s", "ab"], ["ab", "f"]])
         vlarray.append(a[2:])
 
         # Read all the rows:
@@ -1705,14 +1705,14 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(
-            root, 'stringAtom', StringAtom(itemsize=3, shape=(2,)),
+            root, 'stringAtom', tb.StringAtom(itemsize=3, shape=(2,)),
             "Ragged array of strings")
         vlarray.flavor = "python"
-        a = numpy.array([["a", "b"], ["123", "45"], ["45", "123"]], dtype="S3")
+        a = np.array([["a", "b"], ["123", "45"], ["45", "123"]], dtype="S3")
         vlarray.append(a[1::2])
-        a = numpy.array([["s", "a"], ["ab", "f"],
-                         ["s", "abc"], ["abc", "f"],
-                         ["s", "ab"], ["ab", "f"]])
+        a = np.array([["s", "a"], ["ab", "f"],
+                      ["s", "abc"], ["abc", "f"],
+                      ["s", "ab"], ["ab", "f"]])
         vlarray.append(a[::3])
 
         # Read all the rows:
@@ -1738,10 +1738,10 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(root, 'BoolAtom',
-                                             BoolAtom(shape=(3,)),
+                                             tb.BoolAtom(shape=(3,)),
                                              "Ragged array of Booleans")
         vlarray.append([(1, 0, 3), (1, 1, 1), (0, 0, 0)])
-        vlarray.append([(-1, 0, 0)])
+        vlarray.append([(1, 0, 0)])
 
         # Read all the rows:
         row = vlarray.read()
@@ -1751,11 +1751,10 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
             print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(
-            allequal(row[0], numpy.array([[1, 0, 1], [1, 1, 1], [0, 0, 0]],
-                                         dtype='bool')))
-        self.assertTrue(
-            allequal(row[1], numpy.array([[1, 0, 0]], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([[1, 0, 1], [1, 1, 1], [0, 0, 0]], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([[1, 0, 0]], dtype='bool')))
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 1)
 
@@ -1769,12 +1768,12 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(root, 'BoolAtom',
-                                             BoolAtom(shape=(3,)),
+                                             tb.BoolAtom(shape=(3,)),
                                              "Ragged array of Booleans")
-        a = numpy.array([(0, 0, 0), (1, 0, 3), (
-            1, 1, 1), (0, 0, 0)], dtype='bool')
+        a = np.array(
+            [(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], dtype='bool')
         vlarray.append(a[1:])  # Create an offset
-        a = numpy.array([(1, 1, 1), (-1, 0, 0)], dtype='bool')
+        a = np.array([(1, 1, 1), (1, 0, 0)], dtype='bool')
         vlarray.append(a[1:])  # Create an offset
 
         # Read all the rows:
@@ -1785,11 +1784,10 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
             print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(
-            allequal(row[0], numpy.array([[1, 0, 1], [1, 1, 1], [0, 0, 0]],
-                                         dtype='bool')))
-        self.assertTrue(allequal(row[
-                        1], numpy.array([[1, 0, 0]], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([[1, 0, 1], [1, 1, 1], [0, 0, 0]], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([[1, 0, 0]], dtype='bool')))
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 1)
 
@@ -1803,12 +1801,12 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(root, 'BoolAtom',
-                                             BoolAtom(shape=(3,)),
+                                             tb.BoolAtom(shape=(3,)),
                                              "Ragged array of Booleans")
-        a = numpy.array([(0, 0, 0), (1, 0, 3), (
-            1, 1, 1), (0, 0, 0)], dtype='bool')
+        a = np.array(
+            [(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], dtype='bool')
         vlarray.append(a[1::2])  # Create an strided array
-        a = numpy.array([(1, 1, 1), (-1, 0, 0), (0, 0, 0)], dtype='bool')
+        a = np.array([(1, 1, 1), (1, 0, 0), (0, 0, 0)], dtype='bool')
         vlarray.append(a[::2])  # Create an strided array
 
         # Read all the rows:
@@ -1819,12 +1817,10 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
             print("Second row in vlarray ==>", row[1])
 
         self.assertEqual(vlarray.nrows, 2)
-        self.assertTrue(
-            allequal(row[0],
-                     numpy.array([[1, 0, 1], [0, 0, 0]], dtype='bool')))
-        self.assertTrue(
-            allequal(row[1],
-                     numpy.array([[1, 1, 1], [0, 0, 0]], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[0], np.array([[1, 0, 1], [0, 0, 0]], dtype='bool')))
+        self.assertTrue(common.allequal(
+            row[1], np.array([[1, 1, 1], [0, 0, 0]], dtype='bool')))
         self.assertEqual(len(row[0]), 2)
         self.assertEqual(len(row[1]), 2)
 
@@ -1839,7 +1835,7 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
             "int32",
             "uint32",
             "int64",
-            #"UInt64",  # Unavailable in some platforms
+            # "UInt64",  # Unavailable in some platforms
         ]
         root = self.rootgroup
         if common.verbose:
@@ -1849,10 +1845,9 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                root, atype, atom=Atom.from_sctype(atype, (2, 3)))
-            vlarray.append([numpy.ones((2, 3), atype),
-                            numpy.zeros((2, 3), atype)])
-            vlarray.append([numpy.ones((2, 3), atype)*100])
+                root, atype, atom=tb.Atom.from_sctype(atype, (2, 3)))
+            vlarray.append([np.ones((2, 3), atype), np.zeros((2, 3), atype)])
+            vlarray.append([np.ones((2, 3), atype)*100])
 
             # Read all the rows:
             row = vlarray.read()
@@ -1862,12 +1857,10 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
                 print("Second row in vlarray ==>", repr(row[1]))
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(
-                allequal(row[0], numpy.array([numpy.ones((2, 3)),
-                                              numpy.zeros((2, 3))],
-                                             atype)))
-            self.assertTrue(
-                allequal(row[1], numpy.array([numpy.ones((2, 3))*100], atype)))
+            self.assertTrue(common.allequal(
+                row[0], np.array([np.ones((2, 3)), np.zeros((2, 3))], atype)))
+            self.assertTrue(common.allequal(
+                row[1], np.array([np.ones((2, 3)) * 100], atype)))
             self.assertEqual(len(row[0]), 2)
             self.assertEqual(len(row[1]), 1)
 
@@ -1883,11 +1876,11 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
 
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + "Atom"
-            if hasattr(tables, atomname):
+            if hasattr(tb, atomname):
                 ttypes.append(name)
         for itemsize in (192, 256):
             atomname = "Complex%dAtom" % itemsize
-            if hasattr(tables, atomname):
+            if hasattr(tb, atomname):
                 ttypes.append("complex%d" % (itemsize))
 
         root = self.rootgroup
@@ -1898,10 +1891,10 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(
-                root, atype, atom=Atom.from_sctype(atype, (5, 2, 6)))
-            vlarray.append([numpy.ones((5, 2, 6), atype)*1.3,
-                            numpy.zeros((5, 2, 6), atype)])
-            vlarray.append([numpy.ones((5, 2, 6), atype)*2.e4])
+                root, atype, atom=tb.Atom.from_sctype(atype, (5, 2, 6)))
+            vlarray.append([np.ones((5, 2, 6), atype)*1.3,
+                            np.zeros((5, 2, 6), atype)])
+            vlarray.append([np.ones((5, 2, 6), atype)*2.e4])
 
             # Read all the rows:
             row = vlarray.read()
@@ -1911,13 +1904,11 @@ class MDTypesTestCase(common.TempFileMixin, TestCase):
                 print("Second row in vlarray ==>", row[1])
 
             self.assertEqual(vlarray.nrows, 2)
-            self.assertTrue(
-                allequal(row[0], numpy.array([numpy.ones((5, 2, 6))*1.3,
-                                              numpy.zeros((5, 2, 6))],
-                                             atype)))
-            self.assertTrue(
-                allequal(row[1], numpy.array([numpy.ones((5, 2, 6))*2.e4],
-                                             atype)))
+            self.assertTrue(common.allequal(
+                row[0], np.array(
+                    [np.ones((5, 2, 6)) * 1.3, np.zeros((5, 2, 6))], atype)))
+            self.assertTrue(common.allequal(
+                row[1], np.array([np.ones((5, 2, 6)) * 2.e4], atype)))
             self.assertEqual(len(row[0]), 2)
             self.assertEqual(len(row[1]), 1)
 
@@ -1926,11 +1917,11 @@ class MDTypesNumPyTestCase(MDTypesTestCase):
     title = "MDTypes"
 
 
-class AppendShapeTestCase(common.TempFileMixin, TestCase):
+class AppendShapeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     open_mode = "w"
 
     def setUp(self):
-        super(AppendShapeTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
 
     def test00_difinputs(self):
@@ -1943,7 +1934,7 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(root, 'vlarray',
-                                             Int32Atom(),
+                                             tb.Int32Atom(),
                                              "Ragged array of ints")
         vlarray.flavor = "python"
 
@@ -1951,7 +1942,7 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
         # All of the next should lead to the same rows
         vlarray.append((1, 2, 3))  # a tuple
         vlarray.append([1, 2, 3])  # a unique list
-        vlarray.append(numpy.array([1, 2, 3], dtype='int32'))  # and array
+        vlarray.append(np.array([1, 2, 3], dtype='int32'))  # and array
 
         if self.close:
             if common.verbose:
@@ -1981,7 +1972,7 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(root, 'vlarray',
-                                             StringAtom(itemsize=3),
+                                             tb.StringAtom(itemsize=3),
                                              "Ragged array of strings")
         # Adding an array with one dimensionality more than allowed
         with self.assertRaises(ValueError):
@@ -2011,9 +2002,9 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(root, 'vlarray',
-                                             Int32Atom(),
+                                             tb.Int32Atom(),
                                              "Ragged array of ints")
-        vlarray.append(numpy.zeros(dtype='int32', shape=(6, 0)))
+        vlarray.append(np.zeros(dtype='int32', shape=(6, 0)))
 
         if self.close:
             if common.verbose:
@@ -2029,7 +2020,8 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", repr(row))
 
         self.assertEqual(vlarray.nrows, 1)
-        self.assertTrue(allequal(row, numpy.zeros(dtype='int32', shape=(0,))))
+        self.assertTrue(common.allequal(
+            row, np.zeros(dtype='int32', shape=(0,))))
         self.assertEqual(len(row), 0)
 
     def test03a_cast(self):
@@ -2042,10 +2034,10 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(root, 'vlarray',
-                                             Int32Atom(),
+                                             tb.Int32Atom(),
                                              "Ragged array of ints")
         # This type has to be upgraded
-        vlarray.append(numpy.array([1, 2], dtype='int16'))
+        vlarray.append(np.array([1, 2], dtype='int16'))
 
         if self.close:
             if common.verbose:
@@ -2061,7 +2053,7 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", repr(row))
 
         self.assertEqual(vlarray.nrows, 1)
-        self.assertTrue(allequal(row, numpy.array([1, 2], dtype='int32')))
+        self.assertTrue(common.allequal(row, np.array([1, 2], dtype='int32')))
         self.assertEqual(len(row), 2)
 
     def test03b_cast(self):
@@ -2074,10 +2066,10 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
 
         # Create an string atom
         vlarray = self.h5file.create_vlarray(root, 'vlarray',
-                                             Int32Atom(),
+                                             tb.Int32Atom(),
                                              "Ragged array of ints")
         # This type has to be downcasted
-        vlarray.append(numpy.array([1, 2], dtype='float64'))
+        vlarray.append(np.array([1, 2], dtype='float64'))
 
         if self.close:
             if common.verbose:
@@ -2093,7 +2085,7 @@ class AppendShapeTestCase(common.TempFileMixin, TestCase):
             print("First row in vlarray ==>", repr(row))
 
         self.assertEqual(vlarray.nrows, 1)
-        self.assertTrue(allequal(row, numpy.array([1, 2], dtype='int32')))
+        self.assertTrue(common.allequal(row, np.array([1, 2], dtype='int32')))
         self.assertEqual(len(row), 2)
 
 
@@ -2105,13 +2097,13 @@ class CloseAppendShapeTestCase(AppendShapeTestCase):
     close = 1
 
 
-class FlavorTestCase(common.TempFileMixin, TestCase):
+class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
     open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(FlavorTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
 
     def test01a_EmptyVLArray(self):
@@ -2124,11 +2116,11 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.h5file.create_vlarray(root, "vlarray",
-                                             Atom.from_kind('int', itemsize=4))
+        vlarray = self.h5file.create_vlarray(
+            root, "vlarray", tb.Atom.from_kind('int', itemsize=4))
         vlarray.flavor = self.flavor
         self.h5file.close()
-        self.h5file = tables.open_file(self.h5fname, "r")
+        self.h5file = tb.open_file(self.h5fname, "r")
 
         # Read all the rows (it should be empty):
         vlarray = self.h5file.root.vlarray
@@ -2152,8 +2144,8 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
                   self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.h5file.create_vlarray(root, "vlarray",
-                                             Atom.from_kind('int', itemsize=4))
+        vlarray = self.h5file.create_vlarray(
+            root, "vlarray", tb.Atom.from_kind('int', itemsize=4))
         vlarray.flavor = self.flavor
 
         # Read all the rows (it should be empty):
@@ -2176,7 +2168,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02_BoolAtom..." % self.__class__.__name__)
 
         # Create an string atom
-        vlarray = self.h5file.create_vlarray(root, "Bool", BoolAtom())
+        vlarray = self.h5file.create_vlarray(root, "Bool", tb.BoolAtom())
         vlarray.flavor = self.flavor
         vlarray.append([1, 2, 3])
         vlarray.append(())   # Empty row
@@ -2199,14 +2191,14 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
             arr2 = []
             arr3 = [1, 0]
         elif self.flavor == "numpy":
-            arr1 = numpy.array([1, 1, 1], dtype="bool")
-            arr2 = numpy.array([], dtype="bool")
-            arr3 = numpy.array([1, 0], dtype="bool")
+            arr1 = np.array([1, 1, 1], dtype="bool")
+            arr2 = np.array([], dtype="bool")
+            arr3 = np.array([1, 0], dtype="bool")
 
         if self.flavor == "numpy":
-            self.assertTrue(allequal(row[0], arr1, self.flavor))
-            self.assertTrue(allequal(row[1], arr2, self.flavor))
-            self.assertTrue(allequal(row[1], arr2, self.flavor))
+            self.assertTrue(common.allequal(row[0], arr1, self.flavor))
+            self.assertTrue(common.allequal(row[1], arr2, self.flavor))
+            self.assertTrue(common.allequal(row[1], arr2, self.flavor))
         else:
             # 'python' flavor
             self.assertEqual(row[0], arr1)
@@ -2225,7 +2217,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
             "uint32",
             "int64",
             # Not checked because some platforms does not support it
-            #"UInt64",
+            # "UInt64",
         ]
 
         root = self.rootgroup
@@ -2236,7 +2228,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(root, atype,
-                                                 Atom.from_sctype(atype))
+                                                 tb.Atom.from_sctype(atype))
             vlarray.flavor = self.flavor
             vlarray.append([1, 2, 3])
             vlarray.append(())
@@ -2259,14 +2251,14 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
                 arr2 = []
                 arr3 = [100, 0]
             elif self.flavor == "numpy":
-                arr1 = numpy.array([1, 2, 3], dtype=atype)
-                arr2 = numpy.array([], dtype=atype)
-                arr3 = numpy.array([100, 0], dtype=atype)
+                arr1 = np.array([1, 2, 3], dtype=atype)
+                arr2 = np.array([], dtype=atype)
+                arr3 = np.array([100, 0], dtype=atype)
 
             if self.flavor == "numpy":
-                self.assertTrue(allequal(row[0], arr1, self.flavor))
-                self.assertTrue(allequal(row[1], arr2, self.flavor))
-                self.assertTrue(allequal(row[2], arr3, self.flavor))
+                self.assertTrue(common.allequal(row[0], arr1, self.flavor))
+                self.assertTrue(common.allequal(row[1], arr2, self.flavor))
+                self.assertTrue(common.allequal(row[2], arr3, self.flavor))
             else:
                 # "python" flavor
                 self.assertEqual(row[0], arr1)
@@ -2285,7 +2277,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
             "uint32",
             "int64",
             # Not checked because some platforms does not support it
-            #"UInt64",
+            # "UInt64",
         ]
 
         root = self.rootgroup
@@ -2296,7 +2288,7 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(root, atype,
-                                                 Atom.from_sctype(atype))
+                                                 tb.Atom.from_sctype(atype))
             vlarray.flavor = self.flavor
             vlarray.append([1, 2, 3])
             vlarray.append(())
@@ -2322,14 +2314,14 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
                 arr2 = []
                 arr3 = [100, 0]
             elif self.flavor == "numpy":
-                arr1 = numpy.array([1, 2, 3], dtype=atype)
-                arr2 = numpy.array([], dtype=atype)
-                arr3 = numpy.array([100, 0], dtype=atype)
+                arr1 = np.array([1, 2, 3], dtype=atype)
+                arr2 = np.array([], dtype=atype)
+                arr3 = np.array([100, 0], dtype=atype)
 
             if self.flavor == "numpy":
-                self.assertTrue(allequal(row[0], arr1, self.flavor))
-                self.assertTrue(allequal(row[1], arr2, self.flavor))
-                self.assertTrue(allequal(row[2], arr3, self.flavor))
+                self.assertTrue(common.allequal(row[0], arr1, self.flavor))
+                self.assertTrue(common.allequal(row[1], arr2, self.flavor))
+                self.assertTrue(common.allequal(row[2], arr3, self.flavor))
             else:
                 # Tuple or List flavors
                 self.assertEqual(row[0], arr1)
@@ -2348,12 +2340,12 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
 
         for name in ("float16", "float96", "float128"):
             atomname = name.capitalize() + "Atom"
-            if hasattr(tables, atomname):
+            if hasattr(tb, atomname):
                 ttypes.append(name)
 
         for itemsize in (192, 256):
             atomname = "Complex%dAtom" % itemsize
-            if hasattr(tables, atomname):
+            if hasattr(tb, atomname):
                 ttypes.append("complex%d" % (itemsize))
 
         root = self.rootgroup
@@ -2364,11 +2356,11 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.h5file.create_vlarray(root, atype,
-                                                 Atom.from_sctype(atype))
+                                                 tb.Atom.from_sctype(atype))
             vlarray.flavor = self.flavor
             vlarray.append([1.3, 2.2, 3.3])
             vlarray.append(())
-            vlarray.append([-1.3e34, 1.e-32])
+            vlarray.append([5.96, .597])
 
             # Read all the rows:
             row = vlarray.read()
@@ -2383,18 +2375,18 @@ class FlavorTestCase(common.TempFileMixin, TestCase):
             self.assertEqual(len(row[1]), 0)
             self.assertEqual(len(row[2]), 2)
             if self.flavor == "python":
-                arr1 = list(numpy.array([1.3, 2.2, 3.3], atype))
-                arr2 = list(numpy.array([], atype))
-                arr3 = list(numpy.array([-1.3e34, 1.e-32], atype))
+                arr1 = list(np.array([1.3, 2.2, 3.3], atype))
+                arr2 = list(np.array([], atype))
+                arr3 = list(np.array([5.96, .597], atype))
             elif self.flavor == "numpy":
-                arr1 = numpy.array([1.3, 2.2, 3.3], dtype=atype)
-                arr2 = numpy.array([], dtype=atype)
-                arr3 = numpy.array([-1.3e34, 1.e-32], dtype=atype)
+                arr1 = np.array([1.3, 2.2, 3.3], dtype=atype)
+                arr2 = np.array([], dtype=atype)
+                arr3 = np.array([5.96, .597], dtype=atype)
 
             if self.flavor == "numpy":
-                self.assertTrue(allequal(row[0], arr1, self.flavor))
-                self.assertTrue(allequal(row[1], arr2, self.flavor))
-                self.assertTrue(allequal(row[2], arr3, self.flavor))
+                self.assertTrue(common.allequal(row[0], arr1, self.flavor))
+                self.assertTrue(common.allequal(row[1], arr2, self.flavor))
+                self.assertTrue(common.allequal(row[2], arr3, self.flavor))
             else:
                 # Tuple or List flavors
                 self.assertEqual(row[0], arr1)
@@ -2410,23 +2402,22 @@ class PythonFlavorTestCase(FlavorTestCase):
     flavor = "python"
 
 
-class ReadRangeTestCase(common.TempFileMixin, TestCase):
+class ReadRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     nrows = 100
     mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(ReadRangeTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
         self.populateFile()
         self._reopen()
 
     def populateFile(self):
         group = self.rootgroup
-        filters = tables.Filters(complevel=self.compress,
-                                 complib=self.complib)
-        vlarray = self.h5file.create_vlarray(group, 'vlarray', Int32Atom(),
+        filters = tb.Filters(complevel=self.compress, complib=self.complib)
+        vlarray = self.h5file.create_vlarray(group, 'vlarray', tb.Int32Atom(),
                                              "ragged array if ints",
                                              filters=filters,
                                              expectedrows=1000)
@@ -2457,9 +2448,9 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')))
-        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
+        self.assertTrue(common.allequal(row[0], np.arange(0, dtype='int32')))
+        self.assertTrue(common.allequal(row[1], np.arange(10, dtype='int32')))
+        self.assertTrue(common.allequal(row[2], np.arange(99, dtype='int32')))
 
     def test01b_start(self):
         """Checking reads with only a start value in a slice"""
@@ -2483,9 +2474,9 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')))
-        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
+        self.assertTrue(common.allequal(row[0], np.arange(0, dtype='int32')))
+        self.assertTrue(common.allequal(row[1], np.arange(10, dtype='int32')))
+        self.assertTrue(common.allequal(row[2], np.arange(99, dtype='int32')))
 
     def test01np_start(self):
         """Checking reads with only a start value in a slice (numpy indexes)"""
@@ -2498,9 +2489,9 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
 
         # Read some rows:
         row = []
-        row.append(vlarray[numpy.int8(0)])
-        row.append(vlarray[numpy.int32(10)])
-        row.append(vlarray[numpy.int64(99)])
+        row.append(vlarray[np.int8(0)])
+        row.append(vlarray[np.int32(10)])
+        row.append(vlarray[np.int64(99)])
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
             print("Second row in vlarray ==>", row[1])
@@ -2509,9 +2500,9 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')))
-        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
+        self.assertTrue(common.allequal(row[0], np.arange(0, dtype='int32')))
+        self.assertTrue(common.allequal(row[1], np.arange(10, dtype='int32')))
+        self.assertTrue(common.allequal(row[2], np.arange(99, dtype='int32')))
 
     def test02_stop(self):
         """Checking reads with only a stop value"""
@@ -2538,13 +2529,14 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 1)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(allequal(row[0][0], numpy.arange(0, dtype='int32')))
+        self.assertTrue(common.allequal(
+            row[0][0], np.arange(0, dtype='int32')))
         for x in range(10):
-            self.assertTrue(allequal(row[1][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x], np.arange(x, dtype='int32')))
         for x in range(99):
-            self.assertTrue(allequal(row[2][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test02b_stop(self):
         """Checking reads with only a stop value in a slice"""
@@ -2572,14 +2564,14 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
         for x in range(1):
-            self.assertTrue(allequal(row[0][
-                            x], numpy.arange(0, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(0, dtype='int32')))
         for x in range(10):
-            self.assertTrue(allequal(row[1][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x], np.arange(x, dtype='int32')))
         for x in range(99):
-            self.assertTrue(allequal(row[2][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test03_startstop(self):
         """Checking reads with a start and stop values"""
@@ -2607,14 +2599,14 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 100)
         for x in range(0, 10):
-            self.assertTrue(allequal(row[0][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(x, dtype='int32')))
         for x in range(5, 15):
-            self.assertTrue(
-                allequal(row[1][x-5], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x-5], np.arange(x, dtype='int32')))
         for x in range(0, 100):
-            self.assertTrue(allequal(row[2][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test03b_startstop(self):
         """Checking reads with a start and stop values in slices"""
@@ -2642,14 +2634,14 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 100)
         for x in range(0, 10):
-            self.assertTrue(allequal(row[0][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(x, dtype='int32')))
         for x in range(5, 15):
-            self.assertTrue(
-                allequal(row[1][x-5], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x-5], np.arange(x, dtype='int32')))
         for x in range(0, 100):
-            self.assertTrue(allequal(row[2][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test04_startstopstep(self):
         """Checking reads with a start, stop & step values"""
@@ -2678,14 +2670,14 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 4)
         self.assertEqual(len(row[2]), 5)
         for x in range(0, 10, 2):
-            self.assertTrue(
-                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x // 2], np.arange(x, dtype='int32')))
         for x in range(5, 15, 3):
-            self.assertTrue(
-                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][(x - 5) // 3], np.arange(x, dtype='int32')))
         for x in range(0, 100, 20):
-            self.assertTrue(
-                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x // 20], np.arange(x, dtype='int32')))
 
     def test04np_startstopstep(self):
         """Checking reads with a start, stop & step values (numpy indices)"""
@@ -2702,10 +2694,9 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
 
         # Read some rows:
         row = []
-        row.append(vlarray.read(numpy.int8(0), numpy.int8(10), numpy.int8(2)))
-        row.append(vlarray.read(numpy.int8(5), numpy.int8(15), numpy.int8(3)))
-        row.append(vlarray.read(numpy.int8(
-            0), numpy.int8(100), numpy.int8(20)))
+        row.append(vlarray.read(np.int8(0), np.int8(10), np.int8(2)))
+        row.append(vlarray.read(np.int8(5), np.int8(15), np.int8(3)))
+        row.append(vlarray.read(np.int8(0), np.int8(100), np.int8(20)))
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
             print("Second row in vlarray ==>", row[1])
@@ -2715,14 +2706,14 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 4)
         self.assertEqual(len(row[2]), 5)
         for x in range(0, 10, 2):
-            self.assertTrue(
-                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x // 2], np.arange(x, dtype='int32')))
         for x in range(5, 15, 3):
-            self.assertTrue(
-                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][(x - 5) // 3], np.arange(x, dtype='int32')))
         for x in range(0, 100, 20):
-            self.assertTrue(
-                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x // 20], np.arange(x, dtype='int32')))
 
     def test04b_slices(self):
         """Checking reads with start, stop & step values in slices"""
@@ -2750,14 +2741,14 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 4)
         self.assertEqual(len(row[2]), 5)
         for x in range(0, 10, 2):
-            self.assertTrue(
-                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x // 2], np.arange(x, dtype='int32')))
         for x in range(5, 15, 3):
-            self.assertTrue(
-                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][(x - 5) // 3], np.arange(x, dtype='int32')))
         for x in range(0, 100, 20):
-            self.assertTrue(
-                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x // 20], np.arange(x, dtype='int32')))
 
     def test04bnp_slices(self):
         """Checking reads with start, stop & step values in slices.
@@ -2777,9 +2768,9 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
 
         # Read some rows:
         row = []
-        row.append(vlarray[numpy.int16(0):numpy.int16(10):numpy.int32(2)])
-        row.append(vlarray[numpy.int16(5):numpy.int16(15):numpy.int64(3)])
-        row.append(vlarray[numpy.uint16(0):numpy.int32(100):numpy.int8(20)])
+        row.append(vlarray[np.int16(0):np.int16(10):np.int32(2)])
+        row.append(vlarray[np.int16(5):np.int16(15):np.int64(3)])
+        row.append(vlarray[np.uint16(0):np.int32(100):np.int8(20)])
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
             print("Second row in vlarray ==>", row[1])
@@ -2790,13 +2781,13 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[2]), 5)
         for x in range(0, 10, 2):
             self.assertTrue(
-                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
+                common.allequal(row[0][x//2], np.arange(x, dtype='int32')))
         for x in range(5, 15, 3):
             self.assertTrue(
-                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
+                common.allequal(row[1][(x-5)//3], np.arange(x, dtype='int32')))
         for x in range(0, 100, 20):
             self.assertTrue(
-                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
+                common.allequal(row[2][x//20], np.arange(x, dtype='int32')))
 
     def test05_out_of_range(self):
         """Checking out of range reads"""
@@ -2816,14 +2807,14 @@ class ReadRangeTestCase(common.TempFileMixin, TestCase):
             print("row-->", row)
 
 
-class GetItemRangeTestCase(common.TempFileMixin, TestCase):
+class GetItemRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     nrows = 100
     open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(GetItemRangeTestCase, self).setUp()
+        super().setUp()
 
         self.rootgroup = self.h5file.root
         self.populateFile()
@@ -2831,9 +2822,8 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        filters = tables.Filters(complevel=self.compress,
-                                 complib=self.complib)
-        vlarray = self.h5file.create_vlarray(group, 'vlarray', Int32Atom(),
+        filters = tb.Filters(complevel=self.compress, complib=self.complib)
+        vlarray = self.h5file.create_vlarray(group, 'vlarray', tb.Int32Atom(),
                                              "ragged array if ints",
                                              filters=filters,
                                              expectedrows=1000)
@@ -2856,7 +2846,7 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
         row.append(vlarray[0])
 
         # rank-0 array should work as a regular index (see #303)
-        row.append(vlarray[numpy.array(10)])
+        row.append(vlarray[np.array(10)])
         row.append(vlarray[99])
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
@@ -2866,12 +2856,9 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(
-            allequal(row[0], numpy.arange(0, dtype='int32')))
-        self.assertTrue(
-            allequal(row[1], numpy.arange(10, dtype='int32')))
-        self.assertTrue(
-            allequal(row[2], numpy.arange(99, dtype='int32')))
+        self.assertTrue(common.allequal(row[0], np.arange(0, dtype='int32')))
+        self.assertTrue(common.allequal(row[1], np.arange(10, dtype='int32')))
+        self.assertTrue(common.allequal(row[2], np.arange(99, dtype='int32')))
 
     def test01b_start(self):
         """Checking reads with only a start value in a slice"""
@@ -2895,9 +2882,9 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(allequal(row[0], numpy.arange(0, dtype='int32')))
-        self.assertTrue(allequal(row[1], numpy.arange(10, dtype='int32')))
-        self.assertTrue(allequal(row[2], numpy.arange(99, dtype='int32')))
+        self.assertTrue(common.allequal(row[0], np.arange(0, dtype='int32')))
+        self.assertTrue(common.allequal(row[1], np.arange(10, dtype='int32')))
+        self.assertTrue(common.allequal(row[2], np.arange(99, dtype='int32')))
 
     def test02_stop(self):
         """Checking reads with only a stop value"""
@@ -2925,13 +2912,14 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 1)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(allequal(row[0][0], numpy.arange(0, dtype='int32')))
+        self.assertTrue(common.allequal(
+            row[0][0], np.arange(0, dtype='int32')))
         for x in range(10):
-            self.assertTrue(allequal(row[1][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x], np.arange(x, dtype='int32')))
         for x in range(99):
-            self.assertTrue(allequal(row[2][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test02b_stop(self):
         """Checking reads with only a stop value in a slice"""
@@ -2959,14 +2947,14 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
         for x in range(1):
-            self.assertTrue(allequal(row[0][
-                            x], numpy.arange(0, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(0, dtype='int32')))
         for x in range(10):
-            self.assertTrue(allequal(row[1][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x], np.arange(x, dtype='int32')))
         for x in range(99):
-            self.assertTrue(allequal(row[2][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test03_startstop(self):
         """Checking reads with a start and stop values"""
@@ -2994,14 +2982,14 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 100)
         for x in range(0, 10):
-            self.assertTrue(allequal(row[0][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(x, dtype='int32')))
         for x in range(5, 15):
-            self.assertTrue(
-                allequal(row[1][x-5], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x-5], np.arange(x, dtype='int32')))
         for x in range(0, 100):
-            self.assertTrue(allequal(row[2][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test03b_startstop(self):
         """Checking reads with a start and stop values in slices"""
@@ -3029,14 +3017,14 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 100)
         for x in range(0, 10):
-            self.assertTrue(allequal(row[0][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[0][x], np.arange(x, dtype='int32')))
         for x in range(5, 15):
-            self.assertTrue(
-                allequal(row[1][x-5], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[1][x-5], np.arange(x, dtype='int32')))
         for x in range(0, 100):
-            self.assertTrue(allequal(row[2][
-                            x], numpy.arange(x, dtype='int32')))
+            self.assertTrue(common.allequal(
+                row[2][x], np.arange(x, dtype='int32')))
 
     def test04_slices(self):
         """Checking reads with a start, stop & step values"""
@@ -3065,13 +3053,13 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[2]), 5)
         for x in range(0, 10, 2):
             self.assertTrue(
-                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
+                common.allequal(row[0][x//2], np.arange(x, dtype='int32')))
         for x in range(5, 15, 3):
             self.assertTrue(
-                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
+                common.allequal(row[1][(x-5)//3], np.arange(x, dtype='int32')))
         for x in range(0, 100, 20):
             self.assertTrue(
-                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
+                common.allequal(row[2][x//20], np.arange(x, dtype='int32')))
 
     def test04bnp_slices(self):
         """Checking reads with start, stop & step values (numpy indices)"""
@@ -3087,9 +3075,9 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
 
         # Read some rows:
         row = []
-        row.append(vlarray[numpy.int8(0):numpy.int8(10):numpy.int8(2)])
-        row.append(vlarray[numpy.int8(5):numpy.int8(15):numpy.int8(3)])
-        row.append(vlarray[numpy.int8(0):numpy.int8(100):numpy.int8(20)])
+        row.append(vlarray[np.int8(0):np.int8(10):np.int8(2)])
+        row.append(vlarray[np.int8(5):np.int8(15):np.int8(3)])
+        row.append(vlarray[np.int8(0):np.int8(100):np.int8(20)])
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
             print("Second row in vlarray ==>", row[1])
@@ -3100,13 +3088,13 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[2]), 5)
         for x in range(0, 10, 2):
             self.assertTrue(
-                allequal(row[0][x//2], numpy.arange(x, dtype='int32')))
+                common.allequal(row[0][x//2], np.arange(x, dtype='int32')))
         for x in range(5, 15, 3):
             self.assertTrue(
-                allequal(row[1][(x-5)//3], numpy.arange(x, dtype='int32')))
+                common.allequal(row[1][(x-5)//3], np.arange(x, dtype='int32')))
         for x in range(0, 100, 20):
             self.assertTrue(
-                allequal(row[2][x//20], numpy.arange(x, dtype='int32')))
+                common.allequal(row[2][x//20], np.arange(x, dtype='int32')))
 
     def test05_out_of_range(self):
         """Checking out of range reads"""
@@ -3139,27 +3127,26 @@ class GetItemRangeTestCase(common.TempFileMixin, TestCase):
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
 
         with self.assertRaises(IndexError):
-            row = vlarray[numpy.int32(1000)]
+            row = vlarray[np.int32(1000)]
             print("row-->", row)
 
 
-class SetRangeTestCase(common.TempFileMixin, TestCase):
+class SetRangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     nrows = 100
     open_mode = "w"
     compress = 0
     complib = "zlib"  # Default compression library
 
     def setUp(self):
-        super(SetRangeTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
         self.populateFile()
         self._reopen(mode='a')
 
     def populateFile(self):
         group = self.rootgroup
-        filters = tables.Filters(complevel=self.compress,
-                                 complib=self.complib)
-        vlarray = self.h5file.create_vlarray(group, 'vlarray', Int32Atom(),
+        filters = tb.Filters(complevel=self.compress, complib=self.complib)
+        vlarray = self.h5file.create_vlarray(group, 'vlarray', tb.Int32Atom(),
                                              "ragged array if ints",
                                              filters=filters,
                                              expectedrows=1000)
@@ -3195,12 +3182,12 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(
-            allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
-        self.assertTrue(
-            allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
-        self.assertTrue(
-            allequal(row[2], numpy.arange(99, dtype='int32')*2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(0, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(10, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[2], np.arange(99, dtype='int32') * 2 + 3))
 
     def test01np_start(self):
         """Checking updates that modifies a complete row"""
@@ -3212,15 +3199,15 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
         vlarray = self.h5file.root.vlarray
 
         # Modify some rows:
-        vlarray[numpy.int8(0)] = vlarray[numpy.int16(0)]*2 + 3
-        vlarray[numpy.int8(10)] = vlarray[numpy.int8(10)]*2 + 3
-        vlarray[numpy.int32(99)] = vlarray[numpy.int64(99)]*2 + 3
+        vlarray[np.int8(0)] = vlarray[np.int16(0)]*2 + 3
+        vlarray[np.int8(10)] = vlarray[np.int8(10)]*2 + 3
+        vlarray[np.int32(99)] = vlarray[np.int64(99)]*2 + 3
 
         # Read some rows:
         row = []
-        row.append(vlarray.read(numpy.int8(0))[0])
-        row.append(vlarray.read(numpy.int8(10))[0])
-        row.append(vlarray.read(numpy.int8(99))[0])
+        row.append(vlarray.read(np.int8(0))[0])
+        row.append(vlarray.read(np.int8(10))[0])
+        row.append(vlarray.read(np.int8(99))[0])
         if common.verbose:
             print("Nrows in", vlarray._v_pathname, ":", vlarray.nrows)
             print("Second row in vlarray ==>", row[1])
@@ -3229,12 +3216,12 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 99)
-        self.assertTrue(
-            allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
-        self.assertTrue(
-            allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
-        self.assertTrue(
-            allequal(row[2], numpy.arange(99, dtype='int32')*2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(0, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(10, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[2], np.arange(99, dtype='int32') * 2 + 3))
 
     def test02_partial(self):
         """Checking updates with only a part of a row"""
@@ -3263,13 +3250,13 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(
-            allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
-        self.assertTrue(
-            allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
-        a = numpy.arange(3, 99, dtype='int32')
+        self.assertTrue(common.allequal(
+            row[0], np.arange(0, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(10, dtype='int32') * 2 + 3))
+        a = np.arange(3, 99, dtype='int32')
         a = a * 2 + 3
-        self.assertTrue(allequal(row[2], a))
+        self.assertTrue(common.allequal(row[2], a))
 
     def test03a_several_rows(self):
         """Checking updating several rows at once (slice style)"""
@@ -3299,9 +3286,12 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 3)
         self.assertEqual(len(row[1]), 4)
         self.assertEqual(len(row[2]), 5)
-        self.assertTrue(allequal(row[0], numpy.arange(3, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[1], numpy.arange(4, dtype='int32')*2 + 3))
-        self.assertTrue(allequal(row[2], numpy.arange(5, dtype='int32')*2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(3, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(4, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[2], np.arange(5, dtype='int32') * 2 + 3))
 
     def test03b_several_rows(self):
         """Checking updating several rows at once (list style)"""
@@ -3331,12 +3321,12 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(
-            allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
-        self.assertTrue(
-            allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
-        self.assertTrue(
-            allequal(row[2], numpy.arange(96, dtype='int32')*2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(0, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(10, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[2], np.arange(96, dtype='int32') * 2 + 3))
 
     def test03c_several_rows(self):
         """Checking updating several rows at once (NumPy's where style)"""
@@ -3349,9 +3339,9 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
         vlarray = self.h5file.root.vlarray
 
         # Modify some rows:
-        vlarray[(numpy.array([0, 10, 96]),)] = (vlarray[0]*2 + 3,
-                                                vlarray[10]*2 + 3,
-                                                vlarray[96]*2 + 3)
+        vlarray[(np.array([0, 10, 96]),)] = (vlarray[0] * 2 + 3,
+                                             vlarray[10] * 2 + 3,
+                                             vlarray[96] * 2 + 3)
 
         # Read some rows:
         row = []
@@ -3366,12 +3356,12 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(len(row[0]), 0)
         self.assertEqual(len(row[1]), 10)
         self.assertEqual(len(row[2]), 96)
-        self.assertTrue(
-            allequal(row[0], numpy.arange(0, dtype='int32')*2 + 3))
-        self.assertTrue(
-            allequal(row[1], numpy.arange(10, dtype='int32')*2 + 3))
-        self.assertTrue(
-            allequal(row[2], numpy.arange(96, dtype='int32')*2 + 3))
+        self.assertTrue(common.allequal(
+            row[0], np.arange(0, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[1], np.arange(10, dtype='int32') * 2 + 3))
+        self.assertTrue(common.allequal(
+            row[2], np.arange(96, dtype='int32') * 2 + 3))
 
     def test04_out_of_range(self):
         """Checking out of range updates (first index)"""
@@ -3405,7 +3395,7 @@ class SetRangeTestCase(common.TempFileMixin, TestCase):
             vlarray[10] = [1]*100
 
 
-class CopyTestCase(common.TempFileMixin, TestCase):
+class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
     close = True
 
     def test01a_copy(self):
@@ -3416,7 +3406,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01a_copy..." % self.__class__.__name__)
 
         # Create an Vlarray
-        arr = Int16Atom(shape=2)
+        arr = tb.Int16Atom(shape=2)
         array1 = self.h5file.create_vlarray(
             self.h5file.root, 'array1', arr, "title array1")
         array1.flavor = "python"
@@ -3468,7 +3458,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01b_copy..." % self.__class__.__name__)
 
         # Create an Vlarray
-        arr = VLStringAtom()
+        arr = tb.VLStringAtom()
         array1 = self.h5file.create_vlarray(
             self.h5file.root, 'array1', arr, "title array1")
         array1.flavor = "python"
@@ -3520,7 +3510,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02_copy..." % self.__class__.__name__)
 
         # Create an VLArray
-        arr = Int16Atom(shape=2)
+        arr = tb.Int16Atom(shape=2)
         array1 = self.h5file.create_vlarray(
             self.h5file.root, 'array1', arr, "title array1")
         array1.flavor = "python"
@@ -3572,7 +3562,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test03_copy..." % self.__class__.__name__)
 
         # Create an VLArray
-        atom = Int16Atom(shape=2)
+        atom = tb.Int16Atom(shape=2)
         array1 = self.h5file.create_vlarray(
             self.h5file.root, 'array1', atom, title="title array1")
         array1.flavor = "python"
@@ -3616,7 +3606,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test04_copy..." % self.__class__.__name__)
 
         # Create an VLArray
-        atom = Int16Atom(shape=2)
+        atom = tb.Int16Atom(shape=2)
         array1 = self.h5file.create_vlarray(
             self.h5file.root, 'array1', atom=atom, title="title array1")
         array1.append(((2, 3),))
@@ -3656,7 +3646,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test05_copy..." % self.__class__.__name__)
 
         # Create an Array
-        atom = Int16Atom(shape=2)
+        atom = tb.Int16Atom(shape=2)
         array1 = self.h5file.create_vlarray(
             self.h5file.root, 'array1', atom=atom, title="title array1")
         array1.append(((2, 3),))
@@ -3699,7 +3689,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test05b_copy..." % self.__class__.__name__)
 
         # Create an VLArray
-        atom = Int16Atom(shape=2)
+        atom = tb.Int16Atom(shape=2)
         array1 = self.h5file.create_vlarray(
             self.h5file.root, 'array1', atom=atom, title="title array1")
         array1.append(((2, 3),))
@@ -3743,7 +3733,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
-class CopyIndexTestCase(common.TempFileMixin, TestCase):
+class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test01_index(self):
         """Checking VLArray.copy() method with indexes."""
@@ -3753,7 +3743,7 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_index..." % self.__class__.__name__)
 
         # Create an VLArray
-        atom = Int32Atom(shape=(2,))
+        atom = tb.Int32Atom(shape=(2,))
         array1 = self.h5file.create_vlarray(
             self.h5file.root, 'array1', atom, "t array1")
         array1.flavor = "python"
@@ -3876,11 +3866,11 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     step = 1
 
 
-class ChunkshapeTestCase(common.TempFileMixin, TestCase):
+class ChunkshapeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
-        super(ChunkshapeTestCase, self).setUp()
-        atom = Int32Atom(shape=(2,))
+        super().setUp()
+        atom = tb.Int32Atom(shape=(2,))
         self.h5file.create_vlarray('/', 'vlarray', atom=atom,
                                    title="t array1",
                                    chunkshape=13)
@@ -3897,45 +3887,45 @@ class ChunkshapeTestCase(common.TempFileMixin, TestCase):
         """Test setting the chunkshape in a table (reopen)."""
 
         self.h5file.close()
-        self.h5file = tables.open_file(self.h5fname, 'r')
+        self.h5file = tb.open_file(self.h5fname, 'r')
         vla = self.h5file.root.vlarray
         if common.verbose:
             print("chunkshape-->", vla.chunkshape)
         self.assertEqual(vla.chunkshape, (13,))
 
 
-class VLUEndianTestCase(TestCase):
+class VLUEndianTestCase(common.PyTablesTestCase):
     def setUp(self):
-        super(VLUEndianTestCase, self).setUp()
-        self.h5fname = test_filename('vlunicode_endian.h5')
-        self.h5file = tables.open_file(self.h5fname)
+        super().setUp()
+        self.h5fname = common.test_filename('vlunicode_endian.h5')
+        self.h5file = tb.open_file(self.h5fname)
 
     def tearDown(self):
         self.h5file.close()
-        super(VLUEndianTestCase, self).tearDown()
+        super().tearDown()
 
     def test(self):
         """Accessing ``vlunicode`` data of a different endianness."""
 
         bedata = self.h5file.root.vlunicode_big[0]
         ledata = self.h5file.root.vlunicode_little[0]
-        self.assertEqual(bedata, u'para\u0140lel')
-        self.assertEqual(ledata, u'para\u0140lel')
+        self.assertEqual(bedata, 'para\u0140lel')
+        self.assertEqual(ledata, 'para\u0140lel')
 
 
-class TruncateTestCase(common.TempFileMixin, TestCase):
+class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
-        super(TruncateTestCase, self).setUp()
+        super().setUp()
 
         # Create an VLArray
-        arr = Int16Atom(dflt=3)
+        arr = tb.Int16Atom(dflt=3)
         array1 = self.h5file.create_vlarray(
             self.h5file.root, 'array1', arr, "title array1")
 
         # Add a couple of rows
-        array1.append(numpy.array([456, 2], dtype='int16'))
-        array1.append(numpy.array([3], dtype='int16'))
+        array1.append(np.array([456, 2], dtype='int16'))
+        array1.append(np.array([3], dtype='int16'))
 
     def test00_truncate(self):
         """Checking VLArray.truncate() method (truncating to 0 rows)"""
@@ -3973,8 +3963,8 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
             print("array1-->", array1.read())
 
         self.assertEqual(array1.nrows, 1)
-        self.assertTrue(
-            allequal(array1[0], numpy.array([456, 2], dtype='int16')))
+        self.assertTrue(common.allequal(
+            array1[0], np.array([456, 2], dtype='int16')))
 
     def test02_truncate(self):
         """Checking VLArray.truncate() method (truncating to == self.nrows)"""
@@ -3994,8 +3984,9 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
 
         self.assertEqual(array1.nrows, 2)
         self.assertTrue(
-            allequal(array1[0], numpy.array([456, 2], dtype='int16')))
-        self.assertTrue(allequal(array1[1], numpy.array([3], dtype='int16')))
+            common.allequal(array1[0], np.array([456, 2], dtype='int16')))
+        self.assertTrue(common.allequal(
+            array1[1], np.array([3], dtype='int16')))
 
     def test03_truncate(self):
         """Checking VLArray.truncate() method (truncating to > self.nrows)"""
@@ -4017,12 +4008,15 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
 
         # Check the original values
         self.assertTrue(
-            allequal(array1[0], numpy.array([456, 2], dtype='int16')))
-        self.assertTrue(allequal(array1[1], numpy.array([3], dtype='int16')))
+            common.allequal(array1[0], np.array([456, 2], dtype='int16')))
+        self.assertTrue(common.allequal(
+            array1[1], np.array([3], dtype='int16')))
 
         # Check that the added rows are empty
-        self.assertTrue(allequal(array1[2], numpy.array([], dtype='int16')))
-        self.assertTrue(allequal(array1[3], numpy.array([], dtype='int16')))
+        self.assertTrue(common.allequal(
+            array1[2], np.array([], dtype='int16')))
+        self.assertTrue(common.allequal(
+            array1[3], np.array([], dtype='int16')))
 
 
 class TruncateOpenTestCase(TruncateTestCase):
@@ -4033,10 +4027,10 @@ class TruncateCloseTestCase(TruncateTestCase):
     close = 1
 
 
-class PointSelectionTestCase(common.TempFileMixin, TestCase):
+class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
-        super(PointSelectionTestCase, self).setUp()
+        super().setUp()
 
         # The next are valid selections for both NumPy and PyTables
         self.working_keyset = [
@@ -4045,9 +4039,9 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             [0, 2],                 # list
             [0, -2],                # negative values
             ([0, 2],),              # tuple of list
-            numpy.array([], dtype="i4"),       # empty array
-            numpy.array([1], dtype="i4"),      # single-entry array
-            numpy.array([True, False, True]),   # array of bools
+            np.array([], dtype="i4"),       # empty array
+            np.array([1], dtype="i4"),      # single-entry array
+            np.array([True, False, True]),   # array of bools
         ]
 
         # The next are invalid selections for VLArrays
@@ -4057,14 +4051,14 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
         ]
 
         # Create a sample array
-        arr1 = numpy.array([5, 6], dtype="i4")
-        arr2 = numpy.array([5, 6, 7], dtype="i4")
-        arr3 = numpy.array([5, 6, 9, 8], dtype="i4")
-        self.nparr = numpy.array([arr1, arr2, arr3], dtype="object")
+        arr1 = np.array([5, 6], dtype="i4")
+        arr2 = np.array([5, 6, 7], dtype="i4")
+        arr3 = np.array([5, 6, 9, 8], dtype="i4")
+        self.nparr = np.array([arr1, arr2, arr3], dtype="object")
 
         # Create the VLArray
         self.vlarr = self.h5file.create_vlarray(
-            self.h5file.root, 'vlarray', Int32Atom())
+            self.h5file.root, 'vlarray', tb.Int32Atom())
         self.vlarr.append(arr1)
         self.vlarr.append(arr2)
         self.vlarr.append(arr3)
@@ -4096,25 +4090,26 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             self.assertRaises(IndexError, vlarr.__getitem__, key)
 
 
-class SizeInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
+class SizeInMemoryPropertyTestCase(common.TempFileMixin,
+                                   common.PyTablesTestCase):
     def create_array(self, atom, complevel):
-        filters = tables.Filters(complevel=complevel, complib='blosc')
+        filters = tb.Filters(complevel=complevel, complib='blosc')
         self.array = self.h5file.create_vlarray('/', 'vlarray', atom=atom,
                                                 filters=filters)
 
     def test_zero_length(self):
-        atom = Int32Atom()
+        atom = tb.Int32Atom()
         complevel = 0
         self.create_array(atom, complevel)
         self.assertEqual(self.array.size_in_memory, 0)
 
     def int_tests(self, complevel, flavor):
-        atom = Int32Atom()
+        atom = tb.Int32Atom()
         self.create_array(atom, complevel)
         self.array.flavor = flavor
         expected_size = 0
         for i in range(10):
-            row = numpy.arange((i + 1) * 10, dtype='i4')
+            row = np.arange((i + 1) * 10, dtype='i4')
             self.array.append(row)
             expected_size += row.nbytes
         return expected_size
@@ -4142,7 +4137,7 @@ class SizeInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
     # this relies on knowledge of the implementation, so it's not
     # a great test
     def test_object_atom(self):
-        atom = ObjectAtom()
+        atom = tb.ObjectAtom()
         complevel = 0
         self.create_array(atom, complevel)
         obj = [1, 2, 3]
@@ -4153,53 +4148,54 @@ class SizeInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.array.size_in_memory, expected_size)
 
 
-class SizeOnDiskPropertyTestCase(common.TempFileMixin, TestCase):
+class SizeOnDiskPropertyTestCase(common.TempFileMixin,
+                                 common.PyTablesTestCase):
     def create_array(self, atom, complevel):
-        filters = tables.Filters(complevel=complevel, complib='blosc')
+        filters = tb.Filters(complevel=complevel, complib='blosc')
         self.h5file.create_vlarray('/', 'vlarray', atom, filters=filters)
         self.array = self.h5file.get_node('/', 'vlarray')
 
     def test_not_implemented(self):
-        atom = IntAtom()
+        atom = tb.IntAtom()
         complevel = 0
         self.create_array(atom, complevel)
         self.assertRaises(NotImplementedError, getattr, self.array,
                           'size_on_disk')
 
 
-class AccessClosedTestCase(common.TempFileMixin, TestCase):
+class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
-        super(AccessClosedTestCase, self).setUp()
+        super().setUp()
         self.array = self.h5file.create_vlarray(
-            self.h5file.root, 'array', atom=StringAtom(8))
+            self.h5file.root, 'array', atom=tb.StringAtom(8))
         self.array.append([str(i) for i in range(5, 5005, 100)])
 
     def test_read(self):
         self.h5file.close()
         self.assertRaises(
-            tables.ClosedNodeError, self.array.read)
+            tb.ClosedNodeError, self.array.read)
 
     def test_getitem(self):
         self.h5file.close()
         self.assertRaises(
-            tables.ClosedNodeError, self.array.__getitem__, 0)
+            tb.ClosedNodeError, self.array.__getitem__, 0)
 
     def test_setitem(self):
         self.h5file.close()
         self.assertRaises(
-            tables.ClosedNodeError, self.array.__setitem__, 0, '0')
+            tb.ClosedNodeError, self.array.__setitem__, 0, '0')
 
     def test_append(self):
         self.h5file.close()
         self.assertRaises(
-            tables.ClosedNodeError, self.array.append, 'xxxxxxxxx')
+            tb.ClosedNodeError, self.array.append, 'xxxxxxxxx')
 
 
-class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
-    obj = numpy.array([1, 2, 3])
+class TestCreateVLArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
+    obj = np.array([1, 2, 3])
     where = '/'
     name = 'vlarray'
-    atom = Atom.from_dtype(obj.dtype)
+    atom = tb.Atom.from_dtype(obj.dtype)
     title = 'title'
     filters = None
     expectedrows = None
@@ -4214,7 +4210,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
                                    self.expectedrows)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
 
         self.assertEqual(ptarr.title, self.title)
@@ -4232,7 +4228,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
         ptarr.append(self.obj)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()[0]
 
@@ -4242,7 +4238,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.nrows, 1)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_positional_args_obj(self):
         self.h5file.create_vlarray(self.where, self.name,
@@ -4256,7 +4252,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
                                    self.obj)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()[0]
 
@@ -4266,14 +4262,14 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.nrows, 1)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj(self):
         self.h5file.create_vlarray(self.where, self.name, title=self.title,
                                    obj=self.obj)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()[0]
 
@@ -4283,7 +4279,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.nrows, 1)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_atom_01(self):
         ptarr = self.h5file.create_vlarray(self.where, self.name,
@@ -4292,7 +4288,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
         ptarr.append(self.obj)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()[0]
 
@@ -4302,16 +4298,16 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.nrows, 1)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_atom_02(self):
         ptarr = self.h5file.create_vlarray(self.where, self.name,
                                            title=self.title,
                                            atom=self.atom)
-        #ptarr.append(self.obj)
+        # ptarr.append(self.obj)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
 
         self.assertEqual(ptarr.title, self.title)
@@ -4327,7 +4323,7 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
                                            atom=self.atom)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()[0]
 
@@ -4337,11 +4333,11 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.nrows, 1)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj_atom_error(self):
-        atom = Atom.from_dtype(numpy.dtype('complex'))
-        #shape = self.shape + self.shape
+        atom = tb.Atom.from_dtype(np.dtype('complex'))
+        # shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_vlarray,
                           self.where,
@@ -4352,60 +4348,60 @@ class TestCreateVLArrayArgs(common.TempFileMixin, TestCase):
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
     niter = 1
 
     for n in range(niter):
-        theSuite.addTest(unittest.makeSuite(BasicNumPyTestCase))
-        theSuite.addTest(unittest.makeSuite(BasicPythonTestCase))
-        theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscShuffleComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscBitShuffleComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscBloscLZComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscLZ4ComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscLZ4HCComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscSnappyComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscZlibComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BloscZstdComprTestCase))
-        theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
-        theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))
-        theSuite.addTest(unittest.makeSuite(TypesReopenTestCase))
-        theSuite.addTest(unittest.makeSuite(TypesNoReopenTestCase))
-        theSuite.addTest(unittest.makeSuite(MDTypesNumPyTestCase))
-        theSuite.addTest(unittest.makeSuite(OpenAppendShapeTestCase))
-        theSuite.addTest(unittest.makeSuite(CloseAppendShapeTestCase))
-        theSuite.addTest(unittest.makeSuite(PythonFlavorTestCase))
-        theSuite.addTest(unittest.makeSuite(NumPyFlavorTestCase))
-        theSuite.addTest(unittest.makeSuite(ReadRangeTestCase))
-        theSuite.addTest(unittest.makeSuite(GetItemRangeTestCase))
-        theSuite.addTest(unittest.makeSuite(SetRangeTestCase))
-        theSuite.addTest(unittest.makeSuite(ShuffleComprTestCase))
-        theSuite.addTest(unittest.makeSuite(Fletcher32TestCase))
-        theSuite.addTest(unittest.makeSuite(AllFiltersTestCase))
-        theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
-        theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex6TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex7TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex8TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex9TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
-        theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
-        theSuite.addTest(unittest.makeSuite(VLUEndianTestCase))
-        theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
-        theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
-        theSuite.addTest(unittest.makeSuite(PointSelectionTestCase))
-        theSuite.addTest(unittest.makeSuite(SizeInMemoryPropertyTestCase))
-        theSuite.addTest(unittest.makeSuite(SizeOnDiskPropertyTestCase))
-        theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
-        theSuite.addTest(unittest.makeSuite(TestCreateVLArrayArgs))
+        theSuite.addTest(common.unittest.makeSuite(BasicNumPyTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BasicPythonTestCase))
+        theSuite.addTest(common.unittest.makeSuite(ZlibComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BloscComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BloscShuffleComprTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(BloscBitShuffleComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BloscBloscLZComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BloscLZ4ComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BloscLZ4HCComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BloscSnappyComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BloscZlibComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BloscZstdComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(LZOComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Bzip2ComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(TypesReopenTestCase))
+        theSuite.addTest(common.unittest.makeSuite(TypesNoReopenTestCase))
+        theSuite.addTest(common.unittest.makeSuite(MDTypesNumPyTestCase))
+        theSuite.addTest(common.unittest.makeSuite(OpenAppendShapeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CloseAppendShapeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(PythonFlavorTestCase))
+        theSuite.addTest(common.unittest.makeSuite(NumPyFlavorTestCase))
+        theSuite.addTest(common.unittest.makeSuite(ReadRangeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GetItemRangeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(SetRangeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(ShuffleComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CloseCopyTestCase))
+        theSuite.addTest(common.unittest.makeSuite(OpenCopyTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex1TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex2TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex3TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex4TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex5TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex6TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex7TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex8TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex9TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex10TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex11TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex12TestCase))
+        theSuite.addTest(common.unittest.makeSuite(ChunkshapeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(VLUEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(TruncateOpenTestCase))
+        theSuite.addTest(common.unittest.makeSuite(TruncateCloseTestCase))
+        theSuite.addTest(common.unittest.makeSuite(PointSelectionTestCase))
+        theSuite.addTest(
+            common.unittest.makeSuite(SizeInMemoryPropertyTestCase))
+        theSuite.addTest(common.unittest.makeSuite(SizeOnDiskPropertyTestCase))
+        theSuite.addTest(common.unittest.makeSuite(AccessClosedTestCase))
+        theSuite.addTest(common.unittest.makeSuite(TestCreateVLArrayArgs))
 
     return theSuite
 
@@ -4413,4 +4409,4 @@ def suite():
 if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

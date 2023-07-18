@@ -75,7 +75,7 @@ Changes from 2.0.1 to 2.0.2
 - Return 0 when no rows are given to ``Table.modifyRows()``; fixes #128.
 
 - Added an informative message when the ``nctoh5`` utility is run without the
-  NetCDF interface of ScientificPython bening installed.
+  NetCDF interface of ScientificPython being installed.
 
 - Now, a default representation of closed nodes is provided; fixes #129.
 

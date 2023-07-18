@@ -1,21 +1,8 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: June 15, 2005
-# Author: Antonio Valentino
-# Modified by: Francesc Alted
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the CArray class."""
 
 import sys
 
-import numpy
+import numpy as np
 
 from .atom import Atom
 from .array import Array
@@ -93,24 +80,24 @@ class CArray(Array):
     See below a small example of the use of the `CArray` class.
     The code is available in ``examples/carray1.py``::
 
-        import numpy
-        import tables
+        import numpy as np
+        import tables as tb
 
         fileName = 'carray1.h5'
         shape = (200, 300)
-        atom = tables.UInt8Atom()
-        filters = tables.Filters(complevel=5, complib='zlib')
+        atom = tb.UInt8Atom()
+        filters = tb.Filters(complevel=5, complib='zlib')
 
-        h5f = tables.open_file(fileName, 'w')
+        h5f = tb.open_file(fileName, 'w')
         ca = h5f.create_carray(h5f.root, 'carray', atom, shape,
                                filters=filters)
 
         # Fill a hyperslab in ``ca``.
-        ca[10:60, 20:70] = numpy.ones((50, 50))
+        ca[10:60, 20:70] = np.ones((50, 50))
         h5f.close()
 
         # Re-open a read another hyperslab
-        h5f = tables.open_file(fileName)
+        h5f = tb.open_file(fileName)
         print(h5f)
         print(h5f.root.carray[8:12, 18:22])
         h5f.close()
@@ -133,11 +120,6 @@ class CArray(Array):
     # Class identifier.
     _c_classid = 'CARRAY'
 
-
-    # Properties
-    # ~~~~~~~~~~
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  atom=None, shape=None,
                  title="", filters=None,
@@ -207,9 +189,8 @@ class CArray(Array):
                         "`chunkshape` parameter must be a sequence "
                         "and you passed a %s" % type(chunkshape))
                 if len(shape) != len(chunkshape):
-                    raise ValueError("the shape (%s) and chunkshape (%s) "
-                                     "ranks must be equal." %
-                                    (shape, chunkshape))
+                    raise ValueError(f"the shape ({shape}) and chunkshape "
+                                     f"({chunkshape}) ranks must be equal.")
                 elif min(chunkshape) < 1:
                     raise ValueError("chunkshape parameter cannot have "
                                      "zero-dimensions.")
@@ -248,7 +229,7 @@ class CArray(Array):
             # needed for setting attributes in some descendants later
             # on
             self._v_objectid = self._create_carray(self._v_new_title)
-        except:  # XXX
+        except Exception:  # XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
@@ -292,7 +273,6 @@ class CArray(Array):
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.size
+        nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object, nbytes)
-

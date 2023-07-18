@@ -8,12 +8,13 @@ This requires Scientific from
 http://starship.python.net/~hinsen/ScientificPython
 
 """
+import sys
 from Scientific.IO import NetCDF
-import tables, sys
+import tables as tb
 # open netCDF file
 ncfile = NetCDF.NetCDFFile(sys.argv[1], mode = "r")
 # open h5 file.
-h5file = tables.openFile(sys.argv[2], mode = "w")
+h5file = tb.openFile(sys.argv[2], mode = "w")
 # loop over variables in netCDF file.
 for varname in ncfile.variables.keys():
     var = ncfile.variables[varname]
@@ -29,8 +30,8 @@ for varname in ncfile.variables.keys():
     if vardimsizes[0] == None or len(vardimsizes) > 1:
         vardimsizes[0] = 0
         vardata = h5file.createEArray(h5file.root, varname,
-        tables.Atom(shape=tuple(vardimsizes), dtype=var.typecode(),),
-        title, filters=tables.Filters(complevel=6, complib='zlib'))
+        tb.Atom(shape=tuple(vardimsizes), dtype=var.typecode(),),
+        title, filters=tb.Filters(complevel=6, complib='zlib'))
     # write data to enlargeable array on record at a time.
     # (so the whole array doesn't have to be kept in memory).
         for n in range(var.shape[0]):

@@ -8,38 +8,37 @@ with ptdump or any HDF5 generic utility.
 
 """
 
-from __future__ import print_function
-import numpy
+import numpy as np
 
-import tables
+import tables as tb
 
 #'-**-**-**-**- The sample nested class description  -**-**-**-**-**-'
 
 
-class Info(tables.IsDescription):
+class Info(tb.IsDescription):
     """A sub-structure of Test"""
 
     _v_pos = 2   # The position in the whole structure
-    name = tables.StringCol(10)
-    value = tables.Float64Col(pos=0)
+    name = tb.StringCol(10)
+    value = tb.Float64Col(pos=0)
 
-colors = tables.Enum(['red', 'green', 'blue'])
+colors = tb.Enum(['red', 'green', 'blue'])
 
 
-class NestedDescr(tables.IsDescription):
+class NestedDescr(tb.IsDescription):
     """A description that has several nested columns."""
 
-    color = tables.EnumCol(colors, 'red', base='uint32')
+    color = tb.EnumCol(colors, 'red', base='uint32')
     info1 = Info()
 
-    class info2(tables.IsDescription):
+    class info2(tb.IsDescription):
         _v_pos = 1
-        name = tables.StringCol(10)
-        value = tables.Float64Col(pos=0)
+        name = tb.StringCol(10)
+        value = tb.Float64Col(pos=0)
 
-        class info3(tables.IsDescription):
-            x = tables.Float64Col(dflt=1)
-            y = tables.UInt8Col(dflt=1)
+        class info3(tb.IsDescription):
+            x = tb.Float64Col(dflt=1)
+            y = tb.UInt8Col(dflt=1)
 
 print()
 print('-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-')
@@ -47,7 +46,7 @@ print('-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-')
 filename = "nested-tut.h5"
 
 print("Creating file:", filename)
-fileh = tables.open_file(filename, "w")
+fileh = tb.open_file(filename, "w")
 
 print()
 print('-**-**-**-**-**- nested table creation  -**-**-**-**-**-')
@@ -116,10 +115,10 @@ print(repr(table.description.info1._v_nested_names))
 print()
 print("**** now some for nested records, take that ****")
 print(repr(table.description._v_nested_descr))
-print(repr(numpy.rec.array(None, shape=0,
-                           dtype=table.description._v_nested_descr)))
-print(repr(numpy.rec.array(None, shape=0,
-                           dtype=table.description.info2._v_nested_descr)))
+print(repr(np.rec.array(None, shape=0,
+                        dtype=table.description._v_nested_descr)))
+print(repr(np.rec.array(None, shape=0,
+                        dtype=table.description.info2._v_nested_descr)))
 print()
 print("**** and some iteration over descriptions, too ****")
 for coldescr in table.description._f_walk():

@@ -1,35 +1,23 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: September 4, 2002
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the Table class."""
 
+import functools
 import math
 import operator
-import os.path
+import platform
 import sys
 import warnings
+from pathlib import Path
+import weakref
 
-from functools import reduce as _reduce
-from time import time
+from time import perf_counter as clock
 
-import numpy
-import numexpr
+import numexpr as ne
+import numpy as np
 
 from . import tableextension
 from .lrucacheextension import ObjectCache, NumCache
 from .atom import Atom
 from .conditions import compile_condition
-from numexpr.necompiler import getType as numexpr_getType, double
-from numexpr.expressions import functions as numexpr_functions
 from .flavor import flavor_of, array_as_internal, internal_to_flavor
 from .utils import is_idx, lazyattr, SizeType, NailedDict as CacheDict
 from .leaf import Leaf
@@ -61,47 +49,40 @@ if profile:
 obversion = "2.7"  # The Table VERSION number
 
 
-try:
-    # int_, long_ are only available in numexpr >= 2.1
-    from numexpr.necompiler import int_, long_
-except ImportError:
-    int_ = int
-    long_ = int
-
 # Maps NumPy types to the types used by Numexpr.
 _nxtype_from_nptype = {
-    numpy.bool_: bool,
-    numpy.int8: int_,
-    numpy.int16: int_,
-    numpy.int32: int_,
-    numpy.int64: long_,
-    numpy.uint8: int_,
-    numpy.uint16: int_,
-    numpy.uint32: long_,
-    numpy.uint64: long_,
-    numpy.float32: float,
-    numpy.float64: double,
-    numpy.complex64: complex,
-    numpy.complex128: complex,
-    numpy.bytes_: bytes,
+    np.bool_: bool,
+    np.int8: ne.necompiler.int_,
+    np.int16: ne.necompiler.int_,
+    np.int32: ne.necompiler.int_,
+    np.int64: ne.necompiler.long_,
+    np.uint8: ne.necompiler.int_,
+    np.uint16: ne.necompiler.int_,
+    np.uint32: ne.necompiler.long_,
+    np.uint64: ne.necompiler.long_,
+    np.float32: float,
+    np.float64: ne.necompiler.double,
+    np.complex64: complex,
+    np.complex128: complex,
+    np.bytes_: bytes,
 }
 
-_nxtype_from_nptype[numpy.str_] = str
+_nxtype_from_nptype[np.str_] = str
 
-if hasattr(numpy, 'float16'):
-    _nxtype_from_nptype[numpy.float16] = float    # XXX: check
-if hasattr(numpy, 'float96'):
-    _nxtype_from_nptype[numpy.float96] = double   # XXX: check
-if hasattr(numpy, 'float128'):
-    _nxtype_from_nptype[numpy.float128] = double  # XXX: check
-if hasattr(numpy, 'complec192'):
-    _nxtype_from_nptype[numpy.complex192] = complex  # XXX: check
-if hasattr(numpy, 'complex256'):
-    _nxtype_from_nptype[numpy.complex256] = complex  # XXX: check
+if hasattr(np, 'float16'):
+    _nxtype_from_nptype[np.float16] = float    # XXX: check
+if hasattr(np, 'float96'):
+    _nxtype_from_nptype[np.float96] = ne.necompiler.double   # XXX: check
+if hasattr(np, 'float128'):
+    _nxtype_from_nptype[np.float128] = ne.necompiler.double  # XXX: check
+if hasattr(np, 'complex192'):
+    _nxtype_from_nptype[np.complex192] = complex  # XXX: check
+if hasattr(np, 'complex256'):
+    _nxtype_from_nptype[np.complex256] = complex  # XXX: check
 
 
 # The NumPy scalar type corresponding to `SizeType`.
-_npsizetype = numpy.array(SizeType(0)).dtype.type
+_npsizetype = np.array(SizeType(0)).dtype.type
 
 
 def _index_name_of(node):
@@ -151,7 +132,7 @@ def restorecache(self):
 def _table__where_indexed(self, compiled, condition, condvars,
                           start, stop, step):
     if profile:
-        tref = time()
+        tref = clock()
     if profile:
         show_stats("Entering table_whereIndexed", tref)
     self._use_index = True
@@ -162,7 +143,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
     # Get the values in expression that are not columns
     values = []
     for key, value in condvars.items():
-        if isinstance(value, numpy.ndarray):
+        if isinstance(value, np.ndarray):
             values.append((key, value.item()))
     # Build a key for the sequence cache
     seqkey = (condition, tuple(values), (start, stop, step))
@@ -174,7 +155,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
         if len(seq) == 0:
             return iter([])
         # seq is a list.
-        seq = numpy.array(seq, dtype='int64')
+        seq = np.array(seq, dtype='int64')
         # Correct the ranges in cached sequence
         if (start, stop, step) != (0, self.nrows, 1):
             seq = seq[(seq >= start) & (
@@ -204,8 +185,8 @@ def _table__where_indexed(self, compiled, condition, condvars,
         if index.reduction == 1 and ncoords == 0:
             # No values from index condition, thus the chunkmap should be empty
             nrowsinchunk = self.chunkshape[0]
-            nchunks = int(math.ceil(float(self.nrows) / nrowsinchunk))
-            chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
+            nchunks = math.ceil(self.nrows / nrowsinchunk)
+            chunkmap = np.zeros(shape=nchunks, dtype="bool")
         else:
             # Get the chunkmap from the index
             chunkmap = index.get_chunkmap()
@@ -218,7 +199,7 @@ def _table__where_indexed(self, compiled, condition, condvars,
         return iter([])
 
     # Compute the final chunkmap
-    chunkmap = numexpr.evaluate(strexpr, cmvars)
+    chunkmap = ne.evaluate(strexpr, cmvars)
     if not chunkmap.any():
         # The chunkmap is all False, so the result is empty
         self._seqcache.setitem(seqkey, [], 1)
@@ -287,13 +268,13 @@ def _column__create_index(self, optlevel, kind, filters, tmp_dir,
             else:
                 dname += '/' + iname
             try:
-                idgroup = get_node('%s/%s' % (itgroup._v_pathname, dname))
+                idgroup = get_node(f'{itgroup._v_pathname}/{dname}')
             except NoSuchNodeError:
                 idgroup = create_indexes_descr(idgroup, dname, iname, filters)
 
     # Create the atom
     assert dtype.shape == ()
-    atom = Atom.from_dtype(numpy.dtype((dtype, (0,))))
+    atom = Atom.from_dtype(np.dtype((dtype, (0,))))
 
     # Protection on tables larger than the expected rows (perhaps the
     # user forgot to pass this parameter to the Table constructor?)
@@ -344,7 +325,7 @@ class _ColIndexes(dict):
     def __repr__(self):
         """Gives a detailed Description column representation."""
 
-        rep = ['  \"%s\": %s' % (k, self[k]) for k in self.keys()]
+        rep = [f'  \"{k}\": {v}' for k, v in self.items()]
         return '{\n  %s}' % (',\n  '.join(rep))
 
 
@@ -517,8 +498,6 @@ class Table(tableextension.Table, Leaf):
     # Class identifier.
     _c_classid = 'TABLE'
 
-    # Properties
-    # ~~~~~~~~~~
     @lazyattr
     def row(self):
         """The associated Row instance (see :ref:`RowClassDescr`)."""
@@ -530,9 +509,6 @@ class Table(tableextension.Table, Leaf):
         """The NumPy ``dtype`` that most closely matches this table."""
 
         return self.description._v_dtype
-
-    # Read-only shorthands
-    # ````````````````````
 
     @property
     def shape(self):
@@ -551,8 +527,6 @@ class Table(tableextension.Table, Leaf):
         the compression ratio of the data."""
         return self.nrows * self.rowsize
 
-    # Lazy attributes
-    # ```````````````
     @lazyattr
     def _v_iobuf(self):
         """A buffer for doing I/O."""
@@ -566,7 +540,7 @@ class Table(tableextension.Table, Leaf):
         # First, do a check to see whether we need to set default values
         # different from 0 or not.
         for coldflt in self.coldflts.values():
-            if isinstance(coldflt, numpy.ndarray) or coldflt:
+            if isinstance(coldflt, np.ndarray) or coldflt:
                 break
         else:
             # No default different from 0 found.  Returning None.
@@ -586,9 +560,6 @@ class Table(tableextension.Table, Leaf):
             if not carr.flags.aligned and carr.ndim == 1:
                 colunaligned.append(colpathname)
         return frozenset(colunaligned)
-
-    # Index-related properties
-    # ````````````````````````
 
     # **************** WARNING! ***********************
     # This function can be called during the destruction time of a table
@@ -648,23 +619,22 @@ class Table(tableextension.Table, Leaf):
     @property
     def indexedcolpathnames(self):
         """List of pathnames of indexed columns in the table."""
-        return [_colpname for _colpname in self.colpathnames if self.colindexed[_colpname]]
+        return [_colpname
+                for _colpname in self.colpathnames
+                if self.colindexed[_colpname]]
 
     @property
     def colindexes(self):
         """A dictionary with the indexes of the indexed columns."""
-        return _ColIndexes(
-            ((_colpname, self.cols._f_col(_colpname).index)
-                for _colpname in self.colpathnames
-                if self.colindexed[_colpname]))
+        return _ColIndexes((_colpname, self.cols._f_col(_colpname).index)
+                           for _colpname in self.colpathnames
+                           if self.colindexed[_colpname])
 
     @property
     def _dirtyindexes(self):
         """Whether some index in table is dirty."""
         return self._condition_cache._nailcount > 0
 
-    # Other methods
-    # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  description=None, title="", filters=None,
                  expectedrows=None, chunkshape=None,
@@ -773,12 +743,14 @@ class Table(tableextension.Table, Leaf):
         # Try purely descriptive description objects.
         if new and isinstance(description, dict):
             # Dictionary case
-            self.description = Description(description, ptparams=parentnode._v_file.params)
+            self.description = Description(description,
+                                           ptparams=parentnode._v_file.params)
         elif new and (type(description) == type(IsDescription)
                       and issubclass(description, IsDescription)):
             # IsDescription subclass case
             descr = description()
-            self.description = Description(descr.columns, ptparams=parentnode._v_file.params)
+            self.description = Description(descr.columns,
+                                           ptparams=parentnode._v_file.params)
         elif new and isinstance(description, Description):
             # It is a Description instance already
             self.description = description
@@ -786,9 +758,10 @@ class Table(tableextension.Table, Leaf):
         # No description yet?
         if new and self.description is None:
             # Try NumPy dtype instances
-            if isinstance(description, numpy.dtype):
-                self.description, self._rabyteorder = \
-                    descr_from_dtype(description, ptparams=parentnode._v_file.params)
+            if isinstance(description, np.dtype):
+                tup = descr_from_dtype(description,
+                                       ptparams=parentnode._v_file.params)
+                self.description, self._rabyteorder = tup
 
         # No description yet?
         if new and self.description is None:
@@ -799,7 +772,7 @@ class Table(tableextension.Table, Leaf):
                 pass
             else:
                 if flavor == 'python':
-                    nparray = numpy.rec.array(description)
+                    nparray = np.rec.array(description)
                 else:
                     nparray = array_as_internal(description, flavor)
                 self.nrows = nrows = SizeType(nparray.size)
@@ -807,8 +780,9 @@ class Table(tableextension.Table, Leaf):
                 # initial buffer.
                 if nrows > 0:
                     self._v_recarray = nparray
-                self.description, self._rabyteorder = \
-                    descr_from_dtype(nparray.dtype, ptparams=parentnode._v_file.params)
+                tup = descr_from_dtype(nparray.dtype,
+                                       ptparams=parentnode._v_file.params)
+                self.description, self._rabyteorder = tup
 
         # No description yet?
         if new and self.description is None:
@@ -819,7 +793,7 @@ class Table(tableextension.Table, Leaf):
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
-            if isinstance(chunkshape, (int, numpy.integer)):
+            if isinstance(chunkshape, (int, np.integer)):
                 chunkshape = (chunkshape,)
             try:
                 chunkshape = tuple(chunkshape)
@@ -832,8 +806,8 @@ class Table(tableextension.Table, Leaf):
                                  % (chunkshape,))
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
-        super(Table, self).__init__(parentnode, name, new, filters,
-                                    byteorder, _log, track_times)
+        super().__init__(parentnode, name, new, filters, byteorder, _log,
+                         track_times)
 
     def _g_post_init_hook(self):
         # We are putting here the index-related issues
@@ -843,7 +817,20 @@ class Table(tableextension.Table, Leaf):
         # First, get back the flavor of input data (if any) for
         # `Leaf._g_post_init_hook()`.
         self._flavor, self._descflavor = self._descflavor, None
-        super(Table, self)._g_post_init_hook()
+        super()._g_post_init_hook()
+
+        self.blosc2_support_write = (
+                (self.byteorder == sys.byteorder) and
+                (self.filters.complib != None) and
+                (self.filters.complib.startswith("blosc2")))
+        # For reading, Windows does not support re-opening a file twice
+        # in not read-only mode (for good reason), so we cannot use the
+        # blosc2 opt
+        self.blosc2_support_read = (
+                self.blosc2_support_write and
+                ((platform.system().lower() != 'windows') or
+                ((self._v_file.mode == 'r')))
+        )
 
         # Create a cols accessor.
         self.cols = Cols(self, self.description)
@@ -855,7 +842,7 @@ class Table(tableextension.Table, Leaf):
 
         if self._v_new:
             # Columns are never indexed on creation.
-            self.colindexed = dict((cpn, False) for cpn in self.colpathnames)
+            self.colindexed = {cpn: False for cpn in self.colpathnames}
             return
 
         # The following code is only for opened tables.
@@ -956,14 +943,15 @@ very small/large chunksize, you may want to increase/decrease it."""
             return self._empty_array_cache[key]
         else:
             self._empty_array_cache[
-                key] = arr = numpy.empty(shape=0, dtype=key)
+                key] = arr = np.empty(shape=0, dtype=key)
             return arr
 
     def _get_container(self, shape):
-        "Get the appropriate buffer for data depending on table nestedness."
+        """Get the appropriate buffer for data depending on table
+        nestedness."""
 
         # This is *much* faster than the numpy.rec.array counterpart
-        return numpy.empty(shape=shape, dtype=self._v_dtype)
+        return np.empty(shape=shape, dtype=self._v_dtype)
 
     def _get_type_col_names(self, type_):
         """Returns a list containing 'type_' column names."""
@@ -1051,7 +1039,8 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         # 2. Create an instance description to host the record fields.
         validate = not self._v_file._isPTFile  # only for non-PyTables files
-        self.description = Description(description, validate=validate, ptparams=self._v_file.params)
+        self.description = Description(description, validate=validate,
+                                       ptparams=self._v_file.params)
 
         # 3. Compute or get chunk shape and buffer size parameters.
         if chunksize == 0:
@@ -1147,7 +1136,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         try:
-            return _reduce(getattr, colpathname.split('/'), self.description)
+            return functools.reduce(
+                getattr, colpathname.split('/'), self.description)
         except AttributeError:
             raise KeyError("table ``%s`` does not have a column named ``%s``"
                            % (self._v_pathname, colpathname))
@@ -1209,12 +1199,12 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Protection against growing the cache too much
             if len(exprvarscache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
-                for k in list(exprvarscache.keys())[:10]:
+                for k in list(exprvarscache)[:10]:
                     del exprvarscache[k]
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [var for var in cexpr.co_names
                         if var not in ['None', 'False', 'True']
-                        and var not in numexpr_functions]
+                        and var not in ne.expressions.functions]
             exprvarscache[expression] = exprvars
         else:
             exprvars = exprvarscache[expression]
@@ -1278,9 +1268,9 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:  # only non-column values are converted to arrays
                 # XXX: not 100% sure about this
                 if isinstance(val, str):
-                    val = numpy.asarray(val.encode('ascii'))
+                    val = np.asarray(val.encode('ascii'))
                 else:
-                    val = numpy.asarray(val)
+                    val = np.asarray(val)
             reqvars[var] = val
         return reqvars
 
@@ -1304,7 +1294,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:  # array
                 try:
                     varnames.append(var)
-                    vartypes.append(numexpr_getType(val))  # expensive
+                    vartypes.append(ne.necompiler.getType(val))  # expensive
                 except ValueError:
                     # This is more clear than the error given by Numexpr.
                     raise TypeError("variable ``%s`` has data type ``%s``, "
@@ -1390,7 +1380,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def where(self, condition, condvars=None,
               start=None, stop=None, step=None):
-        """Iterate over values fulfilling a condition.
+        r"""Iterate over values fulfilling a condition.
 
         This method returns a Row iterator (see :ref:`RowClassDescr`) which
         only selects rows in the table that satisfy the given condition (an
@@ -1437,16 +1427,15 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         ::
 
-            >>> passvalues = [ row['col3'] for row in
-            ...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
-            ...                if your_function(row['col2']) ]
-            >>> print("Values that pass the cuts:", passvalues)
+            passvalues = [ row['col3'] for row in
+                           table.where('(col1 > 0) & (col2 <= 20)', step=5)
+                           if your_function(row['col2']) ]
+            print("Values that pass the cuts:", passvalues)
 
         .. note::
 
             A special care should be taken when the query condition includes
-            string literals.  Indeed Python 2 string literals are string of
-            bytes while Python 3 strings are unicode objects.
+            string literals.
 
             Let's assume that the table ``table`` has the following
             structure::
@@ -1456,22 +1445,20 @@ very small/large chunksize, you may want to increase/decrease it."""
                     col2 = IntCol()
                     col3 = FloatCol()
 
-            The type of "col1" do not change depending on the Python version
-            used (of course) and it always corresponds to strings of bytes.
+            The type of "col1" corresponds to strings of bytes.
 
             Any condition involving "col1" should be written using the
             appropriate type for string literals in order to avoid
             :exc:`TypeError`\ s.
 
-            The code below will work fine in Python 2 but will fail with a
-            :exc:`TypeError` in Python 3::
+            The code below will fail with a :exc:`TypeError`::
 
                 condition = 'col1 == "AAAA"'
                 for record in table.where(condition):  # TypeError in Python3
                     # do something with "record"
 
             The reason is that in Python 3 "condition" implies a comparison
-            between a string of bytes ("col1" contents) and an unicode literal
+            between a string of bytes ("col1" contents) and a unicode literal
             ("AAAA").
 
             The correct way to write the condition is::
@@ -1489,7 +1476,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """Low-level counterpart of `self.where()`."""
 
         if profile:
-            tref = time()
+            tref = clock()
         if profile:
             show_stats("Entering table._where", tref)
         # Adjust the slice to be used.
@@ -1507,7 +1494,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         if compiled.index_expressions:
             chunkmap = _table__where_indexed(
                 self, compiled, condition, condvars, start, stop, step)
-            if not isinstance(chunkmap, numpy.ndarray):
+            if not isinstance(chunkmap, np.ndarray):
                 # If it is not a NumPy array it should be an iterator
                 # Reset conditions
                 self._use_index = False
@@ -1545,8 +1532,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             cstart, cstop = coords[0], coords[-1] + 1
             if cstop - cstart == len(coords):
                 # Chances for monotonically increasing row values. Refine.
-                inc_seq = numpy.alltrue(
-                    numpy.arange(cstart, cstop) == numpy.array(coords))
+                inc_seq = np.all(np.arange(cstart, cstop) == np.array(coords))
                 if inc_seq:
                     return self.read(cstart, cstop, field=field)
         return self.read_coordinates(coords, field)
@@ -1607,19 +1593,19 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         coords = [p.nrow for p in
                   self._where(condition, condvars, start, stop, step)]
-        coords = numpy.array(coords, dtype=SizeType)
+        coords = np.array(coords, dtype=SizeType)
         # Reset the conditions
         self._where_condition = None
         if sort:
-            coords = numpy.sort(coords)
+            coords = np.sort(coords)
         return internal_to_flavor(coords, self.flavor)
 
     def itersequence(self, sequence):
         """Iterate over a sequence of row coordinates."""
 
         if not hasattr(sequence, '__getitem__'):
-            raise TypeError(("Wrong 'sequence' parameter type. Only sequences "
-                             "are suported."))
+            raise TypeError("Wrong 'sequence' parameter type. Only sequences "
+                            "are suported.")
         # start, stop and step are necessary for the new iterator for
         # coordinates, and perhaps it would be useful to add them as
         # parameters in the future (not now, because I've just removed
@@ -1795,8 +1781,8 @@ very small/large chunksize, you may want to increase/decrease it."""
                     select_field = field
                     field = None
                 else:
-                    raise KeyError(("Field {0} not found in table "
-                                    "{1}").format(field, self))
+                    raise KeyError(("Field {} not found in table "
+                                    "{}").format(field, self))
             else:
                 # The column hangs directly from the top
                 dtype_field = self.coldtypes[field]
@@ -1806,7 +1792,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             if field is None:
                 nra = self._get_container(0)
                 return nra
-            return numpy.empty(shape=0, dtype=dtype_field)
+            return np.empty(shape=0, dtype=dtype_field)
 
         nrows = len(range(start, stop, step))
 
@@ -1814,7 +1800,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             # Compute the shape of the resulting column object
             if field:
                 # Create a container for the results
-                result = numpy.empty(shape=nrows, dtype=dtype_field)
+                result = np.empty(shape=nrows, dtype=dtype_field)
             else:
                 # Recarray case
                 result = self._get_container(nrows)
@@ -1822,16 +1808,15 @@ very small/large chunksize, you may want to increase/decrease it."""
             # there is no fast way to byteswap, since different columns may
             # have different byteorders
             if not out.dtype.isnative:
-                raise ValueError(("output array must be in system's byteorder "
-                                  "or results will be incorrect"))
+                raise ValueError("output array must be in system's byteorder "
+                                 "or results will be incorrect")
             if field:
                 bytes_required = dtype_field.itemsize * nrows
             else:
                 bytes_required = self.rowsize * nrows
             if bytes_required != out.nbytes:
-                raise ValueError(('output array size invalid, got {0} bytes, '
-                                  'need {1} bytes').format(out.nbytes,
-                                                           bytes_required))
+                raise ValueError(f'output array size invalid, got {out.nbytes}'
+                                 f' bytes, need {bytes_required} bytes')
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
             result = out
@@ -1920,7 +1905,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         if out is not None and self.flavor != 'numpy':
             msg = ("Optional 'out' argument may only be supplied if array "
-                   "flavor is 'numpy', currently is {0}").format(self.flavor)
+                   "flavor is 'numpy', currently is {}").format(self.flavor)
             raise TypeError(msg)
 
         start, stop, step = self._process_range(start, stop, step,
@@ -1946,12 +1931,12 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Do the real read
         if ncoords > 0:
             # Turn coords into an array of coordinate indexes, if necessary
-            if not (isinstance(coords, numpy.ndarray) and
+            if not (isinstance(coords, np.ndarray) and
                     coords.dtype.type is _npsizetype and
                     coords.flags.contiguous and
                     coords.flags.aligned):
                 # Get a contiguous and aligned coordinate array
-                coords = numpy.array(coords, dtype=SizeType)
+                coords = np.array(coords, dtype=SizeType)
             self._read_elements(coords, result)
 
         # Do the final conversions, if needed
@@ -2077,10 +2062,10 @@ very small/large chunksize, you may want to increase/decrease it."""
                 key.start, key.stop, key.step)
             return self.read(start, stop, step)
         # Try with a boolean or point selection
-        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+        elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
             return self._read_coordinates(key, None)
         else:
-            raise IndexError("Invalid index or slice: %r" % (key,))
+            raise IndexError(f"Invalid index or slice: {key!r}")
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in the table.
@@ -2108,8 +2093,9 @@ very small/large chunksize, you may want to increase/decrease it."""
             table[2] = [456,'db2',1.2]
 
             # Modify two existing rows
-            rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
-                                   formats='i4,a3,f8')
+            rows = np.rec.array(
+                [[457,'db1',1.2],[6,'de2',1.3]], formats='i4,a3,f8'
+            )
             table[1:30:2] = rows             # modify a table slice
             table[[1,3]] = rows              # only modifies rows 1 and 3
             table[[True,False,True]] = rows  # only modifies rows 0 and 2
@@ -2117,8 +2103,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         Which is equivalent to::
 
             table.modify_rows(start=2, rows=[456,'db2',1.2])
-            rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
-                                   formats='i4,a3,f8')
+            rows = np.rec.array(
+                [[457,'db1',1.2],[6,'de2',1.3]], formats='i4,a3,f8'
+            )
             table.modify_rows(start=1, stop=3, step=2, rows=rows)
             table.modify_coordinates([1,3,2], rows)
             table.modify_coordinates([True, False, True], rows)
@@ -2147,10 +2134,10 @@ very small/large chunksize, you may want to increase/decrease it."""
                 key.start, key.stop, key.step)
             return self.modify_rows(start, stop, step, value)
         # Try with a boolean or point selection
-        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+        elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
             return self.modify_coordinates(key, value)
         else:
-            raise IndexError("Invalid index or slice: %r" % (key,))
+            raise IndexError(f"Invalid index or slice: {key!r}")
 
     def _save_buffered_rows(self, wbufRA, lenrows):
         """Update the indexes after a flushing of rows."""
@@ -2211,18 +2198,25 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise HDF5ExtError(
                 "You cannot append rows to a non-chunked table.", h5bt=False)
 
-        # Try to convert the object into a recarray compliant with table
-        try:
-            iflavor = flavor_of(rows)
-            if iflavor != 'python':
-                rows = array_as_internal(rows, iflavor)
-            # Works for Python structures and always copies the original,
-            # so the resulting object is safe for in-place conversion.
-            wbufRA = numpy.rec.array(rows, dtype=self._v_dtype)
-        except Exception as exc:  # XXX
-            raise ValueError("rows parameter cannot be converted into a "
-                             "recarray object compliant with table '%s'. "
-                             "The error was: <%s>" % (str(self), exc))
+        if (hasattr(rows, "dtype") and
+                not self.description._v_is_nested and
+                rows.dtype == self.dtype):
+            # Shortcut for compliant arrays
+            # (for some reason, not valid for nested types)
+            wbufRA = rows
+        else:
+            # Try to convert the object into a recarray compliant with table
+            try:
+                iflavor = flavor_of(rows)
+                if iflavor != 'python':
+                    rows = array_as_internal(rows, iflavor)
+                # Works for Python structures and always copies the original,
+                # so the resulting object is safe for in-place conversion.
+                wbufRA = np.rec.array(rows, dtype=self._v_dtype)
+            except Exception as exc:  # XXX
+                raise ValueError("rows parameter cannot be converted into a "
+                                 "recarray object compliant with table '%s'. "
+                                 "The error was: <%s>" % (str(self), exc))
         lenrows = wbufRA.shape[0]
         # If the number of rows to append is zero, don't do anything else
         if lenrows > 0:
@@ -2241,11 +2235,11 @@ very small/large chunksize, you may want to increase/decrease it."""
                 # See http://projects.scipy.org/scipy/numpy/ticket/315
                 # for discussion on how to pass buffers to constructors
                 # See also http://projects.scipy.org/scipy/numpy/ticket/348
-                recarr = numpy.array([obj], dtype=self._v_dtype)
+                recarr = np.array([obj], dtype=self._v_dtype)
             else:
                 # Works for Python structures and always copies the original,
                 # so the resulting object is safe for in-place conversion.
-                recarr = numpy.rec.array(obj, dtype=self._v_dtype)
+                recarr = np.rec.array(obj, dtype=self._v_dtype)
         except Exception as exc:  # XXX
             raise ValueError("Object cannot be converted into a recarray "
                              "object compliant with table format '%s'. "
@@ -2383,7 +2377,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         try:
             # If the column is a recarray (or kind of), convert into ndarray
             if hasattr(column, 'dtype') and column.dtype.kind == 'V':
-                column = numpy.rec.array(column, dtype=descr).field(0)
+                column = np.rec.array(column, dtype=descr).field(0)
             else:
                 # Make sure the result is always a *copy* of the original,
                 # so the resulting object is safe for in-place conversion.
@@ -2453,8 +2447,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         if start < 0:
             raise ValueError("'start' must have a positive value.")
         if step < 1:
-            raise ValueError(("'step' must have a value greater or "
-                              "equal than 1."))
+            raise ValueError("'step' must have a value greater or "
+                             "equal than 1.")
         descr = []
         for colname in names:
             objcol = self._get_column_instance(colname)
@@ -2467,9 +2461,9 @@ very small/large chunksize, you may want to increase/decrease it."""
             iflavor = flavor_of(columns)
             if iflavor != 'python':
                 columns = array_as_internal(columns, iflavor)
-                recarray = numpy.rec.array(columns, dtype=descr)
+                recarray = np.rec.array(columns, dtype=descr)
             else:
-                recarray = numpy.rec.fromarrays(columns, dtype=descr)
+                recarray = np.rec.fromarrays(columns, dtype=descr)
         except Exception as exc:  # XXX
             raise ValueError("columns parameter cannot be converted into a "
                              "recarray object compliant with table '%s'. "
@@ -2642,7 +2636,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         self.remove_rows(start=n, stop=n + 1)
 
     def _g_update_dependent(self):
-        super(Table, self)._g_update_dependent()
+        super()._g_update_dependent()
 
         # Update the new path in columns
         self.cols._g_update_table_location(self)
@@ -2661,7 +2655,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         itgpathname = _index_pathname_of(self)
 
         # First, move the table to the new location.
-        super(Table, self)._g_move(newparent, newname)
+        super()._g_move(newparent, newname)
 
         # Then move the associated index group (if any).
         try:
@@ -2685,7 +2679,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             self.indexed = False   # there are indexes no more
 
         # Remove the leaf itself from the hierarchy.
-        super(Table, self)._g_remove(recursive, force)
+        super()._g_remove(recursive, force)
 
     def _set_column_indexing(self, colpathname, indexed):
         """Mark the referred column as indexed or non-indexed."""
@@ -2769,7 +2763,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._do_reindex(dirty=True)
 
     def _g_copy_rows(self, object, start, stop, step, sortby, checkCSI):
-        "Copy rows from self to object"
+        """Copy rows from self to object"""
         if sortby is None:
             self._g_copy_rows_optim(object, start, stop, step)
             return
@@ -2884,28 +2878,29 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         """
 
-        return super(Table, self).copy(
+        return super().copy(
             newparent, newname, overwrite, createparents, **kwargs)
 
     def flush(self):
         """Flush the table buffers."""
 
-        # Flush rows that remains to be appended
-        if 'row' in self.__dict__:
-            self.row._flush_buffered_rows()
-        if self.indexed and self.autoindex:
-            # Flush any unindexed row
-            rowsadded = self.flush_rows_to_index(_lastrow=True)
-            assert rowsadded <= 0 or self._indexedrows == self.nrows, \
-                ("internal error: the number of indexed rows (%d) "
-                 "and rows in the table (%d) is not equal; "
-                 "please report this to the authors."
-                 % (self._indexedrows, self.nrows))
-            if self._dirtyindexes:
-                # Finally, re-index any dirty column
-                self.reindex_dirty()
+        if self._v_file._iswritable():
+            # Flush rows that remains to be appended
+            if 'row' in self.__dict__:
+                self.row._flush_buffered_rows()
+            if self.indexed and self.autoindex:
+                # Flush any unindexed row
+                rowsadded = self.flush_rows_to_index(_lastrow=True)
+                assert rowsadded <= 0 or self._indexedrows == self.nrows, \
+                    ("internal error: the number of indexed rows (%d) "
+                     "and rows in the table (%d) is not equal; "
+                     "please report this to the authors."
+                     % (self._indexedrows, self.nrows))
+                if self._dirtyindexes:
+                    # Finally, re-index any dirty column
+                    self.reindex_dirty()
 
-        super(Table, self).flush()
+        super().flush()
 
     def _g_pre_kill_hook(self):
         """Code to be called before killing the node."""
@@ -2969,8 +2964,11 @@ very small/large chunksize, you may want to increase/decrease it."""
         if cols is not None:
             cols._g_close()
 
+        # Clean address cache
+        self._clean_chunk_addrs()
+
         # Close myself as a leaf.
-        super(Table, self)._f_close(False)
+        super()._f_close(False)
 
     def __repr__(self):
         """This provides column metainfo in addition to standard __str__"""
@@ -2995,7 +2993,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 (str(self), self.description, self.byteorder, self.chunkshape)
 
 
-class Cols(object):
+class Cols:
     """Container for columns in a table or nested column.
 
     This class is used as an *accessor* to the columns in a table or nested
@@ -3038,7 +3036,7 @@ class Cols(object):
 
     @property
     def _v_table(self):
-        "The parent Table instance (see :ref:`TableClassDescr`)."
+        """The parent Table instance (see :ref:`TableClassDescr`)."""
         return self._v__tableFile._get_node(self._v__tablePath)
 
     def __init__(self, table, desc):
@@ -3134,7 +3132,6 @@ class Cols(object):
         be used as shorthands for the :meth:`Table.read` method.
 
         """
-
         table = self._v_table
         nrows = table.nrows
         if is_idx(key):
@@ -3166,7 +3163,7 @@ class Cols(object):
                 else:
                     return get_nested_field(crecarray, colgroup)  # numpy case
         else:
-            raise TypeError("invalid index or slice: %r" % (key,))
+            raise TypeError(f"invalid index or slice: {key!r}")
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in a table or nested column.
@@ -3210,7 +3207,7 @@ class Cols(object):
             (start, stop, step) = table._process_range(
                 key.start, key.stop, key.step)
         else:
-            raise TypeError("invalid index or slice: %r" % (key,))
+            raise TypeError(f"invalid index or slice: {key!r}")
 
         # Actually modify the correct columns
         colgroup = self._v_desc._v_pathname
@@ -3237,21 +3234,17 @@ class Cols(object):
         """The string representation for this object."""
 
         # The pathname
-        tablepathname = self._v__tablePath
         descpathname = self._v_desc._v_pathname
         if descpathname:
             descpathname = "." + descpathname
-        # Get this class name
-        classname = self.__class__.__name__
-        # The number of columns
-        ncols = len(self._v_colnames)
-        return "%s.cols%s (%s), %s columns" % \
-               (tablepathname, descpathname, classname, ncols)
+        return (f"{self._v__tablePath}.cols{descpathname} "
+                f"({self.__class__.__name__}), "
+                f"{len(self._v_colnames)} columns")
 
     def __repr__(self):
         """A detailed string representation for this object."""
 
-        out = str(self) + "\n"
+        lines = [f'{self!s}']
         for name in self._v_colnames:
             # Get this class name
             classname = getattr(self, name).__class__.__name__
@@ -3265,11 +3258,11 @@ class Cols(object):
                 tcol = "Description"
                 # Description doesn't have a shape currently
                 shape = ()
-            out += "  %s (%s%s, %s)" % (name, classname, shape, tcol) + "\n"
-        return out
+            lines.append(f"  {name} ({classname}{shape}, {tcol})")
+        return '\n'.join(lines) + '\n'
 
 
-class Column(object):
+class Column:
     """Accessor for a non-nested column in a table.
 
     Each instance of this class is associated with one *non-nested* column of a
@@ -3294,6 +3287,10 @@ class Column(object):
         The complete pathname of the associated column (the same as
         Column.name if the column is not inside a nested column).
 
+    .. attribute:: attrs
+
+        Column attributes (see :ref:`ColClassDescr`).
+
     Parameters
     ----------
     table
@@ -3305,8 +3302,6 @@ class Column(object):
 
     """
 
-    # Lazy read-only attributes
-    # `````````````````````````
     @lazyattr
     def dtype(self):
         """The NumPy dtype that most closely matches this column."""
@@ -3318,9 +3313,6 @@ class Column(object):
         """The PyTables type of the column (a string)."""
 
         return self.descr._v_types[self.name]
-
-    # Properties
-    # ~~~~~~~~~~
 
     @property
     def table(self):
@@ -3344,12 +3336,12 @@ class Column(object):
 
     @property
     def shape(self):
-        "The shape of this column."
+        """The shape of this column."""
         return (self.table.nrows,) + self.descr._v_dtypes[self.name].shape
 
     @property
     def is_indexed(self):
-        "True if the column is indexed, false otherwise."
+        """True if the column is indexed, false otherwise."""
         if self.index is None:
             return False
         else:
@@ -3372,6 +3364,7 @@ class Column(object):
         self.descr = descr
         """The Description (see :ref:`DescriptionClassDescr`) instance of the
         parent table or nested column."""
+        self._v_attrs = ColumnAttributeSet(self)
 
     def _g_update_table_location(self, table):
         """Updates the location information about the associated `table`."""
@@ -3464,15 +3457,14 @@ class Column(object):
         table = self.table
         itemsize = self.dtype.itemsize
         nrowsinbuf = table._v_file.params['IO_BUFFER_SIZE'] // itemsize
-        buf = numpy.empty((nrowsinbuf, ), self._itemtype)
+        buf = np.empty((nrowsinbuf, ), self._itemtype)
         max_row = len(self)
         for start_row in range(0, len(self), nrowsinbuf):
             end_row = min(start_row + nrowsinbuf, max_row)
             buf_slice = buf[0:end_row - start_row]
             table.read(start_row, end_row, 1, field=self.pathname,
                        out=buf_slice)
-            for row in buf_slice:
-                yield row
+            yield from buf_slice
 
     def __setitem__(self, key, value):
         """Set a row or a range of rows in a column.
@@ -3498,7 +3490,7 @@ class Column(object):
             table.modify_columns(start=1, columns=[[-1]], names=['col1'])
 
             # Modify rows 1 and 3
-            columns = numpy.rec.fromarrays([[2,3]], formats='i4')
+            columns = np.rec.fromarrays([[2,3]], formats='i4')
             table.modify_columns(start=1, step=2, columns=columns,
                                  names=['col1'])
 
@@ -3589,11 +3581,12 @@ class Column(object):
         if filters is None:
             filters = default_index_filters
         if tmp_dir is None:
-            tmp_dir = os.path.dirname(self._table_file.filename)
+            tmp_dir = str(Path(self._table_file.filename).parent)
         else:
-            if not os.path.isdir(tmp_dir):
-                raise ValueError("Temporary directory '%s' does not exist" %
-                                 tmp_dir)
+            if not Path(tmp_dir).is_dir():
+                raise ValueError(
+                    f"Temporary directory '{tmp_dir}' does not exist"
+                )
         if (_blocksizes is not None and
                 (not isinstance(_blocksizes, tuple) or len(_blocksizes) != 4)):
             raise ValueError("_blocksizes must be a tuple with exactly 4 "
@@ -3701,27 +3694,148 @@ class Column(object):
     def __str__(self):
         """The string representation for this object."""
 
-        # The pathname
-        tablepathname = self._table_path
-        pathname = self.pathname.replace('/', '.')
-        # Get this class name
-        classname = self.__class__.__name__
-        # The shape for this column
-        shape = self.shape
-        # The type
-        tcol = self.descr._v_types[self.name]
-        return "%s.cols.%s (%s%s, %s, idx=%s)" % \
-               (tablepathname, pathname, classname, shape, tcol, self.index)
+        return (f"{self._table_path}.cols.{self.pathname.replace('/', '.')} "
+                f"({self.__class__.__name__}{self.shape}, "
+                f"{self.descr._v_types[self.name]}, idx={self.index})")
 
     def __repr__(self):
         """A detailed string representation for this object."""
 
         return str(self)
 
+    @lazyattr
+    def _v_pos(self):
+        return self.descr._v_colobjects[self.name]._v_pos
 
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:
+    @lazyattr
+    def _v_col_attrs(self):
+        return self.descr._v_colobjects[self.name]._v_col_attrs
+
+    @property
+    def attrs(self):
+        return self._v_attrs
+
+
+class ColumnAttributeSet:
+
+    def __init__(self, column):
+
+        self.__dict__['_v_tableattrs'] = column.table.attrs
+        self.__dict__['_v_fieldindex'] = column._v_pos
+        self.__dict__['_v_column_reference'] = weakref.ref(column)
+
+        # Check if this column has _v_col_attrs set and translate them into
+        # the table attribute format
+        for col_attr_key, col_attr_val in column._v_col_attrs.items():
+            self.__setitem__(col_attr_key, col_attr_val)
+
+    def issystemcolumnname(self, key):
+        """Checks whether a key is a reserved attribute name, or should be passed through."""
+        return key in ['_v_tableattrs', '_v_fieldindex', '_v_column_reference']
+
+    def _prefix(self, string):
+        """Prefixes a key with a special pattern for storing with table attributes"""
+        field_index = self.__dict__['_v_fieldindex']
+        return 'FIELD_%i_ATTR_%s' % (field_index, string)
+
+    def __getattr__(self, key):
+        """Retrieves a PyTables attribute for this column"""
+        if not self.issystemcolumnname(key):
+            return getattr(self._v_tableattrs, self._prefix(key))
+        else:
+            return super().__getattr__(key)
+
+    def __setattr__(self, key, val):
+        """Sets a PyTables attribute for this column"""
+        if not self.issystemcolumnname(key):
+            setattr(self._v_tableattrs, self._prefix(key), val)
+        else:
+            return super().__setattr__(key, val)
+
+    def __getitem__(self, key):
+        """A dictionary-like interface for __getattr__"""
+        if not self.issystemcolumnname(key):
+            return self._v_tableattrs[self._prefix(key)]
+        else:
+            return self[key]
+
+    def __setitem__(self, key, value):
+        """A dictionary-like interface for __setattr__"""
+        if not self.issystemcolumnname(key):
+            self._v_tableattrs[self._prefix(key)] = value
+        else:
+            self[key] = value
+
+    def __delattr__(self, key):
+        """Deletes the attribute for this column"""
+        if self.issystemcolumnname(key):
+            raise TypeError('Deleting system attributes is prohibited')
+        else:
+            delattr(self._v_tableattrs, self._prefix(key))
+
+    def __delitem__(self, key):
+        """A dictionary-like interface for __delattr__"""
+        if self.issystemcolumnname(key):
+            raise TypeError('Deleting system attributes is prohibited')
+        else:
+            del self._v_tableattrs[self._prefix(key)]
+
+    def _f_rename(self, oldattrname, newattrname):
+        """Rename an attribute from oldattrname to newattrname."""
+
+        if oldattrname == newattrname:
+            # Do nothing
+            return
+
+        if self.issystemcolumnname(oldattrname):
+            raise TypeError('Renaming system attributes is prohibited')
+
+        # First, fetch the value of the oldattrname
+        attrvalue = getattr(self, oldattrname)
+
+        # Now, create the new attribute
+        setattr(self, newattrname, attrvalue)
+
+        # Finally, remove the old attribute
+        delattr(self, oldattrname)
+
+    def _f_copy(self, where):
+        """Copy attributes to another column"""
+
+        # Is there a better way to do this?
+        if not isinstance(where, Column):
+            raise TypeError(f"destination object is not a column: {where!r}")
+
+        for key in self.keys():
+            where.attrs[key] = self[key]
+
+    def keys(self):
+        """Returns the list of attributes for this column"""
+        col_prefix = self._prefix('')
+        length = len(col_prefix)
+        return [key[length:] for key in self._v_tableattrs._v_attrnames if key.startswith(col_prefix)]
+
+    def contains(self, key):
+        """Returns whether a key is in the attribute set"""
+        return key in self.keys()
+
+    def __str__(self):
+        """The string representation for this object."""
+
+        pathname = self._v_tableattrs._v__nodepath
+        classname = self._v_column_reference().__class__.__name__  # self._v_tableattrs._v_node.__class__.__name__
+        attrnumber = sum(1 for _ in self.keys())
+        columnname = self._v_column_reference().name
+
+        return f"{pathname}.cols.{columnname}._v_attrs ({classname}), {attrnumber} attributes"
+
+    def __repr__(self):
+        """A detailed string representation for this object."""
+
+        # print additional info only if there are attributes to show
+        attrnames = self.keys()
+        if attrnames:
+            rep = [f'{attr} := {getattr(self, attr)!r}' for attr in attrnames]
+            return f"{self!s}:\n   [" + ',\n    '.join(rep) + "]"
+        else:
+            return str(self)

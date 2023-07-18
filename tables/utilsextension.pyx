@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ########################################################################
 #
 # License: BSD
@@ -22,29 +20,44 @@ try:
 except ImportError:
   zlib_imported = False
 
-import numpy
+import numpy as np
 
-from tables.description import Description, Col
-from tables.misc.enum import Enum
-from tables.exceptions import HDF5ExtError
-from tables.atom import Atom, EnumAtom, ReferenceAtom
+from .description import Description, Col
+from .misc.enum import Enum
+from .exceptions import HDF5ExtError
+from .atom import Atom, EnumAtom, ReferenceAtom
 
-from tables.utils import check_file_access
+from .utils import check_file_access
 
-from cpython cimport PY_MAJOR_VERSION
 from libc.stdio cimport stderr
 from libc.stdlib cimport malloc, free
 from libc.string cimport strchr, strcmp, strncmp, strlen
 from cpython.bytes cimport PyBytes_Check, PyBytes_FromStringAndSize
 from cpython.unicode cimport PyUnicode_DecodeUTF8, PyUnicode_Check
 
+# Functions from Blosc
+cdef extern from "blosc.h" nogil:
+  void blosc_init()
+  int blosc_set_nthreads(int nthreads)
+  const char* blosc_list_compressors()
+  int blosc_compcode_to_compname(int compcode, char **compname)
+  int blosc_get_complib_info(char *compname, char **complib, char **version)
+
+# Functions from Blosc2
+cdef extern from "blosc2.h" nogil:
+  void blosc2_init()
+  int blosc2_set_nthreads(int nthreads)
+  const char* blosc2_list_compressors()
+  int blosc2_compcode_to_compname(int compcode, char **compname)
+  int blosc2_get_complib_info(char *compname, char **complib, char **version)
+
 from numpy cimport (import_array, ndarray, dtype,
-  npy_int64, PyArray_GETPTR1, PyArray_DescrFromType, npy_intp,
+  npy_int64, PyArray_DATA, PyArray_GETPTR1, PyArray_DescrFromType, npy_intp,
   NPY_BOOL, NPY_STRING, NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64,
   NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, NPY_FLOAT16, NPY_FLOAT32,
   NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128)
 
-from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
+from .definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   H5ATTRfind_attribute, H5ATTRget_attribute_string, H5D_CHUNKED,
   H5D_layout_t, H5Dclose, H5Dget_type, H5Dopen, H5E_DEFAULT,
   H5E_WALK_DOWNWARD, H5E_auto_t, H5E_error_t, H5E_walk_t, H5Eget_msg,
@@ -67,11 +80,11 @@ from definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   H5Tget_member_offset,
   H5Tget_precision, H5Tget_sign, H5Tget_size, H5Tget_super, H5Tinsert,
   H5Tis_variable_str, H5Tpack, H5Tset_precision, H5Tset_size, H5Tvlen_create,
-  H5Zunregister, FILTER_BLOSC,
+  H5Zunregister, FILTER_BLOSC, FILTER_BLOSC2,
   PyArray_Scalar, create_ieee_complex128, create_ieee_complex64,
   create_ieee_float16, create_ieee_complex192, create_ieee_complex256,
   get_len_of_range, get_order, herr_t, hid_t, hsize_t,
-  hssize_t, htri_t, is_complex, register_blosc, set_order,
+  hssize_t, htri_t, is_complex, register_blosc, register_blosc2, set_order,
   pt_H5free_memory, H5T_STD_REF_OBJ, H5Rdereference, H5R_OBJECT, H5I_DATASET, H5I_REFERENCE,
   H5Iget_type, hobj_ref_t, H5Oclose)
 
@@ -166,8 +179,8 @@ NPExtPrefixesToPTKinds = npext_prefixes_to_ptkinds
 HDF5ClassToString = hdf5_class_to_string
 
 
-from numpy import typeDict
-cdef int have_float16 = ("float16" in typeDict)
+from numpy import sctypeDict
+cdef int have_float16 = ("float16" in sctypeDict)
 
 
 #----------------------------------------------------------------------
@@ -179,7 +192,6 @@ cdef int have_float16 = ("float16" in typeDict)
 cdef extern from "utils.h":
 
   int getLibrary(char *libname) nogil
-  object _getTablesVersion()
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
   object get_filter_names( hid_t loc_id, char *dset_name)
@@ -188,14 +200,6 @@ cdef extern from "utils.h":
                              hid_t *type_id, hid_t *dataset_id) nogil
 
 
-# Functions from Blosc
-cdef extern from "blosc.h" nogil:
-  void blosc_init()
-  int blosc_set_nthreads(int nthreads)
-  char* blosc_list_compressors()
-  int blosc_compcode_to_compname(int compcode, char **compname)
-  int blosc_get_complib_info(char *compname, char **complib, char **version)
-
 cdef extern from "H5ARRAY.h" nogil:
   herr_t H5ARRAYread(hid_t dataset_id, hid_t type_id,
                      hsize_t start, hsize_t nrows, hsize_t step,
@@ -203,13 +207,9 @@ cdef extern from "H5ARRAY.h" nogil:
 
 # @TODO: use the c_string_type and c_string_encoding global directives
 #        (new in cython 0.19)
+# TODO: drop
 cdef str cstr_to_pystr(const char* cstring):
-  if PY_MAJOR_VERSION > 2:
-    pystring = PyUnicode_DecodeUTF8(cstring, strlen(cstring), NULL)
-  else:
-    pystring = bytes(<char*>cstring)
-
-  return pystring
+  return cstring.decode('utf-8')
 
 
 #----------------------------------------------------------------------
@@ -220,7 +220,7 @@ cdef str cstr_to_pystr(const char* cstring):
 import_array()
 
 # NaN-aware sorting with NaN as the greatest element
-# numpy.isNaN only takes floats, this should work for strings too
+# numpy.isnan only takes floats, this should work for strings too
 cpdef nan_aware_lt(a, b): return a < b or (b != b and a == a)
 cpdef nan_aware_le(a, b): return a <= b or b != b
 cpdef nan_aware_gt(a, b): return a > b or (a != a and b == b)
@@ -239,7 +239,7 @@ def bisect_left(a, x, int lo=0):
 
   lo = 0
   while lo < hi:
-    mid = (lo+hi)/2
+    mid = (lo+hi)//2
     if nan_aware_lt(a[mid], x): lo = mid+1
     else: hi = mid
   return lo
@@ -257,7 +257,7 @@ def bisect_right(a, x, int lo=0):
 
   lo = 0
   while lo < hi:
-    mid = (lo+hi)/2
+    mid = (lo+hi)//2
     if nan_aware_lt(x, a[mid]): hi = mid
     else: lo = mid+1
   return lo
@@ -274,88 +274,77 @@ cdef register_blosc_():
 
 blosc_version = register_blosc_()
 
-# Old versions (<1.4) of the blosc compression library
-# rely on unaligned memory access, so they are not functional on some
-# platforms (see https://github.com/FrancescAlted/blosc/issues/3 and
-# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=661286).
-# This function has been written by Julian Taylor <jtaylor@ubuntu.com>.
-def _arch_without_blosc():
-  import platform
-  arch = platform.machine().lower()
-  for a in ("arm", "sparc", "mips", "aarch64"):
-    if a in arch:
-      return True
-  return False
+cdef register_blosc2_():
+  cdef char *version
+  cdef char *date
 
-if blosc_version and blosc_version < ('1', '4') and _arch_without_blosc():
-  # Only use bloc compressor on platforms that actually support it.
-  H5Zunregister(FILTER_BLOSC)
-  blosc_version = None
-else:
-  blosc_init()  # from 1.2 on, Blosc library must be initialized
+  register_blosc2(&version, &date)
+  compinfo = (version, date)
+  free(version)
+  free(date)
+  return compinfo[0].decode('ascii'), compinfo[1].decode('ascii')
 
+blosc2_version = register_blosc2_()
+
+blosc_init()  # from 1.2 on, Blosc library must be initialized
+blosc2_init()
 
 # Important: Blosc calls that modifies global variables in Blosc must be
 # called from the same extension where Blosc is registered in HDF5.
 def set_blosc_max_threads(nthreads):
-  """set_blosc_max_threads(nthreads)
+    """set_blosc_max_threads(nthreads)
 
-  Set the maximum number of threads that Blosc can use.
+    Set the maximum number of threads that Blosc can use.
 
-  This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
-  setting in :mod:`tables.parameters`, so the new value will be effective until
-  this function is called again or a new file with a different
-  :data:`tables.parameters.MAX_BLOSC_THREADS` value is specified.
+    This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
+    setting in :mod:`tables.parameters`, so the new value will be effective until
+    this function is called again or a new file with a different
+    :data:`tables.parameters.MAX_BLOSC_THREADS` value is specified.
 
-  Returns the previous setting for maximum threads.
-
-  """
-
-  return blosc_set_nthreads(nthreads)
+    Returns the previous setting for maximum threads.
+    """
+    return blosc_set_nthreads(nthreads)
 
 
+# Important: Blosc2 calls that modifies global variables in Blosc2 must be
+# called from the same extension where Blosc2 is registered in HDF5.
+def set_blosc2_max_threads(nthreads):
+    """set_blosc2_max_threads(nthreads)
+
+    Set the maximum number of threads that Blosc2 can use.
+
+    This actually overrides the :data:`tables.parameters.MAX_BLOSC_THREADS`
+    setting in :mod:`tables.parameters`, so the new value will be effective until
+    this function is called again or a new file with a different
+    :data:`tables.parameters.MAX_BLOSC_THREADS` value is specified.
+
+    Returns the previous setting for maximum threads.
+    """
+    return blosc2_set_nthreads(nthreads)
 
 
-if sys.platform == "win32":
-  # We need a different approach in Windows, because it complains when
-  # trying to import the extension that is linked with a dynamic library
-  # that is not installed in the system.
+# Initialize & register lzo
+try:
+  import tables._comp_lzo
+  lzo_version = tables._comp_lzo.register_()
+  lzo_version = lzo_version if lzo_version else None
+except ImportError:
+  lzo_version = None
 
-  # Initialize & register lzo
-  if getLibrary("lzo2") == 0 or getLibrary("lzo1") == 0:
-    import tables._comp_lzo
-    lzo_version = tables._comp_lzo.register_()
-  else:
-    lzo_version = None
-
-  # Initialize & register bzip2
-  if getLibrary("bzip2") == 0 or getLibrary("libbz2") == 0:
-    import tables._comp_bzip2
-    bzip2_version = tables._comp_bzip2.register_()
-  else:
-    bzip2_version = None
-
-else:  # Unix systems
-  # Initialize & register lzo
-  try:
-    import tables._comp_lzo
-    lzo_version = tables._comp_lzo.register_()
-  except ImportError:
-    lzo_version = None
-
-  # Initialize & register bzip2
-  try:
-    import tables._comp_bzip2
-    bzip2_version = tables._comp_bzip2.register_()
-  except ImportError:
-    bzip2_version = None
+# Initialize & register bzip2
+try:
+  import tables._comp_bzip2
+  bzip2_version = tables._comp_bzip2.register_()
+  bzip2_version = bzip2_version if bzip2_version else None
+except ImportError:
+  bzip2_version = None
 
 
 # End of initialization code
 #---------------------------------------------------------------------
 
 # Error handling helpers
-cdef herr_t e_walk_cb(unsigned n, const H5E_error_t *err, void *data) with gil:
+cdef herr_t e_walk_cb(unsigned n, const H5E_error_t *err, void *data) noexcept with gil:
     cdef object bt = <object>data   # list
     #cdef char major_msg[256]
     #cdef char minor_msg[256]
@@ -401,7 +390,7 @@ def _dump_h5_backtrace():
 # Initialization of the _dump_h5_backtrace method of HDF5ExtError.
 # The unusual machinery is needed in order to avoid cirdular dependencies
 # between modules.
-HDF5ExtError._dump_h5_backtrace = _dump_h5_backtrace
+HDF5ExtError._dump_h5_backtrace = staticmethod(_dump_h5_backtrace)
 
 
 def silence_hdf5_messages(silence=True):
@@ -539,7 +528,7 @@ def encode_filename(object filename):
   if hasattr(os, 'fspath'):
     filename = os.fspath(filename)
 
-  if isinstance(filename, (unicode, numpy.str_)):
+  if isinstance(filename, (unicode, np.str_)):
 #  if type(filename) is unicode:
     encoding = sys.getfilesystemencoding()
     encname = filename.encode(encoding, 'replace')
@@ -600,9 +589,7 @@ def is_pytables_file(object filename):
     H5Fclose(file_id)
 
     # system attributes should always be str
-    if PY_MAJOR_VERSION < 3 and PyUnicode_Check(isptf):
-        isptf = isptf.encode()
-    elif PY_MAJOR_VERSION > 2 and PyBytes_Check(isptf):
+    if PyBytes_Check(isptf):
         isptf = isptf.decode('utf-8')
 
   return isptf
@@ -614,15 +601,6 @@ def get_hdf5_version():
   """Get the underlying HDF5 library version"""
 
   return getHDF5VersionInfo()[1]
-
-
-
-
-def get_pytables_version():
-  """Return this extension version."""
-
-  return _getTablesVersion()
-
 
 
 def which_lib_version(str name):
@@ -647,7 +625,7 @@ def which_lib_version(str name):
   # get the C pointer
   cname = encoded_name
 
-  libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc')
+  libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc', 'blosc2')
 
   if strcmp(cname, "hdf5") == 0:
     binver, strver = getHDF5VersionInfo()
@@ -663,6 +641,10 @@ def which_lib_version(str name):
     if bzip2_version:
       (bzip2_version_string, bzip2_version_date) = bzip2_version
       return (bzip2_version, bzip2_version_string, bzip2_version_date)
+  elif strncmp(cname, "blosc2", 6) == 0:
+    if blosc2_version:
+      (blosc2_version_string, blosc2_version_date) = blosc2_version
+      return (blosc2_version, blosc2_version_string, blosc2_version_date)
   elif strncmp(cname, "blosc", 5) == 0:
     if blosc_version:
       (blosc_version_string, blosc_version_date) = blosc_version
@@ -677,11 +659,9 @@ def which_lib_version(str name):
 
 
 
-# A function returning all the compressors supported by local Blosc
+# A function returning all the compressors supported by Blosc
 def blosc_compressor_list():
   """
-  blosc_compressor_list()
-
   Returns a list of compressors available in the Blosc build.
 
   Parameters
@@ -698,11 +678,28 @@ def blosc_compressor_list():
   return clist
 
 
+# A function returning all the compressors supported by Blosc2
+def blosc2_compressor_list():
+  """
+  Returns a list of compressors available in the Blosc build.
+
+  Parameters
+  ----------
+  None
+
+  Returns
+  -------
+  out : list
+      The list of names.
+  """
+  list_compr = blosc2_list_compressors().decode()
+  clist = [str(cname) for cname in list_compr.split(',')]
+  return clist
+
+
 # Convert compressor code to compressor name
 def blosc_compcode_to_compname_(compcode):
   """
-  blosc_compcode_to_compname()
-
   Returns the compressor name associated with compressor code.
 
   Parameters
@@ -714,7 +711,7 @@ def blosc_compcode_to_compname_(compcode):
   out : string
       The name of the compressor.
   """
-  cdef char *cname
+  cdef const char *cname
   cdef object compname
 
   compname = b"unknown (report this to developers)"
@@ -723,9 +720,31 @@ def blosc_compcode_to_compname_(compcode):
   return compname.decode()
 
 
+# Convert compressor code to compressor name
+def blosc2_compcode_to_compname_(compcode):
+  """
+  Returns the compressor name associated with compressor code.
+
+  Parameters
+  ----------
+  None
+
+  Returns
+  -------
+  out : string
+      The name of the compressor.
+  """
+  cdef const char *cname
+  cdef object compname
+
+  compname = b"unknown (report this to developers)"
+  if blosc2_compcode_to_compname(compcode, &cname) >= 0:
+    compname = cname
+  return compname.decode()
+
+
 def blosc_get_complib_info_():
-  """Get info from compression libraries included in the current build
-  of blosc.
+  """Get info from compression libraries included in Blosc.
 
   Returns a mapping containing the compressor names as keys and the
   tuple (complib, version) as values.
@@ -738,6 +757,31 @@ def blosc_get_complib_info_():
   cinfo = {}
   for name in blosc_list_compressors().split(b','):
     ret = blosc_get_complib_info(name, &complib, &version)
+    if ret < 0:
+      continue
+    if isinstance(name, str):
+      cinfo[name] = (complib, version)
+    else:
+      cinfo[name.decode()] = (complib.decode(), version.decode())
+    free(complib)
+    free(version)
+
+  return cinfo
+
+def blosc2_get_complib_info_():
+  """Get info from compression libraries included in Blosc2.
+
+  Returns a mapping containing the compressor names as keys and the
+  tuple (complib, version) as values.
+
+  """
+
+  cdef char *complib
+  cdef char *version
+
+  cinfo = {}
+  for name in blosc2_list_compressors().split(b','):
+    ret = blosc2_get_complib_info(name, &complib, &version)
     if ret < 0:
       continue
     if isinstance(name, str):
@@ -796,7 +840,7 @@ def which_class(hid_t loc_id, object name):
       classId = "CARRAY"
       # Check whether some dimension is enlargeable
       for i in range(rank):
-        if maxdims[i] == -1:
+        if maxdims[i] == <hsize_t>-1:
           classId = "EARRAY"
           break
       free(<void *>dims)
@@ -905,16 +949,16 @@ def read_f_attr(hid_t file_id, str attr_name):
     size = H5ATTRget_attribute_string(file_id, c_attr_name, &attr_value, &cset)
     if size == 0:
       if cset == H5T_CSET_UTF8:
-        retvalue = numpy.unicode_(u'')
+        retvalue = np.unicode_('')
       else:
-        retvalue = numpy.bytes_(b'')
+        retvalue = np.bytes_(b'')
     else:
       retvalue = <bytes>(attr_value).rstrip(b'\x00')
       if cset == H5T_CSET_UTF8:
         retvalue = retvalue.decode('utf-8')
-        retvalue = numpy.str_(retvalue)
+        retvalue = np.str_(retvalue)
       else:
-        retvalue = numpy.bytes_(retvalue)     # bytes
+        retvalue = np.bytes_(retvalue)     # bytes
 
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value:
@@ -997,8 +1041,8 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
                               "supported at this moment")
 
   dtype = atom.dtype
-  npvalue = numpy.array((0,), dtype=dtype)
-  rbuf = npvalue.data
+  npvalue = np.array((0,), dtype=dtype)
+  rbuf = PyArray_DATA(npvalue)
 
   # Get the name and value of each of the members
   # and put the pair in `enumDict`.
@@ -1185,7 +1229,7 @@ def hdf5_to_np_nested_type(hid_t type_id):
   # Get the number of members
   nfields = H5Tget_nmembers(type_id)
   # Iterate thru the members
-  for i in range(nfields):
+  for i in range(<long>nfields):
     # Get the member name
     c_colname = H5Tget_member_name(type_id, i)
     colname = cstr_to_pystr(c_colname)
@@ -1408,7 +1452,7 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
 
   try:
 
-    for i in range(nelements):
+    for i in range(<long>nelements):
       refobj_id = H5Rdereference(dataset_id, H5R_OBJECT, &refbuf[i])
       if H5Iget_type(refobj_id) != H5I_DATASET:
         raise ValueError('Invalid reference type %d %d' % (H5Iget_type(refobj_id), item_size))
@@ -1430,7 +1474,7 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
       # Get the extendable dimension (if any)
       extdim = -1  # default is non-extensible Array
       for j in range(rank):
-        if maxdims[j] == -1:
+        if maxdims[j] == <hsize_t>-1:
           extdim = j
           break
       if extdim < 0:
@@ -1441,21 +1485,21 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
       # read entire dataset as numpy array
       stype_, shape_ = hdf5_to_np_ext_type(reftype_id, pure_numpy_types=True, atom=True)
       if stype_ == "_ref_":
-        dtype_ = numpy.dtype("O", shape_)
+        dtype_ = np.dtype("O", shape_)
       else:
-        dtype_ = numpy.dtype(stype_, shape_)
+        dtype_ = np.dtype(stype_, shape_)
       shape = []
       for j in range(rank):
         shape.append(<int>dims[j])
       shape = tuple(shape)
 
-      nprefarr = numpy.empty(dtype=dtype_, shape=shape)
+      nprefarr = np.empty(dtype=dtype_, shape=shape)
       nparr[i] = [nprefarr]  # box the array in a list to store it as one object
       if stype_ == "_ref_":
         newrefbuf = <hobj_ref_t *>malloc(nprefarr.size * item_size)
         rbuf = newrefbuf
       else:
-        rbuf = nprefarr.data
+        rbuf = PyArray_DATA(nprefarr)
 
       # Do the physical read
       with nogil:

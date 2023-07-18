@@ -1,17 +1,11 @@
-# -*- coding: utf-8 -*-
-
-
 from tables.tests import common
-from tables.tests.common import verbose
-from tables.tests.common import unittest, test_filename
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Check indexes from PyTables version 2.0
-class IndexesTestCase(common.TestFileMixin, TestCase):
+class IndexesTestCase(common.TestFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
-        super(IndexesTestCase, self).setUp()
+        super().setUp()
         self.table1 = self.h5file.root.table1
         self.table2 = self.h5file.root.table2
         self.il = 0
@@ -49,7 +43,7 @@ class IndexesTestCase(common.TestFileMixin, TestCase):
         results2 = [p["var1"] for p in table2 if il <= p["var1"] <= sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Should look like:", results2)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -71,7 +65,7 @@ class IndexesTestCase(common.TestFileMixin, TestCase):
         self.assertIsNotNone(t1var2)
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
-        if verbose:
+        if common.verbose:
             print("Selection results (index):", results1)
             print("Should look like:", results2)
             print("Length results:", len(results1))
@@ -105,7 +99,7 @@ class IndexesTestCase(common.TestFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -137,7 +131,7 @@ class IndexesTestCase(common.TestFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -146,21 +140,21 @@ class IndexesTestCase(common.TestFileMixin, TestCase):
 
 # Check indexes from PyTables version 2.0
 class Indexes2_0TestCase(IndexesTestCase):
-    h5fname = test_filename("indexes_2_0.h5")
+    h5fname = common.test_filename("indexes_2_0.h5")
 
 
 # Check indexes from PyTables version 2.1
 class Indexes2_1TestCase(IndexesTestCase):
-    h5fname = test_filename("indexes_2_1.h5")
+    h5fname = common.test_filename("indexes_2_1.h5")
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
     niter = 1
 
     for n in range(niter):
-        theSuite.addTest(unittest.makeSuite(Indexes2_0TestCase))
-        theSuite.addTest(unittest.makeSuite(Indexes2_1TestCase))
+        theSuite.addTest(common.unittest.makeSuite(Indexes2_0TestCase))
+        theSuite.addTest(common.unittest.makeSuite(Indexes2_1TestCase))
 
     return theSuite
 
@@ -169,4 +163,4 @@ if __name__ == '__main__':
     import sys
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

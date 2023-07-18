@@ -1,17 +1,16 @@
 # This is an example on how to use complex columns
-from __future__ import print_function
-import tables
+import tables as tb
 
 
-class Particle(tables.IsDescription):
-    name = tables.StringCol(16, pos=1)   # 16-character String
-    lati = tables.ComplexCol(itemsize=16, pos=2)
-    longi = tables.ComplexCol(itemsize=8, pos=3)
-    vector = tables.ComplexCol(itemsize=8, shape=(2,), pos=4)
-    matrix2D = tables.ComplexCol(itemsize=16, shape=(2, 2), pos=5)
+class Particle(tb.IsDescription):
+    name = tb.StringCol(16, pos=1)   # 16-character String
+    lati = tb.ComplexCol(itemsize=16, pos=2)
+    longi = tb.ComplexCol(itemsize=8, pos=3)
+    vector = tb.ComplexCol(itemsize=8, shape=(2,), pos=4)
+    matrix2D = tb.ComplexCol(itemsize=16, shape=(2, 2), pos=5)
 
 # Open a file in "w"rite mode
-fileh = tables.open_file("table3.h5", mode="w")
+fileh = tb.open_file("table3.h5", mode="w")
 table = fileh.create_table(fileh.root, 'table', Particle, "A table")
 # Append several rows in only one call
 table.append([

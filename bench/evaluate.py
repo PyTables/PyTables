@@ -1,17 +1,16 @@
-from __future__ import print_function
 import sys
-from time import time
+from time import perf_counter as clock
 
+import numexpr as ne
 import numpy as np
+
 import tables as tb
-from numexpr.necompiler import (
-    getContext, getExprNames, getType, NumExpr)
 
 
-shape = (1000, 160000)
+shape = (1000, 160_000)
 #shape = (10,1600)
-filters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
-ofilters = tb.Filters(complevel=1, complib="blosc", shuffle=0)
+filters = tb.Filters(complevel=1, complib="blosc2", shuffle=1)
+ofilters = tb.Filters(complevel=1, complib="blosc2", shuffle=1)
 #filters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
 #ofilters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
 
@@ -79,8 +78,8 @@ def evaluate(ex, out=None, local_dict=None, global_dict=None, **kwargs):
     """Evaluate expression and return an array."""
 
     # First, get the signature for the arrays in expression
-    context = getContext(kwargs)
-    names, _ = getExprNames(ex, context)
+    context = ne.necompiler.getContext(kwargs)
+    names, _ = ne.necompiler.getExprNames(ex, context)
 
     # Get the arguments based on the names.
     call_frame = sys._getframe(1)
@@ -102,11 +101,14 @@ def evaluate(ex, out=None, local_dict=None, global_dict=None, **kwargs):
             types.append(a)
 
     # Create a signature
-    signature = [(name, getType(type_)) for (name, type_) in zip(names, types)]
+    signature = [
+        (name, ne.necompiler.getType(type_))
+        for (name, type_) in zip(names, types)
+    ]
     print("signature-->", signature)
 
     # Compile the expression
-    compiled_ex = NumExpr(ex, signature, [], **kwargs)
+    compiled_ex = ne.necompiler.NumExpr(ex, signature, **kwargs)
     print("fullsig-->", compiled_ex.fullsig)
 
     _compute(out, compiled_ex, arguments)
@@ -120,7 +122,7 @@ if __name__ == "__main__":
     doprofile = 1
     dokprofile = 0
 
-    f = tb.open_file("/scratch2/faltet/evaluate.h5", "w")
+    f = tb.open_file("evaluate.h5", "w")
 
     # Create some arrays
     if iarrays:
@@ -128,22 +130,22 @@ if __name__ == "__main__":
         b = np.ones(shape, dtype='float32') * 2
         c = np.ones(shape, dtype='float32') * 3
     else:
-        a = f.create_carray(f.root, 'a', tb.Float32Atom(dflt=1.),
+        a = f.create_carray(f.root, 'a', tb.Float32Atom(dflt=1),
                             shape=shape, filters=filters)
-        a[:] = 1.
-        b = f.create_carray(f.root, 'b', tb.Float32Atom(dflt=2.),
+        a[:] = 1
+        b = f.create_carray(f.root, 'b', tb.Float32Atom(dflt=2),
                             shape=shape, filters=filters)
-        b[:] = 2.
-        c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3.),
+        b[:] = 2
+        c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3),
                             shape=shape, filters=filters)
-        c[:] = 3.
+        c[:] = 3
     if oarrays:
         out = np.empty(shape, dtype='float32')
     else:
         out = f.create_carray(f.root, 'out', tb.Float32Atom(),
                               shape=shape, filters=ofilters)
 
-    t0 = time()
+    t0 = clock()
     if iarrays and oarrays:
         #out = ne.evaluate("a*b+c")
         out = a * b + c
@@ -161,12 +163,11 @@ if __name__ == "__main__":
         prof = Profile()
         prof.run('evaluate("a*b+c", out)')
         kcg = lsprofcalltree.KCacheGrind(prof)
-        ofile = open('evaluate.kcg', 'w')
-        kcg.output(ofile)
-        ofile.close()
+        with Path('evaluate.kcg').open('w') as ofile:
+            kcg.output(ofile)
     else:
         evaluate("a*b+c", out)
-    print("Time for evaluate-->", round(time() - t0, 3))
+    print(f"Time for evaluate--> {clock() - t0:.3f}")
 
     # print "out-->", `out`
     # print `out[:]`

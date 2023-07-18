@@ -1,20 +1,8 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: October 10, 2002
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the Array class."""
 
 import operator
 import sys
-import numpy
+import numpy as np
 
 from . import hdf5extension
 from .filters import Filters
@@ -22,7 +10,6 @@ from .flavor import flavor_of, array_as_internal, internal_to_flavor
 from .leaf import Leaf
 from .utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
                     byteorders, quantize)
-
 
 
 # default version for ARRAY objects
@@ -95,20 +82,14 @@ class Array(hdf5extension.Array, Leaf):
     # Class identifier.
     _c_classid = 'ARRAY'
 
-    # Lazy read-only attributes
-    # `````````````````````````
     @lazyattr
     def dtype(self):
         """The NumPy ``dtype`` that most closely matches this array."""
-
         return self.atom.dtype
-
-    # Properties
-    # ~~~~~~~~~~
 
     @property
     def nrows(self):
-        "The number of rows in the array."
+        """The number of rows in the array."""
         if self.shape == ():
             return SizeType(1)  # scalar case
         else:
@@ -116,7 +97,8 @@ class Array(hdf5extension.Array, Leaf):
 
     @property
     def rowsize(self):
-        "The size of the rows in bytes in dimensions orthogonal to *maindim*."
+        """The size of the rows in bytes in dimensions orthogonal to
+        *maindim*."""
         maindim = self.maindim
         rowsize = self.atom.size
         for i, dim in enumerate(self.shape):
@@ -130,8 +112,6 @@ class Array(hdf5extension.Array, Leaf):
         memory."""
         return self.nrows * self.rowsize
 
-    # Other methods
-    # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  obj=None, title="",
                  byteorder=None, _log=True, _atom=None,
@@ -189,8 +169,8 @@ class Array(hdf5extension.Array, Leaf):
         """The index of the enlargeable dimension."""
 
         # Ordinary arrays have no filters: leaf is created with default ones.
-        super(Array, self).__init__(parentnode, name, new, Filters(),
-                                    byteorder, _log, track_times)
+        super().__init__(parentnode, name, new, Filters(), byteorder, _log,
+                         track_times)
 
     def _g_create(self):
         """Save a new array in file."""
@@ -200,7 +180,7 @@ class Array(hdf5extension.Array, Leaf):
             # `Leaf._g_post_init_hook()` should be setting the flavor on disk.
             self._flavor = flavor = flavor_of(self._obj)
             nparr = array_as_internal(self._obj, flavor)
-        except:  # XXX
+        except Exception:  # XXX
             # Problems converting data. Close the node and re-raise exception.
             self.close(flush=0)
             raise
@@ -223,7 +203,7 @@ class Array(hdf5extension.Array, Leaf):
             # on
             (self._v_objectid, self.shape, self.atom) = self._create_array(
                 nparr, self._v_new_title, self.atom)
-        except:  # XXX
+        except Exception:  # XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
@@ -373,10 +353,10 @@ class Array(hdf5extension.Array, Leaf):
 
         maxlen = len(self.shape)
         shape = (maxlen,)
-        startl = numpy.empty(shape=shape, dtype=SizeType)
-        stopl = numpy.empty(shape=shape, dtype=SizeType)
-        stepl = numpy.empty(shape=shape, dtype=SizeType)
-        stop_None = numpy.zeros(shape=shape, dtype=SizeType)
+        startl = np.empty(shape=shape, dtype=SizeType)
+        stopl = np.empty(shape=shape, dtype=SizeType)
+        stepl = np.empty(shape=shape, dtype=SizeType)
+        stop_None = np.zeros(shape=shape, dtype=SizeType)
         if not isinstance(keys, tuple):
             keys = (keys,)
         nkeys = len(keys)
@@ -429,17 +409,6 @@ class Array(hdf5extension.Array, Leaf):
         # Compute the shape for the container properly. Fixes #1288792
         shape = []
         for dim in range(len(self.shape)):
-            # The negative division operates differently with python scalars
-            # and numpy scalars (which are similar to C conventions). See:
-            # http://www.python.org/doc/faq/programming.html#why-does-22-10-return-3
-            # and
-            # http://www.peterbe.com/Integer-division-in-programming-languages
-            # for more info on this issue.
-            # I've finally decided to rely on the len(xrange) function.
-            # F. Alted 2006-09-25
-            # Switch to `lrange` to allow long ranges (see #99).
-            # use xrange, since it supports large integers as of Python 2.6
-            # see github #181
             new_dim = len(range(startl[dim], stopl[dim], stepl[dim]))
             if not (new_dim == 1 and stop_None[dim]):
                 shape.append(new_dim)
@@ -575,24 +544,22 @@ class Array(hdf5extension.Array, Leaf):
                     else:
                         list_seen = True
                 else:
-                    if (not isinstance(exp[0], (int, numpy.integer)) or
-                        (isinstance(exp[0], numpy.ndarray) and not
-                            numpy.issubdtype(exp[0].dtype, numpy.integer))):
+                    if (not isinstance(exp[0], (int, np.integer)) or
+                        (isinstance(exp[0], np.ndarray) and not
+                            np.issubdtype(exp[0].dtype, np.integer))):
                         raise TypeError("Only integer coordinates allowed.")
 
-                nexp = numpy.asarray(exp, dtype="i8")
+                nexp = np.asarray(exp, dtype="i8")
                 # Convert negative values
-                nexp = numpy.where(nexp < 0, length + nexp, nexp)
+                nexp = np.where(nexp < 0, length + nexp, nexp)
                 # Check whether the list is ordered or not
                 # (only one unordered list is allowed)
-                if not len(nexp) == len(numpy.unique(nexp)):
+                if len(nexp) != len(np.unique(nexp)):
                     raise IndexError(
                         "Selection lists cannot have repeated values")
                 neworder = nexp.argsort()
                 if (neworder.shape != (len(exp),) or
-                        numpy.sum(
-                            numpy.abs(
-                                neworder - numpy.arange(len(exp)))) != 0):
+                        np.sum(np.abs(neworder - np.arange(len(exp)))) != 0):
                     if reorder is not None:
                         raise IndexError(
                             "Only one selection list can be unordered")
@@ -718,7 +685,7 @@ class Array(hdf5extension.Array, Leaf):
         # truncate data if least_significant_digit filter is set
         # TODO: add the least_significant_digit attribute to the array on disk
         if (self.filters.least_significant_digit is not None and
-                not numpy.issubdtype(nparr.dtype, numpy.signedinteger)):
+                not np.issubdtype(nparr.dtype, np.signedinteger)):
             nparr = quantize(nparr, self.filters.least_significant_digit)
 
         try:
@@ -743,7 +710,7 @@ class Array(hdf5extension.Array, Leaf):
 
         if nparr.shape != (slice_shape + self.atom.dtype.shape):
             # Create an array compliant with the specified shape
-            narr = numpy.empty(shape=slice_shape, dtype=self.atom.dtype)
+            narr = np.empty(shape=slice_shape, dtype=self.atom.dtype)
 
             # Assign the value to it. It will raise a ValueError exception
             # if the objects cannot be broadcast to a single shape.
@@ -755,7 +722,7 @@ class Array(hdf5extension.Array, Leaf):
     def _read_slice(self, startl, stopl, stepl, shape):
         """Read a slice based on `startl`, `stopl` and `stepl`."""
 
-        nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
+        nparr = np.empty(dtype=self.atom.dtype, shape=shape)
         # Protection against reading empty arrays
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
@@ -768,7 +735,7 @@ class Array(hdf5extension.Array, Leaf):
     def _read_coords(self, coords):
         """Read a set of points defined by `coords`."""
 
-        nparr = numpy.empty(dtype=self.atom.dtype, shape=len(coords))
+        nparr = np.empty(dtype=self.atom.dtype, shape=len(coords))
         if len(coords) > 0:
             self._g_read_coords(coords, nparr)
         # For zero-shaped arrays, return the scalar
@@ -784,7 +751,7 @@ class Array(hdf5extension.Array, Leaf):
         """
 
         # Create the container for the slice
-        nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
+        nparr = np.empty(dtype=self.atom.dtype, shape=shape)
         # Arrays that have non-zero dimensionality
         self._g_read_selection(selection, nparr)
         # For zero-shaped arrays, return the scalar
@@ -840,14 +807,13 @@ class Array(hdf5extension.Array, Leaf):
         if shape:
             shape[self.maindim] = nrowstoread
         if out is None:
-            arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
+            arr = np.empty(dtype=self.atom.dtype, shape=shape)
         else:
             bytes_required = self.rowsize * nrowstoread
             # if buffer is too small, it will segfault
             if bytes_required != out.nbytes:
-                raise ValueError(('output array size invalid, got {0} bytes, '
-                                  'need {1} bytes').format(out.nbytes,
-                                                           bytes_required))
+                raise ValueError(f'output array size invalid, got {out.nbytes}'
+                                 f' bytes, need {bytes_required} bytes')
             if not out.flags['C_CONTIGUOUS']:
                 raise ValueError('output array not C contiguous')
             arr = out
@@ -894,7 +860,7 @@ class Array(hdf5extension.Array, Leaf):
         self._g_check_open()
         if out is not None and self.flavor != 'numpy':
             msg = ("Optional 'out' argument may only be supplied if array "
-                   "flavor is 'numpy', currently is {0}").format(self.flavor)
+                   "flavor is 'numpy', currently is {}").format(self.flavor)
             raise TypeError(msg)
         (start, stop, step) = self._process_range_read(start, stop, step)
         arr = self._read(start, stop, step, out)
@@ -918,21 +884,19 @@ class Array(hdf5extension.Array, Leaf):
         # For details, see #275 of trac.
         object_ = Array(group, name, arr, title=title, _log=_log,
                         _atom=self.atom)
-        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.size
+        nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.size
 
         return (object_, nbytes)
 
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return """%s
-  atom := %r
-  maindim := %r
-  flavor := %r
-  byteorder := %r
-  chunkshape := %r""" % (self, self.atom, self.maindim,
-                         self.flavor, self.byteorder,
-                         self.chunkshape)
+        return f"""{self}
+  atom := {self.atom!r}
+  maindim := {self.maindim!r}
+  flavor := {self.flavor!r}
+  byteorder := {self.byteorder!r}
+  chunkshape := {self.chunkshape!r}"""
 
 
 class ImageArray(Array):

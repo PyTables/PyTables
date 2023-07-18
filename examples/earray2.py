@@ -1,20 +1,19 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Small example that shows how to work with extendeable arrays of different
 types, strings included."""
 
-from __future__ import print_function
 import numpy as np
-import tables
+import tables as tb
 
 # Open a new empty HDF5 file
 filename = "earray2.h5"
-fileh = tables.open_file(filename, mode="w")
+fileh = tb.open_file(filename, mode="w")
 # Get the root group
 root = fileh.root
 
 # Create an string atom
-a = tables.StringAtom(itemsize=1)
+a = tb.StringAtom(itemsize=1)
 # Use it as a type for the enlargeable array
 hdfarray = fileh.create_earray(root, 'array_c', a, (0,), "Character array")
 hdfarray.append(np.array(['a', 'b', 'c']))
@@ -25,15 +24,15 @@ hdfarray.append(np.array(['c', 'b', 'c', 'd']))
 # hdfarray.append(array([[1,2,3],[3,2,1]], dtype=uint8).reshape(2,1,3))
 
 # Create an atom
-a = tables.UInt16Atom()
+a = tb.UInt16Atom()
 hdfarray = fileh.create_earray(root, 'array_e', a, (2, 0, 3),
                                "Unsigned short array")
 
 # Create an enlargeable array
-a = tables.UInt8Atom()
+a = tb.UInt8Atom()
 hdfarray = fileh.create_earray(root, 'array_b', a, (2, 0, 3),
                                "Unsigned byte array",
-                               tables.Filters(complevel=1))
+                               tb.Filters(complevel=1))
 
 # Append an array to this table
 hdfarray.append(
@@ -48,7 +47,7 @@ hdfarray.append(
 fileh.close()
 
 # Open the file for reading
-fileh = tables.open_file(filename, mode="r")
+fileh = tb.open_file(filename, mode="r")
 # Get the root group
 root = fileh.root
 

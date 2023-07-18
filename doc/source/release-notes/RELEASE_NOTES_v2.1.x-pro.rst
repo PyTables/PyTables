@@ -37,7 +37,7 @@ Other changes
 -------------
 
 - When retrieving a row of a 1-dimensional array, a 0-dim array was
-  returned instead of a numpy scalar.  Now, an actuall numpy scalar is
+  returned instead of a numpy scalar.  Now, an actual numpy scalar is
   returned.  Closes #222.
 
 - LZO and bzip2 filters adapted to an API fix introduced in HDF5

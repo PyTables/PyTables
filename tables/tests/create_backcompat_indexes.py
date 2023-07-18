@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
-
 # Script for creating different kind of indexes in a small space as possible.
 # This is intended for testing purposes.
 
-import tables
+import tables as tb
 
 
-class Descr(tables.IsDescription):
-    var1 = tables.StringCol(itemsize=4, shape=(), dflt='', pos=0)
-    var2 = tables.BoolCol(shape=(), dflt=False, pos=1)
-    var3 = tables.Int32Col(shape=(), dflt=0, pos=2)
-    var4 = tables.Float64Col(shape=(), dflt=0.0, pos=3)
+class Descr(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=4, shape=(), dflt='', pos=0)
+    var2 = tb.BoolCol(shape=(), dflt=False, pos=1)
+    var3 = tb.Int32Col(shape=(), dflt=0, pos=2)
+    var4 = tb.Float64Col(shape=(), dflt=0.0, pos=3)
+
 
 # Parameters for the table and index creation
 small_chunkshape = (2,)
@@ -19,7 +18,7 @@ nrows = 43
 
 # Create the new file
 h5fname = 'indexes_2_1.h5'
-h5file = tables.open_file(h5fname, 'w')
+h5file = tb.open_file(h5fname, 'w')
 t1 = h5file.create_table(h5file.root, 'table1', Descr)
 row = t1.row
 for i in range(nrows):

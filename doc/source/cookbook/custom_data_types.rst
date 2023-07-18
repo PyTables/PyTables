@@ -1,7 +1,5 @@
-:source: http://www.pytables.org/moin/UserDocuments/CustomDataTypes
-:revision: 1
-:date: 2009-07-14 21:51:07
 :author: KennethArnold
+:date: 2009-07-14 21:51:07
 
 
 ================================
@@ -17,7 +15,6 @@ Submitted by Kevin R. Thornton.
 
 ::
 
-    from __future__ import print_function
     import numpy as np
 
     import tables
@@ -34,12 +31,12 @@ Submitted by Kevin R. Thornton.
                      title="", filters=None,
                      expectedrows=EXPECTED_ROWS_TABLE,
                      chunkshape=None, byteorder=None, _log=True):
-            super(DerivedFromTable, self).__init__(parentNode, name,
-                                              description=description, title=title,
-                                              filters=filters,
-                                              expectedrows=expectedrows,
-                                              chunkshape=chunkshape, byteorder=byteorder,
-                                              _log=_log)
+            super().__init__(parentNode, name,
+                             description=description, title=title,
+                             filters=filters,
+                             expectedrows=expectedrows,
+                             chunkshape=chunkshape, byteorder=byteorder,
+                             _log=_log)
 
         def read(self, start=None, stop=None, step=None, field=None):
             print("HERE!")
@@ -65,9 +62,8 @@ Submitted by Kevin R. Thornton.
 
 
     if __name__ == '__main__':
-        x = np.array(np.random.rand(100))
-        x=np.reshape(x,(50,2))
-        x.dtype=[('x',np.float),('y',np.float)]
+        x = np.random.rand(100).reshape(50,2)
+        x.dtype = [('x',float), ('y',float)]
         h5file = tables.open_file('tester.hdf5', 'w')
         mtab = h5file.createDerivedFromTable(h5file.root, 'random', x)
 

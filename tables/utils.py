@@ -1,25 +1,14 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-#       License: BSD
-#       Created: March 4, 2003
-#       Author:  Francesc Alted - faltet@pytables.com
-#
-#       $Id$
-#
-########################################################################
-
 """Utility functions."""
 
+import math
 import os
 import sys
 import warnings
-import subprocess
-import re
-from time import time
+import weakref
+from pathlib import Path
+from time import perf_counter as clock
 
-import numpy
+import numpy as np
 
 from .flavor import array_of_flavor
 
@@ -33,7 +22,7 @@ byteorders = {
 
 # The type used for size values: indexes, coordinates, dimension
 # lengths, row numbers, shapes, chunk shapes, byte counts...
-SizeType = numpy.int64
+SizeType = np.int64
 
 
 def correct_byteorder(ptype, byteorder):
@@ -50,7 +39,7 @@ def is_idx(index):
 
     if type(index) is int:
         return True
-    elif hasattr(index, "__index__"):  # Only works on Python 2.5 (PEP 357)
+    elif hasattr(index, "__index__"):
         # Exclude the array([idx]) as working as an index.  Fixes #303.
         if (hasattr(index, "shape") and index.shape != ()):
             return False
@@ -63,10 +52,10 @@ def is_idx(index):
             return True
         except TypeError:
             return False
-    elif isinstance(index, numpy.integer):
+    elif isinstance(index, np.integer):
         return True
     # For Python 2.4 one should test 0-dim and 1-dim, 1-elem arrays as well
-    elif (isinstance(index, numpy.ndarray) and (index.shape == ()) and
+    elif (isinstance(index, np.ndarray) and (index.shape == ()) and
           index.dtype.str[1] == 'i'):
         return True
 
@@ -77,8 +66,11 @@ def idx2long(index):
     """Convert a possible index into a long int."""
 
     try:
-        return int(index)
-    except:
+        if hasattr(index, "item"):
+            return index.item()
+        else:
+            return int(index)
+    except Exception:
         raise TypeError("not an integer type.")
 
 
@@ -95,7 +87,7 @@ def convert_to_np_atom(arr, atom, copy=False):
     # dtype is not the correct one.
     if atom.shape == ():
         # Scalar atom case
-        nparr = numpy.array(nparr, dtype=atom.dtype, copy=copy)
+        nparr = np.array(nparr, dtype=atom.dtype, copy=copy)
     else:
         # Multidimensional atom case.  Addresses #133.
         # We need to use this strange way to obtain a dtype compliant
@@ -106,12 +98,11 @@ def convert_to_np_atom(arr, atom, copy=False):
         # All of this is done just to taking advantage of the NumPy
         # broadcasting rules.
         newshape = nparr.shape[:-len(atom.dtype.shape)]
-        nparr2 = numpy.empty(newshape, dtype=[('', atom.dtype)])
+        nparr2 = np.empty(newshape, dtype=[('', atom.dtype)])
         nparr2['f0'][:] = nparr
         # Return a view (i.e. get rid of the record type)
         nparr = nparr2.view(atom.dtype)
     return nparr
-
 
 
 # The next is used in Array, EArray and VLArray, and it is a bit more
@@ -133,7 +124,6 @@ def convert_to_np_atom2(object, atom):
     return nparr
 
 
-
 def check_file_access(filename, mode='r'):
     """Check for file access in the specified `mode`.
 
@@ -148,46 +138,44 @@ def check_file_access(filename, mode='r'):
 
     """
 
+    path = Path(filename).resolve()
+
     if mode == 'r':
         # The file should be readable.
-        if not os.access(filename, os.F_OK):
-            raise IOError("``%s`` does not exist" % (filename,))
-        if not os.path.isfile(filename):
-            raise IOError("``%s`` is not a regular file" % (filename,))
-        if not os.access(filename, os.R_OK):
-            raise IOError("file ``%s`` exists but it can not be read"
-                          % (filename,))
+        if not os.access(path, os.F_OK):
+            raise FileNotFoundError(f"``{path}`` does not exist")
+        if not path.is_file():
+            raise IsADirectoryError(f"``{path}`` is not a regular file")
+        if not os.access(path, os.R_OK):
+            raise PermissionError(f"file ``{path}`` exists but it can not be read")
     elif mode == 'w':
-        if os.access(filename, os.F_OK):
+        if os.access(path, os.F_OK):
             # Since the file is not removed but replaced,
             # it must already be accessible to read and write operations.
-            check_file_access(filename, 'r+')
+            check_file_access(path, 'r+')
         else:
             # A new file is going to be created,
             # so the directory should be writable.
-            parentname = os.path.dirname(filename)
-            if not parentname:
-                parentname = '.'
-            if not os.access(parentname, os.F_OK):
-                raise IOError("``%s`` does not exist" % (parentname,))
-            if not os.path.isdir(parentname):
-                raise IOError("``%s`` is not a directory" % (parentname,))
-            if not os.access(parentname, os.W_OK):
-                raise IOError("directory ``%s`` exists but it can not be "
-                              "written" % (parentname,))
+            if not os.access(path.parent, os.F_OK):
+                raise FileNotFoundError(f"``{path.parent}`` does not exist")
+            if not path.parent.is_dir():
+                raise NotADirectoryError(f"``{path.parent}`` is not a directory")
+            if not os.access(path.parent, os.W_OK):
+                raise PermissionError(
+                    f"directory ``{path.parent}`` exists but it can not be "
+                    f"written"
+                )
     elif mode == 'a':
-        if os.access(filename, os.F_OK):
-            check_file_access(filename, 'r+')
+        if os.access(path, os.F_OK):
+            check_file_access(path, 'r+')
         else:
-            check_file_access(filename, 'w')
+            check_file_access(path, 'w')
     elif mode == 'r+':
-        check_file_access(filename, 'r')
-        if not os.access(filename, os.W_OK):
-            raise IOError("file ``%s`` exists but it can not be written"
-                          % (filename,))
+        check_file_access(path, 'r')
+        if not os.access(path, os.W_OK):
+            raise PermissionError(f"file ``{path}`` exists but it can not be written")
     else:
-        raise ValueError("invalid mode: %r" % (mode,))
-
+        raise ValueError(f"invalid mode: {mode!r}")
 
 
 def lazyattr(fget):
@@ -206,7 +194,7 @@ def lazyattr(fget):
     ...         return 10
     ...
     >>> type(MyClass.attribute)
-    <type 'property'>
+    <class 'property'>
     >>> MyClass.attribute.__doc__
     'Attribute description.'
     >>> obj = MyClass()
@@ -222,7 +210,7 @@ def lazyattr(fget):
     >>> del obj.attribute
     Traceback (most recent call last):
       ...
-    AttributeError: can't delete attribute
+    AttributeError: ...
 
     .. warning::
 
@@ -246,14 +234,7 @@ def lazyattr(fget):
 def show_stats(explain, tref, encoding=None):
     """Show the used memory (only works for Linux 2.6.x)."""
 
-    if encoding is None:
-        encoding = sys.getdefaultencoding()
-
-    # Build the command to obtain memory info
-    cmd = "cat /proc/%s/status" % os.getpid()
-    sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
-    for line in sout:
-        line = line.decode(encoding)
+    for line in Path('/proc/self/status').read_text().splitlines():
         if line.startswith("VmSize:"):
             vmsize = int(line.split()[1])
         elif line.startswith("VmRSS:"):
@@ -266,13 +247,12 @@ def show_stats(explain, tref, encoding=None):
             vmexe = int(line.split()[1])
         elif line.startswith("VmLib:"):
             vmlib = int(line.split()[1])
-    sout.close()
     print("Memory usage: ******* %s *******" % explain)
-    print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
-    print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
-    print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
-    tnow = time()
-    print("WallClock time:", round(tnow - tref, 3))
+    print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
+    print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
+    print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
+    tnow = clock()
+    print(f"WallClock time: {tnow - tref:.3f}")
     return tnow
 
 
@@ -288,15 +268,11 @@ def quantize(data, least_significant_digit):
 
     """
 
-    precision = pow(10., -least_significant_digit)
-    exp = numpy.log10(precision)
-    if exp < 0:
-        exp = int(numpy.floor(exp))
-    else:
-        exp = int(numpy.ceil(exp))
-    bits = numpy.ceil(numpy.log2(pow(10., -exp)))
-    scale = pow(2., bits)
-    datout = numpy.around(scale * data) / scale
+    exp = -least_significant_digit
+    exp = math.floor(exp) if exp < 0 else math.ceil(exp)
+    bits = math.ceil(math.log2(10 ** -exp))
+    scale = 2 ** bits
+    datout = np.around(scale * data) / scale
 
     return datout
 
@@ -304,7 +280,6 @@ def quantize(data, least_significant_digit):
 # Utilities to detect leaked instances.  See recipe 14.10 of the Python
 # Cookbook by Martelli & Ascher.
 tracked_classes = {}
-import weakref
 
 
 def log_instance_creation(instance, name=None):
@@ -315,10 +290,9 @@ def log_instance_creation(instance, name=None):
         tracked_classes[name].append(weakref.ref(instance))
 
 
-
 def string_to_classes(s):
     if s == '*':
-        c = sorted(tracked_classes.keys())
+        c = sorted(tracked_classes)
         return c
     else:
         return s.split()
@@ -329,11 +303,9 @@ def fetch_logged_instances(classes="*"):
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
 
-
 def count_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
-
 
 
 def list_logged_instances(classes, file=sys.stdout):
@@ -345,7 +317,6 @@ def list_logged_instances(classes, file=sys.stdout):
                 file.write('    %s\n' % repr(obj))
 
 
-
 def dump_logged_instances(classes, file=sys.stdout):
     for classname in string_to_classes(classes):
         file.write('\n%s:\n' % classname)
@@ -354,8 +325,7 @@ def dump_logged_instances(classes, file=sys.stdout):
             if obj is not None:
                 file.write('    %s:\n' % obj)
                 for key, value in obj.__dict__.items():
-                    file.write('        %20s : %s\n' % (key, value))
-
+                    file.write(f'        {key:>20} : {value}\n')
 
 
 #
@@ -366,19 +336,19 @@ class CacheDict(dict):
 
     def __init__(self, maxentries):
         self.maxentries = maxentries
-        super(CacheDict, self).__init__(self)
+        super().__init__(self)
 
     def __setitem__(self, key, value):
         # Protection against growing the cache too much
         if len(self) > self.maxentries:
             # Remove a 10% of (arbitrary) elements from the cache
             entries_to_remove = self.maxentries / 10
-            for k in list(self.keys())[:entries_to_remove]:
-                super(CacheDict, self).__delitem__(k)
-        super(CacheDict, self).__setitem__(key, value)
+            for k in list(self)[:entries_to_remove]:
+                super().__delitem__(k)
+        super().__setitem__(key, value)
 
 
-class NailedDict(object):
+class NailedDict:
     """A dictionary which ignores its items when it has nails on it."""
 
     def __init__(self, maxentries):
@@ -427,7 +397,7 @@ class NailedDict(object):
         if len(cache) > self.maxentries:
             # Remove a 10% of (arbitrary) elements from the cache
             entries_to_remove = max(self.maxentries // 10, 1)
-            for k in list(cache.keys())[:entries_to_remove]:
+            for k in list(cache)[:entries_to_remove]:
                 del cache[k]
         cache[key] = value
 
@@ -456,22 +426,12 @@ def detect_number_of_cores():
     return 1  # Default
 
 
-
-# Main part
-# =========
 def _test():
     """Run ``doctest`` on this module."""
 
     import doctest
     doctest.testmod()
 
+
 if __name__ == '__main__':
     _test()
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

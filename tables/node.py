@@ -1,15 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: 2005-02-11
-# Author: Ivan Vilata i Balaguer - ivan@selidor.net
-#
-# $Id$
-#
-########################################################################
-
 """PyTables nodes."""
 
 import warnings
@@ -17,7 +5,7 @@ import functools
 
 from .registry import class_name_dict, class_id_dict
 from .exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
-                               PerformanceWarning)
+                         PerformanceWarning)
 from .path import join_path, split_path, isvisiblepath
 from .utils import lazyattr
 from .undoredo import move_to_shadow
@@ -42,10 +30,8 @@ def _closedrepr(oldmethod):
     @functools.wraps(oldmethod)
     def newmethod(self):
         if not self._v_isopen:
-            cmod = self.__class__.__module__
-            cname = self.__class__.__name__
-            addr = hex(id(self))
-            return '<closed %s.%s at %s>' % (cmod, cname, addr)
+            return (f'<closed {self.__class__.__module__}.'
+                    f'{self.__class__.__name__} at 0x{id(self):x}>')
         return oldmethod(self)
 
     return newmethod
@@ -66,30 +52,30 @@ class MetaNode(type):
 
     """
 
-    def __new__(class_, name, bases, dict_):
+    def __new__(mcs, name, bases, dict_):
         # Add default behaviour for representing closed nodes.
         for mname in ['__str__', '__repr__']:
             if mname in dict_:
                 dict_[mname] = _closedrepr(dict_[mname])
 
-        return type.__new__(class_, name, bases, dict_)
+        return type.__new__(mcs, name, bases, dict_)
 
-    def __init__(class_, name, bases, dict_):
-        super(MetaNode, class_).__init__(name, bases, dict_)
+    def __init__(cls, name, bases, dict_):
+        super().__init__(name, bases, dict_)
 
         # Always register into class name dictionary.
-        class_name_dict[class_.__name__] = class_
+        class_name_dict[cls.__name__] = cls
 
         # Register into class identifier dictionary only if the class
         # has an identifier and it is different from its parents'.
-        cid = getattr(class_, '_c_classid', None)
+        cid = getattr(cls, '_c_classid', None)
         if cid is not None:
             for base in bases:
                 pcid = getattr(base, '_c_classid', None)
                 if pcid == cid:
                     break
             else:
-                class_id_dict[cid] = class_
+                class_id_dict[cid] = cls
 
 
 class Node(metaclass=MetaNode):
@@ -152,7 +138,7 @@ class Node(metaclass=MetaNode):
 
     # `_v_parent` is accessed via its file to avoid upwards references.
     def _g_getparent(self):
-        "The parent :class:`Group` instance"
+        """The parent :class:`Group` instance"""
         (parentpath, nodename) = split_path(self._v_pathname)
         return self._v_file._get_node(parentpath)
 
@@ -175,7 +161,7 @@ class Node(metaclass=MetaNode):
     # '_v_title' is a direct read-write shorthand for the 'TITLE' attribute
     # with the empty string as a default value.
     def _g_gettitle(self):
-        "A description of this node. A shorthand for TITLE attribute."
+        """A description of this node. A shorthand for TITLE attribute."""
         if hasattr(self._v_attrs, 'TITLE'):
             return self._v_attrs.TITLE
         else:
@@ -190,7 +176,6 @@ class Node(metaclass=MetaNode):
     # to be called.  See ticket #144 for more info.
     _v_isopen = False
     """Whehter this node is open or not."""
-
 
     # The ``_log`` argument is only meant to be used by ``_g_copy_as_child()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
@@ -271,7 +256,7 @@ class Node(metaclass=MetaNode):
 
             # This allows extra operations after creating the node.
             self._g_post_init_hook()
-        except:
+        except Exception:
             # If anything happens, the node must be closed
             # to undo every possible registration made so far.
             # We do *not* rely on ``__del__()`` doing it later,
@@ -281,7 +266,6 @@ class Node(metaclass=MetaNode):
 
     def _g_log_create(self):
         self._v_file._log('CREATE', self._v_pathname)
-
 
     def __del__(self):
         # Closed `Node` instances can not be killed and revived.
@@ -322,7 +306,6 @@ class Node(metaclass=MetaNode):
         """Code to be called before killing the node."""
         pass
 
-
     def _g_create(self):
         """Create a new HDF5 node and return its object identifier."""
         raise NotImplementedError
@@ -341,7 +324,6 @@ class Node(metaclass=MetaNode):
         if not self._v_isopen:
             raise ClosedNodeError("the node object is closed")
         assert self._v_file.isopen, "found an open node in a closed file"
-
 
     def _g_set_location(self, parentnode, name):
         """Set location-dependent attributes.
@@ -389,7 +371,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if self._v_pathname != '/':
             file_._node_manager.cache_node(self, self._v_pathname)
 
-
     def _g_update_location(self, newparentpath):
         """Update location-dependent attributes.
 
@@ -424,7 +405,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Tell dependent objects about the new location of this node.
         self._g_update_dependent()
 
-
     def _g_del_location(self):
         """Clear location-dependent attributes.
 
@@ -447,11 +427,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._v_name = None
         self._v_depth = None
 
-
     def _g_post_init_hook(self):
         """Code to be run after node creation and before creation logging."""
         pass
-
 
     def _g_update_dependent(self):
         """Update dependent objects after a location change.
@@ -463,7 +441,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         if '_v_attrs' in self.__dict__:
             self._v_attrs._g_update_node_location(self)
-
 
     def _f_close(self):
         """Close this node in the tree.
@@ -553,7 +530,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Log *before* moving to use the right shadow name.
         file_._log('REMOVE', oldpathname)
         move_to_shadow(file_, oldpathname)
-
 
     def _g_move(self, newparent, newname):
         """Move this node in the hierarchy.
@@ -693,7 +669,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_log_move(self, oldpathname):
         self._v_file._log('MOVE', oldpathname, self._v_pathname)
 
-
     def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
         """Copy this node and return the new one.
 
@@ -723,7 +698,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         return self._g_copy(newparent, self._v_name,
                             recursive=False, _log=False, **kwargs)
-
 
     def _f_copy(self, newparent=None, newname=None,
                 overwrite=False, recursive=False, createparents=False,
@@ -827,7 +801,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_check_open()
         return isvisiblepath(self._v_pathname)
 
-
     def _g_check_group(self, node):
         # Node must be defined in order to define a Group.
         # However, we need to know Group here.
@@ -839,7 +812,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             raise TypeError("new parent node ``%s`` is not a group"
                             % node._v_pathname)
 
-
     def _g_check_not_contains(self, pathname):
         # The not-a-TARDIS test. ;)
         mypathname = self._v_pathname
@@ -849,15 +821,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             raise NodeError("can not move or recursively copy node ``%s`` "
                             "into itself" % mypathname)
 
-
     def _g_maybe_remove(self, parent, name, overwrite):
         if name in parent:
             if not overwrite:
-                raise NodeError("""\
-destination group ``%s`` already has a node named ``%s``; \
-you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
+                raise NodeError(
+                    f"destination group ``{parent._v_pathname}`` already "
+                    f"has a node named ``{name}``; you may want to use the "
+                    f"``overwrite`` argument")
             parent._f_get_child(name)._f_remove(True)
-
 
     def _g_check_name(self, name):
         """Check validity of name for this particular kind of node.
@@ -872,8 +843,6 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
             raise ValueError(
                 "node name starts with reserved prefix ``_i_``: %s" % name)
 
-
-    # <attribute handling>
     def _f_getattr(self, name):
         """Get a PyTables attribute from this node.
 
@@ -883,7 +852,6 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         """
 
         return getattr(self._v_attrs, name)
-
 
     def _f_setattr(self, name, value):
         """Set a PyTables attribute for this node.
@@ -895,7 +863,6 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
 
         setattr(self._v_attrs, name, value)
 
-
     def _f_delattr(self, name):
         """Delete a PyTables attribute from this node.
 
@@ -905,7 +872,6 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         """
 
         delattr(self._v_attrs, name)
-
 
     # </attribute handling>
 
@@ -919,19 +885,8 @@ class NotLoggedMixin:
     def _g_log_create(self):
         pass
 
-
     def _g_log_move(self, oldpathname):
         pass
 
-
     def _g_remove_and_log(self, recursive, force):
         self._g_remove(recursive, force)
-
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

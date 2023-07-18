@@ -24,7 +24,7 @@ API additions
 - The new ``Table.readCoordinates()`` method reads a set of rows given their
   indexes into an in-memory object.
 
-- The new ``Table.readAppend()`` method Append rows fullfilling the condition
+- The new ``Table.readAppend()`` method Append rows fulfilling the condition
   to a destination table.
 
 Backward-incompatible changes

@@ -1,23 +1,21 @@
-from __future__ import print_function
 import gc
 import sys
-import time
-#import types
-import numpy
-from tables import Group  # , MetaIsDescription
-from tables import *
+from time import perf_counter as clock
+from time import process_time as cpuclock
+import numpy as np
+import tables as tb
 
 
-class Test(IsDescription):
-    ngroup = Int32Col(pos=1)
-    ntable = Int32Col(pos=2)
-    nrow = Int32Col(pos=3)
+class Test(tb.IsDescription):
+    ngroup = tb.Int32Col(pos=1)
+    ntable = tb.Int32Col(pos=2)
+    nrow = tb.Int32Col(pos=3)
     #string = StringCol(itemsize=500, pos=4)
 
 TestDict = {
-    "ngroup": Int32Col(pos=1),
-    "ntable": Int32Col(pos=2),
-    "nrow": Int32Col(pos=3),
+    "ngroup": tb.Int32Col(pos=1),
+    "ntable": tb.Int32Col(pos=2),
+    "nrow": tb.Int32Col(pos=3),
 }
 
 
@@ -26,7 +24,7 @@ def createFileArr(filename, ngroups, ntables, nrows):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
+    fileh = tb.open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
@@ -35,9 +33,9 @@ def createFileArr(filename, ngroups, ntables, nrows):
     fileh.close()
 
     # Now, create the arrays
-    arr = numpy.arange(nrows)
+    arr = np.arange(nrows)
     for k in range(ngroups):
-        fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
+        fileh = tb.open_file(filename, mode="a", root_uep='group%04d' % k)
         for j in range(ntables):
             # Create the array
             fileh.create_array("/", 'array%04d' % j, arr, "Array %d" % j)
@@ -50,7 +48,7 @@ def readFileArr(filename, ngroups, recsize, verbose):
 
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
+        fileh = tb.open_file(filename, mode="r", root_uep='group%04d' % ngroup)
         # Get the group
         group = fileh.root
         narrai = 0
@@ -77,7 +75,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
+    fileh = tb.open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
@@ -92,7 +90,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
 
     for k in range(ngroups):
         print("Filling tables in group:", k)
-        fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
+        fileh = tb.open_file(filename, mode="a", root_uep='group%04d' % k)
         # Get the group
         group = fileh.root
         for j in range(ntables):
@@ -127,7 +125,7 @@ def readFile(filename, ngroups, recsize, verbose):
     buffersize = 0
     rowsread = 0
     for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
+        fileh = tb.open_file(filename, mode="r", root_uep='group%04d' % ngroup)
         # Get the group
         group = fileh.root
         ntable = 0
@@ -184,7 +182,7 @@ class TrackRefs:
             t = type(o)
             if verbose:
                 # if t == types.TupleType:
-                if isinstance(o, Group):
+                if isinstance(o, tb.Group):
                 # if isinstance(o, MetaIsDescription):
                     print("-->", o, "refs:", all)
                     refrs = gc.get_referrers(o)
@@ -264,42 +262,42 @@ def testMethod(file, usearray, testwrite, testread, complib, complevel,
     if complevel > 0:
         print("Compression library:", complib)
     if testwrite:
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         if usearray:
             (rowsw, rowsz) = createFileArr(file, ngroups, ntables, nrows)
         else:
             (rowsw, rowsz) = createFile(file, ngroups, ntables, nrows,
                                         complevel, complib, recsize)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
-        tapprows = round(t2 - t1, 3)
-        cpuapprows = round(cpu2 - cpu1, 3)
-        tpercent = int(round(cpuapprows / tapprows, 2) * 100)
-        print("Rows written:", rowsw, " Row size:", rowsz)
-        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" %
-              (tapprows, cpuapprows, tpercent))
-        print("Write rows/sec: ", int(rowsw / float(tapprows)))
-        print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
+        t2 = clock()
+        cpu2 = cpuclock()
+        tapprows = t2 - t1
+        cpuapprows = cpu2 - cpu1
+        print(f"Rows written: {rowsw}  Row size: {rowsz}")
+        print(
+            f"Time writing rows: {tapprows:.3f} s (real) "
+            f"{cpuapprows:.3f} s (cpu)  {cpuapprows / tapprows:.0%}")
+        print(f"Write rows/sec:  {rowsw / tapprows}")
+        print(f"Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}")
 
     if testread:
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         if usearray:
             (rowsr, rowsz, bufsz) = readFileArr(file,
                                                 ngroups, recsize, verbose)
         else:
             (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
-        treadrows = round(t2 - t1, 3)
-        cpureadrows = round(cpu2 - cpu1, 3)
-        tpercent = int(round(cpureadrows / treadrows, 2) * 100)
-        print("Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz)
-        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" %
-              (treadrows, cpureadrows, tpercent))
-        print("Read rows/sec: ", int(rowsr / float(treadrows)))
-        print("Read KB/s :", int(rowsr * rowsz / (treadrows * 1024)))
+        t2 = clock()
+        cpu2 = cpuclock()
+        treadrows = t2 - t1
+        cpureadrows = cpu2 - cpu1
+        print(f"Rows read: {rowsw}  Row size: {rowsz}, Buf size: {bufsz}")
+        print(
+            f"Time reading rows: {treadrows:.3f} s (real) "
+            f"{cpureadrows:.3f} s (cpu)  {cpureadrows / treadrows:.0%}")
+        print(f"Read rows/sec:  {rowsr / treadrows}")
+        print(f"Read KB/s : {rowsr * rowsz / (treadrows * 1024):.0f}")
 
 if __name__ == "__main__":
     import getopt

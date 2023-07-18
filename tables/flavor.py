@@ -1,15 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: December 30, 2006
-# Author: Ivan Vilata i Balaguer - ivan at selidor dot net
-#
-# $Id$
-#
-########################################################################
-
 """Utilities for handling different array flavors in PyTables.
 
 Variables
@@ -46,15 +34,13 @@ Variables
 
 """
 
-# Imports
-# =======
 import warnings
+
+import numpy as np
 
 from .exceptions import FlavorError, FlavorWarning
 
 
-# Public variables
-# ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
@@ -95,8 +81,6 @@ friendlier interfaces to flavor conversion.
 """
 
 
-# Public functions
-# ================
 def check_flavor(flavor):
     """Raise a ``FlavorError`` if the `flavor` is not valid."""
 
@@ -209,7 +193,7 @@ def array_of_flavor(array, dst_flavor):
     return array_of_flavor2(array, flavor_of(array), dst_flavor)
 
 
-def restrict_flavors(keep=['python']):
+def restrict_flavors(keep=('python',)):
     """Disable all flavors except those in keep.
 
     Providing an empty keep sequence implies disabling all flavors (but the
@@ -220,19 +204,16 @@ def restrict_flavors(keep=['python']):
 
     """
 
-    keep = set(keep).union([internal_flavor])
-    remove = set(all_flavors).difference(keep)
+    remove = set(all_flavors) - set(keep) - {internal_flavor}
     for flavor in remove:
         _disable_flavor(flavor)
 
 
 # Flavor registration
-# ===================
 #
 # The order in which flavors appear in `all_flavors` determines the
 # order in which they will be tested for by `flavor_of()`, so place
 # most frequent flavors first.
-import numpy
 all_flavors.append('numpy')  # this is the internal flavor
 
 all_flavors.append('python')  # this is always supported
@@ -273,7 +254,7 @@ def _register_converters():
             # contiguous).  Otherwise, an identity function is used.
             convfunc = None
             try:
-                convfunc = eval('_conv_%s_to_%s' % (src_flavor, dst_flavor))
+                convfunc = eval(f'_conv_{src_flavor}_to_{dst_flavor}')
             except NameError:
                 if src_flavor == dst_flavor:
                     convfunc = identity
@@ -335,7 +316,6 @@ def _disable_flavor(flavor):
 
 
 # Implementation of flavors
-# =========================
 _python_aliases = [
     'List', 'Tuple',
     'Int', 'Float', 'String',
@@ -348,12 +328,28 @@ _python_desc = ("homogeneous list or tuple, "
 def _is_python(array):
     return isinstance(array, (tuple, list, int, float, complex, bytes))
 
+
 _numpy_aliases = []
 _numpy_desc = "NumPy array, record or scalar"
 
 
+if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion('1.19.0'):
+    def toarray(array, *args, **kwargs):
+        with warnings.catch_warnings():
+            warnings.simplefilter('error')
+            try:
+                array = np.array(array, *args, **kwargs)
+            except np.VisibleDeprecationWarning:
+                raise ValueError(
+                    'cannot guess the desired dtype from the input')
+
+        return array
+else:
+    toarray = np.array
+
+
 def _is_numpy(array):
-    return isinstance(array, (numpy.ndarray, numpy.generic))
+    return isinstance(array, (np.ndarray, np.generic))
 
 
 def _numpy_contiguous(convfunc):
@@ -366,8 +362,8 @@ def _numpy_contiguous(convfunc):
     def conv_to_numpy(array):
         nparr = convfunc(array)
         if (hasattr(nparr, 'flags') and
-            not nparr.flags.contiguous and
-            sum(nparr.strides) != 0):
+                not nparr.flags.contiguous and
+                sum(nparr.strides) != 0):
             nparr = nparr.copy()  # copying the array makes it contiguous
         return nparr
     conv_to_numpy.__name__ = convfunc.__name__
@@ -379,27 +375,31 @@ def _numpy_contiguous(convfunc):
 def _conv_numpy_to_numpy(array):
     # Passes contiguous arrays through and converts scalars into
     # scalar arrays.
-    nparr = numpy.asarray(array)
+    nparr = np.asarray(array)
     if nparr.dtype.kind == 'U':
         # from Python 3 loads of common strings are disguised as Unicode
         try:
             # try to convert to basic 'S' type
             return nparr.astype('S')
         except UnicodeEncodeError:
-            pass  # pass on true Unicode arrays downstream in case it can be handled in the future
+            pass
+            # pass on true Unicode arrays downstream in case it can be
+            # handled in the future
     return nparr
 
 
 @_numpy_contiguous
 def _conv_python_to_numpy(array):
-    nparr = numpy.array(array)
+    nparr = toarray(array)
     if nparr.dtype.kind == 'U':
         # from Python 3 loads of common strings are disguised as Unicode
         try:
             # try to convert to basic 'S' type
             return nparr.astype('S')
         except UnicodeEncodeError:
-            pass  # pass on true Unicode arrays downstream in case it can be handled in the future
+            pass
+            # pass on true Unicode arrays downstream in case it can be
+            # handled in the future
     return nparr
 
 
@@ -412,12 +412,11 @@ def _conv_numpy_to_python(array):
         array = array.item()
     return array
 
+
 # Now register everything related with *available* flavors.
 _register_all()
 
 
-# Main part
-# =========
 def _test():
     """Run ``doctest`` on this module."""
 

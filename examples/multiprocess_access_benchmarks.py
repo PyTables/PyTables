@@ -12,9 +12,6 @@
 # another, and then modified by incrementing each array element.  This is meant
 # to simulate retrieving data and then modifying it.
 
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 import multiprocessing
 import os
@@ -22,35 +19,36 @@ import random
 import select
 import socket
 import time
+from time import perf_counter as clock
 
 import numpy as np
-import tables
+import tables as tb
 
 
 # create a PyTables file with a single int64 array with the specified number of
 # elements
 def create_file(array_size):
     array = np.ones(array_size, dtype='i8')
-    with tables.open_file('test.h5', 'w') as fobj:
+    with tb.open_file('test.h5', 'w') as fobj:
         array = fobj.create_array('/', 'test', array)
-        print('file created, size: {0} MB'.format(array.size_on_disk / 1e6))
+        print('file created, size: {} MB'.format(array.size_on_disk / 1e6))
 
 
 # process to receive an array using a multiprocessing.Pipe connection
 class PipeReceive(multiprocessing.Process):
 
     def __init__(self, receiver_pipe, result_send):
-        super(PipeReceive, self).__init__()
+        super().__init__()
         self.receiver_pipe = receiver_pipe
         self.result_send = result_send
 
     def run(self):
         # block until something is received on the pipe
         array = self.receiver_pipe.recv()
-        recv_timestamp = time.time()
+        recv_timestamp = clock()
         # perform an operation on the received array
         array += 1
-        finish_timestamp = time.time()
+        finish_timestamp = clock()
         assert(np.all(array == 2))
         # send the measured timestamps back to the originating process
         self.result_send.send((recv_timestamp, finish_timestamp))
@@ -65,9 +63,9 @@ def read_and_send_pipe(send_type, array_size):
     recv_process = PipeReceive(array_recv, result_send)
     recv_process.start()
     time.sleep(0.15)
-    with tables.open_file('test.h5', 'r') as fobj:
+    with tb.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
-        start_timestamp = time.time()
+        start_timestamp = clock()
         # read an array from the PyTables file and send it to the other process
         output = array.read(0, array_size, 1)
         array_send.send(output)
@@ -84,7 +82,7 @@ def read_and_send_pipe(send_type, array_size):
 class MemmapReceive(multiprocessing.Process):
 
     def __init__(self, path_recv, result_send):
-        super(MemmapReceive, self).__init__()
+        super().__init__()
         self.path_recv = path_recv
         self.result_send = result_send
 
@@ -93,10 +91,10 @@ class MemmapReceive(multiprocessing.Process):
         path = self.path_recv.recv()
         # create a memmap array using the received file path
         array = np.memmap(path, 'i8', 'r+')
-        recv_timestamp = time.time()
+        recv_timestamp = clock()
         # perform an operation on the array
         array += 1
-        finish_timestamp = time.time()
+        finish_timestamp = clock()
         assert(np.all(array == 2))
         # send the timing results back to the other process
         self.result_send.send((recv_timestamp, finish_timestamp))
@@ -111,9 +109,9 @@ def read_and_send_memmap(send_type, array_size):
     recv_process = MemmapReceive(path_recv, result_send)
     recv_process.start()
     time.sleep(0.15)
-    with tables.open_file('test.h5', 'r') as fobj:
+    with tb.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
-        start_timestamp = time.time()
+        start_timestamp = clock()
         # memmap a file as a NumPy array in 'overwrite' mode
         output = np.memmap('/tmp/array1', 'i8', 'w+', shape=(array_size, ))
         # read an array from a PyTables file into the memmory mapped array
@@ -136,7 +134,7 @@ def read_and_send_memmap(send_type, array_size):
 class SocketReceive(multiprocessing.Process):
 
     def __init__(self, socket_family, address, result_send, array_nbytes):
-        super(SocketReceive, self).__init__()
+        super().__init__()
         self.socket_family = socket_family
         self.address = address
         self.result_send = result_send
@@ -158,10 +156,10 @@ class SocketReceive(multiprocessing.Process):
             bytes_recv += connection.recv_into(view[bytes_recv:])
         # convert the bytearray into a NumPy array
         array = np.frombuffer(recv_buffer, dtype='i8')
-        recv_timestamp = time.time()
+        recv_timestamp = clock()
         # perform an operation on the received array
         array += 1
-        finish_timestamp = time.time()
+        finish_timestamp = clock()
         assert(np.all(array == 2))
         # send the timestamps back to the originating process
         self.result_send.send((recv_timestamp, finish_timestamp))
@@ -177,7 +175,7 @@ def unix_socket_address():
 
 def ipv4_socket_address():
     # create an IPv4 socket address
-    return ('127.0.0.1', random.randint(9000, 10000))
+    return ('127.0.0.1', random.randint(9000, 10_000))
 
 
 def read_and_send_socket(send_type, array_size, array_bytes, address_func,
@@ -189,9 +187,9 @@ def read_and_send_socket(send_type, array_size, array_bytes, address_func,
                                  array_bytes)
     recv_process.start()
     time.sleep(0.15)
-    with tables.open_file('test.h5', 'r') as fobj:
+    with tb.open_file('test.h5', 'r') as fobj:
         array = fobj.get_node('/', 'test')
-        start_timestamp = time.time()
+        start_timestamp = clock()
         # connect to the receiving process' socket
         sock = socket.socket(socket_family, socket.SOCK_STREAM)
         sock.connect(address)
@@ -219,10 +217,10 @@ def print_results(send_type, start_timestamp, recv_timestamp,
 if __name__ == '__main__':
 
     random.seed(os.urandom(2))
-    array_num_bytes = [int(x) for x in [1e5, 1e6, 1e7, 1e8]]
+    array_num_bytes = [10**5, 10**6, 10**7, 10**8]
 
     for array_bytes in array_num_bytes:
-        array_size = int(array_bytes // 8)
+        array_size = array_bytes // 8
 
         create_file(array_size)
         read_and_send_pipe('multiproc.Pipe', array_size)

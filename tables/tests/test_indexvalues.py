@@ -1,18 +1,11 @@
-# -*- coding: utf-8 -*-
-
-import os
 import random
 import tempfile
+from pathlib import Path
 
-import numpy
+import numpy as np
 
-import tables
-from tables import StringCol, BoolCol, IntCol, FloatCol
-from tables.idxutils import calc_chunksize
+import tables as tb
 from tables.tests import common
-from tables.tests.common import verbose, heavy
-from tables.tests.common import unittest, test_filename
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # An alias for frozenset
@@ -27,14 +20,14 @@ small_blocksizes = (16, 8, 4, 2)  # The smaller set of parameters...
 minRowIndex = 1000
 
 
-class Small(tables.IsDescription):
-    var1 = StringCol(itemsize=4, dflt=b"")
-    var2 = BoolCol(dflt=0)
-    var3 = IntCol(dflt=0)
-    var4 = FloatCol(dflt=0)
+class Small(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=4, dflt=b"")
+    var2 = tb.BoolCol(dflt=0)
+    var3 = tb.IntCol(dflt=0)
+    var4 = tb.FloatCol(dflt=0)
 
 
-class SelectValuesTestCase(common.TempFileMixin, TestCase):
+class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 1
@@ -46,10 +39,10 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     reopen = False
 
     def setUp(self):
-        super(SelectValuesTestCase, self).setUp()
+        super().setUp()
 
         # Create an instance of an HDF5 Table
-        if verbose:
+        if common.verbose:
             print("Checking index kind-->", self.kind)
         self.rootgroup = self.h5file.root
         self.populateFile()
@@ -62,10 +55,10 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         group = self.rootgroup
         # Create an table
         title = "This is the IndexArray title"
-        filters = tables.Filters(complevel=self.compress,
-                                 complib=self.complib,
-                                 shuffle=self.shuffle,
-                                 fletcher32=self.fletcher32)
+        filters = tb.Filters(complevel=self.compress,
+                             complib=self.complib,
+                             shuffle=self.shuffle,
+                             fletcher32=self.fletcher32)
         table1 = self.h5file.create_table(group, 'table1', Small, title,
                                           filters, self.nrows,
                                           chunkshape=(self.chunkshape,))
@@ -107,7 +100,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         for col in table1.colinstances.values():
             indexrows = col.create_index(
                 kind=self.kind, _blocksizes=self.blocksizes)
-        if verbose:
+        if common.verbose:
             print("Number of written rows:", table1.nrows)
             print("Number of indexed rows:", indexrows)
 
@@ -119,7 +112,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test01a(self):
         """Checking selecting values from an Index (string flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01a..." % self.__class__.__name__)
 
@@ -139,7 +132,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     if il <= p["var1"] <= sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Should look like:", results2)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -154,7 +147,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     if il <= p["var1"] < sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -168,7 +161,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     if il < p["var1"] <= sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -183,7 +176,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     if il < p["var1"] < sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -192,7 +185,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test01b(self):
         """Checking selecting values from an Index (string flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test01b..." % self.__class__.__name__)
 
@@ -211,7 +204,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     if p["var1"] < sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -225,7 +218,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     if p["var1"] <= sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -239,7 +232,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     if p["var1"] > sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -254,7 +247,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     if p["var1"] >= sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -264,7 +257,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test02a(self):
         """Checking selecting values from an Index (bool flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02a..." % self.__class__.__name__)
 
@@ -276,7 +269,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         self.assertIsNotNone(t1var2)
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -285,7 +278,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test02b(self):
         """Checking selecting values from an Index (bool flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02b..." % self.__class__.__name__)
 
@@ -297,7 +290,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         self.assertIsNotNone(t1var2)
         results1 = [p["var2"] for p in table1.where('t1var2 == False')]
         results2 = [p["var2"] for p in table2 if p["var2"] is False]
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -306,7 +299,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test03a(self):
         """Checking selecting values from an Index (int flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03a..." % self.__class__.__name__)
 
@@ -329,7 +322,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -343,7 +336,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -357,7 +350,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -371,7 +364,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -380,7 +373,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test03b(self):
         """Checking selecting values from an Index (int flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03b..." % self.__class__.__name__)
 
@@ -403,7 +396,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -418,7 +411,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -433,7 +426,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -448,7 +441,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -458,7 +451,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test03c(self):
         """Checking selecting values from an Index (long flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03c..." % self.__class__.__name__)
 
@@ -481,7 +474,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -496,7 +489,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -511,7 +504,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -526,7 +519,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -536,7 +529,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test03d(self):
         """Checking selecting values from an Index (long and int flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test03d..." % self.__class__.__name__)
 
@@ -559,7 +552,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -574,7 +567,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -589,7 +582,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -604,7 +597,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -614,7 +607,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test04a(self):
         """Checking selecting values from an Index (float flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test04a..." % self.__class__.__name__)
 
@@ -637,7 +630,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -651,7 +644,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -665,7 +658,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -681,7 +674,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -690,7 +683,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test04b(self):
         """Checking selecting values from an Index (float flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test04b..." % self.__class__.__name__)
 
@@ -713,7 +706,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -728,7 +721,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -743,7 +736,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -758,7 +751,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -768,7 +761,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test05a(self):
         """Checking get_where_list & itersequence (string, python flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test05a..." % self.__class__.__name__)
 
@@ -795,7 +788,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -815,7 +808,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -835,7 +828,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -857,7 +850,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -867,7 +860,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         """Checking get_where_list & itersequence (numpy string lims & python
         flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test05b..." % self.__class__.__name__)
 
@@ -875,8 +868,8 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
-        # il = numpy.string_(self.il)
-        sl = numpy.string_(self.sl)
+        # il = np.string_(self.il)
+        sl = np.string_(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -895,7 +888,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -915,7 +908,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -935,7 +928,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -954,7 +947,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -964,7 +957,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test06a(self):
         """Checking get_where_list & itersequence (bool flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test06a..." % self.__class__.__name__)
 
@@ -981,7 +974,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var2'] for p in table1.itersequence(rowList1)]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -991,7 +984,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         """Checking get_where_list & itersequence (numpy bool limits &
         flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test06b..." % self.__class__.__name__)
 
@@ -1000,7 +993,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        false = numpy.bool_(False)
+        false = np.bool_(False)
         self.assertFalse(false)     # silence pyflakes
         condition = 't1var2==false'
         self.assertTrue(
@@ -1010,7 +1003,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         rowList1 = table1.get_where_list(condition)
         results1 = [p['var2'] for p in table1.itersequence(rowList1)]
         results2 = [p["var2"] for p in table2 if p["var2"] is False]
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1019,7 +1012,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test07a(self):
         """Checking get_where_list & itersequence (int flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test07a..." % self.__class__.__name__)
 
@@ -1046,7 +1039,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1066,7 +1059,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1086,7 +1079,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1108,7 +1101,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1118,7 +1111,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         """Checking get_where_list & itersequence (numpy int limits &
         flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test07b..." % self.__class__.__name__)
 
@@ -1126,8 +1119,8 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
-        # il = numpy.int32(self.il)
-        sl = numpy.uint16(self.sl)
+        # il = np.int32(self.il)
+        sl = np.uint16(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var3
@@ -1146,7 +1139,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1166,7 +1159,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1186,7 +1179,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1206,7 +1199,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1216,7 +1209,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test08a(self):
         """Checking get_where_list & itersequence (float flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test08a..." % self.__class__.__name__)
 
@@ -1244,7 +1237,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1264,7 +1257,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1283,7 +1276,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1304,7 +1297,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -1314,7 +1307,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         """Checking get_where_list & itersequence (numpy float limits &
         flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test08b..." % self.__class__.__name__)
 
@@ -1322,8 +1315,8 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
-        # il = numpy.float32(self.il)
-        sl = numpy.float64(self.sl)
+        # il = np.float32(self.il)
+        sl = np.float64(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var4
@@ -1340,7 +1333,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1359,7 +1352,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1378,7 +1371,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1397,7 +1390,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1407,7 +1400,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test09a(self):
         """Checking non-indexed where() (string flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test09a..." % self.__class__.__name__)
 
@@ -1431,7 +1424,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
             condition, start=2, stop=10)]
         results2 = [p["var1"] for p in table2.iterrows(2, 10)
                     if p["var1"] <= sl]
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1445,7 +1438,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     table1.where(condition, start=2, stop=30, step=2)]
         results2 = [p["var1"] for p in table2.iterrows(2, 30, 2)
                     if il < p["var1"] < sl]
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1462,7 +1455,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
             p["var1"] for p in table2.iterrows(2, -5)  # Negative indices
             if (il > p["var1"] > sl)
         ]
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Limit:", sl)
             print("Length results:", len(results1))
@@ -1495,7 +1488,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     table1.where(condition, start=2, stop=-1, step=3)]
         results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
                     if p["var1"] >= sl]
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1510,7 +1503,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test09b(self):
         """Checking non-indexed where() (float flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test09b..." % self.__class__.__name__)
 
@@ -1534,7 +1527,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     table1.where(condition, start=2, stop=5)]
         results2 = [p["var4"] for p in table2.iterrows(2, 5)
                     if p["var4"] < sl]
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1548,7 +1541,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     table1.where(condition, start=2, stop=-1, step=2)]
         results2 = [p["var4"] for p in table2.iterrows(2, -1, 2)
                     if il < p["var4"] <= sl]
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1565,7 +1558,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
             p["var4"] for p in table2.iterrows(2, -5)  # Negative indices
             if il <= p["var4"] <= sl
         ]
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1579,7 +1572,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     table1.where(condition, start=0, stop=-1, step=3)]
         results2 = [p["var4"] for p in table2.iterrows(0, -1, 3)
                     if p["var4"] >= sl]
-        if verbose:
+        if common.verbose:
             print("Limit:", sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1595,7 +1588,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         """Check non-indexed where() w/ ranges, changing step
         (string flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test09c..." % self.__class__.__name__)
 
@@ -1623,7 +1616,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1641,7 +1634,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1659,7 +1652,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1677,7 +1670,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1693,7 +1686,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         """Checking non-indexed where() w/ ranges, changing step
         (int flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test09d..." % self.__class__.__name__)
 
@@ -1721,7 +1714,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1739,7 +1732,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1757,7 +1750,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1775,7 +1768,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1790,7 +1783,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test10a(self):
         """Checking indexed where() with ranges (string flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test10a..." % self.__class__.__name__)
 
@@ -1818,7 +1811,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1842,7 +1835,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1866,7 +1859,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Selection results (indexed):", results1)
             print("Should look like:", results2)
@@ -1891,7 +1884,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1915,7 +1908,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1925,7 +1918,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test10b(self):
         """Checking indexed where() with ranges (int flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test10b..." % self.__class__.__name__)
 
@@ -1954,7 +1947,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -1978,7 +1971,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2001,7 +1994,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2021,7 +2014,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2032,7 +2025,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         """Checking indexed where() with ranges, changing step (string
         flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test10c..." % self.__class__.__name__)
 
@@ -2059,7 +2052,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2079,7 +2072,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2099,7 +2092,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2119,7 +2112,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2129,7 +2122,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test10d(self):
         """Checking indexed where() with ranges, changing step (int flavor)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test10d..." % self.__class__.__name__)
 
@@ -2156,7 +2149,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2176,7 +2169,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2196,7 +2189,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2216,7 +2209,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2226,7 +2219,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test11a(self):
         """Checking selecting values from an Index via read_coordinates()"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test11a..." % self.__class__.__name__)
 
@@ -2251,7 +2244,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     if il <= p["var1"] <= sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2260,7 +2253,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test12a(self):
         """Checking selecting values after a Table.append() operation."""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test12a..." % self.__class__.__name__)
 
@@ -2315,7 +2308,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
                     if il <= p["var1"] <= sl]
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Should look like:", results2)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2325,7 +2318,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # Second selection: bool
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2345,7 +2338,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2365,7 +2358,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Length results:", len(results1))
             print("Should be:", len(results2))
         self.assertEqual(len(results1), len(results2))
@@ -2374,7 +2367,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test13a(self):
         """Checking repeated queries (checking caches)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test13a..." % self.__class__.__name__)
 
@@ -2403,7 +2396,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2427,7 +2420,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2437,7 +2430,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test13b(self):
         """Checking repeated queries, varying step (checking caches)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test13b..." % self.__class__.__name__)
 
@@ -2466,7 +2459,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2490,7 +2483,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2500,7 +2493,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test13c(self):
         """Checking repeated queries, varying start, stop, step."""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test13c..." % self.__class__.__name__)
 
@@ -2528,7 +2521,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2551,7 +2544,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2562,7 +2555,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         """Checking repeated queries, varying start, stop, step (another
         twist)"""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test13d..." % self.__class__.__name__)
 
@@ -2591,7 +2584,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2614,7 +2607,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2624,7 +2617,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test13e(self):
         """Checking repeated queries, with varying condition."""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test13e..." % self.__class__.__name__)
 
@@ -2653,7 +2646,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2678,7 +2671,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2688,7 +2681,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test13f(self):
         """Checking repeated queries, with varying condition."""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test13f..." % self.__class__.__name__)
 
@@ -2721,7 +2714,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2741,7 +2734,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2762,7 +2755,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2772,7 +2765,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
     def test13g(self):
         """Checking repeated queries, with different limits."""
 
-        if verbose:
+        if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test13g..." % self.__class__.__name__)
 
@@ -2797,7 +2790,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2821,7 +2814,7 @@ class SelectValuesTestCase(common.TempFileMixin, TestCase):
         # order)
         results1.sort()
         results2.sort()
-        if verbose:
+        if common.verbose:
             print("Limits:", il, sl)
             print("Length results:", len(results1))
             print("Should be:", len(results2))
@@ -2842,7 +2835,7 @@ class SV1aTestCase(SelectValuesTestCase):
 
 
 class SV1bTestCase(SV1aTestCase):
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = blocksizes[2]//2**9
     buffersize = chunkshape * 5
 
@@ -2860,7 +2853,7 @@ class SV2aTestCase(SelectValuesTestCase):
 
 
 class SV2bTestCase(SV2aTestCase):
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = blocksizes[2]//2**7
     buffersize = chunkshape * 20
 
@@ -2878,7 +2871,7 @@ class SV3aTestCase(SelectValuesTestCase):
 
 
 class SV3bTestCase(SV3aTestCase):
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
 #    chunkshape = 4
 #    buffersize = 16
     chunkshape = 3
@@ -2898,7 +2891,7 @@ class SV4aTestCase(SelectValuesTestCase):
 
 
 class SV4bTestCase(SV4aTestCase):
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = 500
     buffersize = 1000
 
@@ -2914,7 +2907,7 @@ class SV5aTestCase(SelectValuesTestCase):
 
 
 class SV5bTestCase(SV5aTestCase):
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
 
 
 class SV6aTestCase(SelectValuesTestCase):
@@ -2929,7 +2922,7 @@ class SV6aTestCase(SelectValuesTestCase):
 
 
 class SV6bTestCase(SV6aTestCase):
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
 
 
 class SV7aTestCase(SelectValuesTestCase):
@@ -2945,7 +2938,7 @@ class SV7aTestCase(SelectValuesTestCase):
 
 
 class SV7bTestCase(SV7aTestCase):
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
 
 
 class SV8aTestCase(SelectValuesTestCase):
@@ -2963,7 +2956,7 @@ class SV8aTestCase(SelectValuesTestCase):
 
 class SV8bTestCase(SV8aTestCase):
     random = 0
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
 
 
 class SV9aTestCase(SelectValuesTestCase):
@@ -2979,7 +2972,7 @@ class SV9aTestCase(SelectValuesTestCase):
 
 
 class SV9bTestCase(SV9aTestCase):
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
 
 
 class SV10aTestCase(SelectValuesTestCase):
@@ -2996,7 +2989,7 @@ class SV10aTestCase(SelectValuesTestCase):
 
 
 class SV10bTestCase(SV10aTestCase):
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = 5
     buffersize = 6
 
@@ -3024,7 +3017,7 @@ class SV11bTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     chunkshape = 2
     buffersize = 2
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
     ss = blocksizes[2]
     nrows = ss
     reopen = 0
@@ -3056,7 +3049,7 @@ class SV12bTestCase(SelectValuesTestCase):
     # to always check that specific case.
     # values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = 2
     buffersize = 2
     ss = blocksizes[2]
@@ -3082,7 +3075,7 @@ class SV13aTestCase(SelectValuesTestCase):
 
 class SV13bTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = 5
     buffersize = 10
     ss = blocksizes[2]
@@ -3109,7 +3102,7 @@ class SV14aTestCase(SelectValuesTestCase):
 
 class SV14bTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
     chunkshape = 9
     buffersize = 10
     ss = blocksizes[2]
@@ -3147,7 +3140,7 @@ class SV15bTestCase(SelectValuesTestCase):
     # Both values of seed below triggers a fail in indexing code
     seed = 1885
     # seed = 183
-    blocksizes = calc_chunksize(minRowIndex, memlevel=1)
+    blocksizes = tb.idxutils.calc_chunksize(minRowIndex, memlevel=1)
     ss = blocksizes[2]
     nrows = ss * 5 + 1
     reopen = 1
@@ -3157,84 +3150,81 @@ class SV15bTestCase(SelectValuesTestCase):
     sl = nrows
 
 
-class LastRowReuseBuffers(TestCase):
+class LastRowReuseBuffers(common.PyTablesTestCase):
     # Test that checks for possible reuse of buffers coming
     # from last row in the sorted part of indexes
     nelem = 1221
-    numpy.random.seed(1)
+    np.random.seed(1)
     random.seed(1)
 
-    class Record(tables.IsDescription):
-        id1 = tables.Int16Col()
+    class Record(tb.IsDescription):
+        id1 = tb.Int16Col()
 
     def setUp(self):
-        super(LastRowReuseBuffers, self).setUp()
+        super().setUp()
         self.h5fname = tempfile.mktemp(".h5")
         self.h5file = None
 
     def tearDown(self):
         if self.h5file is not None:
             self.h5file.close()
-        if os.path.exists(self.h5fname):
-            os.remove(self.h5fname)
-        super(LastRowReuseBuffers, self).tearDown()
+        if Path(self.h5fname).is_file():
+            Path(self.h5fname).unlink()
+        super().tearDown()
 
     def test00_lrucache(self):
-        self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=64)
+        self.h5file = tb.open_file(self.h5fname, 'w', node_cache_slots=64)
         ta = self.h5file.create_table('/', 'table', self.Record,
-                                      filters=tables.Filters(1))
-        id1 = numpy.random.randint(0, 2**15, self.nelem)
+                                      filters=tb.Filters(1))
+        id1 = np.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
         ta.cols.id1.create_index()
 
         for i in range(self.nelem):
-            nrow = random.randint(0, self.nelem-1)
+            nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0,
-                            "idx--> %s %s %s %s" % (idx, i, nrow, value))
+            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
-                "nrow not found: %s != %s, %s" % (idx, nrow, value))
+                f"nrow not found: {idx} != {nrow}, {value}")
 
     def test01_nocache(self):
-        self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=0)
+        self.h5file = tb.open_file(self.h5fname, 'w', node_cache_slots=0)
         ta = self.h5file.create_table('/', 'table', self.Record,
-                                      filters=tables.Filters(1))
-        id1 = numpy.random.randint(0, 2**15, self.nelem)
+                                      filters=tb.Filters(1))
+        id1 = np.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
         ta.cols.id1.create_index()
 
         for i in range(self.nelem):
-            nrow = random.randint(0, self.nelem-1)
+            nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0,
-                            "idx--> %s %s %s %s" % (idx, i, nrow, value))
+            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
-                "nrow not found: %s != %s, %s" % (idx, nrow, value))
+                f"nrow not found: {idx} != {nrow}, {value}")
 
     def test02_dictcache(self):
-        self.h5file = tables.open_file(self.h5fname, 'w', node_cache_slots=-64)
+        self.h5file = tb.open_file(self.h5fname, 'w', node_cache_slots=-64)
         ta = self.h5file.create_table('/', 'table', self.Record,
-                                      filters=tables.Filters(1))
-        id1 = numpy.random.randint(0, 2**15, self.nelem)
+                                      filters=tb.Filters(1))
+        id1 = np.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
         ta.cols.id1.create_index()
 
         for i in range(self.nelem):
-            nrow = random.randint(0, self.nelem-1)
+            nrow = random.randrange(self.nelem)
             value = id1[nrow]
             idx = ta.get_where_list('id1 == %s' % value)
-            self.assertGreater(len(idx), 0,
-                            "idx--> %s %s %s %s" % (idx, i, nrow, value))
+            self.assertGreater(len(idx), 0, f"idx--> {idx} {i} {nrow} {value}")
             self.assertTrue(
                 nrow in idx,
-                "nrow not found: %s != %s, %s" % (idx, nrow, value))
+                f"nrow not found: {idx} != {nrow}, {value}")
 
 
 normal_tests = (
@@ -3272,6 +3262,7 @@ class MediumITableMixin:
 class FullITableMixin:
     kind = "full"
 
+
 # Parameters for indexed queries.
 ckinds = ['UltraLight', 'Light', 'Medium', 'Full']
 testlevels = ['Normal', 'Heavy']
@@ -3285,7 +3276,7 @@ testlevels = ['Normal', 'Heavy']
 def iclassdata():
     for ckind in ckinds:
         for ctest in normal_tests + heavy_tests:
-            classname = '%sI%s%s' % (ckind[0], testlevels[heavy][0], ctest)
+            classname = f'{ckind[0]}I{testlevels[common.heavy][0]}{ctest}'
             # Uncomment the next one and comment the past one if one
             # don't want to include the methods (testing purposes only)
             # cbasenames = ( '%sITableMixin' % ckind, "object")
@@ -3302,92 +3293,93 @@ for (cname, cbasenames, cdict) in iclassdata():
 
 
 # Test case for issue #319
-class BuffersizeMultipleChunksize(common.TempFileMixin, TestCase):
+class BuffersizeMultipleChunksize(common.TempFileMixin,
+                                  common.PyTablesTestCase):
     open_mode = 'w'
 
     def test01(self):
-        numpy.random.seed(2)
-        n = 700000
-        cs = 50000
+        np.random.seed(2)
+        n = 700_000
+        cs = 50_000
         nchunks = n // cs
 
-        arr = numpy.zeros(
+        arr = np.zeros(
             (n,), dtype=[('index', 'i8'), ('o', 'i8'), ('value', 'f8')])
-        arr['index'] = numpy.arange(n)
-        arr['o'] = numpy.random.randint(-20000, -15000, size=n)
-        arr['value'] = numpy.random.randn(n)
+        arr['index'] = np.arange(n)
+        arr['o'] = np.random.randint(-20_000, -15_000, size=n)
+        arr['value'] = np.random.randn(n)
 
         node = self.h5file.create_group('/', 'foo')
         table = self.h5file.create_table(node, 'table', dict(
-            index=tables.Int64Col(),
-            o=tables.Int64Col(),
-            value=tables.FloatCol(shape=())), expectedrows=10000000)
+            index=tb.Int64Col(),
+            o=tb.Int64Col(),
+            value=tb.FloatCol(shape=())), expectedrows=10_000_000)
 
         table.append(arr)
 
         self._reopen('a')
 
-        v1 = numpy.unique(arr['o'])[0]
-        v2 = numpy.unique(arr['o'])[1]
-        res = numpy.array([v1, v2])
-        selector = '((o == %s) | (o == %s))' % (v1, v2)
-        if verbose:
+        v1 = np.unique(arr['o'])[0]
+        v2 = np.unique(arr['o'])[1]
+        res = np.array([v1, v2])
+        selector = f'((o == {v1}) | (o == {v2}))'
+        if common.verbose:
             print("selecting values: %s" % selector)
 
         table = self.h5file.root.foo.table
 
-        result = numpy.unique(table.read_where(selector)['o'])
-        numpy.testing.assert_almost_equal(result, res)
-        if verbose:
+        result = np.unique(table.read_where(selector)['o'])
+        np.testing.assert_almost_equal(result, res)
+        if common.verbose:
             print("select entire table:")
-            print("result: %s\texpected: %s" % (result, res))
+            print(f"result: {result}\texpected: {res}")
 
-        if verbose:
+        if common.verbose:
             print("index the column o")
         table.cols.o.create_index()   # this was triggering the issue
 
-        if verbose:
+        if common.verbose:
             print("select via chunks")
         for i in range(nchunks):
             result = table.read_where(selector, start=i*cs, stop=(i+1)*cs)
-            result = numpy.unique(result['o'])
-            numpy.testing.assert_almost_equal(numpy.unique(result), res)
-            if verbose:
-                print("result: %s\texpected: %s" % (result, res))
+            result = np.unique(result['o'])
+            np.testing.assert_almost_equal(np.unique(result), res)
+            if common.verbose:
+                print(f"result: {result}\texpected: {res}")
 
 
 # Test case for issue #441
-class SideEffectNumPyQuicksort(TestCase):
+class SideEffectNumPyQuicksort(common.PyTablesTestCase):
 
     def test01(self):
-        bug_file = test_filename("bug-idx.h5")
+        bug_file = common.test_filename("bug-idx.h5")
         tmp_file = tempfile.mktemp(".h5")
-        tables.copy_file(bug_file, tmp_file)
-        h5 = tables.open_file(tmp_file, "a")
+        tb.copy_file(bug_file, tmp_file)
+        h5 = tb.open_file(tmp_file, "a")
         o = h5.root.table
         vals = o.cols.path[:]
-        npvals = set(numpy.where(vals == 6)[0])
+        npvals = set(np.where(vals == 6)[0])
 
         # Setting the chunkshape is critical for reproducing the bug
         t = o.copy(newname="table2", chunkshape=2730)
         t.cols.path.create_index()
-        indexed = set(r.nrow for r in t.where('path == 6'))
+        indexed = {r.nrow for r in t.where('path == 6')}
 
-        if verbose:
+        if common.verbose:
             diffs = sorted(npvals - indexed)
             print("ndiff:", len(diffs), diffs)
         self.assertEqual(len(npvals), len(indexed))
 
         h5.close()
-        if os.path.exists(tmp_file):
-            os.remove(tmp_file)
+        if Path(tmp_file).is_file():
+            Path(tmp_file).unlink()
 
 
 # -----------------------------
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
 
     niter = 1
 
@@ -3395,14 +3387,15 @@ def suite():
         for cdata in iclassdata():
             class_ = eval(cdata[0])
             if not class_.heavy:
-                suite_ = unittest.makeSuite(class_)
+                suite_ = common.unittest.makeSuite(class_)
                 theSuite.addTest(suite_)
-            elif heavy:
-                suite_ = unittest.makeSuite(class_)
+            elif common.heavy:
+                suite_ = common.unittest.makeSuite(class_)
                 theSuite.addTest(suite_)
-        theSuite.addTest(unittest.makeSuite(LastRowReuseBuffers))
-        theSuite.addTest(unittest.makeSuite(BuffersizeMultipleChunksize))
-        theSuite.addTest(unittest.makeSuite(SideEffectNumPyQuicksort))
+        theSuite.addTest(common.unittest.makeSuite(LastRowReuseBuffers))
+        theSuite.addTest(
+            common.unittest.makeSuite(BuffersizeMultipleChunksize))
+        theSuite.addTest(common.unittest.makeSuite(SideEffectNumPyQuicksort))
     return theSuite
 
 
@@ -3410,4 +3403,4 @@ if __name__ == '__main__':
     import sys
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

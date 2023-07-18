@@ -1,5 +1,4 @@
-from __future__ import print_function
-import subprocess  # Needs Python 2.4
+import subprocess
 from indexed_search import DB
 import psycopg2 as db2
 
@@ -13,7 +12,7 @@ TABLE_NAME = "intsfloats"
 PORT = 5432
 
 
-class StreamChar(object):
+class StreamChar:
     "Object simulating a file for reading"
 
     def __init__(self, db):
@@ -128,7 +127,7 @@ class Postgres_DB(DB):
         return results
 
     def do_query(self, con, column, base, *unused):
-        d = (self.rng[1] - self.rng[0]) / 2.
+        d = (self.rng[1] - self.rng[0]) / 2
         inf1 = int(self.rng[0] + base)
         sup1 = int(self.rng[0] + d + base)
         inf2 = self.rng[0] + base * 2

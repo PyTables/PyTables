@@ -5,21 +5,20 @@ Example to be used in the second tutorial in the User's Guide.
 
 """
 
-from __future__ import print_function
-import tables
+import tables as tb
 import numpy as np
 
 # Describe a particle record
 
 
-class Particle(tables.IsDescription):
-    name = tables.StringCol(itemsize=16)    # 16-character string
-    lati = tables.Int32Col()                # integer
-    longi = tables.Int32Col()               # integer
-    pressure = tables.Float32Col(shape=(2, 3))      # array of floats
-                                                    # (single-precision)
-    temperature = tables.Float64Col(shape=(2, 3))   # array of doubles
-                                                    # (double-precision)
+class Particle(tb.IsDescription):
+    name = tb.StringCol(itemsize=16)            # 16-character string
+    lati = tb.Int32Col()                        # integer
+    longi = tb.Int32Col()                       # integer
+    pressure = tb.Float32Col(shape=(2, 3))      # array of floats
+                                                # (single-precision)
+    temperature = tb.Float64Col(shape=(2, 3))   # array of doubles
+                                                # (double-precision)
 
 # Native NumPy dtype instances are also accepted
 Event = np.dtype([
@@ -40,7 +39,7 @@ Event = np.dtype([
 #     }
 
 # Open a file in "w"rite mode
-fileh = tables.open_file("tutorial2.h5", mode="w")
+fileh = tb.open_file("tutorial2.h5", mode="w")
 # Get the HDF5 root group
 root = fileh.root
 # Create the groups:
@@ -62,9 +61,8 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         particle['lati'] = i
         particle['longi'] = 10 - i
         # Detectable errors start here. Play with them!
-        particle['pressure'] = np.array(
-            i * np.arange(2 * 3)).reshape((2, 4))  # Incorrect
-        # particle['pressure'] = array(i*arange(2*3)).reshape((2,3))  # Correct
+        particle['pressure'] = i * np.arange(2 * 4).reshape(2, 4) # Incorrect
+        # particle['pressure'] = i * arange(2 * 3).reshape(2, 3)  # Correct
         # End of errors
         particle['temperature'] = (i ** 2)     # Broadcasting
         # This injects the Record values

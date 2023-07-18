@@ -1,49 +1,41 @@
-# -*- coding: utf-8 -*-
-
 import sys
 
-import numpy
+import numpy as np
 
-import tables
-from tables import (
-    Col, StringCol, Atom, StringAtom, Int16Atom, Int32Atom,
-    FloatAtom, Float64Atom,
-)
+import tables as tb
 from tables.tests import common
-from tables.tests.common import unittest, test_filename
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Test Record class
-class Record(tables.IsDescription):
-    var1 = StringCol(itemsize=4)  # 4-character String
-    var2 = Col.from_kind('int')   # integer
-    var3 = Col.from_kind('int', itemsize=2)  # short integer
-    var4 = Col.from_kind('float')  # double (double-precision)
-    var5 = Col.from_kind('float', itemsize=4)  # float  (single-precision)
-    var6 = Col.from_kind('complex')  # double-precision
-    var7 = Col.from_kind('complex', itemsize=8)  # single-precision
-    if hasattr(tables, "Float16Atom"):
-        var8 = Col.from_kind('float', itemsize=2)  # half-precision
-    if hasattr(tables, "Float96Atom"):
-        var9 = Col.from_kind('float', itemsize=12)  # extended-precision
-    if hasattr(tables, "Float128Atom"):
-        var10 = Col.from_kind('float', itemsize=16)  # extended-precision
-    if hasattr(tables, "Complex192Atom"):
-        var11 = Col.from_kind('complex', itemsize=24)  # extended-precision
-    if hasattr(tables, "Complex256Atom"):
-        var12 = Col.from_kind('complex', itemsize=32)  # extended-precision
+class Record(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=4)  # 4-character String
+    var2 = tb.Col.from_kind('int')   # integer
+    var3 = tb.Col.from_kind('int', itemsize=2)  # short integer
+    var4 = tb.Col.from_kind('float')  # double (double-precision)
+    var5 = tb.Col.from_kind('float', itemsize=4)  # float  (single-precision)
+    var6 = tb.Col.from_kind('complex')  # double-precision
+    var7 = tb.Col.from_kind('complex', itemsize=8)  # single-precision
+    if hasattr(tb, "Float16Atom"):
+        var8 = tb.Col.from_kind('float', itemsize=2)  # half-precision
+    if hasattr(tb, "Float96Atom"):
+        var9 = tb.Col.from_kind('float', itemsize=12)  # extended-precision
+    if hasattr(tb, "Float128Atom"):
+        var10 = tb.Col.from_kind('float', itemsize=16)  # extended-precision
+    if hasattr(tb, "Complex192Atom"):
+        var11 = tb.Col.from_kind('complex', itemsize=24)  # extended-precision
+    if hasattr(tb, "Complex256Atom"):
+        var12 = tb.Col.from_kind('complex', itemsize=32)  # extended-precision
 
 
-class RangeTestCase(common.TempFileMixin, TestCase):
+class RangeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     title = "This is the table title"
     expectedrows = 100
     maxshort = 2 ** 15
-    maxint = 2147483648   # (2 ** 31)
+    maxint = 2_147_483_648   # (2 ** 31)
     compress = 0
 
     def setUp(self):
-        super(RangeTestCase, self).setUp()
+        super().setUp()
         self.rootgroup = self.h5file.root
 
         # Create a table
@@ -59,16 +51,16 @@ class RangeTestCase(common.TempFileMixin, TestCase):
         i = self.maxshort
         rec['var1'] = '%04d' % (i)
         rec['var2'] = i
-        rec['var3'] = i
+        rec['var3'] = np.array(i).astype('i2')
         rec['var4'] = float(i)
         rec['var5'] = float(i)
         rec['var6'] = float(i)
         rec['var7'] = complex(i, i)
-        if hasattr(tables, "Float16Atom"):
+        if hasattr(tb, "Float16Atom"):
             rec['var8'] = float(i)
-        if hasattr(tables, "Float96Atom"):
+        if hasattr(tb, "Float96Atom"):
             rec['var9'] = float(i)
-        if hasattr(tables, "Float128Atom"):
+        if hasattr(tb, "Float128Atom"):
             rec['var10'] = float(i)
         try:
             rec.append()
@@ -91,24 +83,25 @@ class RangeTestCase(common.TempFileMixin, TestCase):
         i = self.maxshort
         rec['var1'] = '%04d' % (i)
         rec['var2'] = i
-        rec['var3'] = i % self.maxshort
+        rec['var3'] = np.array(i % self.maxshort).astype('i2')
         rec['var5'] = float(i)
 
-        with self.assertRaises(TypeError):
+        # Numpy 1.25 -> ValueError
+        with self.assertRaises((TypeError, ValueError)):
             rec['var4'] = "124c"
 
         rec['var6'] = float(i)
         rec['var7'] = complex(i, i)
-        if hasattr(tables, "Float16Atom"):
+        if hasattr(tb, "Float16Atom"):
             rec['var8'] = float(i)
-        if hasattr(tables, "Float96Atom"):
+        if hasattr(tb, "Float96Atom"):
             rec['var9'] = float(i)
-        if hasattr(tables, "Float128Atom"):
+        if hasattr(tb, "Float128Atom"):
             rec['var10'] = float(i)
 
 
 # Check the dtype read-only attribute
-class DtypeTestCase(common.TempFileMixin, TestCase):
+class DtypeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00a_table(self):
         """Check dtype accessor for Table objects."""
@@ -132,41 +125,41 @@ class DtypeTestCase(common.TempFileMixin, TestCase):
     def test02_carray(self):
         """Check dtype accessor for CArray objects."""
 
-        a = self.h5file.create_carray('/', 'array', atom=FloatAtom(),
+        a = self.h5file.create_carray('/', 'array', atom=tb.FloatAtom(),
                                       shape=[1, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test03_carray(self):
         """Check dtype accessor for EArray objects."""
 
-        a = self.h5file.create_earray('/', 'array', atom=FloatAtom(),
+        a = self.h5file.create_earray('/', 'array', atom=tb.FloatAtom(),
                                       shape=[0, 2])
         self.assertEqual(a.dtype, a.atom.dtype)
 
     def test04_vlarray(self):
         """Check dtype accessor for VLArray objects."""
 
-        a = self.h5file.create_vlarray('/', 'array', FloatAtom())
+        a = self.h5file.create_vlarray('/', 'array', tb.FloatAtom())
         self.assertEqual(a.dtype, a.atom.dtype)
 
 
-class ReadFloatTestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename("float.h5")
+class ReadFloatTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    h5fname = common.test_filename("float.h5")
     nrows = 5
     ncols = 6
 
     def setUp(self):
-        super(ReadFloatTestCase, self).setUp()
-        x = numpy.arange(self.ncols)
-        y = numpy.arange(self.nrows)
+        super().setUp()
+        x = np.arange(self.ncols)
+        y = np.arange(self.nrows)
         y.shape = (self.nrows, 1)
         self.values = x + y
 
     def test01_read_float16(self):
         dtype = "float16"
-        if hasattr(numpy, dtype):
+        if hasattr(np, dtype):
             ds = getattr(self.h5file.root, dtype)
-            self.assertNotIsInstance(ds, tables.UnImplemented)
+            self.assertNotIsInstance(ds, tb.UnImplemented)
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
             self.assertEqual(ds.dtype, dtype)
             self.assertTrue(common.allequal(
@@ -174,12 +167,12 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
         else:
             with self.assertWarns(UserWarning):
                 ds = getattr(self.h5file.root, dtype)
-            self.assertIsInstance(ds, tables.UnImplemented)
+            self.assertIsInstance(ds, tb.UnImplemented)
 
     def test02_read_float32(self):
         dtype = "float32"
         ds = getattr(self.h5file.root, dtype)
-        self.assertNotIsInstance(ds, tables.UnImplemented)
+        self.assertNotIsInstance(ds, tb.UnImplemented)
         self.assertEqual(ds.shape, (self.nrows, self.ncols))
         self.assertEqual(ds.dtype, dtype)
         self.assertTrue(common.allequal(
@@ -188,7 +181,7 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
     def test03_read_float64(self):
         dtype = "float64"
         ds = getattr(self.h5file.root, dtype)
-        self.assertNotIsInstance(ds, tables.UnImplemented)
+        self.assertNotIsInstance(ds, tb.UnImplemented)
         self.assertEqual(ds.shape, (self.nrows, self.ncols))
         self.assertEqual(ds.dtype, dtype)
         self.assertTrue(common.allequal(
@@ -196,17 +189,17 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
 
     def test04_read_longdouble(self):
         dtype = "longdouble"
-        if hasattr(tables, "Float96Atom") or hasattr(tables, "Float128Atom"):
+        if hasattr(tb, "Float96Atom") or hasattr(tb, "Float128Atom"):
             ds = getattr(self.h5file.root, dtype)
-            self.assertNotIsInstance(ds, tables.UnImplemented)
+            self.assertNotIsInstance(ds, tb.UnImplemented)
             self.assertEqual(ds.shape, (self.nrows, self.ncols))
             self.assertEqual(ds.dtype, dtype)
             self.assertTrue(common.allequal(
                 ds.read(), self.values.astype(dtype)))
 
-            if hasattr(tables, "Float96Atom"):
+            if hasattr(tb, "Float96Atom"):
                 self.assertEqual(ds.dtype, "float96")
-            elif hasattr(tables, "Float128Atom"):
+            elif hasattr(tb, "Float128Atom"):
                 self.assertEqual(ds.dtype, "float128")
         else:
             # XXX: check
@@ -214,10 +207,9 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
             try:
                 with self.assertWarns(UserWarning):
                     ds = getattr(self.h5file.root, dtype)
-                self.assertIsInstance(ds, tables.UnImplemented)
+                self.assertIsInstance(ds, tb.UnImplemented)
             except AssertionError:
-                from tables.utilsextension import _broken_hdf5_long_double
-                if not _broken_hdf5_long_double():
+                if not tb.utilsextension._broken_hdf5_long_double():
                     ds = getattr(self.h5file.root, dtype)
                     self.assertEqual(ds.dtype, "float64")
 
@@ -226,7 +218,7 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
         try:
             with self.assertWarns(UserWarning):
                 ds = self.h5file.root.quadprecision
-            self.assertIsInstance(ds, tables.UnImplemented)
+            self.assertIsInstance(ds, tb.UnImplemented)
         except AssertionError:
             # NOTE: it would be nice to have some sort of message that warns
             #       against the potential precision loss: the quad-precision
@@ -236,94 +228,94 @@ class ReadFloatTestCase(common.TestFileMixin, TestCase):
             self.assertEqual(ds.dtype, "longdouble")
 
 
-class AtomTestCase(TestCase):
+class AtomTestCase(common.PyTablesTestCase):
     def test_init_parameters_01(self):
-        atom1 = StringAtom(itemsize=12)
+        atom1 = tb.StringAtom(itemsize=12)
         atom2 = atom1.copy()
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
         self.assertIsNot(atom1, atom2)
 
     def test_init_parameters_02(self):
-        atom1 = StringAtom(itemsize=12)
+        atom1 = tb.StringAtom(itemsize=12)
         atom2 = atom1.copy(itemsize=100, shape=(2, 2))
         self.assertEqual(atom2,
-                         StringAtom(itemsize=100, shape=(2, 2), dflt=b''))
+                         tb.StringAtom(itemsize=100, shape=(2, 2), dflt=b''))
 
     def test_init_parameters_03(self):
-        atom1 = StringAtom(itemsize=12)
+        atom1 = tb.StringAtom(itemsize=12)
         self.assertRaises(TypeError, atom1.copy, foobar=42)
 
     def test_from_dtype_01(self):
-        atom1 = Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
-        atom2 = Int16Atom(shape=(2, 2), dflt=0)
+        atom1 = tb.Atom.from_dtype(np.dtype((np.int16, (2, 2))))
+        atom2 = tb.Int16Atom(shape=(2, 2), dflt=0)
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_dtype_02(self):
-        atom1 = Atom.from_dtype(numpy.dtype('S5'), dflt=b'hello')
-        atom2 = StringAtom(itemsize=5, shape=(), dflt=b'hello')
+        atom1 = tb.Atom.from_dtype(np.dtype('S5'), dflt=b'hello')
+        atom2 = tb.StringAtom(itemsize=5, shape=(), dflt=b'hello')
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_dtype_03(self):
         with self.assertWarns(Warning):
-            atom1 = Atom.from_dtype(numpy.dtype('U5'), dflt=b'hello')
-        atom2 = StringAtom(itemsize=5, shape=(), dflt=b'hello')
+            atom1 = tb.Atom.from_dtype(np.dtype('U5'), dflt=b'hello')
+        atom2 = tb.StringAtom(itemsize=5, shape=(), dflt=b'hello')
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_dtype_04(self):
-        atom1 = Atom.from_dtype(numpy.dtype('float64'))
-        atom2 = Float64Atom(shape=(), dflt=0.0)
+        atom1 = tb.Atom.from_dtype(np.dtype('float64'))
+        atom2 = tb.Float64Atom(shape=(), dflt=0.0)
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_kind_01(self):
-        atom1 = Atom.from_kind('int', itemsize=2, shape=(2, 2))
-        atom2 = Int16Atom(shape=(2, 2), dflt=0)
+        atom1 = tb.Atom.from_kind('int', itemsize=2, shape=(2, 2))
+        atom2 = tb.Int16Atom(shape=(2, 2), dflt=0)
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_kind_02(self):
-        atom1 = Atom.from_kind('int', shape=(2, 2))
-        atom2 = Int32Atom(shape=(2, 2), dflt=0)
+        atom1 = tb.Atom.from_kind('int', shape=(2, 2))
+        atom2 = tb.Int32Atom(shape=(2, 2), dflt=0)
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_kind_03(self):
-        atom1 = Atom.from_kind('int', shape=1)
-        atom2 = Int32Atom(shape=(1,), dflt=0)
+        atom1 = tb.Atom.from_kind('int', shape=1)
+        atom2 = tb.Int32Atom(shape=(1,), dflt=0)
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_kind_04(self):
-        atom1 = Atom.from_kind('string', itemsize=5, dflt=b'hello')
-        atom2 = StringAtom(itemsize=5, shape=(), dflt=b'hello')
+        atom1 = tb.Atom.from_kind('string', itemsize=5, dflt=b'hello')
+        atom2 = tb.StringAtom(itemsize=5, shape=(), dflt=b'hello')
         self.assertEqual(atom1, atom2)
         self.assertEqual(str(atom1), str(atom2))
 
     def test_from_kind_05(self):
         # ValueError: no default item size for kind ``string``
-        self.assertRaises(ValueError, Atom.from_kind, 'string', dflt=b'hello')
+        self.assertRaises(ValueError, tb.Atom.from_kind, 'string',
+                          dflt=b'hello')
 
     def test_from_kind_06(self):
         # ValueError: unknown kind: 'Float'
-        self.assertRaises(ValueError, Atom.from_kind, 'Float')
+        self.assertRaises(ValueError, tb.Atom.from_kind, 'Float')
 
 
 def suite():
     import doctest
-    import tables.atom
 
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
 
     for i in range(1):
-        theSuite.addTest(doctest.DocTestSuite(tables.atom))
-        theSuite.addTest(unittest.makeSuite(AtomTestCase))
-        theSuite.addTest(unittest.makeSuite(RangeTestCase))
-        theSuite.addTest(unittest.makeSuite(DtypeTestCase))
-        theSuite.addTest(unittest.makeSuite(ReadFloatTestCase))
+        theSuite.addTest(doctest.DocTestSuite(tb.atom))
+        theSuite.addTest(common.unittest.makeSuite(AtomTestCase))
+        theSuite.addTest(common.unittest.makeSuite(RangeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(DtypeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(ReadFloatTestCase))
 
     return theSuite
 
@@ -331,4 +323,4 @@ def suite():
 if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

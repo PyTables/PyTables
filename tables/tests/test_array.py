@@ -1,28 +1,16 @@
-# -*- coding: utf-8 -*-
-
-
-import os
 import sys
 import tempfile
-import warnings
+from pathlib import Path
 
-import numpy
-from numpy import testing as npt
-
-
-import tables
-from tables import Atom, ClosedNodeError, NoSuchNodeError
-from tables.utils import byteorders
+import numpy as np
+import tables as tb
 from tables.tests import common
-from tables.tests.common import allequal
-from tables.tests.common import unittest, test_filename
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
-#warnings.resetwarnings()
+# warnings.resetwarnings()
 
 
-class BasicTestCase(TestCase):
+class BasicTestCase(common.PyTablesTestCase):
     """Basic test for all the supported typecodes present in numpy.
 
     All of them are included on pytables.
@@ -41,7 +29,7 @@ class BasicTestCase(TestCase):
         # Create an instance of HDF5 file
         filename = tempfile.mktemp(".h5")
         try:
-            with tables.open_file(filename, mode="w") as fileh:
+            with tb.open_file(filename, mode="w") as fileh:
                 root = fileh.root
 
                 # Create the array under root and name 'somearray'
@@ -53,14 +41,14 @@ class BasicTestCase(TestCase):
                 fileh.create_array(root, 'somearray', a, "Some array")
 
             # Re-open the file in read-only mode
-            with tables.open_file(filename, mode="r") as fileh:
+            with tb.open_file(filename, mode="r") as fileh:
                 root = fileh.root
 
                 # Read the saved array
                 b = root.somearray.read()
 
                 # Compare them. They should be equal.
-                if common.verbose and not allequal(a, b):
+                if common.verbose and not common.allequal(a, b):
                     print("Write and read arrays differ!")
                     # print("Array written:", a)
                     print("Array written shape:", a.shape)
@@ -83,8 +71,8 @@ class BasicTestCase(TestCase):
                     self.assertEqual(a.dtype.type, b.dtype.type)
                     self.assertEqual(a.dtype.type,
                                      root.somearray.atom.dtype.type)
-                    abo = byteorders[a.dtype.byteorder]
-                    bbo = byteorders[b.dtype.byteorder]
+                    abo = tb.utils.byteorders[a.dtype.byteorder]
+                    bbo = tb.utils.byteorders[b.dtype.byteorder]
                     if abo != "irrelevant":
                         self.assertEqual(abo, root.somearray.byteorder)
                         self.assertEqual(bbo, sys.byteorder)
@@ -104,10 +92,10 @@ class BasicTestCase(TestCase):
 
                 self.assertEqual(obj.nrows, nrows)
 
-                self.assertTrue(allequal(a, b))
+                self.assertTrue(common.allequal(a, b))
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def write_read_out_arg(self, testarray):
         a = testarray
@@ -121,7 +109,7 @@ class BasicTestCase(TestCase):
         # Create an instance of HDF5 file
         filename = tempfile.mktemp(".h5")
         try:
-            with tables.open_file(filename, mode="w") as fileh:
+            with tb.open_file(filename, mode="w") as fileh:
                 root = fileh.root
 
                 # Create the array under root and name 'somearray'
@@ -133,11 +121,11 @@ class BasicTestCase(TestCase):
                 fileh.create_array(root, 'somearray', a, "Some array")
 
             # Re-open the file in read-only mode
-            with tables.open_file(filename, mode="r") as fileh:
+            with tb.open_file(filename, mode="r") as fileh:
                 root = fileh.root
 
                 # Read the saved array
-                b = numpy.empty_like(a, dtype=a.dtype)
+                b = np.empty_like(a, dtype=a.dtype)
                 root.somearray.read(out=b)
 
                 # Check strictly the array equality
@@ -149,22 +137,22 @@ class BasicTestCase(TestCase):
                     self.assertEqual(a.dtype.type, b.dtype.type)
                     self.assertEqual(a.dtype.type,
                                      root.somearray.atom.dtype.type)
-                    abo = byteorders[a.dtype.byteorder]
-                    bbo = byteorders[b.dtype.byteorder]
+                    abo = tb.utils.byteorders[a.dtype.byteorder]
+                    bbo = tb.utils.byteorders[b.dtype.byteorder]
                     if abo != "irrelevant":
                         self.assertEqual(abo, root.somearray.byteorder)
                         self.assertEqual(abo, bbo)
                         if self.endiancheck:
                             self.assertNotEqual(bbo, sys.byteorder)
 
-                self.assertTrue(allequal(a, b))
+                self.assertTrue(common.allequal(a, b))
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def write_read_atom_shape_args(self, testarray):
         a = testarray
-        atom = Atom.from_dtype(a.dtype)
+        atom = tb.Atom.from_dtype(a.dtype)
         shape = a.shape
         byteorder = None
 
@@ -177,7 +165,7 @@ class BasicTestCase(TestCase):
         # Create an instance of HDF5 file
         filename = tempfile.mktemp(".h5")
         try:
-            with tables.open_file(filename, mode="w") as fileh:
+            with tb.open_file(filename, mode="w") as fileh:
                 root = fileh.root
 
                 # Create the array under root and name 'somearray'
@@ -185,7 +173,7 @@ class BasicTestCase(TestCase):
                     b = a.byteswap()
                     b.dtype = a.dtype.newbyteorder()
                     if b.dtype.byteorder in ('>', '<'):
-                        byteorder = byteorders[b.dtype.byteorder]
+                        byteorder = tb.utils.byteorders[b.dtype.byteorder]
                     a = b
 
                 ptarr = fileh.create_array(root, 'somearray',
@@ -200,14 +188,14 @@ class BasicTestCase(TestCase):
                 ptarr[...] = a
 
             # Re-open the file in read-only mode
-            with tables.open_file(filename, mode="r") as fileh:
+            with tb.open_file(filename, mode="r") as fileh:
                 root = fileh.root
 
                 # Read the saved array
                 b = root.somearray.read()
 
                 # Compare them. They should be equal.
-                if common.verbose and not allequal(a, b):
+                if common.verbose and not common.allequal(a, b):
                     print("Write and read arrays differ!")
                     # print("Array written:", a)
                     print("Array written shape:", a.shape)
@@ -230,8 +218,8 @@ class BasicTestCase(TestCase):
                     self.assertEqual(a.dtype.type, b.dtype.type)
                     self.assertEqual(a.dtype.type,
                                      root.somearray.atom.dtype.type)
-                    abo = byteorders[a.dtype.byteorder]
-                    bbo = byteorders[b.dtype.byteorder]
+                    abo = tb.utils.byteorders[a.dtype.byteorder]
+                    bbo = tb.utils.byteorders[b.dtype.byteorder]
                     if abo != "irrelevant":
                         self.assertEqual(abo, root.somearray.byteorder)
                         self.assertEqual(bbo, sys.byteorder)
@@ -251,16 +239,16 @@ class BasicTestCase(TestCase):
 
                 self.assertEqual(obj.nrows, nrows)
 
-                self.assertTrue(allequal(a, b))
+                self.assertTrue(common.allequal(a, b))
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def setup00_char(self):
         """Data integrity during recovery (character objects)"""
 
-        if not isinstance(self.tupleChar, numpy.ndarray):
-            a = numpy.array(self.tupleChar, dtype="S")
+        if not isinstance(self.tupleChar, np.ndarray):
+            a = np.array(self.tupleChar, dtype="S")
         else:
             a = self.tupleChar
 
@@ -286,11 +274,11 @@ class BasicTestCase(TestCase):
         filename = tempfile.mktemp(".h5")
         try:
             # Create an instance of HDF5 file
-            with tables.open_file(filename, mode="w") as fileh:
+            with tb.open_file(filename, mode="w") as fileh:
                 fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
             # Re-open the file in read-only mode
-            with tables.open_file(filename, mode="r") as fileh:
+            with tb.open_file(filename, mode="r") as fileh:
                 # Read the saved array
                 b = fileh.root.somearray.read()
                 if isinstance(a, bytes):
@@ -299,10 +287,10 @@ class BasicTestCase(TestCase):
                 else:
                     # If a is not a python string, then it should be a list
                     # or ndarray
-                    self.assertIn(type(b), [list, numpy.ndarray])
+                    self.assertIn(type(b), [list, np.ndarray])
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def test00b_char_out_arg(self):
         """Data integrity during recovery (string objects)"""
@@ -312,22 +300,22 @@ class BasicTestCase(TestCase):
         filename = tempfile.mktemp(".h5")
         try:
             # Create an instance of HDF5 file
-            with tables.open_file(filename, mode="w") as fileh:
+            with tb.open_file(filename, mode="w") as fileh:
                 fileh.create_array(fileh.root, 'somearray', a, "Some array")
 
             # Re-open the file in read-only mode
-            with tables.open_file(filename, mode="r") as fileh:
+            with tb.open_file(filename, mode="r") as fileh:
                 # Read the saved array
-                b = numpy.empty_like(a)
+                b = np.empty_like(a)
                 if fileh.root.somearray.flavor != 'numpy':
                     self.assertRaises(TypeError,
                                       lambda: fileh.root.somearray.read(out=b))
                 else:
                     fileh.root.somearray.read(out=b)
-                self.assertIsInstance(b, numpy.ndarray)
+                self.assertIsInstance(b, np.ndarray)
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def test00b_char_atom_shape_args(self):
         """Data integrity during recovery (string objects)"""
@@ -337,12 +325,12 @@ class BasicTestCase(TestCase):
         filename = tempfile.mktemp(".h5")
         try:
             # Create an instance of HDF5 file
-            with tables.open_file(filename, mode="w") as fileh:
-                nparr = numpy.asarray(a)
-                atom = Atom.from_dtype(nparr.dtype)
+            with tb.open_file(filename, mode="w") as fileh:
+                nparr = np.asarray(a)
+                atom = tb.Atom.from_dtype(nparr.dtype)
                 shape = nparr.shape
                 if nparr.dtype.byteorder in ('>', '<'):
-                    byteorder = byteorders[nparr.dtype.byteorder]
+                    byteorder = tb.utils.byteorders[nparr.dtype.byteorder]
                 else:
                     byteorder = None
 
@@ -355,24 +343,24 @@ class BasicTestCase(TestCase):
                 ptarr[...] = a
 
             # Re-open the file in read-only mode
-            with tables.open_file(filename, mode="r") as fileh:
+            with tb.open_file(filename, mode="r") as fileh:
                 # Read the saved array
-                b = numpy.empty_like(a)
+                b = np.empty_like(a)
                 if fileh.root.somearray.flavor != 'numpy':
                     self.assertRaises(TypeError,
                                       lambda: fileh.root.somearray.read(out=b))
                 else:
                     fileh.root.somearray.read(out=b)
-                self.assertIsInstance(b, numpy.ndarray)
+                self.assertIsInstance(b, np.ndarray)
         finally:
             # Then, delete the file
-            os.remove(filename)
+            Path(filename).unlink()
 
     def setup01_char_nc(self):
         """Data integrity during recovery (non-contiguous character objects)"""
 
-        if not isinstance(self.tupleChar, numpy.ndarray):
-            a = numpy.array(self.tupleChar, dtype="S")
+        if not isinstance(self.tupleChar, np.ndarray):
+            a = np.array(self.tupleChar, dtype="S")
         else:
             a = self.tupleChar
         if a.ndim == 0:
@@ -407,15 +395,15 @@ class BasicTestCase(TestCase):
         for name in ('float16', 'float96', 'float128',
                      'complex192', 'complex256'):
             atomname = name.capitalize() + 'Atom'
-            if hasattr(tables, atomname):
+            if hasattr(tb, atomname):
                 typecodes.append(name)
 
         for typecode in typecodes:
-            a = numpy.array(self.tupleInt, typecode)
+            a = np.array(self.tupleInt, typecode)
             self.write_read(a)
-            b = numpy.array(self.tupleInt, typecode)
+            b = np.array(self.tupleInt, typecode)
             self.write_read_out_arg(b)
-            c = numpy.array(self.tupleInt, typecode)
+            c = np.array(self.tupleInt, typecode)
             self.write_read_atom_shape_args(c)
 
     def test03_types_nc(self):
@@ -429,11 +417,11 @@ class BasicTestCase(TestCase):
         for name in ('float16', 'float96', 'float128',
                      'complex192', 'complex256'):
             atomname = name.capitalize() + 'Atom'
-            if hasattr(tables, atomname):
+            if hasattr(tb, atomname):
                 typecodes.append(name)
 
         for typecode in typecodes:
-            a = numpy.array(self.tupleInt, typecode)
+            a = np.array(self.tupleInt, typecode)
             if a.ndim == 0:
                 b1 = a.copy()
                 b2 = a.copy()
@@ -506,9 +494,9 @@ class Basic1DThreeTestCase(BasicTestCase):
 class Basic2DOneTestCase(BasicTestCase):
     # 2D case
     title = "Rank-2 case 1"
-    tupleInt = numpy.array(numpy.arange((4)**2))
+    tupleInt = np.array(np.arange((4)**2))
     tupleInt.shape = (4,)*2
-    tupleChar = numpy.array(["abc"]*3**2, dtype="S3")
+    tupleChar = np.array(["abc"]*3**2, dtype="S3")
     tupleChar.shape = (3,)*2
     endiancheck = True
 
@@ -516,18 +504,17 @@ class Basic2DOneTestCase(BasicTestCase):
 class Basic2DTwoTestCase(BasicTestCase):
     # 2D case, with a multidimensional dtype
     title = "Rank-2 case 2"
-    tupleInt = numpy.array(numpy.arange((4)), dtype=(numpy.int_, (4,)))
-    tupleChar = numpy.array(["abc"]*3, dtype=("S3", (3,)))
+    tupleInt = np.tile(np.arange(4, dtype=np.int64), [4, 1])
+    tupleChar = np.array(["abc"]*3, dtype=("S3", (3,)))
     endiancheck = True
 
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 test"
-    tupleInt = numpy.array(numpy.arange((2)**10))
+    tupleInt = np.array(np.arange((2)**10))
     tupleInt.shape = (2,)*10
-    tupleChar = numpy.array(
-        ["abc"]*2**10, dtype="S3")
+    tupleChar = np.array(["abc"]*2**10, dtype="S3")
     tupleChar.shape = (2,)*10
     endiancheck = True
 
@@ -535,73 +522,69 @@ class Basic10DTestCase(BasicTestCase):
 class Basic32DTestCase(BasicTestCase):
     # 32D case (maximum)
     title = "Rank-32 test"
-    tupleInt = numpy.array((32,))
+    tupleInt = np.array((32,))
     tupleInt.shape = (1,)*32
-    tupleChar = numpy.array(["121"], dtype="S3")
+    tupleChar = np.array(["121"], dtype="S3")
     tupleChar.shape = (1,)*32
 
 
-class ReadOutArgumentTests(common.TempFileMixin, TestCase):
+class ReadOutArgumentTests(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
-        super(ReadOutArgumentTests, self).setUp()
+        super().setUp()
         self.size = 1000
 
     def create_array(self):
-        array = numpy.arange(self.size, dtype='f8')
+        array = np.arange(self.size, dtype='f8')
         disk_array = self.h5file.create_array('/', 'array', array)
         return array, disk_array
 
     def test_read_entire_array(self):
         array, disk_array = self.create_array()
-        out_buffer = numpy.empty((self.size, ), 'f8')
+        out_buffer = np.empty((self.size, ), 'f8')
         disk_array.read(out=out_buffer)
-        numpy.testing.assert_equal(out_buffer, array)
+        np.testing.assert_equal(out_buffer, array)
 
     def test_read_contiguous_slice1(self):
         array, disk_array = self.create_array()
-        out_buffer = numpy.arange(self.size, dtype='f8')
-        out_buffer = numpy.random.permutation(out_buffer)
+        out_buffer = np.arange(self.size, dtype='f8')
+        out_buffer = np.random.permutation(out_buffer)
         out_buffer_orig = out_buffer.copy()
         start = self.size // 2
         disk_array.read(start=start, stop=self.size, out=out_buffer[start:])
-        numpy.testing.assert_equal(out_buffer[start:], array[start:])
-        numpy.testing.assert_equal(out_buffer[:start], out_buffer_orig[:start])
+        np.testing.assert_equal(out_buffer[start:], array[start:])
+        np.testing.assert_equal(out_buffer[:start], out_buffer_orig[:start])
 
     def test_read_contiguous_slice2(self):
         array, disk_array = self.create_array()
-        out_buffer = numpy.arange(self.size, dtype='f8')
-        out_buffer = numpy.random.permutation(out_buffer)
+        out_buffer = np.arange(self.size, dtype='f8')
+        out_buffer = np.random.permutation(out_buffer)
         out_buffer_orig = out_buffer.copy()
         start = self.size // 4
         stop = self.size - start
         disk_array.read(start=start, stop=stop, out=out_buffer[start:stop])
-        numpy.testing.assert_equal(out_buffer[start:stop], array[start:stop])
-        numpy.testing.assert_equal(out_buffer[:start], out_buffer_orig[:start])
-        numpy.testing.assert_equal(out_buffer[stop:], out_buffer_orig[stop:])
+        np.testing.assert_equal(out_buffer[start:stop], array[start:stop])
+        np.testing.assert_equal(out_buffer[:start], out_buffer_orig[:start])
+        np.testing.assert_equal(out_buffer[stop:], out_buffer_orig[stop:])
 
     def test_read_non_contiguous_slice_contiguous_buffer(self):
         array, disk_array = self.create_array()
-        out_buffer = numpy.empty((self.size // 2, ), dtype='f8')
+        out_buffer = np.empty((self.size // 2, ), dtype='f8')
         disk_array.read(start=0, stop=self.size, step=2, out=out_buffer)
-        numpy.testing.assert_equal(out_buffer, array[0:self.size:2])
+        np.testing.assert_equal(out_buffer, array[0:self.size:2])
 
     def test_read_non_contiguous_buffer(self):
         array, disk_array = self.create_array()
-        out_buffer = numpy.empty((self.size, ), 'f8')
+        out_buffer = np.empty((self.size, ), 'f8')
         out_buffer_slice = out_buffer[0:self.size:2]
-        # once Python 2.6 support is dropped, this could change
-        # to assertRaisesRegexp to check exception type and message at once
-        self.assertRaises(ValueError, disk_array.read, 0, self.size, 2,
-                          out_buffer_slice)
-        try:
+
+        with self.assertRaisesRegex(ValueError,
+                                    'output array not C contiguous'):
             disk_array.read(0, self.size, 2, out_buffer_slice)
-        except ValueError as exc:
-            self.assertEqual('output array not C contiguous', str(exc))
 
     def test_buffer_too_small(self):
         array, disk_array = self.create_array()
-        out_buffer = numpy.empty((self.size // 2, ), 'f8')
+        out_buffer = np.empty((self.size // 2, ), 'f8')
         self.assertRaises(ValueError, disk_array.read, 0, self.size, 1,
                           out_buffer)
         try:
@@ -611,7 +594,7 @@ class ReadOutArgumentTests(common.TempFileMixin, TestCase):
 
     def test_buffer_too_large(self):
         array, disk_array = self.create_array()
-        out_buffer = numpy.empty((self.size + 1, ), 'f8')
+        out_buffer = np.empty((self.size + 1, ), 'f8')
         self.assertRaises(ValueError, disk_array.read, 0, self.size, 1,
                           out_buffer)
         try:
@@ -620,20 +603,22 @@ class ReadOutArgumentTests(common.TempFileMixin, TestCase):
             self.assertIn('output array size invalid, got', str(exc))
 
 
-class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin, TestCase):
+class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
+                                         common.PyTablesTestCase):
 
     def setUp(self):
-        super(SizeOnDiskInMemoryPropertyTestCase, self).setUp()
+        super().setUp()
         self.array_size = (10, 10)
         self.array = self.h5file.create_array(
-            '/', 'somearray', numpy.zeros(self.array_size, 'i4'))
+            '/', 'somearray', np.zeros(self.array_size, 'i4'))
 
     def test_all_zeros(self):
         self.assertEqual(self.array.size_on_disk, 10 * 10 * 4)
         self.assertEqual(self.array.size_in_memory, 10 * 10 * 4)
 
 
-class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
+class UnalignedAndComplexTestCase(common.TempFileMixin,
+                                  common.PyTablesTestCase):
     """Basic test for all the supported typecodes present in numpy.
 
     Most of them are included on PyTables.
@@ -641,7 +626,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
     """
 
     def setUp(self):
-        super(UnalignedAndComplexTestCase, self).setUp()
+        super().setUp()
         self.root = self.h5file.root
 
     def write_read(self, testArray):
@@ -671,7 +656,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         c = a.newbyteorder(byteorder)
 
         # Compare them. They should be equal.
-        if not allequal(c, b) and common.verbose:
+        if not common.allequal(c, b) and common.verbose:
             print("Write and read arrays differ!")
             print("Array written:", a)
             print("Array written shape:", a.shape)
@@ -688,35 +673,36 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
         if a.dtype.byteorder != "|":
             self.assertEqual(a.dtype, b.dtype)
             self.assertEqual(a.dtype, self.root.somearray.atom.dtype)
-            self.assertEqual(byteorders[b.dtype.byteorder], sys.byteorder)
+            self.assertEqual(tb.utils.byteorders[b.dtype.byteorder],
+                             sys.byteorder)
             self.assertEqual(self.root.somearray.byteorder, byteorder)
 
-        self.assertTrue(allequal(c, b))
+        self.assertTrue(common.allequal(c, b))
 
     def test01_signedShort_unaligned(self):
         """Checking an unaligned signed short integer array"""
 
-        r = numpy.rec.array(b'a'*200, formats='i1,f4,i2', shape=10)
+        r = np.rec.array(b'a'*200, formats='i1,f4,i2', shape=10)
         a = r["f2"]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
-        self.assertEqual(a.dtype.type, numpy.int16)
+        self.assertEqual(a.dtype.type, np.int16)
         self.write_read(a)
 
     def test02_float_unaligned(self):
         """Checking an unaligned single precision array"""
 
-        r = numpy.rec.array(b'a'*200, formats='i1,f4,i2', shape=10)
+        r = np.rec.array(b'a'*200, formats='i1,f4,i2', shape=10)
         a = r["f1"]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, 0)
-        self.assertEqual(a.dtype.type, numpy.float32)
+        self.assertEqual(a.dtype.type, np.float32)
         self.write_read(a)
 
     def test03_byte_offset(self):
         """Checking an offsetted byte array"""
 
-        r = numpy.arange(100, dtype=numpy.int8)
+        r = np.arange(100, dtype=np.int8)
         r.shape = (10, 10)
         a = r[2]
         self.write_read(a)
@@ -724,7 +710,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
     def test04_short_offset(self):
         """Checking an offsetted unsigned short int precision array"""
 
-        r = numpy.arange(100, dtype=numpy.uint32)
+        r = np.arange(100, dtype=np.uint32)
         r.shape = (10, 10)
         a = r[2]
         self.write_read(a)
@@ -732,7 +718,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
     def test05_int_offset(self):
         """Checking an offsetted integer array"""
 
-        r = numpy.arange(100, dtype=numpy.int32)
+        r = np.arange(100, dtype=np.int32)
         r.shape = (10, 10)
         a = r[2]
         self.write_read(a)
@@ -740,7 +726,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
     def test06_longlongint_offset(self):
         """Checking an offsetted long long integer array"""
 
-        r = numpy.arange(100, dtype=numpy.int64)
+        r = np.arange(100, dtype=np.int64)
         r.shape = (10, 10)
         a = r[2]
         self.write_read(a)
@@ -748,7 +734,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
     def test07_float_offset(self):
         """Checking an offsetted single precision array"""
 
-        r = numpy.arange(100, dtype=numpy.float32)
+        r = np.arange(100, dtype=np.float32)
         r.shape = (10, 10)
         a = r[2]
         self.write_read(a)
@@ -756,7 +742,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
     def test08_double_offset(self):
         """Checking an offsetted double precision array"""
 
-        r = numpy.arange(100, dtype=numpy.float64)
+        r = np.arange(100, dtype=np.float64)
         r.shape = (10, 10)
         a = r[2]
         self.write_read(a)
@@ -764,21 +750,21 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
     def test09_float_offset_unaligned(self):
         """Checking an unaligned and offsetted single precision array"""
 
-        r = numpy.rec.array(b'a'*200, formats='i1,3f4,i2', shape=10)
+        r = np.rec.array(b'a'*200, formats='i1,3f4,i2', shape=10)
         a = r["f1"][3]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
-        self.assertEqual(a.dtype.type, numpy.float32)
+        self.assertEqual(a.dtype.type, np.float32)
         self.write_read(a)
 
     def test10_double_offset_unaligned(self):
         """Checking an unaligned and offsetted double precision array"""
 
-        r = numpy.rec.array(b'a'*400, formats='i1,3f8,i2', shape=10)
+        r = np.rec.array(b'a'*400, formats='i1,3f8,i2', shape=10)
         a = r["f1"][3]
         # Ensure that this array is non-aligned
         self.assertEqual(a.flags.aligned, False)
-        self.assertEqual(a.dtype.type, numpy.float64)
+        self.assertEqual(a.dtype.type, np.float64)
         self.write_read(a)
 
     def test11_int_byteorder(self):
@@ -786,7 +772,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
          (integer)"""
 
         # Save an array with the reversed byteorder on it
-        a = numpy.arange(25, dtype=numpy.int32).reshape(5, 5)
+        a = np.arange(25, dtype=np.int32).reshape(5, 5)
         a = a.byteswap()
         a = a.newbyteorder()
         array = self.h5file.create_array(
@@ -808,13 +794,13 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
             print("byteorder of subarray-->", b.dtype.byteorder)
             print("subarray-->", b)
             print("retrieved array-->", c)
-        self.assertTrue(allequal(a, c))
+        self.assertTrue(common.allequal(a, c))
 
     def test12_float_byteorder(self):
         """Checking setting data with different byteorder in a range (float)"""
 
         # Save an array with the reversed byteorder on it
-        a = numpy.arange(25, dtype=numpy.float64).reshape(5, 5)
+        a = np.arange(25, dtype=np.float64).reshape(5, 5)
         a = a.byteswap()
         a = a.newbyteorder()
         array = self.h5file.create_array(
@@ -836,7 +822,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin, TestCase):
             print("byteorder of subarray-->", b.dtype.byteorder)
             print("subarray-->", b)
             print("retrieved array-->", c)
-        self.assertTrue(allequal(a, c))
+        self.assertTrue(common.allequal(a, c))
 
 
 class ComplexNotReopenNotEndianTestCase(UnalignedAndComplexTestCase):
@@ -859,7 +845,7 @@ class ComplexReopenEndianTestCase(UnalignedAndComplexTestCase):
     reopen = True
 
 
-class GroupsArrayTestCase(common.TempFileMixin, TestCase):
+class GroupsArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """This test class checks combinations of arrays with groups."""
 
     def test00_iterativeGroups(self):
@@ -879,16 +865,16 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
         # http://projects.scipy.org/scipy/numpy/ticket/290
         typecodes = ['b', 'B', 'h', 'H', 'i', 'I', 'l', 'L', 'q', 'f', 'd',
                      'F', 'D']
-        if hasattr(tables, 'Float16Atom'):
+        if hasattr(tb, 'Float16Atom'):
             typecodes.append('e')
-        if hasattr(tables, 'Float96Atom') or hasattr(tables, 'Float128Atom'):
+        if hasattr(tb, 'Float96Atom') or hasattr(tb, 'Float128Atom'):
             typecodes.append('g')
-        if (hasattr(tables, 'Complex192Atom') or
-                hasattr(tables, 'Complex256Atom')):
+        if (hasattr(tb, 'Complex192Atom') or
+                hasattr(tb, 'Complex256Atom')):
             typecodes.append('G')
 
         for i, typecode in enumerate(typecodes):
-            a = numpy.ones((3,), typecode)
+            a = np.ones((3,), typecode)
             dsetname = 'array_' + typecode
             if common.verbose:
                 print("Creating dataset:", group._g_join(dsetname))
@@ -902,11 +888,11 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
         group = self.h5file.root
 
         # Get the metadata on the previosly saved arrays
-        for i in range(len(typecodes)):
+        for i, typecode in enumerate(typecodes):
             # Create an array for later comparison
-            a = numpy.ones((3,), typecodes[i])
+            a = np.ones((3,), typecode)
             # Get the dset object hanging from group
-            dset = getattr(group, 'array_' + typecodes[i])
+            dset = getattr(group, 'array_' + typecode)
             # Get the actual array
             b = dset.read()
             if common.verbose:
@@ -917,7 +903,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
                 print(". Type ==> %s" % b.dtype)
             self.assertEqual(a.shape, b.shape)
             self.assertEqual(a.dtype, b.dtype)
-            self.assertTrue(allequal(a, b))
+            self.assertTrue(common.allequal(a, b))
 
             # Iterate over the next group
             group = getattr(group, 'group' + str(i))
@@ -944,7 +930,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
             print("Rank array writing progress: ", end=' ')
         for rank in range(minrank, maxrank + 1):
             # Create an array of integers, with incrementally bigger ranges
-            a = numpy.ones((1,) * rank, numpy.int32)
+            a = np.ones((1,) * rank, np.int32)
             if common.verbose:
                 print("%3d," % (rank), end=' ')
             self.h5file.create_array(group, "array", a, "Rank: %s" % rank)
@@ -960,12 +946,12 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
         # Get the metadata on the previosly saved arrays
         for rank in range(minrank, maxrank + 1):
             # Create an array for later comparison
-            a = numpy.ones((1,) * rank, numpy.int32)
+            a = np.ones((1,) * rank, np.int32)
             # Get the actual array
             b = group.array.read()
             if common.verbose:
                 print("%3d," % (rank), end=' ')
-            if common.verbose and not allequal(a, b):
+            if common.verbose and not common.allequal(a, b):
                 print("Info from dataset:", group.array._v_pathname)
                 print("  Shape: ==>", group.array.shape, end=' ')
                 print("  typecode ==> %c" % group.array.typecode)
@@ -974,7 +960,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
 
             self.assertEqual(a.shape, b.shape)
             self.assertEqual(a.dtype, b.dtype)
-            self.assertTrue(allequal(a, b))
+            self.assertTrue(common.allequal(a, b))
 
             # print(self.h5file)
             # Iterate over the next group
@@ -984,7 +970,7 @@ class GroupsArrayTestCase(common.TempFileMixin, TestCase):
             print()  # This flush the stdout buffer
 
 
-class CopyTestCase(common.TempFileMixin, TestCase):
+class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test01_copy(self):
         """Checking Array.copy() method."""
@@ -994,7 +980,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_copy..." % self.__class__.__name__)
 
         # Create an Array
-        arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        arr = np.array([[456, 2], [3, 457]], dtype='int16')
         array1 = self.h5file.create_array(
             self.h5file.root, 'array1', arr, "title array1")
 
@@ -1016,7 +1002,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
-        self.assertTrue(allequal(array1.read(), array2.read()))
+        self.assertTrue(common.allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
@@ -1032,7 +1018,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02_copy..." % self.__class__.__name__)
 
         # Create an Array
-        arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        arr = np.array([[456, 2], [3, 457]], dtype='int16')
         array1 = self.h5file.create_array(
             self.h5file.root, 'array1', arr, "title array1")
 
@@ -1055,7 +1041,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
-        self.assertTrue(allequal(array1.read(), array2.read()))
+        self.assertTrue(common.allequal(array1.read(), array2.read()))
 
         # Assert other properties in array
         self.assertEqual(array1.nrows, array2.nrows)
@@ -1071,7 +1057,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test04_copy..." % self.__class__.__name__)
 
         # Create an Array
-        arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        arr = np.array([[456, 2], [3, 457]], dtype='int16')
         array1 = self.h5file.create_array(
             self.h5file.root, 'array1', arr, "title array1")
         # Append some user attrs
@@ -1100,7 +1086,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test05_copy..." % self.__class__.__name__)
 
         # Create an Array
-        arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        arr = np.array([[456, 2], [3, 457]], dtype='int16')
         array1 = self.h5file.create_array(
             self.h5file.root, 'array1', arr, "title array1")
         # Append some user attrs
@@ -1132,7 +1118,7 @@ class CopyTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test05b_copy..." % self.__class__.__name__)
 
         # Create an Array
-        arr = numpy.array([[456, 2], [3, 457]], dtype='int16')
+        arr = np.array([[456, 2], [3, 457]], dtype='int16')
         array1 = self.h5file.create_array(
             self.h5file.root, 'array1', arr, "title array1")
         # Append some user attrs
@@ -1165,7 +1151,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 
-class CopyIndexTestCase(common.TempFileMixin, TestCase):
+class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test01_index(self):
         """Checking Array.copy() method with indexes."""
@@ -1175,7 +1161,7 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test01_index..." % self.__class__.__name__)
 
         # Create a numpy
-        r = numpy.arange(200, dtype='int32')
+        r = np.arange(200, dtype='int32')
         r.shape = (100, 2)
         # Save it in a array:
         array1 = self.h5file.create_array(
@@ -1194,7 +1180,7 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        self.assertTrue(allequal(r2, array2.read()))
+        self.assertTrue(common.allequal(r2, array2.read()))
 
         # Assert the number of rows in array
         if common.verbose:
@@ -1210,7 +1196,7 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
             print("Running %s.test02_indexclosef..." % self.__class__.__name__)
 
         # Create a numpy
-        r = numpy.arange(200, dtype='int32')
+        r = np.arange(200, dtype='int32')
         r.shape = (100, 2)
         # Save it in a array:
         array1 = self.h5file.create_array(
@@ -1234,7 +1220,7 @@ class CopyIndexTestCase(common.TempFileMixin, TestCase):
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        self.assertTrue(allequal(r2, array2.read()))
+        self.assertTrue(common.allequal(r2, array2.read()))
 
         # Assert the number of rows in array
         if common.verbose:
@@ -1315,7 +1301,7 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     step = 1
 
 
-class GetItemTestCase(common.TempFileMixin, TestCase):
+class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_single(self):
         """Single element access (character types)"""
@@ -1333,7 +1319,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original first element:", a[0], type(a[0]))
             print("Read first element:", arr[0], type(arr[0]))
-        self.assertTrue(allequal(a[0], arr[0]))
+        self.assertTrue(common.allequal(a[0], arr[0]))
         self.assertEqual(type(a[0]), type(arr[0]))
 
     def test01_single(self):
@@ -1371,7 +1357,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original elements:", a[1:4])
             print("Read elements:", arr[1:4])
-        self.assertTrue(allequal(a[1:4], arr[1:4]))
+        self.assertTrue(common.allequal(a[1:4], arr[1:4]))
 
     def test03_range(self):
         """Range element access (numerical types)"""
@@ -1389,7 +1375,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original elements:", a[1:4])
             print("Read elements:", arr[1:4])
-        self.assertTrue(allequal(a[1:4], arr[1:4]))
+        self.assertTrue(common.allequal(a[1:4], arr[1:4]))
 
     def test04_range(self):
         """Range element access, strided (character types)"""
@@ -1407,7 +1393,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original elements:", a[1:4:2])
             print("Read elements:", arr[1:4:2])
-        self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
+        self.assertTrue(common.allequal(a[1:4:2], arr[1:4:2]))
 
     def test05_range(self):
         """Range element access, strided (numerical types)"""
@@ -1425,7 +1411,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original elements:", a[1:4:2])
             print("Read elements:", arr[1:4:2])
-        self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
+        self.assertTrue(common.allequal(a[1:4:2], arr[1:4:2]))
 
     def test06_negativeIndex(self):
         """Negative Index element access (character types)"""
@@ -1443,7 +1429,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original last element:", a[-1])
             print("Read last element:", arr[-1])
-        self.assertTrue(allequal(a[-1], arr[-1]))
+        self.assertTrue(common.allequal(a[-1], arr[-1]))
 
     def test07_negativeIndex(self):
         """Negative Index element access (numerical types)"""
@@ -1461,8 +1447,8 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original before last element:", a[-2])
             print("Read before last element:", arr[-2])
-        if isinstance(a[-2], numpy.ndarray):
-            self.assertTrue(allequal(a[-2], arr[-2]))
+        if isinstance(a[-2], np.ndarray):
+            self.assertTrue(common.allequal(a[-2], arr[-2]))
         else:
             self.assertEqual(a[-2], arr[-2])
 
@@ -1482,7 +1468,7 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original last elements:", a[-4:-1])
             print("Read last elements:", arr[-4:-1])
-        self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
+        self.assertTrue(common.allequal(a[-4:-1], arr[-4:-1]))
 
     def test09_negativeRange(self):
         """Negative range element access (numerical types)"""
@@ -1500,15 +1486,15 @@ class GetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original last elements:", a[-4:-1])
             print("Read last elements:", arr[-4:-1])
-        self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
+        self.assertTrue(common.allequal(a[-4:-1], arr[-4:-1]))
 
 
-class GI1NATestCase(GetItemTestCase, TestCase):
+class GI1NATestCase(GetItemTestCase, common.PyTablesTestCase):
     title = "Rank-1 case 1"
-    numericalList = numpy.array([3])
-    numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
-    charList = numpy.array(["3"], 'S')
-    charListME = numpy.array(
+    numericalList = np.array([3])
+    numericalListME = np.array([3, 2, 1, 0, 4, 5, 6])
+    charList = np.array(["3"], 'S')
+    charListME = np.array(
         ["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 
@@ -1523,15 +1509,15 @@ class GI1NACloseTestCase(GI1NATestCase):
 class GI2NATestCase(GetItemTestCase):
     # A more complex example
     title = "Rank-1,2 case 2"
-    numericalList = numpy.array([3, 4])
-    numericalListME = numpy.array([[3, 2, 1, 0, 4, 5, 6],
-                                   [2, 1, 0, 4, 5, 6, 7],
-                                   [4, 3, 2, 1, 0, 4, 5],
-                                   [3, 2, 1, 0, 4, 5, 6],
-                                   [3, 2, 1, 0, 4, 5, 6]])
+    numericalList = np.array([3, 4])
+    numericalListME = np.array([[3, 2, 1, 0, 4, 5, 6],
+                                [2, 1, 0, 4, 5, 6, 7],
+                                [4, 3, 2, 1, 0, 4, 5],
+                                [3, 2, 1, 0, 4, 5, 6],
+                                [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a", "b"], 'S')
-    charListME = numpy.array(
+    charList = np.array(["a", "b"], 'S')
+    charListME = np.array(
         [["321", "221", "121", "021", "421", "521", "621"],
          ["21", "21", "11", "02", "42", "21", "61"],
          ["31", "21", "12", "21", "41", "51", "621"],
@@ -1550,7 +1536,7 @@ class GI2NACloseTestCase(GI2NATestCase):
     close = 1
 
 
-class SetItemTestCase(common.TempFileMixin, TestCase):
+class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_single(self):
         """Single element update (character types)"""
@@ -1572,7 +1558,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original first element:", a[0])
             print("Read first element:", arr[0])
-        self.assertTrue(allequal(a[0], arr[0]))
+        self.assertTrue(common.allequal(a[0], arr[0]))
 
     def test01_single(self):
         """Single element update (numerical types)"""
@@ -1616,7 +1602,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original elements:", a[1:4])
             print("Read elements:", arr[1:4])
-        self.assertTrue(allequal(a[1:4], arr[1:4]))
+        self.assertTrue(common.allequal(a[1:4], arr[1:4]))
 
     def test03_range(self):
         """Range element update (numerical types)"""
@@ -1632,7 +1618,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
 
         # Modify elements of a and arr:
         s = slice(1, 3, None)
-        rng = numpy.arange(a[s].size)*2 + 3
+        rng = np.arange(a[s].size)*2 + 3
         rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
@@ -1641,7 +1627,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original elements:", a[1:4])
             print("Read elements:", arr[1:4])
-        self.assertTrue(allequal(a[1:4], arr[1:4]))
+        self.assertTrue(common.allequal(a[1:4], arr[1:4]))
 
     def test04_range(self):
         """Range element update, strided (character types)"""
@@ -1664,7 +1650,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original elements:", a[1:4:2])
             print("Read elements:", arr[1:4:2])
-        self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
+        self.assertTrue(common.allequal(a[1:4:2], arr[1:4:2]))
 
     def test05_range(self):
         """Range element update, strided (numerical types)"""
@@ -1680,7 +1666,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
 
         # Modify elements of a and arr:
         s = slice(1, 4, 2)
-        rng = numpy.arange(a[s].size)*2 + 3
+        rng = np.arange(a[s].size)*2 + 3
         rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
@@ -1689,7 +1675,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original elements:", a[1:4:2])
             print("Read elements:", arr[1:4:2])
-        self.assertTrue(allequal(a[1:4:2], arr[1:4:2]))
+        self.assertTrue(common.allequal(a[1:4:2], arr[1:4:2]))
 
     def test06_negativeIndex(self):
         """Negative Index element update (character types)"""
@@ -1712,7 +1698,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original last element:", a[-1])
             print("Read last element:", arr[-1])
-        self.assertTrue(allequal(a[-1], arr[-1]))
+        self.assertTrue(common.allequal(a[-1], arr[-1]))
 
     def test07_negativeIndex(self):
         """Negative Index element update (numerical types)"""
@@ -1735,8 +1721,8 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original before last element:", a[-2])
             print("Read before last element:", arr[-2])
-        if isinstance(a[-2], numpy.ndarray):
-            self.assertTrue(allequal(a[-2], arr[-2]))
+        if isinstance(a[-2], np.ndarray):
+            self.assertTrue(common.allequal(a[-2], arr[-2]))
         else:
             self.assertEqual(a[-2], arr[-2])
 
@@ -1761,7 +1747,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original last elements:", a[-4:-1])
             print("Read last elements:", arr[-4:-1])
-        self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
+        self.assertTrue(common.allequal(a[-4:-1], arr[-4:-1]))
 
     def test09_negativeRange(self):
         """Negative range element update (numerical types)"""
@@ -1777,7 +1763,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
 
         # Modify elements of a and arr:
         s = slice(-3, -1, None)
-        rng = numpy.arange(a[s].size)*2 + 3
+        rng = np.arange(a[s].size)*2 + 3
         rng.shape = a[s].shape
         a[s] = rng
         arr[s] = rng
@@ -1786,7 +1772,7 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original last elements:", a[-4:-1])
             print("Read last elements:", arr[-4:-1])
-        self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
+        self.assertTrue(common.allequal(a[-4:-1], arr[-4:-1]))
 
     def test10_outOfRange(self):
         """Out of range update (numerical types)"""
@@ -1803,10 +1789,10 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         # Modify elements of arr that are out of range:
         s = slice(1, a.shape[0]+1, None)
         s2 = slice(1, 1000, None)
-        rng = numpy.arange(a[s].size)*2 + 3
+        rng = np.arange(a[s].size)*2 + 3
         rng.shape = a[s].shape
         a[s] = rng
-        rng2 = numpy.arange(a[s2].size)*2 + 3
+        rng2 = np.arange(a[s2].size)*2 + 3
         rng2.shape = a[s2].shape
         arr[s2] = rng2
 
@@ -1814,15 +1800,15 @@ class SetItemTestCase(common.TempFileMixin, TestCase):
         if common.verbose:
             print("Original last elements:", a[-4:-1])
             print("Read last elements:", arr[-4:-1])
-        self.assertTrue(allequal(a[-4:-1], arr[-4:-1]))
+        self.assertTrue(common.allequal(a[-4:-1], arr[-4:-1]))
 
 
-class SI1NATestCase(SetItemTestCase, TestCase):
+class SI1NATestCase(SetItemTestCase, common.PyTablesTestCase):
     title = "Rank-1 case 1"
-    numericalList = numpy.array([3])
-    numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
-    charList = numpy.array(["3"], 'S')
-    charListME = numpy.array(
+    numericalList = np.array([3])
+    numericalListME = np.array([3, 2, 1, 0, 4, 5, 6])
+    charList = np.array(["3"], 'S')
+    charListME = np.array(
         ["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 
@@ -1837,15 +1823,15 @@ class SI1NACloseTestCase(SI1NATestCase):
 class SI2NATestCase(SetItemTestCase):
     # A more complex example
     title = "Rank-1,2 case 2"
-    numericalList = numpy.array([3, 4])
-    numericalListME = numpy.array([[3, 2, 1, 0, 4, 5, 6],
-                                   [2, 1, 0, 4, 5, 6, 7],
-                                   [4, 3, 2, 1, 0, 4, 5],
-                                   [3, 2, 1, 0, 4, 5, 6],
-                                   [3, 2, 1, 0, 4, 5, 6]])
+    numericalList = np.array([3, 4])
+    numericalListME = np.array([[3, 2, 1, 0, 4, 5, 6],
+                                [2, 1, 0, 4, 5, 6, 7],
+                                [4, 3, 2, 1, 0, 4, 5],
+                                [3, 2, 1, 0, 4, 5, 6],
+                                [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a", "b"], 'S')
-    charListME = numpy.array(
+    charList = np.array(["a", "b"], 'S')
+    charListME = np.array(
         [["321", "221", "121", "021", "421", "521", "621"],
          ["21", "21", "11", "02", "42", "21", "61"],
          ["31", "21", "12", "21", "41", "51", "621"],
@@ -1864,7 +1850,7 @@ class SI2NACloseTestCase(SI2NATestCase):
     close = 1
 
 
-class GeneratorTestCase(common.TempFileMixin, TestCase):
+class GeneratorTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00a_single(self):
         """Testing generator access to Arrays, single elements (char)"""
@@ -1899,14 +1885,14 @@ class GeneratorTestCase(common.TempFileMixin, TestCase):
             arr = self.h5file.root.somearray
 
         # Get and compare an element
-        ga = [i for i in a]
-        garr = [i for i in arr]
+        ga = list(a)
+        garr = list(arr)
 
         if common.verbose:
             print("Result of original iterator:", ga)
             print("Result of read generator:", garr)
-        for i in range(len(ga)):
-            self.assertTrue(allequal(ga[i], garr[i]))
+        for x_ga, x_garr in zip(ga, garr):
+            self.assertTrue(common.allequal(x_ga, x_garr))
 
     def test01a_single(self):
         """Testing generator access to Arrays, single elements (numeric)"""
@@ -1941,21 +1927,21 @@ class GeneratorTestCase(common.TempFileMixin, TestCase):
             arr = self.h5file.root.somearray
 
         # Get and compare an element
-        ga = [i for i in a]
-        garr = [i for i in arr]
+        ga = list(a)
+        garr = list(arr)
         if common.verbose:
             print("Result of original iterator:", ga)
             print("Result of read generator:", garr)
-        for i in range(len(ga)):
-            self.assertTrue(allequal(ga[i], garr[i]))
+        for x_ga, x_garr in zip(ga, garr):
+            self.assertTrue(common.allequal(x_ga, x_garr))
 
 
 class GE1NATestCase(GeneratorTestCase):
     title = "Rank-1 case 1"
-    numericalList = numpy.array([3])
-    numericalListME = numpy.array([3, 2, 1, 0, 4, 5, 6])
-    charList = numpy.array(["3"], 'S')
-    charListME = numpy.array(
+    numericalList = np.array([3])
+    numericalListME = np.array([3, 2, 1, 0, 4, 5, 6])
+    charList = np.array(["3"], 'S')
+    charListME = np.array(
         ["321", "221", "121", "021", "421", "521", "621"], 'S')
 
 
@@ -1970,15 +1956,15 @@ class GE1NACloseTestCase(GE1NATestCase):
 class GE2NATestCase(GeneratorTestCase):
     # A more complex example
     title = "Rank-1,2 case 2"
-    numericalList = numpy.array([3, 4])
-    numericalListME = numpy.array([[3, 2, 1, 0, 4, 5, 6],
-                                   [2, 1, 0, 4, 5, 6, 7],
-                                   [4, 3, 2, 1, 0, 4, 5],
-                                   [3, 2, 1, 0, 4, 5, 6],
-                                   [3, 2, 1, 0, 4, 5, 6]])
+    numericalList = np.array([3, 4])
+    numericalListME = np.array([[3, 2, 1, 0, 4, 5, 6],
+                                [2, 1, 0, 4, 5, 6, 7],
+                                [4, 3, 2, 1, 0, 4, 5],
+                                [3, 2, 1, 0, 4, 5, 6],
+                                [3, 2, 1, 0, 4, 5, 6]])
 
-    charList = numpy.array(["a", "b"], 'S')
-    charListME = numpy.array(
+    charList = np.array(["a", "b"], 'S')
+    charListME = np.array(
         [["321", "221", "121", "021", "421", "521", "621"],
          ["21", "21", "11", "02", "42", "21", "61"],
          ["31", "21", "12", "21", "41", "51", "621"],
@@ -1997,17 +1983,17 @@ class GE2NACloseTestCase(GE2NATestCase):
     close = 1
 
 
-class NonHomogeneousTestCase(common.TempFileMixin, TestCase):
+class NonHomogeneousTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test(self):
         """Test for creation of non-homogeneous arrays."""
 
         # This checks ticket #12.
         self.assertRaises((ValueError, TypeError),
                           self.h5file.create_array, '/', 'test', [1, [2, 3]])
-        self.assertRaises(NoSuchNodeError, self.h5file.remove_node, '/test')
+        self.assertRaises(tb.NoSuchNodeError, self.h5file.remove_node, '/test')
 
 
-class TruncateTestCase(common.TempFileMixin, TestCase):
+class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test(self):
         """Test for unability to truncate Array objects."""
 
@@ -2015,10 +2001,10 @@ class TruncateTestCase(common.TempFileMixin, TestCase):
         self.assertRaises(TypeError, array1.truncate, 0)
 
 
-class PointSelectionTestCase(common.TempFileMixin, TestCase):
+class PointSelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
-        super(PointSelectionTestCase, self).setUp()
+        super().setUp()
         # Limits for selections
         self.limits = [
             (0, 1),  # just one element
@@ -2028,8 +2014,8 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
         ]
 
         # Create a sample array
-        size = numpy.prod(self.shape)
-        nparr = numpy.arange(size, dtype=numpy.int32).reshape(self.shape)
+        size = np.prod(self.shape)
+        nparr = np.arange(size, dtype=np.int32).reshape(self.shape)
         self.nparr = nparr
         self.tbarr = self.h5file.create_array(self.h5file.root, 'array', nparr)
 
@@ -2045,8 +2031,9 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             a = nparr[key]
             b = tbarr[key]
             self.assertTrue(
-                numpy.alltrue(a == b),
-                "NumPy array and PyTables selections does not match.")
+                np.all(a == b),
+                "NumPy array and PyTables selections does not match."
+            )
 
     def test01b_read(self):
         """Test for point-selections (read, integer keys)."""
@@ -2054,13 +2041,13 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
         nparr = self.nparr
         tbarr = self.tbarr
         for value1, value2 in self.limits:
-            key = numpy.where((nparr >= value1) & (nparr < value2))
+            key = np.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
                 print("Selection to test:", key)
             a = nparr[key]
             b = tbarr[key]
             self.assertTrue(
-                numpy.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables selections does not match.")
 
     def test01c_read(self):
@@ -2069,11 +2056,11 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
         nparr = self.nparr
         tbarr = self.tbarr
         for value1, value2 in self.limits:
-            key = numpy.where((nparr >= value1) & (nparr < value2))
+            key = np.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
                 print("Selection to test:", key)
             # a = nparr[key]
-            fkey = numpy.array(key, "f4")
+            fkey = np.array(key, "f4")
             self.assertRaises((IndexError, TypeError), tbarr.__getitem__, fkey)
 
     def test01d_read(self):
@@ -2087,7 +2074,7 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
                 print("Selection to test:", key)
             a = nparr[key]
             b = tbarr[key]
-            npt.assert_array_equal(
+            np.testing.assert_array_equal(
                 a, b, "NumPy array and PyTables selections does not match.")
 
     def test01e_read(self):
@@ -2114,7 +2101,7 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             a = nparr[:]
             b = tbarr[:]
             self.assertTrue(
-                numpy.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
     def test02b_write(self):
@@ -2123,7 +2110,7 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
         nparr = self.nparr
         tbarr = self.tbarr
         for value1, value2 in self.limits:
-            key = numpy.where((nparr >= value1) & (nparr < value2))
+            key = np.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
                 print("Selection to test:", key)
             s = nparr[key]
@@ -2132,7 +2119,7 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             a = nparr[:]
             b = tbarr[:]
             self.assertTrue(
-                numpy.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
     def test02c_write(self):
@@ -2141,7 +2128,7 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
         nparr = self.nparr
         tbarr = self.tbarr
         for value1, value2 in self.limits:
-            key = numpy.where((nparr >= value1) & (nparr < value2))
+            key = np.where((nparr >= value1) & (nparr < value2))
             if common.verbose:
                 print("Selection to test:", key)
             # s = nparr[key]
@@ -2150,7 +2137,7 @@ class PointSelectionTestCase(common.TempFileMixin, TestCase):
             a = nparr[:]
             b = tbarr[:]
             self.assertTrue(
-                numpy.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
 
@@ -2222,41 +2209,41 @@ class PointSelection4(PointSelectionTestCase):
     ]
 
 
-class FancySelectionTestCase(common.TempFileMixin, TestCase):
+class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
-        super(FancySelectionTestCase, self).setUp()
+        super().setUp()
 
-        M, N, O = self.shape
+        m, n, o = self.shape
 
         # The next are valid selections for both NumPy and PyTables
         self.working_keyset = [
-            ([1, 3], slice(1, N-1), 2),
-            ([M-1, 1, 3, 2], slice(None), 2),  # unordered lists supported
-            (slice(M), [N-1, 1, 0], slice(None)),
-            (slice(1, M, 3), slice(1, N), [O-1, 1, 0]),
-            (M-1, [2, 1], 1),
+            ([1, 3], slice(1, n-1), 2),
+            ([m-1, 1, 3, 2], slice(None), 2),  # unordered lists supported
+            (slice(m), [n-1, 1, 0], slice(None)),
+            (slice(1, m, 3), slice(1, n), [o-1, 1, 0]),
+            (m-1, [2, 1], 1),
             (1, 2, 1),              # regular selection
             ([1, 2], -2, -1),     # negative indices
             ([1, -2], 2, -1),     # more negative indices
             ([1, -2], 2, Ellipsis),     # one ellipsis
             (Ellipsis, [1, 2]),    # one ellipsis
-            (numpy.array(
+            (np.array(
                 [1, -2], 'i4'), 2, -1),  # array 32-bit instead of list
-            (numpy.array(
+            (np.array(
                 [-1, 2], 'i8'), 2, -1),  # array 64-bit instead of list
         ]
 
         # Using booleans instead of ints is deprecated since numpy 1.8
         # Tests for keys that have to support the __index__ attribute
-        #self.working_keyset.append(
-        #    (False, True),  # equivalent to (0,1) ;-)
-        #)
+        # self.working_keyset.append(
+        #     (False, True),  # equivalent to (0,1) ;-)
+        # )
 
         # Valid selections for NumPy, but not for PyTables (yet)
         # The next should raise an IndexError
         self.not_working_keyset = [
-            numpy.array([False, True], dtype="b1"),  # boolean arrays
+            np.array([False, True], dtype="b1"),  # boolean arrays
             ([1, 2, 1], 2, 1),    # repeated values
             ([1, 2], 2, [1, 2]),  # several lists
             ([], 2, 1),         # empty selections
@@ -2277,9 +2264,9 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
         ]
 
         # Create a sample array
-        nparr = numpy.empty(self.shape, dtype=numpy.int32)
-        data = numpy.arange(N * O, dtype=numpy.int32).reshape(N, O)
-        for i in range(M):
+        nparr = np.empty(self.shape, dtype=np.int32)
+        data = np.arange(n * o, dtype=np.int32).reshape(n, o)
+        for i in range(m):
             nparr[i] = data * i
         self.nparr = nparr
         self.tbarr = self.h5file.create_array(self.h5file.root, 'array', nparr)
@@ -2295,7 +2282,7 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
             a = nparr[key]
             b = tbarr[key]
             self.assertTrue(
-                numpy.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables selections does not match.")
 
     def test01b_read(self):
@@ -2347,8 +2334,9 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
             a = nparr[:]
             b = tbarr[:]
             self.assertTrue(
-                numpy.alltrue(a == b),
-                "NumPy array and PyTables modifications does not match.")
+                np.all(a == b),
+                "NumPy array and PyTables modifications does not match."
+            )
 
     def test02b_write(self):
         """Test for fancy-selections (working selections, write, broadcast)."""
@@ -2367,7 +2355,7 @@ class FancySelectionTestCase(common.TempFileMixin, TestCase):
 #                 print("NumPy modified array:", a)
 #                 print("PyTables modifyied array:", b)
             self.assertTrue(
-                numpy.alltrue(a == b),
+                np.all(a == b),
                 "NumPy array and PyTables modifications does not match.")
 
 
@@ -2390,22 +2378,22 @@ class FancySelection4(FancySelectionTestCase):
     shape = (5, 3, 10)
 
 
-class CopyNativeHDF5MDAtom(TestCase):
+class CopyNativeHDF5MDAtom(common.PyTablesTestCase):
 
     def setUp(self):
-        super(CopyNativeHDF5MDAtom, self).setUp()
-        filename = test_filename("array_mdatom.h5")
-        self.h5file = tables.open_file(filename, "r")
+        super().setUp()
+        filename = common.test_filename("array_mdatom.h5")
+        self.h5file = tb.open_file(filename, "r")
         self.arr = self.h5file.root.arr
         self.copy = tempfile.mktemp(".h5")
-        self.copyh = tables.open_file(self.copy, mode="w")
+        self.copyh = tb.open_file(self.copy, mode="w")
         self.arr2 = self.arr.copy(self.copyh.root, newname="arr2")
 
     def tearDown(self):
         self.h5file.close()
         self.copyh.close()
-        os.remove(self.copy)
-        super(CopyNativeHDF5MDAtom, self).tearDown()
+        Path(self.copy).unlink()
+        super().tearDown()
 
     def test01_copy(self):
         """Checking that native MD atoms are copied as-is"""
@@ -2417,34 +2405,34 @@ class CopyNativeHDF5MDAtom(TestCase):
         """Checking that native MD atoms are copied as-is (re-open)"""
 
         self.copyh.close()
-        self.copyh = tables.open_file(self.copy, mode="r")
+        self.copyh = tb.open_file(self.copy, mode="r")
         self.arr2 = self.copyh.root.arr2
         self.assertEqual(self.arr.atom, self.arr2.atom)
         self.assertEqual(self.arr.shape, self.arr2.shape)
 
 
-class AccessClosedTestCase(common.TempFileMixin, TestCase):
+class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
-        super(AccessClosedTestCase, self).setUp()
+        super().setUp()
 
-        a = numpy.zeros((10, 10))
+        a = np.zeros((10, 10))
         self.array = self.h5file.create_array(self.h5file.root, 'array', a)
 
     def test_read(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.read)
+        self.assertRaises(tb.ClosedNodeError, self.array.read)
 
     def test_getitem(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.__getitem__, 0)
+        self.assertRaises(tb.ClosedNodeError, self.array.__getitem__, 0)
 
     def test_setitem(self):
         self.h5file.close()
-        self.assertRaises(ClosedNodeError, self.array.__setitem__, 0, 0)
+        self.assertRaises(tb.ClosedNodeError, self.array.__setitem__, 0, 0)
 
 
-class BroadcastTest(common.TempFileMixin, TestCase):
+class BroadcastTest(common.TempFileMixin, common.PyTablesTestCase):
 
     def test(self):
         """Test correct broadcasting when the array atom is not scalar."""
@@ -2452,33 +2440,33 @@ class BroadcastTest(common.TempFileMixin, TestCase):
         array_shape = (2, 3)
         element_shape = (3,)
 
-        dtype = numpy.dtype((numpy.int, element_shape))
-        atom = Atom.from_dtype(dtype)
+        dtype = np.dtype((np.int64, element_shape))
+        atom = tb.Atom.from_dtype(dtype)
         h5arr = self.h5file.create_array(self.h5file.root, 'array',
-                                          atom=atom, shape=array_shape)
+                                         atom=atom, shape=array_shape)
 
-        size = numpy.prod(element_shape)
-        nparr = numpy.arange(size).reshape(element_shape)
+        size = np.prod(element_shape)
+        nparr = np.arange(size).reshape(element_shape)
 
         h5arr[0] = nparr
-        self.assertTrue(numpy.all(h5arr[0] == nparr))
+        self.assertTrue(np.all(h5arr[0] == nparr))
 
 
-class TestCreateArrayArgs(common.TempFileMixin, TestCase):
+class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
     where = '/'
     name = 'array'
-    obj = numpy.array([[1, 2], [3, 4]])
+    obj = np.array([[1, 2], [3, 4]])
     title = 'title'
     byteorder = None
     createparents = False
-    atom = Atom.from_dtype(obj.dtype)
+    atom = tb.Atom.from_dtype(obj.dtype)
     shape = obj.shape
 
     def test_positional_args(self):
         self.h5file.create_array(self.where, self.name, self.obj, self.title)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2486,7 +2474,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.shape, self.shape)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_positional_args_atom_shape(self):
         self.h5file.create_array(self.where, self.name, None, self.title,
@@ -2494,7 +2482,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                                  self.atom, self.shape)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2502,14 +2490,14 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.shape, self.shape)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(numpy.zeros_like(self.obj), nparr))
+        self.assertTrue(common.allequal(np.zeros_like(self.obj), nparr))
 
     def test_kwargs_obj(self):
         self.h5file.create_array(self.where, self.name, title=self.title,
                                  obj=self.obj)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2517,7 +2505,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.shape, self.shape)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_atom_shape_01(self):
         ptarr = self.h5file.create_array(self.where, self.name,
@@ -2526,7 +2514,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         ptarr[...] = self.obj
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2534,16 +2522,16 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.shape, self.shape)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_atom_shape_02(self):
         ptarr = self.h5file.create_array(self.where, self.name,
                                          title=self.title,
                                          atom=self.atom, shape=self.shape)
-        #ptarr[...] = self.obj
+        # ptarr[...] = self.obj
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2551,7 +2539,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.shape, self.shape)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(numpy.zeros_like(self.obj), nparr))
+        self.assertTrue(common.allequal(np.zeros_like(self.obj), nparr))
 
     def test_kwargs_obj_atom(self):
         ptarr = self.h5file.create_array(self.where, self.name,
@@ -2560,7 +2548,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                                          atom=self.atom)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2568,7 +2556,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.shape, self.shape)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj_shape(self):
         ptarr = self.h5file.create_array(self.where, self.name,
@@ -2577,7 +2565,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                                          shape=self.shape)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2585,7 +2573,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.shape, self.shape)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj_atom_shape(self):
         ptarr = self.h5file.create_array(self.where, self.name,
@@ -2595,7 +2583,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                                          shape=self.shape)
         self.h5file.close()
 
-        self.h5file = tables.open_file(self.h5fname)
+        self.h5file = tb.open_file(self.h5fname)
         ptarr = self.h5file.get_node(self.where, self.name)
         nparr = ptarr.read()
 
@@ -2603,11 +2591,11 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
         self.assertEqual(ptarr.shape, self.shape)
         self.assertEqual(ptarr.atom, self.atom)
         self.assertEqual(ptarr.atom.dtype, self.atom.dtype)
-        self.assertTrue(allequal(self.obj, nparr))
+        self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj_atom_error(self):
-        atom = Atom.from_dtype(numpy.dtype('complex'))
-        #shape = self.shape + self.shape
+        atom = tb.Atom.from_dtype(np.dtype('complex'))
+        # shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
                           self.where,
@@ -2617,7 +2605,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                           atom=atom)
 
     def test_kwargs_obj_shape_error(self):
-        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        # atom = Atom.from_dtype(np.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
@@ -2628,8 +2616,8 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                           shape=shape)
 
     def test_kwargs_obj_atom_shape_error_01(self):
-        atom = Atom.from_dtype(numpy.dtype('complex'))
-        #shape = self.shape + self.shape
+        atom = tb.Atom.from_dtype(np.dtype('complex'))
+        # shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
                           self.where,
@@ -2640,7 +2628,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                           shape=self.shape)
 
     def test_kwargs_obj_atom_shape_error_02(self):
-        #atom = Atom.from_dtype(numpy.dtype('complex'))
+        # atom = Atom.from_dtype(numpy.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
@@ -2652,7 +2640,7 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
                           shape=shape)
 
     def test_kwargs_obj_atom_shape_error_03(self):
-        atom = Atom.from_dtype(numpy.dtype('complex'))
+        atom = tb.Atom.from_dtype(np.dtype('complex'))
         shape = self.shape + self.shape
         self.assertRaises(TypeError,
                           self.h5file.create_array,
@@ -2665,71 +2653,75 @@ class TestCreateArrayArgs(common.TempFileMixin, TestCase):
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
     niter = 1
 
     for i in range(niter):
         # The scalar case test should be refined in order to work
-        theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic0DTwoTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic0DOneTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic0DTwoTestCase))
         # theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic2DOneTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic2DTwoTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic1DOneTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic1DTwoTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic1DThreeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic2DOneTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic2DTwoTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Basic10DTestCase))
         # The 32 dimensions case is tested on GroupsArray
         # theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
-        theSuite.addTest(unittest.makeSuite(ReadOutArgumentTests))
-        theSuite.addTest(unittest.makeSuite(
+        theSuite.addTest(common.unittest.makeSuite(ReadOutArgumentTests))
+        theSuite.addTest(common.unittest.makeSuite(
             SizeOnDiskInMemoryPropertyTestCase))
-        theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
-        theSuite.addTest(unittest.makeSuite(ComplexNotReopenNotEndianTestCase))
-        theSuite.addTest(unittest.makeSuite(ComplexReopenNotEndianTestCase))
-        theSuite.addTest(unittest.makeSuite(ComplexNotReopenEndianTestCase))
-        theSuite.addTest(unittest.makeSuite(ComplexReopenEndianTestCase))
-        theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
-        theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex2TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex6TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex7TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex8TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex9TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
-        theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
-        theSuite.addTest(unittest.makeSuite(GI1NAOpenTestCase))
-        theSuite.addTest(unittest.makeSuite(GI1NACloseTestCase))
-        theSuite.addTest(unittest.makeSuite(GI2NAOpenTestCase))
-        theSuite.addTest(unittest.makeSuite(GI2NACloseTestCase))
-        theSuite.addTest(unittest.makeSuite(SI1NAOpenTestCase))
-        theSuite.addTest(unittest.makeSuite(SI1NACloseTestCase))
-        theSuite.addTest(unittest.makeSuite(SI2NAOpenTestCase))
-        theSuite.addTest(unittest.makeSuite(SI2NACloseTestCase))
-        theSuite.addTest(unittest.makeSuite(GE1NAOpenTestCase))
-        theSuite.addTest(unittest.makeSuite(GE1NACloseTestCase))
-        theSuite.addTest(unittest.makeSuite(GE2NAOpenTestCase))
-        theSuite.addTest(unittest.makeSuite(GE2NACloseTestCase))
-        theSuite.addTest(unittest.makeSuite(NonHomogeneousTestCase))
-        theSuite.addTest(unittest.makeSuite(TruncateTestCase))
-        theSuite.addTest(unittest.makeSuite(FancySelection1))
-        theSuite.addTest(unittest.makeSuite(FancySelection2))
-        theSuite.addTest(unittest.makeSuite(FancySelection3))
-        theSuite.addTest(unittest.makeSuite(FancySelection4))
-        theSuite.addTest(unittest.makeSuite(PointSelection0))
-        theSuite.addTest(unittest.makeSuite(PointSelection1))
-        theSuite.addTest(unittest.makeSuite(PointSelection2))
-        theSuite.addTest(unittest.makeSuite(PointSelection3))
-        theSuite.addTest(unittest.makeSuite(PointSelection4))
-        theSuite.addTest(unittest.makeSuite(CopyNativeHDF5MDAtom))
-        theSuite.addTest(unittest.makeSuite(AccessClosedTestCase))
-        theSuite.addTest(unittest.makeSuite(TestCreateArrayArgs))
-        theSuite.addTest(unittest.makeSuite(BroadcastTest))
+        theSuite.addTest(common.unittest.makeSuite(GroupsArrayTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexNotReopenNotEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexReopenNotEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexNotReopenEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(
+            ComplexReopenEndianTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CloseCopyTestCase))
+        theSuite.addTest(common.unittest.makeSuite(OpenCopyTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex1TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex2TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex3TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex4TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex5TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex6TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex7TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex8TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex9TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex10TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex11TestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyIndex12TestCase))
+        theSuite.addTest(common.unittest.makeSuite(GI1NAOpenTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GI1NACloseTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GI2NAOpenTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GI2NACloseTestCase))
+        theSuite.addTest(common.unittest.makeSuite(SI1NAOpenTestCase))
+        theSuite.addTest(common.unittest.makeSuite(SI1NACloseTestCase))
+        theSuite.addTest(common.unittest.makeSuite(SI2NAOpenTestCase))
+        theSuite.addTest(common.unittest.makeSuite(SI2NACloseTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GE1NAOpenTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GE1NACloseTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GE2NAOpenTestCase))
+        theSuite.addTest(common.unittest.makeSuite(GE2NACloseTestCase))
+        theSuite.addTest(common.unittest.makeSuite(NonHomogeneousTestCase))
+        theSuite.addTest(common.unittest.makeSuite(TruncateTestCase))
+        theSuite.addTest(common.unittest.makeSuite(FancySelection1))
+        theSuite.addTest(common.unittest.makeSuite(FancySelection2))
+        theSuite.addTest(common.unittest.makeSuite(FancySelection3))
+        theSuite.addTest(common.unittest.makeSuite(FancySelection4))
+        theSuite.addTest(common.unittest.makeSuite(PointSelection0))
+        theSuite.addTest(common.unittest.makeSuite(PointSelection1))
+        theSuite.addTest(common.unittest.makeSuite(PointSelection2))
+        theSuite.addTest(common.unittest.makeSuite(PointSelection3))
+        theSuite.addTest(common.unittest.makeSuite(PointSelection4))
+        theSuite.addTest(common.unittest.makeSuite(CopyNativeHDF5MDAtom))
+        theSuite.addTest(common.unittest.makeSuite(AccessClosedTestCase))
+        theSuite.addTest(common.unittest.makeSuite(TestCreateArrayArgs))
+        theSuite.addTest(common.unittest.makeSuite(BroadcastTest))
 
     return theSuite
 
@@ -2737,4 +2729,4 @@ def suite():
 if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

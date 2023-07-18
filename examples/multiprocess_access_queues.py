@@ -1,28 +1,22 @@
 """Example showing how to access a PyTables file from multiple processes using
 queues."""
 
-from __future__ import print_function
-import sys
-
-if sys.version < '3':
-    import Queue as queue
-else:
-    import queue
+import queue
 
 import multiprocessing
-import os
 import random
 import time
+from pathlib import Path
 
-import numpy
-import tables
+import numpy as np
+import tables as tb
 
 
 # this creates an HDF5 file with one array containing n rows
 def make_file(file_path, n):
 
-    with tables.open_file(file_path, 'w') as fobj:
-        array = fobj.create_carray('/', 'array', tables.Int64Atom(), (n, n))
+    with tb.open_file(file_path, 'w') as fobj:
+        array = fobj.create_carray('/', 'array', tb.Int64Atom(), (n, n))
         for i in range(n):
             array[i, :] = i
 
@@ -44,10 +38,10 @@ class FileAccess(multiprocessing.Process):
         self.write_queue = write_queue
         self.shutdown = shutdown
         self.block_period = .01
-        super(FileAccess, self).__init__()
+        super().__init__()
 
     def run(self):
-        self.h5_file = tables.open_file(self.h5_path, 'r+')
+        self.h5_file = tb.open_file(self.h5_path, 'r+')
         self.array = self.h5_file.get_node('/array')
         another_loop = True
         while another_loop:
@@ -63,7 +57,7 @@ class FileAccess(multiprocessing.Process):
                 # look up the appropriate result_queue for this data processor
                 # instance
                 result_queue = self.result_queues[proc_num]
-                print('processor {0} reading from row {1}'.format(proc_num,
+                print('processor {} reading from row {}'.format(proc_num,
                                                                   row_num))
                 result_queue.put(self.read_data(row_num))
                 another_loop = True
@@ -104,19 +98,19 @@ class DataProcessor(multiprocessing.Process):
         self.proc_num = proc_num
         self.array_size = array_size
         self.output_file = output_file
-        super(DataProcessor, self).__init__()
+        super().__init__()
 
     def run(self):
         self.output_file = open(self.output_file, 'w')
         # read a random row from the file
-        row_num = random.randint(0, self.array_size - 1)
+        row_num = random.randrange(self.array_size)
         self.read_queue.put((row_num, self.proc_num))
         self.output_file.write(str(row_num) + '\n')
         self.output_file.write(str(self.result_queue.get()) + '\n')
 
         # modify a random row to equal 11 * (self.proc_num + 1)
-        row_num = random.randint(0, self.array_size - 1)
-        new_data = (numpy.zeros((1, self.array_size), 'i8') +
+        row_num = random.randrange(self.array_size)
+        new_data = (np.zeros((1, self.array_size), 'i8') +
                     11 * (self.proc_num + 1))
         self.write_queue.put((row_num, new_data))
 
@@ -142,6 +136,8 @@ def make_queues(num_processors):
 
 
 if __name__ == '__main__':
+    # See the discussion in :issue:`790`.
+    multiprocessing.set_start_method('spawn')
 
     file_path = 'test.h5'
     n = 10
@@ -176,8 +172,8 @@ if __name__ == '__main__':
     print()
     for output_file in output_files:
         print()
-        print('contents of log file {0}'.format(output_file))
-        print(open(output_file, 'r').read())
-        os.remove(output_file)
+        print(f'contents of log file {output_file}')
+        print(open(output_file).read())
+        Path(output_file).unlink()
 
-    os.remove('test.h5')
+    Path('test.h5').unlink()

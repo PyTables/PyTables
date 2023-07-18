@@ -223,15 +223,15 @@ To better understand the dynamic nature of this object tree entity, let's
 start with a sample PyTables script (which you can find in
 examples/objecttree.py) to create an HDF5 file::
 
-    from tables import *
+    import tables as tb
 
-    class Particle(IsDescription):
-        identity = StringCol(itemsize=22, dflt=" ", pos=0)  # character String
-        idnumber = Int16Col(dflt=1, pos = 1)  # short integer
-        speed    = Float32Col(dflt=1, pos = 2)  # single-precision
+    class Particle(tb.IsDescription):
+        identity = tb.StringCol(itemsize=22, dflt=" ", pos=0)  # character String
+        idnumber = tb.Int16Col(dflt=1, pos = 1)  # short integer
+        speed    = tb.Float32Col(dflt=1, pos = 2)  # single-precision
 
     # Open a file in "w"rite mode
-    fileh = open_file("objecttree.h5", mode = "w")
+    fileh = tb.open_file("objecttree.h5", mode = "w")
 
     # Get the HDF5 root group
     root = fileh.root
@@ -256,9 +256,9 @@ examples/objecttree.py) to create an HDF5 file::
         row = table.row
 
         # Fill the table with 10 records
-        for i in xrange(10):
+        for i in range(10):
             # First, assign the values to the Particle record
-            row['identity']  = 'This is particle: %2d' % (i)
+            row['identity']  = f'This is particle: {i:2d}'
             row['idnumber'] = i
             row['speed']  = i * 2.
 
@@ -296,7 +296,7 @@ It will help you understand the relationships of in-memory PyTables objects.
 
 .. _objecttree:
 
-.. figure:: images/objecttree.*
+.. figure:: images/objecttree.png
     :width: 100%
     :align: center
 

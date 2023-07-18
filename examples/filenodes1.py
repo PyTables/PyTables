@@ -1,11 +1,8 @@
-from __future__ import print_function
-from tables.nodes import filenode
-
-import tables
-h5file = tables.open_file('fnode.h5', 'w')
+import tables as tb
+h5file = tb.open_file('fnode.h5', 'w')
 
 
-fnode = filenode.new_node(h5file, where='/', name='fnode_test')
+fnode = tb.nodes.filenode.new_node(h5file, where='/', name='fnode_test')
 
 
 print(h5file.get_node_attr('/fnode_test', 'NODE_TYPE'))

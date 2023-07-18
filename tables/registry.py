@@ -1,16 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: March 18, 2005
-# Author:  Ivan Vilata - reverse:net.selidor@ivan
-#
-# $Source$
-# $Id$
-#
-########################################################################
-
 """Miscellaneous mappings used to avoid circular imports.
 
 Variables:
@@ -88,12 +75,3 @@ def get_class_by_name(classname):
                         % (classname,))
 
     return class_name_dict[classname]
-
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

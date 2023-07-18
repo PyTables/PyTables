@@ -268,7 +268,7 @@ Bugs fixed
   selection from a Tables. Thanks to Jeff Reback.
 
 - Fixed ``tables.tests.test_nestedtypes.ColsTestCase.test_00a_repr`` test
-  method.  Now the ``repr`` of of cols on big-endian platforms is correctly
+  method.  Now the ``repr`` of cols on big-endian platforms is correctly
   handled  (closes :issue:`237`).
 
 - Fixes bug with completely sorted indexes where *nrowsinbuf* must be equal

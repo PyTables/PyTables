@@ -10,7 +10,7 @@ The source code for PyTables may be found at the `GitHub project site`_.
 You can get a copy of the latest version of the source code (under
 development) from the master branch of the project repository using git::
 
-    git clone git@github.com:PyTables/PyTables.git
+    git clone --recursive git@github.com:PyTables/PyTables.git
 
 Also, be sure to subscribe to the `Users' Mailing List`_ and/or the
 `Developers' Mailing List`_.
@@ -30,19 +30,6 @@ Other resources for developers:
 * `Developers' Mailing List`_
 * Continuous Integration:
 
-  - `master <http://hudson.openmicroscopy.org.uk/job/PyTables>`_ branch at
-    OME_
-  - `all branches <https://travis-ci.org/PyTables/PyTables>`_ on `Travis-CI`_
-
-* `Old trac site <http://www.pytables.org/trac-bck>`_
-
-.. _OME: http://www.openmicroscopy.org
-.. _`Shining Panda`: https://www.shiningpanda-ci.com
-.. _`Travis-CI`: https://travis-ci.org
-
-.. toctree::
-    :maxdepth: 1
-
-    irclogs
+  - `GitHub Actions (GHA) <https://github.com/PyTables/PyTables/actions>`_
 
 .. todo:: improve this section

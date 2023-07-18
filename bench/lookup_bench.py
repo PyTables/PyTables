@@ -1,12 +1,12 @@
 """Benchmark to help choosing the best chunksize so as to optimize the access
 time in random lookups."""
 
-from __future__ import print_function
-from time import time
-import os
 import subprocess
-import numpy
-import tables
+from pathlib import Path
+from time import perf_counter as clock
+
+import numpy as np
+import tables as tb
 
 # Constants
 NOISE = 1e-15    # standard deviation of the noise compared with actual values
@@ -15,18 +15,15 @@ rdm_cod = ['lin', 'rnd']
 
 
 def get_nrows(nrows_str):
-    if nrows_str.endswith("k"):
-        return int(float(nrows_str[:-1]) * 1000)
-    elif nrows_str.endswith("m"):
-        return int(float(nrows_str[:-1]) * 1000 * 1000)
-    elif nrows_str.endswith("g"):
-        return int(float(nrows_str[:-1]) * 1000 * 1000 * 1000)
-    else:
+    powers = {'k': 3, 'm': 6, 'g': 9}
+    try:
+        return int(float(nrows_str[:-1]) * 10 ** powers[nrows_str[-1]])
+    except KeyError:
         raise ValueError(
             "value of nrows must end with either 'k', 'm' or 'g' suffixes.")
 
 
-class DB(object):
+class DB:
 
     def __init__(self, nrows, dtype, chunksize, userandom, datadir,
                  docompress=0, complib='zlib'):
@@ -54,25 +51,25 @@ class DB(object):
         return int(line.split()[0])
 
     def print_mtime(self, t1, explain):
-        mtime = time() - t1
-        print("%s:" % explain, round(mtime, 6))
-        print("Krows/s:", round((self.nrows / 1000.) / mtime, 6))
+        mtime = clock() - t1
+        print(f"{explain}: {mtime:.6f}")
+        print(f"Krows/s: {self.nrows / 1000 / mtime:.6f}")
 
     def print_db_sizes(self, init, filled):
-        array_size = (filled - init) / 1024.
-        print("Array size (MB):", round(array_size, 3))
+        array_size = (filled - init) / 1024
+        print(f"Array size (MB): {array_size:.3f}")
 
     def open_db(self, remove=0):
-        if remove and os.path.exists(self.filename):
-            os.remove(self.filename)
-        con = tables.open_file(self.filename, 'a')
+        if remove and Path(self.filename).is_file():
+            Path(self.filename).unlink()
+        con = tb.open_file(self.filename, 'a')
         return con
 
     def create_db(self, verbose):
         self.con = self.open_db(remove=1)
         self.create_array()
         init_size = self.get_db_size()
-        t1 = time()
+        t1 = clock()
         self.fill_array()
         array_size = self.get_db_size()
         self.print_mtime(t1, 'Insert time')
@@ -81,9 +78,9 @@ class DB(object):
 
     def create_array(self):
         # The filters chosen
-        filters = tables.Filters(complevel=self.docompress,
-                                 complib=self.complib)
-        atom = tables.Atom.from_kind(self.dtype)
+        filters = tb.Filters(complevel=self.docompress,
+                             complib=self.complib)
+        atom = tb.Atom.from_kind(self.dtype)
         self.con.create_earray(self.con.root, 'earray', atom, (0,),
                                filters=filters,
                                expectedrows=self.nrows,
@@ -104,16 +101,16 @@ class DB(object):
         earray.flush()
 
     def get_array(self, start, stop):
-        arr = numpy.arange(start, stop, dtype='float')
+        arr = np.arange(start, stop, dtype='float')
         if self.userandom:
-            arr += numpy.random.normal(0, stop * self.scale, size=stop - start)
+            arr += np.random.normal(0, stop * self.scale, size=stop - start)
         arr = arr.astype(self.dtype)
         return arr
 
     def print_qtime(self, ltimes):
-        ltimes = numpy.array(ltimes)
+        ltimes = np.array(ltimes)
         print("Raw query times:\n", ltimes)
-        print("Histogram times:\n", numpy.histogram(ltimes[1:]))
+        print("Histogram times:\n", np.histogram(ltimes[1:]))
         ntimes = len(ltimes)
         qtime1 = ltimes[0]  # First measured time
         if ntimes > 5:
@@ -122,23 +119,23 @@ class DB(object):
             qtime2 = sum(ltimes[5:]) / (ntimes - 5)
         else:
             qtime2 = ltimes[-1]  # Last measured time
-        print("1st query time:", round(qtime1, 3))
-        print("Mean (skipping the first 5 meas.):", round(qtime2, 3))
+        print(f"1st query time: {qtime1:.3f}")
+        print(f"Mean (skipping the first 5 meas.): {qtime2:.3f}")
 
     def query_db(self, niter, avoidfscache, verbose):
         self.con = self.open_db()
         earray = self.con.root.earray
         if avoidfscache:
-            rseed = int(numpy.random.randint(self.nrows))
+            rseed = int(np.random.randint(self.nrows))
         else:
             rseed = 19
-        numpy.random.seed(rseed)
-        numpy.random.randint(self.nrows)
+        np.random.seed(rseed)
+        np.random.randint(self.nrows)
         ltimes = []
         for i in range(niter):
-            t1 = time()
-            self.do_query(earray, numpy.random.randint(self.nrows))
-            ltimes.append(time() - t1)
+            t1 = clock()
+            self.do_query(earray, np.random.randint(self.nrows))
+            ltimes.append(clock() - t1)
         self.print_qtime(ltimes)
         self.close_db()
 
@@ -223,7 +220,7 @@ if __name__ == "__main__":
 
     if not avoidfscache:
         # in order to always generate the same random sequence
-        numpy.random.seed(20)
+        np.random.seed(20)
 
     if verbose:
         if userandom:

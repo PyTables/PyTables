@@ -1,18 +1,16 @@
 # This shows how to use the cols accessors for table columns
-from __future__ import print_function
-import tables
+import tables as tb
 
 
-class Particle(tables.IsDescription):
-    name = tables.StringCol(16, pos=1)          # 16-character String
-    lati = tables.Int32Col(pos=2)               # integer
-    longi = tables.Int32Col(pos=3)              # integer
-    vector = tables.Int32Col(shape=(2,), pos=4)  # Integer
-    matrix2D = tables.Float64Col(shape=(2, 2), pos=5)
-                                                # double (double-precision)
+class Particle(tb.IsDescription):
+    name = tb.StringCol(16, pos=1)                # 16-character String
+    lati = tb.Int32Col(pos=2)                     # integer
+    longi = tb.Int32Col(pos=3)                    # integer
+    vector = tb.Int32Col(shape=(2,), pos=4)       # Integer
+    matrix2D = tb.Float64Col(shape=(2, 2), pos=5) # double (double-precision)
 
 # Open a file in "w"rite mode
-fileh = tables.open_file("table2.h5", mode="w")
+fileh = tb.open_file("table2.h5", mode="w")
 table = fileh.create_table(fileh.root, 'table', Particle, "A table")
 # Append several rows in only one call
 table.append(

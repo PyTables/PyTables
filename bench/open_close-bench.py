@@ -4,15 +4,15 @@ This uses the HotShot profiler.
 
 """
 
-from __future__ import print_function
 import os
 import sys
 import getopt
 import pstats
 import cProfile as prof
-import time
-import subprocess  # From Python 2.4 on
-import tables
+from pathlib import Path
+from time import perf_counter as clock
+
+import tables as tb
 
 filename = None
 niter = 1
@@ -20,10 +20,7 @@ niter = 1
 
 def show_stats(explain, tref):
     "Show the used memory"
-    # Build the command to obtain memory info (only for Linux 2.6.x)
-    cmd = "cat /proc/%s/status" % os.getpid()
-    sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
-    for line in sout:
+    for line in Path('/proc/self/status').read_text().splitlines():
         if line.startswith("VmSize:"):
             vmsize = int(line.split()[1])
         elif line.startswith("VmRSS:"):
@@ -36,20 +33,19 @@ def show_stats(explain, tref):
             vmexe = int(line.split()[1])
         elif line.startswith("VmLib:"):
             vmlib = int(line.split()[1])
-    sout.close()
-    print("WallClock time:", time.time() - tref)
+    print("WallClock time:", clock() - tref)
     print("Memory usage: ******* %s *******" % explain)
-    print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
-    print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
-    print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
+    print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
+    print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
+    print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
 
 
 def check_open_close():
     for i in range(niter):
         print(
             "------------------ open_close #%s -------------------------" % i)
-        tref = time.time()
-        fileh = tables.open_file(filename)
+        tref = clock()
+        fileh = tb.open_file(filename)
         fileh.close()
         show_stats("After closing file", tref)
 
@@ -57,8 +53,8 @@ def check_open_close():
 def check_only_open():
     for i in range(niter):
         print("------------------ only_open #%s -------------------------" % i)
-        tref = time.time()
-        fileh = tables.open_file(filename)
+        tref = clock()
+        fileh = tb.open_file(filename)
         show_stats("Before closing file", tref)
         fileh.close()
 
@@ -66,8 +62,8 @@ def check_only_open():
 def check_full_browse():
     for i in range(niter):
         print("------------------ full_browse #%s -----------------------" % i)
-        tref = time.time()
-        fileh = tables.open_file(filename)
+        tref = clock()
+        fileh = tb.open_file(filename)
         for node in fileh:
             pass
         fileh.close()
@@ -77,8 +73,8 @@ def check_full_browse():
 def check_partial_browse():
     for i in range(niter):
         print("------------------ partial_browse #%s --------------------" % i)
-        tref = time.time()
-        fileh = tables.open_file(filename)
+        tref = clock()
+        fileh = tb.open_file(filename)
         for node in fileh.root.ngroup0.ngroup1:
             pass
         fileh.close()
@@ -88,8 +84,8 @@ def check_partial_browse():
 def check_full_browse_attrs():
     for i in range(niter):
         print("------------------ full_browse_attrs #%s -----------------" % i)
-        tref = time.time()
-        fileh = tables.open_file(filename)
+        tref = clock()
+        fileh = tb.open_file(filename)
         for node in fileh:
             # Access to an attribute
             klass = node._v_attrs.CLASS
@@ -100,8 +96,8 @@ def check_full_browse_attrs():
 def check_partial_browse_attrs():
     for i in range(niter):
         print("------------------ partial_browse_attrs #%s --------------" % i)
-        tref = time.time()
-        fileh = tables.open_file(filename)
+        tref = clock()
+        fileh = tb.open_file(filename)
         for node in fileh.root.ngroup0.ngroup1:
             # Access to an attribute
             klass = node._v_attrs.CLASS
@@ -112,8 +108,8 @@ def check_partial_browse_attrs():
 def check_open_group():
     for i in range(niter):
         print("------------------ open_group #%s ------------------------" % i)
-        tref = time.time()
-        fileh = tables.open_file(filename)
+        tref = clock()
+        fileh = tb.open_file(filename)
         group = fileh.root.ngroup0.ngroup1
         # Access to an attribute
         klass = group._v_attrs.CLASS
@@ -124,8 +120,8 @@ def check_open_group():
 def check_open_leaf():
     for i in range(niter):
         print("------------------ open_leaf #%s -----------------------" % i)
-        tref = time.time()
-        fileh = tables.open_file(filename)
+        tref = clock()
+        fileh = tb.open_file(filename)
         leaf = fileh.root.ngroup0.ngroup1.array9
         # Access to an attribute
         klass = leaf._v_attrs.CLASS
@@ -209,11 +205,11 @@ if __name__ == '__main__':
 
     filename = pargs[0]
 
-    tref = time.time()
+    tref = clock()
     if all_system_checks:
         args.remove('-S')  # We don't want -S in the options list again
         for opt in options:
-            opts = "%s \-s %s %s" % (progname, opt, " ".join(args))
+            opts = r"{} \-s {} {}".format(progname, opt, " ".join(args))
             # print "opts-->", opts
             os.system("python2.4 %s" % opts)
     else:

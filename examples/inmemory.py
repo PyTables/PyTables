@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/env python3
 
 """inmemory.py.
 
@@ -14,7 +13,7 @@ http://pytables.github.io/usersguide/parameter_files.html#hdf5-driver-management
 """
 
 import numpy as np
-import tables
+import tables as tb
 
 CHUNKY = 30
 CHUNKX = 4320
@@ -24,9 +23,9 @@ if __name__ == '__main__':
     # create dataset and add global attrs
     file_path = 'demofile_chunk%sx%d.h5' % (CHUNKY, CHUNKX)
 
-    with tables.open_file(file_path, 'w',
-                          title='PyTables HDF5 In-memory example',
-                          driver='H5FD_CORE') as h5f:
+    with tb.open_file(file_path, 'w',
+                      title='PyTables HDF5 In-memory example',
+                      driver='H5FD_CORE') as h5f:
 
         # dummy some data
         lats = np.empty([2160])
@@ -38,7 +37,7 @@ if __name__ == '__main__':
 
         # create a 365 x 4320 x 8640 CArray of 32bit float
         shape = (5, 2160, 4320)
-        atom = tables.Float32Atom(dflt=np.nan)
+        atom = tb.Float32Atom(dflt=np.nan)
 
         # chunk into daily slices and then further chunk days
         sst_node = h5f.create_carray(

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ########################################################################
 #
 # License: BSD
@@ -14,14 +12,13 @@
 
 from .exceptions import HDF5ExtError
 
-from hdf5extension cimport Node
-from utilsextension cimport cstr_to_pystr
+from .hdf5extension cimport Node
+from .utilsextension cimport cstr_to_pystr
 
 from libc.stdlib cimport malloc, free
 from libc.string cimport strlen
-from cpython cimport PY_MAJOR_VERSION
 from cpython.unicode cimport PyUnicode_DecodeUTF8
-from definitions cimport (H5P_DEFAULT,
+from .definitions cimport (H5P_DEFAULT,
     hid_t, herr_t, hbool_t, int64_t, H5T_cset_t, haddr_t)
 
 
@@ -101,6 +98,8 @@ def _get_link_class(parent_id, name):
       return "SoftLink"
     elif link_type == H5L_TYPE_EXTERNAL:
       return "ExternalLink"
+    # elif link_type == H5L_TYPE_HARD:
+    #   return "HardLink"
     else:
       return "UnImplemented"
 
@@ -194,10 +193,7 @@ cdef class SoftLink(Link):
     if ret < 0:
       raise HDF5ExtError("failed to get target value")
 
-    if PY_MAJOR_VERSION > 2:
-      self.target = PyUnicode_DecodeUTF8(clinkval, strlen(clinkval), NULL)
-    else:
-      self.target = clinkval
+    self.target = PyUnicode_DecodeUTF8(clinkval, strlen(clinkval), NULL)
 
     # Release resources
     free(clinkval)
@@ -268,6 +264,10 @@ cdef class ExternalLink(Link):
     # Release resources
     free(clinkval)
     return 0  # Object ID is zero'ed, as HDF5 does not assign one for links
+
+  def _get_obj_info(self):
+    # ExternalLink do not have ObjectId. Hardcode addr and rc to 0, 1
+    return 0, 1
 
 
 ## Local Variables:

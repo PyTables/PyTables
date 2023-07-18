@@ -1,20 +1,14 @@
-###########################################################################
-# Benchmark for undo/redo. Run this program without parameters
-# for mode of use.
-#
-# Francesc Alted
-# 2005-03-09
-###########################################################################
+"""Benchmark for undo/redo.
+Run this program without parameters for mode of use."""
 
-from __future__ import print_function
-import numpy
-from time import time
-import tables
+from time import perf_counter as clock
+import numpy as np
+import tables as tb
 
 verbose = 0
 
 
-class BasicBenchmark(object):
+class BasicBenchmark:
 
     def __init__(self, filename, testname, vecsize, nobjects, niter):
 
@@ -25,14 +19,14 @@ class BasicBenchmark(object):
         self.niter = niter
 
         # Initialize the arrays
-        self.a1 = numpy.arange(0, 1 * self.vecsize)
-        self.a2 = numpy.arange(1 * self.vecsize, 2 * self.vecsize)
-        self.a3 = numpy.arange(2 * self.vecsize, 3 * self.vecsize)
+        self.a1 = np.arange(0, 1 * self.vecsize)
+        self.a2 = np.arange(1 * self.vecsize, 2 * self.vecsize)
+        self.a3 = np.arange(2 * self.vecsize, 3 * self.vecsize)
 
     def setUp(self):
 
         # Create an HDF5 file
-        self.fileh = tables.open_file(self.file, mode="w")
+        self.fileh = tb.open_file(self.file, mode="w")
         # open the do/undo
         self.fileh.enable_undo()
 
@@ -52,23 +46,23 @@ class BasicBenchmark(object):
             self.fileh.mark()
         # Unwind all marks sequentially
         for i in range(self.niter):
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
                     print("u", end=' ')
             if verbose:
                 print()
-            undo = time() - t1
+            undo = clock() - t1
             # Rewind all marks sequentially
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
                     print("r", end=' ')
             if verbose:
                 print()
-            redo = time() - t1
+            redo = clock() - t1
 
             print("Time for Undo, Redo (createNode):", undo, "s, ", redo, "s")
 
@@ -91,23 +85,23 @@ class BasicBenchmark(object):
             self.fileh.mark()
         # Unwind all marks sequentially
         for i in range(self.niter):
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
                     print("u", end=' ')
             if verbose:
                 print()
-            undo = time() - t1
+            undo = clock() - t1
             # Rewind all marks sequentially
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
                     print("r", end=' ')
             if verbose:
                 print()
-            redo = time() - t1
+            redo = clock() - t1
 
             print(("Time for Undo, Redo (copy_children):", undo, "s, ",
                   redo, "s"))
@@ -124,23 +118,23 @@ class BasicBenchmark(object):
             self.fileh.mark()
         # Unwind all marks sequentially
         for i in range(self.niter):
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.undo()
                 if verbose:
                     print("u", end=' ')
             if verbose:
                 print()
-            undo = time() - t1
+            undo = clock() - t1
             # Rewind all marks sequentially
-            t1 = time()
+            t1 = clock()
             for i in range(self.nobjects):
                 self.fileh.redo()
                 if verbose:
                     print("r", end=' ')
             if verbose:
                 print()
-            redo = time() - t1
+            redo = clock() - t1
 
             print("Time for Undo, Redo (set_attr):", undo, "s, ", redo, "s")
 

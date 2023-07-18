@@ -1,16 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: February 15, 2005
-# Author:  Ivan Vilata - reverse:net.selidor@ivan
-#
-# $Source$
-# $Id$
-#
-########################################################################
-
 """Support for undoing and redoing actions.
 
 Functions:
@@ -77,7 +64,6 @@ def move_to_shadow(file_, path):
     node._g_move(shparent, shname)
 
 
-
 def move_from_shadow(file_, path):
     (shparent, shname) = file_._shadow_name()
     node = shparent._f_get_child(shname)
@@ -87,25 +73,20 @@ def move_from_shadow(file_, path):
     node._g_move(parent, name)
 
 
-
 def undo_create(file_, path):
     move_to_shadow(file_, path)
-
 
 
 def redo_create(file_, path):
     move_from_shadow(file_, path)
 
 
-
 def undo_remove(file_, path):
     move_from_shadow(file_, path)
 
 
-
 def redo_remove(file_, path):
     move_to_shadow(file_, path)
-
 
 
 def undo_move(file_, origpath, destpath):
@@ -116,14 +97,12 @@ def undo_move(file_, origpath, destpath):
     node._g_move(origparent, origname)
 
 
-
 def redo_move(file_, origpath, destpath):
     (destpname, destname) = split_path(destpath)
 
     node = file_._get_node(origpath)
     destparent = file_._get_node(destpname)
     node._g_move(destparent, destname)
-
 
 
 def attr_to_shadow(file_, path, name):
@@ -136,11 +115,10 @@ def attr_to_shadow(file_, path, name):
 
     # Set the attribute only if it has not been kept in the shadow.
     # This avoids re-pickling complex attributes on REDO.
-    if not shname in shattrs:
+    if shname not in shattrs:
         shattrs._g__setattr(shname, value)
 
     attrs._g__delattr(name)
-
 
 
 def attr_from_shadow(file_, path, name):
@@ -155,29 +133,17 @@ def attr_from_shadow(file_, path, name):
     # shattrs._g__delattr(shname)
 
 
-
 def undo_add_attr(file_, path, name):
     attr_to_shadow(file_, path, name)
-
 
 
 def redo_add_attr(file_, path, name):
     attr_from_shadow(file_, path, name)
 
 
-
 def undo_del_attr(file_, path, name):
     attr_from_shadow(file_, path, name)
 
 
-
 def redo_del_attr(file_, path, name):
     attr_to_shadow(file_, path, name)
-
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## End:

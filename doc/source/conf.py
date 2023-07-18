@@ -1,37 +1,37 @@
-# -*- coding: utf-8 -*-
-#
 # Configuration file for the Sphinx documentation builder.
 #
-# This file does only contain a selection of the most common options. For a
-# full list see the documentation:
-# http://www.sphinx-doc.org/en/master/config
+# For the full list of built-in configuration values, see the documentation:
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+def get_version(filename):
+    import re
+
+    with open(filename) as fd:
+        data = fd.read()
+
+    mobj = re.search(
+        r'''^__version__\s*=\s*(?P<quote>['"])(?P<version>.*)(?P=quote)''',
+        data, re.MULTILINE)
+    return mobj.group('version')
 
 
 # -- Project information -----------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'PyTables'
-copyright = '2011-2019, PyTables maintainers'
+copyright = '2011–2023, PyTables maintainers'
 author = 'PyTables maintainers'
 
 # The short X.Y version
-VERSION = open('../../VERSION').read().strip()
-version = VERSION
+version = get_version('../../tables/_version.py')
 
 # The full version, including alpha/beta/rc tags
-release = VERSION
+release = version
 
 
 # -- General configuration ---------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = '1.3'
@@ -80,11 +80,14 @@ language = None
 # This pattern also affects html_static_path and html_extra_path .
 exclude_patterns = []
 
+language = 'en'
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
 
 # -- Options for HTML output -------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -153,7 +156,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('usersguide/usersguide', 'usersguide-%s.tex' % version,
-   u'PyTables User Guide', u'PyTables maintainers', 'manual'),
+   'PyTables User Guide', 'PyTables maintainers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -198,12 +201,10 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 
 # -- External link options ----------------------------------------------------
 extlinks = {
-    'issue': ('https://github.com/PyTables/PyTables/issues/%s', 'gh-'),
-    'irc': ('http://pytables.github.io/irc/%s.html', ''),
+    'issue': ('https://github.com/PyTables/PyTables/issues/%s', 'gh-%s'),
 }
 
 # -- Options for autodocumentation ---------------------------------------------
 autodoc_member_order = "groupwise"
 autoclass_content = "class"
 autosummary_generate = []
-

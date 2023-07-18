@@ -10,15 +10,7 @@ PyTables in a visual and easy to grasp manner.
 More videos will be made available with the time:
 
 * `HDF5 is for Lovers, SciPy 2012 Tutorial <http://www.youtube.com/watch?v=Nzx0HAd3FiI>`_:
-  a beginer's introduction to PyTables and HDF5.
-* `PyTables, part I: Introduction
-  <http://showmedo.com/videos/video?name=1780000&fromSeriesID=178>`_:
-  HDF5 file creation, the object tree, homogeneous array storage, natural
-  naming, working with attributes.
-* `PyTables, part II: Working with tables
-  <http://showmedo.com/videos/video?name=1780010&fromSeriesID=178>`_:
-  Creation of tables with multidimensional and nested columns, and how to
-  efficiently query them.
+  a beginner's introduction to PyTables and HDF5.
 
 
 Presentations
@@ -39,10 +31,6 @@ useful:
 * `Large Data Analysis with Python <http://www.pytables.org/docs/LargeDataAnalysis.pdf>`_.
   Seminar given at the `German Neuroinformatics Node <http://www.g-node.org>`_,
   Munich, Germany (November 2010).
-* `Highly Efficient Computations In Python: Well Beyond NumPy
-  <http://pytables.org/EuroSciPy2010/HighlyEfficientComputations.pdf>`_.
-  Tutorial given at `EuroSciPy 2010 <https://www.euroscipy.org/conference/euroscipy2010>`_
-  conference in Paris, France (July 2010).
 * `Starving CPUs (and coping with that in PyTables)
   <http://www.pytables.org/docs/StarvingCPUs-PyTablesUsages.pdf>`_.
   Seminar given at `FOM Institute for Plasma Physics Rijnhuizen <http://www.rijnhuizen.nl/>`_,

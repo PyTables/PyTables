@@ -40,7 +40,7 @@ The SoftLink class
 
 SoftLink special methods
 ~~~~~~~~~~~~~~~~~~~~~~~~
-The following methods are specific for dereferrencing and representing soft
+The following methods are specific for dereferencing and representing soft
 links.
 
 .. automethod:: tables.link.SoftLink.__call__
@@ -65,7 +65,7 @@ ExternalLink methods
 
 ExternalLink special methods
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The following methods are specific for dereferrencing and representing
+The following methods are specific for dereferencing and representing
 external links.
 
 .. automethod:: tables.link.ExternalLink.__call__

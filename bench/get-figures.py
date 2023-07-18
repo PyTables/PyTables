@@ -1,4 +1,3 @@
-from __future__ import print_function
 from pylab import *
 
 linewidth = 2
@@ -9,10 +8,9 @@ markersize = 8
 
 
 def get_values(filename):
-    f = open(filename)
     sizes = []
     values = []
-    for line in f:
+    for line in Path(filename).read_text().splitlines():
         if line.startswith('Processing database:'):
             txtime = 0
             line = line.split(':')[1]
@@ -94,8 +92,6 @@ def get_values(filename):
                 qtime = float(tmp[:tmp.index('+-')])
                 sizes.append(isize)
                 values.append(qtime)
-
-    f.close()
     return sizes, values
 
 
@@ -266,7 +262,7 @@ if __name__ == '__main__':
         #plegend = plegend.replace('zlib1', '')
         if filename.find('PyTables') != -1:
             xval, yval = get_values(filename)
-            print("Values for %s --> %s, %s" % (filename, xval, yval))
+            print(f"Values for {filename} --> {xval}, {yval}")
             if xval != []:
                 plot = loglog(xval, yval)
                 #plot = semilogx(xval, yval)
@@ -276,13 +272,13 @@ if __name__ == '__main__':
                 legends.append(plegend)
         else:
             xval, yval = get_values(filename)
-            print("Values for %s --> %s, %s" % (filename, xval, yval))
+            print(f"Values for {filename} --> {xval}, {yval}")
             plots.append(loglog(xval, yval, linewidth=3, color='m'))
             #plots.append(semilogx(xval, yval, linewidth=linewidth, color='m'))
             legends.append(plegend)
     if 0:  # Per a introduir dades simulades si es vol...
-        xval = [1000, 10000, 100000, 1000000, 10000000,
-                100000000, 1000000000]
+        xval = [1000, 10_000, 100_000, 1_000_000, 10_000_000,
+                100_000_000, 1_000_000_000]
 #         yval = [0.003, 0.005, 0.02, 0.06, 1.2,
 #                 40, 210]
         yval = [0.0009, 0.0011, 0.0022, 0.005, 0.02,

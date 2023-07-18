@@ -1,24 +1,11 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: April 9, 2013
-# Author:  Anthony Scopatz - scopatz@gmail.com
-#
-# $Id$
-#
-########################################################################
-
 """This utility helps you migrate from PyTables 2.x APIs to 3.x APIs, which
 are PEP 8 compliant.
 
 """
-from __future__ import absolute_import
-import os
 import re
 import sys
 import argparse
+from pathlib import Path
 
 old2newnames = dict([
     # from __init__.py
@@ -48,7 +35,7 @@ old2newnames = dict([
     ('_v__nodeFile', '_v__nodefile'),                   # attr (private)
     ('_v__nodePath', '_v__nodepath'),                   # attr (private)
     # from carray.py
-    #('parentNode', 'parentnode'),                       # kwarg
+    # ('parentNode', 'parentnode'),                       # kwarg
     # from description.py
     ('_g_setNestedNamesDescr', '_g_set_nested_names_descr'),
     ('_g_setPathNames', '_g_set_path_names'),
@@ -60,7 +47,7 @@ old2newnames = dict([
     ('joinPaths', 'join_paths'),
     ('metaIsDescription', 'MetaIsDescription'),
     # from earray.py
-    #('parentNode', 'parentnode'),                       # kwarg
+    # ('parentNode', 'parentnode'),                       # kwarg
     ('_checkShapeAppend', '_check_shape_append'),
     # from expression.py
     ('_exprvarsCache', '_exprvars_cache'),              # attr (private)
@@ -132,8 +119,8 @@ old2newnames = dict([
     ('getCurrentMark', 'get_current_mark'),
     ('_updateNodeLocations', '_update_node_locations'),
     # from group.py
-    #('parentNode', 'parentnode'),                       # kwarg
-    #('ptFile', 'ptfile'),                               # kwarg
+    # ('parentNode', 'parentnode'),                       # kwarg
+    # ('ptFile', 'ptfile'),                               # kwarg
     ('_getValueFromContainer', '_get_value_from_container'),
     ('_g_postInitHook', '_g_post_init_hook'),
     ('_g_getChildGroupClass', '_g_get_child_group_class'),
@@ -190,7 +177,7 @@ old2newnames = dict([
     ('IntTypeNextAfter', 'int_type_next_after'),
     ('BoolTypeNextAfter', 'bool_type_next_after'),
     # from index.py
-    #('parentNode', 'parentnode'),                       # kwarg
+    # ('parentNode', 'parentnode'),                       # kwarg
     ('defaultAutoIndex', 'default_auto_index'),         # data
     ('defaultIndexFilters', 'default_index_filters'),   # data
     ('_tableColumnPathnameOfIndex', '_table_column_pathname_of_index'),
@@ -205,7 +192,7 @@ old2newnames = dict([
     ('getLookupRange', 'get_lookup_range'),
     ('_g_checkName', '_g_check_name'),
     # from indexes.py
-    #('parentNode', 'parentnode'),                       # kwarg
+    # ('parentNode', 'parentnode'),                       # kwarg
     ('_searchBin', '_search_bin'),
     # from indexesextension
     ('indexesExtension', 'indexesextension'),
@@ -230,7 +217,7 @@ old2newnames = dict([
     ('_searchBinNA_d', '_search_bin_na_d'),
     ('_searchBinNA_g', '_search_bin_na_g'),
     # from leaf.py
-    #('parentNode', 'parentnode'),                       # kwarg
+    # ('parentNode', 'parentnode'),                       # kwarg
     ('objectID', 'object_id'),                          # property
     ('_processRangeRead', '_process_range_read'),
     ('_pointSelection', '_point_selection'),
@@ -239,7 +226,7 @@ old2newnames = dict([
     ('setAttr', 'set_attr'),
     ('delAttr', 'del_attr'),
     # from link.py
-    #('parentNode', 'parentnode'),                       # kwarg
+    # ('parentNode', 'parentnode'),                       # kwarg
     ('_g_getLinkClass', '_g_get_link_class'),
     # from linkextension
     ('linkExtension', 'linkextension'),
@@ -253,7 +240,7 @@ old2newnames = dict([
     # from misc/proxydict.py
     ('containerRef', 'containerref'),                   # attr
     # from node.py
-    #('parentNode', 'parentnode'),                       # kwarg
+    # ('parentNode', 'parentnode'),                       # kwarg
     ('_g_logCreate', '_g_log_create'),
     ('_g_preKillHook', '_g_pre_kill_hook'),
     ('_g_checkOpen', '_g_check_open'),
@@ -278,10 +265,10 @@ old2newnames = dict([
     ('openNode', 'open_node'),
     ('_lineChunkSize', '_line_chunksize'),              # attr (private)
     ('_lineSeparator', '_line_separator'),              # attr (private)
-    #('getLineSeparator', 'get_line_separator'),        # dropped
-    #('setLineSeparator', 'set_line_separator'),        # dropped
-    #('delLineSeparator', 'del_line_separator'),        # dropped
-    #('lineSeparator', 'line_separator'),                # property -- dropped
+    # ('getLineSeparator', 'get_line_separator'),        # dropped
+    # ('setLineSeparator', 'set_line_separator'),        # dropped
+    # ('delLineSeparator', 'del_line_separator'),        # dropped
+    # ('lineSeparator', 'line_separator'),                # property -- dropped
     ('_notReadableError', '_not_readable_error'),
     ('_appendZeros', '_append_zeros'),
     ('getAttrs', '_get_attrs'),
@@ -319,7 +306,7 @@ old2newnames = dict([
     ('recreateIndexes', 'recreate_indexes'),
     ('copyLeaf', 'copy_leaf'),
     # from table.py
-    #('parentNode', 'parentnode'),                       # kwarg
+    # ('parentNode', 'parentnode'),                       # kwarg
     ('_nxTypeFromNPType', '_nxtype_from_nptype'),       # data (private)
     ('_npSizeType', '_npsizetype'),                     # data (private)
     ('_indexNameOf', '_index_name_of'),
@@ -340,8 +327,9 @@ old2newnames = dict([
     ('_useIndex', '_use_index'),
     ('_whereCondition', '_where_condition'),            # attr (private)
     ('_conditionCache', '_condition_cache'),            # attr (private)
-    #('_exprvarsCache', '_exprvars_cache'),
-    ('_enabledIndexingInQueries', '_enabled_indexing_in_queries'),  # attr (private)
+    # ('_exprvarsCache', '_exprvars_cache'),
+    ('_enabledIndexingInQueries',
+     '_enabled_indexing_in_queries'),  # attr (private)
     ('_emptyArrayCache', '_empty_array_cache'),         # attr (private)
     ('_getTypeColNames', '_get_type_col_names'),
     ('_getEnumMap', '_get_enum_map'),
@@ -350,7 +338,7 @@ old2newnames = dict([
     ('_checkColumn', '_check_column'),
     ('_disableIndexingInQueries', '_disable_indexing_in_queries'),
     ('_enableIndexingInQueries', '_enable_indexing_in_queries'),
-    #('_requiredExprVars', '_required_expr_vars'),
+    # ('_requiredExprVars', '_required_expr_vars'),
     ('_getConditionKey', '_get_condition_key'),
     ('_compileCondition', '_compile_condition'),
     ('willQueryUseIndexing', 'will_query_use_indexing'),
@@ -461,12 +449,12 @@ old2newnames = dict([
     # from unimlemented.py
     ('_openUnImplemented', '_open_unimplemented'),
     # from vlarray.py
-    #('parentNode', 'parentnode'),                       # kwarg
-    #('expectedsizeinMB', 'expected_mb'),                # --> expectedrows
-    #('_v_expectedsizeinMB', '_v_expected_mb'),          # --> expectedrows
+    # ('parentNode', 'parentnode'),                       # kwarg
+    # ('expectedsizeinMB', 'expected_mb'),                # --> expectedrows
+    # ('_v_expectedsizeinMB', '_v_expected_mb'),          # --> expectedrows
 ])
 
-new2oldnames = dict([(v, k) for k, v in old2newnames.items()])
+new2oldnames = {v: k for k, v in old2newnames.items()}
 
 # Note that it is tempting to use the ast module here, but then this
 # breaks transforming cython files.  So instead we are going to do the
@@ -475,12 +463,12 @@ new2oldnames = dict([(v, k) for k, v in old2newnames.items()])
 
 def make_subs(ns):
     names = new2oldnames if ns.reverse else old2newnames
-    s = '(?<=\W)({0})(?=\W)'.format('|'.join(list(names.keys())))
+    s = r'(?<=\W)({})(?=\W)'.format('|'.join(list(names)))
     if ns.ignore_previous:
-        s += '(?!\s*?=\s*?previous_api(_property)?\()'
-        s += '(?!\* to \*\w+\*)'
-        s += '(?!\* parameter has been renamed into \*\w+\*\.)'
-        s += '(?! is pending deprecation, import \w+ instead\.)'
+        s += r'(?!\s*?=\s*?previous_api(_property)?\()'
+        s += r'(?!\* to \*\w+\*)'
+        s += r'(?!\* parameter has been renamed into \*\w+\*\.)'
+        s += r'(?! is pending deprecation, import \w+ instead\.)'
     subs = re.compile(s, flags=re.MULTILINE)
 
     def repl(m):
@@ -507,10 +495,9 @@ def main():
     parser.add_argument('filename', help='path to input file.')
     ns = parser.parse_args()
 
-    if not os.path.isfile(ns.filename):
-        sys.exit('file {0!r} not found'.format(ns.filename))
-    with open(ns.filename, 'r') as f:
-        src = f.read()
+    if not Path(ns.filename).is_file():
+        sys.exit(f'file {ns.filename!r} not found')
+    src = Path(ns.filename).read_text()
 
     subs, repl = make_subs(ns)
     targ = subs.sub(repl, src)
@@ -519,8 +506,8 @@ def main():
     if ns.output is None:
         sys.stdout.write(targ)
     else:
-        with open(ns.output, 'w') as f:
-            f.write(targ)
+        Path(ns.output).write_text(targ)
+
 
 if __name__ == '__main__':
     main()

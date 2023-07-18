@@ -1,29 +1,21 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: October 14, 2002
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the Leaf class."""
 
 import warnings
 import math
 
-import numpy
+import numpy as np
+try:
+    import cpuinfo
+    cpu_info = cpuinfo.get_cpu_info()
+except ImportError:
+    cpu_info = {}
 
-from .flavor import (check_flavor, internal_flavor,
-                           alias_map as flavor_alias_map)
+from .flavor import (check_flavor, internal_flavor, toarray,
+                     alias_map as flavor_alias_map)
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
 from .exceptions import PerformanceWarning
-from . import utilsextension
 
 
 def csformula(expected_mb):
@@ -32,7 +24,7 @@ def csformula(expected_mb):
     # For a basesize of 8 KB, this will return:
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
-    basesize = 8 * 1024   # 8 KB is a good minimum
+    basesize = 8 * 1024  # 8 KB is a good minimum
     return basesize * int(2**math.log10(expected_mb))
 
 
@@ -122,11 +114,6 @@ class Leaf(Node):
 
     """
 
-    # Properties
-    # ~~~~~~~~~~
-
-    # Node property aliases
-    # `````````````````````
     # These are a little hard to override, but so are properties.
     attrs = Node._v_attrs
     """The associated AttributeSet instance - see :ref:`AttributeSetClassDescr`
@@ -135,11 +122,10 @@ class Leaf(Node):
     """A description for this node
     (This is an easier-to-write alias of :attr:`Node._v_title`)."""
 
-    # Read-only node property aliases
-    # ```````````````````````````````
     @property
     def name(self):
-        """The name of this node in its parent group (This is an easier-to-write alias of :attr:`Node._v_name`)."""
+        """The name of this node in its parent group (This is an
+        easier-to-write alias of :attr:`Node._v_name`)."""
         return self._v_name
 
     @property
@@ -169,8 +155,6 @@ class Leaf(Node):
         .. versionadded: 2.4"""
         return len(self.shape)
 
-    # Lazy read-only attributes
-    # `````````````````````````
     @lazyattr
     def filters(self):
         """Filter properties for this leaf.
@@ -196,9 +180,6 @@ class Leaf(Node):
         track_times = (leaf._get_obj_timestamps().ctime == 0)
         """
         return self._get_obj_track_times()
-
-    # Other properties
-    # ````````````````
 
     @property
     def maindim(self):
@@ -246,8 +227,6 @@ class Leaf(Node):
         """
         return self._get_storage_size()
 
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  new=False, filters=None,
                  byteorder=None, _log=True,
@@ -282,8 +261,7 @@ class Leaf(Node):
         # Existing filters need not be read since `filters`
         # is a lazy property that automatically handles their loading.
 
-
-        super(Leaf, self).__init__(parentnode, name, _log)
+        super().__init__(parentnode, name, _log)
 
     def __len__(self):
         """Return the length of the main dimension of the leaf data.
@@ -300,26 +278,18 @@ class Leaf(Node):
         """The string representation for this object is its pathname in the
         HDF5 object tree plus some additional metainfo."""
 
-        # Get this class name
-        classname = self.__class__.__name__
-        # The title
-        title = self._v_title
-        # The filters
-        filters = ""
+        filters = []
         if self.filters.fletcher32:
-            filters += ", fletcher32"
+            filters.append("fletcher32")
         if self.filters.complevel:
             if self.filters.shuffle:
-                filters += ", shuffle"
+                filters.append("shuffle")
             if self.filters.bitshuffle:
-                filters += ", bitshuffle"
-            filters += ", %s(%s)" % (self.filters.complib,
-                                     self.filters.complevel)
-        return "%s (%s%s%s) %r" % \
-               (self._v_pathname, classname, self.shape, filters, title)
+                filters.append("bitshuffle")
+            filters.append(f"{self.filters.complib}({self.filters.complevel})")
+        return (f"{self._v_pathname} ({self.__class__.__name__}"
+                f"{self.shape}{', '.join(filters)}) {self._v_title!r}")
 
-    # Private methods
-    # ~~~~~~~~~~~~~~~
     def _g_post_init_hook(self):
         """Code to be run after node creation and before creation logging.
 
@@ -327,7 +297,7 @@ class Leaf(Node):
 
         """
 
-        super(Leaf, self)._g_post_init_hook()
+        super()._g_post_init_hook()
         if self._v_new:  # set flavor of new node
             if self._flavor is None:
                 self._flavor = internal_flavor
@@ -352,6 +322,40 @@ class Leaf(Node):
         MB = 1024 * 1024
         expected_mb = (expectedrows * rowsize) // MB
         chunksize = calc_chunksize(expected_mb)
+        complib = self.filters.complib
+        if (complib is not None and
+            complib.startswith("blosc2") and
+            self._c_classid == 'TABLE'):
+            # Blosc2 can introspect into blocks, so we can increase the
+            # chunksize for improving HDF5 perf for its internal btree.
+            # For the time being, this has been implemented efficiently
+            # just for tables, but in the future *Array objects could also
+            # be included.
+            # In Blosc2, the role of HDF5 chunksize could be played by the
+            # Blosc2 blocksize...
+            # self._v_blocksize = chunksize
+            # but let's use the internal machinery in Blosc2 decide the actual
+            # blocksize.
+            self._v_blocksize = 0
+            # Use a decent default value for chunksize
+            chunksize *= 16
+            # Now, go explore the L3 size and try to find a smarter chunksize
+            if 'l3_cache_size' in cpu_info:
+                # In general, is a good idea to set the chunksize equal to L3
+                l3_cache_size = cpu_info['l3_cache_size']
+                # cpuinfo sometimes returns cache sizes as strings (like,
+                # "4096 KB"), so refuse the temptation to guess and use the
+                # value only when it is an actual int.
+                # Also, sometimes cpuinfo does not return a correct L3 size;
+                # so in general, enforcing L3 > L2 is a good sanity check.
+                l2_cache_size = cpu_info.get('l2_cache_size', "Not found")
+                if (type(l3_cache_size) is int and
+                    type(l2_cache_size) is int and
+                    l3_cache_size > l2_cache_size):
+                    chunksize = l3_cache_size
+            # In Blosc2, the chunksize cannot be larger than 2 GB - BLOSC2_MAX_BUFFERSIZE
+            if chunksize > 2**31 - 32:
+                chunksize = 2**31 - 32
 
         maindim = self.maindim
         # Compute the chunknitems
@@ -362,7 +366,7 @@ class Leaf(Node):
         chunkshape = list(self.shape)
         # Check whether trimming the main dimension is enough
         chunkshape[maindim] = 1
-        newchunknitems = numpy.prod(chunkshape, dtype=SizeType)
+        newchunknitems = np.prod(chunkshape, dtype=SizeType)
         if newchunknitems <= chunknitems:
             chunkshape[maindim] = chunknitems // newchunknitems
         else:
@@ -370,7 +374,7 @@ class Leaf(Node):
             for j in range(len(chunkshape)):
                 # Check whether trimming this dimension is enough
                 chunkshape[j] = 1
-                newchunknitems = numpy.prod(chunkshape, dtype=SizeType)
+                newchunknitems = np.prod(chunkshape, dtype=SizeType)
                 if newchunknitems <= chunknitems:
                     chunkshape[j] = chunknitems // newchunknitems
                     break
@@ -420,9 +424,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         if warn_negstep and step and step < 0:
             raise ValueError("slice step cannot be negative")
 
-        #if start is not None: start = long(start)
-        #if stop is not None: stop = long(stop)
-        #if step is not None: step = long(step)
+        # if start is not None: start = long(start)
+        # if stop is not None: stop = long(stop)
+        # if step is not None: step = long(step)
 
         return slice(start, stop, step).indices(int(nrows))
 
@@ -432,7 +436,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         if start is not None and stop is None and step is None:
             # Protection against start greater than available records
             # nrows == 0 is a special case for empty objects
-            if nrows > 0 and start >= nrows:
+            if 0 < nrows <= start:
                 raise IndexError("start of range (%s) is greater than "
                                  "number of rows (%s)" % (start, nrows))
             step = 1
@@ -487,7 +491,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         return new_node
 
     def _g_fix_byteorder_data(self, data, dbyteorder):
-        "Fix the byteorder of data passed in constructors."
+        """Fix the byteorder of data passed in constructors."""
         dbyteorder = byteorders[dbyteorder]
         # If self.byteorder has not been passed as an argument of
         # the constructor, then set it to the same value of data.
@@ -534,30 +538,30 @@ very small/large chunksize, you may want to increase/decrease it."""
         point-wise selection.
 
         """
-
+        input_key = key
         if type(key) in (list, tuple):
             if isinstance(key, tuple) and len(key) > len(self.shape):
-                raise IndexError("Invalid index or slice: %r" % (key,))
+                raise IndexError(f"Invalid index or slice: {key!r}")
             # Try to convert key to a numpy array.  If not possible,
             # a TypeError will be issued (to be catched later on).
             try:
-                key = numpy.array(key)
+                key = toarray(key)
             except ValueError:
-                raise TypeError("Invalid index or slice: %r" % (key,))
-        elif not isinstance(key, numpy.ndarray):
-            raise TypeError("Invalid index or slice: %r" % (key,))
+                raise TypeError(f"Invalid index or slice: {key!r}")
+        elif not isinstance(key, np.ndarray):
+            raise TypeError(f"Invalid index or slice: {key!r}")
 
         # Protection against empty keys
         if len(key) == 0:
-            return numpy.array([], dtype="i8")
+            return np.array([], dtype="i8")
 
         if key.dtype.kind == 'b':
             if not key.shape == self.shape:
                 raise IndexError(
                     "Boolean indexing array has incompatible shape")
             # Get the True coordinates (64-bit indices!)
-            coords = numpy.asarray(key.nonzero(), dtype='i8')
-            coords = numpy.transpose(coords)
+            coords = np.asarray(key.nonzero(), dtype='i8')
+            coords = np.transpose(coords)
         elif key.dtype.kind == 'i' or key.dtype.kind == 'u':
             if len(key.shape) > 2:
                 raise IndexError(
@@ -566,18 +570,23 @@ very small/large chunksize, you may want to increase/decrease it."""
                 if key.shape[0] != len(self.shape):
                     raise IndexError(
                         "Coordinate indexing array has incompatible shape")
-                coords = numpy.asarray(key, dtype="i8")
-                coords = numpy.transpose(coords)
+                coords = np.asarray(key, dtype="i8")
+                coords = np.transpose(coords)
             else:
                 # For 1-dimensional datasets
-                coords = numpy.asarray(key, dtype="i8")
+                coords = np.asarray(key, dtype="i8")
 
             # handle negative indices
+            base = coords if coords.base is None else coords.base
+            if base is input_key:
+                # never modify the original "key" data
+                coords = coords.copy()
+
             idx = coords < 0
             coords[idx] = (coords + self.shape)[idx]
 
             # bounds check
-            if numpy.any(coords < 0) or numpy.any(coords >= self.shape):
+            if np.any(coords < 0) or np.any(coords >= self.shape):
                 raise IndexError("Index out of bounds")
         else:
             raise TypeError("Only integer coordinates allowed.")
@@ -586,10 +595,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             coords = coords.copy()
         return coords
 
-    # Public methods
-    # ~~~~~~~~~~~~~~
     # Tree manipulation
-    # `````````````````
     def remove(self):
         """Remove this node from the hierarchy.
 
@@ -698,7 +704,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         return self._f_isvisible()
 
     # Attribute handling
-    # ``````````````````
     def get_attr(self, name):
         """Get a PyTables attribute from this node.
 
@@ -727,7 +732,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._f_delattr(name)
 
     # Data handling
-    # `````````````
     def flush(self):
         """Flush pending data to disk.
 
@@ -763,7 +767,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._g_close()
 
         # Close myself as a node.
-        super(Leaf, self)._f_close()
+        super()._f_close()
 
     def close(self, flush=True):
         """Close this node in the tree.
@@ -773,11 +777,3 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         self._f_close(flush)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

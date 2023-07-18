@@ -5,22 +5,21 @@ Francesc Alted
 
 """
 
-from __future__ import print_function
-import os
 import math
 import subprocess
 import tempfile
-from time import time
-import numpy
-import tables
+from pathlib import Path
+from time import perf_counter as clock
+import numpy as np
+import tables as tb
 
 # Size of dataset
 # N, M = 512, 2**16     # 256 MB
 # N, M = 512, 2**18     # 1 GB
 # N, M = 512, 2**19     # 2 GB
-N, M = 2000, 1000000  # 15 GB
+N, M = 2000, 1_000_000  # 15 GB
 # N, M = 4000, 1000000  # 30 GB
-datom = tables.Float64Atom()   # elements are double precision
+datom = tb.Float64Atom()   # elements are double precision
 
 
 def quantize(data, least_significant_digit):
@@ -32,15 +31,15 @@ def quantize(data, least_significant_digit):
 
     """
 
-    precision = 10. ** -least_significant_digit
+    precision = 10 ** -least_significant_digit
     exp = math.log(precision, 10)
     if exp < 0:
-        exp = int(math.floor(exp))
+        exp = math.floor(exp)
     else:
-        exp = int(math.ceil(exp))
-    bits = math.ceil(math.log(10. ** -exp, 2))
-    scale = 2. ** bits
-    return numpy.around(scale * data) / scale
+        exp = math.ceil(exp)
+    bits = math.ceil(math.log(10 ** -exp, 2))
+    scale = 2 ** bits
+    return np.around(scale * data) / scale
 
 
 def get_db_size(filename):
@@ -51,40 +50,40 @@ def get_db_size(filename):
 
 
 def bench(chunkshape, filters):
-    numpy.random.seed(1)   # to have reproductible results
+    np.random.seed(1)   # to have reproductible results
     filename = tempfile.mktemp(suffix='.h5')
     print("Doing test on the file system represented by:", filename)
 
-    f = tables.open_file(filename, 'w')
+    f = tb.open_file(filename, 'w')
     e = f.create_earray(f.root, 'earray', datom, shape=(0, M),
                         filters = filters,
                         chunkshape = chunkshape)
     # Fill the array
-    t1 = time()
+    t1 = clock()
     for i in range(N):
-        # e.append([numpy.random.rand(M)])  # use this for less compressibility
-        e.append([quantize(numpy.random.rand(M), 6)])
+        # e.append([np.random.rand(M)])  # use this for less compressibility
+        e.append([quantize(np.random.rand(M), 6)])
     # os.system("sync")
-    print("Creation time:", round(time() - t1, 3), end=' ')
+    print(f"Creation time: {clock() - t1:.3f}", end=' ')
     filesize = get_db_size(filename)
-    filesize_bytes = os.stat(filename)[6]
+    filesize_bytes = Path(filename).stat().st_size
     print("\t\tFile size: %d -- (%s)" % (filesize_bytes, filesize))
 
     # Read in sequential mode:
     e = f.root.earray
-    t1 = time()
+    t1 = clock()
     # Flush everything to disk and flush caches
     #os.system("sync; echo 1 > /proc/sys/vm/drop_caches")
     for row in e:
         t = row
-    print("Sequential read time:", round(time() - t1, 3), end=' ')
+    print(f"Sequential read time: {clock() - t1:.3f}", end=' ')
 
     # f.close()
     # return
 
     # Read in random mode:
-    i_index = numpy.random.randint(0, N, 128)
-    j_index = numpy.random.randint(0, M, 256)
+    i_index = np.random.randint(0, N, 128)
+    j_index = np.random.randint(0, M, 256)
     # Flush everything to disk and flush caches
     #os.system("sync; echo 1 > /proc/sys/vm/drop_caches")
 
@@ -94,11 +93,11 @@ def bench(chunkshape, filters):
         f.close()
         return
 
-    t1 = time()
+    t1 = clock()
     for i in i_index:
         for j in j_index:
             t = e[i, j]
-    print("\tRandom read time:", round(time() - t1, 3))
+    print(f"\tRandom read time: {clock() - t1:.3f}")
 
     f.close()
 
@@ -107,9 +106,9 @@ def bench(chunkshape, filters):
 for complib in (None, 'zlib', 'lzo', 'blosc'):
 # for complib in ('blosc',):
     if complib:
-        filters = tables.Filters(complevel=5, complib=complib)
+        filters = tb.Filters(complevel=5, complib=complib)
     else:
-        filters = tables.Filters(complevel=0)
+        filters = tb.Filters(complevel=0)
     print("8<--" * 20, "\nFilters:", filters, "\n" + "-" * 80)
     # for ecs in (11, 14, 17, 20, 21, 22):
     for ecs in range(10, 24):

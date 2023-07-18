@@ -211,11 +211,11 @@ now its value should never be higher that 1.
 .. _Anaconda: https://store.continuum.io/cshop/anaconda
 .. _Canopy: https://www.enthought.com/products/canopy
 .. _`Christoph Gohlke suites`: http://www.lfd.uci.edu/~gohlke/pythonlibs
-.. _`Issues with H5T_NATIVE_LDOUBLE`: http://hdf-forum.184993.n3.nabble.com/Issues-with-H5T-NATIVE-LDOUBLE-tt4026450.html
+.. _`Issues with H5T_NATIVE_LDOUBLE`: https://forum.hdfgroup.org/t/issues-with-h5t-native-ldouble/2991
 .. _Python: http://www.python.org
 .. _Blosc: http://www.blosc.org
 .. _numpy: http://www.numpy.org
 .. _`Travis-CI`: https://travis-ci.org
 .. _PEP8: http://www.python.org/dev/peps/pep-0008
 .. _`Blosc Release Notes`: https://github.com/FrancescAlted/blosc/wiki/Release-notes
-.. _H5Fopen: http://www.hdfgroup.org/HDF5/doc/RM/RM_H5F.html#File-Open
+.. _H5Fopen: https://portal.hdfgroup.org/display/HDF5/Files

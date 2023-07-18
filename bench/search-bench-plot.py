@@ -1,14 +1,13 @@
-from __future__ import print_function
-import tables
+import tables as tb
 from pylab import *
 
 
 def get_values(filename, complib=''):
-    f = tables.open_file(filename)
+    f = tb.open_file(filename)
     nrows = f.root.small.create_best.cols.nrows[:]
-    corrected_sizes = nrows / 10. ** 6
+    corrected_sizes = nrows / 10 ** 6
     if mb_units:
-        corrected_sizes = 16 * nrows / 10. ** 6
+        corrected_sizes = 16 * nrows / 10 ** 6
     if insert:
         values = corrected_sizes / f.root.small.create_best.cols.tfill[:]
     if table_size:
@@ -132,13 +131,13 @@ if __name__ == '__main__':
         plegend = filename[filename.find('cl-') + 3:filename.index('.h5')]
         plegend = plegend.replace('-', ' ')
         xval, yval = get_values(filename, '')
-        print("Values for %s --> %s, %s" % (filename, xval, yval))
+        print(f"Values for {filename} --> {xval}, {yval}")
         #plots.append(loglog(xval, yval, linewidth=5))
         plots.append(semilogx(xval, yval, linewidth=4))
         legends.append(plegend)
     if 0:  # Per a introduir dades simulades si es vol...
-        xval = [1000, 10000, 100000, 1000000, 10000000,
-                100000000, 1000000000]
+        xval = [1000, 10_000, 100_000, 1_000_000, 10_000_000,
+                100_000_000, 1_000_000_000]
 #         yval = [0.003, 0.005, 0.02, 0.06, 1.2,
 #                 40, 210]
         yval = [0.0009, 0.0011, 0.0022, 0.005, 0.02,

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # a stacked bar plot with errorbars
 
-from __future__ import print_function
+from pathlib import Path
 from pylab import *
 
 checks = ['open_close', 'only_open',
@@ -16,15 +16,13 @@ ind = arange(len(checks))    # the x locations for the groups
 
 def get_values(filename):
     values = []
-    f = open(filename)
-    for line in f:
+    for line in Path(filename).read_text().splitlines():
         if show_memory:
             if line.startswith('VmData:'):
-                values.append(float(line.split()[1]) / 1024.)
+                values.append(float(line.split()[1]) / 1024)
         else:
             if line.startswith('WallClock time:'):
                 values.append(float(line.split(':')[1]))
-    f.close()
     return values
 
 
@@ -47,7 +45,7 @@ def show_plot(bars, filenames, tit):
         ylabel('Time (s)')
     title(tit)
     n = len(filenames)
-    xticks(ind + width * n / 2., checks, rotation=45,
+    xticks(ind + width * n / 2, checks, rotation=45,
            horizontalalignment='right', fontsize=8)
     if not gtotal:
         #loc = 'center right'

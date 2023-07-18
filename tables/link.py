@@ -1,15 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: November 25, 2009
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Create links in the HDF5 file.
 
 This module implements containers for soft and external links.  Hard
@@ -27,20 +15,20 @@ Misc variables:
 
 """
 
-import os
-import tables
+from pathlib import Path
+
+import tables as tb
+
 from . import linkextension
 from .node import Node
 from .utils import lazyattr
 from .attributeset import AttributeSet
-import tables.file
 
 
 def _g_get_link_class(parent_id, name):
     """Guess the link class."""
 
     return linkextension._get_link_class(parent_id, name)
-
 
 
 class Link(Node):
@@ -89,7 +77,7 @@ class Link(Node):
         self.target = target
         """The path string to the pointed node."""
 
-        super(Link, self).__init__(parentnode, name, _log)
+        super().__init__(parentnode, name, _log)
 
     # Public and tailored versions for copy, move, rename and remove methods
     def copy(self, newparent=None, newname=None,
@@ -166,25 +154,27 @@ class SoftLink(linkextension.SoftLink, Link):
 
     ::
 
-        >>> f = tables.open_file('/tmp/test_softlink.h5', 'w')
+        >>> import numpy as np
+        >>> f = tb.open_file('/tmp/test_softlink.h5', 'w')
         >>> a = f.create_array('/', 'A', np.arange(10))
         >>> link_a = f.create_soft_link('/', 'link_A', target='/A')
 
         # transparent read/write access to a softlinked node
         >>> link_a[0] = -1
-        >>> print(link_a[:], link_a.dtype)
+        >>> link_a[:], link_a.dtype
         (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
 
         # dereferencing a softlink using the __call__() method
-        >>> print(link_a() is a)
+        >>> link_a() is a
         True
 
         # SoftLink.remove() overrides Array.remove()
         >>> link_a.remove()
         >>> print(link_a)
-        <closed tables.link.SoftLink at 0x7febe97186e0>
-        >>> print(a[:], a.dtype)
+        <closed tables.link.SoftLink at ...>
+        >>> a[:], a.dtype
         (array([-1,  1,  2,  3,  4,  5,  6,  7,  8,  9]), dtype('int64'))
+        >>> f.close()
 
 
     """
@@ -192,14 +182,12 @@ class SoftLink(linkextension.SoftLink, Link):
     # Class identifier.
     _c_classid = 'SOFTLINK'
 
-
     # attributes with these names/prefixes are treated as attributes of the
     # SoftLink rather than the target node
     _link_attrnames = ('target', 'dereference', 'is_dangling', 'copy', 'move',
                        'remove', 'rename', '__init__', '__str__', '__repr__',
                        '__unicode__', '__class__', '__dict__')
     _link_attrprefixes = ('_f_', '_c_', '_g_', '_v_')
-
 
     def __call__(self):
         """Dereference `self.target` and return the object.
@@ -209,11 +197,12 @@ class SoftLink(linkextension.SoftLink, Link):
 
         ::
 
-            >>> f=tables.open_file('data/test.h5')
-            >>> print(f.root.link0)
-            /link0 (SoftLink) -> /another/path
-            >>> print(f.root.link0())
-            /another/path (Group) ''
+            >>> f = tb.open_file('tables/tests/slink.h5')
+            >>> f.root.arr2
+            /arr2 (SoftLink) -> /arr
+            >>> print(f.root.arr2())
+            /arr (Array(2,)) ''
+            >>> f.close()
 
         """
         return self.dereference()
@@ -232,13 +221,13 @@ class SoftLink(linkextension.SoftLink, Link):
     def __getattribute__(self, attrname):
 
         # get attribute of the SoftLink itself
-        if (attrname in SoftLink._link_attrnames
-            or attrname[:3] in SoftLink._link_attrprefixes):
+        if (attrname in SoftLink._link_attrnames or
+                attrname[:3] in SoftLink._link_attrprefixes):
             return object.__getattribute__(self, attrname)
 
         # get attribute of the target node
         elif not self._v_isopen:
-            raise tables.ClosedNodeError('the node object is closed')
+            raise tb.ClosedNodeError('the node object is closed')
         elif self.is_dangling():
             return None
         else:
@@ -253,13 +242,13 @@ class SoftLink(linkextension.SoftLink, Link):
     def __setattr__(self, attrname, value):
 
         # set attribute of the SoftLink itself
-        if (attrname in SoftLink._link_attrnames
-            or attrname[:3] in SoftLink._link_attrprefixes):
+        if (attrname in SoftLink._link_attrnames or
+                attrname[:3] in SoftLink._link_attrprefixes):
             object.__setattr__(self, attrname, value)
 
         # set attribute of the target node
         elif not self._v_isopen:
-            raise tables.ClosedNodeError('the node object is closed')
+            raise tb.ClosedNodeError('the node object is closed')
         elif self.is_dangling():
             raise ValueError("softlink target does not exist")
         else:
@@ -270,7 +259,7 @@ class SoftLink(linkextension.SoftLink, Link):
         indexing syntax to work"""
 
         if not self._v_isopen:
-            raise tables.ClosedNodeError('the node object is closed')
+            raise tb.ClosedNodeError('the node object is closed')
         elif self.is_dangling():
             raise ValueError("softlink target does not exist")
         else:
@@ -281,7 +270,7 @@ class SoftLink(linkextension.SoftLink, Link):
         indexing syntax to work"""
 
         if not self._v_isopen:
-            raise tables.ClosedNodeError('the node object is closed')
+            raise tb.ClosedNodeError('the node object is closed')
         elif self.is_dangling():
             raise ValueError("softlink target does not exist")
         else:
@@ -289,7 +278,6 @@ class SoftLink(linkextension.SoftLink, Link):
 
     def is_dangling(self):
         return not (self.dereference() in self._v_file)
-
 
     def __str__(self):
         """Return a short string representation of the link.
@@ -299,27 +287,21 @@ class SoftLink(linkextension.SoftLink, Link):
 
         ::
 
-            >>> f=tables.open_file('data/test.h5')
-            >>> print(f.root.link0)
-            /link0 (SoftLink) -> /path/to/node
+            >>> f = tb.open_file('tables/tests/slink.h5')
+            >>> f.root.arr2
+            /arr2 (SoftLink) -> /arr
+            >>> f.close()
 
         """
 
-        classname = self.__class__.__name__
         target = str(self.target)
         # Check for relative pathnames
         if not self.target.startswith('/'):
             target = self._v_parent._g_join(self.target)
-        if self._v_isopen:
-            closed = ""
-        else:
-            closed = "closed "
-        if target not in self._v_file:
-            dangling = " (dangling)"
-        else:
-            dangling = ""
-        return "%s%s (%s) -> %s%s" % (closed, self._v_pathname, classname,
-                                      self.target, dangling)
+        closed = "" if self._v_isopen else "closed "
+        dangling = "" if target in self._v_file else " (dangling)"
+        return (f"{closed}{self._v_pathname} ({self.__class__.__name__}) -> "
+                f"{self.target}{dangling}")
 
 
 class ExternalLink(linkextension.ExternalLink, Link):
@@ -343,13 +325,12 @@ class ExternalLink(linkextension.ExternalLink, Link):
     # Class identifier.
     _c_classid = 'EXTERNALLINK'
 
-
     def __init__(self, parentnode, name, target=None, _log=False):
         self.extfile = None
         """The external file handler, if the link has been dereferenced.
         In case the link has not been dereferenced yet, its value is
         None."""
-        super(ExternalLink, self).__init__(parentnode, name, target, _log)
+        super().__init__(parentnode, name, target, _log)
 
     def _get_filename_node(self):
         """Return the external filename and nodepath from `self.target`."""
@@ -370,27 +351,27 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         ::
 
-            >>> f=tables.open_file('data1/test1.h5')
-            >>> print(f.root.link2)
-            /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
-            >>> plink2 = f.root.link2('a')  # open in 'a'ppend mode
-            >>> print(plink2)
-            /path/to/node (Group) ''
-            >>> print(plink2._v_filename)
-            'data2/test2.h5'        # belongs to referenced file
+            >>> f = tb.open_file('tables/tests/elink.h5')
+            >>> f.root.pep.pep2
+            /pep/pep2 (ExternalLink) -> elink2.h5:/pep
+            >>> pep2 = f.root.pep.pep2(mode='r')  # open in 'r'ead mode
+            >>> print(pep2)
+            /pep (Group) ''
+            >>> pep2._v_file.filename       # belongs to referenced file
+            'tables/tests/elink2.h5'
+            >>> f.close()
 
         """
 
         filename, target = self._get_filename_node()
 
-        if not os.path.isabs(filename):
+        if not Path(filename).is_absolute():
             # Resolve the external link with respect to the this
             # file's directory.  See #306.
-            base_directory = os.path.dirname(self._v_file.filename)
-            filename = os.path.join(base_directory, filename)
+            filename = str(Path(self._v_file.filename).with_name(filename))
 
         if self.extfile is None or not self.extfile.isopen:
-            self.extfile = tables.open_file(filename, **kwargs)
+            self.extfile = tb.open_file(filename, **kwargs)
         else:
             # XXX: implement better consistency checks
             assert self.extfile.filename == filename
@@ -411,7 +392,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
         """Especific close for external links."""
 
         self.umount()
-        super(ExternalLink, self)._f_close()
+        super()._f_close()
 
     def __str__(self):
         """Return a short string representation of the link.
@@ -421,19 +402,12 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         ::
 
-            >>> f=tables.open_file('data1/test1.h5')
-            >>> print(f.root.link2)
-            /link2 (ExternalLink) -> data2/test2.h5:/path/to/node
+            >>> f = tb.open_file('tables/tests/elink.h5')
+            >>> f.root.pep.pep2
+            /pep/pep2 (ExternalLink) -> elink2.h5:/pep
+            >>> f.close()
 
         """
 
-        classname = self.__class__.__name__
-        return "%s (%s) -> %s" % (self._v_pathname, classname, self.target)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:
+        return (f"{self._v_pathname} ({self.__class__.__name__}) -> "
+                f"{self.target}")

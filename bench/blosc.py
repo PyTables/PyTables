@@ -1,7 +1,6 @@
-from __future__ import print_function
-import os
 import sys
-from time import time
+from pathlib import Path
+from time import perf_counter as clock
 import numpy as np
 import tables as tb
 
@@ -51,7 +50,7 @@ def create_file(kind, prec, synth):
                 r[:] = col[:]
         f2.close()
         if clevel == 0:
-            size = 1.5 * float(os.stat(oname)[6])
+            size = 1.5 * Path(oname).stat().st_size
     f.close()
     return size
 
@@ -89,7 +88,7 @@ def create_synth(kind, prec):
 
         f2.close()
         if clevel == 0:
-            size = 1.5 * float(os.stat(oname)[6])
+            size = 1.5 * Path(oname).stat().st_size
     f.close()
     return size
 
@@ -123,16 +122,16 @@ def process_file(kind, prec, clevel, synth):
 
     if kind == "numpy":
         a2, b2 = a_[:], b_[:]
-        t0 = time()
+        t0 = clock()
         r = eval(expression, {'a': a2, 'b': b2})
-        print("%5.2f" % round(time() - t0, 3))
+        print(f"{clock() - t0:5.2f}")
     else:
         expr = tb.Expr(expression, {'a': a_, 'b': b_})
         expr.set_output(r)
         expr.eval()
     f.close()
     f2.close()
-    size = float(os.stat(iname)[6]) + float(os.stat(oname)[6])
+    size = Path(iname).stat().st_size + Path(oname).stat().st_size
     return size
 
 
@@ -155,11 +154,11 @@ if __name__ == '__main__':
 
     # print "Processing files for compression levels in range(10)..."
     for clevel in range(10):
-        t0 = time()
+        t0 = clock()
         ts = []
         for i in range(niter):
             size = process_file(kind, prec, clevel, synth)
-            ts.append(time() - t0)
-            t0 = time()
+            ts.append(clock() - t0)
+            t0 = clock()
         ratio = size_orig / size
-        print("%5.2f, %5.2f" % (round(min(ts), 3), ratio))
+        print(f"{min(ts):5.2f}, {ratio:5.2f}")

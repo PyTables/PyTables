@@ -1,16 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: June 02, 2004
-# Author:  Francesc Alted - faltet@pytables.com
-#
-# $Source: /cvsroot/pytables/pytables/tables/indexes.py $
-# $Id$
-#
-########################################################################
-
 """Here is defined the IndexArray class."""
 
 from bisect import bisect_left, bisect_right
@@ -70,8 +57,6 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     # Class identifier.
     _c_classid = 'INDEXARRAY'
 
-    # Properties
-    # ~~~~~~~~~~
     @property
     def chunksize(self):
         """The chunksize for this object."""
@@ -82,8 +67,6 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         """The slicesize for this object."""
         return self.shape[1]
 
-    # Other methods
-    # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  atom=None, title="",
                  filters=None, byteorder=None):
@@ -104,7 +87,7 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
             shape = None
             chunkshape = None
 
-        super(IndexArray, self).__init__(
+        super().__init__(
             parentnode, name, atom, shape, title, filters,
             chunkshape=chunkshape, byteorder=byteorder)
 
@@ -171,25 +154,16 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         return (result1, result2)
 
     def __str__(self):
-        "A compact representation of this class"
-        return "IndexArray(path=%s)" % self._v_pathname
+        """A compact representation of this class"""
+        return f"IndexArray(path={self._v_pathname})"
 
     def __repr__(self):
         """A verbose representation of this class."""
 
-        return """%s
-  atom = %r
-  shape = %s
-  nrows = %s
-  chunksize = %s
-  slicesize = %s
-  byteorder = %r""" % (self, self.atom, self.shape, self.nrows,
-                       self.chunksize, self.slicesize, self.byteorder)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:
+        return f"""{self}
+  atom = {self.atom!r}
+  shape = {self.shape}
+  nrows = {self.nrows}
+  chunksize = {self.chunksize}
+  slicesize = {self.slicesize}
+  byteorder = {self.byteorder!r}"""

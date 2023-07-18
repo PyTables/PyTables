@@ -1,13 +1,13 @@
 "This creates an HDF5 file with a potentially large number of objects"
 
 import sys
-import numpy
-import tables
+import numpy as np
+import tables as tb
 
 filename = sys.argv[1]
 
 # Open a new empty HDF5 file
-fileh = tables.open_file(filename, mode="w")
+fileh = tb.open_file(filename, mode="w")
 
 # nlevels -- Number of levels in hierarchy
 # ngroups -- Number of groups on each level
@@ -21,7 +21,7 @@ nlevels, ngroups, ndatasets = (3, 10, 100)
 #nlevels, ngroups, ndatasets = (30, 10, 10)
 
 # Create an Array to save on disk
-a = numpy.array([-1, 2, 4], numpy.int16)
+a = np.array([-1, 2, 4], np.int16)
 
 group = fileh.root
 group2 = fileh.root

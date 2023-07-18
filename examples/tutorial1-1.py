@@ -5,23 +5,22 @@ with any HDF5 generic utility.
 
 """
 
-from __future__ import print_function
 import numpy as np
-import tables
+import tables as tb
 
 
         #'-**-**-**-**-**-**- user record definition  -**-**-**-**-**-**-**-'
 
 # Define a user record to characterize some kind of particles
-class Particle(tables.IsDescription):
-    name = tables.StringCol(16)     # 16-character String
-    idnumber = tables.Int64Col()    # Signed 64-bit integer
-    ADCcount = tables.UInt16Col()   # Unsigned short integer
-    TDCcount = tables.UInt8Col()    # unsigned byte
-    grid_i = tables.Int32Col()      # integer
-    grid_j = tables.Int32Col()      # integer
-    pressure = tables.Float32Col()  # float  (single-precision)
-    energy = tables.Float64Col()    # double (double-precision)
+class Particle(tb.IsDescription):
+    name = tb.StringCol(16)     # 16-character String
+    idnumber = tb.Int64Col()    # Signed 64-bit integer
+    ADCcount = tb.UInt16Col()   # Unsigned short integer
+    TDCcount = tb.UInt8Col()    # unsigned byte
+    grid_i = tb.Int32Col()      # integer
+    grid_j = tb.Int32Col()      # integer
+    pressure = tb.Float32Col()  # float  (single-precision)
+    energy = tb.Float64Col()    # double (double-precision)
 
 print()
 print('-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-')
@@ -32,7 +31,7 @@ filename = "tutorial1.h5"
 print("Creating file:", filename)
 
 # Open a file in "w"rite mode
-h5file = tables.open_file(filename, mode="w", title="Test file")
+h5file = tb.open_file(filename, mode="w", title="Test file")
 
 print()
 print('-**-**-**-**-**- group and table creation  -**-**-**-**-**-**-**-')

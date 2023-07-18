@@ -1,12 +1,8 @@
-# -*- coding: utf-8 -*-
-
 """Test suite consisting of all testcases."""
 
 import sys
 
 from tables.tests import common
-from tables.tests.common import unittest
-from tables.tests.common import print_heavy, print_versions
 
 
 def suite():
@@ -19,6 +15,7 @@ def suite():
         'tables.tests.test_lists',
         'tables.tests.test_tables',
         'tables.tests.test_tablesMD',
+        'tables.tests.test_large_tables',
         'tables.tests.test_array',
         'tables.tests.test_earray',
         'tables.tests.test_carray',
@@ -48,10 +45,10 @@ def suite():
     # Else, it is not as useful.
     test_modules.append('tables.tests.test_garbage')
 
-    alltests = unittest.TestSuite()
+    alltests = common.unittest.TestSuite()
     if common.show_memory:
         # Add a memory report at the beginning
-        alltests.addTest(unittest.makeSuite(common.ShowMemTime))
+        alltests.addTest(common.unittest.makeSuite(common.ShowMemTime))
     for name in test_modules:
         # Unexpectedly, the following code doesn't seem to work anymore
         # in python 3
@@ -62,7 +59,7 @@ def suite():
         alltests.addTest(test_suite())
         if common.show_memory:
             # Add a memory report after each test module
-            alltests.addTest(unittest.makeSuite(common.ShowMemTime))
+            alltests.addTest(common.unittest.makeSuite(common.ShowMemTime))
     return alltests
 
 
@@ -81,18 +78,19 @@ def test(verbose=False, heavy=False):
 
     """
 
-    print_versions()
-    print_heavy(heavy)
+    common.print_versions()
+    common.print_heavy(heavy)
 
     # What a context this is!
-    #oldverbose, common.verbose = common.verbose, verbose
+    # oldverbose, common.verbose = common.verbose, verbose
     oldheavy, common.heavy = common.heavy, heavy
     try:
-        result = unittest.TextTestRunner(verbosity=1+int(verbose)).run(suite())
+        result = common.unittest.TextTestRunner(
+            verbosity=1 + int(verbose)).run(suite())
         if result.wasSuccessful():
             return 0
         else:
             return 1
     finally:
-        #common.verbose = oldverbose
+        # common.verbose = oldverbose
         common.heavy = oldheavy  # there are pretty young heavies, too ;)

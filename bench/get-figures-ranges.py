@@ -1,4 +1,4 @@
-from __future__ import print_function
+from pathlib import Path
 from pylab import *
 
 linewidth = 2
@@ -9,11 +9,10 @@ markersize = 8
 
 
 def get_values(filename):
-    f = open(filename)
     sizes = []
     values = []
     isize = None
-    for line in f:
+    for line in Path(filename).read_text().splitlines():
         if line.startswith('range'):
             tmp = line.split(':')[1]
             tmp = tmp.strip()
@@ -69,8 +68,6 @@ def get_values(filename):
                 elif query_warm and 'warm' in line:
                     sizes.append(isize)
                     values.append(qtime)
-
-    f.close()
     return sizes, values
 
 
@@ -208,7 +205,7 @@ if __name__ == '__main__':
         plegend = filename[filename.find('-'):filename.index('.out')]
         plegend = plegend.replace('-', ' ')
         xval, yval = get_values(filename)
-        print("Values for %s --> %s, %s" % (filename, xval, yval))
+        print(f"Values for {filename} --> {xval}, {yval}")
         if "PyTables" in filename or "pytables" in filename:
             plot = loglog(xval, yval, linewidth=2)
             #plot = semilogx(xval, yval, linewidth=2)
@@ -221,8 +218,8 @@ if __name__ == '__main__':
         #plots.append(semilogx(xval, yval, linewidth=5))
         legends.append(plegend)
     if 0:  # Per a introduir dades simulades si es vol...
-        xval = [1000, 10000, 100000, 1000000, 10000000,
-                100000000, 1000000000]
+        xval = [1000, 10_000, 100_000, 1_000_000, 10_000_000,
+                100_000_000, 1_000_000_000]
 #         yval = [0.003, 0.005, 0.02, 0.06, 1.2,
 #                 40, 210]
         yval = [0.0009, 0.0011, 0.0022, 0.005, 0.02,

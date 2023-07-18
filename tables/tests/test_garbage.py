@@ -1,15 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: 2005-09-20
-# Author: Ivan Vilata i Balaguer - ivan@selidor.net
-#
-# $Id$
-#
-########################################################################
-
 """Test module for detecting uncollectable garbage in PyTables.
 
 This test module *must* be loaded in the last place.  It just checks for
@@ -21,11 +9,9 @@ all the tests.
 import gc
 
 from tables.tests import common
-from tables.tests.common import unittest
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
-class GarbageTestCase(TestCase):
+class GarbageTestCase(common.PyTablesTestCase):
     """Test for uncollectable garbage."""
 
     def test00(self):
@@ -53,8 +39,8 @@ class GarbageTestCase(TestCase):
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
-    theSuite = unittest.TestSuite()
-    theSuite.addTest(unittest.makeSuite(GarbageTestCase))
+    theSuite = common.unittest.TestSuite()
+    theSuite.addTest(common.unittest.makeSuite(GarbageTestCase))
     return theSuite
 
 
@@ -62,12 +48,4 @@ if __name__ == '__main__':
     import sys
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:
+    common.unittest.main(defaultTest='suite')

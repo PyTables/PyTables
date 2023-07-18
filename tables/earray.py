@@ -1,18 +1,6 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: December 15, 2003
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the EArray class."""
 
-import numpy
+import numpy as np
 
 from .utils import convert_to_np_atom2, SizeType
 from .carray import CArray
@@ -108,17 +96,17 @@ class EArray(CArray):
     See below a small example of the use of the `EArray` class.  The
     code is available in ``examples/earray1.py``::
 
-        import tables
-        import numpy
+        import numpy as np
+        import tables as tb
 
-        fileh = tables.open_file('earray1.h5', mode='w')
-        a = tables.StringAtom(itemsize=8)
+        fileh = tb.open_file('earray1.h5', mode='w')
+        a = tb.StringAtom(itemsize=8)
 
         # Use ``a`` as the object type for the enlargeable array.
         array_c = fileh.create_earray(fileh.root, 'array_c', a, (0,),
                                       \"Chars\")
-        array_c.append(numpy.array(['a'*2, 'b'*4], dtype='S8'))
-        array_c.append(numpy.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
+        array_c.append(np.array(['a'*2, 'b'*4], dtype='S8'))
+        array_c.append(np.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
 
         # Read the string ``EArray`` we have created on disk.
         for s in array_c:
@@ -139,9 +127,6 @@ class EArray(CArray):
     # Class identifier.
     _c_classid = 'EARRAY'
 
-
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __init__(self, parentnode, name,
                  atom=None, shape=None, title="",
                  filters=None, expectedrows=None,
@@ -155,17 +140,14 @@ class EArray(CArray):
         """The expected number of rows to be stored in the array."""
 
         # Call the parent (CArray) init code
-        super(EArray, self).__init__(parentnode, name, atom, shape, title,
-                                     filters, chunkshape, byteorder, _log,
-                                     track_times)
+        super().__init__(parentnode, name, atom, shape, title, filters,
+                         chunkshape, byteorder, _log, track_times)
 
-    # Public and private methods
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~
     def _g_create(self):
         """Create a new array in file (specific part)."""
 
         # Pre-conditions and extdim computation
-        zerodims = numpy.sum(numpy.array(self.shape) == 0)
+        zerodims = np.sum(np.array(self.shape) == 0)
         if zerodims > 0:
             if zerodims == 1:
                 self.extdim = list(self.shape).index(0)
@@ -182,7 +164,7 @@ class EArray(CArray):
         return self._g_create_common(self._v_expectedrows)
 
     def _check_shape_append(self, nparr):
-        "Test that nparr shape is consistent with underlying EArray."
+        """Test that nparr shape is consistent with underlying EArray."""
 
         # The arrays conforms self expandibility?
         myrank = len(self.shape)
@@ -196,7 +178,6 @@ class EArray(CArray):
                 raise ValueError(("the shapes of the appended object and the "
                                   "``%s`` EArray differ in non-enlargeable "
                                   "dimension %d") % (self._v_pathname, i))
-
 
     def append(self, sequence):
         """Add a sequence of data to the end of the dataset.
@@ -255,14 +236,6 @@ class EArray(CArray):
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype=SizeType) * self.atom.itemsize
+        nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.itemsize
 
         return (object, nbytes)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

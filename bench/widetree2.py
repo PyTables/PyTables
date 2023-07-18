@@ -1,17 +1,14 @@
-from __future__ import print_function
 import unittest
 
-from tables import *
-# Next imports are only necessary for this test suite
-#from tables import Group, Leaf, Table, Array
+import tables as tb
 
 verbose = 0
 
 
-class Test(IsDescription):
-    ngroup = Int32Col(pos=1)
-    ntable = Int32Col(pos=2)
-    nrow = Int32Col(pos=3)
+class Test(tb.IsDescription):
+    ngroup = tb.Int32Col(pos=1)
+    ntable = tb.Int32Col(pos=2)
+    nrow = tb.Int32Col(pos=3)
     #string = StringCol(itemsize=500, pos=4)
 
 
@@ -29,7 +26,7 @@ class WideTreeTestCase(unittest.TestCase):
 
         print("Writing...")
         # Open a file in "w"rite mode
-        fileh = open_file(filename, mode="w", title="PyTables Stress Test")
+        fileh = tb.open_file(filename, mode="w", title="PyTables Stress Test")
 
         for k in range(ngroups):
             # Create the group
@@ -41,14 +38,14 @@ class WideTreeTestCase(unittest.TestCase):
         rowswritten = 0
         for k in range(ngroups):
             print("Filling tables in group:", k)
-            fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
+            fileh = tb.open_file(filename, mode="a", root_uep='group%04d' % k)
             # Get the group
             group = fileh.root
             for j in range(ntables):
                 # Create a table
                 table = fileh.create_table(group, 'table%04d' % j, Test,
                                            'Table%04d' % j,
-                                           Filters(complevel, complib), nrows)
+                                           tb.Filters(complevel, complib), nrows)
                 # Get the row object associated with the new table
                 row = table.row
                 # Fill the table
@@ -68,7 +65,7 @@ class WideTreeTestCase(unittest.TestCase):
         print("Reading...")
         rowsread = 0
         for ngroup in range(ngroups):
-            fileh = open_file(filename, mode="r", root_uep='group%04d' %
+            fileh = tb.open_file(filename, mode="r", root_uep='group%04d' %
                               ngroup)
             # Get the group
             group = fileh.root

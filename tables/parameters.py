@@ -1,16 +1,7 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: February 25, 2005
-# Author:  Ivan Vilata - reverse:net.selidor@ivan
-#
-# $Id$
-#
-########################################################################
-
 """Parameters for PyTables."""
+
+import os as _os
+
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
@@ -136,7 +127,7 @@ treated no differently than other chunks (the preemption is strictly
 LRU) while a value of one means fully read chunks are always preempted
 before other chunks."""
 
-CHUNK_CACHE_SIZE = 2 * _MB
+CHUNK_CACHE_SIZE = 16 * _MB
 """Size (in bytes) for HDF5 chunk cache."""
 
 # Size for new metadata cache system
@@ -158,7 +149,8 @@ METADATA_CACHE_SIZE = 1 * _MB  # 1 MB is the default for HDF5
 # with tons of memory, and if you are touching regularly a very large
 # number of leaves, try increasing this value and see if it fits better
 # for you. Please report back your feedback.
-NODE_CACHE_SLOTS = 64
+# Using a lower value than 64 provides a workaround for issue #977.
+NODE_CACHE_SLOTS = 32  
 """Maximum number of nodes to be kept in the metadata cache.
 
 It is the number of nodes to be kept in the metadata cache. Least recently
@@ -181,7 +173,7 @@ Finally, a value of zero means that any cache mechanism is disabled.
 # Parameters for the I/O buffer in `Leaf` objects
 # -----------------------------------------------
 
-IO_BUFFER_SIZE = 1 * _MB
+IO_BUFFER_SIZE = 16 * _MB
 """The PyTables internal buffer size for I/O purposes.  Should not
 exceed the amount of highest level cache size in your CPU."""
 
@@ -203,7 +195,7 @@ EXPECTED_ROWS_VLARRAY = 1000
 
 """
 
-EXPECTED_ROWS_TABLE = 10000
+EXPECTED_ROWS_TABLE = 10_000
 """Default expected number of rows for :class:`Table` objects."""
 
 PYTABLES_SYS_ATTRS = True
@@ -213,7 +205,7 @@ system attributes are not considered for guessing the class of the node
 during its loading from disk (this work is delegated to the PyTables'
 class discoverer function for general HDF5 files)."""
 
-MAX_NUMEXPR_THREADS = 4
+MAX_NUMEXPR_THREADS = int(_os.environ.get("NUMEXPR_MAX_THREADS", 4))
 """The maximum number of threads that PyTables should use internally in
 Numexpr.  If `None`, it is automatically set to the number of cores in
 your machine. In general, it is a good idea to set this to the number of
@@ -358,26 +350,26 @@ A value of 0 (zero) means to use HDF5 Library’s default value.
 """
 
 # DRIVER_LOG_FLAGS = 0x0001ffff
-#"""Flags specifying the types of logging activity.
+# """Flags specifying the types of logging activity.
 #
-#.. versionadded:: 3.0
+# .. versionadded:: 3.0
 #
-#.. seeealso::
-#    http://www.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetFaplLog
+# .. seeealso::
+#     http://www.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetFaplLog
 #
-#"""
+# """
 #
-# DRIVER_LOG_BUF_SIZE = 4 * _KB
-#"""The size of the logging buffers, in bytes.
+#  DRIVER_LOG_BUF_SIZE = 4 * _KB
+# """The size of the logging buffers, in bytes.
 #
-# One buffer of size DRIVER_LOG_BUF_SIZE will be created for each of
-# H5FD_LOG_FILE_READ, H5FD_LOG_FILE_WRITE and H5FD_LOG_FLAVOR when those
-# flags are set; these buffers will not grow as the file increases in
-# size.
+#  One buffer of size DRIVER_LOG_BUF_SIZE will be created for each of
+#  H5FD_LOG_FILE_READ, H5FD_LOG_FILE_WRITE and H5FD_LOG_FLAVOR when those
+#  flags are set; these buffers will not grow as the file increases in
+#  size.
 #
-#.. versionadded:: 3.0
+# .. versionadded:: 3.0
 #
-#"""
+# """
 
 DRIVER_CORE_INCREMENT = 64 * _KB
 """Core driver memory increment.
@@ -451,11 +443,3 @@ by replacing '%s' with the name passed as the first parameter instead.
 .. versionadded:: 3.1
 
 """
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

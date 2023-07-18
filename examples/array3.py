@@ -1,9 +1,8 @@
-from __future__ import print_function
 import numpy as np
-import tables
+import tables as tb
 
 # Open a new empty HDF5 file
-fileh = tables.open_file("array3.h5", mode="w")
+fileh = tb.open_file("array3.h5", mode="w")
 # Get the root group
 root = fileh.root
 
@@ -25,7 +24,7 @@ print("Info on the object:", repr(root.carray))
 fileh.close()
 
 # Open the previous HDF5 file in read-only mode
-fileh = tables.open_file("array3.h5", mode="r")
+fileh = tb.open_file("array3.h5", mode="r")
 # Get the root group
 root = fileh.root
 

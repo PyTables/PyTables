@@ -1,24 +1,33 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: December 17, 2004
-# Author:  Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Declare exceptions and warnings that are specific to PyTables."""
-
-__docformat__ = 'reStructuredText'
-"""The format of documentation strings in this module."""
-
 
 import os
 import warnings
 import traceback
+
+
+__all__ = [
+    "ClosedFileError",
+    "ClosedNodeError",
+    "DataTypeWarning",
+    "ExperimentalFeatureWarning",
+    "FileModeError",
+    "FiltersWarning",
+    "FlavorError",
+    "FlavorWarning",
+    "HDF5ExtError",
+    "NaturalNameWarning",
+    "NoSuchNodeError",
+    "NodeError",
+    "OldIndexWarning",
+    "PerformanceWarning",
+    "UnclosedFileWarning",
+    "UndoRedoError",
+    "UndoRedoWarning",
+]
+
+
+__docformat__ = 'reStructuredText'
+"""The format of documentation strings in this module."""
 
 
 class HDF5ExtError(RuntimeError):
@@ -110,7 +119,7 @@ class HDF5ExtError(RuntimeError):
 
     def __init__(self, *args, **kargs):
 
-        super(HDF5ExtError, self).__init__(*args)
+        super().__init__(*args)
 
         self._h5bt_policy = kargs.get('h5bt', self.DEFAULT_H5_BACKTRACE_POLICY)
 
@@ -162,14 +171,14 @@ class HDF5ExtError(RuntimeError):
             ])
 
             if len(self.args) == 1 and isinstance(self.args[0], str):
-                msg = super(HDF5ExtError, self).__str__()
-                msg = "%s\n\n%s" % (bt, msg)
+                msg = super().__str__()
+                msg = f"{bt}\n\n{msg}"
             elif self.h5backtrace[-1][-1]:
-                msg = "%s\n\n%s" % (bt, self.h5backtrace[-1][-1])
+                msg = f"{bt}\n\n{self.h5backtrace[-1][-1]}"
             else:
                 msg = bt
         else:
-            msg = super(HDF5ExtError, self).__str__()
+            msg = super().__str__()
 
         return msg
 
@@ -378,10 +387,10 @@ class ExperimentalFeatureWarning(Warning):
     pass
 
 
+class UnclosedFileWarning(Warning):
+    """Warning raised when there are still open files at program exit
 
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:
+    Pytables will close remaining open files at exit, but raise 
+    this warning.
+    """
+    pass

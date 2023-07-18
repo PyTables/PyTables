@@ -1,7 +1,5 @@
-:source: http://www.pytables.org/moin/UserDocuments/SimpleTable
-:revision: 3
-:date: 2010-04-20 16:44:41
 :author: FrancescAlted
+:date: 2010-04-20 16:44:41
 
 
 ===================================================

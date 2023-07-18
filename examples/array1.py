@@ -1,9 +1,8 @@
-from __future__ import print_function
 import numpy as np
-import tables
+import tables as tb
 
 # Open a new empty HDF5 file
-fileh = tables.open_file("array1.h5", mode="w")
+fileh = tb.open_file("array1.h5", mode="w")
 # Get the root group
 root = fileh.root
 
@@ -26,7 +25,7 @@ hdfarray = fileh.create_array(root, 'array_f', a, "3-D float array")
 fileh.close()
 
 # Open the file for reading
-fileh = tables.open_file("array1.h5", mode="r")
+fileh = tb.open_file("array1.h5", mode="r")
 # Get the root group
 root = fileh.root
 

@@ -1,29 +1,17 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: June 12, 2009
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the Expr class."""
 
 import sys
 import warnings
 
+import numexpr as ne
 import numpy as np
 import tables as tb
-from numexpr.necompiler import getContext, getExprNames, getType, NumExpr
-from numexpr.expressions import functions as numexpr_functions
+
 from .exceptions import PerformanceWarning
 from .parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 
 
-class Expr(object):
+class Expr:
     """A class for evaluating expressions with arbitrary array-like objects.
 
     Expr is a class for evaluating expressions containing array-like objects.
@@ -70,14 +58,15 @@ class Expr(object):
 
     Examples
     --------
-    The following shows an example of using Expr.
+    The following shows an example of using Expr::
 
+        >>> f = tb.open_file('/tmp/test_expr.h5', 'w')
         >>> a = f.create_array('/', 'a', np.array([1,2,3]))
         >>> b = f.create_array('/', 'b', np.array([3,4,5]))
         >>> c = np.array([4,5,6])
         >>> expr = tb.Expr("2 * a + b * c")   # initialize the expression
         >>> expr.eval()                 # evaluate it
-        array([14, 24, 36])
+        array([14, 24, 36], dtype=int64)
         >>> sum(expr)                   # use as an iterator
         74
 
@@ -92,9 +81,10 @@ class Expr(object):
         >>> expr = tb.Expr("2 * a2 + b2-c2")
         >>> expr.eval()
         array([[1, 3],
-               [7, 9]])
+               [7, 9]], dtype=int64)
         >>> sum(expr)
-        array([ 8, 12])
+        array([ 8, 12], dtype=int64)
+        >>> f.close()
 
     .. rubric:: Expr attributes
 
@@ -178,8 +168,8 @@ class Expr(object):
 
         # First, get the signature for the arrays in expression
         vars_ = self._required_expr_vars(expr, uservars)
-        context = getContext(kwargs)
-        self.names, _ = getExprNames(expr, context)
+        context = ne.necompiler.getContext(kwargs)
+        self.names, _ = ne.necompiler.getExprNames(expr, context)
 
         # Raise a ValueError in case we have unsupported objects
         for name, var in vars_.items():
@@ -224,11 +214,11 @@ class Expr(object):
             values.append(value)
 
         # Create a signature for the expression
-        signature = [(name, getType(type_))
+        signature = [(name, ne.necompiler.getType(type_))
                      for (name, type_) in zip(self.names, types_)]
 
         # Compile the expression
-        self._compiled_expr = NumExpr(expr, signature, **kwargs)
+        self._compiled_expr = ne.necompiler.NumExpr(expr, signature, **kwargs)
 
         # Guess the shape for the outcome and the maindim of inputs
         self.shape, self.maindim = self._guess_shape()
@@ -263,12 +253,12 @@ class Expr(object):
             # Protection against growing the cache too much
             if len(exprvars_cache) > 256:
                 # Remove 10 (arbitrary) elements from the cache
-                for k in list(exprvars_cache.keys())[:10]:
+                for k in list(exprvars_cache)[:10]:
                     del exprvars_cache[k]
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [var for var in cexpr.co_names
                         if var not in ['None', 'False', 'True']
-                        and var not in numexpr_functions]
+                        and var not in ne.expressions.functions]
             exprvars_cache[expression] = exprvars
         else:
             exprvars = exprvars_cache[expression]
@@ -681,8 +671,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             # Do the actual computation
             rout = self._compiled_expr(*vals)
             # Return one row per call
-            for row in rout:
-                yield row
+            yield from rout
 
         # Activate the conversion again (default)
         for val in values:
@@ -693,15 +682,15 @@ value of dimensions that are orthogonal (and preferably close) to the
 if __name__ == "__main__":
 
     # shape = (10000,10000)
-    shape = (10, 10000)
+    shape = (10, 10_000)
 
     f = tb.open_file("/tmp/expression.h5", "w")
 
     # Create some arrays
-    a = f.create_carray(f.root, 'a', atom=tb.Float32Atom(dflt=1.), shape=shape)
-    b = f.create_carray(f.root, 'b', atom=tb.Float32Atom(dflt=2.), shape=shape)
-    c = f.create_carray(f.root, 'c', atom=tb.Float32Atom(dflt=3.), shape=shape)
-    out = f.create_carray(f.root, 'out', atom=tb.Float32Atom(dflt=3.),
+    a = f.create_carray(f.root, 'a', atom=tb.Float32Atom(dflt=1), shape=shape)
+    b = f.create_carray(f.root, 'b', atom=tb.Float32Atom(dflt=2), shape=shape)
+    c = f.create_carray(f.root, 'c', atom=tb.Float32Atom(dflt=3), shape=shape)
+    out = f.create_carray(f.root, 'out', atom=tb.Float32Atom(dflt=3),
                           shape=shape)
 
     expr = Expr("a * b + c")
@@ -712,11 +701,3 @@ if __name__ == "__main__":
     # print(`d[:]`)
 
     f.close()
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

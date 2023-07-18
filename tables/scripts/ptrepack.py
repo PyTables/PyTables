@@ -1,38 +1,18 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: February 10, 2004
-# Author:  Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """This utility lets you repack your data files in a flexible way.
 
 Pass the flag -h to this for help on usage.
 
 """
 
-from __future__ import print_function
-from __future__ import absolute_import
-import sys
-import time
-import os.path
 import argparse
+import sys
 import warnings
-try:
-    from time import process_time as cputime
-except ImportError:
-    from time import clock as cputime
+from pathlib import Path
+from time import perf_counter as clock
+from time import process_time as cpuclock
 
-from tables.file import open_file
-from tables.group import Group
-from tables.leaf import Filters
-from tables.flavor import internal_flavor
-from tables.exceptions import OldIndexWarning, NoSuchNodeError, FlavorWarning
+import tables as tb
+
 
 # Global variables
 verbose = False
@@ -57,7 +37,7 @@ def newdst_group(dstfileh, dstgroup, title, filters):
         # First try if possible intermediate groups does already exist.
         try:
             group2 = dstfileh.get_node(group, nodename)
-        except NoSuchNodeError:
+        except tb.exceptions.NoSuchNodeError:
             # The group does not exist. Create it.
             group2 = dstfileh.create_group(group, nodename,
                                            title=title,
@@ -91,7 +71,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
               start, stop, step, chunkshape, sortby, check_CSI,
               propindexes, upgradeflavors, allow_padding):
     # Open the source file
-    srcfileh = open_file(srcfile, 'r', allow_padding=allow_padding)
+    srcfileh = tb.open_file(srcfile, 'r', allow_padding=allow_padding)
     # Get the source node (that should exist)
     srcnode = srcfileh.get_node(srcnode)
 
@@ -109,16 +89,18 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
     if dstleaf == "":
         dstleaf = srcnode.name
     # Check whether the destination group exists or not
-    if os.path.isfile(dstfile) and not overwritefile:
-        dstfileh = open_file(dstfile, 'a', pytables_sys_attrs=createsysattrs, allow_padding=allow_padding)
+    if Path(dstfile).is_file() and not overwritefile:
+        dstfileh = tb.open_file(dstfile, 'a',
+                                pytables_sys_attrs=createsysattrs,
+                                allow_padding=allow_padding)
         try:
             dstgroup = dstfileh.get_node(dstgroup)
-        except:
+        except Exception:
             # The dstgroup does not seem to exist. Try creating it.
             dstgroup = newdst_group(dstfileh, dstgroup, title, filters)
         else:
             # The node exists, but it is really a group?
-            if not isinstance(dstgroup, Group):
+            if not isinstance(dstgroup, tb.group.Group):
                 # No. Should we overwrite it?
                 if overwrtnodes:
                     parent = dstgroup._v_parent
@@ -135,8 +117,9 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
                                        "flag if desired.")
     else:
         # The destination file does not exist or will be overwritten.
-        dstfileh = open_file(dstfile, 'w', title=title, filters=filters,
-                             pytables_sys_attrs=createsysattrs, allow_padding=allow_padding)
+        dstfileh = tb.open_file(dstfile, 'w', title=title, filters=filters,
+                                pytables_sys_attrs=createsysattrs,
+                                allow_padding=allow_padding)
         dstgroup = newdst_group(dstfileh, dstgroup, title="", filters=filters)
 
     # Finally, copy srcnode to dstnode
@@ -147,11 +130,11 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
             stats=stats, start=start, stop=stop, step=step,
             chunkshape=chunkshape,
             sortby=sortby, check_CSI=check_CSI, propindexes=propindexes)
-    except:
+    except Exception:
         (type_, value, traceback) = sys.exc_info()
         print("Problems doing the copy from '%s:%s' to '%s:%s'" %
               (srcfile, srcnode, dstfile, dstnode))
-        print("The error was --> %s: %s" % (type_, value))
+        print(f"The error was --> {type_}: {value}")
         print("The destination file looks like:\n", dstfileh)
         # Close all the open files:
         srcfileh.close()
@@ -167,7 +150,7 @@ def copy_leaf(srcfile, dstfile, srcnode, dstnode, title,
             dstnode.del_attr('FLAVOR')
         elif srcfileh.format_version < "2.1":
             if dstnode.get_attr('FLAVOR') in numpy_aliases:
-                dstnode.set_attr('FLAVOR', internal_flavor)
+                dstnode.set_attr('FLAVOR', tb.flavor.internal_flavor)
 
     # Recreate possible old indexes in destination node
     if srcnode._c_classid == "TABLE":
@@ -185,23 +168,26 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                   upgradeflavors, allow_padding, use_hardlinks=True):
     """Copy the children from source group to destination group"""
     # Open the source file with srcgroup as root_uep
-    srcfileh = open_file(srcfile, 'r', root_uep=srcgroup, allow_padding=allow_padding)
+    srcfileh = tb.open_file(srcfile, 'r', root_uep=srcgroup,
+                            allow_padding=allow_padding)
     #  Assign the root to srcgroup
     srcgroup = srcfileh.root
 
     created_dstgroup = False
     # Check whether the destination group exists or not
-    if os.path.isfile(dstfile) and not overwritefile:
-        dstfileh = open_file(dstfile, 'a', pytables_sys_attrs=createsysattrs, allow_padding=allow_padding)
+    if Path(dstfile).is_file() and not overwritefile:
+        dstfileh = tb.open_file(dstfile, 'a',
+                                pytables_sys_attrs=createsysattrs,
+                                allow_padding=allow_padding)
         try:
             dstgroup = dstfileh.get_node(dstgroup)
-        except NoSuchNodeError:
+        except tb.exceptions.NoSuchNodeError:
             # The dstgroup does not seem to exist. Try creating it.
             dstgroup = newdst_group(dstfileh, dstgroup, title, filters)
             created_dstgroup = True
         else:
             # The node exists, but it is really a group?
-            if not isinstance(dstgroup, Group):
+            if not isinstance(dstgroup, tb.group.Group):
                 # No. Should we overwrite it?
                 if overwrtnodes:
                     parent = dstgroup._v_parent
@@ -218,8 +204,9 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                                        "flag if desired.")
     else:
         # The destination file does not exist or will be overwritten.
-        dstfileh = open_file(dstfile, 'w', title=title, filters=filters,
-                             pytables_sys_attrs=createsysattrs, allow_padding=allow_padding)
+        dstfileh = tb.open_file(dstfile, 'w', title=title, filters=filters,
+                                pytables_sys_attrs=createsysattrs,
+                                allow_padding=allow_padding)
         dstgroup = newdst_group(dstfileh, dstgroup, title="", filters=filters)
         created_dstgroup = True
 
@@ -236,11 +223,11 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
             chunkshape=chunkshape,
             sortby=sortby, check_CSI=check_CSI, propindexes=propindexes,
             use_hardlinks=use_hardlinks)
-    except:
+    except Exception:
         (type_, value, traceback) = sys.exc_info()
         print("Problems doing the copy from '%s:%s' to '%s:%s'" %
               (srcfile, srcgroup, dstfile, dstgroup))
-        print("The error was --> %s: %s" % (type_, value))
+        print(f"The error was --> {type_}: {value}")
         print("The destination file looks like:\n", dstfileh)
         # Close all the open files:
         srcfileh.close()
@@ -259,7 +246,7 @@ def copy_children(srcfile, dstfile, srcgroup, dstgroup, title,
                 dstnode.del_attr('FLAVOR')
             elif srcfileh.format_version < "2.1":
                 if dstnode.get_attr('FLAVOR') in numpy_aliases:
-                    dstnode.set_attr('FLAVOR', internal_flavor)
+                    dstnode.set_attr('FLAVOR', tb.flavor.internal_flavor)
 
     # Convert the remaining tables with old indexes (if any)
     for table in srcgroup._f_walknodes("Table"):
@@ -332,8 +319,11 @@ def _get_parser():
     parser.add_argument(
         '--complib', choices=(
             "zlib", "lzo", "bzip2", "blosc", "blosc:blosclz",
-            "blosc:lz4", "blosc:lz4hc", "blosc:snappy",
-            "blosc:zlib", "blosc:zstd"), default='zlib',
+            "blosc:lz4", "blosc:lz4hc", "blosc:zlib", "blosc:zstd",
+            "blosc2", "blosc2:blosclz",
+            "blosc2:lz4", "blosc2:lz4hc", "blosc2:zlib", "blosc2:zstd"
+        ),
+        default='zlib',
         help='''set the compression library to be used during the copy.
         Defaults to %(default)s''',
     )
@@ -344,7 +334,7 @@ def _get_parser():
     )
     parser.add_argument(
         '--bitshuffle', type=int, choices=(0, 1),
-        help='''activate or not the bitshuffle filter (not active by default)''',
+        help='activate or not the bitshuffle filter (not active by default)',
     )
     parser.add_argument(
         '--fletcher32', type=int, choices=(0, 1),
@@ -452,11 +442,11 @@ def main():
 
     # Ignore the warnings for tables that contains oldindexes
     # (these will be handled by the copying routines)
-    warnings.filterwarnings("ignore", category=OldIndexWarning)
+    warnings.filterwarnings("ignore", category=tb.exceptions.OldIndexWarning)
 
     # Ignore the flavors warnings during upgrading flavor operations
     if args.upgradeflavors:
-        warnings.filterwarnings("ignore", category=FlavorWarning)
+        warnings.filterwarnings("ignore", category=tb.exceptions.FlavorWarning)
 
     # Build the Filters instance
     filter_params = (
@@ -485,9 +475,10 @@ def main():
             args.complib = "zlib"
         if args.fletcher32 is None:
             args.fletcher32 = False
-        filters = Filters(complevel=args.complevel, complib=args.complib,
-                          shuffle=args.shuffle, bitshuffle=args.bitshuffle,
-                          fletcher32=args.fletcher32)
+        filters = tb.leaf.Filters(complevel=args.complevel,
+                                  complib=args.complib, shuffle=args.shuffle,
+                                  bitshuffle=args.bitshuffle,
+                                  fletcher32=args.fletcher32)
 
     # The start, stop and step params:
     start, stop, step = None, None, 1  # Defaults
@@ -500,8 +491,8 @@ def main():
     createsysattrs = args.createsysattrs
 
     # Some timing
-    t1 = time.time()
-    cpu1 = cputime()
+    t1 = clock()
+    cpu1 = cpuclock()
     # Copy the file
     if verbose:
         print("+=+" * 20)
@@ -512,20 +503,19 @@ def main():
             print("Forcing a CSI creation:", args.checkCSI)
         if args.propindexes:
             print("Recreating indexes in copied table(s)")
-        print("Start copying %s:%s to %s:%s" % (srcfile, srcnode,
-                                                dstfile, dstnode))
+        print(f"Start copying {srcfile}:{srcnode} to {dstfile}:{dstnode}")
         print("+=+" * 20)
 
     allow_padding = not args.dont_allow_padding
     # Check whether the specified source node is a group or a leaf
-    h5srcfile = open_file(srcfile, 'r', allow_padding=allow_padding)
+    h5srcfile = tb.open_file(srcfile, 'r', allow_padding=allow_padding)
     srcnodeobject = h5srcfile.get_node(srcnode)
 
     # Close the file again
     h5srcfile.close()
 
     stats = {'groups': 0, 'leaves': 0, 'links': 0, 'bytes': 0, 'hardlinks': 0}
-    if isinstance(srcnodeobject, Group):
+    if isinstance(srcnodeobject, tb.group.Group):
         copy_children(
             srcfile, dstfile, srcnode, dstnode,
             title=args.title, recursive=args.recursive, filters=filters,
@@ -553,15 +543,10 @@ def main():
         )
 
     # Gather some statistics
-    t2 = time.time()
-    cpu2 = cputime ()
-    tcopy = round(t2 - t1, 3)
-    cpucopy = round(cpu2 - cpu1, 3)
-    try:
-        tpercent = int(round(cpucopy / tcopy, 2) * 100)
-    except ZeroDivisionError:
-        tpercent = 'NaN'
-
+    t2 = clock()
+    cpu2 = cpuclock()
+    tcopy = t2 - t1
+    cpucopy = cpu2 - cpu1
     if verbose:
         ngroups = stats['groups']
         nleaves = stats['leaves']
@@ -580,8 +565,9 @@ def main():
             print("User attrs copied")
         else:
             print("User attrs not copied")
-        print("KBytes copied:", round(nbytescopied / 1024., 3))
-        print("Time copying: %s s (real) %s s (cpu)  %s%%" % (
-            tcopy, cpucopy, tpercent))
-        print("Copied nodes/sec: ", round((nnodes) / float(tcopy), 1))
-        print("Copied KB/s :", int(nbytescopied / (tcopy * 1024)))
+        print(f"KBytes copied: {nbytescopied / 1024:.3f}")
+        print(
+            f"Time copying: {tcopy:.3f} s (real) {cpucopy:.3f} s "
+            f"(cpu)  {cpucopy / tcopy:.0%}")
+        print(f"Copied nodes/sec: {nnodes / tcopy:.1f}")
+        print(f"Copied KB/s : {nbytescopied / tcopy / 1024:.0f}")

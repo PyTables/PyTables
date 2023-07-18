@@ -11,9 +11,9 @@
 Changes from 3.5.1 to 3.5.2
 ===========================
 
-- Fixed compatibility with python 3.8: Fixed `Dictonary keys changed during
-  iteration` RuntimeError while moving/renameing a node.
-  Thanks to Christoph Gohlke for reporting and Miro Hroncok for help with
+- Fixed compatibility with python 3.8: Fixed `Dictionary keys changed during
+  iteration` RuntimeError while moving/renaming a node.
+  Thanks to Christoph Gohlke for reporting and Miro Hrončok for help with
   building PyTables for python 3.8alpha (cython compatibility).
   see :issue:`733` and PR #737.
 - Fixed a bug in offset calculations producing floats instead of ints

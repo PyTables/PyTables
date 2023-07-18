@@ -46,8 +46,8 @@ one needs to specify to use the CORE driver::
 
     >>> import tables
     >>> h5file = tables.open_file("new_sample.h5", "w", driver="H5FD_CORE")
-    >>> import numpy
-    >>> a = h5file.create_array(h5file.root, "array", numpy.zeros((300, 300)))
+    >>> import numpy as np
+    >>> a = h5file.create_array(h5file.root, "array", np.zeros((300, 300)))
     >>> h5file.close()
 
 
@@ -136,5 +136,5 @@ new HDF5 file descriptor::
 .. target-notes::
 
 .. _`HDF5 drivers`: http://www.hdfgroup.org/HDF5/doc/UG/08_TheFile.html#Drivers
-.. _`HDF5 User's Guide`: http://www.hdfgroup.org/HDF5/doc/UG/index.html
+.. _`HDF5 User's Guide`: https://portal.hdfgroup.org/display/HDF5/HDF5+User+Guides
 .. _`HDF5 File Image Operations`: http://www.hdfgroup.org/HDF5/doc/Advanced/FileImageOperations/HDF5FileImageOperations.pdf

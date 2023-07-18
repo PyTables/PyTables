@@ -1,23 +1,17 @@
 # Small benchmark for compare creation times with parameter
 # PYTABLES_SYS_ATTRS active or not.
 
-from __future__ import print_function
-import os
-import subprocess
-from time import time
+from pathlib import Path
+from time import perf_counter as clock
 import random
-#import numpy
-import tables
+import tables as tb
 
 random.seed(2)
 
 
 def show_stats(explain, tref):
     "Show the used memory (only works for Linux 2.6.x)."
-    # Build the command to obtain memory info
-    cmd = "cat /proc/%s/status" % os.getpid()
-    sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
-    for line in sout:
+    for line in Path('/proc/self/status').read_text().splitlines():
         if line.startswith("VmSize:"):
             vmsize = int(line.split()[1])
         elif line.startswith("VmRSS:"):
@@ -30,25 +24,24 @@ def show_stats(explain, tref):
             vmexe = int(line.split()[1])
         elif line.startswith("VmLib:"):
             vmlib = int(line.split()[1])
-    sout.close()
     print("Memory usage: ******* %s *******" % explain)
-    print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
-    print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
-    print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
-    tnow = time()
-    print("WallClock time:", round(tnow - tref, 3))
+    print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
+    print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
+    print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
+    tnow = clock()
+    print(f"WallClock time: {tnow - tref:.3f}")
     return tnow
 
 
 def populate(f, nlevels):
     g = f.root
-    #arr = numpy.zeros((10,), "f4")
+    #arr = np.zeros((10,), "f4")
     #descr = {'f0': tables.Int32Col(), 'f1': tables.Float32Col()}
     for i in range(nlevels):
         #dset = f.create_array(g, "DS1", arr)
         #dset = f.create_array(g, "DS2", arr)
-        f.create_carray(g, "DS1", tables.IntAtom(), (10,))
-        f.create_carray(g, "DS2", tables.IntAtom(), (10,))
+        f.create_carray(g, "DS1", tb.IntAtom(), (10,))
+        f.create_carray(g, "DS2", tb.IntAtom(), (10,))
         #dset = f.create_table(g, "DS1", descr)
         #dset = f.create_table(g, "DS2", descr)
         f.create_group(g, 'group2_')
@@ -81,12 +74,12 @@ if __name__ == '__main__':
         import cProfile as prof
 
     if profile:
-        tref = time()
+        tref = clock()
     if profile:
         show_stats("Abans de crear...", tref)
-    f = tables.open_file("/tmp/PTdeep-tree.h5", 'w',
-                         node_cache_slots=nodeCacheSlots,
-                         pytables_sys_attrs=pytables_sys_attrs)
+    f = tb.open_file("/tmp/PTdeep-tree.h5", 'w',
+                     node_cache_slots=nodeCacheSlots,
+                     pytables_sys_attrs=pytables_sys_attrs)
     if doprofile:
         prof.run('populate(f, nlevels)', 'populate.prof')
         stats = pstats.Stats('populate.prof')
@@ -103,12 +96,12 @@ if __name__ == '__main__':
         show_stats("Despres de crear", tref)
 
     if profile:
-        tref = time()
+        tref = clock()
     if profile:
         show_stats("Abans d'obrir...", tref)
-    f = tables.open_file("/tmp/PTdeep-tree.h5", 'r',
-                         node_cache_slots=nodeCacheSlots,
-                         pytables_sys_attrs=pytables_sys_attrs)
+    f = tb.open_file("/tmp/PTdeep-tree.h5", 'r',
+                     node_cache_slots=nodeCacheSlots,
+                     pytables_sys_attrs=pytables_sys_attrs)
     if profile:
         show_stats("Abans d'accedir...", tref)
     if doprofile:

@@ -102,14 +102,14 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
         return -1;
     }
 
-    typesize = H5Tget_size(type);
+    typesize = (unsigned int) H5Tget_size(type);
     if (typesize==0) return -1;
     /* Get the size of the base type, even for ARRAY types */
     classt = H5Tget_class(type);
     if (classt == H5T_ARRAY) {
       /* Get the array base component */
       super_type = H5Tget_super(type);
-      basetypesize = H5Tget_size(super_type);
+      basetypesize = (unsigned int) H5Tget_size(super_type);
       /* Release resources */
       H5Tclose(super_type);
     }
@@ -126,7 +126,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     /* Get the size of the chunk */
     bufsize = typesize;
     for (i=0; i<ndims; i++) {
-        bufsize *= chunkdims[i];
+        bufsize *= (unsigned int) chunkdims[i];
     }
     values[3] = bufsize;
 
@@ -154,9 +154,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     int doshuffle = 1;             /* Shuffle default */
     int compcode;                  /* Blosc compressor */
     int code;
-    char *compname = "blosclz";    /* The compressor by default */
-    char *complist;
-    char errmsg[256];
+    const char *compname = "blosclz"; /* The compressor by default */
 
     /* Filter params that are always set */
     typesize = cd_values[2];      /* The datatype size */
@@ -167,16 +165,10 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     }
     if (cd_nelmts >= 6) {
         doshuffle = cd_values[5];  /* BLOSC_SHUFFLE, BLOSC_BITSHUFFLE */
-	/* bitshuffle is only meant for production in >= 1.8.0 */
-#if ( (BLOSC_VERSION_MAJOR <= 1) && (BLOSC_VERSION_MINOR < 8) )
-	if (doshuffle == BLOSC_BITSHUFFLE) {
-	  PUSH_ERR("blosc_filter", H5E_CALLBACK,
-		   "this Blosc library version is not supported.  Please update to >= 1.8");
-	  goto failed;
-	}
-#endif
     }
     if (cd_nelmts >= 7) {
+        const char *complist;
+
         compcode = cd_values[6];     /* The Blosc compressor used */
 	/* Check that we actually have support for the compressor code */
         complist = blosc_list_compressors();
@@ -232,9 +224,8 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
         /* Extract the exact outbuf_size from the buffer header.
          *
          * NOTE: the guess value got from "cd_values" corresponds to the
-         * uncompressed chunk size but it should not be used in a general
-         * cases since other filters in the pipeline can modify the buffere
-         *  size.
+         * uncompressed chunk size but it should not be used in general
+         * since other filters in the pipeline can modify it.
          */
         blosc_cbuffer_sizes(*buf, &outbuf_size, &cbytes, &blocksize);
 

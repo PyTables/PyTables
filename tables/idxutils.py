@@ -1,20 +1,7 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-#       License: BSD
-#       Created: April 02, 2007
-#       Author:  Francesc Alted - faltet@pytables.com
-#
-#       $Id$
-#
-########################################################################
-
 """Utilities to be used mainly by the Index class."""
 
-import sys
 import math
-import numpy
+import numpy as np
 
 
 # Hints for chunk/slice/block/superblock computations:
@@ -96,14 +83,14 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
     if nlowerblocks > 2**20:
         # Protection against too large number of compound blocks
         nlowerblocks = 2**20
-    size = lowercompoundsize * nlowerblocks
+    size = int(lowercompoundsize * nlowerblocks)
     # We *need* superblocksize to be an exact multiple of the actual
     # compoundblock size (a ceil must be performed here!)
     size = ((size // compoundsize) + 1) * compoundsize
     return size
 
 
-def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
+def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4, node=None):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -116,6 +103,12 @@ def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
 
     chunksize = computechunksize(expectedrows)
     slicesize = computeslicesize(expectedrows, memlevel)
+
+    # Avoid excessive slicesize in Indexes, see https://github.com/PyTables/PyTables/issues/879
+    if node is not None:
+        maxsize = node._v_file.params['BUFFER_TIMES'] * node._v_file.params['IO_BUFFER_SIZE']
+        while (slicesize * node.dtype.itemsize) > maxsize:
+            slicesize = slicesize // 2
 
     # Correct the slicesize and the chunksize based on optlevel
     if indsize == 1:  # ultralight
@@ -158,11 +151,11 @@ def ccs_light(optlevel, chunksize, slicesize):
     elif optlevel in (3, 4, 5):
         pass
     elif optlevel in (6, 7, 8):
-        chunksize /= 2
+        chunksize //= 2
     elif optlevel == 9:
         # Reducing the chunksize and enlarging the slicesize is the
         # best way to reduce the entropy with the current algorithm.
-        chunksize /= 2
+        chunksize //= 2
         slicesize *= 2
     return chunksize, slicesize
 
@@ -354,15 +347,15 @@ infinitymap = {
     'float64': [-infinity, infinity],
 }
 
-if hasattr(numpy, 'float16'):
-    infinitymap['float16'] = [-numpy.float16(numpy.inf),
-                              numpy.float16(numpy.inf)]
-if hasattr(numpy, 'float96'):
-    infinitymap['float96'] = [-numpy.float96(numpy.inf),
-                              numpy.float96(numpy.inf)]
-if hasattr(numpy, 'float128'):
-    infinitymap['float128'] = [-numpy.float128(numpy.inf),
-                               numpy.float128(numpy.inf)]
+if hasattr(np, 'float16'):
+    infinitymap['float16'] = [-np.float16(np.inf),
+                              np.float16(np.inf)]
+if hasattr(np, 'float96'):
+    infinitymap['float96'] = [-np.float96(np.inf),
+                              np.float96(np.inf)]
+if hasattr(np, 'float128'):
+    infinitymap['float128'] = [-np.float128(np.inf),
+                               np.float128(np.inf)]
 
 # deprecated API
 infinityMap = infinitymap
@@ -440,13 +433,13 @@ def int_type_next_after(x, direction, itemsize):
             return x - 1
         else:
             # return int(PyNextAfter(x, x - 1))
-            return int(numpy.nextafter(x, x - 1))
+            return int(np.nextafter(x, x - 1))
     else:
         if isinstance(x, int):
             return x + 1
         else:
             # return int(PyNextAfter(x,x + 1)) + 1
-            return int(numpy.nextafter(x, x + 1)) + 1
+            return int(np.nextafter(x, x + 1)) + 1
 
 
 def bool_type_next_after(x, direction, itemsize):
@@ -481,9 +474,9 @@ def nextafter(x, direction, dtype, itemsize):
         return int_type_next_after(x, direction, itemsize)
     elif dtype.kind == "f":
         if direction < 0:
-            return numpy.nextafter(x, x - 1)
+            return np.nextafter(x, x - 1)
         else:
-            return numpy.nextafter(x, x + 1)
+            return np.nextafter(x, x + 1)
 
     # elif dtype.name == "float32":
     #    if direction < 0:
@@ -497,11 +490,3 @@ def nextafter(x, direction, dtype, itemsize):
     #        return PyNextAfter(x,x + 1)
 
     raise TypeError("data type ``%s`` is not supported" % dtype)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ########################################################################
 #
 #       License: BSD
@@ -42,8 +40,6 @@ cdef extern from "hdf5.h" nogil:
   ctypedef int hbool_t
   ctypedef int herr_t
   ctypedef int htri_t
-  # hsize_t should be unsigned, but Windows platform does not support
-  # such an unsigned long long type.
   ctypedef unsigned long long hsize_t
   ctypedef signed long long hssize_t
   ctypedef long long int64_t
@@ -491,7 +487,6 @@ cdef extern from "hdf5.h" nogil:
   H5I_type_t H5Iget_type(hid_t id)
   herr_t H5Rcreate(void *reference, hid_t loc_id, const char *name, H5R_type_t type, hid_t space_id)
   hid_t H5Rdereference(hid_t dset, H5R_type_t rtype, void *reference)
-  int H5Rget_object_type(hid_t obj_id, void *reference)
   herr_t H5Oclose( hid_t object_id )
 
 
@@ -565,6 +560,12 @@ cdef extern from "typeconv.h" nogil:
                               long long nrecords,
                               unsigned long nelements,
                               int sense)
+
+# Blosc2 registration
+cdef extern from "blosc2_filter.h" nogil:
+  int register_blosc2(char **version, char **date)
+  int FILTER_BLOSC2
+
 
 # Blosc registration
 cdef extern from "blosc_filter.h" nogil:

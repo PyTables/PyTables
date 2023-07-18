@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-from tables import *
-import numpy as NA
 import struct
 import sys
 import shelve
+import numpy as np
+import tables as tb
 import psyco
 
 # This class is accessible only for the examples
 
 
-class Small(IsDescription):
+class Small(tb.IsDescription):
 
     """Record descriptor.
 
@@ -22,38 +21,38 @@ class Small(IsDescription):
 
     """
 
-    var1 = StringCol(itemsize=4)
-    var2 = Int32Col()
-    var3 = Float64Col()
+    var1 = tb.StringCol(itemsize=4)
+    var2 = tb.Int32Col()
+    var3 = tb.Float64Col()
 
 # Define a user record to characterize some kind of particles
 
 
-class Medium(IsDescription):
-    name = StringCol(itemsize=16)   # 16-character String
-    float1 = Float64Col(shape=2, dflt=2.3)
+class Medium(tb.IsDescription):
+    name = tb.StringCol(itemsize=16)   # 16-character String
+    float1 = tb.Float64Col(shape=2, dflt=2.3)
     #float1 = Float64Col(dflt=1.3)
     #float2 = Float64Col(dflt=2.3)
-    ADCcount = Int16Col()           # signed short integer
-    grid_i = Int32Col()             # integer
-    grid_j = Int32Col()             # integer
-    pressure = Float32Col()         # float  (single-precision)
-    energy = Float64Col()           # double (double-precision)
+    ADCcount = tb.Int16Col()           # signed short integer
+    grid_i = tb.Int32Col()             # integer
+    grid_j = tb.Int32Col()             # integer
+    pressure = tb.Float32Col()         # float  (single-precision)
+    energy = tb.Float64Col()           # double (double-precision)
 
 # Define a user record to characterize some kind of particles
 
 
-class Big(IsDescription):
-    name = StringCol(itemsize=16)   # 16-character String
-    #float1 = Float64Col(shape=32, dflt=NA.arange(32))
-    #float2 = Float64Col(shape=32, dflt=NA.arange(32))
-    float1 = Float64Col(shape=32, dflt=range(32))
-    float2 = Float64Col(shape=32, dflt=[2.2] * 32)
-    ADCcount = Int16Col()           # signed short integer
-    grid_i = Int32Col()             # integer
-    grid_j = Int32Col()             # integer
-    pressure = Float32Col()         # float  (single-precision)
-    energy = Float64Col()           # double (double-precision)
+class Big(tb.IsDescription):
+    name = tb.StringCol(itemsize=16)   # 16-character String
+    #float1 = Float64Col(shape=32, dflt=np.arange(32))
+    #float2 = Float64Col(shape=32, dflt=np.arange(32))
+    float1 = tb.Float64Col(shape=32, dflt=range(32))
+    float2 = tb.Float64Col(shape=32, dflt=[2.2] * 32)
+    ADCcount = tb.Int16Col()           # signed short integer
+    grid_i = tb.Int32Col()             # integer
+    grid_j = tb.Int32Col()             # integer
+    pressure = tb.Float32Col()         # float  (single-precision)
+    energy = tb.Float64Col()           # double (double-precision)
 
 
 def createFile(filename, totalrows, recsize):
@@ -65,8 +64,8 @@ def createFile(filename, totalrows, recsize):
     # Get the record object associated with the new table
     if recsize == "big":
         d = Big()
-        arr = NA.array(NA.arange(32), type=NA.Float64)
-        arr2 = NA.array(NA.arange(32), type=NA.Float64)
+        arr = np.arange(32, dtype=np.float64)
+        arr2 = np.arange(32, dtype=np.float64)
     elif recsize == "medium":
         d = Medium()
     else:
@@ -87,15 +86,15 @@ def createFile(filename, totalrows, recsize):
                 #d.TDCcount = i % 256
                 d.ADCcount = (i * 256) % (1 << 16)
                 if recsize == "big":
-                    #d.float1 = NA.array([i]*32, NA.Float64)
-                    #d.float2 = NA.array([i**2]*32, NA.Float64)
+                    #d.float1 = np.array([i]*32, np.float64)
+                    #d.float2 = np.array([i**2]*32, np.float64)
                     arr[0] = 1.1
                     d.float1 = arr
                     arr2[0] = 2.2
                     d.float2 = arr2
                     pass
                 else:
-                    d.float1 = NA.array([i ** 2] * 2, NA.Float64)
+                    d.float1 = np.array([i ** 2] * 2, np.float64)
                     #d.float1 = float(i)
                     #d.float2 = float(i)
                 d.grid_i = i
@@ -144,7 +143,7 @@ def readFile(filename, recsize):
 # Add code to test here
 if __name__ == "__main__":
     import getopt
-    import time
+    from time import perf_counter as clock
 
     usage = """usage: %s [-f] [-s recsize] [-i iterations] file
             -s use [big] record, [medium] or [small]
@@ -178,22 +177,22 @@ if __name__ == "__main__":
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
 
-    t1 = time.perf_counter()
+    t1 = clock()
     psyco.bind(createFile)
     (rowsw, rowsz) = createFile(file, iterations, recsize)
-    t2 = time.perf_counter()
-    tapprows = round(t2 - t1, 3)
+    t2 = clock()
+    tapprows = t2 - t1
 
-    t1 = time.perf_counter()
+    t1 = clock()
     psyco.bind(readFile)
     readFile(file, recsize)
-    t2 = time.perf_counter()
-    treadrows = round(t2 - t1, 3)
+    t2 = clock()
+    treadrows = t2 - t1
 
-    print("Rows written:", rowsw, " Row size:", rowsz)
-    print("Time appending rows:", tapprows)
-    print("Write rows/sec: ", int(iterations * 3 / float(tapprows)))
-    print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
-    print("Time reading rows:", treadrows)
-    print("Read rows/sec: ", int(iterations * 3 / float(treadrows)))
-    print("Read KB/s :", int(rowsw * rowsz / (treadrows * 1024)))
+    print(f"Rows written: {rowsw}  Row size: {rowsz}")
+    print(f"Time appending rows: {tapprows:.3f}")
+    print(f"Write rows/sec: {iterations * 3 / tapprows:.0f}")
+    print(f"Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}")
+    print(f"Time reading rows: {treadrows:.3f}")
+    print(f"Read rows/sec:  {iterations * 3 / treadrows:.0f}")
+    print(f"Read KB/s : {rowsw * rowsz / (treadrows * 1024):.0f}")

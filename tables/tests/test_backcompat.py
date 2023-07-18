@@ -1,22 +1,16 @@
-# -*- coding: utf-8 -*-
-
-import os
 import shutil
 import tempfile
 import warnings
+from pathlib import Path
 
-import numpy
+import numpy as np
 
-import tables
-from tables.exceptions import FlavorWarning
+import tables as tb
 from tables.tests import common
-from tables.tests.common import allequal
-from tables.tests.common import unittest, test_filename
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
 # Check read Tables from pytables version 0.8
-class BackCompatTablesTestCase(TestCase):
+class BackCompatTablesTestCase(common.PyTablesTestCase):
     def test01_readTable(self):
         """Checking backward compatibility of old formats of tables."""
 
@@ -27,7 +21,7 @@ class BackCompatTablesTestCase(TestCase):
         # Create an instance of an HDF5 Table
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)
-            h5file = tables.open_file(test_filename(self.h5fname), "r")
+            h5file = tb.open_file(common.test_filename(self.h5fname), "r")
 
         try:
             table = h5file.get_node("/tuple0")
@@ -36,7 +30,7 @@ class BackCompatTablesTestCase(TestCase):
             result = [rec['var2'] for rec in table]
             if common.verbose:
                 print("Nrows in", table._v_pathname, ":", table.nrows)
-                print("Last record in table ==>", rec)
+                print("Last record in table ==>", table[-1])
                 print("Total selected records in table ==> ", len(result))
 
             self.assertEqual(len(result), 100)
@@ -44,41 +38,41 @@ class BackCompatTablesTestCase(TestCase):
             h5file.close()
 
 
-@unittest.skipIf(not common.lzo_avail, 'lzo not available')
+@common.unittest.skipIf(not common.lzo_avail, 'lzo not available')
 class Table2_1LZO(BackCompatTablesTestCase):
     # pytables 0.8.x versions and after
     h5fname = "Table2_1_lzo_nrv2e_shuffle.h5"
 
 
-@unittest.skipIf(not common.lzo_avail, 'lzo not available')
+@common.unittest.skipIf(not common.lzo_avail, 'lzo not available')
 class Tables_LZO1(BackCompatTablesTestCase):
     h5fname = "Tables_lzo1.h5"  # files compressed with LZO1
 
 
-@unittest.skipIf(not common.lzo_avail, 'lzo not available')
+@common.unittest.skipIf(not common.lzo_avail, 'lzo not available')
 class Tables_LZO1_shuffle(BackCompatTablesTestCase):
     # files compressed with LZO1 and shuffle
     h5fname = "Tables_lzo1_shuffle.h5"
 
 
-@unittest.skipIf(not common.lzo_avail, 'lzo not available')
+@common.unittest.skipIf(not common.lzo_avail, 'lzo not available')
 class Tables_LZO2(BackCompatTablesTestCase):
     h5fname = "Tables_lzo2.h5"  # files compressed with LZO2
 
 
-@unittest.skipIf(not common.lzo_avail, 'lzo not available')
+@common.unittest.skipIf(not common.lzo_avail, 'lzo not available')
 class Tables_LZO2_shuffle(BackCompatTablesTestCase):
     # files compressed with LZO2 and shuffle
     h5fname = "Tables_lzo2_shuffle.h5"
 
 
 # Check read attributes from PyTables >= 1.0 properly
-class BackCompatAttrsTestCase(common.TestFileMixin, TestCase):
+class BackCompatAttrsTestCase(common.TestFileMixin, common.PyTablesTestCase):
     FILENAME = "zerodim-attrs-%s.h5"
 
     def setUp(self):
-        self.h5fname = test_filename(self.FILENAME % self.format)
-        super(BackCompatAttrsTestCase, self).setUp()
+        self.h5fname = common.test_filename(self.FILENAME % self.format)
+        super().setUp()
 
     def test01_readAttr(self):
         """Checking backward compatibility of old formats for attributes."""
@@ -89,16 +83,16 @@ class BackCompatAttrsTestCase(common.TestFileMixin, TestCase):
 
         # Read old formats
         a = self.h5file.get_node("/a")
-        scalar = numpy.array(1, dtype="int32")
-        vector = numpy.array([1], dtype="int32")
+        scalar = np.array(1, dtype="int32")
+        vector = np.array([1], dtype="int32")
         if self.format == "1.3":
-            self.assertTrue(allequal(a.attrs.arrdim1, vector))
-            self.assertTrue(allequal(a.attrs.arrscalar, scalar))
+            self.assertTrue(common.allequal(a.attrs.arrdim1, vector))
+            self.assertTrue(common.allequal(a.attrs.arrscalar, scalar))
             self.assertEqual(a.attrs.pythonscalar, 1)
         elif self.format == "1.4":
-            self.assertTrue(allequal(a.attrs.arrdim1, vector))
-            self.assertTrue(allequal(a.attrs.arrscalar, scalar))
-            self.assertTrue(allequal(a.attrs.pythonscalar, scalar))
+            self.assertTrue(common.allequal(a.attrs.arrdim1, vector))
+            self.assertTrue(common.allequal(a.attrs.arrscalar, scalar))
+            self.assertTrue(common.allequal(a.attrs.pythonscalar, scalar))
 
 
 class Attrs_1_3(BackCompatAttrsTestCase):
@@ -109,8 +103,8 @@ class Attrs_1_4(BackCompatAttrsTestCase):
     format = "1.4"    # pytables 1.1.x versions and later
 
 
-class VLArrayTestCase(common.TestFileMixin, TestCase):
-    h5fname = test_filename("flavored_vlarrays-format1.6.h5")
+class VLArrayTestCase(common.TestFileMixin, common.PyTablesTestCase):
+    h5fname = common.test_filename("flavored_vlarrays-format1.6.h5")
 
     def test01_backCompat(self):
         """Checking backward compatibility with old flavors of VLArray."""
@@ -125,9 +119,9 @@ class VLArrayTestCase(common.TestFileMixin, TestCase):
 
 # Make sure that 1.x files with TimeXX types continue to be readable
 # and that its byteorder is correctly retrieved.
-class TimeTestCase(common.TestFileMixin, TestCase):
+class TimeTestCase(common.TestFileMixin, common.PyTablesTestCase):
     # Open a PYTABLES_FORMAT_VERSION=1.x file
-    h5fname = test_filename("time-table-vlarray-1_x.h5")
+    h5fname = common.test_filename("time-table-vlarray-1_x.h5")
 
     def test00_table(self):
         """Checking backward compatibility with old TimeXX types (tables)."""
@@ -146,7 +140,7 @@ class TimeTestCase(common.TestFileMixin, TestCase):
         self.assertEqual(vlarray8.byteorder, "little")
 
 
-class OldFlavorsTestCase01(TestCase):
+class OldFlavorsTestCase01(common.PyTablesTestCase):
     close = False
 
     # numeric
@@ -154,8 +148,8 @@ class OldFlavorsTestCase01(TestCase):
         """Checking opening of (X)Array (old 'numeric' flavor)"""
 
         # Open the HDF5 with old numeric flavor
-        h5fname = test_filename("oldflavor_numeric.h5")
-        with tables.open_file(h5fname) as h5file:
+        h5fname = common.test_filename("oldflavor_numeric.h5")
+        with tb.open_file(h5fname) as h5file:
 
             # Assert other properties in array
             self.assertEqual(h5file.root.array1.flavor, 'numeric')
@@ -168,14 +162,14 @@ class OldFlavorsTestCase01(TestCase):
     def test02_copy(self):
         """Checking (X)Array.copy() method ('numetic' flavor)"""
 
-        srcfile = test_filename("oldflavor_numeric.h5")
+        srcfile = common.test_filename("oldflavor_numeric.h5")
         tmpfile = tempfile.mktemp(".h5")
         shutil.copy(srcfile, tmpfile)
         try:
             # Open the HDF5 with old numeric flavor
-            with tables.open_file(tmpfile, "r+") as h5file:
+            with tb.open_file(tmpfile, "r+") as h5file:
                 # Copy to another location
-                self.assertWarns(FlavorWarning,
+                self.assertWarns(tb.exceptions.FlavorWarning,
                                  h5file.root.array1.copy, '/', 'array1copy')
                 h5file.root.array2.copy('/', 'array2copy')
                 h5file.root.carray1.copy('/', 'carray1copy')
@@ -185,7 +179,7 @@ class OldFlavorsTestCase01(TestCase):
 
                 if self.close:
                     h5file.close()
-                    h5file = tables.open_file(tmpfile)
+                    h5file = tb.open_file(tmpfile)
                 else:
                     h5file.flush()
 
@@ -197,27 +191,27 @@ class OldFlavorsTestCase01(TestCase):
                 self.assertEqual(h5file.root.vlarray1copy.flavor, 'numeric')
                 self.assertEqual(h5file.root.vlarray2copy.flavor, 'python')
         finally:
-            os.remove(tmpfile)
+            Path(tmpfile).unlink()
 
 
-class OldFlavorsTestCase02(TestCase):
+class OldFlavorsTestCase02(common.PyTablesTestCase):
     close = True
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
     niter = 1
 
     for n in range(niter):
-        theSuite.addTest(unittest.makeSuite(VLArrayTestCase))
-        theSuite.addTest(unittest.makeSuite(TimeTestCase))
-        theSuite.addTest(unittest.makeSuite(OldFlavorsTestCase01))
-        theSuite.addTest(unittest.makeSuite(OldFlavorsTestCase02))
-        theSuite.addTest(unittest.makeSuite(Table2_1LZO))
-        theSuite.addTest(unittest.makeSuite(Tables_LZO1))
-        theSuite.addTest(unittest.makeSuite(Tables_LZO1_shuffle))
-        theSuite.addTest(unittest.makeSuite(Tables_LZO2))
-        theSuite.addTest(unittest.makeSuite(Tables_LZO2_shuffle))
+        theSuite.addTest(common.unittest.makeSuite(VLArrayTestCase))
+        theSuite.addTest(common.unittest.makeSuite(TimeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(OldFlavorsTestCase01))
+        theSuite.addTest(common.unittest.makeSuite(OldFlavorsTestCase02))
+        theSuite.addTest(common.unittest.makeSuite(Table2_1LZO))
+        theSuite.addTest(common.unittest.makeSuite(Tables_LZO1))
+        theSuite.addTest(common.unittest.makeSuite(Tables_LZO1_shuffle))
+        theSuite.addTest(common.unittest.makeSuite(Tables_LZO2))
+        theSuite.addTest(common.unittest.makeSuite(Tables_LZO2_shuffle))
 
     return theSuite
 
@@ -226,4 +220,4 @@ if __name__ == '__main__':
     import sys
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

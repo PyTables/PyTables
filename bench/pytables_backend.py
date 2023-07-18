@@ -1,6 +1,7 @@
-from __future__ import print_function
 import os
-import tables
+from pathlib import Path
+
+import tables as tb
 from indexed_search import DB
 
 
@@ -20,25 +21,26 @@ class PyTables_DB(DB):
         if docompress:
             self.filename += '-' + complib + str(docompress)
         self.datadir = datadir
-        if not os.path.isdir(self.datadir):
-            if not os.path.isabs(self.datadir):
-                dir_path = os.path.join(os.getcwd(), self.datadir)
+        path = Path(self.datadir)
+        if not path.is_dir():
+            if not path.is_absolute():
+                dir_path = Path('.') / self.datadir
             else:
-                dir_path = self.datadir
-            os.makedirs(dir_path)
+                dir_path = Path(self.datadir)
+            dir_path.mkdir(parents=True, exist_ok=True)
             self.datadir = dir_path
-            print("Created {}.".format(self.datadir))
-        self.filename = self.datadir + '/' + self.filename + '.h5'
+            print(f"Created {self.datadir}.")
+        self.filename = self.datadir / f'{self.filename}.h5'
         # The chosen filters
-        self.filters = tables.Filters(complevel=self.docompress,
-                                      complib=self.complib,
-                                      shuffle=1)
+        self.filters = tb.Filters(complevel=self.docompress,
+                                  complib=self.complib,
+                                  shuffle=1)
         print("Processing database:", self.filename)
 
     def open_db(self, remove=0):
-        if remove and os.path.exists(self.filename):
-            os.remove(self.filename)
-        con = tables.open_file(self.filename, 'a')
+        if remove and Path(self.filename).is_file():
+            Path(self.filename).unlink()
+        con = tb.open_file(self.filename, 'a')
         return con
 
     def close_db(self, con):
@@ -48,11 +50,11 @@ class PyTables_DB(DB):
         con.close()
 
     def create_table(self, con):
-        class Record(tables.IsDescription):
-            col1 = tables.Int32Col()
-            col2 = tables.Int32Col()
-            col3 = tables.Float64Col()
-            col4 = tables.Float64Col()
+        class Record(tb.IsDescription):
+            col1 = tb.Int32Col()
+            col2 = tb.Int32Col()
+            col3 = tb.Float64Col()
+            col4 = tb.Float64Col()
 
         con.create_table(con.root, 'table', Record,
                          filters=self.filters, expectedrows=self.nrows)
@@ -74,10 +76,8 @@ class PyTables_DB(DB):
 
     def index_col(self, con, column, kind, optlevel, verbose):
         col = getattr(con.root.table.cols, column)
-        tmp_dir = os.path.join(self.datadir, "scratch2")
-        if not os.path.isdir(tmp_dir):
-            os.makedirs(tmp_dir)
-            print("Created scratch space.")
+        tmp_dir = self.datadir / "scratch2"
+        tmp_dir.mkdir(parents=True, exist_ok=True)
         col.create_index(kind=kind, optlevel=optlevel, filters=self.filters,
                          tmp_dir=tmp_dir, _verbose=verbose, _blocksizes=None)
 #                       _blocksizes=(2**27, 2**22, 2**15, 2**7))
@@ -111,7 +111,7 @@ class PyTables_DB(DB):
         self.condvars['inf'] = self.rng[0] + base
         self.condvars['sup'] = self.rng[1] + base
         # For queries that can use two indexes instead of just one
-        d = (self.rng[1] - self.rng[0]) / 2.
+        d = (self.rng[1] - self.rng[0]) / 2
         inf1 = int(self.rng[0] + base)
         sup1 = int(self.rng[0] + d + base)
         inf2 = self.rng[0] + base * 2

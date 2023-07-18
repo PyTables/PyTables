@@ -1,20 +1,8 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: November 12, 2003
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Here is defined the VLArray class."""
 
 import operator
 import sys
-import numpy
+import numpy as np
 
 from . import hdf5extension
 from .atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
@@ -62,7 +50,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
           or filtered.
 
           Please refer to the `VLTypes Technical Note
-          <http://www.hdfgroup.org/HDF5/doc/TechNotes/VLTypes.html>`_
+          <https://support.hdfgroup.org/HDF5/doc/TechNotes/VLTypes.html>`_
           for more details on the topic.
 
     Parameters
@@ -122,19 +110,21 @@ class VLArray(hdf5extension.VLArray, Leaf):
     See below a small example of the use of the VLArray class.  The code is
     available in :file:`examples/vlarray1.py`::
 
-        import tables
-        from numpy import *
+        import numpy as np
+        import tables as tb
 
         # Create a VLArray:
-        fileh = tables.open_file('vlarray1.h5', mode='w')
-        vlarray = fileh.create_vlarray(fileh.root, 'vlarray1',
-        tables.Int32Atom(shape=()),
-                        "ragged array of ints",
-                        filters=tables.Filters(1))
+        fileh = tb.open_file('vlarray1.h5', mode='w')
+        vlarray = fileh.create_vlarray(
+            fileh.root,
+            'vlarray1',
+            tb.Int32Atom(shape=()),
+            "ragged array of ints",
+            filters=tb.Filters(1))
 
         # Append some (variable length) rows:
-        vlarray.append(array([5, 6]))
-        vlarray.append(array([5, 6, 7]))
+        vlarray.append(np.array([5, 6]))
+        vlarray.append(np.array([5, 6, 7]))
         vlarray.append([5, 6, 9, 8])
 
         # Now, read it through an iterator:
@@ -143,10 +133,12 @@ class VLArray(hdf5extension.VLArray, Leaf):
             print('%s[%d]--> %s' % (vlarray.name, vlarray.nrow, x))
 
         # Now, do the same with native Python strings.
-        vlarray2 = fileh.create_vlarray(fileh.root, 'vlarray2',
-        tables.StringAtom(itemsize=2),
-                            "ragged array of strings",
-                            filters=tables.Filters(1))
+        vlarray2 = fileh.create_vlarray(
+            fileh.root,
+            'vlarray2',
+            tb.StringAtom(itemsize=2),
+            "ragged array of strings",
+            filters=tb.Filters(1))
         vlarray2.flavor = 'python'
 
         # Append some (variable length) rows:
@@ -212,19 +204,14 @@ class VLArray(hdf5extension.VLArray, Leaf):
     # Class identifier.
     _c_classid = 'VLARRAY'
 
-    # Lazy read-only attributes
-    # `````````````````````````
     @lazyattr
     def dtype(self):
         """The NumPy ``dtype`` that most closely matches this array."""
         return self.atom.dtype
 
-    # Properties
-    # ~~~~~~~~~~
-
     @property
     def shape(self):
-        "The shape of the stored array."
+        """The shape of the stored array."""
         return (self.nrows,)
 
     @property
@@ -255,8 +242,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """
         return self._get_memory_size()
 
-    # Other methods
-    # ~~~~~~~~~~~~~
     def __init__(self, parentnode, name, atom=None, title="",
                  filters=None, expectedrows=None,
                  chunkshape=None, byteorder=None,
@@ -333,7 +318,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
-            if isinstance(chunkshape, (int, numpy.integer)):
+            if isinstance(chunkshape, (int, np.integer)):
                 chunkshape = (chunkshape,)
             try:
                 chunkshape = tuple(chunkshape)
@@ -346,11 +331,11 @@ class VLArray(hdf5extension.VLArray, Leaf):
                                  % (chunkshape,))
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
-        super(VLArray, self).__init__(parentnode, name, new, filters,
-                                      byteorder, _log, track_times)
+        super().__init__(parentnode, name, new, filters,
+                         byteorder, _log, track_times)
 
     def _g_post_init_hook(self):
-        super(VLArray, self)._g_post_init_hook()
+        super()._g_post_init_hook()
         self.nrowsinbuf = 100  # maybe enough for most applications
 
     # This is too specific for moving it into Leaf
@@ -371,7 +356,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # PyTables 3.0 release and remove the expected_mb parameter.
         # The algorithm for computing the chunkshape should be rewritten as
         # requested by gh-35.
-        expected_mb = expectedrows * elemsize / 1024. ** 2
+        expected_mb = expectedrows * elemsize / 1024 ** 2
 
         chunksize = calc_chunksize(expected_mb)
 
@@ -388,7 +373,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         atom = self.atom
         self._v_version = obversion
         # Check for zero dims in atom shape (not allowed in VLArrays)
-        zerodims = numpy.sum(numpy.array(atom.shape) == 0)
+        zerodims = np.sum(np.array(atom.shape) == 0)
         if zerodims > 0:
             raise ValueError("When creating VLArrays, none of the dimensions "
                              "of the Atom instance can be zero.")
@@ -457,7 +442,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """Return the number of objects in a NumPy array."""
 
         # Check for zero dimensionality array
-        zerodims = numpy.sum(numpy.array(nparr.shape) == 0)
+        zerodims = np.sum(np.array(nparr.shape) == 0)
         if zerodims > 0:
             # No objects to be added
             return 0
@@ -659,7 +644,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             a_list = vlarray[4:1000:2]
             a_list2 = vlarray[[0,2]]   # get list of coords
             a_list3 = vlarray[[0,-2]]  # negative values accepted
-            a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools
+            a_list4 = vlarray[np.array([True,...,False])]  # array of bools
 
         """
 
@@ -680,11 +665,11 @@ class VLArray(hdf5extension.VLArray, Leaf):
                 key.start, key.stop, key.step)
             return self.read(start, stop, step)
         # Try with a boolean or point selection
-        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+        elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
             coords = self._point_selection(key)
             return self._read_coordinates(coords)
         else:
-            raise IndexError("Invalid index or slice: %r" % (key,))
+            raise IndexError(f"Invalid index or slice: {key!r}")
 
     def _assign_values(self, coords, values):
         """Assign the `values` to the positions stated in `coords`."""
@@ -783,10 +768,10 @@ class VLArray(hdf5extension.VLArray, Leaf):
                 key.start, key.stop, key.step)
             coords = range(start, stop, step)
         # Try with a boolean or point selection
-        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+        elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
             coords = self._point_selection(key)
         else:
-            raise IndexError("Invalid index or slice: %r" % (key,))
+            raise IndexError(f"Invalid index or slice: {key!r}")
 
         # Do the assignment row by row
         self._assign_values(coords, value)
@@ -829,7 +814,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """Read rows specified in `coords`."""
         rows = []
         for coord in coords:
-            rows.append(self.read(int(coord), int(coord) + 1, 1)[0])
+            rows.append(self.read(idx2long(coord), idx2long(coord) + 1, 1)[0])
         return rows
 
     def _g_copy_with_stats(self, group, name, start, stop, step,
@@ -872,9 +857,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
-        return """%s
-  atom = %r
-  byteorder = %r
-  nrows = %s
-  flavor = %r""" % (self, self.atom, self.byteorder, self.nrows,
-                    self.flavor)
+        return f"""{self}
+  atom = {self.atom!r}
+  byteorder = {self.byteorder!r}
+  nrows = {self.nrows}
+  flavor = {self.flavor!r}"""

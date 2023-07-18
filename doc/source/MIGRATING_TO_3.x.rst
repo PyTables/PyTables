@@ -90,7 +90,7 @@ method. By using regexes, ``pt2to3`` works on Python and Cython code.
       -o OUTPUT             output file to write to.
       -i, --inplace         overwrites the file in-place.
 
-Note that ``pt2to3`` only works on a single file, not a a directory.  However,
+Note that ``pt2to3`` only works on a single file, not a directory.  However,
 a simple BASH script may be written to run ``pt2to3`` over an entire directory
 and all sub-directories:
 

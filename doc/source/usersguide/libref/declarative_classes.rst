@@ -170,6 +170,10 @@ instances have the following attributes.
     The *relative* position of this column with regard to its column
     siblings.
 
+.. attribute:: Col._v_col_attrs
+
+    Additional metadata information. See :ref:`AttributeSetClassDescr`.
+
 
 Col factory methods
 ~~~~~~~~~~~~~~~~~~~

@@ -1,15 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: September 4, 2002
-# Author: Francesc Alted - faltet@pytables.com
-#
-# $Id$
-#
-########################################################################
-
 """Create PyTables files and the object tree.
 
 This module support importing generic HDF5 files, on top of which
@@ -20,27 +8,28 @@ nodes.
 
 """
 
+import atexit
+import datetime
 import os
-import sys
-import time
 import weakref
 import warnings
-import collections
+from collections import defaultdict
+from pathlib import Path
 
-import numexpr
-import numpy
+import numexpr as ne
+import numpy as np
 
 from . import hdf5extension
 from . import utilsextension
 from . import parameters
 from .exceptions import (ClosedFileError, FileModeError, NodeError,
-                               NoSuchNodeError, UndoRedoError, ClosedNodeError,
-                               PerformanceWarning)
+                         NoSuchNodeError, UnclosedFileWarning, UndoRedoError, ClosedNodeError,
+                         PerformanceWarning)
 from .registry import get_class_by_name
 from .path import join_path, split_path
 from . import undoredo
 from .description import (IsDescription, UInt8Col, StringCol,
-                                descr_from_dtype, dtype_from_descr)
+                          descr_from_dtype, dtype_from_descr)
 from .filters import Filters
 from .node import Node, NotLoggedMixin
 from .group import Group, RootGroup
@@ -60,8 +49,6 @@ from .atom import Atom
 from .link import SoftLink, ExternalLink
 
 
-
-
 # format_version = "1.0"  # Initial format
 # format_version = "1.1"  # Changes in ucl compression
 # format_version = "1.2"  # Support for enlargeable arrays and VLA's
@@ -75,26 +62,26 @@ from .link import SoftLink, ExternalLink
 # format_version = "1.6"  # Support for NumPy objects and new flavors for
 #                         # objects.
 #                         # 1.6 was introduced in pytables 1.3
-#format_version = "2.0"   # Pickles are not used anymore in system attrs
+# format_version = "2.0"  # Pickles are not used anymore in system attrs
 #                         # 2.0 was introduced in PyTables 2.0
 format_version = "2.1"  # Numeric and numarray flavors are gone.
 
 compatible_formats = []  # Old format versions we can read
-                         # Empty means that we support all the old formats
+#                        # Empty means that we support all the old formats
 
 
-class _FileRegistry(object):
+class _FileRegistry:
     def __init__(self):
-        self._name_mapping = collections.defaultdict(set)
+        self._name_mapping = defaultdict(set)
         self._handlers = set()
 
     @property
     def filenames(self):
-        return list(self._name_mapping.keys())
+        return list(self._name_mapping)
 
     @property
     def handlers(self):
-        #return set(self._handlers)  # return a copy
+        # return set(self._handlers)  # return a copy
         return self._handlers
 
     def __len__(self):
@@ -116,20 +103,15 @@ class _FileRegistry(object):
         self._handlers.remove(handler)
 
     def get_handlers_by_name(self, filename):
-        #return set(self._name_mapping[filename])  # return a copy
+        # return set(self._name_mapping[filename])  # return a copy
         return self._name_mapping[filename]
 
     def close_all(self):
-        are_open_files = len(self._handlers) > 0
-        if are_open_files:
-            sys.stderr.write("Closing remaining open files:")
         handlers = list(self._handlers)  # make a copy
         for fileh in handlers:
-            sys.stderr.write("%s..." % fileh.filename)
+            msg = f"Closing remaining open file: {fileh.filename}"
+            warnings.warn(UnclosedFileWarning(msg))
             fileh.close()
-            sys.stderr.write("done")
-        if are_open_files:
-            sys.stderr.write("\n")
 
 
 # Dict of opened files (keys are filenames and values filehandlers)
@@ -208,12 +190,9 @@ def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
         srcfileh.close()
 
 
-
-if tuple(map(int, utilsextension.get_hdf5_version().split('-')[0].split('.'))) \
-                                                                        < (1, 8, 7):
-    _FILE_OPEN_POLICY = 'strict'
-else:
-    _FILE_OPEN_POLICY = 'default'
+hdf5_version_str = utilsextension.get_hdf5_version()
+hdf5_version_tup = tuple(map(int, hdf5_version_str.split('-')[0].split('.')))
+_FILE_OPEN_POLICY = 'strict' if hdf5_version_tup < (1, 8, 7) else 'default'
 
 
 def open_file(filename, mode="r", title="", root_uep="/", filters=None,
@@ -277,7 +256,7 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
         advices about the integrated node cache engine.
 
     """
-
+    filename = os.fspath(filename)
     # XXX filename normalization ??
 
     # Check already opened files
@@ -315,9 +294,8 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
     return File(filename, mode, title, root_uep, filters, **kwargs)
 
 
-
 # A dumb class that doesn't keep nothing at all
-class _NoCache(object):
+class _NoCache:
     def __len__(self):
         return 0
 
@@ -343,7 +321,7 @@ class _DictCache(dict):
         if nslots < 1:
             raise ValueError("Invalid number of slots: %d" % nslots)
         self.nslots = nslots
-        super(_DictCache, self).__init__()
+        super().__init__()
 
     def __setitem__(self, key, value):
         # Check if we are running out of space
@@ -353,12 +331,12 @@ class _DictCache(dict):
                 "maximum number (%d); be ready to see PyTables asking for "
                 "*lots* of memory and possibly slow I/O." % (
                     self.nslots), PerformanceWarning)
-        super(_DictCache, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
 
-class NodeManager(object):
+class NodeManager:
     def __init__(self, nslots=64, node_factory=None):
-        super(NodeManager, self).__init__()
+        super().__init__()
 
         self.registry = weakref.WeakValueDictionary()
 
@@ -382,6 +360,7 @@ class NodeManager(object):
         if key in self.registry:
             if not self.registry[key]._v_isopen:
                 del self.registry[key]
+                self.registry[key] = node
             elif self.registry[key] is not node:
                 raise RuntimeError('trying to register a node with an '
                                    'existing key: ``%s``' % key)
@@ -441,7 +420,7 @@ class NodeManager(object):
                 cache[newkey] = node
 
     def drop_from_cache(self, nodepath):
-        '''Remove the node from cache'''
+        """Remove the node from cache"""
 
         # Remove the node from the cache.
         self.cache.pop(nodepath, None)
@@ -513,14 +492,14 @@ class NodeManager(object):
                         node._f_close()
                     del node
                 except ClosedNodeError:
-                    #import traceback
-                    #type_, value, tb = sys.exc_info()
-                    #exception_dump = ''.join(
-                    #    traceback.format_exception(type_, value, tb))
-                    #warnings.warn(
-                    #    "A '%s' exception occurred trying to close a node "
-                    #    "that was supposed to be open.\n"
-                    #    "%s" % (type_.__name__, exception_dump))
+                    # import traceback
+                    # type_, value, tb = sys.exc_info()
+                    # exception_dump = ''.join(
+                    #     traceback.format_exception(type_, value, tb))
+                    # warnings.warn(
+                    #     "A '%s' exception occurred trying to close a node "
+                    #     "that was supposed to be open.\n"
+                    #     "%s" % (type_.__name__, exception_dump))
                     pass
 
     def close_subtree(self, prefix='/'):
@@ -556,7 +535,7 @@ class NodeManager(object):
         registry = self.registry
         cache = self.cache
 
-        #self.close_subtree('/')
+        # self.close_subtree('/')
 
         keys = list(cache)  # copy
         for key in keys:
@@ -571,7 +550,7 @@ class NodeManager(object):
                 node._f_close()
 
 
-class File(hdf5extension.File, object):
+class File(hdf5extension.File):
     """The in-memory representation of a PyTables file.
 
     An instance of this class is returned when a PyTables file is
@@ -701,7 +680,7 @@ class File(hdf5extension.File, object):
 
     @property
     def title(self):
-        "The title of the root group in the file."
+        """The title of the root group in the file."""
         return self.root._v_title
 
     @title.setter
@@ -714,7 +693,8 @@ class File(hdf5extension.File, object):
 
     @property
     def filters(self):
-        "Default filter properties for the root group (see :ref:`FiltersClassDescr`)."
+        """Default filter properties for the root group
+        (see :ref:`FiltersClassDescr`)."""
         return self.root._v_filters
 
     @filters.setter
@@ -725,24 +705,10 @@ class File(hdf5extension.File, object):
     def filters(self):
         del self.root._v_filters
 
-    @property
-    def open_count(self):
-        """The number of times this file handle has been opened.
-
-        .. versionchanged:: 3.1
-           The mechanism for caching and sharing file handles has been
-           removed in PyTables 3.1.  Now this property should always
-           be 1 (or 0 for closed files).
-
-        .. deprecated:: 3.1
-
-        """
-        return self._open_count
-
     def __init__(self, filename, mode="r", title="",
                  root_uep="/", filters=None, **kwargs):
 
-        self.filename = filename
+        self.filename = os.fspath(filename)
         """The name of the opened file."""
 
         self.mode = mode
@@ -753,14 +719,14 @@ class File(hdf5extension.File, object):
                              "'r', 'r+', 'a' and 'w'" % mode)
 
         # Get all the parameters in parameter file(s)
-        params = dict([(k, v) for k, v in parameters.__dict__.items()
-                       if k.isupper() and not k.startswith('_')])
+        params = {k: v for k, v in parameters.__dict__.items()
+                  if k.isupper() and not k.startswith('_')}
         # Update them with possible keyword arguments
         if [k for k in kwargs if k.isupper()]:
             warnings.warn("The use of uppercase keyword parameters is "
                           "deprecated", DeprecationWarning)
 
-        kwargs = dict([(k.upper(), v) for k, v in kwargs.items()])
+        kwargs = {k.upper(): v for k, v in kwargs.items()}
         params.update(kwargs)
 
         # If MAX_ * _THREADS is not set yet, set it to the number of cores
@@ -826,7 +792,7 @@ class File(hdf5extension.File, object):
             self.enable_undo()
 
         # Set the maximum number of threads for Numexpr
-        numexpr.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
+        ne.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
 
     def __get_root_group(self, root_uep, title, filters):
         """Returns a Group instance which will act as the root group in the
@@ -864,7 +830,6 @@ class File(hdf5extension.File, object):
         # create the object tree
         return RootGroup(self, root_uep, title=title, new=new, filters=filters)
 
-
     def _get_or_create_path(self, path, create):
         """Get the given `path` or create it if `create` is true.
 
@@ -877,7 +842,6 @@ class File(hdf5extension.File, object):
             return self._create_path(path)
         else:
             return self.get_node(path)
-
 
     def _create_path(self, path):
         """Create the groups needed for the `path` to exist.
@@ -900,7 +864,6 @@ class File(hdf5extension.File, object):
                 child = create_group(parent, pcomp)
             parent = child
         return parent
-
 
     def create_group(self, where, name, title="", filters=None,
                      createparents=False):
@@ -939,9 +902,8 @@ class File(hdf5extension.File, object):
         return Group(parentnode, name,
                      title=title, new=True, filters=filters)
 
-
     def create_table(self, where, name, description=None, title="",
-                     filters=None, expectedrows=10000,
+                     filters=None, expectedrows=10_000,
                      chunkshape=None, byteorder=None,
                      createparents=False, obj=None, track_times=True):
         """Create a new table with the given name in where location.
@@ -1034,12 +996,13 @@ class File(hdf5extension.File, object):
         """
 
         if obj is not None:
-            if not isinstance(obj, numpy.ndarray):
+            if not isinstance(obj, np.ndarray):
                 raise TypeError('invalid obj parameter %r' % obj)
 
             descr, _ = descr_from_dtype(obj.dtype, ptparams=self.params)
             if (description is not None and
-                    dtype_from_descr(description, ptparams=self.params) != obj.dtype):
+                    dtype_from_descr(description,
+                                     ptparams=self.params) != obj.dtype):
                 raise TypeError('the desctiption parameter is not consistent '
                                 'with the data type of the obj parameter')
             elif description is None:
@@ -1060,7 +1023,6 @@ class File(hdf5extension.File, object):
             ptobj.append(obj)
 
         return ptobj
-
 
     def create_array(self, where, name, obj=None, title="",
                      byteorder=None, createparents=False,
@@ -1136,13 +1098,13 @@ class File(hdf5extension.File, object):
             else:
                 # Making strides=(0,...) below is a trick to create the
                 # array fast and without memory consumption
-                dflt = numpy.zeros((), dtype=atom.dtype)
-                obj = numpy.ndarray(shape, dtype=atom.dtype, buffer=dflt,
-                                    strides=(0,)*len(shape))
+                dflt = np.zeros((), dtype=atom.dtype)
+                obj = np.ndarray(shape, dtype=atom.dtype, buffer=dflt,
+                                 strides=(0,)*len(shape))
         else:
             flavor = flavor_of(obj)
             # use a temporary object because converting obj at this stage
-            # breaks some test. This is soultion performs a double,
+            # breaks some test. This is solution performs a double,
             # potentially expensive, conversion of the obj parameter.
             _obj = array_as_internal(obj, flavor)
 
@@ -1157,7 +1119,6 @@ class File(hdf5extension.File, object):
         return Array(parentnode, name,
                      obj=obj, title=title, byteorder=byteorder,
                      track_times=track_times)
-
 
     def create_carray(self, where, name, atom=None, shape=None, title="",
                       filters=None, chunkshape=None,
@@ -1253,10 +1214,15 @@ class File(hdf5extension.File, object):
                 shape = obj.shape
 
             if atom is not None and atom.dtype != obj.dtype:
-                raise TypeError('the atom parameter is not consistent with '
-                                'the data type of the obj parameter')
+                raise TypeError("the 'atom' parameter is not consistent with "
+                                "the data type of the 'obj' parameter")
             elif atom is None:
                 atom = Atom.from_dtype(obj.dtype)
+        else:
+            if atom is None and shape is None:
+                raise TypeError(
+                    "the 'atom' and 'shape' parameters or the 'obj' parameter "
+                    "must be provided")
 
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
@@ -1269,7 +1235,6 @@ class File(hdf5extension.File, object):
             ptobj[...] = obj
 
         return ptobj
-
 
     def create_earray(self, where, name, atom=None, shape=None, title="",
                       filters=None, expectedrows=1000,
@@ -1388,7 +1353,6 @@ class File(hdf5extension.File, object):
 
         return ptobj
 
-
     def create_vlarray(self, where, name, atom=None, title="",
                        filters=None, expectedrows=None,
                        chunkshape=None, byteorder=None,
@@ -1501,7 +1465,6 @@ class File(hdf5extension.File, object):
 
         return ptobj
 
-
     def create_hard_link(self, where, name, target, createparents=False):
         """Create a hard link.
 
@@ -1522,7 +1485,6 @@ class File(hdf5extension.File, object):
         parentnode._g_add_children_names()
         # Return the target node
         return self.get_node(parentnode, name)
-
 
     def create_soft_link(self, where, name, target, createparents=False):
         """Create a soft link (aka symbolic link) to a `target` node.
@@ -1552,7 +1514,6 @@ class File(hdf5extension.File, object):
         parentnode._g_add_children_names()
         return slink
 
-
     def create_external_link(self, where, name, target, createparents=False):
         """Create an external link.
 
@@ -1581,7 +1542,6 @@ class File(hdf5extension.File, object):
         parentnode._g_add_children_names()
         return elink
 
-
     def _get_node(self, nodepath):
         # The root node is always at hand.
         if nodepath == '/':
@@ -1591,7 +1551,6 @@ class File(hdf5extension.File, object):
         assert node is not None, "unable to instantiate node ``%s``" % nodepath
 
         return node
-
 
     def get_node(self, where, name=None, classname=None):
         """Get the node under where with the given name.
@@ -1620,6 +1579,8 @@ class File(hdf5extension.File, object):
             a class derived from Node (e.g. Table). If the node is found but it
             is not an instance of that class, a NoSuchNodeError is also raised.
 
+        Notes
+        -----
         If the node to be returned does not exist, a NoSuchNodeError is
         raised. Please note that hidden nodes are also considered.
 
@@ -1633,7 +1594,7 @@ class File(hdf5extension.File, object):
             basepath = where._v_pathname
             nodepath = join_path(basepath, name or '') or '/'
             node = where._v_file._get_node(nodepath)
-        elif isinstance(where, (str, numpy.str_)):
+        elif isinstance(where, (str, np.str_)):
             if not where.startswith('/'):
                 raise NameError("``where`` must start with a slash ('/')")
 
@@ -1642,7 +1603,7 @@ class File(hdf5extension.File, object):
             node = self._get_node(nodepath)
         else:
             raise TypeError(
-                "``where`` must be a string or a node: %r" % (where,))
+                f"``where`` must be a string or a node: {where!r}")
 
         # Finally, check whether the desired node is an instance
         # of the expected class.
@@ -1660,7 +1621,6 @@ class File(hdf5extension.File, object):
 
         return node
 
-
     def is_visible_node(self, path):
         """Is the node under `path` visible?
 
@@ -1670,7 +1630,6 @@ class File(hdf5extension.File, object):
 
         # ``util.isvisiblepath()`` is still recommended for internal use.
         return self.get_node(path)._f_isvisible()
-
 
     def rename_node(self, where, newname, name=None, overwrite=False):
         """Change the name of the node specified by where and name to newname.
@@ -1690,7 +1649,6 @@ class File(hdf5extension.File, object):
 
         obj = self.get_node(where, name=name)
         obj._f_rename(newname, overwrite)
-
 
     def move_node(self, where, newparent=None, newname=None, name=None,
                   overwrite=False, createparents=False):
@@ -1720,7 +1678,6 @@ class File(hdf5extension.File, object):
 
         obj = self.get_node(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
-
 
     def copy_node(self, where, newparent=None, newname=None, name=None,
                   overwrite=False, recursive=False, createparents=False,
@@ -1779,11 +1736,10 @@ class File(hdf5extension.File, object):
                                            recursive=recursive, **kwargs)
                 return npobj
             else:
-                raise IOError(
+                raise OSError(
                     "You cannot copy a root group over the same file")
         return obj._f_copy(newparent, newname,
                            overwrite, recursive, createparents, **kwargs)
-
 
     def remove_node(self, where, name=None, recursive=False):
         """Remove the object node *name* under *where* location.
@@ -1805,7 +1761,6 @@ class File(hdf5extension.File, object):
         obj = self.get_node(where, name=name)
         obj._f_remove(recursive)
 
-
     def get_node_attr(self, where, attrname, name=None):
         """Get a PyTables attribute from the given node.
 
@@ -1822,7 +1777,6 @@ class File(hdf5extension.File, object):
 
         obj = self.get_node(where, name=name)
         return obj._f_getattr(attrname)
-
 
     def set_node_attr(self, where, attrname, attrvalue, name=None):
         """Set a PyTables attribute for the given node.
@@ -1852,7 +1806,6 @@ class File(hdf5extension.File, object):
         obj = self.get_node(where, name=name)
         obj._f_setattr(attrname, attrvalue)
 
-
     def del_node_attr(self, where, attrname, name=None):
         """Delete a PyTables attribute from the given node.
 
@@ -1869,7 +1822,6 @@ class File(hdf5extension.File, object):
 
         obj = self.get_node(where, name=name)
         obj._f_delattr(attrname)
-
 
     def copy_node_attrs(self, where, dstnode, name=None):
         """Copy PyTables attributes from one node to another.
@@ -1888,7 +1840,6 @@ class File(hdf5extension.File, object):
         srcobject = self.get_node(where, name=name)
         dstobject = self.get_node(dstnode)
         srcobject._v_attrs._f_copy(dstobject)
-
 
     def copy_children(self, srcgroup, dstgroup,
                       overwrite=False, recursive=False,
@@ -1922,7 +1873,6 @@ class File(hdf5extension.File, object):
 
         srcgroup._f_copy_children(
             dstgroup, overwrite, recursive, createparents, **kwargs)
-
 
     def copy_file(self, dstfilename, overwrite=False, **kwargs):
         """Copy the contents of this file to dstfilename.
@@ -1963,8 +1913,8 @@ class File(hdf5extension.File, object):
         self._check_open()
 
         # Check that we are not treading our own shoes
-        if os.path.abspath(self.filename) == os.path.abspath(dstfilename):
-            raise IOError("You cannot copy a file over itself")
+        if Path(self.filename).resolve() == Path(dstfilename).resolve():
+            raise OSError("You cannot copy a file over itself")
 
         # Compute default arguments.
         # These are *not* passed on.
@@ -1978,10 +1928,11 @@ class File(hdf5extension.File, object):
         copyuserattrs = kwargs.get('copyuserattrs', True)
         title = kwargs.pop('title', self.title)
 
-        if os.path.isfile(dstfilename) and not overwrite:
-            raise IOError(("file ``%s`` already exists; "
-                           "you may want to use the ``overwrite`` "
-                           "argument") % dstfilename)
+        if Path(dstfilename).is_file() and not overwrite:
+            raise OSError(
+                f"file ``{dstfilename}`` already exists; you may want to "
+                f"use the ``overwrite`` argument"
+            )
 
         # Create destination file, overwriting it.
         dstfileh = open_file(
@@ -1997,7 +1948,6 @@ class File(hdf5extension.File, object):
         finally:
             dstfileh.close()
 
-
     def list_nodes(self, where, classname=None):
         """Return a *list* with children nodes hanging from where.
 
@@ -2009,7 +1959,6 @@ class File(hdf5extension.File, object):
         self._check_group(group)  # Is it a group?
 
         return group._f_list_nodes(classname)
-
 
     def iter_nodes(self, where, classname=None):
         """Iterate over children nodes hanging from where.
@@ -2035,7 +1984,6 @@ class File(hdf5extension.File, object):
         self._check_group(group)  # Is it a group?
 
         return group._f_iter_nodes(classname)
-
 
     def __contains__(self, path):
         """Is there a node with that path?
@@ -2108,18 +2056,14 @@ class File(hdf5extension.File, object):
         class_ = get_class_by_name(classname)
 
         if class_ is Group:  # only groups
-            for group in self.walk_groups(where):
-                yield group
+            yield from self.walk_groups(where)
         elif class_ is Node:  # all nodes
             yield self.get_node(where)
             for group in self.walk_groups(where):
-                for leaf in self.iter_nodes(group):
-                    yield leaf
+                yield from self.iter_nodes(group)
         else:  # only nodes of the named type
             for group in self.walk_groups(where):
-                for leaf in self.iter_nodes(group, classname):
-                    yield leaf
-
+                yield from self.iter_nodes(group, classname)
 
     def walk_groups(self, where="/"):
         """Recursively iterate over groups (not leaves) hanging from where.
@@ -2138,7 +2082,6 @@ class File(hdf5extension.File, object):
         self._check_group(group)  # Is it a group?
         return group._f_walk_groups()
 
-
     def _check_open(self):
         """Check the state of the file.
 
@@ -2149,12 +2092,10 @@ class File(hdf5extension.File, object):
         if not self.isopen:
             raise ClosedFileError("the file object is closed")
 
-
     def _iswritable(self):
         """Is this file writable?"""
 
         return self.mode in ('w', 'a', 'r+')
-
 
     def _check_writable(self):
         """Check whether the file is writable.
@@ -2166,14 +2107,11 @@ class File(hdf5extension.File, object):
         if not self._iswritable():
             raise FileModeError("the file is not writable")
 
-
     def _check_group(self, node):
         # `node` must already be a node.
         if not isinstance(node, Group):
-            raise TypeError("node ``%s`` is not a group" % (node._v_pathname,))
+            raise TypeError(f"node ``{node._v_pathname}`` is not a group")
 
-
-    # <Undo/Redo support>
     def is_undo_enabled(self):
         """Is the Undo/Redo mechanism enabled?
 
@@ -2187,11 +2125,9 @@ class File(hdf5extension.File, object):
         self._check_open()
         return self._undoEnabled
 
-
     def _check_undo_enabled(self):
         if not self._undoEnabled:
             raise UndoRedoError("Undo/Redo feature is currently disabled!")
-
 
     def _create_transaction_group(self):
         tgroup = TransactionGroupG(
@@ -2201,18 +2137,15 @@ class File(hdf5extension.File, object):
         tgroup._v_attrs._g__setattr('FORMATVERSION', _trans_version)
         return tgroup
 
-
     def _create_transaction(self, troot, tid):
         return TransactionG(
             troot, _trans_name % tid,
             "Transaction number %d" % tid, new=True)
 
-
     def _create_mark(self, trans, mid):
         return MarkG(
             trans, _markName % mid,
             "Mark number %d" % mid, new=True)
-
 
     def enable_undo(self, filters=Filters(complevel=1)):
         """Enable the Undo/Redo mechanism.
@@ -2309,7 +2242,6 @@ class File(hdf5extension.File, object):
         # The Undo/Redo mechanism has been enabled.
         self._undoEnabled = True
 
-
     def disable_undo(self):
         """Disable the Undo/Redo mechanism.
 
@@ -2344,7 +2276,6 @@ class File(hdf5extension.File, object):
 
         # The Undo/Redo mechanism has been disabled.
         self._undoEnabled = False
-
 
     def mark(self, name=None):
         """Mark the state of the database.
@@ -2453,7 +2384,7 @@ class File(hdf5extension.File, object):
             markid = mark
         elif isinstance(mark, str):
             if mark not in self._markers:
-                lmarkers = sorted(self._markers.keys())
+                lmarkers = sorted(self._markers)
                 raise UndoRedoError("The mark that you have specified has not "
                                     "been found in the internal marker list: "
                                     "%r" % lmarkers)
@@ -2463,7 +2394,6 @@ class File(hdf5extension.File, object):
                             "string, and you passed a type <%s>" % type(mark))
         # print("markid, self._nmarks:", markid, self._nmarks)
         return markid
-
 
     def _get_final_action(self, markid):
         """Get the action to go.
@@ -2483,7 +2413,6 @@ class File(hdf5extension.File, object):
 
         return self._seqmarkers[markid]
 
-
     def _doundo(self, finalaction, direction):
         """Undo/Redo actions up to final action in the specificed direction."""
 
@@ -2501,10 +2430,10 @@ class File(hdf5extension.File, object):
                 # undo/redo the action
                 if direction > 0:
                     # Uncomment this for debugging
-#                     print("redo-->", \
-#                           _code_to_op[actionlog['opcode'][i]],\
-#                           actionlog['arg1'][i],\
-#                           actionlog['arg2'][i])
+                    # print("redo-->", \
+                    #       _code_to_op[actionlog['opcode'][i]],\
+                    #       actionlog['arg1'][i],\
+                    #       actionlog['arg2'][i])
                     undoredo.redo(self,
                                   # _code_to_op[actionlog['opcode'][i]],
                                   # The next is a workaround for python < 2.5
@@ -2671,7 +2600,6 @@ class File(hdf5extension.File, object):
         self._check_undo_enabled()
         return self._curmark
 
-
     def _shadow_name(self):
         """Compute and return a shadow name.
 
@@ -2686,9 +2614,6 @@ class File(hdf5extension.File, object):
         name = _shadow_name % (self._curaction,)
 
         return (parent, name)
-
-
-    # </Undo/Redo support>
 
     def flush(self):
         """Flush all the alive leaves in the object tree."""
@@ -2770,43 +2695,43 @@ class File(hdf5extension.File, object):
 
         ::
 
-            >>> f = tables.open_file('data/test.h5')
+            >>> import tables
+            >>> f = tables.open_file('tables/tests/Tables_lzo2.h5')
             >>> print(f)
-            data/test.h5 (File) 'Table Benchmark'
-            Last modif.: 'Mon Sep 20 12:40:47 2004'
+            tables/tests/Tables_lzo2.h5 (File) 'Table Benchmark'
+            Last modif.: '...'
             Object Tree:
-            / (Group) 'Table Benchmark'
-            /tuple0 (Table(100,)) 'This is the table title'
+            / (RootGroup) 'Table Benchmark'
+            /tuple0 (Table(100,)lzo(1)) 'This is the table title'
             /group0 (Group) ''
-            /group0/tuple1 (Table(100,)) 'This is the table title'
+            /group0/tuple1 (Table(100,)lzo(1)) 'This is the table title'
             /group0/group1 (Group) ''
-            /group0/group1/tuple2 (Table(100,)) 'This is the table title'
+            /group0/group1/tuple2 (Table(100,)lzo(1)) 'This is the table title'
             /group0/group1/group2 (Group) ''
+            >>> f.close()
 
         """
-
         if not self.isopen:
             return "<closed File>"
 
         # Print all the nodes (Group and Leaf objects) on object tree
         try:
-            date = time.asctime(time.localtime(os.stat(self.filename)[8]))
+            date = datetime.datetime.fromtimestamp(
+                Path(self.filename).stat().st_mtime, datetime.timezone.utc
+            ).isoformat(timespec='seconds')
         except OSError:
             # in-memory file
-            date = ""
-        astring = self.filename + ' (File) ' + repr(self.title) + '\n'
-#         astring += 'root_uep :=' + repr(self.root_uep) + '; '
-#         astring += 'format_version := ' + self.format_version + '\n'
-#         astring += 'filters :=' + repr(self.filters) + '\n'
-        astring += 'Last modif.: ' + repr(date) + '\n'
-        astring += 'Object Tree: \n'
+            date = "<in-memory file>"
+        lines = [f'{self.filename} (File) {self.title!r}',
+                 f'Last modif.: {date!r}',
+                 'Object Tree: ']
 
         for group in self.walk_groups("/"):
-            astring += str(group) + '\n'
+            lines.append(f'{group}')
             for kind in self._node_kinds[1:]:
                 for node in self.list_nodes(group, kind):
-                    astring += str(node) + '\n'
-        return astring
+                    lines.append(f'{node}')
+        return '\n'.join(lines) + '\n'
 
     def __repr__(self):
         """Return a detailed string representation of the object tree."""
@@ -2815,18 +2740,16 @@ class File(hdf5extension.File, object):
             return "<closed File>"
 
         # Print all the nodes (Group and Leaf objects) on object tree
-        astring = 'File(filename=' + str(self.filename) + \
-                  ', title=' + repr(self.title) + \
-                  ', mode=' + repr(self.mode) + \
-                  ', root_uep=' + repr(self.root_uep) + \
-                  ', filters=' + repr(self.filters) + \
-                  ')\n'
+        lines = [
+            f'File(filename={self.filename!s}, title={self.title!r}, '
+            f'mode={self.mode!r}, root_uep={self.root_uep!r}, '
+            f'filters={self.filters!r})']
         for group in self.walk_groups("/"):
-            astring += str(group) + '\n'
+            lines.append(f'{group}')
             for kind in self._node_kinds[1:]:
                 for node in self.list_nodes(group, kind):
-                    astring += repr(node) + '\n'
-        return astring
+                    lines.append(f'{node!r}')
+        return '\n'.join(lines) + '\n'
 
     def _update_node_locations(self, oldpath, newpath):
         """Update location information of nodes under `oldpath`.
@@ -2849,16 +2772,6 @@ class File(hdf5extension.File, object):
                     descendent_node._g_update_location(newnodeppath)
 
 
-
 # If a user hits ^C during a run, it is wise to gracefully close the
 # opened files.
-import atexit
 atexit.register(_open_files.close_all)
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

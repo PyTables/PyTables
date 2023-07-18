@@ -1,12 +1,11 @@
 #include <stdarg.h>
 #include "utils.h"
-#include "version.h"
-#include "H5Zlzo.h"                /* Import FILTER_LZO */
-#include "H5Zbzip2.h"              /* Import FILTER_BZIP2 */
 
-#if PY_MAJOR_VERSION > 2
 #define PyString_FromString PyUnicode_FromString
-#endif
+
+/* See https://numpy.org/doc/1.17/reference/c-api.array.html#c.NO_IMPORT_ARRAY */
+#define NO_IMPORT_ARRAY
+#include <numpy/arrayobject.h>
 
 #ifndef NPY_COMPLEX192
 typedef npy_cdouble npy_complex192;
@@ -92,10 +91,6 @@ herr_t set_cache_size(hid_t file_id, size_t cache_size) {
 
   return code;
 
-}
-
-PyObject *_getTablesVersion() {
-  return PyString_FromString(PYTABLES_VERSION);
 }
 
 PyObject *getHDF5VersionInfo(void) {

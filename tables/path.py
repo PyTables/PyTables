@@ -1,15 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: January 15, 2007
-# Author:  Ivan Vilata i Balaguer - ivan at selidor dot net
-#
-# $Id$
-#
-########################################################################
-
 """Functionality related with node paths in a PyTables file.
 
 Variables
@@ -20,22 +8,16 @@ Variables
 
 """
 
-# Imports
-# =======
 import re
 import warnings
 import keyword
 
 from .exceptions import NaturalNameWarning
 
-# Public variables
-# ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 
-# Private variables
-# =================
 _python_id_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 """Python identifier regular expression."""
 
@@ -67,8 +49,6 @@ _warnInfo = (
         "using ``getattr()`` will still work, though")
 """Warning printed when a name will not be reachable through natural naming"""
 
-# Public functions
-# ================
 
 def check_attribute_name(name):
     """Check the validity of the `name` of an attribute in AttributeSet.
@@ -77,12 +57,13 @@ def check_attribute_name(name):
     valid but it can not be used with natural naming, a
     `NaturalNameWarning` is issued.
 
+    >>> warnings.simplefilter("ignore")
     >>> check_attribute_name('a')
     >>> check_attribute_name('a_b')
-    >>> check_attribute_name('a:b')
-    >>> check_attribute_name('/a/b')
-    >>> check_attribute_name('/')
-    >>> check_attribute_name('.')
+    >>> check_attribute_name('a:b')         # NaturalNameWarning
+    >>> check_attribute_name('/a/b')        # NaturalNameWarning
+    >>> check_attribute_name('/')           # NaturalNameWarning
+    >>> check_attribute_name('.')           # NaturalNameWarning
     >>> check_attribute_name('__members__')
     Traceback (most recent call last):
      ...
@@ -97,7 +78,7 @@ def check_attribute_name(name):
     ValueError: the empty string is not allowed as an object name
     """
     if not isinstance(name, str):  # Python >= 2.3
-        raise TypeError("object name is not a string: %r" % (name,))
+        raise TypeError(f"object name is not a string: {name!r}")
 
     if name == '':
         raise ValueError("the empty string is not allowed as an object name")
@@ -135,9 +116,10 @@ def check_name_validity(name):
     valid but it can not be used with natural naming, a
     `NaturalNameWarning` is issued.
 
+    >>> warnings.simplefilter("ignore")
     >>> check_name_validity('a')
     >>> check_name_validity('a_b')
-    >>> check_name_validity('a:b')
+    >>> check_name_validity('a:b')          # NaturalNameWarning
     >>> check_name_validity('/a/b')
     Traceback (most recent call last):
      ...
@@ -163,10 +145,6 @@ def check_name_validity(name):
                          "in object names: %r" % name)
 
 
-
-
-
-
 def join_path(parentpath, name):
     """Join a *canonical* `parentpath` with a *non-empty* `name`.
 
@@ -189,13 +167,12 @@ def join_path(parentpath, name):
     if parentpath == '/' and name.startswith('/'):
         pstr = '%s' % name
     elif parentpath == '/' or name.startswith('/'):
-        pstr = '%s%s' % (parentpath, name)
+        pstr = f'{parentpath}{name}'
     else:
-        pstr = '%s/%s' % (parentpath, name)
+        pstr = f'{parentpath}/{name}'
     if pstr.endswith('/'):
         pstr = pstr[:-1]
     return pstr
-
 
 
 def split_path(path):
@@ -221,12 +198,10 @@ def split_path(path):
     return (ppath, name)
 
 
-
 def isvisiblename(name):
     """Does this `name` make the named node a visible one?"""
 
     return _hidden_name_re.match(name) is None
-
 
 
 def isvisiblepath(path):
@@ -235,9 +210,6 @@ def isvisiblepath(path):
     return _hidden_path_re.search(path) is None
 
 
-
-# Main part
-# =========
 def _test():
     """Run ``doctest`` on this module."""
 

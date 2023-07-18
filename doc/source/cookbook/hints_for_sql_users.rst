@@ -1,7 +1,5 @@
-:source: http://www.pytables.org/moin/HintsForSQLUsers
-:revision: 56
-:date: 2012-06-18 10:15:15
 :author: valhallasw
+:date: 2012-06-18 10:15:15
 
 ===================
 Hints for SQL users
@@ -76,7 +74,7 @@ Creating a table
 ================
 
 PyTables supports some other *datasets* besides tables, and they're not
-arranged in a flat namespace, but rather into a *hierarchicalé one (see an
+arranged in a flat namespace, but rather into a *hierarchical* one (see an
 introduction to the _ref:`object tree <ObjectTreeSection>`);
 however, due to the nature of these recipes, we'll limit ourselves to tables
 in the *root group*.
@@ -102,26 +100,26 @@ This is specially useful for creating temporary tables holding query results.
 You can create a table description using a dictionary::
 
     description_name = {
-        'column_name1': colum_type1,
-        'column_name2': colum_type2,
-        'column_name3': colum_type3,
+        'column_name1': column_type1,
+        'column_name2': column_type2,
+        'column_name3': column_type3,
         ...
-        'column_nameN': colum_typeN
+        'column_nameN': column_typeN
     }
 
 or a subclass of :class:`tables.IsDescription`::
 
     class description_name(tables.IsDescription):
-        column_name1 = colum_type1
-        column_name2 = colum_type2
-        column_name3 = colum_type3
+        column_name1 = column_type1
+        column_name2 = column_type2
+        column_name3 = column_type3
         ...
-        column_nameN = colum_typeN
+        column_nameN = column_typeN
 
 Please note that dictionaries are the only way of describing structures with
 names which cannot be Python identifiers.
-Also, if an explicit order is desired for colums, it must be specified through
-the column type declarations (see below), since dictionariy keys and class
+Also, if an explicit order is desired for columns, it must be specified through
+the column type declarations (see below), since dictionary keys and class
 attributes aren't ordered.
 Otherwise, columns are ordered in alphabetic increasing order.
 It is important to note that PyTables doesn't have a concept of primary or
@@ -219,11 +217,11 @@ method (:meth:`tables.Column.create_index`) of a :class:`tables.Column` object
 of a table, which you can access trough its ``cols`` accessor.
 
 ::
-    tbl.cols.colum_name.create_index()
+    tbl.cols.column_name.create_index()
 
 For dropping an index on a column::
 
-    tbl.cols.colum_name.remove_index()
+    tbl.cols.column_name.remove_index()
 
 
 Altering a table
@@ -313,8 +311,8 @@ structure described above::
     tbl.append(rows)
 
     # Using a NumPy container.
-    import numpy
-    rows = numpy.rec.array(rows)
+    import numpy as np
+    rows = np.rec.array(rows)
     tbl.append(rows)
 
 
@@ -473,7 +471,7 @@ This is similar to using the ``fetchone()`` method of a DB ``cursor`` in a
 `Python DBAPI`_-compliant package, i.e. you *iterate* over the list of wanted
 rows, getting one *row handle* at a time.
 In this case, the handle is an instance of the :class:`tables.Row` class,
-which allows access to individual columns as items acessed by key (so there
+which allows access to individual columns as items accessed by key (so there
 is no special way of selecting columns: you just use the ones you want
 whenever you want).
 
@@ -718,7 +716,7 @@ should be changed to::
 .. target-notes::
 
 .. _`PyTables users' list`: https://lists.sourceforge.net/lists/listinfo/pytables-users
-.. _`User's Guide`: http://www.pytables.org/docs/manual
+.. _`User's Guide`: https://www.pytables.org/usersguide
 .. _HDF5: http://www.hdfgroup.org/HDF5
 .. _SQLite: http://www.sqlite.org
 .. _NumPy: http://www.numpy.org

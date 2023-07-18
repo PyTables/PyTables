@@ -1,0 +1,41 @@
+name: ubuntu
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - name: Install APT packages
+      run: |
+        sudo apt-get update
+        sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
+        sudo apt install python3-all-dev python3-setuptools python3-packaging python3-numexpr  # python3-numpy cython3
+        sudo apt install python3-pytest python3-pytest-doctestplus
+        sudo apt install python3-numpydoc python3-sphinx python3-sphinx-rtd-theme python3-ipython
+        sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --user --upgrade setuptools pip wheel build "blosc2!=2.2.1,!=2.2.2"
+        python3 -m pip install --user --upgrade -r requirements.txt
+        python3 -c "import numpy as np; print('numpy:', np.__version__)"
+        python3 -c "import blosc2; print('blosc2:', blosc2.__version__)"
+    - name: Build PyTables
+      run: make build
+      env:
+        PYTABLES_NO_EMBEDDED_LIBS: TRUE
+    - name: Build HTML documentation
+      run: make html
+    - name: Build LaTeX documentation
+      run: make latex
+    - name: Source distribution
+      run: make dist
+    - name: Test
+      run: make check

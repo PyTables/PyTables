@@ -16,7 +16,7 @@
 #ifndef __TYPECONV_H__
 #define __TYPECONV_H__ 1
 
-#include "Python.h"
+#include <Python.h>
 
 /* Meaning for common arguments:
  *   * base: pointer to data
@@ -24,7 +24,7 @@
  *   * bytestride: distance in bytes from a field/record to the next one
  *   * nrecords: number of fields/records to translate
  *   * nelements: number of elements in a field/record
- *   * sense: 0 for Numarray -> HDF5, otherwise HDF5 -> Numarray
+ *   * sense: 0 for numpy -> HDF5, otherwise HDF5 -> numpy
  */
 
 void conv_float64_timeval32(void *base,

@@ -1,19 +1,3 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: 2006-09-19
-# Author:  Ivan Vilata i Balaguer -- ivan@selidor.net
-# :Notes:  Heavily modified by Francesc Alted for multi-index support.
-#          2008-04-09
-#          Combined common & pro version.
-#          2011-06-04
-#
-# $Id$
-#
-########################################################################
-
 """Utility functions and classes for supporting query conditions.
 
 Classes:
@@ -31,10 +15,7 @@ Functions:
 """
 
 import re
-from numexpr.necompiler import typecode_to_kind
-from numexpr.necompiler import expressionToAST, typeCompileAst
-from numexpr.necompiler import stringToExpression, NumExpr, getExprNames
-from numexpr.expressions import ExpressionNode
+import numexpr as ne
 
 from .utilsextension import get_nested_field
 from .utils import lazyattr
@@ -54,7 +35,8 @@ def _unsupported_operation_error(exception):
     message = exception.args[0]
     op, types = _no_matching_opcode.search(message).groups()
     newmessage = "unsupported operand types for *%s*: " % op
-    newmessage += ', '.join([typecode_to_kind[t] for t in types[1:]])
+    newmessage += ', '.join(
+        ne.necompiler.typecode_to_kind[t] for t in types[1:])
     return exception.__class__(newmessage)
 
 
@@ -70,7 +52,8 @@ def _check_indexable_cmp(getidxcmp):
         result = getidxcmp(exprnode, indexedcols)
         if result[0] is not None:
             try:
-                typeCompileAst(expressionToAST(exprnode))
+                ne.necompiler.typeCompileAst(
+                    ne.necompiler.expressionToAST(exprnode))
             except NotImplementedError as nie:
                 # Try to make this Numexpr error less cryptic.
                 raise _unsupported_operation_error(nie)
@@ -153,12 +136,15 @@ def _equiv_expr_node(x, y):
     return a new ExpressionNode.
 
     """
-    if not isinstance(x, ExpressionNode) and not isinstance(y, ExpressionNode):
+    if (not isinstance(x, ne.expressions.ExpressionNode)
+            and not isinstance(y, ne.expressions.ExpressionNode)):
         return x == y
-    elif (type(x) is not type(y) or not isinstance(x, ExpressionNode)
-            or not isinstance(y, ExpressionNode)
-            or x.value != y.value or x.astKind != y.astKind
-            or len(x.children) != len(y.children)):
+    elif (type(x) is not type(y)
+          or not isinstance(x, ne.expressions.ExpressionNode)
+          or not isinstance(y, ne.expressions.ExpressionNode)
+          or x.value != y.value
+          or x.astKind != y.astKind
+          or len(x.children) != len(y.children)):
         return False
     for xchild, ychild in zip(x.children, y.children):
         if not _equiv_expr_node(xchild, ychild):
@@ -314,11 +300,9 @@ def _get_idx_expr(expr, indexedcols):
     return _get_idx_expr_recurse(expr, indexedcols, [], [''])
 
 
-class CompiledCondition(object):
+class CompiledCondition:
     """Container for a compiled condition."""
 
-    # Lazy attributes
-    # ```````````````
     @lazyattr
     def index_variables(self):
         """The columns participating in the index expression."""
@@ -406,7 +390,7 @@ def compile_condition(condition, typemap, indexedcols):
     """
 
     # Get the expression tree and extract index conditions.
-    expr = stringToExpression(condition, typemap, {})
+    expr = ne.necompiler.stringToExpression(condition, typemap, {})
     if expr.astKind != 'bool':
         raise TypeError("condition ``%s`` does not have a boolean type"
                         % condition)
@@ -429,12 +413,12 @@ def compile_condition(condition, typemap, indexedcols):
         # See the comments in `numexpr.evaluate()` for the
         # reasons of inserting copy operators for unaligned,
         # *unidimensional* arrays.
-        func = NumExpr(expr, signature)
+        func = ne.necompiler.NumExpr(expr, signature)
     except NotImplementedError as nie:
         # Try to make this Numexpr error less cryptic.
         raise _unsupported_operation_error(nie)
 
-    _, ex_uses_vml = getExprNames(condition, {})
+    _, ex_uses_vml = ne.necompiler.getExprNames(condition, {})
     kwargs = {'ex_uses_vml': ex_uses_vml}
 
     params = varnames

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ########################################################################
 #
 #       License: BSD
@@ -15,7 +13,7 @@ These are declarations for functions in utilsextension.pyx that have to
 be shared with other extensions.
 """
 
-from definitions cimport hsize_t, hid_t, hobj_ref_t
+from .definitions cimport hsize_t, hid_t, hobj_ref_t
 from numpy cimport ndarray
 
 cdef hsize_t *malloc_dims(object)

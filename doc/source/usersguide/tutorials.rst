@@ -55,7 +55,7 @@ also need to import functions from the numpy package. So most PyTables
 programs begin with::
 
     >>> import tables   # but in this tutorial we use "from tables import \*"
-    >>> import numpy
+    >>> import numpy as np
 
 
 Declaring a Column Descriptor
@@ -118,7 +118,7 @@ Use the top-level :func:`open_file` function to create a PyTables file::
 :func:`open_file` is one of the objects imported by the
 ```from tables import *``` statement. Here, we are saying that we want to
 create a new file in the current working directory called "tutorial1.h5" in
-"w"rite mode and with an descriptive title string ("Test file").
+"w"rite mode and with a descriptive title string ("Test file").
 This function attempts to open the file, and if successful, returns the File
 (see :ref:`FileClassDescr`) object instance h5file. The root of the object
 tree is specified in the instance's root attribute.
@@ -205,8 +205,8 @@ actually an *extension class*), using the column names as keys.
 
 Below is an example of how to write rows::
 
-    >>> for i in xrange(10):
-    ...     particle['name']  = 'Particle: %6d' % (i)
+    >>> for i in range(10):
+    ...     particle['name']  = f'Particle: {i:6d}'
     ...     particle['TDCcount'] = i % 256
     ...     particle['ADCcount'] = (i * 256) % (1 << 16)
     ...     particle['grid_i'] = i
@@ -277,7 +277,7 @@ cuts::
     ['Particle:      5', 'Particle:      6', 'Particle:      7']
 
 In-kernel and indexed queries are not only much faster, but as you can see,
-they also look more compact, and are among the greatests features for
+they also look more compact, and are among the greatest features for
 PyTables, so be sure that you use them a lot. See :ref:`condition_syntax` and
 :ref:`searchOptim` for more information on in-kernel and indexed selections.
 
@@ -331,7 +331,7 @@ naming* (h5file.root) instead of with an absolute path string ("/").
 
 Now, create the first of the two Array objects we've just mentioned::
 
-    >>> h5file.create_array(gcolumns, 'pressure', array(pressure), "Pressure column selection")
+    >>> h5file.create_array(gcolumns, 'pressure', np.array(pressure), "Pressure column selection")
     /columns/pressure (Array(3,)) 'Pressure column selection'
       atom := Float64Atom(shape=(), dflt=0.0)
       maindim := 0
@@ -670,7 +670,7 @@ VERSION attribute::
     >>> table.attrs.VERSION
     '2.6'
 
-Ok. that's better. If you would terminate your session now, you would be able
+Ok, that's better. If you would terminate your session now, you would be able
 to use the h5ls command to read the /detector/readout attributes from the
 file written to disk.
 
@@ -742,6 +742,12 @@ file written to disk.
 
 Attributes are a useful mechanism to add persistent (meta) information to
 your data.
+
+Starting with PyTables 3.9.0, you can also set, delete, or rename attributes on individual columns. The API is designed to behave the same way as attributes on a table::
+
+    >>> table.cols.pressure.attrs['units'] = 'kPa'
+    >>> table.cols.energy.attrs['units'] = 'MeV'
+
 
 
 Getting object metadata
@@ -923,8 +929,8 @@ values to it::
 
     >>> table = h5file.root.detector.readout
     >>> particle = table.row
-    >>> for i in xrange(10, 15):
-    ...     particle['name']  = 'Particle: %6d' % (i)
+    >>> for i in range(10, 15):
+    ...     particle['name']  = f'Particle: {i:6d}'
     ...     particle['TDCcount'] = i % 256
     ...     particle['ADCcount'] = (i * 256) % (1 << 16)
     ...     particle['grid_i'] = i
@@ -1043,10 +1049,10 @@ and it returned the number of modified rows.
 Apart of :meth:`Table.modify_rows`, there exists another method, called
 :meth:`Table.modify_column` to modify specific columns as well.
 
-Finally, it exists another way of modifying tables that is generally more
-handy than the described above. This new way uses the method
-:meth:`Row.update` of the Row instance that is attached to every table, so it
-is meant to be used in table iterators. Look at the next example::
+Finally, there is another way of modifying tables that is generally more
+handy than the one described above. This new way uses the :meth:`Row.update` method of
+the Row instance that is attached to every table, so it
+is meant to be used in table iterators. Take a look at the following example::
 
     >>> for row in table.where('TDCcount <= 2'):
     ...     row['energy'] = row['TDCcount']*2
@@ -1072,9 +1078,9 @@ workaround consists in manually flushing the row internal buffer by calling
 Modifying data in arrays
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-We are going now to see how to modify data in array objects.
+We are now going to see how to modify data in array objects.
 The basic way to do this is through the use of :meth:`Array.__setitem__`
-special method. Let's see at how modify data on the pressureObject array::
+special method. Let's see how to modify data on the pressureObject array::
 
     >>> pressureObject = h5file.root.columns.pressure
     >>> print("Before modif-->", pressureObject[:])
@@ -1173,40 +1179,40 @@ columns called pressure and temperature).
 
 We also introduce a new manner to describe a Table as a structured NumPy
 dtype (or even as a dictionary), as you can see in the Event description. See
-:meth:`File.create_table` about the different kinds of descriptor objects that
+:meth:`File.create_table` for different kinds of descriptor objects that
 can be passed to this method::
 
-    from tables import *
-    from numpy import *
+    import tables as tb
+    import numpy as np
 
     # Describe a particle record
-    class Particle(IsDescription):
-        name        = StringCol(itemsize=16)  # 16-character string
-        lati        = Int32Col()              # integer
-        longi       = Int32Col()              # integer
-        pressure    = Float32Col(shape=(2,3)) # array of floats (single-precision)
-        temperature = Float64Col(shape=(2,3)) # array of doubles (double-precision)
+    class Particle(tb.IsDescription):
+        name        = tb.StringCol(itemsize=16)  # 16-character string
+        lati        = tb.Int32Col()              # integer
+        longi       = tb.Int32Col()              # integer
+        pressure    = tb.Float32Col(shape=(2,3)) # array of floats (single-precision)
+        temperature = tb.Float64Col(shape=(2,3)) # array of doubles (double-precision)
 
     # Native NumPy dtype instances are also accepted
-    Event = dtype([
+    Event = np.dtype([
         ("name"     , "S16"),
-        ("TDCcount" , uint8),
-        ("ADCcount" , uint16),
-        ("xcoord"   , float32),
-        ("ycoord"   , float32)
+        ("TDCcount" , np.uint8),
+        ("ADCcount" , np.uint16),
+        ("xcoord"   , np.float32),
+        ("ycoord"   , np.float32)
         ])
 
     # And dictionaries too (this defines the same structure as above)
     # Event = {
-    #     "name"     : StringCol(itemsize=16),
-    #     "TDCcount" : UInt8Col(),
-    #     "ADCcount" : UInt16Col(),
-    #     "xcoord"   : Float32Col(),
-    #     "ycoord"   : Float32Col(),
+    #     "name"     : tb.StringCol(itemsize=16),
+    #     "TDCcount" : tb.UInt8Col(),
+    #     "ADCcount" : tb.UInt16Col(),
+    #     "xcoord"   : tb.Float32Col(),
+    #     "ycoord"   : tb.Float32Col(),
     #     }
 
     # Open a file in "w"rite mode
-    fileh = open_file("tutorial2.h5", mode = "w")
+    fileh = tb.open_file("tutorial2.h5", mode="w")
 
     # Get the HDF5 root group
     root = fileh.root
@@ -1227,18 +1233,18 @@ can be passed to this method::
         particle = table.row
 
         # Fill the table with 257 particles
-        for i in xrange(257):
+        for i in range(257):
             # First, assign the values to the Particle record
-            particle['name'] = 'Particle: %6d' % (i)
+            particle['name'] = f'Particle: {i:6d}'
             particle['lati'] = i
             particle['longi'] = 10 - i
 
             ########### Detectable errors start here. Play with them!
-            particle['pressure'] = array(i*arange(2*3)).reshape((2,4))  # Incorrect
-            #particle['pressure'] = array(i*arange(2*3)).reshape((2,3)) # Correct
+            particle['pressure'] = i * np.arange(2 * 4).reshape(2, 4)  # Incorrect
+            #particle['pressure'] = i * np.arange(2 * 3).reshape(2, 3) # Correct
             ########### End of errors
 
-            particle['temperature'] = (i**2)     # Broadcasting
+            particle['temperature'] = i ** 2     # Broadcasting
 
             # This injects the Record values
             particle.append()
@@ -1255,19 +1261,19 @@ can be passed to this method::
         event = table.row
 
         # Fill the table with 257 events
-        for i in xrange(257):
+        for i in range(257):
             # First, assign the values to the Event record
-            event['name']  = 'Event: %6d' % (i)
+            event['name']  = f'Event: {i:6d}'
             event['TDCcount'] = i % (1<<8)   # Correct range
 
             ########### Detectable errors start here. Play with them!
-            event['xcoor'] = float(i**2)     # Wrong spelling
-            #event['xcoord'] = float(i**2)   # Correct spelling
+            event['xcoor'] = float(i ** 2)     # Wrong spelling
+            #event['xcoord'] = float(i ** 2)   # Correct spelling
             event['ADCcount'] = "sss"        # Wrong type
             #event['ADCcount'] = i * 2       # Correct type
             ########### End of errors
 
-            event['ycoord'] = float(i)**4
+            event['ycoord'] = float(i) ** 4
 
             # This injects the Record values
             event.append()
@@ -1278,9 +1284,9 @@ can be passed to this method::
     # Read the records from table "/Events/TEvent3" and select some
     table = root.Events.TEvent3
     e = [ p['TDCcount'] for p in table if p['ADCcount'] < 20 and 4 <= p['TDCcount'] < 15 ]
-    print("Last record ==>", p)
-    print("Selected values ==>", e)
-    print("Total selected records ==> ", len(e))
+    print(f"Last record ==> {p}")
+    print("Selected values ==> {e}")
+    print("Total selected records ==> {len(e)}")
 
     # Finally, close the file (this also will flush all the remaining buffers!)
     fileh.close()
@@ -1293,10 +1299,10 @@ get the following error.
 
 .. code-block:: bash
 
-    $ python tutorial2.py
+    $ python3 tutorial2.py
     Traceback (most recent call last):
       File "tutorial2.py", line 60, in <module>
-        particle['pressure'] = array(i*arange(2*3)).reshape((2,4))  # Incorrect
+        particle['pressure'] = array(i * arange(2 * 3)).reshape((2, 4))  # Incorrect
     ValueError: total size of new array must be unchanged
     Closing remaining open files: tutorial2.h5... done
 
@@ -1310,7 +1316,7 @@ exception: when you assign a *scalar* value to a multidimensional column
 cell, all the cell elements are populated with the value of the scalar.
 For example::
 
-    particle['temperature'] = (i**2)    # Broadcasting
+    particle['temperature'] = i ** 2    # Broadcasting
 
 The value i**2 is assigned to all the elements of the temperature table cell.
 This capability is provided by the NumPy package and is known as
@@ -1324,10 +1330,10 @@ another error.
 
 .. code-block:: bash
 
-    $ python tutorial2.py
+    $ python3 tutorial2.py
     Traceback (most recent call last):
       File "tutorial2.py", line 73, in ?
-        event['xcoor'] = float(i**2)     # Wrong spelling
+        event['xcoor'] = float(i ** 2)     # Wrong spelling
       File "tableextension.pyx", line 1094, in tableextension.Row.__setitem__
       File "tableextension.pyx", line 127, in tableextension.get_nested_field_cache
       File "utilsextension.pyx", line 331, in utilsextension.get_nested_field
@@ -1349,7 +1355,7 @@ Finally, the last issue which we will find here is a TypeError exception.
 
 .. code-block:: bash
 
-    $ python tutorial2.py
+    $ python3 tutorial2.py
     Traceback (most recent call last):
       File "tutorial2.py", line 75, in ?
         event['ADCcount'] = "sss"          # Wrong type
@@ -1425,27 +1431,27 @@ where we will put our links and will start creating one hard link too::
 
     >>> gl = f1.create_group('/', 'gl')
     >>> ht = f1.create_hard_link(gl, 'ht', '/g1/g2/t1')  # ht points to t1
-    >>> print("``%s`` is a hard link to: ``%s``" % (ht, t1))
+    >>> print(f"``{ht}`` is a hard link to: ``{t1}``")
     ``/gl/ht (Table(0,)) `` is a hard link to: ``/g1/g2/t1 (Table(0,)) ``
 
 You can see how we've created a hard link in /gl/ht which is pointing to the
 existing table in /g1/g2/t1.  Have look at how the hard link is represented;
-it looks like a table, and actually, it is an *real* table.  We have two
+it looks like a table, and actually, it is a *real* table.  We have two
 different paths to access that table, the original /g1/g2/t1 and the new one
 /gl/ht.  If we remove the original path we still can reach the table by using
 the new path::
 
     >>> t1.remove()
-    >>> print("table continues to be accessible in: ``%s``" % f1.get_node('/gl/ht'))
+    >>> print(f"table continues to be accessible in: ``{f1.get_node('/gl/ht')}``")
     table continues to be accessible in: ``/gl/ht (Table(0,)) ``
 
 So far so good. Now, let's create a couple of soft links::
 
     >>> la1 = f1.create_soft_link(gl, 'la1', '/g1/a1')  # la1 points to a1
-    >>> print("``%s`` is a soft link to: ``%s``" % (la1, la1.target))
+    >>> print(f"``{la1}`` is a soft link to: ``{la1.target}``")
     ``/gl/la1 (SoftLink) -> /g1/a1`` is a soft link to: ``/g1/a1``
     >>> lt = f1.create_soft_link(gl, 'lt', '/g1/g2/t1')  # lt points to t1
-    >>> print("``%s`` is a soft link to: ``%s``" % (lt, lt.target))
+    >>> print(f"``{lt}`` is a soft link to: ``{lt.target}``")
     ``/gl/lt (SoftLink) -> /g1/g2/t1 (dangling)`` is a soft link to: ``/g1/g2/t1``
 
 Okay, we see how the first link /gl/la1 points to the array /g1/a1.  Notice
@@ -1462,7 +1468,7 @@ node or not.
 So, let's re-create the removed path to t1 table::
 
     >>> t1 = f1.create_hard_link('/g1/g2', 't1', '/gl/ht')
-    >>> print("``%s`` is not dangling anymore" % (lt,))
+    >>> print(f"``{lt}`` is not dangling anymore")
     ``/gl/lt (SoftLink) -> /g1/g2/t1`` is not dangling anymore
 
 and the soft link is pointing to an existing node now.
@@ -1472,10 +1478,10 @@ the pointed node.  It happens that soft links are callable, and that's the
 way to get the referred nodes back::
 
     >>> plt = lt()
-    >>> print("dereferred lt node: ``%s``" % plt)
+    >>> print(f"dereferred lt node: ``{plt}``")
     dereferred lt node: ``/g1/g2/t1 (Table(0,)) ``
     >>> pla1 = la1()
-    >>> print("dereferred la1 node: ``%s``" % pla1)
+    >>> print(f"dereferred la1 node: ``{pla1}``")
     dereferred la1 node: ``/g1/a1 (CArray(10000,)) ``
 
 Now, plt is a Python reference to the t1 table while pla1 refers to the a1
@@ -1503,13 +1509,13 @@ its place::
 
     >>> la1.remove()
     >>> la1 = f1.create_external_link(gl, 'la1', 'links2.h5:/a1')
-    >>> print("``%s`` is an external link to: ``%s``" % (la1, la1.target))
+    >>> print(f"``{la1}`` is an external link to: ``{la1.target}``")
     ``/gl/la1 (ExternalLink) -> links2.h5:/a1`` is an external link to: ``links2.h5:/a1``
 
 Let's try dereferring it::
 
     >>> new_a1 = la1()  # dereferrencing la1 returns a1 in links2.h5
-    >>> print("dereferred la1 node:  ``%s``" % new_a1)
+    >>> print(f"dereferred la1 node:  ``{new_a1}``")
     dereferred la1 node:  ``/a1 (CArray(10000,)) ``
 
 Well, it seems like we can access the external node.  But just to make sure
@@ -1557,14 +1563,14 @@ You can undo/redo all the operations that are related to object tree
 management, like creating, deleting, moving or renaming nodes (or complete
 sub-hierarchies) inside a given object tree. You can also undo/redo
 operations (i.e. creation, deletion or modification) of persistent node
-attributes. However, when actions include *internal* modifications of
-datasets (that includes Table.append, Table.modify_rows or Table.remove_rows
-among others), they cannot be undone/redone currently.
+attributes. However, actions which include *internal* modifications of datasets
+(that includes Table.append, Table.modify_rows or Table.remove_rows, among others) 
+cannot be currently undone/redone.
 
-This capability can be useful in many situations, like for example when doing
+This capability can be useful in many situations, for example when doing
 simulations with multiple branches. When you have to choose a path to follow
 in such a situation, you can put a mark there and, if the simulation is not
-going well, you can go back to that mark and start another path. Other
+going well, you can go back to that mark and start another path. Another
 possible application is defining coarse-grained operations which operate in a
 transactional-like way, i.e. which return the database to its previous state
 if the operation finds some kind of problem while running. You can probably
@@ -1615,7 +1621,7 @@ introduce the undo() method (see :meth:`File.undo`)::
 
     >>> fileh.undo()
 
-Fine, what do you think it happened? Well, let's have a look at the object
+Fine, what do you think happened? Well, let's have a look at the object
 tree::
 
     >>> print(fileh)
@@ -1625,10 +1631,10 @@ tree::
     / (RootGroup) 'Undo/Redo demo 1'
     /anarray (Array(2,)) 'An array'
 
-What happened with the /anotherarray node we've just created? You guess it,
+What happened with the /anotherarray node we've just created? You've guessed it,
 it has disappeared because it was created *after* the mark 1. If you are
-curious enough you may well ask where it has gone. Well, it has not been
-deleted completely; it has been just moved into a special, hidden, group of
+curious enough you may ask - where has it gone? Well, it has not been
+deleted completely; it has just been moved into a special, hidden group of
 PyTables that renders it invisible and waiting for a chance to be reborn.
 
 Now, unwind once more, and look at the object tree::
@@ -1640,9 +1646,9 @@ Now, unwind once more, and look at the object tree::
     Object Tree:
     / (RootGroup) 'Undo/Redo demo 1'
 
-Oops, /anarray has disappeared as well!.
-Don't worry, it will revisit us very shortly. So, you might be somewhat lost
-right now; in which mark are we?. Let's ask the :meth:`File.get_current_mark`
+Oops, /anarray has disappeared as well!
+Don't worry, it will visit us again very shortly. So, you might be somewhat lost
+right now; at which mark are we? Let's ask the :meth:`File.get_current_mark`
 method in the file handler::
 
     >>> print(fileh.get_current_mark())
@@ -1669,13 +1675,13 @@ alive and well::
     >>> fileh.root.anarray.title
     'An array'
 
-Well, it looks pretty similar than in its previous life;
-what's more, it is exactly the same object!::
+Well, it looks pretty similar to its past life;
+what's more, it is exactly the same object::
 
     >>> fileh.root.anarray is one
     True
 
-It just was moved to the the hidden group and back again, but that's all!
+It was just moved to the hidden group and back again, that's all!
 That's kind of fun, so we are going to do the same with /anotherarray::
 
     >>> fileh.redo()
@@ -1694,7 +1700,7 @@ Welcome back, /anotherarray! Just a couple of sanity checks::
     >>> fileh.root.anotherarray is another
     True
 
-Nice, you managed to turn your data back into life.
+Nice, you managed to turn your data back to life.
 Congratulations! But wait, do not forget to close your action log when you
 don't need this feature anymore::
 
@@ -1703,7 +1709,7 @@ don't need this feature anymore::
 That will allow you to continue working with your data without actually
 requiring PyTables to keep track of all your actions, and more importantly,
 allowing your objects to die completely if they have to, not requiring to
-keep them anywhere, and hence saving process time and space in your database
+keep them anywhere, hence saving process time and space in your database
 file.
 
 
@@ -1806,8 +1812,8 @@ Let's see what happens when going to the end of the action log::
     assert fileh.root.otherarray4.read() == [6,7]
     assert fileh.root.agroup.otherarray5.read() == [7,8]
 
-Try yourself going to the beginning of the action log (remember, the mark #0)
-and check the contents of the object tree.
+Try going to the beginning of the action log yourself (remember, mark #0)
+and check contents of the object tree.
 
 We have nearly finished this demonstration. As always, do not forget to close
 the action log as well as the database::
@@ -1855,7 +1861,7 @@ pairs to check those values::
     Colors: [('blue', 2), ('black', 4), ('white', 3), ('green', 1), ('red', 0)]
 
 Names have been given automatic integer concrete values. We can iterate over
-the values in an enumeration, but we will usually be more interested in
+values in an enumeration, but we will usually be more interested in
 accessing single values. We can get the concrete value associated with a name
 by accessing it as an attribute or as an item (the later can be useful for
 names not resembling Python identifiers)::
@@ -1881,10 +1887,10 @@ names not resembling Python identifiers)::
     KeyError: "no enumerated value with that name: 'yellow'"
 
 See how accessing a value that is not in the enumeration raises the
-appropriate exception. We can also do the opposite action and get the name
+appropriate exception. We can also do the opposite and get the name
 that matches a concrete value by using the __call__() method of Enum::
 
-    >>> print("Name of value %s:" % colors.red, colors(colors.red))
+    >>> print(f"Name of value {colors.red}:", colors(colors.red))
     Name of value 0: red
     >>> print("Name of value 1234:", colors(1234))
     Name of value 1234:
@@ -1926,14 +1932,13 @@ Let us use some random values to fill the table::
     >>> row = tbl.row
     >>> for i in range(10):
     ...     row['ballTime'] = now + i
-    ...     row['ballColor'] = colors[random.choice(colorList)]  # notice this
+    ...     row['ballColor'] = colors[random.choice(colorList)]  # take note of this
     ...     row.append()
     >>>
 
 Notice how we used the __getitem__() call of colors to get the concrete value
-to store in ballColor. You should know that this way of appending values to a
-table does automatically check for the validity on enumerated values.
-For instance::
+to store in ballColor. This way of appending values to a table automatically checks
+for the validity on enumerated values. For instance::
 
     >>> row['ballTime'] = now + 42
     >>> row['ballColor'] = 1234
@@ -1944,9 +1949,9 @@ For instance::
         "no enumerated value with that concrete value: %r" % (value,))
     ValueError: no enumerated value with that concrete value: 1234
 
-But take care that this check is *only* performed here and not in other
+Note that this check is performed *only* by row.append() and not in other
 methods such as tbl.append() or tbl.modify_rows(). Now, after flushing the
-table we can see the results of the insertions::
+table we can see the result of insertions::
 
     >>> tbl.flush()
     >>> for r in tbl:
@@ -1964,10 +1969,9 @@ table we can see the results of the insertions::
     Ball extracted on 1173785576 is of color white.
     Ball extracted on 1173785577 is of color white.
 
-As a last note, you may be wondering how to have access to the enumeration
-associated with ballColor once the file is closed and reopened. You can call
-tbl.get_enum('ballColor') (see :meth:`Table.get_enum`) to get the enumeration
-back.
+As a final note, you may be wondering how to access an enumeration associated 
+with ballColor once the file is closed and reopened. You can call tbl.get_enum('ballColor')
+(see :meth:`Table.get_enum`) to get the enumeration back.
 
 
 Enumerated arrays
@@ -1985,11 +1989,11 @@ bidimensional values::
     >>> earr = h5f.create_earray('/', 'days', dayRange, (0, 2), title="Working day ranges")
     >>> earr.flavor = 'python'
 
-Nothing surprising, except for a pair of details. In the first place, we use
+Nothing unusual, except for two details. Firstly, we use
 a *dictionary* instead of a list to explicitly set concrete values in the
-enumeration. In the second place, there is no explicit Enum instance created!
+enumeration. Secondly, there is no explicit Enum instance created!
 Instead, the dictionary is passed as the first argument to the constructor of
-EnumAtom. If the constructor gets a list or a dictionary instead of an
+EnumAtom. If the constructor receives a list or a dictionary instead of an
 enumeration, it automatically builds the enumeration from it.
 
 Now let us feed some data to the array::
@@ -2004,10 +2008,10 @@ could also have used dayRange.enum).  Also note that we were able to append
 an invalid value (1234). Array methods do not check the validity of
 enumerated values.
 
-Finally, we will print the contents of the array::
+Finally, we will print contents of the array::
 
     >>> for (d1, d2) in earr:
-    ...     print("From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2-d1+1))
+    ...     print(f"From {wdays(d1) to {wdays(d2) ({d2 - d1 + 1} days).")
     From Mon to Fri (5 days).
     From Wed to Fri (3 days).
     Traceback (most recent call last):
@@ -2026,86 +2030,73 @@ done::
     >>> h5f.close()
 
 
-Dealing with nested structures in tables
+Nested structures in tables
 ----------------------------------------
-PyTables supports the handling of nested structures (or nested datatypes, as
-you prefer) in table objects, allowing you to define arbitrarily nested
-columns.
+PyTables supports handling of nested structures (or, in other words, nested datatypes)
+in table objects, allowing you to define nested columns of arbitrary depth. 
 
-An example will clarify what this means. Let's suppose that you want to group
-your data in pieces of information that are more related than others pieces
-in your table, So you may want to tie them up together in order to have your
-table better structured but also be able to retrieve and deal with these
-groups more easily.
+Why is that useful? Suppose your data has a certain structure on the column level, 
+which you would like to represent in the data model. You can do so by creating 
+nested subclasses of IsDescription. The benefit is the ability to group
+and retrieve data more easily. Example below may be a bit silly, but it will serve 
+as an illustration of the concept::
 
-You can create such a nested substructures by just nesting subclasses of
-IsDescription. Let's see one example (okay, it's a bit silly, but will serve
-for demonstration purposes)::
+    import tables as tb
 
-    from tables import *
-
-    class Info(IsDescription):
-        """A sub-structure of Test"""
+    class Info(tb.IsDescription):
+        """A sub-structure of NestedDescr"""
         _v_pos = 2   # The position in the whole structure
-        name = StringCol(10)
-        value = Float64Col(pos=0)
+        name = tb.StringCol(10)
+        value = tb.Float64Col(pos=0)
 
-    colors = Enum(['red', 'green', 'blue'])
+    colors = tb.Enum(['red', 'green', 'blue'])
 
-    class NestedDescr(IsDescription):
+    class NestedDescr(tb.IsDescription):
         """A description that has several nested columns"""
-        color = EnumCol(colors, 'red', base='uint32')
-        info1 = Info()
+        color = tb.EnumCol(colors, 'red', base='uint32')
+        info1 = tb.Info()
 
-        class info2(IsDescription):
+        class info2(tb.IsDescription):
             _v_pos = 1
-            name = StringCol(10)
-            value = Float64Col(pos=0)
+            name = tb.StringCol(10)
+            value = tb.Float64Col(pos=0)
 
-            class info3(IsDescription):
-                x = Float64Col(dflt=1)
-                y = UInt8Col(dflt=1)
+            class info3(tb.IsDescription):
+                x = tb.Float64Col(dflt=1)
+                y = tb.UInt8Col(dflt=1)
 
-The root class is NestedDescr and both info1 and info2 are *substructures* of
-it. Note how info1 is actually an instance of the class Info that was defined
-prior to NestedDescr. Also, there is a third substructure, namely info3 that
-hangs from the substructure info2. You can also define positions of
-substructures in the containing object by declaring the special class
-attribute _v_pos.
+NestedDescr is the root class with two *substructures* in it: info1 and info2. Note info1 is an instance of class Info which is defined prior to NestedDescr. info2 is declared within NestedDescr. Also, there is a third substructure, info3, that is in turn declared within substructure info2. You can define positions of substructures in the containing object by declaring special class attribute _v_pos.
 
 
-Nested table creation
-~~~~~~~~~~~~~~~~~~~~~
+Creating nested tables
+~~~~~~~~~~~~~~~~~~~~~~
 Now that we have defined our nested structure, let's create a *nested* table,
-that is a table with columns that contain other subcolumns::
+that is a table with columns which contain subcolumns::
 
-    >>> fileh = open_file("nested-tut.h5", "w")
+    >>> fileh = tb.open_file("nested-tut.h5", "w")
     >>> table = fileh.create_table(fileh.root, 'table', NestedDescr)
 
-Done! Now, we have to feed the table with some values. The problem is how we
-are going to reference to the nested fields. That's easy, just use a '/'
-character to separate names in different nested levels. Look at this::
+Done! Now, to populate the table with values, assign a value to each field. Referencing nested fields can be accomplished by providing a full path. Follow the structure defined earlier - use '/' to access each sublevel of the structure, similar to how you would access a subdirectory on a Unix filesystem::
 
     >>> row = table.row
     >>> for i in range(10):
-    ...     row['color'] = colors[['red', 'green', 'blue'][i%3]]
-    ...     row['info1/name'] = "name1-%s" % i
-    ...     row['info2/name'] = "name2-%s" % i
+    ...     row['color'] = colors[['red', 'green', 'blue'][i % 3]]
+    ...     row['info1/name'] = f"name1-{i}"
+    ...     row['info2/name'] = f"name2-{i}"
     ...     row['info2/info3/y'] =  i
-    ...     # All the rest will be filled with defaults
+    ...     # Remaining fields will be filled with defaults
     ...     row.append()
     >>> table.flush()
     >>> table.nrows
     10
 
-You see? In order to fill the fields located in the substructures, we just
-need to specify its full path in the table hierarchy.
+As demonstrated above, substructure's field can be accessed by specifying its full path as defined in the table hierarchy.
 
 
 Reading nested tables
 ~~~~~~~~~~~~~~~~~~~~~
-Now, what happens if we want to read the table? What kind oft data container
-will we get? Well, it's worth trying it::
+Now, what happens if we want to read the table? What kind of data container
+would we get? Let's find out::
 
     >>> nra = table[::4]
     >>> nra
@@ -2117,18 +2108,18 @@ will we get? Well, it's worth trying it::
                   ('info1', [('name', '\|S10'), ('value', '>f8')]),
                   ('color', '>u4')])
 
-What we got is a NumPy array with a *compound, nested datatype* (its dtype is
-a list of name-datatype tuples). We read one row for each four in the table,
-giving a result of three rows.
+What we've got is a NumPy array with a *compound, nested datatype*, i.e. its dtype is
+a list of name-datatype tuples. For every fourth row in the table (note [::4]), we get one resulting row,
+giving a total of three.
 
 You can make use of the above object in many different ways.
-For example, you can use it to append new data to the existing table object::
+For example, you can use it to append new data to an existing table object::
 
     >>> table.append(nra)
     >>> table.nrows
     13
 
-Or, to create new tables::
+Or to create new tables::
 
     >>> table2 = fileh.create_table(fileh.root, 'table2', nra)
     >>> table2[:]
@@ -2140,21 +2131,21 @@ Or, to create new tables::
                   ('info1', [('name', '\|S10'), ('value', '<f8')]),
                   ('color', '<u4')])
 
-Finally, we can select nested values that fulfill some condition::
+Finally, you can select nested values that meet an arbitrary condition::
 
     >>> names = [ x['info2/name'] for x in table if x['color'] == colors.red ]
     >>> names
     ['name2-0', 'name2-3', 'name2-6', 'name2-9', 'name2-0']
 
-Note that the row accessor does not provide the natural naming feature, so
-you have to completely specify the path of your desired columns in order to
-reach them.
+Note that row accessor does not provide natural naming feature, so
+you have to specify an absolute path to your desired column in order to
+access it.
 
 
 Using Cols accessor
 ~~~~~~~~~~~~~~~~~~~
-We can use the cols attribute object (see :ref:`ColsClassDescr`) of the table
-so as to quickly access the info located in the interesting substructures::
+We can use cols attribute object (see :ref:`ColsClassDescr`) of the table
+to conveniently access data stored in a substructure::
 
     >>> table.cols.info2[1:5]
     array([((1.0, 1), 'name2-1', 0.0), ((1.0, 2), 'name2-2', 0.0),
@@ -2162,16 +2153,16 @@ so as to quickly access the info located in the interesting substructures::
            dtype=[('info3', [('x', '<f8'), ('y', '\|u1')]), ('name', '\|S10'),
                   ('value', '<f8')])
 
-Here, we have made use of the cols accessor to access to the *info2*
-substructure and an slice operation to get access to the subset of data we
-were interested in; you probably have recognized the natural naming approach
-here. We can continue and ask for data in *info3* substructure::
+Here, we have made use of the cols accessor to access *info2*
+substructure and a slice operation to retrieve a subset of data we
+were interested in; you probably recognized natural naming approach
+used here as well. We can continue and ask for data in *info3* substructure::
 
     >>> table.cols.info2.info3[1:5]
     array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)],
            dtype=[('x', '<f8'), ('y', '\|u1')])
 
-You can also use the _f_col method to get a handler for a column::
+You can also use the _f_col method to get a handler for the column::
 
     >>> table.cols._f_col('info2')
     /table.cols.info2 (Cols), 3 columns
@@ -2186,18 +2177,15 @@ instance::
     >>> table.cols._f_col('info2/info3/y')
     /table.cols.info2.info3.y (Column(), uint8, idx=None)
 
-To sum up, the cols accessor is a very handy and powerful way to access data
-in your nested tables. Don't be afraid of using it, specially when doing
-interactive work.
+To summarize, cols accessor is a very handy and powerful tool to access data
+in nested tables. Don't hesitate to use it, especially when doing interactive work.
 
 
 Accessing meta-information of nested tables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Tables have an attribute called description which points to an instance of
-the Description class (see :ref:`DescriptionClassDescr`) and is useful to
-discover different meta-information about table data.
-
-Let's see how it looks like::
+Tables have a *description* attribute, which returns an instance of
+the Description class (see :ref:`DescriptionClassDescr`) with table meta-data.
+It can be helpful in understanding the table structure, including nested columns::
 
     >>> table.description
     {
@@ -2213,11 +2201,11 @@ Let's see how it looks like::
       "color": EnumCol(enum=Enum({'blue': 2, 'green': 1, 'red': 0}), dflt='red',
                        base=UInt32Atom(shape=(), dflt=0), shape=(), pos=2)}
 
-As you can see, it provides very useful information on both the formats and
-the structure of the columns in your table.
+As you can see, it provides very useful information on both the format and
+the structure of columns in your table.
 
-This object also provides a natural naming approach to access to subcolumns
-metadata::
+You can use natural naming approach with the description attribute to gain access to subcolumn's
+meta-data::
 
     >>> table.description.info1
     {"name": StringCol(itemsize=10, shape=(), dflt='', pos=0),
@@ -2226,7 +2214,7 @@ metadata::
     {"x": Float64Col(shape=(), dflt=1.0, pos=0),
      "y": UInt8Col(shape=(), dflt=1, pos=1)}
 
-There are other variables that can be interesting for you::
+_v_nested_names attribute provides names of columns as well as structures embedded in them::
 
     >>> table.description._v_nested_names
     [('info2', [('info3', ['x', 'y']), 'name', 'value']),
@@ -2234,40 +2222,35 @@ There are other variables that can be interesting for you::
     >>> table.description.info1._v_nested_names
     ['name', 'value']
 
-_v_nested_names provides the names of the columns as well as its structure.
-You can see that there are the same attributes for the different levels of
-the Description object, because the levels are *also* Description objects
-themselves.
+Regardless of which level of the structure is accessed, the output of _v_nested_names contains
+the same kind of information. This is because even for nested structures, a Description
+object is returned.
 
-There is a special attribute, called _v_nested_descr, that can be useful to
-create nested structured arrays that imitate the structure of the table (or a
-subtable thereof)::
+It is possible to create arrays that immitate nested table-like structure with _v_nested_descr attribute::
 
-    >>> import numpy
+    >>> import numpy as np
     >>> table.description._v_nested_descr
     [('info2', [('info3', [('x', '()f8'), ('y', '()u1')]), ('name', '()S10'),
      ('value', '()f8')]), ('info1', [('name', '()S10'), ('value', '()f8')]),
      ('color', '()u4')]
-    >>> numpy.rec.array(None, shape=0,
-                        dtype=table.description._v_nested_descr)
+    >>> np.rec.array(None, shape=0, dtype=table.description._v_nested_descr)
     recarray([],
           dtype=[('info2', [('info3', [('x', '>f8'), ('y', '|u1')]),
                  ('name', '|S10'), ('value', '>f8')]),
                  ('info1', [('name', '|S10'), ('value', '>f8')]),
                  ('color', '>u4')])
-    >>> numpy.rec.array(None, shape=0,
-                        dtype=table.description.info2._v_nested_descr)
+    >>> np.rec.array(
+            None, shape=0, dtype=table.description.info2._v_nested_descr
+        )
     recarray([],
           dtype=[('info3', [('x', '>f8'), ('y', '|u1')]), ('name', '|S10'),
                  ('value', '>f8')])
 
-You can see a simple example on how to create an array with NumPy.
-
-Finally, there is a special iterator of the Description class, called _f_walk
-that is able to return you the different columns of the table::
+Last but not least, there is a special iterator of the Description class: _f_walk,
+which returns different columns of the table::
 
     >>> for coldescr in table.description._f_walk():
-    ...     print("column-->",coldescr)
+    ...     print(f"column--> {coldescr}")
     column--> Description([('info2', [('info3', [('x', '()f8'), ('y', '()u1')]),
                            ('name', '()S10'), ('value', '()f8')]),
                            ('info1', [('name', '()S10'), ('value', '()f8')]),
@@ -2285,10 +2268,10 @@ that is able to return you the different columns of the table::
     column--> Float64Col(shape=(), dflt=1.0, pos=0)
     column--> UInt8Col(shape=(), dflt=1, pos=1)
 
-See the :ref:`DescriptionClassDescr` for the complete listing of attributes
-and methods of Description.
+See the :ref:`DescriptionClassDescr` for a complete listing of attributes
+and methods of the Description object.
 
-Well, this is the end of this tutorial. As always, do not forget to close
+Well, this is the end of this tutorial. As always, remember to close
 your files::
 
     >>> fileh.close()
@@ -2323,11 +2306,8 @@ Finally, you may want to have a look at your resulting data file.
 Most of the code in this section is also available in
 :file:`examples/nested-tut.py`.
 
-All in all, PyTables provides a quite comprehensive toolset to cope with
-nested structures and address your classification needs.
-However, caveat emptor, be sure to not nest your data too deeply or you will
-get inevitably messed interpreting too intertwined lists, tuples and
-description objects.
+PyTables provides a comprehensive set of tools to work with nested structures and to address your classification needs.
+Try to avoid nesting your data too deeply as it may lead to very long and convoluted series of lists, tuples, and description objects, which can be hard to read and understand.
 
 
 Other examples in PyTables distribution
@@ -2346,7 +2326,7 @@ objects, and how it can be used in the real world.
 .. [2] Note that you can append not only scalar values to tables,
        but also fully multidimensional array objects.
 
-.. [3] You can even *hide* nodes temporarily. Will you be able to find out how?
+.. [3] You can even *hide* nodes temporarily. Can you think of a way to do it?
 
 .. [4] In fact, only integer values are supported right now, but
        this may change in the future.

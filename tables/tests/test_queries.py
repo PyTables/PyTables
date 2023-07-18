@@ -1,35 +1,14 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: 2006-10-19
-# Author: Ivan Vilata i Balaguer - ivan@selidor.net
-#
-# $Id$
-#
-########################################################################
-
 """Test module for queries on datasets."""
 
 import re
 import sys
-import types
 import warnings
 import functools
 
-import numpy
+import numpy as np
 
-import tables
-from tables.utils import SizeType
+import tables as tb
 from tables.tests import common
-from tables.tests.common import unittest
-from tables.tests.common import verbosePrint as vprint
-from tables.tests.common import PyTablesTestCase as TestCase
-
-
-from numpy import (log10, exp, log, abs, sqrt, sin, cos, tan,
-                   arcsin, arccos, arctan)
 
 
 # Data parameters
@@ -39,8 +18,8 @@ row_period = 50
 md_shape = (2, 2)
 """Shape of multidimensional fields."""
 
-_maxnvalue = row_period + numpy.prod(md_shape, dtype=SizeType) - 1
-_strlen = int(numpy.log10(_maxnvalue-1)) + 1
+_maxnvalue = row_period + np.prod(md_shape, dtype=tb.utils.SizeType) - 1
+_strlen = int(np.log10(_maxnvalue-1)) + 1
 
 str_format = '%%0%dd' % _strlen
 """Format of string values."""
@@ -53,56 +32,54 @@ small_blocksizes = (300, 60, 20, 5)
 # Type information
 # ----------------
 type_info = {
-    'bool': (numpy.bool_, bool),
-    'int8': (numpy.int8, int),
-    'uint8': (numpy.uint8, int),
-    'int16': (numpy.int16, int),
-    'uint16': (numpy.uint16, int),
-    'int32': (numpy.int32, int),
-    'uint32': (numpy.uint32, int),
-    'int64': (numpy.int64, int),
-    'uint64': (numpy.uint64, int),
-    'float32': (numpy.float32, float),
-    'float64': (numpy.float64, float),
-    'complex64': (numpy.complex64, complex),
-    'complex128': (numpy.complex128, complex),
-    'time32': (numpy.int32, int),
-    'time64': (numpy.float64, float),
-    'enum': (numpy.uint8, int),  # just for these tests
-    'string': ('S%s' % _strlen, numpy.string_),  # just for these tests
+    'bool': (np.bool_, bool),
+    'int8': (np.int8, int),
+    'uint8': (np.uint8, int),
+    'int16': (np.int16, int),
+    'uint16': (np.uint16, int),
+    'int32': (np.int32, int),
+    'uint32': (np.uint32, int),
+    'int64': (np.int64, int),
+    'uint64': (np.uint64, int),
+    'float32': (np.float32, float),
+    'float64': (np.float64, float),
+    'complex64': (np.complex64, complex),
+    'complex128': (np.complex128, complex),
+    'time32': (np.int32, int),
+    'time64': (np.float64, float),
+    'enum': (np.uint8, int),  # just for these tests
+    'string': ('S%s' % _strlen, np.string_),  # just for these tests
 }
 """NumPy and Numexpr type for each PyTables type that will be tested."""
 
 # globals dict for eval()
-func_info = {'log10': log10, 'log': log, 'exp': exp,
-             'abs': abs, 'sqrt': sqrt,
-             'sin': sin, 'cos': cos, 'tan': tan,
-             'arcsin': arcsin, 'arccos': arccos, 'arctan': arctan}
+func_info = {'log10': np.log10, 'log': np.log, 'exp': np.exp,
+             'abs': np.abs, 'sqrt': np.sqrt,
+             'sin': np.sin, 'cos': np.cos, 'tan': np.tan,
+             'arcsin': np.arcsin, 'arccos': np.arccos, 'arctan': np.arctan}
 """functions and NumPy.ufunc() for each function that will be tested."""
 
 
-if hasattr(numpy, 'float16'):
-    type_info['float16'] = (numpy.float16, float)
+if hasattr(np, 'float16'):
+    type_info['float16'] = (np.float16, float)
 # if hasattr(numpy, 'float96'):
-#    type_info['float96'] = (numpy.float96, float)
+#    type_info['float96'] = (np.float96, float)
 # if hasattr(numpy, 'float128'):
-#    type_info['float128'] = (numpy.float128, float)
+#    type_info['float128'] = (np.float128, float)
 # if hasattr(numpy, 'complex192'):
-#    type_info['complex192'] = (numpy.complex192, complex)
+#    type_info['complex192'] = (np.complex192, complex)
 # if hasattr(numpy, 'complex256'):
-#    type_info['complex256'] = (numpy.complex256, complex)
+#    type_info['complex256'] = (np.complex256, complex)
 
-sctype_from_type = dict((type_, info[0])
-                        for (type_, info) in type_info.items())
+sctype_from_type = {type_: info[0] for (type_, info) in type_info.items()}
 """Maps PyTables types to NumPy scalar types."""
-nxtype_from_type = dict((type_, info[1])
-                        for (type_, info) in type_info.items())
+nxtype_from_type = {type_: info[1] for (type_, info) in type_info.items()}
 """Maps PyTables types to Numexpr types."""
 
 heavy_types = frozenset(['uint8', 'int16', 'uint16', 'float32', 'complex64'])
 """PyTables types to be tested only in heavy mode."""
 
-enum = tables.Enum(dict(('n%d' % i, i) for i in range(_maxnvalue)))
+enum = tb.Enum({'n%d' % i: i for i in range(_maxnvalue)})
 """Enumerated type to be used in tests."""
 
 
@@ -116,18 +93,18 @@ def append_columns(classdict, shape=()):
 
     """
     heavy = common.heavy
-    for (itype, type_) in enumerate(sorted(type_info.keys())):
+    for (itype, type_) in enumerate(sorted(type_info)):
         if not heavy and type_ in heavy_types:
             continue  # skip heavy type in non-heavy mode
         colpos = itype + 1
         colname = 'c_%s' % type_
         if type_ == 'enum':
-            base = tables.Atom.from_sctype(sctype_from_type[type_])
-            col = tables.EnumCol(enum, enum(0), base, shape=shape, pos=colpos)
+            base = tb.Atom.from_sctype(sctype_from_type[type_])
+            col = tb.EnumCol(enum, enum(0), base, shape=shape, pos=colpos)
         else:
             sctype = sctype_from_type[type_]
-            dtype = numpy.dtype((sctype, shape))
-            col = tables.Col.from_dtype(dtype, pos=colpos)
+            dtype = np.dtype((sctype, shape))
+            col = tb.Col.from_dtype(dtype, pos=colpos)
         classdict[colname] = col
     ncols = colpos
     return ncols
@@ -143,7 +120,7 @@ def nested_description(classname, pos, shape=()):
     classdict = {}
     append_columns(classdict, shape=shape)
     classdict['_v_pos'] = pos
-    return type(classname, (tables.IsDescription,), classdict)
+    return type(classname, (tb.IsDescription,), classdict)
 
 
 def table_description(classname, nclassname, shape=()):
@@ -165,15 +142,16 @@ def table_description(classname, nclassname, shape=()):
     classdict['c_nested'] = ndescr
     colpos += 1
 
-    extracol = tables.IntCol(shape=shape, pos=colpos)
+    extracol = tb.IntCol(shape=shape, pos=colpos)
     classdict['c_extra'] = extracol
     colpos += 1
 
-    idxextracol = tables.IntCol(shape=shape, pos=colpos)
+    idxextracol = tb.IntCol(shape=shape, pos=colpos)
     classdict['c_idxextra'] = idxextracol
     colpos += 1
 
-    return type(classname, (tables.IsDescription,), classdict)
+    return type(classname, (tb.IsDescription,), classdict)
+
 
 TableDescription = table_description(
     'TableDescription', 'NestedDescription')
@@ -210,11 +188,11 @@ def fill_table(table, shape, nrows):
         return
 
     heavy = common.heavy
-    size = int(numpy.prod(shape, dtype=SizeType))
+    size = int(np.prod(shape, dtype=tb.utils.SizeType))
 
     row, value = table.row, 0
     for nrow in range(nrows):
-        data = numpy.arange(value, value + size).reshape(shape)
+        data = np.arange(value, value + size).reshape(shape)
         for (type_, sctype) in sctype_from_type.items():
             if not heavy and type_ in heavy_types:
                 continue  # skip heavy type in non-heavy mode
@@ -224,9 +202,9 @@ def fill_table(table, shape, nrows):
                 coldata = data > (row_period // 2)
             elif type_ == 'string':
                 sdata = [str_format % x for x in range(value, value + size)]
-                coldata = numpy.array(sdata, dtype=sctype).reshape(shape)
+                coldata = np.array(sdata, dtype=sctype).reshape(shape)
             else:
-                coldata = numpy.asarray(data, dtype=sctype)
+                coldata = np.asarray(data, dtype=sctype)
             row[ncolname] = row[colname] = coldata
             row['c_extra'] = data - (row_period // 2)
             row['c_idxextra'] = data - (row_period // 2)
@@ -241,13 +219,13 @@ def fill_table(table, shape, nrows):
     table_data[(shape, nrows)] = tdata
 
 
-class SilentlySkipTest(unittest.SkipTest):
+class SilentlySkipTest(common.unittest.SkipTest):
     pass
 
 
 # Base test cases
 # ---------------
-class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
+class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Base test case for querying tables.
 
     Sub-classes must define the following attributes:
@@ -280,7 +258,8 @@ class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
             return
         try:
             kind = self.kind
-            vprint("* Indexing ``%s`` columns. Type: %s." % (colname, kind))
+            common.verbosePrint(
+                f"* Indexing ``{colname}`` columns. Type: {kind}.")
             for acolname in [colname, ncolname, extracolname]:
                 acolumn = self.table.colinstances[acolname]
                 acolumn.create_index(
@@ -297,7 +276,7 @@ class BaseTableQueryTestCase(common.TempFileMixin, TestCase):
                 "Indexing columns of this type is not supported yet.")
 
     def setUp(self):
-        super(BaseTableQueryTestCase, self).setUp()
+        super().setUp()
         self.table = self.h5file.create_table(
             '/', 'test', self.tableDescription, expectedrows=self.nrows)
         fill_table(self.table, self.shape, self.nrows)
@@ -374,16 +353,16 @@ def create_test_method(type_, op, extracond, func=None):
     elif op == '~':  # unary
         cond = '~(%s)' % colname
     elif op == '<' and func is None:  # binary variable-constant
-        cond = '%s %s %s' % (colname, op, repr(condvars['bound']))
+        cond = '{} {} {}'.format(colname, op, repr(condvars['bound']))
     elif isinstance(op, tuple):  # double binary variable-constant
         cond = ('(lbound %s %s) & (%s %s rbound)'
                 % (op[0], colname, colname, op[1]))
     elif func is not None:
-        cond = '%s(%s) %s func_bound' % (func, colname, op)
+        cond = f'{func}({colname}) {op} func_bound'
     else:  # function or binary variable-variable
-        cond = '%s %s bound' % (colname, op)
+        cond = f'{colname} {op} bound'
     if extracond:
-        cond = '(%s) %s' % (cond, extracond)
+        cond = f'({cond}) {extracond}'
 
     def ignore_skipped(oldmethod):
         @functools.wraps(oldmethod)
@@ -403,7 +382,7 @@ def create_test_method(type_, op, extracond, func=None):
 
     @ignore_skipped
     def test_method(self):
-        vprint("* Condition is ``%s``." % cond)
+        common.verbosePrint("* Condition is ``%s``." % cond)
         # Replace bitwise operators with their logical counterparts.
         pycond = cond
         for (ptop, pyop) in [('&', 'and'), ('|', 'or'), ('~', 'not')]:
@@ -437,17 +416,17 @@ def create_test_method(type_, op, extracond, func=None):
                 if isvalidrow:
                     pyrownos.append(row.nrow)
                     pyfvalues.append(row[acolname])
-            pyrownos = numpy.array(pyrownos)  # row numbers already sorted
-            pyfvalues = numpy.array(pyfvalues, dtype=sctype)
+            pyrownos = np.array(pyrownos)  # row numbers already sorted
+            pyfvalues = np.array(pyfvalues, dtype=sctype)
             pyfvalues.sort()
-            vprint("* %d rows selected by Python from ``%s``."
-                   % (len(pyrownos), acolname))
+            common.verbosePrint(f"* {len(pyrownos)} rows selected by Python "
+                                f"from ``{acolname}``.")
             if rownos is None:
                 rownos = pyrownos  # initialise reference results
                 fvalues = pyfvalues
             else:
-                self.assertTrue(numpy.all(pyrownos == rownos))  # check
-                self.assertTrue(numpy.all(pyfvalues == fvalues))
+                self.assertTrue(np.all(pyrownos == rownos))  # check
+                self.assertTrue(np.all(pyfvalues == fvalues))
 
             # Then the in-kernel or indexed version.
             ptvars = condvars.copy()
@@ -474,14 +453,14 @@ def create_test_method(type_, op, extracond, func=None):
                     "The PyTables type does not support the operation.")
             for ptfvals in ptfvalues:  # row numbers already sorted
                 ptfvals.sort()
-            vprint("* %d rows selected by PyTables from ``%s``"
-                   % (len(ptrownos[0]), acolname), nonl=True)
-            vprint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
-            self.assertTrue(numpy.all(ptrownos[0] == rownos))
-            self.assertTrue(numpy.all(ptfvalues[0] == fvalues))
+            common.verbosePrint(f"* {len(ptrownos[0])} rows selected by "
+                                f"PyTables from ``{acolname}``", nonl=True)
+            common.verbosePrint(f"(indexing: {'yes' if isidxq else 'no'}).")
+            self.assertTrue(np.all(ptrownos[0] == rownos))
+            self.assertTrue(np.all(ptfvalues[0] == fvalues))
             # The following test possible caching of query results.
-            self.assertTrue(numpy.all(ptrownos[0] == ptrownos[1]))
-            self.assertTrue(numpy.all(ptfvalues[0] == ptfvalues[1]))
+            self.assertTrue(np.all(ptrownos[0] == ptrownos[1]))
+            self.assertTrue(np.all(ptfvalues[0] == ptfvalues[1]))
 
     test_method.__doc__ = "Testing ``%s``." % cond
     return test_method
@@ -493,18 +472,16 @@ def add_test_method(type_, op, extracond='', func=None):
     heavy = type_ in heavy_types or op in heavy_operators
     if heavy:
         testfmt = TableDataTestCase._testfmt_heavy
-        numfmt = ' [#H%d]'
     else:
         testfmt = TableDataTestCase._testfmt_light
-        numfmt = ' [#L%d]'
     tmethod = create_test_method(type_, op, extracond, func)
     # The test number is appended to the docstring to help
     # identify failing methods in non-verbose mode.
     tmethod.__name__ = testfmt % testn
-    # tmethod.__doc__ += numfmt % testn
     tmethod.__doc__ += testfmt % testn
     setattr(TableDataTestCase, tmethod.__name__, tmethod)
     testn += 1
+
 
 # Create individual tests.  You may restrict which tests are generated
 # by replacing the sequences in the ``for`` statements.  For instance:
@@ -536,6 +513,7 @@ class BigNITableMixin:
     assert nrows % NX_BLOCK_SIZE1 != 0
     assert nrows % NX_BLOCK_SIZE2 != 0  # to have some residual rows
 
+
 # Parameters for non-indexed queries.
 table_sizes = ['Small', 'Big']
 heavy_table_sizes = frozenset(['Big'])
@@ -553,7 +531,7 @@ def niclassdata():
     for size in table_sizes:
         heavy = size in heavy_table_sizes
         for ndim in table_ndims:
-            classname = '%s%sTDTestCase' % (size[0], ndim[0])
+            classname = '{}{}TDTestCase'.format(size[0], ndim[0])
             cbasenames = ('%sNITableMixin' % size, '%sTableMixin' % ndim,
                           'TableDataTestCase')
             classdict = dict(heavy=heavy)
@@ -589,6 +567,7 @@ class MediumSTableMixin:
 
 class BigSTableMixin:
     nrows = 500
+
 
 # Parameters for indexed queries.
 ckinds = ['UltraLight', 'Light', 'Medium', 'Full']
@@ -635,6 +614,7 @@ for cdatafunc in [niclassdata, iclassdata]:
 # -------------------------
 class BaseTableUsageTestCase(BaseTableQueryTestCase):
     nrows = row_period
+
 
 _gvar = None
 """Use this when a global variable is needed."""
@@ -795,7 +775,7 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
     indexed = True
 
     def setUp(self):
-        super(IndexedTableUsage, self).setUp()
+        super().setUp()
         self.table.cols.c_bool.create_index(_blocksizes=small_blocksizes)
         self.table.cols.c_int32.create_index(_blocksizes=small_blocksizes)
         self.will_query_use_indexing = self.table.will_query_use_indexing
@@ -812,27 +792,27 @@ class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
         for condition in self.conditions:
             c_usable_idxs = self.will_query_use_indexing(condition, {})
             self.assertEqual(c_usable_idxs, self.usable_idxs,
-                             "\nQuery with condition: ``%s``\n"
-                             "Computed usable indexes are: ``%s``\n"
-                             "and should be: ``%s``" %
-                            (condition, c_usable_idxs, self.usable_idxs))
+                             f"\nQuery with condition: ``{condition}``\n"
+                             f"Computed usable indexes are: "
+                             f"``{c_usable_idxs}``\nand should be: "
+                             f"``{self.usable_idxs}``")
             condvars = self.requiredExprVars(condition, None)
             compiled = self.compileCondition(condition, condvars)
             c_idx_expr = compiled.index_expressions
             self.assertEqual(c_idx_expr, self.idx_expr,
-                             "\nWrong index expression in condition:\n``%s``\n"
-                             "Compiled index expression is:\n``%s``\n"
-                             "and should be:\n``%s``" %
-                            (condition, c_idx_expr, self.idx_expr))
+                             f"\nWrong index expression in condition:\n"
+                             f"``{condition}``\nCompiled index expression is:"
+                             f"\n``{c_idx_expr}``\nand should be:\n"
+                             f"``{self.idx_expr}``")
             c_str_expr = compiled.string_expression
             self.assertEqual(c_str_expr, self.str_expr,
-                             "\nWrong index operations in condition:\n``%s``\n"
-                             "Computed index operations are:\n``%s``\n"
-                             "and should be:\n``%s``" %
-                            (condition, c_str_expr, self.str_expr))
-            vprint("* Query with condition ``%s`` will use "
-                   "variables ``%s`` for indexing."
-                   % (condition, compiled.index_variables))
+                             f"\nWrong index operations in condition:\n"
+                             f"``{condition}``\nComputed index operations are:"
+                             f"\n``{c_str_expr}``\nand should be:\n"
+                             f"``{self.str_expr}``")
+            common.verbosePrint(
+                f"* Query with condition ``{condition}`` will use variables "
+                f"``{compiled.index_variables}`` for indexing.")
 
 
 class IndexedTableUsage1(IndexedTableUsage):
@@ -1232,7 +1212,7 @@ class IndexedTableUsage32(IndexedTableUsage):
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
-    testSuite = unittest.TestSuite()
+    testSuite = common.unittest.TestSuite()
 
     cdatafuncs = [niclassdata]  # non-indexing data tests
     cdatafuncs.append(iclassdata)  # indexing data tests
@@ -1251,43 +1231,44 @@ def suite():
             for cdata in cdatafunc():
                 class_ = eval(cdata[0])
                 if heavy or not class_.heavy:
-                    suite_ = unittest.makeSuite(class_, prefix=autoprefix)
+                    suite_ = common.unittest.makeSuite(class_,
+                                                       prefix=autoprefix)
                     testSuite.addTest(suite_)
         # Tests on query usage.
-        testSuite.addTest(unittest.makeSuite(ScalarTableUsageTestCase))
-        testSuite.addTest(unittest.makeSuite(MDTableUsageTestCase))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage1))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage2))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage3))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage4))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage5))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage6))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage7))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage8))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage9))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage10))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage11))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage12))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage13))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage14))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage15))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage16))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage17))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage18))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage19))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage20))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage21))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage22))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage23))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage24))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage25))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage26))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage27))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage28))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage29))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage30))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage31))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsage32))
+        testSuite.addTest(common.unittest.makeSuite(ScalarTableUsageTestCase))
+        testSuite.addTest(common.unittest.makeSuite(MDTableUsageTestCase))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage1))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage2))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage3))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage4))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage5))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage6))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage7))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage8))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage9))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage10))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage11))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage12))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage13))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage14))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage15))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage16))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage17))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage18))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage19))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage20))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage21))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage22))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage23))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage24))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage25))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage26))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage27))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage28))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage29))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage30))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage31))
+        testSuite.addTest(common.unittest.makeSuite(IndexedTableUsage32))
 
     return testSuite
 
@@ -1295,4 +1276,4 @@ def suite():
 if __name__ == '__main__':
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest='suite')

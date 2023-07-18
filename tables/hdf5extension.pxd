@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ########################################################################
 #
 # License: BSD
@@ -11,7 +9,7 @@
 ########################################################################
 
 from numpy cimport ndarray
-from definitions cimport hid_t, hsize_t, hbool_t
+from .definitions cimport hid_t, hsize_t, hbool_t
 
 
 # Declaration of instance variables for shared classes

@@ -6,7 +6,7 @@ Bibliography
 :ref:`[HDFG1] <HDFG1>`
     The HDF Group. What is HDF5?. Concise description about HDF5 capabilities
     and its differences from earlier versions (HDF4).
-    `<http://www.hdfgroup.org/HDF5/whatishdf5.html>`_.
+    `<https://www.hdfgroup.org/solutions/hdf5>`_.
 
 .. _HDFG2:
 
@@ -60,7 +60,7 @@ Bibliography
 :ref:`[ZLIB] <ZLIB>`
     JeanLoup Gailly and Mark Adler. zlib. A Massively Spiffy Yet Delicately
     Unobtrusive Compression Library. A standard library for compression
-    purposes. `<http://www.gzip.org/zlib/>`_.
+    purposes. `<https://zlib.net>`_.
 
 .. _LZO:
 
@@ -80,9 +80,17 @@ Bibliography
 .. _BLOSC:
 
 :ref:`[BLOSC] <BLOSC>`
-    Francesc Alted. Blosc. A blocking, shuffling and loss-less compression
+    The Blosc Development Team. Blosc. A blocking, shuffling and loss-less compression
     library.  A compressor designed to transmit data from memory to CPU
     (and back) faster than a plain memcpy().
+    `<http://www.blosc.org/>`_.
+
+.. _BLOSC2:
+
+:ref:`[BLOSC2] <BLOSC2>`
+    The Blosc Development Team. Blosc2. A fast, compressed, persistent binary data store library.
+    Introduces a new way to interact with HDF5 files, bypassing the HDF5 I/O pipeline for
+    accelerated operation.
     `<http://www.blosc.org/>`_.
 
 .. _GNUWIN32:
@@ -93,13 +101,6 @@ Bibliography
     GnuWin32 provides native Win32-versions of GNU tools, or tools with a
     similar open source licence.
     `<http://gnuwin32.sourceforge.net/>`_.
-
-.. _PSYCO:
-
-:ref:`[PSYCO] <PSYCO>`
-    Armin Rigo. Psyco. A Python specializing compiler.
-    Run existing Python software faster, with no change in your source.
-    `<http://psyco.sourceforge.net>`_.
 
 .. _SCIPY1:
 

@@ -1,18 +1,10 @@
-# -*- coding: utf-8 -*-
-
 import warnings
 
-import tables
-from tables import IsDescription, StringCol, BoolCol, IntCol, FloatCol
-from tables.node import NotLoggedMixin
-from tables.path import join_path
-
+import tables as tb
 from tables.tests import common
-from tables.tests.common import unittest
-from tables.tests.common import PyTablesTestCase as TestCase
 
 
-class BasicTestCase(common.TempFileMixin, TestCase):
+class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Test for basic Undo/Redo operations."""
 
     _reopen_flag = False
@@ -23,7 +15,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
             self._reopen('r+')
 
     def setUp(self):
-        super(BasicTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -721,7 +713,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self.h5file.undo("first")
 
         # Try to undo up to mark "third"
-        with self.assertRaises(tables.UndoRedoError):
+        with self.assertRaises(tb.UndoRedoError):
             self.h5file.undo("third")
 
         # Now go to mark "third"
@@ -729,7 +721,7 @@ class BasicTestCase(common.TempFileMixin, TestCase):
         self._do_reopen()
 
         # Try to redo up to mark "second"
-        with self.assertRaises(tables.UndoRedoError):
+        with self.assertRaises(tb.UndoRedoError):
             self.h5file.redo("second")
 
         # Final checks
@@ -979,11 +971,11 @@ class PersistenceTestCase(BasicTestCase):
     _reopen_flag = True
 
 
-class CreateArrayTestCase(common.TempFileMixin, TestCase):
+class CreateArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Test for create_array operations"""
 
     def setUp(self):
-        super(CreateArrayTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -1146,11 +1138,11 @@ class CreateArrayTestCase(common.TempFileMixin, TestCase):
                          [3, 4])
 
 
-class CreateGroupTestCase(common.TempFileMixin, TestCase):
+class CreateGroupTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Test for create_group operations"""
 
     def setUp(self):
-        super(CreateGroupTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -1318,11 +1310,11 @@ minRowIndex = 10
 def populateTable(where, name):
     """Create a table under where with name name"""
 
-    class Indexed(IsDescription):
-        var1 = StringCol(itemsize=4, dflt=b"", pos=1)
-        var2 = BoolCol(dflt=0, pos=2)
-        var3 = IntCol(dflt=0, pos=3)
-        var4 = FloatCol(dflt=0, pos=4)
+    class Indexed(tb.IsDescription):
+        var1 = tb.StringCol(itemsize=4, dflt=b"", pos=1)
+        var2 = tb.BoolCol(dflt=0, pos=2)
+        var3 = tb.IntCol(dflt=0, pos=3)
+        var4 = tb.FloatCol(dflt=0, pos=4)
 
     nrows = minRowIndex
     table = where._v_file.create_table(where, name, Indexed, "Indexed",
@@ -1350,11 +1342,11 @@ def populateTable(where, name):
         print("Number of indexed rows(2):", indexrows)
 
 
-class RenameNodeTestCase(common.TempFileMixin, TestCase):
+class RenameNodeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Test for rename_node operations"""
 
     def setUp(self):
-        super(RenameNodeTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -1564,11 +1556,11 @@ class RenameNodeTestCase(common.TempFileMixin, TestCase):
         self.assertIsNone(table.cols.var4.index)
 
 
-class MoveNodeTestCase(common.TempFileMixin, TestCase):
+class MoveNodeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Tests for move_node operations"""
 
     def setUp(self):
-        super(MoveNodeTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -1782,11 +1774,11 @@ class MoveNodeTestCase(common.TempFileMixin, TestCase):
         self.assertIsNone(table.cols.var4.index)
 
 
-class RemoveNodeTestCase(common.TempFileMixin, TestCase):
+class RemoveNodeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Test for remove_node operations"""
 
     def setUp(self):
-        super(RemoveNodeTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -1976,11 +1968,11 @@ class RemoveNodeTestCase(common.TempFileMixin, TestCase):
         self.assertNotIn("/agroup/agroup3", self.h5file)
 
 
-class CopyNodeTestCase(common.TempFileMixin, TestCase):
+class CopyNodeTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Tests for copy_node and copy_children operations"""
 
     def setUp(self):
-        super(CopyNodeTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -2184,11 +2176,11 @@ class CopyNodeTestCase(common.TempFileMixin, TestCase):
         self.assertIn('/agroup2/agroup3', self.h5file)
 
 
-class ComplexTestCase(common.TempFileMixin, TestCase):
+class ComplexTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Tests for a mix of all operations"""
 
     def setUp(self):
-        super(ComplexTestCase, self).setUp()
+        super().setUp()
 
         h5file = self.h5file
         root = h5file.root
@@ -2434,11 +2426,11 @@ class ComplexTestCase(common.TempFileMixin, TestCase):
         self.assertNotIn('/agroup/agroup4', self.h5file)
 
 
-class AttributesTestCase(common.TempFileMixin, TestCase):
+class AttributesTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Tests for operation on attributes"""
 
     def setUp(self):
-        super(AttributesTestCase, self).setUp()
+        super().setUp()
 
         # Create an array.
         array = self.h5file.create_array('/', 'array', [1, 2])
@@ -2565,10 +2557,10 @@ class AttributesTestCase(common.TempFileMixin, TestCase):
         self.assertEqual(self.h5file.root.array.attrs.attr_1, 12)
 
 
-class NotLoggedTestCase(common.TempFileMixin, TestCase):
+class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Test not logged nodes."""
 
-    class NotLoggedArray(NotLoggedMixin, tables.Array):
+    class NotLoggedArray(tb.node.NotLoggedMixin, tb.Array):
         pass
 
     def test00_hierarchy(self):
@@ -2616,11 +2608,11 @@ class NotLoggedTestCase(common.TempFileMixin, TestCase):
         self.assertRaises(AttributeError, getattr, arr._v_attrs, 'foo')
 
 
-class CreateParentsTestCase(common.TempFileMixin, TestCase):
+class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """Test the ``createparents`` flag."""
 
     def setUp(self):
-        super(CreateParentsTestCase, self).setUp()
+        super().setUp()
         g1 = self.h5file.create_group('/', 'g1')
         self.h5file.create_group(g1, 'g2')
 
@@ -2652,10 +2644,10 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
         def doit(newpath):
             self.h5file.create_array(newpath, 'array', [1], createparents=True)
-            self.assertIn(join_path(newpath, 'array'), self.h5file)
+            self.assertIn(tb.path.join_path(newpath, 'array'), self.h5file)
 
         def post(newpath):
-            self.assertNotIn(join_path(newpath, 'array'), self.h5file)
+            self.assertNotIn(tb.path.join_path(newpath, 'array'), self.h5file)
         self.basetest(doit, pre, post)
 
     def test01_move(self):
@@ -2667,11 +2659,11 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
         def doit(newpath):
             self.h5file.move_node('/array', newpath, createparents=True)
             self.assertNotIn('/array', self.h5file)
-            self.assertIn(join_path(newpath, 'array'), self.h5file)
+            self.assertIn(tb.path.join_path(newpath, 'array'), self.h5file)
 
         def post(newpath):
             self.assertIn('/array', self.h5file)
-            self.assertNotIn(join_path(newpath, 'array'), self.h5file)
+            self.assertNotIn(tb.path.join_path(newpath, 'array'), self.h5file)
         self.basetest(doit, pre, post)
 
     def test02_copy(self):
@@ -2682,10 +2674,10 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
         def doit(newpath):
             self.h5file.copy_node('/array', newpath, createparents=True)
-            self.assertIn(join_path(newpath, 'array'), self.h5file)
+            self.assertIn(tb.path.join_path(newpath, 'array'), self.h5file)
 
         def post(newpath):
-            self.assertNotIn(join_path(newpath, 'array'), self.h5file)
+            self.assertNotIn(tb.path.join_path(newpath, 'array'), self.h5file)
         self.basetest(doit, pre, post)
 
     def test03_copyChildren(self):
@@ -2698,33 +2690,33 @@ class CreateParentsTestCase(common.TempFileMixin, TestCase):
 
         def doit(newpath):
             self.h5file.copy_children('/group', newpath, createparents=True)
-            self.assertIn(join_path(newpath, 'array1'), self.h5file)
-            self.assertIn(join_path(newpath, 'array2'), self.h5file)
+            self.assertIn(tb.path.join_path(newpath, 'array1'), self.h5file)
+            self.assertIn(tb.path.join_path(newpath, 'array2'), self.h5file)
 
         def post(newpath):
-            self.assertNotIn(join_path(newpath, 'array1'), self.h5file)
-            self.assertNotIn(join_path(newpath, 'array2'), self.h5file)
+            self.assertNotIn(tb.path.join_path(newpath, 'array1'), self.h5file)
+            self.assertNotIn(tb.path.join_path(newpath, 'array2'), self.h5file)
         self.basetest(doit, pre, post)
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    theSuite = common.unittest.TestSuite()
     niter = 1
     # common.heavy = 1  # uncomment this only for testing purposes
 
     for n in range(niter):
-        theSuite.addTest(unittest.makeSuite(BasicTestCase))
-        theSuite.addTest(unittest.makeSuite(PersistenceTestCase))
-        theSuite.addTest(unittest.makeSuite(CreateArrayTestCase))
-        theSuite.addTest(unittest.makeSuite(CreateGroupTestCase))
-        theSuite.addTest(unittest.makeSuite(RenameNodeTestCase))
-        theSuite.addTest(unittest.makeSuite(MoveNodeTestCase))
-        theSuite.addTest(unittest.makeSuite(RemoveNodeTestCase))
-        theSuite.addTest(unittest.makeSuite(CopyNodeTestCase))
-        theSuite.addTest(unittest.makeSuite(AttributesTestCase))
-        theSuite.addTest(unittest.makeSuite(ComplexTestCase))
-        theSuite.addTest(unittest.makeSuite(NotLoggedTestCase))
-        theSuite.addTest(unittest.makeSuite(CreateParentsTestCase))
+        theSuite.addTest(common.unittest.makeSuite(BasicTestCase))
+        theSuite.addTest(common.unittest.makeSuite(PersistenceTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CreateArrayTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CreateGroupTestCase))
+        theSuite.addTest(common.unittest.makeSuite(RenameNodeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(MoveNodeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(RemoveNodeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CopyNodeTestCase))
+        theSuite.addTest(common.unittest.makeSuite(AttributesTestCase))
+        theSuite.addTest(common.unittest.makeSuite(ComplexTestCase))
+        theSuite.addTest(common.unittest.makeSuite(NotLoggedTestCase))
+        theSuite.addTest(common.unittest.makeSuite(CreateParentsTestCase))
     if common.heavy:
         pass
 
@@ -2735,8 +2727,4 @@ if __name__ == '__main__':
     import sys
     common.parse_argv(sys.argv)
     common.print_versions()
-    unittest.main(defaultTest='suite')
-
-## Local Variables:
-## mode: python
-## End:
+    common.unittest.main(defaultTest='suite')

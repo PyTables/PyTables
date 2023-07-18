@@ -1,25 +1,27 @@
 include MANIFEST.in
 include *.txt THANKS README.rst
-include setup.py setup.cfg VERSION Makefile cpuinfo.py
+include setup.py Makefile
+recursive-exclude * *
 
-recursive-include tables *.py *.pyx *.pxd *.c
+recursive-include tables *.py *.pyx *.pxd
+recursive-exclude tables *.c
 recursive-include tables/tests *.h5 *.mat
 recursive-include tables/nodes/tests *.h5 *.dat *.xbm
-recursive-include src *.c *.h Makefile
+recursive-include src *.c *.h
+recursive-include tables.egg-info *
 
 include hdf5-blosc/src/blosc_filter.?
+include hdf5-blosc2/src/blosc2_filter.?
 recursive-include c-blosc/blosc *.c *.h *.inc
 recursive-include c-blosc/internal-complibs *.c *.cc *.h
 
 recursive-include LICENSES *
 recursive-include utils *
 include doc/Makefile doc/make.bat
-#include doc/*.pdf
 recursive-include doc *.rst *.conf *.py *.*_t
 recursive-include doc *.html *.js *.css *.png *.ico
 recursive-include doc/source *.pdf objecttree.svg
 #recursive-include doc/source *.pdf *.svg
-recursive-include doc/html *.txt *.svg *.gif *.inv
 recursive-include doc/scripts *.py
 recursive-include doc/sphinxext *
 recursive-exclude doc/build *

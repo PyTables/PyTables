@@ -1,36 +1,37 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-import time
-from tables import *
+from time import perf_counter as clock
+from time import process_time as cpuclock
+
+import tables as tb
 
 
-class Small(IsDescription):
-    var1 = StringCol(itemsize=4)
-    var2 = Int32Col()
-    var3 = Float64Col()
-    var4 = BoolCol()
+class Small(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=4)
+    var2 = tb.Int32Col()
+    var3 = tb.Float64Col()
+    var4 = tb.BoolCol()
 
 # Define a user record to characterize some kind of particles
 
 
-class Medium(IsDescription):
-    var1 = StringCol(itemsize=16, dflt="")  # 16-character String
+class Medium(tb.IsDescription):
+    var1 = tb.StringCol(itemsize=16, dflt="")  # 16-character String
     #float1 = Float64Col(dflt=2.3)
     #float2 = Float64Col(dflt=2.3)
     # zADCcount = Int16Col()          # signed short integer
-    var2 = Int32Col()               # signed short integer
-    var3 = Float64Col()
-    grid_i = Int32Col()             # integer
-    grid_j = Int32Col()             # integer
-    pressure = Float32Col()         # float  (single-precision)
-    energy = Float64Col(shape=2)    # double (double-precision)
+    var2 = tb.Int32Col()               # signed short integer
+    var3 = tb.Float64Col()
+    grid_i = tb.Int32Col()             # integer
+    grid_j = tb.Int32Col()             # integer
+    pressure = tb.Float32Col()         # float  (single-precision)
+    energy = tb.Float64Col(shape=2)    # double (double-precision)
 
 
 def createFile(filename, nrows, filters, atom, recsize, index, verbose):
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="Searchsorted Benchmark",
+    fileh = tb.open_file(filename, mode="w", title="Searchsorted Benchmark",
                       filters=filters)
     title = "This is the IndexArray title"
     # Create an IndexArray instance
@@ -75,7 +76,7 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
 def readFile(filename, atom, niter, verbose):
     # Open the HDF5 file in read-only mode
 
-    fileh = open_file(filename, mode="r")
+    fileh = tb.open_file(filename, mode="r")
     table = fileh.root.table
     print("reading", table)
     if atom == "string":
@@ -152,7 +153,7 @@ def readFile(filename, atom, niter, verbose):
 def searchFile(filename, atom, verbose, item):
     # Open the HDF5 file in read-only mode
 
-    fileh = open_file(filename, mode="r")
+    fileh = tb.open_file(filename, mode="r")
     rowsread = 0
     uncomprBytes = 0
     table = fileh.root.table
@@ -282,8 +283,8 @@ if __name__ == "__main__":
             niter = int(option[1])
 
     # Build the Filters instance
-    filters = Filters(complevel=complevel, complib=complib,
-                      shuffle=shuffle, fletcher32=fletcher32)
+    filters = tb.Filters(complevel=complevel, complib=complib,
+                         shuffle=shuffle, fletcher32=fletcher32)
 
     # Catch the hdf5 file passed as the last argument
     file = pargs[0]
@@ -294,46 +295,46 @@ if __name__ == "__main__":
             print("Compression library:", complib)
             if shuffle:
                 print("Suffling...")
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
         (rowsw, rowsz) = createFile(file, nrows, filters,
                                     atom, recsize, index, verbose)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
-        tapprows = round(t2 - t1, 3)
-        cpuapprows = round(cpu2 - cpu1, 3)
-        tpercent = int(round(cpuapprows / tapprows, 2) * 100)
-        print("Rows written:", rowsw, " Row size:", rowsz)
-        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" %
-              (tapprows, cpuapprows, tpercent))
-        print("Write rows/sec: ", int(rowsw / float(tapprows)))
-        print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
+        t2 = clock()
+        cpu2 = cpuclock()
+        tapprows = t2 - t1
+        cpuapprows = cpu2 - cpu1
+        print(f"Rows written: {rowsw}  Row size: {rowsz}")
+        print(
+            f"Time writing rows: {tapprows:.3f} s (real) "
+            f"{cpuapprows:.3f} s (cpu)  {cpuapprows / tapprows:.0%}")
+        print(f"Write rows/sec:  {rowsw / tapprows:.0f}")
+        print(f"Write KB/s : {rowsw * rowsz / (tapprows * 1024):.0f}")
 
     if testread:
         if psyco_imported and usepsyco:
             psyco.bind(readFile)
             psyco.bind(searchFile)
-        t1 = time.time()
-        cpu1 = time.perf_counter()
+        t1 = clock()
+        cpu1 = cpuclock()
         if rng or item:
             (rowsr, uncomprB, niter) = searchFile(file, atom, verbose, item)
         else:
             for i in range(1):
                 (rowsr, rowsel, rowsz) = readFile(file, atom, niter, verbose)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
-        treadrows = round(t2 - t1, 3)
-        cpureadrows = round(cpu2 - cpu1, 3)
-        tpercent = int(round(cpureadrows / treadrows, 2) * 100)
-        tMrows = rowsr / (1000 * 1000.)
-        sKrows = rowsel / 1000.
-        print("Rows read:", rowsr, "Mread:", round(tMrows, 3), "Mrows")
-        print("Rows selected:", rowsel, "Ksel:", round(sKrows, 3), "Krows")
-        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" %
-              (treadrows, cpureadrows, tpercent))
-        print("Read Mrows/sec: ", round(tMrows / float(treadrows), 3))
+        t2 = clock()
+        cpu2 = cpuclock()
+        treadrows = t2 - t1
+        cpureadrows = cpu2 - cpu1
+        tMrows = rowsr / 1000 / 1000
+        sKrows = rowsel / 1000
+        print(f"Rows read: {rowsr} Mread: {tMrows:.3f} Mrows")
+        print(f"Rows selected: {rowsel} Ksel: {sKrows:.3f} Krows")
+        print(
+            f"Time reading rows: {treadrows:.3f} s (real) "
+            f"{cpureadrows:.3f} s (cpu)  {cpureadrows / treadrows:.0%}")
+        print(f"Read Mrows/sec: {tMrows / treadrows:.3f}")
         # print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
 #       print "Uncompr MB :", int(uncomprB / (1024 * 1024))
 #       print "Uncompr MB/s :", int(uncomprB / (treadrows * 1024 * 1024))

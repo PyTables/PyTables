@@ -1,43 +1,28 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: 2005-05-24
-# Author: Ivan Vilata i Balaguer - ivan@selidor.net
-#
-# $Id$
-#
-########################################################################
-
 """Utilities for PyTables' test suites."""
 
 import os
 import re
 import sys
-import time
 import locale
 import platform
 import tempfile
-import warnings
-from distutils.version import LooseVersion
-
-from pkg_resources import resource_filename
+from pathlib import Path
+from time import perf_counter as clock
+from packaging.version import Version
 
 import unittest
 
-import numpy
-import numexpr
+import numexpr as ne
+import numpy as np
 
-import tables
-from tables.utils import detect_number_of_cores
-from tables.req_versions import min_blosc_bitshuffle_version
+import tables as tb
 
-hdf5_version = LooseVersion(tables.hdf5_version)
-blosc_version = LooseVersion(tables.which_lib_version("blosc")[1])
+hdf5_version = Version(tb.hdf5_version)
+blosc_version = Version(tb.which_lib_version("blosc")[1])
+blosc2_version = Version(tb.which_lib_version("blosc2")[1])
 
 
-verbose = False
+verbose = os.environ.get("VERBOSE", "FALSE") == "TRUE"
 """Show detailed output of the testing process."""
 
 heavy = False
@@ -65,10 +50,11 @@ def parse_argv(argv):
     return argv
 
 
-zlib_avail = tables.which_lib_version("zlib") is not None
-lzo_avail = tables.which_lib_version("lzo") is not None
-bzip2_avail = tables.which_lib_version("bzip2") is not None
-blosc_avail = tables.which_lib_version("blosc") is not None
+zlib_avail = tb.which_lib_version("zlib") is not None
+lzo_avail = tb.which_lib_version("lzo") is not None
+bzip2_avail = tb.which_lib_version("bzip2") is not None
+blosc_avail = tb.which_lib_version("blosc") is not None
+blosc2_avail = tb.which_lib_version("blosc2") is not None
 
 
 def print_heavy(heavy):
@@ -88,52 +74,60 @@ def print_versions():
     """Print all the versions of software that PyTables relies on."""
 
     print('-=' * 38)
-    print("PyTables version:    %s" % tables.__version__)
-    print("HDF5 version:        %s" % tables.which_lib_version("hdf5")[1])
-    print("NumPy version:       %s" % numpy.__version__)
-    tinfo = tables.which_lib_version("zlib")
-    if numexpr.use_vml:
+    print("PyTables version:    %s" % tb.__version__)
+    print("HDF5 version:        %s" % tb.which_lib_version("hdf5")[1])
+    print("NumPy version:       %s" % np.__version__)
+    tinfo = tb.which_lib_version("zlib")
+    if ne.use_vml:
         # Get only the main version number and strip out all the rest
-        vml_version = numexpr.get_vml_version()
+        vml_version = ne.get_vml_version()
         vml_version = re.findall("[0-9.]+", vml_version)[0]
         vml_avail = "using VML/MKL %s" % vml_version
     else:
         vml_avail = "not using Intel's VML/MKL"
-    print("Numexpr version:     %s (%s)" % (numexpr.__version__, vml_avail))
+    print(f"Numexpr version:     {ne.__version__} ({vml_avail})")
     if tinfo is not None:
-        print("Zlib version:        %s (%s)" % (tinfo[1],
-                                                "in Python interpreter"))
-    tinfo = tables.which_lib_version("lzo")
+        print(f"Zlib version:        {tinfo[1]} (in Python interpreter)")
+    tinfo = tb.which_lib_version("lzo")
     if tinfo is not None:
-        print("LZO version:         %s (%s)" % (tinfo[1], tinfo[2]))
-    tinfo = tables.which_lib_version("bzip2")
+        print("LZO version:         {} ({})".format(tinfo[1], tinfo[2]))
+    tinfo = tb.which_lib_version("bzip2")
     if tinfo is not None:
-        print("BZIP2 version:       %s (%s)" % (tinfo[1], tinfo[2]))
-    tinfo = tables.which_lib_version("blosc")
+        print("BZIP2 version:       {} ({})".format(tinfo[1], tinfo[2]))
+    tinfo = tb.which_lib_version("blosc")
     if tinfo is not None:
         blosc_date = tinfo[2].split()[1]
-        print("Blosc version:       %s (%s)" % (tinfo[1], blosc_date))
-        blosc_cinfo = tables.blosc_get_complib_info()
+        print("Blosc version:       {} ({})".format(tinfo[1], blosc_date))
+        blosc_cinfo = tb.blosc_get_complib_info()
         blosc_cinfo = [
-            "%s (%s)" % (k, v[1]) for k, v in sorted(blosc_cinfo.items())
+            "{} ({})".format(k, v[1]) for k, v in sorted(blosc_cinfo.items())
         ]
         print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
-        blosc_finfo = ['shuffle']
-        if tinfo[1] >= min_blosc_bitshuffle_version:
-            blosc_finfo.append('bitshuffle')
+        blosc_finfo = ['shuffle', 'bitshuffle']
         print("Blosc filters:       %s" % ', '.join(blosc_finfo))
+    tinfo = tb.which_lib_version("blosc2")
+    if tinfo is not None:
+        blosc2_date = tinfo[2].split()[1]
+        print("Blosc2 version:      {} ({})".format(tinfo[1], blosc2_date))
+        blosc2_cinfo = tb.blosc2_get_complib_info()
+        blosc2_cinfo = [
+            "{} ({})".format(k, v[1]) for k, v in sorted(blosc2_cinfo.items())
+        ]
+        print("Blosc2 compressors:  %s" % ', '.join(blosc2_cinfo))
+        blosc2_finfo = ['shuffle', 'bitshuffle']
+        print("Blosc2 filters:      %s" % ', '.join(blosc2_finfo))
     try:
         from Cython import __version__ as cython_version
         print('Cython version:      %s' % cython_version)
-    except:
+    except Exception:
         pass
     print('Python version:      %s' % sys.version)
     print('Platform:            %s' % platform.platform())
-    #if os.name == 'posix':
-    #    (sysname, nodename, release, version, machine) = os.uname()
-    #    print('Platform:          %s-%s' % (sys.platform, machine))
+    # if os.name == 'posix':
+    #     (sysname, nodename, release, version, machine) = os.uname()
+    #     print('Platform:          %s-%s' % (sys.platform, machine))
     print('Byte-ordering:       %s' % sys.byteorder)
-    print('Detected cores:      %s' % detect_number_of_cores())
+    print('Detected cores:      %s' % tb.utils.detect_number_of_cores())
     print('Default encoding:    %s' % sys.getdefaultencoding())
     print('Default FS encoding: %s' % sys.getfilesystemencoding())
     print('Default locale:      (%s, %s)' % locale.getdefaultlocale())
@@ -144,6 +138,7 @@ def print_versions():
 
 
 def test_filename(filename):
+    from pkg_resources import resource_filename
     return resource_filename('tables.tests', filename)
 
 
@@ -203,7 +198,7 @@ def allequal(a, b, flavor="numpy"):
 
     # Multidimensional case
     result = (a == b)
-    result = numpy.all(result)
+    result = np.all(result)
     if not result and verbose:
         print("Some of the elements in arrays are not equal")
 
@@ -226,14 +221,14 @@ def areArraysEqual(arr1, arr2):
             issubclass(t1, t2) or issubclass(t2, t1)):
         return False
 
-    return numpy.all(arr1 == arr2)
+    return np.all(arr1 == arr2)
 
 
 class PyTablesTestCase(unittest.TestCase):
     def tearDown(self):
-        super(PyTablesTestCase, self).tearDown()
+        super().tearDown()
         for key in self.__dict__:
-            if self.__dict__[key].__class__.__name__ not in ('instancemethod'):
+            if self.__dict__[key].__class__.__name__ != 'instancemethod':
                 self.__dict__[key] = None
 
     def _getName(self):
@@ -251,15 +246,8 @@ class PyTablesTestCase(unittest.TestCase):
             name = self._getName()
             methodName = self._getMethodName()
 
-            title = "Running %s.%s" % (name, methodName)
-            print('%s\n%s' % (title, '-' * len(title)))
-
-    # COMPATIBILITY: assertWarns is new in Python 3.2
-    if not hasattr(unittest.TestCase, 'assertWarns'):
-        def assertWarns(self, expected_warning, callable_obj=None,
-                        *args, **kwargs):
-            context = _AssertWarnsContext(expected_warning, self, callable_obj)
-            return context.handle('assertWarns', callable_obj, args, kwargs)
+            title = f"Running {name}.{methodName}"
+            print('{}\n{}'.format(title, '-' * len(title)))
 
     def _checkEqualityGroup(self, node1, node2, hardlink=False):
         if verbose:
@@ -294,23 +282,23 @@ class PyTablesTestCase(unittest.TestCase):
             "node1 and node2 does not have the same values.")
 
 
-class TestFileMixin(object):
+class TestFileMixin:
     h5fname = None
     open_kwargs = {}
 
     def setUp(self):
-        super(TestFileMixin, self).setUp()
-        self.h5file = tables.open_file(
+        super().setUp()
+        self.h5file = tb.open_file(
             self.h5fname, title=self._getName(), **self.open_kwargs)
 
     def tearDown(self):
         """Close ``h5file``."""
 
         self.h5file.close()
-        super(TestFileMixin, self).tearDown()
+        super().tearDown()
 
 
-class TempFileMixin(object):
+class TempFileMixin:
     open_mode = 'w'
     open_kwargs = {}
 
@@ -325,9 +313,9 @@ class TempFileMixin(object):
 
         """
 
-        super(TempFileMixin, self).setUp()
+        super().setUp()
         self.h5fname = self._getTempFileName()
-        self.h5file = tables.open_file(
+        self.h5file = tb.open_file(
             self.h5fname, self.open_mode, title=self._getName(),
             **self.open_kwargs)
 
@@ -336,8 +324,8 @@ class TempFileMixin(object):
 
         self.h5file.close()
         self.h5file = None
-        os.remove(self.h5fname)   # comment this for debugging purposes only
-        super(TempFileMixin, self).tearDown()
+        Path(self.h5fname).unlink()   # comment this for debug only
+        super().tearDown()
 
     def _reopen(self, mode='r', **kwargs):
         """Reopen ``h5file`` in the specified ``mode``.
@@ -348,19 +336,19 @@ class TempFileMixin(object):
         """
 
         self.h5file.close()
-        self.h5file = tables.open_file(self.h5fname, mode, **kwargs)
+        self.h5file = tb.open_file(self.h5fname, mode, **kwargs)
         return True
 
 
 class ShowMemTime(PyTablesTestCase):
-    tref = time.time()
+    tref = clock()
     """Test for showing memory and time consumption."""
 
     def test00(self):
         """Showing memory and time consumption."""
 
         # Obtain memory info (only for Linux 2.6.x)
-        for line in open("/proc/self/status"):
+        for line in Path("/proc/self/status").read_text().splitlines():
             if line.startswith("VmSize:"):
                 vmsize = int(line.split()[1])
             elif line.startswith("VmRSS:"):
@@ -373,16 +361,8 @@ class ShowMemTime(PyTablesTestCase):
                 vmexe = int(line.split()[1])
             elif line.startswith("VmLib:"):
                 vmlib = int(line.split()[1])
-        print("\nWallClock time:", time.time() - self.tref)
+        print("\nWallClock time:", clock() - self.tref)
         print("Memory usage: ******* %s *******" % self._getName())
-        print("VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss))
-        print("VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk))
-        print("VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib))
-
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:
+        print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
+        print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
+        print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")

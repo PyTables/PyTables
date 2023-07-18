@@ -1,29 +1,17 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: November 8, 2014
-# Author:  Alistair Muldal - alimuldal@gmail.com
-#
-# $Id$
-#
-########################################################################
-
 """This utility prints the contents of an HDF5 file as a tree.
 
 Pass the flag -h to this for help on usage.
 
 """
-from __future__ import absolute_import
-from __future__ import print_function
 
-import tables
-import numpy as np
 import os
 import argparse
 from collections import defaultdict, deque
 import warnings
+from pathlib import Path
+
+import numpy as np
+import tables as tb
 
 
 def _get_parser():
@@ -111,7 +99,7 @@ def main():
             # case where filename == "filename:" instead of "filename:/"
             nodename = "/"
 
-    with tables.open_file(filename, 'r') as f:
+    with tb.open_file(filename, 'r') as f:
         tree_str = get_tree_str(f, nodename, **args.__dict__)
         print(tree_str)
 
@@ -145,8 +133,8 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
     total_items = 0
 
     # defaultdicts for holding the cumulative branch sizes at each node
-    in_mem = defaultdict(lambda: 0.)
-    on_disk = defaultdict(lambda: 0.)
+    in_mem = defaultdict(lambda: 0)
+    on_disk = defaultdict(lambda: 0)
     leaf_count = defaultdict(lambda: 0)
 
     # keep track of node addresses within the HDF5 file so that we don't count
@@ -163,7 +151,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
 
         node = stack.pop()
 
-        if isinstance(node, tables.link.Link):
+        if isinstance(node, tb.link.Link):
             # we treat links like leaves, except we don't dereference them to
             # get their sizes or addresses
             leaves.append(node)
@@ -175,10 +163,10 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
         ref_idx[path] = ref_count[addr]
         hl_addresses[path] = addr
 
-        if isinstance(node, tables.UnImplemented):
+        if isinstance(node, tb.UnImplemented):
             leaves.append(node)
 
-        elif isinstance(node, tables.Leaf):
+        elif isinstance(node, tb.Leaf):
 
             # only count the size of a hardlinked leaf the first time it is
             # visited
@@ -209,7 +197,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             # push leaf nodes onto the stack for the next pass
             leaves.append(node)
 
-        elif isinstance(node, tables.Group):
+        elif isinstance(node, tb.Group):
 
             # don't recurse down the same hardlinked branch multiple times!
             if ref_count[addr] == 1:
@@ -255,7 +243,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                 name += " (%s)" % node.__class__.__name__
 
             labels = []
-            pct = 100 * on_disk[path] / total_on_disk
+            ratio = on_disk[path] / total_on_disk
 
             # if the address of this object has a ref_count > 1, it has
             # multiple hardlinks
@@ -265,20 +253,20 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
                     ref_count[hl_addresses[path]]
                 )
 
-            if isinstance(node, tables.link.Link):
+            if isinstance(node, tb.link.Link):
                 labels.append('softlink --> %s' % node.target)
 
             elif ref_idx[path] > 1:
                 labels.append('hardlink --> %s'
                               % hl_targets[hl_addresses[path]])
 
-            elif isinstance(node, (tables.Array, tables.Table)):
+            elif isinstance(node, (tb.Array, tb.Table)):
 
                 if print_size:
-                    sizestr = 'mem=%s, disk=%s' % (
+                    sizestr = 'mem={}, disk={}'.format(
                         b2h(in_mem[path]), b2h(on_disk[path]))
                     if print_percent:
-                        sizestr += ' [%4.1f%%]' % pct
+                        sizestr += f' [{ratio:5.1%}]'
                     labels.append(sizestr)
 
                 if print_shape:
@@ -298,10 +286,10 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             elif depth == max_depth:
                 itemstr = '... %i leaves' % leaf_count[path]
                 if print_size:
-                    itemstr += ', mem=%s, disk=%s' % (
+                    itemstr += ', mem={}, disk={}'.format(
                         b2h(in_mem[path]), b2h(on_disk[path]))
                 if print_percent:
-                    itemstr += ' [%4.1f%%]' % pct
+                    itemstr += f' [{ratio:5.1%}]'
                 labels.append(itemstr)
 
             # create a PrettyTree for this node, if one doesn't exist already
@@ -311,7 +299,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
             pretty[path].labels = labels
             if sort_by == 'size':
                 # descending size order
-                pretty[path].sort_by = -pct
+                pretty[path].sort_by = -ratio
             elif sort_by == 'name':
                 pretty[path].sort_by = node._v_name
             else:
@@ -344,12 +332,12 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
     out_str += str(pretty[root._v_pathname]) + '\n' * 2
 
     if print_total:
-        avg_ratio = float(total_on_disk) / total_in_mem
-        fsize = os.stat(f.filename).st_size
+        avg_ratio = total_on_disk / total_in_mem
+        fsize = Path(f.filename).stat().st_size
 
         out_str += '-' * 60 + '\n'
         out_str += 'Total branch leaves:    %i\n' % total_items
-        out_str += 'Total branch size:      %s in memory, %s on disk\n' % (
+        out_str += 'Total branch size:      {} in memory, {} on disk\n'.format(
             b2h(total_in_mem), b2h(total_on_disk))
         out_str += 'Mean compression ratio: %.2f\n' % avg_ratio
         out_str += 'HDF5 file size:         %s\n' % b2h(fsize)
@@ -358,7 +346,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
     return out_str
 
 
-class PrettyTree(object):
+class PrettyTree:
 
     """
 
@@ -419,7 +407,7 @@ class PrettyTree(object):
         return "\n".join(self.tree_lines())
 
     def __repr__(self):
-        return '<%s at %s>' % (self.__class__.__name__, hex(id(self)))
+        return f'<{self.__class__.__name__} at 0x{id(self):x}>'
 
 
 def bytes2human(use_si_units=False):
@@ -434,23 +422,23 @@ def bytes2human(use_si_units=False):
     def b2h(nbytes):
 
         for (prefix, value) in zip(prefixes, values):
-            scaled = float(nbytes) / value
+            scaled = nbytes / value
             if scaled >= 1:
                 break
 
-        return "%.1f%s" % (scaled, prefix)
+        return f"{scaled:.1f}{prefix}"
 
     return b2h
 
 
 def make_test_file(prefix='/tmp'):
-    f = tables.open_file(os.path.join(prefix, 'test_pttree.hdf5'), 'w')
+    f = tb.open_file(str(Path(prefix) / 'test_pttree.hdf5'), 'w')
 
     g1 = f.create_group('/', 'group1')
     g1a = f.create_group(g1, 'group1a')
     g1b = f.create_group(g1, 'group1b')
 
-    filters = tables.Filters(complevel=5, complib='bzip2')
+    filters = tb.Filters(complevel=5, complib='bzip2')
 
     for gg in g1a, g1b:
         f.create_carray(gg, 'zeros128b', obj=np.zeros(32, dtype=np.float64),
@@ -460,11 +448,8 @@ def make_test_file(prefix='/tmp'):
 
     g2 = f.create_group('/', 'group2')
 
-    softlink = f.create_soft_link(g2, 'softlink_g1_z128',
-                                  '/group1/group1a/zeros128b')
-    hardlink = f.create_hard_link(g2, 'hardlink_g1a_z128',
-                                  '/group1/group1a/zeros128b')
-
-    hlgroup = f.create_hard_link(g2, 'hardlink_g1a', '/group1/group1a')
+    f.create_soft_link(g2, 'softlink_g1_z128', '/group1/group1a/zeros128b')
+    f.create_hard_link(g2, 'hardlink_g1a_z128', '/group1/group1a/zeros128b')
+    f.create_hard_link(g2, 'hardlink_g1a', '/group1/group1a')
 
     return f

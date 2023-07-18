@@ -1,38 +1,18 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: September 21, 2002
-# Author: Francesc Alted
-#
-# $Id$
-#
-########################################################################
-
 """Classes for describing columns for ``Table`` objects."""
 
-# Imports
-# =======
-import sys
 import copy
 import warnings
 
-import numpy
+import numpy as np
 
 from . import atom
 from .path import check_name_validity
 
 
-
-# Public variables
-# ================
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 
-# Private functions
-# =================
 def same_position(oldmethod):
     """Decorate `oldmethod` to also compare the `_v_pos` attribute."""
     def newmethod(self, other):
@@ -46,8 +26,6 @@ def same_position(oldmethod):
     return newmethod
 
 
-# Column classes
-# ==============
 class Col(atom.Atom, metaclass=type):
     """Defines a non-nested column.
 
@@ -86,23 +64,24 @@ class Col(atom.Atom, metaclass=type):
     pos : int
         Sets the position of column in table.  If unspecified, the position
         will be randomly selected.
+    attrs : dict
+        Attribute metadata stored in the column (see
+        :ref:`AttributeSetClassDescr`).
 
     """
 
     _class_from_prefix = {}  # filled as column classes are created
     """Maps column prefixes to column classes."""
 
-    # Class methods
-    # ~~~~~~~~~~~~~
     @classmethod
-    def prefix(class_):
+    def prefix(cls):
         """Return the column class prefix."""
 
-        cname = class_.__name__
+        cname = cls.__name__
         return cname[:cname.rfind('Col')]
 
     @classmethod
-    def from_atom(class_, atom, pos=None, _offset=None):
+    def from_atom(cls, atom, pos=None, _offset=None):
         """Create a Col definition from a PyTables atom.
 
         An optional position may be specified as the pos argument.
@@ -111,11 +90,11 @@ class Col(atom.Atom, metaclass=type):
 
         prefix = atom.prefix()
         kwargs = atom._get_init_args()
-        colclass = class_._class_from_prefix[prefix]
+        colclass = cls._class_from_prefix[prefix]
         return colclass(pos=pos, _offset=_offset, **kwargs)
 
     @classmethod
-    def from_sctype(class_, sctype, shape=(), dflt=None, pos=None):
+    def from_sctype(cls, sctype, shape=(), dflt=None, pos=None):
         """Create a `Col` definition from a NumPy scalar type `sctype`.
 
         Optional shape, default value and position may be specified as
@@ -126,10 +105,10 @@ class Col(atom.Atom, metaclass=type):
         """
 
         newatom = atom.Atom.from_sctype(sctype, shape, dflt)
-        return class_.from_atom(newatom, pos=pos)
+        return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_dtype(class_, dtype, dflt=None, pos=None, _offset=None):
+    def from_dtype(cls, dtype, dflt=None, pos=None, _offset=None):
         """Create a `Col` definition from a NumPy `dtype`.
 
         Optional default value and position may be specified as the
@@ -141,10 +120,10 @@ class Col(atom.Atom, metaclass=type):
         """
 
         newatom = atom.Atom.from_dtype(dtype, dflt)
-        return class_.from_atom(newatom, pos=pos, _offset=_offset)
+        return cls.from_atom(newatom, pos=pos, _offset=_offset)
 
     @classmethod
-    def from_type(class_, type, shape=(), dflt=None, pos=None):
+    def from_type(cls, type, shape=(), dflt=None, pos=None):
         """Create a `Col` definition from a PyTables `type`.
 
         Optional shape, default value and position may be specified as
@@ -153,10 +132,10 @@ class Col(atom.Atom, metaclass=type):
         """
 
         newatom = atom.Atom.from_type(type, shape, dflt)
-        return class_.from_atom(newatom, pos=pos)
+        return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_kind(class_, kind, itemsize=None, shape=(), dflt=None, pos=None):
+    def from_kind(cls, kind, itemsize=None, shape=(), dflt=None, pos=None):
         """Create a `Col` definition from a PyTables `kind`.
 
         Optional item size, shape, default value and position may be
@@ -167,30 +146,33 @@ class Col(atom.Atom, metaclass=type):
         """
 
         newatom = atom.Atom.from_kind(kind, itemsize, shape, dflt)
-        return class_.from_atom(newatom, pos=pos)
+        return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def _subclass_from_prefix(class_, prefix):
+    def _subclass_from_prefix(cls, prefix):
         """Get a column subclass for the given `prefix`."""
 
         cname = '%sCol' % prefix
-        class_from_prefix = class_._class_from_prefix
+        class_from_prefix = cls._class_from_prefix
         if cname in class_from_prefix:
             return class_from_prefix[cname]
         atombase = getattr(atom, '%sAtom' % prefix)
 
-        class NewCol(class_, atombase):
+        class NewCol(cls, atombase):
             """Defines a non-nested column of a particular type.
 
             The constructor accepts the same arguments as the equivalent
             `Atom` class, plus an additional ``pos`` argument for
             position information, which is assigned to the `_v_pos`
+            attribute and an ``attrs`` argument for storing additional metadata
+            similar to `table.attrs`, which is assigned to the `_v_col_attrs`
             attribute.
 
             """
 
             def __init__(self, *args, **kwargs):
                 pos = kwargs.pop('pos', None)
+                col_attrs = kwargs.pop('attrs', {})
                 offset = kwargs.pop('_offset', None)
                 class_from_prefix = self._class_from_prefix
                 atombase.__init__(self, *args, **kwargs)
@@ -202,6 +184,7 @@ class Col(atom.Atom, metaclass=type):
                     self.__class__ = colclass
                 self._v_pos = pos
                 self._v_offset = offset
+                self._v_col_attrs = col_attrs
 
             __eq__ = same_position(atombase.__eq__)
             _is_equal_to_atom = same_position(atombase._is_equal_to_atom)
@@ -220,23 +203,22 @@ class Col(atom.Atom, metaclass=type):
         class_from_prefix[prefix] = NewCol
         return NewCol
 
-    # Special methods
-    # ~~~~~~~~~~~~~~~
     def __repr__(self):
         # Reuse the atom representation.
-        atomrepr = super(Col, self).__repr__()
+        atomrepr = super().__repr__()
         lpar = atomrepr.index('(')
         rpar = atomrepr.rindex(')')
         atomargs = atomrepr[lpar + 1:rpar]
         classname = self.__class__.__name__
-        return '%s(%s, pos=%s)' % (classname, atomargs, self._v_pos)
+        if self._v_col_attrs:
+            return (f'{classname}({atomargs}, pos={self._v_pos}'
+                    f', attrs={self._v_col_attrs})')
+        return f'{classname}({atomargs}, pos={self._v_pos})'
 
-    # Private methods
-    # ~~~~~~~~~~~~~~~
     def _get_init_args(self):
         """Get a dictionary of instance constructor arguments."""
 
-        kwargs = dict((arg, getattr(self, arg)) for arg in ('shape', 'dflt'))
+        kwargs = {arg: getattr(self, arg) for arg in ('shape', 'dflt')}
         kwargs['pos'] = getattr(self, '_v_pos', None)
         return kwargs
 
@@ -266,10 +248,11 @@ def _generate_col_classes():
         newclass = Col._subclass_from_prefix(cprefix)
         yield newclass
 
+
 # Create all column classes.
-#for _newclass in _generate_col_classes():
-#    exec('%s = _newclass' % _newclass.__name__)
-#del _newclass
+# for _newclass in _generate_col_classes():
+#     exec('%s = _newclass' % _newclass.__name__)
+# del _newclass
 
 StringCol = Col._subclass_from_prefix('String')
 BoolCol = Col._subclass_from_prefix('Bool')
@@ -311,7 +294,7 @@ Time64Col = Col._subclass_from_prefix('Time64')
 
 # Table description classes
 # =========================
-class Description(object):
+class Description:
     """This class represents descriptions of the structure of tables.
 
     An instance of this class is automatically bound to Table (see
@@ -433,9 +416,9 @@ class Description(object):
 
     .. attribute:: _v_offsets
 
-        A list of offsets for all the columns.  If the list is empty, means that
-        there are no padding in the data structure.  However, the support for
-        offsets is currently limited to flat tables; for nested tables, the
+        A list of offsets for all the columns.  If the list is empty, means
+        that there are no padding in the data structure.  However, the support
+        for offsets is currently limited to flat tables; for nested tables, the
         potential padding is always removed (exactly the same as in pre-3.5
         versions), and this variable is set to empty.
 
@@ -446,7 +429,6 @@ class Description(object):
            types (non-nested) are honored and replicated during dataset
            and attribute copies.
     """
-
 
     def __init__(self, classdict, nestedlvl=-1, validate=True, ptparams=None):
 
@@ -506,7 +488,8 @@ class Description(object):
             # provided by the user will remain unchanged even if we
             # tamper with the values of ``_v_pos`` here.
             if columns is not None:
-                descr = Description(copy.copy(columns), self._v_nestedlvl, ptparams=ptparams)
+                descr = Description(copy.copy(columns), self._v_nestedlvl,
+                                    ptparams=ptparams)
             classdict[name] = descr
 
             pos = getattr(descr, '_v_pos', None)
@@ -537,8 +520,7 @@ class Description(object):
             # Class variables
             object = classdict[k]
             newdict[k] = object    # To allow natural naming
-            if not (isinstance(object, Col) or
-                    isinstance(object, Description)):
+            if not isinstance(object, (Col, Description)):
                 raise TypeError('Passing an incorrect value to a table column.'
                                 ' Expected a Col (or subclass) instance and '
                                 'got: "%s". Please make use of the Col(), or '
@@ -578,19 +560,24 @@ class Description(object):
         #     traceback.print_stack()
 
         # Check whether we are gonna use padding or not.  Two possibilities:
-        #   1) Make padding True by default (except if ALLOW_PADDING is set to False)
-        #   2) Make padding False by default (except if ALLOW_PADDING is set to True)
-        # Currently we choose 1) because it favours honoring padding even on unhandled situations (should be very few).
-        # However, for development, option 2) is recommended as it catches most of the unhandled situations.
-        allow_padding = False if ptparams is not None and not ptparams['ALLOW_PADDING'] else True
-        # allow_padding = True if ptparams is not None and ptparams['ALLOW_PADDING'] else False
+        #   1) Make padding True by default (except if ALLOW_PADDING is set
+        #      to False)
+        #   2) Make padding False by default (except if ALLOW_PADDING is set
+        #       to True)
+        # Currently we choose 1) because it favours honoring padding even on
+        # unhandled situations (should be very few).
+        # However, for development, option 2) is recommended as it catches
+        # most of the unhandled situations.
+        allow_padding = ptparams is None or ptparams['ALLOW_PADDING']
+        # allow_padding = ptparams is not None and ptparams['ALLOW_PADDING']
         if (allow_padding and
                 len(cols_offsets) > 1 and
                 len(keys) == len(cols_with_pos) and
                 len(keys) == len(cols_offsets) and
                 not nested):  # TODO: support offsets with nested types
-            # We have to sort the offsets too, as they must follow the column order.
-            # As the offsets and the pos should be place in the same order, a single sort is enough here.
+            # We have to sort the offsets too, as they must follow the column
+            # order. As the offsets and the pos should be place in the same
+            # order, a single sort is enough here.
             cols_offsets.sort()
             valid_offsets = True
         else:
@@ -619,14 +606,13 @@ class Description(object):
                 'offsets': cols_offsets}
             itemsize = newdict.get('_v_itemsize', None)
             if itemsize is not None:
-              dtype_fields['itemsize'] = itemsize
-            dtype = numpy.dtype(dtype_fields)
+                dtype_fields['itemsize'] = itemsize
+            dtype = np.dtype(dtype_fields)
         else:
-            dtype = numpy.dtype(nestedDType)
+            dtype = np.dtype(nestedDType)
         newdict['_v_dtype'] = dtype
         newdict['_v_itemsize'] = dtype.itemsize
         newdict['_v_offsets'] = [dtype.fields[name][1] for name in dtype.names]
-
 
     def _g_set_nested_names_descr(self):
         """Computes the nested names and descriptions for nested datatypes."""
@@ -645,7 +631,6 @@ class Description(object):
                 # set the _v_is_nested flag
                 self._v_is_nested = True
 
-
     def _g_set_path_names(self):
         """Compute the pathnames for arbitrary nested descriptions.
 
@@ -662,7 +647,7 @@ class Description(object):
         def join_paths(path1, path2):
             if not path1:
                 return path2
-            return '%s/%s' % (path1, path2)
+            return f'{path1}/{path2}'
 
         # The top of the stack always has a nested description
         # and a list of its child columns
@@ -722,7 +707,6 @@ class Description(object):
                     parentCols.extend(colPaths)
                 # (Nothing is pushed, we are done with this description.)
 
-
     def _f_walk(self, type='All'):
         """Iterate over nested columns.
 
@@ -762,13 +746,13 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
     def __str__(self):
         """Gives a brief Description representation."""
 
-        return 'Description(%s)' % self._v_nested_descr
+        return f'Description({self._v_nested_descr})'
 
 
 class MetaIsDescription(type):
     """Helper metaclass to return the class variables as a dictionary."""
 
-    def __new__(cls, classname, bases, classdict):
+    def __new__(mcs, classname, bases, classdict):
         """Return a new class with a "columns" attribute filled."""
 
         newdict = {"columns": {}, }
@@ -784,8 +768,7 @@ class MetaIsDescription(type):
                 newdict["columns"][k] = classdict[k]
 
         # Return a new class with the "columns" attribute filled
-        return type.__new__(cls, classname, bases, newdict)
-
+        return type.__new__(mcs, classname, bases, newdict)
 
 
 class IsDescription(metaclass=MetaIsDescription):
@@ -997,10 +980,3 @@ if __name__ == "__main__":
         pass
 
     assert 'c' in testDesc.columns
-
-## Local Variables:
-## mode: python
-## py-indent-offset: 4
-## tab-width: 4
-## fill-column: 72
-## End:

@@ -7,60 +7,19 @@ Issue "python stress-test3.py" without parameters for a help on usage.
 
 """
 
-from __future__ import print_function
 import gc
 import sys
-import time
-from tables import *
+from time import perf_counter as clock
+from time import process_time as cpuclock
+import tables as tb
 
 
-class Test(IsDescription):
-    ngroup = Int32Col(pos=1)
-    ntable = Int32Col(pos=2)
-    nrow = Int32Col(pos=3)
-    string = StringCol(500, pos=4)
-
-
-def createFileArr(filename, ngroups, ntables, nrows):
-
-    # First, create the groups
-
-    # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
-
-    for k in range(ngroups):
-        # Create the group
-        fileh.create_group("/", 'group%04d' % k, "Group %d" % k)
-
-    fileh.close()
-
-    return (0, 4)
-
-
-def readFileArr(filename, ngroups, recsize, verbose):
-
-    rowsread = 0
-    for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
-        # Get the group
-        group = fileh.root
-        ntable = 0
-        if verbose:
-            print("Group ==>", group)
-        for table in fileh.list_nodes(group, 'Array'):
-            if verbose > 1:
-                print("Array ==>", table)
-                print("Rows in", table._v_pathname, ":", table.shape)
-
-            arr = table.read()
-
-            rowsread += len(arr)
-            ntable += 1
-
-        # Close the file (eventually destroy the extended type)
-        fileh.close()
-
-    return (rowsread, 4, 0)
+class Test(tb.IsDescription):
+    ngroup = tb.Int32Col(pos=1)
+    ntable = tb.Int32Col(pos=2)
+    nrow = tb.Int32Col(pos=3)
+    float = tb.Float32Col(pos=3)
+    #string = tb.StringCol(500, pos=4)
 
 
 def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
@@ -68,7 +27,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     # First, create the groups
 
     # Open a file in "w"rite mode
-    fileh = open_file(filename, mode="w", title="PyTables Stress Test")
+    fileh = tb.open_file(filename, mode="w", title="PyTables Stress Test")
 
     for k in range(ngroups):
         # Create the group
@@ -78,15 +37,16 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
 
     # Now, create the tables
     rowswritten = 0
+    rowsize = 0
     for k in range(ngroups):
-        fileh = open_file(filename, mode="a", root_uep='group%04d' % k)
+        fileh = tb.open_file(filename, mode="a", root_uep='group%04d' % k)
         # Get the group
         group = fileh.root
         for j in range(ntables):
             # Create a table
             table = fileh.create_table(group, 'table%04d' % j, Test,
                                        'Table%04d' % j,
-                                       Filters(complevel, complib), nrows)
+                                       tb.Filters(complevel, complib), nrows)
             rowsize = table.rowsize
             # Get the row object associated with the new table
             row = table.row
@@ -110,14 +70,16 @@ def readFile(filename, ngroups, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
     rowsread = 0
+    rowsize = 0
+    buffersize = 0
     for ngroup in range(ngroups):
-        fileh = open_file(filename, mode="r", root_uep='group%04d' % ngroup)
+        fileh = tb.open_file(filename, mode="r")
         # Get the group
-        group = fileh.root
+        group = fileh.get_node(fileh.root, 'group%04d' % ngroup)
         ntable = 0
         if verbose:
             print("Group ==>", group)
-        for table in fileh.list_nodes(group, 'Table'):
+        for table in fileh.list_nodes(group, 'Leaf'):
             rowsize = table.rowsize
             buffersize = table.rowsize * table.nrowsinbuf
             if verbose > 1:
@@ -150,7 +112,7 @@ def readFile(filename, ngroups, recsize, verbose):
 
 
 def dump_garbage():
-    """show us waht the garbage is about."""
+    """show us what the garbage is about."""
     # Force collection
     print("\nGARBAGE:")
     gc.collect()
@@ -163,20 +125,13 @@ def dump_garbage():
 
 if __name__ == "__main__":
     import getopt
-    try:
-        import psyco
-        psyco_imported = 1
-    except:
-        psyco_imported = 0
 
     usage = """usage: %s [-d debug] [-v level] [-p] [-r] [-w] [-l complib] [-c complevel] [-g ngroups] [-t ntables] [-i nrows] file
     -d debugging level
     -v verbosity level
-    -p use "psyco" if available
-    -a use Array objects instead of Table
     -r only read test
     -w only write test
-    -l sets the compression library to be used ("zlib", "lzo", "ucl", "bzip2")
+    -l sets the compression library to be used ("zlib", "bzip2", "blosc", "blosc:codec")
     -c sets a compression level (do not set it or 0 for no compression)
     -g number of groups hanging from "/"
     -t number of tables per group
@@ -203,8 +158,6 @@ if __name__ == "__main__":
     recsize = "medium"
     testread = 1
     testwrite = 1
-    usepsyco = 0
-    usearray = 0
     complevel = 0
     complib = "zlib"
 
@@ -214,10 +167,6 @@ if __name__ == "__main__":
             debug = int(option[1])
         if option[0] == '-v':
             verbose = int(option[1])
-        if option[0] == '-p':
-            usepsyco = 1
-        if option[0] == '-a':
-            usearray = 1
         elif option[0] == '-r':
             testwrite = 0
         elif option[0] == '-w':
@@ -243,47 +192,37 @@ if __name__ == "__main__":
     print("Compression level:", complevel)
     if complevel > 0:
         print("Compression library:", complib)
+    rowsw = 0
     if testwrite:
-        t1 = time.time()
-        cpu1 = time.perf_counter()
-        if psyco_imported and usepsyco:
-            psyco.bind(createFile)
-        if usearray:
-            (rowsw, rowsz) = createFileArr(file, ngroups, ntables, nrows)
-        else:
-            (rowsw, rowsz) = createFile(file, ngroups, ntables, nrows,
-                                        complevel, complib, recsize)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
-        tapprows = round(t2 - t1, 3)
-        cpuapprows = round(cpu2 - cpu1, 3)
-        tpercent = int(round(cpuapprows / tapprows, 2) * 100)
-        print("Rows written:", rowsw, " Row size:", rowsz)
-        print("Time writing rows: %s s (real) %s s (cpu)  %s%%" %
-              (tapprows, cpuapprows, tpercent))
-        print("Write rows/sec: ", int(rowsw / float(tapprows)))
-        print("Write KB/s :", int(rowsw * rowsz / (tapprows * 1024)))
+        t1 = clock()
+        cpu1 = cpuclock()
+        (rowsw, rowsz) = createFile(file, ngroups, ntables, nrows,
+                                    complevel, complib, recsize)
+        t2 = clock()
+        cpu2 = cpuclock()
+        tapprows = t2 - t1
+        cpuapprows = cpu2 - cpu1
+        print(f"Rows written: {rowsw}  Row size: {rowsz}")
+        print(
+            f"Time writing rows: {tapprows:.3f} s (real) "
+            f"{cpuapprows:.3f} s (cpu)  {cpuapprows / tapprows:.0%}")
+        print(f"Write Krows/sec:  {rowsw / (tapprows * 1000):.3f}")
+        print(f"Write MB/s : {rowsw * rowsz / (tapprows * 2**20):.3f}")
 
     if testread:
-        t1 = time.time()
-        cpu1 = time.perf_counter()
-        if psyco_imported and usepsyco:
-            psyco.bind(readFile)
-        if usearray:
-            (rowsr, rowsz, bufsz) = readFileArr(file,
-                                                ngroups, recsize, verbose)
-        else:
-            (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
-        t2 = time.time()
-        cpu2 = time.perf_counter()
-        treadrows = round(t2 - t1, 3)
-        cpureadrows = round(cpu2 - cpu1, 3)
-        tpercent = int(round(cpureadrows / treadrows, 2) * 100)
-        print("Rows read:", rowsr, " Row size:", rowsz, "Buf size:", bufsz)
-        print("Time reading rows: %s s (real) %s s (cpu)  %s%%" %
-              (treadrows, cpureadrows, tpercent))
-        print("Read rows/sec: ", int(rowsr / float(treadrows)))
-        print("Read KB/s :", int(rowsr * rowsz / (treadrows * 1024)))
+        t1 = clock()
+        cpu1 = cpuclock()
+        (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
+        t2 = clock()
+        cpu2 = cpuclock()
+        treadrows = t2 - t1
+        cpureadrows = cpu2 - cpu1
+        print(f"Rows read: {rowsw}  Row size: {rowsz}, Buf size: {bufsz}")
+        print(
+            f"Time reading rows: {treadrows:.3f} s (real) "
+            f"{cpureadrows:.3f} s (cpu)  {cpureadrows / treadrows:.0%}")
+        print(f"Read Krows/sec:  {rowsr / (treadrows * 1000):.3f}")
+        print(f"Read MB/s : {rowsr * rowsz / (treadrows * 2**20):.3f}")
 
     # Show the dirt
     if debug > 1:

@@ -1,24 +1,23 @@
 "Example showing how to add a column on a existing column"
 
-from __future__ import print_function
-import tables
+import tables as tb
 
 
-class Particle(tables.IsDescription):
-    name = tables.StringCol(16, pos=1)      # 16-character String
-    lati = tables.Int32Col(pos=2)           # integer
-    longi = tables.Int32Col(pos=3)          # integer
-    pressure = tables.Float32Col(pos=4)     # float  (single-precision)
-    temperature = tables.Float64Col(pos=5)  # double (double-precision)
+class Particle(tb.IsDescription):
+    name = tb.StringCol(16, pos=1)      # 16-character String
+    lati = tb.Int32Col(pos=2)           # integer
+    longi = tb.Int32Col(pos=3)          # integer
+    pressure = tb.Float32Col(pos=4)     # float  (single-precision)
+    temperature = tb.Float64Col(pos=5)  # double (double-precision)
 
 # Open a file in "w"rite mode
-fileh = tables.open_file("add-column.h5", mode="w")
+fileh = tb.open_file("add-column.h5", mode="w")
 # Create a new group
 group = fileh.create_group(fileh.root, "newgroup")
 
 # Create a new table in newgroup group
 table = fileh.create_table(group, 'table', Particle, "A table",
-                           tables.Filters(1))
+                           tb.Filters(1))
 
 # Append several rows
 table.append([("Particle:     10", 10, 0, 10 * 10, 10 ** 2),
@@ -31,7 +30,7 @@ print("Contents of the original table:", fileh.root.newgroup.table[:])
 fileh.close()
 
 # Open it again in append mode
-fileh = tables.open_file("add-column.h5", "a")
+fileh = tb.open_file("add-column.h5", "a")
 group = fileh.root.newgroup
 table = group.table
 
@@ -40,11 +39,11 @@ descr = table.description._v_colobjects
 descr2 = descr.copy()
 
 # Add a column to description
-descr2["hot"] = tables.BoolCol(dflt=False)
+descr2["hot"] = tb.BoolCol(dflt=False)
 
 # Create a new table with the new description
 table2 = fileh.create_table(group, 'table2', descr2, "A table",
-                            tables.Filters(1))
+                            tb.Filters(1))
 
 # Copy the user attributes
 table.attrs._f_copy(table2)

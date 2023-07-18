@@ -1,6 +1,5 @@
-from __future__ import print_function
-from time import time
-import numpy
+from time import perf_counter as clock
+import numpy as np
 import random
 
 DSN = "dbname=test port = 5435"
@@ -15,11 +14,11 @@ def flatten(l):
 
 
 def fill_arrays(start, stop):
-    col_i = numpy.arange(start, stop, type=numpy.Int32)
+    col_i = np.arange(start, stop, type=np.int32)
     if userandom:
-        col_j = numpy.random.uniform(0, nrows, size=[stop - start])
+        col_j = np.random.uniform(0, nrows, size=[stop - start])
     else:
-        col_j = numpy.array(col_i, type=numpy.Float64)
+        col_j = np.array(col_i, type=np.float64)
     return col_i, col_j
 
 # Generator for ensure pytables benchmark compatibility
@@ -48,7 +47,7 @@ def int_generator_slow(nrows):
             yield (i, float(i))
 
 
-class Stream32(object):
+class Stream32:
 
     "Object simulating a file for reading"
 
@@ -106,7 +105,7 @@ def create_db(filename, nrows):
         cur.execute("create table ints(i integer, j double precision)")
     con.commit()
     con.set_isolation_level(2)
-    t1 = time()
+    t1 = clock()
     st = Stream32()
     cur.copy_from(st, "ints")
     # In case of postgres, the speeds of generator and loop are similar
@@ -114,29 +113,29 @@ def create_db(filename, nrows):
 #     for i in xrange(nrows):
 #         cur.execute("insert into ints values (%s,%s)", (i, float(i)))
     con.commit()
-    ctime = time() - t1
+    ctime = clock() - t1
     if verbose:
-        print("insert time:", round(ctime, 5))
-        print("Krows/s:", round((nrows / 1000.) / ctime, 5))
+        print(f"insert time: {ctime:.5f}")
+        print(f"Krows/s: {nrows / 1000 / ctime:.5f}")
     close_db(con, cur)
 
 
 def index_db(filename):
     con, cur = open_db(filename)
-    t1 = time()
+    t1 = clock()
     cur.execute("create index ij on ints(j)")
     con.commit()
-    itime = time() - t1
+    itime = clock() - t1
     if verbose:
-        print("index time:", round(itime, 5))
-        print("Krows/s:", round(nrows / itime, 5))
+        print(f"index time: {itime:.5f}")
+        print(f"Krows/s: {nrows / itime:.5f}")
     # Close the DB
     close_db(con, cur)
 
 
 def query_db(filename, rng):
     con, cur = open_db(filename)
-    t1 = time()
+    t1 = clock()
     ntimes = 10
     for i in range(ntimes):
         # between clause does not seem to take advantage of indexes
@@ -147,10 +146,10 @@ def query_db(filename, rng):
                     (rng[0] + i, rng[1] + i))
         results = cur.fetchall()
     con.commit()
-    qtime = (time() - t1) / ntimes
+    qtime = (clock() - t1) / ntimes
     if verbose:
-        print("query time:", round(qtime, 5))
-        print("Mrows/s:", round((nrows / 1000.) / qtime, 5))
+        print(f"query time: {qtime:.5f}")
+        print(f"Mrows/s: {nrows / 1000 / qtime:.5f}")
         results = sorted(flatten(results))
         print(results)
     close_db(con, cur)

@@ -1,22 +1,9 @@
-# -*- coding: utf-8 -*-
-
-########################################################################
-#
-# License: BSD
-# Created: 2005-07-07
-# Author:  Ivan Vilata i Balaguer - ivan@selidor.net
-#
-# $Id$
-#
-########################################################################
-
 """Proxy dictionary for objects stored in a container."""
 import weakref
 
 
 class ProxyDict(dict):
     """A dictionary which uses a container object to store its values."""
-
 
     def __init__(self, container):
         self.containerref = weakref.ref(container)
@@ -37,46 +24,35 @@ class ProxyDict(dict):
 
     def __setitem__(self, key, value):
         # Values are not actually stored to avoid extra references.
-        super(ProxyDict, self).__setitem__(key, None)
+        super().__setitem__(key, None)
 
     def __repr__(self):
         return object.__repr__(self)
 
     def __str__(self):
         # C implementation does not use `self.__getitem__()`. :(
-        itemFormat = '%r: %r'
-        itemReprs = [itemFormat % item for item in self.items()]
-        return '{%s}' % ', '.join(itemReprs)
+        return '{' + ", ".join("{k!r}: {v!r}" for k, v in self.items()) + '}'
 
     def values(self):
         # C implementation does not use `self.__getitem__()`. :(
-        valueList = []
-        for key in self.keys():
-            valueList.append(self[key])
-        return valueList
+        return [self[key] for key in self.keys()]
 
     def itervalues(self):
         # C implementation does not use `self.__getitem__()`. :(
         for key in self.keys():
             yield self[key]
-        raise StopIteration
 
     def items(self):
         # C implementation does not use `self.__getitem__()`. :(
-        itemList = []
-        for key in self.keys():
-            itemList.append((key, self[key]))
-        return itemList
+        return [(key, self[key]) for key in self.keys()]
 
     def iteritems(self):
         # C implementation does not use `self.__getitem__()`. :(
         for key in self.keys():
             yield (key, self[key])
-        raise StopIteration
 
     def _get_container(self):
         container = self.containerref()
         if container is None:
             raise ValueError("the container object does no longer exist")
         return container
-

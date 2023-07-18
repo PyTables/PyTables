@@ -1,9 +1,8 @@
 import numpy as np
-import tables
+import tables as tb
 
 # Open a new empty HDF5 file
-fileh = tables.open_file("attributes1.h5", mode="w",
-                         title="Testing attributes")
+fileh = tb.open_file("attributes1.h5", mode="w", title="Testing attributes")
 # Get the root group
 root = fileh.root
 

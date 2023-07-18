@@ -6,11 +6,18 @@
    :alt: Join the chat at https://gitter.im/PyTables/PyTables
    :target: https://gitter.im/PyTables/PyTables
 
-.. image:: https://travis-ci.org/PyTables/PyTables.svg?branch=master
-   :target: https://travis-ci.org/PyTables/PyTables
+.. image:: https://github.com/PyTables/PyTables/workflows/CI/badge.svg
+   :target: https://github.com/PyTables/PyTables/actions?query=workflow%3ACI
 
-.. image:: https://ci.appveyor.com/api/projects/status/github/PyTables/PyTables?branch=master&svg=true
-   :target: https://ci.appveyor.com/project/PyTablesCI/pytables
+.. image:: https://img.shields.io/pypi/v/tables.svg
+  :target: https://pypi.org/project/tables/
+
+.. image:: https://img.shields.io/pypi/pyversions/tables.svg
+  :target: https://pypi.org/project/tables/
+
+.. image:: https://img.shields.io/pypi/l/tables
+  :target: https://github.com/PyTables/PyTables/
+
 
 :URL: http://www.pytables.org/
 
@@ -101,13 +108,13 @@ optional.
 Installation
 ------------
 
-1. Make sure you have HDF5 version 1.8.4 or above.
+1. Make sure you have HDF5 version 1.10.5 or above.
 
    On OSX you can install HDF5 using `Homebrew <http://brew.sh>`_::
 
        $ brew install hdf5
 
-   On ubuntu::
+   On debian bases distributions::
 
        $ sudo apt-get install libhdf5-serial-dev
 
@@ -128,11 +135,11 @@ Installation
 
 4. Install!::
 
-       $ pip install tables
+       $ python3 -m pip install tables
 
 5. To run the test suite run::
 
-       $ python -m tables.tests.test_all
+       $ python3 -m tables.tests.test_all
 
    If there is some test that does not pass, please send the
    complete output for tests back to us.

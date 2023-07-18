@@ -5,10 +5,10 @@ marks.
 
 """
 
-import tables
+import tables as tb
 
 # Create an HDF5 file
-fileh = tables.open_file('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
+fileh = tb.open_file('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
 
          #'-**-**-**-**-**-**- enable undo/redo log  -**-**-**-**-**-**-**-'
 fileh.enable_undo()

@@ -1,30 +1,29 @@
-from __future__ import print_function
 import numpy as np
-import tables
+import tables as tb
 
 
-class Particle(tables.IsDescription):
-    ADCcount = tables.Int16Col()                # signed short integer
-    TDCcount = tables.UInt8Col()                # unsigned byte
-    grid_i = tables.Int32Col()                  # integer
-    grid_j = tables.Int32Col()                  # integer
-    idnumber = tables.Int64Col()                # signed long long
-    name = tables.StringCol(16, dflt="")        # 16-character String
-    pressure = tables.Float32Col(shape=2)       # float  (single-precision)
-    temperature = tables.Float64Col()           # double (double-precision)
+class Particle(tb.IsDescription):
+    ADCcount = tb.Int16Col()                # signed short integer
+    TDCcount = tb.UInt8Col()                # unsigned byte
+    grid_i = tb.Int32Col()                  # integer
+    grid_j = tb.Int32Col()                  # integer
+    idnumber = tb.Int64Col()                # signed long long
+    name = tb.StringCol(16, dflt="")        # 16-character String
+    pressure = tb.Float32Col(shape=2)       # float  (single-precision)
+    temperature = tb.Float64Col()           # double (double-precision)
 
 Particle2 = {
     # You can also use any of the atom factories, i.e. the one which
     # accepts a PyTables type.
-    "ADCcount": tables.Col.from_type("int16"),          # signed short integer
-    "TDCcount": tables.Col.from_type("uint8"),          # unsigned byte
-    "grid_i": tables.Col.from_type("int32"),            # integer
-    "grid_j": tables.Col.from_type("int32"),            # integer
-    "idnumber": tables.Col.from_type("int64"),          # signed long long
-    "name": tables.Col.from_kind("string", 16),         # 16-character String
-    "pressure": tables.Col.from_type("float32", (2,)),  # float
+    "ADCcount": tb.Col.from_type("int16"),          # signed short integer
+    "TDCcount": tb.Col.from_type("uint8"),          # unsigned byte
+    "grid_i": tb.Col.from_type("int32"),            # integer
+    "grid_j": tb.Col.from_type("int32"),            # integer
+    "idnumber": tb.Col.from_type("int64"),          # signed long long
+    "name": tb.Col.from_kind("string", 16),         # 16-character String
+    "pressure": tb.Col.from_type("float32", (2,)),  # float
                                                         # (single-precision)
-    "temperature": tables.Col.from_type("float64"),     # double
+    "temperature": tb.Col.from_type("float64"),     # double
                                                         # (double-precision)
 }
 
@@ -32,7 +31,7 @@ Particle2 = {
 filename = "table-tree.h5"
 
 # Open a file in "w"rite mode
-h5file = tables.open_file(filename, mode="w")
+h5file = tb.open_file(filename, mode="w")
 
 # Create a new group under "/" (root)
 group = h5file.create_group("/", 'detector')
@@ -112,7 +111,7 @@ h5file.close()
 # sys.exit()
 
 # Reopen it in append mode
-h5file = tables.open_file(filename, "a")
+h5file = tb.open_file(filename, "a")
 
 # Ok. let's start browsing the tree from this filename
 print("Reading info from filename:", h5file.filename)

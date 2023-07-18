@@ -73,7 +73,7 @@ Changes from 2.2 to 2.2.1rc1
 
 - Column names in tables can start with '__' now.  Closes #291.
 
-- Unicode empty strings are supported now as atributes.  Addresses #307.
+- Unicode empty strings are supported now as attributes.  Addresses #307.
 
 - Cython 0.13 and higher is supported now.  Fixes #293.
 
@@ -196,9 +196,9 @@ Changes from 2.2b3 to 2.2rc1
   if arrays were not contiguous, incorrect data was saved in attr.
   Fixes #270.
 
-- EXTDIM attribute for CArray/EArray now saves the correct extendeable
+- EXTDIM attribute for CArray/EArray now saves the correct extendable
   dimension, instead of rubbish.  This does not affected functionality,
-  because extendeable dimension was retrieved directly from shape
+  because extendable dimension was retrieved directly from shape
   information, but it was providing misleading information to the user.
   Fixes #268.
 
@@ -218,7 +218,7 @@ Changes from 2.2b2 to 2.2b3
   fast compression and extremely fast decompression.  Fixes #265.
 
 - In `File.copyFile()` method, `copyuserattrs` was set to false as
-  default.  This was unconsistent with other methods where the default
+  default.  This was inconsistent with other methods where the default
   value for `copyuserattrs` is true.  The default for this is true now.
   Closes #261.
 
@@ -228,7 +228,7 @@ Changes from 2.2b2 to 2.2b3
 - Backported fix for issue #25 in Numexpr (OP_NEG_LL treats the argument
   as an int, not a long long).  Thanks to David Cooke for this.
 
-- CHUNK_CACHE_NELMTS in `tables/paramters.py` set to a prime number as
+- CHUNK_CACHE_NELMTS in `tables/parameters.py` set to a prime number as
   Neil Fortner suggested.
 
 - Workaround for a problem in Python 2.6.4 (and probably other versions

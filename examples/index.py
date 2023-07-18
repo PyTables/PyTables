@@ -1,16 +1,15 @@
-from __future__ import print_function
 import random
-import tables
-print('tables.__version__', tables.__version__)
+import tables as tb
+print('tables.__version__', tb.__version__)
 
-nrows = 10000 - 1
+nrows = 10_000 - 1
 
 
-class Distance(tables.IsDescription):
-    frame = tables.Int32Col(pos=0)
-    distance = tables.Float64Col(pos=1)
+class Distance(tb.IsDescription):
+    frame = tb.Int32Col(pos=0)
+    distance = tb.Float64Col(pos=1)
 
-h5file = tables.open_file('index.h5', mode='w')
+h5file = tb.open_file('index.h5', mode='w')
 table = h5file.create_table(h5file.root, 'distance_table', Distance,
                             'distance table', expectedrows=nrows)
 row = table.row

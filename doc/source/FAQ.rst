@@ -1,7 +1,5 @@
-:source: http://www.pytables.org/moin/FAQ
-:revision: 95
-:date: 2011-06-13 08:40:20
 :author: FrancescAlted
+:date: 2011-06-13 08:40:20
 
 .. py:currentmodule:: tables
 
@@ -30,12 +28,7 @@ What are PyTables' licensing terms?
 -----------------------------------
 
 PyTables is free for both commercial and non-commercial use, under the terms
-of the BSD license.
-
-.. todo:
-
-    link to the BSD license http://opensource.org/licenses/BSD-3-Clause
-    or to a local copy
+of the `BSD 3-Clause License <http://opensource.org/licenses/BSD-3-Clause>`_.
 
 
 I'm having problems. How can I get support?
@@ -48,7 +41,7 @@ that can reproduce it.
 Hopefully, someone on the list will be able to help you.
 It is also a good idea to check out the `archives of the user's list`_ (you may
 want to check the `Gmane archives`_ instead) so as to see if the answer to your
-question has already been dealed with.
+question has already been dealt with.
 
 
 Why HDF5?
@@ -158,8 +151,8 @@ one single process (or thread) and communicate the results via sockets,
 :class:`Queue.Queue` objects (in case of using threads), or whatever, with the
 client process/thread.
 
-The examples directory contains two scripts demonstrating methods of accessing a
-PyTables file from multiple processes.
+The `examples` directory contains two scripts demonstrating methods of
+accessing a PyTables file from multiple processes.
 
 The first, *multiprocess_access_queues.py*, uses a
 :class:`multiprocessing.Queue` object to transfer read and write requests from
@@ -178,6 +171,8 @@ processes.  The four methods are:
  * Using a Unix domain socket.  Note that this example uses the 'abstract
    namespace' and will only work under Linux.
  * Using an IPv4 socket.
+
+See also the discussion in :issue:`790`.
 
 
 What kind of containers does PyTables implement?
@@ -300,14 +295,6 @@ voilà, this is how the first public release of PyTables (0.1) saw the light in
 October 2002, three months after his itch started to eat him ;-).
 
 
-Does PyTables have a client-server interface?
----------------------------------------------
-
-Not by itself, but you may be interested in using PyTables through pydap_, a
-Python implementation of the OPeNDAP_ protocol.  Have a look at the `PyTables
-plugin` of pydap_.
-
-
 How does PyTables compare with the h5py project?
 ------------------------------------------------
 
@@ -318,8 +305,8 @@ addition, it also provides access to nearly all of the HDF5_ C API.
 
 Instead, PyTables builds up an additional abstraction layer on top of HDF5_ and
 NumPy_ where it implements things like an enhanced type system, an :ref:`engine
-for enabling complex queries <searchOptim>`, an `efficient computational
-kernel`_, `advanced indexing capabilities`_ or an undo/redo feature, to name
+for enabling complex queries <searchOptim>`, an efficient computational
+kernel, advanced indexing capabilities or an undo/redo feature, to name
 just a few.  This additional layer also allows PyTables to be relatively
 independent of its underlying libraries (and their possible limitations).  For
 example, PyTables can support HDF5_ data types like `enumerated` or `time` that
@@ -496,43 +483,6 @@ these libraries in your PATH, upgrade it to the latest version available (you
 don't need to re-install PyTables).
 
 
-Can't find LZO binaries for Windows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Unfortunately, the LZO binaries for Windows seems to be unavailable from its
-usual place at http://gnuwin32.sourceforge.net/packages/lzo.htm.  So, in order
-to allow people to be able to install this excellent compressor easily, we have
-packaged the LZO binaries in a zip file available at:
-http://www.pytables.org/download/lzo-win.  This zip file follows the same
-structure that a typical GnuWin32_ package, so it is just a matter of unpacking
-it in your ``GNUWIN32`` directory and following the :ref:`instructions
-<prerequisitesBinInst>` in the `PyTables Manual`_.
-
-Hopefully somebody else will take care again of maintaining LZO for Windows
-again.
-
-
-Testing issues
-==============
-
-Tests fail when running from IPython
-------------------------------------
-
-You may be getting errors related with Doctest when running the test suite from
-IPython.  This is a known limitation in IPython (see
-http://lists.ipython.scipy.org/pipermail/ipython-dev/2007-April/002859.html).
-Try running the test suite from the vanilla Python interpreter instead.
-
-
-Tests fail when running from Python 2.5 and Numeric is installed
-----------------------------------------------------------------
-
-`Numeric` doesn't get well with Python 2.5, even on 32-bit platforms.  This is
-a consequence of `Numeric` not being maintained anymore and you should consider
-migrating to NumPy as soon as possible.  To get rid of these errors, just
-uninstall `Numeric`.
-
-
 -----
 
 
@@ -547,29 +497,23 @@ uninstall `Numeric`.
 .. _`R&D 100 Award`: http://www.hdfgroup.org/HDF5/RD100-2002/
 .. _ViTables: http://vitables.org
 .. _Cython: http://www.cython.org
-.. _`Francesc Alted`: http://www.pytables.org/moin/FrancescAlted
+.. _`Francesc Alted`: https://github.com/FrancescAlted
 .. _netCDF3: http://www.unidata.ucar.edu/software/netcdf
-.. _`Scientific Python`: http://dirac.cnrs-orleans.fr/plone/software/scientificpython
+.. _`Scientific Python`: http://dirac.cnrs-orleans.fr/ScientificPython.html
 .. _netCDF4: http://www.unidata.ucar.edu/software/netcdf
-.. _pydap: http://www.pydap.org
 .. _OPeNDAP: http://opendap.org
-.. _`PyTables plugin`: http://pydap.org/plugins/hdf5.html
-.. _`PyTables Manual`: http://www.pytables.org/docs/manual
+.. _`PyTables Manual`: http://www.pytables.org/usersguide/index.html
 .. _h5py: http://www.h5py.org
-.. _`efficient computational kernel`: http://www.pytables.org/moin/ComputingKernel
-.. _`advanced indexing capabilities`: http://www.pytables.org/moin/PyTablesPro
-.. _`automatic computation of optimal chunk sizes`: http://www.pytables.org/docs/manual/ch05.html#chunksizeFineTune
 .. _bzip2: http://www.bzip.org
-.. _Blosc: http://blosc.pytables.org
+.. _Blosc: https://www.blosc.org
 .. _`zlib`: http://zlib.net
 .. _numexpr: https://github.com/pydata/numexpr
 .. _`FAQ of h5py`: http://docs.h5py.org/en/latest/faq.html#what-s-the-difference-between-h5py-and-pytables
 .. _`issue tracker`: https://github.com/PyTables/PyTables/issues
 .. _GitHub: https://github.com
-.. _`HDF5 manual`: http://www.hdfgroup.org/HDF5/doc/RM/RM_H5T.html
+.. _`HDF5 manual`: https://portal.hdfgroup.org/display/HDF5/Datatypes
 .. _SQLObject: http://sqlobject.org
 .. _`PEP 335`: http://www.python.org/dev/peps/pep-0335
-.. _GnuWin32: http://gnuwin32.sourceforge.net
 
 
 .. todo:: fix links that point to wiki pages
