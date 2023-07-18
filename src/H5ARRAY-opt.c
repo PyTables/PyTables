@@ -76,6 +76,7 @@ hsize_t compute_blocks(hsize_t block_size,
                        const hsize_t *dims_chunk,
                        int32_t *dims_block);
 
+// A return value < -100 means that data may have been altered.
 herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
                           hid_t dataset_id,
                           hid_t type_id,
@@ -205,7 +206,11 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     }
 
     if (filename) {  // read
-      read_chunk_blosc2_ndim(filename, dataset_id, space_id, nchunk, chunk_start, chunk_stop, chunksize, data2);
+      herr_t rv;
+      IF_NEG_OUT_RET(rv = read_chunk_blosc2_ndim(filename, dataset_id, space_id,
+                                                 nchunk, chunk_start, chunk_stop, chunksize,
+                                                 data2),
+                     rv - 50);
     } else {  // write
       /* Check if all the chunk is going to be updated and avoid the decompression */
       bool decompress_chunk = false;
@@ -221,17 +226,19 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
           }
         */
       } else {
-        insert_chunk_blosc2_ndim(dataset_id, cparams,
-                                 rank, (int64_t*)(chunkshape), chunkshape_b2, blockshape,
-                                 (int64_t*)(chunk_start), (int64_t*)(chunk_stop),
-                                 chunksize, data2);
+        herr_t rv;
+        IF_NEG_OUT_RET(rv = insert_chunk_blosc2_ndim(dataset_id, cparams,
+                                                     rank, (int64_t*)(chunkshape), chunkshape_b2, blockshape,
+                                                     (int64_t*)(chunk_start), (int64_t*)(chunk_stop),
+                                                     chunksize, data2),
+                       rv - 170);  // signal that modifications may have happened
       }
     }
 
     data2 += chunksize;
   }
 
-  IF_NEG_OUT_RET(H5Sclose(space_id), -5);
+  IF_NEG_OUT_RET(H5Sclose(space_id), -8);
 
   //out_success:
   retval = 0;
