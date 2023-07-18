@@ -382,8 +382,9 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                             array) != BLOSC2_ERROR_SUCCESS,
                      "Failed setting slice of array");
 
-  int64_t cfsize = blosc2_schunk_to_buffer(array->sc, &cframe, &needs_free2);
-  IF_TRUE_OUT_BTRACE(cfsize <= 0, "Failed converting schunk to cframe");
+  int64_t cfsize;
+  IF_TRUE_OUT_BTRACE(b2nd_to_cframe(array, &cframe, &cfsize, &needs_free2) != BLOSC2_ERROR_SUCCESS,
+                     "Failed converting array to cframe")
 
   /* Write frame bypassing HDF5 filter pipeline */
   unsigned flt_msk = 0;
