@@ -322,6 +322,9 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
     if (rv >= 0) {
       goto out_success;
     }
+    IF_TRUE_OUT_RET(rv < -100, rv);  // data may have been altered
+    /* Attempt non-optimized write since Blosc2 still has some limitations,
+       and operations up to here should not have altered data */
   }
 
   /* Create a simple memory data space */
@@ -815,34 +818,37 @@ herr_t H5ARRAYOreadSlice(char *filename,
       blosc2_filter = strtol(envvar, NULL, 10);
 
     if (blosc2_support && !((int) blosc2_filter)) {
-      IF_NEG_OUT_RET(H5Sclose(space_id), -40);  // no longer usable here
-      herr_t rv;
-      IF_NEG_OUT_RET(rv = get_set_blosc2_slice(filename, dataset_id, type_id,
-                                               rank, start, stop, data),
-                     rv - 40);
-      goto out_success;
+      IF_NEG_OUT_RET(H5Sclose(space_id), -5);  // no longer usable here
+      herr_t rv = get_set_blosc2_slice(filename, dataset_id, type_id,
+                                       rank, start, stop, data);
+      if (rv >= 0) {
+        goto out_success;
+      }
+      assert(rv >= -100);
+      /* Attempt non-optimized read since Blosc2 still has some limitations,
+         and operations up to here should not have altered data */
     }
 
     /* Define a hyperslab in the dataset of the size of the records */
     IF_NEG_OUT_RET(H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride,
-                                       count, NULL), -5);
+                                       count, NULL), -6);
 
     /* Create a memory dataspace handle */
-    IF_NEG_OUT_RET(mem_space_id = H5Screate_simple(rank, count, NULL), -6);
+    IF_NEG_OUT_RET(mem_space_id = H5Screate_simple(rank, count, NULL), -7);
 
     /* Read */
     IF_NEG_OUT_RET(H5Dread(dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT,
-                           data), -7);
+                           data), -8);
 
     /* Terminate access to the memory dataspace */
-    IF_NEG_OUT_RET(H5Sclose(mem_space_id), -8);
+    IF_NEG_OUT_RET(H5Sclose(mem_space_id), -9);
 
     /* Terminate access to the dataspace */
-    IF_NEG_OUT_RET(H5Sclose(space_id), -9);
+    IF_NEG_OUT_RET(H5Sclose(space_id), -10);
   } else {                     /* Scalar case */
 
     /* Read all the dataset */
-    IF_NEG_OUT_RET(H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data), -10);
+    IF_NEG_OUT_RET(H5Dread(dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data), -11);
   }
 
   out_success:
