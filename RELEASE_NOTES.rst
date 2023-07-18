@@ -11,13 +11,7 @@
 Changes from 3.8.0 to 3.9.0
 ===========================
 
-- Improve `setup.py` and `blosc2` discovery mechanism.
-- Update external dibraries:
-
-  * c-blosc v1.21.4
-  * hdf5 v1.14.1
-  * lz4 v1.9.4
-  * zlib v1.2.13
+XXX version-specific blurb XXX
 
 
 Changes from 3.7.0 to 3.8.0
