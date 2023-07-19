@@ -104,7 +104,3 @@ herr_t H5TBOdelete_records( char* filename,
                             hsize_t start,
                             hsize_t nrecords,
                             hsize_t maxtuples );
-
-#ifdef __cplusplus
-}
-#endif
