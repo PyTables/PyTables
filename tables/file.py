@@ -1579,8 +1579,6 @@ class File(hdf5extension.File):
             a class derived from Node (e.g. Table). If the node is found but it
             is not an instance of that class, a NoSuchNodeError is also raised.
 
-        Notes
-        -----
         If the node to be returned does not exist, a NoSuchNodeError is
         raised. Please note that hidden nodes are also considered.
 
