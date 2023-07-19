@@ -818,10 +818,10 @@ herr_t H5ARRAYOreadSlice(char *filename,
       blosc2_filter = strtol(envvar, NULL, 10);
 
     if (blosc2_support && !((int) blosc2_filter)) {
-      IF_NEG_OUT_RET(H5Sclose(space_id), -5);  // no longer usable here
       herr_t rv = get_set_blosc2_slice(filename, dataset_id, type_id,
                                        rank, start, stop, data);
       if (rv >= 0) {
+        IF_NEG_OUT_RET(H5Sclose(space_id), -5);
         goto out_success;
       }
       assert(rv >= -100);
