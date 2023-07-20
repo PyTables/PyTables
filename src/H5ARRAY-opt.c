@@ -154,7 +154,8 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     }
 
     blockshape = (int32_t *)(malloc(rank * sizeof(int32_t)));  // in items
-    compute_blocks(cd_values[1], typesize, rank, chunkshape, blockshape);
+    cparams.blocksize = compute_blocks(cd_values[1], typesize,
+                                       rank, chunkshape, blockshape);
   }
 
   /* Compute the number of chunks to update */
