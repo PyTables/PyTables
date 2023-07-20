@@ -70,7 +70,7 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 const void *data);
 
 // See description below.
-hsize_t compute_blocks(hsize_t block_size,
+int32_t compute_blocks(hsize_t block_size,
                        hsize_t type_size,
                        const int rank,
                        const hsize_t *dims_chunk,
@@ -426,7 +426,7 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
  * Based on Python-Blosc2's blosc2.core.compute_chunks_blocks and
  * compute_partition.
  */
-hsize_t compute_blocks(hsize_t block_size,  // desired target, 0 for auto
+int32_t compute_blocks(hsize_t block_size,  // desired target, 0 for auto
                        hsize_t type_size,
                        const int rank,
                        const hsize_t *dims_chunk,
@@ -592,8 +592,8 @@ hid_t H5ARRAYOmake(hid_t loc_id,
         size_t type_size = H5Tget_size(type_id);
         IF_NEG_OUT(type_size);
         dims_block = (int32_t *)(malloc(rank * sizeof(int32_t)));
-        cd_values[1] = (unsigned int) compute_blocks(block_size, type_size,
-                                                     rank, dims_chunk, dims_block);
+        cd_values[1] = compute_blocks(block_size, type_size,
+                                      rank, dims_chunk, dims_block);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         IF_NEG_OUT(H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values));
@@ -603,8 +603,8 @@ hid_t H5ARRAYOmake(hid_t loc_id,
         size_t type_size = H5Tget_size(type_id);
         IF_NEG_OUT(type_size);
         dims_block = (int32_t *)(malloc(rank * sizeof(int32_t)));
-        cd_values[1] = (unsigned int) compute_blocks(block_size, type_size,
-                                                     rank, dims_chunk, dims_block);
+        cd_values[1] = compute_blocks(block_size, type_size,
+                                      rank, dims_chunk, dims_block);
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         blosc_compname = complib + 7;
