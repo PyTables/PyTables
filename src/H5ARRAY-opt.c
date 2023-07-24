@@ -199,10 +199,13 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     }
 
     bool slice_overlaps_chunk = true;
+    bool slice_covers_chunk = true;
     for (int i = 0; i < rank; ++i) {
       slice_overlaps_chunk &= (start[i] < chunk_stop[i] && chunk_start[i] < stop[i]);
+      slice_covers_chunk &= (start[i] <= chunk_start[i] && chunk_stop[i] <= stop[i]);
     }
     if (!slice_overlaps_chunk) {
+      data2 += chunksize;
       continue;  // no overlap between chunk and slice
     }
 
@@ -213,12 +216,8 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
                                                  data2),
                      rv - 50);
     } else {  // write
-      /* Check if all the chunk is going to be updated and avoid the decompression */
-      bool decompress_chunk = false;
-      for (int i = 0; i < rank; ++i) {
-        decompress_chunk |= (chunk_start[i] < start[i] || chunk_stop[i] > stop[i]);
-      }
-      if (decompress_chunk) {
+      /* If the whole chunk is going to be updated, avoid the decompression */
+      if (!slice_covers_chunk) {
         /*
           int err = blosc2_schunk_decompress_chunk(array->sc, nchunk, data, data_nbytes);
           if (err < 0) {
