@@ -101,8 +101,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   int64_t *nchunk_ndim = NULL;
   hsize_t *chunk_start = NULL;
   hsize_t *chunk_stop = NULL;
-
-  uint8_t *data2 = (uint8_t *) data;
+  uint8_t *temp_chunk = NULL;
 
   /* Get the file data space */
   IF_NEG_OUT_RET(space_id = H5Dget_space(dataset_id), -1);
@@ -205,16 +204,19 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       slice_covers_chunk &= (start[i] <= chunk_start[i] && chunk_stop[i] <= stop[i]);
     }
     if (!slice_overlaps_chunk) {
-      data2 += chunksize;
       continue;  // no overlap between chunk and slice
     }
+
+    assert(temp_chunk == NULL);  // previous temp chunk must have been freed
+    temp_chunk = (uint8_t *)(malloc(chunksize * sizeof(uint8_t)));
 
     if (filename) {  // read
       herr_t rv;
       IF_NEG_OUT_RET(rv = read_chunk_blosc2_ndim(filename, dataset_id, space_id,
                                                  nchunk, chunk_start, chunk_stop, chunksize,
-                                                 data2),
+                                                 temp_chunk),
                      rv - 50);
+      // TODO: copy from temp_chunk to data
     } else {  // write
       /* If the whole chunk is going to be updated, avoid the decompression */
       if (!slice_covers_chunk) {
@@ -224,18 +226,23 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
             BLOSC_TRACE_ERROR("Error decompressing chunk");
             BLOSC_ERROR(BLOSC2_ERROR_FAILURE);
           }
+          // TODO: update temp_chunk with data
+          // TODO: write chunk
         */
       } else {
+        // TODO: copy from data to temp_chunk
         herr_t rv;
         IF_NEG_OUT_RET(rv = insert_chunk_blosc2_ndim(dataset_id, cparams,
                                                      rank, (int64_t*)(chunkshape), chunkshape_b2, blockshape,
                                                      (int64_t*)(chunk_start), (int64_t*)(chunk_stop),
-                                                     chunksize, data2),
+                                                     chunksize, temp_chunk),
                        rv - 170);  // signal that modifications may have happened
       }
     }
 
-    data2 += chunksize;
+    assert(temp_chunk);
+    free(temp_chunk);
+    temp_chunk = NULL;
   }
 
   IF_NEG_OUT_RET(H5Sclose(space_id), -8);
@@ -244,6 +251,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   retval = 0;
 
   out:
+  if (temp_chunk) free(temp_chunk);
   if (chunk_stop) free(chunk_stop);
   if (chunk_start) free(chunk_start);
   if (nchunk_ndim) free(nchunk_ndim);
