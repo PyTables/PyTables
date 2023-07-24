@@ -198,11 +198,11 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       chunksize *= (chunk_stop[i] - chunk_start[i]);
     }
 
-    bool disjoint = false;
+    bool slice_overlaps_chunk = true;
     for (int i = 0; i < rank; ++i) {
-      disjoint |= (chunk_stop[i] <= start[i] || chunk_start[i] >= stop[i]);
+      slice_overlaps_chunk &= (start[i] < chunk_stop[i] && chunk_start[i] < stop[i]);
     }
-    if (disjoint) {
+    if (!slice_overlaps_chunk) {
       continue;  // no overlap between chunk and slice
     }
 
