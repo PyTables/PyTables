@@ -186,7 +186,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     blosc2_multidim_to_unidim(nchunk_ndim, rank, chunks_in_array_strides, &nchunk);
 
     /* Check if the chunk needs to be updated */
-    hsize_t chunksize = typesize;  // in bytes
+    hsize_t temp_chunk_size = typesize;  // in bytes
     for (int i = 0; i < rank; ++i) {
       chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
       chunk_stop[i] = chunk_start[i] + chunkshape[i];
@@ -194,7 +194,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
         chunk_stop[i] = shape[i];
       }
       temp_chunk_shape[i] = chunk_stop[i] - chunk_start[i];
-      chunksize *= temp_chunk_shape[i];
+      temp_chunk_size *= temp_chunk_shape[i];
     }
 
     bool slice_overlaps_chunk = true;
@@ -215,12 +215,12 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     }
 
     assert(temp_chunk == NULL);  // previous temp chunk must have been freed
-    temp_chunk = (uint8_t *)(malloc(chunksize * sizeof(uint8_t)));
+    temp_chunk = (uint8_t *)(malloc(temp_chunk_size * sizeof(uint8_t)));
 
     if (filename) {  // read
       herr_t rv;
       IF_NEG_OUT_RET(rv = read_chunk_blosc2_ndim(filename, dataset_id, space_id,
-                                                 nchunk, chunk_start, chunk_stop, chunksize,
+                                                 nchunk, chunk_start, chunk_stop, temp_chunk_size,
                                                  temp_chunk),
                      rv - 50);
       // TODO: copy from temp_chunk to data
@@ -242,7 +242,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
         IF_NEG_OUT_RET(rv = insert_chunk_blosc2_ndim(dataset_id, cparams,
                                                      rank, temp_chunk_shape, blockshape,
                                                      start_in_temp_chunk, stop_in_temp_chunk,
-                                                     chunksize, temp_chunk),
+                                                     temp_chunk_size, temp_chunk),
                        rv - 170);  // signal that modifications may have happened
       }
     }
