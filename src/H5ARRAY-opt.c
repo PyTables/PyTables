@@ -61,12 +61,11 @@ herr_t read_chunk_blosc2_ndim(char *filename,
 herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 const blosc2_cparams cparams,
                                 const int rank,
-                                const int64_t *arrayshape,  // in fact also chunk shape
-                                const int32_t *chunkshape,
+                                const int64_t *chunkshape,
                                 const int32_t *blockshape,
                                 const int64_t *start,
                                 const int64_t *stop,
-                                hsize_t chunksize,
+                                int64_t chunksize,
                                 const void *data);
 
 // See description below.
@@ -94,13 +93,15 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   hsize_t *shape = NULL;
   int64_t *chunks_in_array = NULL;
   int64_t *chunks_in_array_strides = NULL;
-  int32_t *chunkshape_b2 = NULL;
   int32_t *blockshape = NULL;
   int64_t *update_start = NULL;
   int64_t *update_shape = NULL;
   int64_t *nchunk_ndim = NULL;
   hsize_t *chunk_start = NULL;
   hsize_t *chunk_stop = NULL;
+  int64_t *temp_chunk_shape = NULL;
+  int64_t *start_in_temp_chunk = NULL;
+  int64_t *stop_in_temp_chunk = NULL;
   uint8_t *temp_chunk = NULL;
 
   /* Get the file data space */
@@ -147,11 +148,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       cparams.compcode = cd_values[6];
     }
 
-    chunkshape_b2 = (int32_t *)(malloc(rank * sizeof(int32_t)));  // in items
-    for (int i = 0; i < rank; ++i) {
-      chunkshape_b2[i] = chunkshape[i];
-    }
-
     blockshape = (int32_t *)(malloc(rank * sizeof(int32_t)));  // in items
     cparams.blocksize = compute_blocks(cd_values[1], typesize,
                                        rank, chunkshape, blockshape);
@@ -178,6 +174,9 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   nchunk_ndim = (int64_t *)(malloc(rank * sizeof(int64_t)));  // chunk index
   chunk_start = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
   chunk_stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
+  temp_chunk_shape = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
+  start_in_temp_chunk = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
+  stop_in_temp_chunk = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
   for (int update_nchunk = 0; update_nchunk < update_nchunks; ++update_nchunk) {
     blosc2_unidim_to_multidim(rank, update_shape, update_nchunk, nchunk_ndim);
     for (int i = 0; i < rank; ++i) {
@@ -194,7 +193,8 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       if (chunk_stop[i] > shape[i]) {
         chunk_stop[i] = shape[i];
       }
-      chunksize *= (chunk_stop[i] - chunk_start[i]);
+      temp_chunk_shape[i] = chunk_stop[i] - chunk_start[i];
+      chunksize *= temp_chunk_shape[i];
     }
 
     bool slice_overlaps_chunk = true;
@@ -202,6 +202,13 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     for (int i = 0; i < rank; ++i) {
       slice_overlaps_chunk &= (start[i] < chunk_stop[i] && chunk_start[i] < stop[i]);
       slice_covers_chunk &= (start[i] <= chunk_start[i] && chunk_stop[i] <= stop[i]);
+
+      start_in_temp_chunk[i] = (start[i] > chunk_start[i])
+        ? start[i] - chunk_start[i]
+        : 0;
+      stop_in_temp_chunk[i] = (stop[i] < chunk_stop[i])
+        ? stop[i] - chunk_start[i]
+        : temp_chunk_shape[i];
     }
     if (!slice_overlaps_chunk) {
       continue;  // no overlap between chunk and slice
@@ -233,8 +240,8 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
         // TODO: copy from data to temp_chunk
         herr_t rv;
         IF_NEG_OUT_RET(rv = insert_chunk_blosc2_ndim(dataset_id, cparams,
-                                                     rank, (int64_t*)(chunkshape), chunkshape_b2, blockshape,
-                                                     (int64_t*)(chunk_start), (int64_t*)(chunk_stop),
+                                                     rank, temp_chunk_shape, blockshape,
+                                                     start_in_temp_chunk, stop_in_temp_chunk,
                                                      chunksize, temp_chunk),
                        rv - 170);  // signal that modifications may have happened
       }
@@ -252,13 +259,15 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
 
   out:
   if (temp_chunk) free(temp_chunk);
+  if (stop_in_temp_chunk) free(stop_in_temp_chunk);
+  if (start_in_temp_chunk) free(start_in_temp_chunk);
+  if (temp_chunk_shape) free(temp_chunk_shape);
   if (chunk_stop) free(chunk_stop);
   if (chunk_start) free(chunk_start);
   if (nchunk_ndim) free(nchunk_ndim);
   if (update_shape) free(update_shape);
   if (update_start) free(update_start);
   if (blockshape) free(blockshape);
-  if (chunkshape_b2) free(chunkshape_b2);
   if (chunks_in_array_strides) free(chunks_in_array_strides);
   if (chunks_in_array) free(chunks_in_array);
   if (shape) free(shape);
@@ -373,12 +382,11 @@ herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
 herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
                                 blosc2_cparams cparams,  // by value, to be modified
                                 const int rank,
-                                const int64_t *arrayshape,  // in fact also chunk shape
-                                const int32_t *chunkshape,
+                                const int64_t *chunkshape,
                                 const int32_t *blockshape,
                                 const int64_t *start,
                                 const int64_t *stop,
-                                hsize_t chunksize,
+                                int64_t chunksize,
                                 const void *data) {
   herr_t retval = -1;
   b2nd_context_t *ctx = NULL;
@@ -386,18 +394,24 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
   bool needs_free2 = false;
   uint8_t *cframe = NULL;
 
+  assert(rank <= B2ND_MAX_DIM);
+  int32_t chunkshape_b2[B2ND_MAX_DIM];
+  for (int i = 0; i < rank; ++i) {
+    chunkshape_b2[i] = chunkshape[i];
+  }
+
   /* Compress data into superchunk and get frame */
 
   blosc2_storage storage = {.cparams=&cparams, .dparams=NULL, .contiguous=true};
   /* Only one chunk to store, so array shape == chunk shape */
   IF_FALSE_OUT_BTRACE(ctx = b2nd_create_ctx(&storage,
-                                            rank, arrayshape, chunkshape, blockshape,
+                                            rank, chunkshape, chunkshape_b2, blockshape,
                                             NULL, 0, NULL, 0),
                       "Failed creating context");
   IF_TRUE_OUT_BTRACE(b2nd_zeros(ctx, &array) != BLOSC2_ERROR_SUCCESS,
                      "Failed creating array");
 
-  IF_TRUE_OUT_BTRACE(b2nd_set_slice_cbuffer(data, arrayshape, chunksize, start, stop,
+  IF_TRUE_OUT_BTRACE(b2nd_set_slice_cbuffer(data, chunkshape, chunksize, start, stop,
                                             array) != BLOSC2_ERROR_SUCCESS,
                      "Failed setting slice of array");
 
