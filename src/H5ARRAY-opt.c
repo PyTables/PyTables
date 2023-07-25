@@ -187,27 +187,26 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
 
     /* Check if the chunk needs to be updated */
     hsize_t temp_chunk_size = typesize;  // in bytes
+    bool slice_overlaps_chunk = true;
+    bool slice_covers_chunk = true;
     for (int i = 0; i < rank; ++i) {
       chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
       chunk_stop[i] = chunk_start[i] + chunkshape[i];
       if (chunk_stop[i] > shape[i]) {
         chunk_stop[i] = shape[i];
       }
-      temp_chunk_shape[i] = chunk_stop[i] - chunk_start[i];
-      temp_chunk_size *= temp_chunk_shape[i];
-    }
 
-    bool slice_overlaps_chunk = true;
-    bool slice_covers_chunk = true;
-    for (int i = 0; i < rank; ++i) {
       slice_overlaps_chunk &= (start[i] < chunk_stop[i] && chunk_start[i] < stop[i]);
       slice_covers_chunk &= (start[i] <= chunk_start[i] && chunk_stop[i] <= stop[i]);
 
+      temp_chunk_shape[i] = chunk_stop[i] - chunk_start[i];
+      temp_chunk_size *= temp_chunk_shape[i];
+
       start_in_temp_chunk[i] = (start[i] > chunk_start[i])
-        ? start[i] - chunk_start[i]
+        ? (int64_t)(start[i] - chunk_start[i])
         : 0;
       stop_in_temp_chunk[i] = (stop[i] < chunk_stop[i])
-        ? stop[i] - chunk_start[i]
+        ? (int64_t)(stop[i] - chunk_start[i])
         : temp_chunk_shape[i];
     }
     if (!slice_overlaps_chunk) {
