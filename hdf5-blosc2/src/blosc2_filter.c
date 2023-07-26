@@ -27,6 +27,30 @@
 
 #define GET_FILTER(a, b, c, d, e, f, g) H5Pget_filter_by_id(a,b,c,d,e,f,g,NULL)
 
+/* Auxiliary filter values are:
+ *
+ * - 0: filter revision (FILTER_BLOSC2_VERSION)
+ * - 1: block size (in bytes)
+ * - 2: type size (in bytes)
+ * - 3: chunk size (in bytes)
+ * - 4: compression level
+ * - 5: shuffle method
+ * - 6: compressor code
+ * - 7: chunk rank (number of dimensions) (present if 1 < rank <= BLOSC2_MAX_DIM, for B2ND)
+ * - 8 + i: length of chunk dimension i (0 <= i < rank)
+ *
+ * If a value is specified, all values before it must be specified too.
+ *
+ * If the chunk rank is specified, chunk dimensions must follow.
+ */
+#define MAX_FILTER_VALUES (8 + BLOSC2_MAX_DIM)
+/* Compression level default */
+#define DEFAULT_CLEVEL 5
+/* Shuffle default */
+#define DEFAULT_SHUFFLE 1
+  /* Codec by default */
+#define DEFAULT_COMPCODE BLOSC_BLOSCLZ
+
 
 size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
                               const unsigned cd_values[], size_t nbytes,
@@ -69,6 +93,8 @@ int register_blosc2(char **version, char **date){
     2. Compute the type size in bytes and store it in slot 2.
 
     3. Compute the chunk size in bytes and store it in slot 3.
+
+    4. If 1 < rank <= BLOSC2_MAX_DIM, store it in slot 7, and chunk dimensions in the following slots.
 */
 herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
 
@@ -80,11 +106,12 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   unsigned int bufsize;
   hsize_t chunkdims[32];
   unsigned int flags;
-  size_t nelements = 8;
-  unsigned int values[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  size_t nelements = MAX_FILTER_VALUES;
+  unsigned int values[MAX_FILTER_VALUES];
   hid_t super_type;
   H5T_class_t classt;
 
+  memset(values, 0, sizeof(values));
   r = GET_FILTER(dcpl, FILTER_BLOSC2, &flags, &nelements, values, 0, NULL);
   if (r < 0) return -1;
 
@@ -129,6 +156,19 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   fprintf(stderr, "Blosc2: Computed buffer size %d\n", bufsize);
 #endif
 
+  if (1 < ndims && ndims <= BLOSC2_MAX_DIM) {
+    if (nelements < 5) { values[4] = DEFAULT_CLEVEL; }
+    if (nelements < 6) { values[5] = DEFAULT_SHUFFLE; }
+    if (nelements < 7) { values[6] = DEFAULT_COMPCODE; }
+
+    values[7] = ndims;
+    for (int i = 0; i < ndims; i++) {
+      values[8 + i] = (unsigned int)(chunkdims[i]);
+    };
+
+    nelements = 8 + ndims;
+  }
+
   r = H5Pmodify_filter(dcpl, FILTER_BLOSC2, flags, nelements, values);
   if (r < 0)
     return -1;
@@ -147,9 +187,9 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   size_t blocksize;
   size_t typesize;
   size_t outbuf_size;
-  int clevel = 5;                /* Compression level default */
-  int doshuffle = 1;             /* Shuffle default */
-  int compcode = BLOSC_BLOSCLZ;  /* Codec by default */
+  int clevel = DEFAULT_CLEVEL;
+  int doshuffle = DEFAULT_SHUFFLE;
+  int compcode = DEFAULT_COMPCODE;
 
   /* Filter params that are always set */
   blocksize = cd_values[1];      /* The block size */
@@ -178,6 +218,34 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       }
     }
 
+    int ndims = -1;
+    int32_t chunkdims[BLOSC2_MAX_DIM];
+    if (cd_nelmts >= 8) {
+      /* Get chunk shape for B2ND */
+      ndims = cd_values[7];
+      if (ndims < 2) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+                 "Chunk rank %d (filter value) is too small for B2ND",
+                 ndims);
+        goto failed;
+      }
+      if (ndims > BLOSC2_MAX_DIM) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+                 "Chunk rank %d (filter value) exceeds Blosc2 build limit %d",
+                 ndims, BLOSC2_MAX_DIM);
+        goto failed;
+      }
+      if (cd_nelmts < (size_t)(8 + ndims)) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+                 "Too few dimensions in filter values (%z/%d)",
+                 cd_nelmts - 8, ndims);
+        goto failed;
+      }
+      for (int i = 0; i < ndims; i++) {
+        chunkdims[i] = cd_values[8 + i];
+      }
+    }
+
 #ifdef BLOSC2_DEBUG
     fprintf(stderr, "Blosc2: Compress %zd chunk w/buffer %zd\n",
             nbytes, *buf_size);
@@ -189,6 +257,8 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     cparams.typesize = (int32_t) typesize;
     cparams.filters[BLOSC_LAST_FILTER] = doshuffle;
     cparams.clevel = clevel;
+
+    // TODO: use B2ND if ndims > 1
 
     blosc2_context *cctx = blosc2_create_cctx(cparams);
     blosc2_storage storage = {.cparams=&cparams, .contiguous=false};
@@ -221,6 +291,8 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     /* We're decompressing */
     /* declare dummy variables */
     int32_t cbytes;
+
+    // TODO: use B2ND if metalayer is present
 
     blosc2_schunk* schunk = blosc2_schunk_from_buffer(*buf, (int64_t)nbytes, false);
     if (schunk == NULL) {
