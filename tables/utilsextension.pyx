@@ -899,9 +899,12 @@ def get_nested_field(recarray, fieldname):
   """Get the maybe nested field named `fieldname` from the `recarray`.
 
   The `fieldname` may be a simple field name or a nested field name
-  with slah-separated components.
+  with slash-separated components.
 
   """
+
+  if not isinstance(fieldname, str):
+    raise TypeError
 
   cdef bytes name = fieldname.encode('utf-8')
   try:
