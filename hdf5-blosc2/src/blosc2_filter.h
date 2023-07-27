@@ -18,6 +18,14 @@ extern "C" {
    the L2 cache of most current CPUs. */
 #define B2ND_DEFAULT_BLOCK_SIZE (1 << 17)
 
+/* An opaque NumPy data type format for B2ND that respects the type size.
+ * The actual type is irrelevant since HDF5 already stores it. */
+#define B2ND_OPAQUE_NPDTYPE_FORMAT "|V%zd"
+
+/* The maximum size of a formatted NumPy data type string:
+ * "|V18446744073709551616\0". */
+#define B2ND_OPAQUE_NPDTYPE_MAXLEN (2 + 20 + 1)
+
 /* Registers the filter with the HDF5 library. */
 #if defined(_MSC_VER)
 __declspec(dllexport)
