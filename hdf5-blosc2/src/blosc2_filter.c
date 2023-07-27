@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 #include "hdf5.h"
 #include "blosc2_filter.h"
 
@@ -176,6 +177,55 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   return 1;
 }
 
+
+int32_t compute_b2nd_block_shape(size_t block_size,
+                                 size_t type_size,
+                                 const int rank,
+                                 const int32_t *dims_chunk,
+                                 int32_t *dims_block) {
+  if (block_size == 0) {
+    block_size = BLOSC2_DEFAULT_BLOCK_SIZE;
+  }
+  size_t nitems = block_size / type_size;
+
+  // Start with the smallest possible block dimensions (1 or 2).
+  size_t nitems_new = 1;
+  for (int i = 0; i < rank; i++) {
+    assert(dims_chunk[i] != 0);
+    dims_block[i] = dims_chunk[i] == 1 ? 1 : 2;
+    nitems_new *= dims_block[i];
+  }
+
+  if (nitems_new > nitems) {
+    BLOSC_TRACE_ERROR("Target block size is too small, raising to %lu", nitems_new);
+  }
+  if (nitems_new >= nitems) {
+    return nitems_new * type_size;
+  }
+
+  // Double block dimensions (bound by chunk dimensions) from right to left
+  // while block is under nitems.
+  while (nitems_new <= nitems) {
+    size_t nitems_prev = nitems_new;
+    for (int i = rank - 1; i >= 0; i--) {
+      if (dims_block[i] * 2 <= dims_chunk[i]) {
+        if (nitems_new * 2 <= nitems) {
+          nitems_new *= 2;
+          dims_block[i] *= 2;
+        }
+      } else if (dims_block[i] < dims_chunk[i]) {
+        nitems_new = (nitems_new / dims_block[i]) * dims_chunk[i];
+        dims_block[i] = dims_chunk[i];
+      } else {
+        assert(dims_block[i] == dims_chunk[i]);  // nothing to change
+      }
+    }
+    if (nitems_new == nitems_prev) {
+      break;  // not progressing anymore
+    }
+  }
+  return nitems_new * type_size;
+}
 
 /* The filter function */
 size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
