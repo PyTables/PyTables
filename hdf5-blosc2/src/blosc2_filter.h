@@ -16,7 +16,7 @@ extern "C" {
 
 /* 128KiB should let both the decompressed and the compressed blocks fit in
    the L2 cache of most current CPUs. */
-#define BLOSC2_DEFAULT_BLOCK_SIZE (1 << 17)
+#define B2ND_DEFAULT_BLOCK_SIZE (1 << 17)
 
 /* Registers the filter with the HDF5 library. */
 #if defined(_MSC_VER)

@@ -184,7 +184,7 @@ int32_t compute_b2nd_block_shape(size_t block_size,
                                  const int32_t *dims_chunk,
                                  int32_t *dims_block) {
   if (block_size == 0) {
-    block_size = BLOSC2_DEFAULT_BLOCK_SIZE;
+    block_size = B2ND_DEFAULT_BLOCK_SIZE;
   }
   size_t nitems = block_size / type_size;
 
