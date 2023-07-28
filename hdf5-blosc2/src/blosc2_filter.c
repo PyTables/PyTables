@@ -168,6 +168,11 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
     };
 
     nelements = 8 + ndims;
+  } else if (ndims > 1) {
+    /* The user may be expecting more efficient storage than we can currently provide,
+     * so convey some information when tracing. */
+    BLOSC_TRACE_ERROR("Chunk rank %d exceeds B2ND build limit %d, "
+                      "using plain Blosc2 instead", ndims, BLOSC2_MAX_DIM);
   }
 
   r = H5Pmodify_filter(dcpl, FILTER_BLOSC2, flags, nelements, values);
