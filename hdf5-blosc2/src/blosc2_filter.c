@@ -15,6 +15,7 @@
 #include <assert.h>
 #include "hdf5.h"
 #include "blosc2_filter.h"
+#include "b2nd.h"
 
 #if defined(__GNUC__)
 #define PUSH_ERR(func, minor, str, ...) H5Epush(H5E_DEFAULT, __FILE__, func, __LINE__, H5E_ERR_CLS, H5E_PLINE, minor, str, ##__VA_ARGS__)
@@ -313,30 +314,70 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     cparams.filters[BLOSC_LAST_FILTER] = doshuffle;
     cparams.clevel = clevel;
 
-    // TODO: use B2ND if ndims > 1
-
-    blosc2_context *cctx = blosc2_create_cctx(cparams);
     blosc2_storage storage = {.cparams=&cparams, .contiguous=false};
-    blosc2_schunk* schunk = blosc2_schunk_new(&storage);
-    if (schunk == NULL) {
-      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create a super-chunk");
-      goto failed;
-    }
 
-    status = blosc2_schunk_append_buffer(schunk, *buf, (int32_t) nbytes);
-    if (status < 0) {
-      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot append to buffer");
-      goto failed;
-    }
+    if (ndims > 1) {
 
-    bool needs_free;
-    status = blosc2_schunk_to_buffer(schunk, (uint8_t **)&outbuf, &needs_free);
-    if (status < 0 || !needs_free) {
-      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot convert to buffer");
-      goto failed;
+      b2nd_context_t *ctx = NULL;
+      b2nd_array_t *array = NULL;
+
+      int32_t blockdims[BLOSC2_MAX_DIM];
+      compute_b2nd_block_shape(0, typesize, ndims, chunkdims, blockdims);
+
+      int64_t chunkdims_l[BLOSC2_MAX_DIM];
+      for (int i = 0; i < ndims; i++) {
+        chunkdims_l[i] = chunkdims[i];
+      }
+
+      char dtype[B2ND_OPAQUE_NPDTYPE_MAXLEN];
+      snprintf(dtype, sizeof(dtype), B2ND_OPAQUE_NPDTYPE_FORMAT, typesize);
+      if (!(ctx = b2nd_create_ctx(&storage,
+                                  ndims, chunkdims_l, chunkdims, blockdims,
+                                  dtype, DTYPE_NUMPY_FORMAT, NULL, 0))) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create B2ND context");
+        goto b2nd_comp_out;
+      }
+
+      if (b2nd_from_cbuffer(ctx, &array, *buf, nbytes) < 0) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create B2ND array");
+        goto b2nd_comp_out;
+      }
+
+      bool needs_free;
+      if (b2nd_to_cframe(array, (uint8_t **)&outbuf, &status, &needs_free) < 0) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot convert B2ND array to buffer");
+        goto b2nd_comp_out;
+      }
+
+      b2nd_comp_out:
+      if (array) b2nd_free(array);
+      if (ctx) b2nd_free_ctx(ctx);
+
+    } else {
+
+      blosc2_context *cctx = blosc2_create_cctx(cparams);
+      blosc2_schunk* schunk = blosc2_schunk_new(&storage);
+      if (schunk == NULL) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create a super-chunk");
+        goto failed;
+      }
+
+      status = blosc2_schunk_append_buffer(schunk, *buf, (int32_t) nbytes);
+      if (status < 0) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot append to buffer");
+        goto failed;
+      }
+
+      bool needs_free;
+      status = blosc2_schunk_to_buffer(schunk, (uint8_t **)&outbuf, &needs_free);
+      if (status < 0 || !needs_free) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot convert to buffer");
+        goto failed;
+      }
+      blosc2_schunk_free(schunk);
+      blosc2_free_ctx(cctx);
+
     }
-    blosc2_schunk_free(schunk);
-    blosc2_free_ctx(cctx);
 
 #ifdef BLOSC2_DEBUG
     fprintf(stderr, "Blosc2: Compressed into %zd bytes\n", status);
