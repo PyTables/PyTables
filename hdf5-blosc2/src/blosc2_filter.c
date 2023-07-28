@@ -281,13 +281,13 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       }
       if (ndims > BLOSC2_MAX_DIM) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-                 "Chunk rank %d (filter value) exceeds Blosc2 build limit %d",
+                 "Chunk rank %d (filter value) exceeds B2ND build limit %d",
                  ndims, BLOSC2_MAX_DIM);
         goto failed;
       }
       if (cd_nelmts < (size_t)(8 + ndims)) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-                 "Too few dimensions in filter values (%z/%d)",
+                 "Too few dimensions for B2ND in filter values (%z/%d)",
                  cd_nelmts - 8, ndims);
         goto failed;
       }
