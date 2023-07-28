@@ -393,10 +393,12 @@ herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
   /* Compress data into superchunk and get frame */
 
   blosc2_storage storage = {.cparams=&cparams, .dparams=NULL, .contiguous=true};
+  char dtype[B2ND_OPAQUE_NPDTYPE_MAXLEN];
+  snprintf(dtype, sizeof(dtype), B2ND_OPAQUE_NPDTYPE_FORMAT, (size_t)(cparams.typesize));
   /* Only one chunk to store, so array shape == chunk shape */
   IF_FALSE_OUT_BTRACE(ctx = b2nd_create_ctx(&storage,
                                             rank, chunkshape, chunkshape_b2, blockshape,
-                                            NULL, 0, NULL, 0),
+                                            dtype, DTYPE_NUMPY_FORMAT, NULL, 0),
                       "Failed creating context");
   IF_TRUE_OUT_BTRACE(b2nd_zeros(ctx, &array) != BLOSC2_ERROR_SUCCESS,
                      "Failed creating array");
