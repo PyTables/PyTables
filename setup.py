@@ -1255,7 +1255,8 @@ if __name__ == "__main__":
                 "src/utils.c",
                 "src/H5ARRAY-opt.c",
                 "src/idx-opt.c",
-            ],
+            ]
+            + blosc_sources,
             libraries=indexesextension_libs,
             **extension_kwargs,
         ),
