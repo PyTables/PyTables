@@ -99,13 +99,13 @@ int register_blosc2(char **version, char **date){
 */
 herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
 
-  int ndims;
+  int ndim;
   int i;
   herr_t r;
 
   unsigned int typesize, basetypesize;
   unsigned int bufsize;
-  hsize_t chunkdims[32];
+  hsize_t chunkshape[32];
   unsigned int flags;
   size_t nelements = MAX_FILTER_VALUES;
   unsigned int values[MAX_FILTER_VALUES];
@@ -122,10 +122,10 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   /* Set Blosc2 info in first slot */
   values[0] = FILTER_BLOSC2_VERSION;
 
-  ndims = H5Pget_chunk(dcpl, 32, chunkdims);
-  if (ndims < 0)
+  ndim = H5Pget_chunk(dcpl, 32, chunkshape);
+  if (ndim < 0)
     return -1;
-  if (ndims > 32) {
+  if (ndim > 32) {
     PUSH_ERR("blosc2_set_local", H5E_CALLBACK, "Chunk rank exceeds limit");
     return -1;
   }
@@ -148,8 +148,8 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
 
   /* Get the size of the chunk */
   bufsize = typesize;
-  for (i = 0; i < ndims; i++) {
-    bufsize *= (unsigned int) chunkdims[i];
+  for (i = 0; i < ndim; i++) {
+    bufsize *= (unsigned int) chunkshape[i];
   }
   values[3] = bufsize;
 
@@ -157,22 +157,22 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   fprintf(stderr, "Blosc2: Computed buffer size %d\n", bufsize);
 #endif
 
-  if (1 < ndims && ndims <= BLOSC2_MAX_DIM) {
+  if (1 < ndim && ndim <= BLOSC2_MAX_DIM) {
     if (nelements < 5) { values[4] = DEFAULT_CLEVEL; }
     if (nelements < 6) { values[5] = DEFAULT_SHUFFLE; }
     if (nelements < 7) { values[6] = DEFAULT_COMPCODE; }
 
-    values[7] = ndims;
-    for (int i = 0; i < ndims; i++) {
-      values[8 + i] = (unsigned int)(chunkdims[i]);
+    values[7] = ndim;
+    for (int i = 0; i < ndim; i++) {
+      values[8 + i] = (unsigned int)(chunkshape[i]);
     };
 
-    nelements = 8 + ndims;
-  } else if (ndims > 1) {
+    nelements = 8 + ndim;
+  } else if (ndim > 1) {
     /* The user may be expecting more efficient storage than we can currently provide,
      * so convey some information when tracing. */
     BLOSC_TRACE_ERROR("Chunk rank %d exceeds B2ND build limit %d, "
-                      "using plain Blosc2 instead", ndims, BLOSC2_MAX_DIM);
+                      "using plain Blosc2 instead", ndim, BLOSC2_MAX_DIM);
   }
 
   r = H5Pmodify_filter(dcpl, FILTER_BLOSC2, flags, nelements, values);
@@ -252,31 +252,31 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   outbuf_size = cd_values[3];   /* Precomputed buffer guess */
 
   /* Filter params that are only set for B2ND */
-  int ndims = -1;
-  int32_t chunkdims[BLOSC2_MAX_DIM];
+  int ndim = -1;
+  int32_t chunkshape[BLOSC2_MAX_DIM];
   if (cd_nelmts >= 8) {
     /* Get chunk shape for B2ND */
-    ndims = cd_values[7];
-    if (ndims < 2) {
+    ndim = cd_values[7];
+    if (ndim < 2) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                "Chunk rank %d (filter value) is too small for B2ND",
-               ndims);
+               ndim);
       goto failed;
     }
-    if (ndims > BLOSC2_MAX_DIM) {
+    if (ndim > BLOSC2_MAX_DIM) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                "Chunk rank %d (filter value) exceeds B2ND build limit %d",
-               ndims, BLOSC2_MAX_DIM);
+               ndim, BLOSC2_MAX_DIM);
       goto failed;
     }
-    if (cd_nelmts < (size_t)(8 + ndims)) {
+    if (cd_nelmts < (size_t)(8 + ndim)) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                "Too few dimensions for B2ND in filter values (%z/%d)",
-               cd_nelmts - 8, ndims);
+               cd_nelmts - 8, ndim);
       goto failed;
     }
-    for (int i = 0; i < ndims; i++) {
-      chunkdims[i] = cd_values[8 + i];
+    for (int i = 0; i < ndim; i++) {
+      chunkshape[i] = cd_values[8 + i];
     }
   }
 
@@ -316,23 +316,23 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
     blosc2_storage storage = {.cparams=&cparams, .contiguous=false};
 
-    if (ndims > 1) {
+    if (ndim > 1) {
 
       b2nd_context_t *ctx = NULL;
       b2nd_array_t *array = NULL;
 
       int32_t blockdims[BLOSC2_MAX_DIM];
-      compute_b2nd_block_shape(0, typesize, ndims, chunkdims, blockdims);
+      compute_b2nd_block_shape(0, typesize, ndim, chunkshape, blockdims);
 
-      int64_t chunkdims_l[BLOSC2_MAX_DIM];
-      for (int i = 0; i < ndims; i++) {
-        chunkdims_l[i] = chunkdims[i];
+      int64_t chunkshape_l[BLOSC2_MAX_DIM];
+      for (int i = 0; i < ndim; i++) {
+        chunkshape_l[i] = chunkshape[i];
       }
 
       char dtype[B2ND_OPAQUE_NPDTYPE_MAXLEN];
       snprintf(dtype, sizeof(dtype), B2ND_OPAQUE_NPDTYPE_FORMAT, typesize);
       if (!(ctx = b2nd_create_ctx(&storage,
-                                  ndims, chunkdims_l, chunkdims, blockdims,
+                                  ndim, chunkshape_l, chunkshape, blockdims,
                                   dtype, DTYPE_NUMPY_FORMAT, NULL, 0))) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create B2ND context");
         goto b2nd_comp_out;
@@ -407,9 +407,9 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       }
 
       /* Check array metadata against filter values */
-      if (array->ndim != ndims) {
+      if (array->ndim != ndim) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-                 "B2ND array rank (%hhd) != filter rank (%d)", array->ndim, ndims);
+                 "B2ND array rank (%hhd) != filter rank (%d)", array->ndim, ndim);
         goto b2nd_decomp_out;
       }
       int64_t start[BLOSC2_MAX_DIM], stop[BLOSC2_MAX_DIM], size = typesize;
@@ -417,10 +417,10 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
         start[i] = 0;
         stop[i] = array->shape[i];
         size *= array->shape[i];
-        if (array->chunkshape[i] != chunkdims[i]) {
+        if (array->chunkshape[i] != chunkshape[i]) {
           PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                    "B2ND array chunkshape[%d] (%d) != filter chunkshape[%d] (%d)",
-                   i, array->chunkshape[i], i, chunkdims[i]);
+                   i, array->chunkshape[i], i, chunkshape[i]);
           goto b2nd_decomp_out;
         }
       }
