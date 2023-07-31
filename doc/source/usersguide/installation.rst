@@ -14,9 +14,8 @@ package from sources you can go on reading to the next section.
 
 However, if you want to go straight to binaries that 'just work' for the main
 platforms (Linux, Mac OSX and Windows), you might want to use the excellent
-Anaconda_, ActivePython_, Canopy_ distributions.  PyTables usually distributes
-its own Windows binaries too; go :ref:`binaryInstallationDescr` for
-instructions.
+Anaconda_, ActivePython_, Canopy_ distributions.  PyTables usually distributes its own
+Windows binaries too; go :ref:`binaryInstallationDescr` for instructions.
 Finally `Christoph Gohlke`_ also maintains an excellent suite of a variety of
 binary packages for Windows at his site.
 
@@ -55,16 +54,14 @@ If you don't, fetch and install them before proceeding.
 * HDF5_ >= 1.10.5
 * NumPy_ >= 1.19.0
 * Numexpr_ >= 2.6.2
-* packaging_
-* py-cpuinfo_
 * Cython_ >= 0.29.32
 * c-blosc_ >= 1.11.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the `--blosc` flag of the :file:`setup.py`)
 * Either
-   * python-blosc2_ >= 2.0.0, this is the Python wheel containing *both* the
-     C-Blosc2 libs and headers (>= 2.6.0), as well as the Python wrapper for
-     Blosc2 (not currently used, but it might be in the future), or
+   * python-blosc2_ >= 2.0.0, this is the Python wheel containing *both* the C-Blosc2
+     libs and headers (>= 2.6.0), as well as the Python wrapper for Blosc2 (not
+     currently used, but it might be in the future), or
    * A standalone installation of the c-blosc2_ library including the headers.
      The latter are usually provided by Linux distribtions in a package named
      `blosc2-devel`, `libblosc2-dev``, or similar.
@@ -73,8 +70,6 @@ If you don't, fetch and install them before proceeding.
 .. _HDF5: http://www.hdfgroup.org/HDF5
 .. _NumPy: http://www.numpy.org
 .. _Numexpr: http://code.google.com/p/numexpr
-.. _packaging: https://packaging.pypa.io
-.. _py-cpuinfo: https://github.com/workhorsy/py-cpuinfo
 .. _Cython: http://www.cython.org
 .. _c-blosc: https://github.com/Blosc/c-blosc
 .. _python-blosc2: https://github.com/Blosc/python-blosc2
@@ -96,55 +91,17 @@ in PyTables, so this will be used in case it is not found in the
 system.  So, in case the installer warns about not finding it, do not
 worry too much ;)
 
-Libraries are searched in system standard paths, and `pkg-config` is used,
-when available, to improve the automatic detection.
-
-If `setup.py`` can not find any of the needed libraries or if several
-versions of a library are installed, then it is possible to set the path
-to the particular resource using the environment.  The following environment
-variables can be used for the purpose:
-
-* :envvar:`HDF5_DIR`,
-* :envvar:`LZO_DIR`,
-* :envvar:`BZIP2_DIR`,
-* :envvar:`BLOSC_DIR`, or
-* :envvar:`BLOSC2_DIR`
-
-One may also specify the locations of the resource root directories on the
-`setup.py`` command line.  The following options are available:
-
-* `--hdf5`,
-* `--blosc`,
-* `--lzo`,
-* `--bzip2`, or
-* `--blosc2`
-
- 1. the command line arguments to `setup.py` (e.g. `--blosc2`) has the
-    highest precedence
- 2. If the command line argument for a specific library is not specified and
-    the corresponding environment variables exists (e.g. `BLOSC2_DIR`),
-    then its value is used.
- 3. If the target library (`blosc2` in the example) can't still be found,
-    then `pkg-config` is used for further detection, if it is available.
- 4. If the library is still not found, then a selection of hardcoded paths
-    is used
-
-Please note that, for the specific case of Blosc2, the list of search paths
-also includes the ones used by the `python-blosc2` wheel package to install
-the relevant header files and libraries.
-
 **Unix**
 
-    setup.py will detect HDF5, Blosc, Blosc2, LZO, or bzip2 libraries and
-    include files under :file:`/usr` or :file:`/usr/local`; this will cover
-    most manual installations as well as installations from packages.
-    If setup.py can not find libhdf5, libhdf5 (or liblzo, or libbz2 that
-    you may wish to use) or if you have several versions of a library
-    installed and want to use a particular one, then you can set the path
-    to the resource in the environment, by setting the values of the
-    :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`, :envvar:`BZIP2_DIR`,
-    :envvar:`BLOSC_DIR` or :envvar:`BLOSC2_DIR` environment variables to
-    the path to the particular resource. You may also specify the
+    setup.py will detect HDF5, Blosc, LZO, or bzip2 libraries and include
+    files under :file:`/usr` or :file:`/usr/local`; this will cover most
+    manual installations as well as installations from packages.  If setup.py
+    can not find libhdf5, libhdf5 (or liblzo, or libbz2 that you may wish to
+    use) or if you have several versions of a library installed and want to
+    use a particular one, then you can set the path to the resource in the
+    environment, by setting the values of the :envvar:`HDF5_DIR`,
+    :envvar:`LZO_DIR`, :envvar:`BZIP2_DIR` or :envvar:`BLOSC_DIR` environment
+    variables to the path to the particular resource. You may also specify the
     locations of the resource root directories on the setup.py command line.
     For example::
 
@@ -152,7 +109,6 @@ the relevant header files and libraries.
         --blosc=/stuff/blosc-1.8.1
         --lzo=/stuff/lzo-2.02
         --bzip2=/stuff/bzip2-1.0.5
-        --blosc2=/stuff/blosc2-2.0.0
 
     If your HDF5 library was built as a shared library not in the runtime load
     path, then you can specify the additional linker flags needed to find the
@@ -192,17 +148,15 @@ the relevant header files and libraries.
     Once you have installed the prerequisites, setup.py needs to know where
     the necessary library *stub* (.lib) and *header* (.h) files are installed.
     You can set the path to the include and dll directories for the HDF5
-    (mandatory) and LZO, BZIP2, BLOSC (optional), BLOSC2 libraries in the
-    environment, by setting the values of the :envvar:`HDF5_DIR`,
-    :envvar:`LZO_DIR`, :envvar:`BZIP2_DIR`, :envvar:`BLOSC_DIR` or
-    :envvar:`BLOSC2_DIR` environment variables to the path to the particular
-    resource.  For example::
+    (mandatory) and LZO, BZIP2, BLOSC (optional) libraries in the environment,
+    by setting the values of the :envvar:`HDF5_DIR`, :envvar:`LZO_DIR`,
+    :envvar:`BZIP2_DIR` or :envvar:`BLOSC_DIR` environment variables to the
+    path to the particular resource.  For example::
 
         set HDF5_DIR=c:\\stuff\\hdf5-1.8.5-32bit-VS2008-IVF101\\release
         set BLOSC_DIR=c:\\Program Files (x86)\\Blosc
         set LZO_DIR=c:\\Program Files (x86)\\GnuWin32
         set BZIP2_DIR=c:\\Program Files (x86)\\GnuWin32
-        set BLOSC2_DIR=c:\\Program Files (x86)\\Blosc2
 
     You may also specify the locations of the resource root directories on the
     setup.py command line.
@@ -212,7 +166,6 @@ the relevant header files and libraries.
         --blosc=c:\\Program Files (x86)\\Blosc
         --lzo=c:\\Program Files (x86)\\GnuWin32
         --bzip2=c:\\Program Files (x86)\\GnuWin32
-        --blosc2=c:\\Program Files (x86)\\Blosc2
 
 **Conda**
 
