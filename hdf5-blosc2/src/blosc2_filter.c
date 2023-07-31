@@ -251,6 +251,35 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   typesize = cd_values[2];      /* The datatype size */
   outbuf_size = cd_values[3];   /* Precomputed buffer guess */
 
+  /* Filter params that are only set for B2ND */
+  int ndims = -1;
+  int32_t chunkdims[BLOSC2_MAX_DIM];
+  if (cd_nelmts >= 8) {
+    /* Get chunk shape for B2ND */
+    ndims = cd_values[7];
+    if (ndims < 2) {
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+               "Chunk rank %d (filter value) is too small for B2ND",
+               ndims);
+      goto failed;
+    }
+    if (ndims > BLOSC2_MAX_DIM) {
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+               "Chunk rank %d (filter value) exceeds B2ND build limit %d",
+               ndims, BLOSC2_MAX_DIM);
+      goto failed;
+    }
+    if (cd_nelmts < (size_t)(8 + ndims)) {
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+               "Too few dimensions for B2ND in filter values (%z/%d)",
+               cd_nelmts - 8, ndims);
+      goto failed;
+    }
+    for (int i = 0; i < ndims; i++) {
+      chunkdims[i] = cd_values[8 + i];
+    }
+  }
+
   blosc2_init();
 
   if (!(flags & H5Z_FLAG_REVERSE)) {
@@ -270,34 +299,6 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
                  "the '%s' compressor, but only for: %s",
                  compname, complist);
         goto failed;
-      }
-    }
-
-    int ndims = -1;
-    int32_t chunkdims[BLOSC2_MAX_DIM];
-    if (cd_nelmts >= 8) {
-      /* Get chunk shape for B2ND */
-      ndims = cd_values[7];
-      if (ndims < 2) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-                 "Chunk rank %d (filter value) is too small for B2ND",
-                 ndims);
-        goto failed;
-      }
-      if (ndims > BLOSC2_MAX_DIM) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-                 "Chunk rank %d (filter value) exceeds B2ND build limit %d",
-                 ndims, BLOSC2_MAX_DIM);
-        goto failed;
-      }
-      if (cd_nelmts < (size_t)(8 + ndims)) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-                 "Too few dimensions for B2ND in filter values (%z/%d)",
-                 cd_nelmts - 8, ndims);
-        goto failed;
-      }
-      for (int i = 0; i < ndims; i++) {
-        chunkdims[i] = cd_values[8 + i];
       }
     }
 
@@ -405,7 +406,25 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
         goto b2nd_decomp_out;
       }
 
-      // TODO: check array metadata against filter values
+      /* Check array metadata against filter values */
+      if (array->ndim != ndims) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+                 "B2ND array rank (%hhd) != filter rank (%d)", array->ndim, ndims);
+        goto b2nd_decomp_out;
+      }
+      int64_t start[BLOSC2_MAX_DIM], stop[BLOSC2_MAX_DIM], size = typesize;
+      for (int i = 0; i < array->ndim; i++) {
+        start[i] = 0;
+        stop[i] = array->shape[i];
+        size *= array->shape[i];
+        if (array->chunkshape[i] != chunkdims[i]) {
+          PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+                   "B2ND array chunkshape[%d] (%d) != filter chunkshape[%d] (%d)",
+                   i, array->chunkshape[i], i, chunkdims[i]);
+          goto b2nd_decomp_out;
+        }
+      }
+      assert(outbuf_size >= size);
 
       outbuf = malloc(outbuf_size);
       if (outbuf == NULL) {
@@ -413,13 +432,6 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
         goto b2nd_decomp_out;
       }
 
-      int64_t start[BLOSC2_MAX_DIM], stop[BLOSC2_MAX_DIM], size = typesize;
-      for (int i = 0; i < array->ndim; i++) {
-        start[i] = 0;
-        stop[i] = array->shape[i];
-        size *= array->shape[i];
-      }
-      assert(outbuf_size >= size);
       if (b2nd_get_slice_cbuffer(array, start, stop,
                                  outbuf, stop, outbuf_size) < 0) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot decompress B2ND array into buffer");
