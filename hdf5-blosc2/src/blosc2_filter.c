@@ -440,7 +440,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       status = size;
 
       b2nd_decomp_out:
-      if (array) b2nd_free(array);  // it borrows the super-chunk
+      if (array) b2nd_free(array);  // it owns the super-chunk
 
     } else {
 
