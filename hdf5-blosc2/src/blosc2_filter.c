@@ -359,23 +359,25 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       blosc2_schunk* schunk = blosc2_schunk_new(&storage);
       if (schunk == NULL) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create a super-chunk");
-        goto failed;
+        goto b2_comp_out;
       }
 
       status = blosc2_schunk_append_buffer(schunk, *buf, (int32_t) nbytes);
       if (status < 0) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot append to buffer");
-        goto failed;
+        goto b2_comp_out;
       }
 
       bool needs_free;
       status = blosc2_schunk_to_buffer(schunk, (uint8_t **)&outbuf, &needs_free);
       if (status < 0 || !needs_free) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot convert to buffer");
-        goto failed;
+        goto b2_comp_out;
       }
-      blosc2_schunk_free(schunk);
-      blosc2_free_ctx(cctx);
+
+      b2_comp_out:
+      if (schunk) blosc2_schunk_free(schunk);
+      if (cctx) blosc2_free_ctx(cctx);
 
     }
 
@@ -436,7 +438,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
       if (cbytes < 0) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Get chunk error");
-        goto failed;
+        goto b2_decomp_out;
       }
 
       /* Get the exact outbuf_size from the buffer header */
@@ -451,7 +453,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       outbuf = malloc(outbuf_size);
       if (outbuf == NULL) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Can't allocate decompression buffer");
-        goto failed;
+        goto b2_decomp_out;
       }
 
       blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
@@ -459,15 +461,13 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
       if (status <= 0) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 decompression error");
-        goto failed;
+        goto b2_decomp_out;
       }
 
-      // Cleanup
-      if (needs_free) {
-        free(chunk);
-      }
-      blosc2_free_ctx(dctx);
-      blosc2_schunk_free(schunk);
+      b2_decomp_out:
+      if (chunk && needs_free) free(chunk);
+      if (dctx) blosc2_free_ctx(dctx);
+      if (schunk) blosc2_schunk_free(schunk);
 
     }
 
@@ -481,7 +481,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   }
 
   failed:
-  free(outbuf);
+  if (outbuf) free(outbuf);
   blosc2_destroy();
 
   return 0;
