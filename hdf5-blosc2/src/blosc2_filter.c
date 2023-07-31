@@ -388,51 +388,88 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     /* declare dummy variables */
     int32_t cbytes;
 
-    // TODO: use B2ND if metalayer is present
-
     blosc2_schunk* schunk = blosc2_schunk_from_buffer(*buf, (int64_t)nbytes, false);
     if (schunk == NULL) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot get super-chunk from buffer");
       goto failed;
     }
 
-    uint8_t *chunk;
-    bool needs_free;
-    cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
-    if (cbytes < 0) {
-      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Get chunk error");
-      goto failed;
-    }
+    if (blosc2_meta_exists(schunk, "b2nd") >= 0
+        || blosc2_meta_exists(schunk, "caterva") >= 0) {
 
-    /* Get the exact outbuf_size from the buffer header */
-    int32_t nbytes;
-    blosc2_cbuffer_sizes(chunk, &nbytes, NULL, NULL);
-    outbuf_size = nbytes;
+      b2nd_array_t *array = NULL;
+
+      if (b2nd_from_schunk(schunk, &array) < 0) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot get B2ND array from super-chunk");
+        goto b2nd_decomp_out;
+      }
+
+      // TODO: check array metadata against filter values
+
+      outbuf = malloc(outbuf_size);
+      if (outbuf == NULL) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Can't allocate decompression buffer");
+        goto b2nd_decomp_out;
+      }
+
+      int64_t start[BLOSC2_MAX_DIM], stop[BLOSC2_MAX_DIM], size = typesize;
+      for (int i = 0; i < array->ndim; i++) {
+        start[i] = 0;
+        stop[i] = array->shape[i];
+        size *= array->shape[i];
+      }
+      assert(outbuf_size >= size);
+      if (b2nd_get_slice_cbuffer(array, start, stop,
+                                 outbuf, stop, outbuf_size) < 0) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot decompress B2ND array into buffer");
+        goto b2nd_decomp_out;
+      }
+      status = size;
+
+      b2nd_decomp_out:
+      if (array) b2nd_free(array);  // it borrows the super-chunk
+
+    } else {
+
+      uint8_t *chunk;
+      bool needs_free;
+      cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
+      if (cbytes < 0) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Get chunk error");
+        goto failed;
+      }
+
+      /* Get the exact outbuf_size from the buffer header */
+      int32_t nbytes;
+      blosc2_cbuffer_sizes(chunk, &nbytes, NULL, NULL);
+      outbuf_size = nbytes;
 
 #ifdef BLOSC2_DEBUG
-    fprintf(stderr, "Blosc2: Decompress %zd chunk w/buffer %zd\n", nbytes, outbuf_size);
+      fprintf(stderr, "Blosc2: Decompress %zd chunk w/buffer %zd\n", nbytes, outbuf_size);
 #endif
 
-    outbuf = malloc(outbuf_size);
-    if (outbuf == NULL) {
-      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Can't allocate decompression buffer");
-      goto failed;
-    }
+      outbuf = malloc(outbuf_size);
+      if (outbuf == NULL) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Can't allocate decompression buffer");
+        goto failed;
+      }
 
-    blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
-    blosc2_context *dctx = blosc2_create_dctx(dparams);
-    status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
-    if (status <= 0) {
-      PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 decompression error");
-      goto failed;
-    }
+      blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
+      blosc2_context *dctx = blosc2_create_dctx(dparams);
+      status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
+      if (status <= 0) {
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 decompression error");
+        goto failed;
+      }
 
-    // Cleanup
-    if (needs_free) {
-      free(chunk);
+      // Cleanup
+      if (needs_free) {
+        free(chunk);
+      }
+      blosc2_free_ctx(dctx);
+      blosc2_schunk_free(schunk);
+
     }
-    blosc2_free_ctx(dctx);
-    blosc2_schunk_free(schunk);
 
   } /* compressing vs decompressing */
 
