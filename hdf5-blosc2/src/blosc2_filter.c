@@ -89,8 +89,7 @@ int register_blosc2(char **version, char **date){
 
 /*  Filter setup.  Records the following inside the DCPL:
 
-    1. If version information is not present, set slots 0 and 1 to the filter
-       revision and Blosc2 version, respectively.
+    1. Set slot 0 to the filter revision.
 
     2. Compute the type size in bytes and store it in slot 2.
 
@@ -120,7 +119,7 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   if (nelements < 4)
     nelements = 4;  /* First 4 slots reserved. */
 
-  /* Set Blosc2 info in first two slots */
+  /* Set Blosc2 info in first slot */
   values[0] = FILTER_BLOSC2_VERSION;
 
   ndims = H5Pget_chunk(dcpl, 32, chunkdims);
