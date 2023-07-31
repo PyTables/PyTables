@@ -433,6 +433,8 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     } else {
 
       uint8_t *chunk;
+      blosc2_context *dctx = NULL;
+
       bool needs_free;
       cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
       if (cbytes < 0) {
@@ -456,7 +458,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       }
 
       blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
-      blosc2_context *dctx = blosc2_create_dctx(dparams);
+      dctx = blosc2_create_dctx(dparams);
       status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
       if (status <= 0) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot decompress chunk into buffer");
@@ -464,8 +466,8 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       }
 
       b2_decomp_out:
-      if (chunk && needs_free) free(chunk);
       if (dctx) blosc2_free_ctx(dctx);
+      if (chunk && needs_free) free(chunk);
       if (schunk) blosc2_schunk_free(schunk);
 
     }
