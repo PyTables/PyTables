@@ -339,7 +339,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       }
 
       if (b2nd_from_cbuffer(ctx, &array, *buf, nbytes) < 0) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create B2ND array");
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot compress buffer into B2ND array");
         goto b2nd_comp_out;
       }
 
@@ -364,14 +364,14 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
       status = blosc2_schunk_append_buffer(schunk, *buf, (int32_t) nbytes);
       if (status < 0) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot append to buffer");
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot append buffer to super-chunk");
         goto b2_comp_out;
       }
 
       bool needs_free;
       status = blosc2_schunk_to_buffer(schunk, (uint8_t **)&outbuf, &needs_free);
       if (status < 0 || !needs_free) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot convert to buffer");
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot convert super-chunk to buffer");
         goto b2_comp_out;
       }
 
@@ -402,7 +402,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       b2nd_array_t *array = NULL;
 
       if (b2nd_from_schunk(schunk, &array) < 0) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot get B2ND array from super-chunk");
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create B2ND array from super-chunk");
         goto b2nd_decomp_out;
       }
 
@@ -410,7 +410,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
       outbuf = malloc(outbuf_size);
       if (outbuf == NULL) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Can't allocate decompression buffer");
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot allocate decompression buffer");
         goto b2nd_decomp_out;
       }
 
@@ -437,7 +437,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       bool needs_free;
       cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
       if (cbytes < 0) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Get chunk error");
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot get chunk from super-chunk");
         goto b2_decomp_out;
       }
 
@@ -452,7 +452,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
       outbuf = malloc(outbuf_size);
       if (outbuf == NULL) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Can't allocate decompression buffer");
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot allocate decompression buffer");
         goto b2_decomp_out;
       }
 
@@ -460,7 +460,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       blosc2_context *dctx = blosc2_create_dctx(dparams);
       status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
       if (status <= 0) {
-        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Blosc2 decompression error");
+        PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot decompress chunk into buffer");
         goto b2_decomp_out;
       }
 
