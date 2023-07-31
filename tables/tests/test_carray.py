@@ -7,6 +7,10 @@ import tables as tb
 from tables.tests import common
 
 
+def foreign_byteorder():
+    return {'little': 'big', 'big': 'little'}[sys.byteorder]
+
+
 class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     # Default values
     obj = None
@@ -18,6 +22,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     step = 1
     length = 1
     chunkshape = (5, 5)
+    byteorder = None
     compress = 0
     complib = "zlib"  # Default compression library
     shuffle = 0
@@ -53,7 +58,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         carray = self.h5file.create_carray(group, 'carray1',
                                            atom=atom, shape=self.shape,
                                            title=title, filters=filters,
-                                           chunkshape=self.chunkshape, obj=obj)
+                                           chunkshape=self.chunkshape,
+                                           byteorder=self.byteorder,
+                                           obj=obj)
         carray.flavor = self.flavor
 
         # Fill it with data
@@ -788,6 +795,7 @@ class Blosc2ComprTestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 3
+    byteorder = foreign_byteorder()
 
 
 @common.unittest.skipIf(not common.blosc2_avail,
@@ -800,12 +808,14 @@ class Blosc2CrossChunkTestCase(BasicTestCase):
     start = 3
     stop = 6
     step = 3
+    byteorder = foreign_byteorder()
 
 
 @common.unittest.skipIf(not common.blosc2_avail,
                         'BLOSC2 compression library not available')
 class Blosc2CrossChunkOptTestCase(Blosc2CrossChunkTestCase):
     step = 1  # optimized
+    byteorder = sys.byteorder
 
 
 @common.unittest.skipIf(not common.blosc2_avail,
@@ -818,12 +828,14 @@ class Blosc2PastLastChunkTestCase(BasicTestCase):
     start = 8
     stop = 100
     step = 3
+    byteorder = foreign_byteorder()
 
 
 @common.unittest.skipIf(not common.blosc2_avail,
                         'BLOSC2 compression library not available')
 class Blosc2PastLastChunkOptTestCase(Blosc2PastLastChunkTestCase):
     step = 1  # optimized
+    byteorder = sys.byteorder
 
 
 @common.unittest.skipIf(not common.lzo_avail,
