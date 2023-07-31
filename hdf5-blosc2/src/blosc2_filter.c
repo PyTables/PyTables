@@ -405,6 +405,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
         PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot create B2ND array from super-chunk");
         goto b2nd_decomp_out;
       }
+      schunk = NULL;  // owned by the array now, do not free on its own
 
       /* Check array metadata against filter values */
       if (array->ndim != ndim) {
@@ -440,7 +441,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       status = size;
 
       b2nd_decomp_out:
-      if (array) b2nd_free(array);  // it owns the super-chunk
+      if (array) b2nd_free(array);
 
     } else {
 
@@ -480,9 +481,10 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       b2_decomp_out:
       if (dctx) blosc2_free_ctx(dctx);
       if (chunk && needs_free) free(chunk);
-      if (schunk) blosc2_schunk_free(schunk);
 
     }
+
+    if (schunk) blosc2_schunk_free(schunk);
 
   } /* compressing vs decompressing */
 
