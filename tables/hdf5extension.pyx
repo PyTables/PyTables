@@ -54,7 +54,7 @@ from .utilsextension import (
   encode_filename, set_blosc_max_threads, set_blosc2_max_threads,
   atom_to_hdf5_type, atom_from_hdf5_type, hdf5_to_np_ext_type, create_nested_type,
   pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
-  platform_byteorder)
+  platform_byteorder, get_filters)
 
 
 # Types, constants, functions, classes & other objects from everywhere
@@ -1283,6 +1283,17 @@ cdef void* _array_data(ndarray arr):
             return PyArray_DATA(arr)
     return NULL
 
+def _supports_opt_blosc2_read_write(byteorder, complib, file_mode):
+    opt_write = ((byteorder == sys.byteorder)
+                 and complib and (complib.startswith("blosc2")))
+    # For reading, Windows does not support re-opening a file twice
+    # in not read-only mode (for good reason), so we cannot use the
+    # blosc2 opt
+    opt_read = (opt_write
+                and ((platform.system().lower() != 'windows') or
+                     (file_mode == 'r')))
+    return (opt_read, opt_write)
+
 cdef class Array(Leaf):
   # Instance variables declared in .pxd
 
@@ -1378,17 +1389,9 @@ cdef class Array(Leaf):
       self.dims_chunk = malloc_dims(self.chunkshape)
 
     # Decide whether Blosc2 optimized operations can be used.
-    self.blosc2_support_write = (
-        (self.byteorder == sys.byteorder) and
-        (self.filters.complib is not None) and
-        (self.filters.complib.startswith("blosc2")))
-    # For reading, Windows does not support re-opening a file twice
-    # in not read-only mode (for good reason), so we cannot use the
-    # blosc2 opt
-    self.blosc2_support_read = (
-        self.blosc2_support_write and
-        ((platform.system().lower() != 'windows') or
-         (self._v_file.mode == 'r')))
+    (self.blosc2_support_read, self.blosc2_support_write) = (
+        _supports_opt_blosc2_read_write(self.byteorder, self.filters.complib,
+                                        self._v_file.mode))
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Encode strings
@@ -1500,9 +1503,18 @@ cdef class Array(Leaf):
     if H5ARRAYget_chunkshape(self.dataset_id, self.rank, self.dims_chunk) < 0:
       # The Array class is not chunked!
       chunkshapes = None
+      # Blosc2 optimized operations cannot be used (no chunking nor filters).
+      self.blosc2_support_read = False
+      self.blosc2_support_write = False
     else:
       # Get the chunkshape as a python tuple
       chunkshapes = getshape(self.rank, self.dims_chunk)
+      # Decide whether Blosc2 optimized operations can be used.
+      filters = get_filters(self.parent_id, self.name)
+      (self.blosc2_support_read, self.blosc2_support_write) = (
+          _supports_opt_blosc2_read_write(byteorder,
+                                          'blosc2' if 'blosc2' in filters else None,
+                                          self._v_file.mode))
 
     # object arrays should not be read directly into memory
     if atom.dtype != object:
