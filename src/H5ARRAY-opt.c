@@ -45,12 +45,13 @@
 #define IF_FALSE_OUT_RET(_COND, _RETVAL) IF_TRUE_OUT_RET(!(_COND), _RETVAL)
 #define IF_NEG_OUT_RET(_EXPR, _RETVAL) IF_TRUE_OUT_RET((_EXPR) < 0, _RETVAL)
 
-herr_t read_chunk_blosc2_ndim(char *filename,
+herr_t read_chunk_blosc2_ndim(const char *filename,
                               hid_t dataset_id,
                               hid_t space_id,
                               hsize_t nchunk,
-                              hsize_t *chunk_start,
-                              hsize_t *chunk_stop,
+                              const int64_t *chunkshape,
+                              const int64_t *start,
+                              const int64_t *stop,
                               hsize_t chunksize,
                               uint8_t *data);
 
@@ -210,8 +211,9 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     if (filename) {  // read
       herr_t rv;
       IF_NEG_OUT_RET(rv = read_chunk_blosc2_ndim(filename, dataset_id, space_id,
-                                                 nchunk, chunk_start, chunk_stop, temp_chunk_size,
-                                                 temp_chunk),
+                                                 nchunk, temp_chunk_shape,
+                                                 start_in_temp_chunk, stop_in_temp_chunk,
+                                                 temp_chunk_size, temp_chunk),
                      rv - 50);
       // TODO: copy from temp_chunk to data
     } else {  // write
@@ -636,19 +638,17 @@ hid_t H5ARRAYOmake(hid_t loc_id,
 
 
 
-herr_t read_chunk_blosc2_ndim(char *filename,
+herr_t read_chunk_blosc2_ndim(const char *filename,
                               hid_t dataset_id,
                               hid_t space_id,
                               hsize_t nchunk,
-                              hsize_t *chunk_start,
-                              hsize_t *chunk_stop,
+                              const int64_t *chunkshape,
+                              const int64_t *start,
+                              const int64_t *stop,
                               hsize_t chunksize,
                               uint8_t *data) {
   herr_t retval = -1;
-  blosc2_schunk *schunk = NULL;
-  bool needs_free = false;
-  uint8_t *chunk = NULL;
-  blosc2_context *dctx = NULL;
+  b2nd_array_t *array = NULL;
 
   /* Get the address of the schunk on-disk */
   unsigned flt_msk;
@@ -657,49 +657,21 @@ herr_t read_chunk_blosc2_ndim(char *filename,
   hsize_t chunk_offset[2];
   IF_NEG_OUT_BTRACE(H5Dget_chunk_info(dataset_id, space_id, nchunk, chunk_offset, &flt_msk,
                                       &address, &cframe_size),
-                    "Get chunk info failed!\n");
+                    "Failed getting chunk info of array in %s", filename);
 
   /* Open the schunk on-disk */
-  // b2nd_open_offset(const char *urlpath, b2nd_array_t **array, (int64_t) address)
-  // To remove:
-  //   blosc2_schunk *schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
-  //  IF_FALSE_OUT_BTRACE(schunk, "Cannot open schunk in %s\n", filename);
-  schunk = blosc2_schunk_open_offset(filename, (int64_t) address);
-  IF_FALSE_OUT_BTRACE(schunk, "Cannot open schunk in %s\n", filename);
+  IF_TRUE_OUT_BTRACE(b2nd_open_offset(filename, &array, address) != BLOSC2_ERROR_SUCCESS,
+                     "Cannot open array in %s", filename);
 
-  //  b2nd_set_slice_cbuffer(data, const int64_t *buffershape, int64_t buffersize,
-  // const int64_t *start, stop, b2nd_array_t *array)
-
-  /* Get chunk */
-  int32_t cbytes = blosc2_schunk_get_lazychunk(schunk, 0, &chunk, &needs_free);
-  IF_NEG_OUT_BTRACE(cbytes, "Cannot get lazy chunk %zd in %s\n", nchunk, filename);
-
-  blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
-  dparams.schunk = schunk;
-  dctx = blosc2_create_dctx(dparams);
-
-  /* Gather data for the interesting part */
-  //int nrecords_chunk = chunksize - chunk_start;
-
-  int rbytes;
-  //if (nrecords_chunk == chunklen) {
-  rbytes = blosc2_decompress_ctx(dctx, chunk, cbytes, data, chunksize);
-  IF_NEG_OUT_BTRACE(rbytes, "Cannot decompress lazy chunk");
-  //}
-  /*else {
-    /* Less than 1 chunk to read; use a getitem call
-    rbytes = blosc2_getitem_ctx(dctx, chunk, cbytes, start_chunk, nrecords_chunk, data, chunksize);
-    IF_TRUE_OUT_BTRACE(rbytes != nrecords_chunk * typesize,
-                       "Cannot get (all) items for lazychunk\n");
-  }*/
+  IF_TRUE_OUT_BTRACE(b2nd_get_slice_cbuffer(array, start, stop,
+                                            data, chunkshape, chunksize) != BLOSC2_ERROR_SUCCESS,
+                     "Failed getting slice of array in %s", filename);
 
   //out_success:
   retval = 0;
 
   out:
-  if (chunk && needs_free) free(chunk);
-  if (dctx) blosc2_free_ctx(dctx);
-  if (schunk) blosc2_schunk_free(schunk);
+  if (array) b2nd_free(array);
   return retval;
 
 
