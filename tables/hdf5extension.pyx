@@ -1284,8 +1284,11 @@ cdef void* _array_data(ndarray arr):
     return NULL
 
 def _supports_opt_blosc2_read_write(byteorder, complib, file_mode):
-    opt_write = ((byteorder == sys.byteorder)
-                 and complib and (complib.startswith("blosc2")))
+    if complib:
+      opt_write = ((byteorder == sys.byteorder)
+                   and (complib.startswith("blosc2")))
+    else:
+      opt_write = False
     # For reading, Windows does not support re-opening a file twice
     # in not read-only mode (for good reason), so we cannot use the
     # blosc2 opt
