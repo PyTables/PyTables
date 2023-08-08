@@ -640,14 +640,14 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
     def test_unsupported_object(self):
         """Using a condition with an unsupported object."""
 
-        self.assertRaises(TypeError, self.table.where, '[]')
+        self.assertRaises(ValueError, self.table.where, '[]')
         self.assertRaises(TypeError, self.table.where, 'obj', {'obj': {}})
-        self.assertRaises(TypeError, self.table.where, 'c_bool < []')
+        self.assertRaises(ValueError, self.table.where, 'c_bool < []')
 
     def test_unsupported_syntax(self):
         """Using a condition with unsupported syntax."""
 
-        self.assertRaises(TypeError, self.table.where, 'c_bool[0]')
+        self.assertRaises(ValueError, self.table.where, 'c_bool[0]')
         self.assertRaises(TypeError, self.table.where, 'c_bool()')
         self.assertRaises(NameError, self.table.where, 'c_bool.__init__')
 
