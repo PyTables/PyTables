@@ -838,6 +838,30 @@ class Blosc2PastLastChunkOptTestCase(Blosc2PastLastChunkTestCase):
     byteorder = sys.byteorder
 
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
+    shape = (10, 10, 10)
+    compress = 1
+    complib = "blosc2"
+    chunkshape = (7, 7, 7)
+    byteorder = sys.byteorder
+    type = 'int32'
+    slices = (slice(1, 2), Ellipsis, slice(1, 4))
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
+    shape = (13, 13, 13, 3)
+    compress = 1
+    complib = "blosc2"
+    chunkshape = (5, 5, 5, 3)
+    byteorder = sys.byteorder
+    type = 'int32'
+    slices = (slice(0, 8), slice(7, 13), slice(3, 12), slice(1, 3))
+
+
 @common.unittest.skipIf(not common.lzo_avail,
                         'LZO compression library not available')
 class LZOComprTestCase(BasicTestCase):
