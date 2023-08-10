@@ -131,15 +131,6 @@ cdef extern from "H5ARRAY-opt.h" nogil:
                       hbool_t blosc2_support,
                       const void *data);
 
-  herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
-                               hid_t dataset_id,
-                               hid_t type_id,
-                               const int rank,
-                               hsize_t *start,
-                               hsize_t *step,
-                               hsize_t *count,
-                               const void *data);
-
 
   herr_t H5ARRAYOreadSlice(char* filename,
                            hbool_t blosc2_support,
@@ -1878,12 +1869,12 @@ cdef class Array(Leaf):
 
     # Modify the elements:
     with nogil:
-        ret = H5ARRAYOwrite_records(self.blosc2_support_write, self.dataset_id, self.type_id, self.rank,
+        ret = H5ARRAYwrite_records(self.dataset_id, self.type_id, self.rank,
                                     start, step, count, rbuf)
 
     if ret < 0:
       raise HDF5ExtError("Internal error modifying the elements "
-                         "(H5ARRAYOwrite_records returned errorcode %i)" % ret)
+                         "(H5ARRAYwrite_records returned errorcode %i)" % ret)
 
     return
 

@@ -25,16 +25,6 @@ hid_t H5ARRAYOmake(hid_t loc_id,
                    hbool_t blosc2_support,
                    const void *data);
 
-herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
-                             hid_t dataset_id,
-                             hid_t type_id,
-                             const int rank,
-                             hsize_t *start,
-                             hsize_t *step,
-                             hsize_t *count,
-                             const void *data);
-
-
 herr_t H5ARRAYOreadSlice(char *filename,
                          hbool_t blosc2_support,
                          hid_t dataset_id,

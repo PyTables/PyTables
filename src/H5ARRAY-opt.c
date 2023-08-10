@@ -55,15 +55,6 @@ herr_t read_chunk_blosc2_ndim(const char *filename,
                               hsize_t chunksize,
                               uint8_t *data);
 
-herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
-                                const blosc2_cparams cparams,
-                                const int rank,
-                                const int64_t *chunkshape,
-                                const int32_t *blockshape,
-                                const int64_t *start,
-                                const int64_t *stop,
-                                int64_t chunksize,
-                                const void *data);
 
 // A return value < -100 means that data may have been altered.
 herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
@@ -196,7 +187,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     /* Check if the chunk needs to be updated */
     hsize_t chunk_slice_size = typesize;  // in bytes
     bool slice_overlaps_chunk = true;
-    bool slice_covers_chunk = true;
     for (int i = 0; i < rank; ++i) {
       chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
       chunk_stop[i] = chunk_start[i] + chunkshape[i];
@@ -217,7 +207,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       }
 
       slice_overlaps_chunk &= (start[i] < chunk_stop[i] && chunk_start[i] < stop[i]);
-      slice_covers_chunk &= (start[i] <= chunk_start[i] && chunk_stop[i] <= stop[i]);
 
       temp_chunk_shape[i] = chunk_stop[i] - chunk_start[i];
 
@@ -244,48 +233,25 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     assert(temp_chunk == NULL);  // previous temp chunk must have been freed
     temp_chunk = (uint8_t *)(malloc(chunk_slice_size * sizeof(uint8_t)));
 
-    if (filename) {  // read
-      herr_t rv;
-      IF_NEG_OUT_RET(rv = read_chunk_blosc2_ndim(filename, dataset_id, space_id,
-                                                 nchunk, slice_chunk_shape,
-                                                 start_in_temp_chunk, stop_in_temp_chunk,
-                                                 chunk_slice_size, temp_chunk),
-                     rv - 50);
+    herr_t rv;
+    IF_NEG_OUT_RET(rv = read_chunk_blosc2_ndim(filename, dataset_id, space_id,
+                                             nchunk, slice_chunk_shape,
+                                             start_in_temp_chunk, stop_in_temp_chunk,
+                                             chunk_slice_size, temp_chunk),
+                    rv - 50);
 
-      /* Copy from temp_chunk to data */
-      int64_t chunk_start_idx = -1;
-      blosc2_multidim_to_unidim((int64_t*)(slice_chunk_start), rank, data_strides, &chunk_start_idx);
-      uint8_t *chunk_line = (uint8_t*)(data) + (chunk_start_idx * typesize);
-      uint8_t *temp_chunk_line = temp_chunk;
-      for (int i = slice_chunk_start[0]; i < slice_chunk_stop[0]; i++) {
+    /* Copy from temp_chunk to data */
+    int64_t chunk_start_idx = -1;
+    blosc2_multidim_to_unidim((int64_t*)(slice_chunk_start), rank, data_strides, &chunk_start_idx);
+    uint8_t *chunk_line = (uint8_t*)(data) + (chunk_start_idx * typesize);
+    uint8_t *temp_chunk_line = temp_chunk;
+    for (int i = slice_chunk_start[0]; i < slice_chunk_stop[0]; i++) {
         /* As the temporary chunk has no other chunks around it,
-           its main stride is the number of items to be copied per chunk line. */
+        its main stride is the number of items to be copied per chunk line. */
         memcpy(chunk_line, temp_chunk_line, temp_chunk_strides[0] * typesize);
 
         chunk_line += data_strides[0] * typesize;
         temp_chunk_line += temp_chunk_strides[0] * typesize;
-      }
-    } else {  // write
-      /* If the whole chunk is going to be updated, avoid the decompression */
-      if (!slice_covers_chunk) {
-        /*
-          int err = blosc2_schunk_decompress_chunk(array->sc, nchunk, data, data_nbytes);
-          if (err < 0) {
-            BLOSC_TRACE_ERROR("Error decompressing chunk");
-            BLOSC_ERROR(BLOSC2_ERROR_FAILURE);
-          }
-          // TODO: update temp_chunk with data
-          // TODO: write chunk
-        */
-      } else {
-        // TODO: copy from data to temp_chunk
-        herr_t rv;
-        IF_NEG_OUT_RET(rv = insert_chunk_blosc2_ndim(dataset_id, cparams,
-                                                     rank, temp_chunk_shape, blockshape,
-                                                     start_in_temp_chunk, stop_in_temp_chunk,
-                                                     chunk_slice_size, temp_chunk),
-                       rv - 170);  // signal that modifications may have happened
-      }
     }
 
     assert(temp_chunk);
@@ -326,161 +292,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     H5Pclose(dcpl);
     H5Sclose(space_id);
   } H5E_END_TRY;
-  return retval;
-}
-
-/*-------------------------------------------------------------------------
- * Function: H5ARRAYwrite_records
- *
- * Purpose: Write records to an array
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmers:
- *  Francesc Alted
- *
- * Date: October 26, 2004
- *
- * Comments: Uses memory offsets
- *
- * Modifications: Norbert Nemec for dealing with arrays of zero dimensions
- *                Date: Wed, 15 Dec 2004 18:48:07 +0100
- *
- *
- *-------------------------------------------------------------------------
- */
-
-
-herr_t H5ARRAYOwrite_records(hbool_t blosc2_support,
-                             hid_t dataset_id,
-                             hid_t type_id,
-                             const int rank,
-                             hsize_t *start,
-                             hsize_t *step,
-                             hsize_t *count,
-                             const void *data) {
-  herr_t retval = -1;
-  hid_t space_id = -1;
-  hid_t mem_space_id = -1;
-
-  /* Check if the compressor is Blosc2 */
-  long blosc2_filter = 0;
-  char *envvar = getenv("BLOSC2_FILTER");
-  if (envvar != NULL)
-    blosc2_filter = strtol(envvar, NULL, 10);
-
-  for (int i = 0; i < rank; ++i) {
-    if (step[i] != 1) {
-      blosc2_support = false;  // Blosc2 only supports step=1 for now
-      break;
-    }
-  }
-  blosc2_support = false;
-  if (blosc2_support && !((int) blosc2_filter)) {
-    hsize_t *stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
-    for (int i = 0; i < rank; ++i) {
-      stop[i] = start[i] + count[i];
-    }
-    herr_t rv = get_set_blosc2_slice(NULL, dataset_id, type_id, rank, start, stop, data);
-    free(stop);
-    if (rv >= 0) {
-      goto out_success;
-    }
-    IF_TRUE_OUT_RET(rv < -100, rv);  // data may have been altered
-    /* Attempt non-optimized write since Blosc2 still has some limitations,
-       and operations up to here should not have altered data */
-  }
-
-  /* Create a simple memory data space */
-  IF_NEG_OUT_RET(mem_space_id = H5Screate_simple(rank, count, NULL), -3);
-
-  /* Get the file data space */
-  IF_NEG_OUT_RET(space_id = H5Dget_space(dataset_id), -4);
-
-  /* Define a hyperslab in the dataset */
-  if (rank != 0) {
-    IF_NEG_OUT_RET(H5Sselect_hyperslab(space_id, H5S_SELECT_SET,
-                                       start, step, count, NULL), -5);
-  }
-
-  IF_NEG_OUT_RET(H5Dwrite(dataset_id, type_id, mem_space_id, space_id,
-                          H5P_DEFAULT, data), -6);
-
-  /* Terminate access to the dataspace */
-  IF_NEG_OUT_RET(H5Sclose(mem_space_id), -7);
-
-  IF_NEG_OUT_RET(H5Sclose(space_id), -8);
-
-  out_success:
-  retval = 0;
-
-  out:
-  if (retval >= 0)
-    return retval;
-
-  H5E_BEGIN_TRY {
-    H5Sclose(mem_space_id);
-    H5Sclose(space_id);
-  } H5E_END_TRY;
-  return retval;
-}
-
-
-herr_t insert_chunk_blosc2_ndim(hid_t dataset_id,
-                                blosc2_cparams cparams,  // by value, to be modified
-                                const int rank,
-                                const int64_t *chunkshape,
-                                const int32_t *blockshape,
-                                const int64_t *start,
-                                const int64_t *stop,
-                                int64_t chunksize,
-                                const void *data) {
-  herr_t retval = -1;
-  b2nd_context_t *ctx = NULL;
-  b2nd_array_t *array = NULL;
-  bool needs_free2 = false;
-  uint8_t *cframe = NULL;
-
-  assert(rank <= B2ND_MAX_DIM);
-  int32_t chunkshape_b2[B2ND_MAX_DIM];
-  for (int i = 0; i < rank; ++i) {
-    chunkshape_b2[i] = chunkshape[i];
-  }
-
-  /* Compress data into superchunk and get frame */
-
-  blosc2_storage storage = {.cparams=&cparams, .dparams=NULL, .contiguous=true};
-  char dtype[B2ND_OPAQUE_NPDTYPE_MAXLEN];
-  snprintf(dtype, sizeof(dtype), B2ND_OPAQUE_NPDTYPE_FORMAT, (size_t)(cparams.typesize));
-  /* Only one chunk to store, so array shape == chunk shape */
-  IF_FALSE_OUT_BTRACE(ctx = b2nd_create_ctx(&storage,
-                                            rank, chunkshape, chunkshape_b2, blockshape,
-                                            dtype, DTYPE_NUMPY_FORMAT, NULL, 0),
-                      "Failed creating context");
-  IF_TRUE_OUT_BTRACE(b2nd_zeros(ctx, &array) != BLOSC2_ERROR_SUCCESS,
-                     "Failed creating array");
-
-  IF_TRUE_OUT_BTRACE(b2nd_set_slice_cbuffer(data, chunkshape, chunksize, start, stop,
-                                            array) != BLOSC2_ERROR_SUCCESS,
-                     "Failed setting slice of array");
-
-  int64_t cfsize;
-  IF_TRUE_OUT_BTRACE(b2nd_to_cframe(array, &cframe, &cfsize, &needs_free2) != BLOSC2_ERROR_SUCCESS,
-                     "Failed converting array to cframe")
-
-  /* Write frame bypassing HDF5 filter pipeline */
-  unsigned flt_msk = 0;
-  IF_NEG_OUT_BTRACE(H5Dwrite_chunk(dataset_id, H5P_DEFAULT, flt_msk,
-                                   (hsize_t*) start, (size_t) cfsize, cframe),
-                    "Failed HDF5 writing chunk");
-
-  //out_success:
-  retval = 0;
-
-  out:
-  if (cframe && needs_free2) free(cframe);
-  if (array) b2nd_free(array);
-  if (ctx) b2nd_free_ctx(ctx);
   return retval;
 }
 
@@ -688,9 +499,6 @@ hid_t H5ARRAYOmake(hid_t loc_id,
   return retval;
 
 }
-
-
-
 
 
 herr_t read_chunk_blosc2_ndim(const char *filename,
