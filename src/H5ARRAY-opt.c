@@ -328,7 +328,6 @@ hid_t H5ARRAYOmake(hid_t loc_id,
                    int shuffle,
                    int fletcher32,
                    hbool_t track_times,
-                   hbool_t blosc2_support,
                    const void *data) {
 
   hid_t retval = -1;

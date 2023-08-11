@@ -128,7 +128,6 @@ cdef extern from "H5ARRAY-opt.h" nogil:
                       int   shuffle,
                       int   fletcher32,
                       hbool_t track_times,
-                      hbool_t blosc2_support,
                       const void *data);
 
 
@@ -1416,7 +1415,7 @@ cdef class Array(Leaf):
                                   self.filters.shuffle_bitshuffle,
                                   self.filters.fletcher32,
                                   self._want_track_times,
-                                  self.blosc2_support_write, rbuf)
+                                  rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
