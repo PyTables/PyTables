@@ -28,12 +28,14 @@ blosc2_search_paths = [blosc2_lib_hardcoded,
                        os.path.join(current_dir, blosc2_lib_hardcoded),
                        find_library("blosc2")]
 for blosc2_lib in blosc2_search_paths:
-    try:
-        cdll.LoadLibrary(blosc2_lib)
-        blosc2_found = True
-        break
-    except OSError:
-        pass
+    if blosc2_lib:
+        try:
+            cdll.LoadLibrary(blosc2_lib)
+        except OSError:
+            pass
+        else:
+            blosc2_found = True
+            break
 if not blosc2_found:
     raise RuntimeError("Blosc2 library not found. "
                        f"I looked for \"{', '.join(blosc2_search_paths)}\"")
