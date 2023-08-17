@@ -58,8 +58,8 @@ jobs:
     env:
       HDF5_VERSION: 1.14.1-2  # needed for H5Dchunk_iter
       MACOSX_DEPLOYMENT_TARGET: "10.9"
-      # Skip 3.6 and 3.7 wheels
-      CIBW_SKIP: "*-musllinux_* cp36-* cp37-*"
+      # Skip 3.6, 3.7 and 3.12 wheels
+      CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp312-* "
       CIBW_BUILD: "cp*"
     strategy:
       matrix:
