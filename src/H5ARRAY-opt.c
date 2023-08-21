@@ -70,13 +70,12 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   hid_t dcpl = -1;
 
   /* All these have "rank" elements; remember to free them in the "out" block at the end. */
-  hsize_t *chunkshape = NULL;
+  hsize_t *chunk_shape = NULL;
   hsize_t *shape = NULL;
   int64_t *slice_shape = NULL;
   int64_t *chunks_in_array = NULL;
   int64_t *data_strides = NULL;
   int64_t *chunks_in_array_strides = NULL;
-  int32_t *blockshape = NULL;
   int64_t *update_start = NULL;
   int64_t *update_shape = NULL;
   int64_t *nchunk_ndim = NULL;
@@ -104,8 +103,8 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   IF_NEG_OUT_RET(H5Pget_filter_by_id2(dcpl, FILTER_BLOSC2, NULL,
                                       &cd_nelmts, cd_values, 7, name, NULL), -3);
   int typesize = cd_values[2];
-  chunkshape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
-  H5Pget_chunk(dcpl, rank, chunkshape);
+  chunk_shape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
+  H5Pget_chunk(dcpl, rank, chunk_shape);
 
   IF_NEG_OUT_RET(H5Pclose(dcpl), -4);
 
@@ -115,8 +114,8 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   chunks_in_array = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
   slice_shape = malloc(sizeof(int64_t) * rank);
   for (int i = 0; i < rank; ++i) {
-    chunks_in_array[i] = ((shape[i] / chunkshape[i])
-                          + ((shape[i] % chunkshape[i]) ? 1 : 0));
+    chunks_in_array[i] = ((shape[i] / chunk_shape[i])
+                          + ((shape[i] % chunk_shape[i]) ? 1 : 0));
     slice_shape[i] = stop[i] - start[i];
   }
 
@@ -137,13 +136,13 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   for (int i = 0; i < rank; ++i) {
     hsize_t pos = 0;
     while (pos <= start[i]) {
-      pos += chunkshape[i];
+      pos += chunk_shape[i];
     }
-    update_start[i] = pos / chunkshape[i] - 1;
+    update_start[i] = pos / chunk_shape[i] - 1;
     while (pos < stop[i]) {
-      pos += chunkshape[i];
+      pos += chunk_shape[i];
     }
-    update_shape[i] = pos / chunkshape[i] - update_start[i];
+    update_shape[i] = pos / chunk_shape[i] - update_start[i];
     update_nchunks *= update_shape[i];
   }
 
@@ -170,8 +169,8 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     hsize_t chunk_slice_size = typesize;  // in bytes
     bool slice_overlaps_chunk = true;
     for (int i = 0; i < rank; ++i) {
-      chunk_start[i] = nchunk_ndim[i] * chunkshape[i];
-      chunk_stop[i] = chunk_start[i] + chunkshape[i];
+      chunk_start[i] = nchunk_ndim[i] * chunk_shape[i];
+      chunk_stop[i] = chunk_start[i] + chunk_shape[i];
       if (chunk_stop[i] > shape[i]) {
         chunk_stop[i] = shape[i];
       }
@@ -255,12 +254,11 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   if (nchunk_ndim) free(nchunk_ndim);
   if (update_shape) free(update_shape);
   if (update_start) free(update_start);
-  if (blockshape) free(blockshape);
   if (chunks_in_array_strides) free(chunks_in_array_strides);
   if (data_strides) free(data_strides);
   if (chunks_in_array) free(chunks_in_array);
   if (shape) free(shape);
-  if (chunkshape) free(chunkshape);
+  if (chunk_shape) free(chunk_shape);
   if (slice_chunk_shape) free(slice_chunk_shape);
   if (slice_shape) free(slice_shape);
   if (slice_chunk_start) free(slice_chunk_start);
