@@ -130,24 +130,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     chunks_in_array_strides[i] = chunks_in_array_strides[i + 1] * chunks_in_array[i + 1];
   }
 
-  blosc2_cparams cparams;
-  if (!filename) {  // write
-    /* Compute some Blosc2-specific parameters */
-    cparams = BLOSC2_CPARAMS_DEFAULTS;
-    cparams.typesize = typesize;
-    cparams.clevel = cd_values[4];
-    cparams.filters[5] = cd_values[5];
-    if (cd_nelmts >= 7) {
-      cparams.compcode = cd_values[6];
-    }
-
-    int32_t chunkshape_i[BLOSC2_MAX_DIM];
-    for (int i = 0; i < rank; i++) chunkshape_i[i] = chunkshape[i];
-    blockshape = (int32_t *)(malloc(rank * sizeof(int32_t)));  // in items
-    cparams.blocksize = compute_b2nd_block_shape(cd_values[1], typesize,
-                                                 rank, chunkshape_i, blockshape);
-  }
-
   /* Compute the number of chunks to update */
   update_start = (int64_t *)(malloc(rank * sizeof(int64_t)));  // chunk index
   update_shape = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
