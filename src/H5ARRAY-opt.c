@@ -195,14 +195,12 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       }
       if (start[i] > chunk_start[i]) {
         slice_chunk_start[i] = 0;
-      }
-      else {
+      } else {
         slice_chunk_start[i] = chunk_start[i] - start[i];
       }
       if (stop[i] < chunk_stop[i]) {
             slice_chunk_stop[i] = stop[i] - start[i];
-      }
-      else {
+      } else {
         slice_chunk_stop[i] = chunk_stop[i] - start[i];
       }
 
@@ -247,7 +245,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
     uint8_t *temp_chunk_line = temp_chunk;
     for (int i = slice_chunk_start[0]; i < slice_chunk_stop[0]; i++) {
         /* As the temporary chunk has no other chunks around it,
-        its main stride is the number of items to be copied per chunk line. */
+           its main stride is the number of items to be copied per chunk line. */
         memcpy(chunk_line, temp_chunk_line, temp_chunk_strides[0] * typesize);
 
         chunk_line += data_strides[0] * typesize;
