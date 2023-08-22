@@ -135,10 +135,10 @@ cdef extern from "H5ARRAY-opt.h" nogil:
                            hbool_t blosc2_support,
                            hid_t dataset_id,
                            hid_t type_id,
-                           hsize_t *start,
-                           hsize_t *stop,
-                           hsize_t *step,
-                           void *data);
+                           hsize_t *slice_start,
+                           hsize_t *slice_stop,
+                           hsize_t *slice_step,
+                           void *slice_data);
 
 
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
