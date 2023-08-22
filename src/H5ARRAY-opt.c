@@ -81,7 +81,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   int64_t *nchunk_ndim = NULL;
   hsize_t *chunk_start = NULL;
   hsize_t *chunk_stop = NULL;
-  int64_t *temp_chunk_shape = NULL;
   int64_t *temp_chunk_strides = NULL;
   int64_t *start_in_temp_chunk = NULL;
   int64_t *stop_in_temp_chunk = NULL;
@@ -150,7 +149,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   nchunk_ndim = (int64_t *)(malloc(rank * sizeof(int64_t)));  // chunk index
   chunk_start = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
   chunk_stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
-  temp_chunk_shape = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
   temp_chunk_strides = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
   start_in_temp_chunk = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
   stop_in_temp_chunk = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
@@ -174,27 +172,23 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       if (chunk_stop[i] > shape[i]) {
         chunk_stop[i] = shape[i];
       }
-      if (start[i] > chunk_start[i]) {
-        slice_chunk_start[i] = 0;
-      } else {
-        slice_chunk_start[i] = chunk_start[i] - start[i];
-      }
-      if (stop[i] < chunk_stop[i]) {
-            slice_chunk_stop[i] = stop[i] - start[i];
-      } else {
-        slice_chunk_stop[i] = chunk_stop[i] - start[i];
-      }
 
       slice_overlaps_chunk &= (start[i] < chunk_stop[i] && chunk_start[i] < stop[i]);
 
-      temp_chunk_shape[i] = chunk_stop[i] - chunk_start[i];
-
-      start_in_temp_chunk[i] = (start[i] > chunk_start[i])
-        ? (int64_t)(start[i] - chunk_start[i])
-        : 0;
-      stop_in_temp_chunk[i] = (stop[i] < chunk_stop[i])
-        ? (int64_t)(stop[i] - chunk_start[i])
-        : temp_chunk_shape[i];
+      if (start[i] > chunk_start[i]) {
+        slice_chunk_start[i] = 0;
+        start_in_temp_chunk[i] = (int64_t)(start[i] - chunk_start[i]);
+      } else {
+        slice_chunk_start[i] = chunk_start[i] - start[i];
+        start_in_temp_chunk[i] = 0;
+      }
+      if (stop[i] < chunk_stop[i]) {
+        slice_chunk_stop[i] = stop[i] - start[i];  // i.e. slice_shape[i]
+        stop_in_temp_chunk[i] = (int64_t)(stop[i] - chunk_start[i]);
+      } else {
+        slice_chunk_stop[i] = chunk_stop[i] - start[i];
+        stop_in_temp_chunk[i] = chunk_stop[i] - chunk_start[i];  // chunk_shape[i] may exceed slice
+      }
 
       slice_chunk_shape[i] = slice_chunk_stop[i] - slice_chunk_start[i];
       chunk_slice_size *= slice_chunk_shape[i];
@@ -248,7 +242,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   if (stop_in_temp_chunk) free(stop_in_temp_chunk);
   if (start_in_temp_chunk) free(start_in_temp_chunk);
   if (temp_chunk_strides) free(temp_chunk_strides);
-  if (temp_chunk_shape) free(temp_chunk_shape);
   if (chunk_stop) free(chunk_stop);
   if (chunk_start) free(chunk_start);
   if (nchunk_ndim) free(nchunk_ndim);
