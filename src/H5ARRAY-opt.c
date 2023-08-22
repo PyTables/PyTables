@@ -194,11 +194,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
       chunk_slice_size *= slice_chunk_shape[i];
     }
 
-    temp_chunk_strides[rank - 1] = 1;
-    for (int i = rank - 2; i >= 0; --i) {
-      temp_chunk_strides[i] = temp_chunk_strides[i + 1] * slice_chunk_shape[i + 1];
-    }
-
     if (!slice_overlaps_chunk) {
       continue;  // no overlap between chunk and slice
     }
@@ -214,6 +209,10 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
                     rv - 50);
 
     /* Copy from temp_chunk to data */
+    temp_chunk_strides[rank - 1] = 1;
+    for (int i = rank - 2; i >= 0; --i) {
+      temp_chunk_strides[i] = temp_chunk_strides[i + 1] * slice_chunk_shape[i + 1];
+    }
     int64_t chunk_start_idx = -1;
     blosc2_multidim_to_unidim((int64_t*)(slice_chunk_start), rank, data_strides, &chunk_start_idx);
     uint8_t *chunk_line = (uint8_t*)(data) + (chunk_start_idx * typesize);
