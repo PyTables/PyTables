@@ -129,7 +129,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   }
 
   /* Compute the number of chunks overlapping the slice */
-  slice_chunks_start = (int64_t *)(malloc(rank * sizeof(int64_t)));  // chunk index
+  slice_chunks_start = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
   slice_chunks_shape = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
   int64_t slice_chunks = 1;
   for (int i = 0; i < rank; ++i) {
@@ -146,7 +146,7 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
   }
 
   /* These dimension arrays are completely rewritten on each iteration */
-  slice_chunk_pos = (int64_t *)(malloc(rank * sizeof(int64_t)));  // chunk index
+  slice_chunk_pos = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
   chunk_start = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
   chunk_stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
   chunk_slice_strides = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
