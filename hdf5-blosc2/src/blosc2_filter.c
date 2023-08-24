@@ -246,6 +246,12 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   int doshuffle = DEFAULT_SHUFFLE;
   int compcode = DEFAULT_COMPCODE;
 
+  if (cd_nelmts < 4) {
+    PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+             "Too few filter parameters for B2ND: %d", cd_nelmts);
+    goto failed;
+  }
+
   /* Filter params that are always set */
   blocksize = cd_values[1];      /* The block size */
   typesize = cd_values[2];      /* The datatype size */
@@ -284,6 +290,13 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
   if (!(flags & H5Z_FLAG_REVERSE)) {
     /* We're compressing */
+
+    if (cd_nelmts < 6) {
+      PUSH_ERR("blosc2_filter", H5E_CALLBACK,
+               "Too few filter parameters for B2ND compression: %d", cd_nelmts);
+      goto failed;
+    }
+
     /* Compression params */
     clevel = cd_values[4];        /* The compression level */
     doshuffle = cd_values[5];     /* SHUFFLE, BITSHUFFLE, others */
