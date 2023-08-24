@@ -472,6 +472,17 @@ hid_t H5ARRAYOmake(hid_t loc_id,
 }
 
 
+/* There are some weird issues with optimization under GCC and Linux:
+ * this code causes stack smashing on Ubuntu with optimization level > 0 (with GCC >= 10),
+ * and segmentation faults on Guix with optimization level > 1 (with GCC >= 12).
+ * Clang on Linux seems ok, as well as GCC and Clang on macOS.
+ * For the moment, disable optimization entirely for this function
+ * under GCC (and compatible compilers),
+ * which should not cause a noticeable performance penalty anyway.
+ */
+#ifdef __GNUC__
+__attribute__((optimize("O0")))
+#endif
 herr_t read_chunk_slice_b2nd(const char *filename,
                              hid_t dataset_id,
                              hid_t space_id,
