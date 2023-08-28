@@ -103,7 +103,6 @@ herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
                                       &cd_nelmts, cd_values, 7, name, NULL), -3);
   IF_TRUE_OUT_RET(cd_nelmts < 3, -3);
   int typesize = cd_values[2];
-  IF_TRUE_OUT_RET((long)(typesize) != (long)(H5Tget_size(type_id)), -3);
   chunk_shape = (hsize_t *)(malloc(rank * sizeof(hsize_t)));
   H5Pget_chunk(dcpl, rank, chunk_shape);
 
