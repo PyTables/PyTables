@@ -19,6 +19,8 @@ Changes from 3.8.0 to 3.9.0
   * lz4 v1.9.4
   * zlib v1.2.13
 
+- Fix compatibility with numexpr v2.8.5.
+
 
 Changes from 3.7.0 to 3.8.0
 ===========================

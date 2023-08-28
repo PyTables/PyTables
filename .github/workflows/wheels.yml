@@ -58,8 +58,8 @@ jobs:
     env:
       HDF5_VERSION: 1.14.1-2  # needed for H5Dchunk_iter
       MACOSX_DEPLOYMENT_TARGET: "10.9"
-      # Skip 3.6 and 3.7 wheels
-      CIBW_SKIP: "*-musllinux_* cp36-* cp37-*"
+      # Skip 3.6, 3.7 and 3.12 wheels
+      CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp312-* "
       CIBW_BUILD: "cp*"
     strategy:
       matrix:
@@ -83,11 +83,11 @@ jobs:
         with:
           python-version: 3.x
 
-      - uses: docker/setup-qemu-action@v1
+      - uses: docker/setup-qemu-action@v2
         if: runner.os == 'Linux'
         name: Set up QEMU
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: deps-cache
         with:
           path: hdf5_build
@@ -118,6 +118,7 @@ jobs:
           CIBW_BUILD_VERBOSITY_MACOS: 3
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BEFORE_BUILD: >
+            python -m pip install -U setuptools pip wheel &&
             python -m pip install -r requirements.txt &&
             python -m pip install blosc2
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
