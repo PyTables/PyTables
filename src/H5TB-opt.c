@@ -408,13 +408,10 @@ herr_t read_records_blosc2( char* filename,
  int32_t start_chunk = start % chunklen;
  for (hsize_t nchunk = start_nchunk; total_records < nrecords; nchunk++) {
   /* Get the address of the schunk on-disk */
-  unsigned flt_msk;
   haddr_t address;
-  hsize_t cframe_size;
-  hsize_t chunk_offset;
   if (chunk_op.addrs == NULL) {
-   if (H5Dget_chunk_info(dataset_id, space_id, nchunk, &chunk_offset, &flt_msk,
-                         &address, &cframe_size) < 0) {
+   if (H5Dget_chunk_info(dataset_id, space_id, nchunk,
+                         NULL, NULL, &address, NULL) < 0) {
     BLOSC_TRACE_ERROR("Get chunk info failed!\n");
     goto out;
    }

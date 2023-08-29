@@ -495,12 +495,9 @@ herr_t read_chunk_slice_b2nd(const char *filename,
   b2nd_array_t *array = NULL;
 
   /* Get the address of the schunk on-disk */
-  unsigned flt_msk;
   haddr_t address;
-  hsize_t cframe_size;
-  hsize_t chunk_offset;
-  IF_NEG_OUT_BTRACE(H5Dget_chunk_info(dataset_id, space_id, chunk_idx, &chunk_offset, &flt_msk,
-                                      &address, &cframe_size),
+  IF_NEG_OUT_BTRACE(H5Dget_chunk_info(dataset_id, space_id, chunk_idx,
+                                      NULL, NULL, &address, NULL),
                     "Failed getting chunk info of array in %s", filename);
 
   /* Open the schunk on-disk */
