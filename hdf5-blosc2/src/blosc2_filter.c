@@ -335,13 +335,9 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       b2nd_array_t *array = NULL;
 
       int32_t blockdims[BLOSC2_MAX_DIM];
-      /* As "blocksize" has already been computed using this function,
-         invoking it here again is going to yield the same block size,
-         but we get to get the block shape as well. */
-      int32_t blocksize_ = compute_b2nd_block_shape(blocksize, typesize,
-                                                    ndim, chunkshape,
-                                                    blockdims);
-      assert(blocksize == blocksize_);
+      cparams.blocksize = compute_b2nd_block_shape(blocksize, typesize,
+                                                   ndim, chunkshape,
+                                                   blockdims);
 
       int64_t chunkshape_l[BLOSC2_MAX_DIM];
       for (int i = 0; i < ndim; i++) {

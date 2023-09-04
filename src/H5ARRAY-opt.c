@@ -384,24 +384,14 @@ hid_t H5ARRAYOmake(hid_t loc_id,
       }
       /* The Blosc2 compressor does accept parameters (see blosc2_filter.c) */
       else if (strcmp(complib, "blosc2") == 0) {
-        size_t type_size = H5Tget_size(type_id);
-        IF_NEG_OUT(type_size);
-        int32_t dims_chunk_i[BLOSC2_MAX_DIM], dims_block[BLOSC2_MAX_DIM];
-        for (int i = 0; i < rank; i++) dims_chunk_i[i] = dims_chunk[i];
-        cd_values[1] = compute_b2nd_block_shape(block_size, type_size,
-                                                rank, dims_chunk_i, dims_block);
+        cd_values[1] = block_size;
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         IF_NEG_OUT(H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values));
       }
       /* The Blosc2 compressor can use other compressors (see blosc2_filter.c) */
       else if (strncmp(complib, "blosc2:", 7) == 0) {
-        size_t type_size = H5Tget_size(type_id);
-        IF_NEG_OUT(type_size);
-        int32_t dims_chunk_i[BLOSC2_MAX_DIM], dims_block[BLOSC2_MAX_DIM];
-        for (int i = 0; i < rank; i++) dims_chunk_i[i] = dims_chunk[i];
-        cd_values[1] = compute_b2nd_block_shape(block_size, type_size,
-                                                rank, dims_chunk_i, dims_block);
+        cd_values[1] = block_size;
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         blosc_compname = complib + 7;
