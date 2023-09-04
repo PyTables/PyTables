@@ -334,10 +334,10 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
     blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
     cparams.compcode = compcode;
-    cparams.blocksize = blocksize;
     cparams.typesize = (int32_t) typesize;
     cparams.filters[BLOSC_LAST_FILTER] = doshuffle;
     cparams.clevel = clevel;
+    // cparams.blocksize depends on dimensionality
 
     blosc2_storage storage = {.cparams=&cparams, .contiguous=false};
 
@@ -381,6 +381,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       if (ctx) b2nd_free_ctx(ctx);
 
     } else {
+      cparams.blocksize = blocksize;
 
       blosc2_context *cctx = blosc2_create_cctx(cparams);
       blosc2_schunk* schunk = blosc2_schunk_new(&storage);
