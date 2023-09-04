@@ -183,6 +183,18 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
 }
 
 
+/* Get the maximum block size which is not greater than the given block_size
+ * and fits within the given chunk dimensions dims_chunk. A zero block_size
+ * means using an automatic value that fits most L2 CPU caches.
+ *
+ * Block dimensions start with 2 (unless the respective chunk dimension is 1),
+ * and are doubled starting from the innermost (rightmost) ones, to leverage
+ * the locality of C array arrangement.  The resulting block dimensions are
+ * placed in the last (output) argument.
+ *
+ * Based on Python-Blosc2's blosc2.core.compute_chunks_blocks and
+ * compute_partition.
+ */
 int32_t compute_b2nd_block_shape(size_t block_size,
                                  size_t type_size,
                                  const int rank,

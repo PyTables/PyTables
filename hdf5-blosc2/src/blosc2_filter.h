@@ -34,27 +34,6 @@ __declspec(dllexport)
 #endif	/* defined(_MSC_VER) */
 int register_blosc2(char **version, char **date);
 
-/* Get the maximum block size which is not greater than the given block_size
- * and fits within the given chunk dimensions dims_chunk. A zero block_size
- * means using an automatic value that fits most L2 CPU caches.
- *
- * Block dimensions start with 2 (unless the respective chunk dimension is 1),
- * and are doubled starting from the innermost (rightmost) ones, to leverage
- * the locality of C array arrangement.  The resulting block dimensions are
- * placed in the last (output) argument.
- *
- * Based on Python-Blosc2's blosc2.core.compute_chunks_blocks and
- * compute_partition.
- */
-#if defined(_MSC_VER)
-__declspec(dllexport)
-#endif	/* defined(_MSC_VER) */
-int32_t compute_b2nd_block_shape(size_t block_size,  // desired target, 0 for auto
-                                 size_t type_size,
-                                 const int rank,
-                                 const int32_t *dims_chunk,
-                                 int32_t *dims_block);
-
 #ifdef __cplusplus
 }
 #endif
