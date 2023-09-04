@@ -34,6 +34,18 @@ __declspec(dllexport)
 #endif	/* defined(_MSC_VER) */
 int register_blosc2(char **version, char **date);
 
+/* Uses the Blosc2 library to decide an adequate block size for a chunk
+ * of chunksize bytes (with elements of typesize bytes),
+ * given the compression level clevel
+ * for the compressor compcode (negative for the default).
+ *
+ * Return a negative value if there is some error. */
+#if defined(_MSC_VER)
+__declspec(dllexport)
+#endif	/* defined(_MSC_VER) */
+int32_t compute_blosc2_blocksize(int32_t chunksize, int32_t typesize,
+                                 int clevel, int compcode);
+
 #ifdef __cplusplus
 }
 #endif
