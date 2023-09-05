@@ -390,8 +390,8 @@ hid_t H5ARRAYOmake(hid_t loc_id,
           chunksize *= dims[i];
         /* Save filter from computing this for every chunk */
         cd_values[1] = block_size
-          ? (int) (block_size)
-          : (int) (compute_blosc2_blocksize(chunksize, typesize, compress, -1));
+          ? (unsigned int) (block_size)
+          : (unsigned int) (compute_blosc2_blocksize(chunksize, typesize, compress, -1));
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         IF_NEG_OUT(H5Pset_filter(plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values));
@@ -406,8 +406,8 @@ hid_t H5ARRAYOmake(hid_t loc_id,
           chunksize *= dims[i];
         /* Save filter from computing this for every chunk */
         cd_values[1] = block_size
-          ? (int) (block_size)
-          : (int) (compute_blosc2_blocksize(chunksize, typesize, compress, blosc_compcode));
+          ? (unsigned int) (block_size)
+          : (unsigned int) (compute_blosc2_blocksize(chunksize, typesize, compress, blosc_compcode));
         cd_values[4] = compress;
         cd_values[5] = shuffle;
         cd_values[6] = blosc_compcode;
