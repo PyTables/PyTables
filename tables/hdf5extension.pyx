@@ -1405,7 +1405,7 @@ cdef class Array(Leaf):
     else:
       atom.dflt = dflts
 
-    cdef hsize_t blocksize = self._v_blocksize if hasattr(self, "_v_blocksize") else 0
+    cdef hsize_t blocksize = int(os.environ.get("PT_DEFAULT_B2_BLOCKSIZE", "0"))
     # Create the CArray/EArray
     self.dataset_id = H5ARRAYOmake(self.parent_id, encoded_name, version,
                                   self.rank, self.dims, self.extdim,
