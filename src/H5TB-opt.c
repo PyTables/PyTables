@@ -203,7 +203,7 @@ hid_t H5TBOmake_table(  const char *table_title,
    /* The Blosc2 compressor does accept parameters (see blosc2_filter.c) */
    else if (strcmp(complib, "blosc2") == 0) {
      size_t typesize = H5Tget_size(type_id);
-     size_t chunksize = typesize * nrecords;
+     size_t chunksize = typesize * chunk_size;
      /* Save filter from computing this for every chunk */
      cd_values[1] = block_size
        ? (unsigned int) (block_size)
@@ -218,7 +218,7 @@ hid_t H5TBOmake_table(  const char *table_title,
      blosc_compname = complib + 7;
      blosc_compcode = blosc2_compname_to_compcode(blosc_compname);
      size_t typesize = H5Tget_size(type_id);
-     size_t chunksize = typesize * nrecords;
+     size_t chunksize = typesize * chunk_size;
      /* Save filter from computing this for every chunk */
      cd_values[1] = block_size
        ? (unsigned int) (block_size)

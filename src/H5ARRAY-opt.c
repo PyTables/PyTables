@@ -387,7 +387,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
         size_t typesize = H5Tget_size(type_id);
         size_t chunksize = typesize;
         for (int i = 0; i < rank; i++)
-          chunksize *= dims[i];
+          chunksize *= dims_chunk[i];
         /* Save filter from computing this for every chunk */
         cd_values[1] = block_size
           ? (unsigned int) (block_size)
@@ -403,7 +403,7 @@ hid_t H5ARRAYOmake(hid_t loc_id,
         size_t typesize = H5Tget_size(type_id);
         size_t chunksize = typesize;
         for (int i = 0; i < rank; i++)
-          chunksize *= dims[i];
+          chunksize *= dims_chunk[i];
         /* Save filter from computing this for every chunk */
         cd_values[1] = block_size
           ? (unsigned int) (block_size)
