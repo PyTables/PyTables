@@ -186,10 +186,6 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
 /* From Blosc2's "examples/get_blocksize.c". */
 int32_t compute_blosc2_blocksize(int32_t chunksize, int32_t typesize,
                                  int clevel, int compcode) {
-  int32_t blocksize = -1;  // to be returned
-
-  blosc2_init();
-
   static uint8_t data_dest[BLOSC2_MAX_OVERHEAD];
   blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
   cparams.compcode = (compcode < 0) ? DEFAULT_COMPCODE : compcode;
@@ -198,16 +194,14 @@ int32_t compute_blosc2_blocksize(int32_t chunksize, int32_t typesize,
 
   if (blosc2_chunk_zeros(cparams, chunksize, data_dest, BLOSC2_MAX_OVERHEAD) < 0) {
     BLOSC_TRACE_ERROR("Failed to create zeroed chunk for blocksize computation");
-    goto out;
+    return -1;
   }
+
+  int32_t blocksize = -1;
   if (blosc2_cbuffer_sizes(data_dest, NULL, NULL, &blocksize) < 0) {
     BLOSC_TRACE_ERROR("Failed to get chunk sizes for blocksize computation");
-    goto out;
+    return -1;
   }
-
-  out:
-  blosc2_destroy();
-
   return blocksize;
 }
 
