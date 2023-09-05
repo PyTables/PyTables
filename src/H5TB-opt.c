@@ -202,7 +202,12 @@ hid_t H5TBOmake_table(  const char *table_title,
    }
    /* The Blosc2 compressor does accept parameters (see blosc2_filter.c) */
    else if (strcmp(complib, "blosc2") == 0) {
-     cd_values[1] = (unsigned int) block_size;  /* can be useful in the future */
+     size_t typesize = H5Tget_size(type_id);
+     size_t chunksize = typesize * nrecords;
+     /* Save filter from computing this for every chunk */
+     cd_values[1] = block_size
+       ? (unsigned int) (block_size)
+       : (unsigned int) (compute_blosc2_blocksize(chunksize, typesize, compress, -1));
      cd_values[4] = compress;
      cd_values[5] = shuffle;
      if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
@@ -210,11 +215,16 @@ hid_t H5TBOmake_table(  const char *table_title,
    }
    /* The Blosc2 compressor can use other compressors (see blosc2_filter.c) */
    else if (strncmp(complib, "blosc2:", 7) == 0) {
-     cd_values[1] = (unsigned int) block_size;  /* can be useful in the future */
-     cd_values[4] = compress;
-     cd_values[5] = shuffle;
      blosc_compname = complib + 7;
      blosc_compcode = blosc2_compname_to_compcode(blosc_compname);
+     size_t typesize = H5Tget_size(type_id);
+     size_t chunksize = typesize * nrecords;
+     /* Save filter from computing this for every chunk */
+     cd_values[1] = block_size
+       ? (unsigned int) (block_size)
+       : (unsigned int) (compute_blosc2_blocksize(chunksize, typesize, compress, blosc_compcode));
+     cd_values[4] = compress;
+     cd_values[5] = shuffle;
      cd_values[6] = blosc_compcode;
      if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0 )
        return -1;
