@@ -21,6 +21,7 @@ Misc variables:
 
 """
 import math
+import os
 import platform
 import sys
 import numpy as np
@@ -233,7 +234,7 @@ cdef class Table(Leaf):
          (self._v_file.mode == 'r')))
 
     class_ = self._c_classid.encode('utf-8')
-    cdef hsize_t blocksize = self._v_blocksize if hasattr(self, "_v_blocksize") else 0
+    cdef hsize_t blocksize = int(os.environ.get("PT_DEFAULT_B2_BLOCKSIZE", "0"))
     self.dataset_id = H5TBOmake_table(ctitle, self.parent_id, encoded_name,
                                       cobversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
