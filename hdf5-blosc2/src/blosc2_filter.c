@@ -236,7 +236,8 @@ int32_t compute_b2nd_block_shape(size_t block_size,
   }
 
   if (nitems_new > nitems) {
-    BLOSC_TRACE_ERROR("Target block size is too small, raising to %lu", nitems_new);
+    BLOSC_TRACE_ERROR("Target block size is too small (%lu items), raising to %lu items",
+                      nitems, nitems_new);
   }
   if (nitems_new >= nitems) {
     return nitems_new * type_size;
