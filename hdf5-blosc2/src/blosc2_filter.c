@@ -207,8 +207,8 @@ int32_t compute_blosc2_blocksize(int32_t chunksize, int32_t typesize,
 
 
 /* Get the maximum block size which is not greater than the given block_size
- * and fits within the given chunk dimensions dims_chunk. A zero block_size
- * means using an automatic value that fits most L2 CPU caches.
+ * and fits within the given chunk dimensions dims_chunk. Sizes must always be
+ * greater than 0.
  *
  * Block dimensions start with 2 (unless the respective chunk dimension is 1),
  * and are doubled starting from the innermost (rightmost) ones, to leverage
@@ -223,9 +223,8 @@ int32_t compute_b2nd_block_shape(size_t block_size,
                                  const int rank,
                                  const int32_t *dims_chunk,
                                  int32_t *dims_block) {
-  if (block_size == 0) {
-    block_size = B2ND_DEFAULT_BLOCKSIZE;
-  }
+  assert(block_size >= 0);
+  assert(type_size >= 0);
   size_t nitems = block_size / type_size;
 
   // Start with the smallest possible block dimensions (1 or 2).
@@ -369,6 +368,15 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       b2nd_context_t *ctx = NULL;
       b2nd_array_t *array = NULL;
 
+      if (blocksize == 0) {
+        int32_t sugg_blocksize = compute_blosc2_blocksize(outbuf_size, typesize,
+                                                          clevel, compcode);
+        if (sugg_blocksize < 0) {
+          PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Failed to compute suggested blocksize");
+          goto failed;
+        }
+        blocksize = sugg_blocksize;
+      }
       int32_t blockdims[BLOSC2_MAX_DIM];
       cparams.blocksize = compute_b2nd_block_shape(blocksize, typesize,
                                                    ndim, chunkshape,

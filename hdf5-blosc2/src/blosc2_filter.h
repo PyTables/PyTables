@@ -14,12 +14,6 @@ extern "C" {
 /* See https://portal.hdfgroup.org/display/support/Filters */
 #define FILTER_BLOSC2 32026
 
-/* 256KiB should let both the decompressed and the compressed blocks fit in
-   the L2 cache of most current CPUs,
-   while resulting in better compression ratios than smaller sizes
-   and less overhead because of excessive partitioning. */
-#define B2ND_DEFAULT_BLOCKSIZE (1 << 18)
-
 /* An opaque NumPy data type format for B2ND that respects the type size.
  * The actual type is irrelevant since HDF5 already stores it. */
 #define B2ND_OPAQUE_NPDTYPE_FORMAT "|V%zd"
