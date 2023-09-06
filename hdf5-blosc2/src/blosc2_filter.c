@@ -254,8 +254,11 @@ int32_t compute_b2nd_block_shape(size_t block_size,
           dims_block[i] *= 2;
         }
       } else if (dims_block[i] < dims_chunk[i]) {
-        nitems_new = (nitems_new / dims_block[i]) * dims_chunk[i];
-        dims_block[i] = dims_chunk[i];
+        size_t newitems_ext = (nitems_new / dims_block[i]) * dims_chunk[i];
+        if (newitems_ext <= nitems) {
+          nitems_new = newitems_ext;
+          dims_block[i] = dims_chunk[i];
+        }
       } else {
         assert(dims_block[i] == dims_chunk[i]);  // nothing to change
       }
