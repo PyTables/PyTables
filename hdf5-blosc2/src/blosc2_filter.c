@@ -245,7 +245,7 @@ int32_t compute_b2nd_block_shape(size_t block_size,
 
   // Double block dimensions (bound by chunk dimensions) from right to left
   // while block is under nitems.
-  while (nitems_new <= nitems) {
+  while (nitems_new < nitems) {
     size_t nitems_prev = nitems_new;
     for (int i = rank - 1; i >= 0; i--) {
       if (dims_block[i] * 2 <= dims_chunk[i]) {
