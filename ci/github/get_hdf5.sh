@@ -120,8 +120,8 @@ if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then
     export hdf5_cv_system_scope_threads=yes
     export hdf5_cv_printf_ll="l"
 
-    patch -p0 < "$PROJECT_DIR/ci/osx_cross_configure.patch"
-    patch -p0 < "$PROJECT_DIR/ci/osx_cross_src_makefile.patch"
+    # patch -p0 < "$PROJECT_DIR/ci/osx_cross_configure.patch"
+    # patch -p0 < "$PROJECT_DIR/ci/osx_cross_src_makefile.patch"
 
     ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production \
         --host=aarch64-apple-darwin --enable-tests=no
