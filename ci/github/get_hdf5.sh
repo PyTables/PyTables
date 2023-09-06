@@ -26,83 +26,83 @@ ZLIB_VERSION="1.2.13"
 
 
 echo "building HDF5"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    brew install automake cmake pkg-config
+# if [[ "$OSTYPE" == "darwin"* ]]; then
+#     brew install automake cmake pkg-config
 
-    CMAKE_ARCHES="$CIBW_ARCHS"
-    ARCH_ARGS="-arch $CIBW_ARCHS"
-    NPROC=$(sysctl -n hw.ncpu)
-    pushd /tmp
+#     CMAKE_ARCHES="$CIBW_ARCHS"
+#     ARCH_ARGS="-arch $CIBW_ARCHS"
+#     NPROC=$(sysctl -n hw.ncpu)
+#     pushd /tmp
 
-    # lzo
-    curl -sLO https://www.oberhumer.com/opensource/lzo/download/lzo-$LZO_VERSION.tar.gz
-    tar xzf lzo-$LZO_VERSION.tar.gz
-    pushd lzo-$LZO_VERSION
-    mkdir build
-    cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
-    make
-    make install
-    popd
+#     # lzo
+#     curl -sLO https://www.oberhumer.com/opensource/lzo/download/lzo-$LZO_VERSION.tar.gz
+#     tar xzf lzo-$LZO_VERSION.tar.gz
+#     pushd lzo-$LZO_VERSION
+#     mkdir build
+#     cd build
+#     cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
+#     make
+#     make install
+#     popd
 
-    # zstd
-    curl -sLO https://github.com/facebook/zstd/releases/download/v$ZSTD_VERSION/zstd-$ZSTD_VERSION.tar.gz
-    tar xzf zstd-$ZSTD_VERSION.tar.gz
-    pushd zstd-$ZSTD_VERSION
-    cd build/cmake
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES"
-    make
-    make install
-    popd
+#     # zstd
+#     curl -sLO https://github.com/facebook/zstd/releases/download/v$ZSTD_VERSION/zstd-$ZSTD_VERSION.tar.gz
+#     tar xzf zstd-$ZSTD_VERSION.tar.gz
+#     pushd zstd-$ZSTD_VERSION
+#     cd build/cmake
+#     cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES"
+#     make
+#     make install
+#     popd
 
-    CFLAGS_ORIG="$CFLAGS"
-    export CFLAGS="$CFLAGS $ARCH_ARGS"
-    export CPPFLAGS="$CPPFLAGS $ARCH_ARGS"
-    export CXXFLAGS="$CXXFLAGS $ARCH_ARGS"
-    export CC="/usr/bin/clang"
-    export CXX="/usr/bin/clang"
-    export cc=$CC
+#     CFLAGS_ORIG="$CFLAGS"
+#     export CFLAGS="$CFLAGS $ARCH_ARGS"
+#     export CPPFLAGS="$CPPFLAGS $ARCH_ARGS"
+#     export CXXFLAGS="$CXXFLAGS $ARCH_ARGS"
+#     export CC="/usr/bin/clang"
+#     export CXX="/usr/bin/clang"
+#     export cc=$CC
 
-    # lz4
-    curl -sLO https://github.com/lz4/lz4/archive/refs/tags/v$LZ4_VERSION.tar.gz
-    tar xzf v$LZ4_VERSION.tar.gz
-    pushd lz4-$LZ4_VERSION
-    make install PREFIX="$HDF5_DIR"
-    popd
+#     # lz4
+#     curl -sLO https://github.com/lz4/lz4/archive/refs/tags/v$LZ4_VERSION.tar.gz
+#     tar xzf v$LZ4_VERSION.tar.gz
+#     pushd lz4-$LZ4_VERSION
+#     make install PREFIX="$HDF5_DIR"
+#     popd
 
-    # bzip2
-    curl -sLO https://gitlab.com/bzip2/bzip2/-/archive/bzip2-$BZIP_VERSION/bzip2-bzip2-$BZIP_VERSION.tar.gz
-    tar xzf bzip2-bzip2-$BZIP_VERSION.tar.gz
-    pushd bzip2-bzip2-$BZIP_VERSION
-    cat << EOF >> Makefile
+#     # bzip2
+#     curl -sLO https://gitlab.com/bzip2/bzip2/-/archive/bzip2-$BZIP_VERSION/bzip2-bzip2-$BZIP_VERSION.tar.gz
+#     tar xzf bzip2-bzip2-$BZIP_VERSION.tar.gz
+#     pushd bzip2-bzip2-$BZIP_VERSION
+#     cat << EOF >> Makefile
 
-libbz2.dylib: \$(OBJS)
-	\$(CC) \$(LDFLAGS) -shared -Wl,-install_name -Wl,libbz2.dylib -o libbz2.$BZIP_VERSION.dylib \$(OBJS)
-	cp libbz2.$BZIP_VERSION.dylib \${PREFIX}/lib/
-	ln -s libbz2.$BZIP_VERSION.dylib \${PREFIX}/lib/libbz2.1.0.dylib
-	ln -s libbz2.$BZIP_VERSION.dylib \${PREFIX}/lib/libbz2.dylib
+# libbz2.dylib: \$(OBJS)
+# 	\$(CC) \$(LDFLAGS) -shared -Wl,-install_name -Wl,libbz2.dylib -o libbz2.$BZIP_VERSION.dylib \$(OBJS)
+# 	cp libbz2.$BZIP_VERSION.dylib \${PREFIX}/lib/
+# 	ln -s libbz2.$BZIP_VERSION.dylib \${PREFIX}/lib/libbz2.1.0.dylib
+# 	ln -s libbz2.$BZIP_VERSION.dylib \${PREFIX}/lib/libbz2.dylib
 
-EOF
-    sed -i "" "s/CFLAGS=-Wall/CFLAGS=-fPIC -Wall/g" Makefile
-    sed -i "" "s/all: libbz2.a/all: libbz2.dylib libbz2.a/g" Makefile
-    make install PREFIX="$HDF5_DIR"
-    popd
+# EOF
+#     sed -i "" "s/CFLAGS=-Wall/CFLAGS=-fPIC -Wall/g" Makefile
+#     sed -i "" "s/all: libbz2.a/all: libbz2.dylib libbz2.a/g" Makefile
+#     make install PREFIX="$HDF5_DIR"
+#     popd
 
-    # zlib
-    curl -sLO https://zlib.net/fossils/zlib-$ZLIB_VERSION.tar.gz
-    tar xzf zlib-$ZLIB_VERSION.tar.gz
-    pushd zlib-$ZLIB_VERSION
-    ./configure --prefix="$HDF5_DIR"
-    make
-    make install
-    popd
+#     # zlib
+#     curl -sLO https://zlib.net/fossils/zlib-$ZLIB_VERSION.tar.gz
+#     tar xzf zlib-$ZLIB_VERSION.tar.gz
+#     pushd zlib-$ZLIB_VERSION
+#     ./configure --prefix="$HDF5_DIR"
+#     make
+#     make install
+#     popd
 
-    popd
-else
-    yum -y update
-    yum install -y zlib-devel bzip2-devel lzo-devel
-    NPROC=$(nproc)
-fi
+#     popd
+# else
+#     yum -y update
+#     yum install -y zlib-devel bzip2-devel lzo-devel
+#     NPROC=$(nproc)
+# fi
 
 pushd /tmp
 
@@ -111,6 +111,7 @@ if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary 
     curl -fsSLO "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/bin/unix/hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
     tar -xzvf "hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
     sh hdf/HDF5-1.14.1-Darwin.sh --skip-license --prefix="$HDF5_DIR" --exclude-subdir
+    ls -R
     cp -R "${HDF5_DIR}/HDF_Group/HDF5/${HDF5_VERSION%-*}/*" "${HDF5_DIR}"
     rm -rf "${HDF5_DIR}/HDF_Group"
 else
@@ -123,7 +124,7 @@ else
     make install
 
     file "$HDF5_DIR"/lib/*
+    popd
 fi
 
-popd
 popd
