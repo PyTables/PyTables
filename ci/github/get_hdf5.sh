@@ -116,7 +116,7 @@ if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary 
     pwd
     tree -d
     ls "HDF_Group/HDF5/${HDF5_VERSION%-*}"
-    cp -R "HDF_Group/HDF5/${HDF5_VERSION%-*}/*" .
+    cp -R "HDF_Group/HDF5/${HDF5_VERSION%-*}/" .
     rm -rf HDF_Group
 else
     #                                   Remove trailing .*, to get e.g. '1.12' ↓
