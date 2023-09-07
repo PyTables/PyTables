@@ -111,7 +111,7 @@ if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary 
     curl -fsSLO "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/bin/unix/hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
     tar -xzvf "hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
     sh hdf/HDF5-1.14.1-Darwin.sh --skip-license --prefix="$HDF5_DIR" --exclude-subdir
-    ls -R
+    ls -R $HDF5_DIR
     cp -R "${HDF5_DIR}/HDF_Group/HDF5/${HDF5_VERSION%-*}/*" "${HDF5_DIR}"
     rm -rf "${HDF5_DIR}/HDF_Group"
 else
