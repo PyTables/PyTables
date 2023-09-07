@@ -115,7 +115,7 @@ if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary 
     pushd "${HDF5_DIR}"
     pwd
     tree -d
-    ls "HDF_Group/HDF5/${HDF5_VERSION%-*}/*"
+    ls "HDF_Group/HDF5/${HDF5_VERSION%-*}"
     cp -R "HDF_Group/HDF5/${HDF5_VERSION%-*}/*" .
     rm -rf HDF_Group
 else
