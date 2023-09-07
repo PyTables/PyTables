@@ -111,11 +111,12 @@ if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary 
     curl -fsSLO "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/bin/unix/hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
     tar -xzvf "hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
     sh hdf/HDF5-1.14.1-Darwin.sh --skip-license --prefix="$HDF5_DIR" --exclude-subdir
-    ls -R "${HDF5_DIR}"
-    ls "${HDF5_DIR}/HDF_Group/HDF5/${HDF5_VERSION%-*}/*"
+    pushd "${HDF5_DIR}"
     pwd
-    cp -R "${HDF5_DIR}/HDF_Group/HDF5/${HDF5_VERSION%-*}/*" "${HDF5_DIR}"
-    rm -rf "${HDF5_DIR}/HDF_Group"
+    tree -d
+    ls "HDF_Group/HDF5/${HDF5_VERSION%-*}/*"
+    cp -R "HDF_Group/HDF5/${HDF5_VERSION%-*}/*" .
+    rm -rf HDF_Group
 else
     #                                   Remove trailing .*, to get e.g. '1.12' ↓
     curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/src/hdf5-${HDF5_VERSION}.tar.gz"
@@ -126,7 +127,7 @@ else
     make install
 
     file "$HDF5_DIR"/lib/*
-    popd
 fi
 
+popd
 popd
