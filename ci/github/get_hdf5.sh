@@ -108,7 +108,6 @@ pushd /tmp
 
 
 if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary build on macOS ARM64
-    brew install tree
     curl -fsSLO "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/bin/unix/hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
     tar -xzvf "hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
     sh hdf/HDF5-1.14.1-Darwin.sh --skip-license --prefix="$HDF5_DIR" --exclude-subdir
