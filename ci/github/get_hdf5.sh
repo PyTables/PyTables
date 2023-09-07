@@ -113,10 +113,7 @@ if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary 
     tar -xzvf "hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
     sh hdf/HDF5-1.14.1-Darwin.sh --skip-license --prefix="$HDF5_DIR" --exclude-subdir
     pushd "${HDF5_DIR}"
-    pwd
-    tree -d
-    ls "HDF_Group/HDF5/${HDF5_VERSION%-*}"
-    cp -R "HDF_Group/HDF5/${HDF5_VERSION%-*}/" .
+    cp -R "HDF_Group/HDF5/${HDF5_VERSION%-*}/" .  # move to correct location
     rm -rf HDF_Group
 else
     #                                   Remove trailing .*, to get e.g. '1.12' ↓
