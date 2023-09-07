@@ -105,44 +105,28 @@ installed in your system, you don't absolutely need to install it
 separately.  LZO and bzip2 compression libraries are, however,
 optional.
 
+Make sure you have HDF5 version 1.10.5 or above. On macOS, you can
+install HDF5 with `Homebrew <http://brew.sh>`_::
+
+   $ brew install hdf5
+
+On Debian-based distributions::
+
+   $ sudo apt install libhdf5-serial-dev
+
 Installation
 ------------
 
-1. Make sure you have HDF5 version 1.10.5 or above.
-
-   On OSX you can install HDF5 using `Homebrew <http://brew.sh>`_::
-
-       $ brew install hdf5
-
-   On debian bases distributions::
-
-       $ sudo apt-get install libhdf5-serial-dev
-
-   If you have the HDF5 library in some non-standard location (that
-   is, where the compiler and the linker can't find it) you can use
-   the environment variable `HDF5_DIR` to specify its location. See
-   `the manual
-   <http://www.pytables.org/usersguide/installation.html>`_ for more
-   details.
-
-3. For stability (and performance too) reasons, it is strongly
-   recommended that you install the C-Blosc library separately,
-   although you might want PyTables to use its internal C-Blosc
-   sources.
-
-3. Optionally, consider to install the LZO compression library and/or
-   the bzip2 compression library.
-
-4. Install!::
+1. Install with `pip <https://pip.pypa.io/en/stable/>`::
 
        $ python3 -m pip install tables
 
-5. To run the test suite run::
+2. To run the test suite::
 
        $ python3 -m tables.tests.test_all
 
-   If there is some test that does not pass, please send the
-   complete output for tests back to us.
+   If there is some test that does not pass, please send us the
+   complete output.
 
 
 **Enjoy data!** -- The PyTables Team
