@@ -127,8 +127,10 @@ jobs:
           CIBW_ARCHS: ${{ matrix.arch }}
           # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
           CIBW_BEFORE_BUILD: >
-            python -m pip install -U --require-hashes -r ./.github/workflows/requirements/build-requirements.txt &&
-            python -m pip install --require-hashes -r requirements.txt
+            export CIBW_ARCHS_MACOS=arm64 &&
+            python -m pip install -U setuptools pip wheel &&
+            python -m pip install -r requirements.txt &&
+            python -m pip install blosc2
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
