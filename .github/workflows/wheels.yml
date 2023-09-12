@@ -120,6 +120,8 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir wheelhouse
         env:
+          CMAKE_OSX_ARCHITECTURES: ${{ matrix.arch }}
+          CIBW_ARCHS_MACOS: ${{ matrix.arch }}
           CFLAGS: -g0
           CIBW_BUILD_VERBOSITY_MACOS: 3
           CIBW_ARCHS: ${{ matrix.arch }}
