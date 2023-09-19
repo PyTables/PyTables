@@ -196,11 +196,11 @@ the L2 cache of each of our CPU cores.
 
 With that compression setup, we ran the benchmark in
 bench/b2nd_compare_getslice.py, which compares the throughput of slicing a
-4-dimensional array of 50x100x300x250 long floats along each of its dimensions
-for PyTables with b2nd slicing (optimized via direct chunk access), PyTables
-with flat slicing (via the HDF5 filter mechanism), and h5py (which also uses
-the HDF5 filter).  The result for a chunkshape of 10x25x50x50 is shown in
-:ref:`figure <b2ndSlicing-vs-filter-smallChunk>`.
+4-dimensional array of 50x100x300x250 long floats (2.8GB) along each of its
+dimensions for PyTables with flat slicing (via the HDF5 filter mechanism),
+PyTables with b2nd slicing (optimized via direct chunk access), and h5py
+(which also uses the HDF5 filter).  The result for a chunkshape of 10x25x50x50
+is shown in :ref:`figure <b2ndSlicing-vs-filter-smallChunk>`.
 
 .. _b2ndSlicing-vs-filter-smallChunk:
 
@@ -208,7 +208,7 @@ the HDF5 filter).  The result for a chunkshape of 10x25x50x50 is shown in
     :align: center
 
     **Throughput for slicing a Blosc2-compressed array along its 4 dimensions
-    with PyTables b2nd (optimized), PyTables filter and h5py, all using a
+    with PyTables filter, PyTables b2nd (optimized) and h5py, all using a
     small chunk.**
 
 The optimized b2nd slicing of PyTables already provided some sizable speedups
@@ -224,7 +224,7 @@ are palpable, as shown in :ref:`figure <b2ndSlicing-vs-filter-bigChunk>`.
     :align: center
 
     **Throughput for slicing a Blosc2-compressed array along its 4 dimensions
-    with PyTables b2nd (optimized), PyTables filter and h5py, all using a big
+    with PyTables filter, PyTables b2nd (optimized) and h5py, all using a big
     chunk.**
 
 Choosing a better chunkshape not just provided up to 5x speedup for the
