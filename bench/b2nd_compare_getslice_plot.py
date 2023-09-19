@@ -56,6 +56,7 @@ data_small_chunk = [
 # "MB" in labels below should read as "MiB".
 MB = 1024 * 1024
 
+shape = (50, 100, 300, 250)
 # [(chunksize, blocksize, typesize, results), ...]
 data = [
     ((10, 25, 50, 50), (10, 25, 32, 32), 8, data_small_chunk),
@@ -70,8 +71,9 @@ for (chunksize, blocksize, typesize, data_) in data:
         for d in data_
     ])
     # Change the bar mode
-    title = ("Read orthogonal slices; chunks: %s (%.1f MB), blocks: %s (%.1f MB)"
-             % ('x'.join(str(d) for d in chunksize), np.prod(chunksize) * typesize / MB,
+    title = ("shape: %s (%.1f GB), chunks: %s (%.1f MB), blocks: %s (%.1f MB)"
+             % ('x'.join(str(d) for d in shape), np.prod(shape) * typesize / MB / 1024,
+                'x'.join(str(d) for d in chunksize), np.prod(chunksize) * typesize / MB,
                 'x'.join(str(d) for d in blocksize), np.prod(blocksize) * typesize / MB))
     fig.update_layout(barmode='group', title_text=title,
                       yaxis=dict(title="Throughput (MB/s)"))
