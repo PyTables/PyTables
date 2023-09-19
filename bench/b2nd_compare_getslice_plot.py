@@ -42,15 +42,15 @@ small_chunk_h5py = np.array([
 dimensions=['dim%d' % d for d in range(4)]
 
 data_big_chunk = [
-    ("PyTables opt", np.average(big_chunk_pt_opt.T, axis=1)),
-    ("PyTables filter", np.average(big_chunk_pt_filter.T, axis=1)),
-    ("h5py", np.average(big_chunk_h5py.T, axis=1)),
+    ("PyTables/Blosc2 filter", np.average(big_chunk_pt_filter.T, axis=1)),
+    ("PyTables/Blosc2 optimized", np.average(big_chunk_pt_opt.T, axis=1)),
+    ("h5py/Blosc2 filter", np.average(big_chunk_h5py.T, axis=1)),
 ]
 
 data_small_chunk = [
-    ("PyTables opt", np.average(small_chunk_pt_opt.T, axis=1)),
-    ("PyTables filter", np.average(small_chunk_pt_filter.T, axis=1)),
-    ("h5py", np.average(small_chunk_h5py.T, axis=1)),
+    ("PyTables/Blosc2 filter", np.average(small_chunk_pt_filter.T, axis=1)),
+    ("PyTables/Blosc2 optimized", np.average(small_chunk_pt_opt.T, axis=1)),
+    ("h5py/Blosc2 filter", np.average(small_chunk_h5py.T, axis=1)),
 ]
 
 # "MB" in labels below should read as "MiB".
