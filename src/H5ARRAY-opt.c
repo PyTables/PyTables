@@ -57,13 +57,13 @@ herr_t read_chunk_slice_b2nd(const char *filename,
 
 
 // A return value < -100 means that data may have been altered.
-herr_t get_set_blosc2_slice(char *filename, // NULL means write, read otherwise
-                          hid_t dataset_id,
-                          hid_t type_id,
-                          const int rank,
-                          hsize_t *slice_start,
-                          hsize_t *slice_stop,
-                          const void *slice_data)
+herr_t get_blosc2_slice(char *filename,
+                        hid_t dataset_id,
+                        hid_t type_id,
+                        const int rank,
+                        hsize_t *slice_start,
+                        hsize_t *slice_stop,
+                        const void *slice_data)
 {
   herr_t retval = -1;
   hid_t space_id = -1;
@@ -593,8 +593,8 @@ herr_t H5ARRAYOreadSlice(char *filename,
       blosc2_filter = strtol(envvar, NULL, 10);
 
     if (blosc2_support && !((int) blosc2_filter)) {
-      herr_t rv = get_set_blosc2_slice(filename, dataset_id, type_id,
-                                       rank, slice_start, slice_stop, slice_data);
+      herr_t rv = get_blosc2_slice(filename, dataset_id, type_id,
+                                   rank, slice_start, slice_stop, slice_data);
       if (rv >= 0) {
         IF_NEG_OUT_RET(H5Sclose(space_id), -5);
         goto out_success;
