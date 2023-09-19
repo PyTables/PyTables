@@ -274,7 +274,7 @@ herr_t get_blosc2_slice(char *filename,
 
 
 /*-------------------------------------------------------------------------
- * Function: H5ARRAYmake
+ * Function: H5ARRAYOmake
  *
  * Purpose: Creates and writes a dataset of a type type_id
  *
@@ -286,6 +286,8 @@ herr_t get_blosc2_slice(char *filename,
  *
  * Comments: Modified by F. Alted. November 07, 2003
  *           Modified by A. Cobb. August 21, 2017 (track_times)
+ *           Modified by M. Iborra. June/August, 2023 (optimized b2nd)
+ *           Modified by I. Vilata. Jun-Sep, 2023 (optimized b2nd)
  *
  *-------------------------------------------------------------------------
  */
@@ -530,7 +532,7 @@ herr_t read_chunk_slice_b2nd(const char *filename,
 
 
 /*-------------------------------------------------------------------------
- * Function: H5ARRAYreadSlice
+ * Function: H5ARRAYOreadSlice
  *
  * Purpose: Reads a slice of array from disk.
  *
@@ -539,6 +541,9 @@ herr_t read_chunk_slice_b2nd(const char *filename,
  * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: December 16, 2003
+
+ * Comments: Modified by M. Iborra. June/August, 2023 (optimized b2nd)
+ *           Modified by I. Vilata. Jun-Sep, 2023 (optimized b2nd)
  *
  *-------------------------------------------------------------------------
  */
