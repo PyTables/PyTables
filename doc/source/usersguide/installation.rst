@@ -62,12 +62,12 @@ If you don't, fetch and install them before proceeding.
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the `--blosc` flag of the :file:`setup.py`)
 * Either
-   * python-blosc2_ >= 2.0.0, this is the Python wheel containing *both* the
-     C-Blosc2 libs and headers (>= 2.6.0), as well as the Python wrapper for
+   * python-blosc2_ >= 2.2.6, this is the Python wheel containing *both* the
+     C-Blosc2 libs and headers (>= 2.10.1), as well as the Python wrapper for
      Blosc2 (not currently used, but it might be in the future), or
-   * A standalone installation of the c-blosc2_ library including the headers.
-     The latter are usually provided by Linux distribtions in a package named
-     `blosc2-devel`, `libblosc2-dev``, or similar.
+   * A standalone installation of the c-blosc2_ library (>= 2.10.1) including
+     the headers.  The latter are usually provided by Linux distribtions in a
+     package named `blosc2-devel`, `libblosc2-dev`, or similar.
 
 .. _Python: http://www.python.org
 .. _HDF5: http://www.hdfgroup.org/HDF5
