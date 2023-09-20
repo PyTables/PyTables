@@ -1,5 +1,6 @@
 #######################################################################
 # Copyright (c) 2019-present, Blosc Development Team <blosc@blosc.org>
+# Copyright (c) 2023, PyTables Developers <pytables@pytables.org>
 # All rights reserved.
 #
 # This source code is licensed under a BSD-style license (found in the
