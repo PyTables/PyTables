@@ -17,7 +17,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
-        sudo apt install python3-all-dev python3-setuptools python3-packaging python3-numexpr  # python3-numpy cython3
+        sudo apt install python3-all-dev python3-setuptools python3-packaging  # python3-numexpr python3-numpy cython3
         sudo apt install python3-pytest python3-pytest-doctestplus
         sudo apt install python3-numpydoc python3-sphinx python3-sphinx-rtd-theme python3-ipython
         sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
