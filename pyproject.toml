@@ -1,7 +1,9 @@
 [build-system]
-# keep in sync with requirements.txt
+# Build Python requirements, keep Cython in sync with
+# "Prerequisites" in User's Guide,
+# and ``requirements.txt``.
 requires = [
-    "setuptools >=61.0.0",
+    "setuptools >=61.0.0",  # "meson-python",  # and replace ``build-backend`` below
     "wheel",
     "oldest-supported-numpy",
     "packaging",
@@ -13,21 +15,7 @@ requires = [
     "blosc2 >=2.2.6",
 ]
 build-backend = "setuptools.build_meta"
-
-
-# [build-system]
-# build-backend = "mesonpy"
-# requires = [
-#     "meson-python",
-#     "wheel",
-#     "oldest-supported-numpy",
-#     "packaging",
-#     "py-cpuinfo",
-#     "Cython >=0.29.32",
-#     # for seamless wheel builds. Packagers can choose to replace
-#     # it by externally provided c-blosc2 library and headers
-#     "blosc2 >=2.2.6",
-# ]
+# build-backend = "mesonpy"  # and replace ``setuptools`` above
 
 
 [project]
@@ -48,6 +36,7 @@ authors = [
 maintainers = [
     { name = "PyTables maintainers", email = "pytables@pytables.org" },
 ]
+# Keep Python versions in sync with "Prerequisites" in User's Guide.
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -66,7 +55,9 @@ classifiers = [
     "Topic :: Database",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-# Keep in sync with tables/req_versions.py and user doc
+# Runtime Python requirements, keep in sync with
+# "Prerequisites" in User's Guide,
+# and ``requirements.txt``.
 dependencies = [
     "numpy >= 1.19.0",
     "numexpr >= 2.6.2",

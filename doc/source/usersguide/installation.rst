@@ -51,13 +51,17 @@ Prerequisites
 First, make sure that you have the following dependencies installed.
 If you don't, fetch and install them before proceeding.
 
+.. Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
 * Python_ >= 3.8
+.. Keep all versions below in sync with ``tables/req_versions.py``.
 * HDF5_ >= 1.10.5
+.. Keep Cython in sync with ``build-system.requires`` in ``pyproject.toml``.
+* Cython_ >= 0.29.32
+.. Keep list below in sync with ``project.dependencies`` in ``pyproject.toml``.
 * NumPy_ >= 1.19.0
 * Numexpr_ >= 2.6.2
 * packaging_
 * py-cpuinfo_
-* Cython_ >= 0.29.32
 * c-blosc_ >= 1.11.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the `--blosc` flag of the :file:`setup.py`)

@@ -3,8 +3,8 @@
 from packaging.version import Version
 
 # **********************************************************************
-#   Rimtime requirements, keep these in sync with pyrpoject.toml,
-#   and the user's guide doc/source/usersguide/installation.rst
+#   Runtime requirements, keep versions in sync with
+#   "Prerequisites" in the User's Guide.
 # **********************************************************************
 
 # Minimum recommended versions for mandatory packages
