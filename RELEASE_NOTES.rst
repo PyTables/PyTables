@@ -12,7 +12,7 @@ Changes from 3.8.0 to 3.9.0
 ===========================
 
 - Improve `setup.py` and `blosc2` discovery mechanism.
-- Update external dibraries:
+- Update external libraries:
 
   * c-blosc v1.21.4
   * hdf5 v1.14.1
