@@ -55,6 +55,7 @@ If you don't, fetch and install them before proceeding.
 .. Keep versions from HDF5 on in sync with those mentioned in ``tables/req_versions.py``.
 .. Keep Cython in sync with ``build-system.requires`` in ``pyproject.toml``.
 .. Keep entries from NumPy on in sync with ``project.dependencies`` in ``pyproject.toml``.
+.. Keep system packages in sync with build jobs in `.github/workflows/*.yml`.
 
 * Python_ >= 3.8
 * HDF5_ >= 1.10.5

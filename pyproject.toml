@@ -1,7 +1,8 @@
 [build-system]
 # Build Python requirements, keep Cython in sync with
 # "Prerequisites" in User's Guide,
-# and ``requirements.txt``.
+# ``requirements.txt``,
+# build jobs in `.github/workflows/*.yml`.
 requires = [
     "setuptools >=61.0.0",  # "meson-python",  # and replace ``build-backend`` below
     "wheel",
@@ -36,7 +37,10 @@ authors = [
 maintainers = [
     { name = "PyTables maintainers", email = "pytables@pytables.org" },
 ]
-# Keep Python versions in sync with "Prerequisites" in User's Guide.
+# Keep Python versions in sync with
+# "Prerequisites" in User's Guide,
+# `jobs.build.strategy.matrix.python` in `.github/workflows/ci.yml`,
+# `jobs.test_wheels.strategy.matrix.python` in `.github/workflows/wheels.yml`.
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -67,6 +71,7 @@ dependencies = [
 
 
 [project.optional-dependencies]
+# Keep in sync with build jobs in `.github/workflows/*.yml`.
 doc = [
     "sphinx >= 1.1",
     "sphinx_rtd_theme",
