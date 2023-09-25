@@ -51,13 +51,14 @@ Prerequisites
 First, make sure that you have the following dependencies installed.
 If you don't, fetch and install them before proceeding.
 
-.. Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
-* Python_ >= 3.8
-.. Keep all versions below in sync with ``tables/req_versions.py``.
-* HDF5_ >= 1.10.5
+.. Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
+.. Keep versions from HDF5 on in sync with those mentioned in ``tables/req_versions.py``.
 .. Keep Cython in sync with ``build-system.requires`` in ``pyproject.toml``.
+.. Keep entries from NumPy on in sync with ``project.dependencies`` in ``pyproject.toml``.
+
+* Python_ >= 3.8
+* HDF5_ >= 1.10.5
 * Cython_ >= 0.29.32
-.. Keep list below in sync with ``project.dependencies`` in ``pyproject.toml``.
 * NumPy_ >= 1.19.0
 * Numexpr_ >= 2.6.2
 * packaging_
