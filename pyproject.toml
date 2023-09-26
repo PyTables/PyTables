@@ -72,6 +72,7 @@ dependencies = [
     "numexpr >= 2.6.2",
     "packaging",
     "py-cpuinfo",
+    "blosc2 >= 2.2.6",
 ]
 
 

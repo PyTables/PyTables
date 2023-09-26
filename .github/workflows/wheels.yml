@@ -45,8 +45,6 @@ jobs:
           python -m pip install -r requirements.txt
           # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
           python -m pip install sphinx>=1.1 sphinx_rtd_theme numpydoc ipython
-          # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
-          python -m pip install "blosc2>=2.2.6"
 
       - name: Build sdist
         run: make PYTHON=python dist
@@ -124,8 +122,7 @@ jobs:
           # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
           CIBW_BEFORE_BUILD: >
             python -m pip install -U setuptools pip wheel &&
-            python -m pip install -r requirements.txt &&
-            python -m pip install blosc2
+            python -m pip install -r requirements.txt
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
@@ -190,7 +187,7 @@ jobs:
             conda install --yes blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
           CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build" PATH="$PATH;C:\\Miniconda\\envs\\build\\Library\\bin"'
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
-          CIBW_BEFORE_BUILD: "python -m pip install -r requirements.txt delvewheel blosc2"
+          CIBW_BEFORE_BUILD: "python -m pip install -r requirements.txt delvewheel"
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
 
       - uses: actions/upload-artifact@v3

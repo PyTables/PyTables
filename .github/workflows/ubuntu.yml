@@ -25,7 +25,7 @@ jobs:
     - name: Install dependencies
       # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
       run: |
-        python3 -m pip install --user --upgrade setuptools pip wheel build "blosc2>=2.2.6"
+        python3 -m pip install --user --upgrade setuptools pip wheel build
         python3 -m pip install --user --upgrade -r requirements.txt
         python3 -c "import numpy as np; print('numpy:', np.__version__)"
         python3 -c "import blosc2; print('blosc2:', blosc2.__version__)"
