@@ -1,4 +1,4 @@
-"""This test unit checks object creation funtions, like open_file,
+"""This test unit checks object creation functions, like open_file,
 create_table, create_array or create_group.
 
 It also checks:

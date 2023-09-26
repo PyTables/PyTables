@@ -7,6 +7,10 @@ import tables as tb
 from tables.tests import common
 
 
+def foreign_byteorder():
+    return {'little': 'big', 'big': 'little'}[sys.byteorder]
+
+
 class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     # Default values
     obj = None
@@ -18,6 +22,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     step = 1
     length = 1
     chunkshape = (5, 5)
+    byteorder = None
     compress = 0
     complib = "zlib"  # Default compression library
     shuffle = 0
@@ -53,7 +58,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         carray = self.h5file.create_carray(group, 'carray1',
                                            atom=atom, shape=self.shape,
                                            title=title, filters=filters,
-                                           chunkshape=self.chunkshape, obj=obj)
+                                           chunkshape=self.chunkshape,
+                                           byteorder=self.byteorder,
+                                           obj=obj)
         carray.flavor = self.flavor
 
         # Fill it with data
@@ -777,6 +784,82 @@ class BloscZstdTestCase(BasicTestCase):
     start = 3
     stop = 10
     step = 7
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2ComprTestCase(BasicTestCase):
+    compress = 1  # sss
+    complib = "blosc2"
+    chunkshape = (10, 10)
+    start = 3
+    stop = 10
+    step = 3
+    byteorder = foreign_byteorder()
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2CrossChunkTestCase(BasicTestCase):
+    shape = (10, 10)
+    compress = 1  # sss
+    complib = "blosc2"
+    chunkshape = (4, 4)
+    start = 3
+    stop = 6
+    step = 3
+    byteorder = foreign_byteorder()
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2CrossChunkOptTestCase(Blosc2CrossChunkTestCase):
+    step = 1  # optimized
+    byteorder = sys.byteorder
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2PastLastChunkTestCase(BasicTestCase):
+    shape = (10, 10)
+    compress = 1  # sss
+    complib = "blosc2"
+    chunkshape = (4, 4)
+    start = 8
+    stop = 100
+    step = 3
+    byteorder = foreign_byteorder()
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2PastLastChunkOptTestCase(Blosc2PastLastChunkTestCase):
+    step = 1  # optimized
+    byteorder = sys.byteorder
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
+    shape = (10, 10, 10)
+    compress = 1
+    complib = "blosc2"
+    chunkshape = (7, 7, 7)
+    byteorder = sys.byteorder
+    type = 'int32'
+    slices = (slice(1, 2), Ellipsis, slice(1, 4))
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
+    shape = (13, 13, 13, 3)
+    compress = 1
+    complib = "blosc2"
+    chunkshape = (5, 5, 5, 3)
+    byteorder = sys.byteorder
+    type = 'int32'
+    slices = (slice(0, 8), slice(7, 13), slice(3, 12), slice(1, 3))
 
 
 @common.unittest.skipIf(not common.lzo_avail,
@@ -2755,6 +2838,11 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(BloscSnappyTestCase))
         theSuite.addTest(common.unittest.makeSuite(BloscZlibTestCase))
         theSuite.addTest(common.unittest.makeSuite(BloscZstdTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2ComprTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2CrossChunkTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2CrossChunkOptTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2PastLastChunkTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2PastLastChunkOptTestCase))
         theSuite.addTest(common.unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(common.unittest.makeSuite(LZOShuffleTestCase))
         theSuite.addTest(common.unittest.makeSuite(Bzip2ComprTestCase))

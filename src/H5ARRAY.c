@@ -46,7 +46,7 @@ hid_t H5ARRAYmake(  hid_t loc_id,
                     char  *complib,
                     int   shuffle,
                     int   fletcher32,
-		    hbool_t track_times,
+                    hbool_t track_times,
                     const void *data)
 {
 
@@ -132,14 +132,14 @@ hid_t H5ARRAYmake(  hid_t loc_id,
        if ( H5Pset_deflate( plist_id, compress) < 0 )
          return -1;
      }
-     /* The Blosc2 compressor does accept parameters */
+     /* The Blosc2 compressor does accept parameters (see blosc2_filter.c) */
      else if (strcmp(complib, "blosc2") == 0) {
        cd_values[4] = compress;
        cd_values[5] = shuffle;
        if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
          return -1;
       }
-      /* The Blosc2 compressor can use other compressors */
+      /* The Blosc2 compressor can use other compressors (see blosc2_filter.c) */
      else if (strncmp(complib, "blosc2:", 7) == 0) {
        cd_values[4] = compress;
        cd_values[5] = shuffle;

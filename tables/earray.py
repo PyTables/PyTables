@@ -166,7 +166,7 @@ class EArray(CArray):
     def _check_shape_append(self, nparr):
         """Test that nparr shape is consistent with underlying EArray."""
 
-        # The arrays conforms self expandibility?
+        # Does the array conform to self expandibility?
         myrank = len(self.shape)
         narank = len(nparr.shape) - len(self.atom.shape)
         if myrank != narank:

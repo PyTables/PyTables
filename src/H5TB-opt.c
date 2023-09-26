@@ -12,7 +12,7 @@
 
 /* WARNING: This is a highly stripped down and modified version of the
    original H5TB.c that comes with the HDF5 library. These
-   modifications has been done in order to serve the needs of
+   modifications have been done in order to serve the needs of
    PyTables, and specially for supporting nested datatypes. In
    particular, the VERSION attribute is out of sync so it is not
    guaranteed that the resulting PyTables objects will be identical
@@ -200,21 +200,31 @@ hid_t H5TBOmake_table(  const char *table_title,
      if ( H5Pset_deflate( plist_id, compress) < 0 )
        return -1;
    }
-   /* The Blosc2 compressor does accept parameters */
+   /* The Blosc2 compressor does accept parameters (see blosc2_filter.c) */
    else if (strcmp(complib, "blosc2") == 0) {
-     cd_values[1] = (unsigned int) block_size;  /* can be useful in the future */
+     size_t typesize = H5Tget_size(type_id);
+     size_t chunksize = typesize * chunk_size;
+     /* Save filter from computing this for every chunk */
+     cd_values[1] = block_size
+       ? (unsigned int) (block_size)
+       : (unsigned int) (compute_blosc2_blocksize(chunksize, typesize, compress, -1));
      cd_values[4] = compress;
      cd_values[5] = shuffle;
      if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
        return -1;
    }
-   /* The Blosc2 compressor can use other compressors */
+   /* The Blosc2 compressor can use other compressors (see blosc2_filter.c) */
    else if (strncmp(complib, "blosc2:", 7) == 0) {
-     cd_values[1] = (unsigned int) block_size;  /* can be useful in the future */
-     cd_values[4] = compress;
-     cd_values[5] = shuffle;
      blosc_compname = complib + 7;
      blosc_compcode = blosc2_compname_to_compcode(blosc_compname);
+     size_t typesize = H5Tget_size(type_id);
+     size_t chunksize = typesize * chunk_size;
+     /* Save filter from computing this for every chunk */
+     cd_values[1] = block_size
+       ? (unsigned int) (block_size)
+       : (unsigned int) (compute_blosc2_blocksize(chunksize, typesize, compress, blosc_compcode));
+     cd_values[4] = compress;
+     cd_values[5] = shuffle;
      cd_values[6] = blosc_compcode;
      if ( H5Pset_filter( plist_id, FILTER_BLOSC2, H5Z_FLAG_OPTIONAL, 7, cd_values) < 0 )
        return -1;
@@ -408,13 +418,10 @@ herr_t read_records_blosc2( char* filename,
  int32_t start_chunk = start % chunklen;
  for (hsize_t nchunk = start_nchunk; total_records < nrecords; nchunk++) {
   /* Get the address of the schunk on-disk */
-  unsigned flt_msk;
   haddr_t address;
-  hsize_t cframe_size;
-  hsize_t chunk_offset;
   if (chunk_op.addrs == NULL) {
-   if (H5Dget_chunk_info(dataset_id, space_id, nchunk, &chunk_offset, &flt_msk,
-                         &address, &cframe_size) < 0) {
+   if (H5Dget_chunk_info(dataset_id, space_id, nchunk,
+                         NULL, NULL, &address, NULL) < 0) {
     BLOSC_TRACE_ERROR("Get chunk info failed!\n");
     goto out;
    }

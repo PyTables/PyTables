@@ -28,6 +28,8 @@ Misc variables:
 """
 
 import os
+import platform
+import sys
 import warnings
 from collections import namedtuple
 
@@ -52,7 +54,7 @@ from .utilsextension import (
   encode_filename, set_blosc_max_threads, set_blosc2_max_threads,
   atom_to_hdf5_type, atom_from_hdf5_type, hdf5_to_np_ext_type, create_nested_type,
   pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
-  platform_byteorder)
+  platform_byteorder, get_filters)
 
 
 # Types, constants, functions, classes & other objects from everywhere
@@ -109,6 +111,35 @@ from .utilsextension cimport malloc_dims, get_native_type, cstr_to_pystr, load_r
 cdef extern from "Python.h":
 
     object PyByteArray_FromStringAndSize(char *s, Py_ssize_t len)
+
+cdef extern from "H5ARRAY-opt.h" nogil:
+  hid_t H5ARRAYOmake( hid_t loc_id,
+                      const char *dset_name,
+                      const char *obversion,
+                      const int rank,
+                      const hsize_t *dims,
+                      int   extdim,
+                      hid_t type_id,
+                      hsize_t *dims_chunk,
+                      hsize_t block_size,
+                      void  *fill_data,
+                      int   compress,
+                      char  *complib,
+                      int   shuffle,
+                      int   fletcher32,
+                      hbool_t track_times,
+                      const void *data);
+
+
+  herr_t H5ARRAYOreadSlice(char* filename,
+                           hbool_t blosc2_support,
+                           hid_t dataset_id,
+                           hid_t type_id,
+                           hsize_t *slice_start,
+                           hsize_t *slice_stop,
+                           hsize_t *slice_step,
+                           void *slice_data);
+
 
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
 cdef extern from "H5ARRAY.h" nogil:
@@ -1242,6 +1273,20 @@ cdef void* _array_data(ndarray arr):
             return PyArray_DATA(arr)
     return NULL
 
+def _supports_opt_blosc2_read_write(byteorder, complib, file_mode):
+    if complib:
+      opt_write = ((byteorder == sys.byteorder)
+                   and (complib.startswith("blosc2")))
+    else:
+      opt_write = False
+    # For reading, Windows does not support re-opening a file twice
+    # in not read-only mode (for good reason), so we cannot use the
+    # blosc2 opt
+    opt_read = (opt_write
+                and ((platform.system().lower() != 'windows') or
+                     (file_mode == 'r')))
+    return (opt_read, opt_write)
+
 cdef class Array(Leaf):
   # Instance variables declared in .pxd
 
@@ -1277,6 +1322,10 @@ cdef class Array(Leaf):
     self.rank = len(shape)
     self.dims = npy_malloc_dims(self.rank, <npy_intp *>PyArray_DATA(dims))
     rbuf = _array_data(nparr)
+
+    # Blosc2 optimized operations cannot be used (no chunking nor filters).
+    self.blosc2_support_read = False
+    self.blosc2_support_wirte = False
 
     # Save the array
     complib = (self.filters.complib or '').encode('utf-8')
@@ -1332,6 +1381,11 @@ cdef class Array(Leaf):
     if self.chunkshape:
       self.dims_chunk = malloc_dims(self.chunkshape)
 
+    # Decide whether Blosc2 optimized operations can be used.
+    (self.blosc2_support_read, self.blosc2_support_write) = (
+        _supports_opt_blosc2_read_write(self.byteorder, self.filters.complib,
+                                        self._v_file.mode))
+
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Encode strings
     complib = (self.filters.complib or '').encode('utf-8')
@@ -1351,15 +1405,17 @@ cdef class Array(Leaf):
     else:
       atom.dflt = dflts
 
+    cdef hsize_t blocksize = int(os.environ.get("PT_DEFAULT_B2_BLOCKSIZE", "0"))
     # Create the CArray/EArray
-    self.dataset_id = H5ARRAYmake(self.parent_id, encoded_name, version,
+    self.dataset_id = H5ARRAYOmake(self.parent_id, encoded_name, version,
                                   self.rank, self.dims, self.extdim,
                                   self.disk_type_id, self.dims_chunk,
-                                  fill_data,
+                                  blocksize, fill_data,
                                   self.filters.complevel, complib,
                                   self.filters.shuffle_bitshuffle,
                                   self.filters.fletcher32,
-                                  self._want_track_times, rbuf)
+                                  self._want_track_times,
+                                  rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
@@ -1440,9 +1496,18 @@ cdef class Array(Leaf):
     if H5ARRAYget_chunkshape(self.dataset_id, self.rank, self.dims_chunk) < 0:
       # The Array class is not chunked!
       chunkshapes = None
+      # Blosc2 optimized operations cannot be used (no chunking nor filters).
+      self.blosc2_support_read = False
+      self.blosc2_support_write = False
     else:
       # Get the chunkshape as a python tuple
       chunkshapes = getshape(self.rank, self.dims_chunk)
+      # Decide whether Blosc2 optimized operations can be used.
+      filters = get_filters(self.parent_id, self.name)
+      (self.blosc2_support_read, self.blosc2_support_write) = (
+          _supports_opt_blosc2_read_write(byteorder,
+                                          'blosc2' if 'blosc2' in filters else None,
+                                          self._v_file.mode))
 
     # object arrays should not be read directly into memory
     if atom.dtype != object:
@@ -1574,13 +1639,16 @@ cdef class Array(Leaf):
     else:
       rbuf = PyArray_DATA(nparr)
 
+    cdef bytes fname = self._v_file.filename.encode('utf8')
+    cdef char *filename = fname
     # Do the physical read
     with nogil:
-        ret = H5ARRAYreadSlice(self.dataset_id, self.type_id,
-                               start, stop, step, rbuf)
+        ret = H5ARRAYOreadSlice(filename, self.blosc2_support_read, self.dataset_id, self.type_id,
+                                start, stop, step, rbuf)
     try:
       if ret < 0:
-        raise HDF5ExtError("Problems reading the array data.")
+        raise HDF5ExtError("Internal error reading the elements "
+                           "(H5ARRAYOreadSlice returned errorcode %i)" % ret)
 
       # Get the pointer to the buffer data area
       if self.atom.kind == "reference":
@@ -1801,11 +1869,11 @@ cdef class Array(Leaf):
     # Modify the elements:
     with nogil:
         ret = H5ARRAYwrite_records(self.dataset_id, self.type_id, self.rank,
-                                   start, step, count, rbuf)
+                                    start, step, count, rbuf)
 
     if ret < 0:
       raise HDF5ExtError("Internal error modifying the elements "
-                "(H5ARRAYwrite_records returned errorcode -%i)" % (-ret))
+                         "(H5ARRAYwrite_records returned errorcode %i)" % ret)
 
     return
 

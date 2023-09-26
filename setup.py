@@ -1252,9 +1252,11 @@ if __name__ == "__main__":
             "tables.indexesextension",
             sources=[
                 str(cython_extfiles["indexesextension"]),
+                "src/utils.c",
                 "src/H5ARRAY-opt.c",
                 "src/idx-opt.c",
-            ],
+            ]
+            + blosc_sources,
             libraries=indexesextension_libs,
             **extension_kwargs,
         ),
