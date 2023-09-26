@@ -867,6 +867,59 @@ class Slices2EArrayTestCase(BasicTestCase):
     slices = (slice(1, 2, 1), slice(None, None, None), slice(1, 4, 2))
 
 
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2SlicesOptEArrayTestCase(BasicTestCase):
+    compress = 1
+    complib = "blosc2"
+    type = 'int32'
+    shape = (13, 13, 13)
+    chunkshape = (4, 4, 4)
+    nappends = 20
+    slices = (slice(None, None), slice(2, 10), slice(0, 10))
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2ComprTestCase(BasicTestCase):
+    compress = 1  # sss
+    complib = "blosc2"
+    chunkshape = (10, 10)
+    start = 3
+    stop = 10
+    step = 3
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2CrossChunkTestCase(BasicTestCase):
+    shape = (10, 10)
+    compress = 1  # sss
+    complib = "blosc2"
+    chunkshape = (4, 4)
+    start = 3
+    stop = 6
+    step = 3
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2CrossChunkOptTestCase(Blosc2CrossChunkTestCase):
+    step = 1  # optimized
+    byteorder = sys.byteorder
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2PastLastChunkTestCase(BasicTestCase):
+    shape = (10, 10)
+    compress = 1  # sss
+    complib = "blosc2"
+    chunkshape = (4, 4)
+    start = 8
+    stop = 100
+    step = 3
+
 class EllipsisEArrayTestCase(BasicTestCase):
     type = 'int32'
     shape = (2, 0)

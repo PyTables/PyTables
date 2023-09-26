@@ -464,7 +464,7 @@ class Array(hdf5extension.Array, Leaf):
         def translate_slice(exp, length):
             """Given a slice object, return a 3-tuple (start, count, step)
 
-            This is for for use with the hyperslab selection routines.
+            This is for use with the hyperslab selection routines.
 
             """
 
