@@ -23,7 +23,10 @@ build-backend = "setuptools.build_meta"
 name = "tables"
 dynamic = [ "version" ]
 description = "Hierarchical datasets for Python"
-requires-python = ">=3.8"
+# Keep Python versions in sync with
+# `classifiers` below,
+# `min_python_version` in `setup.py`.
+requires-python = ">=3.9"
 license = { text = "BSD 3-Clause License" }
 keywords = [ "hdf5" ]
 authors = [
@@ -38,8 +41,11 @@ maintainers = [
     { name = "PyTables maintainers", email = "pytables@pytables.org" },
 ]
 # Keep Python versions in sync with
+# `requires_python` above,
 # "Prerequisites" in User's Guide,
 # `jobs.build.strategy.matrix.python` in `.github/workflows/ci.yml`,
+# `jobs.build_wheels.env.CIBW_SKIP` in `.github/workflows/wheels.yml`.
+# `jobs.build_wheels_windows.env.CIBW_BUILD` in `.github/workflows/wheels.yml`.
 # `jobs.test_wheels.strategy.matrix.python` in `.github/workflows/wheels.yml`.
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -52,7 +58,6 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

@@ -61,8 +61,9 @@ jobs:
     env:
       HDF5_VERSION: 1.14.1-2  # needed for H5Dchunk_iter
       MACOSX_DEPLOYMENT_TARGET: "10.9"
-      # Skip 3.6, 3.7 and 3.12 wheels
-      CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp312-* "
+      # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
+      # Skip 3.6, 3.7, 3.8 and 3.12 wheels
+      CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp38-* cp312-* "
       CIBW_BUILD: "cp*"
     strategy:
       matrix:
@@ -179,7 +180,8 @@ jobs:
       - name: Build wheels for Windows (${{ matrix.arch }})
         run: cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp38-${{ matrix.arch }} cp39-${{ matrix.arch }} cp310-${{ matrix.arch }} cp311-${{ matrix.arch }}"
+          # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
+          CIBW_BUILD: "cp39-${{ matrix.arch }} cp310-${{ matrix.arch }} cp311-${{ matrix.arch }}"
           # Keep in sync with "Prerequisites" in User's Guide.
           CIBW_BEFORE_ALL_WINDOWS: >
             conda create --yes --name=build &&
