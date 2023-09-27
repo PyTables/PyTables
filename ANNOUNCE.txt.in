@@ -19,6 +19,11 @@ array chunk.  Please check out "Multidimensional slicing and chunk/block
 sizes" in the optimization tips section of the User's Guide for more
 information.  This development was funded by a NumFOCUS grant.
 
+Please note that wheels and automated testing for Python 3.8 have been
+dropped in this release due to issues with dependencies.  Users or
+distribution packagers may still use Python 3.8, but they are encouraged
+to perform tests on their own.
+
 XXX version-specific blurb XXX
 
 In case you want to know more in detail what has changed in this
