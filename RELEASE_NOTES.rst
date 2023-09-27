@@ -19,9 +19,9 @@ Changes from 3.8.0 to 3.9.0
   still build and test with Python 3.8 on their own (see :commit:`ae1e60e` and
   :commit:`47f5946`).
 - Improve `setup.py` and `blosc2` discovery mechanism.
-- Update external libraries:
+- Update included c-blosc to v1.21.5 (fixes SSE2/AVX build issue).
+- Update external libraries for CI-based wheel builds (:issue:`967`):
 
-  * c-blosc v1.21.4
   * hdf5 v1.14.1
   * lz4 v1.9.4
   * zlib v1.2.13
