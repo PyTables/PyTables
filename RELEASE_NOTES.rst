@@ -11,6 +11,10 @@
 Changes from 3.8.0 to 3.9.0
 ===========================
 
+- Apply optimized slice read to Blosc2-compressed `CArray` and `EArray`, with
+  Blosc2 NDim 2-level partitioning for multidimensional arrays
+  (:issue:`1056`).  See "Multidimensional slicing and chunk/block sizes" in
+  the User's Guide.  This development was funded by a NumFOCUS grant.
 - Improve `setup.py` and `blosc2` discovery mechanism.
 - Update external libraries:
 

@@ -8,6 +8,17 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
+This release enhances chunked and extensible arrays (CArray/EArray)
+compressed with Blosc2 with the optimized read added in PyTables 3.8.0
+(based on HDF5 direct chunking).  Slicing such multidimensional arrays
+(even along inner dimensions) has been greatly sped up thanks to Blosc2
+NDim 2-level partitioning of chunks into smaller multidimensional
+blocks, which avoids the decompression of whole chunks.  This is enabled
+by providing the Blosc2 CFrame with a b2nd metalayer when writing each
+array chunk.  Please check out "Multidimensional slicing and chunk/block
+sizes" in the optimization tips section of the User's Guide for more
+information.  This development was funded by a NumFOCUS grant.
+
 XXX version-specific blurb XXX
 
 In case you want to know more in detail what has changed in this
