@@ -52,7 +52,9 @@ First, make sure that you have the following dependencies installed.
 If you don't, fetch and install them before proceeding.
 
 .. Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
-.. Keep versions from HDF5 on in sync with those mentioned in ``tables/req_versions.py``.
+.. Keep versions from HDF5 on in sync with
+.. those mentioned in ``tables/req_versions.py``,
+.. those mentioned in ``ci/github/get_hdf5.sh``.
 .. Keep Cython in sync with ``build-system.requires`` in ``pyproject.toml``.
 .. Keep entries from NumPy on in sync with ``project.dependencies`` in ``pyproject.toml``.
 .. Keep system packages in sync with build jobs in `.github/workflows/*.yml`.

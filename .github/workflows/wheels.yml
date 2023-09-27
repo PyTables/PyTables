@@ -57,6 +57,7 @@ jobs:
     name: Build ${{ matrix.os }} wheels for ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     env:
+      # Keep in sync with "Prerequisites" in User's Guide.
       HDF5_VERSION: 1.14.1-2  # needed for H5Dchunk_iter
       MACOSX_DEPLOYMENT_TARGET: "10.9"
       # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
