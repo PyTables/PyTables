@@ -202,6 +202,7 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 # -- External link options ----------------------------------------------------
 extlinks = {
     'issue': ('https://github.com/PyTables/PyTables/issues/%s', 'gh-%s'),
+    'PR': ('https://github.com/PyTables/PyTables/pull/%s', 'gh-%s'),
     'commit': ('https://github.com/PyTables/PyTables/commit/%s', 'commit %s'),
 }
 
