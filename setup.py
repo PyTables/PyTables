@@ -532,7 +532,7 @@ if __name__ == "__main__":
 
     # The minimum required versions
     # Keep in sync with ``project.requires-python`` in ``pyproject.toml``.
-    min_python_version = (3, 9)
+    min_python_version = (3, 8)
     # Check for Python
     if sys.version_info < min_python_version:
         exit_with_error("You need Python %s or greater to install PyTables!"
