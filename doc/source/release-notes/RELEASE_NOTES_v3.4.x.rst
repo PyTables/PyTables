@@ -31,10 +31,10 @@ Improvements
 ------------
  - On interactive python sessions, group/attribute  `__dir__()` method
    autocompletes children that are named as valid python identifiers.
-   :issue:`624` & :issue:`625` thanks to ankostis.
+   :issue:`624` & :issue:`625`, thanks to ankostis.
  - Implement `Group.__getitem__()` to have groups act as python-containers,
    so code like this works: ``hfile.root['some child']``.
-   :issue:`628` thanks to ankostis.
+   :issue:`628`, thanks to ankostis.
  - Enable building with Intel compiler (icc/icpc).
    Thanks to rohit-jamuar.
  - PEP 519 support, using new `os.fspath` method.
@@ -52,13 +52,13 @@ Bugs fixed
 ----------
  - Fixed division by zero when using `_convert_time64()` with an empty
    nparr array.
-   :issue:`653`. Thanks to alobbs.
+   :issue:`653`, thanks to alobbs.
  - Fixed deprecation warnings with numpy 1.14.
    Thanks to oleksandr-pavlyk.
  - Skip DLL check when running from a frozen app.
-   :issue:`675`. Thanks to jwiggins.
+   :issue:`675`, thanks to jwiggins.
  - Fixed behaviour with slices out of range.
-   :issue:`651`. Thanks to jackdbd.
+   :issue:`651`, thanks to jackdbd.
 
 
 Changes from 3.4.1 to 3.4.2
@@ -73,7 +73,7 @@ Bugs fixed
 ----------
  - Linux wheels now built against built-in blosc.
  - Fixed windows absolute paths in ptrepack, ptdump, ptree.
-   :issue:`616`. Thanks to oscar6echo.
+   :issue:`616`, thanks to oscar6echo.
 
 
 Changes from 3.4.0 to 3.4.1
@@ -89,7 +89,7 @@ Changes from 3.3.0 to 3.4.0
 
 Improvements
 ------------
- - Support for HDF5 v1.10.x (see :issue:`582`)
+ - Support for HDF5 v1.10.x (see :issue:`582`).
  - Fix compatibility with the upcoming Python 2.7.13, 3.5.3 and 3.6 versions.
    See also :issue:`590`. Thanks to Yaroslav Halchenko
  - Internal Blosc version updated to 1.11.3
