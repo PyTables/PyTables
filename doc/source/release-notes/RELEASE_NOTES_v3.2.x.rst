@@ -104,7 +104,7 @@ Improvements
 ------------
 
 - The `nrowsinbuf` is better computed now for EArray/CArray having
-  a small `chunkshape` in the main dimension.  Fixes #285.
+  a small `chunkshape` in the main dimension.  Fixes :issue:`285`.
 
 - PyTables should be installable very friendly via pip, including NumPy
   being installed automatically in the unlikely case it is not yet
@@ -253,7 +253,7 @@ Bugs fixed
 
 - Replaced "len(xrange(start, stop, step))" -> "len(xrange(0, stop -
   start, step))" to fix issues with large row counts with Python 2.x.
-  Fixes #447.
+  Fixes :issue:`447`.
 
 
 Other changes
