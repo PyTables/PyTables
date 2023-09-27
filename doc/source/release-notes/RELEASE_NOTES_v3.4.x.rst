@@ -93,7 +93,7 @@ Improvements
  - Fix compatibility with the upcoming Python 2.7.13, 3.5.3 and 3.6 versions.
    See also :issue:`590`. Thanks to Yaroslav Halchenko
  - Internal Blosc version updated to 1.11.3
- - Gracefully handle cpuinfo failure. (PR #578)
+ - Gracefully handle cpuinfo failure (:PR:`578`).
    Thanks to Zbigniew Jędrzejewski-Szmek
  - Update internal py-cpuinfo to 3.3.0. Thanks to Gustavo Serra Scalet.
 
@@ -103,5 +103,5 @@ Bugs fixed
    See also :issue:`598`. Thanks to Kyle Keppler for reporting.
  - Fix important bug in bitshuffle filter in internal Blosc on big-endian
    machines. See also :issue:`583`.
- - Fix allow for long type in nextafter. (PR #587) Thanks to Yaroslav Halchenko.
- - Fix unicode bug in group and tables names. :issue:`514`
+ - Fix allow for long type in nextafter (:PR:`587`). Thanks to Yaroslav Halchenko.
+ - Fix unicode bug in group and tables names (:issue:`514`).

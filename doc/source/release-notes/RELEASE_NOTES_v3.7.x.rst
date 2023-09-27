@@ -15,7 +15,7 @@ Improvements
 ------------
 - Compatibility with Python 3.10, numpy 1.21 and HDF5 1.12.
 - Support for Python 3.5 has been dropped (:issue:`840` and :issue:`850`).
-- Windows: Significantly faster `import tables` PR #781.
+- Windows: Significantly faster `import tables` (:PR:`781`).
   Thanks to Christoph Gohlke.
 - Internal C-Blosc sources updated to 1.21.1 (:issue:`931`).
   Note that, starting from C-Blosc 1.19 does not include the Snappy codec
@@ -40,7 +40,7 @@ Improvements
 Bugfixes
 --------
 - Fix `pkg-config` (`setup.py`) for Python 3.9 on Debian.
-  Thanks to Marco Sulla PR #792.
+  Thanks to Marco Sulla (:PR:`792`).
 - Fix ROFileNode fails to return the `fileno()` (:issue:`633`).
 - Do not flush read only files (:issue:`915` thanks to @lrepiton).
 

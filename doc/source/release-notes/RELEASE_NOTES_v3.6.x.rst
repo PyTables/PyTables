@@ -17,7 +17,7 @@ Maintenance release to fix packaging issues. No new features or bugfixes.
 Changes from 3.5.3 to 3.6.0
 ===========================
 
-PyTables 3.6 no longer supports Python 2.7 see PR #747.
+PyTables 3.6 no longer supports Python 2.7, see :PR:`747`.
 
 Improvements
 ------------
@@ -35,7 +35,7 @@ Bugfixes
 --------
 - Bugfix for HDF5 files/types with padding. For details see :issue:`734`.
 - More fixes for python 3.8 compatibility: Replace deprecated time.clock
-  with time.perf_counter
-  Thanks to Sergio Pascual (sergiopasra). see :issue:`744` and PR #745.
+  with time.perf_counter. See :issue:`744` and :PR:`745`.
+  Thanks to Sergio Pascual (sergiopasra).
 - Improvements in tests as well as clean up from dropping Python 2.7 support.
   Thanks to Seth Troisi (sethtroisi).

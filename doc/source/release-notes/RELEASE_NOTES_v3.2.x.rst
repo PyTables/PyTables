@@ -41,12 +41,12 @@ Bugs fixed
   :class:`index.Index` (closes :issue:`532` and :issue:`533`).
   Thanks to Diane Trout.
 - Fixed the evaluation of transcendental functions when numexpr is
-  compiled with VML support (closes :issue:`534`, PR #536).
+  compiled with VML support (closes :issue:`534`, :PR:`536`).
   Thanks to Tom Kooij.
 - Make sure that index classes use buffersizes that are a multiple
-  of chunkshape[0] (closes :issue:`538`, PR #538).
+  of chunkshape[0] (closes :issue:`538`, :PR:`538`).
   Thanks to Tom Kooij.
-- Ensure benchmark paths exist before benchmarks are executed (PR #544).
+- Ensure benchmark paths exist before benchmarks are executed (:PR:`544`).
   Thanks to rohitjamuar.
 
 Other changes

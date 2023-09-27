@@ -8,7 +8,7 @@ Changes from 3.2.3.1 to 3.3.0
 Improvements
 ------------
 
-- Single codebase Python 2 and 3 support (PR #493).
+- Single codebase Python 2 and 3 support (:PR:`493`).
 - Internal Blosc version updated to 1.11.1 (closes :issue:`541`)
 - Full BitShuffle support for new Blosc versions (>= 1.8).
 - It is now possible to remove all rows from a table.
