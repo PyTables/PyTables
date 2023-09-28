@@ -60,7 +60,7 @@ If you don't, fetch and install them before proceeding.
 .. Keep system packages in sync with build jobs in `.github/workflows/*.yml`.
 
 * Python_ >= 3.9 (Python 3.8 may work, but you may need to build/test yourself)
-* HDF5_ >= 1.10.5
+* HDF5_ >= 1.14.1 (prior versions may work, but some functionality may be not available)
 * Cython_ >= 0.29.32
 * NumPy_ >= 1.19.0
 * Numexpr_ >= 2.6.2
@@ -156,17 +156,17 @@ the relevant header files and libraries.
     locations of the resource root directories on the setup.py command line.
     For example::
 
-        --hdf5=/stuff/hdf5-1.8.12
-        --blosc=/stuff/blosc-1.8.1
+        --hdf5=/stuff/hdf5-1.14.2
+        --blosc=/stuff/blosc-1.21.5
         --lzo=/stuff/lzo-2.02
         --bzip2=/stuff/bzip2-1.0.5
-        --blosc2=/stuff/blosc2-2.0.0
+        --blosc2=/stuff/blosc2-2.10.3
 
     If your HDF5 library was built as a shared library not in the runtime load
     path, then you can specify the additional linker flags needed to find the
     shared library on the command line as well. For example::
 
-        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.12/lib"
+        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.14.2/lib"
 
     You may also want to try setting the :envvar:`LD_LIBRARY_PATH`
     environment variable to point to the directory where the shared libraries
@@ -176,7 +176,7 @@ the relevant header files and libraries.
     It is also possible to link with specific libraries by setting the
     :envvar:`LIBS` environment variable::
 
-        LIBS="hdf5-1.8.12 nsl"
+        LIBS="hdf5-1.14.2 nsl"
 
     Starting from PyTables 3.2 can also query the *pkg-config* database to
     find the required packages. If available, pkg-config is used by default
@@ -288,10 +288,10 @@ you can proceed with the PyTables package itself.
 
       $ python3 setup.py build
 
-   If the HDF5 installation is in a custom path, e.g. $HOME/hdf5-1.8.15pre7,
+   If the HDF5 installation is in a custom path, e.g. $HOME/hdf5-1.14.2,
    one of the following commands can be used::
 
-      $ python3 setup.py build --hdf5=$HOME/hdf5-1.8.15pre7
+      $ python3 setup.py build --hdf5=$HOME/hdf5-1.14.2
 
    .. note::
 

@@ -58,7 +58,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       # Keep in sync with "Prerequisites" in User's Guide.
-      HDF5_VERSION: 1.14.1-2  # needed for H5Dchunk_iter
+      HDF5_VERSION: 1.14.2  # H5Dchunk_iter needs at least 1.14.1
       MACOSX_DEPLOYMENT_TARGET: "10.9"
       # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
       # Skip 3.6, 3.7 and 3.8 wheels
