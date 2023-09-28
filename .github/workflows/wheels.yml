@@ -61,8 +61,8 @@ jobs:
       HDF5_VERSION: 1.14.1-2  # needed for H5Dchunk_iter
       MACOSX_DEPLOYMENT_TARGET: "10.9"
       # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
-      # Skip 3.6, 3.7, 3.8 and 3.12 wheels
-      CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp38-* cp312-* "
+      # Skip 3.6, 3.7 and 3.8 wheels
+      CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp38-* "
       CIBW_BUILD: "cp*"
     strategy:
       matrix:
@@ -179,7 +179,7 @@ jobs:
         run: cibuildwheel --output-dir wheelhouse
         env:
           # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
-          CIBW_BUILD: "cp39-${{ matrix.arch }} cp310-${{ matrix.arch }} cp311-${{ matrix.arch }}"
+          CIBW_BUILD: "cp39-${{ matrix.arch }} cp310-${{ matrix.arch }} cp311-${{ matrix.arch }} cp312-${{ matrix.arch }}"
           # Keep in sync with "Prerequisites" in User's Guide.
           CIBW_BEFORE_ALL_WINDOWS: >
             conda create --yes --name=build &&
@@ -204,7 +204,7 @@ jobs:
       matrix:
         os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
         # Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11', '3.12']
         arch: ['x64']
         #include:
           # For aarch64 we should need QEMU or similar
