@@ -8,23 +8,38 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
+After nearly one year since the previous release, PyTables 3.9.0
+includes an assortment of improvements and fixes contributed by many
+people.  A big thank you to everyone involved in keeping PyTables alive
+& kicking!
+
 This release enhances chunked and extensible arrays (CArray/EArray)
-compressed with Blosc2 with the optimized read added in PyTables 3.8.0
-(based on HDF5 direct chunking).  Slicing such multidimensional arrays
-(even along inner dimensions) has been greatly sped up thanks to Blosc2
-NDim 2-level partitioning of chunks into smaller multidimensional
-blocks, which avoids the decompression of whole chunks.  This is enabled
-by providing the Blosc2 CFrame with a b2nd metalayer when writing each
-array chunk.  Please check out "Multidimensional slicing and chunk/block
-sizes" in the optimization tips section of the User's Guide for more
-information.  This development was funded by a NumFOCUS grant.
+compressed with Blosc2 with the optimized read operation added in
+PyTables 3.8.0 (based on HDF5 direct chunking).  Slicing such
+multidimensional arrays (even along inner dimensions) has been greatly
+sped up thanks to Blosc2 NDim 2-level partitioning of chunks into
+smaller multidimensional blocks, which avoids the decompression of whole
+chunks.  This is enabled by providing the Blosc2 CFrame with a b2nd
+metalayer when writing each array chunk.  Please check out
+"Multidimensional slicing and chunk/block sizes" in the optimization
+tips section of the User's Guide for more information.  This development
+was funded by a NumFOCUS grant.
 
-Please note that wheels and automated testing for Python 3.8 have been
-dropped in this release due to issues with dependencies.  Users or
-distribution packagers may still use Python 3.8, but they are encouraged
-to perform tests on their own.
+PyTables 3.9.0 also adds support for column-level attributes (e.g. for
+units) via their ``attrs`` field.  This has been in the queue for more
+than two years, but it's finally here!
 
-XXX version-specific blurb XXX
+PyTables now supports the forthcoming Python 3.12, with binary wheels
+available and extensive automatic testing.  Please note that wheels and
+testing for Python 3.8 have been dropped due to issues with
+dependencies.  Users or distribution packagers may still use Python 3.8,
+but they are encouraged to perform tests on their own.
+
+Regarding Blosc2 compression support, PyTables may now use either the
+python-blosc2 package (which is handy for packaged Python wheels), or
+just the c-blosc2 library (which may be preferable for wider software
+distributions).  Newer versions of Blosc2 and other dependencies are
+required that fix various issues.
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html
