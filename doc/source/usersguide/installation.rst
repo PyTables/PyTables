@@ -60,7 +60,7 @@ If you don't, fetch and install them before proceeding.
 .. Keep system packages in sync with build jobs in `.github/workflows/*.yml`.
 
 * Python_ >= 3.9 (Python 3.8 may work, but you may need to build/test yourself)
-* HDF5_ >= 1.14.1 (prior versions may work, but some functionality may be not available)
+* HDF5_ >= 1.10.5 (although 1.14.0 or later is strongly recommended)
 * Cython_ >= 0.29.32
 * NumPy_ >= 1.19.0
 * Numexpr_ >= 2.6.2

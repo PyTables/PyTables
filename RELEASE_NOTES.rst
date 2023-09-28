@@ -64,7 +64,7 @@ Improvements
 - Update external libraries for CI-based wheel builds (:PR:`1018` and
   :issue:`967`):
 
-  * hdf5 v1.14.1
+  * hdf5 v1.14.2
   * lz4 v1.9.4
   * zlib v1.2.13
 
