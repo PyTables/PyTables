@@ -931,7 +931,7 @@ if __name__ == "__main__":
                     f"Unsupported Blosc2 version installed! Blosc2 "
                     f"{min_blosc2_version}+ required. Found version "
                     f"{blosc2_version}.  "
-                    f"Update it via `pip install blosc2 -U.`"
+                    f"Update it via `pip install blosc2 -U`."
                 )
 
         if not rundir:
