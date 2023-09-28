@@ -60,7 +60,7 @@ jobs:
         python-version: ${{ matrix.python }}
         auto-update-conda: true
         # Temporary workaround until Python 3.12 is released and goes into the main channel.
-        channels: conda-forge${{ matrix.python == '3.12' && ',conda-forge/label/python_rc' }}
+        channels: conda-forge${{ matrix.python == '3.12' && ',conda-forge/label/python_rc' || '' }}
         channel-priority: strict
     - name: Install dependencies
       run: |
