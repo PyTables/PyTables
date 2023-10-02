@@ -46,7 +46,6 @@ maintainers = [
 # `jobs.build.strategy.matrix.python` in `.github/workflows/ci.yml`,
 # `jobs.build_wheels.env.CIBW_SKIP` in `.github/workflows/wheels.yml`.
 # `jobs.build_wheels_windows.env.CIBW_BUILD` in `.github/workflows/wheels.yml`.
-# `jobs.test_wheels.strategy.matrix.python-version` in `.github/workflows/wheels.yml`.
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
