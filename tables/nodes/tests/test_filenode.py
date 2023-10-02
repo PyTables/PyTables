@@ -14,8 +14,8 @@ from ...tests.common import (
 
 
 def test_file(name):
-    from pkg_resources import resource_filename
-    return resource_filename('tables.nodes.tests', name)
+    from importlib import resources
+    return resources.files('tables.nodes.tests') / name
 
 
 class NewFileTestCase(TempFileMixin, TestCase):
