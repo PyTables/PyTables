@@ -204,7 +204,9 @@ jobs:
       matrix:
         os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
         # Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        # Temporarily reduced to test ``allow-prereleases`` below, will roll back.
+        #python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.12']
         arch: ['x64']
         #include:
           # For aarch64 we should need QEMU or similar
@@ -226,6 +228,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.arch }}
+          # Temporary workaround until Python 3.12 is released and gets a GA version.
+          allow-prereleases: true
 
       - name: Install tables on ${{ matrix.python-version }}
         run: |
