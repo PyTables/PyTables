@@ -14,17 +14,17 @@ jobs:
         fetch-depth: 0
         submodules: true
     - name: Install APT packages
-      # Keep in sync with "Prerequisites" in User's Guide.
       run: |
         sudo apt-get update
+        # Keep in sync with "Prerequisites" in User's Guide.
         sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
         sudo apt install python3-all-dev python3-setuptools python3-packaging  # python3-numexpr python3-numpy cython3
         sudo apt install python3-pytest python3-pytest-doctestplus
         sudo apt install python3-numpydoc python3-sphinx python3-sphinx-rtd-theme python3-ipython
         sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
     - name: Install dependencies
-      # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
       run: |
+        # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
         python3 -m pip install --user --upgrade setuptools pip wheel build cython
         python3 -m pip install --user --upgrade -r requirements.txt
         python3 -c "import numpy as np; print('numpy:', np.__version__)"
