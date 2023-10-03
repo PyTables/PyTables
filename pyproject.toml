@@ -1,7 +1,6 @@
 [build-system]
 # Build Python requirements, keep Cython in sync with
 # "Prerequisites" in User's Guide,
-# ``requirements.txt``,
 # build jobs in `.github/workflows/*.yml`.
 requires = [
     "setuptools >=61.0.0",  # "meson-python",  # and replace ``build-backend`` below
