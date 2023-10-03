@@ -64,9 +64,7 @@ jobs:
       # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
       # Skip 3.6, 3.7 and 3.8 wheels
       CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp38-* "
-      # Temporarily narrowed to check CIBW-based testing, please undo.
-      #CIBW_BUILD: "cp*"
-      CIBW_BUILD: "cp312-*"
+      CIBW_BUILD: "cp*"
     strategy:
       matrix:
         # Please note that some architectures are not tested,
