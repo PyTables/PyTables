@@ -66,7 +66,8 @@ classifiers = [
 ]
 # Runtime Python requirements, keep in sync with
 # "Prerequisites" in User's Guide,
-# and ``requirements.txt``.
+# ``requirements.txt``,
+# `jobs.build.steps` in `.github/workflows/ubuntu.yml`.
 dependencies = [
     "numpy >= 1.19.0",
     "numexpr >= 2.6.2",

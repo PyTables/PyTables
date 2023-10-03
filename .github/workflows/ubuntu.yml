@@ -7,6 +7,9 @@ permissions:
 
 jobs:
   build:
+    # Please try to use as many packages as possible from Ubuntu APT repos,
+    # and as few as possible from PyPI,
+    # as the purpose here is to test against system packages.
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
@@ -18,15 +21,24 @@ jobs:
         sudo apt-get update
         # Keep in sync with "Prerequisites" in User's Guide.
         sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
-        sudo apt install python3-all-dev python3-setuptools python3-packaging  # python3-numexpr python3-numpy cython3
+        # ``python3-build`` is needed for ``make (s)dist``.
+        sudo apt install python3-all-dev python3-pip python3-build
+        # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
+        # Packages commented out are either missing or too old, use PyPI packages below.
+        sudo apt install python3-setuptools python3-wheel python3-numpy python3-packaging python3-cpuinfo  # cython3 blosc2
+        # Keep in sync with ``project.dependencies`` in ``pyproject.toml``.
+        # Packages commented out are either missing or too old, use PyPI packages below (if not already installed).
+        sudo apt install python3-numexpr  # python3-numpy python3-packaging python3-cpuinfo # blosc2
         sudo apt install python3-pytest python3-pytest-doctestplus
         sudo apt install python3-numpydoc python3-sphinx python3-sphinx-rtd-theme python3-ipython
         sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
     - name: Install dependencies
       run: |
         # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
-        python3 -m pip install --user --upgrade setuptools pip wheel build cython
-        python3 -m pip install --user --upgrade -r requirements.txt
+        # Install build requirements which have old or missing Ubuntu APT packages.
+        # Do not use ``--upgrade`` here: we want to be sure whether we use system or PyPI packages.
+        python3 -m pip install --user cython
+        python3 -m pip install --user -r requirements.txt
         python3 -c "import numpy as np; print('numpy:', np.__version__)"
         python3 -c "import blosc2; print('blosc2:', blosc2.__version__)"
     - name: Build PyTables
