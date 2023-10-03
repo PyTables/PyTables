@@ -30,7 +30,8 @@ jobs:
         # Packages commented out are either missing or too old, use PyPI packages below (if not already installed).
         sudo apt install python3-numexpr  # python3-numpy python3-packaging python3-cpuinfo # blosc2
         sudo apt install python3-pytest python3-pytest-doctestplus
-        sudo apt install python3-numpydoc python3-sphinx python3-sphinx-rtd-theme python3-ipython
+        # Keep in sync with ``project.optional-dependencies`` in  ``pyproject.toml``.
+        sudo apt install python3-sphinx python3-sphinx-rtd-theme python3-numpydoc python3-ipython
         sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
     - name: Install dependencies
       run: |
