@@ -22,7 +22,10 @@ jobs:
         # Keep in sync with "Prerequisites" in User's Guide.
         sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
         # ``python3-build`` (which uses ``python3-venv``) is needed for ``make (s)dist``.
-        sudo apt install python3-all-dev python3-pip python3-venv python3-build
+        # However, Ubuntu 22.04's ``python3-build`` is broken,
+        # so try with ``python3-virtualenv`` instead as suggested in
+        # <https://github.com/pypa/build/issues/215#issuecomment-1335841041>.
+        sudo apt install python3-all-dev python3-pip python3-virtualenv python3-build
         # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
         # Packages commented out are either missing or too old, use PyPI packages below.
         sudo apt install python3-setuptools python3-wheel python3-numpy python3-packaging python3-cpuinfo  # cython3 blosc2
