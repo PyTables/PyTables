@@ -70,9 +70,7 @@ jobs:
         # Please note that some architectures are not tested,
         # see "Build wheels" and ``CIBW_TEST_SKIP`` below.
         os: [ 'ubuntu-latest' ]
-        # Temporarily narrowed to check CIBW-based testing, please undo.
-        #arch: [ 'x86_64',  'aarch64' ]
-        arch: [ 'x86_64' ]
+        arch: [ 'x86_64',  'aarch64' ]
         include:
           - os: macos-latest
             arch: x86_64
