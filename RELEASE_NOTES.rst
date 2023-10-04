@@ -58,6 +58,8 @@ Improvements
 - Avoid NumPy >= 1.25 deprecations, use `numpy.all`, `numpy.any`,
   etc. instead.  Thanks to Antonio Valentino.
 - Avoid C-related build warnings.  Thanks to Antonio Valentino.
+- Streamline CI wheel building & testing with `cibuildwheel`, more clear
+  distinctions between build and runtime dependencies.
 - Update included c-blosc to v1.21.5 (fixes SSE2/AVX build issue).
 - Require python-blosc2 >= 2.2.8 or c-blosc2 >= 2.10.4 (Python 3.12 support
   and assorted fixes).
