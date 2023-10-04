@@ -66,7 +66,7 @@ build:
 	$(PYTHON) setup.py build
 
 check: build
-	cd build/lib.* && env PYTHONPATH=. PYTEST_DEBUG=1 $(PYTHON) -m pytest --doctest-plus --doctest-only --pyargs tables -k "not AttributeSet"
+	cd build/lib.* && env PYTHONPATH=. $(PYTHON) -m pytest --doctest-only --pyargs tables -k "not AttributeSet"
 	cd build/lib.* && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py
 
 heavycheck: build
