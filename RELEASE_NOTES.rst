@@ -8,6 +8,12 @@
 .. py:currentmodule:: tables
 
 
+Changes from 3.9.0 to 3.9.1
+===========================
+
+XXX version-specific notes XXX
+
+
 Changes from 3.8.0 to 3.9.0
 ===========================
 
