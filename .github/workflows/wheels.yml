@@ -45,7 +45,7 @@ jobs:
           python -m pip install --upgrade setuptools pip wheel build cython
           python -m pip install -r requirements.txt
           # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
-          python -m pip install sphinx>=1.1 sphinx_rtd_theme numpydoc ipython
+          python -m pip install 'sphinx>=1.1,<6' sphinx_rtd_theme numpydoc ipython
 
       - name: Build sdist
         run: make PYTHON=python dist

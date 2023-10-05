@@ -80,7 +80,7 @@ dependencies = [
 [project.optional-dependencies]
 # Keep in sync with build jobs in `.github/workflows/*.yml`.
 doc = [
-    "sphinx >= 1.1",
+    "sphinx >= 1.1 , < 6",
     "sphinx_rtd_theme",
     "numpydoc",
     "ipython",
