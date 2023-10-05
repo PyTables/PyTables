@@ -7,6 +7,9 @@ permissions:
 
 jobs:
   build:
+    # Please try to use as many packages as possible from Ubuntu APT repos,
+    # and as few as possible from PyPI,
+    # as the purpose here is to test against system packages.
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
@@ -16,15 +19,40 @@ jobs:
     - name: Install APT packages
       run: |
         sudo apt-get update
+        # Keep in sync with "Prerequisites" in User's Guide.
         sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
-        sudo apt install python3-all-dev python3-setuptools python3-packaging python3-numexpr  # python3-numpy cython3
+        # ``python3-build`` (which uses ``python3-venv``) is needed for ``make (s)dist``.
+        # However, Ubuntu 22.04's ``python3-build`` is broken,
+        # so try with ``python3-virtualenv`` instead as suggested in
+        # <https://github.com/pypa/build/issues/215#issuecomment-1335841041>.
+        # At any rate, the toolchain is going to come from PyPI.
+        sudo apt install python3-all-dev python3-pip  # python3-virtualenv python3-build
+        # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
+        # Packages commented out are either missing or too old, use PyPI packages below.
+        sudo apt install python3-numpy python3-packaging python3-cpuinfo  # python3-setuptools python3-wheel # cython3 blosc2
+        # Keep in sync with ``project.dependencies`` in ``pyproject.toml``.
+        # Packages commented out are either missing or too old, use PyPI packages below (if not already installed).
+        sudo apt install python3-numexpr  # python3-numpy python3-packaging python3-cpuinfo # blosc2
         sudo apt install python3-pytest python3-pytest-doctestplus
-        sudo apt install python3-numpydoc python3-sphinx python3-sphinx-rtd-theme python3-ipython
+        # Keep in sync with ``project.optional-dependencies`` in  ``pyproject.toml``.
+        sudo apt install python3-sphinx python3-sphinx-rtd-theme python3-numpydoc python3-ipython
         sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
     - name: Install dependencies
       run: |
-        python3 -m pip install --user --upgrade setuptools pip wheel build "blosc2!=2.2.1,!=2.2.2"
-        python3 -m pip install --user --upgrade -r requirements.txt
+        # A recent build toolchain is necessary for different tasks in the makefile,
+        # though it would not be used to create an Ubuntu package anyway.
+        # Ubuntu's toolchain is outdated for this purpose,
+        # so make sure that we use PyPI packages by using ``--upgrade``.
+        # All the tools below are upgraded together as mixing with system packages
+        # breaks "Source distribution" (can't remove system packages)
+        # or "Test" ("build" does nothing and PyTest finds no doctests).
+        python3 -m pip install --user --upgrade setuptools pip wheel build
+        # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
+        # Install build requirements which would also be used to create an Ubuntu package
+        # but have old or missing Ubuntu APT packages.
+        # Do not use ``--upgrade`` here: we want to be sure whether we use system or PyPI packages.
+        python3 -m pip install --user cython
+        python3 -m pip install --user -r requirements.txt
         python3 -c "import numpy as np; print('numpy:', np.__version__)"
         python3 -c "import blosc2; print('blosc2:', blosc2.__version__)"
     - name: Build PyTables

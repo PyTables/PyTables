@@ -17,6 +17,7 @@ PyTables
 .. toctree::
     :maxdepth: 1
 
+    release-notes/RELEASE_NOTES_v3.9.x
     release-notes/RELEASE_NOTES_v3.8.x
     release-notes/RELEASE_NOTES_v3.7.x
     release-notes/RELEASE_NOTES_v3.6.x
@@ -65,6 +66,7 @@ Release timeline
 ----------------
 
 =============== =========== ==========
+PyTables        3.9.0       2023-10-05
 PyTables        3.8.0       2022-12-23
 PyTables        3.7.0       2021-12-28
 PyTables        3.6.1       2019-10-28

@@ -531,10 +531,12 @@ if __name__ == "__main__":
         cpu_flags = []
 
     # The minimum required versions
+    # Keep in sync with ``project.requires-python`` in ``pyproject.toml``.
     min_python_version = (3, 8)
     # Check for Python
     if sys.version_info < min_python_version:
-        exit_with_error("You need Python 3.8 or greater to install PyTables!")
+        exit_with_error("You need Python %s or greater to install PyTables!"
+                        % '.'.join(str(v) for v in min_python_version))
     print(f"* Using Python {sys.version.splitlines()[0]}")
 
     try:
@@ -929,7 +931,7 @@ if __name__ == "__main__":
                     f"Unsupported Blosc2 version installed! Blosc2 "
                     f"{min_blosc2_version}+ required. Found version "
                     f"{blosc2_version}.  "
-                    f"Update it via `pip install blosc2 -U.`"
+                    f"Update it via `pip install blosc2 -U`."
                 )
 
         if not rundir:
