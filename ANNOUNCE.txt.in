@@ -8,8 +8,7 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-This is a hot fix release to deprecate support for Python 3.8.
-See https://github.com/PyTables/PyTables/issues/1062.
+XXX version-specific blurb XXX
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html
