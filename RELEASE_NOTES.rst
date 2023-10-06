@@ -11,7 +11,7 @@
 Changes from 3.9.0 to 3.9.1
 ===========================
 
-XXX version-specific notes XXX
+* Minimum supported version for Python is 3.9 (see #1062).
 
 
 Changes from 3.8.0 to 3.9.0
