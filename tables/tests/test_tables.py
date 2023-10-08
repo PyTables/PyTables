@@ -1871,7 +1871,7 @@ class DictWriteTestCase(BasicTestCase):
 # Pure NumPy dtype
 class NumPyDTWriteTestCase(BasicTestCase):
     title = "NumPyDTWriteTestCase"
-    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    formats = "S4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
     if hasattr(tb, 'Float16Col'):
@@ -1896,7 +1896,7 @@ class NumPyDTWriteTestCase(BasicTestCase):
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
-    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    formats = "S4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
     if hasattr(tb, 'Float16Col'):
@@ -1923,7 +1923,7 @@ class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    formats = "S4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
     if hasattr(tb, 'Float16Col'):
@@ -1950,7 +1950,7 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    formats = "S4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
     if hasattr(tb, 'Float16Col'):
@@ -1977,7 +1977,7 @@ class RecArrayAlignedWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    formats = "a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
+    formats = "S4,i4,i2,2f8,f4,i2,a1,b1,c8,c16".split(',')
     names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
     if hasattr(tb, 'Float16Col'):
@@ -5657,7 +5657,7 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create a recarray with the same default values
         values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1 + 0j]
-        formats = 'a4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
+        formats = 'S4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
 
         if hasattr(tb, 'Float16Col'):
             values.append(6.4)
@@ -5731,7 +5731,7 @@ class DefaultValues(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create a recarray with the same default values
         values = [b"abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1 + 0j]
-        formats = 'a4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
+        formats = 'S4,i4,i2,f8,f4,u2,a1,b1,c8,c16'.split(',')
 
         if hasattr(tb, 'Float16Col'):
             values.append(6.4)
