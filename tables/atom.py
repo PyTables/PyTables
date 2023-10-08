@@ -317,9 +317,15 @@ class Atom(metaclass=MetaAtom):
         """
         if (not isinstance(sctype, type)
            or not issubclass(sctype, np.generic)):
-            if sctype not in np.sctypeDict:
+            if "," in sctype:
                 raise ValueError(f"unknown NumPy scalar type: {sctype!r}")
-            sctype = np.sctypeDict[sctype]
+            try:
+                dtype = np.dtype(sctype)
+            except TypeError:
+                raise ValueError(f"unknown NumPy scalar type: {sctype!r}") from None
+            if issubclass(dtype.type, np.flexible) and dtype.itemsize > 0:
+                raise ValueError(f"unknown NumPy scalar type: {sctype!r}") from None
+            sctype = dtype.type
         return cls.from_dtype(np.dtype((sctype, shape)), dflt)
 
     @classmethod
