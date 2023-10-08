@@ -60,15 +60,15 @@ testADescr = [
         ('value', 'complex128'),
         ('y2', 'float64'),
         ('Info2', [
-            ('name', 'a2'),
+            ('name', 'S2'),
             ('value', '(2,)complex128'),
             ('y3', '(2,)float64'),
             ('z3', '(2,)int32')]),
-        ('name', 'a2'),
+        ('name', 'S2'),
         ('z2', 'uint8')]),
-    ('color', 'a2'),
+    ('color', 'S2'),
     ('info', [
-        ('Name', 'a2'),
+        ('Name', 'S2'),
         ('Value', 'complex128')]),
     ('y', '(2,2)float64'),
     ('z', 'uint8')]
@@ -486,7 +486,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         raCols = np.rec.fromarrays([
             self._testAData['x'].copy(),
             self._testAData['color'].copy()],
-            dtype=[('x', '(2,)i4'), ('color', 'a2')])
+            dtype=[('x', '(2,)i4'), ('color', 'S2')])
         # descr=tbl.description._v_nested_descr[0:2])
         # or...
         # names=tbl.description._v_nested_names[0:2],
