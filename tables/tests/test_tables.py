@@ -2258,7 +2258,7 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
         # set chunkshape so it divides evenly into array_size, to avoid
         # partially filled chunks
         self.chunkshape = (1000, )
-        self.dtype = np.format_parser(['i4'] * 10, [], []).dtype
+        self.dtype = np.rec.format_parser(['i4'] * 10, [], []).dtype
         # approximate size (in bytes) of non-data portion of hdf5 file
         self.hdf_overhead = 6000
 
@@ -2307,7 +2307,7 @@ class NonNestedTableReadTestCase(common.TempFileMixin,
     def setUp(self):
         super().setUp()
 
-        self.dtype = np.format_parser(['i4'] * 10, [], []).dtype
+        self.dtype = np.rec.format_parser(['i4'] * 10, [], []).dtype
         self.table = self.h5file.create_table('/', 'table', self.dtype)
         self.shape = (100, )
         self.populate_file()
@@ -2439,10 +2439,10 @@ class TableReadByteorderTestCase(common.TempFileMixin,
 
     def create_table(self, byteorder):
         table_dtype_code = self.reverse_byteorders[byteorder] + 'i4'
-        table_dtype = np.format_parser([table_dtype_code, 'S1'], [], []).dtype
+        table_dtype = np.rec.format_parser([table_dtype_code, 'S1'], [], []).dtype
         self.table = self.h5file.create_table('/', 'table', table_dtype,
                                               byteorder=byteorder)
-        input_dtype = np.format_parser(['i4', 'S1'], [], []).dtype
+        input_dtype = np.rec.format_parser(['i4', 'S1'], [], []).dtype
         self.input_array = np.zeros((10, ), input_dtype)
         self.input_array['f0'] = np.arange(10)
         self.input_array['f1'] = b'a'
@@ -2465,7 +2465,7 @@ class TableReadByteorderTestCase(common.TempFileMixin,
     def test_table_system_byteorder_out_argument_system_byteorder(self):
         self.create_table(self.system_byteorder)
         out_dtype_code = self.reverse_byteorders[self.system_byteorder] + 'i4'
-        out_dtype = np.format_parser([out_dtype_code, 'S1'], [], []).dtype
+        out_dtype = np.rec.format_parser([out_dtype_code, 'S1'], [], []).dtype
         output = np.empty((10, ), out_dtype)
         self.table.read(out=output)
         self.assertEqual(tb.utils.byteorders[output['f0'].dtype.byteorder],
@@ -2475,7 +2475,7 @@ class TableReadByteorderTestCase(common.TempFileMixin,
     def test_table_other_byteorder_out_argument_system_byteorder(self):
         self.create_table(self.other_byteorder)
         out_dtype_code = self.reverse_byteorders[self.system_byteorder] + 'i4'
-        out_dtype = np.format_parser([out_dtype_code, 'S1'], [], []).dtype
+        out_dtype = np.rec.format_parser([out_dtype_code, 'S1'], [], []).dtype
         output = np.empty((10, ), out_dtype)
         self.table.read(out=output)
         self.assertEqual(tb.utils.byteorders[output['f0'].dtype.byteorder],
@@ -2485,7 +2485,7 @@ class TableReadByteorderTestCase(common.TempFileMixin,
     def test_table_system_byteorder_out_argument_other_byteorder(self):
         self.create_table(self.system_byteorder)
         out_dtype_code = self.reverse_byteorders[self.other_byteorder] + 'i4'
-        out_dtype = np.format_parser([out_dtype_code, 'S1'], [], []).dtype
+        out_dtype = np.rec.format_parser([out_dtype_code, 'S1'], [], []).dtype
         output = np.empty((10, ), out_dtype)
         self.assertRaises(ValueError, lambda: self.table.read(out=output))
         try:
@@ -2496,7 +2496,7 @@ class TableReadByteorderTestCase(common.TempFileMixin,
     def test_table_other_byteorder_out_argument_other_byteorder(self):
         self.create_table(self.other_byteorder)
         out_dtype_code = self.reverse_byteorders[self.other_byteorder] + 'i4'
-        out_dtype = np.format_parser([out_dtype_code, 'S1'], [], []).dtype
+        out_dtype = np.rec.format_parser([out_dtype_code, 'S1'], [], []).dtype
         output = np.empty((10, ), out_dtype)
         self.assertRaises(ValueError, lambda: self.table.read(out=output))
         try:
@@ -6718,26 +6718,26 @@ class ColumnIterationTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(row_num, len(array))
 
     def test_less_than_io_buffer(self):
-        dtype = np.format_parser(['i8'] * 3, [], []).dtype
+        dtype = np.rec.format_parser(['i8'] * 3, [], []).dtype
         rows_in_buffer = self.buffer_size // dtype[0].itemsize
         array, table = self.create_non_nested_table(rows_in_buffer // 2, dtype)
         self.iterate(array, table)
 
     def test_more_than_io_buffer(self):
-        dtype = np.format_parser(['i8'] * 3, [], []).dtype
+        dtype = np.rec.format_parser(['i8'] * 3, [], []).dtype
         rows_in_buffer = self.buffer_size // dtype[0].itemsize
         array, table = self.create_non_nested_table(rows_in_buffer * 3, dtype)
         self.iterate(array, table)
 
     def test_partially_filled_buffer(self):
-        dtype = np.format_parser(['i8'] * 3, [], []).dtype
+        dtype = np.rec.format_parser(['i8'] * 3, [], []).dtype
         rows_in_buffer = self.buffer_size // dtype[0].itemsize
         array, table = self.create_non_nested_table(rows_in_buffer * 2 + 2,
                                                     dtype)
         self.iterate(array, table)
 
     def test_zero_length_table(self):
-        dtype = np.format_parser(['i8'] * 3, [], []).dtype
+        dtype = np.rec.format_parser(['i8'] * 3, [], []).dtype
         array, table = self.create_non_nested_table(0, dtype)
         self.assertEqual(len(table), 0)
         self.iterate(array, table)
