@@ -1342,9 +1342,9 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.array.attrs.pq, np.unicode_)
-        self.assertIsInstance(self.array.attrs.qr, np.unicode_)
-        self.assertIsInstance(self.array.attrs.rs, np.unicode_)
+        self.assertIsInstance(self.array.attrs.pq, np.str_)
+        self.assertIsInstance(self.array.attrs.qr, np.str_)
+        self.assertIsInstance(self.array.attrs.rs, np.str_)
         self.assertEqual(self.array.attrs.pq, 'para\u0140lel')
         self.assertEqual(self.array.attrs.qr, '')
         self.assertEqual(self.array.attrs.rs, 'baz')

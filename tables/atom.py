@@ -1134,7 +1134,7 @@ class VLUnicodeAtom(_BufferedAtom):
                           "deprecated.", DeprecationWarning)
         elif not isinstance(object_, str):
             raise TypeError(f"object is not a string: {object_!r}")
-        return np.unicode_(object_)
+        return np.str_(object_)
 
     def fromarray(self, array):
         length = len(array)

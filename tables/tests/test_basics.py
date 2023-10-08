@@ -154,7 +154,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_newFile_numpy_unicode_filename(self):
         temp_dir = tempfile.mkdtemp()
         try:
-            h5fname = np.unicode_(Path(temp_dir) / 'test.h5')
+            h5fname = np.str_(Path(temp_dir) / 'test.h5')
             with tb.open_file(h5fname, 'w') as h5file:
                 self.assertTrue(h5file, tb.File)
         finally:

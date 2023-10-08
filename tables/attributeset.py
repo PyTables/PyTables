@@ -407,7 +407,7 @@ class AttributeSet(hdf5extension.AttributeSet):
         # Fixes ticket #59
         if (stvalue is value and
                 type(value) in (bool, bytes, int, float, complex, str,
-                                np.unicode_)):
+                                np.str_)):
             # Additional check for allowing a workaround for #307
             if isinstance(value, str) and len(value) == 0:
                 stvalue = np.array('')
