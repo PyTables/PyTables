@@ -106,7 +106,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.create_array(group, 'anarray2', [2], "Array title 2")
         self.h5file.create_table(group, 'atable1', {
                                  'var1': tb.IntCol()}, "Table title 1")
-        ra = np.rec.array([(1, 11, 'a')], formats='u1,f4,a1')
+        ra = np.rec.array([(1, 11, 'a')], formats='u1,f4,S1')
         self.h5file.create_table(group, 'atable2', ra, "Table title 2")
 
         # Create a lonely group in first level
