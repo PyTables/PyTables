@@ -945,9 +945,9 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.root = self.h5file.root
             self.array = self.h5file.root.anarray
 
-        self.assertIsInstance(self.root.anarray.attrs.pq, np.float_)
-        self.assertIsInstance(self.root.anarray.attrs.qr, np.float_)
-        self.assertIsInstance(self.root.anarray.attrs.rs, np.float_)
+        self.assertIsInstance(self.root.anarray.attrs.pq, np.float64)
+        self.assertIsInstance(self.root.anarray.attrs.qr, np.float64)
+        self.assertIsInstance(self.root.anarray.attrs.rs, np.float64)
         self.assertEqual(self.root.anarray.attrs.pq, 1.0)
         self.assertEqual(self.root.anarray.attrs.qr, 2.0)
         self.assertEqual(self.root.anarray.attrs.rs, 3.0)
