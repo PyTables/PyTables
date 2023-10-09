@@ -333,13 +333,21 @@ _numpy_aliases = []
 _numpy_desc = "NumPy array, record or scalar"
 
 
+try:
+    np_VisibleDeprecationWarning = np.VisibleDeprecationWarning
+except AttributeError:
+    from numpy.exceptions import (
+        VisibleDeprecationWarning as np_VisibleDeprecationWarning
+    )
+
+
 if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion('1.19.0'):
     def toarray(array, *args, **kwargs):
         with warnings.catch_warnings():
             warnings.simplefilter('error')
             try:
                 array = np.array(array, *args, **kwargs)
-            except np.VisibleDeprecationWarning:
+            except np_VisibleDeprecationWarning:
                 raise ValueError(
                     'cannot guess the desired dtype from the input')
 
