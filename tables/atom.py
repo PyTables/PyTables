@@ -1084,7 +1084,7 @@ class VLStringAtom(_BufferedAtom):
                           "deprecated.", DeprecationWarning)
         elif not isinstance(object_, bytes):
             raise TypeError(f"object is not a string: {object_!r}")
-        return np.string_(object_)
+        return np.bytes_(object_)
 
     def fromarray(self, array):
         return array.tobytes()

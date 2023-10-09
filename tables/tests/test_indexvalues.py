@@ -868,8 +868,8 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         table2 = self.h5file.root.table2
 
         # Convert the limits to the appropriate type
-        # il = np.string_(self.il)
-        sl = np.string_(self.sl)
+        # il = np.bytes_(self.il)
+        sl = np.bytes_(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var1
