@@ -1478,7 +1478,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
-        a = a.newbyteorder()
+        a = a.view(a.dtype.newbyteorder())
         # Add a byteswapped array
         earray.append(a)
 
@@ -1510,7 +1510,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
-        a = a.newbyteorder()
+        a = a.view(a.dtype.newbyteorder())
         # Add a byteswapped array
         earray.append(a)
 
@@ -1544,7 +1544,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
-        a = a.newbyteorder()
+        a = a.view(a.dtype.newbyteorder())
         # Add a byteswapped array
         earray.append(a)
 
@@ -1582,7 +1582,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
-        a = a.newbyteorder()
+        a = a.view(a.dtype.newbyteorder())
         # Add a byteswapped array
         earray.append(a)
 
@@ -1618,7 +1618,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
-        a = a.newbyteorder()
+        a = a.view(a.dtype.newbyteorder())
         # Add a byteswapped array
         earray.append(a)
 
@@ -1656,7 +1656,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
-        a = a.newbyteorder()
+        a = a.view(a.dtype.newbyteorder())
         # Add a byteswapped array
         earray.append(a)
 
