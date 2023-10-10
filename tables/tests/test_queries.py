@@ -329,6 +329,12 @@ class TableDataTestCase(BaseTableQueryTestCase):
     _testfmt_heavy = 'test_h%04d'
 
 
+def _old_repr(o):
+    if isinstance(o, np.bytes_):
+        return repr(bytes(o))
+    return repr(o)
+
+
 def create_test_method(type_, op, extracond, func=None):
     sctype = sctype_from_type[type_]
 
@@ -353,7 +359,7 @@ def create_test_method(type_, op, extracond, func=None):
     elif op == '~':  # unary
         cond = '~(%s)' % colname
     elif op == '<' and func is None:  # binary variable-constant
-        cond = '{} {} {}'.format(colname, op, repr(condvars['bound']))
+        cond = f'{colname} {op} {_old_repr(condvars["bound"])}'
     elif isinstance(op, tuple):  # double binary variable-constant
         cond = ('(lbound %s %s) & (%s %s rbound)'
                 % (op[0], colname, colname, op[1]))
