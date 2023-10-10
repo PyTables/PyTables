@@ -3,6 +3,8 @@
 import itertools
 import operator
 
+import numpy as np
+
 import tables as tb
 from tables.tests import common
 
@@ -80,7 +82,7 @@ class CreateColTestCase(common.PyTablesTestCase):
         # needed due to "Hash randomization" (default on python 3.3)
         template = (
             "EnumCol(enum=Enum({%s}), dflt='red', base=UInt32Atom(shape=(), "
-            "dflt=0), shape=(), pos=None)"
+            f"dflt={np.uint32(0)!r}), shape=(), pos=None)"
         )
         permitations = [
             template % ', '.join(items) for items in itertools.permutations(
