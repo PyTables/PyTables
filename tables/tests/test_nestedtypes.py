@@ -632,29 +632,29 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("str(tbl)-->", str(tbl))
             print("repr(tbl)-->", repr(tbl))
 
-        self.assertEqual(str(tbl), "/test (Table(2,)) 'test00'")
+        self.assertEqual(str(tbl), f"/test (Table({np.int64(2)!r},)) {np.str_('test00')!r}")
         tblrepr = repr(tbl)
         # Remove the platform-dependent information (i.e. byteorder)
         tblrepr = "\n".join(tblrepr.split("\n")[:-2]) + "\n"
-        template = """/test (Table(2,)) 'test00'
-  description := {
-  "x": Int32Col(shape=(2,), dflt=0, pos=0),
-  "Info": {
-    "value": ComplexCol(itemsize=16, shape=(), dflt=0j, pos=0),
-    "y2": Float64Col(shape=(), dflt=1.0, pos=1),
-    "Info2": {
-      "name": StringCol(itemsize=2, shape=(), dflt=b'', pos=0),
-      "value": ComplexCol(itemsize=16, shape=(2,), dflt=0j, pos=1),
-      "y3": Time64Col(shape=(2,), dflt=1.0, pos=2),
-      "z3": EnumCol(enum=Enum({%(value)s}), dflt='%(default)s', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
-    "name": StringCol(itemsize=2, shape=(), dflt=b'', pos=3),
-    "z2": UInt8Col(shape=(), dflt=1, pos=4)},
-  "color": StringCol(itemsize=2, shape=(), dflt=b' ', pos=2),
-  "info": {
-    "Name": StringCol(itemsize=2, shape=(), dflt=b'', pos=0),
-    "Value": ComplexCol(itemsize=16, shape=(), dflt=0j, pos=1)},
-  "y": Float64Col(shape=(2, 2), dflt=1.0, pos=4),
-  "z": UInt8Col(shape=(), dflt=1, pos=5)}
+        template = f"""/test (Table({np.int64(2)!r},)) {np.str_('test00')!r}
+  description := {{
+  "x": Int32Col(shape=({np.int64(2)!r},), dflt={np.int32(0)!r}, pos=0),
+  "Info": {{
+    "value": ComplexCol(itemsize=16, shape=(), dflt={np.complex128(0j)!r}, pos=0),
+    "y2": Float64Col(shape=(), dflt={np.float64(1.0)!r}, pos=1),
+    "Info2": {{
+      "name": StringCol(itemsize=2, shape=(), dflt={np.bytes_(b'')!r}, pos=0),
+      "value": ComplexCol(itemsize=16, shape=({np.int64(2)!r},), dflt={np.complex128(0j)!r}, pos=1),
+      "y3": Time64Col(shape=({np.int64(2)!r},), dflt={np.float64(1.0)!r}, pos=2),
+      "z3": EnumCol(enum=Enum({{%(value)s}}), dflt='%(default)s', base=Int32Atom(shape=(), dflt={np.int32(0)!r}), shape=({np.int64(2)!r},), pos=3)}},
+    "name": StringCol(itemsize=2, shape=(), dflt={np.bytes_(b'')!r}, pos=3),
+    "z2": UInt8Col(shape=(), dflt={np.uint8(1)!r}, pos=4)}},
+  "color": StringCol(itemsize=2, shape=(), dflt={np.bytes_(b' ')!r}, pos=2),
+  "info": {{
+    "Name": StringCol(itemsize=2, shape=(), dflt={np.bytes_(b'')!r}, pos=0),
+    "Value": ComplexCol(itemsize=16, shape=(), dflt={np.complex128(0j)!r}, pos=1)}},
+  "y": Float64Col(shape=({np.int64(2)!r}, {np.int64(2)!r}), dflt={np.float64(1.0)!r}, pos=4),
+  "z": UInt8Col(shape=(), dflt={np.uint8(1)!r}, pos=5)}}
 """
 
         # The problem here is that the order in which items are stored in a
@@ -674,7 +674,9 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # of the possible default values.
         enums = [
             ', '.join(items) for items in itertools.permutations(
-                ("'r': 4", "'b': 1", "'g': 2"))
+                (f"'r': {np.int32(4)!r}", f"'b': {np.int32(1)!r}", f"'g': {np.int32(2)!r}")
+                if self.reopen
+                else ("'r': 4", "'b': 1", "'g': 2"))
         ]
         defaults = ('r', 'b', 'g')
         values = [
@@ -699,9 +701,9 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("repr(tbl.cols.y)-->'%s'" % repr(tbl.cols.y))
 
         self.assertEqual(str(tbl.cols.y),
-                         "/test.cols.y (Column(2, 2, 2), float64, idx=None)")
+                         f"/test.cols.y (Column({np.int64(2)!r}, 2, 2), float64, idx=None)")
         self.assertEqual(repr(tbl.cols.y),
-                         "/test.cols.y (Column(2, 2, 2), float64, idx=None)")
+                         f"/test.cols.y (Column({np.int64(2)!r}, 2, 2), float64, idx=None)")
 
     def test00c_repr(self):
         """Checking representation of a nested Column."""
@@ -719,9 +721,9 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("repr(tbl.cols.Info.z2)-->'%s'" % repr(tbl.cols.Info.z2))
 
         self.assertEqual(str(tbl.cols.Info.z2),
-                         "/test.cols.Info.z2 (Column(2,), uint8, idx=None)")
+                         f"/test.cols.Info.z2 (Column({np.int64(2)!r},), uint8, idx=None)")
         self.assertEqual(repr(tbl.cols.Info.z2),
-                         "/test.cols.Info.z2 (Column(2,), uint8, idx=None)")
+                         f"/test.cols.Info.z2 (Column({np.int64(2)!r},), uint8, idx=None)")
 
     def test01_read(self):
         """Checking Table.read with subgroups with a range index with step."""
@@ -851,14 +853,14 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
                              )
         except AssertionError:
             self.assertEqual(repr(tbl.cols),
-                             """/test.cols (Cols), 6 columns
-  x (Column(0, 2), ('{}', (2,)))
+                             f"""/test.cols (Cols), 6 columns
+  x (Column({np.int64(0)!r}, 2), ('{np.int32(0).dtype.str}', (2,)))
   Info (Cols(), Description)
-  color (Column(0,), |S2)
+  color (Column({np.int64(0)!r},), |S2)
   info (Cols(), Description)
-  y (Column(0, 2, 2), ('{}', (2, 2)))
-  z (Column(0,), uint8)
-""".format(np.int32(0).dtype.str, np.float64(0).dtype.str))
+  y (Column({np.int64(0)!r}, 2, 2), ('{np.float64(0).dtype.str}', (2, 2)))
+  z (Column({np.int64(0)!r},), uint8)
+""")
 
     def test00b_repr(self):
         """Checking string representation of nested Cols."""
@@ -877,12 +879,12 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(str(
             tbl.cols.Info), "/test.cols.Info (Cols), 5 columns")
         self.assertEqual(repr(tbl.cols.Info),
-                         """/test.cols.Info (Cols), 5 columns
-  value (Column(0,), complex128)
-  y2 (Column(0,), float64)
+                         f"""/test.cols.Info (Cols), 5 columns
+  value (Column({np.int64(0)!r},), complex128)
+  y2 (Column({np.int64(0)!r},), float64)
   Info2 (Cols(), Description)
-  name (Column(0,), |S2)
-  z2 (Column(0,), uint8)
+  name (Column({np.int64(0)!r},), |S2)
+  z2 (Column({np.int64(0)!r},), uint8)
 """)
 
     def test01a_f_col(self):
@@ -1441,11 +1443,11 @@ class SameNestedReopen(SameNestedTestCase):
 class NestedTypesWithGaps(common.TestFileMixin, common.PyTablesTestCase):
     h5fname = common.test_filename('nested-type-with-gaps.h5')
 
-    correct_descr = """{
-  "float": Float32Col(shape=(), dflt=0.0, pos=0),
-  "compound": {
-    "char": Int8Col(shape=(), dflt=0, pos=0),
-    "double": Float64Col(shape=(), dflt=0.0, pos=1)}}"""
+    correct_descr = f"""{{
+  "float": Float32Col(shape=(), dflt={np.float32(0.0)!r}, pos=0),
+  "compound": {{
+    "char": Int8Col(shape=(), dflt={np.int8(0)!r}, pos=0),
+    "double": Float64Col(shape=(), dflt={np.float64(0.0)!r}, pos=1)}}}}"""
 
     def test01(self):
         """Opening a table with nested types with gaps."""
