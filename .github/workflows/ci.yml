@@ -48,7 +48,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         # Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
         python: ['3.9', '3.10', '3.11', '3.12']
-        numpy: ['numpy#latest']
+        numpy: ['numpy']
         include:
           - os: ubuntu-latest
             python: '3.12'
