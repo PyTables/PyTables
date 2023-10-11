@@ -199,8 +199,11 @@ bench/b2nd_compare_getslice.py, which compares the throughput of slicing a
 4-dimensional array of 50x100x300x250 long floats (2.8GB) along each of its
 dimensions for PyTables with flat slicing (via the HDF5 filter mechanism),
 PyTables with b2nd slicing (optimized via direct chunk access), and h5py
-(which also uses the HDF5 filter).  The result for a chunkshape of 10x25x50x50
-is shown in :ref:`figure <b2ndSlicing-vs-filter-smallChunk>`.
+(which also uses the HDF5 filter).  We repeated the benchmark with different
+values of the ``BLOSC_NTHREADS`` environment variable so as to find the best
+number of parallel Blosc2 threads (6 for our CPU).  The result for the
+original chunkshape of 10x25x50x50 is shown in :ref:`figure
+<b2ndSlicing-vs-filter-smallChunk>`.
 
 .. _b2ndSlicing-vs-filter-smallChunk:
 
