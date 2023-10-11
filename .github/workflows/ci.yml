@@ -36,7 +36,7 @@ jobs:
       
 
   build:
-    name: ${{ matrix.os }} ${{ matrix.python }} ${{ matrix.name }}
+    name: ${{ matrix.os }} ${{ matrix.python }} ${{ matrix.numpy }} ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     needs: sdist
     defaults:
