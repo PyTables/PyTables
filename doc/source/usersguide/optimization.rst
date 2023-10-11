@@ -191,8 +191,8 @@ you choose an algorithm which fits your data, you may use the program
 examples/get_blocksize.c in the C-Blosc2 package to get the default blocksize
 for the different levels of that compression algorithm (it already contains
 some sample output for zstd).  In the example benchmarks below, with the LZ4
-algorithm and compression level 8, we got a blocksize of 2MB which fitted in
-the L2 cache of each of our CPU cores.
+algorithm with shuffling and compression level 8, we got a blocksize of 2MB
+which fitted in the L2 cache of each of our CPU cores.
 
 With that compression setup, we ran the benchmark in
 bench/b2nd_compare_getslice.py, which compares the throughput of slicing a
