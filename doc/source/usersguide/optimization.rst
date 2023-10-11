@@ -161,6 +161,83 @@ small or too large chunksize.  As always, experimenting prior to pass your
 application into production is your best ally.
 
 
+.. _multidimSlicing:
+
+Multidimensional slicing and chunk/block sizes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When working with multidimensional arrays, you may find yourself accessing
+array slices smaller than chunks.  In that case, reducing the chunksize to
+match your slices may result in too many chunks and large B-trees in memory,
+but avoiding that by using bigger chunks may make operations slow, as whole
+big chunks would need to be loaded in memory anyway just to access a small
+slice.  Compression may help by making the chunks smaller on disk, but the
+decompressed chunks in memory may still be big enough to make the slicing
+inefficient.
+
+To help with this scenario, PyTables supports Blosc2 NDim (b2nd) compression,
+which uses a 2-level partitioning of arrays into multidimensional chunks made
+of smaller multidimensional blocks; reading slices of such arrays is optimized
+by direct access to chunks (avoiding the slower HDF5 filter pipeline).  b2nd
+works better when the compressed chunk is big enough to minimize the number of
+chunks in the array, while still fitting in the CPU's L3 cache (and leaving
+some extra room), and the blocksize is such that any block is likely to fit
+both compressed and uncompressed in each CPU core's L2 cache.
+
+This last requirement of course depends on the data itself and the compression
+algorithm and parameters chosen.  The Blosc2 library uses some heuristics to
+choose a good enough blocksize given a compression algorithm and level.  Once
+you choose an algorithm which fits your data, you may use the program
+examples/get_blocksize.c in the C-Blosc2 package to get the default blocksize
+for the different levels of that compression algorithm (it already contains
+some sample output for zstd).  In the example benchmarks below, with the LZ4
+algorithm and compression level 8, we got a blocksize of 2MB which fitted in
+the L2 cache of each of our CPU cores.
+
+With that compression setup, we ran the benchmark in
+bench/b2nd_compare_getslice.py, which compares the throughput of slicing a
+4-dimensional array of 50x100x300x250 long floats (2.8GB) along each of its
+dimensions for PyTables with flat slicing (via the HDF5 filter mechanism),
+PyTables with b2nd slicing (optimized via direct chunk access), and h5py
+(which also uses the HDF5 filter).  The result for a chunkshape of 10x25x50x50
+is shown in :ref:`figure <b2ndSlicing-vs-filter-smallChunk>`.
+
+.. _b2ndSlicing-vs-filter-smallChunk:
+
+.. figure:: images/b2nd_getslice_small.png
+    :align: center
+
+    **Throughput for slicing a Blosc2-compressed array along its 4 dimensions
+    with PyTables filter, PyTables b2nd (optimized) and h5py, all using a
+    small chunk.**
+
+The optimized b2nd slicing of PyTables already provided some sizable speedups
+in comparison with flat slicing based on the HDF5 filter pipeline in the inner
+dimensions.  But the 4.8MB chunksize was probably too small for the CPU's L3
+cache of 32MB, causing extra overhead.  By proceeding to adjust the chunkshape
+to 10x25x150x100 (28.6MB), that fits in the L3 cache, the performance gains
+are palpable, as shown in :ref:`figure <b2ndSlicing-vs-filter-bigChunk>`.
+
+.. _b2ndSlicing-vs-filter-bigChunk:
+
+.. figure:: images/b2nd_getslice_big.png
+    :align: center
+
+    **Throughput for slicing a Blosc2-compressed array along its 4 dimensions
+    with PyTables filter, PyTables b2nd (optimized) and h5py, all using a big
+    chunk.**
+
+Choosing a better chunkshape not just provided up to 5x speedup for the
+PyTables optimized case, it also resulted in 3x-4x speedups compared to the
+performance of the HDF5 filter.
+
+Optimized b2nd slicing in PyTables has its limitations, though: it only works
+with contiguous slices (that is, with step 1) and on datasets with the same
+byte ordering as the host machine.  However, the performance gains may be
+worth the extra effort of choosing the right compression parameters and
+chunksizes when your use case is not affected by those limitations.
+
+
 .. _searchOptim:
 
 Accelerating your searches

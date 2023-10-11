@@ -8,14 +8,14 @@ Changes from 3.2.3.1 to 3.3.0
 Improvements
 ------------
 
-- Single codebase Python 2 and 3 support (PR #493).
-- Internal Blosc version updated to 1.11.1 (closes :issue:`541`)
+- Single codebase Python 2 and 3 support (:PR:`493`).
+- Internal Blosc version updated to 1.11.1 (closes :issue:`541`).
 - Full BitShuffle support for new Blosc versions (>= 1.8).
 - It is now possible to remove all rows from a table.
 - It is now possible to read reference types by dereferencing them as
   numpy array of objects (closes :issue:`518` and :issue:`519`).
-  Thanks to Ehsan Azar
-- Get rid of the `-native` compile flag (closes :issue:`503`)
+  Thanks to Ehsan Azar.
+- Get rid of the `-native` compile flag (closes :issue:`503`).
 - The default number of threads to run numexpr (MAX_NUMEXPR_THREADS)
   internally has been raised from 2 to 4.  This is because we are in
   2016 and 4 core configurations are becoming common.

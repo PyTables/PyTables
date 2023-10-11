@@ -138,8 +138,8 @@ def print_versions():
 
 
 def test_filename(filename):
-    from pkg_resources import resource_filename
-    return resource_filename('tables.tests', filename)
+    from importlib import resources
+    return resources.files('tables.tests') / filename
 
 
 def verbosePrint(string, nonl=False):

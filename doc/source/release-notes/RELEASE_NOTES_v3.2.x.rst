@@ -33,7 +33,7 @@ Bugs fixed
 
 - Only run `tables.tests.test_basics.UnicodeFilename` if the filesystem
   encoding is utf-8. Closes :issue:`485`.
-- Add lib64 to posix search path. (closes :issue:`507`)
+- Add lib64 to posix search path (closes :issue:`507`).
   Thanks to Mehdi Sadeghi.
 - Ensure cache entries are removed if fewer than 10 (closes :issue:`529`).
   Thanks to Graham Jones.
@@ -41,12 +41,12 @@ Bugs fixed
   :class:`index.Index` (closes :issue:`532` and :issue:`533`).
   Thanks to Diane Trout.
 - Fixed the evaluation of transcendental functions when numexpr is
-  compiled with VML support (closes :issue:`534`, PR #536).
+  compiled with VML support (closes :issue:`534`, :PR:`536`).
   Thanks to Tom Kooij.
 - Make sure that index classes use buffersizes that are a multiple
-  of chunkshape[0] (closes :issue:`538`, PR #538).
+  of chunkshape[0] (closes :issue:`538`, :PR:`538`).
   Thanks to Tom Kooij.
-- Ensure benchmark paths exist before benchmarks are executed (PR #544).
+- Ensure benchmark paths exist before benchmarks are executed (:PR:`544`).
   Thanks to rohitjamuar.
 
 Other changes
@@ -104,7 +104,7 @@ Improvements
 ------------
 
 - The `nrowsinbuf` is better computed now for EArray/CArray having
-  a small `chunkshape` in the main dimension.  Fixes #285.
+  a small `chunkshape` in the main dimension.  Fixes :issue:`285`.
 
 - PyTables should be installable very friendly via pip, including NumPy
   being installed automatically in the unlikely case it is not yet
@@ -161,13 +161,13 @@ Improvements
 - The redundant :func:`utilsextension.get_indices` function has been
   eliminated (replaced by :meth:`slice.indices`). Closes :issue:`195`.
 
-- Allow negative indices in point selection (closes :issue:`360`)
+- Allow negative indices in point selection (closes :issue:`360`).
 
 - Index wasn't being used if it claimed there were no results.
-  Closes :issue:`351` (see also :issue:`353`)
+  Closes :issue:`351` (see also :issue:`353`).
 
 - Atoms and Col types are no longer generated dynamically so now it is easier
-  for IDEs and static analysis tool to handle them (closes :issue:`345`)
+  for IDEs and static analysis tool to handle them (closes :issue:`345`).
 
 - The keysort functions in idx-opt.c have been cythonised using fused types.
   The perfomance is mostly unchanged, but the code is much more simpler now.
@@ -209,10 +209,10 @@ Bugs fixed
 ----------
 
 - Fixed compatibility problems with numpy 1.9 and 1.10-dev
-  (closes :issue:`362` and :issue:`366`)
+  (closes :issue:`362` and :issue:`366`).
 
 - Fixed compatibility with Cython >= 0.20 (closes :issue:`386` and
-  :issue:`387`)
+  :issue:`387`).
 
 - Fixed support for unicode node names in LRU cache (only Python 2 was
   affected). Closes :issue:`367` and :issue:`369`.
@@ -231,17 +231,17 @@ Bugs fixed
 
 - Fix incomplete results when performing the same query twice and exhausting
   the second iterator before the first. The first one writes incomplete
-  results to *seqcache* (:issue:`353`)
+  results to *seqcache* (:issue:`353`).
 
 - Fix false results potentially going to *seqcache* if
   :meth:`tableextension.Row.update` is used during iteration
-  (see :issue:`353`)
+  (see :issue:`353`).
 
-- Fix :meth:`Column.create_csindex` when there's NaNs
+- Fix :meth:`Column.create_csindex` when there's NaNs.
 
-- Fixed handling of unicode file names on windows (closes :issue:`389`)
+- Fixed handling of unicode file names on windows (closes :issue:`389`).
 
-- No longer not modify :data:`sys.argv` at import time (closes :issue:`405`)
+- No longer not modify :data:`sys.argv` at import time (closes :issue:`405`).
 
 - Fixed a performance issue on NFS (closes :issue:`402`)
 
@@ -253,7 +253,7 @@ Bugs fixed
 
 - Replaced "len(xrange(start, stop, step))" -> "len(xrange(0, stop -
   start, step))" to fix issues with large row counts with Python 2.x.
-  Fixes #447.
+  Fixes :issue:`447`.
 
 
 Other changes

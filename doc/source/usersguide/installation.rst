@@ -51,23 +51,31 @@ Prerequisites
 First, make sure that you have the following dependencies installed.
 If you don't, fetch and install them before proceeding.
 
-* Python_ >= 3.8
-* HDF5_ >= 1.10.5
+.. Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
+.. Keep versions from HDF5 on in sync with
+.. those mentioned in ``tables/req_versions.py``,
+.. those mentioned in ``ci/github/get_hdf5.sh``.
+.. Keep Cython in sync with ``build-system.requires`` in ``pyproject.toml``.
+.. Keep entries from NumPy on in sync with ``project.dependencies`` in ``pyproject.toml``.
+.. Keep system packages in sync with build jobs in `.github/workflows/*.yml`.
+
+* Python_ >= 3.9
+* HDF5_ >= 1.10.5 (although 1.14.0 or later is strongly recommended)
+* Cython_ >= 0.29.32
 * NumPy_ >= 1.19.0
 * Numexpr_ >= 2.6.2
 * packaging_
 * py-cpuinfo_
-* Cython_ >= 0.29.32
 * c-blosc_ >= 1.11.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the `--blosc` flag of the :file:`setup.py`)
 * Either
-   * python-blosc2_ >= 2.0.0, this is the Python wheel containing *both* the
-     C-Blosc2 libs and headers (>= 2.6.0), as well as the Python wrapper for
+   * python-blosc2_ >= 2.2.8, this is the Python wheel containing *both* the
+     C-Blosc2 libs and headers (>= 2.10.4), as well as the Python wrapper for
      Blosc2 (not currently used, but it might be in the future), or
-   * A standalone installation of the c-blosc2_ library including the headers.
-     The latter are usually provided by Linux distribtions in a package named
-     `blosc2-devel`, `libblosc2-dev``, or similar.
+   * A standalone installation of the c-blosc2_ library (>= 2.10.4) including
+     the headers.  The latter are usually provided by Linux distribtions in a
+     package named `blosc2-devel`, `libblosc2-dev`, or similar.
 
 .. _Python: http://www.python.org
 .. _HDF5: http://www.hdfgroup.org/HDF5
@@ -148,17 +156,17 @@ the relevant header files and libraries.
     locations of the resource root directories on the setup.py command line.
     For example::
 
-        --hdf5=/stuff/hdf5-1.8.12
-        --blosc=/stuff/blosc-1.8.1
+        --hdf5=/stuff/hdf5-1.14.2
+        --blosc=/stuff/blosc-1.21.5
         --lzo=/stuff/lzo-2.02
         --bzip2=/stuff/bzip2-1.0.5
-        --blosc2=/stuff/blosc2-2.0.0
+        --blosc2=/stuff/blosc2-2.10.3
 
     If your HDF5 library was built as a shared library not in the runtime load
     path, then you can specify the additional linker flags needed to find the
     shared library on the command line as well. For example::
 
-        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.12/lib"
+        --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.14.2/lib"
 
     You may also want to try setting the :envvar:`LD_LIBRARY_PATH`
     environment variable to point to the directory where the shared libraries
@@ -168,7 +176,7 @@ the relevant header files and libraries.
     It is also possible to link with specific libraries by setting the
     :envvar:`LIBS` environment variable::
 
-        LIBS="hdf5-1.8.12 nsl"
+        LIBS="hdf5-1.14.2 nsl"
 
     Starting from PyTables 3.2 can also query the *pkg-config* database to
     find the required packages. If available, pkg-config is used by default
@@ -280,10 +288,10 @@ you can proceed with the PyTables package itself.
 
       $ python3 setup.py build
 
-   If the HDF5 installation is in a custom path, e.g. $HOME/hdf5-1.8.15pre7,
+   If the HDF5 installation is in a custom path, e.g. $HOME/hdf5-1.14.2,
    one of the following commands can be used::
 
-      $ python3 setup.py build --hdf5=$HOME/hdf5-1.8.15pre7
+      $ python3 setup.py build --hdf5=$HOME/hdf5-1.14.2
 
    .. note::
 

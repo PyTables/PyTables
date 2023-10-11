@@ -18,7 +18,7 @@ Improvements
 
 - Do not create a temporary array when the *obj* parameter is not specified
   in :meth:`File.create_array` (thanks to Francesc).
-  Closes :issue:`337` and :issue:`339`).
+  Closes :issue:`337` and :issue:`339`.
 - Added two new utility functions
   (:func:`tables.nodes.filenode.read_from_filenode` and
   :func:`tables.nodes.filenode.save_to_filenode`) for the direct copy from
@@ -74,40 +74,40 @@ Improvements
   is detected (see also `Issues with H5T_NATIVE_LDOUBLE`_).
   See also :issue:`275`, :issue:`290` and :issue:`300`.
 - Documented an unexpected behaviour with string literals in query conditions
-  on Python 3 (closes :issue:`265`)
+  on Python 3 (closes :issue:`265`).
 - The deprecated :mod:`getopt` module has been dropped in favour of
   :mod:`argparse` in all command line utilities (close :issue:`251`)
 - Improved the installation section of the :doc:`../usersguide/index`.
 
   * instructions for installing PyTables via pip_ have been added.
   * added a reference to the Anaconda_, Canopy_ and `Christoph Gohlke suites`_
-    (closes :issue:`291`)
+    (closes :issue:`291`).
 
-- Enabled `Travis-CI`_ builds for Python_ 3.3
+- Enabled `Travis-CI`_ builds for Python_ 3.3.
 - :meth:`Tables.read_coordinates` now also works with boolean indices input.
   Closes :issue:`287` and :issue:`298`.
-- Improved compatibility with numpy_ >= 1.8 (see :issue:`259`)
+- Improved compatibility with numpy_ >= 1.8 (see :issue:`259`).
 - The code of the benchmark programs (bench directory) has been updated.
   Closes :issue:`114`.
 - Fixed some warning related to non-unicode file names (the Windows bytes API
-  has been deprecated in Python 3.4)
+  has been deprecated in Python 3.4).
 
 
 Bugs fixed
 ----------
 
-- Fixed detection of platforms supporting Blosc_
+- Fixed detection of platforms supporting Blosc_.
 - Fixed a crash that occurred when one attempts to write a numpy_ array to
-  an :class:`Atom` (closes :issue:`209` and :issue:`296`)
+  an :class:`Atom` (closes :issue:`209` and :issue:`296`).
 - Prevent creation of a table with no columns (closes :issue:`18` and
-  :issue:`299`)
+  :issue:`299`).
 - Fixed a memory leak that occured when iterating over
   :class:`CArray`/:class:`EArray` objects (closes :issue:`308`,
   see also :issue:`309`).
   Many thanks to Alistair Muldal.
-- Make NaN types sort to the end. Closes :issue:`282` and :issue:`313`
+- Make NaN types sort to the end. Closes :issue:`282` and :issue:`313`.
 - Fixed selection on float columns when NaNs are present (closes :issue:`327`
-  and :issue:`330`)
+  and :issue:`330`).
 - Fix computation of the buffer size for iterations on rows.
   The buffers size was overestimated resulting in a :exc:`MemoryError`
   in some cases.
@@ -117,7 +117,7 @@ Bugs fixed
   Closes :issue:`21`.
 - Close the file handle before trying to delete the corresponding file.
   Fixes a test failure on Windows.
-- Use integer division for computing indices (fixes some warning on Windows)
+- Use integer division for computing indices (fixes some warning on Windows).
 
 
 Deprecations

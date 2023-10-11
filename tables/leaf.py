@@ -325,18 +325,12 @@ class Leaf(Node):
         complib = self.filters.complib
         if (complib is not None and
             complib.startswith("blosc2") and
-            self._c_classid == 'TABLE'):
+            self._c_classid in ('TABLE', 'CARRAY', 'EARRAY')):
             # Blosc2 can introspect into blocks, so we can increase the
             # chunksize for improving HDF5 perf for its internal btree.
             # For the time being, this has been implemented efficiently
             # just for tables, but in the future *Array objects could also
             # be included.
-            # In Blosc2, the role of HDF5 chunksize could be played by the
-            # Blosc2 blocksize...
-            # self._v_blocksize = chunksize
-            # but let's use the internal machinery in Blosc2 decide the actual
-            # blocksize.
-            self._v_blocksize = 0
             # Use a decent default value for chunksize
             chunksize *= 16
             # Now, go explore the L3 size and try to find a smarter chunksize
@@ -500,7 +494,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Do an additional in-place byteswap of data if the in-memory
         # byteorder doesn't match that of the on-disk.  This is the only
         # place that we have to do the conversion manually. In all the
-        # other cases, it will be HDF5 the responsible of doing the
+        # other cases, it will be HDF5 the responsible for doing the
         # byteswap properly.
         if dbyteorder in ['little', 'big']:
             if dbyteorder != self.byteorder:
@@ -524,7 +518,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         * A numpy array (or list or tuple) with the point coordinates.
           This has to be a two-dimensional array of size len(self.shape)
-          by num_elements containing a list of of zero-based values
+          by num_elements containing a list of zero-based values
           specifying the coordinates in the dataset of the selected
           elements. The order of the element coordinates in the array
           specifies the order in which the array elements are iterated

@@ -15,7 +15,7 @@ fi
 export LD_LIBRARY_PATH="$HDF5_DIR/lib:${LD_LIBRARY_PATH}"
 export PKG_CONFIG_PATH="$HDF5_DIR/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
-
+# Keep in sync with "Prerequisites" in User's Guide (whenever mentioned).
 LZO_VERSION="2.10"
 ZSTD_VERSION="1.5.2"
 LZ4_VERSION="1.9.4"

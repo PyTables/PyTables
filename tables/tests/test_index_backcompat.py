@@ -15,9 +15,9 @@ class IndexesTestCase(common.TestFileMixin, common.PyTablesTestCase):
         """Checking index version."""
 
         t1var1 = self.table1.cols.var1
-        if "2_0" in self.h5fname:
+        if "2_0" in str(self.h5fname):
             self.assertEqual(t1var1.index._v_version, "2.0")
-        elif "2_1" in self.h5fname:
+        elif "2_1" in str(self.h5fname):
             self.assertEqual(t1var1.index._v_version, "2.1")
 
     def test01_string(self):
