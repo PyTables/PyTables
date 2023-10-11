@@ -800,11 +800,7 @@ class IsDescription(metaclass=MetaIsDescription):
 
     .. rubric:: IsDescription attributes
 
-    .. attribute:: _v_pos
-
-        Sets the position of a possible nested column description among its
-        sibling columns.  This attribute can be specified *when declaring*
-        an IsDescription subclass to complement its *metadata*.
+    .. autoattribute:: _v_pos
 
     .. attribute:: columns
 
@@ -815,6 +811,12 @@ class IsDescription(metaclass=MetaIsDescription):
 
     """
 
+    _v_pos: int
+    """
+        Sets the position of a possible nested column description among its
+        sibling columns.  This attribute can be specified *when declaring*
+        an IsDescription subclass to complement its *metadata*.
+    """
 
 def descr_from_dtype(dtype_, ptparams=None):
     """Get a description instance and byteorder from a (nested) NumPy dtype."""
