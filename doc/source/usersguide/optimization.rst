@@ -232,10 +232,11 @@ PyTables optimized case, it also resulted in 3x-4x speedups compared to the
 performance of the HDF5 filter.
 
 Optimized b2nd slicing in PyTables has its limitations, though: it only works
-with contiguous slices (that is, with step 1) and on datasets with the same
-byte ordering as the host machine.  However, the performance gains may be
-worth the extra effort of choosing the right compression parameters and
-chunksizes when your use case is not affected by those limitations.
+with contiguous slices (that is, with step 1 on every dimension) and on
+datasets with the same byte ordering as the host machine.  However, the
+performance gains may be worth the extra effort of choosing the right
+compression parameters and chunksizes when your use case is not affected by
+those limitations.
 
 
 .. _searchOptim:
