@@ -214,7 +214,7 @@ is shown in :ref:`figure <b2ndSlicing-vs-filter-smallChunk>`.
 The optimized b2nd slicing of PyTables already provided some sizable speedups
 in comparison with flat slicing based on the HDF5 filter pipeline in the inner
 dimensions.  But the 4.8MB chunksize was probably too small for the CPU's L3
-cache of 32MB, causing extra overhead.  By proceeding to adjust the chunkshape
+cache of 36MB, causing extra overhead.  By proceeding to adjust the chunkshape
 to 10x25x150x100 (28.6MB), that fits in the L3 cache, the performance gains
 are palpable, as shown in :ref:`figure <b2ndSlicing-vs-filter-bigChunk>`.
 
