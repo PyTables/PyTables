@@ -459,6 +459,10 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       goto failed;
     }
 
+    /* Although blosc2_decompress_ctx ("else" branch) can decompress b2nd-formatted data,
+     * there may be padding bytes when the chunkshape is not a multiple of the blockshape,
+     * and only b2nd machinery knows how to handle these correctly.
+     */
     if (blosc2_meta_exists(schunk, "b2nd") >= 0
         || blosc2_meta_exists(schunk, "caterva") >= 0) {
 
