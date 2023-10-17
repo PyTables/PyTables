@@ -466,6 +466,11 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     if (blosc2_meta_exists(schunk, "b2nd") >= 0
         || blosc2_meta_exists(schunk, "caterva") >= 0) {
 
+      if (ndim < 0) {
+        BLOSC_TRACE_ERROR("Auxiliary Blosc2 filter values contain no chunk rank/shape, "
+                          "some checks on B2ND arrays will be disabled");
+      }
+
       b2nd_array_t *array = NULL;
 
       if (b2nd_from_schunk(schunk, &array) < 0) {
@@ -475,7 +480,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       schunk = NULL;  // owned by the array now, do not free on its own
 
       /* Check array metadata against filter values */
-      if (array->ndim != ndim) {
+      if (ndim >= 0 && array->ndim != ndim) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                  "B2ND array rank (%hhd) != filter rank (%d)", array->ndim, ndim);
         goto b2nd_decomp_out;
@@ -485,7 +490,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
         start[i] = 0;
         stop[i] = array->shape[i];
         size *= array->shape[i];
-        if (array->shape[i] != chunkshape[i]) {
+        if (ndim >= 0 && array->shape[i] != chunkshape[i]) {
           PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                    "B2ND array shape[%d] (%ld) != filter chunkshape[%d] (%d)",
                    i, array->shape[i], i, chunkshape[i]);
