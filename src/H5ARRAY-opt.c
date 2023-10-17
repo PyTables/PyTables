@@ -49,6 +49,8 @@ herr_t read_chunk_slice_b2nd(const char *filename,
                              hid_t dataset_id,
                              hid_t space_id,
                              hsize_t chunk_idx,
+                             int rank,
+                             const hsize_t *chunk_shape,
                              const int64_t *slice_shape,
                              const int64_t *slice_start,
                              const int64_t *slice_stop,
@@ -208,7 +210,7 @@ herr_t get_blosc2_slice(char *filename,
 
     herr_t rv;
     IF_NEG_OUT_RET(rv = read_chunk_slice_b2nd(filename, dataset_id, space_id,
-                                              slice_chunk_idx, chunk_slice_shape,
+                                              slice_chunk_idx, rank, chunk_shape, chunk_slice_shape,
                                               start_in_stored_chunk, stop_in_stored_chunk,
                                               chunk_slice_size, chunk_slice_data),
                     rv - 50);
@@ -498,6 +500,8 @@ herr_t read_chunk_slice_b2nd(const char *filename,
                              hid_t dataset_id,
                              hid_t space_id,
                              hsize_t chunk_idx,
+                             int rank,
+                             const hsize_t *chunk_shape,
                              const int64_t *slice_shape,
                              const int64_t *slice_start,
                              const int64_t *slice_stop,
@@ -515,6 +519,13 @@ herr_t read_chunk_slice_b2nd(const char *filename,
   /* Open the schunk on-disk */
   IF_TRUE_OUT_BTRACE(b2nd_open_offset(filename, &array, address) != BLOSC2_ERROR_SUCCESS,
                      "Cannot open B2ND array in %s", filename);
+  IF_TRUE_OUT_BTRACE(array->ndim != rank,
+                     "B2ND array rank (%hhd) != chunk rank (%d)", array->ndim, rank);
+  for (int i = 0; i < rank; i++) {
+    IF_TRUE_OUT_BTRACE(array->shape[i] != (int64_t)(chunk_shape[i]),
+                       "B2ND array shape[%d] (%ld) != chunk shape[%d] (%lu)",
+                       i, array->shape[i], i, chunk_shape[i]);
+  }
 
   IF_TRUE_OUT_BTRACE(b2nd_get_slice_cbuffer(array, slice_start, slice_stop,
                                             slice_data, slice_shape, slice_size) != BLOSC2_ERROR_SUCCESS,
