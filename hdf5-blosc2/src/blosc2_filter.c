@@ -105,7 +105,7 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
 
   unsigned int typesize, basetypesize;
   unsigned int bufsize;
-  hsize_t chunkshape[32];
+  hsize_t chunkshape[H5S_MAX_RANK];
   unsigned int flags;
   size_t nelements = MAX_FILTER_VALUES;
   unsigned int values[MAX_FILTER_VALUES];
@@ -122,11 +122,11 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   /* Set Blosc2 info in first slot */
   values[0] = FILTER_BLOSC2_VERSION;
 
-  ndim = H5Pget_chunk(dcpl, 32, chunkshape);
+  ndim = H5Pget_chunk(dcpl, H5S_MAX_RANK, chunkshape);
   if (ndim < 0)
     return -1;
-  if (ndim > 32) {
-    PUSH_ERR("blosc2_set_local", H5E_CALLBACK, "Chunk rank exceeds limit");
+  if (ndim > H5S_MAX_RANK) {
+    PUSH_ERR("blosc2_set_local", H5E_CALLBACK, "Chunk rank exceeds HDF5 limit");
     return -1;
   }
 
