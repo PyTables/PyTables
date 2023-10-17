@@ -510,15 +510,15 @@ herr_t read_chunk_slice_b2nd(const char *filename,
   haddr_t address;
   IF_NEG_OUT_BTRACE(H5Dget_chunk_info(dataset_id, space_id, chunk_idx,
                                       NULL, NULL, &address, NULL),
-                    "Failed getting chunk info of array in %s", filename);
+                    "Failed getting chunk info of B2ND array in %s", filename);
 
   /* Open the schunk on-disk */
   IF_TRUE_OUT_BTRACE(b2nd_open_offset(filename, &array, address) != BLOSC2_ERROR_SUCCESS,
-                     "Cannot open array in %s", filename);
+                     "Cannot open B2ND array in %s", filename);
 
   IF_TRUE_OUT_BTRACE(b2nd_get_slice_cbuffer(array, slice_start, slice_stop,
                                             slice_data, slice_shape, slice_size) != BLOSC2_ERROR_SUCCESS,
-                     "Failed getting slice of array in %s", filename);
+                     "Failed getting slice of B2ND array in %s", filename);
 
   //out_success:
   retval = 0;
