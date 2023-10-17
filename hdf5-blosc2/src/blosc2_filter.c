@@ -331,7 +331,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
     if (cd_nelmts < 6) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-               "Too few filter parameters for B2ND compression: %d", cd_nelmts);
+               "Too few filter parameters for Blosc2 compression: %d", cd_nelmts);
       goto failed;
     }
 
