@@ -485,10 +485,10 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
         start[i] = 0;
         stop[i] = array->shape[i];
         size *= array->shape[i];
-        if (array->chunkshape[i] != chunkshape[i]) {
+        if (array->shape[i] != chunkshape[i]) {
           PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-                   "B2ND array chunkshape[%d] (%d) != filter chunkshape[%d] (%d)",
-                   i, array->chunkshape[i], i, chunkshape[i]);
+                   "B2ND array shape[%d] (%ld) != filter chunkshape[%d] (%d)",
+                   i, array->shape[i], i, chunkshape[i]);
           goto b2nd_decomp_out;
         }
       }
