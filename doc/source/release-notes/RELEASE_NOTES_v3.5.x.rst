@@ -15,9 +15,9 @@ Changes from 3.5.1 to 3.5.2
   iteration` RuntimeError while moving/renaming a node.
   Thanks to Christoph Gohlke for reporting and Miro Hrončok for help with
   building PyTables for python 3.8alpha (cython compatibility).
-  see :issue:`733` and PR #737.
+  See :issue:`733` and :PR:`737`.
 - Fixed a bug in offset calculations producing floats instead of ints
-  affecting python 3. See PR #736. Thanks to Brad Montgomery.
+  affecting python 3. See :PR:`736`. Thanks to Brad Montgomery.
 
 
 Changes from 3.5.0 to 3.5.1
@@ -47,4 +47,4 @@ Improvements
  - Improve compatibility with numpy 1.16.
  - Improve detection of the LZO2 library at build time.
  - Suppress several warnings.
- - Add AVX2 support for Windows.  See PR #716.  Thanks to Robert McLeod.
+ - Add AVX2 support for Windows.  See :PR:`716`.  Thanks to Robert McLeod.

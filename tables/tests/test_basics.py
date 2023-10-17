@@ -2170,6 +2170,10 @@ class BloscSubprocess(common.PyTablesTestCase):
                 result = qout.get()
                 if common.verbose:
                     print(result)
+
+                ps.join()
+                # Avoid warnings with later tests forking subprocesses.
+                ps.terminate()
         finally:
             Path(h5fname).unlink()
 
