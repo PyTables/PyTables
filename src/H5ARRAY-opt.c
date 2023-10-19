@@ -511,6 +511,11 @@ herr_t read_chunk_slice_b2nd(const char *filename,
   IF_TRUE_OUT_BTRACE(array->ndim != rank,
                      "B2ND array rank (%hhd) != chunk rank (%d)", array->ndim, rank);
   for (int i = 0; i < rank; i++) {
+    /* The HDF5 filter pipeline needs the filter to always return full chunks.
+     * This is not strictly needed here,
+     * but we enforce that requirement to avoid issues with other applications
+     * which use the pipeline.
+     */
     IF_TRUE_OUT_BTRACE(array->shape[i] != (int64_t)(chunk_shape[i]),
                        "B2ND array shape[%d] (%ld) != chunk shape[%d] (%lu)",
                        i, array->shape[i], i, chunk_shape[i]);

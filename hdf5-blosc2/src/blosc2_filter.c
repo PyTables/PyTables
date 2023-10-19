@@ -491,6 +491,12 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
         stop[i] = array->shape[i];
         size *= array->shape[i];
         if (ndim >= 0 && array->shape[i] != chunkshape[i]) {
+          /* The HDF5 filter pipeline needs the filter to always return full chunks,
+           * even for margin chunks where data does not fill the whole chunk
+           * (in which case padding should be used
+           * (at least until the last byte with actual data).
+           * Of course, we need to know the chunkshape to check this.
+           */
           PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                    "B2ND array shape[%d] (%ld) != filter chunkshape[%d] (%d)",
                    i, array->shape[i], i, chunkshape[i]);
