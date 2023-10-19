@@ -171,8 +171,8 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   } else if (ndim > 1) {
     /* The user may be expecting more efficient storage than we can currently provide,
      * so convey some information when tracing. */
-    BLOSC_TRACE_ERROR("Chunk rank %d exceeds B2ND build limit %d, "
-                      "using plain Blosc2 instead", ndim, BLOSC2_MAX_DIM);
+    BLOSC_TRACE_WARNING("Chunk rank %d exceeds B2ND build limit %d, "
+                        "using plain Blosc2 instead", ndim, BLOSC2_MAX_DIM);
   }
 
   r = H5Pmodify_filter(dcpl, FILTER_BLOSC2, flags, nelements, values);
@@ -236,8 +236,8 @@ int32_t compute_b2nd_block_shape(size_t block_size,
   }
 
   if (nitems_new > nitems) {
-    BLOSC_TRACE_ERROR("Target block size is too small (%lu items), raising to %lu items",
-                      nitems, nitems_new);
+    BLOSC_TRACE_INFO("Target block size is too small (%lu items), raising to %lu items",
+                     nitems, nitems_new);
   }
   if (nitems_new >= nitems) {
     return nitems_new * type_size;
@@ -467,8 +467,8 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
         || blosc2_meta_exists(schunk, "caterva") >= 0) {
 
       if (ndim < 0) {
-        BLOSC_TRACE_ERROR("Auxiliary Blosc2 filter values contain no chunk rank/shape, "
-                          "some checks on B2ND arrays will be disabled");
+        BLOSC_TRACE_WARNING("Auxiliary Blosc2 filter values contain no chunk rank/shape, "
+                            "some checks on B2ND arrays will be disabled");
       }
 
       b2nd_array_t *array = NULL;
