@@ -105,7 +105,7 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
 
   unsigned int typesize, basetypesize;
   unsigned int bufsize;
-  hsize_t chunkshape[32];
+  hsize_t chunkshape[H5S_MAX_RANK];
   unsigned int flags;
   size_t nelements = MAX_FILTER_VALUES;
   unsigned int values[MAX_FILTER_VALUES];
@@ -122,11 +122,11 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   /* Set Blosc2 info in first slot */
   values[0] = FILTER_BLOSC2_VERSION;
 
-  ndim = H5Pget_chunk(dcpl, 32, chunkshape);
+  ndim = H5Pget_chunk(dcpl, H5S_MAX_RANK, chunkshape);
   if (ndim < 0)
     return -1;
-  if (ndim > 32) {
-    PUSH_ERR("blosc2_set_local", H5E_CALLBACK, "Chunk rank exceeds limit");
+  if (ndim > H5S_MAX_RANK) {
+    PUSH_ERR("blosc2_set_local", H5E_CALLBACK, "Chunk rank exceeds HDF5 limit");
     return -1;
   }
 
@@ -171,8 +171,8 @@ herr_t blosc2_set_local(hid_t dcpl, hid_t type, hid_t space) {
   } else if (ndim > 1) {
     /* The user may be expecting more efficient storage than we can currently provide,
      * so convey some information when tracing. */
-    BLOSC_TRACE_ERROR("Chunk rank %d exceeds B2ND build limit %d, "
-                      "using plain Blosc2 instead", ndim, BLOSC2_MAX_DIM);
+    BLOSC_TRACE_WARNING("Chunk rank %d exceeds B2ND build limit %d, "
+                        "using plain Blosc2 instead", ndim, BLOSC2_MAX_DIM);
   }
 
   r = H5Pmodify_filter(dcpl, FILTER_BLOSC2, flags, nelements, values);
@@ -236,8 +236,8 @@ int32_t compute_b2nd_block_shape(size_t block_size,
   }
 
   if (nitems_new > nitems) {
-    BLOSC_TRACE_ERROR("Target block size is too small (%lu items), raising to %lu items",
-                      nitems, nitems_new);
+    BLOSC_TRACE_INFO("Target block size is too small (%lu items), raising to %lu items",
+                     nitems, nitems_new);
   }
   if (nitems_new >= nitems) {
     return nitems_new * type_size;
@@ -331,7 +331,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
 
     if (cd_nelmts < 6) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-               "Too few filter parameters for B2ND compression: %d", cd_nelmts);
+               "Too few filter parameters for Blosc2 compression: %d", cd_nelmts);
       goto failed;
     }
 
@@ -459,8 +459,17 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       goto failed;
     }
 
+    /* Although blosc2_decompress_ctx ("else" branch) can decompress b2nd-formatted data,
+     * there may be padding bytes when the chunkshape is not a multiple of the blockshape,
+     * and only b2nd machinery knows how to handle these correctly.
+     */
     if (blosc2_meta_exists(schunk, "b2nd") >= 0
         || blosc2_meta_exists(schunk, "caterva") >= 0) {
+
+      if (ndim < 0) {
+        BLOSC_TRACE_WARNING("Auxiliary Blosc2 filter values contain no chunk rank/shape, "
+                            "some checks on B2ND arrays will be disabled");
+      }
 
       b2nd_array_t *array = NULL;
 
@@ -471,7 +480,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       schunk = NULL;  // owned by the array now, do not free on its own
 
       /* Check array metadata against filter values */
-      if (array->ndim != ndim) {
+      if (ndim >= 0 && array->ndim != ndim) {
         PUSH_ERR("blosc2_filter", H5E_CALLBACK,
                  "B2ND array rank (%hhd) != filter rank (%d)", array->ndim, ndim);
         goto b2nd_decomp_out;
@@ -481,10 +490,16 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
         start[i] = 0;
         stop[i] = array->shape[i];
         size *= array->shape[i];
-        if (array->chunkshape[i] != chunkshape[i]) {
+        if (ndim >= 0 && array->shape[i] != chunkshape[i]) {
+          /* The HDF5 filter pipeline needs the filter to always return full chunks,
+           * even for margin chunks where data does not fill the whole chunk
+           * (in which case padding should be used
+           * (at least until the last byte with actual data).
+           * Of course, we need to know the chunkshape to check this.
+           */
           PUSH_ERR("blosc2_filter", H5E_CALLBACK,
-                   "B2ND array chunkshape[%d] (%d) != filter chunkshape[%d] (%d)",
-                   i, array->chunkshape[i], i, chunkshape[i]);
+                   "B2ND array shape[%d] (%ld) != filter chunkshape[%d] (%d)",
+                   i, array->shape[i], i, chunkshape[i]);
           goto b2nd_decomp_out;
         }
       }
