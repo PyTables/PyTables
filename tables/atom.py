@@ -278,7 +278,7 @@ class Atom(metaclass=MetaAtom):
             >>> atom3 = IntAtom()
             >>> atom1 == 'foo'
             False
-            >>> bool(atom1 == atom2)
+            >>> atom1 == atom2
             True
             >>> atom2 != atom1
             False
@@ -305,20 +305,14 @@ class Atom(metaclass=MetaAtom):
         sctype not represented in an Atom is ignored::
 
             >>> import numpy as np
-            >>> (
-            ...  repr(Atom.from_sctype(np.int16, shape=(2, 2))) ==
-            ...  f"Int16Atom(shape=({np.int64(2)!r}, {np.int64(2)!r}), dflt={np.int16(0)!r})"
-            ... )
-            True
+            >>> Atom.from_sctype(np.int16, shape=(2, 2))
+            Int16Atom(shape=(2, 2), dflt=0)
             >>> Atom.from_sctype('S5', dflt='hello')
             Traceback (most recent call last):
             ...
             ValueError: unknown NumPy scalar type: 'S5'
-            >>> (
-            ...  repr(Atom.from_sctype('float64')) ==
-            ...  f"Float64Atom(shape=(), dflt={np.float64(0.0)!r})"
-            ... )
-            True
+            >>> Atom.from_sctype('float64')
+            Float64Atom(shape=(), dflt=0.0)
 
         """
         if (not isinstance(sctype, type)
@@ -343,16 +337,10 @@ class Atom(metaclass=MetaAtom):
         ignored::
 
             >>> import numpy as np
-            >>> (
-            ...  repr(Atom.from_dtype(np.dtype((np.int16, (2, 2))))) ==
-            ...  f"Int16Atom(shape=({np.int64(2)!r}, {np.int64(2)!r}), dflt={np.int16(0)!r})"
-            ... )
-            True
-            >>> (
-            ...  repr(Atom.from_dtype(np.dtype('float64'))) ==
-            ...  f"Float64Atom(shape=(), dflt={np.float64(0.0)!r})"
-            ... )
-            True
+            >>> Atom.from_dtype(np.dtype((np.int16, (2, 2))))
+            Int16Atom(shape=(2, 2), dflt=0)
+            >>> Atom.from_dtype(np.dtype('float64'))
+            Float64Atom(shape=(), dflt=0.0)
 
         Note: for easier use in Python 3, where all strings lead to the
         Unicode dtype, this dtype will also generate a StringAtom. Since
@@ -394,16 +382,10 @@ class Atom(metaclass=MetaAtom):
         Optional shape and default value may be specified as the
         shape and dflt arguments, respectively::
 
-            >>> (
-            ...  repr(Atom.from_type('bool')) ==
-            ...  f"BoolAtom(shape=(), dflt={np.False_!r})"
-            ... )
-            True
-            >>> (
-            ...  repr(Atom.from_type('int16', shape=(2, 2))) ==
-            ...  f"Int16Atom(shape=({np.int64(2)!r}, {np.int64(2)!r}), dflt={np.int16(0)!r})"
-            ... )
-            True
+            >>> Atom.from_type('bool')
+            BoolAtom(shape=(), dflt=False)
+            >>> Atom.from_type('int16', shape=(2, 2))
+            Int16Atom(shape=(2, 2), dflt=0)
             >>> Atom.from_type('string40', dflt='hello')
             Traceback (most recent call last):
             ...
@@ -429,21 +411,12 @@ class Atom(metaclass=MetaAtom):
         arguments, respectively. Bear in mind that not all atoms support
         a default item size::
 
-            >>> (
-            ...  repr(Atom.from_kind('int', itemsize=2, shape=(2, 2))) ==
-            ...  f"Int16Atom(shape=({np.int64(2)!r}, {np.int64(2)!r}), dflt={np.int16(0)!r})"
-            ... )
-            True
-            >>> (
-            ...  repr(Atom.from_kind('int', shape=(2, 2))) ==
-            ...  f"Int32Atom(shape=({np.int64(2)!r}, {np.int64(2)!r}), dflt={np.int32(0)!r})"
-            ... )
-            True
-            >>> (
-            ...  repr(Atom.from_kind('int', shape=1)) ==
-            ...  f"Int32Atom(shape=({np.int64(1)!r},), dflt={np.int32(0)!r})"
-            ... )
-            True
+            >>> Atom.from_kind('int', itemsize=2, shape=(2, 2))
+            Int16Atom(shape=(2, 2), dflt=0)
+            >>> Atom.from_kind('int', shape=(2, 2))
+            Int32Atom(shape=(2, 2), dflt=0)
+            >>> Atom.from_kind('int', shape=1)
+            Int32Atom(shape=(1,), dflt=0)
             >>> Atom.from_kind('string', dflt=b'hello')
             Traceback (most recent call last):
             ...
@@ -563,24 +536,15 @@ class Atom(metaclass=MetaAtom):
 
             >>> atom1 = Int32Atom(shape=12)
             >>> atom2 = atom1.copy()
-            >>> (
-            ...  str(atom1) ==
-            ...  f"Int32Atom(shape=({np.int64(12)!r},), dflt={np.int32(0)!r})"
-            ... )
-            True
-            >>> (
-            ...  str(atom2) ==
-            ...  f"Int32Atom(shape=({np.int64(12)!r},), dflt={np.int32(0)!r})"
-            ... )
-            True
+            >>> print(atom1)
+            Int32Atom(shape=(12,), dflt=0)
+            >>> print(atom2)
+            Int32Atom(shape=(12,), dflt=0)
             >>> atom1 is atom2
             False
             >>> atom3 = atom1.copy(shape=(2, 2))
-            >>> (
-            ...  str(atom3) ==
-            ...  f"Int32Atom(shape=({np.int64(2)!r}, {np.int64(2)!r}), dflt={np.int32(0)!r})"
-            ... )
-            True
+            >>> print(atom3)
+            Int32Atom(shape=(2, 2), dflt=0)
             >>> atom1.copy(foobar=42) #doctest: +ELLIPSIS
             Traceback (most recent call last):
             ...
@@ -850,7 +814,7 @@ class EnumAtom(Atom):
         >>> atom4 = Int8Atom()
         >>> atom1 == enum
         False
-        >>> bool(atom1 == atom2)
+        >>> atom1 == atom2
         True
         >>> atom2 != atom1
         False
