@@ -106,7 +106,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.create_array(group, 'anarray2', [2], "Array title 2")
         self.h5file.create_table(group, 'atable1', {
                                  'var1': tb.IntCol()}, "Table title 1")
-        ra = np.rec.array([(1, 11, 'a')], formats='u1,f4,a1')
+        ra = np.rec.array([(1, 11, 'a')], formats='u1,f4,S1')
         self.h5file.create_table(group, 'atable2', ra, "Table title 2")
 
         # Create a lonely group in first level
@@ -154,7 +154,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_newFile_numpy_unicode_filename(self):
         temp_dir = tempfile.mkdtemp()
         try:
-            h5fname = np.unicode_(Path(temp_dir) / 'test.h5')
+            h5fname = np.str_(Path(temp_dir) / 'test.h5')
             with tb.open_file(h5fname, 'w') as h5file:
                 self.assertTrue(h5file, tb.File)
         finally:

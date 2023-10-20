@@ -708,11 +708,11 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 '/', atype, atom=tb.Atom.from_sctype(ttypes[atype]))
             a0 = np.array([1, 2, 3], dtype=atype)
             a0 = a0.byteswap()
-            a0 = a0.newbyteorder()
+            a0 = a0.view(a0.dtype.newbyteorder())
             vlarray.append(a0)
             a1 = np.array([1, 0], dtype=atype)
             a1 = a1.byteswap()
-            a1 = a1.newbyteorder()
+            a1 = a1.view(a1.dtype.newbyteorder())
             vlarray.append(a1)
 
             if self.reopen:
@@ -812,11 +812,11 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # Modify rows
             a0 = np.array([3, 2, 1], dtype=atype)
             a0 = a0.byteswap()
-            a0 = a0.newbyteorder()
+            a0 = a0.view(a0.dtype.newbyteorder())
             vlarray[0] = a0
             a1 = np.array([0, 1], dtype=atype)
             a1 = a1.byteswap()
-            a1 = a1.newbyteorder()
+            a1 = a1.view(a1.dtype.newbyteorder())
             vlarray[1] = a1
 
             if self.reopen:
@@ -870,11 +870,11 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # Modify rows
             a0 = np.array([3, 2, 1], dtype=atype)
             a0 = a0.byteswap()
-            a0 = a0.newbyteorder()
+            a0 = a0.view(a0.dtype.newbyteorder())
             vlarray[0] = a0
             a1 = np.array([0, 1], dtype=atype)
             a1 = a1.byteswap()
-            a1 = a1.newbyteorder()
+            a1 = a1.view(a1.dtype.newbyteorder())
             vlarray[1] = a1
 
             if self.reopen:
@@ -969,11 +969,11 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 '/', atype, atom=tb.Atom.from_sctype(ttypes[atype]))
             a0 = np.array([1.3, 2.2, 3.3], dtype=atype)
             a0 = a0.byteswap()
-            a0 = a0.newbyteorder()
+            a0 = a0.view(a0.dtype.newbyteorder())
             vlarray.append(a0)
             a1 = np.array([5.96, .597], dtype=atype)
             a1 = a1.byteswap()
-            a1 = a1.newbyteorder()
+            a1 = a1.view(a1.dtype.newbyteorder())
             vlarray.append(a1)
 
             if self.reopen:
@@ -1073,11 +1073,11 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # Modify rows
             a0 = np.array([4.3, 2.2, 4.3], dtype=atype)
             a0 = a0.byteswap()
-            a0 = a0.newbyteorder()
+            a0 = a0.view(a0.dtype.newbyteorder())
             vlarray[0] = a0
             a1 = np.array([1.123, 1.1e-3], dtype=atype)
             a1 = a1.byteswap()
-            a1 = a1.newbyteorder()
+            a1 = a1.view(a1.dtype.newbyteorder())
             vlarray[1] = a1
 
             if self.reopen:
@@ -1132,11 +1132,11 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # Modify rows
             a0 = np.array([4.3, 2.2, 4.3], dtype=atype)
             a0 = a0.byteswap()
-            a0 = a0.newbyteorder()
+            a0 = a0.view(a0.dtype.newbyteorder())
             vlarray[0] = a0
             a1 = np.array([1.123, 1.1e-3], dtype=atype)
             a1 = a1.byteswap()
-            a1 = a1.newbyteorder()
+            a1 = a1.view(a1.dtype.newbyteorder())
             vlarray[1] = a1
 
             if self.reopen:

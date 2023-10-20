@@ -317,9 +317,15 @@ class Atom(metaclass=MetaAtom):
         """
         if (not isinstance(sctype, type)
            or not issubclass(sctype, np.generic)):
-            if sctype not in np.sctypeDict:
+            if "," in sctype:
                 raise ValueError(f"unknown NumPy scalar type: {sctype!r}")
-            sctype = np.sctypeDict[sctype]
+            try:
+                dtype = np.dtype(sctype)
+            except TypeError:
+                raise ValueError(f"unknown NumPy scalar type: {sctype!r}") from None
+            if issubclass(dtype.type, np.flexible) and dtype.itemsize > 0:
+                raise ValueError(f"unknown NumPy scalar type: {sctype!r}")
+            sctype = dtype.type
         return cls.from_dtype(np.dtype((sctype, shape)), dflt)
 
     @classmethod
@@ -1078,7 +1084,7 @@ class VLStringAtom(_BufferedAtom):
                           "deprecated.", DeprecationWarning)
         elif not isinstance(object_, bytes):
             raise TypeError(f"object is not a string: {object_!r}")
-        return np.string_(object_)
+        return np.bytes_(object_)
 
     def fromarray(self, array):
         return array.tobytes()
@@ -1134,7 +1140,7 @@ class VLUnicodeAtom(_BufferedAtom):
                           "deprecated.", DeprecationWarning)
         elif not isinstance(object_, str):
             raise TypeError(f"object is not a string: {object_!r}")
-        return np.unicode_(object_)
+        return np.str_(object_)
 
     def fromarray(self, array):
         length = len(array)

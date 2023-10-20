@@ -653,7 +653,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         b = self.root.somearray.read()
 
         # Get an array to be compared in the correct byteorder
-        c = a.newbyteorder(byteorder)
+        c = a.view(a.dtype.newbyteorder(byteorder))
 
         # Compare them. They should be equal.
         if not common.allequal(c, b) and common.verbose:
@@ -774,17 +774,17 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         # Save an array with the reversed byteorder on it
         a = np.arange(25, dtype=np.int32).reshape(5, 5)
         a = a.byteswap()
-        a = a.newbyteorder()
+        a = a.view(a.dtype.newbyteorder())
         array = self.h5file.create_array(
             self.h5file.root, 'array', a, "byteorder (int)")
         # Read a subarray (got an array with the machine byteorder)
         b = array[2:4, 3:5]
         b = b.byteswap()
-        b = b.newbyteorder()
+        b = b.view(b.dtype.newbyteorder())
         # Set this subarray back to the array
         array[2:4, 3:5] = b
         b = b.byteswap()
-        b = b.newbyteorder()
+        b = b.view(b.dtype.newbyteorder())
         # Set this subarray back to the array
         array[2:4, 3:5] = b
         # Check that the array is back in the correct byteorder
@@ -802,17 +802,17 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         # Save an array with the reversed byteorder on it
         a = np.arange(25, dtype=np.float64).reshape(5, 5)
         a = a.byteswap()
-        a = a.newbyteorder()
+        a = a.view(a.dtype.newbyteorder())
         array = self.h5file.create_array(
             self.h5file.root, 'array', a, "byteorder (float)")
         # Read a subarray (got an array with the machine byteorder)
         b = array[2:4, 3:5]
         b = b.byteswap()
-        b = b.newbyteorder()
+        b = b.view(b.dtype.newbyteorder())
         # Set this subarray back to the array
         array[2:4, 3:5] = b
         b = b.byteswap()
-        b = b.newbyteorder()
+        b = b.view(b.dtype.newbyteorder())
         # Set this subarray back to the array
         array[2:4, 3:5] = b
         # Check that the array is back in the correct byteorder

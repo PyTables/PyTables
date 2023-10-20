@@ -95,7 +95,7 @@ for p in table.iterrows():
     print(p)
 
 # Save a recarray object under detector
-r = np.rec.array("a" * 300, formats='f4,3i4,a5,i2', shape=3)
+r = np.rec.array("a" * 300, formats='f4,3i4,S5,i2', shape=3)
 recarrt = h5file.create_table("/detector", 'recarray', r, "RecArray example")
 r2 = r[0:3:2]
 # Change the byteorder property

@@ -48,7 +48,7 @@ type_info = {
     'time32': (np.int32, int),
     'time64': (np.float64, float),
     'enum': (np.uint8, int),  # just for these tests
-    'string': ('S%s' % _strlen, np.string_),  # just for these tests
+    'string': ('S%s' % _strlen, np.bytes_),  # just for these tests
 }
 """NumPy and Numexpr type for each PyTables type that will be tested."""
 
@@ -329,6 +329,12 @@ class TableDataTestCase(BaseTableQueryTestCase):
     _testfmt_heavy = 'test_h%04d'
 
 
+def _old_repr(o):
+    if isinstance(o, np.bytes_):
+        return repr(bytes(o))
+    return repr(o)
+
+
 def create_test_method(type_, op, extracond, func=None):
     sctype = sctype_from_type[type_]
 
@@ -353,7 +359,7 @@ def create_test_method(type_, op, extracond, func=None):
     elif op == '~':  # unary
         cond = '~(%s)' % colname
     elif op == '<' and func is None:  # binary variable-constant
-        cond = '{} {} {}'.format(colname, op, repr(condvars['bound']))
+        cond = f'{colname} {op} {_old_repr(condvars["bound"])}'
     elif isinstance(op, tuple):  # double binary variable-constant
         cond = ('(lbound %s %s) & (%s %s rbound)'
                 % (op[0], colname, colname, op[1]))

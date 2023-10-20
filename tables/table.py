@@ -2080,7 +2080,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
             # Modify two existing rows
             rows = np.rec.array(
-                [[457,'db1',1.2],[6,'de2',1.3]], formats='i4,a3,f8'
+                [[457,'db1',1.2],[6,'de2',1.3]], formats='i4,S3,f8'
             )
             table[1:30:2] = rows             # modify a table slice
             table[[1,3]] = rows              # only modifies rows 1 and 3
@@ -2090,7 +2090,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
             table.modify_rows(start=2, rows=[456,'db2',1.2])
             rows = np.rec.array(
-                [[457,'db1',1.2],[6,'de2',1.3]], formats='i4,a3,f8'
+                [[457,'db1',1.2],[6,'de2',1.3]], formats='i4,S3,f8'
             )
             table.modify_rows(start=1, stop=3, step=2, rows=rows)
             table.modify_coordinates([1,3,2], rows)
