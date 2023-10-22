@@ -2,6 +2,7 @@
 
 import re
 import inspect
+from typing_extensions import Any, Callable, dataclass_transform, Dict, Union
 import warnings
 
 import numpy as np
@@ -13,13 +14,15 @@ import pickle
 
 from .exceptions import FlavorWarning
 
+Shape = tuple[SizeType, ...]
+
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 all_types = set()  # filled as atom classes are created
 """Set of all PyTables types."""
 
-atom_map = {}  # filled as atom classes are created
+atom_map: Dict[str, Any] = {}  # filled as atom classes are created
 """Maps atom kinds to item sizes and atom classes.
 
 If there is a fixed set of possible item sizes for a given kind, the
@@ -32,7 +35,6 @@ deftype_from_kind = {}  # filled as atom classes are created
 
 
 _type_re = re.compile(r'^([a-z]+)([0-9]*)$')
-
 
 def split_type(type):
     """Split a PyTables type into a PyTables kind and an item size.
@@ -76,24 +78,7 @@ def _invalid_itemsize_error(kind, itemsize, itemsizes):
                       % (kind, itemsize, isizes))
 
 
-def _abstract_atom_init(deftype, defvalue):
-    """Return a constructor for an abstract `Atom` class."""
-
-    defitemsize = split_type(deftype)[1]
-
-    def __init__(self, itemsize=defitemsize, shape=(), dflt=defvalue):
-        assert self.kind in atom_map
-        try:
-            atomclass = atom_map[self.kind][itemsize]
-        except KeyError:
-            raise _invalid_itemsize_error(self.kind, itemsize,
-                                          atom_map[self.kind])
-        self.__class__ = atomclass
-        atomclass.__init__(self, shape, dflt)
-    return __init__
-
-
-def _normalize_shape(shape):
+def _normalize_shape(shape) -> Shape:
     """Check that the `shape` is safe to be used and return it as a tuple."""
 
     if isinstance(shape, (np.integer, int)):
@@ -139,7 +124,7 @@ def _normalize_default(value, dtype):
     return default
 
 
-def _cmp_dispatcher(other_method_name):
+def _cmp_dispatcher(other_method_name: str) -> Callable[[Any, Any], bool]:
     """Dispatch comparisons to a method of the *other* object.
 
     Returns a new *rich comparison* method which dispatches calls to
@@ -149,15 +134,16 @@ def _cmp_dispatcher(other_method_name):
     This is part of the implementation of a double dispatch pattern.
     """
 
-    def dispatched_cmp(self, other):
+    def dispatched_cmp(self, other) -> bool:
         try:
-            other_method = getattr(other, other_method_name)
+            other_method: Callable[[Any], bool] = getattr(other, other_method_name)
         except AttributeError:
             return False
         return other_method(self)
     return dispatched_cmp
 
 
+@dataclass_transform()
 class MetaAtom(type):
     """Atom metaclass.
 
@@ -165,6 +151,8 @@ class MetaAtom(type):
     into the suitable registries.
 
     """
+
+    kind: str
 
     def __init__(cls, name, bases, dict_):
         super().__init__(name, bases, dict_)
@@ -221,7 +209,7 @@ class Atom(metaclass=MetaAtom):
     shape : tuple
         Sets the shape of the atom. An integer shape of
         N is equivalent to the tuple (N,).
-    dflt
+    dflt : Any
         Sets the default value for the atom.
 
     The following are the public methods and attributes of the Atom class.
@@ -289,6 +277,18 @@ class Atom(metaclass=MetaAtom):
 
     """
 
+    dflt: Any
+
+    dtype: np.dtype
+
+    itemsize: int
+
+    kind: str
+
+    shape: Shape
+
+    type: str
+
     @classmethod
     def prefix(cls):
         """Return the atom class prefix."""
@@ -296,7 +296,7 @@ class Atom(metaclass=MetaAtom):
         return cname[:cname.rfind('Atom')]
 
     @classmethod
-    def from_sctype(cls, sctype, shape=(), dflt=None):
+    def from_sctype(cls, sctype: Union[str, np.dtype], shape: Shape=(), dflt: Any=None) -> 'Atom':
         """Create an Atom from a NumPy scalar type sctype.
 
         Optional shape and default value may be specified as the
@@ -317,6 +317,7 @@ class Atom(metaclass=MetaAtom):
         """
         if (not isinstance(sctype, type)
            or not issubclass(sctype, np.generic)):
+            assert isinstance(sctype, str)
             if "," in sctype:
                 raise ValueError(f"unknown NumPy scalar type: {sctype!r}")
             try:
@@ -325,11 +326,14 @@ class Atom(metaclass=MetaAtom):
                 raise ValueError(f"unknown NumPy scalar type: {sctype!r}") from None
             if issubclass(dtype.type, np.flexible) and dtype.itemsize > 0:
                 raise ValueError(f"unknown NumPy scalar type: {sctype!r}")
-            sctype = dtype.type
-        return cls.from_dtype(np.dtype((sctype, shape)), dflt)
+
+            sctype_resolved = dtype.type
+        else:
+            sctype_resolved = sctype
+        return cls.from_dtype(np.dtype((sctype_resolved, shape)), dflt)
 
     @classmethod
-    def from_dtype(cls, dtype, dflt=None):
+    def from_dtype(cls, dtype: np.dtype, dflt: Any=None) -> 'Atom':
         """Create an Atom from a NumPy dtype.
 
         An optional default value may be specified as the dflt
@@ -354,6 +358,7 @@ class Atom(metaclass=MetaAtom):
 
         """
         basedtype = dtype.base
+        shape = tuple(SizeType(i) for i in dtype.shape)
         if basedtype.names:
             raise ValueError("compound data types are not supported: %r"
                              % dtype)
@@ -362,7 +367,7 @@ class Atom(metaclass=MetaAtom):
                              % dtype)
         if basedtype.kind == 'S':  # can not reuse something like 'string80'
             itemsize = basedtype.itemsize
-            return cls.from_kind('string', itemsize, dtype.shape, dflt)
+            return cls.from_kind('string', itemsize, shape, dflt)
         elif basedtype.kind == 'U':
             # workaround for unicode type (standard string type in Python 3)
             warnings.warn("support for unicode type is very limited, and "
@@ -371,12 +376,12 @@ class Atom(metaclass=MetaAtom):
             itemsize = basedtype.itemsize // 4
             assert str(itemsize) in basedtype.str, (
                 "something went wrong in handling unicode.")
-            return cls.from_kind('string', itemsize, dtype.shape, dflt)
+            return cls.from_kind('string', itemsize, shape, dflt)
         # Most NumPy types have direct correspondence with PyTables types.
-        return cls.from_type(basedtype.name, dtype.shape, dflt)
+        return cls.from_type(basedtype.name, shape, dflt)
 
     @classmethod
-    def from_type(cls, type, shape=(), dflt=None):
+    def from_type(cls, type: str, shape: Shape=(), dflt: Any=None) -> 'Atom':
         """Create an Atom from a PyTables type.
 
         Optional shape and default value may be specified as the
@@ -403,7 +408,7 @@ class Atom(metaclass=MetaAtom):
         return cls.from_kind(kind, itemsize, shape, dflt)
 
     @classmethod
-    def from_kind(cls, kind, itemsize=None, shape=(), dflt=None):
+    def from_kind(cls, kind: str, itemsize: Union[int, None]=None, shape: Shape=(), dflt: Any=None):
         """Create an Atom from a PyTables kind.
 
         Optional item size, shape and default value may be
@@ -437,7 +442,7 @@ class Atom(metaclass=MetaAtom):
 
         """
 
-        kwargs = {'shape': shape}
+        kwargs: Dict[str, Any] = {'shape': shape}
         if kind not in atom_map:
             raise ValueError(f"unknown kind: {kind!r}")
         # This incompatibility detection may get out-of-date and is
@@ -471,23 +476,23 @@ class Atom(metaclass=MetaAtom):
         return atomclass(**kwargs)
 
     @property
-    def size(self):
+    def size(self) -> int:
         """Total size in bytes of the atom."""
         return self.dtype.itemsize
 
     @property
-    def recarrtype(self):
+    def recarrtype(self) -> str:
         """String type to be used in numpy.rec.array()."""
         return str(self.dtype.shape) + self.dtype.base.str[1:]
 
     @property
-    def ndim(self):
+    def ndim(self) -> int:
         """The number of dimensions of the atom.
 
         .. versionadded:: 2.4"""
         return len(self.shape)
 
-    def __init__(self, nptype, shape, dflt):
+    def __init__(self, nptype: Union[str, np.dtype], shape: Shape, dflt: Any):
         if not hasattr(self, 'type'):
             raise NotImplementedError("``%s`` is an abstract class; "
                                       "please use one of its subclasses"
@@ -577,23 +582,40 @@ class Atom(metaclass=MetaAtom):
                 and np.all(self.dflt == atom.dflt))
 
 
-class StringAtom(Atom):
+def _abstract_atom_init(deftype: str, defvalue: Any) -> Callable[[Atom, Union[int, None], Shape, Any], None]:
+    """Return a constructor for an abstract `Atom` class."""
+
+    defitemsize = split_type(deftype)[1]
+
+    def __init__(self, itemsize: Union[int, None]=defitemsize, shape: Shape=(), dflt: Any=defvalue) -> None:
+        assert self.kind in atom_map
+        try:
+            atomclass = atom_map[self.kind][itemsize]
+        except KeyError:
+            raise _invalid_itemsize_error(self.kind, itemsize,
+                                          atom_map[self.kind])
+        self.__class__ = atomclass
+        atomclass.__init__(self, shape, dflt)
+    return __init__
+
+
+class StringAtom(Atom): # type: ignore[misc]
     """Defines an atom of type string.
 
     The item size is the *maximum* length in characters of strings.
 
     """
 
-    kind = 'string'
-    type = 'string'
-    _defvalue = b''
+    kind: str = 'string'
+    type: str = 'string'
+    _defvalue: bytes = b''
 
-    @property
-    def itemsize(self):
+    @property  # type: ignore[misc]
+    def itemsize(self) -> int: # type: ignore[override]
         """Size in bytes of a sigle item in the atom."""
         return self.dtype.base.itemsize
 
-    def __init__(self, itemsize, shape=(), dflt=_defvalue):
+    def __init__(self, itemsize: int, shape: Shape=(), dflt: Union[str, bytes]=_defvalue):
         if not hasattr(itemsize, '__int__') or int(itemsize) < 0:
             raise ValueError("invalid item size for kind ``%s``: %r; "
                              "it must be a positive integer"
@@ -601,80 +623,161 @@ class StringAtom(Atom):
         Atom.__init__(self, 'S%d' % itemsize, shape, dflt)
 
 
-class BoolAtom(Atom):
+class BoolAtom(Atom): # type: ignore[misc]
     """Defines an atom of type bool."""
 
-    kind = 'bool'
-    itemsize = 1
-    type = 'bool'
+    kind: str = 'bool'
+    itemsize: int = 1
+    type: str = 'bool'
     _deftype = 'bool8'
     _defvalue = False
 
-    def __init__(self, shape=(), dflt=_defvalue):
+    def __init__(self, shape: Shape=(), dflt: bool=_defvalue):
         Atom.__init__(self, self.type, shape, dflt)
 
-
-class IntAtom(Atom):
+class IntAtom(Atom): # type: ignore[misc]
     """Defines an atom of a signed integral type (int kind)."""
 
-    kind = 'int'
-    signed = True
+    kind: str = 'int'
+    signed: bool = True
     _deftype = 'int32'
     _defvalue = 0
-    __init__ = _abstract_atom_init(_deftype, _defvalue)
+    __init__ = _abstract_atom_init(_deftype, _defvalue) # type: ignore[assignment]
 
 
-class UIntAtom(Atom):
+class UIntAtom(Atom): # type: ignore[misc]
     """Defines an atom of an unsigned integral type (uint kind)."""
 
-    kind = 'uint'
-    signed = False
+    kind: str = 'uint'
+    signed: bool = False
     _deftype = 'uint32'
     _defvalue = 0
-    __init__ = _abstract_atom_init(_deftype, _defvalue)
+    __init__ = _abstract_atom_init(_deftype, _defvalue) # type: ignore[assignment]
 
 
-class FloatAtom(Atom):
+class FloatAtom(Atom): # type: ignore[misc]
     """Defines an atom of a floating point type (float kind)."""
 
-    kind = 'float'
+    kind: str = 'float'
     _deftype = 'float64'
     _defvalue = 0.0
-    __init__ = _abstract_atom_init(_deftype, _defvalue)
+    __init__ = _abstract_atom_init(_deftype, _defvalue) # type: ignore[assignment]
 
 
-def _create_numeric_class(baseclass, itemsize):
-    """Create a numeric atom class with the given `baseclass` and an
-    `itemsize`."""
+class Int8Atom(IntAtom): # type: ignore[misc]
 
-    prefix = '%s%d' % (baseclass.prefix(), itemsize * 8)
-    type_ = prefix.lower()
-    classdict = {'itemsize': itemsize, 'type': type_,
-                 '__doc__': "Defines an atom of type ``%s``." % type_}
+    itemsize: int = 1
+    type: str = 'int8'
 
-    def __init__(self, shape=(), dflt=baseclass._defvalue):
-        Atom.__init__(self, self.type, shape, dflt)
-    classdict['__init__'] = __init__
-    return type('%sAtom' % prefix, (baseclass,), classdict)
+    def __init__(self, shape: Shape=(), dflt: int=0) -> None:
+        Atom.__init__(self, 'int8', shape, dflt)
 
 
-Int8Atom = _create_numeric_class(IntAtom, 1)
-Int16Atom = _create_numeric_class(IntAtom, 2)
-Int32Atom = _create_numeric_class(IntAtom, 4)
-Int64Atom = _create_numeric_class(IntAtom, 8)
-UInt8Atom = _create_numeric_class(UIntAtom, 1)
-UInt16Atom = _create_numeric_class(UIntAtom, 2)
-UInt32Atom = _create_numeric_class(UIntAtom, 4)
-UInt64Atom = _create_numeric_class(UIntAtom, 8)
+class Int16Atom(IntAtom): # type: ignore[misc]
+
+    itemsize: int = 2
+    type: str = 'int16'
+
+    def __init__(self, shape: Shape=(), dflt: int=0) -> None:
+        Atom.__init__(self, 'int16', shape, dflt)
+
+
+class Int32Atom(IntAtom): # type: ignore[misc]
+
+    itemsize: int = 4
+    type: str = 'int32'
+
+    def __init__(self, shape: Shape=(), dflt: int=0) -> None:
+        Atom.__init__(self, 'int32', shape, dflt)
+
+
+class Int64Atom(IntAtom): # type: ignore[misc]
+
+    itemsize: int = 8
+    type: str = 'int64'
+
+    def __init__(self, shape: Shape=(), dflt: int=0) -> None:
+        Atom.__init__(self, 'int64', shape, dflt)
+
+
+class UInt8Atom(UIntAtom): # type: ignore[misc]
+
+    itemsize: int = 1
+    type: str = 'uint8'
+
+    def __init__(self, shape: Shape=(), dflt: int=0) -> None:
+        Atom.__init__(self, 'uint8', shape, dflt)
+
+
+class UInt16Atom(UIntAtom): # type: ignore[misc]
+
+    itemsize: int = 2
+    type: str = 'uint16'
+
+    def __init__(self, shape: Shape=(), dflt: int=0) -> None:
+        Atom.__init__(self, 'uint16', shape, dflt)
+
+
+class UInt32Atom(UIntAtom): # type: ignore[misc]
+
+    itemsize: int = 4
+    type: str = 'uint32'
+
+    def __init__(self, shape: Shape=(), dflt: int=0) -> None:
+        Atom.__init__(self, 'uint32', shape, dflt)
+
+class UInt64Atom(UIntAtom): # type: ignore[misc]
+
+    itemsize: int = 8
+    type: str = 'uint64'
+
+    def __init__(self, shape: Shape=(), dflt: int=0) -> None:
+        Atom.__init__(self, 'uint64', shape, dflt)
+
 
 if hasattr(np, 'float16'):
-    Float16Atom = _create_numeric_class(FloatAtom, 2)
-Float32Atom = _create_numeric_class(FloatAtom, 4)
-Float64Atom = _create_numeric_class(FloatAtom, 8)
+    class Float16Atom(FloatAtom): # type: ignore[misc]
+
+        itemsize: int = 2
+        type: str = 'float16'
+
+        def __init__(self, shape: Shape=(), dflt: float=0.0) -> None:
+            Atom.__init__(self, 'float16', shape, dflt)
+
+class Float32Atom(FloatAtom): # type: ignore[misc]
+
+    itemsize: int = 4
+    type: str = 'float32'
+
+    def __init__(self, shape: Shape=(), dflt: float=0.0) -> None:
+        Atom.__init__(self, 'float32', shape, dflt)
+
+
+class Float64Atom(FloatAtom): # type: ignore[misc]
+
+    itemsize: int = 8
+    type: str = 'float64'
+
+    def __init__(self, shape: Shape=(), dflt: float=0.0) -> None:
+        Atom.__init__(self, 'float64', shape, dflt)
+
 if hasattr(np, 'float96'):
-    Float96Atom = _create_numeric_class(FloatAtom, 12)
+    class Float96Atom(FloatAtom): # type: ignore[misc]
+
+        itemsize: int = 12
+        type: str = 'float96'
+
+        def __init__(self, shape: Shape=(), dflt: float=0.0) -> None:
+            Atom.__init__(self, 'float96', shape, dflt)
+
 if hasattr(np, 'float128'):
-    Float128Atom = _create_numeric_class(FloatAtom, 16)
+    class Float128Atom(FloatAtom): # type: ignore[misc]
+
+        itemsize: int = 16
+        type: str = 'float128'
+
+        def __init__(self, shape: Shape=(), dflt: float=0.0) -> None:
+            Atom.__init__(self, 'float128', shape, dflt)
 
 
 class ComplexAtom(Atom):
@@ -697,8 +800,8 @@ class ComplexAtom(Atom):
     _defvalue = 0j
     _isizes = [8, 16]
 
-    @property
-    def itemsize(self):
+    @property # type: ignore[misc]
+    def itemsize(self) -> int: # type: ignore[override]
         """Size in bytes of a sigle item in the atom."""
         return self.dtype.base.itemsize
 
@@ -713,7 +816,7 @@ class ComplexAtom(Atom):
         all_types.add('complex256')
         _isizes.append(32)
 
-    def __init__(self, itemsize, shape=(), dflt=_defvalue):
+    def __init__(self, itemsize: int, shape: Shape=(), dflt: Any=_defvalue):
         if itemsize not in self._isizes:
             raise _invalid_itemsize_error('complex', itemsize, self._isizes)
         self.type = '%s%d' % (self.kind, itemsize * 8)
@@ -723,7 +826,7 @@ class ComplexAtom(Atom):
 class _ComplexErrorAtom(ComplexAtom, metaclass=type):
     """Reminds the user to stop using the old complex atom names."""
 
-    def __init__(self, shape=(), dflt=ComplexAtom._defvalue):
+    def __init__(self, shape: Shape=(), dflt=ComplexAtom._defvalue):
         raise TypeError(
             "to avoid confusions with PyTables 1.X complex atom names, "
             "please use ``ComplexAtom(itemsize=N)``, "
@@ -738,7 +841,7 @@ if hasattr(np, 'complex256'):
     Complex256Atom = _ComplexErrorAtom
 
 
-class TimeAtom(Atom):
+class TimeAtom(Atom): # type: ignore[misc]
     """Defines an atom of time type (time kind).
 
     There are two distinct supported types of time: a 32 bit integer value and
@@ -748,31 +851,31 @@ class TimeAtom(Atom):
 
     """
 
-    kind = 'time'
+    kind: str = 'time'
     _deftype = 'time32'
-    _defvalue = 0
-    __init__ = _abstract_atom_init(_deftype, _defvalue)
+    _defvalue: Union[int, float] = 0
+    __init__ = _abstract_atom_init(_deftype, _defvalue) # type: ignore[assignment]
 
 
-class Time32Atom(TimeAtom):
+class Time32Atom(TimeAtom): # type: ignore[misc]
     """Defines an atom of type time32."""
 
-    itemsize = 4
-    type = 'time32'
+    itemsize: int = 4
+    type: str = 'time32'
     _defvalue = 0
 
-    def __init__(self, shape=(), dflt=_defvalue):
+    def __init__(self, shape: Shape=(), dflt=_defvalue):
         Atom.__init__(self, 'int32', shape, dflt)
 
 
-class Time64Atom(TimeAtom):
+class Time64Atom(TimeAtom): # type: ignore[misc]
     """Defines an atom of type time64."""
 
-    itemsize = 8
-    type = 'time64'
-    _defvalue = 0.0
+    itemsize: int = 8
+    type: str = 'time64'
+    _defvalue: float = 0.0
 
-    def __init__(self, shape=(), dflt=_defvalue):
+    def __init__(self, shape: Shape=(), dflt: float=_defvalue):
         Atom.__init__(self, 'float64', shape, dflt)
 
 
@@ -871,8 +974,8 @@ class EnumAtom(Atom):
     kind = 'enum'
     type = 'enum'
 
-    @property
-    def itemsize(self):
+    @property # type: ignore[misc]
+    def itemsize(self) -> int: # type: ignore[override]
         """Size in bytes of a single item in the atom."""
         return self.dtype.base.itemsize
 
@@ -929,15 +1032,17 @@ class EnumAtom(Atom):
                 and np.all(self.dflt == enumatom.dflt)
                 and self.base == enumatom.base)
 
-    def __init__(self, enum, dflt, base, shape=()):
+    def __init__(self, enum: Union[Enum, Any], dflt: Any, base: Union[Atom, str], shape: Shape=()):
         if not isinstance(enum, Enum):
             enum = Enum(enum)
         self.enum = enum
 
         if isinstance(base, str):
             base = Atom.from_type(base)
+
         self._checkbase(base)
         self.base = base
+        assert isinstance(self.base, Atom)
 
         default = enum[dflt]  # check default value
         self._defname = dflt  # kept for representation purposes
@@ -978,12 +1083,12 @@ class ReferenceAtom(Atom):
     _deftype = 'NoneType'
     _defvalue = None
 
-    @property
-    def itemsize(self):
+    @property # type: ignore[misc]
+    def itemsize(self) -> int: # type: ignore[override]
         """Size in bytes of a single item in the atom."""
         return self.dtype.base.itemsize
 
-    def __init__(self, shape=()):
+    def __init__(self, shape: Shape=()):
         Atom.__init__(self, self.type, shape, self._defvalue)
 
     def __repr__(self):
@@ -1016,6 +1121,8 @@ class PseudoAtom:
     Instead, they have a `base` atom which defines the elements used
     for storage.
     """
+
+    base: Atom
 
     def __repr__(self):
         return '%s()' % self.__class__.__name__
@@ -1078,12 +1185,9 @@ class VLStringAtom(_BufferedAtom):
     type = 'vlstring'
     base = UInt8Atom()
 
-    def _tobuffer(self, object_):
-        if isinstance(object_, str):
-            warnings.warn("Storing non bytestrings in VLStringAtom is "
-                          "deprecated.", DeprecationWarning)
-        elif not isinstance(object_, bytes):
-            raise TypeError(f"object is not a string: {object_!r}")
+    def _tobuffer(self, object_: bytes):
+        if not isinstance(object_, bytes):
+            raise TypeError(f"object is not bytes: {object_!r}")
         return np.bytes_(object_)
 
     def fromarray(self, array):
@@ -1120,25 +1224,19 @@ class VLUnicodeAtom(_BufferedAtom):
     # NumPy scalars inherit the UCS-2 encoding from Python (see
     # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
     # array, we must override ``toarray()`` itself.
-    def toarray(self, object_):
-        if isinstance(object_, bytes):
-            warnings.warn("Storing bytestrings in VLUnicodeAtom is "
-                          "deprecated.", DeprecationWarning)
-        elif not isinstance(object_, str):
+    def toarray(self, object_: str):
+        if not isinstance(object_, str):
             raise TypeError(f"object is not a string: {object_!r}")
         ustr = str(object_)
         uarr = np.array(ustr, dtype='U')
         return np.ndarray(
             buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
 
-    def _tobuffer(self, object_):
+    def _tobuffer(self, object_: str):
         # This works (and is used) only with UCS-4 builds of Python,
         # where the width of the internal representation of a
         # character matches that of the base atoms.
-        if isinstance(object_, bytes):
-            warnings.warn("Storing bytestrings in VLUnicodeAtom is "
-                          "deprecated.", DeprecationWarning)
-        elif not isinstance(object_, str):
+        if not isinstance(object_, str):
             raise TypeError(f"object is not a string: {object_!r}")
         return np.str_(object_)
 
@@ -1169,7 +1267,7 @@ class ObjectAtom(_BufferedAtom):
     type = 'object'
     base = UInt8Atom()
 
-    def _tobuffer(self, object_):
+    def _tobuffer(self, object_: object):
         return pickle.dumps(object_, pickle.HIGHEST_PROTOCOL)
 
     def fromarray(self, array):
