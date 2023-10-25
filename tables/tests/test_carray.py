@@ -852,7 +852,7 @@ class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc2_avail,
                         'BLOSC2 compression library not available')
-class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
+class Blosc2Ndim4ChunkOptTestCase(BasicTestCase):
     shape = (13, 13, 13, 3)
     compress = 1
     complib = "blosc2"
