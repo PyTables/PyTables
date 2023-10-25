@@ -912,6 +912,19 @@ class Blosc2CrossChunkOptTestCase(Blosc2CrossChunkTestCase):
 
 @common.unittest.skipIf(not common.blosc2_avail,
                         'BLOSC2 compression library not available')
+class Blosc2InnerCrossChunkTestCase(Blosc2CrossChunkTestCase):
+    shape = (10, 0)
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2InnerCrossChunkOptTestCase(Blosc2InnerCrossChunkTestCase):
+    step = 1  # optimized
+    byteorder = sys.byteorder
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
 class Blosc2PastLastChunkTestCase(BasicTestCase):
     shape = (0, 10)
     compress = 1  # sss
