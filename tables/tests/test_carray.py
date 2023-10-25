@@ -838,6 +838,31 @@ class Blosc2PastLastChunkOptTestCase(Blosc2PastLastChunkTestCase):
     byteorder = sys.byteorder
 
 
+# Minimal test which can be figured out manually::
+#
+#     z  Data: 1   Chunk0:   Chunk1: 1   Slice:
+#    /        /|\                    |\
+#   |\       0 5 3       0           5 3        5
+#   x y      |X X|       |\           \|       / \
+#            4 2 7       4 2           7      4   7
+#             \|/         \|                   \ /
+#              6           6                    6
+#
+#                  Chunk0 & Slice: 4   Chunk1 & Slice: 5
+#                                   \                   \
+#                                    6                   7
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2Ndim3MinChunkOptTestCase(BasicTestCase):
+    shape = (2, 2, 2)
+    compress = 1
+    complib = "blosc2"
+    chunkshape = (2, 2, 1)
+    byteorder = sys.byteorder
+    type = 'int8'
+    slices = (slice(1, 2), slice(0, 2), slice(0, 2))
+
+
 @common.unittest.skipIf(not common.blosc2_avail,
                         'BLOSC2 compression library not available')
 class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
