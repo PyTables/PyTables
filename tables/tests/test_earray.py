@@ -873,7 +873,7 @@ class Blosc2SlicesOptEArrayTestCase(BasicTestCase):
     compress = 1
     complib = "blosc2"
     type = 'int32'
-    shape = (13, 13, 13)
+    shape = (0, 13, 13)
     chunkshape = (4, 4, 4)
     nappends = 20
     slices = (slice(None, None), slice(2, 10), slice(0, 10))
@@ -893,10 +893,11 @@ class Blosc2ComprTestCase(BasicTestCase):
 @common.unittest.skipIf(not common.blosc2_avail,
                         'BLOSC2 compression library not available')
 class Blosc2CrossChunkTestCase(BasicTestCase):
-    shape = (10, 10)
+    shape = (0, 10)
     compress = 1  # sss
     complib = "blosc2"
     chunkshape = (4, 4)
+    nappends = 10
     start = 3
     stop = 6
     step = 3
@@ -912,10 +913,11 @@ class Blosc2CrossChunkOptTestCase(Blosc2CrossChunkTestCase):
 @common.unittest.skipIf(not common.blosc2_avail,
                         'BLOSC2 compression library not available')
 class Blosc2PastLastChunkTestCase(BasicTestCase):
-    shape = (10, 10)
+    shape = (0, 10)
     compress = 1  # sss
     complib = "blosc2"
     chunkshape = (4, 4)
+    nappends = 10
     start = 8
     stop = 100
     step = 3
