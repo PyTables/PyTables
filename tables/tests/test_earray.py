@@ -189,7 +189,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("self, earray:", self.compress, earray.filters.complevel)
             self.assertEqual(earray.filters.complevel, self.compress)
             if self.compress > 0 and tb.which_lib_version(self.complib):
-                self.assertEqual(earray.filters.complib, self.complib)
+                # Some libraries like Blosc support different compressors,
+                # specified after ":".
+                self.assertEqual(earray.filters.complib.split(':')[0], self.complib)
             if self.shuffle != earray.filters.shuffle and common.verbose:
                 print("Error in shuffle. Class:", self.__class__.__name__)
                 print("self, earray:", self.shuffle, earray.filters.shuffle)
