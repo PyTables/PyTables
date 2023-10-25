@@ -65,7 +65,7 @@ herr_t get_blosc2_slice(char *filename,
                         const int rank,
                         hsize_t *slice_start,
                         hsize_t *slice_stop,
-                        const void *slice_data)
+                        void *slice_data)
 {
   herr_t retval = -1;
   hid_t space_id = -1;
