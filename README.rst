@@ -38,7 +38,7 @@ example, relational or object-oriented databases.
 State-of-the-art compression
 ----------------------------
 
-PyTables support the `Blosc compressor <http://www.blosc.org>`_ out of the box.
+PyTables supports the `Blosc compressor <http://www.blosc.org>`_ out of the box.
 This allows for extremely high compression speed, while keeping decent
 compression ratios. By doing so, I/O can be accelerated by a large extent, and
 you may end up achieving higher performance than the bandwidth provided by your
