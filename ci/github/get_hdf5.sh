@@ -5,8 +5,10 @@ set -e -x
 
 PROJECT_DIR="$(pwd)"
 EXTRA_MPI_FLAGS=''
+EXTRA_SERIAL_FLAGS=""
 if [ -z ${HDF5_MPI+x} ]; then
     echo "Building serial"
+    EXTRA_SERIAL_FLAGS="--enable-threadsafe"
 else
     echo "Building with MPI"
     EXTRA_MPI_FLAGS="--enable-parallel --enable-shared"
@@ -123,7 +125,7 @@ if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then
     patch -p0 < "$PROJECT_DIR/ci/osx_cross_configure.patch"
     patch -p0 < "$PROJECT_DIR/ci/osx_cross_src_makefile.patch"
 
-    ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production \
+    ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" "$EXTRA_SERIAL_FLAGS" --enable-build-mode=production \
         --host=aarch64-apple-darwin --enable-tests=no
 
     mkdir -p native-build/bin
@@ -133,7 +135,7 @@ if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then
     popd
     export PATH=$(pwd)/native-build/bin:$PATH
 else
-    ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
+    ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" "$EXTRA_SERIAL_FLAGS" --enable-build-mode=production
 fi
 make -j "$NPROC"
 make install
