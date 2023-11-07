@@ -8,7 +8,7 @@ EXTRA_MPI_FLAGS=''
 EXTRA_SERIAL_FLAGS=""
 if [ -z ${HDF5_MPI+x} ]; then
     echo "Building serial"
-    EXTRA_SERIAL_FLAGS="--enable-threadsafe"
+    EXTRA_SERIAL_FLAGS="--enable-threadsafe --enable-unsupported"
 else
     echo "Building with MPI"
     EXTRA_MPI_FLAGS="--enable-parallel --enable-shared"
