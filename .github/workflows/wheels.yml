@@ -2,6 +2,7 @@ name: Wheels
 
 # Publish when a (published) GitHub Release is created.
 on:
+  pull_request:
   push:
     branches:
       - master
