@@ -65,7 +65,7 @@ herr_t get_blosc2_slice(char *filename,
                         const int rank,
                         hsize_t *slice_start,
                         hsize_t *slice_stop,
-                        const void *slice_data)
+                        void *slice_data)
 {
   herr_t retval = -1;
   hid_t space_id = -1;
@@ -77,14 +77,12 @@ herr_t get_blosc2_slice(char *filename,
   hsize_t *array_shape = NULL;
   int64_t *slice_shape = NULL;
   int64_t *chunks_in_array = NULL;
-  int64_t *slice_strides = NULL;
   int64_t *chunks_in_array_strides = NULL;
   int64_t *slice_chunks_start = NULL;
   int64_t *slice_chunks_shape = NULL;
   int64_t *slice_chunk_pos = NULL;
   hsize_t *chunk_start = NULL;
   hsize_t *chunk_stop = NULL;
-  int64_t *chunk_slice_strides = NULL;
   int64_t *start_in_stored_chunk = NULL;
   int64_t *stop_in_stored_chunk = NULL;
   int64_t *chunk_slice_shape = NULL;
@@ -125,13 +123,10 @@ herr_t get_blosc2_slice(char *filename,
                           + ((array_shape[i] % chunk_shape[i]) ? 1 : 0));
   }
 
-  /* Compute slice and chunk strides */
-  slice_strides = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
+  /* Compute chunk strides */
   chunks_in_array_strides = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
-  slice_strides[rank - 1] = 1;
   chunks_in_array_strides[rank - 1] = 1;
   for (int i = rank - 2; i >= 0; --i) {
-    slice_strides[i] = slice_strides[i + 1] * slice_shape[i + 1];
     chunks_in_array_strides[i] = chunks_in_array_strides[i + 1] * chunks_in_array[i + 1];
   }
 
@@ -156,7 +151,6 @@ herr_t get_blosc2_slice(char *filename,
   slice_chunk_pos = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in chunks
   chunk_start = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
   chunk_stop = (hsize_t *)(malloc(rank * sizeof(hsize_t)));  // in items
-  chunk_slice_strides = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
   start_in_stored_chunk = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
   stop_in_stored_chunk = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
   chunk_slice_shape = (int64_t *)(malloc(rank * sizeof(int64_t)));  // in items
@@ -216,22 +210,11 @@ herr_t get_blosc2_slice(char *filename,
                     rv - 50);
 
     /* Copy from temp chunk slice to slice data */
-    chunk_slice_strides[rank - 1] = 1;
-    for (int i = rank - 2; i >= 0; --i) {
-      chunk_slice_strides[i] = chunk_slice_strides[i + 1] * chunk_slice_shape[i + 1];
-    }
-    int64_t chunk_slice_start_idx = -1;
-    blosc2_multidim_to_unidim((int64_t*)(chunk_slice_start), rank, slice_strides, &chunk_slice_start_idx);
-    uint8_t *chunk_line = (uint8_t*)(slice_data) + (chunk_slice_start_idx * typesize);
-    uint8_t *chunk_slice_line = chunk_slice_data;
-    for (int i = chunk_slice_start[0]; i < chunk_slice_stop[0]; i++) {
-        /* As the temporary chunk slice has no other chunks around it,
-           its main stride is the number of items to be copied per chunk line. */
-        memcpy(chunk_line, chunk_slice_line, chunk_slice_strides[0] * typesize);
-
-        chunk_line += slice_strides[0] * typesize;
-        chunk_slice_line += chunk_slice_strides[0] * typesize;
-    }
+    const int64_t zero_coords[B2ND_MAX_DIM] = {0};
+    b2nd_copy_buffer(rank, typesize,
+                     chunk_slice_data, chunk_slice_shape,
+                     zero_coords, chunk_slice_shape,
+                     slice_data, slice_shape, chunk_slice_start);
 
     assert(chunk_slice_data);
     free(chunk_slice_data);
@@ -251,14 +234,12 @@ herr_t get_blosc2_slice(char *filename,
   if (chunk_slice_shape) free(chunk_slice_shape);
   if (stop_in_stored_chunk) free(stop_in_stored_chunk);
   if (start_in_stored_chunk) free(start_in_stored_chunk);
-  if (chunk_slice_strides) free(chunk_slice_strides);
   if (chunk_stop) free(chunk_stop);
   if (chunk_start) free(chunk_start);
   if (slice_chunk_pos) free(slice_chunk_pos);
   if (slice_chunks_shape) free(slice_chunks_shape);
   if (slice_chunks_start) free(slice_chunks_start);
   if (chunks_in_array_strides) free(chunks_in_array_strides);
-  if (slice_strides) free(slice_strides);
   if (chunks_in_array) free(chunks_in_array);
   if (slice_shape) free(slice_shape);
   if (array_shape) free(array_shape);

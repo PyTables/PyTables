@@ -838,6 +838,31 @@ class Blosc2PastLastChunkOptTestCase(Blosc2PastLastChunkTestCase):
     byteorder = sys.byteorder
 
 
+# Minimal test which can be figured out manually::
+#
+#     z  Data: 1   Chunk0:   Chunk1: 1   Slice:
+#    /        /|\                    |\
+#   |\       0 5 3       0           5 3        5
+#   x y      |X X|       |\           \|       / \
+#            4 2 7       4 2           7      4   7
+#             \|/         \|                   \ /
+#              6           6                    6
+#
+#                  Chunk0 & Slice: 4   Chunk1 & Slice: 5
+#                                   \                   \
+#                                    6                   7
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2Ndim3MinChunkOptTestCase(BasicTestCase):
+    shape = (2, 2, 2)
+    compress = 1
+    complib = "blosc2"
+    chunkshape = (2, 2, 1)
+    byteorder = sys.byteorder
+    type = 'int8'
+    slices = (slice(1, 2), slice(0, 2), slice(0, 2))
+
+
 @common.unittest.skipIf(not common.blosc2_avail,
                         'BLOSC2 compression library not available')
 class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
@@ -852,7 +877,7 @@ class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc2_avail,
                         'BLOSC2 compression library not available')
-class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
+class Blosc2Ndim4ChunkOptTestCase(BasicTestCase):
     shape = (13, 13, 13, 3)
     compress = 1
     complib = "blosc2"
@@ -860,6 +885,75 @@ class Blosc2Ndim3ChunkOptTestCase(BasicTestCase):
     byteorder = sys.byteorder
     type = 'int32'
     slices = (slice(0, 8), slice(7, 13), slice(3, 12), slice(1, 3))
+
+
+# The file used in the test below is created with this script,
+# producing a chunked array that lacks chunk rank/shape in filter args.
+# It is a reduced version of ``examples/direct-chunk-shape.py``,
+# check there for more info and the assemblage of the data array.
+# An h5py release is used which contains a version of hdf5-blosc2
+# that does not include chunk rank/shape in filter arguments.
+#
+# ::
+#
+#   import blosc2
+#   import h5py
+#   import hdf5plugin
+#   import numpy
+#
+#   assert(hdf5plugin.version_info < (4, 2, 1))
+#
+#   fparams = hdf5plugin.Blosc2(cname='zstd', clevel=1,
+#                               filters=hdf5plugin.Blosc2.SHUFFLE)
+#   cparams = {
+#       "codec": blosc2.Codec.ZSTD,
+#       "clevel": 1,
+#       "filters": [blosc2.Filter.SHUFFLE],
+#   }
+#
+#   achunk = numpy.arange(4 * 4, dtype='int8').reshape((4, 4))
+#   adata = numpy.zeros((6, 6), dtype=achunk.dtype)
+#   adata[0:4, 0:4] = achunk[:, :]
+#   adata[0:4, 4:6] = achunk[:, 0:2]
+#   adata[4:6, 0:4] = achunk[0:2, :]
+#   adata[4:6, 4:6] = achunk[0:2, 0:2]
+#
+#   h5f = h5py.File("b2nd-no-chunkshape.h5", "w")
+#   dataset = h5f.create_dataset(
+#       "data", adata.shape, dtype=adata.dtype, chunks=achunk.shape,
+#       **fparams)
+#   b2chunk = blosc2.asarray(achunk,
+#                            chunks=achunk.shape, blocks=achunk.shape,
+#                            cparams=cparams)
+#   b2frame = b2chunk._schunk.to_cframe()
+#   dataset.id.write_direct_chunk((0, 0), b2frame)
+#   dataset.id.write_direct_chunk((0, 4), b2frame)
+#   dataset.id.write_direct_chunk((4, 0), b2frame)
+#   dataset.id.write_direct_chunk((4, 4), b2frame)
+#   h5f.close()
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
+class Blosc2NDNoChunkshape(common.TestFileMixin,
+                           common.PyTablesTestCase):
+    h5fname = common.test_filename('b2nd-no-chunkshape.h5')
+
+    adata = np.array(
+        [[ 0,  1,  2,  3,     0,  1],
+         [ 4,  5,  6,  7,     4,  5],
+         [ 8,  9, 10, 11,     8,  9],
+         [12, 13, 14, 15,    12, 13],
+
+         [ 0,  1,  2,  3,     0,  1],
+         [ 4,  5,  6,  7,     4,  5]],
+        dtype='int8')
+
+    def test_data_opt(self):
+        array = self.h5file.get_node('/data')
+        self.assertTrue(common.areArraysEqual(array[:], self.adata[:]))
+
+    def test_data_filter(self):
+        array = self.h5file.get_node('/data')
+        self.assertTrue(common.areArraysEqual(array[::2], self.adata[::2]))
 
 
 @common.unittest.skipIf(not common.lzo_avail,
@@ -2843,6 +2937,10 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(Blosc2CrossChunkOptTestCase))
         theSuite.addTest(common.unittest.makeSuite(Blosc2PastLastChunkTestCase))
         theSuite.addTest(common.unittest.makeSuite(Blosc2PastLastChunkOptTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2Ndim3MinChunkOptTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2Ndim3ChunkOptTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2Ndim4ChunkOptTestCase))
+        theSuite.addTest(common.unittest.makeSuite(Blosc2NDNoChunkshape))
         theSuite.addTest(common.unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(common.unittest.makeSuite(LZOShuffleTestCase))
         theSuite.addTest(common.unittest.makeSuite(Bzip2ComprTestCase))
