@@ -17,6 +17,11 @@ XXX version-specific blurb XXX
   `b2nd_copy_buffer` function).
 
 
+Improvements
+------------
+
+- PyTables wheels now use a threadsafe installation of the hdf5 library.
+
 Changes from 3.9.0 to 3.9.1
 ===========================
 

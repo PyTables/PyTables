@@ -256,12 +256,12 @@ cdef object get_attribute_string_or_none(hid_t node_id, char* attr_name):
     size = H5ATTRget_attribute_string(node_id, attr_name, &attr_value, &cset)
     if size == 0:
       if cset == H5T_CSET_UTF8:
-        retvalue = np.unicode_('')
+        retvalue = np.str_('')
       else:
         retvalue = np.bytes_(b'')
     elif cset == H5T_CSET_UTF8:
       retvalue = PyUnicode_DecodeUTF8(attr_value, size, NULL)
-      retvalue = np.unicode_(retvalue)
+      retvalue = np.str_(retvalue)
     else:
       retvalue = PyBytes_FromStringAndSize(attr_value, size)
       # AV: oct 2012
@@ -786,13 +786,13 @@ cdef class AttributeSet:
                                              &cset)
       if type_size == 0:
         if cset == H5T_CSET_UTF8:
-          retvalue = np.unicode_('')
+          retvalue = np.str_('')
         else:
           retvalue = np.bytes_(b'')
 
       elif cset == H5T_CSET_UTF8:
         retvalue = PyUnicode_DecodeUTF8(str_value, type_size, NULL)
-        retvalue = np.unicode_(retvalue)
+        retvalue = np.str_(retvalue)
       else:
         retvalue = PyBytes_FromStringAndSize(str_value, type_size)
         # AV: oct 2012

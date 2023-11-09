@@ -452,7 +452,7 @@ class TableReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.read(field=colname)
             typecol = table.coltypes[colname]
-            nctypecode = np.sctypeDict[numcol.dtype.char[0]]
+            nctypecode = np.dtype(numcol.dtype.char[0]).type
             if typecol != "string":
                 if common.verbose:
                     print("Typecode of NumPy column read:", nctypecode)

@@ -1,5 +1,6 @@
 import sys
 
+from packaging.version import parse as parse_version
 import numpy as np
 
 import tables as tb
@@ -311,7 +312,10 @@ def suite():
     theSuite = common.unittest.TestSuite()
 
     for i in range(1):
-        theSuite.addTest(doctest.DocTestSuite(tb.atom))
+        # TODO: in numpy 2 the repr of various dtypes has changed breaking the
+        # doctests. When only numpy 2 is supported re-enable these tests.
+        if parse_version(np.__version__) < parse_version("2.dev0"):
+            theSuite.addTest(doctest.DocTestSuite(tb.atom))
         theSuite.addTest(common.unittest.makeSuite(AtomTestCase))
         theSuite.addTest(common.unittest.makeSuite(RangeTestCase))
         theSuite.addTest(common.unittest.makeSuite(DtypeTestCase))
