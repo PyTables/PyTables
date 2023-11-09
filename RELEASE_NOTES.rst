@@ -13,6 +13,9 @@ Changes from 3.9.1 to 3.9.2
 
 XXX version-specific blurb XXX
 
+- Require python-blosc2 >= 2.3.0 or c-blosc2 >= 2.11.0 (support for the
+  `b2nd_copy_buffer` function).
+
 
 Changes from 3.9.0 to 3.9.1
 ===========================
