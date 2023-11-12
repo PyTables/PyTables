@@ -189,7 +189,7 @@ def keysort(ndarray array1, ndarray array2):
         raise ValueError("Unknown array datatype")
 
 
-cdef inline void swap_bytes(char *x, char *y, size_t n) nogil:
+cdef inline void swap_bytes(char *x, char *y, size_t n) noexcept nogil:
     if n == 8:
         (<npy_int64*>x)[0], (<npy_int64*>y)[0] = (<npy_int64*>y)[0], (<npy_int64*>x)[0]
     elif n == 4:

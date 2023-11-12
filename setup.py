@@ -776,30 +776,7 @@ if __name__ == "__main__":
     # Force the 1.8.x HDF5 API even if the library as been compiled to use the
     # 1.6.x API by default
     CFLAGS.extend([
-        "-DH5_USE_18_API",
-        "-DH5Acreate_vers=2",
-        "-DH5Aiterate_vers=2",
-        "-DH5Dcreate_vers=2",
-        "-DH5Dopen_vers=2",
-        "-DH5Eclear_vers=2",
-        "-DH5Eprint_vers=2",
-        "-DH5Epush_vers=2",
-        "-DH5Eset_auto_vers=2",
-        "-DH5Eget_auto_vers=2",
-        "-DH5Ewalk_vers=2",
-        "-DH5E_auto_t_vers=2",
-        "-DH5Gcreate_vers=2",
-        "-DH5Gopen_vers=2",
-        "-DH5Pget_filter_vers=2",
-        "-DH5Pget_filter_by_id_vers=2",
-        # "-DH5Pinsert_vers=2",
-        # "-DH5Pregister_vers=2",
-        # "-DH5Rget_obj_type_vers=2",
-        "-DH5Tarray_create_vers=2",
-        # "-DH5Tcommit_vers=2",
-        "-DH5Tget_array_dims_vers=2",
-        # "-DH5Topen_vers=2",
-        "-DH5Z_class_t_vers=2",
+        "-DH5_USE_110_API",
     ])
 
     # H5Oget_info_by_name seems to have performance issues (see gh-402), so we

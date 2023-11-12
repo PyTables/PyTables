@@ -486,7 +486,7 @@ cdef extern from "hdf5.h" nogil:
   # Operations on the references
   H5I_type_t H5Iget_type(hid_t id)
   herr_t H5Rcreate(void *reference, hid_t loc_id, const char *name, H5R_type_t type, hid_t space_id)
-  hid_t H5Rdereference(hid_t dset, H5R_type_t rtype, void *reference)
+  hid_t H5Rdereference(hid_t dset, hid_t oapl_id, H5R_type_t rtype, const void *reference)
   herr_t H5Oclose( hid_t object_id )
 
 

@@ -1456,7 +1456,7 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
   try:
 
     for i in range(<long>nelements):
-      refobj_id = H5Rdereference(dataset_id, H5R_OBJECT, &refbuf[i])
+      refobj_id = H5Rdereference(dataset_id, H5P_DEFAULT, H5R_OBJECT, &refbuf[i])
       if H5Iget_type(refobj_id) != H5I_DATASET:
         raise ValueError('Invalid reference type %d %d' % (H5Iget_type(refobj_id), item_size))
       disk_type_id = H5Dget_type(refobj_id)
