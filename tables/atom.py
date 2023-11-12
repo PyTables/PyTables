@@ -264,15 +264,15 @@ class Atom(metaclass=MetaAtom):
             >>> atom1 = StringAtom(itemsize=10)  # same as ``atom2``
             >>> atom2 = Atom.from_kind('string', 10)  # same as ``atom1``
             >>> atom3 = IntAtom()
-            >>> atom1 == 'foo'
+            >>> bool(atom1 == 'foo')
             False
-            >>> atom1 == atom2
+            >>> bool(atom1 == atom2)
             True
-            >>> atom2 != atom1
+            >>> bool(atom2 != atom1)
             False
-            >>> atom1 == atom3
+            >>> bool(atom1 == atom3)
             False
-            >>> atom3 != atom2
+            >>> bool(atom3 != atom2)
             True
 
     """
