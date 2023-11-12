@@ -777,6 +777,7 @@ if __name__ == "__main__":
     # 1.6.x API by default
     CFLAGS.extend([
         "-DH5_USE_110_API",
+        "-DH5Rdereference_vers=2",
     ])
 
     # H5Oget_info_by_name seems to have performance issues (see gh-402), so we
