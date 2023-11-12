@@ -76,7 +76,7 @@ jobs:
         python -m pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple '${{ matrix.numpy }}'
         # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
         # conda install sphinx sphinx_rtd_theme numpydoc ipython
-    - name: Get source distrubtion
+    - name: Get source distribution
       uses: actions/download-artifact@v3
       with:
         name: tables-sdist
