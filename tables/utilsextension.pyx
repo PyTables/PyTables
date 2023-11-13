@@ -85,7 +85,7 @@ from .definitions cimport (H5ARRAYget_info, H5ARRAYget_ndims,
   create_ieee_float16, create_ieee_complex192, create_ieee_complex256,
   get_len_of_range, get_order, herr_t, hid_t, hsize_t,
   hssize_t, htri_t, is_complex, register_blosc, register_blosc2, set_order,
-  pt_H5free_memory, H5T_STD_REF_OBJ, H5Rdereference, H5R_OBJECT, H5I_DATASET, H5I_REFERENCE,
+  H5free_memory, H5T_STD_REF_OBJ, H5Rdereference, H5R_OBJECT, H5I_DATASET, H5I_REFERENCE,
   H5Iget_type, hobj_ref_t, H5Oclose)
 
 
@@ -419,14 +419,6 @@ def silence_hdf5_messages(silence=True):
 silence_hdf5_messages()
 
 
-def _broken_hdf5_long_double():
-    # HDF5 < 1.8.12 has a bug that prevents correct identification of the
-    # long double data type when the code is built with gcc 4.8.
-    # See also: http://hdf-forum.184993.n3.nabble.com/Issues-with-H5T-NATIVE-LDOUBLE-tt4026450.html
-
-    return H5Tget_order(H5T_NATIVE_DOUBLE) != H5Tget_order(H5T_NATIVE_LDOUBLE)
-
-
 # Helper functions
 cdef hsize_t *malloc_dims(object pdims):
   """Return a malloced hsize_t dims from a python pdims."""
@@ -463,6 +455,7 @@ cdef hid_t get_native_float_type(hid_t type_id) nogil:
   return native_type_id
 
 
+# TODO: simplify this routine (now PyTables requires HDF5 >= 1.10.5)
 # This routine is more complex than required because HDF5 1.6.x does
 # not implement support for H5Tget_native_type with some types, like
 # H5T_BITFIELD and probably others.  When 1.8.x would be a requisite,
@@ -861,8 +854,8 @@ def which_class(hid_t loc_id, object name):
            (strcmp(field_name1, "r") == 0 and
             strcmp(field_name2, "i") == 0) ):
         iscomplex = True
-      pt_H5free_memory(<void *>field_name1)
-      pt_H5free_memory(<void *>field_name2)
+      H5free_memory(<void *>field_name1)
+      H5free_memory(<void *>field_name2)
     if layout == H5D_CHUNKED:
       if iscomplex:
         classId = "CARRAY"
@@ -1064,7 +1057,7 @@ def enum_from_hdf5(hid_t enumId, str byteorder):
 
     pyename = cstr_to_pystr(ename)
 
-    pt_H5free_memory(ename)
+    H5free_memory(ename)
 
     if H5Tget_member_value(enumId, i, rbuf) < 0:
       raise HDF5ExtError(
@@ -1253,7 +1246,7 @@ def hdf5_to_np_nested_type(hid_t type_id):
 
     # Release resources
     H5Tclose(member_type_id)
-    pt_H5free_memory(c_colname)
+    H5free_memory(c_colname)
 
   return desc
 

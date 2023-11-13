@@ -210,9 +210,8 @@ class ReadFloatTestCase(common.TestFileMixin, common.PyTablesTestCase):
                     ds = getattr(self.h5file.root, dtype)
                 self.assertIsInstance(ds, tb.UnImplemented)
             except AssertionError:
-                if not tb.utilsextension._broken_hdf5_long_double():
-                    ds = getattr(self.h5file.root, dtype)
-                    self.assertEqual(ds.dtype, "float64")
+                ds = getattr(self.h5file.root, dtype)
+                self.assertEqual(ds.dtype, "float64")
 
     def test05_read_quadprecision_float(self):
         # XXX: check

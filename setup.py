@@ -827,16 +827,6 @@ if __name__ == "__main__":
                     f"required. Found version v{hdf5_version}"
                 )
 
-            if os.name == "nt" and hdf5_version < Version("1.8.10"):
-                # Change in DLL naming happened in 1.8.10
-                hdf5_old_dll_name = "hdf5dll" if not debug else "hdf5ddll"
-                package.library_name = hdf5_old_dll_name
-                package.runtime_name = hdf5_old_dll_name
-                _platdep["HDF5"] = [hdf5_old_dll_name, hdf5_old_dll_name]
-                _, libdir, rundir = package.find_directories(
-                    location, use_pkgconfig=USE_PKGCONFIG, hook=hook
-                )
-
         # check if the library is in the standard compiler paths
         if not libdir and package.target_function:
             libdir = compiler.has_function(

@@ -583,8 +583,8 @@ int is_complex(hid_t type_id) {
         if (class1 == H5T_FLOAT && class2 == H5T_FLOAT)
           result = 1;
       }
-      pt_H5free_memory(colname1);
-      pt_H5free_memory(colname2);
+      H5free_memory(colname1);
+      H5free_memory(colname2);
     }
   }
   /* Is an Array of Complex? */
@@ -984,26 +984,3 @@ herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
 
 #endif /* H5_HAVE_WINDOWS */
 
-
-#if (H5_HAVE_IMAGE_FILE != 1)
-/* HDF5 version < 1.8.9 */
-
-herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len) {
- return -1;
-}
-
-ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len) {
- return -1;
-}
-
-#endif /* (H5_HAVE_IMAGE_FILE != 1) */
-
-
-#if H5_VERSION_LE(1,8,12)
-
-herr_t pt_H5free_memory(void *buf) {
- free(buf);
- return 0;
-}
-
-#endif

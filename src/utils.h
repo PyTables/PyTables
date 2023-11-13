@@ -43,22 +43,7 @@
 #define H5_HAVE_DIRECT_DRIVER 0
 #endif
 
-#if (H5_VERS_MAJOR == 1 && H5_VERS_MINOR == 8 && H5_VERS_RELEASE >= 9) || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR > 8)
-/* HDF5 version >= 1.8.9 */
 #define H5_HAVE_IMAGE_FILE 1
-#else
-/* HDF5 version < 1.8.9 */
-#define H5_HAVE_IMAGE_FILE 0
-#endif
-
-/* COMAPTIBILITY: H5_VERSION_LE has been introduced in HDF5 1.8.7 */
-#ifndef H5_VERSION_LE
-#define H5_VERSION_LE(Maj,Min,Rel) \
-       (((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR==Min) && (H5_VERS_RELEASE<=Rel)) || \
-        ((H5_VERS_MAJOR==Maj) && (H5_VERS_MINOR<Min)) || \
-        (H5_VERS_MAJOR<Maj))
-#endif
-
 
 /* Use %ld to print the value because long should cover most cases. */
 /* Used to make certain a return value _is_not_ a value */
@@ -138,21 +123,3 @@ herr_t pt_H5Pset_fapl_windows(hid_t fapl_id);
 #else /* H5_HAVE_WINDOWS */
 #define pt_H5Pset_fapl_windows H5Pset_fapl_windows
 #endif /* H5_HAVE_WINDOWS */
-
-
-#if (H5_HAVE_IMAGE_FILE != 1)
-/* HDF5 version >= 1.8.9 */
-herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len);
-ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len);
-#else /* (H5_HAVE_IMAGE_FILE != 1) */
-/* HDF5 version < 1.8.9 */
-#define pt_H5Pset_file_image H5Pset_file_image
-#define pt_H5Fget_file_image H5Fget_file_image
-#endif /* (H5_HAVE_IMAGE_FILE != 1) */
-
-
-#if H5_VERSION_LE(1,8,12)
-herr_t pt_H5free_memory(void *buf);
-#else
-#define pt_H5free_memory H5free_memory
-#endif

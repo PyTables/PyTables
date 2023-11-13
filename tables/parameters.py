@@ -412,8 +412,6 @@ returned file object is set up using the specified image.
 A file image can be retrieved from an existing (and opened) file object
 using the :meth:`tables.File.get_file_image` method.
 
-.. note:: requires HDF5 >= 1.8.9.
-
 .. versionadded:: 3.0
 
 """

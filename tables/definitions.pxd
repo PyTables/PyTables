@@ -308,7 +308,7 @@ cdef extern from "hdf5.h" nogil:
                          unsigned relnum )
 
   # misc
-  #herr_t H5free_memory(void *buf)  # new in HDF5 1.8.13
+  herr_t H5free_memory(void *buf)
 
   # Operations with files
   hid_t  H5Fcreate(char *filename, unsigned int flags,
@@ -539,9 +539,6 @@ cdef extern from "utils.h" nogil:
   herr_t pt_H5Pset_fapl_direct(hid_t fapl_id, size_t alignment,
                                size_t block_size, size_t cbuf_size)
   herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
-  herr_t pt_H5Pset_file_image(hid_t fapl_id, void *buf_ptr, size_t buf_len)
-  ssize_t pt_H5Fget_file_image(hid_t file_id, void *buf_ptr, size_t buf_len)
-  herr_t pt_H5free_memory(void *buf)
 
   int H5_HAVE_DIRECT_DRIVER, H5_HAVE_WINDOWS_DRIVER, H5_HAVE_IMAGE_FILE
 
