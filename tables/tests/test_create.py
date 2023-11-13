@@ -1753,8 +1753,6 @@ class DefaultDriverTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(root.table2.cols.var2.dtype, tb.FloatCol().dtype)
 
 
-@common.unittest.skipIf(common.hdf5_version < Version("1.8.9"),
-                        "requires HDF5 >= 1.8,9")
 class Sec2DriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_SEC2"
     open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
@@ -1765,8 +1763,6 @@ class Sec2DriverTestCase(DefaultDriverTestCase):
         self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
-@common.unittest.skipIf(common.hdf5_version < Version("1.8.9"),
-                        "requires HDF5 >= 1.8,9")
 class StdioDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_STDIO"
     open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
@@ -1777,8 +1773,6 @@ class StdioDriverTestCase(DefaultDriverTestCase):
         self.assertEqual([i for i in image[:4]], [137, 72, 68, 70])
 
 
-@common.unittest.skipIf(common.hdf5_version < Version("1.8.9"),
-                        "requires HDF5 >= 1.8,9")
 class CoreDriverTestCase(DefaultDriverTestCase):
     DRIVER = "H5FD_CORE"
     open_kwargs = dict(driver=DRIVER, **DefaultDriverTestCase.DRIVER_PARAMS)
@@ -2006,8 +2000,6 @@ class CoreDriverNoBackingStoreTestCase(common.PyTablesTestCase):
         # ensure that there is no change on the file on disk
         self.assertEqual(hexdigest, self._get_digest(self.h5fname))
 
-    @common.unittest.skipIf(common.hdf5_version < Version("1.8.9"),
-                            'HDF5 >= "1.8.9" required')
     def test_get_file_image(self):
         self.h5file = tb.open_file(self.h5fname, mode="w",
                                    driver=self.DRIVER,
@@ -2149,8 +2141,6 @@ class StreamDriverTestCase(NotSpportedDriverTestCase):
     DRIVER = "H5FD_STREAM"
 
 
-@common.unittest.skipIf(common.hdf5_version < Version("1.8.9"),
-                        'HDF5 >= "1.8.9" required')
 class InMemoryCoreDriverTestCase(common.PyTablesTestCase):
     DRIVER = "H5FD_CORE"
 

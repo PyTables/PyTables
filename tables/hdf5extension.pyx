@@ -98,7 +98,7 @@ from .definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   get_len_of_range, conv_float64_timeval32, truncate_dset,
   H5_HAVE_DIRECT_DRIVER, pt_H5Pset_fapl_direct,
   H5_HAVE_WINDOWS_DRIVER, pt_H5Pset_fapl_windows,
-  H5_HAVE_IMAGE_FILE, pt_H5Pset_file_image, pt_H5Fget_file_image,
+  H5_HAVE_IMAGE_FILE, H5Pset_file_image, H5Fget_file_image,
   H5Tget_size, hobj_ref_t)
 
 cdef int H5T_CSET_DEFAULT = 16
@@ -382,9 +382,6 @@ cdef class File:
                       "the '%s' driver" % driver)
       elif not PyBytes_Check(image):
         raise TypeError("The DRIVER_CORE_IMAGE must be a string of bytes")
-      elif not H5_HAVE_IMAGE_FILE:
-        raise RuntimeError("Support for image files is only available in "
-                           "HDF5 >= 1.8.9")
 
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
@@ -469,7 +466,7 @@ cdef class File:
       if image:
         img_buf_len = len(image)
         img_buf_p = <void *>PyBytes_AsString(image)
-        err = pt_H5Pset_file_image(access_plist, img_buf_p, img_buf_len)
+        err = H5Pset_file_image(access_plist, img_buf_p, img_buf_len)
         if err < 0:
           H5Pclose(create_plist)
           H5Pclose(access_plist)
@@ -528,8 +525,6 @@ cdef class File:
   def get_file_image(self):
     """Retrieves an in-memory image of an existing, open HDF5 file.
 
-    .. note:: this method requires HDF5 >= 1.8.9.
-
     .. versionadded:: 3.0
 
     """
@@ -542,7 +537,7 @@ cdef class File:
     self.flush()
 
     # retrieve the size of the buffer for the file image
-    size = pt_H5Fget_file_image(self.file_id, NULL, buf_len)
+    size = H5Fget_file_image(self.file_id, NULL, buf_len)
     if size < 0:
       raise HDF5ExtError("Unable to retrieve the size of the buffer for the "
                          "file image.  Plese note that not all drivers "
@@ -555,7 +550,7 @@ cdef class File:
 
     cimage = image
     buf_len = size
-    size = pt_H5Fget_file_image(self.file_id, <void*>cimage, buf_len)
+    size = H5Fget_file_image(self.file_id, <void*>cimage, buf_len)
     if size < 0:
       raise HDF5ExtError("Unable to retrieve the file image. "
                          "Plese note that not all drivers provide support "

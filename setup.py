@@ -763,7 +763,7 @@ if __name__ == "__main__":
             libdir = ctypes.util.find_library(
                 "hdf5_D.dll"
             ) or ctypes.util.find_library("hdf5ddll.dll")
-        # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.8.8\\bin\\hdf5dll.dll'
+        # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.10.2\\bin\\hdf5dll.dll'
         if libdir:
             # Strip off the filename and the 'bin' directory
             HDF5_DIR = Path(libdir).parent.parent
@@ -773,33 +773,11 @@ if __name__ == "__main__":
     # the Cython extensions
     CFLAGS.append("-Isrc")
 
-    # Force the 1.8.x HDF5 API even if the library as been compiled to use the
+    # Force the 1.10.x HDF5 API even if the library as been compiled to use the
     # 1.6.x API by default
     CFLAGS.extend([
-        "-DH5_USE_18_API",
-        "-DH5Acreate_vers=2",
-        "-DH5Aiterate_vers=2",
-        "-DH5Dcreate_vers=2",
-        "-DH5Dopen_vers=2",
-        "-DH5Eclear_vers=2",
-        "-DH5Eprint_vers=2",
-        "-DH5Epush_vers=2",
-        "-DH5Eset_auto_vers=2",
-        "-DH5Eget_auto_vers=2",
-        "-DH5Ewalk_vers=2",
-        "-DH5E_auto_t_vers=2",
-        "-DH5Gcreate_vers=2",
-        "-DH5Gopen_vers=2",
-        "-DH5Pget_filter_vers=2",
-        "-DH5Pget_filter_by_id_vers=2",
-        # "-DH5Pinsert_vers=2",
-        # "-DH5Pregister_vers=2",
-        # "-DH5Rget_obj_type_vers=2",
-        "-DH5Tarray_create_vers=2",
-        # "-DH5Tcommit_vers=2",
-        "-DH5Tget_array_dims_vers=2",
-        # "-DH5Topen_vers=2",
-        "-DH5Z_class_t_vers=2",
+        "-DH5_USE_110_API",
+        "-DH5Rdereference_vers=2",
     ])
 
     # H5Oget_info_by_name seems to have performance issues (see gh-402), so we
@@ -847,16 +825,6 @@ if __name__ == "__main__":
                 exit_with_error(
                     f"Unsupported HDF5 version! HDF5 v{min_hdf5_version}+ "
                     f"required. Found version v{hdf5_version}"
-                )
-
-            if os.name == "nt" and hdf5_version < Version("1.8.10"):
-                # Change in DLL naming happened in 1.8.10
-                hdf5_old_dll_name = "hdf5dll" if not debug else "hdf5ddll"
-                package.library_name = hdf5_old_dll_name
-                package.runtime_name = hdf5_old_dll_name
-                _platdep["HDF5"] = [hdf5_old_dll_name, hdf5_old_dll_name]
-                _, libdir, rundir = package.find_directories(
-                    location, use_pkgconfig=USE_PKGCONFIG, hook=hook
                 )
 
         # check if the library is in the standard compiler paths

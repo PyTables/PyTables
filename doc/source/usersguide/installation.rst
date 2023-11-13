@@ -206,7 +206,7 @@ the relevant header files and libraries.
     :envvar:`BLOSC2_DIR` environment variables to the path to the particular
     resource.  For example::
 
-        set HDF5_DIR=c:\\stuff\\hdf5-1.8.5-32bit-VS2008-IVF101\\release
+        set HDF5_DIR=c:\\stuff\\hdf5-1.10.2-32bit-VS2008-IVF101\\release
         set BLOSC_DIR=c:\\Program Files (x86)\\Blosc
         set LZO_DIR=c:\\Program Files (x86)\\GnuWin32
         set BZIP2_DIR=c:\\Program Files (x86)\\GnuWin32
@@ -216,7 +216,7 @@ the relevant header files and libraries.
     setup.py command line.
     For example::
 
-        --hdf5=c:\\stuff\\hdf5-1.8.5-32bit-VS2008-IVF101\\release
+        --hdf5=c:\\stuff\\hdf5-1.10.1-32bit-VS2008-IVF101\\release
         --blosc=c:\\Program Files (x86)\\Blosc
         --lzo=c:\\Program Files (x86)\\GnuWin32
         --bzip2=c:\\Program Files (x86)\\GnuWin32

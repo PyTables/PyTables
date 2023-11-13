@@ -95,8 +95,7 @@ Memory images of HDF5 files
 ===========================
 
 It is possible to get a memory image of an HDF5 file (see
-`HDF5 File Image Operations`_).  This feature is only available if PyTables
-is build against version 1.8.9 or newer of the HDF5 library.
+`HDF5 File Image Operations`_).
 
 In particular getting a memory image of an HDF5 file is possible only if the
 file has been opened with one of the following drivers: SEC2 (the default
