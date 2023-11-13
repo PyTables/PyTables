@@ -763,7 +763,7 @@ if __name__ == "__main__":
             libdir = ctypes.util.find_library(
                 "hdf5_D.dll"
             ) or ctypes.util.find_library("hdf5ddll.dll")
-        # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.8.8\\bin\\hdf5dll.dll'
+        # Like 'C:\\Program Files\\HDF Group\\HDF5\\1.10.2\\bin\\hdf5dll.dll'
         if libdir:
             # Strip off the filename and the 'bin' directory
             HDF5_DIR = Path(libdir).parent.parent
@@ -773,7 +773,7 @@ if __name__ == "__main__":
     # the Cython extensions
     CFLAGS.append("-Isrc")
 
-    # Force the 1.8.x HDF5 API even if the library as been compiled to use the
+    # Force the 1.10.x HDF5 API even if the library as been compiled to use the
     # 1.6.x API by default
     CFLAGS.extend([
         "-DH5_USE_110_API",
