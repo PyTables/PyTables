@@ -66,13 +66,13 @@ dtype = np.dtype(np.float64)
 dset_size = math.prod(shape) * dtype.itemsize
 # Compression properties
 # (LZ4/8 provides a blocksize which fits in 2M L2,
-# see "examples/get_blocksize.c" in c-blosc2)
+# see "examples/get_blocksize.c" in C-Blosc2)
 clevel = 8
 cname = "lz4"
 nthreads = 8
 filter = blosc2.Filter.SHUFFLE
 cparams = {
-    "codec": blosc2.Codec.ZSTD,
+    "codec": blosc2.Codec.LZ4,
     "clevel": clevel,
     "filters": [filter],
     "filters_meta": [0],
