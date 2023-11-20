@@ -61,7 +61,7 @@ blocks = (3, 5, 10, 20)
 # chunks = (10, 25, 20,  5)
 # blocks = ( 3,  5, 10,  2)
 
-dtype = np.dtype(np.float64)
+dtype = np.dtype(np.int64)
 
 dset_size = math.prod(shape) * dtype.itemsize
 # Compression properties
@@ -94,12 +94,12 @@ if persistent:
     blosc2.remove_urlpath(fname_h5py)
 
 # Create datasets in different formats
-# content = np.random.normal(0, 1, int(np.prod(shape))).reshape(shape)
-# content = np.linspace(0, 1, int(np.prod(shape))).reshape(shape)
+# content = np.random.normal(0, 1, int(np.prod(shape)), dtype=dtype).reshape(shape)
+# content = np.linspace(0, 1, int(np.prod(shape)), dtype=dtype).reshape(shape)
 # (random numbers reduce the effect of similar values in deeper dimensions)
 rng = np.random.default_rng()
 size = np.prod(shape)
-content = rng.integers(low=0, high=10000, size=size, dtype=np.int64).reshape(shape)
+content = rng.integers(low=0, high=10000, size=size, dtype=dtype).reshape(shape)
 
 print("\nCreating datasets...")
 # Create and fill a NDArray
@@ -134,7 +134,7 @@ if persistent:
     h5pyf = h5py.File(fname_h5py, "w")
 else:
     h5pyf = h5py.File(fname_h5py, "w", driver="core", backing_store=False)
-h5d = h5pyf.create_dataset("dataset", dtype=dtype, data=content, chunks=chunks, **filters)
+h5d = h5pyf.create_dataset("dataset", dtype=content.dtype, data=content, chunks=chunks, **filters)
 t = time() - t0
 speed = dset_size / (t * 2**20)
 if persistent:
