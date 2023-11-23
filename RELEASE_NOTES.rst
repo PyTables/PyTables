@@ -11,16 +11,54 @@
 Changes from 3.9.1 to 3.9.2
 ===========================
 
-XXX version-specific blurb XXX
+Bugfixes
+--------
 
-- Require python-blosc2 >= 2.3.0 or c-blosc2 >= 2.11.0 (support for the
-  `b2nd_copy_buffer` function).
-
+- Fix the assembly of returned slice data in Blosc2 NDim optimized slice reads
+  by using Blosc2's `b2nd_copy_buffer` (:PR:`1078`).  The bug only showed up
+  when the chunk did not fully cover the innermost dimension.  Add unit tests
+  to ckeck for regressions, along with foreign-generated files, and enable and
+  fix Blosc2 NDim tests which were not being run.  Thanks to Ivan Vilata.
 
 Improvements
 ------------
 
-- PyTables wheels now use a threadsafe installation of the hdf5 library.
+- PyTables wheels now use a threadsafe build of the HDF5 library
+  (:issue:`1075` and :PR:`1077`).  Concurrent reads should be possible with no
+  need for additional locking or monkey-patching of the file open function.
+  Thanks to Kiet Pham.
+- Partial support for the future NumPy 2, with some tests still failing
+  (:PR:`1068`).  Thanks to Thomas Grainger.
+- Relax the reading of Blosc2 NDim to cope with datasets stored with other
+  tools (:PR:`1072`), e.g. missing chunk rank/shape in filter values, having
+  HDF5 chunks where the Blosc2 super-chunk contains more than one inner chunk,
+  or chunks with data not padded to the full chunk size (example script and
+  tests included).  Also enhance checks, comments and logged messages.  Thanks
+  to Ivan Vilata.
+
+Other changes
+-------------
+
+- Drop compatibility with the obsolete HDF5 1.8 API.  PyTables now requires at
+  least the 1.10 API (:PR:`1080`).  Thanks to Antonio Valentino.
+- Require python-blosc2 >= 2.3.0 or c-blosc2 >= 2.11.0 (which adds support for
+  the `b2nd_copy_buffer` function).
+- Use the main Conda Forge channel for Python 3.12 (:PR:`1066`).  Thanks to
+  Thomas Grainger.
+- Assorted fixes to the b2nd slicing benchmark.  Thanks to Ivan Vilata.
+- Assorted fixes to b2nd slicing optimization tips (:PR:`1069`).  Thanks to
+  Ivan Vilata.
+
+Thanks
+------
+
+In alphabetical order:
+
+- Antonio Valentino
+- Ivan Vilata
+- Kiet Pham
+- Thomas Grainger
+
 
 Changes from 3.9.0 to 3.9.1
 ===========================
