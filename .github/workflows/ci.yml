@@ -72,7 +72,7 @@ jobs:
         # "Prerequisites" in User's Guide,
         # ``build-system.requires`` in ``pyproject.toml``.
         conda install -q setuptools pip wheel build packaging numpy cython bzip2 hdf5 lzo
-        python -m pip install -r requirements.txt
+        python -m pip install --require-hashes -r requirements.txt
         python -m pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple '${{ matrix.numpy }}'
         # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
         # conda install sphinx sphinx_rtd_theme numpydoc ipython

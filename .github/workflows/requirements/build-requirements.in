@@ -1,0 +1,8 @@
+# Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
+setuptools>=61.0.0
+pip
+wheel
+build
+cython
+# deps not resolved
+importlib-metadata>=4.6
