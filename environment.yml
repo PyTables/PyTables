@@ -1,3 +1,23 @@
 name: PyTables
+channels:
+  - defaults
+  - conda-forge
 dependencies:
+  - setuptools
+  - pip
+  - wheel
+  - build
+  - packaging
+  - numpy
+  - cython
+  - bzip2
   - hdf5
+  - lzo
+  - blosc
+  - c-blosc2
+  - sphinx
+  - sphinx_rtd_theme
+  - numpydoc
+  - ipython
+  - pkg-config
+
