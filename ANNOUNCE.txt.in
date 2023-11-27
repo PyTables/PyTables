@@ -8,12 +8,7 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-This release of PyTables fixes some cases of Blosc2 NDim optimized slice
-reading which resulted in wrong data being returned.  Users of this
-feature are strongly recommended to upgrade.
-
-Also, wheels are now built with thread-safe HDF5 support, which should
-simplify the concurrent reading of files.
+XXX version-specific blurb XXX
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html
