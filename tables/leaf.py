@@ -1,14 +1,9 @@
 """Here is defined the Leaf class."""
-
+from functools import lru_cache
 import warnings
 import math
 
 import numpy as np
-try:
-    import cpuinfo
-    cpu_info = cpuinfo.get_cpu_info()
-except ImportError:
-    cpu_info = {}
 
 from .flavor import (check_flavor, internal_flavor, toarray,
                      alias_map as flavor_alias_map)
@@ -16,6 +11,15 @@ from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
 from .exceptions import PerformanceWarning
+
+
+@lru_cache(maxsize=1)
+def get_cpu_info():
+    try:
+        import cpuinfo
+        return cpuinfo.get_cpu_info()
+    except ImportError:
+        return {}
 
 
 def csformula(expected_mb):
@@ -334,6 +338,7 @@ class Leaf(Node):
             # Use a decent default value for chunksize
             chunksize *= 16
             # Now, go explore the L3 size and try to find a smarter chunksize
+            cpu_info = get_cpu_info()
             if 'l3_cache_size' in cpu_info:
                 # In general, is a good idea to set the chunksize equal to L3
                 l3_cache_size = cpu_info['l3_cache_size']
