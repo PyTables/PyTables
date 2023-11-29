@@ -52,7 +52,7 @@ jobs:
         # but have old or missing Ubuntu APT packages.
         # Do not use ``--upgrade`` here: we want to be sure whether we use system or PyPI packages.
         python3 -m pip install --user cython
-        python3 -m pip install --user -r requirements.txt
+        python3 -m pip install --require-hashes --user -r requirements.txt
         python3 -c "import numpy as np; print('numpy:', np.__version__)"
         python3 -c "import blosc2; print('blosc2:', blosc2.__version__)"
     - name: Build PyTables
