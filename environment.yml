@@ -1,3 +1,0 @@
-name: PyTables
-dependencies:
-  - hdf5
