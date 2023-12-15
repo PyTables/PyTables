@@ -368,7 +368,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
         if not Path(filename).is_absolute():
             # Resolve the external link with respect to the this
             # file's directory.  See #306.
-            filename = str(Path(self._v_file.filename).with_name(filename))
+            filename = str(Path(self._v_file.filename).parent / filename)
 
         if self.extfile is None or not self.extfile.isopen:
             self.extfile = tb.open_file(filename, **kwargs)
