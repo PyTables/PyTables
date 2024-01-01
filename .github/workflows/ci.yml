@@ -77,7 +77,7 @@ jobs:
         # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
         # conda install sphinx sphinx_rtd_theme numpydoc ipython
     - name: Get source distrubtion
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: tables-sdist
     - name: Installation
@@ -117,7 +117,7 @@ jobs:
         # ``build-system.requires`` in ``pyproject.toml``.
         conda install setuptools pip wheel build packaging py-cpuinfo numpy cython numexpr bzip2 hdf5 lzo 'typing_extensions<4.2' c-blosc2
     - name: Get source distrubtion
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: tables-sdist
     - name: Installation
