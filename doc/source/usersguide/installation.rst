@@ -187,7 +187,7 @@ the relevant header files and libraries.
 
       $ python3 setup.py build --use-pkgconfig=FALSE
 
-    or use the :envvar:`USE-PKGCONFIG` environment variable::
+    or use the :envvar:`USE_PKGCONFIG` environment variable::
 
       $ env USE_PKGCONFIG=FALSE python3 setup.py build
 
