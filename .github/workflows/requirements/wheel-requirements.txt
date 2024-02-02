@@ -164,9 +164,9 @@ charset-normalizer==3.3.2 \
     --hash=sha256:fd1abc0d89e30cc4e02e4064dc67fcc51bd941eb395c502aac3ec19fab46b519 \
     --hash=sha256:ff8fa367d09b717b2a17a052544193ad76cd49979c805768879cb63d9ca50561
     # via requests
-cibuildwheel==2.16.2 \
-    --hash=sha256:0f3472a1b927786f74ed3843e78d7cb368a2daeb904503b2129276a23b22f7be \
-    --hash=sha256:bbc86ca937d81745f43ab28fd378bff1c1eaf390370c2f3a6e8224290a50127e
+cibuildwheel==2.16.5 \
+    --hash=sha256:9fe763405afac4aef33eb8641891dda83312848ec18cd44e30daac34dfa9336d \
+    --hash=sha256:e9a0b743a57cf2a2861e1e580765fd70237689aeda6c79db4870ee688ee24d1f
     # via -r wheel-requirements.in
 cryptography==41.0.6 \
     --hash=sha256:068bc551698c234742c40049e46840843f3d98ad7ce265fd2bd4ec0d11306596 \
