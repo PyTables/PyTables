@@ -549,6 +549,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
       }
 
       blosc2_dparams dparams = BLOSC2_DPARAMS_DEFAULTS;
+      dparams.schunk = schunk;
       dctx = blosc2_create_dctx(dparams);
       status = blosc2_decompress_ctx(dctx, chunk, cbytes, outbuf, (int32_t) outbuf_size);
       if (status <= 0) {
