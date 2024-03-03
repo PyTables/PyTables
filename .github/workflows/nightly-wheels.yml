@@ -199,7 +199,7 @@ jobs:
         with:
           path: ./wheelhouse/*.whl
 
-  twine_check:
+  twine_check_and_upload:
     needs: [ build_sdist, build_wheels, build_wheels_windows ]
     name: Twine check
     runs-on: 'ubuntu-latest'
@@ -226,3 +226,10 @@ jobs:
       - name: Check sdist and wheels
         run: |
           python -m twine check wheelhouse/artifact/tables*.tar.gz wheelhouse/artifact/*.whl
+
+      - name: Upload wheel
+        uses: scientific-python/upload-nightly-action@b67d7fcc0396e1128a474d1ab2b48aa94680f9fc # 0.5.0
+        if: github.repository == 'PyTables/PyTables'
+        with:
+          artifacts_path: wheelhouse/artifact
+          anaconda_nightly_upload_token: ${{secrets.ANACONDA_ORG_UPLOAD_TOKEN}}
