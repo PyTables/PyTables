@@ -15,24 +15,18 @@ from .utils import byteorders, lazyattr, SizeType
 from .exceptions import PerformanceWarning
 
 
-def read_rc():
+def read_cached_cpu_info():
     try:
-        with open(Path.home() / '.pytablesrc.json', 'r') as f:
+        with open(Path.home() / '.pytables-cpuinfo.json', 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
 
 
-def read_cached_cpu_info():
-    return read_rc().get('cpu_info', {})
-
-
 def write_cached_cpu_info(cpu_info_dict):
     """ Update the cached CPU info in the rc file."""
-    rc = read_rc()
-    with open(Path.home() / '.pytablesrc.json', 'w') as f:
-        rc['cpu_info'] = cpu_info_dict
-        return json.dump(rc, f, indent=4)
+    with open(Path.home() / '.pytables-cpuinfo.json', 'w') as f:
+        return json.dump(cpu_info_dict, f, indent=4)
 
 
 @lru_cache(maxsize=1)
