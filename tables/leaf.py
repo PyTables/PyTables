@@ -1,7 +1,8 @@
 """Here is defined the Leaf class."""
-from functools import lru_cache
 import warnings
 import math
+import json
+from pathlib import Path
 
 import numpy as np
 
@@ -13,11 +14,36 @@ from .utils import byteorders, lazyattr, SizeType
 from .exceptions import PerformanceWarning
 
 
-@lru_cache(maxsize=1)
+def read_rc():
+    try:
+        with open(Path.home() / '.pytablesrc.json', 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+
+def read_cached_cpu_info():
+    return read_rc().get('cpu_info', {})
+
+
+def write_cached_cpu_info(cpu_info_dict):
+    """ Update the cached CPU info in the rc file."""
+    rc = read_rc()
+    with open(Path.home() / '.pytablesrc.json', 'w') as f:
+        rc['cpu_info'] = cpu_info_dict
+        return json.dump(rc, f, indent=4)
+
+
 def get_cpu_info():
+    cached_info = read_cached_cpu_info()
+    if cached_info:
+        return cached_info
+
     try:
         import cpuinfo
-        return cpuinfo.get_cpu_info()
+        cpu_info_dict = cpuinfo.get_cpu_info()
+        write_cached_cpu_info(cpu_info_dict)
+        return cpu_info_dict
     except ImportError:
         return {}
 
