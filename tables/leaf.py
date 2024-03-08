@@ -25,7 +25,7 @@ def read_cached_cpu_info():
 
 def write_cached_cpu_info(cpu_info_dict):
     with open(Path.home() / '.pytables-cpuinfo.json', 'w') as f:
-        return json.dump(cpu_info_dict, f, indent=4)
+        json.dump(cpu_info_dict, f, indent=4)
 
 
 @lru_cache(maxsize=1)
