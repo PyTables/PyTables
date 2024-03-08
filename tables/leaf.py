@@ -24,7 +24,6 @@ def read_cached_cpu_info():
 
 
 def write_cached_cpu_info(cpu_info_dict):
-    """ Update the cached CPU info in the rc file."""
     with open(Path.home() / '.pytables-cpuinfo.json', 'w') as f:
         return json.dump(cpu_info_dict, f, indent=4)
 
