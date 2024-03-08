@@ -3,6 +3,7 @@ import warnings
 import math
 import json
 from pathlib import Path
+from functools import lru_cache
 
 import numpy as np
 
@@ -34,6 +35,7 @@ def write_cached_cpu_info(cpu_info_dict):
         return json.dump(rc, f, indent=4)
 
 
+@lru_cache(maxsize=1)
 def get_cpu_info():
     cached_info = read_cached_cpu_info()
     if cached_info:
