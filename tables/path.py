@@ -50,7 +50,7 @@ _warnInfo = (
 """Warning printed when a name will not be reachable through natural naming"""
 
 
-def check_attribute_name(name):
+def check_attribute_name(name: str) -> None:
     """Check the validity of the `name` of an attribute in AttributeSet.
 
     If the name is not valid, a ``ValueError`` is raised.  If it is
@@ -108,7 +108,7 @@ def check_attribute_name(name):
         raise ValueError("``__members__`` is not allowed as an object name")
 
 
-def check_name_validity(name):
+def check_name_validity(name: str) -> None:
     """Check the validity of the `name` of a Node object, which more limited
     than attribute names.
 
@@ -145,7 +145,7 @@ def check_name_validity(name):
                          "in object names: %r" % name)
 
 
-def join_path(parentpath, name):
+def join_path(parentpath: str, name: str) -> str:
     """Join a *canonical* `parentpath` with a *non-empty* `name`.
 
     .. versionchanged:: 3.0
@@ -175,7 +175,7 @@ def join_path(parentpath, name):
     return pstr
 
 
-def split_path(path):
+def split_path(path: str) -> (str, str):
     """Split a *canonical* `path` into a parent path and a node name.
 
     The result is returned as a tuple.  The parent path does not
@@ -198,19 +198,19 @@ def split_path(path):
     return (ppath, name)
 
 
-def isvisiblename(name):
+def isvisiblename(name: str) -> bool:
     """Does this `name` make the named node a visible one?"""
 
     return _hidden_name_re.match(name) is None
 
 
-def isvisiblepath(path):
+def isvisiblepath(path: str) -> bool:
     """Does this `path` make the named node a visible one?"""
 
     return _hidden_path_re.search(path) is None
 
 
-def _test():
+def _test() -> None:
     """Run ``doctest`` on this module."""
 
     import doctest
