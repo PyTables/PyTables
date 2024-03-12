@@ -2,10 +2,11 @@
 
 import re
 import inspect
-from typing_extensions import Any, Callable, dataclass_transform, Dict, Union
+from typing_extensions import Any, Callable, dataclass_transform, Dict, NoReturn, Union
 import warnings
 
 import numpy as np
+from numpy.typing import DTypeLike
 
 from .utils import SizeType
 from .misc.enum import Enum
@@ -36,7 +37,7 @@ deftype_from_kind = {}  # filled as atom classes are created
 
 _type_re = re.compile(r'^([a-z]+)([0-9]*)$')
 
-def split_type(type):
+def split_type(type: str) -> tuple[str, Union[int, None]]:
     """Split a PyTables type into a PyTables kind and an item size.
 
     Returns a tuple of (kind, itemsize). If no item size is present in the type
@@ -71,14 +72,14 @@ def split_type(type):
     return (kind, itemsize)
 
 
-def _invalid_itemsize_error(kind, itemsize, itemsizes):
+def _invalid_itemsize_error(kind: str, itemsize: int, itemsizes: list[int]) -> ValueError:
     isizes = sorted(itemsizes)
     return ValueError("invalid item size for kind ``%s``: %r; "
                       "it must be one of ``%r``"
                       % (kind, itemsize, isizes))
 
 
-def _normalize_shape(shape) -> Shape:
+def _normalize_shape(shape: Union[Shape, np.integer, int]) -> Shape:
     """Check that the `shape` is safe to be used and return it as a tuple."""
 
     if isinstance(shape, (np.integer, int)):
@@ -101,7 +102,7 @@ def _normalize_shape(shape) -> Shape:
     return tuple(SizeType(s) for s in shape)
 
 
-def _normalize_default(value, dtype):
+def _normalize_default(value: Any, dtype: DTypeLike) -> np.ndarray:
     """Return `value` as a valid default of NumPy type `dtype`."""
 
     # Create NumPy objects as defaults
@@ -154,7 +155,7 @@ class MetaAtom(type):
 
     kind: str
 
-    def __init__(cls, name, bases, dict_):
+    def __init__(cls, name: str, bases: tuple, dict_: dict[str, Any]) -> None:
         super().__init__(name, bases, dict_)
 
         kind = dict_.get('kind')
@@ -290,7 +291,7 @@ class Atom(metaclass=MetaAtom):
     type: str
 
     @classmethod
-    def prefix(cls):
+    def prefix(cls) -> str:
         """Return the atom class prefix."""
         cname = cls.__name__
         return cname[:cname.rfind('Atom')]
@@ -408,7 +409,7 @@ class Atom(metaclass=MetaAtom):
         return cls.from_kind(kind, itemsize, shape, dflt)
 
     @classmethod
-    def from_kind(cls, kind: str, itemsize: Union[int, None]=None, shape: Shape=(), dflt: Any=None):
+    def from_kind(cls, kind: str, itemsize: Union[int, None]=None, shape: Shape=(), dflt: Any=None) -> "Atom":
         """Create an Atom from a PyTables kind.
 
         Optional item size, shape and default value may be
@@ -492,7 +493,7 @@ class Atom(metaclass=MetaAtom):
         .. versionadded:: 2.4"""
         return len(self.shape)
 
-    def __init__(self, nptype: Union[str, np.dtype], shape: Shape, dflt: Any):
+    def __init__(self, nptype: Union[str, np.dtype], shape: Shape, dflt: Any) -> None:
         if not hasattr(self, 'type'):
             raise NotImplementedError("``%s`` is an abstract class; "
                                       "please use one of its subclasses"
@@ -516,7 +517,7 @@ class Atom(metaclass=MetaAtom):
         default.  Please note that default values are kept internally
         as NumPy objects."""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         args = f'shape={self.shape}, dflt={self.dflt!r}'
         if not hasattr(self.__class__.itemsize, '__int__'):  # non-fixed
             args = f'itemsize={self.itemsize}, {args}'
@@ -524,7 +525,7 @@ class Atom(metaclass=MetaAtom):
 
     __eq__ = _cmp_dispatcher('_is_equal_to_atom')
 
-    def __ne__(self, other):
+    def __ne__(self, other: "Atom") -> bool:
         return not self.__eq__(other)
 
     # XXX: API incompatible change for PyTables 3 line
@@ -533,7 +534,7 @@ class Atom(metaclass=MetaAtom):
     #    return hash((self.__class__, self.type, self.shape, self.itemsize,
     #                 self.dflt))
 
-    def copy(self, **override):
+    def copy(self, **override) -> "Atom":
         """Get a copy of the atom, possibly overriding some arguments.
 
         Constructor arguments to be overridden must be passed as
@@ -560,7 +561,7 @@ class Atom(metaclass=MetaAtom):
         newargs.update(override)
         return self.__class__(**newargs)
 
-    def _get_init_args(self):
+    def _get_init_args(self) -> dict[str, Any]:
         """Get a dictionary of instance constructor arguments.
 
         This implementation works on classes which use the same names
@@ -574,7 +575,7 @@ class Atom(metaclass=MetaAtom):
 
         return {arg: getattr(self, arg) for arg in args if arg != 'self'}
 
-    def _is_equal_to_atom(self, atom):
+    def _is_equal_to_atom(self, atom: "Atom") -> bool:
         """Is this object equal to the given `atom`?"""
 
         return (self.type == atom.type and self.shape == atom.shape
@@ -587,7 +588,7 @@ def _abstract_atom_init(deftype: str, defvalue: Any) -> Callable[[Atom, Union[in
 
     defitemsize = split_type(deftype)[1]
 
-    def __init__(self, itemsize: Union[int, None]=defitemsize, shape: Shape=(), dflt: Any=defvalue) -> None:
+    def __init__(self: Atom, itemsize: Union[int, None]=defitemsize, shape: Shape=(), dflt: Any=defvalue) -> None:
         assert self.kind in atom_map
         try:
             atomclass = atom_map[self.kind][itemsize]
@@ -615,7 +616,7 @@ class StringAtom(Atom): # type: ignore[misc]
         """Size in bytes of a sigle item in the atom."""
         return self.dtype.base.itemsize
 
-    def __init__(self, itemsize: int, shape: Shape=(), dflt: Union[str, bytes]=_defvalue):
+    def __init__(self, itemsize: int, shape: Shape=(), dflt: Union[str, bytes]=_defvalue) -> None:
         if not hasattr(itemsize, '__int__') or int(itemsize) < 0:
             raise ValueError("invalid item size for kind ``%s``: %r; "
                              "it must be a positive integer"
@@ -632,7 +633,7 @@ class BoolAtom(Atom): # type: ignore[misc]
     _deftype = 'bool8'
     _defvalue = False
 
-    def __init__(self, shape: Shape=(), dflt: bool=_defvalue):
+    def __init__(self, shape: Shape=(), dflt: bool=_defvalue) -> None:
         Atom.__init__(self, self.type, shape, dflt)
 
 class IntAtom(Atom): # type: ignore[misc]
@@ -816,7 +817,7 @@ class ComplexAtom(Atom):
         all_types.add('complex256')
         _isizes.append(32)
 
-    def __init__(self, itemsize: int, shape: Shape=(), dflt: Any=_defvalue):
+    def __init__(self, itemsize: int, shape: Shape=(), dflt: Any=_defvalue) -> None:
         if itemsize not in self._isizes:
             raise _invalid_itemsize_error('complex', itemsize, self._isizes)
         self.type = '%s%d' % (self.kind, itemsize * 8)
@@ -826,7 +827,7 @@ class ComplexAtom(Atom):
 class _ComplexErrorAtom(ComplexAtom, metaclass=type):
     """Reminds the user to stop using the old complex atom names."""
 
-    def __init__(self, shape: Shape=(), dflt=ComplexAtom._defvalue):
+    def __init__(self, shape: Shape=(), dflt=ComplexAtom._defvalue) -> NoReturn:
         raise TypeError(
             "to avoid confusions with PyTables 1.X complex atom names, "
             "please use ``ComplexAtom(itemsize=N)``, "
@@ -864,7 +865,7 @@ class Time32Atom(TimeAtom): # type: ignore[misc]
     type: str = 'time32'
     _defvalue = 0
 
-    def __init__(self, shape: Shape=(), dflt=_defvalue):
+    def __init__(self, shape: Shape=(), dflt=_defvalue) -> None:
         Atom.__init__(self, 'int32', shape, dflt)
 
 
@@ -875,7 +876,7 @@ class Time64Atom(TimeAtom): # type: ignore[misc]
     type: str = 'time64'
     _defvalue: float = 0.0
 
-    def __init__(self, shape: Shape=(), dflt: float=_defvalue):
+    def __init__(self, shape: Shape=(), dflt: float=_defvalue) -> None:
         Atom.__init__(self, 'float64', shape, dflt)
 
 
@@ -979,7 +980,7 @@ class EnumAtom(Atom):
         """Size in bytes of a single item in the atom."""
         return self.dtype.base.itemsize
 
-    def _checkbase(self, base):
+    def _checkbase(self, base: Atom) -> None:
         """Check the `base` storage atom."""
 
         if base.kind == 'enum':
@@ -1014,25 +1015,25 @@ class EnumAtom(Atom):
             raise NotImplementedError("only scalar concrete values "
                                       "are supported for the moment, sorry")
 
-    def _get_init_args(self):
+    def _get_init_args(self) -> dict[str, Any]:
         """Get a dictionary of instance constructor arguments."""
 
         return dict(enum=self.enum, dflt=self._defname,
                     base=self.base, shape=self.shape)
 
-    def _is_equal_to_atom(self, atom):
+    def _is_equal_to_atom(self, atom) -> bool:
         """Is this object equal to the given `atom`?"""
 
         return False
 
-    def _is_equal_to_enumatom(self, enumatom):
+    def _is_equal_to_enumatom(self, enumatom: "EnumAtom") -> bool:
         """Is this object equal to the given `enumatom`?"""
 
         return (self.enum == enumatom.enum and self.shape == enumatom.shape
                 and np.all(self.dflt == enumatom.dflt)
                 and self.base == enumatom.base)
 
-    def __init__(self, enum: Union[Enum, Any], dflt: Any, base: Union[Atom, str], shape: Shape=()):
+    def __init__(self, enum: Union[Enum, Any], dflt: Any, base: Union[Atom, str], shape: Shape=()) -> None:
         if not isinstance(enum, Enum):
             enum = Enum(enum)
         self.enum = enum
@@ -1060,7 +1061,7 @@ class EnumAtom(Atom):
 
         Atom.__init__(self, basedtype, shape, default)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('EnumAtom(enum=%r, dflt=%r, base=%r, shape=%r)'
                 % (self.enum, self._defname, self.base, self.shape))
 
@@ -1088,10 +1089,10 @@ class ReferenceAtom(Atom):
         """Size in bytes of a single item in the atom."""
         return self.dtype.base.itemsize
 
-    def __init__(self, shape: Shape=()):
+    def __init__(self, shape: Shape=()) -> None:
         Atom.__init__(self, self.type, shape, self._defvalue)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'ReferenceAtom(shape={self.shape})'
 
 # Pseudo-atom classes
@@ -1124,15 +1125,15 @@ class PseudoAtom:
 
     base: Atom
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '%s()' % self.__class__.__name__
 
-    def toarray(self, object_):
+    def toarray(self, object_: Any) -> NoReturn:
         """Convert an `object_` into an array of base atoms."""
 
         raise NotImplementedError
 
-    def fromarray(self, array):
+    def fromarray(self, array: Any) -> NoReturn:
         """Convert an `array` of base atoms into an object."""
 
         raise NotImplementedError
@@ -1143,13 +1144,13 @@ class _BufferedAtom(PseudoAtom):
 
     shape = ()
 
-    def toarray(self, object_):
+    def toarray(self, object_: Any) -> np.ndarray:
         buffer_ = self._tobuffer(object_)
         array = np.ndarray(buffer=buffer_, dtype=self.base.dtype,
                            shape=len(buffer_))
         return array
 
-    def _tobuffer(self, object_):
+    def _tobuffer(self, object_: Any) -> NoReturn:
         """Convert an `object_` into a buffer."""
 
         raise NotImplementedError
@@ -1185,12 +1186,12 @@ class VLStringAtom(_BufferedAtom):
     type = 'vlstring'
     base = UInt8Atom()
 
-    def _tobuffer(self, object_: bytes):
+    def _tobuffer(self, object_: bytes) -> np.bytes_:
         if not isinstance(object_, bytes):
             raise TypeError(f"object is not bytes: {object_!r}")
         return np.bytes_(object_)
 
-    def fromarray(self, array):
+    def fromarray(self, array: np.ndarray) -> bytes:
         return array.tobytes()
 
 
@@ -1224,7 +1225,7 @@ class VLUnicodeAtom(_BufferedAtom):
     # NumPy scalars inherit the UCS-2 encoding from Python (see
     # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
     # array, we must override ``toarray()`` itself.
-    def toarray(self, object_: str):
+    def toarray(self, object_: str) -> np.ndarray:
         if not isinstance(object_, str):
             raise TypeError(f"object is not a string: {object_!r}")
         ustr = str(object_)
@@ -1232,7 +1233,7 @@ class VLUnicodeAtom(_BufferedAtom):
         return np.ndarray(
             buffer=uarr, dtype=self.base.dtype, shape=len(ustr))
 
-    def _tobuffer(self, object_: str):
+    def _tobuffer(self, object_: str) -> np.str_:
         # This works (and is used) only with UCS-4 builds of Python,
         # where the width of the internal representation of a
         # character matches that of the base atoms.
@@ -1240,7 +1241,7 @@ class VLUnicodeAtom(_BufferedAtom):
             raise TypeError(f"object is not a string: {object_!r}")
         return np.str_(object_)
 
-    def fromarray(self, array):
+    def fromarray(self, array: np.ndarray) -> str:
         length = len(array)
         if length == 0:
             return ''  # ``array.view('U0')`` raises a `TypeError`
@@ -1267,10 +1268,10 @@ class ObjectAtom(_BufferedAtom):
     type = 'object'
     base = UInt8Atom()
 
-    def _tobuffer(self, object_: object):
+    def _tobuffer(self, object_: object) -> bytes:
         return pickle.dumps(object_, pickle.HIGHEST_PROTOCOL)
 
-    def fromarray(self, array):
+    def fromarray(self, array: np.ndarray) -> Union[Any, None]:
         # We have to check for an empty array because of a possible
         # bug in HDF5 which makes it claim that a dataset has one
         # record when in fact it is empty.
