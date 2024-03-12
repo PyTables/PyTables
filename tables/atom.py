@@ -6,6 +6,7 @@ from typing_extensions import Any, Callable, dataclass_transform, Dict, NoReturn
 import warnings
 
 import numpy as np
+from numpy.typing import DTypeLike
 
 from .utils import SizeType
 from .misc.enum import Enum
@@ -101,7 +102,7 @@ def _normalize_shape(shape: Union[Shape, np.integer, int]) -> Shape:
     return tuple(SizeType(s) for s in shape)
 
 
-def _normalize_default(value: Any, dtype: np.dtype) -> np.ndarray:
+def _normalize_default(value: Any, dtype: DTypeLike) -> np.ndarray:
     """Return `value` as a valid default of NumPy type `dtype`."""
 
     # Create NumPy objects as defaults
