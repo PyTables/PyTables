@@ -530,13 +530,6 @@ if __name__ == "__main__":
         print("cpuinfo failed, assuming no CPU features:", exc)
         cpu_flags = []
 
-    # The minimum required versions
-    # Keep in sync with ``project.requires-python`` in ``pyproject.toml``.
-    min_python_version = (3, 8)
-    # Check for Python
-    if sys.version_info < min_python_version:
-        exit_with_error("You need Python %s or greater to install PyTables!"
-                        % '.'.join(str(v) for v in min_python_version))
     print(f"* Using Python {sys.version.splitlines()[0]}")
 
     try:
