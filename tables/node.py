@@ -185,7 +185,7 @@ class Node(metaclass=MetaNode):
 
     # The ``_log`` argument is only meant to be used by ``_g_copy_as_child()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
-    def __init__(self, parentnode: Union["Group", SoftLink], name: str,
+    def __init__(self, parentnode: Union["Group", "SoftLink"], name: str,
                  _log: bool=True) -> None:
         # Remember to assign these values in the root group constructor
         # as it does not use this method implementation!
