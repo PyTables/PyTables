@@ -248,7 +248,7 @@ class ContiguousCompoundAppendTestCase(common.TestFileMixin,
         try:
             self.h5file = tb.open_file(h5fname_copy, 'a')
         except OSError:
-            # Problems for opening (probably not permisions to write the file)
+            # Problems for opening (probably not permissions to write the file)
             return
         tbl = self.h5file.get_node('/test_var/structure variable')
         # Try to add rows to a non-chunked table (this should raise an error)

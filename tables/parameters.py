@@ -72,7 +72,7 @@ efficient or not."""
 
 ENABLE_EVERY_CYCLES = 50
 """The number of cycles in which a cache will be forced to be
-(re-)enabled, irregardingly of the hit ratio. This will provide a chance
+(re-)enabled, irregardless of the hit ratio. This will provide a chance
 for checking if we are in a better scenario for doing caching again."""
 
 LOWEST_HIT_RATIO = 0.6
@@ -162,7 +162,7 @@ if they are not in the cache.
 
 Negative value means that all the touched nodes will be kept in an
 internal dictionary.  This is the faster way to load/retrieve nodes.
-However, and in order to avoid a large memory comsumption, the user will
+However, and in order to avoid a large memory consumption, the user will
 be warned when the number of loaded nodes will reach the
 ``-NODE_CACHE_SLOTS`` value.
 

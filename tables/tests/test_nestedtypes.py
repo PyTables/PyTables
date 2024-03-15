@@ -663,14 +663,14 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # "Hash randomization" feature is enable by default.
         #
         # For this reason we generate a representation string for each of the
-        # prmutations of the Enum items.
+        # permutations of the Enum items.
         #
         # Also the default value of enum types is not preserved in HDF5.
         # It is assumed that the default value is the first one in the array
         # of Enum names and hence it is also affected by the issue related to
         # the "Hash randomization" feature.
         #
-        # Also in this case it is genereted a representation string for each
+        # Also in this case it is generated a representation string for each
         # of the possible default values.
         enums = [
             ', '.join(items) for items in itertools.permutations(

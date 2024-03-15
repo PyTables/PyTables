@@ -294,7 +294,7 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
     return File(filename, mode, title, root_uep, filters, **kwargs)
 
 
-# A dumb class that doesn't keep nothing at all
+# A dumb class that doesn't keep anything at all
 class _NoCache:
     def __len__(self):
         return 0
@@ -454,7 +454,7 @@ class NodeManager:
                 node._f_close()
 
     def flush_nodes(self):
-        # Only iter on the nodes in the registry since nodes in the cahce
+        # Only iter on the nodes in the registry since nodes in the cache
         # should always have an entry in the registry
         closed_keys = []
         for path, node in list(self.registry.items()):
@@ -752,7 +752,7 @@ class File(hdf5extension.File):
 
         # The node manager must be initialized before the root group
         # initialization but the node_factory attribute is set onl later
-        # because it is a bount method of the root grop itself.
+        # because it is a bound method of the root grop itself.
         node_cache_slots = params['NODE_CACHE_SLOTS']
         self._node_manager = NodeManager(nslots=node_cache_slots)
 
@@ -775,7 +775,7 @@ class File(hdf5extension.File):
         self.root = root = self.__get_root_group(root_uep, title, filters)
         """The *root* of the object tree hierarchy (a Group instance)."""
         # Complete the creation of the root node
-        # (see the explanation in ``RootGroup.__init__()``.
+        # (see the explanation in ``RootGroup.__init__()``).
         root._g_post_init_hook()
         self._node_manager.node_factory = self.root._g_load_child
 
@@ -2414,7 +2414,7 @@ class File(hdf5extension.File):
         return self._seqmarkers[markid]
 
     def _doundo(self, finalaction, direction):
-        """Undo/Redo actions up to final action in the specificed direction."""
+        """Undo/Redo actions up to final action in the specified direction."""
 
         if direction < 0:
             actionlog = \
@@ -2673,7 +2673,7 @@ class File(hdf5extension.File):
         # Restore the filename attribute that is used by _FileRegistry
         self.filename = filename
 
-        # Delete the entry from he registry of opened files
+        # Delete the entry from the registry of opened files
         _open_files.remove(self)
 
     def __enter__(self):

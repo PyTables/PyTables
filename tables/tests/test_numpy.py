@@ -306,7 +306,7 @@ class GroupsArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """
 
         # maximum level of recursivity (deepest group level) achieved:
-        # maxrank = 32 (for a effective maximum rank of 32)
+        # maxrank = 32 (for an effective maximum rank of 32)
         # This limit is due to a limit in the HDF5 library.
         minrank = 1
         maxrank = 32
@@ -337,7 +337,7 @@ class GroupsArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print()
             print("Rank array reading progress: ")
-        # Get the metadata on the previosly saved arrays
+        # Get the metadata on the previously saved arrays
         for rank in range(minrank, maxrank + 1):
             # Create an array for later comparison
             a = np.ones((1,) * rank, 'i')
@@ -518,7 +518,7 @@ class TableReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 self.assertTrue(common.allequal(numcol, orignumcol, "numpy"))
 
     def test03_getIndexNumPy(self):
-        """Getting table rows specifyied as NumPy scalar integers."""
+        """Getting table rows specified as NumPy scalar integers."""
 
         table = self.h5file.root.table
         coords = np.array([1, 2, 3], dtype='int8')
@@ -539,7 +539,7 @@ class TableReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 self.assertTrue(common.allequal(numcol, orignumcol, "numpy"))
 
     def test04_setIndexNumPy(self):
-        """Setting table rows specifyied as NumPy integers."""
+        """Setting table rows specified as NumPy integers."""
 
         self._reopen(mode='a')
         table = self.h5file.root.table

@@ -136,7 +136,7 @@ class ExprTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking that expression is correctly evaluated when slice is
         outside of data samples (`out` param)"""
         expr = tb.Expr(self.expr, self.vars)
-        # maybe it's better to use the leading dimemsion instead?
+        # maybe it's better to use the leading dimension instead?
         maxshape = max(self.shape)
         start, stop, step = (maxshape + 1, maxshape + 2, None)
         expr.set_inputs_range(start, stop, step)
@@ -1448,8 +1448,8 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         shape = self.shape
         if shape[0] >= 2**24:
-            # The iterator is much more slower, so don't run it for
-            # extremeley large arrays.
+            # The iterator is much slower, so don't run it for
+            # extremely large arrays.
             if common.verbose:
                 print("Skipping this *very* long test")
             return

@@ -82,7 +82,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Fill the recarray
         for i in range(self.expectedrows):
             tmplist = []
-            # Both forms (list or chararray) works
+            # Both forms (list or chararray) work
             var0 = ['%04d' % (self.expectedrows - i)] * 2
             tmplist.append(var0)
             var1 = [['%04d' % (self.expectedrows - i)] * 2] * 2
@@ -113,7 +113,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def populateFile(self):
         group = self.rootgroup
         if self.recarrayinit:
-            # Initialize an starting buffer, if any
+            # Initialize a starting buffer, if any
             self.initRecArray()
         for j in range(3):
             # Create a table
@@ -1062,7 +1062,7 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         r = np.rec.array(b * 300,  formats='(1,6,18)i4,(3,2)S3,(4,6)f8',
                          names='col1,col2,col3')
 
-        # Get an slice of recarray
+        # Get a slice of recarray
         r1 = r[290:292]
 
         # Save it in a table:
@@ -1074,7 +1074,7 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(r1.tobytes(), r2.tobytes())
 
     def test03(self):
-        """Checking saving a slice of an strided recarray"""
+        """Checking saving a slice of a strided recarray"""
 
         # Create a recarray
         intlist1 = [[[23, 24, 35]*6]*6]
@@ -1088,7 +1088,7 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         r = np.rec.array(b * 300, formats='(1,6,18)i4,(3,2)S3,(4,6)f8',
                          names='col1,col2,col3', shape=600)
 
-        # Get an strided recarray
+        # Get a strided recarray
         r2 = r[::2]
 
         # Get a slice
@@ -1691,7 +1691,7 @@ class SetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
         table.append(r)
         table.append([(457, 'db1', 1.2), (5, 'de1', 1.3)])
 
-        # Try to modify beyond the extend
+        # Try to modify beyond the extent
         # This will silently exclude the non-fitting rows
         rows = np.rec.array([(457, 'db1', 1.2), (6, 'de2', 1.3)],
                             formats=formats)

@@ -700,7 +700,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         self.write_read(a)
 
     def test03_byte_offset(self):
-        """Checking an offsetted byte array"""
+        """Checking an offset byte array"""
 
         r = np.arange(100, dtype=np.int8)
         r.shape = (10, 10)
@@ -708,7 +708,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         self.write_read(a)
 
     def test04_short_offset(self):
-        """Checking an offsetted unsigned short int precision array"""
+        """Checking an offset unsigned short int precision array"""
 
         r = np.arange(100, dtype=np.uint32)
         r.shape = (10, 10)
@@ -716,7 +716,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         self.write_read(a)
 
     def test05_int_offset(self):
-        """Checking an offsetted integer array"""
+        """Checking an offset integer array"""
 
         r = np.arange(100, dtype=np.int32)
         r.shape = (10, 10)
@@ -724,7 +724,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         self.write_read(a)
 
     def test06_longlongint_offset(self):
-        """Checking an offsetted long long integer array"""
+        """Checking an offset long long integer array"""
 
         r = np.arange(100, dtype=np.int64)
         r.shape = (10, 10)
@@ -732,7 +732,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         self.write_read(a)
 
     def test07_float_offset(self):
-        """Checking an offsetted single precision array"""
+        """Checking an offset single precision array"""
 
         r = np.arange(100, dtype=np.float32)
         r.shape = (10, 10)
@@ -740,7 +740,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         self.write_read(a)
 
     def test08_double_offset(self):
-        """Checking an offsetted double precision array"""
+        """Checking an offset double precision array"""
 
         r = np.arange(100, dtype=np.float64)
         r.shape = (10, 10)
@@ -748,7 +748,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         self.write_read(a)
 
     def test09_float_offset_unaligned(self):
-        """Checking an unaligned and offsetted single precision array"""
+        """Checking an unaligned and offset single precision array"""
 
         r = np.rec.array(b'a'*200, formats='i1,3f4,i2', shape=10)
         a = r["f1"][3]
@@ -758,7 +758,7 @@ class UnalignedAndComplexTestCase(common.TempFileMixin,
         self.write_read(a)
 
     def test10_double_offset_unaligned(self):
-        """Checking an unaligned and offsetted double precision array"""
+        """Checking an unaligned and offset double precision array"""
 
         r = np.rec.array(b'a'*400, formats='i1,3f8,i2', shape=10)
         a = r["f1"][3]
@@ -914,7 +914,7 @@ class GroupsArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """
 
         # maximum level of recursivity (deepest group level) achieved:
-        # maxrank = 32 (for a effective maximum rank of 32)
+        # maxrank = 32 (for an effective maximum rank of 32)
         # This limit is due to HDF5 library limitations.
         minrank = 1
         maxrank = 32
@@ -943,7 +943,7 @@ class GroupsArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print()
             print("Rank array reading progress: ")
-        # Get the metadata on the previosly saved arrays
+        # Get the metadata on the previously saved arrays
         for rank in range(minrank, maxrank + 1):
             # Create an array for later comparison
             a = np.ones((1,) * rank, np.int32)
@@ -1163,7 +1163,7 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Create a numpy
         r = np.arange(200, dtype='int32')
         r.shape = (100, 2)
-        # Save it in a array:
+        # Save it in an array:
         array1 = self.h5file.create_array(
             self.h5file.root, 'array1', r, "title array1")
 
@@ -1198,7 +1198,7 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Create a numpy
         r = np.arange(200, dtype='int32')
         r.shape = (100, 2)
-        # Save it in a array:
+        # Save it in an array:
         array1 = self.h5file.create_array(
             self.h5file.root, 'array1', r, "title array1")
 
@@ -2353,7 +2353,7 @@ class FancySelectionTestCase(common.TempFileMixin, common.PyTablesTestCase):
             b = tbarr[:]
 #             if common.verbose:
 #                 print("NumPy modified array:", a)
-#                 print("PyTables modifyied array:", b)
+#                 print("PyTables modified array:", b)
             self.assertTrue(
                 np.all(a == b),
                 "NumPy array and PyTables modifications does not match.")

@@ -581,7 +581,7 @@ class Table(tableextension.Table, Leaf):
         modification of rows).  The default is true.
 
         This value gets into effect whenever a column is altered.  If you
-        don't have automatic indexing activated and you want to do an an
+        don't have automatic indexing activated and you want to do an
         immediate update use `Table.flush_rows_to_index()`; for an immediate
         reindexing of invalidated indexes, use `Table.reindex_dirty()`.
 
@@ -1600,7 +1600,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         # *Important note*: Negative values for step are not supported
         # for the general case, but only for the itersorted() and
         # read_sorted() purposes!  The self._process_range_read will raise
-        # an appropiate error.
+        # an appropriate error.
         # F. Alted 2008-09-18
         # A.V. 20130513: _process_range_read --> _process_range
         (start, stop, step) = self._process_range(None, None, None)
@@ -2377,7 +2377,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Get rid of single-dimensional dimensions
         column = column.squeeze()
         if column.shape == ():
-            # Oops, stripped off to much dimensions
+            # Oops, stripped off too much dimensions
             column.shape = (1,)
 
         if stop is None:
@@ -2584,7 +2584,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         (start, stop, step) = self._process_range(start, stop, step)
         nrows = self._remove_rows(start, stop, step)
-        # remove_rows is a invalidating index operation
+        # remove_rows is an invalidating index operation
         self._reindex(self.colpathnames)
 
         return SizeType(nrows)
@@ -2741,7 +2741,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         This can be useful when you have set :attr:`Table.autoindex`
         (see :class:`Table`) to false for the table and you want to
-        update the indexes after a invalidating index operation
+        update the indexes after an invalidating index operation
         (:meth:`Table.remove_rows`, for example).
 
         """
@@ -3335,7 +3335,7 @@ class Column:
 
     @property
     def maindim(self):
-        """"The dimension along which iterators work. Its value is 0 (i.e. the
+        """The dimension along which iterators work. Its value is 0 (i.e. the
         first dimension)."""
         return 0
 
@@ -3524,7 +3524,7 @@ class Column:
         Parameters
         ----------
         optlevel : int
-            The optimization level for building the index.  The levels ranges
+            The optimization level for building the index.  The levels range
             from 0 (no optimization) up to 9 (maximum optimization).  Higher
             levels of optimization mean better chances for reducing the entropy
             of the index at the price of using more CPU, memory and I/O

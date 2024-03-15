@@ -77,7 +77,7 @@ class AttributeSet(hdf5extension.AttributeSet):
     read, these values are always loaded as NumPy scalar or array
     objects, as needed.
 
-    For that reason, attributes in native HDF5 files will be always
+    For that reason, attributes in native HDF5 files will always be
     mapped into NumPy objects.  Specifically, a multidimensional
     attribute will be mapped into a multidimensional ndarray and a
     scalar will be mapped into a NumPy scalar object (for example, a
@@ -543,7 +543,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         try:
             return self.__getattr__(name)
         except AttributeError:
-            # Capture the AttributeError an re-raise a KeyError one
+            # Capture the AttributeError and re-raise a KeyError one
             raise KeyError(
                 "Attribute ('%s') does not exist in node '%s'"
                 % (name, self._v__nodepath))
@@ -559,7 +559,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         try:
             self.__delattr__(name)
         except AttributeError:
-            # Capture the AttributeError an re-raise a KeyError one
+            # Capture the AttributeError and re-raise a KeyError one
             raise KeyError(
                 "Attribute ('%s') does not exist in node '%s'"
                 % (name, self._v__nodepath))

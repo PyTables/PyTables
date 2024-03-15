@@ -1349,7 +1349,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.rootgroup = self.h5file.root
 
     def test01a_String(self):
-        """Checking carray with offseted NumPy strings appends."""
+        """Checking carray with offset NumPy strings appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1357,7 +1357,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Running %s.test01a_String..." % self.__class__.__name__)
 
         shape = (3, 2, 2)
-        # Create an string atom
+        # Create a string atom
         carray = self.h5file.create_carray(root, 'strings',
                                            atom=tb.StringAtom(itemsize=3),
                                            shape=shape,
@@ -1391,7 +1391,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         shape = (3, 2, 2)
 
-        # Create an string atom
+        # Create a string atom
         carray = self.h5file.create_carray(root, 'strings',
                                            atom=tb.StringAtom(itemsize=3),
                                            shape=shape,
@@ -1416,7 +1416,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(data[1]), 2)
 
     def test02a_int(self):
-        """Checking carray with offseted NumPy ints appends."""
+        """Checking carray with offset NumPy ints appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1425,7 +1425,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         shape = (3, 3)
 
-        # Create an string atom
+        # Create a string atom
         carray = self.h5file.create_carray(root, 'CAtom',
                                            atom=tb.Int32Atom(), shape=shape,
                                            title="array of ints",
@@ -1461,7 +1461,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         shape = (3, 3)
 
-        # Create an string atom
+        # Create a string atom
         carray = self.h5file.create_carray(root, 'CAtom',
                                            atom=tb.Int32Atom(), shape=shape,
                                            title="array of ints",
@@ -2463,7 +2463,7 @@ class AtomDefaultReprReopen(AtomDefaultReprTestCase):
 
 class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test(self):
-        """Test for unability to truncate Array objects."""
+        """Test for inability to truncate Array objects."""
 
         array1 = self.h5file.create_carray('/', 'array1', tb.IntAtom(), [2, 2])
         self.assertRaises(TypeError, array1.truncate, 0)

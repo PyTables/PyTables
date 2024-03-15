@@ -366,7 +366,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
         filename, target = self._get_filename_node()
 
         if not Path(filename).is_absolute():
-            # Resolve the external link with respect to the this
+            # Resolve the external link with respect to this
             # file's directory.  See #306.
             filename = str(Path(self._v_file.filename).parent / filename)
 

@@ -523,7 +523,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         earray = self.h5file.get_node("/earray1")
 
         # Choose a small value for buffer size
-        # earray.nrowsinbuf = 3   # this does not really changes the chunksize
+        # earray.nrowsinbuf = 3   # this does not really change the chunksize
         if common.verbose:
             print("EArray descr:", repr(earray))
             print("shape of read array ==>", earray.shape)
@@ -629,7 +629,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         earray = self.h5file.get_node("/earray1")
 
         # Choose a small value for buffer size
-        # earray.nrowsinbuf = 3   # this does not really changes the chunksize
+        # earray.nrowsinbuf = 3   # this does not really change the chunksize
         if common.verbose:
             print("EArray descr:", repr(earray))
             print("shape of read array ==>", earray.shape)
@@ -1354,7 +1354,7 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.rootgroup = self.h5file.root
 
     def test01a_String(self):
-        """Checking earray with offseted numpy strings appends."""
+        """Checking earray with offset numpy strings appends."""
 
         root = self.rootgroup
         if common.verbose:
@@ -1414,14 +1414,14 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(len(row[1]), 2)
 
     def test02a_int(self):
-        """Checking earray with offseted NumPy ints appends."""
+        """Checking earray with offset NumPy ints appends."""
 
         root = self.rootgroup
         if common.verbose:
             print('\n', '-=' * 30)
             print("Running %s.test02a_int..." % self.__class__.__name__)
 
-        # Create an string atom
+        # Create a string atom
         earray = self.h5file.create_earray(root, 'EAtom',
                                            atom=tb.Int32Atom(), shape=(0, 3),
                                            title="array of ints")

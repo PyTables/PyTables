@@ -80,7 +80,7 @@ class Basic0DTwoTestCase(BasicTestCase):
     numericalList = 33.34
     charList = b"33"*500
 
-# This does not work anymore because I've splitted the chunked arrays to happen
+# This does not work anymore because I've split the chunked arrays to happen
 # mainly in EArray objects
 # class Basic1DZeroTestCase(BasicTestCase):
 #     title = "Rank-1 case 0"
@@ -113,7 +113,7 @@ class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 case 1"
     numericalList = [[[[[[[[[[1, 2], [3, 4]]]]]]]]]]*5
-    # Dimensions greather than 6 in strings gives some warnings
+    # Dimensions greater than 6 in strings gives some warnings
     charList = [[[[[[[[[[b"a", b"b"], [b"qq", b"zz"]]]]]]]]]]*5
 
 
@@ -131,7 +131,7 @@ class ExceptionTestCase(common.PyTablesTestCase):
         super().tearDown()
 
     def test00_char(self):
-        """Non suppported lists objects (character objects)"""
+        """Non supported lists objects (character objects)"""
 
         if common.verbose:
             print('\n', '-=' * 30)
