@@ -594,7 +594,7 @@ if __name__ == "__main__":
             CFLAGS = val.split()
         elif key == "--debug":
             debug = True
-            # Don't delete this argument. It maybe useful for distutils
+            # Don't delete this argument. It may be useful for distutils
             # when adding more flags later on
             continue
         elif key == "--use-pkgconfig":

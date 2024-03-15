@@ -60,7 +60,7 @@ class Array(hdf5extension.Array, Leaf):
         of the same type).
 
         .. versionchanged:: 3.0
-           Renamed form *object* into *obj*.
+           Renamed from *object* into *obj*.
     title
         A description for this node (it sets the ``TITLE`` HDF5 attribute on
         disk).
@@ -662,7 +662,7 @@ class Array(hdf5extension.Array, Leaf):
 
         ::
 
-            a1[0] = 333        # assign an integer to a Integer Array row
+            a1[0] = 333        # assign an integer to an Integer Array row
             a2[0] = 'b'        # assign a string to a string Array row
             a3[1:4] = 5        # broadcast 5 to slice 1:4
             a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2

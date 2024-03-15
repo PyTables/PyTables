@@ -1,4 +1,4 @@
-"""Test module for diferent kind of links under PyTables."""
+"""Test module for different kind of links under PyTables."""
 
 import re
 import tempfile
@@ -545,7 +545,7 @@ class ExternalLinkTestCase(common.TempFileMixin, common.PyTablesTestCase):
         link = self.h5file.root.lgroup1
         self.assertIsNone(link.extfile)
 
-        # Dereference a external node (and hence, 'mount' a file)
+        # Dereference an external node (and hence, 'mount' a file)
         enode = link()
         self.assertIsNotNone(enode)
         self.assertIsNotNone(link.extfile)

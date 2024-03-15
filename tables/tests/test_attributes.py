@@ -575,14 +575,14 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking setting 2D and non-contiguous NumPy attributes"""
 
         # Regression for gh-176 numpy.
-        # In the views old implementation PyTAbles performa a copy of the
+        # In the views old implementation PyTAbles performs a copy of the
         # array:
         #
         #     value = np.array(value)
         #
         # in order to get a contiguous array.
-        # Unfortunately array with swapped axis are copyed as they are so
-        # thay are stored in to HDF5 attributes without being actually
+        # Unfortunately array with swapped axis are copied as they are so
+        # they are stored in to HDF5 attributes without being actually
         # contiguous and ths causes an error whn they are restored.
 
         data = np.array([[0, 1], [2, 3]])
@@ -1551,7 +1551,7 @@ class TypesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test08_setRecArrayNotAllowPadding(self):
         """Checking setting aligned RecArray (NumPy) attributes with
-        `allow_aligned` param set to False when reopen."""
+        `allow_aligned` param set to False when reopened."""
 
         dt = np.dtype('i4,f8', align=self.aligned)
         # Set some attrs

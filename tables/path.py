@@ -33,7 +33,7 @@ _reserved_id_re = re.compile('^_[cfgv]_')
 _hidden_name_re = re.compile('^_[pi]_')
 """Nodes with a name *matching* this expression are considered hidden.
 
-For instance, ``name`` whould be visible while ``_i_name`` would not.
+For instance, ``name`` would be visible while ``_i_name`` would not.
 """
 
 _hidden_path_re = re.compile('/_[pi]_')

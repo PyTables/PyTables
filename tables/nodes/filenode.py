@@ -4,7 +4,7 @@ The FileNode module provides a file interface for using inside of
 PyTables database files.  Use the new_node() function to create a brand
 new file node which can be read and written as any ordinary Python
 file.  Use the open_node() function to open an existing (i.e. created
-with new_node()) node for read-only or read-write access.  Read acces
+with new_node()) node for read-only or read-write access.  Read access
 is always available.  Write access (enabled on new files and files
 opened with mode 'a+') only allows appending data to a file node.
 

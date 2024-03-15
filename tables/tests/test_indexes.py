@@ -1330,7 +1330,7 @@ class AutomaticIndexingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Force a sync in indexes
         table.flush_rows_to_index()
 
-        # Non indexated rows should remain here
+        # Non indexed rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             self.assertIsNotNone(indexedrows)
@@ -1378,7 +1378,7 @@ class AutomaticIndexingTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Don't force a sync in indexes
         # table.flush_rows_to_index()
-        # Non indexated rows should remain here
+        # Non indexed rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             self.assertIsNotNone(indexedrows)
@@ -1435,7 +1435,7 @@ class AutomaticIndexingTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Don't force a sync in indexes
         # table.flush_rows_to_index()
-        # Non indexated rows should remain here
+        # Non indexed rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             self.assertIsNotNone(indexedrows)
@@ -1473,7 +1473,7 @@ class AutomaticIndexingTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Don't force a sync in indexes
         # table.flush_rows_to_index()
-        # Non indexated rows should remain here
+        # Non indexed rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             self.assertIsNotNone(indexedrows)
@@ -1509,7 +1509,7 @@ class AutomaticIndexingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Force a sync in indexes
         table.flush_rows_to_index()
 
-        # Non indexated rows should remain here
+        # Non indexed rows should remain here
         if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             self.assertIsNotNone(indexedrows)

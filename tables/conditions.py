@@ -402,7 +402,7 @@ def compile_condition(condition, typemap, indexedcols):
     else:
         # Complex expression
         idxexprs, strexpr = idxexprs
-    # Get rid of the unneccessary list wrapper for strexpr
+    # Get rid of the unnecessary list wrapper for strexpr
     strexpr = strexpr[0]
 
     # Get the variable names used in the condition.

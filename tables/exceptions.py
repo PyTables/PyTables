@@ -67,7 +67,7 @@ class HDF5ExtError(RuntimeError):
 
     # NOTE: in order to avoid circular dependencies between modules the
     #       _dump_h5_backtrace method is set at initialization time in
-    #       the utilsExtenion.
+    #       the utilsextension.pyx.
     _dump_h5_backtrace = None
 
     DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
@@ -248,9 +248,9 @@ class NodeError(AttributeError, LookupError):
     with children, and other similarly invalid operations.
 
     A node in a PyTables database cannot be simply overwritten by
-    replacing it.  Instead, the old node must be removed explicitely
+    replacing it.  Instead, the old node must be removed explicitly
     before another one can take its place.  This is done to protect
-    interactive users from inadvertedly deleting whole trees of data by
+    interactive users from inadvertently deleting whole trees of data by
     a single erroneous command.
 
     """
@@ -359,7 +359,7 @@ class OldIndexWarning(Warning):
 
     This warning is issued when an index in an unsupported format is
     found.  The index will be marked as invalid and will behave as if
-    doesn't exist.
+    it doesn't exist.
 
     """
 

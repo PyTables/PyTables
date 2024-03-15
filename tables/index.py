@@ -605,7 +605,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             arr = reduc
             if profile:
                 show_stats("After arr <-- reduc", tref)
-        # A completely sorted index is not longer possible after an
+        # A completely sorted index is no longer possible after an
         # append of an index with already one slice.
         if nrow > 0:
             self._v_attrs.is_csi = False
@@ -1331,7 +1331,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             self.read_slice(tmp_indices, 0, sindices[:ss])
 
             nslice = 0   # Just in case the loop behind executes nothing
-            # Loop over the remainding slices in block
+            # Loop over the remaining slices in block
             for nslice in range(1, sorted.nrows):
                 self.reorder_slice(nslice, sorted, indices,
                                    ssorted, sindices,
@@ -1364,7 +1364,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             self.update_caches(nslice, ssorted[:ss])
         else:
             # Iterate over each block.  No data should cross block
-            # boundaries to avoid adressing problems with short indices.
+            # boundaries to avoid addressing problems with short indices.
             for nb in range(nblocks):
                 # Bootstrap the process for reordering
                 # Read the first slice in buffers
@@ -1372,7 +1372,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
                 self.read_slice(tmp_sorted, nrow, ssorted[:ss])
                 self.read_slice(tmp_indices, nrow, sindices[:ss])
 
-                # Loop over the remainding slices in block
+                # Loop over the remaining slices in block
                 lrb = nrow + nsb
                 if lrb > nslices:
                     lrb = nslices
@@ -1465,7 +1465,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
     def search_item_lt(self, where, item, nslice, limits, start=0):
         """Search a single item in a specific sorted slice."""
 
-        # This method will only works under the assumtion that item
+        # This method will only work under the assumption that item
         # *is to be found* in the nslice.
         assert nan_aware_lt(limits[0], item) and nan_aware_le(item, limits[1])
         cs = self.chunksize
@@ -1714,7 +1714,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         return self.read_sorted_indices('indices', start, stop, step)
 
     def _process_range(self, start, stop, step):
-        """Get a range specifc for the index usage."""
+        """Get a range specific for the index usage."""
 
         if start is not None and stop is None:
             # Special case for the behaviour of PyTables iterators
@@ -1763,7 +1763,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
         params = self._v_file.params
         # The sorted IndexArray is absolutely required to be in memory
-        # at the same time than the Index instance, so create a strong
+        # at the same time as the Index instance, so create a strong
         # reference to it.  We are not introducing leaks because the
         # strong reference will disappear when this Index instance is
         # to be closed.
@@ -1889,12 +1889,12 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             show_stats("Exiting search", tref)
         return tlen
 
-    # This is an scalar version of search. It works with strings as well.
+    # This is a scalar version of search. It works with strings as well.
     def search_scalar(self, item, sorted):
         """Do a binary search in this index for an item."""
 
         tlen = 0
-        # Do the lookup for values fullfilling the conditions
+        # Do the lookup for values fulfilling the conditions
         for i in range(self.nslices):
             (start, stop) = sorted._search_bin(i, item)
             self.starts[i] = start

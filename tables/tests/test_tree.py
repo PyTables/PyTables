@@ -735,7 +735,7 @@ class WideTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         Variable 'maxchildren' controls this check. PyTables support up
         to 4096 children per group, but this would take too much memory
-        (up to 64 MB) for testing purposes (may be we can add a test for
+        (up to 64 MB) for testing purposes (maybe we can add a test for
         big platforms). A 1024 children run takes up to 30 MB. A 512
         children test takes around 25 MB.
 
@@ -793,7 +793,7 @@ class WideTreeTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         Variable 'maxchildren' controls this check. PyTables support up
         to 4096 children per group, but this would take too much memory
-        (up to 64 MB) for testing purposes (may be we can add a test for
+        (up to 64 MB) for testing purposes (maybe we can add a test for
         big platforms). A 1024 children run takes up to 30 MB. A 512
         children test takes around 25 MB.
 

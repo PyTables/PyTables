@@ -759,7 +759,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
     def __delattr__(self, name):
         """Delete a Python attribute called name.
 
-        This method only provides a extra warning in case the user
+        This method only provides an extra warning in case the user
         tries to delete a children node using __delattr__.
 
         To remove a children node from this group use
@@ -816,7 +816,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         """
 
-        # Show a warning if there is an child node with that name.
+        # Show a warning if there is a child node with that name.
         #
         # ..note::
         #
@@ -947,7 +947,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             This argument may be used to collect statistics on the copy
             process. When used, it should be a dictionary with keys 'groups',
             'leaves', 'links' and 'bytes' having a numeric value. Their values
-            willbe incremented to reflect the number of groups, leaves and
+            will be incremented to reflect the number of groups, leaves and
             bytes, respectively, that have been copied during the operation.
 
         """
@@ -969,7 +969,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         in the destination group with the same name as one of the copied
         children from this one, unless overwrite is true; in this case,
         the former child node is recursively removed before copying the
-        later.
+        latter.
 
         By default, nodes descending from children groups of this node
         are not copied. If the recursive argument is true, all descendant

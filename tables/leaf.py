@@ -226,7 +226,7 @@ class Leaf(Node):
 
         You can (and are encouraged to) use this property to get, set
         and delete the FLAVOR HDF5 attribute of the leaf. When the leaf
-        has no such attribute, the default flavor is used..
+        has no such attribute, the default flavor is used.
         """
 
         return self._flavor
@@ -539,7 +539,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         `key` can be any of the following items:
 
-        * A boolean array with the same shape than self. Those positions
+        * A boolean array with the same shape as self. Those positions
           with True values will signal the coordinates to be returned.
 
         * A numpy array (or list or tuple) with the point coordinates.
@@ -686,9 +686,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         chunkshape
             The chunkshape of the new leaf.  It supports a couple of special
             values.  A value of keep means that the chunkshape will be the same
-            than original leaf (this is the default).  A value of auto means
+            as original leaf (this is the default).  A value of auto means
             that a new shape will be computed automatically in order to ensure
-            best performance when accessing the dataset through the main
+            the best performance when accessing the dataset through the main
             dimension.  Any other value should be an integer or a tuple
             matching the dimensions of the leaf.
 

@@ -203,7 +203,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def populateFile(self):
         group = self.rootgroup
         if self.recarrayinit:
-            # Initialize an starting buffer, if any
+            # Initialize a starting buffer, if any
             self.initRecArray()
         for j in range(3):
             # Create a table
@@ -818,7 +818,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     # flushing them explicitely is being warned from now on.
     # F. Alted 2006-08-03
     def _test02a_AppendRows(self):
-        """Checking appending records without flushing explicitely."""
+        """Checking appending records without flushing explicitly."""
 
         # Now, open it, but in "append" mode
         self.h5file = tb.open_file(self.h5fname, mode="a")
@@ -4180,7 +4180,7 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         r = np.rec.array(
             [(456, b'dbe', 1.2), (2, b'de', 1.3)], names='col1,col2,col3')
 
-        # Get an offsetted bytearray
+        # Get an offset bytearray
         r1 = r[1:]
 
         # Save it in a table:
@@ -4203,7 +4203,7 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         # Create a recarray
         r = np.rec.array(b'a'*200_000, 'f4,3i4,S5,i2', 3000)
 
-        # Get an offsetted bytearray
+        # Get an offset bytearray
         r1 = r[2000:]
 
         # Save it in a table:
@@ -4226,10 +4226,10 @@ class RecArrayIO(common.TempFileMixin, common.PyTablesTestCase):
         # Create a recarray
         r = np.rec.array(b'a'*200_000, 'f4,3i4,S5,i2', 3000)
 
-        # Get an strided recarray
+        # Get a strided recarray
         r2 = r[::2]
 
-        # Get an offsetted bytearray
+        # Get an offset bytearray
         r1 = r2[1200:]
 
         # Save it in a table:
@@ -4948,7 +4948,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # RecArray.Record instance
             # print "reprs-->", repr(row1), repr(table2.read(nrow))
             for colname in table1.colnames:
-                # Both ways to compare works well
+                # Both ways to compare work well
                 # self.assertEqual(row1[colname], table2[nrow][colname))
                 self.assertEqual(row1[colname],
                                  table2.read(nrow, field=colname)[0])
@@ -5024,7 +5024,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for row1 in table1:
             nrow = row1.nrow   # current row
             for colname in table1.colnames:
-                # Both ways to compare works well
+                # Both ways to compare work well
                 # self.assertEqual(row1[colname], table2[nrow][colname))
                 self.assertEqual(row1[colname],
                                  table2.read(nrow, field=colname)[0])
@@ -5176,7 +5176,7 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for row1 in table1:
             nrow = row1.nrow   # current row
             for colname in table1.colnames:
-                # Both ways to compare works well
+                # Both ways to compare work well
                 # self.assertEqual(row1[colname], table2[nrow][colname))
                 self.assertEqual(row1[colname],
                                  table2.read(nrow, field=colname)[0])
@@ -6918,7 +6918,7 @@ class TestCreateTableColumnAttrs(common.TempFileMixin, common.PyTablesTestCase):
     def test_col_attr_01(self):
         """
         Tests if the set column attrs set via `IsDescription` subclass are
-        availalbe in the table.
+        available in the table.
         """
         class TableEntry(tb.IsDescription):
             # Adding column attrs at description level

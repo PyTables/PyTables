@@ -11,7 +11,7 @@ from tables.tests import common
 # An alias for frozenset
 fzset = frozenset
 
-# To make the tests values reproductibles
+# To make the values in the tests reproducible
 random.seed(19)
 
 # Sensible parameters for indexing with small blocksizes
@@ -49,11 +49,11 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def populateFile(self):
         # Set a seed for the random generator if needed.
-        # This is useful when one need reproductible results.
+        # This is useful when one needs reproducible results.
         if self.random and hasattr(self, "seed"):
             random.seed(self.seed)
         group = self.rootgroup
-        # Create an table
+        # Create a table
         title = "This is the IndexArray title"
         filters = tb.Filters(complevel=self.compress,
                              complib=self.complib,

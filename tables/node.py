@@ -116,7 +116,7 @@ class Node(metaclass=MetaNode):
 
     .. attribute:: _v_depth
 
-        The depth of this node in the tree (an non-negative integer value).
+        The depth of this node in the tree (n non-negative integer value).
 
     .. attribute:: _v_file
 
@@ -181,7 +181,7 @@ class Node(metaclass=MetaNode):
     # This may be looked up by ``__del__`` when ``__init__`` doesn't get
     # to be called.  See ticket #144 for more info.
     _v_isopen = False
-    """Whehter this node is open or not."""
+    """Whether this node is open or not."""
 
     # The ``_log`` argument is only meant to be used by ``_g_copy_as_child()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
@@ -424,7 +424,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         if not self._v__deleting:
             node_manager.drop_from_cache(pathname)
-            # Note: node_manager.drop_node do not removes the node form the
+            # Note: node_manager.drop_node does not remove the node from the
             # registry if it is still open
             node_manager.registry.pop(pathname, None)
 
@@ -681,7 +681,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         Creates and returns a copy of the node in the given `newparent`,
         with the given `newname`.  If `recursive` copy is stated, all
-        descendents are copied as well.  Additional keyword argumens may
+        descendents are copied as well.  Additional keyword arguments may
         affect the way that the copy is made.  Unknown arguments must be
         ignored.  On recursive copies, all keyword arguments must be
         passed on to the children invocation of this method.

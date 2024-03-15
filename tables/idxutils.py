@@ -11,7 +11,7 @@ import numpy as np
 # - In general, one should favor a small chunksize ( < 128 KB) if one
 # wants to reduce the latency for indexed queries. However, keep in
 # mind that a very low value of chunksize for big datasets may hurt
-# the performance by requering the HDF5 to use a lot of memory and CPU
+# the performance by requiring the HDF5 to use a lot of memory and CPU
 # for its internal B-Tree.
 
 def csformula(nrows):
@@ -62,7 +62,7 @@ def computeslicesize(expectedrows, memlevel):
     # reasons (this limitation comes mainly from the way of compute
     # indices for indexes, but also because C keysort is not implemented
     # yet for the string type).  Besides, it cannot be larger than
-    # 2**30, because limitiations of the optimized binary search code
+    # 2**30, because limitations of the optimized binary search code
     # (in idx-opt.c, the line ``mid = lo + (hi-lo)/2;`` will overflow
     # for values of ``lo`` and ``hi`` >= 2**30).  Finally, ss must be a
     # multiple of 4, so 2**30 must definitely be an upper limit.

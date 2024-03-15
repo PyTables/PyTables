@@ -550,7 +550,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         NumPy, although you should check the Numexpr manual for the exceptions)
         are applied to determine the output type.
 
-        Finally, if the setOuput() method specifying a user container has
+        Finally, if the set_output() method specifying a user container has
         already been called, the output is sent to this user-provided
         container.  If not, a fresh NumPy container is returned instead.
 

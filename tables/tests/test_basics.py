@@ -255,7 +255,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(title, "Array title 1")
 
     # This test works well, but HDF5 emits a series of messages that
-    # may loose the user. It is better to deactivate it.
+    # may lose the user. It is better to deactivate it.
     def notest04c_alternateRootFile(self):
         """Checking non-existent alternate root access to the object tree"""
 
@@ -1310,7 +1310,7 @@ class CheckFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test04c_UnImplementedScalar(self):
         """Checking opening of HDF5 files containing scalar dataset of
-        UnImlemented type."""
+        UnImplemented type."""
 
         with tb.open_file(common.test_filename("scalar.h5")) as h5file:
             with self.assertWarns(UserWarning):
