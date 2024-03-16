@@ -20,6 +20,8 @@ standard variables and constants are more adequate.
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
+from typing import Any, Generator, NoReturn, Union
+
 
 class Enum:
     """Enumerated type.
@@ -101,7 +103,7 @@ class Enum:
 
     """
 
-    def __init__(self, enum):
+    def __init__(self, enum: Union[list[str], tuple[str, ...], dict[str, Any], "Enum"]) -> None:
         mydict = self.__dict__
 
         mydict['_names'] = {}
@@ -121,7 +123,7 @@ class Enum:
 enumerations can only be created from \
 sequences, mappings and other enumerations""")
 
-    def _check_and_set_pair(self, name, value):
+    def _check_and_set_pair(self, name: str, value: Any) -> None:
         """Check validity of enumerated value and insert it into type."""
 
         names = self._names
@@ -148,7 +150,7 @@ sequences, mappings and other enumerations""")
         values[value] = name
         self.__dict__[name] = value
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Any:
         """Get the concrete value of the enumerated value with that name.
 
         The name of the enumerated value must be a string. If there is no value
@@ -177,15 +179,15 @@ sequences, mappings and other enumerations""")
         except KeyError:
             raise KeyError(f"no enumerated value with that name: {name!r}")
 
-    def __setitem__(self, name, value):
+    def __setitem__(self, name: Any, value: Any) -> NoReturn:
         """This operation is forbidden."""
         raise IndexError("operation not allowed")
 
-    def __delitem__(self, name):
+    def __delitem__(self, name: Any) -> NoReturn:
         """This operation is forbidden."""
         raise IndexError("operation not allowed")
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         """Get the concrete value of the enumerated value with that name.
 
         The name of the enumerated value must be a string. If there is no value
@@ -213,15 +215,15 @@ sequences, mappings and other enumerations""")
         except KeyError as ke:
             raise AttributeError(*ke.args)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: Any, value: Any) -> NoReturn:
         """This operation is forbidden."""
         raise AttributeError("operation not allowed")
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: Any) -> NoReturn:
         """This operation is forbidden."""
         raise AttributeError("operation not allowed")
 
-    def __contains__(self, name):
+    def __contains__(self, name: str) -> bool:
         """Is there an enumerated value with that name in the type?
 
         If the enumerated type has an enumerated value with that name, True is
@@ -258,7 +260,7 @@ sequences, mappings and other enumerations""")
                 f"name of enumerated value is not a string: {name!r}")
         return name in self._names
 
-    def __call__(self, value, *default):
+    def __call__(self, value: Any, *default: Any) -> Any:
         """Get the name of the enumerated value with that concrete value.
 
         If there is no value with that concrete value in the enumeration and a
@@ -295,7 +297,7 @@ sequences, mappings and other enumerations""")
             raise ValueError(
                 f"no enumerated value with that concrete value: {value!r}")
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of enumerated values in the enumerated type.
 
         Examples
@@ -307,7 +309,7 @@ sequences, mappings and other enumerations""")
 
         return len(self._names)
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[Any, None, None]:
         """Iterate over the enumerated values.
 
         Enumerated values are returned as (name, value) pairs *in no particular
@@ -325,7 +327,7 @@ sequences, mappings and other enumerations""")
 
         yield from self._names.items()
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Enum") -> bool:
         """Is the other enumerated type equivalent to this one?
 
         Two enumerated types are equivalent if they have exactly the same
@@ -372,7 +374,7 @@ sequences, mappings and other enumerations""")
             return False
         return self._names == other._names
 
-    def __ne__(self, other):
+    def __ne__(self, other: "Enum") -> bool:
         """Is the `other` enumerated type different from this one?
 
         Two enumerated types are different if they don't have exactly
@@ -412,7 +414,7 @@ sequences, mappings and other enumerations""")
     # Overriding __eq__ blocks inheritance of __hash__ in 3.x
     # def __hash__(self):
     #    return hash((self.__class__, tuple(self._names.items())))
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return the canonical string representation of the enumeration. The
         output of this method can be evaluated to give a new enumeration object
         that will compare equal to this one.
