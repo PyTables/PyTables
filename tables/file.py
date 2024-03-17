@@ -15,6 +15,7 @@ import weakref
 import warnings
 from collections import defaultdict
 from pathlib import Path
+from typing import Any, Callable, Generator, Iterator, Literal, Optional, Union
 
 import numexpr as ne
 import numpy as np
@@ -28,7 +29,7 @@ from .exceptions import (ClosedFileError, FileModeError, NodeError,
 from .registry import get_class_by_name
 from .path import join_path, split_path
 from . import undoredo
-from .description import (IsDescription, UInt8Col, StringCol,
+from .description import (Description, IsDescription, UInt8Col, StringCol,
                           descr_from_dtype, dtype_from_descr)
 from .filters import Filters
 from .node import Node, NotLoggedMixin
@@ -71,30 +72,30 @@ compatible_formats = []  # Old format versions we can read
 
 
 class _FileRegistry:
-    def __init__(self):
-        self._name_mapping = defaultdict(set)
-        self._handlers = set()
+    def __init__(self) -> None:
+        self._name_mapping: dict[str, set[File]] = defaultdict(set)
+        self._handlers: set[File] = set()
 
     @property
-    def filenames(self):
+    def filenames(self) -> list[str]:
         return list(self._name_mapping)
 
     @property
-    def handlers(self):
+    def handlers(self) -> set["File"]:
         # return set(self._handlers)  # return a copy
         return self._handlers
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._handlers)
 
-    def __contains__(self, filename):
+    def __contains__(self, filename: str) -> bool:
         return filename in self.filenames
 
-    def add(self, handler):
+    def add(self, handler: "File") -> None:
         self._name_mapping[handler.filename].add(handler)
         self._handlers.add(handler)
 
-    def remove(self, handler):
+    def remove(self, handler: "File") -> None:
         filename = handler.filename
         self._name_mapping[filename].remove(handler)
         # remove enpty keys
@@ -102,11 +103,11 @@ class _FileRegistry:
             del self._name_mapping[filename]
         self._handlers.remove(handler)
 
-    def get_handlers_by_name(self, filename):
+    def get_handlers_by_name(self, filename: str) -> set["File"]:
         # return set(self._name_mapping[filename])  # return a copy
         return self._name_mapping[filename]
 
-    def close_all(self):
+    def close_all(self) -> None:
         handlers = list(self._handlers)  # make a copy
         for fileh in handlers:
             msg = f"Closing remaining open file: {fileh.filename}"
@@ -154,7 +155,7 @@ _shadow_name = 'a%d'  # %d -> action number
 _shadow_path = join_path(_shadow_parent, _shadow_name)
 
 
-def _checkfilters(filters):
+def _checkfilters(filters: Filters) -> None:
     if not (filters is None or
             isinstance(filters, Filters)):
         raise TypeError("filter parameter has to be None or a Filter "
@@ -162,7 +163,7 @@ def _checkfilters(filters):
                         type(filters))
 
 
-def copy_file(srcfilename, dstfilename, overwrite=False, **kwargs):
+def copy_file(srcfilename: str, dstfilename: str, overwrite: bool=False, **kwargs) -> None:
     """An easy way of copying one PyTables file to another.
 
     This function allows you to copy an existing PyTables file named
@@ -195,8 +196,9 @@ hdf5_version_tup = tuple(map(int, hdf5_version_str.split('-')[0].split('.')))
 _FILE_OPEN_POLICY = 'strict' if hdf5_version_tup < (1, 8, 7) else 'default'
 
 
-def open_file(filename, mode="r", title="", root_uep="/", filters=None,
-              **kwargs):
+def open_file(filename: str, mode: Literal["r", "w", "a", "r+"]="r",
+              title: str="", root_uep: str="/", filters: Optional[Filters]=None,
+              **kwargs) -> "File":
     """Open a PyTables (or generic HDF5) file and return a File object.
 
     Parameters
@@ -296,16 +298,16 @@ def open_file(filename, mode="r", title="", root_uep="/", filters=None,
 
 # A dumb class that doesn't keep anything at all
 class _NoCache:
-    def __len__(self):
+    def __len__(self) -> int:
         return 0
 
-    def __contains__(self, key):
+    def __contains__(self, key: Any) -> bool:
         return False
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter([])
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> None:
         pass
 
     __marker = object()
@@ -317,13 +319,13 @@ class _NoCache:
 
 
 class _DictCache(dict):
-    def __init__(self, nslots):
+    def __init__(self, nslots: int) -> None:
         if nslots < 1:
             raise ValueError("Invalid number of slots: %d" % nslots)
         self.nslots = nslots
         super().__init__()
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> None:
         # Check if we are running out of space
         if len(self) > self.nslots:
             warnings.warn(
@@ -335,7 +337,7 @@ class _DictCache(dict):
 
 
 class NodeManager:
-    def __init__(self, nslots=64, node_factory=None):
+    def __init__(self, nslots: int=64, node_factory=None) -> None:
         super().__init__()
 
         self.registry = weakref.WeakValueDictionary()
@@ -353,7 +355,7 @@ class NodeManager:
         # node_factory(node_path)
         self.node_factory = node_factory
 
-    def register_node(self, node, key):
+    def register_node(self, node: Node, key: Optional[str]) -> None:
         if key is None:
             key = node._v_pathname
 
@@ -367,7 +369,7 @@ class NodeManager:
         else:
             self.registry[key] = node
 
-    def cache_node(self, node, key=None):
+    def cache_node(self, node: Node, key: Optional[str]=None) -> None:
         if key is None:
             key = node._v_pathname
 
@@ -380,7 +382,7 @@ class NodeManager:
 
         self.cache[key] = node
 
-    def get_node(self, key):
+    def get_node(self, key: str) -> Node:
         node = self.cache.pop(key, None)
         if node is not None:
             if node._v_isopen:
@@ -413,19 +415,19 @@ class NodeManager:
 
         return node
 
-    def rename_node(self, oldkey, newkey):
+    def rename_node(self, oldkey: str, newkey: str) -> None:
         for cache in (self.cache, self.registry):
             if oldkey in cache:
                 node = cache.pop(oldkey)
                 cache[newkey] = node
 
-    def drop_from_cache(self, nodepath):
+    def drop_from_cache(self, nodepath: str) -> None:
         """Remove the node from cache"""
 
         # Remove the node from the cache.
         self.cache.pop(nodepath, None)
 
-    def drop_node(self, node, check_unregistered=True):
+    def drop_node(self, node: Node, check_unregistered: bool=True) -> None:
         """Drop the `node`.
 
         Remove the node from the cache and, if it has no more references,
@@ -453,7 +455,7 @@ class NodeManager:
                 node._g_pre_kill_hook()
                 node._f_close()
 
-    def flush_nodes(self):
+    def flush_nodes(self) -> None:
         # Only iter on the nodes in the registry since nodes in the cache
         # should always have an entry in the registry
         closed_keys = []
@@ -472,7 +474,7 @@ class NodeManager:
             self.registry.pop(path)
 
     @staticmethod
-    def _close_nodes(nodepaths, get_node):
+    def _close_nodes(nodepaths: list[str], get_node: Callable[[str], Union[Group, Node]]) -> None:
         for nodepath in nodepaths:
             try:
                 node = get_node(nodepath)
@@ -502,7 +504,7 @@ class NodeManager:
                     #     "%s" % (type_.__name__, exception_dump))
                     pass
 
-    def close_subtree(self, prefix='/'):
+    def close_subtree(self, prefix: str='/') -> None:
         if not prefix.endswith('/'):
             prefix = prefix + '/'
 
@@ -531,7 +533,7 @@ class NodeManager:
         paths = [path for path in registry if path.startswith(prefix)]
         self._close_nodes(paths, registry.pop)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         registry = self.registry
         cache = self.cache
 
@@ -679,34 +681,34 @@ class File(hdf5extension.File):
     _node_kinds = ('Group', 'Leaf', 'Link', 'Unknown')
 
     @property
-    def title(self):
+    def title(self) -> str:
         """The title of the root group in the file."""
         return self.root._v_title
 
     @title.setter
-    def title(self, title):
+    def title(self, title: str) -> None:
         self.root._v_title = title
 
     @title.deleter
-    def title(self):
+    def title(self) -> None:
         del self.root._v_title
 
     @property
-    def filters(self):
+    def filters(self) -> Filters:
         """Default filter properties for the root group
         (see :ref:`FiltersClassDescr`)."""
         return self.root._v_filters
 
     @filters.setter
-    def filters(self, filters):
+    def filters(self, filters: Filters) -> None:
         self.root._v_filters = filters
 
     @filters.deleter
-    def filters(self):
+    def filters(self) -> None:
         del self.root._v_filters
 
-    def __init__(self, filename, mode="r", title="",
-                 root_uep="/", filters=None, **kwargs):
+    def __init__(self, filename: str, mode: Literal["r", "w", "a", "r+"]="r", title: str="",
+                 root_uep: str="/", filters: Optional[Filters]=None, **kwargs) -> None:
 
         self.filename = os.fspath(filename)
         """The name of the opened file."""
@@ -794,7 +796,8 @@ class File(hdf5extension.File):
         # Set the maximum number of threads for Numexpr
         ne.set_vml_num_threads(params['MAX_NUMEXPR_THREADS'])
 
-    def __get_root_group(self, root_uep, title, filters):
+    def __get_root_group(self, root_uep: Optional[str], title: str,
+                         filters: Filters) -> RootGroup:
         """Returns a Group instance which will act as the root group in the
         hierarchical tree.
 
@@ -830,7 +833,8 @@ class File(hdf5extension.File):
         # create the object tree
         return RootGroup(self, root_uep, title=title, new=new, filters=filters)
 
-    def _get_or_create_path(self, path, create):
+    def _get_or_create_path(self, path: Union[Node, str],
+                            create: bool) -> Union[Group, Node, RootGroup]:
         """Get the given `path` or create it if `create` is true.
 
         If `create` is true, `path` *must* be a string path and not a
@@ -843,7 +847,7 @@ class File(hdf5extension.File):
         else:
             return self.get_node(path)
 
-    def _create_path(self, path):
+    def _create_path(self, path: str) -> Group:
         """Create the groups needed for the `path` to exist.
 
         The group associated with the given `path` is returned.
@@ -865,8 +869,12 @@ class File(hdf5extension.File):
             parent = child
         return parent
 
-    def create_group(self, where, name, title="", filters=None,
-                     createparents=False):
+    def create_group(self,
+                     where: Union[Group, str],
+                     name: str,
+                     title: str="",
+                     filters: Optional[Filters]=None,
+                     createparents: bool=False) -> Group:
         """Create a new group.
 
         Parameters
@@ -902,10 +910,18 @@ class File(hdf5extension.File):
         return Group(parentnode, name,
                      title=title, new=True, filters=filters)
 
-    def create_table(self, where, name, description=None, title="",
-                     filters=None, expectedrows=10_000,
-                     chunkshape=None, byteorder=None,
-                     createparents=False, obj=None, track_times=True):
+    def create_table(self,
+                     where: Union[Group, str],
+                     name: str,
+                     description: Optional[Description]=None,
+                     title: str="",
+                     filters: Optional[Filters]=None,
+                     expectedrows: int=10_000,
+                     chunkshape: Union[int, tuple[int], None]=None,
+                     byteorder: Optional[str]=None,
+                     createparents: bool=False,
+                     obj: Optional[np.ndarray]=None,
+                     track_times: bool=True) -> Table:
         """Create a new table with the given name in where location.
 
         Parameters
@@ -1024,9 +1040,16 @@ class File(hdf5extension.File):
 
         return ptobj
 
-    def create_array(self, where, name, obj=None, title="",
-                     byteorder=None, createparents=False,
-                     atom=None, shape=None, track_times=True):
+    def create_array(self,
+                     where: Union[Group, str],
+                     name: str,
+                     obj: Optional[np.ndarray]=None,
+                     title: str="",
+                     byteorder: Optional[str]=None,
+                     createparents: bool=False,
+                     atom: Optional[Atom]=None,
+                     shape: Union[tuple[int, ...], None]=None,
+                     track_times: bool=True) -> Array:
         """Create a new array.
 
         Parameters
@@ -1120,10 +1143,18 @@ class File(hdf5extension.File):
                      obj=obj, title=title, byteorder=byteorder,
                      track_times=track_times)
 
-    def create_carray(self, where, name, atom=None, shape=None, title="",
-                      filters=None, chunkshape=None,
-                      byteorder=None, createparents=False, obj=None,
-                      track_times=True):
+    def create_carray(self,
+                      where: Union[Group, str],
+                      name: str,
+                      atom: Optional[Atom]=None,
+                      shape: Union[tuple[int, ...], None]=None,
+                      title: str="",
+                      filters: Optional[Filters]=None,
+                      chunkshape: Union[int, tuple[int], None]=None,
+                      byteorder: Optional[str]=None,
+                      createparents: bool=False,
+                      obj: Optional[np.ndarray]=None,
+                      track_times: bool=True) -> CArray:
         """Create a new chunked array.
 
         Parameters
@@ -1236,10 +1267,19 @@ class File(hdf5extension.File):
 
         return ptobj
 
-    def create_earray(self, where, name, atom=None, shape=None, title="",
-                      filters=None, expectedrows=1000,
-                      chunkshape=None, byteorder=None,
-                      createparents=False, obj=None, track_times=True):
+    def create_earray(self,
+                      where: Union[Group, str],
+                      name: str,
+                      atom: Optional[Atom]=None,
+                      shape: Union[tuple[int, ...], None]=None,
+                      title: str="",
+                      filters: Optional[Filters]=None,
+                      expectedrows: int=1000,
+                      chunkshape: Union[int, tuple[int], None]=None,
+                      byteorder: Optional[str]=None,
+                      createparents: bool=False,
+                      obj: Optional[np.ndarray]=None,
+                      track_times: bool=True) -> EArray:
         """Create a new enlargeable array.
 
         Parameters
@@ -1353,11 +1393,18 @@ class File(hdf5extension.File):
 
         return ptobj
 
-    def create_vlarray(self, where, name, atom=None, title="",
-                       filters=None, expectedrows=None,
-                       chunkshape=None, byteorder=None,
-                       createparents=False, obj=None,
-                       track_times=True):
+    def create_vlarray(self,
+                       where: Union[Group, str],
+                       name: str,
+                       atom: Optional[Atom]=None,
+                       title: str="",
+                       filters: Optional[Filters]=None,
+                       expectedrows: Optional[int]=None,
+                       chunkshape: Union[int, tuple[int], None]=None,
+                       byteorder: Optional[str]=None,
+                       createparents: bool=False,
+                       obj: Optional[np.ndarray]=None,
+                       track_times: bool=True) -> VLArray:
         """Create a new variable-length array.
 
         Parameters
@@ -1465,7 +1512,11 @@ class File(hdf5extension.File):
 
         return ptobj
 
-    def create_hard_link(self, where, name, target, createparents=False):
+    def create_hard_link(self,
+                         where: Union[Node, str],
+                         name: str,
+                         target: Union[Node, str],
+                         createparents: bool=False) -> Union[Group, Leaf]:
         """Create a hard link.
 
         Create a hard link to a `target` node with the given `name` in
@@ -1486,7 +1537,11 @@ class File(hdf5extension.File):
         # Return the target node
         return self.get_node(parentnode, name)
 
-    def create_soft_link(self, where, name, target, createparents=False):
+    def create_soft_link(self,
+                         where: Union[Node, str],
+                         name: str,
+                         target: Union[Node, str],
+                         createparents: bool=False) -> SoftLink:
         """Create a soft link (aka symbolic link) to a `target` node.
 
         Create a soft link (aka symbolic link) to a `target` nodewith
@@ -1514,7 +1569,11 @@ class File(hdf5extension.File):
         parentnode._g_add_children_names()
         return slink
 
-    def create_external_link(self, where, name, target, createparents=False):
+    def create_external_link(self,
+                             where: Union[Node, str],
+                             name: str,
+                             target: Union[Node, str],
+                             createparents: bool=False) -> ExternalLink:
         """Create an external link.
 
         Create an external link to a *target* node with the given *name*
@@ -1542,7 +1601,7 @@ class File(hdf5extension.File):
         parentnode._g_add_children_names()
         return elink
 
-    def _get_node(self, nodepath):
+    def _get_node(self, nodepath: str) -> Union[Node, RootGroup]:
         # The root node is always at hand.
         if nodepath == '/':
             return self.root
@@ -1552,7 +1611,8 @@ class File(hdf5extension.File):
 
         return node
 
-    def get_node(self, where, name=None, classname=None):
+    def get_node(self, where: Union[Node, str], name: Optional[str]=None,
+                 classname: Optional[str]=None) -> Node:
         """Get the node under where with the given name.
 
         Parameters
@@ -1621,7 +1681,7 @@ class File(hdf5extension.File):
 
         return node
 
-    def is_visible_node(self, path):
+    def is_visible_node(self, path: str) -> bool:
         """Is the node under `path` visible?
 
         If the node does not exist, a NoSuchNodeError is raised.
@@ -1631,7 +1691,8 @@ class File(hdf5extension.File):
         # ``util.isvisiblepath()`` is still recommended for internal use.
         return self.get_node(path)._f_isvisible()
 
-    def rename_node(self, where, newname, name=None, overwrite=False):
+    def rename_node(self, where: Union[Node, str], newname: str,
+                    name: Optional[str]=None, overwrite: bool=False) -> None:
         """Change the name of the node specified by where and name to newname.
 
         Parameters
@@ -1650,8 +1711,9 @@ class File(hdf5extension.File):
         obj = self.get_node(where, name=name)
         obj._f_rename(newname, overwrite)
 
-    def move_node(self, where, newparent=None, newname=None, name=None,
-                  overwrite=False, createparents=False):
+    def move_node(self, where: Union[Node, str], newparent: Union[Group, str, None]=None,
+                  newname: Optional[str]=None, name: Optional[str]=None,
+                  overwrite: bool=False, createparents: bool=False) -> None:
         """Move the node specified by where and name to newparent/newname.
 
         Parameters
@@ -1679,9 +1741,15 @@ class File(hdf5extension.File):
         obj = self.get_node(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
 
-    def copy_node(self, where, newparent=None, newname=None, name=None,
-                  overwrite=False, recursive=False, createparents=False,
-                  **kwargs):
+    def copy_node(self,
+                  where: Union[Node, str],
+                  newparent: Union[Group, str, None]=None,
+                  newname: Optional[str]=None,
+                  name: Optional[str]=None,
+                  overwrite: bool=False,
+                  recursive: bool=False,
+                  createparents: bool=False,
+                  **kwargs) -> Node:
         """Copy the node specified by where and name to newparent/newname.
 
         Parameters
@@ -1741,7 +1809,8 @@ class File(hdf5extension.File):
         return obj._f_copy(newparent, newname,
                            overwrite, recursive, createparents, **kwargs)
 
-    def remove_node(self, where, name=None, recursive=False):
+    def remove_node(self, where: Union[Node, str], name: Optional[str]=None,
+                    recursive: bool=False) -> None:
         """Remove the object node *name* under *where* location.
 
         Parameters
@@ -1761,7 +1830,8 @@ class File(hdf5extension.File):
         obj = self.get_node(where, name=name)
         obj._f_remove(recursive)
 
-    def get_node_attr(self, where, attrname, name=None):
+    def get_node_attr(self, where: Union[Node, str], attrname: str,
+                      name: Optional[str]=None) -> Any:
         """Get a PyTables attribute from the given node.
 
         Parameters
@@ -1778,7 +1848,8 @@ class File(hdf5extension.File):
         obj = self.get_node(where, name=name)
         return obj._f_getattr(attrname)
 
-    def set_node_attr(self, where, attrname, attrvalue, name=None):
+    def set_node_attr(self, where: Union[Node, str], attrname: str, attrvalue: Any,
+                      name: Optional[str]=None) -> None:
         """Set a PyTables attribute for the given node.
 
         Parameters
@@ -1806,7 +1877,8 @@ class File(hdf5extension.File):
         obj = self.get_node(where, name=name)
         obj._f_setattr(attrname, attrvalue)
 
-    def del_node_attr(self, where, attrname, name=None):
+    def del_node_attr(self, where: Union[Node, str], attrname: str,
+                      name: Optional[str]=None) -> None:
         """Delete a PyTables attribute from the given node.
 
         Parameters
@@ -1823,7 +1895,8 @@ class File(hdf5extension.File):
         obj = self.get_node(where, name=name)
         obj._f_delattr(attrname)
 
-    def copy_node_attrs(self, where, dstnode, name=None):
+    def copy_node_attrs(self, where: Union[Node, str], dstnode: Union[Node, str],
+                        name: Optional[str]=None) -> None:
         """Copy PyTables attributes from one node to another.
 
         Parameters
@@ -1841,9 +1914,9 @@ class File(hdf5extension.File):
         dstobject = self.get_node(dstnode)
         srcobject._v_attrs._f_copy(dstobject)
 
-    def copy_children(self, srcgroup, dstgroup,
-                      overwrite=False, recursive=False,
-                      createparents=False, **kwargs):
+    def copy_children(self, srcgroup: str, dstgroup: str,
+                      overwrite: bool=False, recursive: bool=False,
+                      createparents: bool=False, **kwargs) -> None:
         """Copy the children of a group into another group.
 
         Parameters
@@ -1874,7 +1947,7 @@ class File(hdf5extension.File):
         srcgroup._f_copy_children(
             dstgroup, overwrite, recursive, createparents, **kwargs)
 
-    def copy_file(self, dstfilename, overwrite=False, **kwargs):
+    def copy_file(self, dstfilename: str, overwrite: bool=False, **kwargs) -> None:
         """Copy the contents of this file to dstfilename.
 
         Parameters
@@ -1948,7 +2021,7 @@ class File(hdf5extension.File):
         finally:
             dstfileh.close()
 
-    def list_nodes(self, where, classname=None):
+    def list_nodes(self, where: Union[Node, str], classname: Optional[str]=None) -> list[Node]:
         """Return a *list* with children nodes hanging from where.
 
         This is a list-returning version of :meth:`File.iter_nodes`.
@@ -1960,7 +2033,8 @@ class File(hdf5extension.File):
 
         return group._f_list_nodes(classname)
 
-    def iter_nodes(self, where, classname=None):
+    def iter_nodes(self, where: Union[Node, str],
+                   classname: Optional[str]=None) -> Generator[Node, None, None]:
         """Iterate over children nodes hanging from where.
 
         Parameters
@@ -1985,7 +2059,7 @@ class File(hdf5extension.File):
 
         return group._f_iter_nodes(classname)
 
-    def __contains__(self, path):
+    def __contains__(self, path: str) -> bool:
         """Is there a node with that path?
 
         Returns True if the file has a node with the given path (a
@@ -2000,7 +2074,7 @@ class File(hdf5extension.File):
         else:
             return True
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[Node, None, None]:
         """Recursively iterate over the nodes in the tree.
 
         This is equivalent to calling :meth:`File.walk_nodes` with no
@@ -2021,7 +2095,8 @@ class File(hdf5extension.File):
 
         return self.walk_nodes('/')
 
-    def walk_nodes(self, where="/", classname=None):
+    def walk_nodes(self, where: Union[Group, str]="/",
+                   classname: Optional[str]=None) -> Generator[Node, None, None]:
         """Recursively iterate over nodes hanging from where.
 
         Parameters
@@ -2065,7 +2140,7 @@ class File(hdf5extension.File):
             for group in self.walk_groups(where):
                 yield from self.iter_nodes(group, classname)
 
-    def walk_groups(self, where="/"):
+    def walk_groups(self, where: Union[Group, str]="/") -> Generator[Group, None, None]:
         """Recursively iterate over groups (not leaves) hanging from where.
 
         The where group itself is listed first (preorder), then each of its
@@ -2082,7 +2157,7 @@ class File(hdf5extension.File):
         self._check_group(group)  # Is it a group?
         return group._f_walk_groups()
 
-    def _check_open(self):
+    def _check_open(self) -> None:
         """Check the state of the file.
 
         If the file is closed, a `ClosedFileError` is raised.
@@ -2092,12 +2167,12 @@ class File(hdf5extension.File):
         if not self.isopen:
             raise ClosedFileError("the file object is closed")
 
-    def _iswritable(self):
+    def _iswritable(self) -> bool:
         """Is this file writable?"""
 
         return self.mode in ('w', 'a', 'r+')
 
-    def _check_writable(self):
+    def _check_writable(self) -> None:
         """Check whether the file is writable.
 
         If the file is not writable, a `FileModeError` is raised.
@@ -2107,12 +2182,12 @@ class File(hdf5extension.File):
         if not self._iswritable():
             raise FileModeError("the file is not writable")
 
-    def _check_group(self, node):
+    def _check_group(self, node: Group) -> None:
         # `node` must already be a node.
         if not isinstance(node, Group):
             raise TypeError(f"node ``{node._v_pathname}`` is not a group")
 
-    def is_undo_enabled(self):
+    def is_undo_enabled(self) -> bool:
         """Is the Undo/Redo mechanism enabled?
 
         Returns True if the Undo/Redo mechanism has been enabled for
@@ -2125,11 +2200,11 @@ class File(hdf5extension.File):
         self._check_open()
         return self._undoEnabled
 
-    def _check_undo_enabled(self):
+    def _check_undo_enabled(self) -> None:
         if not self._undoEnabled:
             raise UndoRedoError("Undo/Redo feature is currently disabled!")
 
-    def _create_transaction_group(self):
+    def _create_transaction_group(self) -> TransactionGroupG:
         tgroup = TransactionGroupG(
             self.root, _trans_group_name,
             "Transaction information container", new=True)
@@ -2137,17 +2212,17 @@ class File(hdf5extension.File):
         tgroup._v_attrs._g__setattr('FORMATVERSION', _trans_version)
         return tgroup
 
-    def _create_transaction(self, troot, tid):
+    def _create_transaction(self, troot: TransactionGroupG, tid: int) -> TransactionG:
         return TransactionG(
             troot, _trans_name % tid,
             "Transaction number %d" % tid, new=True)
 
-    def _create_mark(self, trans, mid):
+    def _create_mark(self, trans: TransactionG, mid: int) -> MarkG:
         return MarkG(
             trans, _markName % mid,
             "Mark number %d" % mid, new=True)
 
-    def enable_undo(self, filters=Filters(complevel=1)):
+    def enable_undo(self, filters: Filters=Filters(complevel=1)) -> None:
         """Enable the Undo/Redo mechanism.
 
         This operation prepares the database for undoing and redoing
@@ -2186,8 +2261,8 @@ class File(hdf5extension.File):
         if self.is_undo_enabled():
             raise UndoRedoError("Undo/Redo feature is already enabled!")
 
-        self._markers = {}
-        self._seqmarkers = []
+        self._markers: dict[str, int] = {}
+        self._seqmarkers: list[int] = []
         self._nmarks = 0
         self._curtransaction = 0
         self._curmark = -1  # No marks yet
@@ -2242,7 +2317,7 @@ class File(hdf5extension.File):
         # The Undo/Redo mechanism has been enabled.
         self._undoEnabled = True
 
-    def disable_undo(self):
+    def disable_undo(self) -> None:
         """Disable the Undo/Redo mechanism.
 
         Disabling the Undo/Redo mechanism leaves the database in the
@@ -2277,7 +2352,7 @@ class File(hdf5extension.File):
         # The Undo/Redo mechanism has been disabled.
         self._undoEnabled = False
 
-    def mark(self, name=None):
+    def mark(self, name: Optional[str]=None) -> int:
         """Mark the state of the database.
 
         Creates a mark for the current state of the database. A unique (and
@@ -2320,7 +2395,7 @@ class File(hdf5extension.File):
         self._create_mark(self._trans, self._curmark)
         return self._curmark
 
-    def _log(self, action, *args):
+    def _log(self, action: str, *args) -> None:
         """Log an action.
 
         The `action` must be an all-uppercase string identifying it.
@@ -2377,7 +2452,7 @@ class File(hdf5extension.File):
                                  arg2.encode('utf-8'))])
         self._curaction += 1
 
-    def _get_mark_id(self, mark):
+    def _get_mark_id(self, mark: Union[int, str]) -> int:
         """Get an integer markid from a mark sequence number or name."""
 
         if isinstance(mark, int):
@@ -2395,7 +2470,7 @@ class File(hdf5extension.File):
         # print("markid, self._nmarks:", markid, self._nmarks)
         return markid
 
-    def _get_final_action(self, markid):
+    def _get_final_action(self, markid: int) -> int:
         """Get the action to go.
 
         It does not touch the self private attributes
@@ -2413,7 +2488,7 @@ class File(hdf5extension.File):
 
         return self._seqmarkers[markid]
 
-    def _doundo(self, finalaction, direction):
+    def _doundo(self, finalaction: int, direction: int) -> None:
         """Undo/Redo actions up to final action in the specified direction."""
 
         if direction < 0:
@@ -2462,7 +2537,7 @@ class File(hdf5extension.File):
                         self._curmark = 0
             self._curaction += direction
 
-    def undo(self, mark=None):
+    def undo(self, mark: Union[int, str, None]=None) -> None:
         """Go to a past state of the database.
 
         Returns the database to the state associated with the specified mark.
@@ -2508,7 +2583,7 @@ class File(hdf5extension.File):
 #         print("(post)UNDO: (curaction, curmark) = (%s,%s)" % \
 #               (self._curaction, self._curmark))
 
-    def redo(self, mark=None):
+    def redo(self, mark: Union[int, str, None]=None) -> None:
         """Go to a future state of the database.
 
         Returns the database to the state associated with the specified
@@ -2558,7 +2633,7 @@ class File(hdf5extension.File):
 #         print("(post)REDO: (curaction, curmark) = (%s,%s)" % \
 #               (self._curaction, self._curmark))
 
-    def goto(self, mark):
+    def goto(self, mark: Union[int, str]) -> None:
         """Go to a specific mark of the database.
 
         Returns the database to the state associated with the specified mark.
@@ -2582,7 +2657,7 @@ class File(hdf5extension.File):
         else:
             self.redo(mark)
 
-    def get_current_mark(self):
+    def get_current_mark(self) -> int:
         """Get the identifier of the current mark.
 
         Returns the identifier of the current mark. This can be used
@@ -2600,7 +2675,7 @@ class File(hdf5extension.File):
         self._check_undo_enabled()
         return self._curmark
 
-    def _shadow_name(self):
+    def _shadow_name(self) -> tuple[Node, str]:
         """Compute and return a shadow name.
 
         Computes the current shadow name according to the current
@@ -2615,7 +2690,7 @@ class File(hdf5extension.File):
 
         return (parent, name)
 
-    def flush(self):
+    def flush(self) -> None:
         """Flush all the alive leaves in the object tree."""
 
         self._check_open()
@@ -2624,7 +2699,7 @@ class File(hdf5extension.File):
         self._node_manager.flush_nodes()
         self._flush_file(0)  # 0 means local scope, 1 global (virtual) scope
 
-    def close(self):
+    def close(self) -> None:
         """Flush all the alive leaves in object tree and close the file."""
 
         # If the file is already closed, return immediately
@@ -2676,18 +2751,18 @@ class File(hdf5extension.File):
         # Delete the entry from the registry of opened files
         _open_files.remove(self)
 
-    def __enter__(self):
+    def __enter__(self) -> "File":
         """Enter a context and return the same file."""
 
         return self
 
-    def __exit__(self, *exc_info):
+    def __exit__(self, *exc_info) -> bool:
         """Exit a context and close the file."""
 
         self.close()
         return False  # do not hide exceptions
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return a short string representation of the object tree.
 
         Examples
@@ -2733,7 +2808,7 @@ class File(hdf5extension.File):
                     lines.append(f'{node}')
         return '\n'.join(lines) + '\n'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return a detailed string representation of the object tree."""
 
         if not self.isopen:
@@ -2751,7 +2826,7 @@ class File(hdf5extension.File):
                     lines.append(f'{node!r}')
         return '\n'.join(lines) + '\n'
 
-    def _update_node_locations(self, oldpath, newpath):
+    def _update_node_locations(self, oldpath: str, newpath: str) -> None:
         """Update location information of nodes under `oldpath`.
 
         This only affects *already loaded* nodes.
