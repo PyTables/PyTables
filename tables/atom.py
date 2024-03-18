@@ -204,9 +204,8 @@ class Atom(metaclass=MetaAtom):
 
     Parameters
     ----------
-    itemsize : int
-        For types with a non-fixed size, this sets the size in
-        bytes of individual items in the atom.
+    nptype : str or np.dtype
+        Sets the Numpy data type of the atom.
     shape : tuple
         Sets the shape of the atom. An integer shape of
         N is equivalent to the tuple (N,).

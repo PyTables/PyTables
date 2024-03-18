@@ -135,6 +135,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
     blocksizes
         The four main sizes of the compound blocks in index datasets (a low
         level parameter).
+    new
+        Whether this Index is new or has to be read from disk.
 
     """
 
@@ -1499,8 +1501,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
     def compute_overlaps_finegrain(self, where, message, verbose):
         """Compute some statistics about overlaping of slices in index.
 
-        It returns the following info:
-
+        Returns
+        -------
         noverlaps : int
             The total number of elements that overlaps in index.
         multiplicity : array of int
@@ -1592,8 +1594,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
     def compute_overlaps(self, where, message, verbose):
         """Compute some statistics about overlaping of slices in index.
 
-        It returns the following info:
-
+        Returns
+        -------
         noverlaps : int
             The total number of slices that overlaps in index.
         multiplicity : array of int

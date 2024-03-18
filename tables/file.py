@@ -1311,6 +1311,10 @@ class File(hdf5extension.File):
         title : str, optional
             A description for this node (it sets the TITLE HDF5 attribute on
             disk).
+        filters : Filters, optional
+            An instance of the Filters class (see :ref:`FiltersClassDescr`)
+            that provides information about the desired I/O filters to
+            be applied during the life of this object.
         expectedrows : int, optional
             A user estimate about the number of row elements that will be added
             to the growable dimension in the EArray node.  If not provided, the
@@ -1731,6 +1735,12 @@ class File(hdf5extension.File):
             destination (a string). If it is not specified or
             None, the current name is chosen as the
             new name.
+        overwrite : bool, optional
+            Whether to allow moving over another node, in which case that
+            node is recursively removed before moving (not done by default).
+        createparents : bool, optional
+            If True, any necessary parents of newparent will be created.
+            Defaults to False.
 
         Notes
         -----
@@ -1776,10 +1786,10 @@ class File(hdf5extension.File):
             If True, the destination group will be overwritten if it already
             exists.  Defaults to False.
         recursive : bool, optional
-            If True, all descendant nodes of srcgroup are recursively copied.
-            Defaults to False.
+            If True, all descendant nodes of the node to be acted upon are
+            recursively copied.  Defaults to False.
         createparents : bool, optional
-            If True, any necessary parents of dstgroup will be created.
+            If True, any necessary parents of newparent will be created.
             Defaults to False.
         kwargs
            Additional keyword arguments can be used to customize the copying
