@@ -695,7 +695,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         return self._f_copy(
-            newparent, newname, overwrite, createparents, **kwargs)
+            newparent, newname, overwrite, createparents=createparents, **kwargs)
 
     def truncate(self, size):
         """Truncate the main dimension to be size rows.
