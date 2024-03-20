@@ -143,7 +143,7 @@ def _table__where_indexed(self: "Table",
                           condvars: dict[str, Union["Column", np.ndarray]],
                           start: int,
                           stop: int,
-                          step: int) -> Union[Iterator, np.ndarray]:
+                          step: int) -> Union[Iterator[tableextension.Row], np.ndarray]:
     if profile:
         tref = clock()
     if profile:
@@ -1407,7 +1407,7 @@ very small/large chunksize, you may want to increase/decrease it."""
               condvars: Optional[dict[str, Union["Column", np.ndarray]]]=None,
               start: Optional[str]=None,
               stop: Optional[str]=None,
-              step: Optional[str]=None) -> Iterator:
+              step: Optional[str]=None) -> Iterator[tableextension.Row]:
         r"""Iterate over values fulfilling a condition.
 
         This method returns a Row iterator (see :ref:`RowClassDescr`) which
@@ -1505,7 +1505,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                condvars: Optional[dict[str, Union["Column", np.ndarray]]],
                start: Optional[str]=None,
                stop: Optional[str]=None,
-               step: Optional[str]=None) -> Iterator:
+               step: Optional[str]=None) -> Iterator[tableextension.Row]:
         """Low-level counterpart of `self.where()`."""
 
         if profile:
@@ -1648,7 +1648,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             coords = np.sort(coords)
         return internal_to_flavor(coords, self.flavor)
 
-    def itersequence(self, sequence: Sequence) -> Iterator:
+    def itersequence(self, sequence: Sequence) -> Iterator[tableextension.Row]:
         """Iterate over a sequence of row coordinates."""
 
         if not hasattr(sequence, '__getitem__'):
@@ -1698,7 +1698,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                    checkCSI: bool=False,
                    start: Optional[int]=None,
                    stop: Optional[int]=None,
-                   step: Optional[int]=None) -> Iterator:
+                   step: Optional[int]=None) -> Iterator[tableextension.Row]:
         """Iterate table data following the order of the index of sortby
         column.
 
@@ -1763,7 +1763,7 @@ very small/large chunksize, you may want to increase/decrease it."""
     def iterrows(self,
                  start: Optional[int]=None,
                  stop: Optional[int]=None,
-                 step: Optional[int]=None) -> Iterator:
+                 step: Optional[int]=None) -> Iterator[tableextension.Row]:
         """Iterate over the table using a Row instance.
 
         If a range is not supplied, *all the rows* in the table are iterated
@@ -1804,7 +1804,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         row = tableextension.Row(self)
         return row._iter(start, stop, step)
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator[tableextension.Row]:
         """Iterate over the table using a Row instance.
 
         This is equivalent to calling :meth:`Table.iterrows` with default
