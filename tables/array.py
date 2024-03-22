@@ -2,9 +2,10 @@
 
 import operator
 import sys
-from typing import Any, Optional, Sequence, Union, TYPE_CHECKING
+from typing import Any, Optional, Union, TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 
 from . import hdf5extension
 from .filters import Filters
@@ -123,7 +124,7 @@ class Array(hdf5extension.Array, Leaf):
     def __init__(self,
                  parentnode: "Group",
                  name: str,
-                 obj: Union[int, float, Sequence, np.ndarray, None]=None,
+                 obj: Optional[npt.ArrayLike]=None,
                  title: str="",
                  byteorder: Optional[str]=None,
                  _log: bool=True,
@@ -166,7 +167,7 @@ class Array(hdf5extension.Array, Leaf):
         """Current row in iterators (sentinel)."""
         self._init = False
         """Whether we are in the middle of an iteration or not (sentinel)."""
-        self.listarr: Union[list, np.ndarray, None] = None
+        self.listarr: Optional[npt.ArrayLike] = None
         """Current buffer in iterators."""
 
         # Documented (*public*) attributes.
