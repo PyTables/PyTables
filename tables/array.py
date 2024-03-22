@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 # obversion = "2.3"    # This adds support for enumerated datatypes.
 obversion = "2.4"    # Numeric and numarray flavors are gone.
 
-SelectionType = Union[int, slice, list[Union[int, slice]], np.ndarray]
+SelectionType = Union[int, slice, list[Union[int, slice]], npt.ArrayLike]
 
 
 class Array(hdf5extension.Array, Leaf):
@@ -772,7 +772,7 @@ class Array(hdf5extension.Array, Leaf):
 
     def _read_selection(self,
                         selection: list[tuple[int, int, int, int, str]],
-                        reorder: Optional[tuple[int, np.ndarray]],
+                        reorder: Optional[tuple[int, npt.ArrayLike]],
                         shape: tuple[int, ...]) -> np.ndarray:
         """Read a `selection`.
 
@@ -818,7 +818,7 @@ class Array(hdf5extension.Array, Leaf):
 
     def _write_selection(self,
                          selection: list[tuple[int, int, int, int, str]],
-                         reorder: Optional[tuple[int, np.ndarray]],
+                         reorder: Optional[tuple[int, npt.ArrayLike]],
                          shape: tuple[int, ...],
                          nparr: np.ndarray) -> None:
         """Write `nparr` in `selection`.
