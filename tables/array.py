@@ -819,7 +819,8 @@ class Array(hdf5extension.Array, Leaf):
     def _write_selection(self,
                          selection: list[tuple[int, int, int, int, str]],
                          reorder: Optional[tuple[int, np.ndarray]],
-                         shape: tuple[int, ...], nparr: np.ndarray) -> None:
+                         shape: tuple[int, ...],
+                         nparr: np.ndarray) -> None:
         """Write `nparr` in `selection`.
 
         Reorder if necessary.
