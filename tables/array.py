@@ -26,6 +26,8 @@ if TYPE_CHECKING:
 # obversion = "2.3"    # This adds support for enumerated datatypes.
 obversion = "2.4"    # Numeric and numarray flavors are gone.
 
+SelectionType = Union[int, slice, list[Union[int, slice]], np.ndarray]
+
 
 class Array(hdf5extension.Array, Leaf):
     """This class represents homogeneous datasets in an HDF5 file.
@@ -363,8 +365,8 @@ class Array(hdf5extension.Array, Leaf):
                 return self.listarr    # Scalar case
 
     def _interpret_indexing(
-            self, keys: Union[int, slice, list[Union[int, slice]], np.ndarray],
-        ) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[int]]:
+        self, keys: SelectionType,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[int]]:
         """Internal routine used by __getitem__ and __setitem__"""
 
         maxlen = len(self.shape)
@@ -610,9 +612,7 @@ class Array(hdf5extension.Array, Leaf):
         mshape = tuple(x for x in mshape if x != 0)
         return selection, reorder, mshape
 
-    def __getitem__(
-        self, key: Union[int, slice, list[Union[int, slice]], np.ndarray]
-    ) -> Union[list, np.ndarray]:
+    def __getitem__(self, key: SelectionType) -> Union[list, np.ndarray]:
         """Get a row, a range of rows or a slice from the array.
 
         The set of tokens allowed for the key is the same as that for extended
@@ -660,9 +660,7 @@ class Array(hdf5extension.Array, Leaf):
 
         return internal_to_flavor(arr, self.flavor)
 
-    def __setitem__(self,
-                    key: Union[int, slice, list[Union[int, slice]], np.ndarray],
-                    value: Any) -> None:
+    def __setitem__(self, key: SelectionType, value: Any) -> None:
         """Set a row, a range of rows or a slice in the array.
 
         It takes different actions depending on the type of the key parameter:
