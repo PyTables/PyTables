@@ -1,6 +1,8 @@
 """Functionality related with filters in a PyTables file."""
 
 import warnings
+from typing import Any, Literal, Optional, TYPE_CHECKING
+
 import numpy as np
 
 from . import (
@@ -14,6 +16,9 @@ from .exceptions import FiltersWarning
 from packaging.version import Version
 
 import tables as tb
+
+if TYPE_CHECKING:
+    from .leaf import Leaf
 
 blosc_version = Version(tb.which_lib_version("blosc")[1])
 blosc2_version = Version(tb.which_lib_version("blosc2")[1])
@@ -165,7 +170,7 @@ class Filters:
     """
 
     @property
-    def shuffle_bitshuffle(self):
+    def shuffle_bitshuffle(self) -> Literal[0, 1, 2]:
         """Encode NoShuffle (0), Shuffle (1) and BitShuffle (2) filters."""
         if (self.shuffle and self.bitshuffle):
             raise ValueError(
@@ -178,7 +183,7 @@ class Filters:
             return 2
 
     @classmethod
-    def _from_leaf(cls, leaf):
+    def _from_leaf(cls, leaf: "Leaf") -> "Filters":
         # Get a dictionary with all the filters
         parent = leaf._v_parent
         filters_dict = utilsextension.get_filters(parent._v_objectid,
@@ -221,7 +226,7 @@ class Filters:
         return cls(**kwargs)
 
     @classmethod
-    def _unpack(cls, packed):
+    def _unpack(cls, packed: int) -> "Filters":
         """Create a new `Filters` object from a packed version.
 
         >>> Filters._unpack(0)
@@ -271,7 +276,7 @@ class Filters:
 
         return cls(**kwargs)
 
-    def _pack(self):
+    def _pack(self) -> np.int64:
         """Pack the `Filters` object into a 64-bit NumPy integer."""
 
         packed = np.int64(0)
@@ -303,9 +308,14 @@ class Filters:
 
         return packed
 
-    def __init__(self, complevel=0, complib=default_complib,
-                 shuffle=True, bitshuffle=False, fletcher32=False,
-                 least_significant_digit=None, _new=True):
+    def __init__(self,
+                 complevel: int=0,
+                 complib: Literal["zlib", "lzo", "bzip2", "blosc", "blosc2"]=default_complib,
+                 shuffle: bool=True,
+                 bitshuffle: bool=False,
+                 fletcher32: bool=False,
+                 least_significant_digit: Optional[int]=None,
+                 _new: bool=True) -> None:
 
         if not (0 <= complevel <= 9):
             raise ValueError("compression level must be between 0 and 9")
@@ -369,7 +379,7 @@ class Filters:
         self.least_significant_digit = least_significant_digit
         """The least significant digit to which data shall be truncated."""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         args = []
         if self.complevel >= 0:  # meaningful compression level
             args.append(f'complevel={self.complevel}')
@@ -381,10 +391,10 @@ class Filters:
         args.append(f'least_significant_digit={self.least_significant_digit}')
         return f'{self.__class__.__name__}({", ".join(args)})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return False
         for attr in self.__dict__:
@@ -398,7 +408,7 @@ class Filters:
     #    return hash((self.__class__, self.complevel, self.complib,
     #                 self.shuffle, self.bitshuffle, self.fletcher32))
 
-    def copy(self, **override):
+    def copy(self, **override) -> "Filters":
         """Get a copy of the filters, possibly overriding some arguments.
 
         Constructor arguments to be overridden must be passed as keyword
@@ -435,7 +445,7 @@ class Filters:
         return self.__class__(**newargs)
 
 
-def _test():
+def _test() -> None:
     """Run ``doctest`` on this module."""
 
     import doctest
