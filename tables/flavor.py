@@ -145,7 +145,7 @@ def flavor_to_flavor(array: npt.ArrayLike,
         return array
 
 
-def internal_to_flavor(array: np.ndarray, dst_flavor: FlavorType) -> Union[Any, list[Any], np.ndarray]:
+def internal_to_flavor(array: npt.ArrayLike, dst_flavor: FlavorType) -> Union[Any, list[Any], np.ndarray]:
     """Get a version of the given `array` in a different `dst_flavor`.
 
     The input `array` must be of the internal flavor, and the returned
