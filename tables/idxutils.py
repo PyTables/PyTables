@@ -1,7 +1,12 @@
 """Utilities to be used mainly by the Index class."""
 
 import math
+from typing import Literal, Optional, Union, TYPE_CHECKING
+
 import numpy as np
+
+if TYPE_CHECKING:
+    from .index import Index
 
 
 # Hints for chunk/slice/block/superblock computations:
@@ -14,7 +19,7 @@ import numpy as np
 # the performance by requiring the HDF5 to use a lot of memory and CPU
 # for its internal B-Tree.
 
-def csformula(nrows):
+def csformula(nrows: int) -> float:
     """Return the fitted chunksize (a float value) for nrows."""
 
     # This formula has been computed using two points:
@@ -26,7 +31,7 @@ def csformula(nrows):
     return 64 * 2**math.log10(nrows)
 
 
-def limit_er(expectedrows):
+def limit_er(expectedrows: int) -> int:
     """Protection against creating too small or too large chunks or slices."""
 
     if expectedrows < 10**5:
@@ -36,7 +41,7 @@ def limit_er(expectedrows):
     return expectedrows
 
 
-def computechunksize(expectedrows):
+def computechunksize(expectedrows: int) -> int:
     """Get the optimum chunksize based on expectedrows."""
 
     expectedrows = limit_er(expectedrows)
@@ -45,7 +50,7 @@ def computechunksize(expectedrows):
     return int(csformula(nrows))
 
 
-def computeslicesize(expectedrows, memlevel):
+def computeslicesize(expectedrows: int, memlevel: int) -> int:
     """Get the optimum slicesize based on expectedrows and memorylevel."""
 
     expectedrows = limit_er(expectedrows)
@@ -71,7 +76,7 @@ def computeslicesize(expectedrows, memlevel):
     return ss
 
 
-def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
+def computeblocksize(expectedrows: int, compoundsize: int, lowercompoundsize: int) -> int:
     """Calculate the optimum number of superblocks made from compounds blocks.
 
     This is useful for computing the sizes of both blocks and
@@ -90,7 +95,11 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
     return size
 
 
-def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4, node=None):
+def calc_chunksize(expectedrows: int,
+                   optlevel: int=6,
+                   indsize: int=4,
+                   memlevel: int=4,
+                   node: Optional["Index"]=None) -> tuple[int, int, int, int]:
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -128,7 +137,7 @@ def calc_chunksize(expectedrows, optlevel=6, indsize=4, memlevel=4, node=None):
     return sizes
 
 
-def ccs_ultralight(optlevel, chunksize, slicesize):
+def ccs_ultralight(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0, 1, 2):
@@ -143,7 +152,7 @@ def ccs_ultralight(optlevel, chunksize, slicesize):
     return chunksize, slicesize
 
 
-def ccs_light(optlevel, chunksize, slicesize):
+def ccs_light(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0, 1, 2):
@@ -160,7 +169,7 @@ def ccs_light(optlevel, chunksize, slicesize):
     return chunksize, slicesize
 
 
-def ccs_medium(optlevel, chunksize, slicesize):
+def ccs_medium(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0, 1, 2):
@@ -177,7 +186,7 @@ def ccs_medium(optlevel, chunksize, slicesize):
     return chunksize, slicesize
 
 
-def ccs_full(optlevel, chunksize, slicesize):
+def ccs_full(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0, 1, 2):
@@ -194,7 +203,7 @@ def ccs_full(optlevel, chunksize, slicesize):
     return chunksize, slicesize
 
 
-def calcoptlevels(nblocks, optlevel, indsize):
+def calcoptlevels(nblocks: int, optlevel: int, indsize: int) -> tuple[bool, bool, bool, bool]:
     """Compute the optimizations to be done.
 
     The calculation is based on the number of blocks, optlevel and
@@ -210,7 +219,7 @@ def calcoptlevels(nblocks, optlevel, indsize):
         return col_full(nblocks, optlevel)
 
 
-def col_light(nblocks, optlevel):
+def col_light(nblocks: int, optlevel: int) -> tuple[bool, bool, bool, bool]:
     """Compute the optimizations to be done for light indexes."""
 
     optmedian, optstarts, optstops, optfull = (False,) * 4
@@ -225,7 +234,7 @@ def col_light(nblocks, optlevel):
     return optmedian, optstarts, optstops, optfull
 
 
-def col_medium(nblocks, optlevel):
+def col_medium(nblocks: int, optlevel: int) -> tuple[bool, bool, bool, bool]:
     """Compute the optimizations to be done for medium indexes."""
 
     optmedian, optstarts, optstops, optfull = (False,) * 4
@@ -249,7 +258,7 @@ def col_medium(nblocks, optlevel):
     return optmedian, optstarts, optstops, optfull
 
 
-def col_full(nblocks, optlevel):
+def col_full(nblocks: int, optlevel: int) -> tuple[bool, bool, bool, bool]:
     """Compute the optimizations to be done for full indexes."""
 
     optmedian, optstarts, optstops, optfull = (False,) * 4
@@ -273,7 +282,7 @@ def col_full(nblocks, optlevel):
     return optmedian, optstarts, optstops, optfull
 
 
-def get_reduction_level(indsize, optlevel, slicesize, chunksize):
+def get_reduction_level(indsize: int, optlevel: int, slicesize: int, chunksize: int) -> int:
     """Compute the reduction level based on indsize and optlevel."""
     rlevels = [
         [8, 8, 8, 8, 4, 4, 4, 2, 2, 1],  # 8-bit indices (ultralight)
@@ -364,7 +373,7 @@ infinityF = infinityf
 # Utility functions
 
 
-def inftype(dtype, itemsize, sign=+1):
+def inftype(dtype: np.dtype, itemsize: int, sign: Literal[-1, 1]=+1) -> Union[bytes, float, int]:
     """Return a superior limit for maximum representable data type."""
 
     assert sign in [-1, +1]
@@ -380,7 +389,7 @@ def inftype(dtype, itemsize, sign=+1):
         raise TypeError("Type %s is not supported" % dtype.name)
 
 
-def string_next_after(x, direction, itemsize):
+def string_next_after(x: bytes, direction: Literal[-1, 1], itemsize: int) -> bytes:
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
@@ -421,7 +430,7 @@ def string_next_after(x, direction, itemsize):
     return b"".join(xlist)
 
 
-def int_type_next_after(x, direction, itemsize):
+def int_type_next_after(x: Union[float, int], direction: Literal[-1, 1], itemsize: int) -> int:
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
@@ -442,7 +451,7 @@ def int_type_next_after(x, direction, itemsize):
             return int(np.nextafter(x, x + 1)) + 1
 
 
-def bool_type_next_after(x, direction, itemsize):
+def bool_type_next_after(x: bool, direction: Literal[-1, 1], itemsize: int) -> bool:
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
@@ -455,7 +464,10 @@ def bool_type_next_after(x, direction, itemsize):
         return True
 
 
-def nextafter(x, direction, dtype, itemsize):
+def nextafter(x: Union[bool, bytes, float, int],
+              direction: Literal[-1, 0, 1],
+              dtype: np.dtype,
+              itemsize: int) -> Union[bool, bytes, int, float]:
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
