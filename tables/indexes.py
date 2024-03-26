@@ -1,12 +1,17 @@
 """Here is defined the IndexArray class."""
 
 from bisect import bisect_left, bisect_right
+from typing import Optional, Union, TYPE_CHECKING
 
 from .node import NotLoggedMixin
 from .carray import CArray
 from .earray import EArray
 from . import indexesextension
 
+if TYPE_CHECKING:
+    from .atom import Atom
+    from .filters import Filters
+    from .group import Group
 
 # Declarations for inheriting
 
@@ -58,18 +63,18 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     _c_classid = 'INDEXARRAY'
 
     @property
-    def chunksize(self):
+    def chunksize(self) -> int:
         """The chunksize for this object."""
         return self.chunkshape[1]
 
     @property
-    def slicesize(self):
+    def slicesize(self) -> int:
         """The slicesize for this object."""
         return self.shape[1]
 
-    def __init__(self, parentnode, name,
-                 atom=None, title="",
-                 filters=None, byteorder=None):
+    def __init__(self, parentnode: "Group", name: str,
+                 atom: Optional["Atom"]=None, title: str="",
+                 filters: Optional["Filters"]=None, byteorder: Optional[str]=None) -> None:
         """Create an IndexArray instance."""
 
         self._v_pathname = parentnode._g_join(name)
@@ -95,7 +100,7 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     # bounds (2nd level) caches. It uses a cache for boundary rows,
     # but not for 'sorted' rows (this is only supported for the
     # 'optimized' types).
-    def _search_bin(self, nrow, item):
+    def _search_bin(self, nrow: str, item: tuple[Union[float, int], Union[float, int]]) -> tuple[int, int]:
         item1, item2 = item
         result1 = -1
         result2 = -1
@@ -153,11 +158,11 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
             result2 += chunksize * nchunk2
         return (result1, result2)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """A compact representation of this class"""
         return f"IndexArray(path={self._v_pathname})"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """A verbose representation of this class."""
 
         return f"""{self}
