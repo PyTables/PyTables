@@ -60,7 +60,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - name: Set up Python ${{ matrix.python }}
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python }}
         auto-update-conda: true
@@ -77,7 +77,7 @@ jobs:
         # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
         # conda install sphinx sphinx_rtd_theme numpydoc ipython
     - name: Get source distrubtion
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: tables-sdist
     - name: Installation
@@ -106,7 +106,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - name: Set up Python
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
         channels: conda-forge
@@ -117,7 +117,7 @@ jobs:
         # ``build-system.requires`` in ``pyproject.toml``.
         conda install setuptools pip wheel build packaging py-cpuinfo numpy cython numexpr bzip2 hdf5 lzo 'typing_extensions>=4.4.0' c-blosc2
     - name: Get source distrubtion
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: tables-sdist
     - name: Installation
