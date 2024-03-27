@@ -100,7 +100,7 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     # bounds (2nd level) caches. It uses a cache for boundary rows,
     # but not for 'sorted' rows (this is only supported for the
     # 'optimized' types).
-    def _search_bin(self, nrow: str, item: tuple[Union[float, int], Union[float, int]]) -> tuple[int, int]:
+    def _search_bin(self, nrow: int, item: tuple[Union[float, int], Union[float, int]]) -> tuple[int, int]:
         item1, item2 = item
         result1 = -1
         result2 = -1
