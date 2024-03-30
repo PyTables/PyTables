@@ -15,15 +15,20 @@ Misc variables:
     The format of documentation strings in this module.
 
 """
+from typing import Literal, TYPE_CHECKING
 
 from .path import split_path
 
+if TYPE_CHECKING:
+    from .file import File
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 
-def undo(file_, operation, *args):
+def undo(file_: "File",
+         operation: Literal["ADDATTR", "CREATE", "DELATTR", "MOVE", "REMOVE"],
+         *args: str) -> None:
     if operation == 'CREATE':
         undo_create(file_, args[0])
     elif operation == 'REMOVE':
@@ -40,7 +45,9 @@ def undo(file_, operation, *args):
                                   "authors" % operation)
 
 
-def redo(file_, operation, *args):
+def redo(file_: "File",
+         operation: Literal["ADDATTR", "CREATE", "DELATTR", "MOVE", "REMOVE"],
+         *args: str) -> None:
     if operation == 'CREATE':
         redo_create(file_, args[0])
     elif operation == 'REMOVE':
@@ -57,14 +64,14 @@ def redo(file_, operation, *args):
                                   "authors" % operation)
 
 
-def move_to_shadow(file_, path):
+def move_to_shadow(file_: "File", path: str) -> None:
     node = file_._get_node(path)
 
     (shparent, shname) = file_._shadow_name()
     node._g_move(shparent, shname)
 
 
-def move_from_shadow(file_, path):
+def move_from_shadow(file_: "File", path: str) -> None:
     (shparent, shname) = file_._shadow_name()
     node = shparent._f_get_child(shname)
 
@@ -73,23 +80,23 @@ def move_from_shadow(file_, path):
     node._g_move(parent, name)
 
 
-def undo_create(file_, path):
+def undo_create(file_: "File", path: str) -> None:
     move_to_shadow(file_, path)
 
 
-def redo_create(file_, path):
+def redo_create(file_: "File", path: str) -> None:
     move_from_shadow(file_, path)
 
 
-def undo_remove(file_, path):
+def undo_remove(file_: "File", path: str) -> None:
     move_from_shadow(file_, path)
 
 
-def redo_remove(file_, path):
+def redo_remove(file_: "File", path: str) -> None:
     move_to_shadow(file_, path)
 
 
-def undo_move(file_, origpath, destpath):
+def undo_move(file_: "File", origpath: str, destpath: str) -> None:
     (origpname, origname) = split_path(origpath)
 
     node = file_._get_node(destpath)
@@ -97,7 +104,7 @@ def undo_move(file_, origpath, destpath):
     node._g_move(origparent, origname)
 
 
-def redo_move(file_, origpath, destpath):
+def redo_move(file_: "File", origpath: str, destpath: str) -> None:
     (destpname, destname) = split_path(destpath)
 
     node = file_._get_node(origpath)
@@ -105,7 +112,7 @@ def redo_move(file_, origpath, destpath):
     node._g_move(destparent, destname)
 
 
-def attr_to_shadow(file_, path, name):
+def attr_to_shadow(file_: "File", path: str, name: str) -> None:
     node = file_._get_node(path)
     attrs = node._v_attrs
     value = getattr(attrs, name)
@@ -121,7 +128,7 @@ def attr_to_shadow(file_, path, name):
     attrs._g__delattr(name)
 
 
-def attr_from_shadow(file_, path, name):
+def attr_from_shadow(file_: "File", path: str, name: str) -> None:
     (shparent, shname) = file_._shadow_name()
     shattrs = shparent._v_attrs
     value = getattr(shattrs, shname)
@@ -133,17 +140,17 @@ def attr_from_shadow(file_, path, name):
     # shattrs._g__delattr(shname)
 
 
-def undo_add_attr(file_, path, name):
+def undo_add_attr(file_: "File", path: str, name: str) -> None:
     attr_to_shadow(file_, path, name)
 
 
-def redo_add_attr(file_, path, name):
+def redo_add_attr(file_: "File", path: str, name: str) -> None:
     attr_from_shadow(file_, path, name)
 
 
-def undo_del_attr(file_, path, name):
+def undo_del_attr(file_: "File", path: str, name: str) -> None:
     attr_from_shadow(file_, path, name)
 
 
-def redo_del_attr(file_, path, name):
+def redo_del_attr(file_: "File", path: str, name: str) -> None:
     attr_to_shadow(file_, path, name)
