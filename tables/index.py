@@ -1147,8 +1147,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
 
     def get_neworder(self,
                      neworder: np.ndarray,
-                     src_disk: Array,
-                     tmp_disk: Array,
+                     src_disk: "Array",
+                     tmp_disk: "Array",
                      lastrow: LastRowArray,
                      nslices: int,
                      offset: int,
