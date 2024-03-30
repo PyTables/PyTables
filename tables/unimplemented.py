@@ -1,11 +1,15 @@
 """Here is defined the UnImplemented class."""
 
 import warnings
+from typing import Optional, TYPE_CHECKING
 
 from . import hdf5extension
 from .utils import SizeType
 from .node import Node
 from .leaf import Leaf
+
+if TYPE_CHECKING:
+    from .group import Group
 
 
 class UnImplemented(hdf5extension.UnImplemented, Leaf):
@@ -36,7 +40,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
     # Class identifier.
     _c_classid = 'UNIMPLEMENTED'
 
-    def __init__(self, parentnode, name):
+    def __init__(self, parentnode: "Group", name: str) -> None:
         """Create the `UnImplemented` instance."""
 
         # UnImplemented objects always come from opening an existing node
@@ -47,13 +51,13 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         """The length of the first dimension of the data."""
         self.shape = (SizeType(0),)
         """The shape of the stored data."""
-        self.byteorder = None
+        self.byteorder: Optional[str] = None
         """The endianness of data in memory ('big', 'little' or
         'irrelevant')."""
 
         super().__init__(parentnode, name)
 
-    def _g_open(self):
+    def _g_open(self) -> int:
         (self.shape, self.byteorder, object_id) = self._open_unimplemented()
         try:
             self.nrows = SizeType(self.shape[0])
@@ -61,7 +65,12 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
             self.nrows = SizeType(0)
         return object_id
 
-    def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
+    def _g_copy(self,
+                newparent: "Group",
+                newname: str,
+                recursive: bool,
+                _log: bool=True,
+                **kwargs) -> None:
         """Do nothing.
 
         This method does nothing, but a ``UserWarning`` is issued.
@@ -75,9 +84,13 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
             % (self._v_pathname,))
         return None  # Can you see it?
 
-    def _f_copy(self, newparent=None, newname=None,
-                overwrite=False, recursive=False, createparents=False,
-                **kwargs):
+    def _f_copy(self,
+                newparent: Optional["Group"]=None,
+                newname: Optional[str]=None,
+                overwrite: bool=False,
+                recursive: bool=False,
+                createparents: bool=False,
+                **kwargs) -> None:
         """Do nothing.
 
         This method does nothing, since `UnImplemented` nodes can not
@@ -90,7 +103,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         self._g_copy(newparent, newname, recursive, **kwargs)
         return None  # Can you see it?
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return """{}
   NOTE: <The UnImplemented object represents a PyTables unimplemented
          dataset present in the '{}' HDF5 file.  If you want to see this
@@ -112,31 +125,36 @@ class Unknown(Node):
     # Class identifier
     _c_classid = 'UNKNOWN'
 
-    def __init__(self, parentnode, name):
+    def __init__(self, parentnode: "Group", name: str) -> None:
         """Create the `Unknown` instance."""
 
         self._v_new = False
         super().__init__(parentnode, name)
 
-    def _g_new(self, parentnode, name, init=False):
+    def _g_new(self, parentnode: "Group", name: str, init: bool=False) -> None:
         pass
 
-    def _g_open(self):
+    def _g_open(self) -> int:
         return 0
 
-    def _g_copy(self, newparent, newname, recursive, _log=True, **kwargs):
+    def _g_copy(self,
+                newparent: "Group",
+                newname: str,
+                recursive: bool,
+                _log: bool=True,
+                **kwargs) -> None:
         # Silently avoid doing copies of unknown nodes
         return None
 
-    def _g_delete(self, parent):
+    def _g_delete(self, parent: "Group") -> None:
         pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         pathname = self._v_pathname
         classname = self.__class__.__name__
         return f"{pathname} ({classname})"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"""{self!s}
   NOTE: <The Unknown object represents a node which is reported as
          unknown by the underlying HDF5 library, but that might be
