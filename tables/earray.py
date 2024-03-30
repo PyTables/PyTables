@@ -1,10 +1,16 @@
 """Here is defined the EArray class."""
+from typing import Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 
 from .utils import convert_to_np_atom2, SizeType
 from .carray import CArray
 
+if TYPE_CHECKING:
+    from .atom import Atom
+    from .filters import Filters
+    from .group import Group
 
 # default version for EARRAY objects
 # obversion = "1.0"    # initial version
@@ -127,11 +133,18 @@ class EArray(CArray):
     # Class identifier.
     _c_classid = 'EARRAY'
 
-    def __init__(self, parentnode, name,
-                 atom=None, shape=None, title="",
-                 filters=None, expectedrows=None,
-                 chunkshape=None, byteorder=None,
-                 _log=True, track_times=True):
+    def __init__(self,
+                 parentnode: "Group",
+                 name: str,
+                 atom: Optional["Atom"]=None,
+                 shape: Optional[Sequence[int]]=None,
+                 title: str="",
+                 filters: Optional["Filters"]=None,
+                 expectedrows: Optional[int]=None,
+                 chunkshape: Optional[tuple[int, ...]]=None,
+                 byteorder: Optional[str]=None,
+                 _log: bool=True,
+                 track_times: bool=True) -> None:
 
         # Specific of EArray
         if expectedrows is None:
@@ -143,7 +156,7 @@ class EArray(CArray):
         super().__init__(parentnode, name, atom, shape, title, filters,
                          chunkshape, byteorder, _log, track_times)
 
-    def _g_create(self):
+    def _g_create(self) -> int:
         """Create a new array in file (specific part)."""
 
         # Pre-conditions and extdim computation
@@ -163,7 +176,7 @@ class EArray(CArray):
         # Finish the common part of the creation process
         return self._g_create_common(self._v_expectedrows)
 
-    def _check_shape_append(self, nparr):
+    def _check_shape_append(self, nparr: np.ndarray) -> None:
         """Test that nparr shape is consistent with underlying EArray."""
 
         # Does the array conform to self expandibility?
@@ -179,7 +192,7 @@ class EArray(CArray):
                                   "``%s`` EArray differ in non-enlargeable "
                                   "dimension %d") % (self._v_pathname, i))
 
-    def append(self, sequence):
+    def append(self, sequence: npt.ArrayLike) -> None:
         """Add a sequence of data to the end of the dataset.
 
         The sequence must have the same type as the array; otherwise a
@@ -202,8 +215,17 @@ class EArray(CArray):
         if nparr.size > 0:
             self._append(nparr)
 
-    def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+    def _g_copy_with_stats(self,
+                           group: "Group",
+                           name: str,
+                           start: int,
+                           stop: int,
+                           step: int,
+                           title: str,
+                           filters: Optional["Filters"],
+                           chunkshape: Optional[tuple[int, ...]],
+                           _log: bool,
+                           **kwargs) -> tuple["EArray", int]:
         """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)

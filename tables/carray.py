@@ -1,13 +1,18 @@
 """Here is defined the CArray class."""
 
 import sys
+from typing import Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 
 from .atom import Atom
 from .array import Array
 from .utils import correct_byteorder, SizeType
 
+if TYPE_CHECKING:
+    from .filters import Filters
+    from .group import Group
 
 # default version for CARRAY objects
 # obversion = "1.0"    # Support for time & enumerated datatypes.
@@ -120,23 +125,29 @@ class CArray(Array):
     # Class identifier.
     _c_classid = 'CARRAY'
 
-    def __init__(self, parentnode, name,
-                 atom=None, shape=None,
-                 title="", filters=None,
-                 chunkshape=None, byteorder=None,
-                 _log=True, track_times=True):
+    def __init__(self,
+                 parentnode: "Group",
+                 name: str,
+                 atom: Optional[Atom]=None,
+                 shape: Optional[Sequence[int]]=None,
+                 title: str="",
+                 filters: Optional["Filters"]=None,
+                 chunkshape: Optional[tuple[int, ...]]=None,
+                 byteorder: Optional[str]=None,
+                 _log: bool=True,
+                 track_times: bool=True) -> None:
 
         self.atom = atom
         """An `Atom` instance representing the shape, type of the atomic
         objects to be saved.
         """
-        self.shape = None
+        self.shape: Optional[tuple[int, ...]] = None
         """The shape of the stored array."""
         self.extdim = -1  # `CArray` objects are not enlargeable by default
         """The index of the enlargeable dimension."""
 
         # Other private attributes
-        self._v_version = None
+        self._v_version: Optional[str] = None
         """The object version of this array."""
         self._v_new = new = atom is not None
         """Is this the first time the node has been created?"""
@@ -148,23 +159,23 @@ class CArray(Array):
         """Private storage for the `chunkshape` property of the leaf."""
 
         # Miscellaneous iteration rubbish.
-        self._start = None
+        self._start: Optional[int] = None
         """Starting row for the current iteration."""
-        self._stop = None
+        self._stop: Optional[int] = None
         """Stopping row for the current iteration."""
-        self._step = None
+        self._step: Optional[int] = None
         """Step size for the current iteration."""
-        self._nrowsread = None
+        self._nrowsread: Optional[int] = None
         """Number of rows read up to the current state of iteration."""
-        self._startb = None
+        self._startb: Optional[int] = None
         """Starting row for current buffer."""
-        self._stopb = None
+        self._stopb: Optional[int] = None
         """Stopping row for current buffer. """
-        self._row = None
+        self._row: Optional[int] = None
         """Current row in iterators (sentinel)."""
         self._init = False
         """Whether we are in the middle of an iteration or not (sentinel)."""
-        self.listarr = None
+        self.listarr: Optional[npt.ArrayLike] = None
         """Current buffer in iterators."""
 
         if new:
@@ -200,7 +211,7 @@ class CArray(Array):
         super(Array, self).__init__(parentnode, name, new, filters,
                                     byteorder, _log, track_times)
 
-    def _g_create(self):
+    def _g_create(self) -> int:
         """Create a new array in file (specific part)."""
 
         if min(self.shape) < 1:
@@ -209,7 +220,7 @@ class CArray(Array):
         # Finish the common part of creation process
         return self._g_create_common(self.nrows)
 
-    def _g_create_common(self, expectedrows):
+    def _g_create_common(self, expectedrows: int) -> int:
         """Create a new array in file (common part)."""
 
         self._v_version = obversion
@@ -236,8 +247,17 @@ class CArray(Array):
 
         return self._v_objectid
 
-    def _g_copy_with_stats(self, group, name, start, stop, step,
-                           title, filters, chunkshape, _log, **kwargs):
+    def _g_copy_with_stats(self,
+                           group: "Group",
+                           name: str,
+                           start: int,
+                           stop: int,
+                           step: int,
+                           title: str,
+                           filters: Optional["Filters"],
+                           chunkshape: Optional[tuple[int, ...]],
+                           _log: bool,
+                           **kwargs) -> tuple["CArray", int]:
         """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)
