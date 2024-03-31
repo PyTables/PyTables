@@ -2,6 +2,7 @@
 
 import copy
 import warnings
+from typing import Any, Callable, Generator, Literal, Optional, Sequence, Type, Union
 
 import numpy as np
 
@@ -13,9 +14,9 @@ __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 
-def same_position(oldmethod):
+def same_position(oldmethod: Callable[["Col", "Col"], bool]) -> Callable[["Col", "Col"], bool]:
     """Decorate `oldmethod` to also compare the `_v_pos` attribute."""
-    def newmethod(self, other):
+    def newmethod(self: "Col", other: "Col") -> bool:
         try:
             other._v_pos
         except AttributeError:
@@ -70,18 +71,21 @@ class Col(atom.Atom, metaclass=type):
 
     """
 
-    _class_from_prefix = {}  # filled as column classes are created
+    _class_from_prefix: dict[str, Type["Col"]] = {}  # filled as column classes are created
     """Maps column prefixes to column classes."""
 
     @classmethod
-    def prefix(cls):
+    def prefix(cls) -> str:
         """Return the column class prefix."""
 
         cname = cls.__name__
         return cname[:cname.rfind('Col')]
 
     @classmethod
-    def from_atom(cls, atom, pos=None, _offset=None):
+    def from_atom(cls,
+                  atom: atom.Atom,
+                  pos: Optional[int]=None,
+                  _offset: Optional[int]=None) -> "Col":
         """Create a Col definition from a PyTables atom.
 
         An optional position may be specified as the pos argument.
@@ -94,7 +98,11 @@ class Col(atom.Atom, metaclass=type):
         return colclass(pos=pos, _offset=_offset, **kwargs)
 
     @classmethod
-    def from_sctype(cls, sctype, shape=(), dflt=None, pos=None):
+    def from_sctype(cls,
+                    sctype: Union[str, np.dtype],
+                    shape: tuple[int, ...]=(),
+                    dflt: Optional[Any]=None,
+                    pos: Optional[int]=None) -> "Col":
         """Create a `Col` definition from a NumPy scalar type `sctype`.
 
         Optional shape, default value and position may be specified as
@@ -108,7 +116,11 @@ class Col(atom.Atom, metaclass=type):
         return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_dtype(cls, dtype, dflt=None, pos=None, _offset=None):
+    def from_dtype(cls,
+                   dtype,
+                   dflt: Optional[Any]=None,
+                   pos: Optional[int]=None,
+                   _offset: Optional[int]=None) -> "Col":
         """Create a `Col` definition from a NumPy `dtype`.
 
         Optional default value and position may be specified as the
@@ -123,7 +135,11 @@ class Col(atom.Atom, metaclass=type):
         return cls.from_atom(newatom, pos=pos, _offset=_offset)
 
     @classmethod
-    def from_type(cls, type, shape=(), dflt=None, pos=None):
+    def from_type(cls,
+                  type,
+                  shape: tuple[int, ...]=(),
+                  dflt: Optional[Any]=None,
+                  pos: Optional[int]=None) -> "Col":
         """Create a `Col` definition from a PyTables `type`.
 
         Optional shape, default value and position may be specified as
@@ -135,7 +151,12 @@ class Col(atom.Atom, metaclass=type):
         return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_kind(cls, kind, itemsize=None, shape=(), dflt=None, pos=None):
+    def from_kind(cls,
+                  kind,
+                  itemsize=None,
+                  shape: tuple[int, ...]=(),
+                  dflt: Optional[Any]=None,
+                  pos: Optional[int]=None) -> "Col":
         """Create a `Col` definition from a PyTables `kind`.
 
         Optional item size, shape, default value and position may be
@@ -149,7 +170,7 @@ class Col(atom.Atom, metaclass=type):
         return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def _subclass_from_prefix(cls, prefix):
+    def _subclass_from_prefix(cls, prefix: str) -> Type["Col"]:
         """Get a column subclass for the given `prefix`."""
 
         cname = '%sCol' % prefix
@@ -170,7 +191,7 @@ class Col(atom.Atom, metaclass=type):
 
             """
 
-            def __init__(self, *args, **kwargs):
+            def __init__(self, *args, **kwargs) -> None:
                 pos = kwargs.pop('pos', None)
                 col_attrs = kwargs.pop('attrs', {})
                 offset = kwargs.pop('_offset', None)
@@ -203,7 +224,7 @@ class Col(atom.Atom, metaclass=type):
         class_from_prefix[prefix] = NewCol
         return NewCol
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         # Reuse the atom representation.
         atomrepr = super().__repr__()
         lpar = atomrepr.index('(')
@@ -215,7 +236,7 @@ class Col(atom.Atom, metaclass=type):
                     f', attrs={self._v_col_attrs})')
         return f'{classname}({atomargs}, pos={self._v_pos})'
 
-    def _get_init_args(self):
+    def _get_init_args(self) -> dict[str, Any]:
         """Get a dictionary of instance constructor arguments."""
 
         kwargs = {arg: getattr(self, arg) for arg in ('shape', 'dflt')}
@@ -223,7 +244,7 @@ class Col(atom.Atom, metaclass=type):
         return kwargs
 
 
-def _generate_col_classes():
+def _generate_col_classes() -> Generator[Type[Col], None, None]:
     """Generate all column classes."""
 
     # Abstract classes are not in the class map.
@@ -430,7 +451,11 @@ class Description:
            and attribute copies.
     """
 
-    def __init__(self, classdict, nestedlvl=-1, validate=True, ptparams=None):
+    def __init__(self,
+                 classdict: dict[str, Any],
+                 nestedlvl: int=-1,
+                 validate: bool=True,
+                 ptparams: Optional[dict[str, Any]]=None) -> None:
 
         if not classdict:
             raise ValueError("cannot create an empty data type")
@@ -614,7 +639,7 @@ class Description:
         newdict['_v_itemsize'] = dtype.itemsize
         newdict['_v_offsets'] = [dtype.fields[name][1] for name in dtype.names]
 
-    def _g_set_nested_names_descr(self):
+    def _g_set_nested_names_descr(self) -> None:
         """Computes the nested names and descriptions for nested datatypes."""
 
         names = self._v_names
@@ -631,7 +656,7 @@ class Description:
                 # set the _v_is_nested flag
                 self._v_is_nested = True
 
-    def _g_set_path_names(self):
+    def _g_set_path_names(self) -> None:
         """Compute the pathnames for arbitrary nested descriptions.
 
         This method sets the ``_v_pathname`` and ``_v_pathnames``
@@ -640,11 +665,11 @@ class Description:
 
         """
 
-        def get_cols_in_order(description):
+        def get_cols_in_order(description: Description) -> list[Col]:
             return [description._v_colobjects[colname]
                     for colname in description._v_names]
 
-        def join_paths(path1, path2):
+        def join_paths(path1: str, path2: str) -> str:
             if not path1:
                 return path2
             return f'{path1}/{path2}'
@@ -663,7 +688,7 @@ class Description:
         #
         #   (<Description X>, ['a', 'a/m', 'a/n', ... , 'b', ...])
 
-        stack = []
+        stack: list[tuple[Description, list[Col]]] = []
 
         # We start by pushing the top-level description
         # and its child columns.
@@ -707,7 +732,10 @@ class Description:
                     parentCols.extend(colPaths)
                 # (Nothing is pushed, we are done with this description.)
 
-    def _f_walk(self, type='All'):
+    def _f_walk(
+        self,
+        type: Literal["All", "Col", "Description"]='All',
+    ) -> Generator[Union[Col, "Description"], None, None]:
         """Iterate over nested columns.
 
         If type is 'All' (the default), all column description objects (Col and
@@ -722,7 +750,7 @@ class Description:
             raise ValueError("""\
 type can only take the parameters 'All', 'Col' or 'Description'.""")
 
-        stack = [self]
+        stack: list[Description] = [self]
         while stack:
             object = stack.pop(0)  # pop at the front so as to ensure the order
             if type in ["All", "Description"]:
@@ -735,7 +763,7 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
                     if type in ["All", "Col"]:
                         yield new_object  # yield column
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Gives a detailed Description column representation."""
 
         rep = ['%s\"%s\": %r' %
@@ -743,7 +771,7 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
                for k in self._v_names]
         return '{\n  %s}' % (',\n  '.join(rep))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Gives a brief Description representation."""
 
         return f'Description({self._v_nested_descr})'
@@ -752,7 +780,10 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
 class MetaIsDescription(type):
     """Helper metaclass to return the class variables as a dictionary."""
 
-    def __new__(mcs, classname, bases, classdict):
+    def __new__(mcs,
+                classname: str,
+                bases: Sequence,
+                classdict: dict[str, Any]) -> "MetaIsDescription":
         """Return a new class with a "columns" attribute filled."""
 
         newdict = {"columns": {}, }
@@ -816,7 +847,8 @@ class IsDescription(metaclass=MetaIsDescription):
     """
 
 
-def descr_from_dtype(dtype_, ptparams=None):
+def descr_from_dtype(dtype_: np.dtype,
+                     ptparams: Optional[dict[str, Any]]=None) -> tuple[Description, str]:
     """Get a description instance and byteorder from a (nested) NumPy dtype."""
 
     fields = {}
@@ -851,7 +883,9 @@ def descr_from_dtype(dtype_, ptparams=None):
     return Description(fields, ptparams=ptparams), fbyteorder
 
 
-def dtype_from_descr(descr, byteorder=None, ptparams=None):
+def dtype_from_descr(descr: Union[dict, Type[IsDescription], IsDescription],
+                     byteorder: Optional[str]=None,
+                     ptparams: Optional[dict[str, Any]]=None) -> np.dtype:
     """Get a (nested) NumPy dtype from a description instance and byteorder.
 
     The descr parameter can be a Description or IsDescription
