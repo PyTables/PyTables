@@ -16,6 +16,7 @@ Misc variables:
 """
 
 from pathlib import Path
+from typing import Any, Literal, NoReturn, Optional, TYPE_CHECKING
 
 import tables as tb
 
@@ -24,8 +25,12 @@ from .node import Node
 from .utils import lazyattr
 from .attributeset import AttributeSet
 
+if TYPE_CHECKING:
+    from .group import Group
 
-def _g_get_link_class(parent_id, name):
+
+def _g_get_link_class(parent_id: int,
+                      name: str) -> Literal["ExternalLink", "HardLink", "SoftLink", "UnImplemented"]:
     """Guess the link class."""
 
     return linkextension._get_link_class(parent_id, name)
@@ -53,26 +58,30 @@ class Link(Node):
 
     # Properties
     @lazyattr
-    def _v_attrs(self):
+    def _v_attrs(self) -> AttributeSet:
         """
         A *NoAttrs* instance replacing the typical *AttributeSet* instance of
         other node objects.  The purpose of *NoAttrs* is to make clear that
         HDF5 attributes are not supported in link nodes.
         """
         class NoAttrs(AttributeSet):
-            def __getattr__(self, name):
+            def __getattr__(self, name: str) -> NoReturn:
                 raise KeyError("you cannot get attributes from this "
                                "`%s` instance" % self.__class__.__name__)
 
-            def __setattr__(self, name, value):
+            def __setattr__(self, name: str, value: Any) -> NoReturn:
                 raise KeyError("you cannot set attributes to this "
                                "`%s` instance" % self.__class__.__name__)
 
-            def _g_close(self):
+            def _g_close(self) -> None:
                 pass
         return NoAttrs(self)
 
-    def __init__(self, parentnode, name, target=None, _log=False):
+    def __init__(self,
+                 parentnode: "Group",
+                 name: str,
+                 target: Optional[str]=None,
+                 _log: bool=False) -> None:
         self._v_new = target is not None
         self.target = target
         """The path string to the pointed node."""
@@ -80,8 +89,11 @@ class Link(Node):
         super().__init__(parentnode, name, _log)
 
     # Public and tailored versions for copy, move, rename and remove methods
-    def copy(self, newparent=None, newname=None,
-             overwrite=False, createparents=False):
+    def copy(self,
+             newparent: Optional["Group"]=None,
+             newname: Optional[str]=None,
+             overwrite: bool=False,
+             createparents: bool=False) -> "Link":
         """Copy this link and return the new one.
 
         See :meth:`Node._f_copy` for a complete explanation of the arguments.
@@ -97,7 +109,10 @@ class Link(Node):
         newnode._v_parent._g_refnode(newnode, newname, True)
         return newnode
 
-    def move(self, newparent=None, newname=None, overwrite=False):
+    def move(self,
+             newparent: Optional["Group"]=None,
+             newname: Optional[str]=None,
+             overwrite: bool=False) -> None:
         """Move or rename this link.
 
         See :meth:`Node._f_move` for a complete explanation of the arguments.
@@ -107,12 +122,12 @@ class Link(Node):
         return self._f_move(newparent=newparent, newname=newname,
                             overwrite=overwrite)
 
-    def remove(self):
+    def remove(self) -> None:
         """Remove this link from the hierarchy."""
 
         return self._f_remove()
 
-    def rename(self, newname=None, overwrite=False):
+    def rename(self, newname: Optional[str]=None, overwrite: bool=False) -> None:
         """Rename this link in place.
 
         See :meth:`Node._f_rename` for a complete explanation of the arguments.
@@ -189,7 +204,7 @@ class SoftLink(linkextension.SoftLink, Link):
                        '__unicode__', '__class__', '__dict__')
     _link_attrprefixes = ('_f_', '_c_', '_g_', '_v_')
 
-    def __call__(self):
+    def __call__(self) -> Optional[Node]:
         """Dereference `self.target` and return the object.
 
         Examples
@@ -207,7 +222,7 @@ class SoftLink(linkextension.SoftLink, Link):
         """
         return self.dereference()
 
-    def dereference(self):
+    def dereference(self) -> Optional[Node]:
 
         if self._v_isopen:
             target = self.target
@@ -218,7 +233,7 @@ class SoftLink(linkextension.SoftLink, Link):
         else:
             return None
 
-    def __getattribute__(self, attrname):
+    def __getattribute__(self, attrname: str) -> Any:
 
         # get attribute of the SoftLink itself
         if (attrname in SoftLink._link_attrnames or
@@ -239,7 +254,7 @@ class SoftLink(linkextension.SoftLink, Link):
                 # some node classes (e.g. Array) don't implement __getattr__()
                 return target_node.__getattr__(attrname)
 
-    def __setattr__(self, attrname, value):
+    def __setattr__(self, attrname: str, value: Any) -> None:
 
         # set attribute of the SoftLink itself
         if (attrname in SoftLink._link_attrnames or
@@ -254,7 +269,7 @@ class SoftLink(linkextension.SoftLink, Link):
         else:
             self.dereference().__setattr__(attrname, value)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         """__getitem__ must be defined in the SoftLink class in order for array
         indexing syntax to work"""
 
@@ -265,7 +280,7 @@ class SoftLink(linkextension.SoftLink, Link):
         else:
             return self.dereference().__getitem__(key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         """__setitem__ must be defined in the SoftLink class in order for array
         indexing syntax to work"""
 
@@ -276,10 +291,10 @@ class SoftLink(linkextension.SoftLink, Link):
         else:
             self.dereference().__setitem__(key, value)
 
-    def is_dangling(self):
+    def is_dangling(self) -> bool:
         return not (self.dereference() in self._v_file)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return a short string representation of the link.
 
         Examples
@@ -325,21 +340,25 @@ class ExternalLink(linkextension.ExternalLink, Link):
     # Class identifier.
     _c_classid = 'EXTERNALLINK'
 
-    def __init__(self, parentnode, name, target=None, _log=False):
+    def __init__(self,
+                 parentnode: "Group",
+                 name: str,
+                 target: Optional[str]=None,
+                 _log: bool=False) -> None:
         self.extfile = None
         """The external file handler, if the link has been dereferenced.
         In case the link has not been dereferenced yet, its value is
         None."""
         super().__init__(parentnode, name, target, _log)
 
-    def _get_filename_node(self):
+    def _get_filename_node(self) -> tuple[str, str]:
         """Return the external filename and nodepath from `self.target`."""
 
         # This is needed for avoiding the 'C:\\file.h5' filepath notation
         filename, target = self.target.split(':/')
         return filename, '/' + target
 
-    def __call__(self, **kwargs):
+    def __call__(self, **kwargs) -> Node:
         """Dereference self.target and return the object.
 
         You can pass all the arguments supported by the :func:`open_file`
@@ -379,7 +398,7 @@ class ExternalLink(linkextension.ExternalLink, Link):
 
         return self.extfile._get_node(target)
 
-    def umount(self):
+    def umount(self) -> None:
         """Safely unmount self.extfile, if opened."""
 
         extfile = self.extfile
@@ -388,13 +407,13 @@ class ExternalLink(linkextension.ExternalLink, Link):
             extfile.close()
             self.extfile = None
 
-    def _f_close(self):
+    def _f_close(self) -> None:
         """Especific close for external links."""
 
         self.umount()
         super()._f_close()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return a short string representation of the link.
 
         Examples
