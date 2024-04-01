@@ -20,9 +20,12 @@ Misc variables:
 # is avoiding circular imports!
 
 __docformat__ = 'reStructuredText'
+
+from typing import Optional, Type
+
 """The format of documentation strings in this module."""
 
-class_name_dict = {}
+class_name_dict: dict[str, Type] = {}
 """Node class name to class object mapping.
 
 This dictionary maps class names (e.g. ``'Group'``) to actual class
@@ -35,7 +38,7 @@ can be replaced when the module that defines them is reloaded.
 
 """
 
-class_id_dict = {}
+class_id_dict: dict[str, Type] = {}
 """Class identifier to class object mapping.
 
 This dictionary maps class identifiers (e.g. ``'GROUP'``) to actual
@@ -54,7 +57,7 @@ classNameDict = class_name_dict
 classIdDict = class_id_dict
 
 
-def get_class_by_name(classname):
+def get_class_by_name(classname: Optional[str]) -> Type:
     """Get the node class matching the `classname`.
 
     If the name is not registered, a ``TypeError`` is raised.  The empty
