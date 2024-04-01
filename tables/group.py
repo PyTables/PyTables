@@ -3,7 +3,7 @@
 import os
 import weakref
 import warnings
-from typing import Any, Generator, Literal, NoReturn, Optional, Type, Union, TYPE_CHECKING
+from typing import Any, Iterator, Literal, NoReturn, Optional, Type, Union, TYPE_CHECKING
 
 from .misc.proxydict import ProxyDict
 from . import hdf5extension
@@ -388,7 +388,7 @@ class Group(hdf5extension.Group, Node):
                 % (self._v_pathname, name))
         return node_type
 
-    def __iter__(self) -> Generator[Node, None, None]:
+    def __iter__(self) -> Iterator[Node]:
         """Iterate over the child nodes hanging directly from the group.
 
         This iterator is *not* recursive.
@@ -432,7 +432,7 @@ class Group(hdf5extension.Group, Node):
         except NoSuchNodeError:
             raise IndexError(childname)
 
-    def _f_walknodes(self, classname: Optional[str]=None) -> Generator[Node, None, None]:
+    def _f_walknodes(self, classname: Optional[str]=None) -> Iterator[Node]:
         """Iterate over descendant nodes.
 
         This method recursively walks *self* top to bottom (preorder),
@@ -709,7 +709,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         return list(self._f_iter_nodes(classname))
 
-    def _f_iter_nodes(self, classname: Optional[str]=None) -> Generator[Node, None, None]:
+    def _f_iter_nodes(self, classname: Optional[str]=None) -> Iterator[Node]:
         """Iterate over children nodes.
 
         Child nodes are yielded alphanumerically sorted by node name.  If the
@@ -748,7 +748,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                 if isinstance(childnode, class_):
                     yield childnode
 
-    def _f_walk_groups(self) -> Generator["Group", None, None]:
+    def _f_walk_groups(self) -> Iterator["Group"]:
         """Recursively iterate over descendent groups (not leaves).
 
         This method starts by yielding *self*, and then it goes on to
