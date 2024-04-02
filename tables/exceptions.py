@@ -3,6 +3,7 @@
 import os
 import warnings
 import traceback
+from typing import Callable, Optional
 
 
 __all__ = [
@@ -68,7 +69,7 @@ class HDF5ExtError(RuntimeError):
     # NOTE: in order to avoid circular dependencies between modules the
     #       _dump_h5_backtrace method is set at initialization time in
     #       the utilsextension.pyx.
-    _dump_h5_backtrace = None
+    _dump_h5_backtrace: Optional[Callable[[], list[tuple[str, int, str, str]]]] = None
 
     DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
     """Default policy for HDF5 backtrace handling
@@ -94,7 +95,7 @@ class HDF5ExtError(RuntimeError):
     """
 
     @classmethod
-    def set_policy_from_env(cls):
+    def set_policy_from_env(cls) -> str:
         envmap = {
             "IGNORE": False,
             "FALSE": False,
@@ -117,7 +118,7 @@ class HDF5ExtError(RuntimeError):
 
         return oldvalue
 
-    def __init__(self, *args, **kargs):
+    def __init__(self, *args, **kargs) -> None:
 
         super().__init__(*args)
 
@@ -151,7 +152,7 @@ class HDF5ExtError(RuntimeError):
         else:
             self.h5backtrace = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns a sting representation of the exception.
 
         The actual result depends on policy set in the initializer
@@ -182,7 +183,7 @@ class HDF5ExtError(RuntimeError):
 
         return msg
 
-    def format_h5_backtrace(self, backtrace=None):
+    def format_h5_backtrace(self, backtrace: Optional[list[tuple[str, int, str, str]]]=None) -> str:
         """Convert the HDF5 trace back represented as a list of tuples.
         (see :attr:`HDF5ExtError.h5backtrace`) into a string.
 
