@@ -7,10 +7,15 @@ import warnings
 import weakref
 from pathlib import Path
 from time import perf_counter as clock
+from typing import Any, Callable, Literal, Optional, TextIO, Union, TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 
 from .flavor import array_of_flavor
+
+if TYPE_CHECKING:
+    from .atom import Atom
 
 # The map between byteorders in NumPy and PyTables
 byteorders = {
@@ -25,7 +30,7 @@ byteorders = {
 SizeType = np.int64
 
 
-def correct_byteorder(ptype, byteorder):
+def correct_byteorder(ptype: str, byteorder: str) -> str:
     """Fix the byteorder depending on the PyTables types."""
 
     if ptype in ['string', 'bool', 'int8', 'uint8', 'object']:
@@ -34,7 +39,7 @@ def correct_byteorder(ptype, byteorder):
         return byteorder
 
 
-def is_idx(index):
+def is_idx(index: Union[int, np.integer, np.ndarray]) -> bool:
     """Checks if an object can work as an index or not."""
 
     if type(index) is int:
@@ -62,7 +67,7 @@ def is_idx(index):
     return False
 
 
-def idx2long(index):
+def idx2long(index: Union[int, float, np.ndarray]) -> int:
     """Convert a possible index into a long int."""
 
     try:
@@ -78,7 +83,7 @@ def idx2long(index):
 # with atom from a generic python type.  If copy is stated as True, it
 # is assured that it will return a copy of the object and never the same
 # object or a new one sharing the same memory.
-def convert_to_np_atom(arr, atom, copy=False):
+def convert_to_np_atom(arr: npt.ArrayLike, atom: "Atom", copy: bool=False) -> np.ndarray:
     """Convert a generic object into a NumPy object compliant with atom."""
 
     # First, convert the object into a NumPy array
@@ -107,7 +112,7 @@ def convert_to_np_atom(arr, atom, copy=False):
 
 # The next is used in Array, EArray and VLArray, and it is a bit more
 # high level than convert_to_np_atom
-def convert_to_np_atom2(object, atom):
+def convert_to_np_atom2(object: npt.ArrayLike, atom: "Atom") -> np.ndarray:
     """Convert a generic object into a NumPy object compliant with atom."""
 
     # Check whether the object needs to be copied to make the operation
@@ -124,7 +129,7 @@ def convert_to_np_atom2(object, atom):
     return nparr
 
 
-def check_file_access(filename, mode='r'):
+def check_file_access(filename: str, mode: Literal["r", "w", "a", "r+"]='r') -> None:
     """Check for file access in the specified `mode`.
 
     `mode` is one of the modes supported by `File` objects.  If the file
@@ -178,7 +183,7 @@ def check_file_access(filename, mode='r'):
         raise ValueError(f"invalid mode: {mode!r}")
 
 
-def lazyattr(fget):
+def lazyattr(fget: Callable[[Any], Any]) -> property:
     """Create a *lazy attribute* from the result of `fget`.
 
     This function is intended to be used as a *method decorator*.  It
@@ -231,7 +236,7 @@ def lazyattr(fget):
     return property(newfget, None, None, fget.__doc__)
 
 
-def show_stats(explain, tref, encoding=None):
+def show_stats(explain: str, tref: float, encoding=None) -> float:
     """Show the used memory (only works for Linux 2.6.x)."""
 
     for line in Path('/proc/self/status').read_text().splitlines():
@@ -258,7 +263,7 @@ def show_stats(explain, tref, encoding=None):
 
 # truncate data before calling __setitem__, to improve compression ratio
 # this function is taken verbatim from netcdf4-python
-def quantize(data, least_significant_digit):
+def quantize(data: npt.ArrayLike, least_significant_digit: int):
     """quantize data to improve compression.
 
     Data is quantized using around(scale*data)/scale, where scale is
@@ -279,10 +284,10 @@ def quantize(data, least_significant_digit):
 
 # Utilities to detect leaked instances.  See recipe 14.10 of the Python
 # Cookbook by Martelli & Ascher.
-tracked_classes = {}
+tracked_classes: dict[str, list[weakref.ReferenceType]] = {}
 
 
-def log_instance_creation(instance, name=None):
+def log_instance_creation(instance: Any, name: Optional[str]=None) -> None:
     if name is None:
         name = instance.__class__.__name__
         if name not in tracked_classes:
@@ -290,7 +295,7 @@ def log_instance_creation(instance, name=None):
         tracked_classes[name].append(weakref.ref(instance))
 
 
-def string_to_classes(s):
+def string_to_classes(s: str) -> list[str]:
     if s == '*':
         c = sorted(tracked_classes)
         return c
@@ -298,17 +303,17 @@ def string_to_classes(s):
         return s.split()
 
 
-def fetch_logged_instances(classes="*"):
+def fetch_logged_instances(classes: str="*") -> list[tuple[str, int]]:
     classnames = string_to_classes(classes)
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
 
-def count_logged_instances(classes, file=sys.stdout):
+def count_logged_instances(classes: str, file: TextIO=sys.stdout) -> None:
     for classname in string_to_classes(classes):
         file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
 
 
-def list_logged_instances(classes, file=sys.stdout):
+def list_logged_instances(classes: str, file: TextIO=sys.stdout) -> None:
     for classname in string_to_classes(classes):
         file.write('\n%s:\n' % classname)
         for ref in tracked_classes[classname]:
@@ -317,7 +322,7 @@ def list_logged_instances(classes, file=sys.stdout):
                 file.write('    %s\n' % repr(obj))
 
 
-def dump_logged_instances(classes, file=sys.stdout):
+def dump_logged_instances(classes: str, file: TextIO=sys.stdout) -> None:
     for classname in string_to_classes(classes):
         file.write('\n%s:\n' % classname)
         for ref in tracked_classes[classname]:
@@ -334,11 +339,11 @@ def dump_logged_instances(classes, file=sys.stdout):
 class CacheDict(dict):
     """A dictionary that prevents itself from growing too much."""
 
-    def __init__(self, maxentries):
+    def __init__(self, maxentries: int) -> None:
         self.maxentries = maxentries
         super().__init__(self)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         # Protection against growing the cache too much
         if len(self) > self.maxentries:
             # Remove a 10% of (arbitrary) elements from the cache
@@ -351,9 +356,9 @@ class CacheDict(dict):
 class NailedDict:
     """A dictionary which ignores its items when it has nails on it."""
 
-    def __init__(self, maxentries):
+    def __init__(self, maxentries: int) -> None:
         self.maxentries = maxentries
-        self._cache = {}
+        self._cache: dict = {}
         self._nailcount = 0
 
     # Only a restricted set of dictionary methods are supported.  That
@@ -362,34 +367,34 @@ class NailedDict:
     # The following are intended to be used by ``Table`` code changing
     # the set of usable indexes.
 
-    def clear(self):
+    def clear(self) -> None:
         self._cache.clear()
 
-    def nail(self):
+    def nail(self) -> None:
         self._nailcount += 1
 
-    def unnail(self):
+    def unnail(self) -> None:
         self._nailcount -= 1
 
     # The following are intended to be used by ``Table`` code handling
     # conditions.
 
-    def __contains__(self, key):
+    def __contains__(self, key: Any) -> bool:
         if self._nailcount > 0:
             return False
         return key in self._cache
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> Any:
         if self._nailcount > 0:
             raise KeyError(key)
         return self._cache[key]
 
-    def get(self, key, default=None):
+    def get(self, key: Any, default: Optional[Any]=None) -> Any:
         if self._nailcount > 0:
             return default
         return self._cache.get(key, default)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> None:
         if self._nailcount > 0:
             return
         cache = self._cache
@@ -402,7 +407,7 @@ class NailedDict:
         cache[key] = value
 
 
-def detect_number_of_cores():
+def detect_number_of_cores() -> int:
     """Detects the number of cores on a system.
 
     Cribbed from pp.
@@ -426,7 +431,7 @@ def detect_number_of_cores():
     return 1  # Default
 
 
-def _test():
+def _test() -> None:
     """Run ``doctest`` on this module."""
 
     import doctest
