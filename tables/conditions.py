@@ -15,17 +15,23 @@ Functions:
 """
 
 import re
+from typing import Any, Callable, Iterable, Optional, Type, Union, TYPE_CHECKING
+
 import numexpr as ne
+import numpy as np
 
 from .utilsextension import get_nested_field
 from .utils import lazyattr
+
+if TYPE_CHECKING:
+    from .table import Column
 
 
 _no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")
 # E.g. "gt" and "bfc" from "couldn't find matching opcode for 'gt_bfc'".
 
 
-def _unsupported_operation_error(exception):
+def _unsupported_operation_error(exception: Exception) -> Exception:
     """Make the \"no matching opcode\" Numexpr `exception` more clear.
 
     A new exception of the same kind is returned.
@@ -40,7 +46,9 @@ def _unsupported_operation_error(exception):
     return exception.__class__(newmessage)
 
 
-def _check_indexable_cmp(getidxcmp):
+def _check_indexable_cmp(
+    getidxcmp: Callable[[ne.expressions.ExpressionNode, frozenset[str]], tuple[Any, str, Any]],
+) -> Callable[[ne.expressions.ExpressionNode, frozenset[str]], tuple[Any, str, Any]]:
     """Decorate `getidxcmp` to check the returned indexable comparison.
 
     This does some extra checking that Numexpr would perform later on
@@ -48,7 +56,7 @@ def _check_indexable_cmp(getidxcmp):
 
     """
 
-    def newfunc(exprnode, indexedcols):
+    def newfunc(exprnode: ne.expressions.ExpressionNode, indexedcols: frozenset[str]) -> tuple[Any, str, Any]:
         result = getidxcmp(exprnode, indexedcols)
         if result[0] is not None:
             try:
@@ -64,7 +72,10 @@ def _check_indexable_cmp(getidxcmp):
 
 
 @_check_indexable_cmp
-def _get_indexable_cmp(exprnode, indexedcols):
+def _get_indexable_cmp(
+    exprnode: ne.expressions.ExpressionNode,
+    indexedcols: frozenset[str],
+) -> Union[tuple[Any, str, Any], tuple[None, None, None]]:
     """Get the indexable variable-constant comparison in `exprnode`.
 
     A tuple of (variable, operation, constant) is returned if
@@ -83,7 +94,10 @@ def _get_indexable_cmp(exprnode, indexedcols):
                'ge': 'le',
                'gt': 'lt', }
 
-    def get_cmp(var, const, op):
+    def get_cmp(var: ne.expressions.ExpressionNode,
+                const: ne.expressions.ExpressionNode,
+                op: str,
+                ) -> Optional[tuple[Any, str, Any]]:
         var_value, const_value = var.value, const.value
         if (var.astType == 'variable' and var_value in indexedcols
            and const.astType in ['constant', 'variable']):
@@ -92,7 +106,7 @@ def _get_indexable_cmp(exprnode, indexedcols):
             return (var_value, op, const_value)
         return None
 
-    def is_indexed_boolean(node):
+    def is_indexed_boolean(node: ne.expressions.ExpressionNode) -> bool:
         return (node.astType == 'variable'
                 and node.astKind == 'bool'
                 and node.value in indexedcols)
@@ -129,7 +143,8 @@ def _get_indexable_cmp(exprnode, indexedcols):
     return not_indexable
 
 
-def _equiv_expr_node(x, y):
+def _equiv_expr_node(x: Union[Any, ne.expressions.ExpressionNode],
+                     y: Union[Any, ne.expressions.ExpressionNode]) -> bool:
     """Returns whether two ExpressionNodes are equivalent.
 
     This is needed because '==' is overridden on ExpressionNode to
@@ -152,7 +167,16 @@ def _equiv_expr_node(x, y):
     return True
 
 
-def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
+def _get_idx_expr_recurse(
+    exprnode: ne.expressions.ExpressionNode,
+    indexedcols: frozenset[str],
+    idxexprs: list,
+    strexpr: list[str],
+) -> Union[
+    list[tuple[Any, tuple[str], tuple[Any]]],
+    list[tuple[ne.expressions.ExpressionNode, tuple[str, str], tuple[Any, Any]]],
+    tuple[list, list[str]]
+]:
     """Here lives the actual implementation of the get_idx_expr() wrapper.
 
     'idxexprs' is a list of expressions in the form ``(var, (ops),
@@ -178,7 +202,13 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
         'gt': 'le',
     }
 
-    def fix_invert(idxcmp, exprnode, indexedcols):
+    def fix_invert(idxcmp: Union[tuple[Any, str, Any], tuple[None, None, None]],
+                   exprnode: ne.expressions.ExpressionNode,
+                   indexedcols: frozenset[str],
+                   ) -> tuple[
+                            Union[tuple[Any, str, Any], tuple[None, None, None]],
+                            ne.expressions.ExpressionNode,
+                            bool]:
         invert = False
         # Loop until all leading negations have been dealt with
         while idxcmp[1] == "invert":
@@ -239,7 +269,7 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     lexpr = _get_idx_expr_recurse(left, indexedcols, idxexprs, strexpr)
     rexpr = _get_idx_expr_recurse(right, indexedcols, idxexprs, strexpr)
 
-    def add_expr(expr, idxexprs, strexpr):
+    def add_expr(expr, idxexprs: list, strexpr: list[str]) -> None:
         """Add a single expression to the list."""
 
         if isinstance(expr, list):
@@ -268,7 +298,10 @@ def _get_idx_expr_recurse(exprnode, indexedcols, idxexprs, strexpr):
     return not_indexable
 
 
-def _get_idx_expr(expr, indexedcols):
+def _get_idx_expr(
+    expr: ne.expressions.ExpressionNode,
+    indexedcols: frozenset[str],
+) -> tuple[list[tuple[Any, tuple[str], tuple[Any]]], list[str]]:
     """Extract an indexable expression out of `exprnode`.
 
     Looks for variable-constant comparisons in the expression node
@@ -304,7 +337,7 @@ class CompiledCondition:
     """Container for a compiled condition."""
 
     @lazyattr
-    def index_variables(self):
+    def index_variables(self) -> frozenset:
         """The columns participating in the index expression."""
 
         idxexprs = self.index_expressions
@@ -315,7 +348,12 @@ class CompiledCondition:
                 idxvars.append(idxvar)
         return frozenset(idxvars)
 
-    def __init__(self, func, params, idxexprs, strexpr, **kwargs):
+    def __init__(self,
+                 func: ne.interpreter.NumExpr,
+                 params: list[str],
+                 idxexprs: list[tuple[Any, tuple[str, ...], Any]],
+                 strexpr: str,
+                 **kwargs) -> None:
         self.function = func
         """The compiled function object corresponding to this condition."""
         self.parameters = params
@@ -327,12 +365,12 @@ class CompiledCondition:
         self.kwargs = kwargs
         """NumExpr kwargs (used to pass ex_uses_vml to numexpr)"""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ("idxexprs: %s\nstrexpr: %s\nidxvars: %s"
                 % (self.index_expressions, self.string_expression,
                    self.index_variables))
 
-    def with_replaced_vars(self, condvars):
+    def with_replaced_vars(self, condvars: dict[str, Union["Column", np.ndarray]]) -> "CompiledCondition":
         """Replace index limit variables with their values in-place.
 
         A new compiled condition is returned.  Values are taken from
@@ -359,7 +397,7 @@ class CompiledCondition:
         return newcc
 
 
-def _get_variable_names(expression):
+def _get_variable_names(expression: ne.expressions.ExpressionNode) -> list[str]:
     """Return the list of variable names in the Numexpr `expression`."""
 
     names = []
@@ -373,7 +411,9 @@ def _get_variable_names(expression):
     return list(set(names))  # remove repeated names
 
 
-def compile_condition(condition, typemap, indexedcols):
+def compile_condition(condition: str,
+                      typemap: dict[str, Type],
+                      indexedcols: frozenset[str]) -> CompiledCondition:
     """Compile a condition and extract usable index conditions.
 
     Looks for variable-constant comparisons in the `condition` string
@@ -426,7 +466,11 @@ def compile_condition(condition, typemap, indexedcols):
     return CompiledCondition(func, params, idxexprs, strexpr, **kwargs)
 
 
-def call_on_recarr(func, params, recarr, param2arg=None, **kwargs):
+def call_on_recarr(func: Callable,
+                   params: Iterable,
+                   recarr: np.ndarray,
+                   param2arg: Optional[Callable[[Any], Any]]=None,
+                   **kwargs) -> None:
     """Call `func` with `params` over `recarr`.
 
     The `param2arg` function, when specified, is used to get an argument
