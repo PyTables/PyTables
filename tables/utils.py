@@ -39,7 +39,7 @@ def correct_byteorder(ptype: str, byteorder: str) -> str:
         return byteorder
 
 
-def is_idx(index: Union[int, np.integer, np.ndarray]) -> bool:
+def is_idx(index: Any) -> bool:
     """Checks if an object can work as an index or not."""
 
     if type(index) is int:
