@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from .array import Array
     from .table import Column
 
-ContainerType = Union[np.ndarray, Array, Column]
+ContainerType = Union[np.ndarray, "Array", "Column"]
 
 
 class Expr:
