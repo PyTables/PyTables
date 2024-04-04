@@ -14,6 +14,7 @@ from .parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 if TYPE_CHECKING:
     from .array import Array
     from .table import Column
+    from .tableextension import Row
 
 ContainerType = Union[np.ndarray, "Array", "Column"]
 
@@ -650,7 +651,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         return out
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator["Row"]:
         """Iterate over the rows of the outcome of the expression.
 
         This iterator always returns rows as NumPy objects, so a possible out
