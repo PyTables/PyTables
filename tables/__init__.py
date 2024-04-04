@@ -151,14 +151,14 @@ if 'Float128Atom' in locals():
     __all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check
 
 
-def get_pytables_version():
+def get_pytables_version() -> str:
     warnings.warn(
         "the 'get_pytables_version()' function is deprecated and could be "
         "removed in future versions. Please use 'tables.__version__'",
         DeprecationWarning)
     return __version__
 
-def get_hdf5_version():
+def get_hdf5_version() -> str:
     warnings.warn(
         "the 'get_hdf5_version()' function is deprecated and could be "
         "removed in future versions. Please use 'tables.hdf5_version'",
