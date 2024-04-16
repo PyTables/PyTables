@@ -191,7 +191,6 @@ cdef int have_float16 = ("float16" in sctypeDict)
 # PyTables helper routines.
 cdef extern from "utils.h":
 
-  int getLibrary(char *libname) nogil
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
   object get_filter_names( hid_t loc_id, char *dset_name)

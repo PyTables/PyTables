@@ -16,57 +16,6 @@ typedef npy_cdouble npy_complex256;
 #endif
 
 /* ---------------------------------------------------------------- */
-
-#ifdef WIN32
-#include <windows.h>
-
-/* This routine is meant to detect whether a dynamic library can be
-   loaded on Windows. This is only way to detect its presence without
-   harming the user.
-*/
-int getLibrary(char *libname) {
-    HINSTANCE hinstLib;
-
-    /* Load the dynamic library */
-    hinstLib = LoadLibrary(TEXT(libname));
-
-    if (hinstLib != NULL) {
-      /* Free the dynamic library */
-      FreeLibrary(hinstLib);
-      return 0;
-    }
-    else {
-      return -1;
-    }
-}
-
-#else  /* Unix platforms */
-#include <dlfcn.h>
-
-/* Routine to detect the existance of shared libraries in UNIX. This
-   has to be checked in MacOSX. However, this is not used right now in
-   utilsExtension.pyx because UNIX does not complain when trying to
-   load an extension library that depends on a shared library that it
-   is not in the system (python raises just the ImportError). */
-int getLibrary(char *libname) {
-    void *hinstLib;
-
-    /* Load the dynamic library */
-    hinstLib = dlopen(libname, RTLD_LAZY);
-
-    if (hinstLib != NULL) {
-      /* Free the dynamic library */
-      dlclose(hinstLib);
-      return 0;
-    }
-    else {
-      return -1;
-    }
-}
-
-
-#endif  /* Win32 */
-
 herr_t set_cache_size(hid_t file_id, size_t cache_size) {
 #if H5_VERS_MAJOR == 1 && H5_VERS_MINOR >= 7
   /* MSVS2005 chokes on declarations after statements */
