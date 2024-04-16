@@ -9,6 +9,7 @@ on:
       - 'ci/**'
     tags:
       - v*
+    pull_request:
   release:
     types:
       - published
