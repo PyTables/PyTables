@@ -2,7 +2,6 @@ name: Wheels
 
 # Publish when a (published) GitHub Release is created.
 on:
-  pull_request:
   push:
     branches:
       - master
@@ -23,12 +22,12 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
         name: Install Python
         with:
           python-version: 3.x
@@ -52,7 +51,7 @@ jobs:
       - name: Build sdist
         run: make PYTHON=python dist
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
           path: dist/*
 
@@ -126,8 +125,8 @@ jobs:
           CIBW_ARCHS: ${{ matrix.arch }}
           # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
           CIBW_BEFORE_BUILD: >
-            python -m pip install -U setuptools pip wheel cython &&
-            python -m pip install -r requirements.txt
+            python -m pip install -U --require-hashes -r ./.github/workflows/requirements/build-requirements.txt &&
+            python -m pip install --require-hashes -r requirements.txt
           CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
@@ -161,25 +160,25 @@ jobs:
         arch: [win_amd64]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
         name: Install Python
         with:
           python-version: 3.x
 
       - name: Install Miniconda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@3b0f2504dd76ef23b6d31f291f4913fb60ab5ff3 # v2.2.0
         with:
           channels: defaults,conda-forge
           use-only-tar-bz2: true
 
       - name: Install cibuildwheel
         run: |
-          python -m pip install --upgrade cibuildwheel
+          python -m pip install --require-hashes -r ./.github/workflows/requirements/wheel-requirements.txt
 
       - name: Build wheels for Windows (${{ matrix.arch }})
         run: cibuildwheel --output-dir wheelhouse
@@ -200,7 +199,7 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
           CIBW_TEST_COMMAND: "python -m tables.tests.test_all"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
           path: ./wheelhouse/*.whl
 
@@ -210,18 +209,23 @@ jobs:
     runs-on: 'ubuntu-latest'
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+          submodules: true
+          
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           path: ./wheelhouse/
 
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
         with:
           python-version: '3.x'
 
       - name: Install twine
         run: |
-          python -m pip install twine
+          python -m pip install --require-hashes -r ./.github/workflows/requirements/wheel-requirements.txt
 
       - name: Check sdist and wheels
         run: |
