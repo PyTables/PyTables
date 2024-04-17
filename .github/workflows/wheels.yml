@@ -74,9 +74,9 @@ jobs:
         os: [ 'ubuntu-latest' ]
         arch: [ 'x86_64',  'aarch64' ]
         include:
-          - os: macos-latest-large
+          - os: macos-13
             arch: x86_64
-          - os: macos-latest
+          - os: macos-14
             arch: arm64
 
     steps:
