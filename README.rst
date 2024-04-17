@@ -105,12 +105,8 @@ installed in your system, you don't absolutely need to install it
 separately. LZO and bzip2 compression libraries are, however,
 optional.
 
-Make sure you have HDF5 version 1.10.5 or above. On macOS, you can
-install HDF5 with `Homebrew <http://brew.sh>`_::
-
-   $ brew install hdf5
-
-On Debian-based distributions::
+Make sure you have HDF5 version 1.10.5 or above. On Debian-based Linux
+distributions, you can install it with::
 
    $ sudo apt install libhdf5-serial-dev
 
@@ -126,7 +122,8 @@ Installation
        $ python3 -m tables.tests.test_all
 
    If there is some test that does not pass, please send us the
-   complete output.
+   complete output using the
+   [GitHub Issue Tracker](https://github.com/PyTables/PyTables/issues/new).
 
 
 **Enjoy data!** -- The PyTables Team
