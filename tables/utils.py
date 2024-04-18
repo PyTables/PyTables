@@ -30,6 +30,21 @@ byteorders = {
 SizeType = np.int64
 
 
+copy_if_needed: Optional[bool]
+
+if np.lib.NumpyVersion(np.__version__) >= "2.0.0":
+    copy_if_needed = None
+elif np.lib.NumpyVersion(np.__version__) < "1.28.0":
+    copy_if_needed = False
+else:
+    # 2.0.0 dev versions, handle cases where copy may or may not exist
+    try:
+        np.array([1]).__array__(copy=None)  # type: ignore[call-overload]
+        copy_if_needed = None
+    except TypeError:
+        copy_if_needed = False
+
+
 def correct_byteorder(ptype: str, byteorder: str) -> str:
     """Fix the byteorder depending on the PyTables types."""
 
@@ -83,7 +98,7 @@ def idx2long(index: Union[int, float, np.ndarray]) -> int:
 # with atom from a generic python type.  If copy is stated as True, it
 # is assured that it will return a copy of the object and never the same
 # object or a new one sharing the same memory.
-def convert_to_np_atom(arr: npt.ArrayLike, atom: "Atom", copy: bool=False) -> np.ndarray:
+def convert_to_np_atom(arr: npt.ArrayLike, atom: "Atom", copy: Optional[bool]=copy_if_needed) -> np.ndarray:
     """Convert a generic object into a NumPy object compliant with atom."""
 
     # First, convert the object into a NumPy array
@@ -117,7 +132,7 @@ def convert_to_np_atom2(object: npt.ArrayLike, atom: "Atom") -> np.ndarray:
 
     # Check whether the object needs to be copied to make the operation
     # safe to in-place conversion.
-    copy = atom.type in ['time64']
+    copy = True if atom.type in ['time64'] else copy_if_needed
     nparr = convert_to_np_atom(object, atom, copy)
     # Finally, check the byteorder and change it if needed
     byteorder = byteorders[nparr.dtype.byteorder]
