@@ -60,7 +60,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       # Keep in sync with "Prerequisites" in User's Guide.
-      HDF5_VERSION: 1.14.2  # H5Dchunk_iter needs at least 1.14.1
+      HDF5_VERSION: 1.14.3  # H5Dchunk_iter needs at least 1.14.1
       MACOSX_DEPLOYMENT_TARGET: "10.9"
       # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
       # Skip 3.6, 3.7 and 3.8 wheels
@@ -73,11 +73,10 @@ jobs:
         os: [ 'ubuntu-latest' ]
         arch: [ 'x86_64',  'aarch64' ]
         include:
-          - os: macos-latest
+          - os: macos-13
             arch: x86_64
-          # Still having issues here: https://github.com/PyTables/PyTables/pull/979
-          # - os: macos-latest
-          #   arch: arm64
+          - os: macos-14
+            arch: arm64
 
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1

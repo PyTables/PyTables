@@ -19,6 +19,11 @@ Improvements
 - Add type hints to atom.py. This also narrows some types, only allowing bytes
   to be stored in VLStringAtom and only str in VLUnicodeAtom.
 
+Other changes
+-------------
+
+- Add wheels for macOS ARM64 (Apple Silicon) (:PR:`1050`). Thanks to Clemens Brunner.
+
 
 Changes from 3.9.1 to 3.9.2
 ===========================

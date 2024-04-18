@@ -106,41 +106,25 @@ fi
 
 pushd /tmp
 
-#                                   Remove trailing .*, to get e.g. '1.12' ↓
-curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/src/hdf5-${HDF5_VERSION}.tar.gz"
-tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
-pushd "hdf5-$HDF5_VERSION"
 
-if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then
-    # from https://github.com/conda-forge/hdf5-feedstock/commit/2cb83b63965985fa8795b0a13150bf0fd2525ebd
-    export ac_cv_sizeof_long_double=8
-    export hdf5_cv_ldouble_to_long_special=no
-    export hdf5_cv_long_to_ldouble_special=no
-    export hdf5_cv_ldouble_to_llong_accurate=yes
-    export hdf5_cv_llong_to_ldouble_correct=yes
-    export hdf5_cv_disable_some_ldouble_conv=no
-    export hdf5_cv_system_scope_threads=yes
-    export hdf5_cv_printf_ll="l"
-
-    patch -p0 < "$PROJECT_DIR/ci/osx_cross_configure.patch"
-    patch -p0 < "$PROJECT_DIR/ci/osx_cross_src_makefile.patch"
-
-    eval ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" "$EXTRA_SERIAL_FLAGS" --enable-build-mode=production \
-        --host=aarch64-apple-darwin --enable-tests=no
-
-    mkdir -p native-build/bin
-    pushd native-build/bin
-    CFLAGS= $CC ../../src/H5detect.c -I ../../src/ -o H5detect
-    CFLAGS= $CC ../../src/H5make_libsettings.c -I ../../src/ -o H5make_libsettings
-    popd
-    export PATH=$(pwd)/native-build/bin:$PATH
+if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary build on macOS ARM64
+    curl -fsSLO "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/bin/unix/hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
+    tar -xzvf "hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
+    sh "hdf/HDF5-${HDF5_VERSION}-Darwin.sh" --skip-license --prefix=$HDF5_DIR --exclude-subdir
+    pushd "${HDF5_DIR}"
+    cp -R "HDF_Group/HDF5/${HDF5_VERSION%-*}/" .  # move to correct location
+    rm -rf HDF_Group
 else
-    eval ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" "$EXTRA_SERIAL_FLAGS" --enable-build-mode=production
-fi
-make -j "$NPROC"
-make install
+    #                                   Remove trailing .*, to get e.g. '1.12' ↓
+    curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/src/hdf5-${HDF5_VERSION}.tar.gz"
+    tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
+    pushd "hdf5-$HDF5_VERSION"
+    ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
+    make -j "$NPROC"
+    make install
 
-file "$HDF5_DIR"/lib/*
+    file "$HDF5_DIR"/lib/*
+fi
 
 popd
 popd
