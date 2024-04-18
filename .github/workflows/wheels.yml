@@ -68,7 +68,7 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: "10.9"
       # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
       # Skip 3.6, 3.7 and 3.8 wheels
-      CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp38-* "
+      CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp38-* cp39-*"
       CIBW_BUILD: "cp*"
     strategy:
       matrix:

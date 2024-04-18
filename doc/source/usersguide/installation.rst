@@ -59,7 +59,7 @@ If you don't, fetch and install them before proceeding.
 .. Keep entries from NumPy on in sync with ``project.dependencies`` in ``pyproject.toml``.
 .. Keep system packages in sync with build jobs in `.github/workflows/*.yml`.
 
-* Python_ >= 3.9
+* Python_ >= 3.10
 * HDF5_ >= 1.10.5 (although 1.14.0 or later is strongly recommended)
 * Cython_ >= 3.0.10
 * NumPy_ >= 1.20.0
