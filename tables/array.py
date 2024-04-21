@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 # obversion = "2.1"    # Added support for complex datatypes
 # obversion = "2.2"    # This adds support for time datatypes.
 # obversion = "2.3"    # This adds support for enumerated datatypes.
-obversion = "2.4"    # Numeric and numarray flavors are gone.
+obversion = "2.4"  # Numeric and numarray flavors are gone.
 
 SelectionType = Union[int, slice, list[Union[int, slice]], npt.ArrayLike]
 
@@ -124,12 +124,12 @@ class Array(hdf5extension.Array, Leaf):
     def __init__(self,
                  parentnode: "Group",
                  name: str,
-                 obj: Optional[npt.ArrayLike]=None,
-                 title: str="",
-                 byteorder: Optional[str]=None,
-                 _log: bool=True,
-                 _atom: Union["Atom", "EnumAtom", None]=None,
-                 track_times: bool=True) -> None:
+                 obj: Optional[npt.ArrayLike] = None,
+                 title: str = "",
+                 byteorder: Optional[str] = None,
+                 _log: bool = True,
+                 _atom: Union["Atom", "EnumAtom", None] = None,
+                 track_times: bool = True) -> None:
 
         self._v_version: Optional[str] = None
         """The object version of this array."""
@@ -179,7 +179,7 @@ class Array(hdf5extension.Array, Leaf):
         """The shape of the stored array."""
         self.nrow: Optional[int] = None
         """On iterators, this is the index of the current row."""
-        self.extdim = -1   # ordinary arrays are not enlargeable
+        self.extdim = -1  # ordinary arrays are not enlargeable
         """The index of the enlargeable dimension."""
 
         # Ordinary arrays have no filters: leaf is created with default ones.
@@ -254,9 +254,9 @@ class Array(hdf5extension.Array, Leaf):
         return self.atom.enum
 
     def iterrows(self,
-                 start: Optional[int]=None,
-                 stop: Optional[int]=None,
-                 step: Optional[int]=None) -> Union[tuple, "Array"]:
+                 start: Optional[int] = None,
+                 stop: Optional[int] = None,
+                 step: Optional[int] = None) -> Union[tuple, "Array"]:
         """Iterate over the rows of the array.
 
         This method returns an iterator yielding an object of the current
@@ -324,9 +324,9 @@ class Array(hdf5extension.Array, Leaf):
 
         self._nrowsread = self._start
         self._startb = self._start
-        self._row = -1   # Sentinel
+        self._row = -1  # Sentinel
         self._init = True  # Sentinel
-        self.nrow = SizeType(self._start - self._step)    # row number
+        self.nrow = SizeType(self._start - self._step)  # row number
 
     def __next__(self) -> Any:
         """Get the next element of the array during an iteration.
@@ -339,8 +339,8 @@ class Array(hdf5extension.Array, Leaf):
         # listarr buffer
         if self._nrowsread >= self._stop:
             self._init = False
-            self.listarr = None        # fixes issue #308
-            raise StopIteration        # end of iteration
+            self.listarr = None  # fixes issue #308
+            raise StopIteration  # end of iteration
         else:
             # Read a chunk of rows
             if self._row + 1 >= self.nrowsinbuf or self._row < 0:
@@ -363,10 +363,10 @@ class Array(hdf5extension.Array, Leaf):
             if self.shape:
                 return self.listarr[self._row]
             else:
-                return self.listarr    # Scalar case
+                return self.listarr  # Scalar case
 
     def _interpret_indexing(
-        self, keys: SelectionType,
+            self, keys: SelectionType,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[int]]:
         """Internal routine used by __getitem__ and __setitem__"""
 
@@ -568,7 +568,7 @@ class Array(hdf5extension.Array, Leaf):
                         list_seen = True
                 else:
                     if (not isinstance(exp[0], (int, np.integer)) or
-                        (isinstance(exp[0], np.ndarray) and not
+                            (isinstance(exp[0], np.ndarray) and not
                             np.issubdtype(exp[0].dtype, np.integer))):
                         raise TypeError("Only integer coordinates allowed.")
 
@@ -579,7 +579,9 @@ class Array(hdf5extension.Array, Leaf):
                 # (only one unordered list is allowed)
                 if len(nexp) != len(np.unique(nexp)):
                     raise IndexError(
-                        "Selection lists cannot have repeated values")
+                        "Selection lists cannot have repeated values. "
+                        "To see how to handle this, please see https://github.com/PyTables/PyTables/issues/1149"
+                    )
                 neworder = nexp.argsort()
                 if (neworder.shape != (len(exp),) or
                         np.sum(np.abs(neworder - np.arange(len(exp)))) != 0):
@@ -842,7 +844,7 @@ class Array(hdf5extension.Array, Leaf):
               start: int,
               stop: int,
               step: int,
-              out: Optional[np.ndarray]=None) -> np.ndarray:
+              out: Optional[np.ndarray] = None) -> np.ndarray:
         """Read the array from disk without slice or flavor processing."""
 
         nrowstoread = len(range(start, stop, step))
@@ -872,10 +874,10 @@ class Array(hdf5extension.Array, Leaf):
         return arr
 
     def read(self,
-             start: Optional[int]=None,
-             stop: Optional[int]=None,
-             step: Optional[int]=None,
-             out: Optional[np.ndarray]=None) -> np.ndarray:
+             start: Optional[int] = None,
+             stop: Optional[int] = None,
+             step: Optional[int] = None,
+             out: Optional[np.ndarray] = None) -> np.ndarray:
         """Get data in the array as an object of the current flavor.
 
         The start, stop and step parameters can be used to select only a
