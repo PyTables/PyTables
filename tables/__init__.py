@@ -24,9 +24,12 @@ elif platform_system == "Darwin":
 else:
     blosc2_lib_hardcoded += ".dll"
 blosc2_found = False
-blosc2_search_paths = [blosc2_lib_hardcoded,
-                       os.path.join(current_dir, blosc2_lib_hardcoded),
-                       find_library("blosc2")]
+blosc2_search_paths = [
+    blosc2_lib_hardcoded,
+    os.path.join(current_dir, blosc2_lib_hardcoded),
+]
+if find_library("blosc2"):
+    blosc2_search_paths.append(find_library("blosc2"))
 for blosc2_lib in blosc2_search_paths:
     if blosc2_lib:
         try:
@@ -37,8 +40,10 @@ for blosc2_lib in blosc2_search_paths:
             blosc2_found = True
             break
 if not blosc2_found:
-    raise RuntimeError("Blosc2 library not found. "
-                       f"I looked for \"{', '.join(blosc2_search_paths)}\"")
+    raise RuntimeError(
+        f"Blosc2 library not found. "
+        f"I looked for {', '.join(blosc2_search_paths)}"
+    )
 
 # Necessary imports to get versions stored on the cython extension
 from .utilsextension import get_hdf5_version as _get_hdf5_version
