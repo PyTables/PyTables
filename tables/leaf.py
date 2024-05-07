@@ -4,7 +4,7 @@ import math
 import json
 from pathlib import Path
 from functools import lru_cache
-from typing import Any, Literal, Optional, Union, TYPE_CHECKING
+from typing import Any, Literal, NamedTuple, Optional, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -90,6 +90,14 @@ def calc_chunksize(expected_mb: int) -> int:
     chunksize = csformula(expected_mb)
     # XXX: Multiply by 8 seems optimal for sequential access
     return chunksize * 8
+
+
+class ChunkInfo(NamedTuple):
+    # TODO: document
+    start: tuple[int, ...] | None  # None for missing chunk
+    filter_mask: int
+    offset: int | None  # in storage bytes, None for missing chunk
+    size: int  # raw size in storage
 
 
 class Leaf(Node):
@@ -781,6 +789,10 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         self._g_flush()
+
+    def chunk_info(self, coords: tuple[int, ...]) -> ChunkInfo:
+        # TODO: document
+        raise NotImplementedError  # TODO: implement
 
     def _f_close(self, flush: bool=True) -> None:
         """Close this node in the tree.
