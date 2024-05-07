@@ -2652,6 +2652,19 @@ class TestCreateArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           shape=shape)
 
 
+class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    obj = np.arange(25, dtype='uint8')
+
+    def setUp(self):
+        super().setUp()
+        self.array = self.h5file.create_array('/', 'array', self.obj)
+
+    def test_chunk_info(self):
+        self.assertRaises(tb.HDF5ExtError,
+                          self.array.chunk_info,
+                          (0,) * self.array.ndim)
+
+
 def suite():
     theSuite = common.unittest.TestSuite()
     niter = 1
@@ -2722,6 +2735,7 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(AccessClosedTestCase))
         theSuite.addTest(common.unittest.makeSuite(TestCreateArrayArgs))
         theSuite.addTest(common.unittest.makeSuite(BroadcastTest))
+        theSuite.addTest(common.unittest.makeSuite(DirectChunkingTestCase))
 
     return theSuite
 
