@@ -2664,6 +2664,25 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           self.array.chunk_info,
                           (0,) * self.array.ndim)
 
+    def test_read_chunk(self):
+        self.assertRaises(tb.HDF5ExtError,
+                          self.array.read_chunk,
+                          (0,) * self.array.ndim)
+
+    def test_read_chunk_out(self):
+        arr = np.zeros(self.obj.shape, dtype=self.obj.dtype)
+        self.assertRaises(tb.HDF5ExtError,
+                          self.array.read_chunk,
+                          (0,) * self.array.ndim,
+                          out=memoryview(arr))
+
+    def test_write_chunk(self):
+        arr = self.obj // 2
+        self.assertRaises(tb.HDF5ExtError,
+                          self.array.write_chunk,
+                          (0,) * self.array.ndim,
+                          arr)
+
 
 def suite():
     theSuite = common.unittest.TestSuite()
