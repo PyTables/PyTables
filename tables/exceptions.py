@@ -21,6 +21,7 @@ __all__ = [
     "NoSuchNodeError",
     "NodeError",
     "NotChunkedError",
+    "NotChunkAlignedError",
     "OldIndexWarning",
     "PerformanceWarning",
     "UnclosedFileWarning",
@@ -405,5 +406,10 @@ class ChunkError(ValueError):
 
 
 class NotChunkedError(ChunkError):
+    # TODO: document
+    pass
+
+
+class NotChunkAlignedError(ChunkError):
     # TODO: document
     pass
