@@ -107,6 +107,7 @@ __all__ = [
     'PerformanceWarning',
     'FlavorError', 'FlavorWarning',
     'FiltersWarning', 'DataTypeWarning',
+    'ChunkError', 'NotChunkedError',
     # Functions:
     'is_hdf5_file', 'is_pytables_file', 'which_lib_version',
     'copy_file', 'open_file', 'print_versions', 'test',

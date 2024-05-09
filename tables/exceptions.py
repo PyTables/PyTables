@@ -7,6 +7,7 @@ from typing import Callable, Optional
 
 
 __all__ = [
+    "ChunkError",
     "ClosedFileError",
     "ClosedNodeError",
     "DataTypeWarning",
@@ -19,6 +20,7 @@ __all__ = [
     "NaturalNameWarning",
     "NoSuchNodeError",
     "NodeError",
+    "NotChunkedError",
     "OldIndexWarning",
     "PerformanceWarning",
     "UnclosedFileWarning",
@@ -394,4 +396,14 @@ class UnclosedFileWarning(Warning):
     Pytables will close remaining open files at exit, but raise 
     this warning.
     """
+    pass
+
+
+class ChunkError(ValueError):
+    # TODO: document
+    pass
+
+
+class NotChunkedError(ChunkError):
+    # TODO: document
     pass
