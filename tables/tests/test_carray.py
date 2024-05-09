@@ -2902,12 +2902,14 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
 class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     shape = (5, 5)
     chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
-    obj = np.arange(np.prod(shape), dtype='uint8').reshape(shape)
+    shuffle = True
+    obj = np.arange(np.prod(shape), dtype='u2').reshape(shape)
 
     def setUp(self):
         super().setUp()
         self.array = self.h5file.create_carray(
-            '/', 'array', chunkshape=self.chunkshape, obj=self.obj)
+            '/', 'array', chunkshape=self.chunkshape, obj=self.obj,
+            filters=tb.Filters(shuffle=self.shuffle))
 
     def test_chunk_info_aligned(self):
         chunk_size = np.prod(self.chunkshape) * self.obj.dtype.itemsize
@@ -2946,6 +2948,12 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except tb.ChunkError:
             pass
 
+    def maybe_shuffle(self, bytes_):
+        if not self.shuffle:
+            return bytes_
+        itemsize = self.obj.dtype.itemsize
+        return b''.join(bytes_[d::itemsize] for d in range(itemsize))
+
     def test_read_chunk(self):
         # Extended to fit chunk boundaries.
         ext_obj = np.pad(self.obj, [(0, s % cs) for (s, cs)
@@ -2955,7 +2963,8 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsInstance(chunk, bytes)
         obj_slice = tuple(slice(s, s + cs) for (s, cs)
                           in zip(chunk_start, self.chunkshape))
-        self.assertEqual(chunk, ext_obj[obj_slice].tobytes())
+        obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
+        self.assertEqual(chunk, obj_bytes)
 
     def test_read_chunk_unaligned(self):
         self.assertRaises(tb.NotChunkAlignedError,
