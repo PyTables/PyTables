@@ -2916,13 +2916,13 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for chunk_start in itertools.product(*chunk_ranges):
             chunk_info = self.array.chunk_info(chunk_start)
             self.assertEqual(chunk_info.start, chunk_start)
-            self.assertNotEqual(chunk_info.offset, None)
+            self.assertIsNotNone(chunk_info.offset)
             self.assertEqual(chunk_info.size, chunk_size)
 
     def test_chunk_info_unaligned(self):
         chunk_info_a = self.array.chunk_info((0,) * self.array.ndim)
         chunk_info_u = self.array.chunk_info((1,) * self.array.ndim)
-        self.assertNotEqual(chunk_info_a.start, None)
+        self.assertIsNotNone(chunk_info_a.start)
         self.assertEqual(chunk_info_a, chunk_info_u)
 
     def test_chunk_info_aligned_beyond(self):
