@@ -1,3 +1,4 @@
+import itertools
 import sys
 from pathlib import Path
 
@@ -2898,6 +2899,45 @@ class TestCreateCArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           shape=shape)
 
 
+class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    shape = (5, 5)
+    chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
+    obj = np.arange(np.prod(shape), dtype='uint8').reshape(shape)
+
+    def setUp(self):
+        super().setUp()
+        self.array = self.h5file.create_carray(
+            '/', 'array', chunkshape=self.chunkshape, obj=self.obj)
+
+    def test_chunk_info_aligned(self):
+        chunk_ranges = list(range(0, s, cs) for (s, cs)
+                            in zip(self.shape, self.chunkshape))
+        for chunk_start in itertools.product(*chunk_ranges):
+            chunk_info = self.array.chunk_info(chunk_start)
+            self.assertEqual(chunk_info.start, chunk_start)
+            self.assertNotEqual(chunk_info.offset, None)
+
+    def test_chunk_info_unaligned(self):
+        chunk_info_a = self.array.chunk_info((0,) * self.array.ndim)
+        chunk_info_u = self.array.chunk_info((1,) * self.array.ndim)
+        self.assertNotEqual(chunk_info_a.start, None)
+        self.assertEqual(chunk_info_a, chunk_info_u)
+
+    def test_chunk_info_aligned_beyond(self):
+        beyond = tuple((1 + s // cs) * cs for (s, cs)
+                       in zip(self.shape, self.chunkshape))
+        self.assertRaises(tb.ChunkError,
+                          self.array.chunk_info,
+                          beyond)
+
+    def test_chunk_info_unaligned_beyond(self):
+        beyond = tuple(1 + (1 + s // cs) * cs for (s, cs)
+                       in zip(self.shape, self.chunkshape))
+        self.assertRaises(tb.ChunkError,
+                          self.array.chunk_info,
+                          beyond)
+
+
 def suite():
     theSuite = common.unittest.TestSuite()
     niter = 1
@@ -2988,6 +3028,7 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(MDLargeAtomReopen))
         theSuite.addTest(common.unittest.makeSuite(AccessClosedTestCase))
         theSuite.addTest(common.unittest.makeSuite(TestCreateCArrayArgs))
+        theSuite.addTest(common.unittest.makeSuite(DirectChunkingTestCase))
     if common.heavy:
         theSuite.addTest(common.unittest.makeSuite(Slices3CArrayTestCase))
         theSuite.addTest(common.unittest.makeSuite(Slices4CArrayTestCase))
