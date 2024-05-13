@@ -2989,6 +2989,13 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           self.array.read_chunk,
                           (1,) * self.array.ndim)
 
+    def test_read_chunk_beyond(self):
+        beyond = tuple((1 + s // cs) * cs for (s, cs)
+                       in zip(self.shape, self.chunkshape))
+        self.assertRaises(tb.ChunkError,
+                          self.array.read_chunk,
+                          beyond)
+
 
 def suite():
     theSuite = common.unittest.TestSuite()
