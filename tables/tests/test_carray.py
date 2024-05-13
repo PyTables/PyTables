@@ -2961,13 +2961,13 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Extended to fit chunk boundaries.
         ext_obj = np.pad(self.obj, [(0, s % cs) for (s, cs)
                                     in zip(self.shape, self.chunkshape)])
-        chunk_start = (0, 0)  # TODO: iterate over chunks
-        chunk = self.array.read_chunk(chunk_start)
-        self.assertIsInstance(chunk, bytes)
-        obj_slice = tuple(slice(s, s + cs) for (s, cs)
-                          in zip(chunk_start, self.chunkshape))
-        obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
-        self.assertEqual(chunk, obj_bytes)
+        for chunk_start in self.iter_chunks():
+            chunk = self.array.read_chunk(chunk_start)
+            self.assertIsInstance(chunk, bytes)
+            obj_slice = tuple(slice(s, s + cs) for (s, cs)
+                              in zip(chunk_start, self.chunkshape))
+            obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
+            self.assertEqual(chunk, obj_bytes)
 
     def test_read_chunk_out(self):
         # Extended to fit chunk boundaries.
