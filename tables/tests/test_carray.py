@@ -2984,6 +2984,10 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(chunk, obj_bytes)
         self.assertEqual(chunk_out, obj_bytes)
 
+        chunk_out = bytearray(chunk_size - 1)  # too short
+        self.assertRaises(ValueError,
+                          self.array.read_chunk, chunk_start, out=chunk_out)
+
     def test_read_chunk_unaligned(self):
         self.assertRaises(tb.NotChunkAlignedError,
                           self.array.read_chunk,
