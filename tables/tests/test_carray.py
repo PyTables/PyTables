@@ -2966,6 +2966,21 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
         self.assertEqual(chunk, obj_bytes)
 
+    def test_read_chunk_out(self):
+        # Extended to fit chunk boundaries.
+        ext_obj = np.pad(self.obj, [(0, s % cs) for (s, cs)
+                                    in zip(self.shape, self.chunkshape)])
+        chunk_start = (0,) * self.obj.ndim
+        chunk_size = np.prod(self.chunkshape) * self.obj.dtype.itemsize
+        chunk_out = bytearray(chunk_size)
+        chunk = self.array.read_chunk(chunk_start, out=chunk_out)
+        self.assertIsInstance(chunk, memoryview)
+        obj_slice = tuple(slice(s, s + cs) for (s, cs)
+                          in zip(chunk_start, self.chunkshape))
+        obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
+        self.assertEqual(chunk, obj_bytes)
+        self.assertEqual(chunk_out, obj_bytes)
+
     def test_read_chunk_unaligned(self):
         self.assertRaises(tb.NotChunkAlignedError,
                           self.array.read_chunk,
