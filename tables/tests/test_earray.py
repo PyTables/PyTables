@@ -2873,6 +2873,44 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           shape=shape)
 
 
+class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    shape = (5, 5)  # extendable along first dimension
+    chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
+    shuffle = True
+    no_shuffle_mask = 0x00000002  # to turn shuffle off
+    obj = np.arange(np.prod(shape), dtype='u2').reshape(shape)
+
+    def setUp(self):
+        super().setUp()
+        atom = tb.Atom.from_dtype(self.obj.dtype)
+        shape = (0, *self.shape[1:])
+        self.array = self.h5file.create_earray(
+            '/', 'array', atom, shape, chunkshape=self.chunkshape,
+            filters=tb.Filters(shuffle=self.shuffle))
+        self.array.append(self.obj)
+
+    def test_chunk_info_miss_maindim(self):
+        # Next chunk in the enlargeable dimension.
+        assert self.array.maindim == 0
+        chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
+                        * self.chunkshape[0]),
+                       *((0,) * (self.array.ndim - 1)))
+        chunk_info = self.array.chunk_info(chunk_start)
+        self.assertIsNone(chunk_info.start)
+        self.assertIsNone(chunk_info.offset)
+
+    def test_chunk_info_miss_nomaindim(self):
+        # Next chunk in the first non-enlargeable dimension.
+        assert self.array.maindim != 1
+        chunk_start = (0,
+                       ((1 + self.shape[1] // self.chunkshape[1])
+                        * self.chunkshape[1]),
+                       *((0,) * (self.array.ndim - 2)))
+        self.assertRaises(tb.ChunkError,
+                          self.array.chunk_info,
+                          chunk_start)
+
+
 def suite():
     theSuite = common.unittest.TestSuite()
     niter = 1
@@ -2936,6 +2974,7 @@ def suite():
         theSuite.addTest(common.unittest.makeSuite(MDAtomReopen))
         theSuite.addTest(common.unittest.makeSuite(AccessClosedTestCase))
         theSuite.addTest(common.unittest.makeSuite(TestCreateEArrayArgs))
+        theSuite.addTest(common.unittest.makeSuite(DirectChunkingTestCase))
     if common.heavy:
         theSuite.addTest(common.unittest.makeSuite(Slices3EArrayTestCase))
         theSuite.addTest(common.unittest.makeSuite(Slices4EArrayTestCase))
