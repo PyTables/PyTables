@@ -2903,6 +2903,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     shape = (5, 5)
     chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
     shuffle = True
+    no_shuffle_mask = 0x00000002  # to turn shuffle off
     obj = np.arange(np.prod(shape), dtype='u2').reshape(shape)
 
     def setUp(self):
@@ -2999,6 +3000,52 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(tb.ChunkError,
                           self.array.read_chunk,
                           beyond)
+
+    def test_write_chunk(self):
+        new_obj = self.obj * 2
+        # Extended to fit chunk boundaries.
+        ext_obj = np.pad(new_obj, [(0, s % cs) for (s, cs)
+                                   in zip(self.shape, self.chunkshape)])
+        for chunk_start in self.iter_chunks():
+            obj_slice = tuple(slice(s, s + cs) for (s, cs)
+                              in zip(chunk_start, self.chunkshape))
+            obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
+            self.array.write_chunk(chunk_start, obj_bytes)
+
+        self._reopen()
+        self.array = self.h5file.root.array
+        self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
+
+    def test_write_chunk_filtermask(self):
+        chunk_start = (0,) * self.obj.ndim
+        obj_slice = tuple(slice(s, s + cs) for (s, cs)
+                          in zip(chunk_start, self.chunkshape))
+        new_obj = self.obj[:]
+        new_obj[obj_slice] *= 2
+        obj_bytes = new_obj[obj_slice].tobytes()  # do not shuffle
+        self.array.write_chunk(chunk_start, obj_bytes,
+                               filter_mask=self.no_shuffle_mask)
+
+        self._reopen()
+        self.array = self.h5file.root.array
+        self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
+
+        chunk_info = self.array.chunk_info(chunk_start)
+        self.assertEqual(chunk_info.filter_mask, self.no_shuffle_mask)
+
+    def test_write_chunk_unaligned(self):
+        self.assertRaises(tb.NotChunkAlignedError,
+                          self.array.write_chunk,
+                          (1,) * self.array.ndim,
+                          b'foobar')
+
+    def test_write_chunk_beyond(self):
+        beyond = tuple((1 + s // cs) * cs for (s, cs)
+                       in zip(self.shape, self.chunkshape))
+        self.assertRaises(tb.ChunkError,
+                          self.array.write_chunk,
+                          beyond,
+                          b'foobar')
 
 
 def suite():
