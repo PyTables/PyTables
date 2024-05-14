@@ -18,6 +18,7 @@ __all__ = [
     "FlavorWarning",
     "HDF5ExtError",
     "NaturalNameWarning",
+    "NoSuchChunkError",
     "NoSuchNodeError",
     "NodeError",
     "NotChunkedError",
@@ -411,5 +412,10 @@ class NotChunkedError(ChunkError):
 
 
 class NotChunkAlignedError(ChunkError):
+    # TODO: document
+    pass
+
+
+class NoSuchChunkError(ChunkError):
     # TODO: document
     pass
