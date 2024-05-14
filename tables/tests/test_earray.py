@@ -2909,6 +2909,13 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(tb.ChunkError,
                           self.array.chunk_info,
                           chunk_start)
+        try:
+            self.array.chunk_info(chunk_start)
+        except tb.NoSuchChunkError as e:
+            self.fail("wrong exception in missing chunk info "
+                      "out of main dimension: %r" % e)
+        except tb.ChunkError:
+            pass
 
 
 def suite():
