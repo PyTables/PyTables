@@ -2900,6 +2900,9 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNone(chunk_info.offset)
 
     def test_chunk_info_miss_noextdim(self):
+        if self.array.ndim < 2:
+            raise common.unittest.SkipTest
+
         # Next chunk in the first non-enlargeable dimension.
         assert self.array.extdim != 1
         chunk_start = (0,
