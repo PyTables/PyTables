@@ -2927,16 +2927,19 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           self.array.chunk_info,
                           chunk_start)
 
-    def test_write_chunk_missing(self):
-        # Extend array by two chunk rows,
+    def _test_write_chunk_missing(self, enlarge_first):
+        # Enlarge array by two chunk rows,
         # copy first old chunk in first chunk of new last chunk row.
         assert self.array.extdim == 0
         chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
                         * self.chunkshape[0] + self.chunkshape[0]),
                        *((0,) * (self.array.ndim - 1)))
-        self.array.truncate(chunk_start[0] + self.chunkshape[0])
         chunk = self.array.read_chunk((0,) * self.array.ndim)
+        if enlarge_first:
+            self.array.truncate(chunk_start[0] + self.chunkshape[0])
         self.array.write_chunk(chunk_start, chunk)
+        if not enlarge_first:
+            self.array.truncate(chunk_start[0] + self.chunkshape[0])
 
         new_obj = self.obj.copy()
         new_obj.resize(self.array.shape)
@@ -2948,6 +2951,12 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._reopen()
         self.array = self.h5file.root.array
         self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
+
+    def test_write_chunk_missing0(self):
+        return self._test_write_chunk_missing(enlarge_first=True)
+
+    def test_write_chunk_missing1(self):
+        return self._test_write_chunk_missing(enlarge_first=False)
 
 
 def suite():
