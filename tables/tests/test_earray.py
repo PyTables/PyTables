@@ -2927,6 +2927,28 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           self.array.chunk_info,
                           chunk_start)
 
+    def test_write_chunk_missing(self):
+        # Extend array by two chunk rows,
+        # copy first old chunk in first chunk of new last chunk row.
+        assert self.array.extdim == 0
+        chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
+                        * self.chunkshape[0] + self.chunkshape[0]),
+                       *((0,) * (self.array.ndim - 1)))
+        self.array.truncate(chunk_start[0] + self.chunkshape[0])
+        chunk = self.array.read_chunk((0,) * self.array.ndim)
+        self.array.write_chunk(chunk_start, chunk)
+
+        new_obj = self.obj.copy()
+        new_obj.resize(self.array.shape)
+        obj_slice = tuple(slice(s, s + cs) for (s, cs)
+                          in zip(chunk_start, self.chunkshape))
+        new_obj[obj_slice] = new_obj[tuple(slice(0, cs)
+                                           for cs in self.chunkshape)]
+
+        self._reopen()
+        self.array = self.h5file.root.array
+        self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
+
 
 def suite():
     theSuite = common.unittest.TestSuite()
