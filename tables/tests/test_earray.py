@@ -2885,9 +2885,13 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         atom = tb.Atom.from_dtype(self.obj.dtype)
         shape = (0, *self.shape[1:])
         self.array = self.h5file.create_earray(
-            '/', 'array', atom, shape, chunkshape=self.chunkshape,
+            '/', 'earray', atom, shape, chunkshape=self.chunkshape,
             filters=tb.Filters(shuffle=self.shuffle))
         self.array.append(self.obj)
+
+    def _reopen(self):
+        super()._reopen()
+        self.array = self.h5file.root.earray
 
     def test_chunk_info_miss_extdim(self):
         # Next chunk in the enlargeable dimension.
@@ -2956,7 +2960,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                                for cs in self.chunkshape)]
 
         self._reopen()
-        self.array = self.h5file.root.array
         self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
 
     def test_write_chunk_missing0(self):

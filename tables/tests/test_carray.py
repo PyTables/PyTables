@@ -2909,8 +2909,12 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def setUp(self):
         super().setUp()
         self.array = self.h5file.create_carray(
-            '/', 'array', chunkshape=self.chunkshape, obj=self.obj,
+            '/', 'carray', chunkshape=self.chunkshape, obj=self.obj,
             filters=tb.Filters(shuffle=self.shuffle))
+
+    def _reopen(self):
+        super()._reopen()
+        self.array = self.h5file.root.carray
 
     def iter_chunks(self):
         chunk_ranges = list(range(0, s, cs) for (s, cs)
@@ -3013,7 +3017,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.array.write_chunk(chunk_start, obj_bytes)
 
         self._reopen()
-        self.array = self.h5file.root.array
         self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
 
     def test_write_chunk_filtermask(self):
@@ -3027,7 +3030,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                filter_mask=self.no_shuffle_mask)
 
         self._reopen()
-        self.array = self.h5file.root.array
         self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
 
         chunk_info = self.array.chunk_info(chunk_start)
