@@ -2917,6 +2917,16 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except tb.ChunkError:
             pass
 
+    def test_read_chunk_miss_maindim(self):
+        # Next chunk in the enlargeable dimension.
+        assert self.array.maindim == 0
+        chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
+                        * self.chunkshape[0]),
+                       *((0,) * (self.array.ndim - 1)))
+        self.assertRaises(tb.NoSuchChunkError,
+                          self.array.chunk_info,
+                          chunk_start)
+
 
 def suite():
     theSuite = common.unittest.TestSuite()
