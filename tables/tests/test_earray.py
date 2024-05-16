@@ -2874,7 +2874,7 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
-    shape = (5, 5)  # extendable along first dimension
+    shape = (5, 5)  # enlargeable along first dimension
     chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
     shuffle = True
     no_shuffle_mask = 0x00000002  # to turn shuffle off
@@ -2889,9 +2889,9 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             filters=tb.Filters(shuffle=self.shuffle))
         self.array.append(self.obj)
 
-    def test_chunk_info_miss_maindim(self):
+    def test_chunk_info_miss_extdim(self):
         # Next chunk in the enlargeable dimension.
-        assert self.array.maindim == 0
+        assert self.array.extdim == 0
         chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
                         * self.chunkshape[0]),
                        *((0,) * (self.array.ndim - 1)))
@@ -2899,9 +2899,9 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertIsNone(chunk_info.start)
         self.assertIsNone(chunk_info.offset)
 
-    def test_chunk_info_miss_nomaindim(self):
+    def test_chunk_info_miss_noextdim(self):
         # Next chunk in the first non-enlargeable dimension.
-        assert self.array.maindim != 1
+        assert self.array.extdim != 1
         chunk_start = (0,
                        ((1 + self.shape[1] // self.chunkshape[1])
                         * self.chunkshape[1]),
@@ -2913,13 +2913,13 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.array.chunk_info(chunk_start)
         except tb.NoSuchChunkError as e:
             self.fail("wrong exception in missing chunk info "
-                      "out of main dimension: %r" % e)
+                      "out of enlargeable dimension: %r" % e)
         except tb.ChunkError:
             pass
 
-    def test_read_chunk_miss_maindim(self):
+    def test_read_chunk_miss_extdim(self):
         # Next chunk in the enlargeable dimension.
-        assert self.array.maindim == 0
+        assert self.array.extdim == 0
         chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
                         * self.chunkshape[0]),
                        *((0,) * (self.array.ndim - 1)))
