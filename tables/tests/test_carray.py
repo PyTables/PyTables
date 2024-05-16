@@ -3023,7 +3023,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         chunk_start = (0,) * self.obj.ndim
         obj_slice = tuple(slice(s, s + cs) for (s, cs)
                           in zip(chunk_start, self.chunkshape))
-        new_obj = self.obj[:]
+        new_obj = self.obj.copy()
         new_obj[obj_slice] *= 2
         obj_bytes = new_obj[obj_slice].tobytes()  # do not shuffle
         self.array.write_chunk(chunk_start, obj_bytes,
