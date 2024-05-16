@@ -2916,6 +2916,9 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         super()._reopen()
         self.array = self.h5file.root.carray
 
+    def modified(self, obj):
+        return obj * 2
+
     def iter_chunks(self):
         chunk_ranges = list(range(0, s, cs) for (s, cs)
                             in zip(self.shape, self.chunkshape))
@@ -3006,7 +3009,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           beyond)
 
     def test_write_chunk(self):
-        new_obj = self.obj * 2
+        new_obj = self.modified(self.obj)
         # Extended to fit chunk boundaries.
         ext_obj = np.pad(new_obj, [(0, s % cs) for (s, cs)
                                    in zip(self.shape, self.chunkshape)])
@@ -3024,7 +3027,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         obj_slice = tuple(slice(s, s + cs) for (s, cs)
                           in zip(chunk_start, self.chunkshape))
         new_obj = self.obj.copy()
-        new_obj[obj_slice] *= 2
+        new_obj[obj_slice] = self.modified(new_obj[obj_slice])
         obj_bytes = new_obj[obj_slice].tobytes()  # do not shuffle
         self.array.write_chunk(chunk_start, obj_bytes,
                                filter_mask=self.no_shuffle_mask)
