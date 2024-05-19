@@ -153,8 +153,8 @@ def suite():
     niter = 1
 
     for n in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(Indexes2_0TestCase))
-        theSuite.addTest(common.unittest.makeSuite(Indexes2_1TestCase))
+        theSuite.addTest(common.make_suite(Indexes2_0TestCase))
+        theSuite.addTest(common.make_suite(Indexes2_1TestCase))
 
     return theSuite
 

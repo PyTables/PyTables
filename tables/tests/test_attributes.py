@@ -1855,32 +1855,32 @@ def suite():
     niter = 1
 
     for i in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(NotCloseCreate))
-        theSuite.addTest(common.unittest.makeSuite(CloseCreate))
-        theSuite.addTest(common.unittest.makeSuite(NoCacheNotCloseCreate))
-        theSuite.addTest(common.unittest.makeSuite(NoCacheCloseCreate))
-        theSuite.addTest(common.unittest.makeSuite(DictCacheNotCloseCreate))
-        theSuite.addTest(common.unittest.makeSuite(DictCacheCloseCreate))
-        theSuite.addTest(common.unittest.makeSuite(NotCloseTypesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CloseTypesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(
+        theSuite.addTest(common.make_suite(NotCloseCreate))
+        theSuite.addTest(common.make_suite(CloseCreate))
+        theSuite.addTest(common.make_suite(NoCacheNotCloseCreate))
+        theSuite.addTest(common.make_suite(NoCacheCloseCreate))
+        theSuite.addTest(common.make_suite(DictCacheNotCloseCreate))
+        theSuite.addTest(common.make_suite(DictCacheCloseCreate))
+        theSuite.addTest(common.make_suite(NotCloseTypesTestCase))
+        theSuite.addTest(common.make_suite(CloseTypesTestCase))
+        theSuite.addTest(common.make_suite(
             CloseNotAlignedPaddedTypesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(
+        theSuite.addTest(common.make_suite(
             NoCloseAlignedTypesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CloseAlignedTypesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(
+        theSuite.addTest(common.make_suite(CloseAlignedTypesTestCase))
+        theSuite.addTest(common.make_suite(
             CloseAlignedPaddedTypesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(NoSysAttrsNotClose))
-        theSuite.addTest(common.unittest.makeSuite(NoSysAttrsClose))
-        theSuite.addTest(common.unittest.makeSuite(CompatibilityTestCase))
-        theSuite.addTest(common.unittest.makeSuite(
+        theSuite.addTest(common.make_suite(NoSysAttrsNotClose))
+        theSuite.addTest(common.make_suite(NoSysAttrsClose))
+        theSuite.addTest(common.make_suite(CompatibilityTestCase))
+        theSuite.addTest(common.make_suite(
             PicklePy2UnpicklePy3TestCase))
-        theSuite.addTest(common.unittest.makeSuite(SegFaultPythonTestCase))
-        theSuite.addTest(common.unittest.makeSuite(EmbeddedNullsTestCase))
-        theSuite.addTest(common.unittest.makeSuite(VlenStrAttrTestCase))
-        theSuite.addTest(common.unittest.makeSuite(
+        theSuite.addTest(common.make_suite(SegFaultPythonTestCase))
+        theSuite.addTest(common.make_suite(EmbeddedNullsTestCase))
+        theSuite.addTest(common.make_suite(VlenStrAttrTestCase))
+        theSuite.addTest(common.make_suite(
             UnsupportedAttrTypeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(SpecificAttrsTestCase))
+        theSuite.addTest(common.make_suite(SpecificAttrsTestCase))
 
     return theSuite
 

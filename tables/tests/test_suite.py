@@ -48,7 +48,7 @@ def suite():
     alltests = common.unittest.TestSuite()
     if common.show_memory:
         # Add a memory report at the beginning
-        alltests.addTest(common.unittest.makeSuite(common.ShowMemTime))
+        alltests.addTest(common.make_suite(common.ShowMemTime))
     for name in test_modules:
         # Unexpectedly, the following code doesn't seem to work anymore
         # in python 3
@@ -59,7 +59,7 @@ def suite():
         alltests.addTest(test_suite())
         if common.show_memory:
             # Add a memory report after each test module
-            alltests.addTest(common.unittest.makeSuite(common.ShowMemTime))
+            alltests.addTest(common.make_suite(common.ShowMemTime))
     return alltests
 
 

@@ -366,3 +366,10 @@ class ShowMemTime(PyTablesTestCase):
         print(f"VmSize: {vmsize:>7} kB\tVmRSS: {vmrss:>7} kB")
         print(f"VmData: {vmdata:>7} kB\tVmStk: {vmstk:>7} kB")
         print(f"VmExe:  {vmexe:>7} kB\tVmLib: {vmlib:>7} kB")
+
+
+try:
+    from unittest import makeSuite as make_suite
+except ImportError:
+    def make_suite(test_case_class):
+        return unittest.TestLoader().loadTestsFromTestCase(test_case_class)

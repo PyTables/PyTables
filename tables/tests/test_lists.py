@@ -432,18 +432,18 @@ def suite():
     niter = 1
 
     for i in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(Basic0DOneTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic0DTwoTestCase))
-        # theSuite.addTest(unittest.makeSuite(Basic1DZeroTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic1DOneTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic1DTwoTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic1DFourTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic2DTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic10DTestCase))
-        theSuite.addTest(common.unittest.makeSuite(GI1ListTestCase))
-        theSuite.addTest(common.unittest.makeSuite(GI2ListTestCase))
-        theSuite.addTest(common.unittest.makeSuite(GE1ListTestCase))
-        theSuite.addTest(common.unittest.makeSuite(GE2ListTestCase))
+        theSuite.addTest(common.make_suite(Basic0DOneTestCase))
+        theSuite.addTest(common.make_suite(Basic0DTwoTestCase))
+        # theSuite.addTest(make_suite(Basic1DZeroTestCase))
+        theSuite.addTest(common.make_suite(Basic1DOneTestCase))
+        theSuite.addTest(common.make_suite(Basic1DTwoTestCase))
+        theSuite.addTest(common.make_suite(Basic1DFourTestCase))
+        theSuite.addTest(common.make_suite(Basic2DTestCase))
+        theSuite.addTest(common.make_suite(Basic10DTestCase))
+        theSuite.addTest(common.make_suite(GI1ListTestCase))
+        theSuite.addTest(common.make_suite(GI2ListTestCase))
+        theSuite.addTest(common.make_suite(GE1ListTestCase))
+        theSuite.addTest(common.make_suite(GE2ListTestCase))
 
     return theSuite
 

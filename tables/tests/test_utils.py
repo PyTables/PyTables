@@ -81,9 +81,9 @@ class pttreeTestCase(common.PyTablesTestCase):
 def suite():
     theSuite = common.unittest.TestSuite()
 
-    theSuite.addTest(common.unittest.makeSuite(ptrepackTestCase))
-    theSuite.addTest(common.unittest.makeSuite(ptdumpTestCase))
-    theSuite.addTest(common.unittest.makeSuite(pttreeTestCase))
+    theSuite.addTest(common.make_suite(ptrepackTestCase))
+    theSuite.addTest(common.make_suite(ptdumpTestCase))
+    theSuite.addTest(common.make_suite(pttreeTestCase))
 
     return theSuite
 

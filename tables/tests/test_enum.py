@@ -638,14 +638,14 @@ def suite():
     theSuite = common.unittest.TestSuite()
     niter = 1
 
-    # theSuite.addTest(unittest.makeSuite(EnumTableTestCase))
+    # theSuite.addTest(make_suite(EnumTableTestCase))
     for i in range(niter):
         theSuite.addTest(doctest.DocTestSuite(tb.misc.enum))
-        theSuite.addTest(common.unittest.makeSuite(CreateColTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CreateAtomTestCase))
-        theSuite.addTest(common.unittest.makeSuite(EnumTableTestCase))
-        theSuite.addTest(common.unittest.makeSuite(EnumEArrayTestCase))
-        theSuite.addTest(common.unittest.makeSuite(EnumVLArrayTestCase))
+        theSuite.addTest(common.make_suite(CreateColTestCase))
+        theSuite.addTest(common.make_suite(CreateAtomTestCase))
+        theSuite.addTest(common.make_suite(EnumTableTestCase))
+        theSuite.addTest(common.make_suite(EnumEArrayTestCase))
+        theSuite.addTest(common.make_suite(EnumVLArrayTestCase))
 
     return theSuite
 

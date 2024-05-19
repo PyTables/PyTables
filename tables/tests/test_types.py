@@ -315,10 +315,10 @@ def suite():
         # doctests. When only numpy 2 is supported re-enable these tests.
         if parse_version(np.__version__) < parse_version("2.dev0"):
             theSuite.addTest(doctest.DocTestSuite(tb.atom))
-        theSuite.addTest(common.unittest.makeSuite(AtomTestCase))
-        theSuite.addTest(common.unittest.makeSuite(RangeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(DtypeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ReadFloatTestCase))
+        theSuite.addTest(common.make_suite(AtomTestCase))
+        theSuite.addTest(common.make_suite(RangeTestCase))
+        theSuite.addTest(common.make_suite(DtypeTestCase))
+        theSuite.addTest(common.make_suite(ReadFloatTestCase))
 
     return theSuite
 

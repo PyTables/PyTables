@@ -203,15 +203,15 @@ def suite():
     niter = 1
 
     for n in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(VLArrayTestCase))
-        theSuite.addTest(common.unittest.makeSuite(TimeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(OldFlavorsTestCase01))
-        theSuite.addTest(common.unittest.makeSuite(OldFlavorsTestCase02))
-        theSuite.addTest(common.unittest.makeSuite(Table2_1LZO))
-        theSuite.addTest(common.unittest.makeSuite(Tables_LZO1))
-        theSuite.addTest(common.unittest.makeSuite(Tables_LZO1_shuffle))
-        theSuite.addTest(common.unittest.makeSuite(Tables_LZO2))
-        theSuite.addTest(common.unittest.makeSuite(Tables_LZO2_shuffle))
+        theSuite.addTest(common.make_suite(VLArrayTestCase))
+        theSuite.addTest(common.make_suite(TimeTestCase))
+        theSuite.addTest(common.make_suite(OldFlavorsTestCase01))
+        theSuite.addTest(common.make_suite(OldFlavorsTestCase02))
+        theSuite.addTest(common.make_suite(Table2_1LZO))
+        theSuite.addTest(common.make_suite(Tables_LZO1))
+        theSuite.addTest(common.make_suite(Tables_LZO1_shuffle))
+        theSuite.addTest(common.make_suite(Tables_LZO2))
+        theSuite.addTest(common.make_suite(Tables_LZO2_shuffle))
 
     return theSuite
 

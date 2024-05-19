@@ -1369,30 +1369,30 @@ def suite():
     theSuite = common.unittest.TestSuite()
     niter = 1
 
-    # theSuite.addTest(unittest.makeSuite(StrlenOpenTestCase))
-    # theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
-    # theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
+    # theSuite.addTest(make_suite(StrlenOpenTestCase))
+    # theSuite.addTest(make_suite(Basic0DOneTestCase))
+    # theSuite.addTest(make_suite(GroupsArrayTestCase))
     for i in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(Basic0DOneTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic0DTwoTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic1DOneTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic1DTwoTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic1DThreeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Basic2DTestCase))
-        theSuite.addTest(common.unittest.makeSuite(GroupsArrayTestCase))
-        theSuite.addTest(common.unittest.makeSuite(TableReadTestCase))
+        theSuite.addTest(common.make_suite(Basic0DOneTestCase))
+        theSuite.addTest(common.make_suite(Basic0DTwoTestCase))
+        theSuite.addTest(common.make_suite(Basic1DOneTestCase))
+        theSuite.addTest(common.make_suite(Basic1DTwoTestCase))
+        theSuite.addTest(common.make_suite(Basic1DThreeTestCase))
+        theSuite.addTest(common.make_suite(Basic2DTestCase))
+        theSuite.addTest(common.make_suite(GroupsArrayTestCase))
+        theSuite.addTest(common.make_suite(TableReadTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(TableNativeFlavorOpenTestCase))
+            common.make_suite(TableNativeFlavorOpenTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(TableNativeFlavorCloseTestCase))
-        theSuite.addTest(common.unittest.makeSuite(AttributesOpenTestCase))
-        theSuite.addTest(common.unittest.makeSuite(AttributesCloseTestCase))
-        theSuite.addTest(common.unittest.makeSuite(StrlenOpenTestCase))
-        theSuite.addTest(common.unittest.makeSuite(StrlenCloseTestCase))
+            common.make_suite(TableNativeFlavorCloseTestCase))
+        theSuite.addTest(common.make_suite(AttributesOpenTestCase))
+        theSuite.addTest(common.make_suite(AttributesCloseTestCase))
+        theSuite.addTest(common.make_suite(StrlenOpenTestCase))
+        theSuite.addTest(common.make_suite(StrlenCloseTestCase))
         if common.heavy:
-            theSuite.addTest(common.unittest.makeSuite(Basic10DTestCase))
+            theSuite.addTest(common.make_suite(Basic10DTestCase))
             # The 32 dimensions case takes forever to run!!
-            # theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
+            # theSuite.addTest(make_suite(Basic32DTestCase))
     return theSuite
 
 

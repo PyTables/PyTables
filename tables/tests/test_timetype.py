@@ -510,11 +510,11 @@ def suite():
 
     theSuite = common.unittest.TestSuite()
 
-    theSuite.addTest(common.unittest.makeSuite(LeafCreationTestCase))
-    theSuite.addTest(common.unittest.makeSuite(OpenTestCase))
-    theSuite.addTest(common.unittest.makeSuite(CompareTestCase))
-    theSuite.addTest(common.unittest.makeSuite(UnalignedTestCase))
-    theSuite.addTest(common.unittest.makeSuite(BigEndianTestCase))
+    theSuite.addTest(common.make_suite(LeafCreationTestCase))
+    theSuite.addTest(common.make_suite(OpenTestCase))
+    theSuite.addTest(common.make_suite(CompareTestCase))
+    theSuite.addTest(common.make_suite(UnalignedTestCase))
+    theSuite.addTest(common.make_suite(BigEndianTestCase))
 
     return theSuite
 

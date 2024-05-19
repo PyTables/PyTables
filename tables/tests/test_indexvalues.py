@@ -3387,15 +3387,15 @@ def suite():
         for cdata in iclassdata():
             class_ = eval(cdata[0])
             if not class_.heavy:
-                suite_ = common.unittest.makeSuite(class_)
+                suite_ = common.make_suite(class_)
                 theSuite.addTest(suite_)
             elif common.heavy:
-                suite_ = common.unittest.makeSuite(class_)
+                suite_ = common.make_suite(class_)
                 theSuite.addTest(suite_)
-        theSuite.addTest(common.unittest.makeSuite(LastRowReuseBuffers))
+        theSuite.addTest(common.make_suite(LastRowReuseBuffers))
         theSuite.addTest(
-            common.unittest.makeSuite(BuffersizeMultipleChunksize))
-        theSuite.addTest(common.unittest.makeSuite(SideEffectNumPyQuicksort))
+            common.make_suite(BuffersizeMultipleChunksize))
+        theSuite.addTest(common.make_suite(SideEffectNumPyQuicksort))
     return theSuite
 
 
