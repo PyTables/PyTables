@@ -44,7 +44,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     shape: tuple[int, ...]
     chunkshape: tuple[int, ...]
     shuffle: bool
-    no_shuffle_mask: int
     obj: np.ndarray
 
     # Instance attributes:
@@ -158,6 +157,8 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
 
     def test_write_chunk_filtermask(self):
+        no_shuffle_mask = 0x00000002  # to turn shuffle off
+
         chunk_start = (0,) * self.obj.ndim
         obj_slice = tuple(slice(s, s + cs) for (s, cs)
                           in zip(chunk_start, self.chunkshape))
@@ -165,13 +166,13 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         new_obj[obj_slice] = self.modified(new_obj[obj_slice])
         obj_bytes = new_obj[obj_slice].tobytes()  # do not shuffle
         self.array.write_chunk(chunk_start, obj_bytes,
-                               filter_mask=self.no_shuffle_mask)
+                               filter_mask=no_shuffle_mask)
 
         self._reopen()
         self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
 
         chunk_info = self.array.chunk_info(chunk_start)
-        self.assertEqual(chunk_info.filter_mask, self.no_shuffle_mask)
+        self.assertEqual(chunk_info.filter_mask, no_shuffle_mask)
 
     def test_write_chunk_unaligned(self):
         self.assertRaises(tb.NotChunkAlignedError,
@@ -274,7 +275,6 @@ class CArrayDirectChunkingTestCase(DirectChunkingTestCase):
     shape = (5, 5)
     chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
     shuffle = True
-    no_shuffle_mask = 0x00000002  # to turn shuffle off
     obj = np.arange(np.prod(shape), dtype='u2').reshape(shape)
 
     def setUp(self):
@@ -295,7 +295,6 @@ class EArrayDirectChunkingTestCase(XDirectChunkingTestCase):
     shape = (5, 5)  # enlargeable along first dimension
     chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
     shuffle = True
-    no_shuffle_mask = 0x00000002  # to turn shuffle off
     obj = np.arange(np.prod(shape), dtype='u2').reshape(shape)
 
     def setUp(self):
