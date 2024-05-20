@@ -38,25 +38,21 @@ class ArrayDirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase)
                           arr)
 
 
-class CArrayDirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
-    shape = (5, 5)
-    chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
-    shuffle = True
-    no_shuffle_mask = 0x00000002  # to turn shuffle off
-    obj = np.arange(np.prod(shape), dtype='u2').reshape(shape)
+# For enlargeable and non-enlargeable datasets.
+class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    # Class attributes:
+    shape: tuple[int, ...]
+    chunkshape: tuple[int, ...]
+    shuffle: bool
+    no_shuffle_mask: int
+    obj: np.ndarray
 
-    def setUp(self):
-        super().setUp()
-        self.array = self.h5file.create_carray(
-            '/', 'carray', chunkshape=self.chunkshape, obj=self.obj,
-            filters=tb.Filters(shuffle=self.shuffle))
-
-    def _reopen(self):
-        super()._reopen()
-        self.array = self.h5file.root.carray
+    # Instance attributes:
+    array: tb.Leaf  # set by ``setUp()`` and ``_reopen()``
 
     def modified(self, obj):
-        return obj * 2
+        # Return altered copy with same dtype and shape.
+        raise NotImplementedError
 
     def iter_chunks(self):
         chunk_ranges = list(range(0, s, cs) for (s, cs)
@@ -192,26 +188,8 @@ class CArrayDirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase
                           b'foobar')
 
 
-class EArrayDirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
-    shape = (5, 5)  # enlargeable along first dimension
-    chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
-    shuffle = True
-    no_shuffle_mask = 0x00000002  # to turn shuffle off
-    obj = np.arange(np.prod(shape), dtype='u2').reshape(shape)
-
-    def setUp(self):
-        super().setUp()
-        atom = tb.Atom.from_dtype(self.obj.dtype)
-        shape = (0, *self.shape[1:])
-        self.array = self.h5file.create_earray(
-            '/', 'earray', atom, shape, chunkshape=self.chunkshape,
-            filters=tb.Filters(shuffle=self.shuffle))
-        self.array.append(self.obj)
-
-    def _reopen(self):
-        super()._reopen()
-        self.array = self.h5file.root.earray
-
+# For enlargeable datasets only.
+class XDirectChunkingTestCase(DirectChunkingTestCase):
     def test_chunk_info_miss_extdim(self):
         # Next chunk in the enlargeable dimension.
         assert self.array.extdim == 0
@@ -290,6 +268,51 @@ class EArrayDirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase
     def test_write_chunk_missing2(self):
         return self._test_write_chunk_missing(enlarge_first=False,
                                               shrink_after=True)
+
+
+class CArrayDirectChunkingTestCase(DirectChunkingTestCase):
+    shape = (5, 5)
+    chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
+    shuffle = True
+    no_shuffle_mask = 0x00000002  # to turn shuffle off
+    obj = np.arange(np.prod(shape), dtype='u2').reshape(shape)
+
+    def setUp(self):
+        super().setUp()
+        self.array = self.h5file.create_carray(
+            '/', 'carray', chunkshape=self.chunkshape, obj=self.obj,
+            filters=tb.Filters(shuffle=self.shuffle))
+
+    def _reopen(self):
+        super()._reopen()
+        self.array = self.h5file.root.carray
+
+    def modified(self, obj):
+        return obj * 2
+
+
+class EArrayDirectChunkingTestCase(XDirectChunkingTestCase):
+    shape = (5, 5)  # enlargeable along first dimension
+    chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
+    shuffle = True
+    no_shuffle_mask = 0x00000002  # to turn shuffle off
+    obj = np.arange(np.prod(shape), dtype='u2').reshape(shape)
+
+    def setUp(self):
+        super().setUp()
+        atom = tb.Atom.from_dtype(self.obj.dtype)
+        shape = (0, *self.shape[1:])
+        self.array = self.h5file.create_earray(
+            '/', 'earray', atom, shape, chunkshape=self.chunkshape,
+            filters=tb.Filters(shuffle=self.shuffle))
+        self.array.append(self.obj)
+
+    def _reopen(self):
+        super()._reopen()
+        self.array = self.h5file.root.earray
+
+    def modified(self, obj):
+        return obj * 2
 
 
 def suite():
