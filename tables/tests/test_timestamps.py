@@ -160,8 +160,8 @@ def suite():
     # common.heavy = 1 # Uncomment this only for testing purposes!
 
     for i in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(TimestampTestCase))
-        theSuite.addTest(common.unittest.makeSuite(BitForBitTestCase))
+        theSuite.addTest(common.make_suite(TimestampTestCase))
+        theSuite.addTest(common.make_suite(BitForBitTestCase))
 
     return theSuite
 

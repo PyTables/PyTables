@@ -110,7 +110,7 @@ class WideTreeTestCase(unittest.TestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    theSuite.addTest(unittest.makeSuite(WideTreeTestCase))
+    theSuite.addTest(make_suite(WideTreeTestCase))
 
     return theSuite
 

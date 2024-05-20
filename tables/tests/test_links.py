@@ -596,9 +596,9 @@ def suite():
     # common.heavy = 1  # uncomment this only for testing purposes
 
     for i in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(HardLinkTestCase))
-        theSuite.addTest(common.unittest.makeSuite(SoftLinkTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ExternalLinkTestCase))
+        theSuite.addTest(common.make_suite(HardLinkTestCase))
+        theSuite.addTest(common.make_suite(SoftLinkTestCase))
+        theSuite.addTest(common.make_suite(ExternalLinkTestCase))
 
     return theSuite
 

@@ -60,7 +60,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - name: Set up Python ${{ matrix.python }}
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python }}
         auto-update-conda: true
@@ -106,7 +106,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - name: Set up Python
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
         channels: conda-forge

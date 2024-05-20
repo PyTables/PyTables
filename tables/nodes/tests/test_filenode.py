@@ -9,7 +9,7 @@ from pathlib import Path
 from ... import open_file, file, NoSuchNodeError
 from ...nodes import filenode
 from ...tests.common import (
-    unittest, TempFileMixin, parse_argv, print_versions,
+    unittest, TempFileMixin, parse_argv, print_versions, make_suite,
     PyTablesTestCase as TestCase)
 
 
@@ -1018,17 +1018,17 @@ def suite():
 
     theSuite = unittest.TestSuite()
 
-    theSuite.addTest(unittest.makeSuite(NewFileTestCase))
-    theSuite.addTest(unittest.makeSuite(ClosedFileTestCase))
-    theSuite.addTest(unittest.makeSuite(WriteFileTestCase))
-    theSuite.addTest(unittest.makeSuite(OpenFileTestCase))
-    theSuite.addTest(unittest.makeSuite(ReadFileTestCase))
-    theSuite.addTest(unittest.makeSuite(MonoReadlineTestCase))
-    # theSuite.addTest(unittest.makeSuite(MultiReadlineTestCase))
-    # theSuite.addTest(unittest.makeSuite(LineSeparatorTestCase))
-    theSuite.addTest(unittest.makeSuite(AttrsTestCase))
-    theSuite.addTest(unittest.makeSuite(ClosedH5FileTestCase))
-    theSuite.addTest(unittest.makeSuite(DirectReadWriteTestCase))
+    theSuite.addTest(make_suite(NewFileTestCase))
+    theSuite.addTest(make_suite(ClosedFileTestCase))
+    theSuite.addTest(make_suite(WriteFileTestCase))
+    theSuite.addTest(make_suite(OpenFileTestCase))
+    theSuite.addTest(make_suite(ReadFileTestCase))
+    theSuite.addTest(make_suite(MonoReadlineTestCase))
+    # theSuite.addTest(make_suite(MultiReadlineTestCase))
+    # theSuite.addTest(make_suite(LineSeparatorTestCase))
+    theSuite.addTest(make_suite(AttrsTestCase))
+    theSuite.addTest(make_suite(ClosedH5FileTestCase))
+    theSuite.addTest(make_suite(DirectReadWriteTestCase))
 
     return theSuite
 

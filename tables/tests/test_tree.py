@@ -1092,11 +1092,11 @@ def suite():
     niter = 1
 
     for i in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(TreeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(DeepTreeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(WideTreeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(HiddenTreeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CreateParentsTestCase))
+        theSuite.addTest(common.make_suite(TreeTestCase))
+        theSuite.addTest(common.make_suite(DeepTreeTestCase))
+        theSuite.addTest(common.make_suite(WideTreeTestCase))
+        theSuite.addTest(common.make_suite(HiddenTreeTestCase))
+        theSuite.addTest(common.make_suite(CreateParentsTestCase))
 
     return theSuite
 

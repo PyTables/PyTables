@@ -374,24 +374,24 @@ def suite():
     niter = 1
 
     for i in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(PaddedArrayTestCase))
-        theSuite.addTest(common.unittest.makeSuite(EnumTestCase))
-        theSuite.addTest(common.unittest.makeSuite(F64BETestCase))
-        theSuite.addTest(common.unittest.makeSuite(F64LETestCase))
-        theSuite.addTest(common.unittest.makeSuite(I64BETestCase))
-        theSuite.addTest(common.unittest.makeSuite(I64LETestCase))
-        theSuite.addTest(common.unittest.makeSuite(I32BETestCase))
-        theSuite.addTest(common.unittest.makeSuite(I32LETestCase))
-        theSuite.addTest(common.unittest.makeSuite(ChunkedCompoundTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ContiguousCompoundTestCase))
+        theSuite.addTest(common.make_suite(PaddedArrayTestCase))
+        theSuite.addTest(common.make_suite(EnumTestCase))
+        theSuite.addTest(common.make_suite(F64BETestCase))
+        theSuite.addTest(common.make_suite(F64LETestCase))
+        theSuite.addTest(common.make_suite(I64BETestCase))
+        theSuite.addTest(common.make_suite(I64LETestCase))
+        theSuite.addTest(common.make_suite(I32BETestCase))
+        theSuite.addTest(common.make_suite(I32LETestCase))
+        theSuite.addTest(common.make_suite(ChunkedCompoundTestCase))
+        theSuite.addTest(common.make_suite(ContiguousCompoundTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(ContiguousCompoundAppendTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ExtendibleTestCase))
-        theSuite.addTest(common.unittest.makeSuite(SzipTestCase))
-        theSuite.addTest(common.unittest.makeSuite(MatlabFileTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ObjectReferenceTestCase))
+            common.make_suite(ContiguousCompoundAppendTestCase))
+        theSuite.addTest(common.make_suite(ExtendibleTestCase))
+        theSuite.addTest(common.make_suite(SzipTestCase))
+        theSuite.addTest(common.make_suite(MatlabFileTestCase))
+        theSuite.addTest(common.make_suite(ObjectReferenceTestCase))
         theSuite.addTest(
-            common.unittest.makeSuite(ObjectReferenceRecursiveTestCase))
+            common.make_suite(ObjectReferenceRecursiveTestCase))
 
     return theSuite
 

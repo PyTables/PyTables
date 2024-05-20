@@ -1476,17 +1476,17 @@ def suite():
     # common.heavy = 1  # uncomment this only for testing purposes
 
     for i in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(DescriptionTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CreateTestCase))
-        theSuite.addTest(common.unittest.makeSuite(WriteNoReopen))
-        theSuite.addTest(common.unittest.makeSuite(WriteReopen))
-        theSuite.addTest(common.unittest.makeSuite(ColsNoReopen))
-        theSuite.addTest(common.unittest.makeSuite(ColsReopen))
-        theSuite.addTest(common.unittest.makeSuite(ReadNoReopen))
-        theSuite.addTest(common.unittest.makeSuite(ReadReopen))
-        theSuite.addTest(common.unittest.makeSuite(SameNestedNoReopen))
-        theSuite.addTest(common.unittest.makeSuite(SameNestedReopen))
-        theSuite.addTest(common.unittest.makeSuite(NestedTypesWithGaps))
+        theSuite.addTest(common.make_suite(DescriptionTestCase))
+        theSuite.addTest(common.make_suite(CreateTestCase))
+        theSuite.addTest(common.make_suite(WriteNoReopen))
+        theSuite.addTest(common.make_suite(WriteReopen))
+        theSuite.addTest(common.make_suite(ColsNoReopen))
+        theSuite.addTest(common.make_suite(ColsReopen))
+        theSuite.addTest(common.make_suite(ReadNoReopen))
+        theSuite.addTest(common.make_suite(ReadReopen))
+        theSuite.addTest(common.make_suite(SameNestedNoReopen))
+        theSuite.addTest(common.make_suite(SameNestedReopen))
+        theSuite.addTest(common.make_suite(NestedTypesWithGaps))
 
     return theSuite
 

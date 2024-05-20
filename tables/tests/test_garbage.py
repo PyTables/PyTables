@@ -40,7 +40,7 @@ def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
     theSuite = common.unittest.TestSuite()
-    theSuite.addTest(common.unittest.makeSuite(GarbageTestCase))
+    theSuite.addTest(common.make_suite(GarbageTestCase))
     return theSuite
 
 

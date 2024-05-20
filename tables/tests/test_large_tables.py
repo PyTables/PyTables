@@ -82,10 +82,10 @@ def suite():
     # common.heavy = 1  # Uncomment this only for testing purposes
 
     for n in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(BloscTestCase))
-        theSuite.addTest(common.unittest.makeSuite(Blosc2TestCase))
+        theSuite.addTest(common.make_suite(BloscTestCase))
+        theSuite.addTest(common.make_suite(Blosc2TestCase))
         if common.heavy:
-            theSuite.addTest(common.unittest.makeSuite(ZlibTestCase))
+            theSuite.addTest(common.make_suite(ZlibTestCase))
 
     return theSuite
 

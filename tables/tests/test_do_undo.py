@@ -2705,18 +2705,18 @@ def suite():
     # common.heavy = 1  # uncomment this only for testing purposes
 
     for n in range(niter):
-        theSuite.addTest(common.unittest.makeSuite(BasicTestCase))
-        theSuite.addTest(common.unittest.makeSuite(PersistenceTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CreateArrayTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CreateGroupTestCase))
-        theSuite.addTest(common.unittest.makeSuite(RenameNodeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(MoveNodeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(RemoveNodeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CopyNodeTestCase))
-        theSuite.addTest(common.unittest.makeSuite(AttributesTestCase))
-        theSuite.addTest(common.unittest.makeSuite(ComplexTestCase))
-        theSuite.addTest(common.unittest.makeSuite(NotLoggedTestCase))
-        theSuite.addTest(common.unittest.makeSuite(CreateParentsTestCase))
+        theSuite.addTest(common.make_suite(BasicTestCase))
+        theSuite.addTest(common.make_suite(PersistenceTestCase))
+        theSuite.addTest(common.make_suite(CreateArrayTestCase))
+        theSuite.addTest(common.make_suite(CreateGroupTestCase))
+        theSuite.addTest(common.make_suite(RenameNodeTestCase))
+        theSuite.addTest(common.make_suite(MoveNodeTestCase))
+        theSuite.addTest(common.make_suite(RemoveNodeTestCase))
+        theSuite.addTest(common.make_suite(CopyNodeTestCase))
+        theSuite.addTest(common.make_suite(AttributesTestCase))
+        theSuite.addTest(common.make_suite(ComplexTestCase))
+        theSuite.addTest(common.make_suite(NotLoggedTestCase))
+        theSuite.addTest(common.make_suite(CreateParentsTestCase))
     if common.heavy:
         pass
 
