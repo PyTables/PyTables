@@ -2873,106 +2873,6 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
                           shape=shape)
 
 
-class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
-    shape = (5, 5)  # enlargeable along first dimension
-    chunkshape = (2, 2)  # 3 x 3 chunks, incomplete at right/bottom boundaries
-    shuffle = True
-    no_shuffle_mask = 0x00000002  # to turn shuffle off
-    obj = np.arange(np.prod(shape), dtype='u2').reshape(shape)
-
-    def setUp(self):
-        super().setUp()
-        atom = tb.Atom.from_dtype(self.obj.dtype)
-        shape = (0, *self.shape[1:])
-        self.array = self.h5file.create_earray(
-            '/', 'earray', atom, shape, chunkshape=self.chunkshape,
-            filters=tb.Filters(shuffle=self.shuffle))
-        self.array.append(self.obj)
-
-    def _reopen(self):
-        super()._reopen()
-        self.array = self.h5file.root.earray
-
-    def test_chunk_info_miss_extdim(self):
-        # Next chunk in the enlargeable dimension.
-        assert self.array.extdim == 0
-        chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
-                        * self.chunkshape[0]),
-                       *((0,) * (self.array.ndim - 1)))
-        chunk_info = self.array.chunk_info(chunk_start)
-        self.assertIsNone(chunk_info.start)
-        self.assertIsNone(chunk_info.offset)
-
-    def test_chunk_info_miss_noextdim(self):
-        if self.array.ndim < 2:
-            raise common.unittest.SkipTest
-
-        # Next chunk in the first non-enlargeable dimension.
-        assert self.array.extdim != 1
-        chunk_start = (0,
-                       ((1 + self.shape[1] // self.chunkshape[1])
-                        * self.chunkshape[1]),
-                       *((0,) * (self.array.ndim - 2)))
-        self.assertRaises(tb.ChunkError,
-                          self.array.chunk_info,
-                          chunk_start)
-        try:
-            self.array.chunk_info(chunk_start)
-        except tb.NoSuchChunkError as e:
-            self.fail("wrong exception in missing chunk info "
-                      "out of enlargeable dimension: %r" % e)
-        except tb.ChunkError:
-            pass
-
-    def test_read_chunk_miss_extdim(self):
-        # Next chunk in the enlargeable dimension.
-        assert self.array.extdim == 0
-        chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
-                        * self.chunkshape[0]),
-                       *((0,) * (self.array.ndim - 1)))
-        self.assertRaises(tb.NoSuchChunkError,
-                          self.array.chunk_info,
-                          chunk_start)
-
-    def _test_write_chunk_missing(self, enlarge_first, shrink_after=False):
-        # Enlarge array by two chunk rows,
-        # copy first old chunk in first chunk of new last chunk row.
-        assert self.array.extdim == 0
-        chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
-                        * self.chunkshape[0] + self.chunkshape[0]),
-                       *((0,) * (self.array.ndim - 1)))
-        chunk = self.array.read_chunk((0,) * self.array.ndim)
-        if enlarge_first:
-            self.array.truncate(chunk_start[0] + self.chunkshape[0])
-        self.array.write_chunk(chunk_start, chunk)
-        if shrink_after:
-            self.array.truncate(self.shape[0] + 1)
-            self.array.truncate(self.shape[0] - 1)
-        if not enlarge_first:
-            self.array.truncate(chunk_start[0] + self.chunkshape[0])
-
-        new_obj = self.obj.copy()
-        new_obj.resize(self.array.shape)
-        obj_slice = tuple(slice(s, s + cs) for (s, cs)
-                          in zip(chunk_start, self.chunkshape))
-        if enlarge_first or not shrink_after:
-            new_obj[obj_slice] = new_obj[tuple(slice(0, cs)
-                                               for cs in self.chunkshape)]
-
-        self._reopen()
-        self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
-
-    def test_write_chunk_missing0(self):
-        return self._test_write_chunk_missing(enlarge_first=True)
-
-    def test_write_chunk_missing1(self):
-        return self._test_write_chunk_missing(enlarge_first=False)
-
-    def test_write_chunk_missing2(self):
-        return self._test_write_chunk_missing(enlarge_first=False,
-                                              shrink_after=True)
-
-
 def suite():
     theSuite = common.unittest.TestSuite()
     niter = 1
@@ -3036,7 +2936,6 @@ def suite():
         theSuite.addTest(common.make_suite(MDAtomReopen))
         theSuite.addTest(common.make_suite(AccessClosedTestCase))
         theSuite.addTest(common.make_suite(TestCreateEArrayArgs))
-        theSuite.addTest(common.make_suite(DirectChunkingTestCase))
     if common.heavy:
         theSuite.addTest(common.make_suite(Slices3EArrayTestCase))
         theSuite.addTest(common.make_suite(Slices4EArrayTestCase))
