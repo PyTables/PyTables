@@ -314,6 +314,34 @@ class EArrayDirectChunkingTestCase(XDirectChunkingTestCase):
         return obj * 2
 
 
+class TableDirectChunkingTestCase(XDirectChunkingTestCase):
+    shape = (5,)  # enlargeable along first dimension
+    chunkshape = (2,)  # 3 chunks, incomplete at bottom boundary
+    shuffle = True
+    obj = np.array([(i, float(i)) for i in range(np.prod(shape))],
+                   dtype='u4,f4')
+
+    def setUp(self):
+        super().setUp()
+        desc, _ = tb.descr_from_dtype(self.obj.dtype)
+        self.array = self.h5file.create_table(
+            '/', 'table', desc, chunkshape=self.chunkshape,
+            filters=tb.Filters(shuffle=self.shuffle))
+        self.array.append(self.obj)
+
+    def _reopen(self):
+        super()._reopen()
+        self.array = self.h5file.root.table
+
+    def modified(self, obj):
+        flat = obj.copy().reshape((np.prod(obj.shape),))
+        fnames = flat.dtype.names
+        for i in range(len(flat)):
+            for f in fnames:
+                flat[i][f] *= 2
+        return flat.reshape(obj.shape)
+
+
 def suite():
     theSuite = common.unittest.TestSuite()
     niter = 1
@@ -322,6 +350,7 @@ def suite():
         theSuite.addTest(common.make_suite(ArrayDirectChunkingTestCase))
         theSuite.addTest(common.make_suite(CArrayDirectChunkingTestCase))
         theSuite.addTest(common.make_suite(EArrayDirectChunkingTestCase))
+        theSuite.addTest(common.make_suite(TableDirectChunkingTestCase))
 
     return theSuite
 
