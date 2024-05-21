@@ -111,6 +111,11 @@ The Unknown class
     :members:
 
 
+The ChunkInfo class
+-------------------
+.. autoclass:: tables.leaf.ChunkInfo
+
+
 .. _ExceptionsDescr:
 
 Exceptions module
