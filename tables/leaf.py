@@ -101,11 +101,41 @@ def calc_chunksize(expected_mb: int) -> int:
 
 
 class ChunkInfo(NamedTuple):
-    # TODO: document
-    start: tuple[int, ...] | None  # None for missing chunk
+    """Information about storage for a given chunk.
+
+    It may refer to a chunk which is within the dataset's maximum shape but
+    that does not exist in storage, i.e. a missing chunk.
+
+    An instance of this named tuple class contains the following information,
+    in field order:
+
+    .. attribute:: start
+
+        The coordinates in dataset items where the chunk starts, a tuple of
+        integers with the same rank as the dataset.  ``None`` for missing
+        chunks.
+
+    .. attribute:: filter_mask
+
+        An integer where each active bit signals that the filter in its
+        position in the pipeline was disabled when storing the chunk.  For
+        instance, ``0b10`` disables shuffling, ``0b100`` disables szip, and so
+        on.  Undefined for missing chunks.
+
+    .. attribute:: offset
+
+        An integer which indicates the offset in bytes of chunk data as it
+        exists in storage.  ``None`` for missing chunks.
+
+    .. attribute:: size
+
+        An integer which indicates the size in bytes of chunk data as it
+        exists in storage.  Undefined for missing chunks.
+    """
+    start: tuple[int, ...] | None
     filter_mask: int
-    offset: int | None  # in storage bytes, None for missing chunk
-    size: int  # raw size in storage
+    offset: int | None
+    size: int
 
 
 class Leaf(Node):
