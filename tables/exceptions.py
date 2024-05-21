@@ -402,20 +402,47 @@ class UnclosedFileWarning(Warning):
 
 
 class ChunkError(ValueError):
-    # TODO: document
+    """An operation related to direct chunk access failed.
+
+    This exception may be related with the properties of the dataset or the
+    chunk being accessed, or with how the chunk is being accessed.
+
+    It is a base for more specific exceptions, but it may also be instantiated
+    directly in other cases.  In particular, it may be raised when accessing a
+    chunk that would be beyond the dataset's maximum shape.
+
+    """
     pass
 
 
 class NotChunkedError(ChunkError):
-    # TODO: document
+    """A direct chunking operation was attempted on a non-chunked dataset.
+
+    For instance, chunk information was requested for a plain ``Array``
+    instance.
+
+    """
     pass
 
 
 class NotChunkAlignedError(ChunkError):
-    # TODO: document
+    """A direct chunk read/write operation was given coordinates that do not
+    match the chunk's start.
+
+    These operations require coordinates that are integer multiples of the
+    dataset's chunksize.
+
+    """
     pass
 
 
 class NoSuchChunkError(ChunkError):
-    # TODO: document
+    """The chunk with the given coordinates does not exist in storage.
+
+    The coordinates are within the dataset's maximum shape, though.
+
+    This is only an error when the chunk is to be read.  Such a missing chunk
+    can be written, in which case it is created in storage.
+
+    """
     pass
