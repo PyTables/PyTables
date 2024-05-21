@@ -150,3 +150,11 @@ to PyTables are declared.
 .. autoexception:: DataTypeWarning
 
 .. autoexception:: ExperimentalFeatureWarning
+
+.. autoexception:: ChunkError
+
+.. autoexception:: NotChunkedError
+
+.. autoexception:: NotChunkAlignedError
+
+.. autoexception:: NoSuchChunkError
