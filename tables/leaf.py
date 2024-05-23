@@ -14,7 +14,7 @@ from .flavor import (check_flavor, internal_flavor, toarray,
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
-from .exceptions import PerformanceWarning
+from .exceptions import NotChunkedError, PerformanceWarning
 
 if TYPE_CHECKING:
     from .group import Group
@@ -680,6 +680,10 @@ very small/large chunksize, you may want to increase/decrease it."""
             coords = coords.copy()
         return coords
 
+    def _check_chunked(self):
+        if self.chunkshape is None:
+            raise NotChunkedError("The dataset is not chunked")
+
     # Tree manipulation
     def remove(self) -> None:
         """Remove this node from the hierarchy.
@@ -852,6 +856,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         :exc:`NotChunkedError`.
 
         """
+        self._check_chunked()
         raise NotImplementedError  # TODO: implement
 
     def read_chunk(self, coords: tuple[int, ...],
@@ -882,6 +887,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         :exc:`NotChunkedError`.
 
         """
+        self._check_chunked()
         raise NotImplementedError  # TODO: implement
 
     def write_chunk(self, coords: tuple[int, ...], data: BufferLike,
@@ -909,6 +915,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         :exc:`NotChunkedError`.
 
         """
+        self._check_chunked()
         raise NotImplementedError  # TODO: implement
 
     def _f_close(self, flush: bool=True) -> None:
