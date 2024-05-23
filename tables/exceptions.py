@@ -401,7 +401,7 @@ class UnclosedFileWarning(Warning):
     pass
 
 
-class ChunkError(ValueError):
+class ChunkError(Exception):
     """An operation related to direct chunk access failed.
 
     This exception may be related with the properties of the dataset or the
