@@ -241,6 +241,8 @@ Leaf methods
 
 .. automethod:: Leaf.read_chunk
 
+.. automethod:: Leaf.write_chunk
+
 .. automethod:: Leaf.__len__
 
 .. automethod:: Leaf._f_close

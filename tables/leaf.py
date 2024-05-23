@@ -885,7 +885,29 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def write_chunk(self, coords: tuple[int, ...], data: BufferLike,
                     filter_mask: int=0):
-        # TODO: document
+        """Write raw `data` to storage for the chunk that starts at the given
+        `coords`.
+
+        The coordinates `coords` are a tuple of integers with the same rank as
+        the dataset.  If they are not multiples of its chunkshape,
+        :exc:`NotChunkAlignedError` is raised.
+
+        The content of the buffer-like `data` must already have gone through
+        dataset filters, minus those in the given `filter_mask` (which is to
+        be saved along data; see :attr:`ChunkInfo.filter_mask`).
+
+        Writing a chunk which is already in storage replaces it.  If the chunk
+        is not in storage, but within the dataset's maximum shape (missing
+        chunk), the chunk is added to storage.  This means that you may use
+        :meth:`truncate()` to grow an enlargeable dataset cheaply (as no chunk
+        data is written), then sparsely write selected chunks in random order.
+
+        If the chunk is beyond maximum shape, :exc:`ChunkError` is raised.
+
+        Calling this method on a non-chunked dataset raises a
+        :exc:`NotChunkedError`.
+
+        """
         raise NotImplementedError  # TODO: implement
 
     def _f_close(self, flush: bool=True) -> None:
