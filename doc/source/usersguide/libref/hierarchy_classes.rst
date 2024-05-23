@@ -237,6 +237,8 @@ Leaf methods
 
 .. automethod:: Leaf.truncate
 
+.. automethod:: Leaf.chunk_info
+
 .. automethod:: Leaf.__len__
 
 .. automethod:: Leaf._f_close

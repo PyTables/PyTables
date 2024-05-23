@@ -829,7 +829,28 @@ very small/large chunksize, you may want to increase/decrease it."""
         self._g_flush()
 
     def chunk_info(self, coords: tuple[int, ...]) -> ChunkInfo:
-        # TODO: document
+        """Get storage information about the chunk containing the `coords`.
+
+        The coordinates `coords` are a tuple of integers with the same rank as
+        the dataset.
+
+        Return a :class:`ChunkInfo` instance with the information.
+
+        The coordinates need not be aligined with chunk boundaries.  This
+        means that this method may be used to get the start coordinates of the
+        chunk that contains the item at the given coordinates, for use with
+        other direct chunking operations (see :attr:`ChunkInfo.start`).
+
+        If the coordinates are within the dataset's maximum shape but there is
+        no such chunk in storage (missing chunk), a :class:`ChunkInfo` with
+        ``start = offset = None`` is returned.  If the coordinates are beyond
+        maximum shape, :exc:`ChunkError` is raised (even if the start of the
+        chunk would fall within the maximum shape).
+
+        Calling this method on a non-chunked dataset raises a
+        :exc:`NotChunkedError`.
+
+        """
         raise NotImplementedError  # TODO: implement
 
     def read_chunk(self, coords: tuple[int, ...],
