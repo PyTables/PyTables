@@ -856,7 +856,31 @@ very small/large chunksize, you may want to increase/decrease it."""
     def read_chunk(self, coords: tuple[int, ...],
                    out: Optional[bytearray | NPByteArray]=None,
                   ) -> bytes | memoryview:
-        # TODO: document
+        """Get the raw chunk that starts at the given `coords` from storage.
+
+        The coordinates `coords` are a tuple of integers with the same rank as
+        the dataset.  If they are not multiples of its chunkshape,
+        :exc:`NotChunkAlignedError` is raised.
+
+        If a buffer-like `out` argument is given, it receives chunk data.  If
+        it has insufficient storage for the chunk, :exc:`ValueError` is raised
+        (use :meth:`chunk_info()` to get the required capacity).
+
+        The obtained data is supposed to have gone at storage time through
+        dataset filters, minus those in the chunk's filter mask (use
+        :meth:`chunk_info()` to get it).
+
+        Return the chunk's raw content, either as a `bytes` instance (if `out`
+        is ``None``) or as a `memoryview` over the object given as `out`.
+
+        Reading a chunk within the dataset's maximum shape, but not in storage
+        (missing chunk) raises a :exc:`NoSuchChunkError`.  If the chunk is
+        beyond maximum shape, :exc:`ChunkError` is raised.
+
+        Calling this method on a non-chunked dataset raises a
+        :exc:`NotChunkedError`.
+
+        """
         raise NotImplementedError  # TODO: implement
 
     def write_chunk(self, coords: tuple[int, ...], data: BufferLike,
