@@ -695,6 +695,8 @@ class Table(tableextension.Table, Leaf):
         """Maps the name of an enumerated column to its ``Enum`` instance."""
         self._v_chunkshape: Optional[tuple[int]] = None
         """Private storage for the `chunkshape` property of the leaf."""
+        self._v_maxshape: tuple[int, ...] = (-1,)  # inf. enlarge on 1st dim
+        """Private storage for the maximum table shape."""
 
         self.indexed = False
         """Does this table have any indexed columns?"""

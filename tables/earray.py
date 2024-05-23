@@ -172,6 +172,7 @@ class EArray(CArray):
             raise ValueError(
                 "When creating EArrays, you need to set one of "
                 "the dimensions of the Atom instance to zero.")
+        self._v_maxshape = tuple((s or -1) for s in self.shape)
 
         # Finish the common part of the creation process
         return self._g_create_common(self._v_expectedrows)

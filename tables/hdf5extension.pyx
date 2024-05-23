@@ -1485,6 +1485,7 @@ cdef class Array(Leaf):
 
     # Get the shape as a python tuple
     shape = getshape(self.rank, self.dims)
+    maxshape = getshape(self.rank, self.maxdims)
 
     # Allocate space for the dimension chunking info
     self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
@@ -1524,7 +1525,7 @@ cdef class Array(Leaf):
     # Get the byteorder
     self.byteorder = correct_byteorder(atom.type, byteorder)
 
-    return self.dataset_id, atom, shape, chunkshapes
+    return self.dataset_id, atom, shape, maxshape, chunkshapes
 
 
   def _append(self, ndarray nparr):
