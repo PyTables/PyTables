@@ -231,7 +231,7 @@ cdef object getshape(int rank, hsize_t *dims):
 
   shape = []
   for i from 0 <= i < rank:
-    shape.append(SizeType(dims[i]))
+    shape.append(SizeType(dims[i] if dims[i] != <hsize_t>-1 else -1))
 
   return tuple(shape)
 
