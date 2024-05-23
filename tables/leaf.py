@@ -131,6 +131,7 @@ class ChunkInfo(NamedTuple):
 
         An integer which indicates the size in bytes of chunk data as it
         exists in storage.  Undefined for missing chunks.
+
     """
     start: tuple[int, ...] | None
     filter_mask: int
