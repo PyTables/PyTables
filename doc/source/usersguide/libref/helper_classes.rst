@@ -113,7 +113,7 @@ The Unknown class
 
 The ChunkInfo class
 -------------------
-.. autoclass:: tables.leaf.ChunkInfo
+.. autoclass:: ChunkInfo
 
 
 .. _ExceptionsDescr:
