@@ -14,7 +14,7 @@ from .flavor import (check_flavor, internal_flavor, toarray,
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
-from .exceptions import NotChunkedError, PerformanceWarning
+from .exceptions import ChunkError, NotChunkedError, PerformanceWarning
 
 if TYPE_CHECKING:
     from .group import Group
@@ -684,6 +684,16 @@ very small/large chunksize, you may want to increase/decrease it."""
         if self.chunkshape is None:
             raise NotChunkedError("The dataset is not chunked")
 
+    def _check_coords_within_max(self, coords: tuple[int, ...]):
+        if len(coords) != self.ndim:
+            raise ValueError(f"Coordinates do not match dataset shape: "
+                             f"{coords} !~ {self.shape}")
+        # _v_maxshape represents infinitely enlargeable dimensions with -1
+        # (as ``H5Sget_simple_extent_dims()`` does).
+        if any(0 <= m < c for (c, m) in zip(coords, self._v_maxshape)):
+            raise ChunkError(f"Coordinates exceed maximum dataset shape: "
+                             f"{coords} > {self._v_maxshape}")
+
     # Tree manipulation
     def remove(self) -> None:
         """Remove this node from the hierarchy.
@@ -857,6 +867,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         """
         self._check_chunked()
+        self._check_coords_within_max(coords)
         raise NotImplementedError  # TODO: implement
 
     def read_chunk(self, coords: tuple[int, ...],
@@ -888,6 +899,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         """
         self._check_chunked()
+        self._check_coords_within_max(coords)
         raise NotImplementedError  # TODO: implement
 
     def write_chunk(self, coords: tuple[int, ...], data: BufferLike,
@@ -916,6 +928,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         """
         self._check_chunked()
+        self._check_coords_within_max(coords)
         raise NotImplementedError  # TODO: implement
 
     def _f_close(self, flush: bool=True) -> None:
