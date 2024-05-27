@@ -194,6 +194,13 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           self.array.write_chunk,
                           beyond,
                           b'foobar')
+        try:
+            self.array.write_chunk(beyond, b'foobar')
+        except tb.NoSuchChunkError as e:
+            self.fail("wrong exception in chunk write "
+                      "beyond max shape: %r" % e)
+        except tb.ChunkError:
+            pass
 
 
 # For enlargeable datasets only.
