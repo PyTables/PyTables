@@ -868,7 +868,17 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
         self._check_chunked()
         self._check_coords_within_max(coords)
-        raise NotImplementedError  # TODO: implement
+
+        coords = np.array(coords, dtype=SizeType)
+        filter_mask, offset, size = self._g_chunk_info(coords)
+        if offset is None:  # missing chunk
+            return ChunkInfo(None, filter_mask, None, size)
+
+        # Align coordinates to chunk boundary.
+        chunkshape = self.chunkshape
+        coords //= chunkshape
+        coords *= chunkshape
+        return ChunkInfo(tuple(coords), filter_mask, offset, size)
 
     def read_chunk(self, coords: tuple[int, ...],
                    out: Optional[bytearray | NPByteArray]=None,

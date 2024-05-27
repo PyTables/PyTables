@@ -81,6 +81,7 @@ from .definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, H5Dget_create_plist,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
+  H5Dget_chunk_info_by_coord, haddr_t, HADDR_UNDEF,
   H5Tget_native_type, H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT, H5T_STRING, H5Tget_order,
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pget_userblock, H5Pset_userblock,
@@ -1171,6 +1172,28 @@ cdef class Leaf(Node):
       self.base_type_id = -1
       self.disk_type_id = -1
     super()._g_new(where, name, init)
+
+  def _g_chunk_info(self, ndarray coords):
+    """Get storage information about chunk at `coords`.
+
+    Return ``(filter_mask, offset, size)``, where the offset is ``None`` if
+    the chunk is missing.
+
+    """
+    cdef herr_t ret
+    cdef hsize_t *offset
+    cdef unsigned filter_mask
+    cdef haddr_t addr
+    cdef hsize_t size
+
+    # Get the pointer to the buffer data area of the coords array
+    offset = <hsize_t *>PyArray_DATA(coords)
+    ret = H5Dget_chunk_info_by_coord(self.dataset_id, offset,
+                                     &filter_mask, &addr, &size)
+    if ret < 0:
+        raise HDF5ExtError("Problems getting chunk info for ``%s``"
+                           % self._v_pathname)
+    return (filter_mask, addr if addr != HADDR_UNDEF else None, size)
 
   cdef _get_type_ids(self):
     """Get the disk and native HDF5 types associated with this leaf.

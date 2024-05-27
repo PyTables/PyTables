@@ -59,6 +59,7 @@ cdef extern from "hdf5.h" nogil:
   int H5E_DEFAULT
   int H5T_STD_REF_OBJ
   int H5R_OBJ_REF_BUF_SIZE
+  unsigned HADDR_UNDEF
 
   # Library types
   cdef enum H5I_type_t:
@@ -348,6 +349,10 @@ cdef extern from "hdf5.h" nogil:
   hsize_t H5Dget_storage_size(hid_t dataset_id)
   herr_t H5Dvlen_get_buf_size(hid_t dataset_id, hid_t type_id, hid_t space_id,
                               hsize_t *size)
+  herr_t H5Dget_chunk_info_by_coord(hid_t dset_id, const hsize_t *offset,
+		                    unsigned *filter_mask,
+                                    haddr_t *addr,
+		                    hsize_t *size)
 
   # Functions for dealing with dataspaces
   hid_t H5Screate_simple(int rank, hsize_t dims[], hsize_t maxdims[])
