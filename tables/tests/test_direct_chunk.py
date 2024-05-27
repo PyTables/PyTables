@@ -78,6 +78,13 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(tb.ChunkError,
                           self.array.chunk_info,
                           beyond)
+        try:
+            self.array.chunk_info(beyond)
+        except tb.NotChunkAlignedError as e:
+            self.fail("wrong exception in aligned chunk info "
+                      "beyond max shape: %r" % e)
+        except tb.ChunkError:
+            pass
 
     def test_chunk_info_unaligned_beyond(self):
         beyond = tuple(1 + (1 + s // cs) * cs for (s, cs)
