@@ -205,7 +205,8 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
         @functools.wraps(test)
         def test_wrapper(self):
             if self.array.ndim == 1 and self.array.extdim == 0:
-                raise common.unittest.SkipTest  # no way to be beyond
+                raise common.unittest.SkipTest(
+                    "chunk always within max shape")
             return test(self)
         return test_wrapper
 
@@ -237,7 +238,8 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
 
     def test_chunk_info_miss_noextdim(self):
         if self.array.ndim < 2:
-            raise common.unittest.SkipTest
+            raise common.unittest.SkipTest(
+                "missing chunk always within enlargeable dimension")
 
         # Next chunk in the first non-enlargeable dimension.
         assert self.array.extdim != 1
