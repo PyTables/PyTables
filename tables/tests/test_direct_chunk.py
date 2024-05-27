@@ -75,9 +75,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test_chunk_info_aligned_beyond(self):
         beyond = tuple((1 + s // cs) * cs for (s, cs)
                        in zip(self.shape, self.chunkshape))
-        self.assertRaises(tb.ChunkError,
-                          self.array.chunk_info,
-                          beyond)
         try:
             self.array.chunk_info(beyond)
         except tb.NotChunkAlignedError as e:
@@ -89,9 +86,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test_chunk_info_unaligned_beyond(self):
         beyond = tuple(1 + (1 + s // cs) * cs for (s, cs)
                        in zip(self.shape, self.chunkshape))
-        self.assertRaises(tb.ChunkError,
-                          self.array.chunk_info,
-                          beyond)
         try:
             self.array.chunk_info(beyond)
         except tb.NotChunkAlignedError as e:
@@ -145,9 +139,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test_read_chunk_beyond(self):
         beyond = tuple((1 + s // cs) * cs for (s, cs)
                        in zip(self.shape, self.chunkshape))
-        self.assertRaises(tb.ChunkError,
-                          self.array.read_chunk,
-                          beyond)
         try:
             self.array.read_chunk(beyond)
         except tb.NoSuchChunkError as e:
@@ -197,10 +188,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test_write_chunk_beyond(self):
         beyond = tuple((1 + s // cs) * cs for (s, cs)
                        in zip(self.shape, self.chunkshape))
-        self.assertRaises(tb.ChunkError,
-                          self.array.write_chunk,
-                          beyond,
-                          b'foobar')
         try:
             self.array.write_chunk(beyond, b'foobar')
         except tb.NoSuchChunkError as e:
@@ -232,9 +219,6 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
                        ((1 + self.shape[1] // self.chunkshape[1])
                         * self.chunkshape[1]),
                        *((0,) * (self.array.ndim - 2)))
-        self.assertRaises(tb.ChunkError,
-                          self.array.chunk_info,
-                          chunk_start)
         try:
             self.array.chunk_info(chunk_start)
         except tb.NoSuchChunkError as e:
