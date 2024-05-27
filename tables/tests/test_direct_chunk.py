@@ -141,6 +141,13 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(tb.ChunkError,
                           self.array.read_chunk,
                           beyond)
+        try:
+            self.array.read_chunk(beyond)
+        except tb.NoSuchChunkError as e:
+            self.fail("wrong exception in chunk read "
+                      "beyond max shape: %r" % e)
+        except tb.ChunkError:
+            pass
 
     def test_write_chunk(self):
         new_obj = self.modified(self.obj)
