@@ -1,3 +1,4 @@
+import functools
 import itertools
 import sys
 
@@ -199,6 +200,31 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 # For enlargeable datasets only.
 class XDirectChunkingTestCase(DirectChunkingTestCase):
+    @staticmethod
+    def skipIfOneExtDim(test):
+        @functools.wraps(test)
+        def test_wrapper(self):
+            if self.array.ndim == 1 and self.array.extdim == 0:
+                raise common.unittest.SkipTest  # no way to be beyond
+            return test(self)
+        return test_wrapper
+
+    @skipIfOneExtDim
+    def test_chunk_info_aligned_beyond(self):
+        super().test_chunk_info_aligned_beyond()
+
+    @skipIfOneExtDim
+    def test_chunk_info_unaligned_beyond(self):
+        super().test_chunk_info_unaligned_beyond()
+
+    @skipIfOneExtDim
+    def test_read_chunk_beyond(self):
+        super().test_read_chunk_beyond()
+
+    @skipIfOneExtDim
+    def test_write_chunk_beyond(self):
+        super().test_write_chunk_beyond()
+
     def test_chunk_info_miss_extdim(self):
         # Next chunk in the enlargeable dimension.
         assert self.array.extdim == 0
