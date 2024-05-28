@@ -1187,9 +1187,10 @@ cdef class Leaf(Node):
     cdef hsize_t size
 
     # Get the pointer to the buffer data area of the coords array
-    offset = <hsize_t *>PyArray_DATA(coords)
-    ret = H5Dget_chunk_info_by_coord(self.dataset_id, offset,
-                                     &filter_mask, &addr, &size)
+    with nogil:
+        offset = <hsize_t *>PyArray_DATA(coords)
+        ret = H5Dget_chunk_info_by_coord(self.dataset_id, offset,
+                                         &filter_mask, &addr, &size)
     if ret < 0:
         raise HDF5ExtError("Problems getting chunk info for ``%s``"
                            % self._v_pathname)
