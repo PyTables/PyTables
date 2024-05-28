@@ -1196,6 +1196,15 @@ cdef class Leaf(Node):
                            % self._v_pathname)
     return (filter_mask, addr if addr != HADDR_UNDEF else None, size)
 
+  def _g_read_chunk(self, ndarray coords, object out):
+    # TODO: document
+    _, addr, size = self._g_chunk_info(coords)
+    if addr is None:
+        return None
+    if out is not None and len(out) < size:
+        raise ValueError(f"Output buffer is too short: {len(out)} < {size}")
+    raise NotImplementedError  # TODO: implement
+
   cdef _get_type_ids(self):
     """Get the disk and native HDF5 types associated with this leaf.
 

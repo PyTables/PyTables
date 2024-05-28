@@ -14,7 +14,8 @@ from .flavor import (check_flavor, internal_flavor, toarray,
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
-from .exceptions import (ChunkError, NotChunkAlignedError, NotChunkedError,
+from .exceptions import (ChunkError, NoSuchChunkError,
+                         NotChunkAlignedError, NotChunkedError,
                          PerformanceWarning)
 
 if TYPE_CHECKING:
@@ -922,7 +923,11 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         coords = np.array(coords, dtype=SizeType)
         self._check_chunk_coords(coords)
-        raise NotImplementedError  # TODO: implement
+        chunk = self._g_read_chunk(coords, out)
+        if chunk is None:
+            raise NoSuchChunkError(f"Can't read missing chunk at coordinates "
+                                   f"{tuple(coords)}")
+        return chunk
 
     def write_chunk(self, coords: tuple[int, ...], data: BufferLike,
                     filter_mask: int=0):
