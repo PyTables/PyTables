@@ -119,6 +119,11 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                     in zip(self.shape, self.chunkshape)])
         chunk_start = (0,) * self.obj.ndim
         chunk_size = np.prod(self.chunkshape) * self.obj.dtype.itemsize
+
+        chunk_out = bytearray(chunk_size - 1)  # too short
+        self.assertRaises(ValueError,
+                          self.array.read_chunk, chunk_start, out=chunk_out)
+
         chunk_out = bytearray(chunk_size)
         chunk = self.array.read_chunk(chunk_start, out=chunk_out)
         self.assertIsInstance(chunk, memoryview)
@@ -127,10 +132,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
         self.assertEqual(chunk, obj_bytes)
         self.assertEqual(chunk_out, obj_bytes)
-
-        chunk_out = bytearray(chunk_size - 1)  # too short
-        self.assertRaises(ValueError,
-                          self.array.read_chunk, chunk_start, out=chunk_out)
 
     def test_read_chunk_unaligned(self):
         self.assertRaises(tb.NotChunkAlignedError,
