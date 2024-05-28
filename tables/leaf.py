@@ -14,7 +14,8 @@ from .flavor import (check_flavor, internal_flavor, toarray,
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
-from .exceptions import ChunkError, NotChunkedError, PerformanceWarning
+from .exceptions import (ChunkError, NotChunkAlignedError, NotChunkedError,
+                         PerformanceWarning)
 
 if TYPE_CHECKING:
     from .group import Group
@@ -25,6 +26,8 @@ NPByteArray: TypeAlias = np.ndarray[tuple[int], np.dtype[np.uint8]]
 
 # ``Buffer`` requires Python >= 3.12.
 BufferLike: TypeAlias = bytes | bytearray | memoryview | NPByteArray
+
+CoordsArray: TypeAlias = np.ndarray[tuple[int], np.dtype[SizeType]]
 
 
 def read_cached_cpu_info() -> dict[str, Any]:
@@ -694,6 +697,12 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise ChunkError(f"Coordinates exceed maximum dataset shape: "
                              f"{coords} > {self._v_maxshape}")
 
+    def _check_chunk_coords(self, coords: CoordsArray):
+        if (coords % self.chunkshape).any():
+            raise NotChunkAlignedError(
+                f"Coordinates are not multiples of chunk shape: "
+                f"{tuple(coords)} !* {self.chunkshape}")
+
     # Tree manipulation
     def remove(self) -> None:
         """Remove this node from the hierarchy.
@@ -910,6 +919,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
         self._check_chunked()
         self._check_coords_within_max(coords)
+
+        coords = np.array(coords, dtype=SizeType)
+        self._check_chunk_coords(coords)
         raise NotImplementedError  # TODO: implement
 
     def write_chunk(self, coords: tuple[int, ...], data: BufferLike,
@@ -939,6 +951,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
         self._check_chunked()
         self._check_coords_within_max(coords)
+
+        coords = np.array(coords, dtype=SizeType)
+        self._check_chunk_coords(coords)
         raise NotImplementedError  # TODO: implement
 
     def _f_close(self, flush: bool=True) -> None:
