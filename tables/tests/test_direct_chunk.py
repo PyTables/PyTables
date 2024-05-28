@@ -262,7 +262,7 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
                         * self.chunkshape[0]),
                        *((0,) * (self.array.ndim - 1)))
         self.assertRaises(tb.NoSuchChunkError,
-                          self.array.chunk_info,
+                          self.array.read_chunk,
                           chunk_start)
 
     def _test_write_chunk_missing(self, enlarge_first, shrink_after=False):
