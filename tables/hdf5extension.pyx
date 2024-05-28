@@ -1197,10 +1197,15 @@ cdef class Leaf(Node):
     return (filter_mask, addr if addr != HADDR_UNDEF else None, size)
 
   def _g_read_chunk(self, ndarray coords, object out):
-    # TODO: document
+    """Read the raw chunk at `coords` (into `out`).
+
+    Return a ``memoryview`` object if `out` is ``None``, a ``bytes`` object
+    otherwise.  Return ``None`` if the chunk is missing.
+
+    """
     _, addr, size = self._g_chunk_info(coords)
     if addr is None:
-        return None
+        return None  # missing chunk
     if out is not None and len(out) < size:
         raise ValueError(f"Output buffer is too short: {len(out)} < {size}")
     raise NotImplementedError  # TODO: implement
