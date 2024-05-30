@@ -1,6 +1,7 @@
 import functools
 import itertools
 import sys
+import zlib
 
 import numpy as np
 import tables as tb
@@ -53,7 +54,8 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
         super().setUp()
-        self.filters = tb.Filters(shuffle=self.shuffle)
+        self.filters = tb.Filters(complib='zlib', complevel=1,
+                                  shuffle=self.shuffle)
 
     def modified(self, obj):
         # Return altered copy with same dtype and shape.
@@ -99,11 +101,18 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except tb.ChunkError:
             pass
 
-    def filter_chunk(self, bytes_):
-        if not self.shuffle:
-            return bytes_
+    def filter_chunk(self, bytes_, shuffle=None):
+        assert self.filters.complib == 'zlib'
+        if shuffle is None:
+            shuffle = self.shuffle
+
         itemsize = self.obj.dtype.itemsize
-        return b''.join(bytes_[d::itemsize] for d in range(itemsize))
+        maybe_shuffled = (
+            bytes_ if not shuffle
+            else b''.join(bytes_[d::itemsize] for d in range(itemsize))
+        )
+
+        return zlib.compress(maybe_shuffled, self.filters.complevel)
 
     def test_read_chunk(self):
         # Extended to fit chunk boundaries.
@@ -175,7 +184,8 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                           in zip(chunk_start, self.chunkshape))
         new_obj = self.obj.copy()
         new_obj[obj_slice] = self.modified(new_obj[obj_slice])
-        obj_bytes = new_obj[obj_slice].tobytes()  # do not shuffle
+        obj_bytes = self.filter_chunk(new_obj[obj_slice].tobytes(),
+                                      shuffle=False)
         self.array.write_chunk(chunk_start, obj_bytes,
                                filter_mask=no_shuffle_mask)
 
