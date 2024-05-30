@@ -923,11 +923,14 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         coords = np.array(coords, dtype=SizeType)
         self._check_chunk_coords(coords)
+        if out is not None:
+            out = np.ndarray((len(out),), dtype='u1', buffer=out)
+
         chunk = self._g_read_chunk(coords, out)
         if chunk is None:
             raise NoSuchChunkError(f"Can't read missing chunk at coordinates "
                                    f"{tuple(coords)}")
-        return chunk
+        return chunk.tobytes() if out is None else memoryview(out)
 
     def write_chunk(self, coords: tuple[int, ...], data: BufferLike,
                     filter_mask: int=0) -> None:

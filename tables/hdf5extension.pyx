@@ -1196,11 +1196,11 @@ cdef class Leaf(Node):
                            % self._v_pathname)
     return (filter_mask, addr if addr != HADDR_UNDEF else None, size)
 
-  def _g_read_chunk(self, ndarray coords, object out):
+  def _g_read_chunk(self, ndarray coords, ndarray out):
     """Read the raw chunk at `coords` (into `out`).
 
-    Return a ``memoryview`` object if `out` is ``None``, a ``bytes`` object
-    otherwise.  Return ``None`` if the chunk is missing.
+    Return a new array of bytes if `out` is ``None``, `out` itself otherwise.
+    Return ``None`` if the chunk is missing.
 
     """
     cdef ndarray rarr
@@ -1215,9 +1215,7 @@ cdef class Leaf(Node):
     if out is not None and len(out) < size:
         raise ValueError(f"Output buffer is too short: {len(out)} < {size}")
 
-    rarr = (np.empty((size,), dtype='u1') if out is None
-            else np.ndarray((size,), dtype='u1', buffer=out))
-
+    rarr = np.empty((size,), dtype='u1') if out is None else out
     with nogil:
         rbuf = PyArray_DATA(rarr)
         offset = <hsize_t *>PyArray_DATA(coords)
@@ -1226,7 +1224,7 @@ cdef class Leaf(Node):
     if ret < 0:
         raise HDF5ExtError("Problems reading chunk from ``%s``"
                            % self._v_pathname)
-    return rarr.tobytes() if out is None else memoryview(out)
+    return rarr
 
   cdef _get_type_ids(self):
     """Get the disk and native HDF5 types associated with this leaf.
