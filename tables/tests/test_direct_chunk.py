@@ -49,6 +49,11 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     # Instance attributes:
     array: tb.Leaf  # set by ``setUp()`` and ``_reopen()``
+    filters: tb.Filters
+
+    def setUp(self):
+        super().setUp()
+        self.filters = tb.Filters(shuffle=self.shuffle)
 
     def modified(self, obj):
         # Return altered copy with same dtype and shape.
@@ -315,7 +320,7 @@ class CArrayDirectChunkingTestCase(DirectChunkingTestCase):
         super().setUp()
         self.array = self.h5file.create_carray(
             '/', 'carray', chunkshape=self.chunkshape, obj=self.obj,
-            filters=tb.Filters(shuffle=self.shuffle))
+            filters=self.filters)
 
     def _reopen(self):
         super()._reopen()
@@ -337,7 +342,7 @@ class EArrayDirectChunkingTestCase(XDirectChunkingTestCase):
         shape = (0, *self.shape[1:])
         self.array = self.h5file.create_earray(
             '/', 'earray', atom, shape, chunkshape=self.chunkshape,
-            filters=tb.Filters(shuffle=self.shuffle))
+            filters=self.filters)
         self.array.append(self.obj)
 
     def _reopen(self):
@@ -360,7 +365,7 @@ class TableDirectChunkingTestCase(XDirectChunkingTestCase):
         desc, _ = tb.descr_from_dtype(self.obj.dtype)
         self.array = self.h5file.create_table(
             '/', 'table', desc, chunkshape=self.chunkshape,
-            filters=tb.Filters(shuffle=self.shuffle))
+            filters=self.filters)
         self.array.append(self.obj)
 
     def _reopen(self):
