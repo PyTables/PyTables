@@ -40,6 +40,7 @@ cdef extern from "hdf5.h" nogil:
   ctypedef int hbool_t
   ctypedef int herr_t
   ctypedef int htri_t
+  ctypedef unsigned int uint32_t
   ctypedef unsigned long long hsize_t
   ctypedef signed long long hssize_t
   ctypedef long long int64_t
@@ -353,6 +354,8 @@ cdef extern from "hdf5.h" nogil:
                                     unsigned *filter_mask,
                                     haddr_t *addr,
                                     hsize_t *size)
+  herr_t H5Dread_chunk(hid_t dset_id, hid_t dxpl_id, const hsize_t *offset,
+                       uint32_t *filters, void *buf)
 
   # Functions for dealing with dataspaces
   hid_t H5Screate_simple(int rank, hsize_t dims[], hsize_t maxdims[])
