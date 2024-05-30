@@ -684,11 +684,11 @@ very small/large chunksize, you may want to increase/decrease it."""
             coords = coords.copy()
         return coords
 
-    def _check_chunked(self):
+    def _check_chunked(self) -> None:
         if self.chunkshape is None:
             raise NotChunkedError("The dataset is not chunked")
 
-    def _check_coords_within_max(self, coords: tuple[int, ...]):
+    def _check_coords_within_max(self, coords: tuple[int, ...]) -> None:
         if len(coords) != self.ndim:
             raise ValueError(f"Coordinates do not match dataset shape: "
                              f"{coords} !~ {self.shape}")
@@ -698,7 +698,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise ChunkError(f"Coordinates exceed maximum dataset shape: "
                              f"{coords} > {self._v_maxshape}")
 
-    def _check_chunk_coords(self, coords: CoordsArray):
+    def _check_chunk_coords(self, coords: CoordsArray) -> None:
         if (coords % self.chunkshape).any():
             raise NotChunkAlignedError(
                 f"Coordinates are not multiples of chunk shape: "
@@ -930,7 +930,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         return chunk
 
     def write_chunk(self, coords: tuple[int, ...], data: BufferLike,
-                    filter_mask: int=0):
+                    filter_mask: int=0) -> None:
         """Write raw `data` to storage for the chunk that starts at the given
         `coords`.
 
