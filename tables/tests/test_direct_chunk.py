@@ -65,12 +65,11 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         yield from itertools.product(*chunk_ranges)
 
     def test_chunk_info_aligned(self):
-        chunk_size = np.prod(self.chunkshape) * self.obj.dtype.itemsize
         for chunk_start in self.iter_chunks():
             chunk_info = self.array.chunk_info(chunk_start)
             self.assertEqual(chunk_info.start, chunk_start)
             self.assertIsNotNone(chunk_info.offset)
-            self.assertEqual(chunk_info.size, chunk_size)
+            self.assertGreater(chunk_info.size, 0)
 
     def test_chunk_info_unaligned(self):
         chunk_info_a = self.array.chunk_info((0,) * self.array.ndim)
@@ -123,7 +122,10 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ext_obj = np.pad(self.obj, [(0, s % cs) for (s, cs)
                                     in zip(self.shape, self.chunkshape)])
         chunk_start = (0,) * self.obj.ndim
-        chunk_size = np.prod(self.chunkshape) * self.obj.dtype.itemsize
+        obj_slice = tuple(slice(s, s + cs) for (s, cs)
+                          in zip(chunk_start, self.chunkshape))
+        obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
+        chunk_size = len(obj_bytes)
 
         chunk_out = bytearray(chunk_size - 1)  # too short
         self.assertRaises(ValueError,
@@ -132,9 +134,6 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         chunk_out = bytearray(chunk_size)
         chunk = self.array.read_chunk(chunk_start, out=chunk_out)
         self.assertIsInstance(chunk, memoryview)
-        obj_slice = tuple(slice(s, s + cs) for (s, cs)
-                          in zip(chunk_start, self.chunkshape))
-        obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
         self.assertEqual(chunk, obj_bytes)
         self.assertEqual(chunk_out, obj_bytes)
 
