@@ -99,7 +99,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except tb.ChunkError:
             pass
 
-    def maybe_shuffle(self, bytes_):
+    def filter_chunk(self, bytes_):
         if not self.shuffle:
             return bytes_
         itemsize = self.obj.dtype.itemsize
@@ -114,7 +114,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assertIsInstance(chunk, bytes)
             obj_slice = tuple(slice(s, s + cs) for (s, cs)
                               in zip(chunk_start, self.chunkshape))
-            obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
+            obj_bytes = self.filter_chunk(ext_obj[obj_slice].tobytes())
             self.assertEqual(chunk, obj_bytes)
 
     def test_read_chunk_out(self):
@@ -124,7 +124,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         chunk_start = (0,) * self.obj.ndim
         obj_slice = tuple(slice(s, s + cs) for (s, cs)
                           in zip(chunk_start, self.chunkshape))
-        obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
+        obj_bytes = self.filter_chunk(ext_obj[obj_slice].tobytes())
         chunk_size = len(obj_bytes)
 
         chunk_out = bytearray(chunk_size - 1)  # too short
@@ -161,7 +161,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for chunk_start in self.iter_chunks():
             obj_slice = tuple(slice(s, s + cs) for (s, cs)
                               in zip(chunk_start, self.chunkshape))
-            obj_bytes = self.maybe_shuffle(ext_obj[obj_slice].tobytes())
+            obj_bytes = self.filter_chunk(ext_obj[obj_slice].tobytes())
             self.array.write_chunk(chunk_start, obj_bytes)
 
         self._reopen()
