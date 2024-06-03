@@ -4,8 +4,7 @@ import math
 import json
 from pathlib import Path
 from functools import lru_cache
-from typing import (Any, Literal, NamedTuple, Optional, Union, TypeAlias,
-                    TYPE_CHECKING)
+from typing import Any, Literal, NamedTuple, Optional, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -22,13 +21,17 @@ if TYPE_CHECKING:
     from .group import Group
 
 
+# These should be declared as type aliases,
+# but ``TypeAlias`` requires Python >= 3.10
+# and ``type`` statements require Python >= 3.12.
+
 # ``np.typing.NDArray[np.uint8]`` requires NumPy >= 1.21.
-NPByteArray: TypeAlias = np.ndarray[tuple[int], np.dtype[np.uint8]]
+NPByteArray = np.ndarray[tuple[int], np.dtype[np.uint8]]
 
 # ``Buffer`` requires Python >= 3.12.
-BufferLike: TypeAlias = bytes | bytearray | memoryview | NPByteArray
+BufferLike = bytes | bytearray | memoryview | NPByteArray
 
-CoordsArray: TypeAlias = np.ndarray[tuple[int], np.dtype[SizeType]]
+CoordsArray = np.ndarray[tuple[int], np.dtype[SizeType]]
 
 
 def read_cached_cpu_info() -> dict[str, Any]:
