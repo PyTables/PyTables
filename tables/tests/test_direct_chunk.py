@@ -213,18 +213,20 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             pass
 
 
+# This should be a static method of `XDirectChunkingTestCase` below,
+# but that does not seem to work in Python < 3.10.
+def skipIfOneExtDim(test):
+    @functools.wraps(test)
+    def test_wrapper(self):
+        if self.array.ndim == 1 and self.array.extdim == 0:
+            raise common.unittest.SkipTest(
+                "chunk always within max shape")
+        return test(self)
+    return test_wrapper
+
+
 # For enlargeable datasets only.
 class XDirectChunkingTestCase(DirectChunkingTestCase):
-    @staticmethod
-    def skipIfOneExtDim(test):
-        @functools.wraps(test)
-        def test_wrapper(self):
-            if self.array.ndim == 1 and self.array.extdim == 0:
-                raise common.unittest.SkipTest(
-                    "chunk always within max shape")
-            return test(self)
-        return test_wrapper
-
     @skipIfOneExtDim
     def test_chunk_info_aligned_beyond(self):
         super().test_chunk_info_aligned_beyond()
