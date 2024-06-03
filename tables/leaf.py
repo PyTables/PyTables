@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 NPByteArray = np.ndarray[tuple[int], np.dtype[np.uint8]]
 
 # ``Buffer`` requires Python >= 3.12.
-BufferLike = bytes | bytearray | memoryview | NPByteArray
+BufferLike = Union[bytes, bytearray, memoryview, NPByteArray]
 
 CoordsArray = np.ndarray[tuple[int], np.dtype[SizeType]]
 
@@ -140,9 +140,9 @@ class ChunkInfo(NamedTuple):
         exists in storage.  Undefined for missing chunks.
 
     """
-    start: tuple[int, ...] | None
+    start: Union[tuple[int, ...], None]
     filter_mask: int
-    offset: int | None
+    offset: Union[int, None]
     size: int
 
 
@@ -894,8 +894,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         return ChunkInfo(tuple(coords), filter_mask, offset, size)
 
     def read_chunk(self, coords: tuple[int, ...],
-                   out: Optional[bytearray | NPByteArray]=None,
-                  ) -> bytes | memoryview:
+                   out: Optional[Union[bytearray, NPByteArray]]=None,
+                  ) -> Union[bytes, memoryview]:
         """Get the raw chunk that starts at the given `coords` from storage.
 
         The coordinates `coords` are a tuple of integers with the same rank as
