@@ -409,7 +409,7 @@ class ChunkError(Exception):
 
     It is a base for more specific exceptions, but it may also be instantiated
     directly in other cases.  In particular, it may be raised when accessing a
-    chunk that would be beyond the dataset's maximum shape.
+    chunk that would be beyond the dataset's shape.
 
     """
     pass
@@ -439,7 +439,7 @@ class NotChunkAlignedError(ChunkError):
 class NoSuchChunkError(ChunkError):
     """The chunk with the given coordinates does not exist in storage.
 
-    The coordinates are within the dataset's maximum shape, though.
+    The coordinates are within the dataset's shape, though.
 
     This is only an error when the chunk is to be read.  Such a missing chunk
     can be written, in which case it is created in storage.

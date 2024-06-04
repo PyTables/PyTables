@@ -1,4 +1,3 @@
-import functools
 import itertools
 import sys
 import zlib
@@ -86,7 +85,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.array.chunk_info(beyond)
         except tb.NoSuchChunkError as e:
             self.fail("wrong exception in aligned chunk info "
-                      "beyond max shape: %r" % e)
+                      "beyond shape: %r" % e)
         except tb.ChunkError:
             pass
         else:
@@ -99,7 +98,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.array.chunk_info(beyond)
         except tb.NotChunkAlignedError as e:
             self.fail("wrong exception in unaligned chunk info "
-                      "beyond max shape: %r" % e)
+                      "beyond shape: %r" % e)
         except tb.ChunkError:
             pass
         else:
@@ -162,7 +161,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.array.read_chunk(beyond)
         except tb.NoSuchChunkError as e:
             self.fail("wrong exception in chunk read "
-                      "beyond max shape: %r" % e)
+                      "beyond shape: %r" % e)
         except tb.ChunkError:
             pass
         else:
@@ -214,47 +213,33 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.array.write_chunk(beyond, b'foobar')
         except tb.NoSuchChunkError as e:
             self.fail("wrong exception in chunk write "
-                      "beyond max shape: %r" % e)
+                      "beyond shape: %r" % e)
         except tb.ChunkError:
             pass
-
-
-# This should be a static method of `XDirectChunkingTestCase` below,
-# but that does not seem to work in Python < 3.10.
-def skipIfOneExtDim(test):
-    @functools.wraps(test)
-    def test_wrapper(self):
-        if self.array.ndim == 1 and self.array.extdim == 0:
-            raise common.unittest.SkipTest(
-                "chunk always within max shape")
-        return test(self)
-    return test_wrapper
+        else:
+            self.fail("exception expected")
 
 
 # For enlargeable datasets only.
 class XDirectChunkingTestCase(DirectChunkingTestCase):
-    @skipIfOneExtDim
-    def test_chunk_info_aligned_beyond(self):
-        super().test_chunk_info_aligned_beyond()
-
-    @skipIfOneExtDim
-    def test_chunk_info_unaligned_beyond(self):
-        super().test_chunk_info_unaligned_beyond()
-
-    @skipIfOneExtDim
-    def test_read_chunk_beyond(self):
-        super().test_read_chunk_beyond()
-
-    @skipIfOneExtDim
-    def test_write_chunk_beyond(self):
-        super().test_write_chunk_beyond()
-
     def test_chunk_info_miss_extdim(self):
         # Next chunk in the enlargeable dimension.
         assert self.array.extdim == 0
         chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
                         * self.chunkshape[0]),
                        *((0,) * (self.array.ndim - 1)))
+        try:
+            self.array.chunk_info(chunk_start)
+        except tb.NoSuchChunkError as e:
+            self.fail("wrong exception in chunk info "
+                      "beyond shape: %r" % e)
+        except tb.ChunkError:
+            pass
+        else:
+            self.fail("exception expected")
+
+        # Enlarge the array to put the (missing) chunk within the shape.
+        self.array.truncate(chunk_start[0] + self.chunkshape[0])
         chunk_info = self.array.chunk_info(chunk_start)
         self.assertIsNone(chunk_info.start)
         self.assertIsNone(chunk_info.offset)
@@ -286,11 +271,23 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
         chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
                         * self.chunkshape[0]),
                        *((0,) * (self.array.ndim - 1)))
+        try:
+            self.array.read_chunk(chunk_start)
+        except tb.NoSuchChunkError as e:
+            self.fail("wrong exception in chunk read "
+                      "beyond shape: %r" % e)
+        except tb.ChunkError:
+            pass
+        else:
+            self.fail("exception expected")
+
+        # Enlarge the array to put the (missing) chunk within the shape.
+        self.array.truncate(chunk_start[0] + self.chunkshape[0])
         self.assertRaises(tb.NoSuchChunkError,
                           self.array.read_chunk,
                           chunk_start)
 
-    def _test_write_chunk_missing(self, enlarge_first, shrink_after=False):
+    def _test_write_chunk_missing(self, shrink_after):
         # Enlarge array by two chunk rows,
         # copy first old chunk in first chunk of new last chunk row.
         assert self.array.extdim == 0
@@ -298,35 +295,28 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
                         * self.chunkshape[0] + self.chunkshape[0]),
                        *((0,) * (self.array.ndim - 1)))
         chunk = self.array.read_chunk((0,) * self.array.ndim)
-        if enlarge_first:
-            self.array.truncate(chunk_start[0] + self.chunkshape[0])
+        self.array.truncate(chunk_start[0] + self.chunkshape[0])
         self.array.write_chunk(chunk_start, chunk)
         if shrink_after:
             self.array.truncate(self.shape[0] + 1)
             self.array.truncate(self.shape[0] - 1)
-        if not enlarge_first:
-            self.array.truncate(chunk_start[0] + self.chunkshape[0])
 
         new_obj = self.obj.copy()
         new_obj.resize(self.array.shape)
         obj_slice = tuple(slice(s, s + cs) for (s, cs)
                           in zip(chunk_start, self.chunkshape))
-        if enlarge_first or not shrink_after:
+        if not shrink_after:
             new_obj[obj_slice] = new_obj[tuple(slice(0, cs)
                                                for cs in self.chunkshape)]
 
         self._reopen()
         self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
 
-    def test_write_chunk_missing0(self):
-        return self._test_write_chunk_missing(enlarge_first=True)
-
     def test_write_chunk_missing1(self):
-        return self._test_write_chunk_missing(enlarge_first=False)
+        return self._test_write_chunk_missing(shrink_after=False)
 
     def test_write_chunk_missing2(self):
-        return self._test_write_chunk_missing(enlarge_first=False,
-                                              shrink_after=True)
+        return self._test_write_chunk_missing(shrink_after=True)
 
 
 class CArrayDirectChunkingTestCase(DirectChunkingTestCase):

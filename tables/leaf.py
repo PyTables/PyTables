@@ -110,8 +110,8 @@ def calc_chunksize(expected_mb: int) -> int:
 class ChunkInfo(NamedTuple):
     """Information about storage for a given chunk.
 
-    It may refer to a chunk which is within the dataset's maximum shape but
-    that does not exist in storage, i.e. a missing chunk.
+    It may also refer to a chunk which is within the dataset's shape but that
+    does not exist in storage, i.e. a missing chunk.
 
     An instance of this named tuple class contains the following information,
     in field order:
@@ -869,11 +869,11 @@ very small/large chunksize, you may want to increase/decrease it."""
         chunk that contains the item at the given coordinates, for use with
         other direct chunking operations (see :attr:`ChunkInfo.start`).
 
-        If the coordinates are within the dataset's maximum shape but there is
-        no such chunk in storage (missing chunk), a :class:`ChunkInfo` with
-        ``start = offset = None`` is returned.  If the coordinates are beyond
-        maximum shape, :exc:`ChunkError` is raised (even if the start of the
-        chunk would fall within the maximum shape).
+        If the coordinates are within the dataset's shape but there is no such
+        chunk in storage (missing chunk), a :class:`ChunkInfo` with ``start =
+        offset = None`` is returned.  If the coordinates are beyond the shape,
+        :exc:`ChunkError` is raised (even if the start of the chunk would fall
+        within the shape).
 
         Calling this method on a non-chunked dataset raises a
         :exc:`NotChunkedError`.
@@ -913,9 +913,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         Return the chunk's raw content, either as a `bytes` instance (if `out`
         is ``None``) or as a `memoryview` over the object given as `out`.
 
-        Reading a chunk within the dataset's maximum shape, but not in storage
+        Reading a chunk within the dataset's shape, but not in storage
         (missing chunk) raises a :exc:`NoSuchChunkError`.  If the chunk is
-        beyond maximum shape, :exc:`ChunkError` is raised.
+        beyond the shape, :exc:`ChunkError` is raised.
 
         Calling this method on a non-chunked dataset raises a
         :exc:`NotChunkedError`.
@@ -948,13 +948,14 @@ very small/large chunksize, you may want to increase/decrease it."""
         dataset filters, minus those in the given `filter_mask` (which is to
         be saved along data; see :attr:`ChunkInfo.filter_mask`).
 
-        Writing a chunk which is already in storage replaces it.  If the chunk
-        is not in storage, but within the dataset's maximum shape (missing
-        chunk), the chunk is added to storage.  This means that you may use
-        :meth:`truncate()` to grow an enlargeable dataset cheaply (as no chunk
-        data is written), then sparsely write selected chunks in random order.
+        Writing a chunk which is already in storage replaces it, otherwise it
+        is added to storage as long as it is within the dataset's shape
+        (missing chunk).  This means that you may use :meth:`truncate()` to
+        grow an enlargeable dataset cheaply (as no chunk data is written),
+        then sparsely write selected chunks in arbitrary order.
 
-        If the chunk is beyond maximum shape, :exc:`ChunkError` is raised.
+        If the chunk is beyond the dataset's shape, :exc:`ChunkError` is
+        raised.
 
         Calling this method on a non-chunked dataset raises a
         :exc:`NotChunkedError`.
