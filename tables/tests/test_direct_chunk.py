@@ -89,6 +89,8 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                       "beyond max shape: %r" % e)
         except tb.ChunkError:
             pass
+        else:
+            self.fail("exception expected")
 
     def test_chunk_info_unaligned_beyond(self):
         beyond = tuple(1 + (1 + s // cs) * cs for (s, cs)
@@ -100,6 +102,8 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                       "beyond max shape: %r" % e)
         except tb.ChunkError:
             pass
+        else:
+            self.fail("exception expected")
 
     def filter_chunk(self, bytes_, shuffle=None):
         assert self.filters.complib == 'zlib'
@@ -161,6 +165,8 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                       "beyond max shape: %r" % e)
         except tb.ChunkError:
             pass
+        else:
+            self.fail("exception expected")
 
     def test_write_chunk(self):
         new_obj = self.modified(self.obj)
@@ -271,6 +277,8 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
                       "out of enlargeable dimension: %r" % e)
         except tb.ChunkError:
             pass
+        else:
+            self.fail("exception expected")
 
     def test_read_chunk_miss_extdim(self):
         # Next chunk in the enlargeable dimension.
