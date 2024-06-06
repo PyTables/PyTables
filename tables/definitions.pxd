@@ -356,6 +356,9 @@ cdef extern from "hdf5.h" nogil:
                                     hsize_t *size)
   herr_t H5Dread_chunk(hid_t dset_id, hid_t dxpl_id, const hsize_t *offset,
                        uint32_t *filters, void *buf)
+  herr_t H5Dwrite_chunk(hid_t dset_id, hid_t dxpl_id, uint32_t filters,
+                        const hsize_t *offset, size_t data_size,
+                        const void *buf)
 
   # Functions for dealing with dataspaces
   hid_t H5Screate_simple(int rank, hsize_t dims[], hsize_t maxdims[])

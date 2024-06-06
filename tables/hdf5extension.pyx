@@ -81,7 +81,8 @@ from .definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t, uint32_t,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, H5Dget_create_plist,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
-  H5Dget_chunk_info_by_coord, haddr_t, HADDR_UNDEF, H5Dread_chunk,
+  H5Dget_chunk_info_by_coord, haddr_t, HADDR_UNDEF,
+  H5Dread_chunk, H5Dwrite_chunk,
   H5Tget_native_type, H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT, H5T_STRING, H5Tget_order,
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pget_userblock, H5Pset_userblock,
@@ -1225,6 +1226,23 @@ cdef class Leaf(Node):
         raise HDF5ExtError("Problems reading chunk from ``%s``"
                            % self._v_pathname)
     return rarr
+
+  def _g_write_chunk(self, ndarray coords, ndarray data, uint32_t filters):
+    # TODO: document
+    cdef herr_t ret
+    cdef hsize_t *offset
+    cdef size_t data_size
+    cdef void *wbuf
+
+    data_size = data.size
+    with nogil:
+      wbuf = PyArray_DATA(data)
+      offset = <hsize_t *>PyArray_DATA(coords)
+      ret = H5Dwrite_chunk(self.dataset_id, H5P_DEFAULT, filters,
+                           offset, data_size, wbuf)
+    if ret < 0:
+      raise HDF5ExtError("Problems writing chunk to ``%s``"
+                         % self._v_pathname)
 
   cdef _get_type_ids(self):
     """Get the disk and native HDF5 types associated with this leaf.
