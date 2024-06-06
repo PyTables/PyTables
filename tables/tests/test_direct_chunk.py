@@ -182,7 +182,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
 
     def test_write_chunk_filtermask(self):
-        no_shuffle_mask = 0x00000002  # to turn shuffle off
+        no_shuffle_mask = 0x00000004  # to turn shuffle off
 
         chunk_start = (0,) * self.obj.ndim
         obj_slice = tuple(slice(s, s + cs) for (s, cs)
