@@ -107,7 +107,7 @@ jobs:
         run: |
           mkdir hdf5_build
           if [[ ${{ runner.os }} = 'Linux' ]]; then
-            docker run --rm -e HDF5_DIR=/io/hdf5_build -e CFLAGS=-g0 -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
+            docker run --rm -eMACOSX_DEPLOYMENT_TARGET=${{ env.MACOSX_DEPLOYMENT_TARGET }} -e HDF5_DIR=/io/hdf5_build -e CFLAGS=-g0 -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
           else
             HDF5_DIR=`pwd`/hdf5_build ci/github/get_hdf5.sh
           fi
