@@ -69,8 +69,9 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for chunk_start in self.iter_chunks():
             chunk_info = self.array.chunk_info(chunk_start)
             self.assertEqual(chunk_info.start, chunk_start)
+            self.assertIsNotNone(chunk_info.filter_mask)
             self.assertIsNotNone(chunk_info.offset)
-            self.assertGreater(chunk_info.size, 0)
+            self.assertIsNotNone(chunk_info.size)
 
     def test_chunk_info_unaligned(self):
         chunk_info_a = self.array.chunk_info((0,) * self.array.ndim)
@@ -205,8 +206,9 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
         # Enlarge the array to put the (missing) chunk within the shape.
         self.array.truncate(chunk_start[0] + self.chunkshape[0])
         chunk_info = self.array.chunk_info(chunk_start)
-        self.assertIsNone(chunk_info.start)
+        self.assertIsNone(chunk_info.filter_mask)
         self.assertIsNone(chunk_info.offset)
+        self.assertIsNone(chunk_info.size)
 
     def test_chunk_info_miss_noextdim(self):
         if self.array.ndim < 2:

@@ -120,14 +120,15 @@ class ChunkInfo(NamedTuple):
 
         The coordinates in dataset items where the chunk starts, a tuple of
         integers with the same rank as the dataset.  These coordinates are
-        always aligned with chunk boundaries.  ``None`` for missing chunks.
+        always aligned with chunk boundaries.  Also present for missing
+        chunks.
 
     .. attribute:: filter_mask
 
         An integer where each active bit signals that the filter in its
         position in the pipeline was disabled when storing the chunk.  For
         instance, ``0b10`` disables shuffling, ``0b100`` disables szip, and so
-        on.  Undefined for missing chunks.
+        on.  ``None`` for missing chunks.
 
     .. attribute:: offset
 
@@ -137,13 +138,13 @@ class ChunkInfo(NamedTuple):
     .. attribute:: size
 
         An integer which indicates the size in bytes of chunk data as it
-        exists in storage.  Undefined for missing chunks.
+        exists in storage.  ``None`` for missing chunks.
 
     """
     start: Union[tuple[int, ...], None]
-    filter_mask: int
+    filter_mask: Union[int, None]
     offset: Union[int, None]
-    size: int
+    size: Union[int, None]
 
 
 class Leaf(Node):
@@ -868,10 +869,10 @@ very small/large chunksize, you may want to increase/decrease it."""
         other direct chunking operations (see :attr:`ChunkInfo.start`).
 
         If the coordinates are within the dataset's shape but there is no such
-        chunk in storage (missing chunk), a :class:`ChunkInfo` with ``start =
-        offset = None`` is returned.  If the coordinates are beyond the shape,
-        :exc:`IndexError` is raised (even if the start of the chunk would fall
-        within the shape).
+        chunk in storage (missing chunk), a :class:`ChunkInfo` with a valid
+        ``start`` and ``filter_mask = offset = size = None`` is returned.  If
+        the coordinates are beyond the shape, :exc:`IndexError` is raised
+        (even if the start of the chunk would fall within the shape).
 
         Calling this method on a non-chunked dataset raises a
         :exc:`NotChunkedError`.
