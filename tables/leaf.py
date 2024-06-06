@@ -691,15 +691,13 @@ very small/large chunksize, you may want to increase/decrease it."""
         if self.chunkshape is None:
             raise NotChunkedError("The dataset is not chunked")
 
-    def _check_coords_within_max(self, coords: tuple[int, ...]) -> None:
+    def _check_chunk_within(self, coords: tuple[int, ...]) -> None:
         if len(coords) != self.ndim:
-            raise ValueError(f"Coordinates do not match dataset shape: "
+            raise ValueError(f"Chunk coordinates do not match dataset shape: "
                              f"{coords} !~ {self.shape}")
-        # _v_maxshape represents infinitely enlargeable dimensions with -1
-        # (as ``H5Sget_simple_extent_dims()`` does).
-        if any(0 <= m < c for (c, m) in zip(coords, self._v_maxshape)):
-            raise ChunkError(f"Coordinates exceed maximum dataset shape: "
-                             f"{coords} > {self._v_maxshape}")
+        if any(c < 0 or c >= s for (c, s) in zip(coords, self.shape)):
+            raise ChunkError(f"Chunk coordinates not within dataset shape: "
+                             f"{coords} <> {self.shape}")
 
     def _check_chunk_coords(self, coords: CoordsArray) -> None:
         if (coords % self.chunkshape).any():
@@ -880,7 +878,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         """
         self._check_chunked()
-        self._check_coords_within_max(coords)
+        self._check_chunk_within(coords)
 
         coords = np.array(coords, dtype=SizeType)
         filter_mask, offset, size = self._g_chunk_info(coords)
@@ -922,7 +920,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         """
         self._check_chunked()
-        self._check_coords_within_max(coords)
+        self._check_chunk_within(coords)
 
         coords = np.array(coords, dtype=SizeType)
         self._check_chunk_coords(coords)
@@ -962,11 +960,12 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         """
         self._check_chunked()
-        self._check_coords_within_max(coords)
+        self._check_chunk_within(coords)
 
         coords = np.array(coords, dtype=SizeType)
         self._check_chunk_coords(coords)
-        raise NotImplementedError  # TODO: implement
+        data = np.ndarray((len(data),), dtype='u1', buffer=data)
+        self._g_write_chunk(coords, data, filter_mask)
 
     def _f_close(self, flush: bool=True) -> None:
         """Close this node in the tree.
