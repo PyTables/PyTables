@@ -1189,12 +1189,12 @@ cdef class Leaf(Node):
 
     # Get the pointer to the buffer data area of the coords array
     with nogil:
-        offset = <hsize_t *>PyArray_DATA(coords)
-        ret = H5Dget_chunk_info_by_coord(self.dataset_id, offset,
-                                         &filter_mask, &addr, &size)
+      offset = <hsize_t *>PyArray_DATA(coords)
+      ret = H5Dget_chunk_info_by_coord(self.dataset_id, offset,
+                                       &filter_mask, &addr, &size)
     if ret < 0:
-        raise HDF5ExtError("Problems getting chunk info for ``%s``"
-                           % self._v_pathname)
+      raise HDF5ExtError("Problems getting chunk info for ``%s``"
+                         % self._v_pathname)
     return (filter_mask, addr if addr != HADDR_UNDEF else None, size)
 
   def _g_read_chunk(self, ndarray coords, ndarray out):
@@ -1212,19 +1212,19 @@ cdef class Leaf(Node):
 
     _, addr, size = self._g_chunk_info(coords)
     if addr is None:
-        return None  # missing chunk
+      return None  # missing chunk
     if out is not None and len(out) < size:
-        raise ValueError(f"Output buffer is too short: {len(out)} < {size}")
+      raise ValueError(f"Output buffer is too short: {len(out)} < {size}")
 
     rarr = np.empty((size,), dtype='u1') if out is None else out
     with nogil:
-        rbuf = PyArray_DATA(rarr)
-        offset = <hsize_t *>PyArray_DATA(coords)
-        ret = H5Dread_chunk(self.dataset_id, H5P_DEFAULT, offset,
-                            &filters, rbuf)
+      rbuf = PyArray_DATA(rarr)
+      offset = <hsize_t *>PyArray_DATA(coords)
+      ret = H5Dread_chunk(self.dataset_id, H5P_DEFAULT, offset,
+                          &filters, rbuf)
     if ret < 0:
-        raise HDF5ExtError("Problems reading chunk from ``%s``"
-                           % self._v_pathname)
+      raise HDF5ExtError("Problems reading chunk from ``%s``"
+                         % self._v_pathname)
     return rarr
 
   def _g_write_chunk(self, ndarray coords, ndarray data, uint32_t filters):
