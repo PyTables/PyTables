@@ -217,7 +217,6 @@ class Array(hdf5extension.Array, Leaf):
             # on
             (self._v_objectid, self.shape, self.atom) = self._create_array(
                 nparr, self._v_new_title, self.atom)
-            self._v_maxshape = self.shape
         except Exception:  # XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
@@ -233,9 +232,7 @@ class Array(hdf5extension.Array, Leaf):
     def _g_open(self) -> int:
         """Get the metadata info for an array in file."""
 
-        (oid, self.atom,
-         self.shape, self._v_maxshape,
-         self._v_chunkshape) = self._open_array()
+        (oid, self.atom, self.shape, self._v_chunkshape) = self._open_array()
 
         self.nrowsinbuf = self._calc_nrowsinbuf()
 

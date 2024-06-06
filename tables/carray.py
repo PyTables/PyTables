@@ -217,7 +217,6 @@ class CArray(Array):
         if min(self.shape) < 1:
             raise ValueError(
                 "shape parameter cannot have zero-dimensions.")
-        self._v_maxshape = self.shape
         # Finish the common part of creation process
         return self._g_create_common(self.nrows)
 

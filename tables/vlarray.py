@@ -285,9 +285,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self._v_chunkshape: Optional[tuple[int, ...]] = None
         """Private storage for the `chunkshape` property of Leaf."""
 
-        self._v_maxshape: tuple[int, ...] = (-1,)  # inf. enlarge on 1st dim
-        """Private storage for the maximum array shape."""
-
         # Miscellaneous iteration rubbish.
         self._start: Optional[int] = None
         """Starting row for the current iteration."""
