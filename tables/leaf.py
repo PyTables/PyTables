@@ -119,8 +119,8 @@ class ChunkInfo(NamedTuple):
     .. attribute:: start
 
         The coordinates in dataset items where the chunk starts, a tuple of
-        integers with the same rank as the dataset.  ``None`` for missing
-        chunks.
+        integers with the same rank as the dataset.  These coordinates are
+        always aligned with chunk boundaries.  ``None`` for missing chunks.
 
     .. attribute:: filter_mask
 
