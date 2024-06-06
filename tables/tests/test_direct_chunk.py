@@ -86,7 +86,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except tb.NoSuchChunkError as e:
             self.fail("wrong exception in aligned chunk info "
                       "beyond shape: %r" % e)
-        except tb.ChunkError:
+        except IndexError:
             pass
         else:
             self.fail("exception expected")
@@ -99,7 +99,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except tb.NotChunkAlignedError as e:
             self.fail("wrong exception in unaligned chunk info "
                       "beyond shape: %r" % e)
-        except tb.ChunkError:
+        except IndexError:
             pass
         else:
             self.fail("exception expected")
@@ -160,7 +160,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except tb.NoSuchChunkError as e:
             self.fail("wrong exception in chunk read "
                       "beyond shape: %r" % e)
-        except tb.ChunkError:
+        except IndexError:
             pass
         else:
             self.fail("exception expected")
@@ -217,7 +217,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         except tb.NoSuchChunkError as e:
             self.fail("wrong exception in chunk write "
                       "beyond shape: %r" % e)
-        except tb.ChunkError:
+        except IndexError:
             pass
         else:
             self.fail("exception expected")
@@ -236,7 +236,7 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
         except tb.NoSuchChunkError as e:
             self.fail("wrong exception in chunk info "
                       "beyond shape: %r" % e)
-        except tb.ChunkError:
+        except IndexError:
             pass
         else:
             self.fail("exception expected")
@@ -263,7 +263,7 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
         except tb.NoSuchChunkError as e:
             self.fail("wrong exception in missing chunk info "
                       "out of enlargeable dimension: %r" % e)
-        except tb.ChunkError:
+        except IndexError:
             pass
         else:
             self.fail("exception expected")
@@ -279,7 +279,7 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
         except tb.NoSuchChunkError as e:
             self.fail("wrong exception in chunk read "
                       "beyond shape: %r" % e)
-        except tb.ChunkError:
+        except IndexError:
             pass
         else:
             self.fail("exception expected")

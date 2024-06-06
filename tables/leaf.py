@@ -696,7 +696,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise ValueError(f"Chunk coordinates do not match dataset shape: "
                              f"{coords} !~ {self.shape}")
         if any(c < 0 or c >= s for (c, s) in zip(coords, self.shape)):
-            raise ChunkError(f"Chunk coordinates not within dataset shape: "
+            raise IndexError(f"Chunk coordinates not within dataset shape: "
                              f"{coords} <> {self.shape}")
 
     def _check_chunk_coords(self, coords: CoordsArray) -> None:
@@ -870,7 +870,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         If the coordinates are within the dataset's shape but there is no such
         chunk in storage (missing chunk), a :class:`ChunkInfo` with ``start =
         offset = None`` is returned.  If the coordinates are beyond the shape,
-        :exc:`ChunkError` is raised (even if the start of the chunk would fall
+        :exc:`IndexError` is raised (even if the start of the chunk would fall
         within the shape).
 
         Calling this method on a non-chunked dataset raises a
@@ -913,7 +913,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Reading a chunk within the dataset's shape, but not in storage
         (missing chunk) raises a :exc:`NoSuchChunkError`.  If the chunk is
-        beyond the shape, :exc:`ChunkError` is raised.
+        beyond the shape, :exc:`IndexError` is raised.
 
         Calling this method on a non-chunked dataset raises a
         :exc:`NotChunkedError`.
@@ -952,7 +952,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         grow an enlargeable dataset cheaply (as no chunk data is written),
         then sparsely write selected chunks in arbitrary order.
 
-        If the chunk is beyond the dataset's shape, :exc:`ChunkError` is
+        If the chunk is beyond the dataset's shape, :exc:`IndexError` is
         raised.
 
         Calling this method on a non-chunked dataset raises a

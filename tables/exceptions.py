@@ -405,11 +405,8 @@ class ChunkError(Exception):
     """An operation related to direct chunk access failed.
 
     This exception may be related with the properties of the dataset or the
-    chunk being accessed, or with how the chunk is being accessed.
-
-    It is a base for more specific exceptions, but it may also be instantiated
-    directly in other cases.  In particular, it may be raised when accessing a
-    chunk that would be beyond the dataset's shape.
+    chunk being accessed, or with how the chunk is being accessed.  It is a
+    base for more specific exceptions.
 
     """
     pass
