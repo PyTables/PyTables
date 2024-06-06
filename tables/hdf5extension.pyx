@@ -1228,7 +1228,12 @@ cdef class Leaf(Node):
     return rarr
 
   def _g_write_chunk(self, ndarray coords, ndarray data, uint32_t filters):
-    # TODO: document
+    """Write the raw `data` to the chunk in `coords`.
+
+    The `filters` mask indicates which filters of the pipeline have not been
+    used to create the `data`.
+
+    """
     cdef herr_t ret
     cdef hsize_t *offset
     cdef size_t data_size
