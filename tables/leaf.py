@@ -883,8 +883,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         coords = np.array(coords, dtype=SizeType)
         filter_mask, offset, size = self._g_chunk_info(coords)
-        if offset is None:  # missing chunk
-            return ChunkInfo(None, filter_mask, None, size)
 
         # Align coordinates to chunk boundary.
         chunkshape = self.chunkshape

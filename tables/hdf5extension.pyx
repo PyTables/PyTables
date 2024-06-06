@@ -1177,8 +1177,8 @@ cdef class Leaf(Node):
   def _g_chunk_info(self, ndarray coords):
     """Get storage information about chunk at `coords`.
 
-    Return ``(filter_mask, offset, size)``, where the offset is ``None`` if
-    the chunk is missing.
+    Return ``(filter_mask, offset, size)``, where items are ``None`` if the
+    chunk is missing.
 
     """
     cdef herr_t ret
@@ -1195,7 +1195,8 @@ cdef class Leaf(Node):
     if ret < 0:
       raise HDF5ExtError("Problems getting chunk info for ``%s``"
                          % self._v_pathname)
-    return (filter_mask, addr if addr != HADDR_UNDEF else None, size)
+    return ((filter_mask, addr, size) if addr != HADDR_UNDEF
+            else (None, None, None))
 
   def _g_read_chunk(self, ndarray coords, ndarray out):
     """Read the raw chunk at `coords` (into `out`).
