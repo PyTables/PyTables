@@ -81,28 +81,12 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test_chunk_info_aligned_beyond(self):
         beyond = tuple((1 + s // cs) * cs for (s, cs)
                        in zip(self.shape, self.chunkshape))
-        try:
-            self.array.chunk_info(beyond)
-        except tb.NoSuchChunkError as e:
-            self.fail("wrong exception in aligned chunk info "
-                      "beyond shape: %r" % e)
-        except IndexError:
-            pass
-        else:
-            self.fail("exception expected")
+        self.assertRaises(IndexError, self.array.chunk_info, beyond)
 
     def test_chunk_info_unaligned_beyond(self):
         beyond = tuple(1 + (1 + s // cs) * cs for (s, cs)
                        in zip(self.shape, self.chunkshape))
-        try:
-            self.array.chunk_info(beyond)
-        except tb.NotChunkAlignedError as e:
-            self.fail("wrong exception in unaligned chunk info "
-                      "beyond shape: %r" % e)
-        except IndexError:
-            pass
-        else:
-            self.fail("exception expected")
+        self.assertRaises(IndexError, self.array.chunk_info, beyond)
 
     def shuffled(self, bytes_):
         itemsize = self.obj.dtype.itemsize
@@ -155,15 +139,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test_read_chunk_beyond(self):
         beyond = tuple((1 + s // cs) * cs for (s, cs)
                        in zip(self.shape, self.chunkshape))
-        try:
-            self.array.read_chunk(beyond)
-        except tb.NoSuchChunkError as e:
-            self.fail("wrong exception in chunk read "
-                      "beyond shape: %r" % e)
-        except IndexError:
-            pass
-        else:
-            self.fail("exception expected")
+        self.assertRaises(IndexError, self.array.read_chunk, beyond)
 
     def test_write_chunk(self):
         new_obj = self.modified(self.obj)
@@ -212,15 +188,8 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test_write_chunk_beyond(self):
         beyond = tuple((1 + s // cs) * cs for (s, cs)
                        in zip(self.shape, self.chunkshape))
-        try:
-            self.array.write_chunk(beyond, b'foobar')
-        except tb.NoSuchChunkError as e:
-            self.fail("wrong exception in chunk write "
-                      "beyond shape: %r" % e)
-        except IndexError:
-            pass
-        else:
-            self.fail("exception expected")
+        self.assertRaises(IndexError,
+                          self.array.write_chunk, beyond, b'foobar')
 
 
 # For enlargeable datasets only.
@@ -231,15 +200,7 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
         chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
                         * self.chunkshape[0]),
                        *((0,) * (self.array.ndim - 1)))
-        try:
-            self.array.chunk_info(chunk_start)
-        except tb.NoSuchChunkError as e:
-            self.fail("wrong exception in chunk info "
-                      "beyond shape: %r" % e)
-        except IndexError:
-            pass
-        else:
-            self.fail("exception expected")
+        self.assertRaises(IndexError, self.array.chunk_info, chunk_start)
 
         # Enlarge the array to put the (missing) chunk within the shape.
         self.array.truncate(chunk_start[0] + self.chunkshape[0])
@@ -258,15 +219,7 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
                        ((1 + self.shape[1] // self.chunkshape[1])
                         * self.chunkshape[1]),
                        *((0,) * (self.array.ndim - 2)))
-        try:
-            self.array.chunk_info(chunk_start)
-        except tb.NoSuchChunkError as e:
-            self.fail("wrong exception in missing chunk info "
-                      "out of enlargeable dimension: %r" % e)
-        except IndexError:
-            pass
-        else:
-            self.fail("exception expected")
+        self.assertRaises(IndexError, self.array.chunk_info, chunk_start)
 
     def test_read_chunk_miss_extdim(self):
         # Next chunk in the enlargeable dimension.
@@ -274,15 +227,7 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
         chunk_start = (((1 + self.shape[0] // self.chunkshape[0])
                         * self.chunkshape[0]),
                        *((0,) * (self.array.ndim - 1)))
-        try:
-            self.array.read_chunk(chunk_start)
-        except tb.NoSuchChunkError as e:
-            self.fail("wrong exception in chunk read "
-                      "beyond shape: %r" % e)
-        except IndexError:
-            pass
-        else:
-            self.fail("exception expected")
+        self.assertRaises(IndexError, self.array.read_chunk, chunk_start)
 
         # Enlarge the array to put the (missing) chunk within the shape.
         self.array.truncate(chunk_start[0] + self.chunkshape[0])
