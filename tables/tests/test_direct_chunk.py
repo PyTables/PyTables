@@ -104,17 +104,15 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         else:
             self.fail("exception expected")
 
+    def shuffled(self, bytes_):
+        itemsize = self.obj.dtype.itemsize
+        return b''.join(bytes_[d::itemsize] for d in range(itemsize))
+
     def filter_chunk(self, bytes_, shuffle=None):
         assert self.filters.complib == 'zlib'
         if shuffle is None:
             shuffle = self.shuffle
-
-        itemsize = self.obj.dtype.itemsize
-        maybe_shuffled = (
-            bytes_ if not shuffle
-            else b''.join(bytes_[d::itemsize] for d in range(itemsize))
-        )
-
+        maybe_shuffled = self.shuffled(bytes_) if shuffle else bytes_
         return zlib.compress(maybe_shuffled, self.filters.complevel)
 
     def test_read_chunk(self):
@@ -195,7 +193,12 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                filter_mask=no_shuffle_mask)
 
         self._reopen()
-        self.assertTrue(common.areArraysEqual(self.array[:], new_obj))
+        arr_obj = self.array[:]  # first chunk is shuffled, fix it
+        fixed_bytes = self.shuffled(arr_obj[obj_slice].tobytes())
+        fixed_chunk = np.ndarray(self.chunkshape, dtype=self.obj.dtype,
+                                 buffer=fixed_bytes)
+        arr_obj[obj_slice] = fixed_chunk
+        self.assertTrue(common.areArraysEqual(arr_obj, new_obj))
 
         chunk_info = self.array.chunk_info(chunk_start)
         self.assertEqual(chunk_info.filter_mask, no_shuffle_mask)
