@@ -714,8 +714,8 @@ hid_t create_ieee_complex64(const char *byteorder) {
     return float_id;
   }
 
-  H5Tinsert(complex_id, "r", HOFFSET(npy_complex64, real), float_id);
-  H5Tinsert(complex_id, "i", HOFFSET(npy_complex64, imag), float_id);
+  H5Tinsert(complex_id, "r", 0, float_id);
+  H5Tinsert(complex_id, "i", 4, float_id);
   H5Tclose(float_id);
   return complex_id;
 }
@@ -739,8 +739,8 @@ hid_t create_ieee_complex128(const char *byteorder) {
     return float_id;
   }
 
-  H5Tinsert(complex_id, "r", HOFFSET(npy_complex128, real), float_id);
-  H5Tinsert(complex_id, "i", HOFFSET(npy_complex128, imag), float_id);
+  H5Tinsert(complex_id, "r", 0, float_id);
+  H5Tinsert(complex_id, "i", 8, float_id);
   H5Tclose(float_id);
   return complex_id;
 }
@@ -771,8 +771,8 @@ hid_t create_ieee_complex192(const char *byteorder) {
     return err;
   }
 
-  H5Tinsert(complex_id, "r", HOFFSET(npy_complex192, real), float_id);
-  H5Tinsert(complex_id, "i", HOFFSET(npy_complex192, imag), float_id);
+  H5Tinsert(complex_id, "r", 0, float_id);
+  H5Tinsert(complex_id, "i", 12, float_id);
   H5Tclose(float_id);
   return complex_id;
 }
@@ -803,8 +803,8 @@ hid_t create_ieee_complex256(const char *byteorder) {
     return err;
   }
 
-  H5Tinsert(complex_id, "r", HOFFSET(npy_complex256, real), float_id);
-  H5Tinsert(complex_id, "i", HOFFSET(npy_complex256, imag), float_id);
+  H5Tinsert(complex_id, "r", 0, float_id);
+  H5Tinsert(complex_id, "i", 16, float_id);
   H5Tclose(float_id);
   return complex_id;
 }
