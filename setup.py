@@ -729,7 +729,10 @@ if __name__ == "__main__":
 
     # -----------------------------------------------------------------
 
-    def_macros = [("NDEBUG", 1)]
+    def_macros = [
+        ("NDEBUG", 1),
+        # ("NPY_TARGET_VERSION", "NPY_1_20_API_VERSION"),
+    ]
 
     # Define macros for Windows platform
     if os.name == "nt":
