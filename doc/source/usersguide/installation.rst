@@ -61,7 +61,7 @@ If you don't, fetch and install them before proceeding.
 
 * Python_ >= 3.9
 * HDF5_ >= 1.10.5 (although 1.14.0 or later is strongly recommended)
-* Cython_ >= 0.29.32
+* Cython_ >= 3.0.10
 * NumPy_ >= 1.20.0
 * Numexpr_ >= 2.6.2
 * packaging_
