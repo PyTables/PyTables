@@ -2317,12 +2317,17 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Second selection: bool
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
-        results2 = [p["var2"] for p in table2 if p["var2"] is True]
-        if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
-        self.assertEqual(len(results1), len(results2))
-        self.assertEqual(results1, results2)
+        results2 = [
+            p["var2"] for p in table2
+            if p["var2"] is True or p["var2"] is np.bool(True)
+        ]
+        t1var2_vals = [p["var2"] for p in table2]
+        msg = (
+            f"Incorrect results for t1var2[n] == True where\n"
+            f"{t1var2_vals=}\n{results1=}\n{results2=}"
+        )
+        self.assertEqual(len(results1), len(results2), msg=msg)
+        self.assertEqual(results1, results2, msg=msg)
 
         # Third selection: int
         # Convert the limits to the appropriate type

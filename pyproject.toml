@@ -135,3 +135,60 @@ namespaces = false
 tables = [ "*.dll", "*.so*", "*.dylib" ]
 "tables.tests" = [ "*.h5", "*.mat" ]
 "tables.nodes.tests" = [ "*.dat", "*.xbm", "*.h5" ]
+
+[tool.cibuildwheel]
+skip = "*-musllinux_*"
+build = "cp*"
+build-verbosity = 3
+test-command = "python -m tables.tests.test_all"
+environment = {"DISABLE_AVX2"="TRUE", "CFLAGS"="-g0"}
+test-skip = "*_aarch64"
+# Keep in sync with ``build-system.requires`` above
+before-build = "python -m pip install --require-hashes -r .github/workflows/requirements/build-requirements.txt -r requirements.txt"
+
+[tool.cibuildwheel.linux]
+# Use Linux images with HDF5 already available (thanks to h5py devs!) --
+# cross-compiling HDF5 on aarch64 takes a long time (>30 minutes)
+# so better to avoid it.
+manylinux-x86_64-image = "ghcr.io/h5py/manylinux2014_x86_64-hdf5"
+manylinux-aarch64-image = "ghcr.io/h5py/manylinux2014_aarch64-hdf5"
+before-all = [
+    "rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux",
+    "yum -y install epel-release",
+    "yum -y update",
+    "yum install -y zlib-devel bzip2-devel lzo-devel blosc-devel",
+]
+
+[tool.cibuildwheel.macos]
+before-all = "cp -r `pwd`/hdf5_build /tmp/hdf5"
+repair-wheel-command = [
+    "DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-listdeps {wheel}",
+    "DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}",
+]
+
+[tool.cibuildwheel.macos.environment]
+CC = "/usr/bin/clang"
+CXX = "/usr/bin/clang"
+HDF5_DIR = "/tmp/hdf5"
+LZO_DIR = "/tmp/hdf5"
+BZIP2_DIR = "/tmp/hdf5"
+LD_LIBRARY_PATH = "/tmp/hdf5/lib:${LD_LIBRARY_PATH}"
+PKG_CONFIG_PATH = "/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+
+[tool.cibuildwheel.windows]
+before-all = [
+    "conda create --yes --name=build",
+    "conda activate build",
+    "conda install --yes blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib",
+]
+before-build = [
+    "python -m pip install --require-hashes -r requirements.txt",
+    "python -m pip install delvewheel",
+]
+repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
+
+[tool.cibuildwheel.windows.environment]
+CONDA_PREFIX = 'C:\Miniconda\\envs\\build'
+PATH = '$PATH;C:\Miniconda\envs\build\Library\bin'
+PYTABLES_NO_EMBEDDED_LIBS = "true"
+DISABLE_AVX2 = "true"

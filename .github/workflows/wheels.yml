@@ -68,7 +68,7 @@ jobs:
           path: dist/*
           name: dist
 
-  build_wheels_unix:
+  build_wheels:
     name: Build ${{ matrix.os }} wheels for ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
@@ -76,24 +76,19 @@ jobs:
       # Keep in sync with "Prerequisites" in User's Guide.
       HDF5_VERSION: 1.14.3  # H5Dchunk_iter needs at least 1.14.1
       MACOSX_DEPLOYMENT_TARGET: "10.9"
-      # Same for unix and Windows builds
-      CIBW_SKIP: "*-musllinux_*"
-      CIBW_BUILD: "cp*"
-      CIBW_BUILD_VERBOSITY: 3
-      CIBW_TEST_COMMAND: "python -m tables.tests.test_all"
-      CIBW_MANYLINUX_x86_64_IMAGE: "ghcr.io/pypa/manylinux2014_x86_64-latest"
-      CIBW_MANYLINUX_AARCH64_IMAGE: "ghcr.io/pypa/manylinux2014_aarch64-latest"
     strategy:
       matrix:
-        # Please note that some architectures are not tested,
-        # see "Build wheels" and ``CIBW_TEST_SKIP`` below.
-        os: [ 'ubuntu-latest' ]
-        arch: [ 'x86_64',  'aarch64' ]
         include:
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: ubuntu-latest
+            arch: aarch64
           - os: macos-13
             arch: x86_64
           - os: macos-14
             arch: arm64
+          - os: windows-latest
+            arch: AMD64
 
     steps:
       - uses: actions/checkout@v4
@@ -107,7 +102,7 @@ jobs:
           python-version: 3.x
 
       - uses: docker/setup-qemu-action@v3
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && ${{ matrix.arch }} != 'x64_64'
         name: Set up QEMU
 
       - uses: actions/cache@v4
@@ -120,42 +115,25 @@ jobs:
         env:
           CFLAGS: -g0
           CIBW_ARCHS: ${{ matrix.arch }}
-        if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
-        # TODO: Consider replacing the Linux part here with just using the h5py images like
-        # ghcr.io/h5py/manylinux2014_x86_64-hdf5
+          HDF5_DIR: ${{ github.workspace }}/hdf5_build
         run: |
-          mkdir hdf5_build
-          if [[ ${{ runner.os }} = 'Linux' ]]; then
-            docker run --rm -e HDF5_DIR=/io/hdf5_build -e CFLAGS=-g0 -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
-          else
-            HDF5_DIR=`pwd`/hdf5_build ci/github/get_hdf5.sh
-          fi
+          ./ci/github/get_hdf5.sh
+        if: runner.os == 'macOS' && ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
+
+      - name: Install Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          channels: defaults,conda-forge
+          use-only-tar-bz2: true
+        if: runner.os == 'Windows'
 
       - name: Install cibuildwheel
         run: |
           python -m pip install --require-hashes -r ./.github/workflows/requirements/wheels-requirements.txt
 
-      - name: Build wheels
+      - name: Build wheels for ${{ matrix.os }} (${{ matrix.arch }})
         run: |
-          python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CFLAGS: -g0
-          CIBW_ARCHS: ${{ matrix.arch }}
-          # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
-          CIBW_BEFORE_BUILD: >
-            python -m pip install -U --require-hashes -r .github/workflows/requirements/build-requirements.txt -r requirements.txt
-          CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
-          CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
-          CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
-          # Keep in sync with "Prerequisites" in User's Guide.
-          CIBW_BEFORE_ALL_LINUX: >
-            cp -r `pwd`/hdf5_build /tmp/hdf5 &&
-            yum -y update &&
-            yum install -y zlib-devel bzip2-devel lzo-devel
-          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-            DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-listdeps {wheel} &&
-            DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
-          CIBW_TEST_SKIP: "*_aarch64"
+          python -m cibuildwheel --output-dir wheelhouse --archs ${{ matrix.arch }}
 
       - name: Copy requirements.txt
         run: |
@@ -168,60 +146,8 @@ jobs:
             ./wheelhouse/*.txt
           name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}-${{ strategy.job-index }}
 
-  build_wheels_windows:
-    name: Build wheels for ${{matrix.arch}} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest]
-        arch: [win_amd64]
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: true
-
-      - uses: actions/setup-python@v5
-        name: Install Python
-        with:
-          python-version: 3.x
-
-      - name: Install Miniconda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          channels: defaults,conda-forge
-          use-only-tar-bz2: true
-
-      - name: Install cibuildwheel
-        run: |
-          python -m pip install --require-hashes -r ./.github/workflows/requirements/wheels-requirements.txt
-
-      - name: Build wheels for Windows (${{ matrix.arch }})
-        run: cibuildwheel --output-dir wheelhouse
-        env:
-          # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
-          CIBW_BUILD: "cp3{9,10,11,12}-${{ matrix.arch }}"
-          # Keep in sync with "Prerequisites" in User's Guide.
-          CIBW_BEFORE_ALL_WINDOWS: >
-            conda create --yes --name=build &&
-            conda activate build &&
-            conda config --env --set subdir 'win-64' &&
-            conda install --yes blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib
-          CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build" PATH="$PATH;C:\\Miniconda\\envs\\build\\Library\\bin"'
-          CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
-          CIBW_BEFORE_BUILD: >
-            python -m pip install --require-hashes -r requirements.txt &&
-            python -m pip install delvewheel
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          path: ./wheelhouse/*.whl
-          name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}-${{ strategy.job-index }}
-
   twine_check:
-    needs: [ build_sdist, build_wheels_unix, build_wheels_windows ]
+    needs: [ build_sdist, build_wheels ]
     name: Twine check
     runs-on: 'ubuntu-latest'
 
@@ -233,11 +159,11 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          path: ./wheelhouse/
           pattern: '*'
           merge-multiple: true
 
       - run: ls -alR ./wheelhouse/
+      - run: rm ./wheelhouse/*.txt  # don't upload these
 
       - name: Install Python
         uses: actions/setup-python@v5
@@ -250,7 +176,7 @@ jobs:
 
       - name: Check sdist and wheels
         run: |
-          python -m twine check wheelhouse/artifact/tables*.tar.gz wheelhouse/artifact/*.whl
+          python -m twine check wheelhouse/*
 
       - name: Upload wheel
         uses: scientific-python/upload-nightly-action@b67d7fcc0396e1128a474d1ab2b48aa94680f9fc # 0.5.0

@@ -205,7 +205,7 @@ def allequal(a, b, flavor="numpy"):
     return result
 
 
-def areArraysEqual(arr1, arr2):
+def areArraysEqual(arr1, arr2, *, check_type=True):
     """Are both `arr1` and `arr2` equal arrays?
 
     Arguments can be regular NumPy arrays, chararray arrays or
@@ -217,8 +217,8 @@ def areArraysEqual(arr1, arr2):
     t1 = type(arr1)
     t2 = type(arr2)
 
-    if not ((hasattr(arr1, 'dtype') and arr1.dtype == arr2.dtype) or
-            issubclass(t1, t2) or issubclass(t2, t1)):
+    if check_type and not ((hasattr(arr1, 'dtype') and arr1.dtype == arr2.dtype) or
+                           issubclass(t1, t2) or issubclass(t2, t1)):
         return False
 
     return np.all(arr1 == arr2)

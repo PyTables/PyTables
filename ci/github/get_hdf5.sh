@@ -1,7 +1,7 @@
 #!/bin/bash
 # inspired by https://github.com/h5py/h5py/blob/master/ci/get_hdf5_if_needed.sh
 
-set -e -x
+set -xeo pipefail
 
 PROJECT_DIR="$(pwd)"
 EXTRA_MPI_FLAGS=''
@@ -14,6 +14,7 @@ else
     EXTRA_MPI_FLAGS="--enable-parallel --enable-shared"
 fi
 
+mkdir -p $HDF5_DIR
 export LD_LIBRARY_PATH="$HDF5_DIR/lib:${LD_LIBRARY_PATH}"
 export PKG_CONFIG_PATH="$HDF5_DIR/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
