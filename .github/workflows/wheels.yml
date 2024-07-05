@@ -1,5 +1,9 @@
 name: Wheels
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}
+  cancel-in-progress: true
+
 # Publish when a (published) GitHub Release is created.
 on:
   push:
