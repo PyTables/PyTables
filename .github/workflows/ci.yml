@@ -53,15 +53,6 @@ jobs:
           - os: ubuntu-latest
             python: '3.12'
             numpy: 'numpy>=2.dev0'
-          - os: ubuntu-latest
-            python: '3.9'
-            numpy: 'numpy<2'
-          - os: macos-latest
-            python: '3.9'
-            numpy: 'numpy<2'
-          - os: windows-latest
-            python: '3.9'
-            numpy: 'numpy<2'
 
     steps:
     - uses: actions/checkout@v4
