@@ -9,7 +9,9 @@ on:
       - 'ci/**'
     tags:
       - v*
-    pull_request:
+  pull_request:
+    branches:
+      - '*'
   release:
     types:
       - published
@@ -55,16 +57,14 @@ jobs:
         with:
           path: dist/*
 
-  build_wheels:
+  build_wheels_unix:
     name: Build ${{ matrix.os }} wheels for ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     env:
       # Keep in sync with "Prerequisites" in User's Guide.
       HDF5_VERSION: 1.14.3  # H5Dchunk_iter needs at least 1.14.1
       MACOSX_DEPLOYMENT_TARGET: "10.9"
-      # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
-      # Skip 3.6, 3.7 and 3.8 wheels
-      CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp38-* "
+      CIBW_SKIP: "*-musllinux_*"
       CIBW_BUILD: "cp*"
     strategy:
       matrix:
@@ -150,6 +150,7 @@ jobs:
           path: |
             ./wheelhouse/*.whl
             ./wheelhouse/*.txt
+          name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}-${{ strategy.job-index }}
 
   build_wheels_windows:
     name: Build wheels for ${{matrix.arch}} on ${{ matrix.os }}
@@ -184,7 +185,7 @@ jobs:
         run: cibuildwheel --output-dir wheelhouse
         env:
           # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
-          CIBW_BUILD: "cp39-${{ matrix.arch }} cp310-${{ matrix.arch }} cp311-${{ matrix.arch }} cp312-${{ matrix.arch }}"
+          CIBW_BUILD: "cp3{9,10,11,12}-${{ matrix.arch }}"
           # Keep in sync with "Prerequisites" in User's Guide.
           CIBW_BEFORE_ALL_WINDOWS: >
             conda create --yes --name=build &&
@@ -202,9 +203,10 @@ jobs:
       - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
           path: ./wheelhouse/*.whl
+          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ strategy.job-index }}-wheels
 
   twine_check:
-    needs: [ build_sdist, build_wheels, build_wheels_windows ]
+    needs: [ build_sdist, build_wheels_unix, build_wheels_windows ]
     name: Twine check
     runs-on: 'ubuntu-latest'
 
@@ -213,10 +215,12 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-          
+
       - uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
         with:
           path: ./wheelhouse/
+          pattern: '*'
+          merge-multiple: true
 
       - name: Install Python
         uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
