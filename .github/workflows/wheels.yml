@@ -102,7 +102,7 @@ jobs:
           python-version: 3.x
 
       - uses: docker/setup-qemu-action@v3
-        if: runner.os == 'Linux' && ${{ matrix.arch }} != 'x64_64'
+        if: runner.os == 'Linux' && matrix.arch != 'x64_64'
         name: Set up QEMU
 
       - uses: actions/cache@v4
@@ -118,7 +118,7 @@ jobs:
           HDF5_DIR: ${{ github.workspace }}/hdf5_build
         run: |
           ./ci/github/get_hdf5.sh
-        if: runner.os == 'macOS' && ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
+        if: runner.os == 'macOS' && steps.deps-cache.outputs.cache-hit != 'true'
 
       - name: Install Miniconda
         uses: conda-incubator/setup-miniconda@v2
