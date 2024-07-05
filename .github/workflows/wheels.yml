@@ -60,17 +60,17 @@ jobs:
           # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
           python -m pip install --require-hashes -r ./.github/workflows/requirements/optional-requirements.txt
 
-      - name: Build sdist
+      - name: Build dist (sdist and docs)
         run: make PYTHON=python dist
 
       - uses: actions/upload-artifact@v4
         with:
           path: dist/*
+          name: dist
 
   build_wheels_unix:
     name: Build ${{ matrix.os }} wheels for ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
-    needs: build_sdist
     continue-on-error: true
     env:
       # Keep in sync with "Prerequisites" in User's Guide.
@@ -81,6 +81,8 @@ jobs:
       CIBW_BUILD: "cp*"
       CIBW_BUILD_VERBOSITY: 3
       CIBW_TEST_COMMAND: "python -m tables.tests.test_all"
+      CIBW_MANYLINUX_x86_64_IMAGE: "ghcr.io/pypa/manylinux2014_x86_64-latest"
+      CIBW_MANYLINUX_AARCH64_IMAGE: "ghcr.io/pypa/manylinux2014_aarch64-latest"
     strategy:
       matrix:
         # Please note that some architectures are not tested,
@@ -169,7 +171,6 @@ jobs:
   build_wheels_windows:
     name: Build wheels for ${{matrix.arch}} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: build_sdist
     strategy:
       matrix:
         os: [windows-latest]
@@ -217,7 +218,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
-          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ strategy.job-index }}-wheels
+          name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}-${{ strategy.job-index }}
 
   twine_check:
     needs: [ build_sdist, build_wheels_unix, build_wheels_windows ]
@@ -235,6 +236,8 @@ jobs:
           path: ./wheelhouse/
           pattern: '*'
           merge-multiple: true
+
+      - run: ls -alR ./wheelhouse/
 
       - name: Install Python
         uses: actions/setup-python@v5

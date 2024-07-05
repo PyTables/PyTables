@@ -265,9 +265,12 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Computed expression:", repr(r1), r1.dtype)
             print("Should look like:", repr(r2), r2.dtype)
-        self.assertTrue(
-            r1.shape == r2.shape and r1.dtype == r2.dtype and r1 == r2,
-            "Evaluate is returning a wrong value.")
+        msg = f"Evaluate is returning a wrong value: {expr_str}\n{r1=}\n{r2=}"
+        self.assertEqual(r1.shape, r2.shape, msg=msg)
+        # In something like 2 * np.in16(3) + np.int16(2) the result is still a
+        # np.int16 in NumPy 2.0, so we shouldn't actually check this:
+        # self.assertEqual(r1.dtype, r2.dtype, msg=msg)
+        self.assertEqual(r1, r2, msg=msg)
 
     def test01a_out(self):
         """Checking expressions with mixed objects (`out` param)"""

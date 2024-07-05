@@ -1,6 +1,7 @@
 # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
 setuptools>=61.0.0
 pip>=24.0.0
+tomli>=1.1.0
 wheel
 build
 cython>=3.0.10
