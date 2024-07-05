@@ -159,7 +159,7 @@ before-all = [
     "sed -i -e 's/mirrorlist/#mirrorlist/g' -e 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*",
     "yum -y install epel-release",
     "yum -y update",
-    "yum install -y zlib-devel bzip2-devel lzo-devel blosc-devel",
+    "yum install -y zlib-devel bzip2-devel lzo-devel",
 ]
 
 [tool.cibuildwheel.macos]
