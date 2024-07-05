@@ -2316,15 +2316,15 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(results1, results2)
 
         # Second selection: bool
+        # TODO: Fails for FINSV2aTestCase
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
-        results2 = [
-            p["var2"] for p in table2
-            if p["var2"] is True or p["var2"] is np.bool(True)
-        ]
-        t1var2_vals = [p["var2"] for p in table2]
+        results2 = [p["var2"] for p in table2 if p["var2"] is True]
+        t2var1_vals = [p["var1"] for p in table2]
+        t2var2_vals = [p["var2"] for p in table2]
         msg = (
             f"Incorrect results for t1var2[n] == True where\n"
-            f"{t1var2_vals=}\n{results1=}\n{results2=}"
+            f"t2var1_vals={repr(t2var1_vals)}\nt2var2_vals={repr(t2var2_vals)}\n"
+            f"\n{results1=}\n{results2=}"
         )
         self.assertEqual(len(results1), len(results2), msg=msg)
         self.assertEqual(results1, results2, msg=msg)

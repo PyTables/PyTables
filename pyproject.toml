@@ -154,6 +154,8 @@ manylinux-x86_64-image = "ghcr.io/h5py/manylinux2014_x86_64-hdf5"
 manylinux-aarch64-image = "ghcr.io/h5py/manylinux2014_aarch64-hdf5"
 before-all = [
     "rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux",
+    # This line is needed until https://github.com/h5py/hdf5-manylinux/issues/12 is fixed
+    "sed -i -e 's/mirrorlist/#mirrorlist/g' -e 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*",
     "yum -y install epel-release",
     "yum -y update",
     "yum install -y zlib-devel bzip2-devel lzo-devel blosc-devel",
