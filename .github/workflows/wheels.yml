@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - tables  # TODO: REMOVE
       - 'releases/**'
       - 'ci/**'
     tags:
@@ -104,10 +105,12 @@ jobs:
           CFLAGS: -g0
           CIBW_ARCHS: ${{ matrix.arch }}
         if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
+        # TODO: Consider replacing the Linux part here with just using the h5py images like
+        # ghcr.io/h5py/manylinux2014_x86_64-hdf5
         run: |
           mkdir hdf5_build
           if [[ ${{ runner.os }} = 'Linux' ]]; then
-            docker run --rm -eMACOSX_DEPLOYMENT_TARGET=${{ env.MACOSX_DEPLOYMENT_TARGET }} -e HDF5_DIR=/io/hdf5_build -e CFLAGS=-g0 -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
+            docker run --rm -e HDF5_DIR=/io/hdf5_build -e CFLAGS=-g0 -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
           else
             HDF5_DIR=`pwd`/hdf5_build ci/github/get_hdf5.sh
           fi
@@ -139,7 +142,7 @@ jobs:
             DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-listdeps {wheel} &&
             DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
           CIBW_TEST_COMMAND: "python -m tables.tests.test_all"
-          CIBW_TEST_SKIP: "*_aarch64 *_arm64"
+          CIBW_TEST_SKIP: "*_aarch64"
 
       - name: Copy requirements.txt
         run: |

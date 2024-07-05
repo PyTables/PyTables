@@ -106,6 +106,7 @@ fi
 
 pushd /tmp
 
+echo "MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
 
 if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary build on macOS ARM64
     curl -fsSLO "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/bin/unix/hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
