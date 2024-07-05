@@ -30,12 +30,12 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: 3.x
@@ -59,7 +59,7 @@ jobs:
       - name: Build sdist
         run: make PYTHON=python dist
 
-      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+      - uses: actions/upload-artifact@v4
         with:
           path: dist/*
 
@@ -87,21 +87,21 @@ jobs:
             arch: arm64
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: 3.x
 
-      - uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+      - uses: docker/setup-qemu-action@v3
         if: runner.os == 'Linux'
         name: Set up QEMU
 
-      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      - uses: actions/cache@v4
         id: deps-cache
         with:
           path: hdf5_build
@@ -154,7 +154,7 @@ jobs:
         run: |
           cp requirements.txt ./wheelhouse/
 
-      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+      - uses: actions/upload-artifact@v4
         with:
           path: |
             ./wheelhouse/*.whl
@@ -171,18 +171,18 @@ jobs:
         arch: [win_amd64]
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: 3.x
 
       - name: Install Miniconda
-        uses: conda-incubator/setup-miniconda@3b0f2504dd76ef23b6d31f291f4913fb60ab5ff3 # v2.2.0
+        uses: conda-incubator/setup-miniconda@v2
         with:
           channels: defaults,conda-forge
           use-only-tar-bz2: true
@@ -200,15 +200,17 @@ jobs:
           CIBW_BEFORE_ALL_WINDOWS: >
             conda create --yes --name=build &&
             conda activate build &&
-            conda config --env --set subdir ${{ matrix.arch == 'win32' && 'win-32' || 'win-64' }} &&
+            conda config --env --set subdir 'win-64' &&
             conda install --yes blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib
           CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build" PATH="$PATH;C:\\Miniconda\\envs\\build\\Library\\bin"'
           CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
-          CIBW_BEFORE_BUILD: python -m pip install --require-hashes -r requirements.txt delvewheel
+          CIBW_BEFORE_BUILD: >
+            python -m pip install --require-hashes -r requirements.txt &&
+            python -m pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
           CIBW_TEST_COMMAND: "python -m tables.tests.test_all"
 
-      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
           name: ${{ matrix.os }}-${{ matrix.arch }}-${{ strategy.job-index }}-wheels
@@ -219,19 +221,19 @@ jobs:
     runs-on: 'ubuntu-latest'
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+      - uses: actions/download-artifact@v4
         with:
           path: ./wheelhouse/
           pattern: '*'
           merge-multiple: true
 
       - name: Install Python
-        uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # v4.7.1
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 

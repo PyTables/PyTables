@@ -106,26 +106,15 @@ fi
 
 pushd /tmp
 
-echo "MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
+#                                   Remove trailing .*, to get e.g. '1.12' ↓
+curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/src/hdf5-${HDF5_VERSION}.tar.gz"
+tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
+pushd "hdf5-$HDF5_VERSION"
+./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
+make -j "$NPROC"
+make install
 
-if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary build on macOS ARM64
-    curl -fsSLO "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/bin/unix/hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
-    tar -xzvf "hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
-    sh "hdf/HDF5-${HDF5_VERSION}-Darwin.sh" --skip-license --prefix=$HDF5_DIR --exclude-subdir
-    pushd "${HDF5_DIR}"
-    cp -R "HDF_Group/HDF5/${HDF5_VERSION%-*}/" .  # move to correct location
-    rm -rf HDF_Group
-else
-    #                                   Remove trailing .*, to get e.g. '1.12' ↓
-    curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/src/hdf5-${HDF5_VERSION}.tar.gz"
-    tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
-    pushd "hdf5-$HDF5_VERSION"
-    ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
-    make -j "$NPROC"
-    make install
-
-    file "$HDF5_DIR"/lib/*
-fi
+file "$HDF5_DIR"/lib/*
 
 popd
 popd
