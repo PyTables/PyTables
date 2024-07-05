@@ -139,7 +139,8 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 [tool.cibuildwheel]
 skip = "*-musllinux_*"
 build = "cp*"
-build-verbosity = 3
+# TODO: Increase to 3
+build-verbosity = 2
 test-command = "python -m tables.tests.test_all"
 environment = {"DISABLE_AVX2"="TRUE", "CFLAGS"="-g0"}
 test-skip = "*_aarch64"
