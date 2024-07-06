@@ -192,5 +192,6 @@ before-build = [
 repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
 
 [tool.cibuildwheel.windows.environment]
-PYTABLES_NO_EMBEDDED_LIBS = "true"
 DISABLE_AVX2 = "TRUE"
+CONDA_PREFIX = 'C:\\Users\\runneradmin\\micromamba\\envs\\build'
+PATH = '$PATH;C:\\Users\\runneradmin\\micromamba\\envs\\build\\Library\\bin'
