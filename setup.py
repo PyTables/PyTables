@@ -294,6 +294,8 @@ def get_default_dirs(conda_prefix: Optional[Path] = None) -> DefaultDirs:
         runtime_dirs = []  # look for DLL files in ``%PATH%``
         if conda_prefix:
             runtime_dirs.append(conda_prefix / "Library")
+            runtime_dirs.append(conda_prefix / "Library" / "bin")
+            header_dirs.append(conda_prefix / "Library" / "include")
         runtime_dirs.extend(
             Path(_path) for _path in os.environ["PATH"].split(";")
         )
