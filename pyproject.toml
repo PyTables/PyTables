@@ -142,12 +142,13 @@ build = "cp*"
 # TODO: Increase to 3
 build-verbosity = 2
 test-command = "python -m tables.tests.test_all"
-environment = {"DISABLE_AVX2"="TRUE", "CFLAGS"="-g0"}
 test-skip = "*_aarch64"
 # Keep in sync with ``build-system.requires`` above
 before-build = "python -m pip install -q --require-hashes -r .github/workflows/requirements/build-requirements.txt -r requirements.txt"
 
 [tool.cibuildwheel.environment]
+DISABLE_AVX2 = "true"
+CFLAGS = "-g0"
 HDF5_DIR = "/tmp/hdf5"
 LD_LIBRARY_PATH = "/tmp/hdf5/lib:${LD_LIBRARY_PATH}"
 PKG_CONFIG_PATH = "/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
@@ -194,4 +195,3 @@ repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
 CONDA_PREFIX = 'C:\Miniconda\\envs\\build'
 PATH = '$PATH;C:\Miniconda\envs\build\Library\bin'
 PYTABLES_NO_EMBEDDED_LIBS = "true"
-DISABLE_AVX2 = "true"
