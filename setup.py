@@ -837,6 +837,7 @@ if __name__ == "__main__":
             err_msg = (
                 f"Could not find a local {package.name} installation headers "
                 f"({hdrdir=}) and/or libdir ({libdir=})"
+            )
             if package.tag in ["HDF5", "BLOSC2"]:  # these are compulsory!
                 pname, ptag = package.name, package.tag
                 exit_with_error(
