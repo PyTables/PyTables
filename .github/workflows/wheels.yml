@@ -122,7 +122,7 @@ jobs:
         with:
           environment-name: build
           create-args: >
-            python=3.12 blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
+            python=3.12 blosc bzip2 hdf5 lz4 lzo snappy zstd zlib pkgconfig
           init-shell: bash powershell
         if: runner.os == 'Windows'
 
