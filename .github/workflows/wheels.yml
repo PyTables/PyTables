@@ -162,7 +162,7 @@ jobs:
           python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD: '${{ matrix.build }}'
-          CIBW_ARCH: '${{ matrix.arch }}'
+          CIBW_ARCHS: '${{ matrix.arch }}'
 
       - name: Copy requirements.txt
         run: |
