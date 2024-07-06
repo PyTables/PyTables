@@ -295,6 +295,7 @@ def get_default_dirs(conda_prefix: Optional[Path] = None) -> DefaultDirs:
         if conda_prefix:
             runtime_dirs.append(conda_prefix / "Library")
             runtime_dirs.append(conda_prefix / "Library" / "bin")
+            runtime_dirs.append(conda_prefix / "Library" / "lib")
             header_dirs.append(conda_prefix / "Library" / "include")
         runtime_dirs.extend(
             Path(_path) for _path in os.environ["PATH"].split(";")
