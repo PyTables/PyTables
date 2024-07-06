@@ -121,10 +121,6 @@ jobs:
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-name: build
-          condarc: |
-            channels:
-              - defaults
-              - conda-forge
           create-args: >
             python=3.12 blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
           init-shell: bash powershell
