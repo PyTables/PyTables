@@ -117,14 +117,12 @@ jobs:
           python-version: '3.12'
         if: runner.os != 'Windows'
 
-      - name: Install Python and dependencies on Windows
+      - name: Install Python and conda on Windows
         uses: conda-incubator/setup-miniconda@v2
         with:
           channels: defaults,conda-forge
           use-only-tar-bz2: true
           python-version: '3.12'
-          environment-file: ci/github/environment.yml
-          activate-environment: build
         if: runner.os == 'Windows'
 
       - uses: docker/setup-qemu-action@v3
