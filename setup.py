@@ -642,10 +642,11 @@ if __name__ == "__main__":
     elif os.name == "nt":
         _Package = WindowsPackage
         _platdep = {  # package tag -> platform-dependent components
+            # Library name, runtime name
             "HDF5": ["hdf5", "hdf5"],
             "LZO2": ["lzo2", "lzo2"],
             "LZO": ["liblzo", "lzo1"],
-            "BZ2": ["bzip2", "bzip2"],
+            "BZ2": ["libbz2", "bzip2"],
             "BLOSC": ["blosc", "blosc"],
             "BLOSC2": ["blosc2", "blosc2"],
         }
