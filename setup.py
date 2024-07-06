@@ -834,10 +834,13 @@ if __name__ == "__main__":
             )
 
         if not (hdrdir and libdir):
+            err_msg = (
+                f"Could not find a local {package.name} installation headers "
+                f"({hdrdir=}) and/or libdir ({libdir=})"
             if package.tag in ["HDF5", "BLOSC2"]:  # these are compulsory!
                 pname, ptag = package.name, package.tag
                 exit_with_error(
-                    f"Could not find a local {pname} installation.",
+                    f"{err_msg}. ",
                     f"You may need to explicitly state where your local "
                     f"{pname} headers and library can be found by setting "
                     f"the ``{ptag}_DIR`` environment variable or by using "
@@ -845,15 +848,9 @@ if __name__ == "__main__":
                 )
             elif package.tag == "BLOSC":
                 # this is optional, but comes with sources
-                print(
-                    f"* Could not find {package.name} headers and library; "
-                    f"using internal sources."
-                )
+                print(f"* {err_msg}; using internal sources.")
             else:
-                print(
-                    f"* Could not find {package.name} headers and library; "
-                    f"disabling support for it."
-                )
+                print(f"* {err_msg}; disabling support for it.")
 
             continue  # look for the next library
 
