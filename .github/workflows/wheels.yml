@@ -112,9 +112,18 @@ jobs:
           submodules: true
 
       - uses: actions/setup-python@v5
-        name: Install Python
+        name: Install Python on Unix
         with:
           python-version: 3.x
+        if: runner.os != 'Windows'
+
+      - name: Install Python and dependencies on Windows
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-name: build
+          create-args: >
+            blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib
+        if: runner.os == 'Windows'
 
       - uses: docker/setup-qemu-action@v3
         if: runner.os == 'Linux' && matrix.arch != 'x64_64'
@@ -128,6 +137,7 @@ jobs:
           # It allows us to modify this file without having to constantly rebuild HDF5
           # (which takes almost an hour on Linux emulated aarch64).
           key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-0
+        if: runner.os != 'Windows'
 
       - name: Build dependencies
         env:
@@ -141,14 +151,6 @@ jobs:
           else
             HDF5_DIR=`pwd`/hdf5_build ci/github/get_hdf5.sh
           fi
-
-      - name: Install conda on Windows
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          environment-name: build
-          create-args: >
-            blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib
-        if: runner.os == 'Windows'
 
       - name: Install cibuildwheel
         run: |
