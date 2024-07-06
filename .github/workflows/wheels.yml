@@ -126,6 +126,11 @@ jobs:
           init-shell: bash powershell
         if: runner.os == 'Windows'
 
+      - name: Inspect installed libraries
+        run: ls -alR /C/Users/runneradmin/micromamba/envs/build/Library
+        shell: bash
+        if: runner.os == 'Windows'
+
       - uses: docker/setup-qemu-action@v3
         if: runner.os == 'Linux' && matrix.arch != 'x64_64'
         name: Set up QEMU on Linux
