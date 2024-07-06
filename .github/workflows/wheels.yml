@@ -111,14 +111,19 @@ jobs:
           path: hdf5_build
           key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-${{ hashFiles('**/wheels.yml') }}
 
-      - name: Build dependencies on Unix
+      - name: Build dependencies
         env:
           CFLAGS: -g0
           CIBW_ARCHS: ${{ matrix.arch }}
           HDF5_DIR: ${{ github.workspace }}/hdf5_build
+        if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
         run: |
-          ./ci/github/get_hdf5.sh
-        if: runner.os != 'Windows' && steps.deps-cache.outputs.cache-hit != 'true'
+          mkdir hdf5_build
+          if [[ ${{ runner.os }} = 'Linux' ]]; then
+            docker run --rm -e HDF5_DIR=/io/hdf5_build -e CFLAGS="$CFLAGS" -e HDF5_VERSION="$HDF5_VERSION" -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
+          else
+            HDF5_DIR=`pwd`/hdf5_build ci/github/get_hdf5.sh
+          fi
 
       - name: Install Miniconda on Windows
         uses: conda-incubator/setup-miniconda@v2
