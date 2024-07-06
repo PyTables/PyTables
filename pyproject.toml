@@ -190,9 +190,6 @@ before-build = [
     "python -m pip install delvewheel",
 ]
 repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
-before-all = [
-    "conda config --env --set subdir win-64",
-]
 
 [tool.cibuildwheel.windows.environment]
 PYTABLES_NO_EMBEDDED_LIBS = "true"
