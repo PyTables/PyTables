@@ -97,13 +97,13 @@ jobs:
           # The aarch64 wheels are very slow so split into separate jobs
           - os: ubuntu-latest
             arch: aarch64
-            build: 'cp3.10-*'
+            build: 'cp310-*'
           - os: ubuntu-latest
             arch: aarch64
-            build: 'cp3.11-*'
+            build: 'cp311-*'
           - os: ubuntu-latest
             arch: aarch64
-            build: 'cp3.12-*'
+            build: 'cp312-*'
 
     steps:
       - uses: actions/checkout@v4
@@ -123,6 +123,7 @@ jobs:
           environment-name: build
           create-args: >
             python=3.12 blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib
+          init-shell: bash powershell
         if: runner.os == 'Windows'
 
       - uses: docker/setup-qemu-action@v3
