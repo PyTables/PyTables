@@ -117,12 +117,13 @@ jobs:
           python-version: '3.12'
         if: runner.os != 'Windows'
 
-      - name: Install Python and conda on Windows
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Install Python and dependencies on Windows
+        uses: mamba-org/setup-micromamba@v1
         with:
-          channels: defaults,conda-forge
-          use-only-tar-bz2: true
-          python-version: '3.12'
+          environment-name: build
+          create-args: >
+            python=3.12 blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
+          init-shell: bash powershell
         if: runner.os == 'Windows'
 
       - uses: docker/setup-qemu-action@v3

@@ -190,15 +190,10 @@ before-build = [
     "python -m pip install delvewheel",
 ]
 repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
-before-all = [
-    "conda create --yes --name=build",
-    "conda activate build",
-    "conda config --env --set subdir win-64",
-    "conda install --yes blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib",
-]
 
 [tool.cibuildwheel.windows.environment]
 PYTABLES_NO_EMBEDDED_LIBS = "true"
 DISABLE_AVX2 = "TRUE"
-CONDA_PREFIX = 'C:\\Miniconda\\envs\\build'
-PATH = '$PATH;C:\\Miniconda\\envs\\build\\Library\\bin'
+CONDA_PREFIX = 'C:\Users\runneradmin\micromamba\envs\build'
+INCLUDE = '$INCLUDE;C:\Users\runneradmin\micromamba\envs\build\Library\include'
+PATH = '$PATH;C:\Users\runneradmin\micromamba\envs\build\Library\bin'
