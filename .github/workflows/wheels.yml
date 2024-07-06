@@ -116,7 +116,7 @@ jobs:
           CFLAGS: -g0
           CIBW_ARCHS: ${{ matrix.arch }}
           HDF5_DIR: ${{ github.workspace }}/hdf5_build
-        if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
+        if: runner.os != 'Windows' && steps.deps-cache.outputs.cache-hit != 'true'
         run: |
           mkdir hdf5_build
           if [[ ${{ runner.os }} = 'Linux' ]]; then
