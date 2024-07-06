@@ -103,7 +103,7 @@ jobs:
 
       - uses: docker/setup-qemu-action@v3
         if: runner.os == 'Linux' && matrix.arch != 'x64_64'
-        name: Set up QEMU
+        name: Set up QEMU on Linux
 
       - uses: actions/cache@v4
         id: deps-cache
@@ -111,16 +111,16 @@ jobs:
           path: hdf5_build
           key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-${{ hashFiles('**/wheels.yml') }}
 
-      - name: Build dependencies
+      - name: Build dependencies on Unix
         env:
           CFLAGS: -g0
           CIBW_ARCHS: ${{ matrix.arch }}
           HDF5_DIR: ${{ github.workspace }}/hdf5_build
         run: |
           ./ci/github/get_hdf5.sh
-        if: runner.os == 'macOS' && steps.deps-cache.outputs.cache-hit != 'true'
+        if: runner.os != 'Windows' && steps.deps-cache.outputs.cache-hit != 'true'
 
-      - name: Install Miniconda
+      - name: Install Miniconda on Windows
         uses: conda-incubator/setup-miniconda@v2
         with:
           channels: defaults,conda-forge
@@ -161,7 +161,9 @@ jobs:
         with:
           pattern: '*'
           merge-multiple: true
+          path: wheelhouse
 
+      - run: ls -al .
       - run: ls -alR ./wheelhouse/
       - run: rm ./wheelhouse/*.txt  # don't upload these
 
