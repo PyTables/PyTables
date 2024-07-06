@@ -122,7 +122,9 @@ jobs:
         with:
           channels: defaults,conda-forge
           use-only-tar-bz2: true
+          python-version: '3.12'
           environment-file: ci/github/environment.yml
+          activate-environment: build
         if: runner.os == 'Windows'
 
       - uses: docker/setup-qemu-action@v3
