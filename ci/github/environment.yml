@@ -1,0 +1,13 @@
+name: build
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - blosc
+  - bzip2
+  - hdf5
+  - lz4
+  - lzo
+  - snappy
+  - zstd
+  - zlib

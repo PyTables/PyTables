@@ -118,13 +118,11 @@ jobs:
         if: runner.os != 'Windows'
 
       - name: Install Python and dependencies on Windows
-        uses: mamba-org/setup-micromamba@v1
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          environment-name: build
-          create-args: >
-            python=3.12 blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
-          init-shell: bash powershell
-        if: runner.os == 'Windows'
+          channels: defaults,conda-forge
+          use-only-tar-bz2: true
+          environment-file: ci/github/environment.yml
 
       - uses: docker/setup-qemu-action@v3
         if: runner.os == 'Linux' && matrix.arch != 'x64_64'
