@@ -137,13 +137,15 @@ jobs:
           # Instead of a hashFiles('**/wheels.yml') appended here, just use a counter.
           # It allows us to modify this file without having to constantly rebuild HDF5
           # (which takes almost an hour on Linux emulated aarch64).
-          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-0
+          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-1
         if: runner.os != 'Windows'
 
       - name: Build dependencies
         env:
           CFLAGS: -g0
           HDF5_DIR: ${{ github.workspace }}/hdf5_build
+          HDF5_VERSION: 1.14.3
+          MACOSX_DEPLOYMENT_TARGET: "10.9"
         if: runner.os != 'Windows' && steps.deps-cache.outputs.cache-hit != 'true'
         run: |
           mkdir hdf5_build
