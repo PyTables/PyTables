@@ -69,7 +69,7 @@ jobs:
           name: dist
 
   build_wheels:
-    name: Build ${{ matrix.os }} ${{ matrix.build }} wheels for ${{ matrix.arch }}
+    name: Build ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.build }} wheels
     runs-on: ${{ matrix.os }}
     env:
       # Keep in sync with "Prerequisites" in User's Guide.
@@ -114,7 +114,7 @@ jobs:
       - uses: actions/setup-python@v5
         name: Install Python on Unix
         with:
-          python-version: 3.x
+          python-version: '3.12'
         if: runner.os != 'Windows'
 
       - name: Install Python and dependencies on Windows
@@ -122,7 +122,7 @@ jobs:
         with:
           environment-name: build
           create-args: >
-            blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib
+            python=3.12 blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib
         if: runner.os == 'Windows'
 
       - uses: docker/setup-qemu-action@v3
