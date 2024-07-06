@@ -121,13 +121,13 @@ jobs:
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-name: build
+          condarc: |
+            channels:
+              - defaults
+              - conda-forge
           create-args: >
             python=3.12 blosc bzip2 hdf5 lz4 lzo snappy zstd zlib
           init-shell: bash powershell
-        if: runner.os == 'Windows'
-
-      - run: ls -alR /C/Users/runneradmin/micromamba/envs/build/Library
-        shell: bash
         if: runner.os == 'Windows'
 
       - uses: docker/setup-qemu-action@v3
