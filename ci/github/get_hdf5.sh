@@ -30,8 +30,6 @@ echo "building HDF5"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install automake cmake pkg-config
 
-    CMAKE_ARCHES="$CIBW_ARCHS"
-    ARCH_ARGS="-arch $CIBW_ARCHS"
     NPROC=$(sysctl -n hw.ncpu)
     pushd /tmp
 
@@ -41,7 +39,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     pushd lzo-$LZO_VERSION
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on ../
     make
     make install
     popd
@@ -51,15 +49,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     tar xzf zstd-$ZSTD_VERSION.tar.gz
     pushd zstd-$ZSTD_VERSION
     cd build/cmake
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES"
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on
     make
     make install
     popd
 
     CFLAGS_ORIG="$CFLAGS"
-    export CFLAGS="$CFLAGS $ARCH_ARGS"
-    export CPPFLAGS="$CPPFLAGS $ARCH_ARGS"
-    export CXXFLAGS="$CXXFLAGS $ARCH_ARGS"
     export CC="/usr/bin/clang"
     export CXX="/usr/bin/clang"
     export cc=$CC

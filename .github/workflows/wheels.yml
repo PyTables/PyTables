@@ -69,26 +69,41 @@ jobs:
           name: dist
 
   build_wheels:
-    name: Build ${{ matrix.os }} wheels for ${{ matrix.arch }}
+    name: Build ${{ matrix.os }} ${{ matrix.build }} wheels for ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
     env:
       # Keep in sync with "Prerequisites" in User's Guide.
       HDF5_VERSION: 1.14.3  # H5Dchunk_iter needs at least 1.14.1
       MACOSX_DEPLOYMENT_TARGET: "10.9"
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             arch: x86_64
+            build: 'cp*'
           - os: ubuntu-latest
             arch: aarch64
+            build: 'cp*'
           - os: macos-13
             arch: x86_64
+            build: 'cp*'
           - os: macos-14
             arch: arm64
+            build: 'cp*'
           - os: windows-latest
             arch: AMD64
+            build: 'cp*'
+          # The aarch64 wheels are very slow so split into separate jobs
+          - os: ubuntu-latest
+            arch: aarch64
+            build: 'cp3.10-*'
+          - os: ubuntu-latest
+            arch: aarch64
+            build: 'cp3.11-*'
+          - os: ubuntu-latest
+            arch: aarch64
+            build: 'cp3.12-*'
 
     steps:
       - uses: actions/checkout@v4
@@ -109,36 +124,42 @@ jobs:
         id: deps-cache
         with:
           path: hdf5_build
-          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-${{ hashFiles('**/wheels.yml') }}
+          # Instead of a hashFiles('**/wheels.yml') appended here, just use a counter.
+          # It allows us to modify this file without having to constantly rebuild HDF5
+          # (which takes almost an hour on Linux emulated aarch64).
+          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-0
 
       - name: Build dependencies
         env:
           CFLAGS: -g0
-          CIBW_ARCHS: ${{ matrix.arch }}
           HDF5_DIR: ${{ github.workspace }}/hdf5_build
         if: runner.os != 'Windows' && steps.deps-cache.outputs.cache-hit != 'true'
         run: |
           mkdir hdf5_build
-          if [[ ${{ runner.os }} = 'Linux' ]]; then
+          if [[ "${{ runner.os }}" = 'Linux' ]]; then
             docker run --rm -e HDF5_DIR=/io/hdf5_build -e CFLAGS="$CFLAGS" -e HDF5_VERSION="$HDF5_VERSION" -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
           else
             HDF5_DIR=`pwd`/hdf5_build ci/github/get_hdf5.sh
           fi
 
-      - name: Install Miniconda on Windows
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Install conda on Windows
+        uses: mamba-org/setup-micromamba@v1
         with:
-          channels: defaults,conda-forge
-          use-only-tar-bz2: true
+          environment-name: build
+          create-args: >
+            blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib
         if: runner.os == 'Windows'
 
       - name: Install cibuildwheel
         run: |
           python -m pip install --require-hashes -r ./.github/workflows/requirements/wheels-requirements.txt
 
-      - name: Build wheels for ${{ matrix.os }} (${{ matrix.arch }})
+      - name: Build ${{ matrix.build }} wheels
         run: |
-          python -m cibuildwheel --output-dir wheelhouse --archs ${{ matrix.arch }}
+          python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: '${{ matrix.build }}'
+          CIBW_ARCH: '${{ matrix.arch }}'
 
       - name: Copy requirements.txt
         run: |

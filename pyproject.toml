@@ -140,7 +140,7 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 skip = "*-musllinux_*"
 build = "cp*"
 # TODO: Increase to 3
-build-verbosity = 2
+build-verbosity = 1
 test-command = "python -m tables.tests.test_all"
 test-skip = "*_aarch64"
 # Keep in sync with ``build-system.requires`` above
@@ -149,7 +149,6 @@ before-build = "python -m pip install -q --require-hashes -r .github/workflows/r
 [tool.cibuildwheel.environment]
 DISABLE_AVX2 = "true"
 CFLAGS = "-g0"
-HDF5_DIR = "/tmp/hdf5"
 LD_LIBRARY_PATH = "/tmp/hdf5/lib:${LD_LIBRARY_PATH}"
 PKG_CONFIG_PATH = "/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
@@ -163,6 +162,9 @@ before-all = [
     "yum -y update",
     "yum install -y zlib-devel bzip2-devel lzo-devel",
 ]
+
+[tool.cibuildwheel.linux.environment]
+HDF5_DIR = "/tmp/hdf5"
 
 [tool.cibuildwheel.macos]
 before-all = [
@@ -178,13 +180,9 @@ CC = "/usr/bin/clang"
 CXX = "/usr/bin/clang"
 LZO_DIR = "/tmp/hdf5"
 BZIP2_DIR = "/tmp/hdf5"
+HDF5_DIR = "/tmp/hdf5"
 
 [tool.cibuildwheel.windows]
-before-all = [
-    "conda create --yes --name=build",
-    "conda activate build",
-    "conda install --yes blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib",
-]
 before-build = [
     "python -m pip install -q --require-hashes -r requirements.txt",
     "python -m pip install delvewheel",
@@ -192,6 +190,6 @@ before-build = [
 repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
 
 [tool.cibuildwheel.windows.environment]
-CONDA_PREFIX = 'C:\Miniconda\\envs\\build'
-PATH = '$PATH;C:\Miniconda\envs\build\Library\bin'
+CONDA_PREFIX = 'C:\Users\runneradmin\micromamba\envs\build'
+PATH = '$PATH;C:\Users\runneradmin\micromamba\envs\build\Library\bin'
 PYTABLES_NO_EMBEDDED_LIBS = "true"
