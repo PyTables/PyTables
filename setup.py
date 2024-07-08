@@ -43,7 +43,6 @@ def exit_with_error(head, body=""):
 def print_warning(head, body=""):
     _print_admonition("warning", head, body)
 
-
 # Get the HDF5 version provided the 'H5public.h' header
 def get_hdf5_version(headername):
     major, minor, release = None, None, None
@@ -457,12 +456,25 @@ class BasePackage:
 
         directories = [None, None, None]  # headers, libraries, runtime
         for idx, (name, find_path, default_dirs) in enumerate(dirdata):
-            path = find_path(
+            use_locations = (
                 locations
                 or pkgconfig_dirs[idx]
                 or hook_dirs[idx]
                 or default_dirs
             )
+            # pkgconfig does not list bin/ as the runtime dir
+            if (
+                name == "blosc"  # blosc
+                and CONDA_PREFIX  # conda
+                and sys.platform.startswith("win")  # windows
+                and idx == 2  # runtime
+                and len(use_locations) == 1  # only one location
+                and use_locations[0].parts[-1] == "lib"  # misnamed
+            ):
+                use_locations = list(use_locations)
+                use_locations[0] = use_locations[0].parent / "bin"
+                print(f"Patching runtime dir: {str(use_locations[0])}")
+            path = find_path(use_locations)
             if path:
                 if path is True:
                     directories[idx] = True
@@ -624,7 +636,7 @@ if __name__ == "__main__":
 
     # Gcc 4.0.1 on Mac OS X 10.4 does not seem to include the default
     # header and library paths.  See ticket #18.
-    if sys.platform.lower().startswith("darwin"):
+    if sys.platform.lower().startswith("darwin") or CONDA_PREFIX:
         inc_dirs.extend(default_dirs.header)
         lib_dirs.extend(default_dirs.library)
 
@@ -831,6 +843,8 @@ if __name__ == "__main__":
                 package.target_function,
                 includes=(package.header_name + ".h",),
                 libraries=(package.library_name,),
+                include_dirs=[str(d) for d in inc_dirs],
+                library_dirs=[str(d) for d in lib_dirs],
             )
 
         if not (hdrdir and libdir):
@@ -937,7 +951,7 @@ if __name__ == "__main__":
 
                 else:
                     copy_libs += ["libblosc2.dll"]
-                    dll_dir = "C:\\Miniconda\\envs\\build\\Library\\bin"
+                    dll_dir = f"{CONDA_PREFIX}\\Library\\bin"
                     # Copy dlls when producing the wheels in CI
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
                         shutil.copy(
