@@ -139,16 +139,13 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 [tool.cibuildwheel]
 skip = "*-musllinux_*"
 build = "cp*"
-# TODO: Increase to 3
-build-verbosity = 1
+build-verbosity = 3
 test-command = "python -m tables.tests.test_all"
 test-skip = "*_aarch64"
 # Keep in sync with ``build-system.requires`` above
 before-build = "python -m pip install -q --require-hashes -r .github/workflows/requirements/build-requirements.txt -r requirements.txt"
 
 [tool.cibuildwheel.linux]
-manylinux-x86_64-image = "quay.io/pypa/manylinux2014_x86_64:latest"
-manylinux-aarch64-image = "quay.io/pypa/manylinux2014_aarch64:latest"
 before-all = [
     "cp -r `pwd`/hdf5_build /tmp/hdf5",
     "rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux",
