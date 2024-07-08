@@ -192,10 +192,8 @@ jobs:
           merge-multiple: true
           path: wheelhouse
 
-      - run: ls -al .
-      - run: ls -alR ./wheelhouse/
-      - run: rm *.txt *.rst  # don't upload these or twine-check them
-        working-directory: ./wheelhouse/
+      - name: List downloaded artifacts
+        run: ls -alR ./wheelhouse/
 
       - name: Install Python
         uses: actions/setup-python@v5
@@ -208,11 +206,12 @@ jobs:
 
       - name: Check sdist and wheels
         run: |
-          python -m twine check wheelhouse/*
+          python -m twine check *.whl tables-*.tar.gz
+        working-directory: wheelhouse
 
       - name: Upload wheel
         uses: scientific-python/upload-nightly-action@b67d7fcc0396e1128a474d1ab2b48aa94680f9fc # 0.5.0
         if: github.repository == 'PyTables/PyTables' && github.event_name == 'schedule'
         with:
-          artifacts_path: wheelhouse/artifact
+          artifacts_path: wheelhouse
           anaconda_nightly_upload_token: ${{secrets.ANACONDA_ORG_UPLOAD_TOKEN}}
