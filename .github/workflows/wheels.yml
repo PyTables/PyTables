@@ -9,14 +9,15 @@ on:
   push:
     branches:
       - master
-      - tables  # TODO: REMOVE
       - 'releases/**'
       - 'ci/**'
     tags:
       - v*
   pull_request:
     branches:
-      - '*'
+      - master
+      - 'releases/**'
+      - 'ci/**'
   release:
     types:
       - published
