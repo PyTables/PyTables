@@ -194,7 +194,8 @@ jobs:
 
       - run: ls -al .
       - run: ls -alR ./wheelhouse/
-      - run: rm ./wheelhouse/*.txt  # don't upload these
+      - run: rm *.txt *.rst  # don't upload these or twine-check them
+        working-directory: ./wheelhouse/
 
       - name: Install Python
         uses: actions/setup-python@v5

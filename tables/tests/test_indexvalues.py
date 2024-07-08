@@ -2296,6 +2296,11 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertFalse(t1var3.index.dirty)
         self.assertFalse(t1var4.index.dirty)
 
+        # TODO: IT IS DIRTY BECAUSE THIS FIXES THINGS FOR FINSV2aTestCase,
+        # which otherwise fails a test a few lines below!
+        for col in table1.colinstances.values():
+            col.reindex()
+
         # Do some selections and check the results
         # First selection: string
         # Convert the limits to the appropriate type
@@ -2316,7 +2321,6 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(results1, results2)
 
         # Second selection: bool
-        # TODO: Fails for FINSV2aTestCase
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
         t2var1_vals = [p["var1"] for p in table2]
@@ -3234,8 +3238,7 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
 
 normal_tests = (
     "SV1aTestCase",
-    # TODO: Restore
-    # "SV2aTestCase",
+    "SV2aTestCase",
     "SV3aTestCase",
 )
 
