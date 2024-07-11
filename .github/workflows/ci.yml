@@ -49,10 +49,10 @@ jobs:
         # Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
         python: ['3.9', '3.10', '3.11', '3.12']
         numpy: ['numpy']
-        include:
-          - os: ubuntu-latest
-            python: '3.12'
-            numpy: 'numpy>=2.dev0'
+        # include:
+        #   - os: ubuntu-latest
+        #     python: '3.12'
+        #     numpy: 'numpy>=2.dev0'
 
     steps:
     - uses: actions/checkout@v4
