@@ -1,7 +1,7 @@
 #!/bin/bash
 # inspired by https://github.com/h5py/h5py/blob/master/ci/get_hdf5_if_needed.sh
 
-set -e -x
+set -xeo pipefail
 
 PROJECT_DIR="$(pwd)"
 EXTRA_MPI_FLAGS=''
@@ -14,6 +14,7 @@ else
     EXTRA_MPI_FLAGS="--enable-parallel --enable-shared"
 fi
 
+mkdir -p $HDF5_DIR
 export LD_LIBRARY_PATH="$HDF5_DIR/lib:${LD_LIBRARY_PATH}"
 export PKG_CONFIG_PATH="$HDF5_DIR/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
@@ -29,8 +30,6 @@ echo "building HDF5"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     brew install automake cmake pkg-config
 
-    CMAKE_ARCHES="$CIBW_ARCHS"
-    ARCH_ARGS="-arch $CIBW_ARCHS"
     NPROC=$(sysctl -n hw.ncpu)
     pushd /tmp
 
@@ -40,7 +39,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     pushd lzo-$LZO_VERSION
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES" ../
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on ../
     make
     make install
     popd
@@ -50,15 +49,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     tar xzf zstd-$ZSTD_VERSION.tar.gz
     pushd zstd-$ZSTD_VERSION
     cd build/cmake
-    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on -DCMAKE_OSX_ARCHITECTURES="$CMAKE_ARCHES"
+    cmake -DCMAKE_INSTALL_PREFIX="$HDF5_DIR" -DENABLE_SHARED:bool=on
     make
     make install
     popd
 
     CFLAGS_ORIG="$CFLAGS"
-    export CFLAGS="$CFLAGS $ARCH_ARGS"
-    export CPPFLAGS="$CPPFLAGS $ARCH_ARGS"
-    export CXXFLAGS="$CXXFLAGS $ARCH_ARGS"
     export CC="/usr/bin/clang"
     export CXX="/usr/bin/clang"
     export cc=$CC
@@ -106,25 +102,15 @@ fi
 
 pushd /tmp
 
+#                                   Remove trailing .*, to get e.g. '1.12' ↓
+curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/src/hdf5-${HDF5_VERSION}.tar.gz"
+tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
+pushd "hdf5-$HDF5_VERSION"
+./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
+make -j "$NPROC"
+make install
 
-if [[ "$OSTYPE" == "darwin"* && "$CIBW_ARCHS" = "arm64"  ]]; then  # use binary build on macOS ARM64
-    curl -fsSLO "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/bin/unix/hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
-    tar -xzvf "hdf5-${HDF5_VERSION}-Std-macos11m1_64-clang.tar.gz"
-    sh "hdf/HDF5-${HDF5_VERSION}-Darwin.sh" --skip-license --prefix=$HDF5_DIR --exclude-subdir
-    pushd "${HDF5_DIR}"
-    cp -R "HDF_Group/HDF5/${HDF5_VERSION%-*}/" .  # move to correct location
-    rm -rf HDF_Group
-else
-    #                                   Remove trailing .*, to get e.g. '1.12' ↓
-    curl -fsSLO "https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION%-*}/src/hdf5-${HDF5_VERSION}.tar.gz"
-    tar -xzvf "hdf5-$HDF5_VERSION.tar.gz"
-    pushd "hdf5-$HDF5_VERSION"
-    ./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
-    make -j "$NPROC"
-    make install
-
-    file "$HDF5_DIR"/lib/*
-fi
+file "$HDF5_DIR"/lib/*
 
 popd
 popd
