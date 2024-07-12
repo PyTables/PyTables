@@ -5,10 +5,10 @@
 requires = [
     "setuptools >= 61.0.0",
     "wheel",
-    "numpy < 2",
+    "numpy >= 1.20.0",
     "packaging",
     "py-cpuinfo",
-    "Cython >=3.0.10",
+    "Cython >=0.29.32",
     # Included here for seamless wheel builds.
     # Packagers can choose to replace it by externally provided
     # c-blosc2 library and headers
