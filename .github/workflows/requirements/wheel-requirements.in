@@ -1,4 +1,0 @@
-cibuildwheel
-twine
-# deps not resolved
-pywin32-ctypes>=0.2.0

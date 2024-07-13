@@ -1,5 +1,9 @@
 name: Wheels
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}
+  cancel-in-progress: true
+
 # Publish when a (published) GitHub Release is created.
 on:
   push:
@@ -17,6 +21,11 @@ on:
   release:
     types:
       - published
+  # TODO:
+  # The scheduled version of this job should really download and install NumPy
+  # from scientific-python-nightly-wheels
+  schedule:
+    - cron:  '12 13 * * 0'
 
 permissions:
   contents: read
@@ -26,12 +35,12 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5.1.1
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: 3.x
@@ -52,185 +61,157 @@ jobs:
           # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
           python -m pip install --require-hashes -r ./.github/workflows/requirements/optional-requirements.txt
 
-      - name: Build sdist
+      - name: Build dist (sdist and docs)
         run: make PYTHON=python dist
 
-      - uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+      - uses: actions/upload-artifact@v4
         with:
           path: dist/*
+          name: dist
 
   build_wheels:
-    name: Build ${{ matrix.os }} wheels for ${{ matrix.arch }}
+    name: Build ${{ matrix.os }} ${{ matrix.arch }} ${{ matrix.build }} wheels
     runs-on: ${{ matrix.os }}
     env:
       # Keep in sync with "Prerequisites" in User's Guide.
       HDF5_VERSION: 1.14.3  # H5Dchunk_iter needs at least 1.14.1
       MACOSX_DEPLOYMENT_TARGET: "10.9"
-      # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
-      # Skip 3.6, 3.7 and 3.8 wheels
-      CIBW_SKIP: "*-musllinux_* cp36-* cp37-* cp38-* cp39-*"
-      CIBW_BUILD: "cp*"
     strategy:
+      fail-fast: false
       matrix:
-        # Please note that some architectures are not tested,
-        # see "Build wheels" and ``CIBW_TEST_SKIP`` below.
-        os: [ 'ubuntu-latest' ]
-        arch: [ 'x86_64',  'aarch64' ]
         include:
+          - os: ubuntu-latest
+            arch: x86_64
+            build: 'cp*'
           - os: macos-13
             arch: x86_64
+            build: 'cp*'
           - os: macos-14
             arch: arm64
+            build: 'cp*'
+          - os: windows-latest
+            arch: AMD64
+            build: 'cp*'
+          # The aarch64 wheels are very slow so split into separate jobs
+          - os: ubuntu-latest
+            arch: aarch64
+            build: 'cp310-*'
+          - os: ubuntu-latest
+            arch: aarch64
+            build: 'cp311-*'
+          - os: ubuntu-latest
+            arch: aarch64
+            build: 'cp312-*'
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5.1.1
-        name: Install Python
+      - uses: actions/setup-python@v5
+        name: Install Python on Unix
         with:
-          python-version: 3.x
+          python-version: '3.12'
+        if: runner.os != 'Windows'
 
-      - uses: docker/setup-qemu-action@5927c834f5b4fdf503fca6f4c7eccda82949e1ee # v3.1.0
-        if: runner.os == 'Linux'
-        name: Set up QEMU
+      - name: Install Python and dependencies on Windows
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-name: build
+          create-args: >
+            python=3.12 blosc bzip2 hdf5 lz4 lzo snappy zstd zlib pkgconfig
+          init-shell: bash powershell
+        if: runner.os == 'Windows'
 
-      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      - uses: docker/setup-qemu-action@v3
+        if: runner.os == 'Linux' && matrix.arch != 'x64_64'
+        name: Set up QEMU on Linux
+
+      - uses: actions/cache@v4
         id: deps-cache
         with:
           path: hdf5_build
-          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-${{ hashFiles('**/wheels.yml') }}
+          # Instead of a hashFiles('**/wheels.yml') appended here, just use a counter.
+          # It allows us to modify this file without having to constantly rebuild HDF5
+          # (which takes almost an hour on Linux emulated aarch64).
+          key: ${{ runner.os }}-${{ matrix.arch }}-deps-cache-${{ hashFiles('**/get_hdf5.sh') }}-${{ env.HDF5_VERSION }}-1
+        if: runner.os != 'Windows'
 
       - name: Build dependencies
         env:
           CFLAGS: -g0
-          CIBW_ARCHS: ${{ matrix.arch }}
-        if: ${{ steps.deps-cache.outputs.cache-hit != 'true' }}
+          HDF5_DIR: ${{ github.workspace }}/hdf5_build
+          HDF5_VERSION: 1.14.3
+          MACOSX_DEPLOYMENT_TARGET: "10.9"
+        if: runner.os != 'Windows' && steps.deps-cache.outputs.cache-hit != 'true'
         run: |
           mkdir hdf5_build
-          if [[ ${{ runner.os }} = 'Linux' ]]; then
-            docker run --rm -eMACOSX_DEPLOYMENT_TARGET=${{ env.MACOSX_DEPLOYMENT_TARGET }} -e HDF5_DIR=/io/hdf5_build -e CFLAGS=-g0 -e HDF5_VERSION=${{ env.HDF5_VERSION }} -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
+          if [[ "${{ runner.os }}" = 'Linux' ]]; then
+            docker run --rm -e HDF5_DIR=/io/hdf5_build -e CFLAGS="$CFLAGS" -e HDF5_VERSION="$HDF5_VERSION" -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${{ matrix.arch }} /io/ci/github/get_hdf5.sh
           else
             HDF5_DIR=`pwd`/hdf5_build ci/github/get_hdf5.sh
           fi
 
       - name: Install cibuildwheel
         run: |
-          python -m pip install --require-hashes -r ./.github/workflows/requirements/wheel-requirements.txt
+          python -m pip install --require-hashes -r ./.github/workflows/requirements/wheels-requirements.txt
 
-      - name: Build wheels
+      - name: Build ${{ matrix.build }} wheels
         run: |
           python -m cibuildwheel --output-dir wheelhouse
         env:
-          CFLAGS: -g0
-          CIBW_BUILD_VERBOSITY_MACOS: 3
-          CIBW_ARCHS: ${{ matrix.arch }}
-          # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
-          CIBW_BEFORE_BUILD: >
-            python -m pip install -U --require-hashes -r ./.github/workflows/requirements/build-requirements.txt &&
-            python -m pip install --require-hashes -r requirements.txt
-          CIBW_ENVIRONMENT: DISABLE_AVX2='TRUE' CFLAGS=-g0 HDF5_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
-          CIBW_ENVIRONMENT_MACOS: CC=/usr/bin/clang CXX=/usr/bin/clang HDF5_DIR=/tmp/hdf5 LZO_DIR=/tmp/hdf5 BZIP2_DIR=/tmp/hdf5 LD_LIBRARY_PATH="/tmp/hdf5/lib:${LD_LIBRARY_PATH}" PKG_CONFIG_PATH="/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
-          CIBW_BEFORE_ALL_MACOS: cp -r `pwd`/hdf5_build /tmp/hdf5
-          # Keep in sync with "Prerequisites" in User's Guide.
-          CIBW_BEFORE_ALL_LINUX: >
-            cp -r `pwd`/hdf5_build /tmp/hdf5 &&
-            yum -y update &&
-            yum install -y zlib-devel bzip2-devel lzo-devel
-          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-            DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-listdeps {wheel} &&
-            DYLD_FALLBACK_LIBRARY_PATH=/tmp/hdf5/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
-          CIBW_TEST_COMMAND: "python -m tables.tests.test_all"
-          CIBW_TEST_SKIP: "*_aarch64 *_arm64"
+          CIBW_BUILD: '${{ matrix.build }}'
+          CIBW_ARCHS: '${{ matrix.arch }}'
 
       - name: Copy requirements.txt
         run: |
           cp requirements.txt ./wheelhouse/
 
-      - uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
+      - uses: actions/upload-artifact@v4
         with:
           path: |
             ./wheelhouse/*.whl
             ./wheelhouse/*.txt
-
-  build_wheels_windows:
-    name: Build wheels for ${{matrix.arch}} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest]
-        arch: [win_amd64]
-
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        with:
-          fetch-depth: 0
-          submodules: true
-
-      - uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5.1.1
-        name: Install Python
-        with:
-          python-version: 3.x
-
-      - name: Install Miniconda
-        uses: conda-incubator/setup-miniconda@3b0f2504dd76ef23b6d31f291f4913fb60ab5ff3 # v2.2.0
-        with:
-          channels: defaults,conda-forge
-          use-only-tar-bz2: true
-
-      - name: Install cibuildwheel
-        run: |
-          python -m pip install --require-hashes -r ./.github/workflows/requirements/wheel-requirements.txt
-
-      - name: Build wheels for Windows (${{ matrix.arch }})
-        run: cibuildwheel --output-dir wheelhouse
-        env:
-          # Keep Python in sync with ``project.classifiers`` in ``pyproject.toml``.
-          CIBW_BUILD: "cp39-${{ matrix.arch }} cp310-${{ matrix.arch }} cp311-${{ matrix.arch }} cp312-${{ matrix.arch }}"
-          # Keep in sync with "Prerequisites" in User's Guide.
-          CIBW_BEFORE_ALL_WINDOWS: >
-            conda create --yes --name=build &&
-            conda activate build &&
-            conda config --env --set subdir ${{ matrix.arch == 'win32' && 'win-32' || 'win-64' }} &&
-            conda install --yes blosc bzip2 cython hdf5 lz4 lzo snappy zstd zlib
-          CIBW_ENVIRONMENT_WINDOWS: 'CONDA_PREFIX="C:\\Miniconda\\envs\\build" PATH="$PATH;C:\\Miniconda\\envs\\build\\Library\\bin"'
-          CIBW_ENVIRONMENT: "PYTABLES_NO_EMBEDDED_LIBS=true DISABLE_AVX2=true"
-          CIBW_BEFORE_BUILD: >
-            python -m pip install --require-hashes -r requirements.txt &&
-            python -m pip install delvewheel
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
-          CIBW_TEST_COMMAND: "python -m tables.tests.test_all"
-
-      - uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
-        with:
-          path: ./wheelhouse/*.whl
+          name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}-${{ strategy.job-index }}
 
   twine_check:
-    needs: [ build_sdist, build_wheels, build_wheels_windows ]
+    needs: [ build_sdist, build_wheels ]
     name: Twine check
     runs-on: 'ubuntu-latest'
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+      - uses: actions/download-artifact@v4
         with:
-          path: ./wheelhouse/
+          pattern: '*'
+          merge-multiple: true
+          path: wheelhouse
+
+      - name: List downloaded artifacts
+        run: ls -alR ./wheelhouse/
 
       - name: Install Python
-        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5.1.1
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Install twine
         run: |
-          python -m pip install --require-hashes -r ./.github/workflows/requirements/wheel-requirements.txt
+          python -m pip install --require-hashes -r ./.github/workflows/requirements/wheels-requirements.txt
 
       - name: Check sdist and wheels
         run: |
-          python -m twine check wheelhouse/artifact/tables*.tar.gz wheelhouse/artifact/*.whl
+          python -m twine check *.whl tables-*.tar.gz
+        working-directory: wheelhouse
+
+      - name: Upload wheel
+        uses: scientific-python/upload-nightly-action@b67d7fcc0396e1128a474d1ab2b48aa94680f9fc # 0.5.0
+        if: github.repository == 'PyTables/PyTables' && github.event_name == 'schedule'
+        with:
+          artifacts_path: wheelhouse
+          anaconda_nightly_upload_token: ${{secrets.ANACONDA_ORG_UPLOAD_TOKEN}}
