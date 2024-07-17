@@ -3,16 +3,16 @@
 # "Prerequisites" in User's Guide,
 # build jobs in `.github/workflows/*.yml`.
 requires = [
-    "setuptools >=61.0.0",  # "meson-python",  # and replace ``build-backend`` below
+    "setuptools >= 61.0.0",
     "wheel",
-    "oldest-supported-numpy",
+    "numpy < 2",
     "packaging",
     "py-cpuinfo",
-    "Cython >=0.29.32",
+    "Cython >=3.0.10",
     # Included here for seamless wheel builds.
     # Packagers can choose to replace it by externally provided
     # c-blosc2 library and headers
-    "blosc2 >=2.3.0",
+    "blosc2 >= 2.3.0",
     "typing-extensions >= 4.4.0",
 ]
 build-backend = "setuptools.build_meta"
@@ -26,7 +26,7 @@ description = "Hierarchical datasets for Python"
 # Keep Python versions in sync with
 # `classifiers` below,
 # `min_python_version` in `setup.py`.
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "BSD 3-Clause License" }
 keywords = [ "hdf5" ]
 authors = [
@@ -57,7 +57,6 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -69,7 +68,7 @@ classifiers = [
 # ``requirements.txt``,
 # `jobs.build.steps` in `.github/workflows/ubuntu.yml`.
 dependencies = [
-    "numpy >= 1.20.0",
+    "numpy >= 1.20.0, <2",
     "numexpr >= 2.6.2",
     "packaging",
     "py-cpuinfo",
@@ -136,3 +135,58 @@ namespaces = false
 tables = [ "*.dll", "*.so*", "*.dylib" ]
 "tables.tests" = [ "*.h5", "*.mat" ]
 "tables.nodes.tests" = [ "*.dat", "*.xbm", "*.h5" ]
+
+[tool.cibuildwheel]
+skip = "*-musllinux_*"
+build = "cp*"
+build-verbosity = 3
+test-command = "python -m tables.tests.test_all"
+test-skip = "*_aarch64"
+# Keep in sync with ``build-system.requires`` above
+before-build = "python -m pip install -q --require-hashes -r .github/workflows/requirements/build-requirements.txt -r requirements.txt"
+
+[tool.cibuildwheel.linux]
+before-all = [
+    "cp -r `pwd`/hdf5_build /tmp/hdf5",
+    "rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux",
+    "yum -y install epel-release",
+    "yum -y update",
+    "yum install -y zlib-devel bzip2-devel lzo-devel",
+]
+
+[tool.cibuildwheel.linux.environment]
+HDF5_DIR = "/tmp/hdf5"
+DISABLE_AVX2 = "true"
+CFLAGS = "-g0"
+LD_LIBRARY_PATH = "/tmp/hdf5/lib:${LD_LIBRARY_PATH}"
+PKG_CONFIG_PATH = "/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+
+[tool.cibuildwheel.macos]
+before-all = [
+    "cp -r `pwd`/hdf5_build /tmp/hdf5",
+]
+repair-wheel-command = [
+    "DYLD_LIBRARY_PATH=/tmp/hdf5/lib delocate-listdeps {wheel}",
+    "DYLD_LIBRARY_PATH=/tmp/hdf5/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}",
+]
+
+[tool.cibuildwheel.macos.environment]
+CC = "/usr/bin/clang"
+CXX = "/usr/bin/clang"
+LZO_DIR = "/tmp/hdf5"
+BZIP2_DIR = "/tmp/hdf5"
+HDF5_DIR = "/tmp/hdf5"
+DISABLE_AVX2 = "true"
+CFLAGS = "-g0"
+LD_LIBRARY_PATH = "/tmp/hdf5/lib:${LD_LIBRARY_PATH}"
+PKG_CONFIG_PATH = "/tmp/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
+
+[tool.cibuildwheel.windows]
+before-build = [
+    "python -m pip install -q --require-hashes -r requirements.txt",
+    "python -m pip install delvewheel",
+]
+repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
+
+[tool.cibuildwheel.windows.environment]
+DISABLE_AVX2 = "TRUE"

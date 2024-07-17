@@ -1,8 +1,9 @@
 # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
 setuptools>=61.0.0
-pip
+pip>=24.0.0
+tomli>=1.1.0
 wheel
 build
-cython
+cython>=3.0.10
 # deps not resolved
 importlib-metadata>=4.6

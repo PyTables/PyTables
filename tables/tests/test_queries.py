@@ -1243,8 +1243,7 @@ def suite():
             for cdata in cdatafunc():
                 class_ = eval(cdata[0])
                 if heavy or not class_.heavy:
-                    suite_ = common.make_suite(class_,
-                                                       prefix=autoprefix)
+                    suite_ = common.make_suite(class_, prefix=autoprefix)
                     testSuite.addTest(suite_)
         # Tests on query usage.
         testSuite.addTest(common.make_suite(ScalarTableUsageTestCase))

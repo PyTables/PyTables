@@ -841,10 +841,11 @@ class Array(hdf5extension.Array, Leaf):
         self._g_write_selection(selection, nparr)
 
     def _read(self,
-              start: int,
-              stop: int,
-              step: int,
-              out: Optional[np.ndarray] = None) -> np.ndarray:
+        start: int,
+        stop: int,
+        step: int,
+        out: Optional[np.ndarray] = None,
+    ) -> np.ndarray:
         """Read the array from disk without slice or flavor processing."""
 
         nrowstoread = len(range(start, stop, step))
@@ -874,10 +875,11 @@ class Array(hdf5extension.Array, Leaf):
         return arr
 
     def read(self,
-             start: Optional[int] = None,
-             stop: Optional[int] = None,
-             step: Optional[int] = None,
-             out: Optional[np.ndarray] = None) -> np.ndarray:
+        start: Optional[int] = None,
+        stop: Optional[int] = None,
+        step: Optional[int] = None,
+        out: Optional[np.ndarray] = None,
+    ) -> np.ndarray:
         """Get data in the array as an object of the current flavor.
 
         The start, stop and step parameters can be used to select only a
