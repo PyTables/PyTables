@@ -31,8 +31,6 @@ NPByteArray = np.ndarray[tuple[int], np.dtype[np.uint8]]
 # ``Buffer`` requires Python >= 3.12.
 BufferLike = Union[bytes, bytearray, memoryview, NPByteArray]
 
-CoordsArray = np.ndarray[tuple[int], np.dtype[SizeType]]
-
 
 def read_cached_cpu_info() -> dict[str, Any]:
     try:
@@ -700,8 +698,8 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise IndexError(f"Chunk coordinates not within dataset shape: "
                              f"{coords} <> {self.shape}")
 
-    def _check_chunk_coords(self, coords: CoordsArray) -> None:
-        if (coords % self.chunkshape).any():
+    def _check_chunk_coords(self, coords: tuple[int, ...]) -> None:
+        if any(c % cs for (c, cs) in zip(coords, self.chunkshape)):
             raise NotChunkAlignedError(
                 f"Coordinates are not multiples of chunk shape: "
                 f"{tuple(coords)} !* {self.chunkshape}")
@@ -920,12 +918,12 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
         self._check_chunked()
         self._check_chunk_within(coords)
-
-        coords = np.array(coords, dtype=SizeType)
         self._check_chunk_coords(coords)
+
         if out is not None:
             out = np.ndarray((len(out),), dtype='u1', buffer=out)
 
+        coords = np.array(coords, dtype=SizeType)
         chunk = self._g_read_chunk(coords, out)
         if chunk is None:
             raise NoSuchChunkError(f"Can't read missing chunk at coordinates "
@@ -960,9 +958,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
         self._check_chunked()
         self._check_chunk_within(coords)
+        self._check_chunk_coords(coords)
 
         coords = np.array(coords, dtype=SizeType)
-        self._check_chunk_coords(coords)
         data = np.ndarray((len(data),), dtype='u1', buffer=data)
         self._g_write_chunk(coords, data, filter_mask)
 
