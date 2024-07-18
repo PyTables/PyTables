@@ -268,8 +268,8 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         msg = f"Evaluate is returning a wrong value: {expr_str}\n{r1=}\n{r2=}"
         self.assertEqual(r1.shape, r2.shape, msg=msg)
         # In something like 2 * np.in16(3) + np.int16(2) the result is still a
-        # np.int16 in NumPy 2.0, so we shouldn't actually check this:
-        # self.assertEqual(r1.dtype, r2.dtype, msg=msg)
+        # np.int16 in NumPy 2.0, so we shouldn't actually check dtype but just the kind
+        self.assertEqual(r1.dtype.kind, r2.dtype.kind, msg=msg)
         self.assertEqual(r1, r2, msg=msg)
 
     def test01a_out(self):
@@ -309,8 +309,9 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("Computed expression:", repr(r1), r1.dtype)
                 print("Should look like:", repr(r2), r2.dtype)
             msg = f"Evaluate is returning a wrong value: {expr_str}\n{r1=}\n{r2=}"
-            # On NumPy 2 type promotion is different so don't check type here
+            # On NumPy 2 type promotion is different so don't check type strictly here
             self.assertTrue(common.areArraysEqual(r1, r2, check_type=False), msg=msg)
+            self.assertEqual(r1.dtype.kind, r2.dtype.kind)
 
     def test02a_sss(self):
         """Checking mixed objects and start, stop, step (I)"""
