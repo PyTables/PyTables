@@ -659,7 +659,7 @@ if __name__ == "__main__":
             "HDF5": ["hdf5", "hdf5"],
             "LZO2": ["lzo2", "lzo2"],
             "LZO": ["liblzo", "lzo1"],
-            "BZ2": ["libbz2", "bzip2"],
+            "BZ2": ["libbz2", "libbz2"],
             "BLOSC": ["blosc", "blosc"],
             "BLOSC2": ["blosc2", "blosc2"],
         }
