@@ -4,9 +4,9 @@
 import cProfile
 import time
 
-import blosc2
-import numpy
-import tables
+import blosc2 as b2
+import numpy as np
+import tables as tb
 
 
 # A tomography-like array: a stack of 2D images (greyscale).
@@ -14,32 +14,32 @@ import tables
 # The values used here result in compressed chunks of nearly 4MiB,
 # which matches my CPU's L3 cache.
 fname = 'direct-chunking.h5'
-dtype = numpy.dtype('u4')
+dtype = np.dtype('u4')
 shape = (500, 25600, 19200)
-# dtype = numpy.dtype('u2')  # for tests
+# dtype = np.dtype('u2')  # for tests
 # shape = (100, 256, 256)  # for tests
 chunkshape = (1, *shape[1:])
 
-np_data = (numpy.arange(numpy.prod(chunkshape), dtype=dtype)
+np_data = (np.arange(np.prod(chunkshape), dtype=dtype)
            .reshape(chunkshape))
 
 # Blosc2 block shape is an example of a parameter
-# which cannot be specified via `tables.Filters`.
+# which cannot be specified via `tb.Filters`.
 b2_blockshape = (1, *tuple(d // 2 for d in chunkshape[1:]))  # 4 blocks per chunk
-b2_data = blosc2.asarray(np_data, chunks=chunkshape, blocks=b2_blockshape)
+b2_data = b2.asarray(np_data, chunks=chunkshape, blocks=b2_blockshape)
 
 # The same image/chunk will be written over and over again.
 wchunk = b2_data.to_cframe()
 
 
-with tables.open_file(fname, mode='w') as h5f:
+with tb.open_file(fname, mode='w') as h5f:
     array = h5f.create_earray(
         '/', 'array',
-        atom=tables.Atom.from_dtype(dtype),
+        atom=tb.Atom.from_dtype(dtype),
         shape=(0, *shape[1:]),
         # Setting both args tells others that data is compressed using Blosc2
         # and it should not be handled as plain data.
-        filters=tables.Filters(complevel=1, complib='blosc2'),
+        filters=tb.Filters(complevel=1, complib='blosc2'),
         chunkshape=chunkshape,
     )
 
@@ -57,7 +57,7 @@ with tables.open_file(fname, mode='w') as h5f:
     print(f"Wrote {shape[0]} chunks of {len(wchunk)} bytes ({elapsed} s).")
 
 
-with tables.open_file(fname, mode='r') as h5f:
+with tb.open_file(fname, mode='r') as h5f:
     array = h5f.root.array
     rchunk = bytearray(len(wchunk))
 
