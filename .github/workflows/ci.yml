@@ -54,10 +54,10 @@ jobs:
         # Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
         python: ['3.10', '3.11', '3.12']
         numpy: ['numpy']
-        # include:
-        #   - os: ubuntu-latest
-        #     python: '3.12'
-        #     numpy: 'numpy>=2.1.dev0'
+        include:
+          - os: ubuntu-latest
+            python: '3.12'
+            numpy: 'numpy>=2.1.dev0'
 
     steps:
     - uses: actions/checkout@v4
@@ -120,7 +120,7 @@ jobs:
       run: |
         # Keep in sync with "Prerequisites" in User's Guide,
         # ``build-system.requires`` in ``pyproject.toml``.
-        conda install setuptools pip wheel build packaging py-cpuinfo "numpy<2" cython numexpr bzip2 hdf5 lzo 'typing_extensions>=4.4.0' c-blosc2
+        conda install setuptools pip wheel build packaging py-cpuinfo "numpy>=2" cython numexpr bzip2 hdf5 lzo 'typing_extensions>=4.4.0' c-blosc2
     - name: Get source distrubtion
       uses: actions/download-artifact@v4
       with:

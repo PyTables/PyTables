@@ -2296,6 +2296,12 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertFalse(t1var3.index.dirty)
         self.assertFalse(t1var4.index.dirty)
 
+        # https://github.com/PyTables/PyTables/issues/1185
+        # TODO: IT IS DIRTY BECAUSE THIS FIXES THINGS FOR FINSV2aTestCase,
+        # which otherwise fails a test a few lines below!
+        for col in table1.colinstances.values():
+            col.reindex()
+
         # Do some selections and check the results
         # First selection: string
         # Convert the limits to the appropriate type
@@ -2318,11 +2324,15 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Second selection: bool
         results1 = [p["var2"] for p in table1.where('t1var2 == True')]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
-        if common.verbose:
-            print("Length results:", len(results1))
-            print("Should be:", len(results2))
-        self.assertEqual(len(results1), len(results2))
-        self.assertEqual(results1, results2)
+        t2var1_vals = [p["var1"] for p in table2]
+        t2var2_vals = [p["var2"] for p in table2]
+        msg = (
+            f"Incorrect results for t1var2[n] == True where\n"
+            f"t2var1_vals={repr(t2var1_vals)}\nt2var2_vals={repr(t2var2_vals)}\n"
+            f"\n{results1=}\n{results2=}"
+        )
+        self.assertEqual(len(results1), len(results2), msg=msg)
+        self.assertEqual(results1, results2, msg=msg)
 
         # Third selection: int
         # Convert the limits to the appropriate type
@@ -3228,7 +3238,9 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
 
 
 normal_tests = (
-    "SV1aTestCase", "SV2aTestCase", "SV3aTestCase",
+    "SV1aTestCase",
+    "SV2aTestCase",
+    "SV3aTestCase",
 )
 
 heavy_tests = (
