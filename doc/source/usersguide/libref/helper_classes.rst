@@ -111,6 +111,8 @@ The Unknown class
     :members:
 
 
+.. _ChunkInfoClassDescr:
+
 The ChunkInfo class
 -------------------
 .. autoclass:: ChunkInfo

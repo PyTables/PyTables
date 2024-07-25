@@ -273,7 +273,53 @@ to very efficiently produce datasets compatible with other HDF5 libraries, but
 you may otherwise produce broken or incompatible datasets.  As usual, consider
 your requirements and take measurements.
 
-TODO example code
+The direct chunking API relies on three operations supported by any chunked
+leaf (CArray, EArray, Table).  The first one is :meth:`Leaf.chunk_info`, which
+returns a :ref:`ChunkInfo <ChunkInfoClassDescr>` instance with information
+about the chunk containing the item at the given coordinates::
+
+    >>> data = numpy.arange(100)
+    >>> carray = h5f.create_carray('/', 'carray', chunkshape=(10,), obj=data)
+    >>> carray.chunk_info((42,))
+    ChunkInfo(start=(40,), filter_mask=0, offset=4040, size=80)
+
+This means that the item at coordinate 42 is stored in a chunk of 80 bytes
+which starts at coordinate 40 in the array and byte 4040 in the file.  The
+latter offset may be used to let other code access the chunk directly on
+storage (optimized b2nd slicing uses that approach).  The former chunk start
+coordinate may come in handy for other chunk operations, which expect chunk
+start coordinates.
+
+The second operation is :meth:`Leaf.write_chunk`, which stores the raw data
+bytes for the chunk that starts at the given coordinates.  The data must
+already have gone through dataset filters (i.e. compression)::
+
+    >>> data = numpy.arange(100)
+    >>> # This is only to signal others that Blosc2 compression is used,
+    >>> # as actual parameters are stored in the chunk itself.
+    >>> b2filters = tables.Filters(complevel=1, complib='blosc2')
+    >>> earray = h5f.create_earray('/', 'earray', filters=b2filters,
+    ...                            chunkshape=(10,), obj=data)
+    >>> cdata = numpy.arange(200, 210, dtype=data.dtype)
+    >>> cdata_b2 = blosc2.asarray(cdata)  # compress
+    >>> chunk = cdata_b2.to_cframe()  # serialize
+    >>> earray.truncate((110,))  # enlarge array cheaply
+    >>> earray.write_chunk((100,), chunk)  # write directly
+    >>> (earray[-10:] == cdata).all()  # access new chunk as usual
+    True
+
+The third operation is :meth:`Leaf.read_chunk`, which loads the raw data bytes
+for the chunk that starts at the given coordinates.  The data needs to go
+through dataset filters (i.e. decompression)::
+
+    >>> cdata = numpy.arange(200, 210, dtype=data.dtype)
+    >>> rchunk = earray.read_chunk((100,))  # read directly
+    >>> rcdata_b2 = blosc2.ndarray_from_cframe(rchunk)  # deserialize
+    >>> rcdata = rcdata_b2[:]  # decompress
+    >>> (rcdata == cdata).all()
+    True
+
+The file examples/direct-chunking.py contains a more elaborate illustration of direct chunking.
 
 
 .. _searchOptim:
