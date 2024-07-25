@@ -242,6 +242,40 @@ compression parameters and chunksizes when your use case is not affected by
 those limitations.
 
 
+.. _directChunking:
+
+Low-level access to chunks: direct chunking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Features like the aforementioned optimized b2nd slicing may spare you from
+some of the overhead of the HDF5 filter pipeline.  However, you may still want
+finer control on the processing of chunk data beyond what is offered natively
+by PyTables.
+
+The direct chunking API allows you to query, read and write raw chunks
+completely bypassing the HDF5 filter pipeline.  As we will see :ref:`while
+discussing compression <comprDirectChunking>`, this may allow you to better
+customize the store/load process and get substantial performance increases.
+You may also use a compressor not supported at all by PyTables or HDF5, for
+instance to help you develop an HDF5 C plugin for it, by first writing chunks
+in Python and implementing decompression in C for transparent reading
+operations.
+
+As an example, direct chunking support has been used in h5py to create
+JPEG2000-compressed tomographies which may be accessed normally on any device
+with h5py, hdf5plugin and the blosc2_grok plugin installed.  Creating such
+datasets using normal array operations would have otherwise been impossible in
+PyTables or h5py.
+
+Be warned that this is a very low-level functionality.  If done right
+(e.g. using proper in-memory layout and a robust compressor), you may be able
+to very efficiently produce datasets compatible with other HDF5 libraries, but
+you may otherwise produce broken or incompatible datasets.  As usual, consider
+your requirements and take measurements.
+
+TODO example code
+
+
 .. _searchOptim:
 
 Accelerating your searches
@@ -1042,6 +1076,14 @@ So, given the potential gains (faster writing and reading, but specially
 much improved compression level), it is a good thing to have such a filter
 enabled by default in the battle for discovering redundancy when you want to
 compress your data, just as PyTables does.
+
+.. _comprDirectChunking:
+
+Avoiding filter pipeline overhead with direct chunking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO
+
 
 .. _LRUOptim:
 
