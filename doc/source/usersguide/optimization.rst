@@ -1128,7 +1128,92 @@ compress your data, just as PyTables does.
 Avoiding filter pipeline overhead with direct chunking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
+Even if you hit a sweet performance spot in your combination of chunk size,
+compression and shuffling as discussed in the previous section, that may still
+not be enough for particular scenarios demanding very high I/O speeds (e.g. to
+cope with continuous collection or extraction of data).  As shown in the
+section about :ref:`multidimensional slicing <multidimSlicing>`, the HDF5
+filter pipeline still introduces a significant overhead in the processing of
+chunk data for storage.  Here is where :ref:`direct chunking <directChunking>`
+may help you squeeze that needed extra performance.
+
+The notebook bench/direct-chunking-AMD-7800X3D.ipynb shows an experiment run
+on an AMD Ryzen 7 7800X3D CPU with 8 cores, 96 MB L3 cache and 8 MB L2 cache,
+clocked at 4.2 GHz.  The scenario is similar to that of
+examples/direct-chunking.py, with a tomography-like dataset (consisting of a
+stack of 10 greyscale images) stored as an EArray, where each image
+corresponds to a chunk::
+
+    shape = (10, 25600, 19200)
+    dtype = np.dtype('u2')
+    chunkshape = (1, *shape[1:])
+
+Chunks are compressed with Zstd at level 5 via Blosc2, both for direct and
+regular chunking.  Regular operations use plain slicing to write and read each
+image/chunk::
+
+    # Write
+    for c in range(shape[0]):
+        array[c] = np_data
+
+    # Read
+    for c in range(shape[0]):
+        np_data2 = array[c]
+
+In contrast, direct operations need to manually perform the (de)compression,
+(de)serialization and writing/reading of each image/chunk::
+
+    # Write
+    coords_tail = (0,) * (len(shape) - 1)
+    for c in range(shape[0]):
+        b2_data = b2.asarray(np_data, chunks=chunkshape,
+                             cparams=dict(clevel=clevel))
+        wchunk = b2_data.to_cframe()
+        chunk_coords = (c,) + coords_tail
+        array.write_chunk(chunk_coords, wchunk)
+
+    # Read
+    coords_tail = (0,) * (len(shape) - 1)
+    for c in range(shape[0]):
+        chunk_coords = (c,) + coords_tail
+        rchunk = array.read_chunk(chunk_coords)
+        ndarr = b2.ndarray_from_cframe(rchunk)
+        np_data2 = ndarr[:]
+
+Despite the more elaborate handling of data, we rest assured that HDF5
+performs no additional processing of chunks, while regular chunking implies
+data going through the whole filter pipeline.  Plotting the results shows that
+direct chunking yields 3.75x write and 4.4x read speedups, reaching write/read
+speeds of 1.7 GB/s and 5.2 GB/s.
+
+.. figure:: images/direct-chunking-AMD-7800X3D.png
+    :align: center
+
+    **Figure 24. Comparing write/read speeds of regular vs. direct chunking
+    (AMD 7800X3D).**
+
+Write performance may benefit even more of higher core counts, as shown in the
+plot below, where the same benchmark on an Intel Core i9-13900K CPU (24 mixed
+cores, 32 MB L2, 5.7 GHz) raises write speedup to 4.6x (2.6 GB/s).
+
+.. figure:: images/direct-chunking-i13900K.png
+    :align: center
+
+    **Figure 25. Comparing write/read speeds of regular vs. direct chunking
+    (Intel 13900K).**
+
+As we can see, bypassing the HDF5 pipeline with direct chunking offers
+immediate speed benefits for both writing and reading.  This is particularly
+beneficial for large datasets, where the overhead of the pipeline can be very
+significant.
+
+By using the Blosc2 library to serialize the data with the direct chunking
+method, the resulting HDF5 file can still be decompressed with any
+HDF5-enabled application, as long as it has the Blosc2 filter available
+(e.g. via hdf5plugin).  Direct chunking allows for more direct interaction
+with the Blosc2 library, so you can experiment with different blockshapes,
+compressors, filters and compression levels, to find the best configuration
+for your specific needs.
 
 
 .. _LRUOptim:
