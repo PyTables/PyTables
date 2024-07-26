@@ -20,9 +20,8 @@ profile = True
 # The values used here result in compressed chunks of nearly 4MiB,
 # which matches my CPU's L3 cache.
 fname = 'direct-chunking.h5'
-dtype = np.dtype('u4')
+dtype = np.dtype('u2')
 shape = (500, 25600, 19200)
-# dtype = np.dtype('u2')  # for tests
 # shape = (100, 256, 256)  # for tests
 chunkshape = (1, *shape[1:])
 
