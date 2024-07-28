@@ -509,9 +509,9 @@ class PosixPackage(BasePackage):
 
 
 class WindowsPackage(BasePackage):
-    _library_prefixes = [""]
+    _library_prefixes = ["", "lib"]
     _library_suffixes = [".lib"]
-    _runtime_prefixes = [""]
+    _runtime_prefixes = ["", "lib"]
     _runtime_suffixes = [".dll"]
 
     # lookup in '.' seems necessary for LZO2
@@ -659,7 +659,7 @@ if __name__ == "__main__":
             "HDF5": ["hdf5", "hdf5"],
             "LZO2": ["lzo2", "lzo2"],
             "LZO": ["liblzo", "lzo1"],
-            "BZ2": ["libbz2", "libbz2"],
+            "BZ2": ["bz2", "bz2"],
             "BLOSC": ["blosc", "blosc"],
             "BLOSC2": ["blosc2", "blosc2"],
         }
