@@ -2296,12 +2296,6 @@ class SelectValuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertFalse(t1var3.index.dirty)
         self.assertFalse(t1var4.index.dirty)
 
-        # https://github.com/PyTables/PyTables/issues/1185
-        # TODO: IT IS DIRTY BECAUSE THIS FIXES THINGS FOR FINSV2aTestCase,
-        # which otherwise fails a test a few lines below!
-        for col in table1.colinstances.values():
-            col.reindex()
-
         # Do some selections and check the results
         # First selection: string
         # Convert the limits to the appropriate type
