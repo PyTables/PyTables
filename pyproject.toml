@@ -189,7 +189,7 @@ before-build = [
     "python -m pip install -q --require-hashes -r requirements.txt",
     "python -m pip install delvewheel",
 ]
-# We manually vendor libblosc2.dll in the wheel so no need for delvewheel to do it
+# We check for "libblosc2.dll" so don't let delvewheel mangle it
 repair-wheel-command = "delvewheel repair --no-mangle libblosc2.dll -v -w {dest_dir} {wheel}"
 
 [tool.cibuildwheel.windows.environment]
