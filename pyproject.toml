@@ -140,7 +140,10 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 skip = "*-musllinux_*"
 build = "cp*"
 build-verbosity = 3
-test-command = "python -m tables.tests.test_all"
+test-command = [
+    "python -c \"import tables; keys = 'zlib lzo bzip2 blosc blosc2'.split(); have = [tables.which_lib_version(key) is not None for key in keys]; assert have == [True] * 5, [key for key, has in zip(keys, have) if not has]\"",
+    "python -m tables.tests.test_all",
+]
 test-skip = "*_aarch64"
 # Keep in sync with ``build-system.requires`` above
 before-build = "python -m pip install -q --require-hashes -r .github/workflows/requirements/build-requirements.txt -r requirements.txt"

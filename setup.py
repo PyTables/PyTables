@@ -663,6 +663,10 @@ if __name__ == "__main__":
             "BLOSC": ["blosc", "blosc"],
             "BLOSC2": ["blosc2", "blosc2"],
         }
+        # conda recently got rid of bz2.dll in favor of libbz2.dll
+        # https://github.com/conda-forge/bzip2-feedstock/pull/24#pullrequestreview-2178290795
+        if CONDA_PREFIX:
+            _platdep["BZ2"] = ["libbz2", "libbz2"],
 
         # Copy the next DLL's to binaries by default.
         dll_files = [
