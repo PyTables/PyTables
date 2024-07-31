@@ -187,7 +187,7 @@ before-build = [
     "python -m pip install delvewheel",
 ]
 # We manually vendor libblosc2.dll in the wheel so no need for delvewheel to do it
-repair-wheel-command = "delvewheel repair --no-dll libblosc2.dll -w {dest_dir} {wheel}"
+repair-wheel-command = "delvewheel repair --no-dll libblosc2.dll -v -w {dest_dir} {wheel}"
 
 [tool.cibuildwheel.windows.environment]
 DISABLE_AVX2 = "TRUE"
