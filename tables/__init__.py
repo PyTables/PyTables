@@ -86,7 +86,7 @@ from .exceptions import *
 from .file import File, open_file, copy_file
 from .node import Node
 from .group import Group
-from .leaf import Leaf
+from .leaf import Leaf, ChunkInfo
 from .table import Table, Cols, Column
 from .array import Array
 from .carray import CArray
@@ -107,6 +107,8 @@ __all__ = [
     'PerformanceWarning',
     'FlavorError', 'FlavorWarning',
     'FiltersWarning', 'DataTypeWarning',
+    'ChunkError', 'NotChunkedError', 'NotChunkAlignedError',
+    'NoSuchChunkError',
     # Functions:
     'is_hdf5_file', 'is_pytables_file', 'which_lib_version',
     'copy_file', 'open_file', 'print_versions', 'test',
@@ -114,7 +116,7 @@ __all__ = [
     'set_blosc_max_threads', 'set_blosc2_max_threads',
     'silence_hdf5_messages',
     # Helper classes:
-    'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
+    'IsDescription', 'Description', 'Filters', 'Cols', 'Column', 'ChunkInfo',
     # Types:
     'Enum',
     # Atom types:

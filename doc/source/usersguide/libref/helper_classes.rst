@@ -111,6 +111,13 @@ The Unknown class
     :members:
 
 
+.. _ChunkInfoClassDescr:
+
+The ChunkInfo class
+-------------------
+.. autoclass:: ChunkInfo
+
+
 .. _ExceptionsDescr:
 
 Exceptions module
@@ -150,3 +157,11 @@ to PyTables are declared.
 .. autoexception:: DataTypeWarning
 
 .. autoexception:: ExperimentalFeatureWarning
+
+.. autoexception:: ChunkError
+
+.. autoexception:: NotChunkedError
+
+.. autoexception:: NotChunkAlignedError
+
+.. autoexception:: NoSuchChunkError

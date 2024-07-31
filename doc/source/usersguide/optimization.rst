@@ -242,6 +242,86 @@ compression parameters and chunksizes when your use case is not affected by
 those limitations.
 
 
+.. _directChunking:
+
+Low-level access to chunks: direct chunking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Features like the aforementioned optimized b2nd slicing may spare you from
+some of the overhead of the HDF5 filter pipeline.  However, you may still want
+finer control on the processing of chunk data beyond what is offered natively
+by PyTables.
+
+The direct chunking API allows you to query, read and write raw chunks
+completely bypassing the HDF5 filter pipeline.  As we will see :ref:`while
+discussing compression <comprDirectChunking>`, this may allow you to better
+customize the store/load process and get substantial performance increases.
+You may also use a compressor not supported at all by PyTables or HDF5, for
+instance to help you develop an HDF5 C plugin for it, by first writing chunks
+in Python and implementing decompression in C for transparent reading
+operations.
+
+As an example, direct chunking support has been used in h5py to create
+JPEG2000-compressed tomographies which may be accessed normally on any device
+with h5py, hdf5plugin and the blosc2_grok plugin installed.  Creating such
+datasets using normal array operations would have otherwise been impossible in
+PyTables or h5py.
+
+Be warned that this is a very low-level functionality.  If done right
+(e.g. using proper in-memory layout and a robust compressor), you may be able
+to very efficiently produce datasets compatible with other HDF5 libraries, but
+you may otherwise produce broken or incompatible datasets.  As usual, consider
+your requirements and take measurements.
+
+The direct chunking API relies on three operations supported by any chunked
+leaf (CArray, EArray, Table).  The first one is :meth:`Leaf.chunk_info`, which
+returns a :ref:`ChunkInfo <ChunkInfoClassDescr>` instance with information
+about the chunk containing the item at the given coordinates::
+
+    >>> data = numpy.arange(100)
+    >>> carray = h5f.create_carray('/', 'carray', chunkshape=(10,), obj=data)
+    >>> carray.chunk_info((42,))
+    ChunkInfo(start=(40,), filter_mask=0, offset=4040, size=80)
+
+This means that the item at coordinate 42 is stored in a chunk of 80 bytes
+which starts at coordinate 40 in the array and byte 4040 in the file.  The
+latter offset may be used to let other code access the chunk directly on
+storage (optimized b2nd slicing uses that approach).  The former chunk start
+coordinate may come in handy for other chunk operations, which expect chunk
+start coordinates.
+
+The second operation is :meth:`Leaf.write_chunk`, which stores the raw data
+bytes for the chunk that starts at the given coordinates.  The data must
+already have gone through dataset filters (i.e. compression)::
+
+    >>> data = numpy.arange(100)
+    >>> # This is only to signal others that Blosc2 compression is used,
+    >>> # as actual parameters are stored in the chunk itself.
+    >>> b2filters = tables.Filters(complevel=1, complib='blosc2')
+    >>> earray = h5f.create_earray('/', 'earray', filters=b2filters,
+    ...                            chunkshape=(10,), obj=data)
+    >>> cdata = numpy.arange(200, 210, dtype=data.dtype)
+    >>> cdata_b2 = blosc2.asarray(cdata)  # compress
+    >>> chunk = cdata_b2.to_cframe()  # serialize
+    >>> earray.truncate((110,))  # enlarge array cheaply
+    >>> earray.write_chunk((100,), chunk)  # write directly
+    >>> (earray[-10:] == cdata).all()  # access new chunk as usual
+    True
+
+The third operation is :meth:`Leaf.read_chunk`, which loads the raw data bytes
+for the chunk that starts at the given coordinates.  The data needs to go
+through dataset filters (i.e. decompression)::
+
+    >>> cdata = numpy.arange(200, 210, dtype=data.dtype)
+    >>> rchunk = earray.read_chunk((100,))  # read directly
+    >>> rcdata_b2 = blosc2.ndarray_from_cframe(rchunk)  # deserialize
+    >>> rcdata = rcdata_b2[:]  # decompress
+    >>> (rcdata == cdata).all()
+    True
+
+The file examples/direct-chunking.py contains a more elaborate illustration of direct chunking.
+
+
 .. _searchOptim:
 
 Accelerating your searches
@@ -1042,6 +1122,99 @@ So, given the potential gains (faster writing and reading, but specially
 much improved compression level), it is a good thing to have such a filter
 enabled by default in the battle for discovering redundancy when you want to
 compress your data, just as PyTables does.
+
+.. _comprDirectChunking:
+
+Avoiding filter pipeline overhead with direct chunking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Even if you hit a sweet performance spot in your combination of chunk size,
+compression and shuffling as discussed in the previous section, that may still
+not be enough for particular scenarios demanding very high I/O speeds (e.g. to
+cope with continuous collection or extraction of data).  As shown in the
+section about :ref:`multidimensional slicing <multidimSlicing>`, the HDF5
+filter pipeline still introduces a significant overhead in the processing of
+chunk data for storage.  Here is where :ref:`direct chunking <directChunking>`
+may help you squeeze that needed extra performance.
+
+The notebook bench/direct-chunking-AMD-7800X3D.ipynb shows an experiment run
+on an AMD Ryzen 7 7800X3D CPU with 8 cores, 96 MB L3 cache and 8 MB L2 cache,
+clocked at 4.2 GHz.  The scenario is similar to that of
+examples/direct-chunking.py, with a tomography-like dataset (consisting of a
+stack of 10 greyscale images) stored as an EArray, where each image
+corresponds to a chunk::
+
+    shape = (10, 25600, 19200)
+    dtype = np.dtype('u2')
+    chunkshape = (1, *shape[1:])
+
+Chunks are compressed with Zstd at level 5 via Blosc2, both for direct and
+regular chunking.  Regular operations use plain slicing to write and read each
+image/chunk::
+
+    # Write
+    for c in range(shape[0]):
+        array[c] = np_data
+
+    # Read
+    for c in range(shape[0]):
+        np_data2 = array[c]
+
+In contrast, direct operations need to manually perform the (de)compression,
+(de)serialization and writing/reading of each image/chunk::
+
+    # Write
+    coords_tail = (0,) * (len(shape) - 1)
+    for c in range(shape[0]):
+        b2_data = b2.asarray(np_data, chunks=chunkshape,
+                             cparams=dict(clevel=clevel))
+        wchunk = b2_data.to_cframe()
+        chunk_coords = (c,) + coords_tail
+        array.write_chunk(chunk_coords, wchunk)
+
+    # Read
+    coords_tail = (0,) * (len(shape) - 1)
+    for c in range(shape[0]):
+        chunk_coords = (c,) + coords_tail
+        rchunk = array.read_chunk(chunk_coords)
+        ndarr = b2.ndarray_from_cframe(rchunk)
+        np_data2 = ndarr[:]
+
+Despite the more elaborate handling of data, we rest assured that HDF5
+performs no additional processing of chunks, while regular chunking implies
+data going through the whole filter pipeline.  Plotting the results shows that
+direct chunking yields 3.75x write and 4.4x read speedups, reaching write/read
+speeds of 1.7 GB/s and 5.2 GB/s.
+
+.. figure:: images/direct-chunking-AMD-7800X3D.png
+    :align: center
+
+    **Figure 24. Comparing write/read speeds of regular vs. direct chunking
+    (AMD 7800X3D).**
+
+Write performance may benefit even more of higher core counts, as shown in the
+plot below, where the same benchmark on an Intel Core i9-13900K CPU (24 mixed
+cores, 32 MB L2, 5.7 GHz) raises write speedup to 4.6x (2.6 GB/s).
+
+.. figure:: images/direct-chunking-i13900K.png
+    :align: center
+
+    **Figure 25. Comparing write/read speeds of regular vs. direct chunking
+    (Intel 13900K).**
+
+As we can see, bypassing the HDF5 pipeline with direct chunking offers
+immediate speed benefits for both writing and reading.  This is particularly
+beneficial for large datasets, where the overhead of the pipeline can be very
+significant.
+
+By using the Blosc2 library to serialize the data with the direct chunking
+method, the resulting HDF5 file can still be decompressed with any
+HDF5-enabled application, as long as it has the Blosc2 filter available
+(e.g. via hdf5plugin).  Direct chunking allows for more direct interaction
+with the Blosc2 library, so you can experiment with different blockshapes,
+compressors, filters and compression levels, to find the best configuration
+for your specific needs.
+
 
 .. _LRUOptim:
 

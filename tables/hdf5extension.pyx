@@ -67,7 +67,7 @@ from cpython.bytes cimport (PyBytes_AsString, PyBytes_FromStringAndSize,
 from cpython.unicode cimport PyUnicode_DecodeUTF8
 
 
-from .definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
+from .definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t, uint32_t,
   H5S_seloper_t, H5D_FILL_VALUE_UNDEFINED,
   H5O_TYPE_UNKNOWN, H5O_TYPE_GROUP, H5O_TYPE_DATASET, H5O_TYPE_NAMED_DATATYPE,
   H5L_TYPE_ERROR, H5L_TYPE_HARD, H5L_TYPE_SOFT, H5L_TYPE_EXTERNAL,
@@ -81,6 +81,8 @@ from .definitions cimport (uintptr_t, hid_t, herr_t, hsize_t, hvl_t,
   H5Gcreate, H5Gopen, H5Gclose, H5Ldelete, H5Lmove,
   H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, H5Dget_create_plist,
   H5Dget_space, H5Dvlen_reclaim, H5Dget_storage_size, H5Dvlen_get_buf_size,
+  H5Dget_chunk_info_by_coord, haddr_t, HADDR_UNDEF,
+  H5Dread_chunk, H5Dwrite_chunk,
   H5Tget_native_type, H5Tclose, H5Tis_variable_str, H5Tget_sign,
   H5Adelete, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT, H5T_STRING, H5Tget_order,
   H5Pcreate, H5Pset_cache, H5Pclose, H5Pget_userblock, H5Pset_userblock,
@@ -1171,6 +1173,82 @@ cdef class Leaf(Node):
       self.base_type_id = -1
       self.disk_type_id = -1
     super()._g_new(where, name, init)
+
+  def _g_chunk_info(self, ndarray coords):
+    """Get storage information about chunk at `coords`.
+
+    Return ``(filter_mask, offset, size)``, where items are ``None`` if the
+    chunk is missing.
+
+    """
+    cdef herr_t ret
+    cdef hsize_t *offset
+    cdef unsigned filter_mask
+    cdef haddr_t addr
+    cdef hsize_t size
+
+    # Get the pointer to the buffer data area of the coords array
+    with nogil:
+      offset = <hsize_t *>PyArray_DATA(coords)
+      ret = H5Dget_chunk_info_by_coord(self.dataset_id, offset,
+                                       &filter_mask, &addr, &size)
+    if ret < 0:
+      raise HDF5ExtError("Problems getting chunk info for ``%s``"
+                         % self._v_pathname)
+    return ((filter_mask, addr, size) if addr != HADDR_UNDEF
+            else (None, None, None))
+
+  def _g_read_chunk(self, ndarray coords, ndarray out):
+    """Read the raw chunk at `coords` (into `out`).
+
+    Return a new array of bytes if `out` is ``None``, `out` itself otherwise.
+    Return ``None`` if the chunk is missing.
+
+    """
+    cdef ndarray rarr
+    cdef herr_t ret
+    cdef hsize_t *offset
+    cdef uint32_t filters = 0
+    cdef void *rbuf
+
+    _, addr, size = self._g_chunk_info(coords)
+    if addr is None:
+      return None  # missing chunk
+    if out is not None and len(out) < size:
+      raise ValueError(f"Output buffer is too short: {len(out)} < {size}")
+
+    rarr = np.empty((size,), dtype='u1') if out is None else out
+    with nogil:
+      rbuf = PyArray_DATA(rarr)
+      offset = <hsize_t *>PyArray_DATA(coords)
+      ret = H5Dread_chunk(self.dataset_id, H5P_DEFAULT, offset,
+                          &filters, rbuf)
+    if ret < 0:
+      raise HDF5ExtError("Problems reading chunk from ``%s``"
+                         % self._v_pathname)
+    return rarr
+
+  def _g_write_chunk(self, ndarray coords, ndarray data, uint32_t filters):
+    """Write the raw `data` to the chunk in `coords`.
+
+    The `filters` mask indicates which filters of the pipeline have not been
+    used to create the `data`.
+
+    """
+    cdef herr_t ret
+    cdef hsize_t *offset
+    cdef size_t data_size
+    cdef void *wbuf
+
+    data_size = data.size
+    with nogil:
+      wbuf = PyArray_DATA(data)
+      offset = <hsize_t *>PyArray_DATA(coords)
+      ret = H5Dwrite_chunk(self.dataset_id, H5P_DEFAULT, filters,
+                           offset, data_size, wbuf)
+    if ret < 0:
+      raise HDF5ExtError("Problems writing chunk to ``%s``"
+                         % self._v_pathname)
 
   cdef _get_type_ids(self):
     """Get the disk and native HDF5 types associated with this leaf.

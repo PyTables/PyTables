@@ -35,6 +35,7 @@ def suite():
         'tables.tests.test_index_backcompat',
         'tables.tests.test_aux',
         'tables.tests.test_utils',
+        'tables.tests.test_direct_chunk',
         # Sub-packages
         'tables.nodes.tests.test_filenode',
     ]

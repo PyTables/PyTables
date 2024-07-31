@@ -4,7 +4,7 @@ import math
 import json
 from pathlib import Path
 from functools import lru_cache
-from typing import Any, Literal, Optional, Union, TYPE_CHECKING
+from typing import Any, Literal, NamedTuple, Optional, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -13,10 +13,23 @@ from .flavor import (check_flavor, internal_flavor, toarray,
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
-from .exceptions import PerformanceWarning
+from .exceptions import (ChunkError, NoSuchChunkError,
+                         NotChunkAlignedError, NotChunkedError,
+                         PerformanceWarning)
 
 if TYPE_CHECKING:
     from .group import Group
+
+
+# These should be declared as type aliases,
+# but ``TypeAlias`` requires Python >= 3.10
+# and ``type`` statements require Python >= 3.12.
+
+# ``np.typing.NDArray[np.uint8]`` requires NumPy >= 1.21.
+NPByteArray = np.ndarray[tuple[int], np.dtype[np.uint8]]
+
+# ``Buffer`` requires Python >= 3.12.
+BufferLike = Union[bytes, bytearray, memoryview, NPByteArray]
 
 
 def read_cached_cpu_info() -> dict[str, Any]:
@@ -90,6 +103,46 @@ def calc_chunksize(expected_mb: int) -> int:
     chunksize = csformula(expected_mb)
     # XXX: Multiply by 8 seems optimal for sequential access
     return chunksize * 8
+
+
+class ChunkInfo(NamedTuple):
+    """Information about storage for a given chunk.
+
+    It may also refer to a chunk which is within the dataset's shape but that
+    does not exist in storage, i.e. a missing chunk.
+
+    An instance of this named tuple class contains the following information,
+    in field order:
+
+    .. attribute:: start
+
+        The coordinates in dataset items where the chunk starts, a tuple of
+        integers with the same rank as the dataset.  These coordinates are
+        always aligned with chunk boundaries.  Also present for missing
+        chunks.
+
+    .. attribute:: filter_mask
+
+        An integer where each active bit signals that the filter in its
+        position in the pipeline was disabled when storing the chunk.  For
+        instance, ``0b10`` disables shuffling, ``0b100`` disables szip, and so
+        on.  ``None`` for missing chunks.
+
+    .. attribute:: offset
+
+        An integer which indicates the offset in bytes of chunk data as it
+        exists in storage.  ``None`` for missing chunks.
+
+    .. attribute:: size
+
+        An integer which indicates the size in bytes of chunk data as it
+        exists in storage.  ``None`` for missing chunks.
+
+    """
+    start: Union[tuple[int, ...], None]
+    filter_mask: Union[int, None]
+    offset: Union[int, None]
+    size: Union[int, None]
 
 
 class Leaf(Node):
@@ -633,6 +686,24 @@ very small/large chunksize, you may want to increase/decrease it."""
             coords = coords.copy()
         return coords
 
+    def _check_chunked(self) -> None:
+        if self.chunkshape is None:
+            raise NotChunkedError("The dataset is not chunked")
+
+    def _check_chunk_within(self, coords: tuple[int, ...]) -> None:
+        if len(coords) != self.ndim:
+            raise ValueError(f"Chunk coordinates do not match dataset shape: "
+                             f"{coords} !~ {self.shape}")
+        if any(c < 0 or c >= s for (c, s) in zip(coords, self.shape)):
+            raise IndexError(f"Chunk coordinates not within dataset shape: "
+                             f"{coords} <> {self.shape}")
+
+    def _check_chunk_coords(self, coords: tuple[int, ...]) -> None:
+        if any(c % cs for (c, cs) in zip(coords, self.chunkshape)):
+            raise NotChunkAlignedError(
+                f"Coordinates are not multiples of chunk shape: "
+                f"{tuple(coords)} !* {self.chunkshape}")
+
     # Tree manipulation
     def remove(self) -> None:
         """Remove this node from the hierarchy.
@@ -781,6 +852,117 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         self._g_flush()
+
+    def chunk_info(self, coords: tuple[int, ...]) -> ChunkInfo:
+        """Get storage information about the chunk containing the `coords`.
+
+        The coordinates `coords` are a tuple of integers with the same rank as
+        the dataset.
+
+        Return a :class:`ChunkInfo` instance with the information.
+
+        The coordinates need not be aligined with chunk boundaries.  This
+        means that this method may be used to get the start coordinates of the
+        chunk that contains the item at the given coordinates, for use with
+        other direct chunking operations (see :attr:`ChunkInfo.start`).
+
+        If the coordinates are within the dataset's shape but there is no such
+        chunk in storage (missing chunk), a :class:`ChunkInfo` with a valid
+        ``start`` and ``filter_mask = offset = size = None`` is returned.  If
+        the coordinates are beyond the shape, :exc:`IndexError` is raised
+        (even if the start of the chunk would fall within the shape).
+
+        Calling this method on a non-chunked dataset raises a
+        :exc:`NotChunkedError`.
+
+        """
+        self._check_chunked()
+        self._check_chunk_within(coords)
+
+        coords = np.array(coords, dtype=SizeType)
+        filter_mask, offset, size = self._g_chunk_info(coords)
+
+        # Align coordinates to chunk boundary.
+        chunkshape = self.chunkshape
+        coords //= chunkshape
+        coords *= chunkshape
+        return ChunkInfo(tuple(coords), filter_mask, offset, size)
+
+    def read_chunk(self, coords: tuple[int, ...],
+                   out: Optional[Union[bytearray, NPByteArray]]=None,
+                  ) -> Union[bytes, memoryview]:
+        """Get the raw chunk that starts at the given `coords` from storage.
+
+        The coordinates `coords` are a tuple of integers with the same rank as
+        the dataset.  If they are not multiples of its chunkshape,
+        :exc:`NotChunkAlignedError` is raised.
+
+        If a buffer-like `out` argument is given, it receives chunk data.  If
+        it has insufficient storage for the chunk, :exc:`ValueError` is raised
+        (use :meth:`chunk_info()` to get the required capacity).
+
+        The obtained data is supposed to have gone at storage time through
+        dataset filters, minus those in the chunk's filter mask (use
+        :meth:`chunk_info()` to get it).
+
+        Return the chunk's raw content, either as a `bytes` instance (if `out`
+        is ``None``) or as a `memoryview` over the object given as `out`.
+
+        Reading a chunk within the dataset's shape, but not in storage
+        (missing chunk) raises a :exc:`NoSuchChunkError`.  If the chunk is
+        beyond the shape, :exc:`IndexError` is raised.
+
+        Calling this method on a non-chunked dataset raises a
+        :exc:`NotChunkedError`.
+
+        """
+        self._check_chunked()
+        self._check_chunk_within(coords)
+        self._check_chunk_coords(coords)
+
+        if out is not None:
+            out = np.ndarray((len(out),), dtype='u1', buffer=out)
+
+        coords = np.array(coords, dtype=SizeType)
+        chunk = self._g_read_chunk(coords, out)
+        if chunk is None:
+            raise NoSuchChunkError(f"Can't read missing chunk at coordinates "
+                                   f"{tuple(coords)}")
+        return chunk.tobytes() if out is None else memoryview(out)
+
+    def write_chunk(self, coords: tuple[int, ...], data: BufferLike,
+                    filter_mask: int=0) -> None:
+        """Write raw `data` to storage for the chunk that starts at the given
+        `coords`.
+
+        The coordinates `coords` are a tuple of integers with the same rank as
+        the dataset.  If they are not multiples of its chunkshape,
+        :exc:`NotChunkAlignedError` is raised.
+
+        The content of the buffer-like `data` must already have gone through
+        dataset filters, minus those in the given `filter_mask` (which is to
+        be saved along data; see :attr:`ChunkInfo.filter_mask`).
+
+        Writing a chunk which is already in storage replaces it, otherwise it
+        is added to storage as long as it is within the dataset's shape
+        (missing chunk).  This means that you may use :meth:`truncate()` to
+        grow an enlargeable dataset cheaply (as no chunk data is written),
+        then sparsely write selected chunks in arbitrary order.
+
+        If the chunk is beyond the dataset's shape, :exc:`IndexError` is
+        raised.
+
+        Calling this method on a non-chunked dataset raises a
+        :exc:`NotChunkedError`.
+
+        """
+        self._check_chunked()
+        self._check_chunk_within(coords)
+        self._check_chunk_coords(coords)
+
+        coords = np.array(coords, dtype=SizeType)
+        data = np.ndarray((len(data),), dtype='u1', buffer=data)
+        self._g_write_chunk(coords, data, filter_mask)
 
     def _f_close(self, flush: bool=True) -> None:
         """Close this node in the tree.
