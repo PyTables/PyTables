@@ -955,7 +955,7 @@ if __name__ == "__main__":
                     dll_dir = f"{CONDA_PREFIX}\\Library\\bin"
                     # Copy dlls when producing the wheels in CI
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
-                        # If building a wheel and Conda in use, these will be the
+                        # If building a wheel and Conda in use, these could be the
                         # same path. Indicative that the ``rundir`` check is probably
                         # not sufficient above, but easy enough to guard against
                         # trying to copy a file to its current location
