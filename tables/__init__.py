@@ -27,6 +27,8 @@ blosc2_found = False
 blosc2_search_paths = [
     blosc2_lib_hardcoded,
     os.path.join(current_dir, blosc2_lib_hardcoded),
+    # delvewheel will put it here
+    os.path.join(os.path.dirname(current_dir), "tables.libs", blosc2_lib_hardcoded),
 ]
 if find_library("blosc2"):
     blosc2_search_paths.append(find_library("blosc2"))

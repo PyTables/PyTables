@@ -663,6 +663,10 @@ if __name__ == "__main__":
             "BLOSC": ["blosc", "blosc"],
             "BLOSC2": ["blosc2", "blosc2"],
         }
+        # conda recently got rid of bz2.dll in favor of libbz2.dll
+        # https://github.com/conda-forge/bzip2-feedstock/pull/24#pullrequestreview-2178290795
+        if CONDA_PREFIX:
+            _platdep["BZ2"] = ["libbz2", "libbz2"]
 
         # Copy the next DLL's to binaries by default.
         dll_files = [
@@ -955,9 +959,15 @@ if __name__ == "__main__":
                     dll_dir = f"{CONDA_PREFIX}\\Library\\bin"
                     # Copy dlls when producing the wheels in CI
                     if "bdist_wheel" in sys.argv and os.path.exists(dll_dir):
-                        shutil.copy(
-                            libdir.parent / "bin" / "libblosc2.dll", dll_dir
-                        )
+                        # If building a wheel and Conda in use, these could be the
+                        # same path. Indicative that the ``rundir`` check is probably
+                        # not sufficient above, but easy enough to guard against
+                        # trying to copy a file to its current location
+                        # (thereby avoiding a "are the same file" shutil error).
+                        if Path(dll_dir) != libdir.parent / "bin":
+                            shutil.copy(
+                                libdir.parent / "bin" / "libblosc2.dll", dll_dir
+                            )
                     else:
                         shutil.copy(
                             libdir.parent / "bin" / "libblosc2.dll", "tables"
