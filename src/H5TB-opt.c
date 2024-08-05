@@ -178,17 +178,12 @@ hid_t H5TBOmake_table(  const char *table_title,
   Dataset creation property list is modified to use filters
   */
 
- /* Fletcher must be first */
- if (fletcher32) {
-   if ( H5Pset_fletcher32( plist_id) < 0 )
-     return -1;
- }
- /* Then shuffle (blosc/blosc2 shuffles inplace) */
+ /* First shuffle (blosc/blosc2 shuffles inplace) */
  if ((shuffle && compress) && (strncmp(complib, "blosc", 5) != 0)) {
    if ( H5Pset_shuffle( plist_id) < 0 )
      return -1;
  }
- /* Finally compression */
+ /* Then compression */
  if ( compress )
  {
    cd_values[0] = compress;
@@ -261,6 +256,11 @@ hid_t H5TBOmake_table(  const char *table_title,
      return -1;
    }
 
+ }
+ /* Fletcher must be last, as it alters chunk length */
+ if (fletcher32) {
+   if ( H5Pset_fletcher32( plist_id) < 0 )
+     return -1;
  }
 
  /* Create the dataset. */
