@@ -72,12 +72,6 @@ int main(){
     r = H5Pset_chunk(plist, 3, chunkshape);
     if(r<0) goto failed;
 
-    /* Using the blosc filter in combination with other ones also works */
-    /*
-    r = H5Pset_fletcher32(plist);
-    if(r<0) goto failed;
-    */
-
     /* This is the easiest way to call Blosc with default values: 5
      for BloscLZ and shuffle active. */
     /* r = H5Pset_filter(plist, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 0, NULL); */
@@ -92,6 +86,13 @@ int main(){
     r = H5Pset_filter(plist, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 7, cd_values);
 
     if(r<0) goto failed;
+
+    /* Using the blosc filter in combination with other ones also works
+     (if they change data structure, they should come last) */
+    /*
+    r = H5Pset_fletcher32(plist);
+    if(r<0) goto failed;
+    */
 
 #if H5_USE_16_API
     dset = H5Dcreate(fid, "dset", H5T_NATIVE_FLOAT, sid, plist);
