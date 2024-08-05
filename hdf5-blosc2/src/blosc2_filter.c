@@ -298,6 +298,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
   /* Filter params that are only set for B2ND */
   int ndim = -1;
   int32_t chunkshape[BLOSC2_MAX_DIM];
+  size_t chunksize = typesize;
   if (cd_nelmts >= 8) {
     /* Get chunk shape for B2ND */
     ndim = cd_values[7];
@@ -321,6 +322,7 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     }
     for (int i = 0; i < ndim; i++) {
       chunkshape[i] = cd_values[8 + i];
+      chunksize *= (size_t) cd_values[8 + i];
     }
   }
 
@@ -366,6 +368,14 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     // cparams.blocksize depends on dimensionality
 
     blosc2_storage storage = {.cparams=&cparams, .contiguous=false};
+
+    if (ndim > 1 && nbytes != chunksize) {
+      BLOSC_TRACE_INFO("Filter input size %lu does not match chunk data size %lu "
+                       "(e.g. Fletcher32 checksum added before compression step), "
+                       "using plain Blosc2 instead of B2ND",
+                       nbytes, chunksize);
+      ndim = -1;
+    }
 
     if (ndim > 1) {
 
