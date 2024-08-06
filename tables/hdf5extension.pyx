@@ -1346,10 +1346,10 @@ cdef void* _array_data(ndarray arr):
             return PyArray_DATA(arr)
     return NULL
 
-def _supports_opt_blosc2_read_write(byteorder, complib, file_mode):
-    if complib:
+def _supports_opt_blosc2_read_write(byteorder, filter_list, file_mode):
+    if len(filter_list) == 1:  # Blosc2 must be the only filter
       opt_write = ((byteorder == sys.byteorder)
-                   and (complib.startswith("blosc2")))
+                   and ((filter_list[0] or "").startswith("blosc2")))
     else:
       opt_write = False
     # For reading, Windows does not support re-opening a file twice
@@ -1456,7 +1456,7 @@ cdef class Array(Leaf):
 
     # Decide whether Blosc2 optimized operations can be used.
     (self.blosc2_support_read, self.blosc2_support_write) = (
-        _supports_opt_blosc2_read_write(self.byteorder, self.filters.complib,
+        _supports_opt_blosc2_read_write(self.byteorder, [self.filters.complib],
                                         self._v_file.mode))
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
@@ -1576,10 +1576,9 @@ cdef class Array(Leaf):
       # Get the chunkshape as a python tuple
       chunkshapes = getshape(self.rank, self.dims_chunk)
       # Decide whether Blosc2 optimized operations can be used.
-      filters = get_filters(self.parent_id, self.name)
+      filters = get_filters(self.parent_id, self.name) or {}
       (self.blosc2_support_read, self.blosc2_support_write) = (
-          _supports_opt_blosc2_read_write(byteorder,
-                                          'blosc2' if 'blosc2' in filters else None,
+          _supports_opt_blosc2_read_write(byteorder, list(filters),
                                           self._v_file.mode))
 
     # object arrays should not be read directly into memory

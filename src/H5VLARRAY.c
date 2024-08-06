@@ -100,17 +100,12 @@ hid_t H5VLARRAYmake(  hid_t loc_id,
     Dataset creation property list is modified to use
  */
 
- /* Fletcher must be first */
- if (fletcher32) {
-   if ( H5Pset_fletcher32( plist_id) < 0 )
-     return -1;
- }
- /* Then shuffle (blosc shuffles inplace) */
+ /* First shuffle (blosc shuffles inplace) */
  if ((shuffle && compress) && (strncmp(complib, "blosc", 5) != 0)) {
    if ( H5Pset_shuffle( plist_id) < 0 )
      return -1;
  }
- /* Finally compression */
+ /* Then compression */
  if (compress) {
    cd_values[0] = compress;
    cd_values[1] = (int)(atof(obversion) * 10);
@@ -152,6 +147,11 @@ hid_t H5VLARRAYmake(  hid_t loc_id,
      fprintf(stderr, "Compression library not supported\n");
      return -1;
    }
+ }
+ /* Fletcher must be last, as it alters chunk length */
+ if (fletcher32) {
+   if ( H5Pset_fletcher32( plist_id) < 0 )
+     return -1;
  }
 
  /* Create the dataset. */

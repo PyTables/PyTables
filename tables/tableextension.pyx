@@ -223,6 +223,7 @@ cdef class Table(Leaf):
     # Decide whether Blosc2 optimized operations can be used.
     self.blosc2_support_write = (
         (self.byteorder == sys.byteorder) and
+        (not self.filters.fletcher32) and
         (self.filters.complib is not None) and
         (self.filters.complib.startswith("blosc2")))
     # For reading, Windows does not support re-opening a file twice

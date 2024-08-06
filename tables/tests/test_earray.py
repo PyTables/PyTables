@@ -894,6 +894,13 @@ class Blosc2ComprTestCase(BasicTestCase):
 
 @common.unittest.skipIf(not common.blosc2_avail,
                         'BLOSC2 compression library not available')
+class Blosc2FletcherTestCase(Blosc2ComprTestCase):
+    fletcher32 = 1
+    start = 0
+
+
+@common.unittest.skipIf(not common.blosc2_avail,
+                        'BLOSC2 compression library not available')
 class Blosc2CrossChunkTestCase(BasicTestCase):
     shape = (0, 10)
     compress = 1  # sss
@@ -2903,6 +2910,7 @@ def suite():
         theSuite.addTest(common.make_suite(BloscShuffleTestCase))
         theSuite.addTest(common.make_suite(Blosc2SlicesOptEArrayTestCase))
         theSuite.addTest(common.make_suite(Blosc2ComprTestCase))
+        theSuite.addTest(common.make_suite(Blosc2FletcherTestCase))
         theSuite.addTest(common.make_suite(Blosc2CrossChunkTestCase))
         theSuite.addTest(common.make_suite(Blosc2CrossChunkOptTestCase))
         theSuite.addTest(common.make_suite(Blosc2InnerCrossChunkTestCase))

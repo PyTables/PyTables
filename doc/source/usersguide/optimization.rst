@@ -236,10 +236,11 @@ performance of the HDF5 filter.
 
 Optimized b2nd slicing in PyTables has its limitations, though: it only works
 with contiguous slices (that is, with step 1 on every dimension) and on
-datasets with the same byte ordering as the host machine.  However, the
-performance gains may be worth the extra effort of choosing the right
-compression parameters and chunksizes when your use case is not affected by
-those limitations.
+datasets with the same byte ordering as the host machine and where Blosc2 is
+the only filter in the HDF5 pipeline (e.g. Fletcher32 checksumming is off).
+However, the performance gains may be worth the extra effort of choosing the
+right compression parameters and chunksizes when your use case is not affected
+by those limitations.
 
 
 .. _directChunking:

@@ -346,15 +346,11 @@ hid_t H5ARRAYOmake(hid_t loc_id,
        Dataset creation property list is modified to use
     */
 
-    /* Fletcher must be first */
-    if (fletcher32) {
-      IF_NEG_OUT(H5Pset_fletcher32(plist_id));
-    }
-    /* Then shuffle (blosc shuffles inplace) */
+    /* First shuffle (blosc shuffles inplace) */
     if ((shuffle && compress) && (strncmp(complib, "blosc", 5) != 0)) {
       IF_NEG_OUT(H5Pset_shuffle(plist_id));
     }
-    /* Finally compression */
+    /* Then compression */
     if (compress) {
       cd_values[0] = compress;
       cd_values[1] = (int) (atof(obversion) * 10);
@@ -424,6 +420,10 @@ hid_t H5ARRAYOmake(hid_t loc_id,
         /* Compression library not supported */
         IF_TRUE_OUT_DO(true, fprintf(stderr, "Compression library not supported\n"));
       }
+    }
+    /* Fletcher must be last, as it alters chunk length */
+    if (fletcher32) {
+      IF_NEG_OUT(H5Pset_fletcher32(plist_id));
     }
 
     /* Create the (chunked) dataset */
