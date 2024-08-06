@@ -463,6 +463,15 @@ size_t blosc2_filter_function(unsigned flags, size_t cd_nelmts,
     /* declare dummy variables */
     int32_t cbytes;
 
+    /* It would be cool to have a check to detect whether the buffer contains
+     * an unexpected amout of bytes because of the application of a previous
+     * filter (e.g. a Fletcher32 checksum), thus disabling B2ND optimizations.
+     * However, we cannot know before parsing the super-chunk, and that
+     * operation accepts trailing bytes without reporting their presence.
+     * Thus such a test can only happen outside of the filter, with more
+     * information available about the whole pipeline setup.
+     */
+
     blosc2_schunk* schunk = blosc2_schunk_from_buffer(*buf, (int64_t)nbytes, false);
     if (schunk == NULL) {
       PUSH_ERR("blosc2_filter", H5E_CALLBACK, "Cannot get super-chunk from buffer");
