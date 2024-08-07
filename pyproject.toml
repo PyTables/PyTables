@@ -137,7 +137,7 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 "tables.nodes.tests" = [ "*.dat", "*.xbm", "*.h5" ]
 
 [tool.cibuildwheel]
-skip = "*-musllinux_*"
+skip = "*-musllinux_* cp313*"
 build = "cp*"
 build-verbosity = 3
 test-command = [
