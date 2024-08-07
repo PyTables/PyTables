@@ -563,7 +563,8 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         if profile:
             show_stats("Before creating idx", tref)
         if indsize == 8:
-            idx = np.arange(0, len(arr), dtype="uint64") + nrow * slicesize
+            # Casting to int "nrow * slicesize" fixes #1185 
+            idx = np.arange(0, len(arr), dtype="uint64") + int(nrow * slicesize)
         elif indsize == 4:
             # For medium (32-bit) all the rows in tables should be
             # directly reachable.  But as len(arr) < 2**31, we can
