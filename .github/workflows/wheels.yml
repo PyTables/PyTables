@@ -50,7 +50,7 @@ jobs:
         run: |
           sudo apt update
           # Keep in sync with "Prerequisites" in User's Guide.
-          sudo apt install libbz2-dev libhdf5-serial-dev liblzo2-dev
+          sudo apt install libbz2-dev libhdf5-serial-dev
           sudo apt install latexmk texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra texlive-plain-generic
 
       - name: Install dependencies
@@ -120,7 +120,7 @@ jobs:
         with:
           environment-name: build
           create-args: >
-            python=3.12 blosc c-blosc2 bzip2 hdf5 lz4 lzo snappy zstd zlib pkgconfig
+            python=3.12 blosc c-blosc2 bzip2 hdf5 lz4 snappy zstd zlib pkgconfig
           init-shell: bash powershell
         if: runner.os == 'Windows'
 

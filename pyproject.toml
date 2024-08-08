@@ -137,11 +137,11 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 "tables.nodes.tests" = [ "*.dat", "*.xbm", "*.h5" ]
 
 [tool.cibuildwheel]
-skip = "*-musllinux_*"
+skip = "*-musllinux_* cp313*"
 build = "cp*"
 build-verbosity = 3
 test-command = [
-    "python -c \"import tables; keys = 'zlib lzo bzip2 blosc blosc2'.split(); missing = [key for key in keys if tables.which_lib_version(key) is None]; assert missing == [], missing\"",
+    "python -c \"import tables; keys = 'zlib bzip2 blosc blosc2'.split(); missing = [key for key in keys if tables.which_lib_version(key) is None]; assert missing == [], missing\"",
     "python -m tables.tests.test_all",
 ]
 test-skip = "*_aarch64"
@@ -154,7 +154,7 @@ before-all = [
     "rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux",
     "yum -y install epel-release",
     "yum -y update",
-    "yum install -y zlib-devel bzip2-devel lzo-devel",
+    "yum install -y zlib-devel bzip2-devel",
 ]
 
 [tool.cibuildwheel.linux.environment]
