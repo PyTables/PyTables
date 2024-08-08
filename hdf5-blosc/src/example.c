@@ -56,6 +56,8 @@ int main(){
     /* Register the filter with the library */
     r = register_blosc(&version, &date);
     printf("Blosc version info: %s (%s)\n", version, date);
+    free(version);
+    free(date);
 
     if(r<0) goto failed;
 
