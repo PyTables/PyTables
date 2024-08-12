@@ -11,8 +11,6 @@
 Changes from 3.10.0 to 3.9.2
 ============================
 
-XXX version-specific blurb XXX
-
 New features
 ------------
 
