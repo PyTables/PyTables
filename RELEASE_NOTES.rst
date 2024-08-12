@@ -71,7 +71,8 @@ Other changes
 -------------
 
 - Add wheels for macOS ARM64 (Apple Silicon), set `MACOSX_DEPLOYMENT_TARGET`
-  in Docker (:PR:`1050`).  Thanks to Clemens Brunner and Antonio Valentino.
+  in Docker (:PR:`1050` and :issue:`1165`).  Thanks to Clemens Brunner,
+  Antonio Valentino, Maximilian Linhoff and Eric Larson.
 - Avoid illegal hardware instruction under macOS on M1/M2 with Rosetta and
   AMD64 wheels (:PR:`1195` and :issue:`1186`).  Thanks to Antonio Valentino
   and Jon Peirce.
