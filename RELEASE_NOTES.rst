@@ -63,6 +63,11 @@ Bugfixes
   erikdl-zeiss.
 - Fix using prefix in heavy tests methods of `test_queries` (:PR:`1169`).
   Thanks to Miro Hrončok.
+- Fix `TypeError` when computing Blosc2 search paths with missing library
+  (:PR:`1188` and :issue:`1100`).  Thanks to martinowitsch, Padraic Calpin and
+  Eric Larson.
+- Avoid overflow `RuntimeWarning` on NumPy `expectedrows` value (:PR:`1010`).
+  Thanks to wony-zheng and Ivan Vilata.
 
 Other changes
 -------------
@@ -110,7 +115,10 @@ In alphabetical order:
 - Joshua Albert
 - Joyce Brum
 - Ko Stehner
+- martinowitsch
 - Maximilian Linhoff
 - Miro Hrončok
 - Nils Carlson
+- Padraic Calpin
 - Tom Birch
+- wony-zheng
