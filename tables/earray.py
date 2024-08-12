@@ -149,7 +149,7 @@ class EArray(CArray):
         # Specific of EArray
         if expectedrows is None:
             expectedrows = parentnode._v_file.params['EXPECTED_ROWS_EARRAY']
-        self._v_expectedrows = expectedrows
+        self._v_expectedrows = int(expectedrows)
         """The expected number of rows to be stored in the array."""
 
         # Call the parent (CArray) init code

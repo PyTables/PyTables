@@ -337,7 +337,7 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
         """The optimization level for this index."""
         self.tmp_dir = tmp_dir
         """The directory for the temporary files."""
-        self.expectedrows = expectedrows
+        self.expectedrows = int(expectedrows)
         """The expected number of items of index arrays."""
         if byteorder in ["little", "big"]:
             self.byteorder = byteorder
