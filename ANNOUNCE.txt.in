@@ -8,23 +8,7 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-The new PyTables 3.10 release includes nearly nine months worth of
-enhancements and fixes from many contributors.  It includes the
-long-awaited compatibility with NumPy 2, and it is also compatible with
-Python 3.13.  Wheels are available for Python 3.10-3.12 on Linux AMD64 &
-ARM64, Windows AMD64, and macOS AMD64 & ARM64 (Apple Silicon, which was
-added in this release).  The wheels should be usable with both NumPy 1
-and 2.
-
-PyTables 3.10 also adds an all new direct chunking API to access raw
-chunk data avoiding the overhead of the HDF5 filter pipeline (check out
-the optimization tips in the User's Guide for help and benchmarks).
-This development was funded by a NumFOCUS grant.
-
-The documentation of the API has been enhanced with type annotations,
-and its language improved with many fixes.  The code itself contains
-many bugfixes, and the build and continuous integration procedures have
-been enhanced in various ways.
+XXX version-specific blurb XXX
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html
