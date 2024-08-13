@@ -1,2 +1,2 @@
-__version__ = "3.9.3.dev0"
+__version__ = "3.10.0"
 """The PyTables version number."""

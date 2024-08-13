@@ -1,6 +1,6 @@
-=======================================
- Release notes for PyTables 3.9 series
-=======================================
+========================================
+ Release notes for PyTables 3.10 series
+========================================
 
 :Author: PyTables Developers
 :Contact: pytables-dev@googlegroups.com
@@ -8,196 +8,116 @@
 .. py:currentmodule:: tables
 
 
-Changes from 3.9.2 to 3.9.3
-===========================
-
-XXX version-specific blurb XXX
-
-Improvements
-------------
-
-- Add type hints to atom.py. This also narrows some types, only allowing bytes
-  to be stored in VLStringAtom and only str in VLUnicodeAtom.
-
-Other changes
--------------
-
-- Add wheels for macOS ARM64 (Apple Silicon) (:PR:`1050`). Thanks to Clemens Brunner.
-
-
-Changes from 3.9.1 to 3.9.2
-===========================
-
-Bugfixes
---------
-
-- Fix the assembly of returned slice data in Blosc2 NDim optimized slice reads
-  by using Blosc2's `b2nd_copy_buffer` (:PR:`1078`).  The bug only showed up
-  when the chunk did not fully cover the innermost dimension.  Add unit tests
-  to ckeck for regressions, along with foreign-generated files, and enable and
-  fix Blosc2 NDim tests which were not being run.  Thanks to Ivan Vilata.
-
-Improvements
-------------
-
-- PyTables wheels now use a threadsafe build of the HDF5 library
-  (:issue:`1075` and :PR:`1077`).  Concurrent reads should be possible with no
-  need for additional locking or monkey-patching of the file open function.
-  Thanks to Kiet Pham.
-- Partial support for the future NumPy 2, with some tests still failing
-  (:PR:`1068`).  Thanks to Thomas Grainger.
-- Relax the reading of Blosc2 NDim to cope with datasets stored with other
-  tools (:PR:`1072`), e.g. missing chunk rank/shape in filter values, having
-  HDF5 chunks where the Blosc2 super-chunk contains more than one inner chunk,
-  or chunks with data not padded to the full chunk size (example script and
-  tests included).  Also enhance checks, comments and logged messages.  Thanks
-  to Ivan Vilata.
-
-Other changes
--------------
-
-- Drop compatibility with the obsolete HDF5 1.8 API.  PyTables now requires at
-  least the 1.10 API (:PR:`1080`).  Thanks to Antonio Valentino.
-- Require python-blosc2 >= 2.3.0 or c-blosc2 >= 2.11.0 (which adds support for
-  the `b2nd_copy_buffer` function).
-- Use the main Conda Forge channel for Python 3.12 (:PR:`1066`).  Thanks to
-  Thomas Grainger.
-- Assorted fixes to the b2nd slicing benchmark.  Thanks to Ivan Vilata.
-- Assorted fixes to b2nd slicing optimization tips (:PR:`1069`).  Thanks to
-  Ivan Vilata.
-
-Thanks
-------
-
-In alphabetical order:
-
-- Antonio Valentino
-- Ivan Vilata
-- Kiet Pham
-- Thomas Grainger
-
-
-Changes from 3.9.0 to 3.9.1
-===========================
-
-- Minimum supported version for Python is 3.9 (see :issue:`1062`).
-
-
-Changes from 3.8.0 to 3.9.0
-===========================
+Changes from 3.10.0 to 3.9.2
+============================
 
 New features
 ------------
 
-- Apply optimized slice read to Blosc2-compressed `CArray` and `EArray`, with
-  Blosc2 NDim 2-level partitioning for multidimensional arrays (:PR:`1056`).
-  See "Multidimensional slicing and chunk/block sizes" in the User's Guide.
-  Thanks to Marta Iborra and Ivan Vilata.  This development was funded by a
-  NumFOCUS grant.
-- Add basic API for column-level attributes as `Col._v_col_attrs` (:PR:`893`
-  and :issue:`821`).  Thanks to Jonathan Wheeler, Thorben Menne, Ezequiel
-  Cimadevilla Alvarez, odidev, Sander Roet, Antonio Valentino, Munehiro
-  Nishida, Zbigniew Jędrzejewski-Szmek, Laurent Repiton, xmatthias, Logan
-  Kilpatrick.
-
-Other changes
--------------
-
-- Add support for the forthcoming Python 3.12 with binary wheels and automated
-  testing.
-- Drop wheels and automated testing for Python 3.8; users or distributions may
-  still build and test with Python 3.8 on their own (see :commit:`ae1e60e` and
-  :commit:`47f5946`).
-- New benchmark for ERA5 climate data.  Thanks to Óscar Guiñón.
-- New "100 trillion baby" benchmark.  Thanks to Francesc Alted.
-- New benchmark for querying meteorologic data.  Thanks to Francesc Alted.
+- New direct chunking API which allows access to raw chunk data skipping the
+  HDF5 filter pipeline (cutting overhead, see "Optimization tips" in User's
+  Guide), as well as querying chunk information (:PR:`1187`).  Thanks to Ivan
+  Vilata and Francesc Alted.  This development was funded by a NumFOCUS grant.
 
 Improvements
 ------------
 
-- Use `H5Dchunk_iter` (when available) to speed up walking over many chunks in
-  a very large table, as well as with random reads (:issue:`991`, :PR:`997`,
-  :PR:`999`).  Thanks to Francesc Alted and Mark Kittisopikul.
-- Improve `setup.py` (now using `pyproject.toml` as per PEP 518) and `blosc2`
-  discovery mechanism.  Blosc2 may be used both via python-blosc2 or system
-  c-blosc2 (:PR:`987`, :PR:`1000`, :issue:`998`, :PR:`1017`,
-  :PR:`1045`). Thanks to Antonio Valentino, Ben Greiner, Iwo-KX, nega.
-- Enable compatibility with Cython 3 (:PR:`1008` and :issue:`1003`).  Thanks
-  to Matus Valo and Michał Górny.
-- Set GitHub workflow permissions to least privileges (:PR:`1007`).  Thanks to
-  Joyce Brum.
-- Add `SECURITY.md` with security policy (:PR:`1012` and :issue:`1011`).
-  Thanks to Joyce Brum.
-- Handle py-cpuinfo missing in some platforms (:PR:`1013`).  Thanks to Sam
-  James.
-- Avoid NumPy >= 1.25 deprecations, use `numpy.all`, `numpy.any`,
-  etc. instead.  Thanks to Antonio Valentino.
-- Avoid C-related build warnings.  Thanks to Antonio Valentino.
-- Streamline CI wheel building & testing with `cibuildwheel`, more clear
-  distinctions between build and runtime dependencies.
-- Update included c-blosc to v1.21.5 (fixes SSE2/AVX build issue).
-- Require python-blosc2 >= 2.2.8 or c-blosc2 >= 2.10.4 (Python 3.12 support
-  and assorted fixes).
-- Update external libraries for CI-based wheel builds (:PR:`1018` and
-  :issue:`967`):
-
-  * hdf5 v1.14.2
-  * lz4 v1.9.4
-  * zlib v1.2.13
+- This release is finally compatible with NumPy 2, with wheels being built
+  against it so that they are still binary-compatible with NumPy 1
+  installations (:PR:`1176`, :PR:`1183`, :PR:`1184`, :PR:`1192`, :PR:`1195`,
+  :issue:`1160`, :issue:`1172`, :issue:`1185`).  NumPy >= 1.20 is required
+  now.  Thanks to Antonio Valentino, Maximilian Linhoff and Eric Larson.
+- Fix compatibility with Python 3.13 (:issue:`1166`), Python >= 3.10 required.
+  Cython 3.0.10 is required for building.  Thanks to Antonio Valentino.
+- Add type hints to `atom.py` (:PR:`1079`).  This also narrows some types,
+  only allowing bytes to be stored in `VLStringAtom` and only str in
+  `VLUnicodeAtom`.  Thanks to Nils Carlson.
+- Add type hints to (hopefully) the complete PyTables API (:PR:`1119`,
+  :PR:`1120`, :PR:`1121`, :PR:`1123`, :PR:`1124`, :PR:`1125`, :PR:`1125`,
+  :PR:`1126`, :PR:`1128`, :PR:`1129`, :PR:`1130`, :PR:`1131`, :PR:`1132`,
+  :PR:`1133`, :PR:`1135`, :PR:`1136`, :PR:`1137`, :PR:`1138`, :PR:`1139`,
+  :PR:`1140`, :PR:`1141`, :PR:`1142`, :PR:`1143`, :PR:`1145`, :PR:`1146`,
+  :PR:`1147`, :PR:`1148`, :PR:`1150`, :PR:`1151`, :PR:`1152`).  Thanks to Ko
+  Stehner.
+- Reduce impact of CPU information gathering by caching in local file
+  (:PR:`1091`, :PR:`1118`, :issue:`1081`).  Thanks to Antti Mäkinen and
+  Maximilian Linhoff.
 
 Bugfixes
 --------
 
-- Fix crash in Blosc2 optimized path with large tables (:issue:`995` and
-  :PR:`996`).  Thanks to Francesc Alted.
-- Fix compatibility with NumExpr v2.8.5 (:PR:`1046`).  Thanks to Antonio
+- Fix Windows AMD64 build issues with Bzip2 and C-Blosc2 libraries
+  (:issue:`1188`).  Thanks to Antonio Valentino and Eric Larson.
+- Fix typos and may other language errors in docstrings (:PR:`1122`).  Thanks
+  to Ko Stehner.
+- Fix Blosc2 filter not setting `dparams.schunk` on decompression (:PR:`1110`
+  and :issue:`1109`).  Thanks to Tom Birch.
+- Fix using B2ND optimizations when Blosc2 is not the only enabled filter;
+  move Fletcher32 compression to end of pipeline when enabled (:PR:`1191` and
+  :issue:`1162`).  Thanks to Ivan Vilata and Alex Laslavic.
+- Fix broken internal passing of `createparents` argument in `Leaf.copy`
+  (:PR:`1127` and :issue:`1125`).  Thanks to Ko Stehner.
+- Re-enable relative paths in `ExternalLink` class (:PR:`1095`).  Thanks to
+  erikdl-zeiss.
+- Fix using prefix in heavy tests methods of `test_queries` (:PR:`1169`).
+  Thanks to Miro Hrončok.
+- Fix `TypeError` when computing Blosc2 search paths with missing library
+  (:PR:`1188` and :issue:`1100`).  Thanks to martinowitsch, Padraic Calpin and
+  Eric Larson.
+- Avoid overflow `RuntimeWarning` on NumPy `expectedrows` value (:PR:`1010`).
+  Thanks to wony-zheng and Ivan Vilata.
+
+Other changes
+-------------
+
+- Add wheels for macOS ARM64 (Apple Silicon), set `MACOSX_DEPLOYMENT_TARGET`
+  in Docker (:PR:`1050` and :issue:`1165`).  Thanks to Clemens Brunner,
+  Antonio Valentino, Maximilian Linhoff and Eric Larson.
+- Avoid illegal hardware instruction under macOS on M1/M2 with Rosetta and
+  AMD64 wheels (:PR:`1195` and :issue:`1186`).  Thanks to Antonio Valentino
+  and Jon Peirce.
+- Produce nightly wheels (with HDF5 1.14.4), also uploaded to Scientific
+  Python Anaconda repo.  Wheels are also produced for PR workflows.  Thanks to
+  Antonio Valentino and Eric Larson (:PR:`1175`).
+- Wheels are no longer linked with the LZO library to avoid licensing issues
+  (:PR:`1195`).  Thanks to Antonio Valentino.
+- Hash-pin dependencies on wheel workflows to increase build procedure
+  security, with support for Dependabot and Renovatebot updates (:PR:`1085`
+  and :issue:`1015`).  Thanks to Joyce Brum and Diogo Teles Sant'Anna.
+- Hash-pin GitHub action versions in wheels workflow.  Thanks to Antonio
   Valentino.
-- Fix build errors on Windows ARM64 (:PR:`989`).  Thanks to Cristoph Gohlke.
-- Fix `ptrepack` failures with external links (:issue:`938` and :PR:`990`).
-  Thanks to Adrian Altenhoff.
-- Replace stderr messages with Python warnings (:issue:`992` and :PR:`993`).
-  Thanks to Maximilian Linhoff.
-- Fixes to CI workflow and wheel building (:PR:`1009`, :PR:`1047`).  Thanks to
-  Antonio Valentino.
-- Fix garbled rendering of `File.get_node` docstring (:PR:`1021`).  Thanks to
-  Steffen Rehberg.
-- Fix open `extern "C"` block (:PR:`1026`).  Thanks to Ivan Vilata.
-- Fix Cython slice indexing under Python 3.12 (:PR:`1033`).  Thanks to
-  Zbigniew Jędrzejewski-Szmek.
-- Fix unsafe temporary file creation in benchmark (:PR:`1053`).  Thanks to Al
-  Arafat Tanin (Project Alpha-Omega).
+- Update ReadTheDocs configuration to version 2 (:PR:`1092`).  Thanks to
+  Maximilian Linhoff.
+- Assorted fixes to b2nd benchmark, with new results.  Thanks to Ivan Vilata.
+- Point users to example code to handle "Selection lists cannot have repeated
+  values" exception (:PR:`1161` and :issue:`1149`).  Thanks to Joshua Albert.
+- Remove unused `getLibrary` C code.  Thanks to Antonio Valentino.
+- Update included C-Blosc to 1.21.6 (:PR:`1193`).  Thanks to Ivan Vilata.
+- Update included HDF5-Blosc filter to 1.0.1 (:PR:`1194`).  Thanks to Ivan
+  Vilata.
 
 Thanks
 ------
 
 In alphabetical order:
 
-- Adrian Altenhoff
-- Al Arafat Tanin
+- Alex Laslavic
 - Antonio Valentino
-- Ben Greiner
-- Cristoph Gohlke
-- Ezequiel Cimadevilla Alvarez
+- Antti Mäkinen
+- Clemens Brunner
+- Diogo Teles Sant'Anna
+- Eric Larson
+- erikdl-zeiss
 - Francesc Alted
 - Ivan Vilata
-- Iwo-KX
-- Jonathan Wheeler
+- Jon Peirce
+- Joshua Albert
 - Joyce Brum
-- Laurent Repiton
-- Logan Kilpatrick
-- Mark Kittisopikul
-- Marta Iborra
-- Matus Valo
+- Ko Stehner
+- martinowitsch
 - Maximilian Linhoff
-- Michał Górny
-- Munehiro Nishida
-- nega
-- odidev
-- Óscar Guiñón
-- Sam James
-- Sander Roet
-- Seth Troisi
-- Steffen Rehberg
-- Thorben Menne
-- xmatthias
-- Zbigniew Jędrzejewski-Szmek
+- Miro Hrončok
+- Nils Carlson
+- Padraic Calpin
+- Tom Birch
+- wony-zheng

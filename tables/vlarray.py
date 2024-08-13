@@ -275,7 +275,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         if expectedrows is None:
             expectedrows = parentnode._v_file.params['EXPECTED_ROWS_VLARRAY']
-        self._v_expectedrows = expectedrows
+        self._v_expectedrows = int(expectedrows)
         """The expected number of rows to be stored in the array.
 
         .. versionadded:: 3.0
