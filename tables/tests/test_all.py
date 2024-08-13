@@ -1,6 +1,7 @@
 """Run all test cases."""
 
 import faulthandler
+import os
 import sys
 
 import numpy as np
@@ -11,7 +12,9 @@ from tables.tests import common
 from tables.tests.test_suite import suite, test
 
 
-faulthandler.enable()
+# Give people a way to opt out of enabling faulthandler
+if os.getenv("PYTABLES_DISABLE_FAULTHANDLER", "").lower() not in ("1", "true"):
+    faulthandler.enable()
 
 
 def get_tuple_version(hexversion):
