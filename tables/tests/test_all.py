@@ -1,5 +1,6 @@
 """Run all test cases."""
 
+import faulthandler
 import sys
 
 import numpy as np
@@ -8,6 +9,9 @@ from packaging.version import Version
 import tables as tb
 from tables.tests import common
 from tables.tests.test_suite import suite, test
+
+
+faulthandler.enable()
 
 
 def get_tuple_version(hexversion):
