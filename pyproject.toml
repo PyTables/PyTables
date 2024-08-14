@@ -5,7 +5,10 @@
 requires = [
     "setuptools >= 61.0.0",
     "wheel",
-    "numpy >= 1.20.0",
+    # NOTE: it is still possible to build PyTables with numpy 1.x
+    # Please refer to https://github.com/PyTables/PyTables/issues/1200
+    # "numpy >= 1.20.0",
+    "numpy >= 2",
     "packaging",
     "py-cpuinfo",
     "Cython >=0.29.32",
