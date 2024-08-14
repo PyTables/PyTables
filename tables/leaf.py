@@ -886,7 +886,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         chunkshape = self.chunkshape
         coords //= chunkshape
         coords *= chunkshape
-        return ChunkInfo(tuple(coords), filter_mask, offset, size)
+        return ChunkInfo(tuple(coords.tolist()), filter_mask, offset, size)
 
     def read_chunk(self, coords: tuple[int, ...],
                    out: Optional[Union[bytearray, NPByteArray]]=None,
