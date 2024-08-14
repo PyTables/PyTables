@@ -11,7 +11,22 @@
 Changes from 3.10.1 to 3.10.0
 =============================
 
-XXX version-specific blurb XXX
+Bugfixes
+--------
+
+- Fix version constraints for the ``numpy`` runrime requirements
+  (:issue:`1204`).
+  For a mistake it didn't allow to use PyTables with ``numpy`` 2.x.
+- Fix compatibility with PyPy (:issue:`1205`), Thanks to Michał Górny.
+
+
+Improvements
+------------
+
+- Enforce `numpy >= 2` as build constraint (see discussion in :issue:`1200`).
+- Use tuple of plain ints for chunk info coordinates.
+  Thanks to Ivan Vilata-i-Balaguer.
+- Enable `faulthandler` in `tables.tests.test_all`. Thanks to Eric Larson.
 
 
 Changes from 3.10.0 to 3.9.2
