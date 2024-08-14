@@ -252,7 +252,7 @@ class XDirectChunkingTestCase(DirectChunkingTestCase):
             self.array.truncate(self.shape[0] - 1)
 
         new_obj = self.obj.copy()
-        new_obj.resize(self.array.shape)
+        new_obj.resize(self.array.shape, refcheck=False)
         obj_slice = tuple(slice(s, s + cs) for (s, cs)
                           in zip(chunk_start, self.chunkshape))
         if not shrink_after:
