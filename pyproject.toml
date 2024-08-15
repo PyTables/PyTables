@@ -5,7 +5,11 @@
 requires = [
     "setuptools >= 61.0.0",
     "wheel",
-    "numpy >= 1.20.0",
+    # NOTE: it is still possible to build PyTables with numpy 1.x
+    # Please refer to https://github.com/PyTables/PyTables/issues/1200
+    # If you change this to build with `numpy` 1, please update `numpy` in `dependencies` as well
+    # "numpy >= 1.20.0,<2",
+    "numpy >= 2",
     "packaging",
     "py-cpuinfo",
     "Cython >=0.29.32",
@@ -68,7 +72,9 @@ classifiers = [
 # ``requirements.txt``,
 # `jobs.build.steps` in `.github/workflows/ubuntu.yml`.
 dependencies = [
-    "numpy >= 1.20.0, <2",
+    # When building with `numpy` version `1`, change this constraint to `numpy` 1 only
+    # "numpy >= 1.20.0,<2",
+    "numpy >= 1.20.0",
     "numexpr >= 2.6.2",
     "packaging",
     "py-cpuinfo",
