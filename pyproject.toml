@@ -7,7 +7,8 @@ requires = [
     "wheel",
     # NOTE: it is still possible to build PyTables with numpy 1.x
     # Please refer to https://github.com/PyTables/PyTables/issues/1200
-    # "numpy >= 1.20.0",
+    # If you change this to build with `numpy` 1, please update `numpy` in `dependencies` as well
+    # "numpy >= 1.20.0,<2",
     "numpy >= 2",
     "packaging",
     "py-cpuinfo",
