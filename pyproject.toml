@@ -72,6 +72,8 @@ classifiers = [
 # ``requirements.txt``,
 # `jobs.build.steps` in `.github/workflows/ubuntu.yml`.
 dependencies = [
+    # When building with `numpy` version `1`, change this constraint to `numpy` 1 only
+    # "numpy >= 1.20.0,<2",
     "numpy >= 1.20.0",
     "numexpr >= 2.6.2",
     "packaging",
