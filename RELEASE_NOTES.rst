@@ -14,7 +14,7 @@ Changes from 3.10.1 to 3.10.0
 Bugfixes
 --------
 
-- Fix version constraints for the ``numpy`` runrime requirements
+- Fix version constraints for the ``numpy`` runtime requirements
   (:issue:`1204`).
   For a mistake it didn't allow to use PyTables with ``numpy`` 2.x.
 - Fix compatibility with PyPy (:issue:`1205`), Thanks to Michał Górny.
