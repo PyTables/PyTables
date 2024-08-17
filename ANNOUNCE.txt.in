@@ -8,18 +8,7 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-Hotfix release mostly done to fix the runtime requirements that,
-for a mistake, did not allow to use PyTables v3.10.0 with Numpy 2.x.
-
-In case you want to know more in detail what has changed in this
-version, please refer to: http://www.pytables.org/release_notes.html
-
-You can install it via pip or download a source package with generated
-PDF and HTML docs from:
-https://github.com/PyTables/PyTables/releases/v@VERSION@
-
-For an online version of the manual, visit:
-http://www.pytables.org/usersguide/index.html
+XXX version-specific blurb XXX
 
 
 What it is?
