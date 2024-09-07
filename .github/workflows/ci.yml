@@ -76,7 +76,7 @@ jobs:
         # Keep in sync with
         # "Prerequisites" in User's Guide,
         # ``build-system.requires`` in ``pyproject.toml``.
-        conda install -q setuptools pip wheel build packaging numpy cython bzip2 hdf5 lzo
+        conda install -q setuptools pip wheel python-build packaging numpy cython bzip2 hdf5 lzo
         python -m pip install --require-hashes -r requirements.txt
         python -m pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple '${{ matrix.numpy }}'
         # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
@@ -120,7 +120,7 @@ jobs:
       run: |
         # Keep in sync with "Prerequisites" in User's Guide,
         # ``build-system.requires`` in ``pyproject.toml``.
-        conda install setuptools pip wheel build packaging py-cpuinfo "numpy>=2" cython numexpr bzip2 hdf5 lzo 'typing_extensions>=4.4.0' c-blosc2
+        conda install setuptools pip wheel python-build packaging py-cpuinfo "numpy>=2" cython numexpr bzip2 hdf5 lzo 'typing_extensions>=4.4.0' c-blosc2
     - name: Get source distrubtion
       uses: actions/download-artifact@v4
       with:
