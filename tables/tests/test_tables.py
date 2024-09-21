@@ -5374,6 +5374,14 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(hasattr(table2.attrs, "attr2"), 0)
 
 
+class CopyIssuesTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def test_issue1208(self):
+        # https://github.com/PyTables/PyTables/issues/1208
+        group = self.h5file.create_group('this', 'that', createparents=True)
+        node = self.h5file.create_table('/', 'here', {'a': tb.UInt32Col()})
+        node.copy(group, createparents=True, overwrite=True)
+
+
 class CloseCopyTestCase(CopyTestCase):
     close = True
     aligned = False

@@ -1052,20 +1052,6 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.create_array('/', 'array', [1])
         self.h5file.create_group('/', 'group', filters=self.filters)
 
-    def test00_parentType(self):
-        """Using the right type of parent node argument."""
-
-        h5file, root = self.h5file, self.h5file.root
-
-        self.assertRaises(TypeError, h5file.create_array,
-                          root.group, 'arr', [1], createparents=True)
-        self.assertRaises(TypeError, h5file.copy_node,
-                          '/array', root.group, createparents=True)
-        self.assertRaises(TypeError, h5file.move_node,
-                          '/array', root.group, createparents=True)
-        self.assertRaises(TypeError, h5file.copy_children,
-                          '/group', root, createparents=True)
-
     def test01_inside(self):
         """Placing a node inside a nonexistent child of itself."""
         self.assertRaises(tb.NodeError, self.h5file.move_node,

@@ -843,6 +843,7 @@ class File(hdf5extension.File):
         """
 
         if create:
+            path = path._v_pathname if hasattr(path, "_v_pathname") else path
             return self._create_path(path)
         else:
             return self.get_node(path)
