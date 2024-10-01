@@ -4,9 +4,9 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes build-requirements.in
 #
-build==1.2.1 \
-    --hash=sha256:526263f4870c26f26c433545579475377b2b7588b6f1eac76a001e873ae3e19d \
-    --hash=sha256:75e10f767a433d9a86e50d83f418e83efc18ede923ee5ff7df93b6cb0306c5d4
+build==1.2.2 \
+    --hash=sha256:119b2fb462adef986483438377a13b2f42064a2a3a4161f24a0cca698a07ac8c \
+    --hash=sha256:277ccc71619d98afdd841a0e96ac9fe1593b823af481d3b0cea748e8894e0613
     # via -r build-requirements.in
 cython==3.0.11 \
     --hash=sha256:0b1d1f6f94cc5d42a4591f6d60d616786b9cd15576b112bc92a23131fcf38020 \
@@ -76,9 +76,9 @@ cython==3.0.11 \
     --hash=sha256:f3953d2f504176f929862e5579cfc421860c33e9707f585d70d24e1096accdf7 \
     --hash=sha256:f988f7f8164a6079c705c39e2d75dbe9967e3dacafe041420d9af7b9ee424162
     # via -r build-requirements.in
-importlib-metadata==8.4.0 \
-    --hash=sha256:66f342cc6ac9818fc6ff340576acd24d65ba0b3efabb2b4ac08b598965a4a2f1 \
-    --hash=sha256:9a547d3bc3608b025f93d403fdd1aae741c24fbb8314df4b155675742ce303c5
+importlib-metadata==8.5.0 \
+    --hash=sha256:45e54197d28b7a7f1559e60b95e7c567032b602131fbd588f1497f47880aa68b \
+    --hash=sha256:71522656f0abace1d072b9e5481a48f07c138e00f079c38c8f883823f9c26bd7
     # via -r build-requirements.in
 packaging==24.1 \
     --hash=sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002 \
@@ -96,9 +96,9 @@ wheel==0.44.0 \
     --hash=sha256:2376a90c98cc337d18623527a97c31797bd02bad0033d41547043a1cbfbe448f \
     --hash=sha256:a29c3f2817e95ab89aa4660681ad547c0e9547f20e75b0562fe7723c9a2a9d49
     # via -r build-requirements.in
-zipp==3.19.2 \
-    --hash=sha256:bf1dcf6450f873a13e952a29504887c89e6de7506209e5b1bcc3460135d4de19 \
-    --hash=sha256:f091755f667055f2d02b32c53771a7a6c8b47e1fdbc4b72a8b9072b3eef8015c
+zipp==3.20.2 \
+    --hash=sha256:a817ac80d6cf4b23bf7f2828b7cabf326f15a001bea8b1f9b49631780ba28350 \
+    --hash=sha256:bc9eb26f4506fda01b81bcde0ca78103b6e62f991b381fec825435c836edbc29
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
@@ -106,7 +106,7 @@ pip==24.2 \
     --hash=sha256:2cd581cf58ab7fcfca4ce8efa6dcacd0de5bf8d0a3eb9ec927e07405f4d9e2a2 \
     --hash=sha256:5b5e490b5e9cb275c879595064adce9ebd31b854e3e803740b72f9ccf34a45b8
     # via -r build-requirements.in
-setuptools==74.0.0 \
-    --hash=sha256:0274581a0037b638b9fc1c6883cc71c0210865aaa76073f7882376b641b84e8f \
-    --hash=sha256:a85e96b8be2b906f3e3e789adec6a9323abf79758ecfa3065bd740d81158b11e
+setuptools==75.1.0 \
+    --hash=sha256:35ab7fd3bcd95e6b7fd704e4a1539513edad446c097797f2985e0e4b960772f2 \
+    --hash=sha256:d59a21b17a275fb872a9c3dae73963160ae079f1049ed956880cd7c09b120538
     # via -r build-requirements.in
