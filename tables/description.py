@@ -5,6 +5,7 @@ import warnings
 from typing import Any, Callable, Generator, Literal, Optional, Sequence, Type, Union
 
 import numpy as np
+import numpy.typing as npt
 
 from . import atom
 from .path import check_name_validity
@@ -847,7 +848,7 @@ class IsDescription(metaclass=MetaIsDescription):
     """
 
 
-def descr_from_dtype(dtype_: np.dtype,
+def descr_from_dtype(dtype_: npt.DTypeLike,
                      ptparams: Optional[dict[str, Any]]=None) -> tuple[Description, str]:
     """Get a description instance and byteorder from a (nested) NumPy dtype."""
 

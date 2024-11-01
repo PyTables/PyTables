@@ -15,6 +15,7 @@ from typing import (
 
 import numexpr as ne
 import numpy as np
+import numpy.typing as npt
 
 from . import tableextension
 from .lrucacheextension import ObjectCache, NumCache
@@ -657,7 +658,7 @@ class Table(tableextension.Table, Leaf):
     def __init__(self,
                  parentnode: "Group",
                  name: str,
-                 description: Union[dict, Type[IsDescription], Description, np.dtype, None]=None,
+                 description: Union[dict, Type[IsDescription], Description, npt.DTypeLike, None]=None,
                  title: str="",
                  filters: Optional["Filters"]=None,
                  expectedrows: Optional[int]=None,
