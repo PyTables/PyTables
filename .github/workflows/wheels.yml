@@ -116,7 +116,7 @@ jobs:
         if: runner.os != 'Windows'
 
       - name: Install Python and dependencies on Windows
-        uses: mamba-org/setup-micromamba@f8b8a1e23a26f60a44c853292711bacfd3eac822 # v1.9.0
+        uses: mamba-org/setup-micromamba@617811f69075e3fd3ae68ca64220ad065877f246 # v2.0.0
         with:
           environment-name: build
           create-args: >
@@ -128,7 +128,7 @@ jobs:
         if: runner.os == 'Linux' && matrix.arch != 'x64_64'
         name: Set up QEMU on Linux
 
-      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      - uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
         id: deps-cache
         with:
           path: hdf5_build
