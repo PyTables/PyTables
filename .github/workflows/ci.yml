@@ -52,7 +52,7 @@ jobs:
         # macos-13 is Intel, macos-latest is Apple Silicon
         os: [ubuntu-latest, macos-13, macos-latest, windows-latest]
         # Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
-        python: ['3.10', '3.11', '3.12']
+        python: ['3.11', '3.12']
         numpy: ['numpy']
         include:
           - os: ubuntu-latest

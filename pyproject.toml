@@ -12,7 +12,7 @@ requires = [
     "numpy >= 2",
     "packaging",
     "py-cpuinfo",
-    "Cython >=0.29.32",
+    "Cython >= 3.0.11",
     # Included here for seamless wheel builds.
     # Packagers can choose to replace it by externally provided
     # c-blosc2 library and headers
@@ -30,7 +30,7 @@ description = "Hierarchical datasets for Python"
 # Keep Python versions in sync with
 # `classifiers` below,
 # `min_python_version` in `setup.py`.
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "BSD 3-Clause License" }
 keywords = [ "hdf5" ]
 authors = [
@@ -61,7 +61,6 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Database",
@@ -143,7 +142,7 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 "tables.nodes.tests" = [ "*.dat", "*.xbm", "*.h5" ]
 
 [tool.cibuildwheel]
-skip = "*-musllinux_* cp313*"
+skip = "*-musllinux_* cp310* cp313*"
 build = "cp*"
 build-verbosity = 1
 test-command = [

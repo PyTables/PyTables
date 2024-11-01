@@ -4,6 +4,6 @@ pip>=24.0.0
 tomli>=1.1.0
 wheel
 build
-cython>=3.0.10
+cython>=3.0.11
 # deps not resolved
 importlib-metadata>=4.6

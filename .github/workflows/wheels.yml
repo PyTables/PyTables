@@ -95,9 +95,6 @@ jobs:
           # The aarch64 wheels are very slow so split into separate jobs
           - os: ubuntu-latest
             arch: aarch64
-            build: 'cp310-*'
-          - os: ubuntu-latest
-            arch: aarch64
             build: 'cp311-*'
           - os: ubuntu-latest
             arch: aarch64
