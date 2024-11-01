@@ -15,10 +15,11 @@ import weakref
 import warnings
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Callable, Generator, Iterator, Literal, Optional, Union
+from typing import Any, Callable, Generator, Iterator, Literal, Optional, Type, Union
 
 import numexpr as ne
 import numpy as np
+import numpy.typing as npt
 
 from . import hdf5extension
 from . import utilsextension
@@ -914,7 +915,7 @@ class File(hdf5extension.File):
     def create_table(self,
                      where: Union[Group, str],
                      name: str,
-                     description: Optional[Description]=None,
+                     description: Union[dict, Type[IsDescription], Description, npt.DTypeLike, None]=None,
                      title: str="",
                      filters: Optional[Filters]=None,
                      expectedrows: int=10_000,
