@@ -57,7 +57,10 @@ jobs:
         include:
           - os: ubuntu-latest
             python: '3.12'
-            numpy: 'numpy>=2.1.dev0'
+            numpy: 'numpy>=2.2.dev0'
+          - os: ubuntu-latest
+            python: '3.12'
+            numpy: 'numpy<2'
 
     steps:
     - uses: actions/checkout@v4
