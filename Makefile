@@ -6,7 +6,7 @@ VERSION = $(shell grep "__version__ =" tables/_version.py | cut -f 3 -d ' ' | se
 SRCDIRS = doc
 GENERATED = ANNOUNCE.txt
 PYTHON = python3
-PYPLATFORM = $(shell $(PYTHON) -c "from distutils.util import get_platform; print(get_platform())")
+PYPLATFORM = $(shell $(PYTHON) -c "from sysconfig import get_platform; print(get_platform())")
 PYVER = $(shell $(PYTHON) -c "import sys; print(sys.implementation.cache_tag)")
 PYBUILDDIR = $(PWD)/build/lib.$(PYPLATFORM)-$(PYVER)
 OPT = PYTHONPATH="$(PYBUILDDIR)"
