@@ -1903,8 +1903,13 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tb.flavor.description_map.update(description_map)
 
 
-# @common.unittest.skipIf(sys.getfilesystemencoding() != 'utf-8',
-#                         'need utf-8 file-system encoding')
+# @common.unittest.skipIf(
+#     sys.getfilesystemencoding() != "utf-8",
+#     "need utf-8 file-system encoding",
+# )
+@common.unittest.skipIf(
+    sys.platform == "win32", "no unicode filenames on windows"
+)
 class UnicodeFilename(common.TempFileMixin, common.PyTablesTestCase):
     unicode_prefix = 'para\u0140lel'
 
