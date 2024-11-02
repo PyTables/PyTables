@@ -1,0 +1,32 @@
+[flake8]
+# max_line_length = 79
+# max-complexity = 10
+doctests = true
+# https://github.com/psf/black/blob/main/docs/guides/using_black_with_other_tools.md
+extend-ignore = E203,E501,E701,W503,SC,CNL,D,A,N,BLK,CCR,B902
+# extend-ignore = I  # flake8-import-order: not compatible with isort
+# extend-ignore = SC  # flake8-spellcheck: too aggressive
+# extend-ignore = CNL  # flake8-class-newline: incompatible with black
+# extend-ignore = A003,A005  # Python builtin is shadowed by class attribute / module
+extend-select = W504,B950
+# https://docs.astral.sh/ruff/rules/#pydocstyle-d
+# D105: undocumented-magic-method
+# D107: undocumented-public-init
+# extend-ignore = E203,W503,D105,D107  # D* are in pyproject.toml
+per-file-ignores =
+    **/tests/*: D,T003
+    tables/__init__.py: E402,F401,F403,F405
+statistics = True
+count = True
+extend-exclude = **/tests/*
+
+# flake8-cognitive-complexity
+# max-cognitive-complexity = 7  # default
+max-cognitive-complexity = 11
+
+# flake8-noqa
+noqa-require-code = True
+
+# flake8-spellcheck
+dictionaries = en_US,python,technical,pandas
+# spellcheck-allowlist-file = .spellcheck-allowlist
