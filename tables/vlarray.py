@@ -360,7 +360,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
     # This is too specific for moving it into Leaf
     def _calc_chunkshape(self, expectedrows: int) -> tuple[int]:
         """Calculate the size for the HDF5 chunk."""
-
         # For computing the chunkshape for HDF5 VL types, we have to
         # choose the itemsize of the *each* element of the atom and
         # not the size of the entire atom.  I don't know why this

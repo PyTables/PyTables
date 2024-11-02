@@ -534,8 +534,9 @@ class Array(hdf5extension.Array, Leaf):
 
             if start + count > length:
                 raise IndexError(
-                    "Selection out of bounds (%d; axis has %d)" %
-                    (start + count, length))
+                    f"Selection out of bounds ({start + count}; "
+                    f"axis has {length})"
+                )
 
             return start, count, step
 
@@ -565,7 +566,8 @@ class Array(hdf5extension.Array, Leaf):
                     mshape.append(len(exp))
                 if len(exp) == 0:
                     raise IndexError(
-                        "Empty selections are not allowed (axis %d)" % idx)
+                        f"Empty selections are not allowed (axis {idx})"
+                    )
                 elif len(exp) > 1:
                     if list_seen:
                         raise IndexError("Only one selection list is allowed")
@@ -592,11 +594,14 @@ class Array(hdf5extension.Array, Leaf):
                         "https://github.com/PyTables/PyTables/issues/1149"
                     )
                 neworder = nexp.argsort()
-                if (neworder.shape != (len(exp),) or
-                        np.sum(np.abs(neworder - np.arange(len(exp)))) != 0):
+                if (
+                    neworder.shape != (len(exp),)
+                    or np.sum(np.abs(neworder - np.arange(len(exp)))) != 0
+                ):
                     if reorder is not None:
                         raise IndexError(
-                            "Only one selection list can be unordered")
+                            "Only one selection list can be unordered"
+                        )
                     corrected_idx = sum(1 for x in mshape if x != 0) - 1
                     reorder = (corrected_idx, neworder)
                     nexp = nexp[neworder]
@@ -718,8 +723,10 @@ class Array(hdf5extension.Array, Leaf):
 
         # truncate data if least_significant_digit filter is set
         # TODO: add the least_significant_digit attribute to the array on disk
-        if (self.filters.least_significant_digit is not None and
-                not np.issubdtype(nparr.dtype, np.signedinteger)):
+        if (
+            self.filters.least_significant_digit is not None
+            and not np.issubdtype(nparr.dtype, np.signedinteger)
+        ):
             nparr = quantize(nparr, self.filters.least_significant_digit)
 
         try:
@@ -877,8 +884,10 @@ class Array(hdf5extension.Array, Leaf):
             self._read_array(start, stop, step, arr)
         # data is always read in the system byteorder
         # if the out array's byteorder is different, do a byteswap
-        if (out is not None and
-                byteorders[arr.dtype.byteorder] != sys.byteorder):
+        if (
+            out is not None
+            and byteorders[arr.dtype.byteorder] != sys.byteorder
+        ):
             arr.byteswap(True)
         return arr
 

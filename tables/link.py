@@ -247,8 +247,10 @@ class SoftLink(linkextension.SoftLink, Link):
     def __getattribute__(self, attrname: str) -> Any:
 
         # get attribute of the SoftLink itself
-        if (attrname in SoftLink._link_attrnames or
-                attrname[:3] in SoftLink._link_attrprefixes):
+        if (
+            attrname in SoftLink._link_attrnames
+            or attrname[:3] in SoftLink._link_attrprefixes
+        ):
             return object.__getattribute__(self, attrname)
 
         # get attribute of the target node
@@ -268,8 +270,10 @@ class SoftLink(linkextension.SoftLink, Link):
     def __setattr__(self, attrname: str, value: Any) -> None:
 
         # set attribute of the SoftLink itself
-        if (attrname in SoftLink._link_attrnames or
-                attrname[:3] in SoftLink._link_attrprefixes):
+        if (
+            attrname in SoftLink._link_attrnames
+            or attrname[:3] in SoftLink._link_attrprefixes
+        ):
             object.__setattr__(self, attrname, value)
 
         # set attribute of the target node

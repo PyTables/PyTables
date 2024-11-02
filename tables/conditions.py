@@ -187,8 +187,8 @@ def _get_idx_expr_recurse(
     idxexprs: list,
     strexpr: list[str],
 ) -> (
-    list[tuple[Any, tuple[str], tuple[Any]]] |
-    list[
+    list[tuple[Any, tuple[str], tuple[Any]]]
+    | list[
         tuple[ne.expressions.ExpressionNode, tuple[str, str], tuple[Any, Any]]
     ] | tuple[list, list[str]]
 ):

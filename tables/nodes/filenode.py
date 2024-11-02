@@ -42,8 +42,8 @@ class RawPyTablesIO(io.RawIOBase):
     # A lambda to turn a size into a shape, for each version.
     _size_to_shape = [
         None,
-        lambda l: (l, 1),
-        lambda l: (l, ),
+        lambda n: (n, 1),
+        lambda m: (m, ),
     ]
 
     def __init__(self, node, mode=None):
@@ -423,8 +423,10 @@ class RawPyTablesIO(io.RawIOBase):
         #                      "the underlying hdf5 file is not readable")
 
         writable = bool('w' in mode or 'a' in mode or '+' in mode)
-        h5writable = bool('w' in h5filemode or 'a' in h5filemode or
-                          '+' in h5filemode)
+        h5writable = bool(
+            'w' in h5filemode or 'a' in h5filemode
+            or '+' in h5filemode
+        )
 
         if writable and not h5writable:
             raise ValueError("RawPyTablesIO can't be open in write mode if "

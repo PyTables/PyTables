@@ -302,16 +302,20 @@ class AttributeSet(hdf5extension.AttributeSet):
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
         maybe_pickled = (
-            isinstance(value, np.generic) and  # NumPy scalar?
-            value.dtype.type == np.bytes_ and  # string type?
-            value.itemsize > 0 and value.endswith(b'.'))
+            isinstance(value, np.generic)  # NumPy scalar?
+            and value.dtype.type == np.bytes_  # string type?
+            and value.itemsize > 0 and value.endswith(b'.')
+        )
 
         if (maybe_pickled and value in [b"0", b"0."]):
             # Workaround for a bug in many versions of Python (starting
             # somewhere after Python 2.6.1).  See ticket #253.
             retval = value
-        elif (maybe_pickled and _field_fill_re.match(name)
-              and format_version == (1, 5)):
+        elif (
+            maybe_pickled
+            and _field_fill_re.match(name)
+            and format_version == (1, 5)
+        ):
             # This format was used during the first 1.2 releases, just
             # for string defaults.
             try:
@@ -319,10 +323,12 @@ class AttributeSet(hdf5extension.AttributeSet):
                 retval = np.array(retval)
             except ImportError:
                 retval = None  # signal error avoiding exception
-        elif (maybe_pickled and
-              name == 'FILTERS' and
-              format_version is not None and
-              format_version < (2, 0)):
+        elif (
+            maybe_pickled
+            and name == 'FILTERS'
+            and format_version is not None
+            and format_version < (2, 0)
+        ):
             # This is a big hack, but we don't have other way to recognize
             # pickled filters of PyTables 1.x files.
             value = _old_filters_re.sub(_new_filters_sub, value, 1)
@@ -364,9 +370,11 @@ class AttributeSet(hdf5extension.AttributeSet):
             # Additional check for allowing a workaround for #307
             if isinstance(retval, str) and retval == '':
                 retval = np.array(retval)[()]
-        elif (name == 'FILTERS' and
-              format_version is not None and
-              format_version >= (2, 0)):
+        elif (
+            name == 'FILTERS'
+            and format_version is not None
+            and format_version >= (2, 0)
+        ):
             try:
                 retval = Filters._unpack(value)
             except ValueError:
@@ -374,8 +382,10 @@ class AttributeSet(hdf5extension.AttributeSet):
                 retval = None
         elif name == 'TITLE' and not isinstance(value, str):
             retval = value.decode('utf-8')
-        elif (issysattrname(name) and isinstance(value, (bytes, str)) and
-              not isinstance(value, str) and not _field_fill_re.match(name)):
+        elif (
+            issysattrname(name) and isinstance(value, (bytes, str))
+            and not isinstance(value, str) and not _field_fill_re.match(name)
+        ):
             # system attributes should always be str
             # python 3, bytes and not "FIELD_[0-9]+_FILL"
             retval = value.decode('utf-8')
@@ -407,17 +417,20 @@ class AttributeSet(hdf5extension.AttributeSet):
             elif name == "NROWS":
                 stvalue = np.array(value, dtype=SizeType)
                 value = stvalue[()]
-            elif (name == "FILTERS" and
-                  self._v__format_version is not None and
-                  self._v__format_version >= (2, 0)):
+            elif (
+                name == "FILTERS"
+                and self._v__format_version is not None
+                and self._v__format_version >= (2, 0)
+            ):
                 stvalue = value._pack()
                 # value will remain as a Filters instance here
         # Convert value from a Python scalar into a NumPy scalar
         # (only in case it has not been converted yet)
         # Fixes ticket #59
-        if (stvalue is value and
-                type(value) in (bool, bytes, int, float, complex, str,
-                                np.str_)):
+        if (
+            stvalue is value
+            and type(value) in (bool, bytes, int, float, complex, str, np.str_)
+        ):
             # Additional check for allowing a workaround for #307
             if isinstance(value, str) and len(value) == 0:
                 stvalue = np.array('')
@@ -637,11 +650,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Copy the system attributes that we are allowed to.
         if copysysattrs:
             for attrname in self._v_attrnamessys:
-                if ((attrname not in SYS_ATTRS_NOTTOBECOPIED) and
+                if (
+                    (attrname not in SYS_ATTRS_NOTTOBECOPIED)
                     # Do not copy the FIELD_ attributes in tables as this can
                     # be really *slow* (don't know exactly the reason).
                     # See #304.
-                        not attrname.startswith("FIELD_")):
+                    and not attrname.startswith("FIELD_")
+                ):
                     set_attr(attrname, getattr(self, attrname))
             # Copy CLASS and VERSION attributes if requested
             if copyclass:

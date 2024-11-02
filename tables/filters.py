@@ -196,14 +196,14 @@ class Filters:
             filters_dict = {}  # not chunked
 
         # Keyword arguments are all off
-        kwargs = dict(
-            complevel=0,
-            shuffle=False,
-            bitshuffle=False,
-            fletcher32=False,
-            least_significant_digit=None,
-            _new=False,
-        )
+        kwargs = {
+            "complevel": 0,
+            "shuffle": False,
+            "bitshuffle": False,
+            "fletcher32": False,
+            "least_significant_digit": None,
+            "_new": False,
+        }
         for (name, values) in filters_dict.items():
             if name == 'deflate':
                 name = 'zlib'
@@ -381,9 +381,11 @@ bitshuffle=False, fletcher32=True, least_significant_digit=None)
         self.bitshuffle = bitshuffle
         """Whether the *BitShuffle* filter is active or not."""
 
-        if (self.complib and
-                self.bitshuffle and
-                not self.complib.startswith('blosc')):
+        if (
+            self.complib
+            and self.bitshuffle
+            and not self.complib.startswith('blosc')
+        ):
             raise ValueError("BitShuffle can only be used inside Blosc/Blosc2")
 
         if self.shuffle and self.bitshuffle:

@@ -263,9 +263,11 @@ class Group(hdf5extension.Group, Node):
             # since the most important ones are defined as properties.
 
     def __del__(self) -> None:
-        if (self._v_isopen and
-            self._v_pathname in self._v_file._node_manager.registry and
-                '_v_children' in self.__dict__):
+        if (
+            self._v_isopen
+            and self._v_pathname in self._v_file._node_manager.registry
+            and '_v_children' in self.__dict__
+        ):
             # The group is going to be killed.  Rebuild weak references
             # (that Python cancelled just before calling this method) so
             # that they are still usable if the object is revived later.
@@ -533,14 +535,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # Show a warning if there is an object attribute with that name.
         if childname in self.__dict__:
             warnings.warn(
-                "group ``%s`` already has an attribute named ``%s``; "
-                "you will not be able to use natural naming "
-                "to access the child node"
-                % (self._v_pathname, childname), NaturalNameWarning)
+                f"group ``{self._v_pathname}`` already has an attribute "
+                f"named ``{childname}``; you will not be able to use "
+                f"natural naming to access the child node",
+                NaturalNameWarning
+            )
 
         # Check group width limits.
-        if (len(self._v_children) + len(self._v_hidden) >=
-                self._v_max_group_width):
+        if (
+            len(self._v_children) + len(self._v_hidden)
+            >= self._v_max_group_width
+        ):
             self._g_width_warning()
 
         # Update members information.

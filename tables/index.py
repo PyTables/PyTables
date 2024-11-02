@@ -258,14 +258,16 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
     @property
     def shape(self) -> tuple[int, int]:
         """The shape of this index (in slices and elements)."""
-        return (self.nrows, self.slicesize)
+        return self.nrows, self.slicesize
 
     @property
     def temp_required(self) -> bool:
         """Whether a temporary file for indexes is required or not."""
-        return (self.indsize > 1 and
-                self.optlevel > 0 and
-                self.table.nrows > self.slicesize)
+        return (
+            self.indsize > 1
+            and self.optlevel > 0
+            and self.table.nrows > self.slicesize
+        )
 
     @property
     def want_complete_sort(self) -> bool:
@@ -883,17 +885,21 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             prev_end = ranges[i, 1]
             for j in range(i + 1, nslices):
                 stj = starts[j]
-                if ((j < self.nslices and stj == ss) or
-                        (j == self.nslices and stj == nelementsLR)):
+                if (
+                    (j < self.nslices and stj == ss)
+                    or (j == self.nslices and stj == nelementsLR)
+                ):
                     # This slice has been already dealt with
                     continue
                 if j < self.nslices:
-                    assert stj < ss, \
+                    assert stj < ss, (
                         "Two slices cannot overlap completely at this stage!"
+                    )
                     next_beg = sorted[j, stj]
                 else:
-                    assert stj < nelementsLR, \
+                    assert stj < nelementsLR, (
                         "Two slices cannot overlap completely at this stage!"
+                    )
                     next_beg = sortedLR[stj]
                 next_end = ranges[j, 1]
                 if prev_end > next_end:
@@ -1239,18 +1245,31 @@ class Index(NotLoggedMixin, Group, indexesextension.Index):
             nslices = ncb2 // ncs
             bounds = boundsobj[nblock * ncb:nblock * ncb + ncb2]
             # Do this only if lastrow elements can cross block boundaries
-            if (nblock == self.nblocks - 1 and  # last block
-                    can_cross_bbounds):
+            if nblock == self.nblocks - 1 and can_cross_bbounds:  # last block
                 nslices += 1
                 ul = self.nelementsILR // cs
                 bounds = np.concatenate((bounds, self.bebounds[:ul]))
             sbounds_idx = bounds.argsort(kind=defsort)
             offset = int(nblock * nsb)
             # Swap sorted and indices following the new order
-            self.get_neworder(sbounds_idx, sorted, tmp_sorted, sortedLR,
-                              nslices, offset, self.dtype)
-            self.get_neworder(sbounds_idx, indices, tmp_indices, indicesLR,
-                              nslices, offset, 'u%d' % self.indsize)
+            self.get_neworder(
+                sbounds_idx,
+                sorted,
+                tmp_sorted,
+                sortedLR,
+                nslices,
+                offset,
+                self.dtype,
+            )
+            self.get_neworder(
+                sbounds_idx,
+                indices,
+                tmp_indices,
+                indicesLR,
+                nslices,
+                offset,
+                f'u{self.indsize}',
+            )
         # Reorder completely the index at slice level
         self.reorder_slices(tmp=True)
 

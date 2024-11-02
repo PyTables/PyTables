@@ -516,14 +516,14 @@ class Description:
 
             columns = None
             if (
-                type(descr) is type(IsDescription) and
-                issubclass(descr, IsDescription)
+                type(descr) is type(IsDescription)
+                and issubclass(descr, IsDescription)
             ):
                 # print("Nested object (type I)-->", name)
                 columns = descr().columns
             elif (
-                type(descr.__class__) is type(IsDescription) and
-                issubclass(descr.__class__, IsDescription)
+                type(descr.__class__) is type(IsDescription)
+                and issubclass(descr.__class__, IsDescription)
             ):
                 # print("Nested object (type II)-->", name)
                 columns = descr.columns
@@ -623,11 +623,11 @@ class Description:
         allow_padding = ptparams is None or ptparams['ALLOW_PADDING']
         # allow_padding = ptparams is not None and ptparams['ALLOW_PADDING']
         if (
-            allow_padding and
-            len(cols_offsets) > 1 and
-            len(keys) == len(cols_with_pos) and
-            len(keys) == len(cols_offsets) and
-            not nested
+            allow_padding
+            and len(cols_offsets) > 1
+            and len(keys) == len(cols_with_pos)
+            and len(keys) == len(cols_offsets)
+            and not nested
         ):  # TODO: support offsets with nested types
             # We have to sort the offsets too, as they must follow the column
             # order. As the offsets and the pos should be place in the same

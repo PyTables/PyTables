@@ -78,8 +78,10 @@ def is_idx(index: Any) -> bool:
     elif isinstance(index, np.integer):
         return True
     # For Python 2.4 one should test 0-dim and 1-dim, 1-elem arrays as well
-    elif (isinstance(index, np.ndarray) and (index.shape == ()) and
-          index.dtype.str[1] == 'i'):
+    elif (
+        isinstance(index, np.ndarray) and (index.shape == ())
+        and index.dtype.str[1] == 'i'
+    ):
         return True
 
     return False

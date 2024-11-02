@@ -123,8 +123,8 @@ def calc_chunksize(
     # see https://github.com/PyTables/PyTables/issues/879
     if node is not None:
         maxsize = (
-            node._v_file.params['BUFFER_TIMES'] *
-            node._v_file.params['IO_BUFFER_SIZE']
+            node._v_file.params['BUFFER_TIMES']
+            * node._v_file.params['IO_BUFFER_SIZE']
         )
         while (slicesize * node.dtype.itemsize) > maxsize:
             slicesize = slicesize // 2

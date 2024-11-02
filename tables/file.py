@@ -1052,11 +1052,16 @@ class File(hdf5extension.File):
                 raise TypeError('invalid obj parameter %r' % obj)
 
             descr, _ = descr_from_dtype(obj.dtype, ptparams=self.params)
-            if (description is not None and
-                    dtype_from_descr(description,
-                                     ptparams=self.params) != obj.dtype):
-                raise TypeError('the desctiption parameter is not consistent '
-                                'with the data type of the obj parameter')
+            if (
+                description is not None
+                and dtype_from_descr(
+                    description, ptparams=self.params
+                ) != obj.dtype
+            ):
+                raise TypeError(
+                    'the desctiption parameter is not consistent '
+                    'with the data type of the obj parameter'
+                )
             elif description is None:
                 description = descr
 
@@ -1065,11 +1070,17 @@ class File(hdf5extension.File):
             raise ValueError("invalid table description: None")
         _checkfilters(filters)
 
-        ptobj = Table(parentnode, name,
-                      description=description, title=title,
-                      filters=filters, expectedrows=expectedrows,
-                      chunkshape=chunkshape, byteorder=byteorder,
-                      track_times=track_times)
+        ptobj = Table(
+            parentnode,
+            name,
+            description=description,
+            title=title,
+            filters=filters,
+            expectedrows=expectedrows,
+            chunkshape=chunkshape,
+            byteorder=byteorder,
+            track_times=track_times,
+        )
 
         if obj is not None:
             ptobj.append(obj)

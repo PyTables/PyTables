@@ -420,9 +420,9 @@ class Leaf(Node):
         chunksize = calc_chunksize(expected_mb)
         complib = self.filters.complib
         if (
-            complib is not None and
-            complib.startswith("blosc2") and
-            self._c_classid in ('TABLE', 'CARRAY', 'EARRAY')
+            complib is not None
+            and complib.startswith("blosc2")
+            and self._c_classid in ('TABLE', 'CARRAY', 'EARRAY')
         ):
             # Blosc2 can introspect into blocks, so we can increase the
             # chunksize for improving HDF5 perf for its internal btree.
@@ -443,9 +443,9 @@ class Leaf(Node):
                 # so in general, enforcing L3 > L2 is a good sanity check.
                 l2_cache_size = cpu_info.get('l2_cache_size', "Not found")
                 if (
-                    type(l3_cache_size) is int and
-                    type(l2_cache_size) is int and
-                    l3_cache_size > l2_cache_size
+                    type(l3_cache_size) is int
+                    and type(l2_cache_size) is int
+                    and l3_cache_size > l2_cache_size
                 ):
                     chunksize = l3_cache_size
             # In Blosc2, the chunksize cannot be larger than 2 GB

@@ -7,7 +7,7 @@ import sys
 import argparse
 from pathlib import Path
 
-old2newnames = dict([
+old2newnames = dict([  # noqa: C406
     # from __init__.py
     ('hdf5Version', 'hdf5_version'),                    # data
     # from array.py

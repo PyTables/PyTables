@@ -433,8 +433,8 @@ value of dimensions that are orthogonal (and preferably close) to the
         return nrowsinbuf
 
     def _guess_shape(self) -> (
-        tuple[list[tuple[int, int]], int] |
-        tuple[tuple, None]
+        tuple[list[tuple[int, int]], int]
+        | tuple[tuple, None]
     ):
         """Guess the shape of the output of the expression."""
 
@@ -489,8 +489,8 @@ value of dimensions that are orthogonal (and preferably close) to the
         maindim: int | None,
         itermode: bool = False
     ) -> (
-        tuple[int, list[int], int, int, int | None, int] |
-        tuple[
+        tuple[int, list[int], int, int, int | None, int]
+        | tuple[
             int,
             list[int],
             int,

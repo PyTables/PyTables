@@ -1069,8 +1069,12 @@ class EnumAtom(Atom):
     def _get_init_args(self) -> dict[str, Any]:
         """Get a dictionary of instance constructor arguments."""
 
-        return dict(enum=self.enum, dflt=self._defname,
-                    base=self.base, shape=self.shape)
+        return {
+            "enum": self.enum,
+            "dflt": self._defname,
+            "base": self.base,
+            "shape": self.shape,
+        }
 
     def _is_equal_to_atom(self, atom) -> bool:
         """Is this object equal to the given `atom`?"""
@@ -1224,7 +1228,7 @@ class VLStringAtom(_BufferedAtom):
 
         >>> s = 'A unicode string: hbar = \u210f'
         >>> bytestring = s.encode('utf-8')
-        >>> VLArray.append(bytestring) # doctest: +SKIP
+        >>> VLArray.append(bytestring) # noqa: F821  # doctest: +SKIP
 
     For full Unicode support, using VLUnicodeAtom (see :ref:`VLUnicodeAtom`) is
     recommended.

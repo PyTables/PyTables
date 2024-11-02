@@ -1277,24 +1277,28 @@ very small/large chunksize, you may want to increase/decrease it."""
             if hasattr(val, 'pathname'):  # non-nested column
                 if val.shape[1:] != ():
                     raise NotImplementedError(
-                        "variable ``%s`` refers to "
-                        "a multidimensional column, "
-                        "not yet supported in conditions, sorry" % var)
-                if (val._table_file is not tblfile or
-                        val._table_path != tblpath):
-                    raise ValueError("variable ``%s`` refers to a column "
-                                     "which is not part of table ``%s``"
-                                     % (var, tblpath))
+                        f"variable ``{var}`` refers to a multidimensional "
+                        f"column, not yet supported in conditions, sorry"
+                    )
+                if (
+                    val._table_file is not tblfile
+                    or val._table_path != tblpath
+                ):
+                    raise ValueError(
+                        f"variable ``{var}`` refers to a column "
+                        f"which is not part of table ``{tblpath}``"
+                    )
                 if val.dtype.str[1:] == 'u8':
                     raise NotImplementedError(
-                        "variable ``%s`` refers to "
-                        "a 64-bit unsigned integer column, "
-                        "not yet supported in conditions, sorry; "
-                        "please use regular Python selections" % var)
+                        f"variable ``{var}`` refers to a 64-bit unsigned "
+                        f"integer column, not yet supported in conditions, "
+                        f"sorry; please use regular Python selections"
+                    )
             elif hasattr(val, '_v_colpathnames'):  # nested column
                 raise TypeError(
-                    "variable ``%s`` refers to a nested column, "
-                    "not allowed in conditions" % var)
+                    f"variable ``{var}`` refers to a nested column, "
+                    f"not allowed in conditions"
+                )
             else:  # only non-column values are converted to arrays
                 # XXX: not 100% sure about this
                 if isinstance(val, str):
@@ -1639,7 +1643,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Row objects do not support nested columns, so we must iterate
         # over the flat column paths.  When rows support nesting,
         # ``self.colnames`` can be directly iterated upon.
-        colNames = [colName for colName in self.colpathnames]
+        colNames = tuple(colName for colName in self.colpathnames)
         dstRow = dstTable.row
         nrows = 0
         if condition is not None:
@@ -2054,10 +2058,12 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Do the real read
         if ncoords > 0:
             # Turn coords into an array of coordinate indexes, if necessary
-            if not (isinstance(coords, np.ndarray) and
-                    coords.dtype.type is _npsizetype and
-                    coords.flags.contiguous and
-                    coords.flags.aligned):
+            if not (
+                isinstance(coords, np.ndarray)
+                and coords.dtype.type is _npsizetype
+                and coords.flags.contiguous
+                and coords.flags.aligned
+            ):
                 # Get a contiguous and aligned coordinate array
                 coords = np.array(coords, dtype=SizeType)
             self._read_elements(coords, result)
@@ -2329,9 +2335,10 @@ very small/large chunksize, you may want to increase/decrease it."""
             raise HDF5ExtError(
                 "You cannot append rows to a non-chunked table.", h5bt=False)
 
-        if (hasattr(rows, "dtype") and
-                not self.description._v_is_nested and
-                rows.dtype == self.dtype):
+        if (
+            hasattr(rows, "dtype") and not self.description._v_is_nested
+            and rows.dtype == self.dtype
+        ):
             # Shortcut for compliant arrays
             # (for some reason, not valid for nested types)
             wbufRA = rows
@@ -3132,9 +3139,13 @@ very small/large chunksize, you may want to increase/decrease it."""
         # I've added a Performance warning in order to compel the user to
         # call self.flush() before the table is being preempted.
         # F. Alted 2006-08-03
-        if (('row' in self.__dict__ and self.row._get_unsaved_nrows() > 0) or
-            (self.indexed and self.autoindex and
-             (self._unsaved_indexedrows > 0 or self._dirtyindexes))):
+        if (
+            ('row' in self.__dict__ and self.row._get_unsaved_nrows() > 0)
+            or (
+                self.indexed and self.autoindex
+                and (self._unsaved_indexedrows > 0 or self._dirtyindexes)
+            )
+        ):
             warnings.warn(
                 f"table ``{self._v_pathname}`` is being preempted from "
                 f"alive nodes without its buffers being flushed or with some "
@@ -3297,15 +3308,19 @@ class Cols:
         """
 
         if not isinstance(colname, str):
-            raise TypeError("Parameter can only be an string. You passed "
-                            "object: %s" % colname)
-        if ((colname.find('/') > -1 and
-             colname not in self._v_colpathnames) and
-                colname not in self._v_colnames):
-            raise KeyError(("Cols accessor ``%s.cols%s`` does not have a "
-                            "column named ``%s``")
-                           % (self._v__tablePath, self._v_desc._v_pathname,
-                              colname))
+            raise TypeError(
+                f"Parameter can only be an string. You passed object: "
+                f"{colname}"
+            )
+        if (
+            (colname.find('/') > -1 and colname not in self._v_colpathnames)
+            and colname not in self._v_colnames
+        ):
+            raise KeyError(
+                f"Cols accessor "
+                f"``{self._v__tablePath}.cols{self._v_desc._v_pathname}`` "
+                f"does not have a column named ``{colname}``"
+            )
 
         return self._g_col(colname)
 
@@ -3793,8 +3808,7 @@ class Column:
         kinds = ['ultralight', 'light', 'medium', 'full']
         if kind not in kinds:
             raise ValueError("Kind must have any of these values: %s" % kinds)
-        if (not isinstance(optlevel, int) or
-                (optlevel < 0 or optlevel > 9)):
+        if not isinstance(optlevel, int) or (optlevel < 0 or optlevel > 9):
             raise ValueError(
                 "Optimization level must be an integer in the range 0-9"
             )
@@ -3807,8 +3821,10 @@ class Column:
                 raise ValueError(
                     f"Temporary directory '{tmp_dir}' does not exist"
                 )
-        if (_blocksizes is not None and
-                (not isinstance(_blocksizes, tuple) or len(_blocksizes) != 4)):
+        if (
+            _blocksizes is not None
+            and (not isinstance(_blocksizes, tuple) or len(_blocksizes) != 4)
+        ):
             raise ValueError(
                 "_blocksizes must be a tuple with exactly 4 elements"
             )

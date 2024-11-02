@@ -150,7 +150,7 @@ METADATA_CACHE_SIZE = 1 * _MB  # 1 MB is the default for HDF5
 # number of leaves, try increasing this value and see if it fits better
 # for you. Please report back your feedback.
 # Using a lower value than 64 provides a workaround for issue #977.
-NODE_CACHE_SLOTS = 32  
+NODE_CACHE_SLOTS = 32
 """Maximum number of nodes to be kept in the metadata cache.
 
 It is the number of nodes to be kept in the metadata cache. Least recently
