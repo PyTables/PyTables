@@ -1,7 +1,9 @@
 """Here is defined the UnImplemented class."""
 
+from __future__ import annotations
+
 import warnings
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from . import hdf5extension
 from .utils import SizeType
@@ -40,7 +42,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
     # Class identifier.
     _c_classid = 'UNIMPLEMENTED'
 
-    def __init__(self, parentnode: "Group", name: str) -> None:
+    def __init__(self, parentnode: Group, name: str) -> None:
         """Create the `UnImplemented` instance."""
 
         # UnImplemented objects always come from opening an existing node
@@ -51,7 +53,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         """The length of the first dimension of the data."""
         self.shape = (SizeType(0),)
         """The shape of the stored data."""
-        self.byteorder: Optional[str] = None
+        self.byteorder: str | None = None
         """The endianness of data in memory ('big', 'little' or
         'irrelevant')."""
 
@@ -65,12 +67,14 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
             self.nrows = SizeType(0)
         return object_id
 
-    def _g_copy(self,
-                newparent: "Group",
-                newname: str,
-                recursive: bool,
-                _log: bool=True,
-                **kwargs) -> None:
+    def _g_copy(
+        self,
+        newparent: Group,
+        newname: str,
+        recursive: bool,
+        _log: bool = True,
+        **kwargs,
+    ) -> None:
         """Do nothing.
 
         This method does nothing, but a ``UserWarning`` is issued.
@@ -80,17 +84,20 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         """
 
         warnings.warn(
-            "UnImplemented node %r does not know how to copy itself; skipping"
-            % (self._v_pathname,))
+            f"UnImplemented node {self._v_pathname!r} does not know how "
+            f"to copy itself; skipping"
+        )
         return None  # Can you see it?
 
-    def _f_copy(self,
-                newparent: Optional["Group"]=None,
-                newname: Optional[str]=None,
-                overwrite: bool=False,
-                recursive: bool=False,
-                createparents: bool=False,
-                **kwargs) -> None:
+    def _f_copy(
+        self,
+        newparent: Group | None = None,
+        newname: str | None = None,
+        overwrite: bool = False,
+        recursive: bool = False,
+        createparents: bool = False,
+        **kwargs,
+    ) -> None:
         """Do nothing.
 
         This method does nothing, since `UnImplemented` nodes can not
@@ -125,28 +132,30 @@ class Unknown(Node):
     # Class identifier
     _c_classid = 'UNKNOWN'
 
-    def __init__(self, parentnode: "Group", name: str) -> None:
+    def __init__(self, parentnode: Group, name: str) -> None:
         """Create the `Unknown` instance."""
 
         self._v_new = False
         super().__init__(parentnode, name)
 
-    def _g_new(self, parentnode: "Group", name: str, init: bool=False) -> None:
+    def _g_new(self, parentnode: Group, name: str, init: bool = False) -> None:
         pass
 
     def _g_open(self) -> int:
         return 0
 
-    def _g_copy(self,
-                newparent: "Group",
-                newname: str,
-                recursive: bool,
-                _log: bool=True,
-                **kwargs) -> None:
+    def _g_copy(
+        self,
+        newparent: Group,
+        newname: str,
+        recursive: bool,
+        _log: bool = True,
+        **kwargs,
+    ) -> None:
         # Silently avoid doing copies of unknown nodes
         return None
 
-    def _g_delete(self, parent: "Group") -> None:
+    def _g_delete(self, parent: Group) -> None:
         pass
 
     def __str__(self) -> str:

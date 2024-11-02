@@ -1,8 +1,10 @@
 """Here is defined the Array class."""
 
+from __future__ import annotations
+
 import operator
 import sys
-from typing import Any, Optional, Union, TYPE_CHECKING
+from typing import Any, Union, TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
@@ -11,8 +13,9 @@ from . import hdf5extension
 from .filters import Filters
 from .flavor import flavor_of, array_as_internal, internal_to_flavor
 from .leaf import Leaf
-from .utils import (is_idx, convert_to_np_atom2, SizeType, lazyattr,
-                    byteorders, quantize)
+from .utils import (
+    is_idx, convert_to_np_atom2, SizeType, lazyattr, byteorders, quantize
+)
 
 if TYPE_CHECKING:
     from .atom import Atom, EnumAtom
@@ -122,16 +125,16 @@ class Array(hdf5extension.Array, Leaf):
         return self.nrows * self.rowsize
 
     def __init__(self,
-                 parentnode: "Group",
+                 parentnode: Group,
                  name: str,
-                 obj: Optional[npt.ArrayLike] = None,
+                 obj: npt.ArrayLike | None = None,
                  title: str = "",
-                 byteorder: Optional[str] = None,
+                 byteorder: str | None = None,
                  _log: bool = True,
-                 _atom: Union["Atom", "EnumAtom", None] = None,
+                 _atom: Atom | EnumAtom | None = None,
                  track_times: bool = True) -> None:
 
-        self._v_version: Optional[str] = None
+        self._v_version: str | None = None
         """The object version of this array."""
         self._v_new = new = obj is not None
         """Is this the first time the node has been created?"""
@@ -151,23 +154,23 @@ class Array(hdf5extension.Array, Leaf):
         """Whether the ``Array`` object must be converted or not."""
 
         # Miscellaneous iteration rubbish.
-        self._start: Optional[int] = None
+        self._start: int | None = None
         """Starting row for the current iteration."""
-        self._stop: Optional[int] = None
+        self._stop: int | None = None
         """Stopping row for the current iteration."""
-        self._step: Optional[int] = None
+        self._step: int | None = None
         """Step size for the current iteration."""
-        self._nrowsread: Optional[int] = None
+        self._nrowsread: int | None = None
         """Number of rows read up to the current state of iteration."""
-        self._startb: Optional[int] = None
+        self._startb: int | None = None
         """Starting row for current buffer."""
-        self._stopb: Optional[int] = None
+        self._stopb: int | None = None
         """Stopping row for current buffer. """
-        self._row: Optional[int] = None
+        self._row: int | None = None
         """Current row in iterators (sentinel)."""
         self._init = False
         """Whether we are in the middle of an iteration or not (sentinel)."""
-        self.listarr: Optional[npt.ArrayLike] = None
+        self.listarr: npt.ArrayLike | None = None
         """Current buffer in iterators."""
 
         # Documented (*public*) attributes.
@@ -175,9 +178,9 @@ class Array(hdf5extension.Array, Leaf):
         """An Atom (see :ref:`AtomClassDescr`) instance representing the *type*
         and *shape* of the atomic objects to be saved.
         """
-        self.shape: Optional[list[int]] = None
+        self.shape: list[int] | None = None
         """The shape of the stored array."""
-        self.nrow: Optional[int] = None
+        self.nrow: int | None = None
         """On iterators, this is the index of the current row."""
         self.extdim = -1  # ordinary arrays are not enlargeable
         """The index of the enlargeable dimension."""
@@ -238,7 +241,7 @@ class Array(hdf5extension.Array, Leaf):
 
         return oid
 
-    def get_enum(self) -> "Enum":
+    def get_enum(self) -> Enum:
         """Get the enumerated type associated with this array.
 
         If this array is of an enumerated type, the corresponding Enum instance
@@ -254,9 +257,9 @@ class Array(hdf5extension.Array, Leaf):
         return self.atom.enum
 
     def iterrows(self,
-                 start: Optional[int] = None,
-                 stop: Optional[int] = None,
-                 step: Optional[int] = None) -> Union[tuple, "Array"]:
+                 start: int | None = None,
+                 stop: int | None = None,
+                 step: int | None = None) -> tuple | Array:
         """Iterate over the rows of the array.
 
         This method returns an iterator yielding an object of the current
@@ -291,7 +294,7 @@ class Array(hdf5extension.Array, Leaf):
         self._init_loop()
         return self
 
-    def __iter__(self) -> "Array":
+    def __iter__(self) -> Array:
         """Iterate over the rows of the array.
 
         This is equivalent to calling :meth:`Array.iterrows` with default
@@ -434,9 +437,9 @@ class Array(hdf5extension.Array, Leaf):
 
         return startl, stopl, stepl, shape
 
-    def _fancy_selection(self, args: list[Union[int, list[int]]]) -> tuple[
+    def _fancy_selection(self, args: list[int | list[int]]) -> tuple[
         list[tuple[int, int, int, int, str]],
-        Optional[tuple[int, np.ndarray]],
+        tuple[int, np.ndarray] | None,
         tuple[int, ...],
     ]:
         """Performs a NumPy-style fancy selection in `self`.
@@ -462,7 +465,9 @@ class Array(hdf5extension.Array, Leaf):
             if num > length - 1:
                 raise IndexError("Index out of bounds: %d" % num)
 
-        def expand_ellipsis(args: tuple[Union[int, list[int]], ...], rank: int) -> list:
+        def expand_ellipsis(
+            args: tuple[int | list[int], ...], rank: int
+        ) -> list:
             """Expand ellipsis objects and fill in missing axes."""
 
             n_el = sum(1 for arg in args if arg is Ellipsis)
@@ -567,9 +572,12 @@ class Array(hdf5extension.Array, Leaf):
                     else:
                         list_seen = True
                 else:
-                    if (not isinstance(exp[0], (int, np.integer)) or
-                            (isinstance(exp[0], np.ndarray) and not
-                            np.issubdtype(exp[0].dtype, np.integer))):
+                    if (
+                        not isinstance(exp[0], (int, np.integer)) or (
+                            isinstance(exp[0], np.ndarray) and not
+                            np.issubdtype(exp[0].dtype, np.integer)
+                        )
+                    ):
                         raise TypeError("Only integer coordinates allowed.")
 
                 nexp = np.asarray(exp, dtype="i8")
@@ -580,7 +588,8 @@ class Array(hdf5extension.Array, Leaf):
                 if len(nexp) != len(np.unique(nexp)):
                     raise IndexError(
                         "Selection lists cannot have repeated values. "
-                        "To see how to handle this, please see https://github.com/PyTables/PyTables/issues/1149"
+                        "To see how to handle this, please see "
+                        "https://github.com/PyTables/PyTables/issues/1149"
                     )
                 neworder = nexp.argsort()
                 if (neworder.shape != (len(exp),) or
@@ -615,7 +624,7 @@ class Array(hdf5extension.Array, Leaf):
         mshape = tuple(x for x in mshape if x != 0)
         return selection, reorder, mshape
 
-    def __getitem__(self, key: SelectionType) -> Union[list, np.ndarray]:
+    def __getitem__(self, key: SelectionType) -> list | np.ndarray:
         """Get a row, a range of rows or a slice from the array.
 
         The set of tokens allowed for the key is the same as that for extended
@@ -725,7 +734,9 @@ class Array(hdf5extension.Array, Leaf):
                 selection, reorder, shape = self._fancy_selection(key)
                 self._write_selection(selection, reorder, shape, nparr)
 
-    def _check_shape(self, nparr: np.ndarray, slice_shape: tuple[int, ...]) -> np.ndarray:
+    def _check_shape(
+        self, nparr: np.ndarray, slice_shape: tuple[int, ...]
+    ) -> np.ndarray:
         """Test that nparr shape is consistent with underlying object.
 
         If not, try creating a new nparr object, using broadcasting if
@@ -774,7 +785,7 @@ class Array(hdf5extension.Array, Leaf):
 
     def _read_selection(self,
                         selection: list[tuple[int, int, int, int, str]],
-                        reorder: Optional[tuple[int, npt.ArrayLike]],
+                        reorder: tuple[int, npt.ArrayLike] | None,
                         shape: tuple[int, ...]) -> np.ndarray:
         """Read a `selection`.
 
@@ -820,7 +831,7 @@ class Array(hdf5extension.Array, Leaf):
 
     def _write_selection(self,
                          selection: list[tuple[int, int, int, int, str]],
-                         reorder: Optional[tuple[int, npt.ArrayLike]],
+                         reorder: tuple[int, npt.ArrayLike] | None,
                          shape: tuple[int, ...],
                          nparr: np.ndarray) -> None:
         """Write `nparr` in `selection`.
@@ -840,11 +851,8 @@ class Array(hdf5extension.Array, Leaf):
             nparr = nparr[tuple(k)].copy()
         self._g_write_selection(selection, nparr)
 
-    def _read(self,
-        start: int,
-        stop: int,
-        step: int,
-        out: Optional[np.ndarray] = None,
+    def _read(
+        self, start: int, stop: int, step: int, out: np.ndarray | None = None
     ) -> np.ndarray:
         """Read the array from disk without slice or flavor processing."""
 
@@ -874,11 +882,12 @@ class Array(hdf5extension.Array, Leaf):
             arr.byteswap(True)
         return arr
 
-    def read(self,
-        start: Optional[int] = None,
-        stop: Optional[int] = None,
-        step: Optional[int] = None,
-        out: Optional[np.ndarray] = None,
+    def read(
+        self,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
+        out: np.ndarray | None = None,
     ) -> np.ndarray:
         """Get data in the array as an object of the current flavor.
 
@@ -910,16 +919,27 @@ class Array(hdf5extension.Array, Leaf):
 
         self._g_check_open()
         if out is not None and self.flavor != 'numpy':
-            msg = ("Optional 'out' argument may only be supplied if array "
-                   "flavor is 'numpy', currently is {}").format(self.flavor)
+            msg = (
+                f"Optional 'out' argument may only be supplied if array "
+                f"flavor is 'numpy', currently is {self.flavor}"
+            )
             raise TypeError(msg)
         (start, stop, step) = self._process_range_read(start, stop, step)
         arr = self._read(start, stop, step, out)
         return internal_to_flavor(arr, self.flavor)
 
-    def _g_copy_with_stats(self, group: "Group", name: str, start: int, stop: int, step: int,
-                           title: str, filters: Filters, chunkshape: tuple[int, ...],
-                           _log: bool, **kwargs) -> tuple["Array", int]:
+    def _g_copy_with_stats(
+        self,
+        group: Group,
+        name: str,
+        start: int,
+        stop: int,
+        step: int,
+        title: str,
+        filters: Filters,
+        chunkshape: tuple[int, ...],
+        _log: bool, **kwargs,
+    ) -> tuple[Array, int]:
         """Private part of Leaf.copy() for each kind of leaf."""
 
         # Compute the correct indices.

@@ -1,10 +1,13 @@
 """Here is defined the Leaf class."""
+
+from __future__ import annotations
+
 import warnings
 import math
 import json
 from pathlib import Path
 from functools import lru_cache
-from typing import Any, Literal, NamedTuple, Optional, Union, TYPE_CHECKING
+from typing import Any, Literal, NamedTuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -13,9 +16,12 @@ from .flavor import (check_flavor, internal_flavor, toarray,
 from .node import Node
 from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
-from .exceptions import (ChunkError, NoSuchChunkError,
-                         NotChunkAlignedError, NotChunkedError,
-                         PerformanceWarning)
+from .exceptions import (
+    NoSuchChunkError,
+    NotChunkAlignedError,
+    NotChunkedError,
+    PerformanceWarning,
+)
 
 if TYPE_CHECKING:
     from .group import Group
@@ -34,7 +40,7 @@ BufferLike = Union[bytes, bytearray, memoryview, NPByteArray]
 
 def read_cached_cpu_info() -> dict[str, Any]:
     try:
-        with open(Path.home() / '.pytables-cpuinfo.json', 'r') as f:
+        with open(Path.home() / '.pytables-cpuinfo.json') as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
@@ -139,10 +145,10 @@ class ChunkInfo(NamedTuple):
         exists in storage.  ``None`` for missing chunks.
 
     """
-    start: Union[tuple[int, ...], None]
-    filter_mask: Union[int, None]
-    offset: Union[int, None]
-    size: Union[int, None]
+    start: tuple[int, ...] | None
+    filter_mask: int | None
+    offset: int | None
+    size: int | None
 
 
 class Leaf(Node):
@@ -309,17 +315,19 @@ class Leaf(Node):
         """
         return self._get_storage_size()
 
-    def __init__(self,
-                 parentnode: "Group",
-                 name: str,
-                 new: bool=False,
-                 filters: Optional[Filters]=None,
-                 byteorder: Literal["little", "big", None]=None,
-                 _log: bool=True,
-                 track_times: bool=True) -> None:
+    def __init__(
+        self,
+        parentnode: Group,
+        name: str,
+        new: bool = False,
+        filters: Filters | None = None,
+        byteorder: Literal["little", "big", None] = None,
+        _log: bool = True,
+        track_times: bool = True,
+    ) -> None:
         self._v_new = new
         """Is this the first time the node has been created?"""
-        self.nrowsinbuf: Optional[int] = None
+        self.nrowsinbuf: int | None = None
         """
         The number of rows that fits in internal input buffers.
 
@@ -397,7 +405,9 @@ class Leaf(Node):
             else:
                 self._flavor = internal_flavor
 
-    def _calc_chunkshape(self, expectedrows: int, rowsize: int, itemsize: int) -> tuple[int, ...]:
+    def _calc_chunkshape(
+        self, expectedrows: int, rowsize: int, itemsize: int
+    ) -> tuple[int, ...]:
         """Calculate the shape for the HDF5 chunk."""
 
         # In case of a scalar shape, return the unit chunksize
@@ -409,9 +419,11 @@ class Leaf(Node):
         expected_mb = (expectedrows * rowsize) // MB
         chunksize = calc_chunksize(expected_mb)
         complib = self.filters.complib
-        if (complib is not None and
+        if (
+            complib is not None and
             complib.startswith("blosc2") and
-            self._c_classid in ('TABLE', 'CARRAY', 'EARRAY')):
+            self._c_classid in ('TABLE', 'CARRAY', 'EARRAY')
+        ):
             # Blosc2 can introspect into blocks, so we can increase the
             # chunksize for improving HDF5 perf for its internal btree.
             # For the time being, this has been implemented efficiently
@@ -430,11 +442,14 @@ class Leaf(Node):
                 # Also, sometimes cpuinfo does not return a correct L3 size;
                 # so in general, enforcing L3 > L2 is a good sanity check.
                 l2_cache_size = cpu_info.get('l2_cache_size', "Not found")
-                if (type(l3_cache_size) is int and
+                if (
+                    type(l3_cache_size) is int and
                     type(l2_cache_size) is int and
-                    l3_cache_size > l2_cache_size):
+                    l3_cache_size > l2_cache_size
+                ):
                     chunksize = l3_cache_size
-            # In Blosc2, the chunksize cannot be larger than 2 GB - BLOSC2_MAX_BUFFERSIZE
+            # In Blosc2, the chunksize cannot be larger than 2 GB
+            # BLOSC2_MAX_BUFFERSIZE
             if chunksize > 2**31 - 32:
                 chunksize = 2**31 - 32
 
@@ -484,24 +499,30 @@ class Leaf(Node):
             # If rowsize is too large, issue a Performance warning
             maxrowsize = params['BUFFER_TIMES'] * buffersize
             if rowsize > maxrowsize:
-                warnings.warn("""\
-The Leaf ``%s`` is exceeding the maximum recommended rowsize (%d bytes);
-be ready to see PyTables asking for *lots* of memory and possibly slow
-I/O.  You may want to reduce the rowsize by trimming the value of
-dimensions that are orthogonal (and preferably close) to the *main*
-dimension of this leave.  Alternatively, in case you have specified a
-very small/large chunksize, you may want to increase/decrease it."""
-                              % (self._v_pathname, maxrowsize),
-                              PerformanceWarning)
+                warnings.warn(
+                    f"The Leaf ``{self._v_pathname}`` is exceeding the "
+                    f"maximum recommended rowsize ({maxrowsize} bytes); "
+                    f"be ready to see PyTables asking for *lots* "
+                    f"of memory and possibly slow I/O.  "
+                    f"You may want to reduce the rowsize by trimming the "
+                    f"value of dimensions that are orthogonal (and preferably "
+                    f"close) to the *main* dimension of this leave.  "
+                    f"Alternatively, in case you have specified a very "
+                    f"small/large chunksize, you may want to "
+                    f"increase/decrease it.",
+                    PerformanceWarning,
+                )
         return nrowsinbuf
 
     # This method is appropriate for calls to __getitem__ methods
-    def _process_range(self,
-                       start: int,
-                       stop: int,
-                       step: int,
-                       dim: Optional[int]=None,
-                       warn_negstep: bool=True) -> tuple[int, int, int]:
+    def _process_range(
+        self,
+        start: int,
+        stop: int,
+        step: int,
+        dim: int | None = None,
+        warn_negstep: bool = True,
+    ) -> tuple[int, int, int]:
         if dim is None:
             nrows = self.nrows  # self.shape[self.maindim]
         else:
@@ -517,11 +538,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         return slice(start, stop, step).indices(int(nrows))
 
     # This method is appropriate for calls to read() methods
-    def _process_range_read(self,
-                            start: int,
-                            stop: int,
-                            step: int,
-                            warn_negstep: bool=True) -> tuple[int, int, int]:
+    def _process_range_read(
+        self, start: int, stop: int, step: int, warn_negstep: bool = True
+    ) -> tuple[int, int, int]:
         nrows = self.nrows
         if start is not None and stop is None and step is None:
             # Protection against start greater than available records
@@ -539,8 +558,14 @@ very small/large chunksize, you may want to increase/decrease it."""
                                                 warn_negstep=warn_negstep)
         return (start, stop, step)
 
-    def _g_copy(self, newparent: "Group", newname: str,
-                recursive: bool, _log: bool=True, **kwargs) -> "Leaf":
+    def _g_copy(
+        self,
+        newparent: Group,
+        newname: str,
+        recursive: bool,
+        _log: bool = True,
+        **kwargs,
+    ) -> Leaf:
         # Compute default arguments.
         start = kwargs.pop('start', None)
         stop = kwargs.pop('stop', None)
@@ -581,7 +606,9 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         return new_node
 
-    def _g_fix_byteorder_data(self, data: np.ndarray, dbyteorder: str) -> np.ndarray:
+    def _g_fix_byteorder_data(
+        self, data: np.ndarray, dbyteorder: str
+    ) -> np.ndarray:
         """Fix the byteorder of data passed in constructors."""
         dbyteorder = byteorders[dbyteorder]
         # If self.byteorder has not been passed as an argument of
@@ -605,7 +632,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             self.byteorder = "irrelevant"
         return data
 
-    def _point_selection(self, key: Union[list, tuple, np.ndarray]) -> np.ndarray:
+    def _point_selection(self, key: list | tuple | np.ndarray) -> np.ndarray:
         """Perform a point-wise selection.
 
         `key` can be any of the following items:
@@ -725,8 +752,13 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_rename(newname)
 
-    def move(self, newparent: Optional["Group"]=None, newname: Optional[str]=None,
-             overwrite: bool=False, createparents: bool=False) -> None:
+    def move(
+        self,
+        newparent: Group | None = None,
+        newname: str | None = None,
+        overwrite: bool = False,
+        createparents: bool = False,
+    ) -> None:
         """Move or rename this node.
 
         This method has the behavior described in :meth:`Node._f_move`
@@ -735,8 +767,14 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         self._f_move(newparent, newname, overwrite, createparents)
 
-    def copy(self, newparent: Optional["Group"]=None, newname: Optional[str]=None,
-             overwrite: bool=False, createparents: bool=False, **kwargs) -> "Leaf":
+    def copy(
+        self,
+        newparent: Group | None = None,
+        newname: str | None = None,
+        overwrite: bool = False,
+        createparents: bool = False,
+        **kwargs,
+    ) -> Leaf:
         """Copy this node and return the new one.
 
         This method has the behavior described in :meth:`Node._f_copy`. Please
@@ -784,7 +822,12 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
 
         return self._f_copy(
-            newparent, newname, overwrite, createparents=createparents, **kwargs)
+            newparent,
+            newname,
+            overwrite,
+            createparents=createparents,
+            **kwargs,
+        )
 
     def truncate(self, size: int) -> None:
         """Truncate the main dimension to be size rows.
@@ -888,9 +931,11 @@ very small/large chunksize, you may want to increase/decrease it."""
         coords *= chunkshape
         return ChunkInfo(tuple(coords.tolist()), filter_mask, offset, size)
 
-    def read_chunk(self, coords: tuple[int, ...],
-                   out: Optional[Union[bytearray, NPByteArray]]=None,
-                  ) -> Union[bytes, memoryview]:
+    def read_chunk(
+        self,
+        coords: tuple[int, ...],
+        out: bytearray | NPByteArray | None = None,
+    ) -> bytes | memoryview:
         """Get the raw chunk that starts at the given `coords` from storage.
 
         The coordinates `coords` are a tuple of integers with the same rank as
@@ -930,8 +975,9 @@ very small/large chunksize, you may want to increase/decrease it."""
                                    f"{tuple(coords)}")
         return chunk.tobytes() if out is None else memoryview(out)
 
-    def write_chunk(self, coords: tuple[int, ...], data: BufferLike,
-                    filter_mask: int=0) -> None:
+    def write_chunk(
+        self, coords: tuple[int, ...], data: BufferLike, filter_mask: int = 0
+    ) -> None:
         """Write raw `data` to storage for the chunk that starts at the given
         `coords`.
 
@@ -964,7 +1010,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         data = np.ndarray((len(data),), dtype='u1', buffer=data)
         self._g_write_chunk(coords, data, filter_mask)
 
-    def _f_close(self, flush: bool=True) -> None:
+    def _f_close(self, flush: bool = True) -> None:
         """Close this node in the tree.
 
         This method has the behavior described in :meth:`Node._f_close`.
@@ -989,7 +1035,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Close myself as a node.
         super()._f_close()
 
-    def close(self, flush: bool=True) -> None:
+    def close(self, flush: bool = True) -> None:
         """Close this node in the tree.
 
         This method is completely equivalent to :meth:`Leaf._f_close`.

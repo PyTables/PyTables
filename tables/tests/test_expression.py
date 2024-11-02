@@ -268,7 +268,8 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         msg = f"Evaluate is returning a wrong value: {expr_str}\n{r1=}\n{r2=}"
         self.assertEqual(r1.shape, r2.shape, msg=msg)
         # In something like 2 * np.in16(3) + np.int16(2) the result is still a
-        # np.int16 in NumPy 2.0, so we shouldn't actually check dtype but just the kind
+        # np.int16 in NumPy 2.0, so we shouldn't actually check dtype but just
+        # the kind
         self.assertEqual(r1.dtype.kind, r2.dtype.kind, msg=msg)
         self.assertEqual(r1, r2, msg=msg)
 
@@ -308,9 +309,15 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if common.verbose:
                 print("Computed expression:", repr(r1), r1.dtype)
                 print("Should look like:", repr(r2), r2.dtype)
-            msg = f"Evaluate is returning a wrong value: {expr_str}\n{r1=}\n{r2=}"
-            # On NumPy 2 type promotion is different so don't check type strictly here
-            self.assertTrue(common.areArraysEqual(r1, r2, check_type=False), msg=msg)
+            msg = (
+                f"Evaluate is returning a wrong value: "
+                f"{expr_str}\n{r1=}\n{r2=}"
+            )
+            # On NumPy 2 type promotion is different so don't check type
+            # strictly here
+            self.assertTrue(
+                common.areArraysEqual(r1, r2, check_type=False), msg=msg
+            )
             self.assertEqual(r1.dtype.kind, r2.dtype.kind)
 
     def test02a_sss(self):
@@ -361,8 +368,9 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_sss(self):
         """Checking start, stop, step as numpy.int64."""
 
-        start, stop, step = [np.int64(i) for i in
-                                     (self.start, self.stop, self.step)]
+        start, stop, step = (
+            np.int64(i) for i in (self.start, self.stop, self.step)
+        )
         expr = tb.Expr(self.expr, self.vars)
         expr.set_inputs_range(start, stop, step)
         r1 = expr.eval()

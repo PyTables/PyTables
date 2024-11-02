@@ -1,7 +1,9 @@
 """Here is defined the IndexArray class."""
 
+from __future__ import annotations
+
 from bisect import bisect_left, bisect_right
-from typing import Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from .node import NotLoggedMixin
 from .carray import CArray
@@ -72,9 +74,15 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         """The slicesize for this object."""
         return self.shape[1]
 
-    def __init__(self, parentnode: "Group", name: str,
-                 atom: Optional["Atom"]=None, title: str="",
-                 filters: Optional["Filters"]=None, byteorder: Optional[str]=None) -> None:
+    def __init__(
+        self,
+        parentnode: Group,
+        name: str,
+        atom: Atom | None = None,
+        title: str = "",
+        filters: Filters | None = None,
+        byteorder: str | None = None,
+    ) -> None:
         """Create an IndexArray instance."""
 
         self._v_pathname = parentnode._g_join(name)
@@ -100,7 +108,9 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     # bounds (2nd level) caches. It uses a cache for boundary rows,
     # but not for 'sorted' rows (this is only supported for the
     # 'optimized' types).
-    def _search_bin(self, nrow: int, item: tuple[Union[float, int], Union[float, int]]) -> tuple[int, int]:
+    def _search_bin(
+        self, nrow: int, item: tuple[float | int, float | int]
+    ) -> tuple[int, int]:
         item1, item2 = item
         result1 = -1
         result2 = -1

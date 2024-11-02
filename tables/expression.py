@@ -1,8 +1,11 @@
 """Here is defined the Expr class."""
 
+from __future__ import annotations
+
 import sys
 import warnings
-from typing import Any, Iterator, Optional, Union, TYPE_CHECKING
+from typing import Any, Union, TYPE_CHECKING
+from collections.abc import Iterator
 
 import numexpr as ne
 import numpy as np
@@ -141,7 +144,9 @@ class Expr:
 
     """
 
-    def __init__(self, expr: str, uservars: Optional[dict[str, Any]]=None, **kwargs) -> None:
+    def __init__(
+        self, expr: str, uservars: dict[str, Any] | None = None, **kwargs,
+    ) -> None:
 
         self.append_mode = False
         """The append mode for user-provided output containers."""
@@ -149,29 +154,29 @@ class Expr:
         """Common main dimension for inputs in expression."""
         self.names: list[str] = []
         """The names of variables in expression (list)."""
-        self.out: Optional[ContainerType] = None
+        self.out: ContainerType | None = None
         """The user-provided container (if any) for the expression outcome."""
-        self.o_start: Optional[int] = None
+        self.o_start: int | None = None
         """The start range selection for the user-provided output."""
-        self.o_stop: Optional[int] = None
+        self.o_stop: int | None = None
         """The stop range selection for the user-provided output."""
-        self.o_step: Optional[int] = None
+        self.o_step: int | None = None
         """The step range selection for the user-provided output."""
-        self.shape: Optional[tuple[int, ...]] = None
+        self.shape: tuple[int, ...] | None = None
         """Common shape for the arrays in expression."""
         self.start, self.stop, self.step = (None,) * 3
-        self.start: Optional[int] = None
+        self.start: int | None = None
         """The start range selection for the input."""
-        self.stop: Optional[int] = None
+        self.stop: int | None = None
         """The stop range selection for the input."""
-        self.step: Optional[int] = None
+        self.step: int | None = None
         """The step range selection for the input."""
         self.values: list = []
         """The values of variables in expression (list)."""
 
-        self._compiled_expr: Optional[ne.interpreter.NumExpr] = None
+        self._compiled_expr: ne.interpreter.NumExpr | None = None
         """The compiled expression."""
-        self._single_row_out: Optional[np.ndarray] = None
+        self._single_row_out: np.ndarray | None = None
         """A sample of the output with just a single row."""
 
         # First, get the signature for the arrays in expression
@@ -233,10 +238,12 @@ class Expr:
 
     # The next method is similar to their counterpart in `Table`, but
     # adapted to the `Expr` own requirements.
-    def _required_expr_vars(self,
-                            expression: str,
-                            uservars: Optional[dict[str, Any]],
-                            depth: int=2) -> dict[str, Any]:
+    def _required_expr_vars(
+        self,
+        expression: str,
+        uservars: dict[str, Any] | None,
+        depth: int = 2,
+    ) -> dict[str, Any]:
         """Get the variables required by the `expression`.
 
         A new dictionary defining the variables used in the `expression`
@@ -313,10 +320,12 @@ class Expr:
             reqvars[var] = val
         return reqvars
 
-    def set_inputs_range(self,
-                         start: Optional[int]=None,
-                         stop: Optional[int]=None,
-                         step: Optional[int]=None) -> None:
+    def set_inputs_range(
+        self,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
+    ) -> None:
         """Define a range for all inputs in expression.
 
         The computation will only take place for the range defined by
@@ -332,7 +341,9 @@ class Expr:
         self.stop = stop
         self.step = step
 
-    def set_output(self, out: ContainerType, append_mode: bool=False) -> None:
+    def set_output(
+        self, out: ContainerType, append_mode: bool = False
+    ) -> None:
         """Set out as container for output as well as the append_mode.
 
         The out must be a container that is meant to keep the outcome of
@@ -364,10 +375,12 @@ class Expr:
                 "with an `append()` method (like the `EArray`)")
         self.append_mode = append_mode
 
-    def set_output_range(self,
-                         start: Optional[int]=None,
-                         stop: Optional[int]=None,
-                         step: Optional[int]=None) -> None:
+    def set_output_range(
+        self,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
+    ) -> None:
         """Define a range for user-provided output object.
 
         The output object will only be modified in the range specified by the
@@ -419,10 +432,10 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         return nrowsinbuf
 
-    def _guess_shape(self) -> Union[
-        tuple[list[tuple[int, int]], int],
+    def _guess_shape(self) -> (
+        tuple[list[tuple[int, int]], int] |
         tuple[tuple, None]
-    ]:
+    ):
         """Guess the shape of the output of the expression."""
 
         # First, compute the maximum dimension of inputs and maindim
@@ -470,14 +483,27 @@ value of dimensions that are orthogonal (and preferably close) to the
             shape.insert(maindim, minlen)
         return shape, maindim
 
-    def _get_info(self,
-      shape: list[int],
-      maindim: Optional[int],
-      itermode: bool=False
-  ) -> Union[
-        tuple[int, list[int], int, int, Optional[int], int],
-        tuple[int, list[int], int, int, Optional[int], int, ContainerType, int, int, int, int],
-    ]:
+    def _get_info(
+        self,
+        shape: list[int],
+        maindim: int | None,
+        itermode: bool = False
+    ) -> (
+        tuple[int, list[int], int, int, int | None, int] |
+        tuple[
+            int,
+            list[int],
+            int,
+            int,
+            int | None,
+            int,
+            ContainerType,
+            int,
+            int,
+            int,
+            int,
+        ]
+    ):
         """Return various info needed for evaluating the computation loop."""
 
         # Compute the shape of the resulting container having
@@ -651,7 +677,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         return out
 
-    def __iter__(self) -> Iterator["Row"]:
+    def __iter__(self) -> Iterator[Row]:
         """Iterate over the rows of the outcome of the expression.
 
         This iterator always returns rows as NumPy objects, so a possible out

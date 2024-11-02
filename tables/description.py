@@ -1,8 +1,11 @@
 """Classes for describing columns for ``Table`` objects."""
 
+from __future__ import annotations
+
 import copy
 import warnings
-from typing import Any, Callable, Generator, Literal, Optional, Sequence, Type, Union
+from typing import Any, Literal
+from collections.abc import Callable, Generator, Sequence
 
 import numpy as np
 import numpy.typing as npt
@@ -15,9 +18,11 @@ __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 
-def same_position(oldmethod: Callable[["Col", "Col"], bool]) -> Callable[["Col", "Col"], bool]:
+def same_position(
+    oldmethod: Callable[[Col, Col], bool]
+) -> Callable[[Col, Col], bool]:
     """Decorate `oldmethod` to also compare the `_v_pos` attribute."""
-    def newmethod(self: "Col", other: "Col") -> bool:
+    def newmethod(self: Col, other: Col) -> bool:
         try:
             other._v_pos
         except AttributeError:
@@ -71,8 +76,8 @@ class Col(atom.Atom, metaclass=type):
         :ref:`AttributeSetClassDescr`).
 
     """
-
-    _class_from_prefix: dict[str, Type["Col"]] = {}  # filled as column classes are created
+    # filled as column classes are created
+    _class_from_prefix: dict[str, type[Col]] = {}
     """Maps column prefixes to column classes."""
 
     @classmethod
@@ -83,10 +88,12 @@ class Col(atom.Atom, metaclass=type):
         return cname[:cname.rfind('Col')]
 
     @classmethod
-    def from_atom(cls,
-                  atom: atom.Atom,
-                  pos: Optional[int]=None,
-                  _offset: Optional[int]=None) -> "Col":
+    def from_atom(
+        cls,
+        atom: atom.Atom,
+        pos: int | None = None,
+        _offset: int | None = None,
+    ) -> Col:
         """Create a Col definition from a PyTables atom.
 
         An optional position may be specified as the pos argument.
@@ -99,11 +106,13 @@ class Col(atom.Atom, metaclass=type):
         return colclass(pos=pos, _offset=_offset, **kwargs)
 
     @classmethod
-    def from_sctype(cls,
-                    sctype: Union[str, np.dtype],
-                    shape: tuple[int, ...]=(),
-                    dflt: Optional[Any]=None,
-                    pos: Optional[int]=None) -> "Col":
+    def from_sctype(
+        cls,
+        sctype: str | np.dtype,
+        shape: tuple[int, ...] = (),
+        dflt: Any | None = None,
+        pos: int | None = None,
+    ) -> Col:
         """Create a `Col` definition from a NumPy scalar type `sctype`.
 
         Optional shape, default value and position may be specified as
@@ -117,11 +126,13 @@ class Col(atom.Atom, metaclass=type):
         return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_dtype(cls,
-                   dtype,
-                   dflt: Optional[Any]=None,
-                   pos: Optional[int]=None,
-                   _offset: Optional[int]=None) -> "Col":
+    def from_dtype(
+        cls,
+        dtype,
+        dflt: Any | None = None,
+        pos: int | None = None,
+        _offset: int | None = None,
+    ) -> Col:
         """Create a `Col` definition from a NumPy `dtype`.
 
         Optional default value and position may be specified as the
@@ -136,11 +147,13 @@ class Col(atom.Atom, metaclass=type):
         return cls.from_atom(newatom, pos=pos, _offset=_offset)
 
     @classmethod
-    def from_type(cls,
-                  type,
-                  shape: tuple[int, ...]=(),
-                  dflt: Optional[Any]=None,
-                  pos: Optional[int]=None) -> "Col":
+    def from_type(
+        cls,
+        type,
+        shape: tuple[int, ...] = (),
+        dflt: Any | None = None,
+        pos: int | None = None,
+    ) -> Col:
         """Create a `Col` definition from a PyTables `type`.
 
         Optional shape, default value and position may be specified as
@@ -152,12 +165,14 @@ class Col(atom.Atom, metaclass=type):
         return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_kind(cls,
-                  kind,
-                  itemsize=None,
-                  shape: tuple[int, ...]=(),
-                  dflt: Optional[Any]=None,
-                  pos: Optional[int]=None) -> "Col":
+    def from_kind(
+        cls,
+        kind,
+        itemsize=None,
+        shape: tuple[int, ...] = (),
+        dflt: Any | None = None,
+        pos: int | None = None,
+    ) -> Col:
         """Create a `Col` definition from a PyTables `kind`.
 
         Optional item size, shape, default value and position may be
@@ -171,7 +186,7 @@ class Col(atom.Atom, metaclass=type):
         return cls.from_atom(newatom, pos=pos)
 
     @classmethod
-    def _subclass_from_prefix(cls, prefix: str) -> Type["Col"]:
+    def _subclass_from_prefix(cls, prefix: str) -> type[Col]:
         """Get a column subclass for the given `prefix`."""
 
         cname = '%sCol' % prefix
@@ -245,7 +260,7 @@ class Col(atom.Atom, metaclass=type):
         return kwargs
 
 
-def _generate_col_classes() -> Generator[Type[Col], None, None]:
+def _generate_col_classes() -> Generator[type[Col]]:
     """Generate all column classes."""
 
     # Abstract classes are not in the class map.
@@ -452,11 +467,13 @@ class Description:
            and attribute copies.
     """
 
-    def __init__(self,
-                 classdict: dict[str, Any],
-                 nestedlvl: int=-1,
-                 validate: bool=True,
-                 ptparams: Optional[dict[str, Any]]=None) -> None:
+    def __init__(
+        self,
+        classdict: dict[str, Any],
+        nestedlvl: int = -1,
+        validate: bool = True,
+        ptparams: dict[str, Any] | None = None,
+    ) -> None:
 
         if not classdict:
             raise ValueError("cannot create an empty data type")
@@ -488,20 +505,26 @@ class Description:
                 if name in newdict:
                     # print("Warning!")
                     # special methods &c: copy to newdict, warn about conflicts
-                    warnings.warn("Can't set attr %r in description class %r"
-                                  % (name, self))
+                    warnings.warn(
+                        f"Can't set attr {name!r} in description "
+                        f"class {self!r}"
+                    )
                 else:
                     # print("Special variable!-->", name, classdict[name])
                     newdict[name] = descr
                 continue  # This variable is not needed anymore
 
             columns = None
-            if (type(descr) == type(IsDescription) and
-                    issubclass(descr, IsDescription)):
+            if (
+                type(descr) is type(IsDescription) and
+                issubclass(descr, IsDescription)
+            ):
                 # print("Nested object (type I)-->", name)
                 columns = descr().columns
-            elif (type(descr.__class__) == type(IsDescription) and
-                  issubclass(descr.__class__, IsDescription)):
+            elif (
+                type(descr.__class__) is type(IsDescription) and
+                issubclass(descr.__class__, IsDescription)
+            ):
                 # print("Nested object (type II)-->", name)
                 columns = descr.columns
             elif isinstance(descr, dict):
@@ -514,8 +537,9 @@ class Description:
             # provided by the user will remain unchanged even if we
             # tamper with the values of ``_v_pos`` here.
             if columns is not None:
-                descr = Description(copy.copy(columns), self._v_nestedlvl,
-                                    ptparams=ptparams)
+                descr = Description(
+                    copy.copy(columns), self._v_nestedlvl, ptparams=ptparams
+                )
             classdict[name] = descr
 
             pos = getattr(descr, '_v_pos', None)
@@ -547,11 +571,13 @@ class Description:
             object = classdict[k]
             newdict[k] = object    # To allow natural naming
             if not isinstance(object, (Col, Description)):
-                raise TypeError('Passing an incorrect value to a table column.'
-                                ' Expected a Col (or subclass) instance and '
-                                'got: "%s". Please make use of the Col(), or '
-                                'descendant, constructor to properly '
-                                'initialize columns.' % object)
+                raise TypeError(
+                    f'Passing an incorrect value to a table column.'
+                    f' Expected a Col (or subclass) instance and '
+                    f'got: "{object}". Please make use of the Col(), or '
+                    f'descendant, constructor to properly '
+                    f'initialize columns.'
+                )
             object._v_pos = pos  # Set the position of this object
             object._v_parent = self  # The parent description
             pos += 1
@@ -596,11 +622,13 @@ class Description:
         # most of the unhandled situations.
         allow_padding = ptparams is None or ptparams['ALLOW_PADDING']
         # allow_padding = ptparams is not None and ptparams['ALLOW_PADDING']
-        if (allow_padding and
-                len(cols_offsets) > 1 and
-                len(keys) == len(cols_with_pos) and
-                len(keys) == len(cols_offsets) and
-                not nested):  # TODO: support offsets with nested types
+        if (
+            allow_padding and
+            len(cols_offsets) > 1 and
+            len(keys) == len(cols_with_pos) and
+            len(keys) == len(cols_offsets) and
+            not nested
+        ):  # TODO: support offsets with nested types
             # We have to sort the offsets too, as they must follow the column
             # order. As the offsets and the pos should be place in the same
             # order, a single sort is enough here.
@@ -735,8 +763,8 @@ class Description:
 
     def _f_walk(
         self,
-        type: Literal["All", "Col", "Description"]='All',
-    ) -> Generator[Union[Col, "Description"], None, None]:
+        type: Literal["All", "Col", "Description"] = 'All',
+    ) -> Generator[Col | Description]:
         """Iterate over nested columns.
 
         If type is 'All' (the default), all column description objects (Col and
@@ -781,10 +809,10 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
 class MetaIsDescription(type):
     """Helper metaclass to return the class variables as a dictionary."""
 
-    def __new__(mcs,
-                classname: str,
-                bases: Sequence,
-                classdict: dict[str, Any]) -> "MetaIsDescription":
+    def __new__(
+        mcs,
+        classname: str, bases: Sequence, classdict: dict[str, Any]
+    ) -> MetaIsDescription:
         """Return a new class with a "columns" attribute filled."""
 
         newdict = {"columns": {}, }
@@ -848,8 +876,9 @@ class IsDescription(metaclass=MetaIsDescription):
     """
 
 
-def descr_from_dtype(dtype_: npt.DTypeLike,
-                     ptparams: Optional[dict[str, Any]]=None) -> tuple[Description, str]:
+def descr_from_dtype(
+    dtype_: npt.DTypeLike, ptparams: dict[str, Any] | None = None
+) -> tuple[Description, str]:
     """Get a description instance and byteorder from a (nested) NumPy dtype."""
 
     fields = {}
@@ -884,9 +913,11 @@ def descr_from_dtype(dtype_: npt.DTypeLike,
     return Description(fields, ptparams=ptparams), fbyteorder
 
 
-def dtype_from_descr(descr: Union[dict, Type[IsDescription], IsDescription],
-                     byteorder: Optional[str]=None,
-                     ptparams: Optional[dict[str, Any]]=None) -> np.dtype:
+def dtype_from_descr(
+    descr: dict | type[IsDescription] | IsDescription,
+    byteorder: str | None = None,
+    ptparams: dict[str, Any] | None = None,
+) -> np.dtype:
     """Get a (nested) NumPy dtype from a description instance and byteorder.
 
     The descr parameter can be a Description or IsDescription
@@ -896,13 +927,14 @@ def dtype_from_descr(descr: Union[dict, Type[IsDescription], IsDescription],
 
     if isinstance(descr, dict):
         descr = Description(descr, ptparams=ptparams)
-    elif (type(descr) == type(IsDescription)
-          and issubclass(descr, IsDescription)):
+    elif (
+        type(descr) is type(IsDescription) and issubclass(descr, IsDescription)
+    ):
         descr = Description(descr().columns, ptparams=ptparams)
     elif isinstance(descr, IsDescription):
         descr = Description(descr.columns, ptparams=ptparams)
     elif not isinstance(descr, Description):
-        raise ValueError('invalid description: %r' % descr)
+        raise ValueError(f'invalid description: {descr!r}')
 
     dtype_ = descr._v_dtype
 

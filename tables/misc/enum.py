@@ -16,11 +16,13 @@ standard variables and constants are more adequate.
 
 """
 
+from __future__ import annotations
+
+from typing import Any, NoReturn
+from collections.abc import Generator
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
-
-from typing import Any, Generator, NoReturn, Union
 
 
 class Enum:
@@ -103,7 +105,9 @@ class Enum:
 
     """
 
-    def __init__(self, enum: Union[list[str], tuple[str, ...], dict[str, Any], "Enum"]) -> None:
+    def __init__(
+        self, enum: list[str] | tuple[str, ...] | dict[str, Any] | Enum
+    ) -> None:
         mydict = self.__dict__
 
         mydict['_names'] = {}
@@ -309,7 +313,7 @@ sequences, mappings and other enumerations""")
 
         return len(self._names)
 
-    def __iter__(self) -> Generator[Any, None, None]:
+    def __iter__(self) -> Generator[Any]:
         """Iterate over the enumerated values.
 
         Enumerated values are returned as (name, value) pairs *in no particular
@@ -327,7 +331,7 @@ sequences, mappings and other enumerations""")
 
         yield from self._names.items()
 
-    def __eq__(self, other: "Enum") -> bool:
+    def __eq__(self, other: Enum) -> bool:
         """Is the other enumerated type equivalent to this one?
 
         Two enumerated types are equivalent if they have exactly the same
@@ -374,7 +378,7 @@ sequences, mappings and other enumerations""")
             return False
         return self._names == other._names
 
-    def __ne__(self, other: "Enum") -> bool:
+    def __ne__(self, other: Enum) -> bool:
         """Is the `other` enumerated type different from this one?
 
         Two enumerated types are different if they don't have exactly

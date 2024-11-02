@@ -1,5 +1,9 @@
 """Here is defined the EArray class."""
-from typing import Optional, Sequence, TYPE_CHECKING
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from collections.abc import Sequence
 
 import numpy as np
 import numpy.typing as npt
@@ -133,18 +137,20 @@ class EArray(CArray):
     # Class identifier.
     _c_classid = 'EARRAY'
 
-    def __init__(self,
-                 parentnode: "Group",
-                 name: str,
-                 atom: Optional["Atom"]=None,
-                 shape: Optional[Sequence[int]]=None,
-                 title: str="",
-                 filters: Optional["Filters"]=None,
-                 expectedrows: Optional[int]=None,
-                 chunkshape: Optional[tuple[int, ...]]=None,
-                 byteorder: Optional[str]=None,
-                 _log: bool=True,
-                 track_times: bool=True) -> None:
+    def __init__(
+        self,
+        parentnode: Group,
+        name: str,
+        atom: Atom | None = None,
+        shape: Sequence[int] | None = None,
+        title: str = "",
+        filters: Filters | None = None,
+        expectedrows: int | None = None,
+        chunkshape: tuple[int, ...] | None = None,
+        byteorder: str | None = None,
+        _log: bool = True,
+        track_times: bool = True,
+    ) -> None:
 
         # Specific of EArray
         if expectedrows is None:
@@ -215,17 +221,19 @@ class EArray(CArray):
         if nparr.size > 0:
             self._append(nparr)
 
-    def _g_copy_with_stats(self,
-                           group: "Group",
-                           name: str,
-                           start: int,
-                           stop: int,
-                           step: int,
-                           title: str,
-                           filters: Optional["Filters"],
-                           chunkshape: Optional[tuple[int, ...]],
-                           _log: bool,
-                           **kwargs) -> tuple["EArray", int]:
+    def _g_copy_with_stats(
+        self,
+        group: Group,
+        name: str,
+        start: int,
+        stop: int,
+        step: int,
+        title: str,
+        filters: Filters | None,
+        chunkshape: tuple[int, ...] | None,
+        _log: bool,
+        **kwargs,
+    ) -> tuple[EArray, int]:
         """Private part of Leaf.copy() for each kind of leaf."""
 
         (start, stop, step) = self._process_range_read(start, stop, step)

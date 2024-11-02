@@ -15,8 +15,10 @@ Misc variables:
 
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Literal, NoReturn, Optional, TYPE_CHECKING
+from typing import Any, Literal, NoReturn, TYPE_CHECKING
 
 import tables as tb
 
@@ -29,8 +31,9 @@ if TYPE_CHECKING:
     from .group import Group
 
 
-def _g_get_link_class(parent_id: int,
-                      name: str) -> Literal["ExternalLink", "HardLink", "SoftLink", "UnImplemented"]:
+def _g_get_link_class(
+    parent_id: int, name: str
+) -> Literal["ExternalLink", "HardLink", "SoftLink", "UnImplemented"]:
     """Guess the link class."""
 
     return linkextension._get_link_class(parent_id, name)
@@ -77,11 +80,13 @@ class Link(Node):
                 pass
         return NoAttrs(self)
 
-    def __init__(self,
-                 parentnode: "Group",
-                 name: str,
-                 target: Optional[str]=None,
-                 _log: bool=False) -> None:
+    def __init__(
+        self,
+        parentnode: Group,
+        name: str,
+        target: str | None = None,
+        _log: bool = False,
+    ) -> None:
         self._v_new = target is not None
         self.target = target
         """The path string to the pointed node."""
@@ -89,11 +94,13 @@ class Link(Node):
         super().__init__(parentnode, name, _log)
 
     # Public and tailored versions for copy, move, rename and remove methods
-    def copy(self,
-             newparent: Optional["Group"]=None,
-             newname: Optional[str]=None,
-             overwrite: bool=False,
-             createparents: bool=False) -> "Link":
+    def copy(
+        self,
+        newparent: Group | None = None,
+        newname: str | None = None,
+        overwrite: bool = False,
+        createparents: bool = False,
+    ) -> Link:
         """Copy this link and return the new one.
 
         See :meth:`Node._f_copy` for a complete explanation of the arguments.
@@ -109,10 +116,12 @@ class Link(Node):
         newnode._v_parent._g_refnode(newnode, newname, True)
         return newnode
 
-    def move(self,
-             newparent: Optional["Group"]=None,
-             newname: Optional[str]=None,
-             overwrite: bool=False) -> None:
+    def move(
+        self,
+        newparent: Group | None = None,
+        newname: str | None = None,
+        overwrite: bool = False,
+    ) -> None:
         """Move or rename this link.
 
         See :meth:`Node._f_move` for a complete explanation of the arguments.
@@ -127,7 +136,9 @@ class Link(Node):
 
         return self._f_remove()
 
-    def rename(self, newname: Optional[str]=None, overwrite: bool=False) -> None:
+    def rename(
+        self, newname: str | None = None, overwrite: bool = False
+    ) -> None:
         """Rename this link in place.
 
         See :meth:`Node._f_rename` for a complete explanation of the arguments.
@@ -204,7 +215,7 @@ class SoftLink(linkextension.SoftLink, Link):
                        '__unicode__', '__class__', '__dict__')
     _link_attrprefixes = ('_f_', '_c_', '_g_', '_v_')
 
-    def __call__(self) -> Optional[Node]:
+    def __call__(self) -> Node | None:
         """Dereference `self.target` and return the object.
 
         Examples
@@ -222,7 +233,7 @@ class SoftLink(linkextension.SoftLink, Link):
         """
         return self.dereference()
 
-    def dereference(self) -> Optional[Node]:
+    def dereference(self) -> Node | None:
 
         if self._v_isopen:
             target = self.target
@@ -340,11 +351,13 @@ class ExternalLink(linkextension.ExternalLink, Link):
     # Class identifier.
     _c_classid = 'EXTERNALLINK'
 
-    def __init__(self,
-                 parentnode: "Group",
-                 name: str,
-                 target: Optional[str]=None,
-                 _log: bool=False) -> None:
+    def __init__(
+        self,
+        parentnode: Group,
+        name: str,
+        target: str | None = None,
+        _log: bool = False,
+    ) -> None:
         self.extfile = None
         """The external file handler, if the link has been dereferenced.
         In case the link has not been dereferenced yet, its value is

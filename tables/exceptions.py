@@ -1,9 +1,11 @@
 """Declare exceptions and warnings that are specific to PyTables."""
 
+from __future__ import annotations
+
 import os
 import warnings
 import traceback
-from typing import Callable, Optional
+from collections.abc import Callable
 
 
 __all__ = [
@@ -73,7 +75,9 @@ class HDF5ExtError(RuntimeError):
     # NOTE: in order to avoid circular dependencies between modules the
     #       _dump_h5_backtrace method is set at initialization time in
     #       the utilsextension.pyx.
-    _dump_h5_backtrace: Optional[Callable[[], list[tuple[str, int, str, str]]]] = None
+    _dump_h5_backtrace: Callable[
+        [], list[tuple[str, int, str, str]]
+    ] | None = None
 
     DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
     """Default policy for HDF5 backtrace handling
@@ -187,7 +191,9 @@ class HDF5ExtError(RuntimeError):
 
         return msg
 
-    def format_h5_backtrace(self, backtrace: Optional[list[tuple[str, int, str, str]]]=None) -> str:
+    def format_h5_backtrace(
+        self, backtrace: list[tuple[str, int, str, str]] | None = None
+    ) -> str:
         """Convert the HDF5 trace back represented as a list of tuples.
         (see :attr:`HDF5ExtError.h5backtrace`) into a string.
 
@@ -395,8 +401,7 @@ class ExperimentalFeatureWarning(Warning):
 class UnclosedFileWarning(Warning):
     """Warning raised when there are still open files at program exit
 
-    Pytables will close remaining open files at exit, but raise 
-    this warning.
+    Pytables will close remaining open files at exit, but raise this warning.
     """
     pass
 

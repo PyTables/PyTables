@@ -1,5 +1,7 @@
 """Utility functions."""
 
+from __future__ import annotations
+
 import math
 import os
 import sys
@@ -7,7 +9,8 @@ import warnings
 import weakref
 from pathlib import Path
 from time import perf_counter as clock
-from typing import Any, Callable, Literal, Optional, TextIO, Union, TYPE_CHECKING
+from typing import Any, Literal, TextIO, TYPE_CHECKING
+from collections.abc import Callable
 
 import numpy as np
 import numpy.typing as npt
@@ -30,7 +33,7 @@ byteorders = {
 SizeType = np.int64
 
 
-copy_if_needed: Optional[bool]
+copy_if_needed: bool | None
 
 if np.lib.NumpyVersion(np.__version__) >= "2.0.0":
     copy_if_needed = None
@@ -82,7 +85,7 @@ def is_idx(index: Any) -> bool:
     return False
 
 
-def idx2long(index: Union[int, float, np.ndarray]) -> int:
+def idx2long(index: int | float | np.ndarray) -> int:
     """Convert a possible index into a long int."""
 
     try:
@@ -98,7 +101,9 @@ def idx2long(index: Union[int, float, np.ndarray]) -> int:
 # with atom from a generic python type.  If copy is stated as True, it
 # is assured that it will return a copy of the object and never the same
 # object or a new one sharing the same memory.
-def convert_to_np_atom(arr: npt.ArrayLike, atom: "Atom", copy: Optional[bool]=copy_if_needed) -> np.ndarray:
+def convert_to_np_atom(
+    arr: npt.ArrayLike, atom: Atom, copy: bool | None = copy_if_needed
+) -> np.ndarray:
     """Convert a generic object into a NumPy object compliant with atom."""
 
     # First, convert the object into a NumPy array
@@ -127,7 +132,7 @@ def convert_to_np_atom(arr: npt.ArrayLike, atom: "Atom", copy: Optional[bool]=co
 
 # The next is used in Array, EArray and VLArray, and it is a bit more
 # high level than convert_to_np_atom
-def convert_to_np_atom2(object: npt.ArrayLike, atom: "Atom") -> np.ndarray:
+def convert_to_np_atom2(object: npt.ArrayLike, atom: Atom) -> np.ndarray:
     """Convert a generic object into a NumPy object compliant with atom."""
 
     # Check whether the object needs to be copied to make the operation
@@ -144,7 +149,9 @@ def convert_to_np_atom2(object: npt.ArrayLike, atom: "Atom") -> np.ndarray:
     return nparr
 
 
-def check_file_access(filename: str, mode: Literal["r", "w", "a", "r+"]='r') -> None:
+def check_file_access(
+    filename: str, mode: Literal["r", "w", "a", "r+"] = 'r'
+) -> None:
     """Check for file access in the specified `mode`.
 
     `mode` is one of the modes supported by `File` objects.  If the file
@@ -167,7 +174,9 @@ def check_file_access(filename: str, mode: Literal["r", "w", "a", "r+"]='r') -> 
         if not path.is_file():
             raise IsADirectoryError(f"``{path}`` is not a regular file")
         if not os.access(path, os.R_OK):
-            raise PermissionError(f"file ``{path}`` exists but it can not be read")
+            raise PermissionError(
+                f"file ``{path}`` exists but it can not be read"
+            )
     elif mode == 'w':
         if os.access(path, os.F_OK):
             # Since the file is not removed but replaced,
@@ -179,7 +188,9 @@ def check_file_access(filename: str, mode: Literal["r", "w", "a", "r+"]='r') -> 
             if not os.access(path.parent, os.F_OK):
                 raise FileNotFoundError(f"``{path.parent}`` does not exist")
             if not path.parent.is_dir():
-                raise NotADirectoryError(f"``{path.parent}`` is not a directory")
+                raise NotADirectoryError(
+                    f"``{path.parent}`` is not a directory"
+                )
             if not os.access(path.parent, os.W_OK):
                 raise PermissionError(
                     f"directory ``{path.parent}`` exists but it can not be "
@@ -193,7 +204,9 @@ def check_file_access(filename: str, mode: Literal["r", "w", "a", "r+"]='r') -> 
     elif mode == 'r+':
         check_file_access(path, 'r')
         if not os.access(path, os.W_OK):
-            raise PermissionError(f"file ``{path}`` exists but it can not be written")
+            raise PermissionError(
+                f"file ``{path}`` exists but it can not be written"
+            )
     else:
         raise ValueError(f"invalid mode: {mode!r}")
 
@@ -302,7 +315,7 @@ def quantize(data: npt.ArrayLike, least_significant_digit: int):
 tracked_classes: dict[str, list[weakref.ReferenceType]] = {}
 
 
-def log_instance_creation(instance: Any, name: Optional[str]=None) -> None:
+def log_instance_creation(instance: Any, name: str | None = None) -> None:
     if name is None:
         name = instance.__class__.__name__
         if name not in tracked_classes:
@@ -318,28 +331,28 @@ def string_to_classes(s: str) -> list[str]:
         return s.split()
 
 
-def fetch_logged_instances(classes: str="*") -> list[tuple[str, int]]:
+def fetch_logged_instances(classes: str = "*") -> list[tuple[str, int]]:
     classnames = string_to_classes(classes)
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
 
-def count_logged_instances(classes: str, file: TextIO=sys.stdout) -> None:
+def count_logged_instances(classes: str, file: TextIO = sys.stdout) -> None:
     for classname in string_to_classes(classes):
-        file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
+        file.write(f"{classname}: {len(tracked_classes[classname])}\n")
 
 
-def list_logged_instances(classes: str, file: TextIO=sys.stdout) -> None:
+def list_logged_instances(classes: str, file: TextIO = sys.stdout) -> None:
     for classname in string_to_classes(classes):
-        file.write('\n%s:\n' % classname)
+        file.write(f'\n{classname}:\n')
         for ref in tracked_classes[classname]:
             obj = ref()
             if obj is not None:
                 file.write('    %s\n' % repr(obj))
 
 
-def dump_logged_instances(classes: str, file: TextIO=sys.stdout) -> None:
+def dump_logged_instances(classes: str, file: TextIO = sys.stdout) -> None:
     for classname in string_to_classes(classes):
-        file.write('\n%s:\n' % classname)
+        file.write(f'\n{classname}:\n')
         for ref in tracked_classes[classname]:
             obj = ref()
             if obj is not None:
@@ -404,7 +417,7 @@ class NailedDict:
             raise KeyError(key)
         return self._cache[key]
 
-    def get(self, key: Any, default: Optional[Any]=None) -> Any:
+    def get(self, key: Any, default: Any | None = None) -> Any:
         if self._nailcount > 0:
             return default
         return self._cache.get(key, default)

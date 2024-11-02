@@ -34,8 +34,11 @@ Variables
 
 """
 
+from __future__ import annotations
+
 import warnings
-from typing import Any, Callable, Literal, Sequence, Union
+from typing import Any, Literal
+from collections.abc import Callable, Sequence
 
 import numpy as np
 import numpy.typing as npt
@@ -64,7 +67,8 @@ alias_map: dict[str, FlavorType] = {}  # filled as flavors are registered
 description_map: dict[FlavorType, str] = {}  # filled as flavors are registered
 """Maps flavors to short descriptions of their supported objects."""
 
-identifier_map: dict[FlavorType, Callable[[Any], FlavorType]] = {}  # filled as flavors are registered
+# filled as flavors are registered
+identifier_map: dict[FlavorType, Callable[[Any], FlavorType]] = {}
 """Maps flavors to functions that can identify their objects.
 
 The function associated with a given flavor will return a true value
@@ -74,7 +78,8 @@ See the `flavor_of()` function for a friendlier interface to flavor
 identification.
 """
 
-converter_map: dict[tuple[FlavorType, FlavorType], Callable[[Any], Any]] = {}  # filled as flavors are registered
+# filled as flavors are registered
+converter_map: dict[tuple[FlavorType, FlavorType], Callable[[Any], Any]] = {}
 """Maps (source, destination) flavor pairs to converter functions.
 
 Converter functions get an array of the source flavor and return an
@@ -96,9 +101,11 @@ def check_flavor(flavor: FlavorType) -> None:
             % (flavor, available_flavs))
 
 
-def array_of_flavor2(array: npt.ArrayLike,
-                     src_flavor: FlavorType,
-                     dst_flavor: FlavorType) -> Union[Any, list[Any], np.ndarray]:
+def array_of_flavor2(
+    array: npt.ArrayLike,
+    src_flavor: FlavorType,
+    dst_flavor: FlavorType
+) -> Any | list[Any] | np.ndarray:
     """Get a version of the given `array` in a different flavor.
 
     The input `array` must be of the given `src_flavor`, and the
@@ -121,9 +128,11 @@ def array_of_flavor2(array: npt.ArrayLike,
     return convfunc(array)
 
 
-def flavor_to_flavor(array: npt.ArrayLike,
-                     src_flavor: FlavorType,
-                     dst_flavor: FlavorType) -> Union[Any, list[Any], np.ndarray, npt.ArrayLike]:
+def flavor_to_flavor(
+    array: npt.ArrayLike,
+    src_flavor: FlavorType,
+    dst_flavor: FlavorType
+) -> Any | list[Any] | np.ndarray | npt.ArrayLike:
     """Get a version of the given `array` in a different flavor.
 
     The input `array` must be of the given `src_flavor`, and the
@@ -145,7 +154,9 @@ def flavor_to_flavor(array: npt.ArrayLike,
         return array
 
 
-def internal_to_flavor(array: npt.ArrayLike, dst_flavor: FlavorType) -> Union[Any, list[Any], np.ndarray]:
+def internal_to_flavor(
+    array: npt.ArrayLike, dst_flavor: FlavorType
+) -> Any | list[Any] | np.ndarray:
     """Get a version of the given `array` in a different `dst_flavor`.
 
     The input `array` must be of the internal flavor, and the returned
@@ -157,7 +168,9 @@ def internal_to_flavor(array: npt.ArrayLike, dst_flavor: FlavorType) -> Union[An
     return flavor_to_flavor(array, internal_flavor, dst_flavor)
 
 
-def array_as_internal(array: npt.ArrayLike, src_flavor: FlavorType) -> np.ndarray:
+def array_as_internal(
+    array: npt.ArrayLike, src_flavor: FlavorType
+) -> np.ndarray:
     """Get a version of the given `array` in the internal flavor.
 
     The input `array` must be of the given `src_flavor`, and the
@@ -188,7 +201,9 @@ def flavor_of(array: npt.ArrayLike) -> FlavorType:
         "supported objects are: %s" % (type_name, supported_descs))
 
 
-def array_of_flavor(array: npt.ArrayLike, dst_flavor: FlavorType) -> Union[Any, list[Any], np.ndarray]:
+def array_of_flavor(
+    array: npt.ArrayLike, dst_flavor: FlavorType
+) -> Any | list[Any] | np.ndarray:
     """Get a version of the given `array` in a different `dst_flavor`.
 
     The flavor of the input `array` is guessed, and the returned array
@@ -201,7 +216,7 @@ def array_of_flavor(array: npt.ArrayLike, dst_flavor: FlavorType) -> Union[Any, 
     return array_of_flavor2(array, flavor_of(array), dst_flavor)
 
 
-def restrict_flavors(keep: Sequence[FlavorType]=('python',)) -> None:
+def restrict_flavors(keep: Sequence[FlavorType] = ('python',)) -> None:
     """Disable all flavors except those in keep.
 
     Providing an empty keep sequence implies disabling all flavors (but the
@@ -421,7 +436,7 @@ def _conv_python_to_numpy(array: npt.ArrayLike) -> np.ndarray:
     return nparr
 
 
-def _conv_numpy_to_python(array: np.ndarray) -> Union[Any, list[Any]]:
+def _conv_numpy_to_python(array: np.ndarray) -> Any | list[Any]:
     if array.shape != ():
         # Lists are the default for returning multidimensional objects
         array = array.tolist()

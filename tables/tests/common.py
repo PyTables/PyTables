@@ -90,17 +90,17 @@ def print_versions():
         print(f"Zlib version:        {tinfo[1]} (in Python interpreter)")
     tinfo = tb.which_lib_version("lzo")
     if tinfo is not None:
-        print("LZO version:         {} ({})".format(tinfo[1], tinfo[2]))
+        print(f"LZO version:         {tinfo[1]} ({tinfo[2]})")
     tinfo = tb.which_lib_version("bzip2")
     if tinfo is not None:
-        print("BZIP2 version:       {} ({})".format(tinfo[1], tinfo[2]))
+        print(f"BZIP2 version:       {tinfo[1]} ({tinfo[2]})")
     tinfo = tb.which_lib_version("blosc")
     if tinfo is not None:
         blosc_date = tinfo[2].split()[1]
-        print("Blosc version:       {} ({})".format(tinfo[1], blosc_date))
+        print(f"Blosc version:       {tinfo[1]} ({blosc_date})")
         blosc_cinfo = tb.blosc_get_complib_info()
         blosc_cinfo = [
-            "{} ({})".format(k, v[1]) for k, v in sorted(blosc_cinfo.items())
+            f"{k} ({v[1]})" for k, v in sorted(blosc_cinfo.items())
         ]
         print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
         blosc_finfo = ['shuffle', 'bitshuffle']
@@ -108,10 +108,10 @@ def print_versions():
     tinfo = tb.which_lib_version("blosc2")
     if tinfo is not None:
         blosc2_date = tinfo[2].split()[1]
-        print("Blosc2 version:      {} ({})".format(tinfo[1], blosc2_date))
+        print(f"Blosc2 version:      {tinfo[1]} ({blosc2_date})")
         blosc2_cinfo = tb.blosc2_get_complib_info()
         blosc2_cinfo = [
-            "{} ({})".format(k, v[1]) for k, v in sorted(blosc2_cinfo.items())
+            f"{k} ({v[1]})" for k, v in sorted(blosc2_cinfo.items())
         ]
         print("Blosc2 compressors:  %s" % ', '.join(blosc2_cinfo))
         blosc2_finfo = ['shuffle', 'bitshuffle']
@@ -217,8 +217,10 @@ def areArraysEqual(arr1, arr2, *, check_type=True):
     t1 = type(arr1)
     t2 = type(arr2)
 
-    if check_type and not ((hasattr(arr1, 'dtype') and arr1.dtype == arr2.dtype) or
-                           issubclass(t1, t2) or issubclass(t2, t1)):
+    if check_type and not (
+        (hasattr(arr1, 'dtype') and arr1.dtype == arr2.dtype) or
+        issubclass(t1, t2) or issubclass(t2, t1)
+    ):
         return False
 
     return np.all(arr1 == arr2)

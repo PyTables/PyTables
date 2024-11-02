@@ -1,7 +1,9 @@
 """Functionality related with filters in a PyTables file."""
 
+from __future__ import annotations
+
 import warnings
-from typing import Any, Literal, Optional, TYPE_CHECKING
+from typing import Any, Literal, TYPE_CHECKING
 
 import numpy as np
 
@@ -24,7 +26,7 @@ blosc_version = Version(tb.which_lib_version("blosc")[1])
 blosc2_version = Version(tb.which_lib_version("blosc2")[1])
 
 
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""
 
 all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc', 'blosc2']
@@ -135,7 +137,7 @@ class Filters:
     Fletcher32 checksum filter as well. See the output of this example::
 
         Result Array:
-        /earray (EArray(3, 2), fletcher32, shuffle, blosc(1)) 'A growable array'
+        /earray (EArray(3, 2), fletcher32, shuffle, blosc(1)) 'A growable ...
         type = float32
         shape = (3, 2)
         itemsize = 4
@@ -174,7 +176,8 @@ class Filters:
         """Encode NoShuffle (0), Shuffle (1) and BitShuffle (2) filters."""
         if (self.shuffle and self.bitshuffle):
             raise ValueError(
-                "Shuffle and BitShuffle cannot be active at the same time")
+                "Shuffle and BitShuffle cannot be active at the same time"
+            )
         if not (self.shuffle or self.bitshuffle):
             return 0
         if self.shuffle:
@@ -183,18 +186,24 @@ class Filters:
             return 2
 
     @classmethod
-    def _from_leaf(cls, leaf: "Leaf") -> "Filters":
+    def _from_leaf(cls, leaf: Leaf) -> Filters:
         # Get a dictionary with all the filters
         parent = leaf._v_parent
-        filters_dict = utilsextension.get_filters(parent._v_objectid,
-                                                  leaf._v_name)
+        filters_dict = utilsextension.get_filters(
+            parent._v_objectid, leaf._v_name
+        )
         if filters_dict is None:
             filters_dict = {}  # not chunked
 
         # Keyword arguments are all off
-        kwargs = dict(complevel=0, shuffle=False, bitshuffle=False,
-                      fletcher32=False, least_significant_digit=None,
-                      _new=False)
+        kwargs = dict(
+            complevel=0,
+            shuffle=False,
+            bitshuffle=False,
+            fletcher32=False,
+            least_significant_digit=None,
+            _new=False,
+        )
         for (name, values) in filters_dict.items():
             if name == 'deflate':
                 name = 'zlib'
@@ -226,15 +235,18 @@ class Filters:
         return cls(**kwargs)
 
     @classmethod
-    def _unpack(cls, packed: int) -> "Filters":
+    def _unpack(cls, packed: int) -> Filters:
         """Create a new `Filters` object from a packed version.
 
         >>> Filters._unpack(0)
-        Filters(complevel=0, shuffle=False, bitshuffle=False, fletcher32=False, least_significant_digit=None)
+        Filters(complevel=0, shuffle=False, bitshuffle=False, \
+fletcher32=False, least_significant_digit=None)
         >>> Filters._unpack(0x101)
-        Filters(complevel=1, complib='zlib', shuffle=False, bitshuffle=False, fletcher32=False, least_significant_digit=None)
+        Filters(complevel=1, complib='zlib', shuffle=False, \
+bitshuffle=False, fletcher32=False, least_significant_digit=None)
         >>> Filters._unpack(0x30109)
-        Filters(complevel=9, complib='zlib', shuffle=True, bitshuffle=False, fletcher32=True, least_significant_digit=None)
+        Filters(complevel=9, complib='zlib', shuffle=True, \
+bitshuffle=False, fletcher32=True, least_significant_digit=None)
         >>> Filters._unpack(0x3010A)
         Traceback (most recent call last):
           ...
@@ -256,8 +268,9 @@ class Filters:
         if complevel > 0:
             complib_id = int(packed & 0xff)
             if not (0 < complib_id <= len(all_complibs)):
-                raise ValueError("invalid compression library id: %d"
-                                 % complib_id)
+                raise ValueError(
+                    f"invalid compression library id: {complib_id}"
+                )
             kwargs['complib'] = all_complibs[complib_id - 1]
         packed >>= 8
 
@@ -308,14 +321,18 @@ class Filters:
 
         return packed
 
-    def __init__(self,
-                 complevel: int=0,
-                 complib: Literal["zlib", "lzo", "bzip2", "blosc", "blosc2"]=default_complib,
-                 shuffle: bool=True,
-                 bitshuffle: bool=False,
-                 fletcher32: bool=False,
-                 least_significant_digit: Optional[int]=None,
-                 _new: bool=True) -> None:
+    def __init__(
+        self,
+        complevel: int = 0,
+        complib: Literal[
+            "zlib", "lzo", "bzip2", "blosc", "blosc2"
+        ] = default_complib,
+        shuffle: bool = True,
+        bitshuffle: bool = False,
+        fletcher32: bool = False,
+        least_significant_digit: int | None = None,
+        _new: bool = True,
+    ) -> None:
 
         if not (0 <= complevel <= 9):
             raise ValueError("compression level must be between 0 and 9")
@@ -408,7 +425,7 @@ class Filters:
     #    return hash((self.__class__, self.complevel, self.complib,
     #                 self.shuffle, self.bitshuffle, self.fletcher32))
 
-    def copy(self, **override) -> "Filters":
+    def copy(self, **override) -> Filters:
         """Get a copy of the filters, possibly overriding some arguments.
 
         Constructor arguments to be overridden must be passed as keyword
@@ -430,13 +447,15 @@ class Filters:
             ValueError: compression library ``None`` is not supported...
             >>> filters3 = filters1.copy(complevel=1, complib='zlib')
             >>> print(filters1)
-            Filters(complevel=0, shuffle=False, bitshuffle=False, fletcher32=False, least_significant_digit=None)
+            Filters(complevel=0, shuffle=False, bitshuffle=False, \
+fletcher32=False, least_significant_digit=None)
             >>> print(filters3)
-            Filters(complevel=1, complib='zlib', shuffle=False, bitshuffle=False, fletcher32=False, least_significant_digit=None)
+            Filters(complevel=1, complib='zlib', shuffle=False, \
+bitshuffle=False, fletcher32=False, least_significant_digit=None)
             >>> filters1.copy(foobar=42) #doctest: +ELLIPSIS
             Traceback (most recent call last):
             ...
-            TypeError: ...__init__() got an unexpected keyword argument 'foobar'
+            TypeError: ...__init__() got an unexpected keyword argument ...
 
         """
 

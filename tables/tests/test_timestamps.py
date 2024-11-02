@@ -42,28 +42,32 @@ class TrackTimesMixin:
         var1List = [x['var1'] for x in table.iterrows()]
         var3List = [x['var3'] for x in table.iterrows()]
 
-        self.h5file.create_array(group, f'array{j}',
-                                 var1List, f"col {j}",
-                                 track_times=track_times)
+        self.h5file.create_array(
+            group, f'array{j}', var1List, f"col {j}", track_times=track_times
+        )
 
         # Create CArrays as well
-        self.h5file.create_carray(group, name=f'carray{j}',
-                                  obj=var3List,
-                                  title="col {}".format(j + 2),
-                                  track_times=track_times)
+        self.h5file.create_carray(
+            group, name=f'carray{j}',
+            obj=var3List,
+            title=f"col {j + 2}",
+            track_times=track_times,
+        )
 
         # Create EArrays as well
-        ea = self.h5file.create_earray(group, f'earray{j}',
-                                       tb.StringAtom(itemsize=4), (0,),
-                                       "col {}".format(j + 4),
-                                       track_times=track_times)
+        ea = self.h5file.create_earray(
+            group, f'earray{j}',
+            tb.StringAtom(itemsize=4), (0,),
+            f"col {j + 4}",
+            track_times=track_times,
+        )
         # And fill them with some values
         ea.append(var1List)
 
         # Finally VLArrays too
         vla = self.h5file.create_vlarray(group, f'vlarray{j}',
                                          tb.Int16Atom(),
-                                         "col {}".format(j + 6),
+                                         f"col {j + 6}",
                                          track_times=track_times)
         # And fill them with some values
         vla.append(var3List)

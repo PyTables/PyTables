@@ -51,7 +51,7 @@ def dump_leaf(leaf):
             print("[SCALAR] %s" % (leaf[()]))
         else:
             for i in range(start, stop, step):
-                print("[{}] {}".format(i, leaf[i]))
+                print(f"[{i}] {leaf[i]}")
 
     if isinstance(leaf, tb.table.Table) and options.colinfo:
         # Show info of columns

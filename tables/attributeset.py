@@ -1,9 +1,12 @@
 """Here is defined the AttributeSet class."""
 
+from __future__ import annotations
+
 import re
 import warnings
 import pickle
-from typing import Any, Callable, Literal, Optional, TYPE_CHECKING
+from typing import Any, Literal, TYPE_CHECKING
+from collections.abc import Callable
 
 import numpy as np
 
@@ -182,15 +185,15 @@ class AttributeSet(hdf5extension.AttributeSet):
 
     """
 
-    def _g_getnode(self) -> "Node":
+    def _g_getnode(self) -> Node:
         return self._v__nodefile._get_node(self._v__nodepath)
 
     @property
-    def _v_node(self) -> "Node":
+    def _v_node(self) -> Node:
         """The :class:`Node` instance this attribute set is associated with."""
         return self._g_getnode()
 
-    def __init__(self, node: "Node") -> None:
+    def __init__(self, node: Node) -> None:
         """Create the basic structures to keep the attribute information.
 
         Reads all the HDF5 attributes (if any) on disk for the node "node".
@@ -244,7 +247,7 @@ class AttributeSet(hdf5extension.AttributeSet):
         self._v_attrnamessys.sort()
         self._v_attrnamesuser.sort()
 
-    def _g_update_node_location(self, node: "Node") -> None:
+    def _g_update_node_location(self, node: Node) -> None:
         """Updates the location information about the associated `node`."""
 
         dict_ = self.__dict__
@@ -253,7 +256,9 @@ class AttributeSet(hdf5extension.AttributeSet):
         # hdf5extension operations:
         self._g_new(node)
 
-    def _f_list(self, attrset: Literal["all", "sys", "user"]='user') -> list[str]:
+    def _f_list(
+        self, attrset: Literal["all", "sys", "user"] = 'user'
+    ) -> list[str]:
         """Get a list of attribute names.
 
         The attrset string selects the attribute set to be used.  A
@@ -595,10 +600,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Finally, remove the old attribute
         delattr(self, oldattrname)
 
-    def _g_copy(self,
-                newset: "AttributeSet",
-                set_attr: Optional[Callable[[str, Any], None]]=None,
-                copyclass: bool=False) -> None:
+    def _g_copy(
+        self,
+        newset: AttributeSet,
+        set_attr: Callable[[str, Any], None] | None = None,
+        copyclass: bool = False
+    ) -> None:
         """Copy set attributes.
 
         Copies all user and allowed system PyTables attributes to the
@@ -642,7 +649,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                     if attrname in self._v_attrnamessys:
                         set_attr(attrname, getattr(self, attrname))
 
-    def _f_copy(self, where: "Node") -> None:
+    def _f_copy(self, where: Node) -> None:
         """Copy attributes to the where node.
 
         Copies all user and certain system attributes to the given where

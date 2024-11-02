@@ -1,8 +1,11 @@
 """Here is defined the VLArray class."""
 
+from __future__ import annotations
+
 import operator
 import sys
-from typing import Any, NoReturn, Optional, Sequence, Union, TYPE_CHECKING
+from typing import Any, NoReturn, TYPE_CHECKING
+from collections.abc import Sequence
 
 import numpy as np
 import numpy.typing as npt
@@ -249,19 +252,21 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """
         return self._get_memory_size()
 
-    def __init__(self,
-                 parentnode: "Group",
-                 name: str,
-                 atom: Optional["Atom"]=None,
-                 title: str="",
-                 filters: Optional["Filters"]=None,
-                 expectedrows: Optional[int]=None,
-                 chunkshape: Optional[tuple[int, ...]]=None,
-                 byteorder: Optional[str]=None,
-                 _log: bool=True,
-                 track_times: bool=True) -> None:
+    def __init__(
+        self,
+        parentnode: Group,
+        name: str,
+        atom: Atom | None = None,
+        title: str = "",
+        filters: Filters | None = None,
+        expectedrows: int | None = None,
+        chunkshape: tuple[int, ...] | None = None,
+        byteorder: str | None = None,
+        _log: bool = True,
+        track_times: bool = True,
+    ) -> None:
 
-        self._v_version: Optional[str] = None
+        self._v_version: str | None = None
         """The object version of this array."""
 
         self._v_new = new = atom is not None
@@ -282,35 +287,35 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         """
 
-        self._v_chunkshape: Optional[tuple[int, ...]] = None
+        self._v_chunkshape: tuple[int, ...] | None = None
         """Private storage for the `chunkshape` property of Leaf."""
 
         # Miscellaneous iteration rubbish.
-        self._start: Optional[int] = None
+        self._start: int | None = None
         """Starting row for the current iteration."""
 
-        self._stop: Optional[int] = None
+        self._stop: int | None = None
         """Stopping row for the current iteration."""
 
-        self._step: Optional[int] = None
+        self._step: int | None = None
         """Step size for the current iteration."""
 
-        self._nrowsread: Optional[int] = None
+        self._nrowsread: int | None = None
         """Number of rows read up to the current state of iteration."""
 
-        self._startb: Optional[int] = None
+        self._startb: int | None = None
         """Starting row for current buffer."""
 
-        self._stopb: Optional[int] = None
+        self._stopb: int | None = None
         """Stopping row for current buffer. """
 
-        self._row: Optional[int] = None
+        self._row: int | None = None
         """Current row in iterators (sentinel)."""
 
         self._init = False
         """Whether we are in the middle of an iteration or not (sentinel)."""
 
-        self.listarr: Optional[npt.ArrayLike] = None
+        self.listarr: npt.ArrayLike | None = None
         """Current buffer in iterators."""
 
         # Documented (*public*) attributes.
@@ -321,10 +326,10 @@ class VLArray(hdf5extension.VLArray, Leaf):
         use a *pseudo-atom* for storing a serialized object or
         variable length string per row.
         """
-        self.nrow: Optional[int] = None
+        self.nrow: int | None = None
         """On iterators, this is the index of the current row."""
 
-        self.nrows: Optional[int] = None
+        self.nrows: int | None = None
         """The current number of rows in the array."""
 
         self.extdim = 0   # VLArray only have one dimension currently
@@ -489,7 +494,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
                              "atom shape ('%s')." % (nparr, shape, atom_shape))
         return nobjects
 
-    def get_enum(self) -> "Enum":
+    def get_enum(self) -> Enum:
         """Get the enumerated type associated with this array.
 
         If this array is of an enumerated type, the corresponding Enum instance
@@ -542,10 +547,12 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self._append(nparr, nobjects)
         self.nrows += 1
 
-    def iterrows(self,
-                 start: Optional[int]=None,
-                 stop: Optional[int]=None,
-                 step: Optional[int]=None) -> "VLArray":
+    def iterrows(
+        self,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
+    ) -> VLArray:
         """Iterate over the rows of the array.
 
         This method returns an iterator yielding an object of the current
@@ -576,7 +583,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self._init_loop()
         return self
 
-    def __iter__(self) -> "VLArray":
+    def __iter__(self) -> VLArray:
         """Iterate over the rows of the array.
 
         This is equivalent to calling :meth:`VLArray.iterrows` with default
@@ -614,7 +621,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self._init = True  # Sentinel
         self.nrow = SizeType(self._start - self._step)    # row number
 
-    def __next__(self) -> Union[list, np.ndarray]:
+    def __next__(self) -> list | np.ndarray:
         """Get the next element of the array during an iteration.
 
         The element is returned as a list of objects of the current
@@ -637,7 +644,9 @@ class VLArray(hdf5extension.VLArray, Leaf):
             self._nrowsread += self._step
             return self.listarr[self._row]
 
-    def __getitem__(self, key: Union[int, slice, Sequence[int], np.ndarray]) -> list:
+    def __getitem__(
+        self, key: int | slice | Sequence[int] | np.ndarray
+    ) -> list:
         """Get a row or a range of rows from the array.
 
         If key argument is an integer, the corresponding array row is returned
@@ -729,9 +738,11 @@ class VLArray(hdf5extension.VLArray, Leaf):
             if nparr.size > 0:
                 self._modify(nrow, nparr, nobjects)
 
-    def __setitem__(self,
-                    key: Union[int, slice, Sequence[int], np.ndarray],
-                    value: Any) -> None:
+    def __setitem__(
+        self,
+        key: int | slice | Sequence[int] | np.ndarray,
+        value: Any,
+    ) -> None:
         """Set a row, or set of rows, in the array.
 
         It takes different actions depending on the type of the *key*
@@ -796,10 +807,12 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self._assign_values(coords, value)
 
     # Accessor for the _read_array method in superclass
-    def read(self,
-             start: Optional[int]=None,
-             stop: Optional[int]=None,
-             step: int=1) -> list:
+    def read(
+        self,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int = 1,
+    ) -> list:
         """Get data in the array as a list of objects of the current flavor.
 
         Please note that, as the lengths of the different rows are variable,
@@ -839,17 +852,19 @@ class VLArray(hdf5extension.VLArray, Leaf):
             rows.append(self.read(idx2long(coord), idx2long(coord) + 1, 1)[0])
         return rows
 
-    def _g_copy_with_stats(self,
-                           group: "Group",
-                           name: str,
-                           start: int,
-                           stop: int,
-                           step: int,
-                           title: str,
-                           filters: Optional["Filters"],
-                           chunkshape: Optional[tuple[int, ...]],
-                           _log: bool,
-                           **kwargs) -> tuple["VLArray", int]:
+    def _g_copy_with_stats(
+        self,
+        group: Group,
+        name: str,
+        start: int,
+        stop: int,
+        step: int,
+        title: str,
+        filters: Filters | None,
+        chunkshape: tuple[int, ...] | None,
+        _log: bool,
+        **kwargs,
+    ) -> tuple[VLArray, int]:
         """Private part of Leaf.copy() for each kind of leaf."""
 
         # Build the new VLArray object

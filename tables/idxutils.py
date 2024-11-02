@@ -1,7 +1,9 @@
 """Utilities to be used mainly by the Index class."""
 
+from __future__ import annotations
+
 import math
-from typing import Literal, Optional, Union, TYPE_CHECKING
+from typing import Literal, TYPE_CHECKING
 
 import numpy as np
 
@@ -76,7 +78,9 @@ def computeslicesize(expectedrows: int, memlevel: int) -> int:
     return ss
 
 
-def computeblocksize(expectedrows: int, compoundsize: int, lowercompoundsize: int) -> int:
+def computeblocksize(
+    expectedrows: int, compoundsize: int, lowercompoundsize: int
+) -> int:
     """Calculate the optimum number of superblocks made from compounds blocks.
 
     This is useful for computing the sizes of both blocks and
@@ -95,11 +99,13 @@ def computeblocksize(expectedrows: int, compoundsize: int, lowercompoundsize: in
     return size
 
 
-def calc_chunksize(expectedrows: int,
-                   optlevel: int=6,
-                   indsize: int=4,
-                   memlevel: int=4,
-                   node: Optional["Index"]=None) -> tuple[int, int, int, int]:
+def calc_chunksize(
+    expectedrows: int,
+    optlevel: int = 6,
+    indsize: int = 4,
+    memlevel: int = 4,
+    node: Index | None = None,
+) -> tuple[int, int, int, int]:
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -113,9 +119,13 @@ def calc_chunksize(expectedrows: int,
     chunksize = computechunksize(expectedrows)
     slicesize = computeslicesize(expectedrows, memlevel)
 
-    # Avoid excessive slicesize in Indexes, see https://github.com/PyTables/PyTables/issues/879
+    # Avoid excessive slicesize in Indexes,
+    # see https://github.com/PyTables/PyTables/issues/879
     if node is not None:
-        maxsize = node._v_file.params['BUFFER_TIMES'] * node._v_file.params['IO_BUFFER_SIZE']
+        maxsize = (
+            node._v_file.params['BUFFER_TIMES'] *
+            node._v_file.params['IO_BUFFER_SIZE']
+        )
         while (slicesize * node.dtype.itemsize) > maxsize:
             slicesize = slicesize // 2
 
@@ -137,7 +147,9 @@ def calc_chunksize(expectedrows: int,
     return sizes
 
 
-def ccs_ultralight(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, int]:
+def ccs_ultralight(
+    optlevel: int, chunksize: int, slicesize: int
+) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0, 1, 2):
@@ -152,7 +164,9 @@ def ccs_ultralight(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, 
     return chunksize, slicesize
 
 
-def ccs_light(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, int]:
+def ccs_light(
+    optlevel: int, chunksize: int, slicesize: int
+) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0, 1, 2):
@@ -169,7 +183,9 @@ def ccs_light(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, int]:
     return chunksize, slicesize
 
 
-def ccs_medium(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, int]:
+def ccs_medium(
+    optlevel: int, chunksize: int, slicesize: int
+) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
 
     if optlevel in (0, 1, 2):
@@ -203,7 +219,9 @@ def ccs_full(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, int]:
     return chunksize, slicesize
 
 
-def calcoptlevels(nblocks: int, optlevel: int, indsize: int) -> tuple[bool, bool, bool, bool]:
+def calcoptlevels(
+    nblocks: int, optlevel: int, indsize: int
+) -> tuple[bool, bool, bool, bool]:
     """Compute the optimizations to be done.
 
     The calculation is based on the number of blocks, optlevel and
@@ -282,7 +300,9 @@ def col_full(nblocks: int, optlevel: int) -> tuple[bool, bool, bool, bool]:
     return optmedian, optstarts, optstops, optfull
 
 
-def get_reduction_level(indsize: int, optlevel: int, slicesize: int, chunksize: int) -> int:
+def get_reduction_level(
+    indsize: int, optlevel: int, slicesize: int, chunksize: int
+) -> int:
     """Compute the reduction level based on indsize and optlevel."""
     rlevels = [
         [8, 8, 8, 8, 4, 4, 4, 2, 2, 1],  # 8-bit indices (ultralight)
@@ -373,7 +393,9 @@ infinityF = infinityf
 # Utility functions
 
 
-def inftype(dtype: np.dtype, itemsize: int, sign: Literal[-1, 1]=+1) -> Union[bytes, float, int]:
+def inftype(
+    dtype: np.dtype, itemsize: int, sign: Literal[-1, 1] = 1
+) -> bytes | float | int:
     """Return a superior limit for maximum representable data type."""
 
     assert sign in [-1, +1]
@@ -389,7 +411,9 @@ def inftype(dtype: np.dtype, itemsize: int, sign: Literal[-1, 1]=+1) -> Union[by
         raise TypeError("Type %s is not supported" % dtype.name)
 
 
-def string_next_after(x: bytes, direction: Literal[-1, 1], itemsize: int) -> bytes:
+def string_next_after(
+    x: bytes, direction: Literal[-1, 1], itemsize: int
+) -> bytes:
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
@@ -430,7 +454,9 @@ def string_next_after(x: bytes, direction: Literal[-1, 1], itemsize: int) -> byt
     return b"".join(xlist)
 
 
-def int_type_next_after(x: Union[float, int], direction: Literal[-1, 1], itemsize: int) -> int:
+def int_type_next_after(
+    x: float | int, direction: Literal[-1, 1], itemsize: int
+) -> int:
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
@@ -451,7 +477,9 @@ def int_type_next_after(x: Union[float, int], direction: Literal[-1, 1], itemsiz
             return int(np.nextafter(x, x + 1)) + 1
 
 
-def bool_type_next_after(x: bool, direction: Literal[-1, 1], itemsize: int) -> bool:
+def bool_type_next_after(
+    x: bool, direction: Literal[-1, 1], itemsize: int
+) -> bool:
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
@@ -464,10 +492,10 @@ def bool_type_next_after(x: bool, direction: Literal[-1, 1], itemsize: int) -> b
         return True
 
 
-def nextafter(x: Union[bool, bytes, float, int],
+def nextafter(x: bool | bytes | float | int,
               direction: Literal[-1, 0, 1],
               dtype: np.dtype,
-              itemsize: int) -> Union[bool, bytes, int, float]:
+              itemsize: int) -> bool | bytes | int | float:
     """Return the next representable neighbor of x in the appropriate
     direction."""
 

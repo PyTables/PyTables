@@ -1,19 +1,24 @@
 """PyTables nodes."""
 
+from __future__ import annotations
+
 import warnings
 import functools
-from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING
+from collections.abc import Callable
 
 from .registry import class_name_dict, class_id_dict
-from .exceptions import (ClosedNodeError, NodeError, UndoRedoWarning,
-                         PerformanceWarning)
+from .exceptions import (
+    ClosedNodeError, NodeError, UndoRedoWarning, PerformanceWarning
+)
 from .path import join_path, split_path, isvisiblepath
 from .utils import lazyattr
 from .undoredo import move_to_shadow
 from .attributeset import AttributeSet, NotLoggedAttributeSet
 
 # The following imports are just needed for type annotations.
-# However, actually importing them is not possible here as it will create a circular import.
+# However, actually importing them is not possible here as it will
+# create a circular import.
 if TYPE_CHECKING:
     from .group import Group
     from .link import SoftLink
@@ -58,7 +63,9 @@ class MetaNode(type):
 
     """
 
-    def __new__(mcs, name: str, bases: tuple, dict_: dict[str, Any]) -> "MetaNode":
+    def __new__(
+        mcs, name: str, bases: tuple, dict_: dict[str, Any]
+    ) -> MetaNode:
         # Add default behaviour for representing closed nodes.
         for mname in ['__str__', '__repr__']:
             if mname in dict_:
@@ -143,7 +150,7 @@ class Node(metaclass=MetaNode):
     _AttributeSet = AttributeSet
 
     # `_v_parent` is accessed via its file to avoid upwards references.
-    def _g_getparent(self) -> "Group":
+    def _g_getparent(self) -> Group:
         """The parent :class:`Group` instance"""
         (parentpath, nodename) = split_path(self._v_pathname)
         return self._v_file._get_node(parentpath)
@@ -185,8 +192,9 @@ class Node(metaclass=MetaNode):
 
     # The ``_log`` argument is only meant to be used by ``_g_copy_as_child()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
-    def __init__(self, parentnode: Union["Group", "SoftLink"], name: str,
-                 _log: bool=True) -> None:
+    def __init__(
+        self, parentnode: Group | SoftLink, name: str, _log: bool = True
+    ) -> None:
         # Remember to assign these values in the root group constructor
         # as it does not use this method implementation!
 
@@ -332,7 +340,7 @@ class Node(metaclass=MetaNode):
             raise ClosedNodeError("the node object is closed")
         assert self._v_file.isopen, "found an open node in a closed file"
 
-    def _g_set_location(self, parentnode: "Group", name: str) -> None:
+    def _g_set_location(self, parentnode: Group, name: str) -> None:
         """Set location-dependent attributes.
 
         Sets the location-dependent attributes of this node to reflect
@@ -511,7 +519,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Remove the node from the HDF5 hierarchy.
         self._g_delete(parent)
 
-    def _f_remove(self, recursive: bool=False, force: bool=False) -> None:
+    def _f_remove(self, recursive: bool = False, force: bool = False) -> None:
         """Remove this node from the hierarchy.
 
         If the node has children, recursive removal must be stated by giving
@@ -538,7 +546,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         file_._log('REMOVE', oldpathname)
         move_to_shadow(file_, oldpathname)
 
-    def _g_move(self, newparent: "Group", newname: str) -> None:
+    def _g_move(self, newparent: Group, newname: str) -> None:
         """Move this node in the hierarchy.
 
         Moves the node into the given `newparent`, with the given
@@ -567,14 +575,19 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_new(newparent, self._v_name, init=False)
         #   Move the node.
         # self._v_parent._g_move_node(oldpathname, self._v_pathname)
-        self._v_parent._g_move_node(oldparent._v_objectid, oldname,
-                                    newparent._v_objectid, newname,
-                                    oldpathname, self._v_pathname)
+        self._v_parent._g_move_node(
+            oldparent._v_objectid,
+            oldname,
+            newparent._v_objectid,
+            newname,
+            oldpathname,
+            self._v_pathname,
+        )
 
         # Tell dependent objects about the new location of this node.
         self._g_update_dependent()
 
-    def _f_rename(self, newname: str, overwrite: bool=False) -> None:
+    def _f_rename(self, newname: str, overwrite: bool = False) -> None:
         """Rename this node in place.
 
         Changes the name of a node to *newname* (a string).  If a node with the
@@ -585,8 +598,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         self._f_move(newname=newname, overwrite=overwrite)
 
-    def _f_move(self, newparent: Union["Group", str, None]=None, newname: Optional[str]=None,
-                overwrite: bool=False, createparents: bool=False) -> None:
+    def _f_move(
+        self,
+        newparent: Group | str | None = None,
+        newname: str | None = None,
+        overwrite: bool = False,
+        createparents: bool = False,
+    ) -> None:
         """Move or rename this node.
 
         Moves a node into a new parent group, or changes the name of the
@@ -676,7 +694,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_log_move(self, oldpathname: str) -> None:
         self._v_file._log('MOVE', oldpathname, self._v_pathname)
 
-    def _g_copy(self, newparent: "Group", newname: str, recursive: bool, _log: bool=True, **kwargs) -> "Node":
+    def _g_copy(
+        self,
+        newparent: Group,
+        newname: str,
+        recursive: bool,
+        _log: bool = True,
+        **kwargs,
+    ) -> Node:
         """Copy this node and return the new one.
 
         Creates and returns a copy of the node in the given `newparent`,
@@ -694,7 +719,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         raise NotImplementedError
 
-    def _g_copy_as_child(self, newparent: "Group", **kwargs) -> "Node":
+    def _g_copy_as_child(self, newparent: Group, **kwargs) -> Node:
         """Copy this node as a child of another group.
 
         Copies just this node into `newparent`, not recursing children
@@ -703,12 +728,19 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         """
 
-        return self._g_copy(newparent, self._v_name,
-                            recursive=False, _log=False, **kwargs)
+        return self._g_copy(
+            newparent, self._v_name, recursive=False, _log=False, **kwargs
+        )
 
-    def _f_copy(self, newparent: Union["Group", str, None]=None, newname: Optional[str]=None,
-                overwrite: bool=False, recursive: bool=False, createparents: bool=False,
-                **kwargs) -> "Node":
+    def _f_copy(
+        self,
+        newparent: Group | str | None = None,
+        newname: str | None = None,
+        overwrite: bool = False,
+        recursive: bool = False,
+        createparents: bool = False,
+        **kwargs,
+    ) -> Node:
         """Copy this node and return the new node.
 
         Creates and returns a copy of the node, maybe in a different place in
@@ -808,7 +840,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_check_open()
         return isvisiblepath(self._v_pathname)
 
-    def _g_check_group(self, node: "Group") -> None:
+    def _g_check_group(self, node: Group) -> None:
         # Node must be defined in order to define a Group.
         # However, we need to know Group here.
         # Using class_name_dict avoids a circular import.
@@ -828,7 +860,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             raise NodeError("can not move or recursively copy node ``%s`` "
                             "into itself" % mypathname)
 
-    def _g_maybe_remove(self, parent: "Group", name: str, overwrite: bool) -> None:
+    def _g_maybe_remove(
+        self, parent: Group, name: str, overwrite: bool
+    ) -> None:
         if name in parent:
             if not overwrite:
                 raise NodeError(

@@ -14,6 +14,7 @@ Misc variables:
 
 """
 
+from __future__ import annotations
 
 # Important: no modules from PyTables should be imported here
 # (but standard modules are OK), since the main reason for this module
@@ -21,11 +22,9 @@ Misc variables:
 
 __docformat__ = 'reStructuredText'
 
-from typing import Optional, Type
-
 """The format of documentation strings in this module."""
 
-class_name_dict: dict[str, Type] = {}
+class_name_dict: dict[str, type] = {}
 """Node class name to class object mapping.
 
 This dictionary maps class names (e.g. ``'Group'``) to actual class
@@ -38,7 +37,7 @@ can be replaced when the module that defines them is reloaded.
 
 """
 
-class_id_dict: dict[str, Type] = {}
+class_id_dict: dict[str, type] = {}
 """Class identifier to class object mapping.
 
 This dictionary maps class identifiers (e.g. ``'GROUP'``) to actual
@@ -57,7 +56,7 @@ classNameDict = class_name_dict
 classIdDict = class_id_dict
 
 
-def get_class_by_name(classname: Optional[str]) -> Type:
+def get_class_by_name(classname: str | None) -> type:
     """Get the node class matching the `classname`.
 
     If the name is not registered, a ``TypeError`` is raised.  The empty

@@ -537,9 +537,12 @@ def niclassdata():
     for size in table_sizes:
         heavy = size in heavy_table_sizes
         for ndim in table_ndims:
-            classname = '{}{}TDTestCase'.format(size[0], ndim[0])
-            cbasenames = ('%sNITableMixin' % size, '%sTableMixin' % ndim,
-                          'TableDataTestCase')
+            classname = f'{size[0]}{ndim[0]}TDTestCase'
+            cbasenames = (
+                f'{size}NITableMixin',
+                f'{ndim}TableMixin',
+                'TableDataTestCase',
+            )
             classdict = dict(heavy=heavy)
             yield (classname, cbasenames, classdict)
 
