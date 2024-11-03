@@ -75,7 +75,7 @@ jobs:
         # macos-13 is Intel, macos-latest is Apple Silicon
         os: [ubuntu-latest, macos-13, macos-latest, windows-latest]
         # Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
-        python: ['3.11', '3.12']
+        python: ['3.11', '3.12', '3.13']
         numpy: ['numpy']
         include:
           - os: ubuntu-latest
@@ -97,16 +97,18 @@ jobs:
         auto-update-conda: true
         channels: conda-forge
         channel-priority: strict
+    - name: Install compilers
+      if: runner.os != 'Linux'
+      run: |
+        conda install c-compiler cxx-compiler
     - name: Install dependencies
       run: |
         # Keep in sync with
         # "Prerequisites" in User's Guide,
         # ``build-system.requires`` in ``pyproject.toml``.
-        conda install -q setuptools pip wheel python-build packaging numpy cython bzip2 hdf5 lzo
+        conda install -q bzip2 hdf5 lzo zlib pip
         python -m pip install --require-hashes -r requirements.txt
         python -m pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple '${{ matrix.numpy }}'
-        # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
-        # conda install sphinx sphinx_rtd_theme numpydoc ipython
     - name: Get source distribution
       uses: actions/download-artifact@v4
       with:
@@ -142,11 +144,15 @@ jobs:
         auto-update-conda: true
         channels: conda-forge
         channel-priority: strict
+    - name: Install compilers
+      if: runner.os != 'Linux'
+      run: |
+        conda install c-compiler cxx-compiler
     - name: Install dependencies
       run: |
         # Keep in sync with "Prerequisites" in User's Guide,
         # ``build-system.requires`` in ``pyproject.toml``.
-        conda install setuptools pip wheel python-build packaging py-cpuinfo "numpy>=2" cython numexpr bzip2 hdf5 lzo 'typing_extensions>=4.4.0' c-blosc2
+        conda install bzip2 hdf5 lzo zlib blosc c-blosc2 pip setuptools wheel packaging py-cpuinfo "numpy>=2" cython numexpr 'typing_extensions>=4.4.0'
     - name: Get source distrubtion
       uses: actions/download-artifact@v4
       with:
