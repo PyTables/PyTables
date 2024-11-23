@@ -113,7 +113,7 @@ distributions, you can install it with::
 Installation
 ------------
 
-1. Install with `pip <https://pip.pypa.io/en/stable/>`::
+1. Install with `pip <https://pip.pypa.io/en/stable/>`_:
 
        $ python3 -m pip install tables
 
@@ -123,7 +123,7 @@ Installation
 
    If there is some test that does not pass, please send us the
    complete output using the
-   [GitHub Issue Tracker](https://github.com/PyTables/PyTables/issues/new).
+   `GitHub Issue Tracker <https://github.com/PyTables/PyTables/issues/new>`_.
 
 
 **Enjoy data!** -- The PyTables Team
