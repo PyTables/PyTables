@@ -59,11 +59,16 @@ def get_cpu_info() -> dict[str, Any]:
 
     try:
         import cpuinfo
-        cpu_info_dict = cpuinfo.get_cpu_info()
-        write_cached_cpu_info(cpu_info_dict)
-        return cpu_info_dict
     except ImportError:
         return {}
+    cpu_info_dict = cpuinfo.get_cpu_info()
+    try:
+        write_cached_cpu_info(cpu_info_dict)
+    except IOError:
+        # cpu info cannot be stored.
+        # will need to be recomputed in the next process
+        pass
+    return cpu_info_dict
 
 
 def csformula(expected_mb: int) -> int:
