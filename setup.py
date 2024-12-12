@@ -518,7 +518,7 @@ class BasePackage:
                 else:
                     directories[idx] = Path(path).parent
             else:
-                print("Error: path is not set.")
+                print("Warning: path is not set.")
         return tuple(directories)
 
 
