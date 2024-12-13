@@ -389,7 +389,9 @@ class BasePackage:
                     except OSError:
                         pass
                     else:
-                        return abs_path
+                        # Might foul the logic in caller: return abs_path
+                        # Be consistent with name-only search above
+                        return True
 
     def _pkg_config(self, flags):
         try:
