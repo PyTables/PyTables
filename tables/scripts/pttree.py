@@ -4,7 +4,7 @@ Pass the flag -h to this for help on usage.
 
 """
 
-import os
+import sys
 import argparse
 from collections import defaultdict, deque
 import warnings
@@ -119,7 +119,7 @@ def get_tree_str(f, where='/', max_depth=-1, print_class=True,
     root._g_check_open()
     start_depth = root._v_depth
     if max_depth < 0:
-        max_depth = os.sys.maxint
+        max_depth = sys.maxsize
 
     b2h = bytes2human(use_si_units)
 
