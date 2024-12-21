@@ -121,7 +121,10 @@ def get_blosc2_directories():
                     f"File does not exists: {library_path}"
                 )
             library_path = library_path.parent.resolve()
-        elif fnmatch.fnmatch(path, "**/include/blosc2.h"):
+        elif (
+            fnmatch.fnmatch(path, "**/include/blosc2.h")
+            or fnmatch.fnmatch(path, "include/blosc2.h")
+        ):
             include_path = basepath.parent.joinpath(path).resolve()
             if not include_path.is_file():
                 raise FileNotFoundError(
