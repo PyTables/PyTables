@@ -111,21 +111,21 @@ def get_blosc2_directories():
             runtime_path = basepath.parent.joinpath(path).resolve()
             if not runtime_path.is_file():
                 raise FileNotFoundError(
-                    f"File does not exixts: {runtime_path}"
+                    f"File does not exists: {runtime_path}"
                 )
             runtime_path = runtime_path.parent.resolve()
         elif fnmatch.fnmatch(path, "**/libblosc2*"):
             library_path = basepath.parent.joinpath(path).resolve()
             if not library_path.is_file():
                 raise FileNotFoundError(
-                    f"File does not exixts: {library_path}"
+                    f"File does not exists: {library_path}"
                 )
             library_path = library_path.parent.resolve()
         elif fnmatch.fnmatch(path, "**/include/blosc2.h"):
             include_path = basepath.parent.joinpath(path).resolve()
             if not include_path.is_file():
                 raise FileNotFoundError(
-                    f"File does not exixts: {include_path}"
+                    f"File does not exists: {include_path}"
                 )
             include_path = include_path.parent.resolve()
 
