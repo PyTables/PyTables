@@ -370,7 +370,7 @@ class BasePackage:
         for prefix in self._runtime_prefixes:
             for suffix in self._runtime_suffixes:
                 path = f"{prefix}{self.runtime_name}{suffix}"
-                print("find_runtime_path() trying ", path)
+                # Debug: print("find_runtime_path() trying ", path)
                       
                 try:
                     ctypes.CDLL(path)
@@ -385,14 +385,15 @@ class BasePackage:
             for prefix in self._runtime_prefixes:
                 for suffix in self._runtime_suffixes:
                     abs_path = f"{location}/{prefix}{self.runtime_name}{suffix}"
-                    print("find_runtime_path() trying ", abs_path)
+                    # Debug: print("find_runtime_path() trying ", abs_path)
                           
                     try:
                         ctypes.CDLL(abs_path)
                     except OSError:
                         pass
                     else:
-                        # Might foul the logic in caller: return abs_path
+                        # Returning path might foul the logic in caller
+                        # return abs_path
                         # Be consistent with name-only search above
                         return True
 
