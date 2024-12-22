@@ -274,7 +274,7 @@ cdef class BaseCache:
     self.seqn_ = self.seqn_ + 1
     if self.seqn_ < 0:
       # Ooops, the counter has run out of range! Reset all the access times.
-      self.atimes[:] = sys.maxint
+      self.atimes[:] = sys.maxsize
       # Set the counter to 1 (to indicate that it is newer than existing ones)
       self.seqn_ = 1
     return self.seqn_
