@@ -5,14 +5,27 @@ repos:
     rev: v5.0.0
     hooks:
     -   id: trailing-whitespace
+        exclude: |
+            (?x)(
+                ^hdf5-blosc/|
+                ^hdf5-blosc2/|
+                ^ci/
+            )
     -   id: end-of-file-fixer
+        exclude: |
+            (?x)(
+                ^hdf5-blosc/|
+                ^hdf5-blosc2/|
+                ^ci/
+            )
     -   id: check-yaml
     -   id: check-added-large-files
     -   id: check-toml
     -   id: mixed-line-ending
-    -   id: requirements-txt-fixer
     -   id: check-merge-conflict
     -   id: detect-private-key
+    -   id: requirements-txt-fixer
+        files: requirements.*\.in$
 
 # -   repo: https://github.com/astral-sh/ruff-pre-commit
 #     rev: v0.7.0
@@ -31,6 +44,12 @@ repos:
     rev: 7.1.1
     hooks:
     -   id: flake8
+        exclude: |
+            (?x)(
+                ^hdf5-blosc/|
+                ^hdf5-blosc2/|
+                ^ci/
+            )
 
 # -   repo: https://github.com/pycqa/pydocstyle
 #     rev: 6.3.0
