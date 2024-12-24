@@ -13,7 +13,7 @@ OPT = PYTHONPATH="$(PYBUILDDIR)"
 MD5SUM = md5sum
 
 
-.PHONY: default dist sdist build check heavycheck clean distclean html latex
+.PHONY: default dist sdist build check heavycheck clean distclean html latex requirements
 
 default: $(GENERATED) build
 
@@ -72,3 +72,13 @@ check: build
 heavycheck: build
 	cd build/lib.* && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py --heavy
 
+requirements: \
+		requirements.txt \
+		.github/workflows/requirements/build-requirements.txt \
+		.github/workflows/requirements/optional-requirements.txt \
+		.github/workflows/requirements/wheels-requirements.txt
+	@for target in $?; do \
+		cmd=$$(grep pip-compile $${target} | grep requirements | sed 's/.txt/.in/g' | sed -E 's/^#    //g'); \
+		echo $${cmd}; \
+		$${cmd}; \
+	done
