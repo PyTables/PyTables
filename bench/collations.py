@@ -15,17 +15,18 @@ class Energies(tb.IsDescription):
 
 
 def fill_bucket(lbucket):
-    #c = np.random.normal(NCOLL/2, NCOLL/10, lbucket)
+    # c = np.random.normal(NCOLL/2, NCOLL/10, lbucket)
     c = np.random.normal(NCOLL / 2, NCOLL / 100, lbucket)
-    e = np.arange(lbucket, dtype='f8')
+    e = np.arange(lbucket, dtype="f8")
     return c, e
+
 
 # Fill the table
 t1 = clock()
 f = tb.open_file("data.nobackup/collations.h5", "w")
 table = f.create_table("/", "Energies", Energies, expectedrows=N)
 # Fill the table with values
-lbucket = 1000   # Fill in buckets of 1000 rows, for speed
+lbucket = 1000  # Fill in buckets of 1000 rows, for speed
 for i in range(0, N, lbucket):
     bucket = fill_bucket(lbucket)
     table.append(bucket)
@@ -45,13 +46,13 @@ table = f.root.Energies
 t1 = clock()
 t = table[:]  # convert to structured array
 coll1 = []
-collections = np.unique(t['collection'])
+collections = np.unique(t["collection"])
 for c in collections:
-    cond = t['collection'] == c
-    energy_this_collection = t['energy'][cond]
+    cond = t["collection"] == c
+    energy_this_collection = t["energy"][cond]
     sener = energy_this_collection.sum()
     coll1.append(sener)
-    print(c, ' : ', sener)
+    print(c, " : ", sener)
 del collections, energy_this_collection
 print(f"Time for first solution: {clock() - t1:.3f}s")
 
@@ -61,8 +62,8 @@ print(f"Time for first solution: {clock() - t1:.3f}s")
 t1 = clock()
 collections = {}
 for row in table:
-    c = row['collection']
-    e = row['energy']
+    c = row["collection"]
+    e = row["energy"]
     if c in collections:
         collections[c].append(e)
     else:
@@ -73,7 +74,7 @@ for c in sorted(collections):
     energy_this_collection = np.array(collections[c])
     sener = energy_this_collection.sum()
     coll2.append(sener)
-    print(c, ' : ', sener)
+    print(c, " : ", sener)
 del collections, energy_this_collection
 print(f"Time for second solution: {clock() - t1:.3f}s")
 
@@ -87,19 +88,25 @@ print(f"Time for indexing: {clock() - t1:.3f}s")
 #########################################################
 t1 = clock()
 coll3 = []
-for c in np.unique(table.col('collection')):
+for c in np.unique(table.col("collection")):
     energy_this_collection = table.read_where(
-        'collection == c', field='energy')
+        "collection == c", field="energy"
+    )
     sener = energy_this_collection.sum()
     coll3.append(sener)
-    print(c, ' : ', sener)
+    print(c, " : ", sener)
 del energy_this_collection
 print(f"Time for third solution: {clock() - t1:.3f}s")
 
 
 t1 = clock()
-table2 = table.copy('/', 'EnergySortedByCollation', overwrite=True,
-                    sortby="collection", propindexes=True)
+table2 = table.copy(
+    "/",
+    "EnergySortedByCollation",
+    overwrite=True,
+    sortby="collection",
+    propindexes=True,
+)
 print(f"Time for sorting: {clock() - t1:.3f}s")
 
 #####################################################################
@@ -107,12 +114,13 @@ print(f"Time for sorting: {clock() - t1:.3f}s")
 #####################################################################
 t1 = clock()
 coll4 = []
-for c in np.unique(table2.col('collection')):
+for c in np.unique(table2.col("collection")):
     energy_this_collection = table2.read_where(
-        'collection == c', field='energy')
+        "collection == c", field="energy"
+    )
     sener = energy_this_collection.sum()
     coll4.append(sener)
-    print(c, ' : ', sener)
+    print(c, " : ", sener)
     del energy_this_collection
 print(f"Time for fourth solution: {clock() - t1:.3f}s")
 

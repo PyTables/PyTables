@@ -7,10 +7,10 @@ import numpy as np
 
 # Constants
 
-STEP = 1000 * 100   # the size of the buffer to fill the table, in rows
-SCALE = 0.1         # standard deviation of the noise compared with actual
-                    # values
-NI_NTIMES = 1       # The number of queries for doing a mean (non-idx cols)
+STEP = 1000 * 100  # the size of the buffer to fill the table, in rows
+SCALE = 0.1  # standard deviation of the noise compared with actual
+# values
+NI_NTIMES = 1  # The number of queries for doing a mean (non-idx cols)
 # COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
 # WARMCACHE = 50   # The number of reads until the cache is considered 'warmed'
 # READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
@@ -20,22 +20,23 @@ NI_NTIMES = 1       # The number of queries for doing a mean (non-idx cols)
 MROW = 1000 * 1000
 
 # Test values
-COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
-WARMCACHE = 5   # The number of reads until the cache is considered 'warmed'
-READ_TIMES = 10    # The number of complete calls to DB.query_db()
+COLDCACHE = 5  # The number of reads where the cache is considered 'cold'
+WARMCACHE = 5  # The number of reads until the cache is considered 'warmed'
+READ_TIMES = 10  # The number of complete calls to DB.query_db()
 
 # global variables
-rdm_cod = ['lin', 'rnd']
+rdm_cod = ["lin", "rnd"]
 prec = 6  # precision for printing floats purposes
 
 
 def get_nrows(nrows_str):
-    powers = {'k': 3, 'm': 6, 'g': 9}
+    powers = {"k": 3, "m": 6, "g": 9}
     try:
         return int(float(nrows_str[:-1]) * 10 ** powers[nrows_str[-1]])
     except KeyError:
         raise ValueError(
-            "value of nrows must end with either 'k', 'm' or 'g' suffixes.")
+            "value of nrows must end with either 'k', 'm' or 'g' suffixes."
+        )
 
 
 class DB:
@@ -46,13 +47,14 @@ class DB:
         self.scale = SCALE
         self.rng = rng
         self.userandom = userandom
-        self.filename = '-'.join([rdm_cod[userandom], nrows])
+        self.filename = "-".join([rdm_cod[userandom], nrows])
         self.nrows = get_nrows(nrows)
 
     def get_db_size(self):
-        sout = subprocess.Popen("sync;du -s %s" % self.filename, shell=True,
-                                stdout=subprocess.PIPE).stdout
-        line = [l for l in sout][0]
+        sout = subprocess.Popen(
+            "sync;du -s %s" % self.filename, shell=True, stdout=subprocess.PIPE
+        ).stdout
+        line = sout[0]
         return int(line.split()[0])
 
     def print_mtime(self, t1, explain):
@@ -83,7 +85,7 @@ class DB:
         else:
             r = "[NOREP] "
         ltimes = np.array(ltimes)
-        ntimes = len(ltimes)
+        _ = len(ltimes)
         qtime1 = ltimes[0]  # First measured time
         ctimes = ltimes[1:COLDCACHE]
         cmean, cstd = self.norm_times(ctimes)
@@ -95,10 +97,14 @@ class DB:
             hist1, hist2 = np.histogram(wtimes)
             print(f"Histogram for warm cache: {hist1}\n{hist2}")
         print(f"{r}1st query time for {colname}: {qtime1:.{prec}f}")
-        print(f"{r}Query time for {colname} (cold cache): "
-              f"{cmean:.{prec}f} +- {cstd:.{prec}f}")
-        print(f"{r}Query time for {colname} (warm cache): "
-              f"{wmean:.{prec}f} +- {wstd:.{prec}f}")
+        print(
+            f"{r}Query time for {colname} (cold cache): "
+            f"{cmean:.{prec}f} +- {cstd:.{prec}f}"
+        )
+        print(
+            f"{r}Query time for {colname} (warm cache): "
+            f"{wmean:.{prec}f} +- {wstd:.{prec}f}"
+        )
 
     def print_db_sizes(self, init, filled, indexed):
         table_size = (filled - init) / 1024
@@ -108,11 +114,11 @@ class DB:
         print(f"Full size (MB): {table_size + indexes_size:.3f}")
 
     def fill_arrays(self, start, stop):
-        arr_f8 = np.arange(start, stop, dtype='float64')
-        arr_i4 = np.arange(start, stop, dtype='int32')
+        arr_f8 = np.arange(start, stop, dtype="float64")
+        arr_i4 = np.arange(start, stop, dtype="int32")
         if self.userandom:
             arr_f8 += np.random.normal(0, stop * self.scale, size=stop - start)
-            arr_i4 = np.array(arr_f8, dtype='int32')
+            arr_i4 = np.array(arr_f8, dtype="int32")
         return arr_i4, arr_f8
 
     def create_db(self, dtype, kind, optlevel, verbose):
@@ -122,7 +128,7 @@ class DB:
         t1 = clock()
         self.fill_table(self.con)
         table_size = self.get_db_size()
-        self.print_mtime(t1, 'Insert time')
+        self.print_mtime(t1, "Insert time")
         self.index_db(dtype, kind, optlevel, verbose)
         indexes_size = self.get_db_size()
         self.print_db_sizes(init_size, table_size, indexes_size)
@@ -130,28 +136,36 @@ class DB:
 
     def index_db(self, dtype, kind, optlevel, verbose):
         if dtype == "int":
-            idx_cols = ['col2']
+            idx_cols = ["col2"]
         elif dtype == "float":
-            idx_cols = ['col4']
+            idx_cols = ["col4"]
         else:
-            idx_cols = ['col2', 'col4']
+            idx_cols = ["col2", "col4"]
         for colname in idx_cols:
             t1 = clock()
             self.index_col(self.con, colname, kind, optlevel, verbose)
-            self.print_mtime(t1, 'Index time (%s)' % colname)
+            self.print_mtime(t1, "Index time (%s)" % colname)
 
-    def query_db(self, niter, dtype, onlyidxquery, onlynonidxquery,
-                 avoidfscache, verbose, inkernel):
+    def query_db(
+        self,
+        niter,
+        dtype,
+        onlyidxquery,
+        onlynonidxquery,
+        avoidfscache,
+        verbose,
+        inkernel,
+    ):
         self.con = self.open_db()
         if dtype == "int":
-            reg_cols = ['col1']
-            idx_cols = ['col2']
+            reg_cols = ["col1"]
+            idx_cols = ["col2"]
         elif dtype == "float":
-            reg_cols = ['col3']
-            idx_cols = ['col4']
+            reg_cols = ["col3"]
+            idx_cols = ["col4"]
         else:
-            reg_cols = ['col1', 'col3']
-            idx_cols = ['col2', 'col4']
+            reg_cols = ["col1", "col3"]
+            idx_cols = ["col2", "col4"]
         if avoidfscache:
             rseed = int(np.random.randint(self.nrows))
         else:
@@ -185,7 +199,7 @@ class DB:
                     base = rndbase[i]
                     t1 = clock()
                     results = self.do_query(self.con, colname, base, inkernel)
-                    #results, tprof = self.do_query(
+                    # results, tprof = self.do_query(
                     #    self.con, colname, base, inkernel)
                     ltimes.append(clock() - t1)
                 if verbose:
@@ -196,19 +210,19 @@ class DB:
                 self.close_db(self.con)
                 self.con = self.open_db()
                 ltimes = []
-# Second, repeated queries
-#                 for i in range(niter):
-#                     t1=time()
-#                     results = self.do_query(
-#                         self.con, colname, base, inkernel)
-# results, tprof = self.do_query(self.con, colname, base, inkernel)
-#                     ltimes.append(time()-t1)
-#                 if verbose:
-#                     print "Results len:", results
-#                 self.print_qtime_idx(colname, ltimes, True, verbose)
+                # Second, repeated queries
+                #                 for i in range(niter):
+                #                     t1=time()
+                #                     results = self.do_query(
+                #                         self.con, colname, base, inkernel)
+                # results, tprof = self.do_query(self.con, colname, base, inkernel)
+                #                     ltimes.append(time()-t1)
+                #                 if verbose:
+                #                     print "Results len:", results
+                #                 self.print_qtime_idx(colname, ltimes, True, verbose)
                 # Print internal PyTables index tprof statistics
-                #tprof = np.array(tprof)
-                #tmean, tstd = self.norm_times(tprof)
+                # tprof = np.array(tprof)
+                # tmean, tstd = self.norm_times(tprof)
                 # print "tprof-->", round(tmean, prec), "+-", round(tstd, prec)
                 # print "tprof hist-->", \
                 #    np.histogram(tprof)
@@ -230,11 +244,13 @@ if __name__ == "__main__":
 
     try:
         import psyco
+
         psyco_imported = 1
-    except:
+    except Exception:
         psyco_imported = 0
 
-    usage = """usage: %s [-T] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-S] [-x] [-z complevel] [-l complib] [-R range] [-N niter] [-n nrows] [-d datadir] [-O level] [-t kind] [-s] col -Q [suplim]
+    usage = (
+        """usage: %s [-T] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-S] [-x] [-z complevel] [-l complib] [-R range] [-N niter] [-n nrows] [-d datadir] [-O level] [-t kind] [-s] col -Q [suplim]
             -T use Pytables
             -P use Postgres
             -v verbose
@@ -258,12 +274,15 @@ if __name__ == "__main__":
             -t select the index type: "medium" (default) or "full", "light", "ultralight"
             -s select a type column for operations ('int' or 'float'. def all)
             -Q do a repeteated query up to 10**value
-            \n""" % sys.argv[0]
+            \n"""
+        % sys.argv[0]
+    )
 
     try:
         opts, pargs = getopt.getopt(
-            sys.argv[1:], 'TPvfkpmcqiISxz:l:R:N:n:d:O:t:s:Q:')
-    except:
+            sys.argv[1:], "TPvfkpmcqiISxz:l:R:N:n:d:O:t:s:Q:"
+        )
+    except Exception:
         sys.stderr.write(usage)
         sys.exit(1)
 
@@ -285,75 +304,77 @@ if __name__ == "__main__":
     onlynonidxquery = False
     inkernel = True
     avoidfscache = 0
-    #rng = [-10, 10]
+    # rng = [-10, 10]
     rng = [-1000, -1000]
     repeatquery = 0
     repeatvalue = 0
-    krows = '1k'
+    krows = "1k"
     niter = READ_TIMES
     dtype = "all"
     datadir = "data.nobackup"
 
     # Get the options
     for option in opts:
-        if option[0] == '-T':
+        if option[0] == "-T":
             usepytables = 1
-        elif option[0] == '-P':
+        elif option[0] == "-P":
             usepostgres = 1
-        elif option[0] == '-v':
+        elif option[0] == "-v":
             verbose = 1
-        elif option[0] == '-f':
+        elif option[0] == "-f":
             doprofile = 1
-        elif option[0] == '-k':
+        elif option[0] == "-k":
             dokprofile = 1
-        elif option[0] == '-p':
+        elif option[0] == "-p":
             usepsyco = 1
-        elif option[0] == '-m':
+        elif option[0] == "-m":
             userandom = 1
-        elif option[0] == '-c':
+        elif option[0] == "-c":
             docreate = 1
-        elif option[0] == '-q':
+        elif option[0] == "-q":
             doquery = True
-        elif option[0] == '-i':
+        elif option[0] == "-i":
             doquery = True
             onlyidxquery = True
-        elif option[0] == '-I':
+        elif option[0] == "-I":
             doquery = True
             onlynonidxquery = True
-        elif option[0] == '-S':
+        elif option[0] == "-S":
             doquery = True
             onlynonidxquery = True
             inkernel = False
-        elif option[0] == '-x':
+        elif option[0] == "-x":
             avoidfscache = 1
-        elif option[0] == '-z':
+        elif option[0] == "-z":
             docompress = int(option[1])
-        elif option[0] == '-l':
+        elif option[0] == "-l":
             complib = option[1]
-        elif option[0] == '-R':
+        elif option[0] == "-R":
             rng = [int(i) for i in option[1].split(",")]
-        elif option[0] == '-N':
+        elif option[0] == "-N":
             niter = int(option[1])
-        elif option[0] == '-n':
+        elif option[0] == "-n":
             krows = option[1]
-        elif option[0] == '-d':
+        elif option[0] == "-d":
             datadir = option[1]
-        elif option[0] == '-O':
+        elif option[0] == "-O":
             optlevel = int(option[1])
-        elif option[0] == '-t':
-            if option[1] in ('full', 'medium', 'light', 'ultralight'):
+        elif option[0] == "-t":
+            if option[1] in ("full", "medium", "light", "ultralight"):
                 kind = option[1]
             else:
-                print("kind should be either 'full', 'medium', 'light' or "
-                      "'ultralight'")
+                print(
+                    "kind should be either 'full', 'medium', 'light' or "
+                    "'ultralight'"
+                )
                 sys.exit(1)
-        elif option[0] == '-s':
-            if option[1] in ('int', 'float'):
+        elif option[0] == "-s":
+            if option[1] in ("int", "float"):
                 dtype = option[1]
             else:
                 print("column should be either 'int' or 'float'")
                 sys.exit(1)
-        elif option[0] == '-Q':
+        elif option[0] == "-Q":
             repeatquery = 1
             repeatvalue = int(option[1])
 
@@ -367,10 +388,13 @@ if __name__ == "__main__":
     # Create the class for the database
     if usepytables:
         from pytables_backend import PyTables_DB
-        db = PyTables_DB(krows, rng, userandom, datadir,
-                         docompress, complib, kind, optlevel)
+
+        db = PyTables_DB(
+            krows, rng, userandom, datadir, docompress, complib, kind, optlevel
+        )
     elif usepostgres:
         from postgres_backend import Postgres_DB
+
         db = Postgres_DB(krows, rng, userandom)
 
     if not avoidfscache:
@@ -397,13 +421,15 @@ if __name__ == "__main__":
         if doprofile:
             import pstats
             import cProfile as prof
+
             prof.run(
-                'db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, '
-                'avoidfscache, verbose, inkernel)',
-                'indexed_search.prof')
-            stats = pstats.Stats('indexed_search.prof')
+                "db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, "
+                "avoidfscache, verbose, inkernel)",
+                "indexed_search.prof",
+            )
+            stats = pstats.Stats("indexed_search.prof")
             stats.strip_dirs()
-            stats.sort_stats('time', 'calls')
+            stats.sort_stats("time", "calls")
             if verbose:
                 stats.print_stats()
             else:
@@ -411,47 +437,72 @@ if __name__ == "__main__":
         elif dokprofile:
             from cProfile import Profile
             import lsprofcalltree
+
             prof = Profile()
             prof.run(
-                'db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, '
-                'avoidfscache, verbose, inkernel)')
+                "db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, "
+                "avoidfscache, verbose, inkernel)"
+            )
             kcg = lsprofcalltree.KCacheGrind(prof)
-            with Path('indexed_search.kcg').open('w') as ofile:
+            with Path("indexed_search.kcg").open("w") as ofile:
                 kcg.output(ofile)
         elif doprofile:
             import hotshot
             import hotshot.stats
+
             prof = hotshot.Profile("indexed_search.prof")
             benchtime, stones = prof.run(
-                'db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, '
-                'avoidfscache, verbose, inkernel)')
+                "db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, "
+                "avoidfscache, verbose, inkernel)"
+            )
             prof.close()
             stats = hotshot.stats.load("indexed_search.prof")
             stats.strip_dirs()
-            stats.sort_stats('time', 'calls')
+            stats.sort_stats("time", "calls")
             stats.print_stats(20)
         else:
-            db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
-                        avoidfscache, verbose, inkernel)
+            db.query_db(
+                niter,
+                dtype,
+                onlyidxquery,
+                onlynonidxquery,
+                avoidfscache,
+                verbose,
+                inkernel,
+            )
 
     if repeatquery:
         # Start by a range which is almost None
         db.rng = [1, 1]
         if verbose:
             print("range:", db.rng)
-        db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
-                    avoidfscache, verbose, inkernel)
+        db.query_db(
+            niter,
+            dtype,
+            onlyidxquery,
+            onlynonidxquery,
+            avoidfscache,
+            verbose,
+            inkernel,
+        )
         for i in range(repeatvalue):
             for j in (1, 2, 5):
-                rng = j * 10 ** i
+                rng = j * 10**i
                 db.rng = [-rng / 2, rng / 2]
                 if verbose:
                     print("range:", db.rng)
-#                 if usepostgres:
-#                     os.system(
-#                         "echo 1 > /proc/sys/vm/drop_caches;"
-#                         " /etc/init.d/postgresql restart")
-#                 else:
-#                     os.system("echo 1 > /proc/sys/vm/drop_caches")
-                db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
-                            avoidfscache, verbose, inkernel)
+                #                 if usepostgres:
+                #                     os.system(
+                #                         "echo 1 > /proc/sys/vm/drop_caches;"
+                #                         " /etc/init.d/postgresql restart")
+                #                 else:
+                #                     os.system("echo 1 > /proc/sys/vm/drop_caches")
+                db.query_db(
+                    niter,
+                    dtype,
+                    onlyidxquery,
+                    onlynonidxquery,
+                    avoidfscache,
+                    verbose,
+                    inkernel,
+                )

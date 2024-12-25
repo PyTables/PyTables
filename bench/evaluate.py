@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 from time import perf_counter as clock
 
 import numexpr as ne
@@ -8,23 +9,28 @@ import tables as tb
 
 
 shape = (1000, 160_000)
-#shape = (10,1600)
+# shape = (10,1600)
 filters = tb.Filters(complevel=1, complib="blosc2", shuffle=1)
 ofilters = tb.Filters(complevel=1, complib="blosc2", shuffle=1)
-#filters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
-#ofilters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
+# filters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
+# ofilters = tb.Filters(complevel=1, complib="lzo", shuffle=0)
 
 # TODO: Makes it sense to add a 's'tring typecode here?
-typecode_to_dtype = {'b': 'bool', 'i': 'int32', 'l': 'int64', 'f': 'float32',
-                     'd': 'float64', 'c': 'complex128'}
+typecode_to_dtype = {
+    "b": "bool",
+    "i": "int32",
+    "l": "int64",
+    "f": "float32",
+    "d": "float64",
+    "c": "complex128",
+}
 
 
-def _compute(result, function, arguments,
-             start=None, stop=None, step=None):
+def _compute(result, function, arguments, start=None, stop=None, step=None):
     """Compute the `function` over the `arguments` and put the outcome in
     `result`"""
     arg0 = arguments[0]
-    if hasattr(arg0, 'maindim'):
+    if hasattr(arg0, "maindim"):
         maindim = arg0.maindim
         (start, stop, step) = arg0._process_range_read(start, stop, step)
         nrowsinbuf = arg0.nrowsinbuf
@@ -41,7 +47,7 @@ def _compute(result, function, arguments,
 
     # This is a hack to prevent doing unnecessary conversions
     # when copying buffers
-    if hasattr(arg0, 'maindim'):
+    if hasattr(arg0, "maindim"):
         for arg in arguments:
             arg._v_convert = False
 
@@ -67,7 +73,7 @@ def _compute(result, function, arguments,
         result[tuple(sl)] = function(*values)
 
     # Activate the conversion again (default)
-    if hasattr(arg0, 'maindim'):
+    if hasattr(arg0, "maindim"):
         for arg in arguments:
             arg._v_convert = True
 
@@ -95,7 +101,7 @@ def evaluate(ex, out=None, local_dict=None, global_dict=None, **kwargs):
         except KeyError:
             a = global_dict[name]
         arguments.append(a)
-        if hasattr(a, 'atom'):
+        if hasattr(a, "atom"):
             types.append(a.atom)
         else:
             types.append(a)
@@ -126,44 +132,50 @@ if __name__ == "__main__":
 
     # Create some arrays
     if iarrays:
-        a = np.ones(shape, dtype='float32')
-        b = np.ones(shape, dtype='float32') * 2
-        c = np.ones(shape, dtype='float32') * 3
+        a = np.ones(shape, dtype="float32")
+        b = np.ones(shape, dtype="float32") * 2
+        c = np.ones(shape, dtype="float32") * 3
     else:
-        a = f.create_carray(f.root, 'a', tb.Float32Atom(dflt=1),
-                            shape=shape, filters=filters)
+        a = f.create_carray(
+            f.root, "a", tb.Float32Atom(dflt=1), shape=shape, filters=filters
+        )
         a[:] = 1
-        b = f.create_carray(f.root, 'b', tb.Float32Atom(dflt=2),
-                            shape=shape, filters=filters)
+        b = f.create_carray(
+            f.root, "b", tb.Float32Atom(dflt=2), shape=shape, filters=filters
+        )
         b[:] = 2
-        c = f.create_carray(f.root, 'c', tb.Float32Atom(dflt=3),
-                            shape=shape, filters=filters)
+        c = f.create_carray(
+            f.root, "c", tb.Float32Atom(dflt=3), shape=shape, filters=filters
+        )
         c[:] = 3
     if oarrays:
-        out = np.empty(shape, dtype='float32')
+        out = np.empty(shape, dtype="float32")
     else:
-        out = f.create_carray(f.root, 'out', tb.Float32Atom(),
-                              shape=shape, filters=ofilters)
+        out = f.create_carray(
+            f.root, "out", tb.Float32Atom(), shape=shape, filters=ofilters
+        )
 
     t0 = clock()
     if iarrays and oarrays:
-        #out = ne.evaluate("a*b+c")
+        # out = ne.evaluate("a*b+c")
         out = a * b + c
     elif doprofile:
         import cProfile as prof
         import pstats
-        prof.run('evaluate("a*b+c", out)', 'evaluate.prof')
-        stats = pstats.Stats('evaluate.prof')
+
+        prof.run('evaluate("a*b+c", out)', "evaluate.prof")
+        stats = pstats.Stats("evaluate.prof")
         stats.strip_dirs()
-        stats.sort_stats('time', 'calls')
+        stats.sort_stats("time", "calls")
         stats.print_stats(20)
     elif dokprofile:
         from cProfile import Profile
         import lsprofcalltree
+
         prof = Profile()
         prof.run('evaluate("a*b+c", out)')
         kcg = lsprofcalltree.KCacheGrind(prof)
-        with Path('evaluate.kcg').open('w') as ofile:
+        with Path("evaluate.kcg").open("w") as ofile:
             kcg.output(ofile)
     else:
         evaluate("a*b+c", out)

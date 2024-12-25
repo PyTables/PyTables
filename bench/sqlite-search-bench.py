@@ -74,8 +74,9 @@ def createNewBenchFile(bfile, verbose):
     bf.close()
 
 
-def createFile(filename, nrows, filters, indexmode, heavy, noise, bfile,
-               verbose):
+def createFile(
+    filename, nrows, filters, indexmode, heavy, noise, bfile, verbose
+):
 
     # Initialize some variables
     t1 = 0
@@ -112,7 +113,7 @@ var3            FLOAT        --  12.32
 CREATE INDEX ivar1 ON small(var1);
 CREATE INDEX ivar2 ON small(var2);
 CREATE INDEX ivar3 ON small(var3);
-"""
+"""  # noqa: F841
         # Creating the table first and indexing afterwards is a bit faster
         instd.write(CREATESTD)
         instd.close()
@@ -120,7 +121,7 @@ CREATE INDEX ivar3 ON small(var3);
     conn = sqlite3.connect(dbfile)
     cursor = conn.cursor()
     if indexmode == "standard":
-        place_holders = ",".join(['%s'] * 3)
+        place_holders = ",".join(["%s"] * 3)
         # Insert rows
         SQL = "insert into small values(NULL, %s)" % place_holders
         time1 = clock()
@@ -141,7 +142,7 @@ CREATE INDEX ivar3 ON small(var3);
                 if noise:
                     var3 += np.random.uniform(-3, 3, shape=[j - i])
             var2 = np.array(var3, type=np.int32)
-            var1 = np.array(None, shape=[j - i], dtype='s4')
+            var1 = np.array(None, shape=[j - i], dtype="s4")
             if not heavy:
                 for n in range(j - i):
                     var1[n] = str("%.4s" % var2[n])
@@ -229,18 +230,18 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     # Some previous computations for the case of random values
     if randomvalues:
         # algorithm to choose a value separated from mean
-# If want to select fewer values, select this
-#         if nrows/2 > standarddeviation*3:
-# Choose five standard deviations away from mean value
-#             dev = standarddeviation*5
-# dev = standarddeviation*math.log10(nrows/1000.)
+        # If want to select fewer values, select this
+        #         if nrows/2 > standarddeviation*3:
+        # Choose five standard deviations away from mean value
+        #             dev = standarddeviation*5
+        # dev = standarddeviation*math.log10(nrows/1000.)
 
         # This algorithm give place to too asymmetric result values
-#         if standarddeviation*10 < nrows/2:
-# Choose four standard deviations away from mean value
-#             dev = standarddeviation*4
-#         else:
-#             dev = 100
+        #         if standarddeviation*10 < nrows/2:
+        # Choose four standard deviations away from mean value
+        #             dev = standarddeviation*4
+        #         else:
+        #             dev = 100
         # Yet Another Algorithm
         if nrows / 2 > standarddeviation * 10:
             dev = standarddeviation * 4
@@ -284,17 +285,18 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
             time1 = clock()
             cpu1 = cpuclock()
             if atom == "string":
-                #cursor.execute(SQL1, "1111")
+                # cursor.execute(SQL1, "1111")
                 cursor.execute(SQL1, str(rnd)[-4:])
             elif atom == "int":
-                #cursor.execute(SQL2 % (rnd, rnd+3))
+                # cursor.execute(SQL2 % (rnd, rnd+3))
                 cursor.execute(SQL2 % (rnd, rnd + dselect))
             elif atom == "float":
-                #cursor.execute(SQL3 % (float(rnd), float(rnd+3)))
+                # cursor.execute(SQL3 % (float(rnd), float(rnd+3)))
                 cursor.execute(SQL3 % (float(rnd), float(rnd + dselect)))
             else:
                 raise ValueError(
-                    "atom must take a value in ['string','int','float']")
+                    "atom must take a value in ['string','int','float']"
+                )
             if i == 0:
                 t1 = clock() - time1
                 tcpu1 = cpuclock() - cpu1
@@ -319,9 +321,10 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
 
         print(
             f"*** Query results for atom = {atom}, "
-            f"nrows = {nrows}, indexmode = {indexmode} ***")
+            f"nrows = {nrows}, indexmode = {indexmode} ***"
+        )
         print(f"Query time: {t1:.5f}, cached time: {t2:.5f}")
-        print(f"MRows/s: {nrows / 1_000_000 / t1:.3f}", end=' ')
+        print(f"MRows/s: {nrows / 1_000_000 / t1:.3f}", end=" ")
         if t2 > 0:
             print(f", cached MRows/s: {nrows / 10 ** 6 / t2:.3f}")
         else:
@@ -350,15 +353,19 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
 
     return
 
+
 if __name__ == "__main__":
     import getopt
+
     try:
         import psyco
+
         psyco_imported = 1
-    except:
+    except Exception:
         psyco_imported = 0
 
-    usage = """usage: %s [-v] [-p] [-R] [-h] [-t] [-r] [-w] [-n nrows] [-b file] [-k riter] [-m indexmode] [-N range] datafile
+    usage = (
+        """usage: %s [-v] [-p] [-R] [-h] [-t] [-r] [-w] [-n nrows] [-b file] [-k riter] [-m indexmode] [-N range] datafile
             -v verbose
             -p use "psyco" if available
             -R use Random values for filling
@@ -370,11 +377,13 @@ if __name__ == "__main__":
             -b bench filename
             -N introduce (uniform) noise within range into the values
             -d the interval for look values (int, float) at. Default is 3.
-            -k number of iterations for reading\n""" % sys.argv[0]
+            -k number of iterations for reading\n"""
+        % sys.argv[0]
+    )
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpRhtrwn:b:k:m:N:d:')
-    except:
+        opts, pargs = getopt.getopt(sys.argv[1:], "vpRhtrwn:b:k:m:N:d:")
+    except Exception:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -399,35 +408,36 @@ if __name__ == "__main__":
 
     # Get the options
     for option in opts:
-        if option[0] == '-v':
+        if option[0] == "-v":
             verbose = 1
-        if option[0] == '-p':
+        if option[0] == "-p":
             usepsyco = 1
-        elif option[0] == '-R':
+        elif option[0] == "-R":
             randomvalues = 1
-        elif option[0] == '-h':
+        elif option[0] == "-h":
             heavy = 1
-        elif option[0] == '-t':
+        elif option[0] == "-t":
             worst = 1
-        elif option[0] == '-r':
+        elif option[0] == "-r":
             testwrite = 0
-        elif option[0] == '-w':
+        elif option[0] == "-w":
             testread = 0
-        elif option[0] == '-b':
+        elif option[0] == "-b":
             bfile = option[1]
-        elif option[0] == '-N':
+        elif option[0] == "-N":
             noise = float(option[1])
-        elif option[0] == '-m':
+        elif option[0] == "-m":
             indexmode = option[1]
             if indexmode not in supported_imodes:
                 raise ValueError(
-                    "Indexmode should be any of '%s' and you passed '%s'" %
-                    (supported_imodes, indexmode))
-        elif option[0] == '-n':
+                    "Indexmode should be any of '%s' and you passed '%s'"
+                    % (supported_imodes, indexmode)
+                )
+        elif option[0] == "-n":
             nrows = int(float(option[1]) * 1000)
-        elif option[0] == '-d':
+        elif option[0] == "-d":
             dselect = float(option[1])
-        elif option[0] == '-k':
+        elif option[0] == "-k":
             riter = int(option[1])
 
     # remaining parameters
@@ -444,8 +454,9 @@ if __name__ == "__main__":
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
             psycon = 1
-        createFile(dbfile, nrows, None, indexmode, heavy, noise, bfile,
-                   verbose)
+        createFile(
+            dbfile, nrows, None, indexmode, heavy, noise, bfile, verbose
+        )
 
     if testread:
         if psyco_imported and usepsyco:

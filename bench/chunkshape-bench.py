@@ -13,8 +13,9 @@ rows_to_read = range(0, 360, 36)
 print("=" * 32)
 # Create the EArray
 f = tb.open_file("/tmp/test.h5", "w")
-a = f.create_earray(f.root, "a", tb.Float64Atom(), shape=(dim1, 0),
-                    expectedrows=dim2)
+a = f.create_earray(
+    f.root, "a", tb.Float64Atom(), shape=(dim1, 0), expectedrows=dim2
+)
 print("Chunkshape for original array:", a.chunkshape)
 
 # Fill the EArray
@@ -32,12 +33,14 @@ for i in rows_to_read:
     r1 = a[i, :]
 tr1 = clock() - t1
 thr1 = dim2 * len(rows_to_read) * 8 / (tr1 * 1024 * 1024)
-print(f"Time to read ten rows in original array: {tr1:.3f} sec ({thr1:.1f} MB/s)")
+print(
+    f"Time to read ten rows in original array: {tr1:.3f} sec ({thr1:.1f} MB/s)"
+)
 
 print("=" * 32)
 # Copy the array to another with a row-wise chunkshape
 t1 = clock()
-#newchunkshape = (1, a.chunkshape[0]*a.chunkshape[1])
+# newchunkshape = (1, a.chunkshape[0]*a.chunkshape[1])
 newchunkshape = (1, a.chunkshape[0] * a.chunkshape[1] * 10)  # ten times larger
 b = a.copy(f.root, "b", chunkshape=newchunkshape)
 tcpy = clock() - t1
@@ -51,7 +54,9 @@ for i in rows_to_read:
     r2 = b[i, :]
 tr2 = clock() - t1
 thr2 = dim2 * len(rows_to_read) * 8 / (tr2 * 1024 * 1024)
-print(f"Time to read with a row-wise chunkshape: {tr2:.3f} sec ({thr2:.1f} MB/s)")
+print(
+    f"Time to read with a row-wise chunkshape: {tr2:.3f} sec ({thr2:.1f} MB/s)"
+)
 print("=" * 32)
 print(f"Speed-up with a row-wise chunkshape: {tr1 / tr2:.1f}")
 

@@ -16,15 +16,21 @@ class Particle(tb.IsDescription):
     pressure = tb.Float32Col()
     temperature = tb.Float32Col()
 
+
 if len(sys.argv) > 1 and sys.argv[1] == "w":
     # Open a file in "w"rite mode
     print(f"Creating {filename} with {NBUNCH * N / 1_000_000} Mrows...")
     t0 = time()
     fileh = tb.open_file(filename, mode="w")
     # Create a new table in newgroup group
-    table = fileh.create_table(fileh.root, 'table', Particle, "A table",
-                               tb.Filters(complevel=1, complib="blosc2"),
-                               expectedrows=NBUNCH * N)
+    table = fileh.create_table(
+        fileh.root,
+        "table",
+        Particle,
+        "A table",
+        tb.Filters(complevel=1, complib="blosc2"),
+        expectedrows=NBUNCH * N,
+    )
     # A bunch of particles
     particles = np.zeros(NBUNCH, dtype=table.dtype)
 

@@ -27,10 +27,14 @@ def open_zarr(year, month, datestart, dateend, path):
     datestring = f"era5-pds/zarr/{year}/{month:02d}/data/"
     s3map = s3fs.S3Map(datestring + path + ".zarr/", s3=fs)
     dset = xr.open_dataset(s3map, engine="zarr")
-    if (path[:3] == "air" or path[:3] == "sno" or path[:3] == "eas"):
-        dset = dset.sel(time0=slice(np.datetime64(datestart), np.datetime64(dateend)))
+    if path[:3] == "air" or path[:3] == "sno" or path[:3] == "eas":
+        dset = dset.sel(
+            time0=slice(np.datetime64(datestart), np.datetime64(dateend))
+        )
     else:
-        dset = dset.sel(time1=slice(np.datetime64(datestart), np.datetime64(dateend)))
+        dset = dset.sel(
+            time1=slice(np.datetime64(datestart), np.datetime64(dateend))
+        )
     return getattr(dset, path)
 
 
@@ -41,7 +45,7 @@ datasets = [
     "in_air_1hour_Accumulation",
     "air_pressure_at_mean_sea_level",
     "snow_density",
-    "eastward_wind_at_10_metres"
+    "eastward_wind_at_10_metres",
 ]
 
 # Create the table
@@ -72,25 +76,25 @@ day_block["lon"] = np.tile(np.arange(dim3), dim1 * dim2)
 
 # Handle args
 verbose = False
-if ('-v' in sys.argv):
+if "-v" in sys.argv:
     verbose = True
-    sys.argv.remove('-v')
-if (len(sys.argv) != 3):
+    sys.argv.remove("-v")
+if len(sys.argv) != 3:
     raise Exception("You must pass 2 arguments: start date and stop date")
 try:
     date_start = datetime.date.fromisoformat(sys.argv[1])
     date_stop = datetime.date.fromisoformat(sys.argv[2])
 except ValueError:
     raise Exception("Dates must be in ISO format (e.g. YYYY-MM-DD)")
-if (date_stop < date_start):
+if date_stop < date_start:
     raise Exception("Start date must be before stop date")
 
 # Fetch and append
 date_i = date_start
 a_day = datetime.timedelta(days=1)
-while (date_i < date_stop):
+while date_i < date_stop:
     for dset_name in datasets:
-        if (verbose):
+        if verbose:
             print(
                 f"Fetching data with S3 from {dset_name} for "
                 f"date {date_i.isoformat()}"

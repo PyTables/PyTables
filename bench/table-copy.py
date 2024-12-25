@@ -7,6 +7,7 @@ N = 10_000_000
 
 filters = tb.Filters(9, "blosc2", shuffle=True)
 
+
 def timed(func, *args, **kwargs):
     start = clock()
     res = func(*args, **kwargs)
@@ -15,16 +16,16 @@ def timed(func, *args, **kwargs):
 
 
 def create_table(output_path):
-    print("creating array...", end=' ')
-    dt = np.dtype([('field%d' % i, int) for i in range(32)])
+    print("creating array...", end=" ")
+    dt = np.dtype([("field%d" % i, int) for i in range(32)])
     a = np.zeros(N, dtype=dt)
     print("done.")
 
     output_file = tb.open_file(output_path, mode="w")
     table = output_file.create_table("/", "test", dt, filters=filters)
-    print("appending data...", end=' ')
+    print("appending data...", end=" ")
     table.append(a)
-    print("flushing...", end=' ')
+    print("flushing...", end=" ")
     table.flush()
     print("done.")
     output_file.close()
@@ -36,7 +37,9 @@ def copy1(input_path, output_path):
     output_file = tb.open_file(output_path, mode="w")
 
     # copy nodes as a batch
-    input_file.copy_node("/", output_file.root, recursive=True, filters=filters)
+    input_file.copy_node(
+        "/", output_file.root, recursive=True, filters=filters
+    )
     output_file.close()
     input_file.close()
 
@@ -64,17 +67,17 @@ def copy4(input_path, output_path):
     output_file = tb.open_file(output_path, mode="w", filters=filters)
 
     input_table = input_file.root.test
-    print("reading data...", end=' ')
+    print("reading data...", end=" ")
     start = clock()
     data = input_file.root.test.read()
     print(f"{clock() - start:.3f}s elapsed.")
     print("done.")
 
     output_table = output_file.create_table("/", "test", input_table.dtype)
-    print("appending data...", end=' ')
+    print("appending data...", end=" ")
     start = clock()
     output_table.append(data)
-    print("flushing...", end=' ')
+    print("flushing...", end=" ")
     output_table.flush()
     print(f"{clock() - start:.3f}s elapsed.")
     print("done.")
@@ -106,10 +109,10 @@ def copy5(input_path, output_path):
     output_file.close()
 
 
-if __name__ == '__main__':
-    timed(create_table, 'tmp.h5')
-    timed(copy1, 'tmp.h5', 'test1.h5')
-    timed(copy2, 'tmp.h5', 'test2.h5')
-    timed(copy3, 'tmp.h5', 'test3.h5')
-    timed(copy4, 'tmp.h5', 'test4.h5')
-    timed(copy5, 'tmp.h5', 'test5.h5')
+if __name__ == "__main__":
+    timed(create_table, "tmp.h5")
+    timed(copy1, "tmp.h5", "test1.h5")
+    timed(copy2, "tmp.h5", "test2.h5")
+    timed(copy3, "tmp.h5", "test3.h5")
+    timed(copy4, "tmp.h5", "test4.h5")
+    timed(copy5, "tmp.h5", "test5.h5")

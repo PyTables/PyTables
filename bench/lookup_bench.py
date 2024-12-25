@@ -9,34 +9,44 @@ import numpy as np
 import tables as tb
 
 # Constants
-NOISE = 1e-15    # standard deviation of the noise compared with actual values
+NOISE = 1e-15  # standard deviation of the noise compared with actual values
 
-rdm_cod = ['lin', 'rnd']
+rdm_cod = ["lin", "rnd"]
 
 
 def get_nrows(nrows_str):
-    powers = {'k': 3, 'm': 6, 'g': 9}
+    powers = {"k": 3, "m": 6, "g": 9}
     try:
         return int(float(nrows_str[:-1]) * 10 ** powers[nrows_str[-1]])
     except KeyError:
         raise ValueError(
-            "value of nrows must end with either 'k', 'm' or 'g' suffixes.")
+            "value of nrows must end with either 'k', 'm' or 'g' suffixes."
+        )
 
 
 class DB:
 
-    def __init__(self, nrows, dtype, chunksize, userandom, datadir,
-                 docompress=0, complib='zlib'):
+    def __init__(
+        self,
+        nrows,
+        dtype,
+        chunksize,
+        userandom,
+        datadir,
+        docompress=0,
+        complib="zlib",
+    ):
         self.dtype = dtype
         self.docompress = docompress
         self.complib = complib
-        self.filename = '-'.join([rdm_cod[userandom],
-                                  "n" + nrows, "s" + chunksize, dtype])
+        self.filename = "-".join(
+            [rdm_cod[userandom], "n" + nrows, "s" + chunksize, dtype]
+        )
         # Complete the filename
         self.filename = "lookup-" + self.filename
         if docompress:
-            self.filename += '-' + complib + str(docompress)
-        self.filename = datadir + '/' + self.filename + '.h5'
+            self.filename += "-" + complib + str(docompress)
+        self.filename = datadir + "/" + self.filename + ".h5"
         print("Processing database:", self.filename)
         self.userandom = userandom
         self.nrows = get_nrows(nrows)
@@ -45,9 +55,10 @@ class DB:
         self.scale = NOISE
 
     def get_db_size(self):
-        sout = subprocess.Popen("sync;du -s %s" % self.filename, shell=True,
-                                stdout=subprocess.PIPE).stdout
-        line = [l for l in sout][0]
+        sout = subprocess.Popen(
+            "sync;du -s %s" % self.filename, shell=True, stdout=subprocess.PIPE
+        ).stdout
+        line = sout[0]
         return int(line.split()[0])
 
     def print_mtime(self, t1, explain):
@@ -62,7 +73,7 @@ class DB:
     def open_db(self, remove=0):
         if remove and Path(self.filename).is_file():
             Path(self.filename).unlink()
-        con = tb.open_file(self.filename, 'a')
+        con = tb.open_file(self.filename, "a")
         return con
 
     def create_db(self, verbose):
@@ -72,19 +83,23 @@ class DB:
         t1 = clock()
         self.fill_array()
         array_size = self.get_db_size()
-        self.print_mtime(t1, 'Insert time')
+        self.print_mtime(t1, "Insert time")
         self.print_db_sizes(init_size, array_size)
         self.close_db()
 
     def create_array(self):
         # The filters chosen
-        filters = tb.Filters(complevel=self.docompress,
-                             complib=self.complib)
+        filters = tb.Filters(complevel=self.docompress, complib=self.complib)
         atom = tb.Atom.from_kind(self.dtype)
-        self.con.create_earray(self.con.root, 'earray', atom, (0,),
-                               filters=filters,
-                               expectedrows=self.nrows,
-                               chunkshape=(self.chunksize,))
+        self.con.create_earray(
+            self.con.root,
+            "earray",
+            atom,
+            (0,),
+            filters=filters,
+            expectedrows=self.nrows,
+            chunkshape=(self.chunksize,),
+        )
 
     def fill_array(self):
         "Fills the array"
@@ -95,13 +110,13 @@ class DB:
             stop = (j + 1) * self.step
             if stop > self.nrows:
                 stop = self.nrows
-            ###arr = self.get_array(i, stop, dtype)
+            # ##arr = self.get_array(i, stop, dtype)
             earray.append(arr)
             j += 1
         earray.flush()
 
     def get_array(self, start, stop):
-        arr = np.arange(start, stop, dtype='float')
+        arr = np.arange(start, stop, dtype="float")
         if self.userandom:
             arr += np.random.normal(0, stop * self.scale, size=stop - start)
         arr = arr.astype(self.dtype)
@@ -150,7 +165,8 @@ if __name__ == "__main__":
     import sys
     import getopt
 
-    usage = """usage: %s [-v] [-m] [-c] [-q] [-x] [-z complevel] [-l complib] [-N niter] [-n nrows] [-d datadir] [-t] type [-s] chunksize
+    usage = (
+        """usage: %s [-v] [-m] [-c] [-q] [-x] [-z complevel] [-l complib] [-N niter] [-n nrows] [-d datadir] [-t] type [-s] chunksize
             -v verbose
             -m use random values to fill the array
             -q do a (random) lookup
@@ -163,11 +179,13 @@ if __name__ == "__main__":
             -d directory to save data (default: data.nobackup)
             -t select the type for array ('int' or 'float'. def 'float')
             -s select the chunksize for array
-            \n""" % sys.argv[0]
+            \n"""
+        % sys.argv[0]
+    )
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vmcqxz:l:N:n:d:t:s:')
-    except:
+        opts, pargs = getopt.getopt(sys.argv[1:], "vmcqxz:l:N:n:d:t:s:")
+    except Exception:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -180,42 +198,42 @@ if __name__ == "__main__":
     complib = "zlib"
     doquery = False
     avoidfscache = 0
-    krows = '1k'
-    chunksize = '32k'
+    krows = "1k"
+    chunksize = "32k"
     niter = 50
     datadir = "data.nobackup"
     dtype = "float"
 
     # Get the options
     for option in opts:
-        if option[0] == '-v':
+        if option[0] == "-v":
             verbose = 1
-        elif option[0] == '-m':
+        elif option[0] == "-m":
             userandom = 1
-        elif option[0] == '-c':
+        elif option[0] == "-c":
             docreate = 1
             createindex = 1
-        elif option[0] == '-q':
+        elif option[0] == "-q":
             doquery = True
-        elif option[0] == '-x':
+        elif option[0] == "-x":
             avoidfscache = 1
-        elif option[0] == '-z':
+        elif option[0] == "-z":
             docompress = int(option[1])
-        elif option[0] == '-l':
+        elif option[0] == "-l":
             complib = option[1]
-        elif option[0] == '-N':
+        elif option[0] == "-N":
             niter = int(option[1])
-        elif option[0] == '-n':
+        elif option[0] == "-n":
             krows = option[1]
-        elif option[0] == '-d':
+        elif option[0] == "-d":
             datadir = option[1]
-        elif option[0] == '-t':
-            if option[1] in ('int', 'float'):
+        elif option[0] == "-t":
+            if option[1] in ("int", "float"):
                 dtype = option[1]
             else:
                 print("type should be either 'int' or 'float'")
                 sys.exit(0)
-        elif option[0] == '-s':
+        elif option[0] == "-s":
             chunksize = option[1]
 
     if not avoidfscache:

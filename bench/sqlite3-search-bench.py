@@ -15,6 +15,7 @@ def fill_arrays(start, stop):
         col_j = np.array(col_i, dtype=np.float64)
     return col_i, col_j
 
+
 # Generator for ensure pytables benchmark compatibility
 
 
@@ -83,10 +84,13 @@ def query_db(filename, rng):
     for i in range(ntimes):
         # between clause does not seem to take advantage of indexes
         # cur.execute("select j from ints where j between %s and %s" % \
-        cur.execute("select i from ints where j >= %s and j <= %s" %
-                    # cur.execute("select i from ints where i >= %s and i <=
-                    # %s" %
-                    (rng[0] + i, rng[1] + i))
+        cur.execute(
+            "select i from ints where j >= %s and j <= %s"
+            %
+            # cur.execute("select i from ints where i >= %s and i <=
+            # %s" %
+            (rng[0] + i, rng[1] + i)
+        )
         results = cur.fetchall()
     con.commit()
     qtime = (clock() - t1) / ntimes
@@ -101,16 +105,20 @@ def close_db(con, cur):
     cur.close()
     con.close()
 
+
 if __name__ == "__main__":
     import sys
     import getopt
+
     try:
         import psyco
+
         psyco_imported = 1
-    except:
+    except Exception:
         psyco_imported = 0
 
-    usage = """usage: %s [-v] [-p] [-m] [-i] [-q] [-c] [-R range] [-n nrows] file
+    usage = (
+        """usage: %s [-v] [-p] [-m] [-i] [-q] [-c] [-R range] [-n nrows] file
             -v verbose
             -p use "psyco" if available
             -m use random values to fill the table
@@ -120,11 +128,13 @@ if __name__ == "__main__":
             -2 use sqlite2 (default is use sqlite3)
             -R select a range in a field in the form "start,stop" (def "0,10")
             -n sets the number of rows (in krows) in each table
-            \n""" % sys.argv[0]
+            \n"""
+        % sys.argv[0]
+    )
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'vpmiqc2R:n:')
-    except:
+        opts, pargs = getopt.getopt(sys.argv[1:], "vpmiqc2R:n:")
+    except Exception:
         sys.stderr.write(usage)
         sys.exit(0)
 
@@ -141,23 +151,23 @@ if __name__ == "__main__":
 
     # Get the options
     for option in opts:
-        if option[0] == '-v':
+        if option[0] == "-v":
             verbose = 1
-        elif option[0] == '-p':
+        elif option[0] == "-p":
             usepsyco = 1
-        elif option[0] == '-m':
+        elif option[0] == "-m":
             userandom = 1
-        elif option[0] == '-i':
+        elif option[0] == "-i":
             createindex = 1
-        elif option[0] == '-q':
+        elif option[0] == "-q":
             doquery = 1
-        elif option[0] == '-c':
+        elif option[0] == "-c":
             docreate = 1
         elif option[0] == "-2":
             sqlite_version = "2"
-        elif option[0] == '-R':
+        elif option[0] == "-R":
             rng = [int(i) for i in option[1].split(",")]
-        elif option[0] == '-n':
+        elif option[0] == "-n":
             nrows = int(option[1])
 
     # Catch the hdf5 file passed as the last argument

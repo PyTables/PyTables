@@ -26,7 +26,6 @@ import os
 import sys
 from time import time
 
-import b2h5py
 import blosc2
 import h5py
 import hdf5plugin
@@ -39,7 +38,7 @@ if persistent:
 else:
     print("Testing the in-memory backends")
 
-## Benchmark parameters
+# ## Benchmark parameters
 
 # Dimensions and type properties for the arrays
 # 3D
@@ -50,8 +49,8 @@ else:
 # 4D
 shape = (50, 100, 300, 250)
 # (uncomment the desired one)
-#chunks = (10, 25, 50, 50) # PARAM: small chunk
-chunks = (10, 25, 150, 100) # PARAM: big chunk (fits in 32M L3)
+# chunks = (10, 25, 50, 50) # PARAM: small chunk
+chunks = (10, 25, 150, 100)  # PARAM: big chunk (fits in 32M L3)
 blocks = (10, 25, 32, 32)
 
 # Smaller sizes (for quick testing)
@@ -78,14 +77,20 @@ cparams = {
     "filters": b2_filters,
     "filters_meta": [0],
 }
-tables_filters = tables.Filters(complevel=clevel, complib="blosc2:%s" % cname, shuffle=True)
-h5py_filters = hdf5plugin.Blosc2(clevel=clevel, cname=cname, filters=hdf5plugin.Blosc2.SHUFFLE)
+tables_filters = tables.Filters(
+    complevel=clevel, complib="blosc2:%s" % cname, shuffle=True
+)
+h5py_filters = hdf5plugin.Blosc2(
+    clevel=clevel, cname=cname, filters=hdf5plugin.Blosc2.SHUFFLE
+)
 
-print(f"Conf: {dtype} shape={shape} chunks={chunks} blocks={blocks} "
-      f"cname={cname} clevel={clevel} filters={b2_filters} "
-      f"nthreads={os.environ.get('BLOSC_NTHREADS', '1')}")
+print(
+    f"Conf: {dtype} shape={shape} chunks={chunks} blocks={blocks} "
+    f"cname={cname} clevel={clevel} filters={b2_filters} "
+    f"nthreads={os.environ.get('BLOSC_NTHREADS', '1')}"
+)
 
-## No more tuning below
+# ## No more tuning below
 
 blocksize = int(np.prod(blocks)) if blocks else 0
 
@@ -106,31 +111,46 @@ if persistent:
 # (random numbers reduce the effect of similar values in deeper dimensions)
 rng = np.random.default_rng()
 size = np.prod(shape)
-content = rng.integers(low=0, high=10000, size=size, dtype=dtype).reshape(shape)
+content = rng.integers(low=0, high=10000, size=size, dtype=dtype).reshape(
+    shape
+)
 
 print("\nCreating datasets...")
 # Create and fill a NDArray
 t0 = time()
 b2 = blosc2.empty(
-    shape, dtype=content.dtype, chunks=chunks, blocks=blocks, urlpath=fname_b2nd, cparams=cparams
+    shape,
+    dtype=content.dtype,
+    chunks=chunks,
+    blocks=blocks,
+    urlpath=fname_b2nd,
+    cparams=cparams,
 )
 b2[:] = content
 t = time() - t0
 speed = dset_size / (t * 2**20)
 cratio = b2.schunk.cratio
-print(f"Time for filling array (blosc2): {t:.3f} s ({speed:.2f} M/s) ; cratio: {cratio:.1f}x")
+print(
+    f"Time for filling array (blosc2): {t:.3f} s ({speed:.2f} M/s) ; cratio: {cratio:.1f}x"
+)
 
 # Create and fill an HDF5 array (PyTables)
 t0 = time()
 if persistent:
     h5f = tables.open_file(fname_tables, "w")
 else:
-    h5f = tables.open_file(fname_tables, "w", driver="H5FD_CORE", driver_core_backing_store=0)
-h5ca = h5f.create_carray(h5f.root, "carray", filters=tables_filters, chunkshape=chunks, obj=content)
+    h5f = tables.open_file(
+        fname_tables, "w", driver="H5FD_CORE", driver_core_backing_store=0
+    )
+h5ca = h5f.create_carray(
+    h5f.root, "carray", filters=tables_filters, chunkshape=chunks, obj=content
+)
 t = time() - t0
 speed = dset_size / (t * 2**20)
 cratio = dset_size / h5ca.size_on_disk
-print(f"Time for filling array (hdf5, tables): {t:.3f} s ({speed:.2f} M/s) ; cratio: {cratio:.1f}x")
+print(
+    f"Time for filling array (hdf5, tables): {t:.3f} s ({speed:.2f} M/s) ; cratio: {cratio:.1f}x"
+)
 
 # Create and fill an HDF5 array (h5py)
 t0 = time()
@@ -138,7 +158,9 @@ if persistent:
     h5pyf = h5py.File(fname_h5py, "w")
 else:
     h5pyf = h5py.File(fname_h5py, "w", driver="core", backing_store=False)
-h5d = h5pyf.create_dataset("dataset", dtype=content.dtype, data=content, chunks=chunks, **h5py_filters)
+h5d = h5pyf.create_dataset(
+    "dataset", dtype=content.dtype, data=content, chunks=chunks, **h5py_filters
+)
 t = time() - t0
 speed = dset_size / (t * 2**20)
 if persistent:
@@ -146,9 +168,13 @@ if persistent:
     # block_size = os.statvfs(fname_h5py).f_bsize
     size_on_disk = num_blocks * 512
     cratio = dset_size / size_on_disk
-    print(f"Time for filling array (hdf5, h5py): {t:.3f} s ({speed:.2f} M/s) ; cratio: {cratio:.1f}x")
+    print(
+        f"Time for filling array (hdf5, h5py): {t:.3f} s ({speed:.2f} M/s) ; cratio: {cratio:.1f}x"
+    )
 else:
-    print(f"Time for filling array (hdf5, h5py): {t:.3f} s ({speed:.2f} M/s) ; cratio: Not avail")
+    print(
+        f"Time for filling array (hdf5, h5py): {t:.3f} s ({speed:.2f} M/s) ; cratio: Not avail"
+    )
 
 # Complete reads
 print("\nComplete reads...")
@@ -217,27 +243,37 @@ for ndim in range(len(shape)):
 
     # Slicing with blosc2
     t, speed = time_slices(b2, planes_idx)
-    print(f"Time for reading with getitem (blosc2): {t:.3f} s ({speed:.2f} M/s)")
+    print(
+        f"Time for reading with getitem (blosc2): {t:.3f} s ({speed:.2f} M/s)"
+    )
 
     # Slicing with hdf5 (PyTables opt)
-    os.environ['BLOSC2_FILTER'] = '0'
+    os.environ["BLOSC2_FILTER"] = "0"
     t, speed = time_slices(h5ca, planes_idx)
-    print(f"Time for reading with getitem (hdf5, tables opt): {t:.3f} s ({speed:.2f} M/s)")
+    print(
+        f"Time for reading with getitem (hdf5, tables opt): {t:.3f} s ({speed:.2f} M/s)"
+    )
 
     # Slicing with hdf5 (PyTables noopt)
-    os.environ['BLOSC2_FILTER'] = '1'
+    os.environ["BLOSC2_FILTER"] = "1"
     t, speed = time_slices(h5ca, planes_idx)
-    print(f"Time for reading with getitem (hdf5, tables noopt): {t:.3f} s ({speed:.2f} M/s)")
+    print(
+        f"Time for reading with getitem (hdf5, tables noopt): {t:.3f} s ({speed:.2f} M/s)"
+    )
 
     # Slicing with hdf5 (h5py opt)
-    os.environ['BLOSC2_FILTER'] = '0'
+    os.environ["BLOSC2_FILTER"] = "0"
     t, speed = time_slices(h5d, planes_idx)
-    print(f"Time for reading with getitem (hdf5, h5py opt): {t:.3f} s ({speed:.2f} M/s)")
+    print(
+        f"Time for reading with getitem (hdf5, h5py opt): {t:.3f} s ({speed:.2f} M/s)"
+    )
 
     # Slicing with hdf5 (h5py noopt)
-    os.environ['BLOSC2_FILTER'] = '1'
+    os.environ["BLOSC2_FILTER"] = "1"
     t, speed = time_slices(h5d, planes_idx)
-    print(f"Time for reading with getitem (hdf5, h5py noopt): {t:.3f} s ({speed:.2f} M/s)")
+    print(
+        f"Time for reading with getitem (hdf5, h5py noopt): {t:.3f} s ({speed:.2f} M/s)"
+    )
 
 h5f.close()
 h5pyf.close()
