@@ -13,7 +13,7 @@ SECTION = "I HAVE NO TITLE"
 
 
 def tutsep():
-    print('----8<----', SECTION, '----8<----')
+    print("----8<----", SECTION, "----8<----")
 
 
 def tutprint(obj):
@@ -32,8 +32,8 @@ def tutexc():
 
 
 SECTION = "Importing tables objects"
-import numpy as np
-import tables as tb
+import numpy as np  # noqa: E402
+import tables as tb  # noqa: E402
 
 SECTION = "Declaring a Column Descriptor"
 
@@ -52,15 +52,15 @@ class Particle(tb.IsDescription):
 
 SECTION = "Creating a PyTables file from scratch"
 # Open a file in "w"rite mode
-h5file = tb.open_file('tutorial1.h5', mode="w", title="Test file")
+h5file = tb.open_file("tutorial1.h5", mode="w", title="Test file")
 
 SECTION = "Creating a new group"
 # Create a new group under "/" (root)
-group = h5file.create_group("/", 'detector', 'Detector information')
+group = h5file.create_group("/", "detector", "Detector information")
 
 SECTION = "Creating a new table"
 # Create one table on it
-table = h5file.create_table(group, 'readout', Particle, "Readout example")
+table = h5file.create_table(group, "readout", Particle, "Readout example")
 
 tutprint(h5file)
 tutrepr(h5file)
@@ -70,14 +70,14 @@ particle = table.row
 
 # Fill the table with 10 particles
 for i in range(10):
-    particle['name'] = f'Particle: {i:6d}'
-    particle['TDCcount'] = i % 256
-    particle['ADCcount'] = (i * 256) % (1 << 16)
-    particle['grid_i'] = i
-    particle['grid_j'] = 10 - i
-    particle['pressure'] = float(i * i)
-    particle['energy'] = float(particle['pressure'] ** 4)
-    particle['idnumber'] = i * (2 ** 34)
+    particle["name"] = f"Particle: {i:6d}"
+    particle["TDCcount"] = i % 256
+    particle["ADCcount"] = (i * 256) % (1 << 16)
+    particle["grid_i"] = i
+    particle["grid_j"] = 10 - i
+    particle["pressure"] = float(i * i)
+    particle["energy"] = float(particle["pressure"] ** 4)
+    particle["idnumber"] = i * (2**34)
     # Insert a new particle record
     particle.append()
 
@@ -89,18 +89,16 @@ SECTION = "Reading (and selecting) data in a table"
 # on entries where TDCcount field is greater than 3 and pressure less than 50
 table = h5file.root.detector.readout
 pressure = [
-    x['pressure']
+    x["pressure"]
     for x in table
-    if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50
+    if x["TDCcount"] > 3 and 20 <= x["pressure"] < 50
 ]
 
 tutrepr(pressure)
 
 # Read also the names with the same cuts
 names = [
-    x['name']
-    for x in table
-    if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50
+    x["name"] for x in table if x["TDCcount"] > 3 and 20 <= x["pressure"] < 50
 ]
 
 tutrepr(names)
@@ -109,12 +107,13 @@ SECTION = "Creating new array objects"
 gcolumns = h5file.create_group(h5file.root, "columns", "Pressure and Name")
 
 tutrepr(
-    h5file.create_array(gcolumns, 'pressure', np.array(pressure),
-                        "Pressure column selection")
+    h5file.create_array(
+        gcolumns, "pressure", np.array(pressure), "Pressure column selection"
+    )
 )
 
 tutrepr(
-    h5file.create_array('/columns', 'name', names, "Name column selection")
+    h5file.create_array("/columns", "name", names, "Name column selection")
 )
 
 tutprint(h5file)
@@ -124,9 +123,9 @@ SECTION = "Closing the file and looking at its content"
 h5file.close()
 
 tutsep()
-os.system('h5ls -rd tutorial1.h5')
+os.system("h5ls -rd tutorial1.h5")
 tutsep()
-os.system('ptdump tutorial1.h5')
+os.system("ptdump tutorial1.h5")
 
 """This example shows how to browse the object tree and enlarge tables.
 
@@ -156,7 +155,7 @@ for group in h5file.walk_groups("/"):
 # List only the arrays hanging from /
 tutsep()
 for group in h5file.walk_groups("/"):
-    for array in h5file.list_nodes(group, classname='Array'):
+    for array in h5file.list_nodes(group, classname="Array"):
         print(array)
 
 # This gives the same result
@@ -167,7 +166,7 @@ for array in h5file.walk_nodes("/", "Array"):
 # And finally, list only leafs on /detector group (there should be one!)
 # Other way using iterators and natural naming
 tutsep()
-for leaf in h5file.root.detector('Leaf'):
+for leaf in h5file.root.detector("Leaf"):
     print(leaf)
 
 SECTION = "Setting and getting user attributes"
@@ -211,12 +210,12 @@ tutprint(table.attrs._f_list())
 # Try to rename a system attribute:
 try:
     table.attrs._f_rename("VERSION", "version")
-except:
+except Exception:
     tutexc()
 
 h5file.flush()
 tutsep()
-os.system('h5ls -vr tutorial1.h5/detector/readout')
+os.system("h5ls -vr tutorial1.h5/detector/readout")
 
 SECTION = "Getting object metadata"
 # Get metadata from table
@@ -232,7 +231,7 @@ tutsep()
 print("Table variable names with their type and shape:")
 tutsep()
 for name in table.colnames:
-    print(f'{name}:= {table.coltypes[name]}, {table.colshapes[name]}')
+    print(f"{name}:= {table.coltypes[name]}, {table.colshapes[name]}")
 
 tutprint(table.__doc__)
 
@@ -276,14 +275,14 @@ particle = table.row
 
 # Append 5 new particles to table
 for i in range(10, 15):
-    particle['name'] = f'Particle: {i:6d}'
-    particle['TDCcount'] = i % 256
-    particle['ADCcount'] = (i * 256) % (1 << 16)
-    particle['grid_i'] = i
-    particle['grid_j'] = 10 - i
-    particle['pressure'] = float(i * i)
-    particle['energy'] = float(particle['pressure'] ** 4)
-    particle['idnumber'] = i * (2 ** 34)  # This exceeds long integer range
+    particle["name"] = f"Particle: {i:6d}"
+    particle["TDCcount"] = i % 256
+    particle["ADCcount"] = (i * 256) % (1 << 16)
+    particle["grid_i"] = i
+    particle["grid_j"] = 10 - i
+    particle["pressure"] = float(i * i)
+    particle["energy"] = float(particle["pressure"] ** 4)
+    particle["idnumber"] = i * (2**34)  # This exceeds long integer range
     particle.append()
 
 # Flush this table
@@ -292,8 +291,10 @@ table.flush()
 # Print the data using the table iterator:
 tutsep()
 for r in table:
-    print(f"{r['name']:<16s} | {r['pressure']:11.1f} | {r['energy']:11.4g} | "
-          f"{r['grid_i']:6d} | {r['grid_j']:6d} | {r['TDCcount']:8d} |")
+    print(
+        f"{r['name']:<16s} | {r['pressure']:11.1f} | {r['energy']:11.4g} | "
+        f"{r['grid_i']:6d} | {r['grid_j']:6d} | {r['TDCcount']:8d} |"
+    )
 
 # Delete some rows on the Table (yes, rows can be removed!)
 tutrepr(table.remove_rows(5, 10))
