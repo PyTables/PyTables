@@ -14,7 +14,7 @@ print("  with shape: ==>", a.shape)
 print("  and dtype: ==>", a.dtype)
 
 # Save it on the HDF5 file
-hdfarray = fileh.create_array(root, 'carray', a, "Large array")
+hdfarray = fileh.create_array(root, "carray", a, "Large array")
 
 # Get metadata on the previously saved array
 print()

@@ -9,7 +9,7 @@ root = fileh.root
 # Create an array
 a = np.array([1, 2, 4], np.int32)
 # Save it on the HDF5 file
-hdfarray = fileh.create_array(root, 'array', a, "Integer array")
+hdfarray = fileh.create_array(root, "array", a, "Integer array")
 
 # Assign user attributes
 

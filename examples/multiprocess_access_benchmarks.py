@@ -113,7 +113,7 @@ def read_and_send_memmap(send_type, array_size):
         array = fobj.get_node("/", "test")
         start_timestamp = clock()
         # memmap a file as a NumPy array in 'overwrite' mode
-        output = np.memmap("/tmp/array1", "i8", "w+", shape=(array_size, ))
+        output = np.memmap("/tmp/array1", "i8", "w+", shape=(array_size,))
         # read an array from a PyTables file into the memmory mapped array
         array.read(0, array_size, 1, out=output)
         # use a multiprocessing.Pipe to send the file's path to the receiving
@@ -170,21 +170,23 @@ class SocketReceive(multiprocessing.Process):
 def unix_socket_address():
     # create a Unix domain address in the abstract namespace
     # this will only work on Linux
-    return b'\x00' + os.urandom(5)
+    return b"\x00" + os.urandom(5)
 
 
 def ipv4_socket_address():
     # create an IPv4 socket address
-    return ('127.0.0.1', random.randint(9000, 10_000))
+    return ("127.0.0.1", random.randint(9000, 10_000))
 
 
-def read_and_send_socket(send_type, array_size, array_bytes, address_func,
-                         socket_family):
+def read_and_send_socket(
+    send_type, array_size, array_bytes, address_func, socket_family
+):
     address = address_func()
     # start the receiving process and pause to allow it to start up
     result_recv, result_send = multiprocessing.Pipe(False)
-    recv_process = SocketReceive(socket_family, address, result_send,
-                                 array_bytes)
+    recv_process = SocketReceive(
+        socket_family, address, result_send, array_bytes
+    )
     recv_process.start()
     time.sleep(0.15)
     with tb.open_file("test.h5", "r") as fobj:
@@ -205,13 +207,18 @@ def read_and_send_socket(send_type, array_size, array_bytes, address_func,
     recv_process.join()
 
 
-def print_results(send_type, start_timestamp, recv_timestamp,
-                  finish_timestamp):
+def print_results(
+    send_type, start_timestamp, recv_timestamp, finish_timestamp
+):
     msg = "type: {0}\t receive: {1:5.5f}, add:{2:5.5f}, total: {3:5.5f}"
-    print(msg.format(send_type,
-                     recv_timestamp - start_timestamp,
-                     finish_timestamp - recv_timestamp,
-                     finish_timestamp - start_timestamp))
+    print(
+        msg.format(
+            send_type,
+            recv_timestamp - start_timestamp,
+            finish_timestamp - recv_timestamp,
+            finish_timestamp - start_timestamp,
+        )
+    )
 
 
 if __name__ == "__main__":
@@ -224,7 +231,7 @@ if __name__ == "__main__":
 
         create_file(array_size)
         read_and_send_pipe("multiproc.Pipe", array_size)
-        read_and_send_memmap('memmap     ', array_size)
+        read_and_send_memmap("memmap     ", array_size)
         # comment out this line to run on an OS other than Linux
         read_and_send_socket(
             "Unix socket",

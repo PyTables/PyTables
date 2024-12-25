@@ -11,17 +11,17 @@ shape = (3, 3)
 
 np.random.seed(10)  # For reproductible results
 f = tb.open_file("vlarray4.h5", mode="w")
-vlarray = f.create_vlarray(f.root, 'vlarray1',
-                           tb.Float64Atom(shape=shape),
-                           "ragged array of arrays")
+vlarray = f.create_vlarray(
+    f.root, "vlarray1", tb.Float64Atom(shape=shape), "ragged array of arrays"
+)
 
 k = 0
 for i in range(N):
-    l = []
+    lines = []
     for j in range(np.random.randint(N)):
-        l.append(np.random.randn(*shape))
+        lines.append(np.random.randn(*shape))
         k += 1
-    vlarray.append(l)
+    vlarray.append(lines)
 
 print("Total number of atoms:", k)
 f.close()

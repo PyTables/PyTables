@@ -5,15 +5,15 @@ import tables as tb
 # Create an HDF5 file
 fileh = tb.open_file("tutorial3-1.h5", "w", title="Undo/Redo demo 1")
 
-         #'-**-**-**-**-**-**- enable undo/redo log  -**-**-**-**-**-**-**-'
+# '-**-**-**-**-**-**- enable undo/redo log  -**-**-**-**-**-**-**-'
 fileh.enable_undo()
 
 # Create a new array
-one = fileh.create_array('/', 'anarray', [3, 4], "An array")
+one = fileh.create_array("/", "anarray", [3, 4], "An array")
 # Mark this point
 fileh.mark()
 # Create a new array
-another = fileh.create_array('/', 'anotherarray', [4, 5], "Another array")
+another = fileh.create_array("/", "anotherarray", [4, 5], "Another array")
 # Now undo the past operation
 fileh.undo()
 # Check that anotherarray does not exist in the object tree but anarray does
@@ -42,7 +42,7 @@ assert fileh.root.anotherarray.read() == [4, 5]
 assert fileh.root.anotherarray.title == "Another array"
 assert fileh.root.anotherarray == another
 
-         #'-**-**-**-**-**-**- disable undo/redo log  -**-**-**-**-**-**-**-'
+# '-**-**-**-**-**-**- disable undo/redo log  -**-**-**-**-**-**-**-'
 fileh.disable_undo()
 
 # Close the file

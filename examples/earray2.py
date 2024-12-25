@@ -15,31 +15,41 @@ root = fileh.root
 # Create an string atom
 a = tb.StringAtom(itemsize=1)
 # Use it as a type for the enlargeable array
-hdfarray = fileh.create_earray(root, 'array_c', a, (0,), "Character array")
-hdfarray.append(np.array(['a', 'b', 'c']))
+hdfarray = fileh.create_earray(root, "array_c", a, (0,), "Character array")
+hdfarray.append(np.array(["a", "b", "c"]))
 # The next is legal:
-hdfarray.append(np.array(['c', 'b', 'c', 'd']))
+hdfarray.append(np.array(["c", "b", "c", "d"]))
 # but these are not:
 # hdfarray.append(array([['c', 'b'], ['c', 'd']]))
 # hdfarray.append(array([[1,2,3],[3,2,1]], dtype=uint8).reshape(2,1,3))
 
 # Create an atom
 a = tb.UInt16Atom()
-hdfarray = fileh.create_earray(root, 'array_e', a, (2, 0, 3),
-                               "Unsigned short array")
+hdfarray = fileh.create_earray(
+    root, "array_e", a, (2, 0, 3), "Unsigned short array"
+)
 
 # Create an enlargeable array
 a = tb.UInt8Atom()
-hdfarray = fileh.create_earray(root, 'array_b', a, (2, 0, 3),
-                               "Unsigned byte array",
-                               tb.Filters(complevel=1))
+hdfarray = fileh.create_earray(
+    root,
+    "array_b",
+    a,
+    (2, 0, 3),
+    "Unsigned byte array",
+    tb.Filters(complevel=1),
+)
 
 # Append an array to this table
 hdfarray.append(
-    np.array([[1, 2, 3], [3, 2, 1]], dtype=np.uint8).reshape(2, 1, 3))
+    np.array([[1, 2, 3], [3, 2, 1]], dtype=np.uint8).reshape(2, 1, 3)
+)
 hdfarray.append(
-    np.array([[1, 2, 3], [3, 2, 1], [2, 4, 6], [6, 4, 2]],
-             dtype=np.uint8).reshape(2, 2, 3) * 2)
+    np.array(
+        [[1, 2, 3], [3, 2, 1], [2, 4, 6], [6, 4, 2]], dtype=np.uint8
+    ).reshape(2, 2, 3)
+    * 2
+)
 # The next should give a type error:
 # hdfarray.append(array([[1,0,1],[0,0,1]], dtype=Bool).reshape(2,1,3))
 
@@ -58,7 +68,7 @@ print("Empty array (yes, this is suported) -->", repr(a), a.shape)
 a = root.array_b.read(step=2)
 print("Int8 array, even rows (step = 2) -->", repr(a), a.shape)
 
-print("Testing iterator:", end=' ')
+print("Testing iterator:", end=" ")
 # for x in root.array_b.iterrows(step=2):
 for x in root.array_b:
     print("nrow-->", root.array_b.nrow)

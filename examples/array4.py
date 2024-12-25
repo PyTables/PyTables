@@ -13,11 +13,11 @@ for i, dtype in enumerate(dtypes, 1):
     # Create an array of dtype, with incrementally bigger ranges
     a = np.ones((basedim,) * i, dtype)
     # Save it on the HDF5 file
-    dsetname = f'array_{a.dtype.char}'
+    dsetname = f"array_{a.dtype.char}"
     hdfarray = fileh.create_array(group, dsetname, a, "Large array")
     print(f"Created dataset: {hdfarray}")
     # Create a new group
-    group = fileh.create_group(group, f'group{i}')
+    group = fileh.create_group(group, f"group{i}")
 
 # Close the file
 fileh.close()
@@ -31,7 +31,7 @@ for i, dtype in enumerate(dtypes, 1):
     # Create an array for later comparison
     a = np.ones((basedim,) * i, dtype)
     # Get the dset object hangin from group
-    dset = getattr(group, 'array_' + a.dtype.char)
+    dset = getattr(group, "array_" + a.dtype.char)
     print(f"Info from dataset: {dset!r}")
     # Read the actual data in array
     b = dset.read()
@@ -42,7 +42,7 @@ for i, dtype in enumerate(dtypes, 1):
     else:
         print("Error: Read array and the original differs!")
     # Iterate over the next group
-    group = getattr(group, f'group{i}')
+    group = getattr(group, f"group{i}")
 
 # Close the file
 fileh.close()

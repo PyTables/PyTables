@@ -33,17 +33,28 @@ import numpy
 import os
 import tempfile
 
+# Import after h5py part is done so that it uses its own `hdf5-blosc2`.
+import tables
+
 # Both parameter sets below are equivalent.
-fparams = hdf5plugin.Blosc2(cname='zstd', clevel=1, filters=hdf5plugin.Blosc2.SHUFFLE)
+fparams = hdf5plugin.Blosc2(
+    cname="zstd", clevel=1, filters=hdf5plugin.Blosc2.SHUFFLE
+)
 cparams = {
     "codec": blosc2.Codec.ZSTD,
     "clevel": 1,
     "filters": [blosc2.Filter.SHUFFLE],
 }
 
+
 def np2b2(a):
-    return blosc2.asarray(numpy.ascontiguousarray(a),
-                          chunks=a.shape, blocks=a.shape, cparams=cparams)
+    return blosc2.asarray(
+        numpy.ascontiguousarray(a),
+        chunks=a.shape,
+        blocks=a.shape,
+        cparams=cparams,
+    )
+
 
 # Assemble the array.
 achunk = numpy.arange(4 * 4).reshape((4, 4))
@@ -59,8 +70,8 @@ os.close(h5fdesc)
 h5f = h5py.File(h5fpath, "w")
 print(f"Writing with full chunks to {h5fpath}:/data_full...")
 dataset = h5f.create_dataset(
-    "data_full", adata.shape, dtype=adata.dtype, chunks=achunk.shape,
-    **fparams)
+    "data_full", adata.shape, dtype=adata.dtype, chunks=achunk.shape, **fparams
+)
 b2chunk = np2b2(achunk)  # need to keep the ref or cframe becomes bogus
 b2frame = b2chunk._schunk.to_cframe()
 dataset.id.write_direct_chunk((0, 0), b2frame)
@@ -69,15 +80,15 @@ dataset.id.write_direct_chunk((4, 0), b2frame)
 dataset.id.write_direct_chunk((4, 4), b2frame)
 print(f"Writing with partial chunks to {h5fpath}:/data_part...")
 dataset = h5f.create_dataset(
-    "data_part", adata.shape, dtype=adata.dtype, chunks=achunk.shape,
-    **fparams)
+    "data_part", adata.shape, dtype=adata.dtype, chunks=achunk.shape, **fparams
+)
 b2chunk = np2b2(achunk[:, :])  # need to keep the ref or cframe becomes bogus
 b2frame = b2chunk._schunk.to_cframe()
 dataset.id.write_direct_chunk((0, 0), b2frame)
 b2chunk = np2b2(achunk[:, 0:2])
 # Uncomment to introduce a bogus partial chunk in the midle of data,
 # too small even for a margin chunk.
-#b2chunk = np2b2(achunk[0:2, 0:2])
+# b2chunk = np2b2(achunk[0:2, 0:2])
 b2frame = b2chunk._schunk.to_cframe()
 dataset.id.write_direct_chunk((0, 4), b2frame)
 b2chunk = np2b2(achunk[0:2, :])
@@ -87,9 +98,6 @@ b2chunk = np2b2(achunk[0:2, 0:2])
 b2frame = b2chunk._schunk.to_cframe()
 dataset.id.write_direct_chunk((4, 4), b2frame)
 h5f.close()
-
-# Import after h5py part is done so that it uses its own `hdf5-blosc2`.
-import tables
 
 h5f = tables.open_file(h5fpath, "r")
 print(f"Reading with full chunks from {h5fpath}:/data_full...")

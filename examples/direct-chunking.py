@@ -19,18 +19,20 @@ profile = True
 # Each image corresponds to a chunk in the array.
 # The values used here result in compressed chunks of nearly 4MiB,
 # which matches my CPU's L3 cache.
-fname = 'direct-chunking.h5'
-dtype = np.dtype('u2')
+fname = "direct-chunking.h5"
+dtype = np.dtype("u2")
 shape = (500, 25600, 19200)
 # shape = (100, 256, 256)  # for tests
 chunkshape = (1, *shape[1:])
 
 # Blosc2 block shape is an example of a parameter
 # which cannot be specified via `tb.Filters`.
-b2_blockshape = (1, *tuple(d // 2 for d in chunkshape[1:]))  # 4 blocks per chunk
+b2_blockshape = (
+    1,
+    *tuple(d // 2 for d in chunkshape[1:]),
+)  # 4 blocks per chunk
 
-np_data = (np.arange(np.prod(chunkshape), dtype=dtype)
-           .reshape(chunkshape))
+np_data = np.arange(np.prod(chunkshape), dtype=dtype).reshape(chunkshape)
 
 
 def chunk_from_data(data):
@@ -45,14 +47,15 @@ def data_from_chunk(rchunk):
     return data
 
 
-with tb.open_file(fname, mode='w') as h5f:
+with tb.open_file(fname, mode="w") as h5f:
     array = h5f.create_earray(
-        '/', 'array',
+        "/",
+        "array",
         atom=tb.Atom.from_dtype(dtype),
         shape=(0, *shape[1:]),
         # Setting both args tells others that data is compressed using Blosc2
         # and it should not be handled as plain data.
-        filters=tb.Filters(complevel=1, complib='blosc2'),
+        filters=tb.Filters(complevel=1, complib="blosc2"),
         chunkshape=chunkshape,
     )
 
@@ -62,6 +65,7 @@ with tb.open_file(fname, mode='w') as h5f:
     coords_tail = (0,) * (len(shape) - 1)
     if profile:
         wchunk = chunk_from_data(np_data)
+
     def do_write():
         for c in range(shape[0]):
             if profile:
@@ -72,29 +76,32 @@ with tb.open_file(fname, mode='w') as h5f:
                 wchunk = chunk_from_data(np_data)
             chunk_coords = (c,) + coords_tail
             array.write_chunk(chunk_coords, wchunk)
+
     start = time.time()
     if profile:
-        cProfile.run('do_write()')
+        cProfile.run("do_write()")
     else:
         do_write()
     elapsed = time.time() - start
     print(f"Wrote {shape[0]} chunks ({elapsed} s).")
 
 
-with tb.open_file(fname, mode='r') as h5f:
+with tb.open_file(fname, mode="r") as h5f:
     array = h5f.root.array
     rchunk = bytearray(len(wchunk))
 
     coords_tail = (0,) * (len(shape) - 1)
+
     def do_read():
         for c in range(shape[0]):
             chunk_coords = (c,) + coords_tail
             array.read_chunk(chunk_coords, out=rchunk)
             if not profile:
-                np_data2 = data_from_chunk(rchunk)
+                _ = data_from_chunk(rchunk)
+
     start = time.time()
     if profile:
-        cProfile.run('do_read()')
+        cProfile.run("do_read()")
     else:
         do_read()
     elapsed = time.time() - start

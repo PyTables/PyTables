@@ -11,15 +11,15 @@ import tables as tb
 
 SIZE = 100
 NTHREADS = 5
-FILENAME = 'simple_threading.h5'
-H5PATH = '/array'
+FILENAME = "simple_threading.h5"
+H5PATH = "/array"
 
 
 def create_test_file(filename):
     data = np.random.rand(SIZE, SIZE)
 
-    with tb.open_file(filename, 'w') as h5file:
-        h5file.create_array('/', 'array', title="Test Array", obj=data)
+    with tb.open_file(filename, "w") as h5file:
+        h5file.create_array("/", "array", title="Test Array", obj=data)
 
 
 def chunk_generator(data_size, nchunks):
@@ -44,7 +44,7 @@ def synchronized_close_file(self, *args, **kwargs):
 def run(filename, path, inqueue, outqueue):
     try:
         yslice = inqueue.get()
-        h5file = synchronized_open_file(filename, mode='r')
+        h5file = synchronized_open_file(filename, mode="r")
         h5array = h5file.get_node(path)
         data = h5array[yslice, ...]
         psum = np.sum(data)
@@ -67,8 +67,9 @@ def main():
 
     # start all threads
     for _ in range(NTHREADS):
-        thread = threading.Thread(target=run,
-                                  args=(FILENAME, H5PATH, inqueue, outqueue))
+        thread = threading.Thread(
+            target=run, args=(FILENAME, H5PATH, inqueue, outqueue)
+        )
         thread.start()
         threads.append(thread)
 
@@ -94,8 +95,8 @@ def main():
             thread.join()
 
     # print results
-    print(f'Mean: {mean_}')
+    print(f"Mean: {mean_}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
