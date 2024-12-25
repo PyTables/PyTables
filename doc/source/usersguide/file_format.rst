@@ -348,4 +348,3 @@ The next attributes are optional for *leaves*:
       be returned as NumPy objects.
     * *"python"*: Read data will be returned as Python lists, tuples, or
       scalars.
-

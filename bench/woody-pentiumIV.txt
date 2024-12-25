@@ -14,11 +14,11 @@ Version 0.2
             |      rows/s      filesize |     rows/s       filesize
             |  write    read            | write     read
 ------------+---------------------------+------------------------------
- no compress|                           |                         
+ no compress|                           |
      record | 24400    39000   1184 KB  | 32600     52600   506 KB
       tupla | 17100    81100   1184 KB  | 66666    107142   506 KB
 ------------+---------------------------+------------------------------
-  compress  |                           |                         
+  compress  |                           |
      record | 22200    37500    494 KB  | 31900     51700    94 KB
       tupla | 16100    75000    494 KB  | 63900    107142    94 KB
 ------------+---------------------------+------------------------------
@@ -51,7 +51,7 @@ Rec length  |      rows/s     |       KB/s      | rows  | filesz | memory |
     550 B***|  3600    81100  |   1950   43500  |  3.e4 |   19   |    7.2 |
 ------------+-----------------+-----------------+-------+--------+--------+
 
-* These are figures obtained with a numarray as part of the record 
+* These are figures obtained with a numarray as part of the record
 ** The numarray record fields are not set in each iteration
 *** Some numarray elements of a record field are changed on each iteration
 **c Like ** but with compression (level 1)
@@ -105,13 +105,13 @@ length  |  write    read  |  write    read  |       |   (MB) |   (MB) |(w)|(r)
 550 B*c |  7300    21000  |   3900   11300  |  6.e5 |   11   |   17.0 | 98| 99
 --------+-----------------+-----------------+-------+--------+--------+---+----
 
-* These are figures obtained with a numarray as part of the record 
+* These are figures obtained with a numarray as part of the record
 ** The numarray record fields are not set in each iteration
 c With compression (level 1)
 np No psyco optimizations
 
 			         Shelve
-				 
+
 Rec length  |      rows/s     |       KB/s      | rows  | filesz | memory |
             |  write    read  |  write    read  |       |   (MB) |   (MB) |
 ------------+-----------------+-----------------+-------+--------+--------+
@@ -129,14 +129,14 @@ Rec length  |      rows/s     |       KB/s      | rows  | filesz | memory |
 ------------+-----------------+-----------------+-------+--------+--------+
     550 B***| 28000    11900  |   2400    1100  |  3.e4 |    2.5 |   10.6 |
 ------------+-----------------+-----------------+-------+--------+--------+
-				 
-* These are figures obtained with a numarray as part of the record 
+
+* These are figures obtained with a numarray as part of the record
 ** The nuamrray records are not set on each iteration
 *** Some numarray elements of a record field are changed on each iteration
 
 
 		  Python cPickle & bsddb3 RECNO with variable length
-				 
+
 Rec     |     Krows/s     |       MB/s      | Krows | filesz | memory |%CP|%CP
 length  |  write    read  |  write    read  |       |   (MB) |   (MB) |(w)|(r)
 --------+-----------------+-----------------+-------+--------+--------+---+----
@@ -151,7 +151,7 @@ length  |  write    read  |  write    read  |       |   (MB) |   (MB) |(w)|(r)
 
 
 		  Python struct & bsddb3 RECNO with fixed length
-				 
+
 Rec     |     Krows/s     |       MB/s      | Krows | filesz | memory |%CP|%CP
 length  |  write    read  |  write    read  |       |   (MB) |   (MB) |(w)|(r)
 --------+-----------------+-----------------+-------+--------+--------+---+----
@@ -170,7 +170,7 @@ length  |  write    read  |  write    read  |       |   (MB) |   (MB) |(w)|(r)
 
 
 			         PySqlLite
-				 
+
 Rec     |      rows/s     |       KB/s      | rows  | filesz | memory |%CP|%CP
 length  |  write    read  |  write    read  |       |   (MB) |   (MB) |(w)|(r)
 --------+-----------------+-----------------+-------+--------+--------+---+----
@@ -186,4 +186,3 @@ length  |  write    read  |  write    read  |       |   (MB) |   (MB) |(w)|(r)
 --------+-----------------+-----------------+-------+--------+--------+---+----
  56 B   |  2900   120000  |   302    13100  |  3.e6 |  314   |    5.0 |100| 11
 --------+-----------------+-----------------+-------+--------+--------+---+----
-

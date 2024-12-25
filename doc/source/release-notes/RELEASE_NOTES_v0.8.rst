@@ -148,4 +148,3 @@ Enjoy!,
 
 -- Francesc Alted
 falted@pytables.org
-

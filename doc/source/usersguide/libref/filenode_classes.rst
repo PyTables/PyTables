@@ -148,4 +148,3 @@ RAFileNode methods
 .. automethod:: RAFileNode.seekable
 
 .. automethod:: RAFileNode.fileno
-

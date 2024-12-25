@@ -390,4 +390,3 @@ int bisect_right_g(npy_longdouble *a, npy_longdouble x, int hi, int offset) {
   }
   return lo;
 }
-

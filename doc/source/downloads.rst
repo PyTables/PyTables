@@ -51,4 +51,3 @@ A
 of the code in development is also available on the `GitHub project page`_.
 
 .. _`GitHub project page`: https://github.com/PyTables/PyTables
-

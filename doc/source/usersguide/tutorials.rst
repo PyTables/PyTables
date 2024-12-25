@@ -1564,7 +1564,7 @@ management, like creating, deleting, moving or renaming nodes (or complete
 sub-hierarchies) inside a given object tree. You can also undo/redo
 operations (i.e. creation, deletion or modification) of persistent node
 attributes. However, actions which include *internal* modifications of datasets
-(that includes Table.append, Table.modify_rows or Table.remove_rows, among others) 
+(that includes Table.append, Table.modify_rows or Table.remove_rows, among others)
 cannot be currently undone/redone.
 
 This capability can be useful in many situations, for example when doing
@@ -1969,7 +1969,7 @@ table we can see the result of insertions::
     Ball extracted on 1173785576 is of color white.
     Ball extracted on 1173785577 is of color white.
 
-As a final note, you may be wondering how to access an enumeration associated 
+As a final note, you may be wondering how to access an enumeration associated
 with ballColor once the file is closed and reopened. You can call tbl.get_enum('ballColor')
 (see :meth:`Table.get_enum`) to get the enumeration back.
 
@@ -2033,12 +2033,12 @@ done::
 Nested structures in tables
 ----------------------------------------
 PyTables supports handling of nested structures (or, in other words, nested datatypes)
-in table objects, allowing you to define nested columns of arbitrary depth. 
+in table objects, allowing you to define nested columns of arbitrary depth.
 
-Why is that useful? Suppose your data has a certain structure on the column level, 
-which you would like to represent in the data model. You can do so by creating 
+Why is that useful? Suppose your data has a certain structure on the column level,
+which you would like to represent in the data model. You can do so by creating
 nested subclasses of IsDescription. The benefit is the ability to group
-and retrieve data more easily. Example below may be a bit silly, but it will serve 
+and retrieve data more easily. Example below may be a bit silly, but it will serve
 as an illustration of the concept::
 
     import tables as tb
@@ -2330,5 +2330,3 @@ objects, and how it can be used in the real world.
 
 .. [4] In fact, only integer values are supported right now, but
        this may change in the future.
-
-

@@ -71,7 +71,7 @@ for libcomp in none zlib lzo; do
     fi
     # The name of the data bench file
     bfile="worst-dbench-cl-${libcomp}-c${complevel}-S${shuffle}.h5"
-    
+
     # Move out a possible previous benchmark file
     bn=`basename $bfile ".h5"`
     mv -f ${bn}-bck2.h5 ${bn}-bck3.h5

@@ -932,4 +932,3 @@ herr_t pt_H5Pset_fapl_windows(hid_t fapl_id)
 }
 
 #endif /* H5_HAVE_WINDOWS */
-

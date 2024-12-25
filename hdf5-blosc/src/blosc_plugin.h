@@ -12,7 +12,7 @@
  * in HDF5-1.8.11, May 2013) to the blosc HDF5 filter.
  *
  * Usage: compile as a shared library and install either to the default
- * search location for HDF5 filter plugins (on Linux 
+ * search location for HDF5 filter plugins (on Linux
  * /usr/local/hdf5/lib/plugin) or to a location pointed to by the
  * HDF5_PLUGIN_PATH environment variable.
  *
@@ -32,5 +32,3 @@ const void* H5PLget_plugin_info(void);
 
 
 #endif    // PLUGIN_BLOSC_H
-
-

@@ -13,7 +13,7 @@ combined with C extensions for the performance-critical parts of the
 code (generated using Cython), makes it a fast, yet extremely easy to
 use tool for interactively browsing, processing and searching very large
 amounts of data. One important feature of PyTables is that it optimizes
-memory and disk resources so that data takes much less space (specially 
+memory and disk resources so that data takes much less space (specially
 if on-flight compression is used) than other solutions such as relational
 object oriented databases.
 

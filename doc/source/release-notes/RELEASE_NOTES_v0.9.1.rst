@@ -66,4 +66,3 @@ Enjoy data!,
 
 -- Francesc Altet
 falted@pytables.org
-

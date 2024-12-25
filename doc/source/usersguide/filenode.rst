@@ -289,4 +289,3 @@ binary and text files. Of course, suggestions and patches are welcome.
 
 See :ref:`filenode_classes` for detailed documentation on the filenode
 interface.
-

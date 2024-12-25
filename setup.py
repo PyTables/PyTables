@@ -13,7 +13,7 @@ import tempfile
 import textwrap
 import subprocess
 from pathlib import Path
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, Extension
@@ -243,12 +243,12 @@ class BuildExtensions(build_ext):
 
 
 class DefaultDirs(NamedTuple):
-    header: Optional[Path] = None
-    library: Optional[Path] = None
-    runtime: Optional[Path] = None
+    header: Path | None = None
+    library: Path | None = None
+    runtime: Path | None = None
 
 
-def get_default_dirs(conda_prefix: Optional[Path] = None) -> DefaultDirs:
+def get_default_dirs(conda_prefix: Path | None = None) -> DefaultDirs:
     # Order:
     # * C/CXX flags
     # * conda prefix

@@ -517,4 +517,3 @@ don't need to re-install PyTables).
 
 
 .. todo:: fix links that point to wiki pages
-

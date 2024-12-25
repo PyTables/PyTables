@@ -86,4 +86,3 @@ The examples presented above show just a little amount of the full capabilities
 of PyTables.
 Please check out the documentation and the :file:`examples/` directory in the
 source package for more examples.
-

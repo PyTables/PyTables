@@ -135,4 +135,3 @@ You can also use the following functions in conditions:
 
 - complex(float, float):
   complex - complex from real and imaginary parts.
-

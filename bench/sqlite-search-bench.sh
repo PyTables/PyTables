@@ -44,7 +44,7 @@ fi
 
 # The name of the data bench file
 bfile="sqlite-dbench.h5"
-  
+
 # Move out a possible previous benchmark file
 bn=`basename $bfile ".h5"`
 mv -f ${bn}-bck2.h5 ${bn}-bck3.h5

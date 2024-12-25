@@ -16,7 +16,7 @@ The problem was mainly related to an internal registry that forced the
 sharing of HDF5 file handles across multiple threads.
 
 In PyTables 3.1.0 the code for file handles management has been completely
-redesigned (see the *Backward incompatible changes* section in 
+redesigned (see the *Backward incompatible changes* section in
 :doc:`../release-notes/RELEASE_NOTES_v3.1.x`) to be more simple and
 transparent and to allow the use of PyTables in multi-thread programs.
 
@@ -59,7 +59,7 @@ A very simple solution for this kind of scenario is to use a
 e.g. the :func:`open_file` function and the :meth:`File.close` method::
 
     import threading
-    
+
     lock = threading.Lock()
 
     def synchronized_open_file(*args, **kwargs):
@@ -95,7 +95,7 @@ be used in the *thread function* to open and close the HDF5 file::
 Finally the main function of the program:
 
 * instantiates the input and output :class:`queue.Queue`,
-* starts all threads, 
+* starts all threads,
 * sends the processing requests on the input :class:`queue.Queue`
 * collects results reading from the output :class:`queue.Queue`
 * performs finalization actions (:meth:`threading.Thread.join`)
@@ -270,5 +270,3 @@ The complete code of this version of the example can be found in the
 :file:`examples` folder:
 :download:`simple_threading.py <../../../examples/threading_monkeypatch.py>`.
 Python 3 is required.
-
-

@@ -31,16 +31,16 @@ HDF5 1.6 API is no longer supported.  Please upgrade to HDF5 1.8+.
 Unicode all the strings!
 ========================
 
-In Python 3, all strings are natively in Unicode. This introduces some 
-difficulties, as the native HDF5 string format is not Unicode-compatible. 
-To minimize explicit conversion troubles when writing, especially :ref:`when 
-creating data sets from existing Python objects <create-signatures>`, string 
+In Python 3, all strings are natively in Unicode. This introduces some
+difficulties, as the native HDF5 string format is not Unicode-compatible.
+To minimize explicit conversion troubles when writing, especially :ref:`when
+creating data sets from existing Python objects <create-signatures>`, string
 objects are implicitly cast to non-Unicode for HDF5 storage. To make you
 aware of this, a warning is raised when this happens.
 
-This is certainly no true Unicode compatibility, but mainly for convenience 
-with the pure-Unicode Python 3 string type. Any string that is not castable 
-as ascii upon creation of your data set, will hence still raise an error. 
+This is certainly no true Unicode compatibility, but mainly for convenience
+with the pure-Unicode Python 3 string type. Any string that is not castable
+as ascii upon creation of your data set, will hence still raise an error.
 For true Unicode support, look into the ``VLUnicodeAtom`` class.
 
 Major API Changes

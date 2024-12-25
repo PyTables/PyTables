@@ -1387,4 +1387,3 @@ support for these filters.
 .. [3] Some users reported that the typical improvement with real
        data is between a factor 1.5x and 2.5x over the already compressed
        datasets.
-

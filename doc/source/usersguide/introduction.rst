@@ -316,4 +316,3 @@ It will help you understand the relationships of in-memory PyTables objects.
        diagram; it is rather meant to show the connections between the
        PyTables objects and some of its most important attributes and
        methods.
-

@@ -91,4 +91,3 @@ void conv_float64_timeval32(void *base,
 
   assert(fieldbase == (base + byteoffset + bytestride * nrecords));
 }
-

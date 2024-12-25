@@ -64,7 +64,7 @@ def get_cpu_info() -> dict[str, Any]:
     cpu_info_dict = cpuinfo.get_cpu_info()
     try:
         write_cached_cpu_info(cpu_info_dict)
-    except IOError:
+    except OSError:
         # cpu info cannot be stored.
         # will need to be recomputed in the next process
         pass

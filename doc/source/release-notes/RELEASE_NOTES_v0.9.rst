@@ -117,4 +117,3 @@ Bon profit!,
 
 -- Francesc Altet
 falted@pytables.org
-

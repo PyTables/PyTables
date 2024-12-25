@@ -129,4 +129,3 @@ https://pypi.python.org/pypi/simpletable).
         doctest.testmod()
         import os
         os.unlink('test_docs.h5')
-

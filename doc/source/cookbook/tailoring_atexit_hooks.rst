@@ -57,4 +57,3 @@ function is executed before the existing one.
 If you want the messages back again, just set the verbose parameter to true.
 
 You can also use the `atexit` hooks to perform other cleanup functions as well.
-

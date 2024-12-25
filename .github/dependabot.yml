@@ -17,7 +17,7 @@ updates:
       pip:
         patterns:
           - "*"
-          
+
   - package-ecosystem: "pip"
     directory: "/.github/workflows/requirements"
     schedule:

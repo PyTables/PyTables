@@ -24,4 +24,3 @@ pl [1000:] [0:500] "small-nc.out" u ($1):($5) tit "No compression" w linesp ls 1
  "small-zlib.out" u ($1):($5) tit "ZLIB" w linesp ls 2, \
  "small-lzo.out" u ($1):($5) tit "LZO" w linesp ls 3, \
  "small-ucl.out" u ($1):($5) tit "UCL" w linesp ls 4
-
