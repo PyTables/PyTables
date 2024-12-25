@@ -1,5 +1,6 @@
 # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
+
+ipython
+numpydoc
 sphinx>=1.1,<8
 sphinx_rtd_theme
-numpydoc
-ipython
