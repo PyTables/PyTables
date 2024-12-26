@@ -1,3 +1,6 @@
 [submodule "c-blosc"]
 	path = c-blosc
 	url = https://github.com/Blosc/c-blosc.git
+[submodule "hdf5-blosc"]
+	path = hdf5-blosc
+	url = https://github.com/Blosc/hdf5-blosc.git
