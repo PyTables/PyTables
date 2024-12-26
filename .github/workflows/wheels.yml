@@ -56,10 +56,9 @@ jobs:
       - name: Install dependencies
         run: |
           # Keep in sync with ``build-system.requires`` in ``pyproject.toml``.
-          python -m pip install --require-hashes -r ./.github/workflows/requirements/build-requirements.txt
+          python -m pip install --require-hashes -r .github/workflows/requirements/build-requirements.txt
           python -m pip install --require-hashes -r requirements.txt
-          # Keep in sync with ``project.optional-dependencies.doc`` in ``pyproject.toml``.
-          python -m pip install --require-hashes -r ./.github/workflows/requirements/optional-requirements.txt
+          python -m pip install --require-hashes -r requirements-docs.txt
 
       - name: Build dist (sdist and docs)
         run: make PYTHON=python dist

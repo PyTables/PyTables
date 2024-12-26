@@ -59,7 +59,7 @@ latex: build
 	$(RM) doc/usersguide-*.pdf
 	cp doc/build/latex/usersguide-$(VERSION).pdf doc
 
-%: %.in tables/__init__.py
+ANNOUNCE.txt: ANNOUNCE.txt.in tables/__init__.py
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
 
 build:
@@ -73,12 +73,10 @@ heavycheck: build
 	cd build/lib.* && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py --heavy
 
 requirements: \
-		requirements.txt \
-		.github/workflows/requirements/build-requirements.txt \
-		.github/workflows/requirements/optional-requirements.txt \
-		.github/workflows/requirements/wheels-requirements.txt
-	@for target in $?; do \
-		cmd=$$(grep pip-compile $${target} | grep requirements | sed 's/.txt/.in/g' | sed -E 's/^#    //g'); \
-		echo $${cmd}; \
-		$${cmd}; \
-	done
+	requirements.txt \
+	requirements-docs.txt \
+	.github/workflows/requirements/build-requirements.txt \
+	.github/workflows/requirements/wheels-requirements.txt
+
+%.txt: %.in
+	pip-compile -U --allow-unsafe --generate-hashes --strip-extras $<

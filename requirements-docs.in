@@ -1,0 +1,4 @@
+ipython
+numpydoc
+sphinx >=1.3
+sphinx_rtd_theme
