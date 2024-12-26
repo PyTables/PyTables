@@ -24,17 +24,17 @@ def time_inkernel(table_blosc):
 
 
 def time_read(table):
-    NREADS = 10_000
+    n_reads = 10_000
     t0 = time()
-    idxs_to_read = np.random.randint(0, table.nrows, NREADS)
+    idxs_to_read = np.random.randint(0, table.nrows, n_reads)
     # print(f"Time to create indexes: {time() - t0:.3f}s")
 
-    print(f"Randomly reading {NREADS // 1_000} Krows...", end="")
+    print(f"Randomly reading {n_reads // 1_000} Krows...", end="")
     t0 = time()
     for i in idxs_to_read:
         _ = table[i]
     t = time() - t0
-    print(f"\t{t:.3f}s ({t / NREADS * 1e6:.1f} us/read)")
+    print(f"\t{t:.3f}s ({t / n_reads * 1e6:.1f} us/read)")
 
     print(f"Querying {table.nrows // 1000_000_000} Grows...", end="")
     t0 = time()

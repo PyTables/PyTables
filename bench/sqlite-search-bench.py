@@ -24,7 +24,7 @@ psycon = 0
 worst = 0
 
 
-def createNewBenchFile(bfile, verbose):
+def create_new_bench_file(bfile, verbose):
 
     class Create(tb.IsDescription):
         nrows = tb.Int32Col(pos=0)
@@ -64,10 +64,10 @@ def createNewBenchFile(bfile, verbose):
         bf.create_table(group, "create_indexed", Create, "indexed values")
         bf.create_table(group, "create_standard", Create, "standard values")
         # create a group for searching bench
-        groupS = bf.create_group(group, "search", "Search Group")
+        group_s = bf.create_group(group, "search", "Search Group")
         # Create Tables for searching
         for mode in ["indexed", "standard"]:
-            group = bf.create_group(groupS, mode, mode + " Group")
+            group = bf.create_group(group_s, mode, mode + " Group")
             # for searching bench
             # for atom in ["string", "int", "float", "bool"]:
             for atom in ["string", "int", "float"]:
@@ -75,7 +75,7 @@ def createNewBenchFile(bfile, verbose):
     bf.close()
 
 
-def createFile(
+def create_file(
     filename, nrows, filters, indexmode, heavy, noise, bfile, verbose
 ):
 
@@ -101,7 +101,7 @@ var1            char(4),        -- Abronia villosa
 var2            INTEGER,        -- 111
 var3            FLOAT        --  12.32
 );
-"""
+"""  # noqa: N806
         CREATEIDX = """
 CREATE TABLE small (
 -- Name         Type            -- Example
@@ -114,7 +114,7 @@ var3            FLOAT        --  12.32
 CREATE INDEX ivar1 ON small(var1);
 CREATE INDEX ivar2 ON small(var2);
 CREATE INDEX ivar3 ON small(var3);
-"""  # noqa: F841
+"""  # noqa: F841,N806
         # Creating the table first and indexing afterwards is a bit faster
         instd.write(CREATESTD)
         instd.close()
@@ -124,7 +124,7 @@ CREATE INDEX ivar3 ON small(var3);
     if indexmode == "standard":
         place_holders = ",".join(["%s"] * 3)
         # Insert rows
-        SQL = "insert into small values(NULL, %s)" % place_holders
+        SQL = f"insert into small values(NULL, {place_holders})"  # noqa: N806
         time1 = clock()
         cpu1 = cpuclock()
         # This way of filling is to copy the PyTables benchmark
@@ -203,7 +203,7 @@ CREATE INDEX ivar3 ON small(var3);
     return
 
 
-def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
+def read_file(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     # Connect to the database.
     conn = sqlite3.connect(db=dbfile, mode=755)
     # Obtain a cursor
@@ -213,15 +213,15 @@ def readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter):
     SQL1 = """
     select recnum
     from small where var1 = %s
-    """
+    """  # noqa: N806
     SQL2 = """
     select recnum
     from small where var2 >= %s and var2 < %s
-    """
+    """  # noqa: N806
     SQL3 = """
     select recnum
     from small where var3 >= %s and var3 < %s
-    """
+    """  # noqa: N806
 
     # Open the benchmark database
     bf = tb.open_file(bfile, "a")
@@ -449,18 +449,18 @@ if __name__ == "__main__":
 
     # Create the benchfile (if needed)
     if not Path(bfile).exists():
-        createNewBenchFile(bfile, verbose)
+        create_new_bench_file(bfile, verbose)
 
     if testwrite:
         if psyco_imported and usepsyco:
-            psyco.bind(createFile)
+            psyco.bind(create_file)
             psycon = 1
-        createFile(
+        create_file(
             dbfile, nrows, None, indexmode, heavy, noise, bfile, verbose
         )
 
     if testread:
         if psyco_imported and usepsyco:
-            psyco.bind(readFile)
+            psyco.bind(read_file)
             psycon = 1
-        readFile(dbfile, nrows, indexmode, heavy, dselect, bfile, riter)
+        read_file(dbfile, nrows, indexmode, heavy, dselect, bfile, riter)

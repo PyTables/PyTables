@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     if doprofile:
         import pstats
-        import cProfile as prof
+        import cProfile
 
     if profile:
         tref = clock()
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         show_stats("Abans de crear...", tref)
     f = h5py.File("/tmp/deep-tree.h5", "w")
     if doprofile:
-        prof.run("populate(f, nlevels)", "populate.prof")
+        cProfile.run("populate(f, nlevels)", "populate.prof")
         stats = pstats.Stats("populate.prof")
         stats.strip_dirs()
         stats.sort_stats("time", "calls")

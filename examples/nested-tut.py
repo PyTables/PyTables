@@ -32,12 +32,12 @@ class NestedDescr(tb.IsDescription):
     color = tb.EnumCol(colors, "red", base="uint32")
     info1 = Info()
 
-    class info2(tb.IsDescription):
+    class IInfo2(tb.IsDescription):
         _v_pos = 1
         name = tb.StringCol(10)
         value = tb.Float64Col(pos=0)
 
-        class info3(tb.IsDescription):
+        class IInfo3(tb.IsDescription):
             x = tb.Float64Col(dflt=1)
             y = tb.UInt8Col(dflt=1)
 

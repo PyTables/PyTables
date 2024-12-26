@@ -15,10 +15,11 @@ import numexpr as ne
 from packaging.version import Version
 
 import tables as tb
+from tables.utilsextension import which_lib_version
 
 hdf5_version = Version(tb.hdf5_version)
-blosc_version = Version(tb.which_lib_version("blosc")[1])
-blosc2_version = Version(tb.which_lib_version("blosc2")[1])
+blosc_version = Version(which_lib_version("blosc")[1])
+blosc2_version = Version(which_lib_version("blosc2")[1])
 
 
 verbose = os.environ.get("VERBOSE", "FALSE") == "TRUE"
@@ -49,11 +50,11 @@ def parse_argv(argv):
     return argv
 
 
-zlib_avail = tb.which_lib_version("zlib") is not None
-lzo_avail = tb.which_lib_version("lzo") is not None
-bzip2_avail = tb.which_lib_version("bzip2") is not None
-blosc_avail = tb.which_lib_version("blosc") is not None
-blosc2_avail = tb.which_lib_version("blosc2") is not None
+zlib_avail = which_lib_version("zlib") is not None
+lzo_avail = which_lib_version("lzo") is not None
+bzip2_avail = which_lib_version("bzip2") is not None
+blosc_avail = which_lib_version("blosc") is not None
+blosc2_avail = which_lib_version("blosc2") is not None
 
 
 def print_heavy(heavy):
@@ -76,9 +77,9 @@ def print_versions():
 
     print("-=" * 38)
     print("PyTables version:    %s" % tb.__version__)
-    print("HDF5 version:        %s" % tb.which_lib_version("hdf5")[1])
+    print("HDF5 version:        %s" % which_lib_version("hdf5")[1])
     print("NumPy version:       %s" % np.__version__)
-    tinfo = tb.which_lib_version("zlib")
+    tinfo = which_lib_version("zlib")
     if ne.use_vml:
         # Get only the main version number and strip out all the rest
         vml_version = ne.get_vml_version()
@@ -89,13 +90,13 @@ def print_versions():
     print(f"Numexpr version:     {ne.__version__} ({vml_avail})")
     if tinfo is not None:
         print(f"Zlib version:        {tinfo[1]} (in Python interpreter)")
-    tinfo = tb.which_lib_version("lzo")
+    tinfo = which_lib_version("lzo")
     if tinfo is not None:
         print(f"LZO version:         {tinfo[1]} ({tinfo[2]})")
-    tinfo = tb.which_lib_version("bzip2")
+    tinfo = which_lib_version("bzip2")
     if tinfo is not None:
         print(f"BZIP2 version:       {tinfo[1]} ({tinfo[2]})")
-    tinfo = tb.which_lib_version("blosc")
+    tinfo = which_lib_version("blosc")
     if tinfo is not None:
         blosc_date = tinfo[2].split()[1]
         print(f"Blosc version:       {tinfo[1]} ({blosc_date})")
@@ -104,7 +105,7 @@ def print_versions():
         print("Blosc compressors:   %s" % ", ".join(blosc_cinfo))
         blosc_finfo = ["shuffle", "bitshuffle"]
         print("Blosc filters:       %s" % ", ".join(blosc_finfo))
-    tinfo = tb.which_lib_version("blosc2")
+    tinfo = which_lib_version("blosc2")
     if tinfo is not None:
         blosc2_date = tinfo[2].split()[1]
         print(f"Blosc2 version:      {tinfo[1]} ({blosc2_date})")

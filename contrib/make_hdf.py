@@ -164,7 +164,7 @@ def save2(hdf_file, data):
     fileh.close()
 
 
-class Hdf_dict(dict):
+class HdfDict(dict):
     def __init__(self, hdf_file, hdf_dict=None, stack=None):
         if hdf_dict is None:
             hdf_dict = {}
@@ -221,7 +221,7 @@ class Hdf_dict(dict):
             if self.cur_dict[k]:
                 new_stack = self.stack[:]
                 new_stack.append(k)
-                return Hdf_dict(
+                return HdfDict(
                     self.hdf_file, hdf_dict=self.cur_dict[k], stack=new_stack
                 )
             else:
@@ -328,7 +328,7 @@ if __name__ == "__main__":
         print("saved")
 
     def read_small(file=""):
-        a = Hdf_dict(file)
+        a = HdfDict(file)
         print(a["wilma"])
         b = a["wilma"]
         for i in b:

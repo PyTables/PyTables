@@ -44,7 +44,7 @@ while nodes with pathnames like ``/a/c/_i_x`` or ``/a/_p_x/y`` would
 not.
 """
 
-_warnInfo = (
+_warn_info = (
     "you will not be able to use natural naming to access this object; "
     "using ``getattr()`` will still work, though"
 )
@@ -89,7 +89,7 @@ def check_attribute_name(name: str) -> None:
         warnings.warn(
             "object name is not a valid Python identifier: %r; "
             "it does not match the pattern ``%s``; %s"
-            % (name, _python_id_re.pattern, _warnInfo),
+            % (name, _python_id_re.pattern, _warn_info),
             NaturalNameWarning,
             stacklevel=2,
         )
@@ -98,7 +98,7 @@ def check_attribute_name(name: str) -> None:
     # However, Python identifiers and keywords have the same form.
     if keyword.iskeyword(name):
         warnings.warn(
-            f"object name is a Python keyword: {name!r}; {_warnInfo}",
+            f"object name is a Python keyword: {name!r}; {_warn_info}",
             NaturalNameWarning,
             stacklevel=2,
         )

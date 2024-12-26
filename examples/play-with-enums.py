@@ -10,7 +10,7 @@ from pathlib import Path
 import tables as tb
 
 
-def COMMENT(string):
+def COMMENT(string):  # noqa: N802
     pass
 
 
@@ -18,8 +18,8 @@ COMMENT("**** Usage of the ``Enum`` class. ****")
 
 COMMENT("Create an enumeration of colors with automatic concrete values.")
 
-colorList = ["red", "green", "blue", "white", "black"]
-colors = tb.Enum(colorList)
+color_list = ["red", "green", "blue", "white", "black"]
+colors = tb.Enum(color_list)
 
 COMMENT("Take a look at the name-value pairs.")
 print("Colors:", colors)
@@ -46,8 +46,8 @@ COMMENT("This describes a ball extraction.")
 
 
 class BallExt(tb.IsDescription):
-    ballTime = tb.Time32Col()
-    ballColor = tb.EnumCol(colors, "black", base="uint8")
+    ball_time = tb.Time32Col()
+    ball_color = tb.EnumCol(colors, "black", base="uint8")
 
 
 COMMENT("Create a table of ball extractions.")
@@ -61,7 +61,7 @@ now = time.time()
 row = tbl.row
 for i in range(10):
     row["ballTime"] = now + i
-    row["ballColor"] = colors[random.choice(colorList)]  # notice this
+    row["ballColor"] = colors[random.choice(color_list)]  # notice this
     row.append()
 
 COMMENT("Try to append an invalid value.")
@@ -72,19 +72,19 @@ tbl.flush()
 
 COMMENT("Now print them!")
 for r in tbl:
-    ballTime = r["ballTime"]
-    ballColor = colors(r["ballColor"])  # notice this
-    print("Ball extracted on %d is of color %s." % (ballTime, ballColor))
+    ball_time = r["ballTime"]
+    ball_color = colors(r["ballColor"])  # notice this
+    print("Ball extracted on %d is of color %s." % (ball_time, ball_color))
 
 
 COMMENT("**** Enumerated arrays. ****")
 
 COMMENT("This describes a range of working days.")
-workingDays = {"Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5}
-dayRange = tb.EnumAtom(workingDays, "Mon", base="uint16", shape=(0, 2))
+working_days = {"Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5}
+day_range = tb.EnumAtom(working_days, "Mon", base="uint16", shape=(0, 2))
 
 COMMENT("Create an EArray of day ranges within a week.")
-earr = h5f.create_earray("/", "days", dayRange, title="Working day ranges")
+earr = h5f.create_earray("/", "days", day_range, title="Working day ranges")
 earr.flavor = "python"
 
 COMMENT("Throw some day ranges in.")

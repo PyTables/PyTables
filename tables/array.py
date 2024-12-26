@@ -394,7 +394,7 @@ class Array(hdf5extension.Array, Leaf):
         startl = np.empty(shape=shape, dtype=SizeType)
         stopl = np.empty(shape=shape, dtype=SizeType)
         stepl = np.empty(shape=shape, dtype=SizeType)
-        stop_None = np.zeros(shape=shape, dtype=SizeType)
+        stop_none = np.zeros(shape=shape, dtype=SizeType)
         if not isinstance(keys, tuple):
             keys = (keys,)
         nkeys = len(keys)
@@ -426,7 +426,7 @@ class Array(hdf5extension.Array, Leaf):
                 start, stop, step = self._process_range(
                     key, key + 1, 1, dim=dim
                 )
-                stop_None[dim] = 1
+                stop_none[dim] = 1
             elif isinstance(key, slice):
                 start, stop, step = self._process_range(
                     key.start, key.stop, key.step, dim=dim
@@ -451,7 +451,7 @@ class Array(hdf5extension.Array, Leaf):
         shape = []
         for dim in range(len(self.shape)):
             new_dim = len(range(startl[dim], stopl[dim], stepl[dim]))
-            if not (new_dim == 1 and stop_None[dim]):
+            if not (new_dim == 1 and stop_none[dim]):
                 shape.append(new_dim)
 
         return startl, stopl, stepl, shape

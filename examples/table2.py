@@ -7,7 +7,7 @@ class Particle(tb.IsDescription):
     lati = tb.Int32Col(pos=2)  # integer
     longi = tb.Int32Col(pos=3)  # integer
     vector = tb.Int32Col(shape=(2,), pos=4)  # Integer
-    matrix2D = tb.Float64Col(shape=(2, 2), pos=5)  # double (double-precision)
+    matrix_2d = tb.Float64Col(shape=(2, 2), pos=5)  # double (double-precision)
 
 
 # Open a file in "w"rite mode

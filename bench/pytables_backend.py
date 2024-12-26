@@ -5,7 +5,7 @@ from indexed_search import DB
 import tables as tb
 
 
-class PyTables_DB(DB):
+class PyTablesDB(DB):
 
     def __init__(
         self,

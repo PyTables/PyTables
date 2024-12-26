@@ -15,7 +15,9 @@ class Test(tb.IsDescription):
     random = tb.Float32Col(pos=4)
 
 
-def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
+def create_file(
+    filename, ngroups, ntables, nrows, complevel, complib, recsize
+):
 
     # First, create the groups
 
@@ -65,7 +67,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     return (rowswritten, table.rowsize)
 
 
-def readFile(filename, ngroups, recsize, verbose):
+def read_file(filename, ngroups, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
     rowsread = 0
@@ -214,8 +216,8 @@ if __name__ == "__main__":
         t1 = clock()
         cpu1 = cpuclock()
         if psyco_imported and usepsyco:
-            psyco.bind(createFile)
-        (rowsw, rowsz) = createFile(
+            psyco.bind(create_file)
+        (rowsw, rowsz) = create_file(
             file, ngroups, ntables, nrows, complevel, complib, recsize
         )
         t2 = clock()
@@ -234,8 +236,8 @@ if __name__ == "__main__":
         t1 = clock()
         cpu1 = cpuclock()
         if psyco_imported and usepsyco:
-            psyco.bind(readFile)
-        (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
+            psyco.bind(read_file)
+        (rowsr, rowsz, bufsz) = read_file(file, ngroups, recsize, verbose)
         t2 = clock()
         cpu2 = cpuclock()
         treadrows = t2 - t1

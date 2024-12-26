@@ -617,7 +617,7 @@ def _abstract_atom_init(
 
     defitemsize = split_type(deftype)[1]
 
-    def __init__(
+    def __init__(  # noqa: N807
         self: Atom,
         itemsize: int | None = defitemsize,
         shape: Shape = (),

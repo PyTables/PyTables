@@ -75,7 +75,7 @@ class RawPyTablesIO(io.RawIOBase):
     def tell(self):
         """Return current stream position."""
 
-        self._checkClosed()
+        self._check_closed()
         return self._pos
 
     # def seek(self, pos: int, whence: int = 0) -> int:
@@ -94,7 +94,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         """
 
-        self._checkClosed()
+        self._check_closed()
         try:
             pos = pos.__index__()
         # except AttributeError as err:
@@ -133,7 +133,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         """
 
-        self._checkClosed()
+        self._check_closed()
         return self._node._v_file.fileno()
 
     # def close(self) -> None:
@@ -161,7 +161,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         """
 
-        self._checkClosed()
+        self._check_closed()
         self._node.flush()
 
     # def truncate(self, pos: int = None) -> int:
@@ -176,7 +176,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         """
 
-        self._checkClosed()
+        self._check_closed()
         self._checkWritable()
 
         if pos is None:
@@ -221,7 +221,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         """
 
-        self._checkClosed()
+        self._check_closed()
         self._checkReadable()
 
         if self._pos >= self._node.nrows:
@@ -260,7 +260,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         """
 
-        self._checkClosed()
+        self._check_closed()
         self._checkReadable()
 
         chunksize = self._node.chunkshape[0] if self._node.chunkshape else -1
@@ -338,7 +338,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         """
 
-        self._checkClosed()
+        self._check_closed()
         self._checkWritable()
 
         if isinstance(b, str):
@@ -365,7 +365,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         return n
 
-    def _checkClosed(self):
+    def _check_closed(self):
         """Checks if file node is open.
 
         Checks whether the file node is open or has been closed. In the
@@ -374,7 +374,7 @@ class RawPyTablesIO(io.RawIOBase):
 
         """
 
-        super()._checkClosed()
+        # super()._check_closed()
         if getattr(self._node, "_v_file", None) is None:
             raise ValueError("host PyTables file is already closed!")
 
@@ -487,7 +487,7 @@ class FileNodeMixin:
     def attrs(self):
         """Returns the attribute set of the file node."""
 
-        # sefl._checkClosed()
+        # self._check_closed()
         return self._node.attrs
 
     @attrs.setter

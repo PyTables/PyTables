@@ -8,7 +8,7 @@ import os
 import sys
 import getopt
 import pstats
-import cProfile as prof
+import cProfile
 from time import perf_counter as clock
 from pathlib import Path
 
@@ -219,7 +219,7 @@ if __name__ == "__main__":
     else:
         if profile:
             for ifunc in func:
-                prof.run(ifunc + "()", ifunc + ".prof")
+                cProfile.run(ifunc + "()", ifunc + ".prof")
                 stats = pstats.Stats(ifunc + ".prof")
                 stats.strip_dirs()
                 stats.sort_stats("time", "calls")

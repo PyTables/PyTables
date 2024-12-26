@@ -45,6 +45,12 @@ import numpy.typing as npt
 
 from .exceptions import FlavorError, FlavorWarning
 
+# @compatibility with numpy < 1.25
+try:
+    from numpy.exceptions import VisibleDeprecationWarning
+except ImportError:
+    from numpy import VisibleDeprecationWarning
+
 __docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""
 
@@ -362,14 +368,6 @@ _numpy_aliases: list[str] = []
 _numpy_desc = "NumPy array, record or scalar"
 
 
-try:
-    np_VisibleDeprecationWarning = np.VisibleDeprecationWarning
-except AttributeError:
-    from numpy.exceptions import (
-        VisibleDeprecationWarning as np_VisibleDeprecationWarning,
-    )
-
-
 if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion("1.19.0"):
 
     def toarray(array: npt.ArrayLike, *args, **kwargs) -> np.ndarray:
@@ -377,7 +375,7 @@ if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion("1.19.0"):
             warnings.simplefilter("error")
             try:
                 array = np.array(array, *args, **kwargs)
-            except np_VisibleDeprecationWarning:
+            except VisibleDeprecationWarning:
                 raise ValueError(
                     "cannot guess the desired dtype from the input"
                 )

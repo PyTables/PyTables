@@ -44,7 +44,7 @@ class Big(tb.IsDescription):
     energy = tb.Float64Col()  # double (double-precision)
 
 
-def createFile(filename, totalrows, filters, recsize):
+def create_file(filename, totalrows, filters, recsize):
 
     # Open a file in "w"rite mode
     fileh = tb.open_file(
@@ -139,7 +139,7 @@ def createFile(filename, totalrows, filters, recsize):
     return (rowswritten, rowsize)
 
 
-def readFile(filename, recsize, verbose):
+def read_file(filename, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
     fileh = tb.open_file(filename, mode="r")
@@ -243,7 +243,7 @@ def readFile(filename, recsize, verbose):
     return (rowsread, rowsize)
 
 
-def readField(filename, field, rng, verbose):
+def read_field(filename, field, rng, verbose):
     fileh = tb.open_file(filename, mode="r")
     rowsread = 0
     if rng is None:
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     profile = 0
     rng = None
     recsize = "medium"
-    fieldName = None
+    field_name = None
     testread = 1
     testwrite = 1
     complevel = 9
@@ -344,7 +344,7 @@ if __name__ == "__main__":
         elif option[0] == "-w":
             testread = 0
         elif option[0] == "-f":
-            fieldName = option[1]
+            field_name = option[1]
         elif option[0] == "-s":
             recsize = option[1]
             if recsize not in ["big", "medium", "small"]:
@@ -396,7 +396,7 @@ if __name__ == "__main__":
             stats.sort_stats("time", "calls")
             stats.print_stats(20)
         else:
-            (rowsw, rowsz) = createFile(file, nrows, filters, recsize)
+            (rowsw, rowsz) = create_file(file, nrows, filters, recsize)
         t2 = clock()
         cpu2 = cpuclock()
         tapprows = t2 - t1
@@ -412,12 +412,12 @@ if __name__ == "__main__":
     if testread:
         t1 = clock()
         cpu1 = cpuclock()
-        if rng or fieldName:
-            (rowsr, rowsz) = readField(file, fieldName, rng, verbose)
+        if rng or field_name:
+            (rowsr, rowsz) = read_field(file, field_name, rng, verbose)
             pass
         else:
             for i in range(1):
-                (rowsr, rowsz) = readFile(file, recsize, verbose)
+                (rowsr, rowsz) = read_file(file, recsize, verbose)
         t2 = clock()
         cpu2 = cpuclock()
         treadrows = t2 - t1

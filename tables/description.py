@@ -493,8 +493,8 @@ class Description:
         newdict["_v_dflts"] = {}
         newdict["_v_colobjects"] = {}
         newdict["_v_is_nested"] = False
-        nestedFormats = []
-        nestedDType = []
+        nested_formats = []
+        nested_dtype = []
 
         if not hasattr(newdict, "_v_nestedlvl"):
             newdict["_v_nestedlvl"] = nestedlvl + 1
@@ -600,12 +600,12 @@ class Description:
                 newdict["_v_dtypes"][k] = dtype
                 newdict["_v_types"][k] = object.type
                 newdict["_v_dflts"][k] = object.dflt
-                nestedFormats.append(object.recarrtype)
+                nested_formats.append(object.recarrtype)
                 baserecarrtype = dtype.base.str[1:]
-                nestedDType.append((kk, baserecarrtype, dtype.shape))
+                nested_dtype.append((kk, baserecarrtype, dtype.shape))
             else:  # A description
-                nestedFormats.append(object._v_nested_formats)
-                nestedDType.append((kk, object._v_dtype))
+                nested_formats.append(object._v_nested_formats)
+                nested_dtype.append((kk, object._v_dtype))
                 nested = True
 
         # Useful for debugging purposes
@@ -641,7 +641,7 @@ class Description:
             newdict["_v_offsets"] = []
 
         # Assign the format list to _v_nested_formats
-        newdict["_v_nested_formats"] = nestedFormats
+        newdict["_v_nested_formats"] = nested_formats
 
         if self._v_nestedlvl == 0:
             # Get recursively nested _v_nested_names and _v_nested_descr attrs
@@ -661,7 +661,7 @@ class Description:
             # TODO: support offsets within nested types
             dtype_fields = {
                 "names": newdict["_v_names"],
-                "formats": nestedFormats,
+                "formats": nested_formats,
                 "offsets": cols_offsets,
             }
             itemsize = newdict.get("_v_itemsize", None)
@@ -669,7 +669,7 @@ class Description:
                 dtype_fields["itemsize"] = itemsize
             dtype = np.dtype(dtype_fields)
         else:
-            dtype = np.dtype(nestedDType)
+            dtype = np.dtype(nested_dtype)
         newdict["_v_dtype"] = dtype
         newdict["_v_itemsize"] = dtype.itemsize
         newdict["_v_offsets"] = [dtype.fields[name][1] for name in dtype.names]
@@ -762,11 +762,11 @@ class Description:
                     # Compute the paths with respect to the parent node
                     # (including the path of the current description)
                     # and append them to its list.
-                    descName = desc._v_name
-                    colPaths = [join_paths(descName, path) for path in cols]
-                    colPaths.insert(0, descName)
-                    parentCols = stack[-1][1]
-                    parentCols.extend(colPaths)
+                    desc_name = desc._v_name
+                    col_paths = [join_paths(desc_name, path) for path in cols]
+                    col_paths.insert(0, desc_name)
+                    parent_cols = stack[-1][1]
+                    parent_cols.extend(col_paths)
                 # (Nothing is pushed, we are done with this description.)
 
     def _f_walk(
@@ -821,7 +821,7 @@ class MetaIsDescription(type):
     """Helper metaclass to return the class variables as a dictionary."""
 
     def __new__(
-        mcs, classname: str, bases: Sequence, classdict: dict[str, Any]
+        cls, classname: str, bases: Sequence, classdict: dict[str, Any]
     ) -> MetaIsDescription:
         """Return a new class with a "columns" attribute filled."""
 
@@ -840,7 +840,7 @@ class MetaIsDescription(type):
                 newdict["columns"][k] = classdict[k]
 
         # Return a new class with the "columns" attribute filled
-        return type.__new__(mcs, classname, bases, newdict)
+        return type.__new__(cls, classname, bases, newdict)
 
 
 class IsDescription(metaclass=MetaIsDescription):
@@ -977,20 +977,20 @@ if __name__ == "__main__":
         # color = UInt32Col(2)
         Info = Info()
 
-        class info(IsDescription):
+        class LInfo(IsDescription):
             _v_pos = 1
             name = UInt32Col()
             value = Float64Col(pos=0)
             y2 = Col.from_kind("float", dflt=1, shape=(2, 3), pos=1)
             z2 = UInt8Col(dflt=1)
 
-            class info2(IsDescription):
+            class LInfo2(IsDescription):
                 y3 = Col.from_kind("float", dflt=1, shape=(2, 3))
                 z3 = UInt8Col(dflt=1)
                 name = UInt32Col()
                 value = Float64Col()
 
-                class info3(IsDescription):
+                class LInfo3(IsDescription):
                     name = UInt32Col()
                     value = Float64Col()
                     y4 = Col.from_kind("float", dflt=1, shape=(2, 3))
@@ -1055,10 +1055,10 @@ if __name__ == "__main__":
             # pass
             print("leaf -->", object._v_name, object.dtype)
 
-    class testDescParent(IsDescription):
+    class TestDescParent(IsDescription):
         c = Int32Col()
 
-    class testDesc(testDescParent):
+    class TestDesc(TestDescParent):
         pass
 
-    assert "c" in testDesc.columns
+    assert "c" in TestDesc.columns

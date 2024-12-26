@@ -59,20 +59,20 @@ class Test(tb.IsDescription):
     color = tb.EnumCol(colors, "red", base="uint32", shape=(2,))
     Info = Info()
 
-    class info(tb.IsDescription):
+    class IInfo(tb.IsDescription):
         _v_pos = 1
         name = tb.StringCol(10)
         value = tb.Float64Col(pos=0)
         y2 = tb.Float64Col(dflt=1, shape=(2, 3), pos=1)
         z2 = tb.UInt8Col(dflt=1)
 
-        class info2(tb.IsDescription):
+        class IInfo2(tb.IsDescription):
             y3 = tb.Float64Col(dflt=1, shape=(2, 3))
             z3 = tb.UInt8Col(dflt=1)
             name = tb.StringCol(10)
             value = tb.EnumCol(colors, "blue", base="uint32", shape=(1,))
 
-            class info3(tb.IsDescription):
+            class IInfo3(tb.IsDescription):
                 name = tb.StringCol(10)
                 value = tb.Time64Col()
                 y4 = tb.Float64Col(dflt=1, shape=(2, 3))
@@ -82,4 +82,4 @@ class Test(tb.IsDescription):
 # Write the file and read it
 write(fileout, Test, ["info/info2/z3"])
 read(fileout)
-print("You can have a look at '%s' output file now." % fileout)
+print(f"You can have a look at '{fileout}' output file now.")

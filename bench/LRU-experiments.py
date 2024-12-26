@@ -44,7 +44,7 @@ def create_junk():
     fileh.close()
 
 
-def modify_junk_LRU():
+def modify_junk_lru():
     fileh = tb.open_file(filename, "a")
     group = fileh.root.newgroup
     for j in range(5):
@@ -57,7 +57,7 @@ def modify_junk_LRU():
     fileh.close()
 
 
-def modify_junk_LRU2():
+def modify_junk_lru2():
     fileh = tb.open_file(filename, "a")
     group = fileh.root.newgroup
     for j in range(20):
@@ -71,7 +71,7 @@ def modify_junk_LRU2():
     fileh.close()
 
 
-def modify_junk_LRU3():
+def modify_junk_lru3():
     fileh = tb.open_file(filename, "a")
     group = fileh.root.newgroup
     for j in range(3):
@@ -88,7 +88,7 @@ if 1:
     # create_junk()
     # modify_junk_LRU()    # uses the iterator version (walk_nodes)
     # modify_junk_LRU2()   # uses a regular loop (getattr)
-    modify_junk_LRU3()  # uses a regular loop (getattr)
+    modify_junk_lru3()  # uses a regular loop (getattr)
 else:
     import pstats
     import profile

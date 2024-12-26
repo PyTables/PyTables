@@ -65,7 +65,7 @@ if __name__ == "__main__":
     nlevels = 1024
     niter = 256
     range_ = 128
-    nodeCacheSlots = 64
+    node_cache_slots = 64
     pytables_sys_attrs = True
     profile = True
     doprofile = True
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     if doprofile:
         import pstats
-        import cProfile as prof
+        import cProfile
 
     if profile:
         tref = clock()
@@ -82,11 +82,11 @@ if __name__ == "__main__":
     f = tb.open_file(
         "/tmp/PTdeep-tree.h5",
         "w",
-        node_cache_slots=nodeCacheSlots,
+        node_cache_slots=node_cache_slots,
         pytables_sys_attrs=pytables_sys_attrs,
     )
     if doprofile:
-        prof.run("populate(f, nlevels)", "populate.prof")
+        cProfile.run("populate(f, nlevels)", "populate.prof")
         stats = pstats.Stats("populate.prof")
         stats.strip_dirs()
         stats.sort_stats("time", "calls")
@@ -107,13 +107,13 @@ if __name__ == "__main__":
     f = tb.open_file(
         "/tmp/PTdeep-tree.h5",
         "r",
-        node_cache_slots=nodeCacheSlots,
+        node_cache_slots=node_cache_slots,
         pytables_sys_attrs=pytables_sys_attrs,
     )
     if profile:
         show_stats("Abans d'accedir...", tref)
     if doprofile:
-        prof.run("getnode(f, nlevels, niter, range_)", "getnode.prof")
+        cProfile.run("getnode(f, nlevels, niter, range_)", "getnode.prof")
         stats = pstats.Stats("getnode.prof")
         stats.strip_dirs()
         stats.sort_stats("time", "calls")

@@ -14,7 +14,7 @@ verbose = 0
 class WideTreeTestCase(unittest.TestCase):
     """Checks for maximum number of childs for a Group."""
 
-    def test00_Leafs(self):
+    def test00_leafs(self):
         """Checking creation of large number of leafs (1024) per group.
 
         Variable 'maxchilds' controls this check. PyTables support up to
@@ -69,7 +69,7 @@ class WideTreeTestCase(unittest.TestCase):
         # Then, delete the file
         # os.remove(file)
 
-    def test01_wideTree(self):
+    def test01_wide_tree(self):
         """Checking creation of large number of groups (1024) per group.
 
         Variable 'maxchilds' controls this check. PyTables support up to
@@ -120,12 +120,12 @@ class WideTreeTestCase(unittest.TestCase):
 
 
 def suite():
-    theSuite = unittest.TestSuite()
+    suite_ = unittest.TestSuite()
     from tables.tests.common import make_suite
 
-    theSuite.addTest(make_suite(WideTreeTestCase))
+    suite_.addTest(make_suite(WideTreeTestCase))
 
-    return theSuite
+    return suite_
 
 
 if __name__ == "__main__":

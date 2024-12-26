@@ -23,7 +23,9 @@ class Test(tb.IsDescription):
     # string = tb.StringCol(500, pos=4)
 
 
-def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
+def create_file(
+    filename, ngroups, ntables, nrows, complevel, complib, recsize
+):
 
     # First, create the groups
 
@@ -72,7 +74,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     return (rowswritten, rowsize)
 
 
-def readFile(filename, ngroups, recsize, verbose):
+def read_file(filename, ngroups, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
     rowsread = 0
@@ -205,7 +207,7 @@ if __name__ == "__main__":
     if testwrite:
         t1 = clock()
         cpu1 = cpuclock()
-        (rowsw, rowsz) = createFile(
+        (rowsw, rowsz) = create_file(
             file, ngroups, ntables, nrows, complevel, complib, recsize
         )
         t2 = clock()
@@ -223,7 +225,7 @@ if __name__ == "__main__":
     if testread:
         t1 = clock()
         cpu1 = cpuclock()
-        (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
+        (rowsr, rowsz, bufsz) = read_file(file, ngroups, recsize, verbose)
         t2 = clock()
         cpu2 = cpuclock()
         treadrows = t2 - t1

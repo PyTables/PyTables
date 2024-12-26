@@ -38,7 +38,7 @@ class BasicBenchmark:
         # Remove the temporary file
         # os.remove(self.file)
 
-    def createNode(self):
+    def create_node(self):
         """Checking a undo/redo create_array."""
 
         for i in range(self.nobjects):
@@ -150,9 +150,9 @@ class BasicBenchmark:
     def runall(self):
 
         if testname == "all":
-            tests = [self.createNode, self.copy_children, self.set_attr]
+            tests = [self.create_node, self.copy_children, self.set_attr]
         elif testname == "createNode":
-            tests = [self.createNode]
+            tests = [self.create_node]
         elif testname == "copy_children":
             tests = [self.copy_children]
         elif testname == "set_attr":

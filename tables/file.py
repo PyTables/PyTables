@@ -162,11 +162,11 @@ _trans_parent = _trans_group_path
 _trans_name = "t%d"  # %d -> transaction number
 _trans_path = join_path(_trans_parent, _trans_name)
 
-_markParent = _trans_path
-_markName = "m%d"  # %d -> mark number
-_markPath = join_path(_markParent, _markName)
+_mark_parent = _trans_path
+_mark_name = "m%d"  # %d -> mark number
+_mark_path = join_path(_mark_parent, _mark_name)
 
-_shadow_parent = _markPath
+_shadow_parent = _mark_path
 _shadow_name = "a%d"  # %d -> action number
 _shadow_path = join_path(_shadow_parent, _shadow_name)
 
@@ -2412,7 +2412,7 @@ class File(hdf5extension.File):
         )
 
     def _create_mark(self, trans: TransactionG, mid: int) -> MarkG:
-        return MarkG(trans, _markName % mid, "Mark number %d" % mid, new=True)
+        return MarkG(trans, _mark_name % mid, "Mark number %d" % mid, new=True)
 
     def enable_undo(self, filters: Filters = Filters(complevel=1)) -> None:
         """Enable the Undo/Redo mechanism.
@@ -2621,12 +2621,14 @@ class File(hdf5extension.File):
             )
             # Reset the current marker group
             mnode = self.get_node(
-                _markPath % (self._curtransaction, self._curmark)
+                _mark_path % (self._curtransaction, self._curmark)
             )
             mnode._g_reset()
             # Delete the marker groups with backup objects
             for mark in range(self._curmark + 1, self._nmarks):
-                mnode = self.get_node(_markPath % (self._curtransaction, mark))
+                mnode = self.get_node(
+                    _mark_path % (self._curtransaction, mark)
+                )
                 mnode._g_remove(recursive=1)
             # Update the new number of marks
             self._nmarks = self._curmark + 1

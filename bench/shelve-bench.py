@@ -58,7 +58,7 @@ class Big(tb.IsDescription):
     energy = tb.Float64Col()  # double (double-precision)
 
 
-def createFile(filename, totalrows, recsize):
+def create_file(filename, totalrows, recsize):
 
     # Open a 'n'ew file
     fileh = shelve.open(filename, flag="n")
@@ -135,7 +135,7 @@ def createFile(filename, totalrows, recsize):
     return (rowswritten, struct.calcsize(d._v_fmt))
 
 
-def readFile(filename, recsize):
+def read_file(filename, recsize):
     # Open the HDF5 file in read-only mode
     fileh = shelve.open(filename, "r")
     for table in ["tuple0", "tuple1", "tuple2"]:
@@ -194,14 +194,14 @@ if __name__ == "__main__":
     file = pargs[0]
 
     t1 = clock()
-    psyco.bind(createFile)
-    (rowsw, rowsz) = createFile(file, iterations, recsize)
+    psyco.bind(create_file)
+    (rowsw, rowsz) = create_file(file, iterations, recsize)
     t2 = clock()
     tapprows = t2 - t1
 
     t1 = clock()
-    psyco.bind(readFile)
-    readFile(file, recsize)
+    psyco.bind(read_file)
+    read_file(file, recsize)
     t2 = clock()
     treadrows = t2 - t1
 

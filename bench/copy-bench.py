@@ -25,11 +25,11 @@ for group in filehsrc.walk_groups():
         table.copy(groupdest, table.name)
         ntables += 1
         tsize += table.nrows * table.rowsize
-tsizeMB = tsize / (1024 * 1024)
+tsize_mb = tsize / (1024 * 1024)
 ttime = clock() - t1
 print(
-    f"Copied {ntables} tables for a total of {tsizeMB:.1f} MB"
-    f" in {ttime:.3f} seconds ({tsizeMB / ttime:.1f} MB/s)"
+    f"Copied {ntables} tables for a total of {tsize_mb:.1f} MB"
+    f" in {ttime:.3f} seconds ({tsize_mb / ttime:.1f} MB/s)"
 )
 filehsrc.close()
 filehdest.close()

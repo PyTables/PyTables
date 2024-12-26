@@ -387,15 +387,15 @@ if __name__ == "__main__":
 
     # Create the class for the database
     if usepytables:
-        from pytables_backend import PyTables_DB
+        from pytables_backend import PyTablesDB
 
-        db = PyTables_DB(
+        db = PyTablesDB(
             krows, rng, userandom, datadir, docompress, complib, kind, optlevel
         )
     elif usepostgres:
-        from postgres_backend import Postgres_DB
+        from postgres_backend import PostgresDB
 
-        db = Postgres_DB(krows, rng, userandom)
+        db = PostgresDB(krows, rng, userandom)
 
     if not avoidfscache:
         # in order to always generate the same random sequence
@@ -420,9 +420,9 @@ if __name__ == "__main__":
         print("Calling query_db() %s times" % niter)
         if doprofile:
             import pstats
-            import cProfile as prof
+            import cProfile
 
-            prof.run(
+            cProfile.run(
                 "db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, "
                 "avoidfscache, verbose, inkernel)",
                 "indexed_search.prof",
@@ -435,11 +435,11 @@ if __name__ == "__main__":
             else:
                 stats.print_stats(20)
         elif dokprofile:
-            from cProfile import Profile
+            import cProfile
 
             import lsprofcalltree
 
-            prof = Profile()
+            prof = cProfile.Profile()
             prof.run(
                 "db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, "
                 "avoidfscache, verbose, inkernel)"

@@ -107,8 +107,8 @@ def _index_name_of(node: Node) -> str:
 
 
 def _index_pathname_of(node: Node) -> str:
-    nodeParentPath = split_path(node._v_pathname)[0]
-    return join_path(nodeParentPath, _index_name_of(node))
+    node_parent_path = split_path(node._v_pathname)[0]
+    return join_path(node_parent_path, _index_name_of(node))
 
 
 def _index_pathname_of_column(table: Table, colpathname: str) -> str:
@@ -120,17 +120,17 @@ def _index_pathname_of_column(table: Table, colpathname: str) -> str:
 # situations)
 
 
-def _index_name_of_(nodeName: str) -> str:
+def _index_name_of_(nodeName: str) -> str:  # noqa: N803
     return "_i_%s" % nodeName
 
 
-def _index_pathname_of_(nodePath: str) -> str:
-    nodeParentPath, nodeName = split_path(nodePath)
-    return join_path(nodeParentPath, _index_name_of_(nodeName))
+def _index_pathname_of_(nodePath: str) -> str:  # noqa: N803
+    node_parent_path, node_name = split_path(nodePath)
+    return join_path(node_parent_path, _index_name_of_(node_name))
 
 
-def _index_pathname_of_column_(tablePath: str, colpathname: str) -> str:
-    return join_path(_index_pathname_of_(tablePath), colpathname)
+def _index_pathname_of_column_(table_path: str, colpathname: str) -> str:
+    return join_path(_index_pathname_of_(table_path), colpathname)
 
 
 def restorecache(self: Table) -> None:
@@ -1029,24 +1029,24 @@ very small/large chunksize, you may want to increase/decrease it."""
     def _get_enum_map(self) -> dict[str, Enum]:
         """Return mapping from enumerated column names to `Enum` instances."""
 
-        enumMap = {}
+        enum_map = {}
         for colobj in self.description._f_walk("Col"):
             if colobj.kind == "enum":
-                enumMap[colobj._v_pathname] = colobj.enum
-        return enumMap
+                enum_map[colobj._v_pathname] = colobj.enum
+        return enum_map
 
     def _g_create(self) -> int:
         """Create a new table on disk."""
 
         # Warning against assigning too much columns...
         # F. Alted 2005-06-05
-        maxColumns = self._v_file.params["MAX_COLUMNS"]
-        if len(self.description._v_names) > maxColumns:
+        max_columns = self._v_file.params["MAX_COLUMNS"]
+        if len(self.description._v_names) > max_columns:
             warnings.warn(
                 "table ``%s`` is exceeding the recommended "
                 "maximum number of columns (%d); "
                 "be ready to see PyTables asking for *lots* of memory "
-                "and possibly slow I/O" % (self._v_pathname, maxColumns),
+                "and possibly slow I/O" % (self._v_pathname, max_columns),
                 PerformanceWarning,
             )
 
@@ -1675,7 +1675,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def append_where(
         self,
-        dstTable: Table,
+        dstTable: Table,  # noqa: N803
         condition: str | None = None,
         condvars: dict[str, Column | np.ndarray] | None = None,
         start: str | None = None,
@@ -1704,17 +1704,17 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Row objects do not support nested columns, so we must iterate
         # over the flat column paths.  When rows support nesting,
         # ``self.colnames`` can be directly iterated upon.
-        colNames = tuple(colName for colName in self.colpathnames)
-        dstRow = dstTable.row
+        col_names = tuple(col_name for col_name in self.colpathnames)
+        dst_row = dstTable.row
         nrows = 0
         if condition is not None:
-            srcRows = self._where(condition, condvars, start, stop, step)
+            src_rows = self._where(condition, condvars, start, stop, step)
         else:
-            srcRows = self.iterrows(start, stop, step)
-        for srcRow in srcRows:
-            for colName in colNames:
-                dstRow[colName] = srcRow[colName]
-            dstRow.append()
+            src_rows = self.iterrows(start, stop, step)
+        for src_row in src_rows:
+            for col_name in col_names:
+                dst_row[col_name] = src_row[col_name]
+            dst_row.append()
             nrows += 1
         dstTable.flush()
         return nrows
@@ -1776,18 +1776,20 @@ very small/large chunksize, you may want to increase/decrease it."""
         row = tableextension.Row(self)
         return row._iter(start, stop, step, coords=sequence)
 
-    def _check_sortby_csi(self, sortby: Column | str, checkCSI: bool) -> Index:
+    def _check_sortby_csi(
+        self, sortby: Column | str, check_csi: bool
+    ) -> Index:
         if isinstance(sortby, Column):
             icol = sortby
         elif isinstance(sortby, str):
             icol = self.cols._f_col(sortby)
         else:
             raise TypeError(
-                "`sortby` can only be a `Column` or string object, "
-                "but you passed an object of type: %s" % type(sortby)
+                f"`sortby` can only be a `Column` or string object, "
+                f"but you passed an object of type: {type(sortby)}"
             )
         if icol.is_indexed and icol.index.kind == "full":
-            if checkCSI and not icol.index.is_csi:
+            if check_csi and not icol.index.is_csi:
                 # The index exists, but it is not a CSI one.
                 raise ValueError(
                     "Field `{sortby}` must have associated a CSI index "
@@ -1803,7 +1805,7 @@ very small/large chunksize, you may want to increase/decrease it."""
     def itersorted(
         self,
         sortby: Column | str,
-        checkCSI: bool = False,
+        checkCSI: bool = False,  # noqa: N803
         start: int | None = None,
         stop: int | None = None,
         step: int | None = None,
@@ -1840,7 +1842,7 @@ very small/large chunksize, you may want to increase/decrease it."""
     def read_sorted(
         self,
         sortby: Column | str,
-        checkCSI: bool = False,
+        checkCSI: bool = False,  # noqa: N803
         field: str | None = None,
         start: int | None = None,
         stop: int | None = None,
@@ -2353,10 +2355,10 @@ very small/large chunksize, you may want to increase/decrease it."""
         else:
             raise IndexError(f"Invalid index or slice: {key!r}")
 
-    def _save_buffered_rows(self, wbufRA: np.ndarray, lenrows: int) -> None:
+    def _save_buffered_rows(self, wbuf_ra: np.ndarray, lenrows: int) -> None:
         """Update the indexes after a flushing of rows."""
 
-        self._open_append(wbufRA)
+        self._open_append(wbuf_ra)
         self._append_records(lenrows)
         self._close_append()
         if self.indexed:
@@ -2420,7 +2422,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         ):
             # Shortcut for compliant arrays
             # (for some reason, not valid for nested types)
-            wbufRA = rows
+            wbuf_ra = rows
         else:
             # Try to convert the object into a recarray compliant with table
             try:
@@ -2429,18 +2431,18 @@ very small/large chunksize, you may want to increase/decrease it."""
                     rows = array_as_internal(rows, iflavor)
                 # Works for Python structures and always copies the original,
                 # so the resulting object is safe for in-place conversion.
-                wbufRA = np.rec.array(rows, dtype=self._v_dtype)
+                wbuf_ra = np.rec.array(rows, dtype=self._v_dtype)
             except Exception as exc:  # XXX
                 raise ValueError(
                     f"rows parameter cannot be converted into a "
                     f"recarray object compliant with table '{self}'. "
                     f"The error was: <{exc}>"
                 )
-        lenrows = wbufRA.shape[0]
+        lenrows = wbuf_ra.shape[0]
         # If the number of rows to append is zero, don't do anything else
         if lenrows > 0:
             # Save write buffer to disk
-            self._save_buffered_rows(wbufRA, lenrows)
+            self._save_buffered_rows(wbuf_ra, lenrows)
 
     def _conv_to_recarr(self, obj: Sequence) -> np.ndarray:
         """Try to convert the object into a recarray."""
@@ -2795,22 +2797,22 @@ very small/large chunksize, you may want to increase/decrease it."""
         # deal with long ints (i.e. more than 32-bit integers)
         # This allows to index columns with more than 2**31 rows
         # F. Alted 2005-05-09
-        startLR = index.sorted.nrows * slicesize
-        indexedrows = startLR - start
+        start_lr = index.sorted.nrows * slicesize
+        indexedrows = start_lr - start
         stop = start + nrows - slicesize + 1
-        while startLR < stop:
+        while start_lr < stop:
             index.append(
-                [self._read(startLR, startLR + slicesize, 1, colname)],
+                [self._read(start_lr, start_lr + slicesize, 1, colname)],
                 update=update,
             )
             indexedrows += slicesize
-            startLR += slicesize
+            start_lr += slicesize
         # index the remaining rows in last row
-        if lastrow and startLR < self.nrows:
+        if lastrow and start_lr < self.nrows:
             index.append_last_row(
-                [self._read(startLR, self.nrows, 1, colname)], update=update
+                [self._read(start_lr, self.nrows, 1, colname)], update=update
             )
-            indexedrows += self.nrows - startLR
+            indexedrows += self.nrows - start_lr
         return indexedrows
 
     def remove_rows(
@@ -3040,7 +3042,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         stop: int,
         step: int,
         sortby: Column | str | None,
-        checkCSI: bool,
+        checkCSI: bool,  # noqa: N803
     ) -> None:
         """Copy rows from self to object"""
         if sortby is None:
@@ -3124,7 +3126,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Get the private args for the Table flavor of copy()
         sortby = kwargs.pop("sortby", None)
         propindexes = kwargs.pop("propindexes", False)
-        checkCSI = kwargs.pop("checkCSI", False)
+        check_csi = kwargs.pop("checkCSI", False)
         # Compute the correct indices.
         (start, stop, step) = self._process_range_read(
             start, stop, step, warn_negstep=sortby is None
@@ -3142,7 +3144,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             chunkshape=chunkshape,
             _log=_log,
         )
-        self._g_copy_rows(newtable, start, stop, step, sortby, checkCSI)
+        self._g_copy_rows(newtable, start, stop, step, sortby, check_csi)
         nbytes = newtable.nrows * newtable.rowsize
         # Generate equivalent indexes in the new table, if required.
         if propindexes and self.indexed:
@@ -3358,29 +3360,29 @@ class Cols:
         return self._v__tableFile._get_node(self._v__tablePath)
 
     def __init__(self, table: Table, desc: Description) -> None:
-        myDict = self.__dict__
-        myDict["_v__tableFile"] = table._v_file
-        myDict["_v__tablePath"] = table._v_pathname
-        myDict["_v_desc"] = desc
-        myDict["_v_colnames"] = desc._v_names
-        myDict["_v_colpathnames"] = table.description._v_pathnames
+        dict_ = self.__dict__
+        dict_["_v__tableFile"] = table._v_file
+        dict_["_v__tablePath"] = table._v_pathname
+        dict_["_v_desc"] = desc
+        dict_["_v_colnames"] = desc._v_names
+        dict_["_v_colpathnames"] = table.description._v_pathnames
         # Put the column in the local dictionary
         for name in desc._v_names:
             if name in desc._v_types:
-                myDict[name] = Column(table, name, desc)
+                dict_[name] = Column(table, name, desc)
             else:
-                myDict[name] = Cols(table, desc._v_colobjects[name])
+                dict_[name] = Cols(table, desc._v_colobjects[name])
 
     def _g_update_table_location(self, table: Table) -> None:
         """Updates the location information about the associated `table`."""
 
-        myDict = self.__dict__
-        myDict["_v__tableFile"] = table._v_file
-        myDict["_v__tablePath"] = table._v_pathname
+        dict_ = self.__dict__
+        dict_["_v__tableFile"] = table._v_file
+        dict_["_v__tablePath"] = table._v_pathname
 
         # Update the locations in individual columns.
         for colname in self._v_colnames:
-            myDict[colname]._g_update_table_location(table)
+            dict_[colname]._g_update_table_location(table)
 
     def __len__(self) -> int:
         """Get the number of top level columns in table."""
@@ -3650,9 +3652,11 @@ class Column:
     def index(self) -> Index | None:
         """The Index instance (see :ref:`IndexClassDescr`) associated with this
         column (None if the column is not indexed)."""
-        indexPath = _index_pathname_of_column_(self._table_path, self.pathname)
+        index_path = _index_pathname_of_column_(
+            self._table_path, self.pathname
+        )
         try:
-            index = self._table_file._get_node(indexPath)
+            index = self._table_file._get_node(index_path)
         except NodeError:
             index = None  # The column is not indexed
         return index

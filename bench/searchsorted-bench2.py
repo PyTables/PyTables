@@ -29,7 +29,7 @@ class Medium(tb.IsDescription):
     energy = tb.Float64Col(shape=2)  # double (double-precision)
 
 
-def createFile(filename, nrows, filters, atom, recsize, index, verbose):
+def create_file(filename, nrows, filters, atom, recsize, index, verbose):
 
     # Open a file in "w"rite mode
     fileh = tb.open_file(
@@ -76,7 +76,7 @@ def createFile(filename, nrows, filters, atom, recsize, index, verbose):
     return (rowswritten, rowsize)
 
 
-def readFile(filename, atom, niter, verbose):
+def read_file(filename, atom, niter, verbose):
     # Open the HDF5 file in read-only mode
 
     fileh = tb.open_file(filename, mode="r")
@@ -159,12 +159,12 @@ def readFile(filename, atom, niter, verbose):
     return (rowsread, rowselected, rowsize)
 
 
-def searchFile(filename, atom, verbose, item):
+def search_file(filename, atom, verbose, item):
     # Open the HDF5 file in read-only mode
 
     fileh = tb.open_file(filename, mode="r")
     rowsread = 0
-    uncomprBytes = 0
+    uncompr_bytes = 0
     table = fileh.root.table
     if atom == "int":
         idxcol = table.cols.var2.index
@@ -184,7 +184,7 @@ def searchFile(filename, atom, verbose, item):
         print("Total iterations in search:", niter)
 
     rowsread += table.nrows
-    uncomprBytes += idxcol.sorted.chunksize * niter * idxcol.sorted.itemsize
+    uncompr_bytes += idxcol.sorted.chunksize * niter * idxcol.sorted.itemsize
 
     results = table.read(coords=positions)
     print("results length:", len(results))
@@ -195,7 +195,7 @@ def searchFile(filename, atom, verbose, item):
     # Close the file (eventually destroy the extended type)
     fileh.close()
 
-    return (rowsread, uncomprBytes, niter)
+    return (rowsread, uncompr_bytes, niter)
 
 
 if __name__ == "__main__":
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     rng = None
     item = None
     atom = "int"
-    fieldName = None
+    field_name = None
     testread = 1
     testwrite = 1
     usepsyco = 0
@@ -316,8 +316,8 @@ if __name__ == "__main__":
         t1 = clock()
         cpu1 = cpuclock()
         if psyco_imported and usepsyco:
-            psyco.bind(createFile)
-        (rowsw, rowsz) = createFile(
+            psyco.bind(create_file)
+        (rowsw, rowsz) = create_file(
             file, nrows, filters, atom, recsize, index, verbose
         )
         t2 = clock()
@@ -334,28 +334,28 @@ if __name__ == "__main__":
 
     if testread:
         if psyco_imported and usepsyco:
-            psyco.bind(readFile)
-            psyco.bind(searchFile)
+            psyco.bind(read_file)
+            psyco.bind(search_file)
         t1 = clock()
         cpu1 = cpuclock()
         if rng or item:
-            (rowsr, uncomprB, niter) = searchFile(file, atom, verbose, item)
+            (rowsr, uncompr_b, niter) = search_file(file, atom, verbose, item)
         else:
             for i in range(1):
-                (rowsr, rowsel, rowsz) = readFile(file, atom, niter, verbose)
+                (rowsr, rowsel, rowsz) = read_file(file, atom, niter, verbose)
         t2 = clock()
         cpu2 = cpuclock()
         treadrows = t2 - t1
         cpureadrows = cpu2 - cpu1
-        tMrows = rowsr / 1000 / 1000
-        sKrows = rowsel / 1000
-        print(f"Rows read: {rowsr} Mread: {tMrows:.3f} Mrows")
-        print(f"Rows selected: {rowsel} Ksel: {sKrows:.3f} Krows")
+        t_m_rows = rowsr / 1000 / 1000
+        s_k_rows = rowsel / 1000
+        print(f"Rows read: {rowsr} Mread: {t_m_rows:.3f} Mrows")
+        print(f"Rows selected: {rowsel} Ksel: {s_k_rows:.3f} Krows")
         print(
             f"Time reading rows: {treadrows:.3f} s (real) "
             f"{cpureadrows:.3f} s (cpu)  {cpureadrows / treadrows:.0%}"
         )
-        print(f"Read Mrows/sec: {tMrows / treadrows:.3f}")
+        print(f"Read Mrows/sec: {t_m_rows / treadrows:.3f}")
         # print "Read KB/s :", int(rowsr * rowsz / (treadrows * 1024))
 #       print "Uncompr MB :", int(uncomprB / (1024 * 1024))
 #       print "Uncompr MB/s :", int(uncomprB / (treadrows * 1024 * 1024))

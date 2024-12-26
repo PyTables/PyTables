@@ -237,36 +237,36 @@ for name in table.colnames:
 tutprint(table.__doc__)
 
 # Get the object in "/columns pressure"
-pressureObject = h5file.get_node("/columns", "pressure")
+pressure_object = h5file.get_node("/columns", "pressure")
 
 # Get some metadata on this object
 tutsep()
-print(f"Info on the object: {pressureObject!r}")
+print(f"Info on the object: {pressure_object!r}")
 tutsep()
-print(f" shape: ==> {pressureObject.shape}")
+print(f" shape: ==> {pressure_object.shape}")
 tutsep()
-print(f" title: ==> {pressureObject.title}")
+print(f" title: ==> {pressure_object.title}")
 tutsep()
-print(f" type: ==> {pressureObject.type}")
+print(f" type: ==> {pressure_object.type}")
 
 SECTION = "Reading data from Array objects"
 # Read the 'pressure' actual data
-pressureArray = pressureObject.read()
-tutrepr(pressureArray)
+pressure_array = pressure_object.read()
+tutrepr(pressure_array)
 tutsep()
-print(f"pressureArray is an object of type: {type(pressureArray)}")
+print(f"pressureArray is an object of type: {type(pressure_array)}")
 
 # Read the 'name' Array actual data
-nameArray = h5file.root.columns.name.read()
-tutrepr(nameArray)
-print(f"nameArray is an object of type: {type(nameArray)}")
+name_array = h5file.root.columns.name.read()
+tutrepr(name_array)
+print(f"nameArray is an object of type: {type(name_array)}")
 
 # Print the data for both arrays
 tutprint("Data on arrays nameArray and pressureArray:")
 tutsep()
-for i in range(pressureObject.shape[0]):
-    print(f"{nameArray[i]} --> {pressureArray[i]}")
-tutrepr(pressureObject.name)
+for i in range(pressure_object.shape[0]):
+    print(f"{name_array[i]} --> {pressure_array[i]}")
+tutrepr(pressure_object.name)
 
 SECTION = "Appending data to an existing table"
 # Create a shortcut to table object

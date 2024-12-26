@@ -179,40 +179,40 @@ print()
 # Read arrays in /columns/names and /columns/pressure
 
 # Get the object in "/columns pressure"
-pressureObject = h5file.get_node("/columns", "pressure")
+pressure_object = h5file.get_node("/columns", "pressure")
 
 # Get some metadata on this object
-print("Info on the object:", pressureObject)
-print("  shape ==>", pressureObject.shape)
-print("  title ==>", pressureObject.title)
-print("  type ==> ", pressureObject.atom.dtype)
-print("  byteorder ==> ", pressureObject.byteorder)
+print("Info on the object:", pressure_object)
+print("  shape ==>", pressure_object.shape)
+print("  title ==>", pressure_object.title)
+print("  type ==> ", pressure_object.atom.dtype)
+print("  byteorder ==> ", pressure_object.byteorder)
 
 # Read the pressure actual data
-pressureArray = pressureObject.read()
-print("  data type ==>", type(pressureArray))
-print("  data ==>", pressureArray)
+pressure_array = pressure_object.read()
+print("  data type ==>", type(pressure_array))
+print("  data ==>", pressure_array)
 print()
 
 # Get the object in "/columns/names"
-nameObject = h5file.root.columns.name
+name_object = h5file.root.columns.name
 
 # Get some metadata on this object
-print("Info on the object:", nameObject)
-print("  shape ==>", nameObject.shape)
-print("  title ==>", nameObject.title)
-print("  type ==> " % nameObject.atom.dtype)
+print("Info on the object:", name_object)
+print("  shape ==>", name_object.shape)
+print("  title ==>", name_object.title)
+print("  type ==> " % name_object.atom.dtype)
 
 
 # Read the 'name' actual data
-nameArray = nameObject.read()
-print("  data type ==>", type(nameArray))
-print("  data ==>", nameArray)
+name_array = name_object.read()
+print("  data type ==>", type(name_array))
+print("  data ==>", name_array)
 
 # Print the data for both arrays
 print("Data on arrays name and pressure:")
-for i in range(pressureObject.shape[0]):
-    print("".join(nameArray[i]), "-->", pressureArray[i])
+for i in range(pressure_object.shape[0]):
+    print("".join(name_array[i]), "-->", pressure_array[i])
 print()
 
 

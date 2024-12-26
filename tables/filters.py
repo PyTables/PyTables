@@ -8,30 +8,28 @@ from typing import Any, Literal, TYPE_CHECKING
 import numpy as np
 from packaging.version import Version
 
-import tables as tb
-
-from . import (
-    utilsextension,
-    blosc_compressor_list,
-    blosc_compcode_to_compname,
-    blosc2_compressor_list,
-    blosc2_compcode_to_compname,
-)
+from . import utilsextension
 from .exceptions import FiltersWarning
 
 if TYPE_CHECKING:
     from .leaf import Leaf
 
-blosc_version = Version(tb.which_lib_version("blosc")[1])
-blosc2_version = Version(tb.which_lib_version("blosc2")[1])
+blosc_version = Version(utilsextension.which_lib_version("blosc")[1])
+blosc2_version = Version(utilsextension.which_lib_version("blosc2")[1])
+blosc_compcode_to_compname = utilsextension.blosc_compcode_to_compname_
+blosc2_compcode_to_compname = utilsextension.blosc2_compcode_to_compname_
 
 
 __docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""
 
 all_complibs = ["zlib", "lzo", "bzip2", "blosc", "blosc2"]
-all_complibs += ["blosc:%s" % cname for cname in blosc_compressor_list()]
-all_complibs += ["blosc2:%s" % cname for cname in blosc2_compressor_list()]
+all_complibs += [
+    f"blosc:{cname}" for cname in utilsextension.blosc_compressor_list()
+]
+all_complibs += [
+    f"blosc2:{cname}" for cname in utilsextension.blosc2_compressor_list()
+]
 
 
 """List of all compression libraries."""

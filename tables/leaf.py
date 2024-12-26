@@ -424,7 +424,7 @@ class Leaf(Node):
             return (SizeType(1),)
 
         # Compute the chunksize
-        MB = 1024 * 1024
+        MB = 1024 * 1024  # noqa: N806
         expected_mb = (expectedrows * rowsize) // MB
         chunksize = calc_chunksize(expected_mb)
         complib = self.filters.complib

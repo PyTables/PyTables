@@ -7,7 +7,7 @@ class Particle(tb.IsDescription):
     lati = tb.ComplexCol(itemsize=16, pos=2)
     longi = tb.ComplexCol(itemsize=8, pos=3)
     vector = tb.ComplexCol(itemsize=8, shape=(2,), pos=4)
-    matrix2D = tb.ComplexCol(itemsize=16, shape=(2, 2), pos=5)
+    matrix_2d = tb.ComplexCol(itemsize=16, shape=(2, 2), pos=5)
 
 
 # Open a file in "w"rite mode

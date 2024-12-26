@@ -85,7 +85,7 @@ def copy_leaf(
     step,
     chunkshape,
     sortby,
-    check_CSI,
+    check_CSI,  # noqa: N803
     propindexes,
     upgradeflavors,
     allow_padding,
@@ -221,7 +221,7 @@ def copy_children(
     step,
     chunkshape,
     sortby,
-    check_CSI,
+    check_CSI,  # noqa: N803
     propindexes,
     upgradeflavors,
     allow_padding,

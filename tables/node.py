@@ -69,14 +69,14 @@ class MetaNode(type):
     """
 
     def __new__(
-        mcs, name: str, bases: tuple, dict_: dict[str, Any]
+        cls, name: str, bases: tuple, dict_: dict[str, Any]
     ) -> MetaNode:
         # Add default behaviour for representing closed nodes.
         for mname in ["__str__", "__repr__"]:
             if mname in dict_:
                 dict_[mname] = _closedrepr(dict_[mname])
 
-        return type.__new__(mcs, name, bases, dict_)
+        return type.__new__(cls, name, bases, dict_)
 
     def __init__(cls, name: str, bases: tuple, dict_: dict[str, Any]) -> None:
         super().__init__(name, bases, dict_)
@@ -490,18 +490,18 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if not self._v_isopen:
             return  # the node is already closed
 
-        myDict = self.__dict__
+        dict_ = self.__dict__
 
         # Close the associated `AttributeSet`
         # only if it has already been placed in the object's dictionary.
-        if "_v_attrs" in myDict:
+        if "_v_attrs" in dict_:
             self._v_attrs._g_close()
 
         # Detach the node from the tree if necessary.
         self._g_del_location()
 
         # Finally, clear all remaining attributes from the object.
-        myDict.clear()
+        dict_.clear()
 
         # Just add a final flag to signal that the node is closed:
         self._v_isopen = False

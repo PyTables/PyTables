@@ -22,7 +22,7 @@ TestDict = {
 }
 
 
-def createFileArr(filename, ngroups, ntables, nrows):
+def create_file_arr(filename, ngroups, ntables, nrows):
 
     # First, create the groups
 
@@ -47,7 +47,7 @@ def createFileArr(filename, ngroups, ntables, nrows):
     return (ngroups * ntables * nrows, 4)
 
 
-def readFileArr(filename, ngroups, recsize, verbose):
+def read_file_arr(filename, ngroups, recsize, verbose):
 
     rowsread = 0
     for ngroup in range(ngroups):
@@ -73,7 +73,9 @@ def readFileArr(filename, ngroups, recsize, verbose):
     return (rowsread, 4, rowsread * 4)
 
 
-def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
+def create_file(
+    filename, ngroups, ntables, nrows, complevel, complib, recsize
+):
 
     # First, create the groups
 
@@ -127,7 +129,7 @@ def createFile(filename, ngroups, ntables, nrows, complevel, complib, recsize):
     return (rowswritten, rowsize)
 
 
-def readFile(filename, ngroups, recsize, verbose):
+def read_file(filename, ngroups, recsize, verbose):
     # Open the HDF5 file in read-only mode
 
     rowsize = 0
@@ -233,12 +235,12 @@ def dump_refs(preheat=10, iter1=10, iter2=10, *testargs):
     rc1 = rc2 = None
     # testMethod()
     for i in range(preheat):
-        testMethod(*testargs)
+        test_method(*testargs)
     gc.collect()
     rc1 = sys.gettotalrefcount()
     track = TrackRefs()
     for i in range(iter1):
-        testMethod(*testargs)
+        test_method(*testargs)
     print("First output of TrackRefs:")
     gc.collect()
     rc2 = sys.gettotalrefcount()
@@ -248,7 +250,7 @@ def dump_refs(preheat=10, iter1=10, iter2=10, *testargs):
         file=sys.stderr,
     )
     for i in range(iter2):
-        testMethod(*testargs)
+        test_method(*testargs)
         track.update(verbose=1)
     print("Second output of TrackRefs:")
     gc.collect()
@@ -276,7 +278,7 @@ def dump_garbage():
     # reportLoggedInstances("*")
 
 
-def testMethod(
+def test_method(
     file,
     usearray,
     testwrite,
@@ -294,9 +296,9 @@ def testMethod(
         t1 = clock()
         cpu1 = cpuclock()
         if usearray:
-            (rowsw, rowsz) = createFileArr(file, ngroups, ntables, nrows)
+            (rowsw, rowsz) = create_file_arr(file, ngroups, ntables, nrows)
         else:
-            (rowsw, rowsz) = createFile(
+            (rowsw, rowsz) = create_file(
                 file, ngroups, ntables, nrows, complevel, complib, recsize
             )
         t2 = clock()
@@ -315,11 +317,11 @@ def testMethod(
         t1 = clock()
         cpu1 = cpuclock()
         if usearray:
-            (rowsr, rowsz, bufsz) = readFileArr(
+            (rowsr, rowsz, bufsz) = read_file_arr(
                 file, ngroups, recsize, verbose
             )
         else:
-            (rowsr, rowsz, bufsz) = readFile(file, ngroups, recsize, verbose)
+            (rowsr, rowsz, bufsz) = read_file(file, ngroups, recsize, verbose)
         t2 = clock()
         cpu2 = cpuclock()
         treadrows = t2 - t1
@@ -418,8 +420,8 @@ if __name__ == "__main__":
     file = pargs[0]
 
     if psyco_imported and usepsyco:
-        psyco.bind(createFile)
-        psyco.bind(readFile)
+        psyco.bind(create_file)
+        psyco.bind(read_file)
 
     if debug == 2:
         dump_refs(

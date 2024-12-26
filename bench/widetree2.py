@@ -14,7 +14,7 @@ class Test(tb.IsDescription):
 
 class WideTreeTestCase(unittest.TestCase):
 
-    def test00_Leafs(self):
+    def test00_leafs(self):
 
         # Open a new empty HDF5 file
         filename = "test_widetree.h5"
@@ -110,12 +110,12 @@ class WideTreeTestCase(unittest.TestCase):
 
 # ----------------------------------------------------------------------
 def suite():
-    theSuite = unittest.TestSuite()
+    suite_ = unittest.TestSuite()
     from tables.tests.common import make_suite
 
-    theSuite.addTest(make_suite(WideTreeTestCase))
+    suite_.addTest(make_suite(WideTreeTestCase))
 
-    return theSuite
+    return suite_
 
 
 if __name__ == "__main__":

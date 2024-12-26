@@ -160,19 +160,19 @@ if __name__ == "__main__":
         out = a * b + c
     elif doprofile:
         import pstats
-        import cProfile as prof
+        import cProfile
 
-        prof.run('evaluate("a*b+c", out)', "evaluate.prof")
+        cProfile.run('evaluate("a*b+c", out)', "evaluate.prof")
         stats = pstats.Stats("evaluate.prof")
         stats.strip_dirs()
         stats.sort_stats("time", "calls")
         stats.print_stats(20)
     elif dokprofile:
-        from cProfile import Profile
+        import cProfile
 
         import lsprofcalltree
 
-        prof = Profile()
+        prof = cProfile.Profile()
         prof.run('evaluate("a*b+c", out)')
         kcg = lsprofcalltree.KCacheGrind(prof)
         with Path("evaluate.kcg").open("w") as ofile:

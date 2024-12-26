@@ -48,7 +48,7 @@ for a in f.root.NodeContainer:
 print(f"time (init cache)--> {clock() - t1:.3f}")
 
 
-def timeLRU():
+def time_lru():
     # Next iterations
     t1 = clock()
     #     for i in range(niter):
@@ -59,9 +59,9 @@ def timeLRU():
 
 def profile(verbose=False):
     import pstats
-    import cProfile as prof
+    import cProfile
 
-    prof.run("timeLRU()", "out.prof")
+    cProfile.run("timeLRU()", "out.prof")
     stats = pstats.Stats("out.prof")
     stats.strip_dirs()
     stats.sort_stats("time", "calls")
@@ -73,7 +73,7 @@ def profile(verbose=False):
 
 # profile()
 # psyco.bind(timeLRU)
-timeLRU()
+time_lru()
 
 f.close()
 

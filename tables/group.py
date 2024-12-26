@@ -300,12 +300,12 @@ class Group(hdf5extension.Group, Node):
 
         """
 
-        childCID = self._g_get_gchild_attr(childname, "CLASS")
-        if childCID is not None and not isinstance(childCID, str):
-            childCID = childCID.decode("utf-8")
+        child_cid = self._g_get_gchild_attr(childname, "CLASS")
+        if child_cid is not None and not isinstance(child_cid, str):
+            child_cid = child_cid.decode("utf-8")
 
-        if childCID in class_id_dict:
-            return class_id_dict[childCID]  # look up group class
+        if child_cid in class_id_dict:
+            return class_id_dict[child_cid]  # look up group class
         else:
             return Group  # default group class
 
@@ -322,20 +322,22 @@ class Group(hdf5extension.Group, Node):
         """
 
         if self._v_file.params["PYTABLES_SYS_ATTRS"]:
-            childCID = self._g_get_lchild_attr(childname, "CLASS")
-            if childCID is not None and not isinstance(childCID, str):
-                childCID = childCID.decode("utf-8")
+            child_cid = self._g_get_lchild_attr(childname, "CLASS")
+            if child_cid is not None and not isinstance(child_cid, str):
+                child_cid = child_cid.decode("utf-8")
         else:
-            childCID = None
+            child_cid = None
 
-        if childCID in class_id_dict:
-            return class_id_dict[childCID]  # look up leaf class
+        if child_cid in class_id_dict:
+            return class_id_dict[child_cid]  # look up leaf class
         else:
             # Unknown or no ``CLASS`` attribute, try a guess.
-            childCID2 = utilsextension.which_class(self._v_objectid, childname)
-            if childCID2 == "UNSUPPORTED":
+            child_cid2 = utilsextension.which_class(
+                self._v_objectid, childname
+            )
+            if child_cid2 == "UNSUPPORTED":
                 if warn:
-                    if childCID is None:
+                    if child_cid is None:
                         warnings.warn(
                             "leaf ``%s`` is of an unsupported type; "
                             "it will become an ``UnImplemented`` node"
@@ -347,11 +349,11 @@ class Group(hdf5extension.Group, Node):
                                 "leaf ``%s`` has an unknown class ID ``%s``; "
                                 "it will become an ``UnImplemented`` node"
                             )
-                            % (self._g_join(childname), childCID)
+                            % (self._g_join(childname), child_cid)
                         )
                 return UnImplemented
-            assert childCID2 in class_id_dict
-            return class_id_dict[childCID2]  # look up leaf class
+            assert child_cid2 in class_id_dict
+            return class_id_dict[child_cid2]  # look up leaf class
 
     def _g_add_children_names(self) -> None:
         """Add children names to this group taking into account their
@@ -1233,18 +1235,18 @@ class RootGroup(Group):
         # build a PyTables node and return it.
         if node_type == "Group":
             if self._v_file.params["PYTABLES_SYS_ATTRS"]:
-                ChildClass = self._g_get_child_group_class(childname)
+                child_class = self._g_get_child_group_class(childname)
             else:
                 # Default is a Group class
-                ChildClass = Group
-            return ChildClass(self, childname, new=False)
+                child_class = Group
+            return child_class(self, childname, new=False)
         elif node_type == "Leaf":
-            ChildClass = self._g_get_child_leaf_class(childname, warn=True)
+            child_class = self._g_get_child_leaf_class(childname, warn=True)
             # Building a leaf may still fail because of unsupported types
             # and other causes.
             # return ChildClass(self, childname)  # uncomment for debugging
             try:
-                return ChildClass(self, childname)
+                return child_class(self, childname)
             except Exception as exc:  # XXX
                 warnings.warn(
                     "problems loading leaf ``%s``::\n\n"

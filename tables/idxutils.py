@@ -384,10 +384,6 @@ if hasattr(np, "float96"):
 if hasattr(np, "float128"):
     infinitymap["float128"] = [-np.float128(np.inf), np.float128(np.inf)]
 
-# deprecated API
-infinityMap = infinitymap
-infinityF = infinityf
-
 # Utility functions
 
 

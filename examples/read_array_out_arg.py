@@ -19,28 +19,28 @@ def create_file(array_size):
 
 
 def standard_read(array_size):
-    N = 10
+    n = 10
     with tb.open_file("test.h5", "r") as fobj:
         array = fobj.get_node("/", "test")
         start = clock()
-        for i in range(N):
+        for i in range(n):
             output = array.read(0, array_size, 1)
         end = clock()
         assert np.all(output == 1)
-        print(f"standard read   \t {(end - start) / N:5.5f}")
+        print(f"standard read   \t {(end - start) / n:5.5f}")
 
 
 def pre_allocated_read(array_size):
-    N = 10
+    n = 10
     with tb.open_file("test.h5", "r") as fobj:
         array = fobj.get_node("/", "test")
         start = clock()
         output = np.empty(array_size, "i8")
-        for i in range(N):
+        for i in range(n):
             array.read(0, array_size, 1, out=output)
         end = clock()
         assert np.all(output == 1)
-        print(f"pre-allocated read\t {(end - start) / N:5.5f}")
+        print(f"pre-allocated read\t {(end - start) / n:5.5f}")
 
 
 if __name__ == "__main__":

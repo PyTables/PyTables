@@ -126,33 +126,33 @@ for name in table.colnames:
 print()
 
 # Get the object in "/columns pressure"
-pressureObject = h5file.get_node("/columns", "pressure")
+pressure_object = h5file.get_node("/columns", "pressure")
 
 # Get some metadata on this object
-print("Info on the object:", repr(pressureObject))
-print("  shape: ==>", pressureObject.shape)
-print("  title: ==>", pressureObject.title)
-print("  atom: ==>", pressureObject.atom)
+print("Info on the object:", repr(pressure_object))
+print("  shape: ==>", pressure_object.shape)
+print("  title: ==>", pressure_object.title)
+print("  atom: ==>", pressure_object.atom)
 print()
 print("-**-**-**-**-**- reading actual data from arrays -**-**-**-**-**-**-")
 
 # Read the 'pressure' actual data
-pressureArray = pressureObject.read()
-print(repr(pressureArray))
+pressure_array = pressure_object.read()
+print(repr(pressure_array))
 # Check the kind of object we have created (it should be a numpy array)
-print("pressureArray is an object of type:", type(pressureArray))
+print("pressureArray is an object of type:", type(pressure_array))
 
 # Read the 'name' Array actual data
-nameArray = h5file.root.columns.name.read()
+name_array = h5file.root.columns.name.read()
 # Check the kind of object we have created (it should be a numpy array)
-print("nameArray is an object of type:", type(nameArray))
+print("nameArray is an object of type:", type(name_array))
 
 print()
 
 # Print the data for both arrays
 print("Data on arrays nameArray and pressureArray:")
-for i in range(pressureObject.shape[0]):
-    print(nameArray[i], "-->", pressureArray[i])
+for i in range(pressure_object.shape[0]):
+    print(name_array[i], "-->", pressure_array[i])
 
 print()
 print("-**-**-**-**-**- reading actual data from tables -**-**-**-**-**-**-")
@@ -246,24 +246,24 @@ print()
 print("-**-**-**-**- modify elements of an array -**-**-**-**-**-")
 
 print("pressure array")
-pressureObject = h5file.root.columns.pressure
-print("Before modif-->", pressureObject[:])
-pressureObject[0] = 2
-print("First modif-->", pressureObject[:])
-pressureObject[1:3] = [2.1, 3.5]
-print("Second modif-->", pressureObject[:])
-pressureObject[::2] = [1, 2]
-print("Third modif-->", pressureObject[:])
+pressure_object = h5file.root.columns.pressure
+print("Before modif-->", pressure_object[:])
+pressure_object[0] = 2
+print("First modif-->", pressure_object[:])
+pressure_object[1:3] = [2.1, 3.5]
+print("Second modif-->", pressure_object[:])
+pressure_object[::2] = [1, 2]
+print("Third modif-->", pressure_object[:])
 
 print("name array")
-nameObject = h5file.root.columns.name
-print("Before modif-->", nameObject[:])
-nameObject[0] = ["Particle:   None"]
-print("First modif-->", nameObject[:])
-nameObject[1:3] = ["Particle:      0", "Particle:      1"]
-print("Second modif-->", nameObject[:])
-nameObject[::2] = ["Particle:     -3", "Particle:     -5"]
-print("Third modif-->", nameObject[:])
+name_object = h5file.root.columns.name
+print("Before modif-->", name_object[:])
+name_object[0] = ["Particle:   None"]
+print("First modif-->", name_object[:])
+name_object[1:3] = ["Particle:      0", "Particle:      1"]
+print("Second modif-->", name_object[:])
+name_object[::2] = ["Particle:     -3", "Particle:     -5"]
+print("Third modif-->", name_object[:])
 
 print()
 print("-**-**-**-**- remove records from a table -**-**-**-**-**-")
