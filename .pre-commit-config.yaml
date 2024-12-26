@@ -35,7 +35,7 @@ repos:
 #     -   id: ruff-format
 
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.0
+    rev: v3.19.1
     hooks:
     -   id: pyupgrade
         args: [--py311-plus]
@@ -56,17 +56,29 @@ repos:
 #     hooks:
 #     -   id: pydocstyle
 
-# -   repo: https://github.com/pycqa/isort
-#     rev: 5.13.2
-#     hooks:
-#     -   id: isort
-#         name: isort (python)
+-   repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+    -   id: isort
+        name: isort (python)
+        exclude: |
+            (?x)(
+                ^c-blosc/|
+                ^hdf5-blosc/|
+                ^hdf5-blosc2/
+            )
 
-# -   repo: https://github.com/psf/black-pre-commit-mirror
-#     rev: 24.8.0
-#     hooks:
-#     -   id: black
-#         language_version: python3.13
+-   repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 24.10.0
+    hooks:
+    -   id: black
+        language_version: python3.11
+        exclude: |
+            (?x)(
+                ^c-blosc/|
+                ^hdf5-blosc/|
+                ^hdf5-blosc2/
+            )
 
 # -   repo: https://github.com/pre-commit/mirrors-mypy
 #     rev: v1.12.0
