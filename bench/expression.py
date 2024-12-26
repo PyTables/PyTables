@@ -1,7 +1,8 @@
-from pathlib import Path
 from time import perf_counter as clock
+from pathlib import Path
 
 import numpy as np
+
 import tables as tb
 
 OUT_DIR = Path("/scratch2/faltet/")  # the directory for data output

@@ -6,11 +6,13 @@ Francesc Alted
 """
 
 import math
-import subprocess
 import tempfile
-from pathlib import Path
+import subprocess
 from time import perf_counter as clock
+from pathlib import Path
+
 import numpy as np
+
 import tables as tb
 
 # Size of dataset

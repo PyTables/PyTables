@@ -21,7 +21,7 @@ from __future__ import annotations
 from typing import Any, NoReturn
 from collections.abc import Generator
 
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""
 
 
@@ -110,22 +110,23 @@ class Enum:
     ) -> None:
         mydict = self.__dict__
 
-        mydict['_names'] = {}
-        mydict['_values'] = {}
+        mydict["_names"] = {}
+        mydict["_values"] = {}
 
         if isinstance(enum, list) or isinstance(enum, tuple):
-            for (value, name) in enumerate(enum):  # values become 0, 1, 2...
+            for value, name in enumerate(enum):  # values become 0, 1, 2...
                 self._check_and_set_pair(name, value)
         elif isinstance(enum, dict):
-            for (name, value) in enum.items():
+            for name, value in enum.items():
                 self._check_and_set_pair(name, value)
         elif isinstance(enum, Enum):
-            for (name, value) in enum._names.items():
+            for name, value in enum._names.items():
                 self._check_and_set_pair(name, value)
         else:
-            raise TypeError("""\
-enumerations can only be created from \
-sequences, mappings and other enumerations""")
+            raise TypeError(
+                "enumerations can only be created from sequences, "
+                "mappings and other enumerations"
+            )
 
     def _check_and_set_pair(self, name: str, value: Any) -> None:
         """Check validity of enumerated value and insert it into type."""
@@ -135,20 +136,23 @@ sequences, mappings and other enumerations""")
 
         if not isinstance(name, str):
             raise TypeError(
-                f"name of enumerated value is not a string: {name!r}")
-        if name.startswith('_'):
+                f"name of enumerated value is not a string: {name!r}"
+            )
+        if name.startswith("_"):
             raise ValueError(
-                "name of enumerated value can not start with ``_``: %r"
-                % name)
+                f"name of enumerated value can not start with ``_``: {name!r}"
+            )
         # This check is only necessary with a sequence base object.
         if name in names:
             raise ValueError(
-                "enumerated values contain duplicate names: %r" % name)
+                f"enumerated values contain duplicate names: {name!r}"
+            )
         # This check is only necessary with a mapping base object.
         if value in values:
             raise ValueError(
-                "enumerated values contain duplicate concrete values: %r"
-                % value)
+                f"enumerated values contain duplicate concrete values: "
+                f"{value!r}"
+            )
 
         names[name] = value
         values[value] = name
@@ -261,7 +265,8 @@ sequences, mappings and other enumerations""")
 
         if not isinstance(name, str):
             raise TypeError(
-                f"name of enumerated value is not a string: {name!r}")
+                f"name of enumerated value is not a string: {name!r}"
+            )
         return name in self._names
 
     def __call__(self, value: Any, *default: Any) -> Any:
@@ -299,7 +304,8 @@ sequences, mappings and other enumerations""")
             if len(default) > 0:
                 return default[0]
             raise ValueError(
-                f"no enumerated value with that concrete value: {value!r}")
+                f"no enumerated value with that concrete value: {value!r}"
+            )
 
     def __len__(self) -> int:
         """Return the number of enumerated values in the enumerated type.
@@ -430,13 +436,14 @@ sequences, mappings and other enumerations""")
 
         """
 
-        return 'Enum(%s)' % self._names
+        return f"Enum({self._names})"
 
 
 def _test():
     import doctest
+
     return doctest.testmod()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _test()

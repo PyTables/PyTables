@@ -5,15 +5,15 @@ from __future__ import annotations
 from bisect import bisect_left, bisect_right
 from typing import TYPE_CHECKING
 
+from . import indexesextension
 from .node import NotLoggedMixin
 from .carray import CArray
 from .earray import EArray
-from . import indexesextension
 
 if TYPE_CHECKING:
     from .atom import Atom
-    from .filters import Filters
     from .group import Group
+    from .filters import Filters
 
 # Declarations for inheriting
 
@@ -22,7 +22,7 @@ class CacheArray(indexesextension.CacheArray, NotLoggedMixin, EArray):
     """Container for keeping index caches of 1st and 2nd level."""
 
     # Class identifier.
-    _c_classid = 'CACHEARRAY'
+    _c_classid = "CACHEARRAY"
 
 
 class LastRowArray(indexesextension.LastRowArray, NotLoggedMixin, CArray):
@@ -30,7 +30,7 @@ class LastRowArray(indexesextension.LastRowArray, NotLoggedMixin, CArray):
     index."""
 
     # Class identifier.
-    _c_classid = 'LASTROWARRAY'
+    _c_classid = "LASTROWARRAY"
 
 
 class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
@@ -62,7 +62,7 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
     """
 
     # Class identifier.
-    _c_classid = 'INDEXARRAY'
+    _c_classid = "INDEXARRAY"
 
     @property
     def chunksize(self) -> int:
@@ -101,8 +101,15 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
             chunkshape = None
 
         super().__init__(
-            parentnode, name, atom, shape, title, filters,
-            chunkshape=chunkshape, byteorder=byteorder)
+            parentnode,
+            name,
+            atom,
+            shape,
+            title,
+            filters,
+            chunkshape=chunkshape,
+            byteorder=byteorder,
+        )
 
     # This version of searchBin uses both ranges (1st level) and
     # bounds (2nd level) caches. It uses a cache for boundary rows,
@@ -153,8 +160,9 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         if result1 < 0:
             # Search the appropriate chunk in bounds cache
             nchunk = bisect_left(bounds, item1)
-            chunk = self._read_sorted_slice(nrow, chunksize * nchunk,
-                                            chunksize * (nchunk + 1))
+            chunk = self._read_sorted_slice(
+                nrow, chunksize * nchunk, chunksize * (nchunk + 1)
+            )
             result1 = indexesextension._bisect_left(chunk, item1, chunksize)
             result1 += chunksize * nchunk
         # Lookup in the middle of slice for item2
@@ -162,8 +170,9 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
             # Search the appropriate chunk in bounds cache
             nchunk2 = bisect_right(bounds, item2)
             if nchunk2 != nchunk:
-                chunk = self._read_sorted_slice(nrow, chunksize * nchunk2,
-                                                chunksize * (nchunk2 + 1))
+                chunk = self._read_sorted_slice(
+                    nrow, chunksize * nchunk2, chunksize * (nchunk2 + 1)
+                )
             result2 = indexesextension._bisect_right(chunk, item2, chunksize)
             result2 += chunksize * nchunk2
         return (result1, result2)

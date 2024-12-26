@@ -6,11 +6,11 @@ PyTables is a package for managing hierarchical datasets and designed
 to efficiently cope with extremely large amounts of data.
 
 """
+
 import os
+import platform
 from ctypes import cdll
 from ctypes.util import find_library
-import platform
-
 
 # Load the blosc2 library, and if not found in standard locations,
 # try this directory (it should be automatically copied in setup.py).
@@ -28,7 +28,9 @@ blosc2_search_paths = [
     blosc2_lib_hardcoded,
     os.path.join(current_dir, blosc2_lib_hardcoded),
     # delvewheel will put it here
-    os.path.join(os.path.dirname(current_dir), "tables.libs", blosc2_lib_hardcoded),
+    os.path.join(
+        os.path.dirname(current_dir), "tables.libs", blosc2_lib_hardcoded
+    ),
 ]
 if find_library("blosc2"):
     blosc2_search_paths.append(find_library("blosc2"))
@@ -47,10 +49,10 @@ if not blosc2_found:
         f"I looked for {', '.join(blosc2_search_paths)}"
     )
 
+from ._version import __version__
+
 # Necessary imports to get versions stored on the cython extension
 from .utilsextension import get_hdf5_version as _get_hdf5_version
-
-from ._version import __version__
 
 hdf5_version = _get_hdf5_version()
 """The underlying HDF5 library version number.
@@ -59,13 +61,34 @@ hdf5_version = _get_hdf5_version()
 
 """
 
+from .atom import *
+from .file import File, open_file, copy_file
+from .leaf import Leaf, ChunkInfo
+from .node import Node
+from .array import Array
+from .group import Group
+from .table import Table, Cols, Column
+from .tests import print_versions, test
+from .carray import CArray
+from .earray import EArray
+from .flavor import restrict_flavors
+from .filters import Filters
+from .vlarray import VLArray
+from .misc.enum import Enum
+
+# Import the user classes from the proper modules
+from .exceptions import *
+from .expression import Expr
+from .description import *
+from .unimplemented import UnImplemented, Unknown
 from .utilsextension import (
     blosc_compcode_to_compname_ as blosc_compcode_to_compname,
-    blosc2_compcode_to_compname_ as blosc2_compcode_to_compname,
-    blosc_get_complib_info_ as blosc_get_complib_info,
-    blosc2_get_complib_info_ as blosc2_get_complib_info,
 )
-
+from .utilsextension import (
+    blosc2_compcode_to_compname_ as blosc2_compcode_to_compname,
+)
+from .utilsextension import blosc_get_complib_info_ as blosc_get_complib_info
+from .utilsextension import blosc2_get_complib_info_ as blosc2_get_complib_info
 from .utilsextension import (
     blosc_compressor_list,
     blosc2_compressor_list,
@@ -77,94 +100,138 @@ from .utilsextension import (
     silence_hdf5_messages,
 )
 
-from .misc.enum import Enum
-from .atom import *
-from .flavor import restrict_flavors
-from .description import *
-from .filters import Filters
-
-# Import the user classes from the proper modules
-from .exceptions import *
-from .file import File, open_file, copy_file
-from .node import Node
-from .group import Group
-from .leaf import Leaf, ChunkInfo
-from .table import Table, Cols, Column
-from .array import Array
-from .carray import CArray
-from .earray import EArray
-from .vlarray import VLArray
-from .unimplemented import UnImplemented, Unknown
-from .expression import Expr
-from .tests import print_versions, test
-
-
 # List here only the objects we want to be publicly available
 __all__ = [
     # Exceptions and warnings:
-    'HDF5ExtError',
-    'ClosedNodeError', 'ClosedFileError', 'FileModeError',
-    'NaturalNameWarning', 'NodeError', 'NoSuchNodeError',
-    'UndoRedoError', 'UndoRedoWarning',
-    'PerformanceWarning',
-    'FlavorError', 'FlavorWarning',
-    'FiltersWarning', 'DataTypeWarning',
-    'ChunkError', 'NotChunkedError', 'NotChunkAlignedError',
-    'NoSuchChunkError',
+    "HDF5ExtError",
+    "ClosedNodeError",
+    "ClosedFileError",
+    "FileModeError",
+    "NaturalNameWarning",
+    "NodeError",
+    "NoSuchNodeError",
+    "UndoRedoError",
+    "UndoRedoWarning",
+    "PerformanceWarning",
+    "FlavorError",
+    "FlavorWarning",
+    "FiltersWarning",
+    "DataTypeWarning",
+    "ChunkError",
+    "NotChunkedError",
+    "NotChunkAlignedError",
+    "NoSuchChunkError",
     # Functions:
-    'is_hdf5_file', 'is_pytables_file', 'which_lib_version',
-    'copy_file', 'open_file', 'print_versions', 'test',
-    'split_type', 'restrict_flavors',
-    'set_blosc_max_threads', 'set_blosc2_max_threads',
-    'silence_hdf5_messages',
+    "is_hdf5_file",
+    "is_pytables_file",
+    "which_lib_version",
+    "copy_file",
+    "open_file",
+    "print_versions",
+    "test",
+    "split_type",
+    "restrict_flavors",
+    "set_blosc_max_threads",
+    "set_blosc2_max_threads",
+    "silence_hdf5_messages",
     # Helper classes:
-    'IsDescription', 'Description', 'Filters', 'Cols', 'Column', 'ChunkInfo',
+    "IsDescription",
+    "Description",
+    "Filters",
+    "Cols",
+    "Column",
+    "ChunkInfo",
     # Types:
-    'Enum',
+    "Enum",
     # Atom types:
-    'Atom', 'StringAtom', 'BoolAtom',
-    'IntAtom', 'UIntAtom', 'Int8Atom', 'UInt8Atom', 'Int16Atom', 'UInt16Atom',
-    'Int32Atom', 'UInt32Atom', 'Int64Atom', 'UInt64Atom',
-    'FloatAtom', 'Float32Atom', 'Float64Atom',
-    'ComplexAtom', 'Complex32Atom', 'Complex64Atom', 'Complex128Atom',
-    'TimeAtom', 'Time32Atom', 'Time64Atom',
-    'EnumAtom',
-    'PseudoAtom', 'ObjectAtom', 'VLStringAtom', 'VLUnicodeAtom',
+    "Atom",
+    "StringAtom",
+    "BoolAtom",
+    "IntAtom",
+    "UIntAtom",
+    "Int8Atom",
+    "UInt8Atom",
+    "Int16Atom",
+    "UInt16Atom",
+    "Int32Atom",
+    "UInt32Atom",
+    "Int64Atom",
+    "UInt64Atom",
+    "FloatAtom",
+    "Float32Atom",
+    "Float64Atom",
+    "ComplexAtom",
+    "Complex32Atom",
+    "Complex64Atom",
+    "Complex128Atom",
+    "TimeAtom",
+    "Time32Atom",
+    "Time64Atom",
+    "EnumAtom",
+    "PseudoAtom",
+    "ObjectAtom",
+    "VLStringAtom",
+    "VLUnicodeAtom",
     # Column types:
-    'Col', 'StringCol', 'BoolCol',
-    'IntCol', 'UIntCol', 'Int8Col', 'UInt8Col', 'Int16Col', 'UInt16Col',
-    'Int32Col', 'UInt32Col', 'Int64Col', 'UInt64Col',
-    'FloatCol', 'Float32Col', 'Float64Col',
-    'ComplexCol', 'Complex32Col', 'Complex64Col', 'Complex128Col',
-    'TimeCol', 'Time32Col', 'Time64Col',
-    'EnumCol',
+    "Col",
+    "StringCol",
+    "BoolCol",
+    "IntCol",
+    "UIntCol",
+    "Int8Col",
+    "UInt8Col",
+    "Int16Col",
+    "UInt16Col",
+    "Int32Col",
+    "UInt32Col",
+    "Int64Col",
+    "UInt64Col",
+    "FloatCol",
+    "Float32Col",
+    "Float64Col",
+    "ComplexCol",
+    "Complex32Col",
+    "Complex64Col",
+    "Complex128Col",
+    "TimeCol",
+    "Time32Col",
+    "Time64Col",
+    "EnumCol",
     # Node classes:
-    'Node', 'Group', 'Leaf', 'Table', 'Array', 'CArray', 'EArray', 'VLArray',
-    'UnImplemented', 'Unknown',
+    "Node",
+    "Group",
+    "Leaf",
+    "Table",
+    "Array",
+    "CArray",
+    "EArray",
+    "VLArray",
+    "UnImplemented",
+    "Unknown",
     # The File class:
-    'File',
+    "File",
     # Expr class
-    'Expr',
+    "Expr",
 ]
 
-if 'Float16Atom' in locals():
+if "Float16Atom" in locals():
     # float16 is new in numpy 1.6.0
-    __all__.extend(('Float16Atom', 'Float16Col'))
+    __all__.extend(("Float16Atom", "Float16Col"))
 
-if 'Float96Atom' in locals():
-    __all__.extend(('Float96Atom', 'Float96Col'))
-    __all__.extend(('Complex192Atom', 'Complex192Col'))    # XXX check
+if "Float96Atom" in locals():
+    __all__.extend(("Float96Atom", "Float96Col"))
+    __all__.extend(("Complex192Atom", "Complex192Col"))  # XXX check
 
-if 'Float128Atom' in locals():
-    __all__.extend(('Float128Atom', 'Float128Col'))
-    __all__.extend(('Complex256Atom', 'Complex256Col'))    # XXX check
+if "Float128Atom" in locals():
+    __all__.extend(("Float128Atom", "Float128Col"))
+    __all__.extend(("Complex256Atom", "Complex256Col"))  # XXX check
 
 
 def get_pytables_version() -> str:
     warnings.warn(
         "the 'get_pytables_version()' function is deprecated and could be "
         "removed in future versions. Please use 'tables.__version__'",
-        DeprecationWarning
+        DeprecationWarning,
     )
     return __version__
 
@@ -173,6 +240,6 @@ def get_hdf5_version() -> str:
     warnings.warn(
         "the 'get_hdf5_version()' function is deprecated and could be "
         "removed in future versions. Please use 'tables.hdf5_version'",
-        DeprecationWarning
+        DeprecationWarning,
     )
     return hdf5_version

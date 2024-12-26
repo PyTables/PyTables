@@ -4,12 +4,10 @@ Pass the flag -h to this for help on usage.
 
 """
 
-
 import argparse
 import operator
 
 import tables as tb
-
 
 # default options
 options = argparse.Namespace(
@@ -28,7 +26,7 @@ def dump_leaf(leaf):
     else:
         print(str(leaf))
     if options.showattrs:
-        print("  "+repr(leaf.attrs))
+        print(f"  {leaf.attrs!r}")
     if options.dump and not isinstance(leaf, tb.unimplemented.UnImplemented):
         print("  Data dump:")
         # print((leaf.read(options.rng.start, options.rng.stop,
@@ -71,11 +69,11 @@ def dump_group(pgroup, sort=False):
     node_kinds = pgroup._v_file._node_kinds[1:]
     what = pgroup._f_walk_groups()
     if sort:
-        what = sorted(what, key=operator.attrgetter('_v_pathname'))
+        what = sorted(what, key=operator.attrgetter("_v_pathname"))
     for group in what:
         print(str(group))
         if options.showattrs:
-            print("  "+repr(group._v_attrs))
+            print(f"  {group._v_attrs!r}")
         for kind in node_kinds:
             for node in group._f_list_nodes(kind):
                 if options.verbose or options.dump:
@@ -86,46 +84,69 @@ def dump_group(pgroup, sort=False):
 
 def _get_parser():
     parser = argparse.ArgumentParser(
-        description='''The ptdump utility allows you look into the contents
-        of your PyTables files. It lets you see not only the data but also
-        the metadata (that is, the *structure* and additional information in
-        the form of *attributes*).''')
+        description=(
+            "The ptdump utility allows you look into the contents of your "
+            "PyTables files. It lets you see not only the data but also "
+            "the metadata (that is, the *structure* and additional "
+            "information in the form of *attributes*)."
+        )
+    )
 
     parser.add_argument(
-        '-v', '--verbose', action='store_true',
-        help='dump more metainformation on nodes',
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="dump more metainformation on nodes",
     )
     parser.add_argument(
-        '-d', '--dump', action='store_true',
-        help='dump data information on leaves',
+        "-d",
+        "--dump",
+        action="store_true",
+        help="dump data information on leaves",
     )
     parser.add_argument(
-        '-a', '--showattrs', action='store_true',
-        help='show attributes in nodes (only useful when -v or -d are active)',
+        "-a",
+        "--showattrs",
+        action="store_true",
+        help="show attributes in nodes (only useful when -v or -d are active)",
     )
     parser.add_argument(
-        '-s', '--sort', action='store_true',
-        help='sort output by node name',
+        "-s",
+        "--sort",
+        action="store_true",
+        help="sort output by node name",
     )
     parser.add_argument(
-        '-c', '--colinfo', action='store_true',
-        help='''show info of columns in tables (only useful when -v or -d
-        are active)''',
+        "-c",
+        "--colinfo",
+        action="store_true",
+        help="""show info of columns in tables (only useful when -v or -d
+        are active)""",
     )
     parser.add_argument(
-        '-i', '--idxinfo', action='store_true',
-        help='''show info of indexed columns (only useful when -v or -d are
-        active)''',
+        "-i",
+        "--idxinfo",
+        action="store_true",
+        help="""show info of indexed columns (only useful when -v or -d are
+        active)""",
     )
     parser.add_argument(
-        '-R', '--range', dest='rng', metavar='RANGE',
-        help='''select a RANGE of rows (in the form "start,stop,step")
-        during the copy of *all* the leaves.
-        Default values are "None,None,1", which means a copy of all the
-        rows.''',
+        "-R",
+        "--range",
+        dest="rng",
+        metavar="RANGE",
+        help=(
+            "select a RANGE of rows (in the form 'start,stop,step') "
+            "during the copy of *all* the leaves. "
+            "Default values are 'None, None, 1', which means a copy of all "
+            "the rows."
+        ),
     )
-    parser.add_argument('src', metavar='filename[:nodepath]',
-                        help='name of the HDF5 file to dump')
+    parser.add_argument(
+        "src",
+        metavar="filename[:nodepath]",
+        help="name of the HDF5 file to dump",
+    )
 
     return parser
 
@@ -145,7 +166,7 @@ def main():
             args.dump = 1
 
     # Catch the files passed as the last arguments
-    src = args.src.rsplit(':', 1)
+    src = args.src.rsplit(":", 1)
     if len(src) == 1:
         filename, nodename = src[0], "/"
     else:
@@ -155,9 +176,9 @@ def main():
             nodename = "/"
 
     try:
-        h5file = tb.open_file(filename, 'r')
+        h5file = tb.open_file(filename, "r")
     except Exception as e:
-        return 'Cannot open input file: ' + str(e)
+        return f"Cannot open input file: {e}"
 
     with h5file:
         # Check whether the specified node is a group or a leaf

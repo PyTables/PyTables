@@ -7,44 +7,44 @@ from tables.tests import common
 
 def suite():
     test_modules = [
-        'tables.tests.test_attributes',
-        'tables.tests.test_basics',
-        'tables.tests.test_create',
-        'tables.tests.test_backcompat',
-        'tables.tests.test_types',
-        'tables.tests.test_lists',
-        'tables.tests.test_tables',
-        'tables.tests.test_tablesMD',
-        'tables.tests.test_large_tables',
-        'tables.tests.test_array',
-        'tables.tests.test_earray',
-        'tables.tests.test_carray',
-        'tables.tests.test_vlarray',
-        'tables.tests.test_tree',
-        'tables.tests.test_timetype',
-        'tables.tests.test_do_undo',
-        'tables.tests.test_enum',
-        'tables.tests.test_nestedtypes',
-        'tables.tests.test_hdf5compat',
-        'tables.tests.test_numpy',
-        'tables.tests.test_queries',
-        'tables.tests.test_expression',
-        'tables.tests.test_links',
-        'tables.tests.test_indexes',
-        'tables.tests.test_indexvalues',
-        'tables.tests.test_index_backcompat',
-        'tables.tests.test_aux',
-        'tables.tests.test_utils',
-        'tables.tests.test_direct_chunk',
+        "tables.tests.test_attributes",
+        "tables.tests.test_basics",
+        "tables.tests.test_create",
+        "tables.tests.test_backcompat",
+        "tables.tests.test_types",
+        "tables.tests.test_lists",
+        "tables.tests.test_tables",
+        "tables.tests.test_tablesMD",
+        "tables.tests.test_large_tables",
+        "tables.tests.test_array",
+        "tables.tests.test_earray",
+        "tables.tests.test_carray",
+        "tables.tests.test_vlarray",
+        "tables.tests.test_tree",
+        "tables.tests.test_timetype",
+        "tables.tests.test_do_undo",
+        "tables.tests.test_enum",
+        "tables.tests.test_nestedtypes",
+        "tables.tests.test_hdf5compat",
+        "tables.tests.test_numpy",
+        "tables.tests.test_queries",
+        "tables.tests.test_expression",
+        "tables.tests.test_links",
+        "tables.tests.test_indexes",
+        "tables.tests.test_indexvalues",
+        "tables.tests.test_index_backcompat",
+        "tables.tests.test_aux",
+        "tables.tests.test_utils",
+        "tables.tests.test_direct_chunk",
         # Sub-packages
-        'tables.nodes.tests.test_filenode',
+        "tables.nodes.tests.test_filenode",
     ]
 
     # print('-=' * 38)
 
     # The test for garbage must be run *in the last place*.
     # Else, it is not as useful.
-    test_modules.append('tables.tests.test_garbage')
+    test_modules.append("tables.tests.test_garbage")
 
     alltests = common.unittest.TestSuite()
     if common.show_memory:
@@ -87,7 +87,8 @@ def test(verbose=False, heavy=False):
     oldheavy, common.heavy = common.heavy, heavy
     try:
         result = common.unittest.TextTestRunner(
-            verbosity=1 + int(verbose)).run(suite())
+            verbosity=1 + int(verbose)
+        ).run(suite())
         if result.wasSuccessful():
             return 0
         else:

@@ -2,8 +2,7 @@
 
 import os as _os
 
-
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""
 
 _KB = 1024
@@ -212,7 +211,7 @@ your machine. In general, it is a good idea to set this to the number of
 cores in your machine or, when your machine has many of them (e.g. > 8),
 perhaps stay at 8 at maximum.  In general, 4 threads is a good tradeoff."""
 
-MAX_BLOSC_THREADS = 1    # 1 is safe for concurrency
+MAX_BLOSC_THREADS = 1  # 1 is safe for concurrency
 """The maximum number of threads that PyTables should use internally in
 Blosc.  If `None`, it is automatically set to the number of cores in
 your machine.  For applications that use several PyTables instances
@@ -416,7 +415,7 @@ using the :meth:`tables.File.get_file_image` method.
 
 """
 
-DRIVER_SPLIT_META_EXT = '-m.h5'
+DRIVER_SPLIT_META_EXT = "-m.h5"
 """The extension for the metadata file used by the H5FD_SPLIT driver.
 
 If this option is passed to the :func:`tables.openFile` function along
@@ -429,7 +428,7 @@ by replacing '%s' with the name passed as the first parameter instead.
 
 """
 
-DRIVER_SPLIT_RAW_EXT = '-r.h5'
+DRIVER_SPLIT_RAW_EXT = "-r.h5"
 """The extension for the raw data file used by the H5FD_SPLIT driver.
 
 If this option is passed to the :func:`tables.openFile` function along

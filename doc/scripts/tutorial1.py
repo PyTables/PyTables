@@ -33,6 +33,7 @@ def tutexc():
 
 SECTION = "Importing tables objects"
 import numpy as np  # noqa: E402
+
 import tables as tb  # noqa: E402
 
 SECTION = "Declaring a Column Descriptor"

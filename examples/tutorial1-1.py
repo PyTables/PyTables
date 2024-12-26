@@ -6,8 +6,8 @@ with any HDF5 generic utility.
 """
 
 import numpy as np
-import tables as tb
 
+import tables as tb
 
 # '-**-**-**-**-**-**- user record definition  -**-**-**-**-**-**-**-'
 

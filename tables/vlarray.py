@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import operator
 import sys
+import operator
 from typing import Any, NoReturn, TYPE_CHECKING
 from collections.abc import Sequence
 
@@ -12,16 +12,22 @@ import numpy.typing as npt
 
 from . import hdf5extension
 from .atom import ObjectAtom, VLStringAtom, VLUnicodeAtom
-from .flavor import internal_to_flavor
 from .leaf import Leaf, calc_chunksize
 from .utils import (
-    convert_to_np_atom, convert_to_np_atom2, idx2long, correct_byteorder,
-    SizeType, is_idx, lazyattr)
+    convert_to_np_atom,
+    convert_to_np_atom2,
+    idx2long,
+    correct_byteorder,
+    SizeType,
+    is_idx,
+    lazyattr,
+)
+from .flavor import internal_to_flavor
 
 if TYPE_CHECKING:
     from .atom import Atom, Enum
-    from .filters import Filters
     from .group import Group
+    from .filters import Filters
 
 # default version for VLARRAY objects
 # obversion = "1.0"    # initial version
@@ -29,7 +35,7 @@ if TYPE_CHECKING:
 # obversion = "1.1"    # This adds support for time datatypes.
 # obversion = "1.2"    # This adds support for enumerated datatypes.
 # obversion = "1.3"     # Introduced 'PSEUDOATOM' attribute.
-obversion = "1.4"    # Numeric and numarray flavors are gone.
+obversion = "1.4"  # Numeric and numarray flavors are gone.
 
 
 class VLArray(hdf5extension.VLArray, Leaf):
@@ -212,7 +218,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
     """
 
     # Class identifier.
-    _c_classid = 'VLARRAY'
+    _c_classid = "VLARRAY"
 
     @lazyattr
     def dtype(self) -> np.dtype:
@@ -231,7 +237,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         for variable-length arrays.  Accessing this attribute will raise a
         NotImplementedError.
         """
-        raise NotImplementedError('size_on_disk not implemented for VLArrays')
+        raise NotImplementedError("size_on_disk not implemented for VLArrays")
 
     @property
     def size_in_memory(self) -> int:
@@ -279,7 +285,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """New filter properties for this array."""
 
         if expectedrows is None:
-            expectedrows = parentnode._v_file.params['EXPECTED_ROWS_VLARRAY']
+            expectedrows = parentnode._v_file.params["EXPECTED_ROWS_VLARRAY"]
         self._v_expectedrows = int(expectedrows)
         """The expected number of rows to be stored in the array.
 
@@ -332,7 +338,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         self.nrows: int | None = None
         """The current number of rows in the array."""
 
-        self.extdim = 0   # VLArray only have one dimension currently
+        self.extdim = 0  # VLArray only have one dimension currently
         """The index of the enlargeable dimension (always 0 for vlarrays)."""
 
         # Check the chunkshape parameter
@@ -344,14 +350,17 @@ class VLArray(hdf5extension.VLArray, Leaf):
             except TypeError:
                 raise TypeError(
                     "`chunkshape` parameter must be an integer or sequence "
-                    "and you passed a %s" % type(chunkshape))
+                    "and you passed a %s" % type(chunkshape)
+                )
             if len(chunkshape) != 1:
-                raise ValueError("`chunkshape` rank (length) must be 1: %r"
-                                 % (chunkshape,))
+                raise ValueError(
+                    f"`chunkshape` rank (length) must be 1: {chunkshape!r}"
+                )
             self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
-        super().__init__(parentnode, name, new, filters,
-                         byteorder, _log, track_times)
+        super().__init__(
+            parentnode, name, new, filters, byteorder, _log, track_times
+        )
 
     def _g_post_init_hook(self) -> None:
         super()._g_post_init_hook()
@@ -374,7 +383,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # PyTables 3.0 release and remove the expected_mb parameter.
         # The algorithm for computing the chunkshape should be rewritten as
         # requested by gh-35.
-        expected_mb = expectedrows * elemsize / 1024 ** 2
+        expected_mb = expectedrows * elemsize / 1024**2
 
         chunksize = calc_chunksize(expected_mb)
 
@@ -393,10 +402,12 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # Check for zero dims in atom shape (not allowed in VLArrays)
         zerodims = np.sum(np.array(atom.shape) == 0)
         if zerodims > 0:
-            raise ValueError("When creating VLArrays, none of the dimensions "
-                             "of the Atom instance can be zero.")
+            raise ValueError(
+                "When creating VLArrays, none of the dimensions "
+                "of the Atom instance can be zero."
+            )
 
-        if not hasattr(atom, 'size'):  # it is a pseudo-atom
+        if not hasattr(atom, "size"):  # it is a pseudo-atom
             self._atomicdtype = atom.base.dtype
             self._atomicsize = atom.base.size
             self._basesize = atom.base.itemsize
@@ -411,7 +422,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         if self._v_chunkshape is None:
             self._v_chunkshape = self._calc_chunkshape(self._v_expectedrows)
 
-        self.nrows = SizeType(0)     # No rows at creation time
+        self.nrows = SizeType(0)  # No rows at creation time
 
         # Correct the byteorder if needed
         if self.byteorder is None:
@@ -423,7 +434,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         # Add an attribute in case we have a pseudo-atom so that we
         # can retrieve the proper class after a re-opening operation.
-        if not hasattr(atom, 'size'):  # it is a pseudo-atom
+        if not hasattr(atom, "size"):  # it is a pseudo-atom
             self.attrs.PSEUDOATOM = atom.kind
 
         return self._v_objectid
@@ -431,21 +442,21 @@ class VLArray(hdf5extension.VLArray, Leaf):
     def _g_open(self) -> int:
         """Get the metadata info for an array in file."""
 
-        self._v_objectid, self.nrows, self._v_chunkshape, atom = \
+        self._v_objectid, self.nrows, self._v_chunkshape, atom = (
             self._open_array()
+        )
 
         # Check if the atom can be a PseudoAtom
         if "PSEUDOATOM" in self.attrs:
             kind = self.attrs.PSEUDOATOM
-            if kind == 'vlstring':
+            if kind == "vlstring":
                 atom = VLStringAtom()
-            elif kind == 'vlunicode':
+            elif kind == "vlunicode":
                 atom = VLUnicodeAtom()
-            elif kind == 'object':
+            elif kind == "object":
                 atom = ObjectAtom()
             else:
-                raise ValueError(
-                    "pseudo-atom name ``%s`` not known." % kind)
+                raise ValueError("pseudo-atom name ``%s`` not known." % kind)
         elif self._v_file.format_version[:1] == "1":
             flavor1x = self.attrs.FLAVOR
             if flavor1x == "VLString":
@@ -475,7 +486,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         diflen = shapelen - atomshapelen
         if shape == atom_shape:
             nobjects = 1
-        elif (diflen == 1 and shape[diflen:] == atom_shape):
+        elif diflen == 1 and shape[diflen:] == atom_shape:
             # Check if the leading dimensions are all ones
             # if shape[:diflen-1] == (1,)*(diflen-1):
             #    nobjects = shape[diflen-1]
@@ -488,9 +499,11 @@ class VLArray(hdf5extension.VLArray, Leaf):
             # Case where shape = (N,) and shape_atom = 1 or (1,)
             nobjects = shape[0]
         else:
-            raise ValueError("The object '%s' is composed of elements with "
-                             "shape '%s', which is not compatible with the "
-                             "atom shape ('%s')." % (nparr, shape, atom_shape))
+            raise ValueError(
+                "The object '%s' is composed of elements with "
+                "shape '%s', which is not compatible with the "
+                "atom shape ('%s')." % (nparr, shape, atom_shape)
+            )
         return nobjects
 
     def get_enum(self) -> Enum:
@@ -502,9 +515,10 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         """
 
-        if self.atom.kind != 'enum':
-            raise TypeError("array ``%s`` is not of an enumerated type"
-                            % self._v_pathname)
+        if self.atom.kind != "enum":
+            raise TypeError(
+                "array ``%s`` is not of an enumerated type" % self._v_pathname
+            )
 
         return self.atom.enum
 
@@ -524,7 +538,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         # Prepare the sequence to convert it into a NumPy object
         atom = self.atom
-        if not hasattr(atom, 'size'):  # it is a pseudo-atom
+        if not hasattr(atom, "size"):  # it is a pseudo-atom
             sequence = atom.toarray(sequence)
             statom = atom.base
         else:
@@ -578,7 +592,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """
 
         (self._start, self._stop, self._step) = self._process_range(
-            start, stop, step)
+            start, stop, step
+        )
         self._init_loop()
         return self
 
@@ -616,9 +631,9 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         self._nrowsread = self._start
         self._startb = self._start
-        self._row = -1   # Sentinel
+        self._row = -1  # Sentinel
         self._init = True  # Sentinel
-        self.nrow = SizeType(self._start - self._step)    # row number
+        self.nrow = SizeType(self._start - self._step)  # row number
 
     def __next__(self) -> list | np.ndarray:
         """Get the next element of the array during an iteration.
@@ -630,7 +645,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         if self._nrowsread >= self._stop:
             self._init = False
-            raise StopIteration        # end of iteration
+            raise StopIteration  # end of iteration
         else:
             # Read a chunk of rows
             if self._row + 1 >= self.nrowsinbuf or self._row < 0:
@@ -687,7 +702,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
             return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
             start, stop, step = self._process_range(
-                key.start, key.stop, key.step)
+                key.start, key.stop, key.step
+            )
             return self.read(start, stop, step)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
@@ -708,7 +724,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             object_ = value
             # Prepare the object to convert it into a NumPy object
             atom = self.atom
-            if not hasattr(atom, 'size'):  # it is a pseudo-atom
+            if not hasattr(atom, "size"):  # it is a pseudo-atom
                 object_ = atom.toarray(object_)
                 statom = atom.base
             else:
@@ -717,22 +733,23 @@ class VLArray(hdf5extension.VLArray, Leaf):
             nobjects = self._getnobjects(value)
 
             # Get the previous value
-            nrow = idx2long(
-                nrow)   # To convert any possible numpy scalar value
+            nrow = idx2long(nrow)  # To convert any possible numpy scalar value
             nparr = self._read_array(nrow, nrow + 1, 1)[0]
             nobjects = len(nparr)
             if len(value) > nobjects:
-                raise ValueError("Length of value (%s) is larger than number "
-                                 "of elements in row (%s)" % (len(value),
-                                                              nobjects))
+                raise ValueError(
+                    "Length of value (%s) is larger than number "
+                    "of elements in row (%s)" % (len(value), nobjects)
+                )
             try:
                 nparr[:] = value
             except Exception as exc:  # XXX
-                raise ValueError("Value parameter:\n'%r'\n"
-                                 "cannot be converted into an array object "
-                                 "compliant vlarray[%s] row: \n'%r'\n"
-                                 "The error was: <%s>" % (value, nrow,
-                                                          nparr[:], exc))
+                raise ValueError(
+                    "Value parameter:\n'%r'\n"
+                    "cannot be converted into an array object "
+                    "compliant vlarray[%s] row: \n'%r'\n"
+                    "The error was: <%s>" % (value, nrow, nparr[:], exc)
+                )
 
             if nparr.size > 0:
                 self._modify(nrow, nparr, nobjects)
@@ -794,7 +811,8 @@ class VLArray(hdf5extension.VLArray, Leaf):
             value = [value]
         elif isinstance(key, slice):
             start, stop, step = self._process_range(
-                key.start, key.stop, key.step)
+                key.start, key.stop, key.step
+            )
             coords = range(start, stop, step)
         # Try with a boolean or point selection
         elif type(key) in (list, tuple) or isinstance(key, np.ndarray):
@@ -836,7 +854,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
             listarr = self._read_array(start, stop, step)
 
         atom = self.atom
-        if not hasattr(atom, 'size'):  # it is a pseudo-atom
+        if not hasattr(atom, "size"):  # it is a pseudo-atom
             outlistarr = [atom.fromarray(arr) for arr in listarr]
         else:
             # Convert the list to the right flavor
@@ -868,9 +886,15 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         # Build the new VLArray object
         object = VLArray(
-            group, name, self.atom, title=title, filters=filters,
-            expectedrows=self._v_expectedrows, chunkshape=chunkshape,
-            _log=_log)
+            group,
+            name,
+            self.atom,
+            title=title,
+            filters=filters,
+            expectedrows=self._v_expectedrows,
+            chunkshape=chunkshape,
+            _log=_log,
+        )
 
         # Now, fill the new vlarray with values from the old one
         # This is not buffered because we cannot forsee the length
@@ -882,7 +906,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         # Optimized version (no conversions, no type and shape checks, etc...)
         nrowscopied = SizeType(0)
         nbytes = 0
-        if not hasattr(self.atom, 'size'):  # it is a pseudo-atom
+        if not hasattr(self.atom, "size"):  # it is a pseudo-atom
             atomsize = self.atom.base.size
         else:
             atomsize = self.atom.size

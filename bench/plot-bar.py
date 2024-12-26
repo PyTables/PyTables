@@ -2,8 +2,9 @@
 # a stacked bar plot with errorbars
 
 from pathlib import Path
-from matplotlib import pyplot as plt
+
 import numpy as np
+from matplotlib import pyplot as plt
 
 checks = [
     "open_close",

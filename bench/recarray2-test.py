@@ -1,9 +1,10 @@
 import sys
-from pathlib import Path
 from time import perf_counter as clock
+from pathlib import Path
+
 import numpy as np
-import chararray
 import recarray
+import chararray
 import recarray2  # This is my modified version
 
 usage = (

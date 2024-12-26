@@ -1,6 +1,7 @@
 import subprocess
-from indexed_search import DB
+
 import psycopg2 as db2
+from indexed_search import DB
 
 CLUSTER_NAME = "base"
 DATA_DIR = "/scratch2/postgres/data/%s" % CLUSTER_NAME

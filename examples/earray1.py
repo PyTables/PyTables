@@ -1,5 +1,6 @@
-import tables as tb
 import numpy as np
+
+import tables as tb
 
 fileh = tb.open_file("earray1.h5", mode="w")
 a = tb.StringAtom(itemsize=8)

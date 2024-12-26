@@ -237,7 +237,7 @@ class Hdf_dict(dict):
                     except Exception:
                         # otherwise they stored a list of data
                         try:
-                            return [item for item in table["col"]]
+                            return list(table["col"])
                         except Exception:
                             cur_column = []
                             total_columns = []

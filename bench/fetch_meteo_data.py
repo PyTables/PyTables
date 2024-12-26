@@ -1,9 +1,11 @@
 import sys
-import xarray as xr
-import numpy as np
-import s3fs
-import tables as tb
 import datetime
+
+import s3fs
+import numpy as np
+import xarray as xr
+
+import tables as tb
 
 dim1 = 24
 dim2 = 721

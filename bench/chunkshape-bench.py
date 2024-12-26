@@ -4,7 +4,9 @@
 # F. Alted
 
 from time import perf_counter as clock
+
 import numpy as np
+
 import tables as tb
 
 dim1, dim2 = 360, 6_109_666

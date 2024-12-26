@@ -1,4 +1,5 @@
 import numpy as np
+
 import tables as tb
 
 # Open a new empty HDF5 file

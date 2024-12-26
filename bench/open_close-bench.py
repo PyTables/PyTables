@@ -9,8 +9,8 @@ import sys
 import getopt
 import pstats
 import cProfile as prof
-from pathlib import Path
 from time import perf_counter as clock
+from pathlib import Path
 
 import tables as tb
 

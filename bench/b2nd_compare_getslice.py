@@ -21,15 +21,16 @@
 #
 # Based on "bench/ndarray/compare_getslice.py" from python-blosc2.
 
-import math
 import os
 import sys
+import math
 from time import time
 
-import blosc2
 import h5py
-import hdf5plugin
 import numpy as np
+import blosc2
+import hdf5plugin
+
 import tables
 
 persistent = True if len(sys.argv) == 1 else False

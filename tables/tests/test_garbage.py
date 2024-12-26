@@ -30,9 +30,10 @@ class GarbageTestCase(common.PyTablesTestCase):
                     classCount[objClass] += 1
                 else:
                     classCount[objClass] = 1
-            incidence = ['``%s``: %d' % (cls, cnt)
-                         for (cls, cnt) in classCount.items()]
-            print("Class incidence:", ', '.join(incidence))
+            incidence = [
+                "``%s``: %d" % (cls, cnt) for (cls, cnt) in classCount.items()
+            ]
+            print("Class incidence:", ", ".join(incidence))
         self.fail("Possible leak: %d uncollected objects." % garbageLen)
 
 
@@ -44,8 +45,9 @@ def suite():
     return theSuite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     common.parse_argv(sys.argv)
     common.print_versions()
-    common.unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest="suite")

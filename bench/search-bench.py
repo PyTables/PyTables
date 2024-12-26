@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
-import random
 import sys
+import random
 import warnings
-from pathlib import Path
 from time import perf_counter as clock
 from time import process_time as cpuclock
+from pathlib import Path
 
 import numpy as np
+
 import tables as tb
 
 # Initialize the random generator always with the same integer

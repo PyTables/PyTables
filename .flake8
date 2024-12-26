@@ -3,7 +3,7 @@
 # max-complexity = 10
 doctests = true
 # https://github.com/psf/black/blob/main/docs/guides/using_black_with_other_tools.md
-extend-ignore = E203,E501,E701,W503,SC,CNL,D,A,N,BLK,CCR,B902
+extend-ignore = E203,E501,E701,W503,SC,CNL,D,A,CCR,B902
 # extend-ignore = I  # flake8-import-order: not compatible with isort
 # extend-ignore = SC  # flake8-spellcheck: too aggressive
 # extend-ignore = CNL  # flake8-class-newline: incompatible with black
@@ -18,7 +18,7 @@ per-file-ignores =
     tables/__init__.py: E402,F401,F403,F405
 statistics = True
 count = True
-extend-exclude = **/tests/*
+extend-exclude = **/tests/* c-blosc/*
 
 # flake8-cognitive-complexity
 # max-cognitive-complexity = 7  # default

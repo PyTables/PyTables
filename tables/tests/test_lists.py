@@ -7,7 +7,7 @@ from tables.tests import common
 
 def WriteRead(filename, testTuple):
     if common.verbose:
-        print('\n', '-=' * 30)
+        print("\n", "-=" * 30)
         print("Running test for object %s" % type(testTuple))
 
     # Create an instance of HDF5 Table
@@ -16,7 +16,7 @@ def WriteRead(filename, testTuple):
     try:
         # Create the array under root and name 'somearray'
         a = testTuple
-        fileh.create_array(root, 'somearray', a, "Some array")
+        fileh.create_array(root, "somearray", a, "Some array")
     finally:
         # Close the file
         fileh.close()
@@ -78,7 +78,8 @@ class Basic0DTwoTestCase(BasicTestCase):
     # Scalar case
     title = "Rank-0 case 2"
     numericalList = 33.34
-    charList = b"33"*500
+    charList = b"33" * 500
+
 
 # This does not work anymore because I've split the chunked arrays to happen
 # mainly in EArray objects
@@ -105,16 +106,16 @@ class Basic1DTwoTestCase(BasicTestCase):
 class Basic2DTestCase(BasicTestCase):
     # 2D case
     title = "Rank-2 case 1"
-    numericalList = [[1, 2]]*5
-    charList = [[b"qq", b"zz"]]*5
+    numericalList = [[1, 2]] * 5
+    charList = [[b"qq", b"zz"]] * 5
 
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 case 1"
-    numericalList = [[[[[[[[[[1, 2], [3, 4]]]]]]]]]]*5
+    numericalList = [[[[[[[[[[1, 2], [3, 4]]]]]]]]]] * 5
     # Dimensions greater than 6 in strings gives some warnings
-    charList = [[[[[[[[[[b"a", b"b"], [b"qq", b"zz"]]]]]]]]]]*5
+    charList = [[[[[[[[[[b"a", b"b"], [b"qq", b"zz"]]]]]]]]]] * 5
 
 
 class ExceptionTestCase(common.PyTablesTestCase):
@@ -134,7 +135,7 @@ class ExceptionTestCase(common.PyTablesTestCase):
         """Non supported lists objects (character objects)"""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running test for %s" % (self.title))
         a = self.charList
         with self.assertRaises((ValueError, TypeError)):
@@ -160,8 +161,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if common.verbose:
@@ -174,8 +176,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if common.verbose:
@@ -188,8 +191,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if common.verbose:
@@ -202,8 +206,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if common.verbose:
@@ -216,8 +221,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if common.verbose:
@@ -230,8 +236,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if common.verbose:
@@ -244,8 +251,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if common.verbose:
@@ -258,8 +266,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if common.verbose:
@@ -272,8 +281,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if common.verbose:
@@ -286,8 +296,9 @@ class GetItemTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if common.verbose:
@@ -308,11 +319,13 @@ class GI2ListTestCase(GetItemTestCase):
     # A more complex example
     title = "Rank-1,2 case 2 (lists)"
     numericalList = [3, 4]
-    numericalListME = [[3, 2, 1, 0, 4, 5, 6],
-                       [2, 1, 0, 4, 5, 6, 7],
-                       [4, 3, 2, 1, 0, 4, 5],
-                       [3, 2, 1, 0, 4, 5, 6],
-                       [3, 2, 1, 0, 4, 5, 6]]
+    numericalListME = [
+        [3, 2, 1, 0, 4, 5, 6],
+        [2, 1, 0, 4, 5, 6, 7],
+        [4, 3, 2, 1, 0, 4, 5],
+        [3, 2, 1, 0, 4, 5, 6],
+        [3, 2, 1, 0, 4, 5, 6],
+    ]
 
     charList = [b"a", b"b"]
     charListME = [
@@ -331,8 +344,9 @@ class GeneratorTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.charList
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         ga = [i for i in a]
@@ -347,8 +361,9 @@ class GeneratorTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.charListME
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if isinstance(a[0], tuple):
@@ -366,8 +381,9 @@ class GeneratorTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.numericalList
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         ga = [i for i in a]
@@ -382,8 +398,9 @@ class GeneratorTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create the array under root and name 'somearray'
         a = self.numericalListME
-        arr = self.h5file.create_array(self.h5file.root, 'somearray', a,
-                                       "Some array")
+        arr = self.h5file.create_array(
+            self.h5file.root, "somearray", a, "Some array"
+        )
 
         # Get and compare an element
         if isinstance(a[0], tuple):
@@ -410,11 +427,13 @@ class GE2ListTestCase(GeneratorTestCase):
     # Scalar case
     title = "Rank-1,2 case 2 (lists)"
     numericalList = [3, 4]
-    numericalListME = [[3, 2, 1, 0, 4, 5, 6],
-                       [2, 1, 0, 4, 5, 6, 7],
-                       [4, 3, 2, 1, 0, 4, 5],
-                       [3, 2, 1, 0, 4, 5, 6],
-                       [3, 2, 1, 0, 4, 5, 6]]
+    numericalListME = [
+        [3, 2, 1, 0, 4, 5, 6],
+        [2, 1, 0, 4, 5, 6, 7],
+        [4, 3, 2, 1, 0, 4, 5],
+        [3, 2, 1, 0, 4, 5, 6],
+        [3, 2, 1, 0, 4, 5, 6],
+    ]
 
     charList = [b"a", b"b"]
     charListME = [
@@ -448,8 +467,9 @@ def suite():
     return theSuite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     common.parse_argv(sys.argv)
     common.print_versions()
-    common.unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest="suite")

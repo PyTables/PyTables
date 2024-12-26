@@ -7,7 +7,6 @@ import warnings
 import traceback
 from collections.abc import Callable
 
-
 __all__ = [
     "ChunkError",
     "ClosedFileError",
@@ -33,7 +32,7 @@ __all__ = [
 ]
 
 
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""
 
 
@@ -75,9 +74,9 @@ class HDF5ExtError(RuntimeError):
     # NOTE: in order to avoid circular dependencies between modules the
     #       _dump_h5_backtrace method is set at initialization time in
     #       the utilsextension.pyx.
-    _dump_h5_backtrace: Callable[
-        [], list[tuple[str, int, str, str]]
-    ] | None = None
+    _dump_h5_backtrace: (
+        Callable[[], list[tuple[str, int, str, str]]] | None
+    ) = None
 
     DEFAULT_H5_BACKTRACE_POLICY = "VERBOSE"
     """Default policy for HDF5 backtrace handling
@@ -117,10 +116,12 @@ class HDF5ExtError(RuntimeError):
         try:
             newvalue = envmap[envvalue.upper()]
         except KeyError:
-            warnings.warn("Invalid value for the environment variable "
-                          "'PT_DEFAULT_H5_BACKTRACE_POLICY'.  The default "
-                          "policy for HDF5 back trace management in PyTables "
-                          "will be: '%s'" % oldvalue)
+            warnings.warn(
+                "Invalid value for the environment variable "
+                "'PT_DEFAULT_H5_BACKTRACE_POLICY'.  The default "
+                "policy for HDF5 back trace management in PyTables "
+                "will be: '%s'" % oldvalue
+            )
         else:
             cls.DEFAULT_H5_BACKTRACE_POLICY = newvalue
 
@@ -130,7 +131,7 @@ class HDF5ExtError(RuntimeError):
 
         super().__init__(*args)
 
-        self._h5bt_policy = kargs.get('h5bt', self.DEFAULT_H5_BACKTRACE_POLICY)
+        self._h5bt_policy = kargs.get("h5bt", self.DEFAULT_H5_BACKTRACE_POLICY)
 
         if self._h5bt_policy and self._dump_h5_backtrace is not None:
             self.h5backtrace = self._dump_h5_backtrace()
@@ -170,14 +171,16 @@ class HDF5ExtError(RuntimeError):
 
         """
 
-        verbose = bool(self._h5bt_policy in ('VERBOSE', 'verbose'))
+        verbose = bool(self._h5bt_policy in ("VERBOSE", "verbose"))
 
         if verbose and self.h5backtrace:
-            bt = "\n".join([
-                "HDF5 error back trace\n",
-                self.format_h5_backtrace(),
-                "End of HDF5 error back trace"
-            ])
+            bt = "\n".join(
+                [
+                    "HDF5 error back trace\n",
+                    self.format_h5_backtrace(),
+                    "End of HDF5 error back trace",
+                ]
+            )
 
             if len(self.args) == 1 and isinstance(self.args[0], str):
                 msg = super().__str__()
@@ -204,9 +207,9 @@ class HDF5ExtError(RuntimeError):
             backtrace = self.h5backtrace
 
         if backtrace is None:
-            return 'No HDF5 back trace available'
+            return "No HDF5 back trace available"
         else:
-            return ''.join(traceback.format_list(backtrace))
+            return "".join(traceback.format_list(backtrace))
 
 
 # Initialize the policy for HDF5 back trace handling
@@ -215,6 +218,7 @@ HDF5ExtError.set_policy_from_env()
 
 # The following exceptions are concretions of the ``ValueError`` exceptions
 # raised by ``file`` objects on certain operations.
+
 
 class ClosedNodeError(ValueError):
     """The operation can not be completed because the node is closed.
@@ -395,6 +399,7 @@ class ExperimentalFeatureWarning(Warning):
     experimental and that users have to use with care.
 
     """
+
     pass
 
 
@@ -403,6 +408,7 @@ class UnclosedFileWarning(Warning):
 
     Pytables will close remaining open files at exit, but raise this warning.
     """
+
     pass
 
 
@@ -414,6 +420,7 @@ class ChunkError(Exception):
     base for more specific exceptions.
 
     """
+
     pass
 
 
@@ -424,6 +431,7 @@ class NotChunkedError(ChunkError):
     instance.
 
     """
+
     pass
 
 
@@ -435,6 +443,7 @@ class NotChunkAlignedError(ChunkError):
     dataset's chunksize.
 
     """
+
     pass
 
 
@@ -447,4 +456,5 @@ class NoSuchChunkError(ChunkError):
     can be written, in which case it is created in storage.
 
     """
+
     pass

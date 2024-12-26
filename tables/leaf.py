@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
-import warnings
-import math
 import json
+import math
+import warnings
+from typing import Any, Literal, NamedTuple, Union, TYPE_CHECKING
 from pathlib import Path
 from functools import lru_cache
-from typing import Any, Literal, NamedTuple, Union, TYPE_CHECKING
 
 import numpy as np
 
-from .flavor import (check_flavor, internal_flavor, toarray,
-                     alias_map as flavor_alias_map)
 from .node import Node
-from .filters import Filters
 from .utils import byteorders, lazyattr, SizeType
+from .flavor import check_flavor, internal_flavor, toarray
+from .flavor import alias_map as flavor_alias_map
+from .filters import Filters
 from .exceptions import (
     NoSuchChunkError,
     NotChunkAlignedError,
@@ -40,14 +40,14 @@ BufferLike = Union[bytes, bytearray, memoryview, NPByteArray]
 
 def read_cached_cpu_info() -> dict[str, Any]:
     try:
-        with open(Path.home() / '.pytables-cpuinfo.json') as f:
+        with open(Path.home() / ".pytables-cpuinfo.json") as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
 
 
 def write_cached_cpu_info(cpu_info_dict: dict[str, Any]) -> None:
-    with open(Path.home() / '.pytables-cpuinfo.json', 'w') as f:
+    with open(Path.home() / ".pytables-cpuinfo.json", "w") as f:
         json.dump(cpu_info_dict, f, indent=4)
 
 
@@ -78,13 +78,13 @@ def csformula(expected_mb: int) -> int:
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
     basesize = 8 * 1024  # 8 KB is a good minimum
-    return basesize * int(2**math.log10(expected_mb))
+    return basesize * int(2 ** math.log10(expected_mb))
 
 
 def limit_es(expected_mb: int) -> int:
     """Protection against creating too small or too large chunks."""
 
-    if expected_mb < 1:        # < 1 MB
+    if expected_mb < 1:  # < 1 MB
         expected_mb = 1
     elif expected_mb > 10**7:  # > 10 TB
         expected_mb = 10**7
@@ -150,6 +150,7 @@ class ChunkInfo(NamedTuple):
         exists in storage.  ``None`` for missing chunks.
 
     """
+
     start: tuple[int, ...] | None
     filter_mask: int | None
     offset: int | None
@@ -228,7 +229,7 @@ class Leaf(Node):
         This is read-only because you cannot change the chunk size of a
         leaf once it has been created.
         """
-        return getattr(self, '_v_chunkshape', None)
+        return getattr(self, "_v_chunkshape", None)
 
     @property
     def object_id(self) -> int:
@@ -346,12 +347,13 @@ class Leaf(Node):
             # Get filter properties from parent group if not given.
             if filters is None:
                 filters = parentnode._v_filters
-            self.__dict__['filters'] = filters  # bypass the property
+            self.__dict__["filters"] = filters  # bypass the property
 
-            if byteorder not in (None, 'little', 'big'):
+            if byteorder not in (None, "little", "big"):
                 raise ValueError(
                     "the byteorder can only take 'little' or 'big' values "
-                    "and you passed: %s" % byteorder)
+                    "and you passed: %s" % byteorder
+                )
             self.byteorder = byteorder
             """The byte ordering of the leaf data *on disk*."""
 
@@ -386,8 +388,10 @@ class Leaf(Node):
             if self.filters.bitshuffle:
                 filters.append("bitshuffle")
             filters.append(f"{self.filters.complib}({self.filters.complevel})")
-        return (f"{self._v_pathname} ({self.__class__.__name__}"
-                f"{self.shape}{', '.join(filters)}) {self._v_title!r}")
+        return (
+            f"{self._v_pathname} ({self.__class__.__name__}"
+            f"{self.shape}{', '.join(filters)}) {self._v_title!r}"
+        )
 
     def _g_post_init_hook(self) -> None:
         """Code to be run after node creation and before creation logging.
@@ -401,11 +405,11 @@ class Leaf(Node):
             if self._flavor is None:
                 self._flavor = internal_flavor
             else:  # flavor set at creation time, do not log
-                if self._v_file.params['PYTABLES_SYS_ATTRS']:
-                    self._v_attrs._g__setattr('FLAVOR', self._flavor)
+                if self._v_file.params["PYTABLES_SYS_ATTRS"]:
+                    self._v_attrs._g__setattr("FLAVOR", self._flavor)
         else:  # get flavor of existing node (if any)
-            if self._v_file.params['PYTABLES_SYS_ATTRS']:
-                flavor = getattr(self._v_attrs, 'FLAVOR', internal_flavor)
+            if self._v_file.params["PYTABLES_SYS_ATTRS"]:
+                flavor = getattr(self._v_attrs, "FLAVOR", internal_flavor)
                 self._flavor = flavor_alias_map.get(flavor, flavor)
             else:
                 self._flavor = internal_flavor
@@ -427,7 +431,7 @@ class Leaf(Node):
         if (
             complib is not None
             and complib.startswith("blosc2")
-            and self._c_classid in ('TABLE', 'CARRAY', 'EARRAY')
+            and self._c_classid in ("TABLE", "CARRAY", "EARRAY")
         ):
             # Blosc2 can introspect into blocks, so we can increase the
             # chunksize for improving HDF5 perf for its internal btree.
@@ -438,15 +442,15 @@ class Leaf(Node):
             chunksize *= 16
             # Now, go explore the L3 size and try to find a smarter chunksize
             cpu_info = get_cpu_info()
-            if 'l3_cache_size' in cpu_info:
+            if "l3_cache_size" in cpu_info:
                 # In general, is a good idea to set the chunksize equal to L3
-                l3_cache_size = cpu_info['l3_cache_size']
+                l3_cache_size = cpu_info["l3_cache_size"]
                 # cpuinfo sometimes returns cache sizes as strings (like,
                 # "4096 KB"), so refuse the temptation to guess and use the
                 # value only when it is an actual int.
                 # Also, sometimes cpuinfo does not return a correct L3 size;
                 # so in general, enforcing L3 > L2 is a good sanity check.
-                l2_cache_size = cpu_info.get('l2_cache_size', "Not found")
+                l2_cache_size = cpu_info.get("l2_cache_size", "Not found")
                 if (
                     type(l3_cache_size) is int
                     and type(l2_cache_size) is int
@@ -492,7 +496,7 @@ class Leaf(Node):
         params = self._v_file.params
         # Compute the nrowsinbuf
         rowsize = self.rowsize
-        buffersize = params['IO_BUFFER_SIZE']
+        buffersize = params["IO_BUFFER_SIZE"]
         if rowsize != 0:
             nrowsinbuf = buffersize // rowsize
         else:
@@ -502,7 +506,7 @@ class Leaf(Node):
         if nrowsinbuf == 0:
             nrowsinbuf = 1
             # If rowsize is too large, issue a Performance warning
-            maxrowsize = params['BUFFER_TIMES'] * buffersize
+            maxrowsize = params["BUFFER_TIMES"] * buffersize
             if rowsize > maxrowsize:
                 warnings.warn(
                     f"The Leaf ``{self._v_pathname}`` is exceeding the "
@@ -551,16 +555,19 @@ class Leaf(Node):
             # Protection against start greater than available records
             # nrows == 0 is a special case for empty objects
             if 0 < nrows <= start:
-                raise IndexError("start of range (%s) is greater than "
-                                 "number of rows (%s)" % (start, nrows))
+                raise IndexError(
+                    "start of range (%s) is greater than "
+                    "number of rows (%s)" % (start, nrows)
+                )
             step = 1
             if start == -1:  # corner case
                 stop = nrows
             else:
                 stop = start + 1
         # Finally, get the correct values (over the main dimension)
-        start, stop, step = self._process_range(start, stop, step,
-                                                warn_negstep=warn_negstep)
+        start, stop, step = self._process_range(
+            start, stop, step, warn_negstep=warn_negstep
+        )
         return (start, stop, step)
 
     def _g_copy(
@@ -572,18 +579,18 @@ class Leaf(Node):
         **kwargs,
     ) -> Leaf:
         # Compute default arguments.
-        start = kwargs.pop('start', None)
-        stop = kwargs.pop('stop', None)
-        step = kwargs.pop('step', None)
-        title = kwargs.pop('title', self._v_title)
-        filters = kwargs.pop('filters', self.filters)
-        chunkshape = kwargs.pop('chunkshape', self.chunkshape)
-        copyuserattrs = kwargs.pop('copyuserattrs', True)
-        stats = kwargs.pop('stats', None)
-        if chunkshape == 'keep':
+        start = kwargs.pop("start", None)
+        stop = kwargs.pop("stop", None)
+        step = kwargs.pop("step", None)
+        title = kwargs.pop("title", self._v_title)
+        filters = kwargs.pop("filters", self.filters)
+        chunkshape = kwargs.pop("chunkshape", self.chunkshape)
+        copyuserattrs = kwargs.pop("copyuserattrs", True)
+        stats = kwargs.pop("stats", None)
+        if chunkshape == "keep":
             chunkshape = self.chunkshape  # Keep the original chunkshape
-        elif chunkshape == 'auto':
-            chunkshape = None             # Will recompute chunkshape
+        elif chunkshape == "auto":
+            chunkshape = None  # Will recompute chunkshape
 
         # Fix arguments with explicit None values for backwards compatibility.
         if title is None:
@@ -593,21 +600,30 @@ class Leaf(Node):
 
         # Create a copy of the object.
         (new_node, bytes) = self._g_copy_with_stats(
-            newparent, newname, start, stop, step,
-            title, filters, chunkshape, _log, **kwargs)
+            newparent,
+            newname,
+            start,
+            stop,
+            step,
+            title,
+            filters,
+            chunkshape,
+            _log,
+            **kwargs,
+        )
 
         # Copy user attributes if requested (or the flavor at least).
         if copyuserattrs:
             self._v_attrs._g_copy(new_node._v_attrs, copyclass=True)
-        elif 'FLAVOR' in self._v_attrs:
-            if self._v_file.params['PYTABLES_SYS_ATTRS']:
-                new_node._v_attrs._g__setattr('FLAVOR', self._flavor)
+        elif "FLAVOR" in self._v_attrs:
+            if self._v_file.params["PYTABLES_SYS_ATTRS"]:
+                new_node._v_attrs._g__setattr("FLAVOR", self._flavor)
         new_node._flavor = self._flavor  # update cached value
 
         # Update statistics if needed.
         if stats is not None:
-            stats['leaves'] += 1
-            stats['bytes'] += bytes
+            stats["leaves"] += 1
+            stats["bytes"] += bytes
 
         return new_node
 
@@ -625,7 +641,7 @@ class Leaf(Node):
         # place that we have to do the conversion manually. In all the
         # other cases, it will be HDF5 the responsible for doing the
         # byteswap properly.
-        if dbyteorder in ['little', 'big']:
+        if dbyteorder in ["little", "big"]:
             if dbyteorder != self.byteorder:
                 # if data is not writeable, do a copy first
                 if not data.flags.writeable:
@@ -678,21 +694,24 @@ class Leaf(Node):
         if len(key) == 0:
             return np.array([], dtype="i8")
 
-        if key.dtype.kind == 'b':
+        if key.dtype.kind == "b":
             if not key.shape == self.shape:
                 raise IndexError(
-                    "Boolean indexing array has incompatible shape")
+                    "Boolean indexing array has incompatible shape"
+                )
             # Get the True coordinates (64-bit indices!)
-            coords = np.asarray(key.nonzero(), dtype='i8')
+            coords = np.asarray(key.nonzero(), dtype="i8")
             coords = np.transpose(coords)
-        elif key.dtype.kind == 'i' or key.dtype.kind == 'u':
+        elif key.dtype.kind == "i" or key.dtype.kind == "u":
             if len(key.shape) > 2:
                 raise IndexError(
-                    "Coordinate indexing array has incompatible shape")
+                    "Coordinate indexing array has incompatible shape"
+                )
             elif len(key.shape) == 2:
                 if key.shape[0] != len(self.shape):
                     raise IndexError(
-                        "Coordinate indexing array has incompatible shape")
+                        "Coordinate indexing array has incompatible shape"
+                    )
                 coords = np.asarray(key, dtype="i8")
                 coords = np.transpose(coords)
             else:
@@ -724,17 +743,22 @@ class Leaf(Node):
 
     def _check_chunk_within(self, coords: tuple[int, ...]) -> None:
         if len(coords) != self.ndim:
-            raise ValueError(f"Chunk coordinates do not match dataset shape: "
-                             f"{coords} !~ {self.shape}")
+            raise ValueError(
+                f"Chunk coordinates do not match dataset shape: "
+                f"{coords} !~ {self.shape}"
+            )
         if any(c < 0 or c >= s for (c, s) in zip(coords, self.shape)):
-            raise IndexError(f"Chunk coordinates not within dataset shape: "
-                             f"{coords} <> {self.shape}")
+            raise IndexError(
+                f"Chunk coordinates not within dataset shape: "
+                f"{coords} <> {self.shape}"
+            )
 
     def _check_chunk_coords(self, coords: tuple[int, ...]) -> None:
         if any(c % cs for (c, cs) in zip(coords, self.chunkshape)):
             raise NotChunkAlignedError(
                 f"Coordinates are not multiples of chunk shape: "
-                f"{tuple(coords)} !* {self.chunkshape}")
+                f"{tuple(coords)} !* {self.chunkshape}"
+            )
 
     # Tree manipulation
     def remove(self) -> None:
@@ -971,13 +995,14 @@ class Leaf(Node):
         self._check_chunk_coords(coords)
 
         if out is not None:
-            out = np.ndarray((len(out),), dtype='u1', buffer=out)
+            out = np.ndarray((len(out),), dtype="u1", buffer=out)
 
         coords = np.array(coords, dtype=SizeType)
         chunk = self._g_read_chunk(coords, out)
         if chunk is None:
-            raise NoSuchChunkError(f"Can't read missing chunk at coordinates "
-                                   f"{tuple(coords)}")
+            raise NoSuchChunkError(
+                f"Can't read missing chunk at coordinates " f"{tuple(coords)}"
+            )
         return chunk.tobytes() if out is None else memoryview(out)
 
     def write_chunk(
@@ -1012,7 +1037,7 @@ class Leaf(Node):
         self._check_chunk_coords(coords)
 
         coords = np.array(coords, dtype=SizeType)
-        data = np.ndarray((len(data),), dtype='u1', buffer=data)
+        data = np.ndarray((len(data),), dtype="u1", buffer=data)
         self._g_write_chunk(coords, data, filter_mask)
 
     def _f_close(self, flush: bool = True) -> None:

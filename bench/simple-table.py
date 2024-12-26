@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
-import numpy as np
-import tables as tb
 from time import time
+
+import numpy as np
+
+import tables as tb
 
 # Size of the buffer to be appended
 M = 1_000_000

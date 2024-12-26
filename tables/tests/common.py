@@ -6,14 +6,13 @@ import sys
 import locale
 import platform
 import tempfile
-from pathlib import Path
-from time import perf_counter as clock
-from packaging.version import Version
-
 import unittest
+from time import perf_counter as clock
+from pathlib import Path
 
-import numexpr as ne
 import numpy as np
+import numexpr as ne
+from packaging.version import Version
 
 import tables as tb
 
@@ -35,17 +34,17 @@ show_memory = False
 def parse_argv(argv):
     global verbose, heavy
 
-    if 'verbose' in argv:
+    if "verbose" in argv:
         verbose = True
-        argv.remove('verbose')
+        argv.remove("verbose")
 
-    if 'silent' in argv:  # take care of old flag, just in case
+    if "silent" in argv:  # take care of old flag, just in case
         verbose = False
-        argv.remove('silent')
+        argv.remove("silent")
 
-    if '--heavy' in argv:
+    if "--heavy" in argv:
         heavy = True
-        argv.remove('--heavy')
+        argv.remove("--heavy")
 
     return argv
 
@@ -61,19 +60,21 @@ def print_heavy(heavy):
     if heavy:
         print("""Performing the complete test suite!""")
     else:
-        print("""\
+        print(
+            """\
 Performing only a light (yet comprehensive) subset of the test suite.
 If you want a more complete test, try passing the --heavy flag to this script
 (or set the 'heavy' parameter in case you are using tables.test() call).
 The whole suite will take more than 4 hours to complete on a relatively
-modern CPU and around 512 MB of main memory.""")
-    print('-=' * 38)
+modern CPU and around 512 MB of main memory."""
+        )
+    print("-=" * 38)
 
 
 def print_versions():
     """Print all the versions of software that PyTables relies on."""
 
-    print('-=' * 38)
+    print("-=" * 38)
     print("PyTables version:    %s" % tb.__version__)
     print("HDF5 version:        %s" % tb.which_lib_version("hdf5")[1])
     print("NumPy version:       %s" % np.__version__)
@@ -99,12 +100,10 @@ def print_versions():
         blosc_date = tinfo[2].split()[1]
         print(f"Blosc version:       {tinfo[1]} ({blosc_date})")
         blosc_cinfo = tb.blosc_get_complib_info()
-        blosc_cinfo = [
-            f"{k} ({v[1]})" for k, v in sorted(blosc_cinfo.items())
-        ]
-        print("Blosc compressors:   %s" % ', '.join(blosc_cinfo))
-        blosc_finfo = ['shuffle', 'bitshuffle']
-        print("Blosc filters:       %s" % ', '.join(blosc_finfo))
+        blosc_cinfo = [f"{k} ({v[1]})" for k, v in sorted(blosc_cinfo.items())]
+        print("Blosc compressors:   %s" % ", ".join(blosc_cinfo))
+        blosc_finfo = ["shuffle", "bitshuffle"]
+        print("Blosc filters:       %s" % ", ".join(blosc_finfo))
     tinfo = tb.which_lib_version("blosc2")
     if tinfo is not None:
         blosc2_date = tinfo[2].split()[1]
@@ -113,25 +112,26 @@ def print_versions():
         blosc2_cinfo = [
             f"{k} ({v[1]})" for k, v in sorted(blosc2_cinfo.items())
         ]
-        print("Blosc2 compressors:  %s" % ', '.join(blosc2_cinfo))
-        blosc2_finfo = ['shuffle', 'bitshuffle']
-        print("Blosc2 filters:      %s" % ', '.join(blosc2_finfo))
+        print("Blosc2 compressors:  %s" % ", ".join(blosc2_cinfo))
+        blosc2_finfo = ["shuffle", "bitshuffle"]
+        print("Blosc2 filters:      %s" % ", ".join(blosc2_finfo))
     try:
         from Cython import __version__ as cython_version
-        print('Cython version:      %s' % cython_version)
+
+        print("Cython version:      %s" % cython_version)
     except Exception:
         pass
-    print('Python version:      %s' % sys.version)
-    print('Platform:            %s' % platform.platform())
+    print("Python version:      %s" % sys.version)
+    print("Platform:            %s" % platform.platform())
     # if os.name == 'posix':
     #     (sysname, nodename, release, version, machine) = os.uname()
     #     print('Platform:          %s-%s' % (sys.platform, machine))
-    print('Byte-ordering:       %s' % sys.byteorder)
-    print('Detected cores:      %s' % tb.utils.detect_number_of_cores())
-    print('Default encoding:    %s' % sys.getdefaultencoding())
-    print('Default FS encoding: %s' % sys.getfilesystemencoding())
-    print('Default locale:      (%s, %s)' % locale.getdefaultlocale())
-    print('-=' * 38)
+    print("Byte-ordering:       %s" % sys.byteorder)
+    print("Detected cores:      %s" % tb.utils.detect_number_of_cores())
+    print("Default encoding:    %s" % sys.getdefaultencoding())
+    print("Default FS encoding: %s" % sys.getfilesystemencoding())
+    print("Default locale:      (%s, %s)" % locale.getdefaultlocale())
+    print("-=" * 38)
 
     # This should improve readability whan tests are run by CI tools
     sys.stdout.flush()
@@ -139,7 +139,8 @@ def print_versions():
 
 def test_filename(filename):
     from importlib import resources
-    return resources.files('tables.tests') / filename
+
+    return resources.files("tables.tests") / filename
 
 
 def verbosePrint(string, nonl=False):
@@ -147,7 +148,7 @@ def verbosePrint(string, nonl=False):
     if not verbose:
         return
     if nonl:
-        print(string, end=' ')
+        print(string, end=" ")
     else:
         print(string)
 
@@ -161,8 +162,9 @@ def allequal(a, b, flavor="numpy"):
         # Scalar case
         return a == b
 
-    if ((not hasattr(a, "shape") or a.shape == ()) and
-            (not hasattr(b, "shape") or b.shape == ())):
+    if (not hasattr(a, "shape") or a.shape == ()) and (
+        not hasattr(b, "shape") or b.shape == ()
+    ):
         return a == b
 
     if a.shape != b.shape:
@@ -197,7 +199,7 @@ def allequal(a, b, flavor="numpy"):
             return 0
 
     # Multidimensional case
-    result = (a == b)
+    result = a == b
     result = np.all(result)
     if not result and verbose:
         print("Some of the elements in arrays are not equal")
@@ -218,8 +220,9 @@ def areArraysEqual(arr1, arr2, *, check_type=True):
     t2 = type(arr2)
 
     if check_type and not (
-        (hasattr(arr1, 'dtype') and arr1.dtype == arr2.dtype) or
-        issubclass(t1, t2) or issubclass(t2, t1)
+        (hasattr(arr1, "dtype") and arr1.dtype == arr2.dtype)
+        or issubclass(t1, t2)
+        or issubclass(t2, t1)
     ):
         return False
 
@@ -230,16 +233,16 @@ class PyTablesTestCase(unittest.TestCase):
     def tearDown(self):
         super().tearDown()
         for key in self.__dict__:
-            if self.__dict__[key].__class__.__name__ != 'instancemethod':
+            if self.__dict__[key].__class__.__name__ != "instancemethod":
                 self.__dict__[key] = None
 
     def _getName(self):
         """Get the name of this test case."""
-        return self.id().split('.')[-2]
+        return self.id().split(".")[-2]
 
     def _getMethodName(self):
         """Get the name of the method currently running in the test case."""
-        return self.id().split('.')[-1]
+        return self.id().split(".")[-1]
 
     def _verboseHeader(self):
         """Print a nice header for the current test method if verbose."""
@@ -249,7 +252,7 @@ class PyTablesTestCase(unittest.TestCase):
             methodName = self._getMethodName()
 
             title = f"Running {name}.{methodName}"
-            print('{}\n{}'.format(title, '-' * len(title)))
+            print("{}\n{}".format(title, "-" * len(title)))
 
     def _checkEqualityGroup(self, node1, node2, hardlink=False):
         if verbose:
@@ -258,14 +261,17 @@ class PyTablesTestCase(unittest.TestCase):
         if hardlink:
             self.assertTrue(
                 node1._v_pathname != node2._v_pathname,
-                "node1 and node2 have the same pathnames.")
+                "node1 and node2 have the same pathnames.",
+            )
         else:
             self.assertTrue(
                 node1._v_pathname == node2._v_pathname,
-                "node1 and node2 does not have the same pathnames.")
+                "node1 and node2 does not have the same pathnames.",
+            )
         self.assertTrue(
             node1._v_children == node2._v_children,
-            "node1 and node2 does not have the same children.")
+            "node1 and node2 does not have the same children.",
+        )
 
     def _checkEqualityLeaf(self, node1, node2, hardlink=False):
         if verbose:
@@ -274,14 +280,17 @@ class PyTablesTestCase(unittest.TestCase):
         if hardlink:
             self.assertTrue(
                 node1._v_pathname != node2._v_pathname,
-                "node1 and node2 have the same pathnames.")
+                "node1 and node2 have the same pathnames.",
+            )
         else:
             self.assertTrue(
                 node1._v_pathname == node2._v_pathname,
-                "node1 and node2 does not have the same pathnames.")
+                "node1 and node2 does not have the same pathnames.",
+            )
         self.assertTrue(
             areArraysEqual(node1[:], node2[:]),
-            "node1 and node2 does not have the same values.")
+            "node1 and node2 does not have the same values.",
+        )
 
 
 class TestFileMixin:
@@ -291,7 +300,8 @@ class TestFileMixin:
     def setUp(self):
         super().setUp()
         self.h5file = tb.open_file(
-            self.h5fname, title=self._getName(), **self.open_kwargs)
+            self.h5fname, title=self._getName(), **self.open_kwargs
+        )
 
     def tearDown(self):
         """Close ``h5file``."""
@@ -301,11 +311,11 @@ class TestFileMixin:
 
 
 class TempFileMixin:
-    open_mode = 'w'
+    open_mode = "w"
     open_kwargs = {}
 
     def _getTempFileName(self):
-        return tempfile.mktemp(prefix=self._getName(), suffix='.h5')
+        return tempfile.mktemp(prefix=self._getName(), suffix=".h5")
 
     def setUp(self):
         """Set ``h5file`` and ``h5fname`` instance attributes.
@@ -318,18 +328,21 @@ class TempFileMixin:
         super().setUp()
         self.h5fname = self._getTempFileName()
         self.h5file = tb.open_file(
-            self.h5fname, self.open_mode, title=self._getName(),
-            **self.open_kwargs)
+            self.h5fname,
+            self.open_mode,
+            title=self._getName(),
+            **self.open_kwargs,
+        )
 
     def tearDown(self):
         """Close ``h5file`` and remove ``h5fname``."""
 
         self.h5file.close()
         self.h5file = None
-        Path(self.h5fname).unlink()   # comment this for debug only
+        Path(self.h5fname).unlink()  # comment this for debug only
         super().tearDown()
 
-    def _reopen(self, mode='r', **kwargs):
+    def _reopen(self, mode="r", **kwargs):
         """Reopen ``h5file`` in the specified ``mode``.
 
         Returns a true or false value depending on whether the file was
@@ -373,6 +386,7 @@ class ShowMemTime(PyTablesTestCase):
 try:
     from unittest import makeSuite as make_suite
 except ImportError:
+
     def make_suite(test_case_class, *, prefix=None):
         loader = unittest.TestLoader()
         if prefix:

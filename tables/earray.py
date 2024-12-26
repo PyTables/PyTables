@@ -13,15 +13,15 @@ from .carray import CArray
 
 if TYPE_CHECKING:
     from .atom import Atom
-    from .filters import Filters
     from .group import Group
+    from .filters import Filters
 
 # default version for EARRAY objects
 # obversion = "1.0"    # initial version
 # obversion = "1.1"    # support for complex datatypes
 # obversion = "1.2"    # This adds support for time datatypes.
 # obversion = "1.3"    # This adds support for enumerated datatypes.
-obversion = "1.4"    # Numeric and numarray flavors are gone.
+obversion = "1.4"  # Numeric and numarray flavors are gone.
 
 
 class EArray(CArray):
@@ -135,7 +135,7 @@ class EArray(CArray):
     """
 
     # Class identifier.
-    _c_classid = 'EARRAY'
+    _c_classid = "EARRAY"
 
     def __init__(
         self,
@@ -154,13 +154,23 @@ class EArray(CArray):
 
         # Specific of EArray
         if expectedrows is None:
-            expectedrows = parentnode._v_file.params['EXPECTED_ROWS_EARRAY']
+            expectedrows = parentnode._v_file.params["EXPECTED_ROWS_EARRAY"]
         self._v_expectedrows = int(expectedrows)
         """The expected number of rows to be stored in the array."""
 
         # Call the parent (CArray) init code
-        super().__init__(parentnode, name, atom, shape, title, filters,
-                         chunkshape, byteorder, _log, track_times)
+        super().__init__(
+            parentnode,
+            name,
+            atom,
+            shape,
+            title,
+            filters,
+            chunkshape,
+            byteorder,
+            _log,
+            track_times,
+        )
 
     def _g_create(self) -> int:
         """Create a new array in file (specific part)."""
@@ -172,12 +182,13 @@ class EArray(CArray):
                 self.extdim = list(self.shape).index(0)
             else:
                 raise NotImplementedError(
-                    "Multiple enlargeable (0-)dimensions are not "
-                    "supported.")
+                    "Multiple enlargeable (0-)dimensions are not " "supported."
+                )
         else:
             raise ValueError(
                 "When creating EArrays, you need to set one of "
-                "the dimensions of the Atom instance to zero.")
+                "the dimensions of the Atom instance to zero."
+            )
 
         # Finish the common part of the creation process
         return self._g_create_common(self._v_expectedrows)
@@ -189,14 +200,23 @@ class EArray(CArray):
         myrank = len(self.shape)
         narank = len(nparr.shape) - len(self.atom.shape)
         if myrank != narank:
-            raise ValueError(("the ranks of the appended object (%d) and the "
-                              "``%s`` EArray (%d) differ")
-                             % (narank, self._v_pathname, myrank))
+            raise ValueError(
+                (
+                    "the ranks of the appended object (%d) and the "
+                    "``%s`` EArray (%d) differ"
+                )
+                % (narank, self._v_pathname, myrank)
+            )
         for i in range(myrank):
             if i != self.extdim and self.shape[i] != nparr.shape[i]:
-                raise ValueError(("the shapes of the appended object and the "
-                                  "``%s`` EArray differ in non-enlargeable "
-                                  "dimension %d") % (self._v_pathname, i))
+                raise ValueError(
+                    (
+                        "the shapes of the appended object and the "
+                        "``%s`` EArray differ in non-enlargeable "
+                        "dimension %d"
+                    )
+                    % (self._v_pathname, i)
+                )
 
     def append(self, sequence: npt.ArrayLike) -> None:
         """Add a sequence of data to the end of the dataset.
@@ -245,9 +265,16 @@ class EArray(CArray):
         nrows = len(range(start, stop, step))
         # Build the new EArray object
         object = EArray(
-            group, name, atom=self.atom, shape=shape, title=title,
-            filters=filters, expectedrows=nrows, chunkshape=chunkshape,
-            _log=_log)
+            group,
+            name,
+            atom=self.atom,
+            shape=shape,
+            title=title,
+            filters=filters,
+            expectedrows=nrows,
+            chunkshape=chunkshape,
+            _log=_log,
+        )
         # Now, fill the new earray with values from source
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__

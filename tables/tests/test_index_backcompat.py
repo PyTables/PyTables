@@ -24,22 +24,23 @@ class IndexesTestCase(common.TestFileMixin, common.PyTablesTestCase):
         """Checking string indexes."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test01_string..." % self.__class__.__name__)
 
         table1 = self.table1
         table2 = self.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il).encode('ascii')
-        sl = str(self.sl).encode('ascii')
+        il = str(self.il).encode("ascii")
+        sl = str(self.sl).encode("ascii")
 
         # Do some selections and check the results
         # First selection
         t1var1 = table1.cols.var1
         self.assertIsNotNone(t1var1)
-        results1 = [p["var1"] for p in
-                    table1.where('(il<=t1var1)&(t1var1<=sl)')]
+        results1 = [
+            p["var1"] for p in table1.where("(il<=t1var1)&(t1var1<=sl)")
+        ]
         results2 = [p["var1"] for p in table2 if il <= p["var1"] <= sl]
         results1.sort()
         results2.sort()
@@ -54,7 +55,7 @@ class IndexesTestCase(common.TestFileMixin, common.PyTablesTestCase):
         """Checking bool indexes."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test02_bool..." % self.__class__.__name__)
 
         table1 = self.table1
@@ -63,7 +64,7 @@ class IndexesTestCase(common.TestFileMixin, common.PyTablesTestCase):
         # Do some selections and check the results
         t1var2 = table1.cols.var2
         self.assertIsNotNone(t1var2)
-        results1 = [p["var2"] for p in table1.where('t1var2 == True')]
+        results1 = [p["var2"] for p in table1.where("t1var2 == True")]
         results2 = [p["var2"] for p in table2 if p["var2"] is True]
         if common.verbose:
             print("Selection results (index):", results1)
@@ -77,7 +78,7 @@ class IndexesTestCase(common.TestFileMixin, common.PyTablesTestCase):
         """Checking int indexes."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test03_int..." % self.__class__.__name__)
 
         table1 = self.table1
@@ -92,9 +93,8 @@ class IndexesTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(t1col)
 
         # First selection
-        results1 = [p["var3"] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
-        results2 = [p["var3"] for p in table2
-                    if il <= p["var3"] <= sl]
+        results1 = [p["var3"] for p in table1.where("(il<=t1col)&(t1col<=sl)")]
+        results2 = [p["var3"] for p in table2 if il <= p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
@@ -109,7 +109,7 @@ class IndexesTestCase(common.TestFileMixin, common.PyTablesTestCase):
         """Checking float indexes."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test04_float..." % self.__class__.__name__)
 
         table1 = self.table1
@@ -124,9 +124,8 @@ class IndexesTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertIsNotNone(t1col)
 
         # First selection
-        results1 = [p["var4"] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
-        results2 = [p["var4"] for p in table2
-                    if il <= p["var4"] <= sl]
+        results1 = [p["var4"] for p in table1.where("(il<=t1col)&(t1col<=sl)")]
+        results2 = [p["var4"] for p in table2 if il <= p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort()
@@ -159,8 +158,9 @@ def suite():
     return theSuite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     common.parse_argv(sys.argv)
     common.print_versions()
-    common.unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest="suite")

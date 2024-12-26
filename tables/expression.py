@@ -7,8 +7,9 @@ import warnings
 from typing import Any, Union, TYPE_CHECKING
 from collections.abc import Iterator
 
-import numexpr as ne
 import numpy as np
+import numexpr as ne
+
 import tables as tb
 
 from .exceptions import PerformanceWarning
@@ -145,7 +146,10 @@ class Expr:
     """
 
     def __init__(
-        self, expr: str, uservars: dict[str, Any] | None = None, **kwargs,
+        self,
+        expr: str,
+        uservars: dict[str, Any] | None = None,
+        **kwargs,
     ) -> None:
 
         self.append_mode = False
@@ -216,9 +220,9 @@ class Expr:
         types_ = []
         for name in self.names:
             value = vars_[name]
-            if hasattr(value, 'atom'):
+            if hasattr(value, "atom"):
                 types_.append(value.atom)
-            elif hasattr(value, 'dtype'):
+            elif hasattr(value, "dtype"):
                 types_.append(value)
             else:
                 # try to convert into a NumPy array
@@ -227,8 +231,10 @@ class Expr:
             values.append(value)
 
         # Create a signature for the expression
-        signature = [(name, ne.necompiler.getType(type_))
-                     for (name, type_) in zip(self.names, types_)]
+        signature = [
+            (name, ne.necompiler.getType(type_))
+            for (name, type_) in zip(self.names, types_)
+        ]
 
         # Compile the expression
         self._compiled_expr = ne.necompiler.NumExpr(expr, signature, **kwargs)
@@ -273,10 +279,13 @@ class Expr:
                 # Remove 10 (arbitrary) elements from the cache
                 for k in list(exprvars_cache)[:10]:
                     del exprvars_cache[k]
-            cexpr = compile(expression, '<string>', 'eval')
-            exprvars = [var for var in cexpr.co_names
-                        if var not in ['None', 'False', 'True']
-                        and var not in ne.expressions.functions]
+            cexpr = compile(expression, "<string>", "eval")
+            exprvars = [
+                var
+                for var in cexpr.co_names
+                if var not in ["None", "False", "True"]
+                and var not in ne.expressions.functions
+            ]
             exprvars_cache[expression] = exprvars
         else:
             exprvars = exprvars_cache[expression]
@@ -304,19 +313,21 @@ class Expr:
                 raise NameError("name ``%s`` is not defined" % var)
 
             # Check the value.
-            if hasattr(val, 'dtype') and val.dtype.str[1:] == 'u8':
+            if hasattr(val, "dtype") and val.dtype.str[1:] == "u8":
                 raise NotImplementedError(
                     "variable ``%s`` refers to "
                     "a 64-bit unsigned integer object, that is "
-                    "not yet supported in expressions, sorry; " % var)
-            elif hasattr(val, '_v_colpathnames'):  # nested column
+                    "not yet supported in expressions, sorry; " % var
+                )
+            elif hasattr(val, "_v_colpathnames"):  # nested column
                 # This branch is never reached because the compile step
                 # above already raise a ``TypeError`` for nested
                 # columns, but that could change in the future.  So it
                 # is best to let this here.
                 raise TypeError(
                     "variable ``%s`` refers to a nested column, "
-                    "not allowed in expressions" % var)
+                    "not allowed in expressions" % var
+                )
             reqvars[var] = val
         return reqvars
 
@@ -367,12 +378,14 @@ class Expr:
         if not (hasattr(out, "shape") and hasattr(out, "__setitem__")):
             raise ValueError(
                 "You need to pass a settable multidimensional container "
-                "as output")
+                "as output"
+            )
         self.out = out
         if append_mode and not hasattr(out, "append"):
             raise ValueError(
                 "For activating the ``append`` mode, you need a container "
-                "with an `append()` method (like the `EArray`)")
+                "with an `append()` method (like the `EArray`)"
+            )
         self.append_mode = append_mode
 
     def set_output_range(
@@ -392,7 +405,8 @@ class Expr:
 
         if self.out is None:
             raise IndexError(
-                "You need to pass an output object to `setOut()` first")
+                "You need to pass an output object to `setOut()` first"
+            )
         self.o_start = start
         self.o_stop = stop
         self.o_step = step
@@ -421,21 +435,22 @@ class Expr:
             # If rowsize is too large, issue a Performance warning
             maxrowsize = BUFFER_TIMES * buffersize
             if rowsize > maxrowsize:
-                warnings.warn("""\
+                warnings.warn(
+                    """\
 The object ``%s`` is exceeding the maximum recommended rowsize (%d
 bytes); be ready to see PyTables asking for *lots* of memory and
 possibly slow I/O.  You may want to reduce the rowsize by trimming the
 value of dimensions that are orthogonal (and preferably close) to the
 *leading* dimension of this object."""
-                              % (object, maxrowsize),
-                              PerformanceWarning)
+                    % (object, maxrowsize),
+                    PerformanceWarning,
+                )
 
         return nrowsinbuf
 
-    def _guess_shape(self) -> (
-        tuple[list[tuple[int, int]], int]
-        | tuple[tuple, None]
-    ):
+    def _guess_shape(
+        self,
+    ) -> tuple[list[tuple[int, int]], int] | tuple[tuple, None]:
         """Guess the shape of the output of the expression."""
 
         # First, compute the maximum dimension of inputs and maindim
@@ -484,10 +499,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         return shape, maindim
 
     def _get_info(
-        self,
-        shape: list[int],
-        maindim: int | None,
-        itermode: bool = False
+        self, shape: list[int], maindim: int | None, itermode: bool = False
     ) -> (
         tuple[int, list[int], int, int, int | None, int]
         | tuple[
@@ -511,9 +523,9 @@ value of dimensions that are orthogonal (and preferably close) to the
         # the inputs range
         if maindim is not None:
             (start, stop, step) = slice(
-                self.start, self.stop, self.step).indices(shape[maindim])
-            shape[maindim] = min(
-                shape[maindim], len(range(start, stop, step)))
+                self.start, self.stop, self.step
+            ).indices(shape[maindim])
+            shape[maindim] = min(shape[maindim], len(range(start, stop, step)))
             i_nrows = shape[maindim]
         else:
             start, stop, step = 0, 0, None
@@ -521,7 +533,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         if not itermode:
             # Create a container for output if not defined yet
-            o_maindim = 0    # Default maindim
+            o_maindim = 0  # Default maindim
             if self.out is None:
                 out = np.empty(shape, dtype=self._single_row_out.dtype)
                 # Get the trivial values for start, stop and step
@@ -541,20 +553,22 @@ value of dimensions that are orthogonal (and preferably close) to the
                 o_shape = list(out.shape)
                 s = slice(self.o_start, self.o_stop, self.o_step)
                 o_start, o_stop, o_step = s.indices(o_shape[o_maindim])
-                o_shape[o_maindim] = min(o_shape[o_maindim],
-                                         len(range(o_start, o_stop, o_step)))
+                o_shape[o_maindim] = min(
+                    o_shape[o_maindim], len(range(o_start, o_stop, o_step))
+                )
 
                 # Check that the shape of output is consistent with inputs
-                tr_oshape = list(o_shape)   # this implies a copy
+                tr_oshape = list(o_shape)  # this implies a copy
                 olen_ = tr_oshape.pop(o_maindim)
-                tr_shape = list(shape)      # do a copy
+                tr_shape = list(shape)  # do a copy
                 if maindim is not None:
                     len_ = tr_shape.pop(o_maindim)
                 else:
                     len_ = 1
                 if tr_oshape != tr_shape:
                     raise ValueError(
-                        "Shape for out container does not match expression")
+                        "Shape for out container does not match expression"
+                    )
                 # Force the input length to fit in `out`
                 if not self.append_mode and olen_ < len_:
                     shape[o_maindim] = olen_
@@ -563,8 +577,9 @@ value of dimensions that are orthogonal (and preferably close) to the
         # Get the positions of inputs that should be sliced (the others
         # will be broadcasted)
         ndim = len(shape)
-        slice_pos = [i for i, val in enumerate(self.values)
-                     if len(val.shape) == ndim]
+        slice_pos = [
+            i for i, val in enumerate(self.values) if len(val.shape) == ndim
+        ]
 
         # The size of the I/O buffer
         nrowsinbuf = 1
@@ -576,8 +591,19 @@ value of dimensions that are orthogonal (and preferably close) to the
                     nrowsinbuf = nrows
 
         if not itermode:
-            return (i_nrows, slice_pos, start, stop, step, nrowsinbuf,
-                    out, o_maindim, o_start, o_stop, o_step)
+            return (
+                i_nrows,
+                slice_pos,
+                start,
+                stop,
+                step,
+                nrowsinbuf,
+                out,
+                o_maindim,
+                o_start,
+                o_stop,
+                o_step,
+            )
         else:
             # For itermode, we don't need the out info
             return (i_nrows, slice_pos, start, stop, step, nrowsinbuf)
@@ -617,9 +643,19 @@ value of dimensions that are orthogonal (and preferably close) to the
         values, shape, maindim = self.values, self.shape, self.maindim
 
         # Get different info we need for the main computation loop
-        (i_nrows, slice_pos, start, stop, step, nrowsinbuf,
-         out, o_maindim, o_start, o_stop, o_step) = \
-            self._get_info(shape, maindim)
+        (
+            i_nrows,
+            slice_pos,
+            start,
+            stop,
+            step,
+            nrowsinbuf,
+            out,
+            o_maindim,
+            o_start,
+            o_stop,
+            o_step,
+        ) = self._get_info(shape, maindim)
 
         if i_nrows == 0:
             # No elements to compute
@@ -636,7 +672,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         # This is a hack to prevent doing unnecessary flavor conversions
         # while reading buffers
         for val in values:
-            if hasattr(val, 'maindim'):
+            if hasattr(val, "maindim"):
                 val._v_convert = False
 
         # Start the computation itself
@@ -672,7 +708,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         # Activate the conversion again (default)
         for val in values:
-            if hasattr(val, 'maindim'):
+            if hasattr(val, "maindim"):
                 val._v_convert = True
 
         return out
@@ -688,8 +724,9 @@ value of dimensions that are orthogonal (and preferably close) to the
         values, shape, maindim = self.values, self.shape, self.maindim
 
         # Get different info we need for the main computation loop
-        (i_nrows, slice_pos, start, stop, step, nrowsinbuf) = \
-            self._get_info(shape, maindim, itermode=True)
+        (i_nrows, slice_pos, start, stop, step, nrowsinbuf) = self._get_info(
+            shape, maindim, itermode=True
+        )
 
         if i_nrows == 0:
             # No elements to compute
@@ -702,7 +739,7 @@ value of dimensions that are orthogonal (and preferably close) to the
         # This is a hack to prevent doing unnecessary flavor conversions
         # while reading buffers
         for val in values:
-            if hasattr(val, 'maindim'):
+            if hasattr(val, "maindim"):
                 val._v_convert = False
 
         # Start the computation itself
@@ -728,7 +765,7 @@ value of dimensions that are orthogonal (and preferably close) to the
 
         # Activate the conversion again (default)
         for val in values:
-            if hasattr(val, 'maindim'):
+            if hasattr(val, "maindim"):
                 val._v_convert = True
 
 
@@ -740,11 +777,12 @@ if __name__ == "__main__":
     f = tb.open_file("/tmp/expression.h5", "w")
 
     # Create some arrays
-    a = f.create_carray(f.root, 'a', atom=tb.Float32Atom(dflt=1), shape=shape)
-    b = f.create_carray(f.root, 'b', atom=tb.Float32Atom(dflt=2), shape=shape)
-    c = f.create_carray(f.root, 'c', atom=tb.Float32Atom(dflt=3), shape=shape)
-    out = f.create_carray(f.root, 'out', atom=tb.Float32Atom(dflt=3),
-                          shape=shape)
+    a = f.create_carray(f.root, "a", atom=tb.Float32Atom(dflt=1), shape=shape)
+    b = f.create_carray(f.root, "b", atom=tb.Float32Atom(dflt=2), shape=shape)
+    c = f.create_carray(f.root, "c", atom=tb.Float32Atom(dflt=3), shape=shape)
+    out = f.create_carray(
+        f.root, "out", atom=tb.Float32Atom(dflt=3), shape=shape
+    )
 
     expr = Expr("a * b + c")
     expr.set_output(out)

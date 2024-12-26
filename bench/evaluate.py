@@ -1,12 +1,11 @@
 import sys
-from pathlib import Path
 from time import perf_counter as clock
+from pathlib import Path
 
-import numexpr as ne
 import numpy as np
+import numexpr as ne
 
 import tables as tb
-
 
 shape = (1000, 160_000)
 # shape = (10,1600)
@@ -160,8 +159,8 @@ if __name__ == "__main__":
         # out = ne.evaluate("a*b+c")
         out = a * b + c
     elif doprofile:
-        import cProfile as prof
         import pstats
+        import cProfile as prof
 
         prof.run('evaluate("a*b+c", out)', "evaluate.prof")
         stats = pstats.Stats("evaluate.prof")
@@ -170,6 +169,7 @@ if __name__ == "__main__":
         stats.print_stats(20)
     elif dokprofile:
         from cProfile import Profile
+
         import lsprofcalltree
 
         prof = Profile()

@@ -9,6 +9,7 @@ import errno
 from pathlib import Path
 
 import numpy as np
+
 import tables as tb
 
 FNAME = "split"

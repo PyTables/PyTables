@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # Benchmark the times reading large datasets with Blosc and Blosc2 filters.
 
-from time import time
 import sys
+from time import time
+
 import numpy as np
-import tables as tb
 import pandas as pd
+
+import tables as tb
 
 
 def time_inkernel(table_blosc):

@@ -1,14 +1,14 @@
 """Example showing how to access a PyTables file from multiple processes using
 queues."""
 
-import queue
-
-import multiprocessing
-import random
 import time
+import queue
+import random
+import multiprocessing
 from pathlib import Path
 
 import numpy as np
+
 import tables as tb
 
 

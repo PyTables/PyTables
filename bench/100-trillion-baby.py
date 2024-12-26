@@ -1,8 +1,9 @@
-import tables as tb
-import numpy as np
-from time import time
 import sys
+from time import time
 
+import numpy as np
+
+import tables as tb
 
 N = 9  # 9 billion rows
 # N = 1000  # 1 trillion rows

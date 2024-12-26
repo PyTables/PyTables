@@ -1,8 +1,9 @@
 import random
-from pathlib import Path
 from time import perf_counter as clock
+from pathlib import Path
 
 import numpy as np
+
 import tables as tb
 
 # in order to always generate the same random sequence

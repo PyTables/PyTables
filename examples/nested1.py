@@ -2,6 +2,7 @@
 # F. Alted 2005/05/27
 
 import random
+
 import tables as tb
 
 fileout = "nested1.h5"

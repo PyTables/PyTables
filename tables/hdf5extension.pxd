@@ -9,6 +9,7 @@
 ########################################################################
 
 from numpy cimport ndarray
+
 from .definitions cimport hid_t, hsize_t, hbool_t
 
 

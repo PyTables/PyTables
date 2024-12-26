@@ -2,9 +2,11 @@
 
 """Simple benchmark for testing chunkshapes and nrowsinbuf."""
 
-import numpy as np
-import tables as tb
 from time import perf_counter as clock
+
+import numpy as np
+
+import tables as tb
 
 L = 20
 N = 2000

@@ -6,9 +6,9 @@ import warnings
 from typing import TYPE_CHECKING
 
 from . import hdf5extension
-from .utils import SizeType
-from .node import Node
 from .leaf import Leaf
+from .node import Node
+from .utils import SizeType
 
 if TYPE_CHECKING:
     from .group import Group
@@ -40,7 +40,7 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
     """
 
     # Class identifier.
-    _c_classid = 'UNIMPLEMENTED'
+    _c_classid = "UNIMPLEMENTED"
 
     def __init__(self, parentnode: Group, name: str) -> None:
         """Create the `UnImplemented` instance."""
@@ -116,7 +116,9 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
          dataset present in the '{}' HDF5 file.  If you want to see this
          kind of HDF5 dataset implemented in PyTables, please contact the
          developers.>
-""".format(str(self), self._v_file.filename)
+""".format(
+            str(self), self._v_file.filename
+        )
 
 
 # Classes reported as H5G_UNKNOWN by HDF5
@@ -130,7 +132,7 @@ class Unknown(Node):
     """
 
     # Class identifier
-    _c_classid = 'UNKNOWN'
+    _c_classid = "UNKNOWN"
 
     def __init__(self, parentnode: Group, name: str) -> None:
         """Create the `Unknown` instance."""
@@ -173,4 +175,4 @@ class Unknown(Node):
 
 # These are listed here for backward compatibility with PyTables 0.9.x indexes
 class OldIndexArray(UnImplemented):
-    _c_classid = 'IndexArray'
+    _c_classid = "IndexArray"

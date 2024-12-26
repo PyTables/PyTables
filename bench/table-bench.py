@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
+
 import tables as tb
 
 
@@ -278,7 +279,6 @@ def readField(filename, field, rng, verbose):
 if __name__ == "__main__":
     import sys
     import getopt
-
     from time import perf_counter as clock
     from time import process_time as cpuclock
 
@@ -383,8 +383,8 @@ if __name__ == "__main__":
         t1 = clock()
         cpu1 = cpuclock()
         if profile:
-            import profile as prof
             import pstats
+            import profile as prof
 
             prof.run(
                 "(rowsw, rowsz) = createFile(file, nrows, filters, "

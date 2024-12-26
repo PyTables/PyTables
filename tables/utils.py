@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import math
 import os
 import sys
-import warnings
+import math
 import weakref
-from pathlib import Path
+import warnings
 from time import perf_counter as clock
 from typing import Any, Literal, TextIO, TYPE_CHECKING
+from pathlib import Path
 from collections.abc import Callable
 
 import numpy as np
@@ -22,10 +22,10 @@ if TYPE_CHECKING:
 
 # The map between byteorders in NumPy and PyTables
 byteorders = {
-    '>': 'big',
-    '<': 'little',
-    '=': sys.byteorder,
-    '|': 'irrelevant',
+    ">": "big",
+    "<": "little",
+    "=": sys.byteorder,
+    "|": "irrelevant",
 }
 
 # The type used for size values: indexes, coordinates, dimension
@@ -51,7 +51,7 @@ else:
 def correct_byteorder(ptype: str, byteorder: str) -> str:
     """Fix the byteorder depending on the PyTables types."""
 
-    if ptype in ['string', 'bool', 'int8', 'uint8', 'object']:
+    if ptype in ["string", "bool", "int8", "uint8", "object"]:
         return "irrelevant"
     else:
         return byteorder
@@ -64,14 +64,17 @@ def is_idx(index: Any) -> bool:
         return True
     elif hasattr(index, "__index__"):
         # Exclude the array([idx]) as working as an index.  Fixes #303.
-        if (hasattr(index, "shape") and index.shape != ()):
+        if hasattr(index, "shape") and index.shape != ():
             return False
         try:
             index.__index__()
             if isinstance(index, bool):
                 warnings.warn(
-                    'using a boolean instead of an integer will result in an '
-                    'error in the future', DeprecationWarning, stacklevel=2)
+                    "using a boolean instead of an integer will result in an "
+                    "error in the future",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
             return True
         except TypeError:
             return False
@@ -79,8 +82,9 @@ def is_idx(index: Any) -> bool:
         return True
     # For Python 2.4 one should test 0-dim and 1-dim, 1-elem arrays as well
     elif (
-        isinstance(index, np.ndarray) and (index.shape == ())
-        and index.dtype.str[1] == 'i'
+        isinstance(index, np.ndarray)
+        and (index.shape == ())
+        and index.dtype.str[1] == "i"
     ):
         return True
 
@@ -109,7 +113,7 @@ def convert_to_np_atom(
     """Convert a generic object into a NumPy object compliant with atom."""
 
     # First, convert the object into a NumPy array
-    nparr = array_of_flavor(arr, 'numpy')
+    nparr = array_of_flavor(arr, "numpy")
     # Copy of data if necessary for getting a contiguous buffer, or if
     # dtype is not the correct one.
     if atom.shape == ():
@@ -124,9 +128,9 @@ def convert_to_np_atom(
         # for details.
         # All of this is done just to taking advantage of the NumPy
         # broadcasting rules.
-        newshape = nparr.shape[:-len(atom.dtype.shape)]
-        nparr2 = np.empty(newshape, dtype=[('', atom.dtype)])
-        nparr2['f0'][:] = nparr
+        newshape = nparr.shape[: -len(atom.dtype.shape)]
+        nparr2 = np.empty(newshape, dtype=[("", atom.dtype)])
+        nparr2["f0"][:] = nparr
         # Return a view (i.e. get rid of the record type)
         nparr = nparr2.view(atom.dtype)
     return nparr
@@ -139,11 +143,11 @@ def convert_to_np_atom2(object: npt.ArrayLike, atom: Atom) -> np.ndarray:
 
     # Check whether the object needs to be copied to make the operation
     # safe to in-place conversion.
-    copy = True if atom.type in ['time64'] else copy_if_needed
+    copy = True if atom.type in ["time64"] else copy_if_needed
     nparr = convert_to_np_atom(object, atom, copy)
     # Finally, check the byteorder and change it if needed
     byteorder = byteorders[nparr.dtype.byteorder]
-    if (byteorder in ['little', 'big'] and byteorder != sys.byteorder):
+    if byteorder in ["little", "big"] and byteorder != sys.byteorder:
         # The byteorder needs to be fixed (a copy is made
         # so that the original array is not modified)
         nparr = nparr.byteswap()
@@ -152,7 +156,7 @@ def convert_to_np_atom2(object: npt.ArrayLike, atom: Atom) -> np.ndarray:
 
 
 def check_file_access(
-    filename: str, mode: Literal["r", "w", "a", "r+"] = 'r'
+    filename: str, mode: Literal["r", "w", "a", "r+"] = "r"
 ) -> None:
     """Check for file access in the specified `mode`.
 
@@ -169,7 +173,7 @@ def check_file_access(
 
     path = Path(filename).resolve()
 
-    if mode == 'r':
+    if mode == "r":
         # The file should be readable.
         if not os.access(path, os.F_OK):
             raise FileNotFoundError(f"``{path}`` does not exist")
@@ -179,11 +183,11 @@ def check_file_access(
             raise PermissionError(
                 f"file ``{path}`` exists but it can not be read"
             )
-    elif mode == 'w':
+    elif mode == "w":
         if os.access(path, os.F_OK):
             # Since the file is not removed but replaced,
             # it must already be accessible to read and write operations.
-            check_file_access(path, 'r+')
+            check_file_access(path, "r+")
         else:
             # A new file is going to be created,
             # so the directory should be writable.
@@ -198,13 +202,13 @@ def check_file_access(
                     f"directory ``{path.parent}`` exists but it can not be "
                     f"written"
                 )
-    elif mode == 'a':
+    elif mode == "a":
         if os.access(path, os.F_OK):
-            check_file_access(path, 'r+')
+            check_file_access(path, "r+")
         else:
-            check_file_access(path, 'w')
-    elif mode == 'r+':
-        check_file_access(path, 'r')
+            check_file_access(path, "w")
+    elif mode == "r+":
+        check_file_access(path, "r")
         if not os.access(path, os.W_OK):
             raise PermissionError(
                 f"file ``{path}`` exists but it can not be written"
@@ -269,7 +273,7 @@ def lazyattr(fget: Callable[[Any], Any]) -> property:
 def show_stats(explain: str, tref: float, encoding=None) -> float:
     """Show the used memory (only works for Linux 2.6.x)."""
 
-    for line in Path('/proc/self/status').read_text().splitlines():
+    for line in Path("/proc/self/status").read_text().splitlines():
         if line.startswith("VmSize:"):
             vmsize = int(line.split()[1])
         elif line.startswith("VmRSS:"):
@@ -305,8 +309,8 @@ def quantize(data: npt.ArrayLike, least_significant_digit: int):
 
     exp = -least_significant_digit
     exp = math.floor(exp) if exp < 0 else math.ceil(exp)
-    bits = math.ceil(math.log2(10 ** -exp))
-    scale = 2 ** bits
+    bits = math.ceil(math.log2(10**-exp))
+    scale = 2**bits
     datout = np.around(scale * data) / scale
 
     return datout
@@ -326,7 +330,7 @@ def log_instance_creation(instance: Any, name: str | None = None) -> None:
 
 
 def string_to_classes(s: str) -> list[str]:
-    if s == '*':
+    if s == "*":
         c = sorted(tracked_classes)
         return c
     else:
@@ -345,22 +349,22 @@ def count_logged_instances(classes: str, file: TextIO = sys.stdout) -> None:
 
 def list_logged_instances(classes: str, file: TextIO = sys.stdout) -> None:
     for classname in string_to_classes(classes):
-        file.write(f'\n{classname}:\n')
+        file.write(f"\n{classname}:\n")
         for ref in tracked_classes[classname]:
             obj = ref()
             if obj is not None:
-                file.write('    %s\n' % repr(obj))
+                file.write("    %s\n" % repr(obj))
 
 
 def dump_logged_instances(classes: str, file: TextIO = sys.stdout) -> None:
     for classname in string_to_classes(classes):
-        file.write(f'\n{classname}:\n')
+        file.write(f"\n{classname}:\n")
         for ref in tracked_classes[classname]:
             obj = ref()
             if obj is not None:
-                file.write('    %s:\n' % obj)
+                file.write("    %s:\n" % obj)
                 for key, value in obj.__dict__.items():
-                    file.write(f'        {key:>20} : {value}\n')
+                    file.write(f"        {key:>20} : {value}\n")
 
 
 #
@@ -465,8 +469,9 @@ def _test() -> None:
     """Run ``doctest`` on this module."""
 
     import doctest
+
     doctest.testmod()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _test()

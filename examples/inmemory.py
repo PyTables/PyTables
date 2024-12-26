@@ -13,6 +13,7 @@ http://pytables.github.io/usersguide/parameter_files.html#hdf5-driver-management
 """
 
 import numpy as np
+
 import tables as tb
 
 CHUNKY = 30

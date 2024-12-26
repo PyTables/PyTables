@@ -11,8 +11,8 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
     # Default values
     obj = None
     flavor = "numpy"
-    type = 'int32'
-    dtype = 'int32'
+    type = "int32"
+    dtype = "int32"
     shape = (2, 0)
     start = 0
     stop = 10
@@ -47,14 +47,22 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         else:
             atom = None
         title = self.__class__.__name__
-        filters = tb.Filters(complevel=self.compress,
-                             complib=self.complib,
-                             shuffle=self.shuffle,
-                             fletcher32=self.fletcher32)
-        earray = self.h5file.create_earray(group, 'earray1',
-                                           atom=atom, shape=self.shape,
-                                           title=title, filters=filters,
-                                           expectedrows=1, obj=obj)
+        filters = tb.Filters(
+            complevel=self.compress,
+            complib=self.complib,
+            shuffle=self.shuffle,
+            fletcher32=self.fletcher32,
+        )
+        earray = self.h5file.create_earray(
+            group,
+            "earray1",
+            atom=atom,
+            shape=self.shape,
+            title=title,
+            filters=filters,
+            expectedrows=1,
+            obj=obj,
+        )
         earray.flavor = self.flavor
 
         # Fill it with rows
@@ -70,9 +78,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.rowshape[earray.extdim] = self.chunksize
 
         if self.type == "string":
-            object = np.ndarray(buffer=b"a"*self.objsize,
-                                shape=self.rowshape,
-                                dtype="S%s" % earray.atom.itemsize)
+            object = np.ndarray(
+                buffer=b"a" * self.objsize,
+                shape=self.rowshape,
+                dtype="S%s" % earray.atom.itemsize,
+            )
         else:
             object = np.arange(self.objsize, dtype=earray.atom.dtype.base)
             object.shape = self.rowshape
@@ -118,7 +128,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking enlargeable array iterator."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test01_iterEArray..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
@@ -135,9 +145,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = np.ndarray(buffer=b"a"*self.objsize,
-                                 shape=self.rowshape,
-                                 dtype="S%s" % earray.atom.itemsize)
+            object_ = np.ndarray(
+                buffer=b"a" * self.objsize,
+                shape=self.rowshape,
+                dtype="S%s" % earray.atom.itemsize,
+            )
         else:
             object_ = np.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
@@ -153,8 +165,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Read all the array
         for idx, row in enumerate(earray):
             if idx < initialrows:
-                self.assertTrue(common.allequal(
-                    row, np.asarray(self.obj[idx]), self.flavor))
+                self.assertTrue(
+                    common.allequal(
+                        row, np.asarray(self.obj[idx]), self.flavor
+                    )
+                )
                 continue
 
             chunk = int((earray.nrow - initialrows) % self.chunksize)
@@ -174,8 +189,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("row in earray ==>", repr(row))
                 print("Should look like ==>", repr(object))
 
-            self.assertEqual(initialrows + self.nappends * self.chunksize,
-                             earray.nrows)
+            self.assertEqual(
+                initialrows + self.nappends * self.chunksize, earray.nrows
+            )
             self.assertTrue(common.allequal(row, object, self.flavor))
             if hasattr(row, "shape"):
                 self.assertEqual(len(row.shape), len(shape) - 1)
@@ -191,22 +207,25 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if self.compress > 0 and tb.which_lib_version(self.complib):
                 # Some libraries like Blosc support different compressors,
                 # specified after ":".
-                self.assertEqual(earray.filters.complib.split(':')[0], self.complib)
+                self.assertEqual(
+                    earray.filters.complib.split(":")[0], self.complib
+                )
             if self.shuffle != earray.filters.shuffle and common.verbose:
                 print("Error in shuffle. Class:", self.__class__.__name__)
                 print("self, earray:", self.shuffle, earray.filters.shuffle)
             self.assertEqual(self.shuffle, earray.filters.shuffle)
             if self.fletcher32 != earray.filters.fletcher32 and common.verbose:
                 print("Error in fletcher32. Class:", self.__class__.__name__)
-                print("self, earray:", self.fletcher32,
-                      earray.filters.fletcher32)
+                print(
+                    "self, earray:", self.fletcher32, earray.filters.fletcher32
+                )
             self.assertEqual(self.fletcher32, earray.filters.fletcher32)
 
     def test02_sssEArray(self):
         """Checking enlargeable array iterator with (start, stop, step)"""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test02_sssEArray..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
@@ -223,9 +242,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = np.ndarray(buffer=b"a"*self.objsize,
-                                 shape=self.rowshape,
-                                 dtype="S%s" % earray.atom.itemsize)
+            object_ = np.ndarray(
+                buffer=b"a" * self.objsize,
+                shape=self.rowshape,
+                dtype="S%s" % earray.atom.itemsize,
+            )
         else:
             object_ = np.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
@@ -239,12 +260,15 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         shape = self._get_shape()
 
         # Read all the array
-        for idx, row in enumerate(earray.iterrows(start=self.start,
-                                                  stop=self.stop,
-                                                  step=self.step)):
+        for idx, row in enumerate(
+            earray.iterrows(start=self.start, stop=self.stop, step=self.step)
+        ):
             if idx < initialrows:
-                self.assertTrue(common.allequal(
-                    row, np.asarray(self.obj[idx]), self.flavor))
+                self.assertTrue(
+                    common.allequal(
+                        row, np.asarray(self.obj[idx]), self.flavor
+                    )
+                )
                 continue
 
             if self.chunksize == 1:
@@ -267,8 +291,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("row in earray ==>", repr(row))
                 print("Should look like ==>", repr(object))
 
-            self.assertEqual(initialrows + self.nappends * self.chunksize,
-                             earray.nrows)
+            self.assertEqual(
+                initialrows + self.nappends * self.chunksize, earray.nrows
+            )
             self.assertTrue(common.allequal(row, object, self.flavor))
             if hasattr(row, "shape"):
                 self.assertEqual(len(row.shape), len(shape) - 1)
@@ -280,7 +305,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking read() of enlargeable arrays."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test03_readEArray..." % self.__class__.__name__)
 
         # This conversion made just in case indices are numpy scalars
@@ -305,9 +330,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = np.ndarray(buffer=b"a"*self.objsize,
-                                 shape=self.rowshape,
-                                 dtype="S%s" % earray.atom.itemsize)
+            object_ = np.ndarray(
+                buffer=b"a" * self.objsize,
+                shape=self.rowshape,
+                dtype="S%s" % earray.atom.itemsize,
+            )
         else:
             object_ = np.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
@@ -319,10 +346,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             initialrows = 0
 
         rowshape = self.rowshape
-        rowshape[self.extdim] *= (self.nappends + initialrows)
+        rowshape[self.extdim] *= self.nappends + initialrows
         if self.type == "string":
-            object__ = np.empty(shape=rowshape,
-                                dtype=f"S{earray.atom.itemsize}")
+            object__ = np.empty(
+                shape=rowshape, dtype=f"S{earray.atom.itemsize}"
+            )
         else:
             object__ = np.empty(shape=rowshape, dtype=self.dtype)
 
@@ -334,9 +362,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for i in range(self.nappends):
             j = initialrows + i * self.chunksize
             if self.type == "string":
-                object__[j:j + self.chunksize] = object_
+                object__[j : j + self.chunksize] = object_
             else:
-                object__[j:j + self.chunksize] = object_ * i
+                object__[j : j + self.chunksize] = object_ * i
 
         stop = self.stop
 
@@ -357,7 +385,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
             # object = object__[self.start:stop:self.step].copy()
-            object = object__[self.start:self.stop:self.step].copy()
+            object = object__[self.start : self.stop : self.step].copy()
             # Swap the axes again to have normal ordering
             if self.flavor == "numpy":
                 object = object.swapaxes(0, self.extdim)
@@ -376,8 +404,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Object read ==>", repr(row))
             print("Should look like ==>", repr(object))
 
-        self.assertEqual(initialrows + self.nappends * self.chunksize,
-                         earray.nrows)
+        self.assertEqual(
+            initialrows + self.nappends * self.chunksize, earray.nrows
+        )
         self.assertTrue(common.allequal(row, object, self.flavor))
 
         shape = self._get_shape()
@@ -409,9 +438,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         earray.nrowsinbuf = 3
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = np.ndarray(buffer=b"a"*self.objsize,
-                                 shape=self.rowshape,
-                                 dtype="S%s" % earray.atom.itemsize)
+            object_ = np.ndarray(
+                buffer=b"a" * self.objsize,
+                shape=self.rowshape,
+                dtype="S%s" % earray.atom.itemsize,
+            )
         else:
             object_ = np.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
@@ -423,10 +454,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             initialrows = 0
 
         rowshape = self.rowshape
-        rowshape[self.extdim] *= (self.nappends + initialrows)
+        rowshape[self.extdim] *= self.nappends + initialrows
         if self.type == "string":
-            object__ = np.empty(shape=rowshape,
-                                dtype=f"S{earray.atom.itemsize}")
+            object__ = np.empty(
+                shape=rowshape, dtype=f"S{earray.atom.itemsize}"
+            )
         else:
             object__ = np.empty(shape=rowshape, dtype=self.dtype)
 
@@ -438,9 +470,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for i in range(self.nappends):
             j = initialrows + i * self.chunksize
             if self.type == "string":
-                object__[j:j + self.chunksize] = object_
+                object__[j : j + self.chunksize] = object_
             else:
-                object__[j:j + self.chunksize] = object_ * i
+                object__[j : j + self.chunksize] = object_ * i
 
         stop = self.stop
 
@@ -461,7 +493,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
             # object = object__[self.start:stop:self.step].copy()
-            object = object__[self.start:self.stop:self.step].copy()
+            object = object__[self.start : self.stop : self.step].copy()
             # Swap the axes again to have normal ordering
             if self.flavor == "numpy":
                 object = object.swapaxes(0, self.extdim)
@@ -485,8 +517,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Object read ==>", repr(row))
             print("Should look like ==>", repr(object))
 
-        self.assertEqual(initialrows + self.nappends * self.chunksize,
-                         earray.nrows)
+        self.assertEqual(
+            initialrows + self.nappends * self.chunksize, earray.nrows
+        )
         self.assertTrue(common.allequal(row, object, self.flavor))
 
         shape = self._get_shape()
@@ -502,9 +535,10 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking enlargeable array __getitem__ special method."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
-            print("Running %s.test04_getitemEArray..." %
-                  self.__class__.__name__)
+            print("\n", "-=" * 30)
+            print(
+                "Running %s.test04_getitemEArray..." % self.__class__.__name__
+            )
 
         if not hasattr(self, "slices"):
             # If there is not a slices attribute, create it
@@ -531,9 +565,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = np.ndarray(buffer=b"a" * self.objsize,
-                                 shape=self.rowshape,
-                                 dtype=f"S{earray.atom.itemsize}")
+            object_ = np.ndarray(
+                buffer=b"a" * self.objsize,
+                shape=self.rowshape,
+                dtype=f"S{earray.atom.itemsize}",
+            )
         else:
             object_ = np.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
@@ -546,10 +582,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             initialrows = 0
 
         rowshape = self.rowshape
-        rowshape[self.extdim] *= (self.nappends + initialrows)
+        rowshape[self.extdim] *= self.nappends + initialrows
         if self.type == "string":
-            object__ = np.empty(shape=rowshape,
-                                dtype=f"S{earray.atom.itemsize}")
+            object__ = np.empty(
+                shape=rowshape, dtype=f"S{earray.atom.itemsize}"
+            )
         else:
             object__ = np.empty(shape=rowshape, dtype=self.dtype)
             # Additional conversion for the numpy case
@@ -561,9 +598,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for i in range(self.nappends):
             j = initialrows + i * self.chunksize
             if self.type == "string":
-                object__[j:j + self.chunksize] = object_
+                object__[j : j + self.chunksize] = object_
             else:
-                object__[j:j + self.chunksize] = object_ * i
+                object__[j : j + self.chunksize] = object_ * i
 
         if self.nappends:
             # Swap the axes again to have normal ordering
@@ -591,8 +628,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("Shape read:", row.shape)
                 print("shape should look as:", object.shape)
 
-        self.assertEqual(initialrows + self.nappends * self.chunksize,
-                         earray.nrows)
+        self.assertEqual(
+            initialrows + self.nappends * self.chunksize, earray.nrows
+        )
         self.assertTrue(common.allequal(row, object, self.flavor))
         if not hasattr(row, "shape"):
             # Scalar case
@@ -608,9 +646,10 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             return
 
         if common.verbose:
-            print('\n', '-=' * 30)
-            print("Running %s.test05_setitemEArray..." %
-                  self.__class__.__name__)
+            print("\n", "-=" * 30)
+            print(
+                "Running %s.test05_setitemEArray..." % self.__class__.__name__
+            )
 
         if not hasattr(self, "slices"):
             # If there is not a slices attribute, create it
@@ -637,9 +676,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Build the array to do comparisons
         if self.type == "string":
-            object_ = np.ndarray(buffer=b"a" * self.objsize,
-                                 shape=self.rowshape,
-                                 dtype=f"S{earray.atom.itemsize}")
+            object_ = np.ndarray(
+                buffer=b"a" * self.objsize,
+                shape=self.rowshape,
+                dtype=f"S{earray.atom.itemsize}",
+            )
         else:
             object_ = np.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
@@ -652,10 +693,11 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
             initialrows = 0
 
         rowshape = self.rowshape
-        rowshape[self.extdim] *= (self.nappends + initialrows)
+        rowshape[self.extdim] *= self.nappends + initialrows
         if self.type == "string":
-            object__ = np.empty(shape=rowshape,
-                                dtype=f"S{earray.atom.itemsize}")
+            object__ = np.empty(
+                shape=rowshape, dtype=f"S{earray.atom.itemsize}"
+            )
         else:
             object__ = np.empty(shape=rowshape, dtype=self.dtype)
             # Additional conversion for the numpy case
@@ -664,9 +706,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         for i in range(self.nappends):
             j = initialrows + i * self.chunksize
             if self.type == "string":
-                object__[j:j + self.chunksize] = object_
+                object__[j : j + self.chunksize] = object_
             else:
-                object__[j:j + self.chunksize] = object_ * i
+                object__[j : j + self.chunksize] = object_ * i
                 # Modify the earray
                 # earray[j:j + self.chunksize] = object_ * i
                 # earray[self.slices] = 1
@@ -725,8 +767,9 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 print("Shape read:", row.shape)
                 print("shape should look as:", object.shape)
 
-        self.assertEqual(initialrows + self.nappends * self.chunksize,
-                         earray.nrows)
+        self.assertEqual(
+            initialrows + self.nappends * self.chunksize, earray.nrows
+        )
         self.assertTrue(common.allequal(row, object, self.flavor))
         if not hasattr(row, "shape"):
             # Scalar case
@@ -734,7 +777,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class BasicWriteTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (0,)
     chunksize = 5
     nappends = 10
@@ -744,13 +787,13 @@ class BasicWriteTestCase(BasicTestCase):
 
 
 class Basic2WriteTestCase(BasicTestCase):
-    type = 'int32'
-    dtype = 'i4'
+    type = "int32"
+    dtype = "i4"
     shape = (0,)
     chunksize = 5
     nappends = 10
     step = 1
-    wslice = slice(chunksize-2, nappends, 2)  # range of elements
+    wslice = slice(chunksize - 2, nappends, 2)  # range of elements
     reopen = 0  # This case does not reopen files
 
 
@@ -815,8 +858,8 @@ class Basic8WriteTestCase(BasicTestCase):
 
 
 class EmptyEArrayTestCase(BasicTestCase):
-    type = 'int32'
-    dtype = np.dtype('int32')
+    type = "int32"
+    dtype = np.dtype("int32")
     shape = (2, 0)
     chunksize = 5
     nappends = 0
@@ -826,16 +869,16 @@ class EmptyEArrayTestCase(BasicTestCase):
 
 
 class NP_EmptyEArrayTestCase(BasicTestCase):
-    type = 'int32'
-    dtype = np.dtype('()int32')
+    type = "int32"
+    dtype = np.dtype("()int32")
     shape = (2, 0)
     chunksize = 5
     nappends = 0
 
 
 class Empty2EArrayTestCase(BasicTestCase):
-    type = 'int32'
-    dtype = 'int32'
+    type = "int32"
+    dtype = "int32"
     shape = (2, 0)
     chunksize = 5
     nappends = 0
@@ -845,44 +888,48 @@ class Empty2EArrayTestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 
-@common.unittest.skipIf(not common.lzo_avail,
-                        'LZO compression library not available')
+@common.unittest.skipIf(
+    not common.lzo_avail, "LZO compression library not available"
+)
 class SlicesEArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
-    type = 'int32'
+    type = "int32"
     shape = (2, 0)
     chunksize = 5
     nappends = 2
     slices = (slice(1, 2, 1), slice(1, 3, 1))
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    not common.blosc_avail, "BLOSC compression library not available"
+)
 class Slices2EArrayTestCase(BasicTestCase):
     compress = 1
     complib = "blosc"
-    type = 'int32'
+    type = "int32"
     shape = (2, 0, 4)
     chunksize = 5
     nappends = 20
     slices = (slice(1, 2, 1), slice(None, None, None), slice(1, 4, 2))
 
 
-@common.unittest.skipIf(not common.blosc2_avail,
-                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    not common.blosc2_avail, "BLOSC2 compression library not available"
+)
 class Blosc2SlicesOptEArrayTestCase(BasicTestCase):
     compress = 1
     complib = "blosc2"
-    type = 'int32'
+    type = "int32"
     shape = (0, 13, 13)
     chunkshape = (4, 4, 4)
     nappends = 20
     slices = (slice(None, None), slice(2, 10), slice(0, 10))
 
 
-@common.unittest.skipIf(not common.blosc2_avail,
-                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    not common.blosc2_avail, "BLOSC2 compression library not available"
+)
 class Blosc2ComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "blosc2"
@@ -892,15 +939,17 @@ class Blosc2ComprTestCase(BasicTestCase):
     step = 3
 
 
-@common.unittest.skipIf(not common.blosc2_avail,
-                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    not common.blosc2_avail, "BLOSC2 compression library not available"
+)
 class Blosc2FletcherTestCase(Blosc2ComprTestCase):
     fletcher32 = 1
     start = 0
 
 
-@common.unittest.skipIf(not common.blosc2_avail,
-                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    not common.blosc2_avail, "BLOSC2 compression library not available"
+)
 class Blosc2CrossChunkTestCase(BasicTestCase):
     shape = (0, 10)
     compress = 1  # sss
@@ -912,28 +961,32 @@ class Blosc2CrossChunkTestCase(BasicTestCase):
     step = 3
 
 
-@common.unittest.skipIf(not common.blosc2_avail,
-                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    not common.blosc2_avail, "BLOSC2 compression library not available"
+)
 class Blosc2CrossChunkOptTestCase(Blosc2CrossChunkTestCase):
     step = 1  # optimized
     byteorder = sys.byteorder
 
 
-@common.unittest.skipIf(not common.blosc2_avail,
-                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    not common.blosc2_avail, "BLOSC2 compression library not available"
+)
 class Blosc2InnerCrossChunkTestCase(Blosc2CrossChunkTestCase):
     shape = (10, 0)
 
 
-@common.unittest.skipIf(not common.blosc2_avail,
-                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    not common.blosc2_avail, "BLOSC2 compression library not available"
+)
 class Blosc2InnerCrossChunkOptTestCase(Blosc2InnerCrossChunkTestCase):
     step = 1  # optimized
     byteorder = sys.byteorder
 
 
-@common.unittest.skipIf(not common.blosc2_avail,
-                        'BLOSC2 compression library not available')
+@common.unittest.skipIf(
+    not common.blosc2_avail, "BLOSC2 compression library not available"
+)
 class Blosc2PastLastChunkTestCase(BasicTestCase):
     shape = (0, 10)
     compress = 1  # sss
@@ -944,8 +997,9 @@ class Blosc2PastLastChunkTestCase(BasicTestCase):
     stop = 100
     step = 3
 
+
 class EllipsisEArrayTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 0)
     chunksize = 5
     nappends = 2
@@ -954,24 +1008,28 @@ class EllipsisEArrayTestCase(BasicTestCase):
 
 
 class Ellipsis2EArrayTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 0, 4)
     chunksize = 5
     nappends = 20
     slices = (slice(1, 2, 1), Ellipsis, slice(1, 4, 2))
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    not common.blosc_avail, "BLOSC compression library not available"
+)
 class Slices3EArrayTestCase(BasicTestCase):
-    compress = 1      # To show the chunks id DEBUG is on
+    compress = 1  # To show the chunks id DEBUG is on
     complib = "blosc"
-    type = 'int32'
+    type = "int32"
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
-    slices = (slice(1, 2, 1), slice(0, None, None),
-              slice(1, 4, 2))  # Don't work
+    slices = (
+        slice(1, 2, 1),
+        slice(0, None, None),
+        slice(1, 4, 2),
+    )  # Don't work
     # slices = (slice(None, None, None), slice(0, None, None),
     #           slice(1,4,1)) # W
     # slices = (slice(None, None, None), slice(None, None, None),
@@ -986,16 +1044,22 @@ class Slices3EArrayTestCase(BasicTestCase):
 
 
 class Slices4EArrayTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 3, 4, 0, 5, 6)
     chunksize = 5
     nappends = 20
-    slices = (slice(1, 2, 1), slice(0, None, None), slice(1, 4, 2),
-              slice(0, 4, 2), slice(3, 5, 2), slice(2, 7, 1))
+    slices = (
+        slice(1, 2, 1),
+        slice(0, None, None),
+        slice(1, 4, 2),
+        slice(0, 4, 2),
+        slice(3, 5, 2),
+        slice(2, 7, 1),
+    )
 
 
 class Ellipsis3EArrayTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
@@ -1004,7 +1068,7 @@ class Ellipsis3EArrayTestCase(BasicTestCase):
 
 
 class Ellipsis4EArrayTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
@@ -1013,7 +1077,7 @@ class Ellipsis4EArrayTestCase(BasicTestCase):
 
 
 class Ellipsis5EArrayTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
@@ -1021,7 +1085,7 @@ class Ellipsis5EArrayTestCase(BasicTestCase):
 
 
 class Ellipsis6EArrayTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 2
@@ -1032,7 +1096,7 @@ class Ellipsis6EArrayTestCase(BasicTestCase):
 
 
 class Ellipsis7EArrayTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 2
@@ -1040,14 +1104,14 @@ class Ellipsis7EArrayTestCase(BasicTestCase):
 
 
 class MD3WriteTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 0, 3)
     chunksize = 4
     step = 2
 
 
 class MD5WriteTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 0, 3, 4, 5)  # ok
     # shape = (1, 1, 0, 1)  # Minimum shape that shows problems with HDF5 1.6.1
     # shape = (2, 3, 0, 4, 5)  # Floating point exception (HDF5 1.6.1)
@@ -1060,7 +1124,7 @@ class MD5WriteTestCase(BasicTestCase):
 
 
 class MD6WriteTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 3, 3, 0, 5, 6)
     chunksize = 1
     nappends = 10
@@ -1071,14 +1135,15 @@ class MD6WriteTestCase(BasicTestCase):
 
 class NP_MD6WriteTestCase(BasicTestCase):
     """Testing NumPy scalars as indexes"""
-    type = 'int32'
+
+    type = "int32"
     shape = (2, 3, 3, 0, 5, 6)
     chunksize = 1
     nappends = 10
 
 
 class MD6WriteTestCase__(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 0)
     chunksize = 1
     nappends = 3
@@ -1088,7 +1153,7 @@ class MD6WriteTestCase__(BasicTestCase):
 
 
 class MD7WriteTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (2, 3, 3, 4, 5, 0, 3)
     chunksize = 10
     nappends = 1
@@ -1098,7 +1163,7 @@ class MD7WriteTestCase(BasicTestCase):
 
 
 class MD10WriteTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (1, 2, 3, 4, 5, 5, 4, 3, 2, 0)
     chunksize = 5
     nappends = 10
@@ -1108,7 +1173,7 @@ class MD10WriteTestCase(BasicTestCase):
 
 
 class NP_MD10WriteTestCase(BasicTestCase):
-    type = 'int32'
+    type = "int32"
     shape = (1, 2, 3, 4, 5, 5, 4, 3, 2, 0)
     chunksize = 5
     nappends = 10
@@ -1119,7 +1184,7 @@ class ZlibComprTestCase(BasicTestCase):
     complib = "zlib"
     start = 3
     # stop = 0   # means last row
-    stop = None   # means last row from 0.8 on
+    stop = None  # means last row from 0.8 on
     step = 10
 
 
@@ -1133,8 +1198,9 @@ class ZlibShuffleTestCase(BasicTestCase):
     step = 10
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    not common.blosc_avail, "BLOSC compression library not available"
+)
 class BloscComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "blosc"
@@ -1145,8 +1211,9 @@ class BloscComprTestCase(BasicTestCase):
     step = 3
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    not common.blosc_avail, "BLOSC compression library not available"
+)
 class BloscShuffleTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
@@ -1158,8 +1225,9 @@ class BloscShuffleTestCase(BasicTestCase):
     step = 7
 
 
-@common.unittest.skipIf(not common.lzo_avail,
-                        'LZO compression library not available')
+@common.unittest.skipIf(
+    not common.lzo_avail, "LZO compression library not available"
+)
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
@@ -1170,8 +1238,9 @@ class LZOComprTestCase(BasicTestCase):
     step = 3
 
 
-@common.unittest.skipIf(not common.lzo_avail,
-                        'LZO compression library not available')
+@common.unittest.skipIf(
+    not common.lzo_avail, "LZO compression library not available"
+)
 class LZOShuffleTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
@@ -1183,8 +1252,9 @@ class LZOShuffleTestCase(BasicTestCase):
     step = 7
 
 
-@common.unittest.skipIf(not common.bzip2_avail,
-                        'BZIP2 compression library not available')
+@common.unittest.skipIf(
+    not common.bzip2_avail, "BZIP2 compression library not available"
+)
 class Bzip2ComprTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"
@@ -1195,8 +1265,9 @@ class Bzip2ComprTestCase(BasicTestCase):
     step = 8
 
 
-@common.unittest.skipIf(not common.bzip2_avail,
-                        'BZIP2 compression library not available')
+@common.unittest.skipIf(
+    not common.bzip2_avail, "BZIP2 compression library not available"
+)
 class Bzip2ShuffleTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
@@ -1228,6 +1299,8 @@ class AllFiltersTestCase(BasicTestCase):
     start = 2
     stop = 99
     step = 6
+
+
 #     chunksize = 3
 #     nappends = 2
 #     start = 1
@@ -1236,8 +1309,8 @@ class AllFiltersTestCase(BasicTestCase):
 
 
 class FloatTypeTestCase(BasicTestCase):
-    type = 'float64'
-    dtype = 'float64'
+    type = "float64"
+    dtype = "float64"
     shape = (2, 0)
     chunksize = 5
     nappends = 10
@@ -1247,8 +1320,8 @@ class FloatTypeTestCase(BasicTestCase):
 
 
 class ComplexTypeTestCase(BasicTestCase):
-    type = 'complex128'
-    dtype = 'complex128'
+    type = "complex128"
+    dtype = "complex128"
     shape = (2, 0)
     chunksize = 5
     nappends = 10
@@ -1296,8 +1369,9 @@ class StringComprTestCase(BasicTestCase):
     step = 20
 
 
-class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
-                                         common.PyTablesTestCase):
+class SizeOnDiskInMemoryPropertyTestCase(
+    common.TempFileMixin, common.PyTablesTestCase
+):
 
     def setUp(self):
         super().setUp()
@@ -1310,12 +1384,15 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
         self.hdf_overhead = 6000
 
     def create_array(self, complevel):
-        filters = tb.Filters(complevel=complevel, complib='blosc')
-        self.array = self.h5file.create_earray('/', 'earray',
-                                               atom=tb.Int32Atom(),
-                                               shape=self.array_size,
-                                               filters=filters,
-                                               chunkshape=self.chunkshape)
+        filters = tb.Filters(complevel=complevel, complib="blosc")
+        self.array = self.h5file.create_earray(
+            "/",
+            "earray",
+            atom=tb.Int32Atom(),
+            shape=self.array_size,
+            filters=filters,
+            chunkshape=self.chunkshape,
+        )
 
     def test_zero_length(self):
         complevel = 0
@@ -1346,7 +1423,8 @@ class SizeOnDiskInMemoryPropertyTestCase(common.TempFileMixin,
         self.array.append([tuple(range(10))] * self.chunkshape[0] * 10)
         file_size = Path(self.h5fname).stat().st_size
         self.assertTrue(
-            abs(self.array.size_on_disk - file_size) <= self.hdf_overhead)
+            abs(self.array.size_on_disk - file_size) <= self.hdf_overhead
+        )
         self.assertEqual(self.array.size_in_memory, 10 * 1000 * 10 * 4)
         self.assertLess(self.array.size_on_disk, self.array.size_in_memory)
 
@@ -1365,13 +1443,16 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test01a_StringAtom..." % self.__class__.__name__)
 
-        earray = self.h5file.create_earray(root, 'strings',
-                                           atom=tb.StringAtom(itemsize=3),
-                                           shape=(0, 2, 2),
-                                           title="Array of strings")
+        earray = self.h5file.create_earray(
+            root,
+            "strings",
+            atom=tb.StringAtom(itemsize=3),
+            shape=(0, 2, 2),
+            title="Array of strings",
+        )
         a = np.array([[["a", "b"], ["123", "45"], ["45", "123"]]], dtype="S3")
         earray.append(a[:, 1:])
         a = np.array([[["s", "a"], ["ab", "f"], ["s", "abc"], ["abc", "f"]]])
@@ -1395,13 +1476,16 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test01b_StringAtom..." % self.__class__.__name__)
 
-        earray = self.h5file.create_earray(root, 'strings',
-                                           atom=tb.StringAtom(itemsize=3),
-                                           shape=(0, 2, 2),
-                                           title="Array of strings")
+        earray = self.h5file.create_earray(
+            root,
+            "strings",
+            atom=tb.StringAtom(itemsize=3),
+            shape=(0, 2, 2),
+            title="Array of strings",
+        )
         a = np.array([[["a", "b"], ["123", "45"], ["45", "123"]]], dtype="S3")
         earray.append(a[:, ::2])
         a = np.array([[["s", "a"], ["ab", "f"], ["s", "abc"], ["abc", "f"]]])
@@ -1425,17 +1509,22 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test02a_int..." % self.__class__.__name__)
 
         # Create a string atom
-        earray = self.h5file.create_earray(root, 'EAtom',
-                                           atom=tb.Int32Atom(), shape=(0, 3),
-                                           title="array of ints")
-        a = np.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)],
-                     dtype='int32')
+        earray = self.h5file.create_earray(
+            root,
+            "EAtom",
+            atom=tb.Int32Atom(),
+            shape=(0, 3),
+            title="array of ints",
+        )
+        a = np.array(
+            [(0, 0, 0), (1, 0, 3), (1, 1, 1), (0, 0, 0)], dtype="int32"
+        )
         earray.append(a[2:])  # Create an offset
-        a = np.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
+        a = np.array([(1, 1, 1), (-1, 0, 0)], dtype="int32")
         earray.append(a[1:])  # Create an offset
 
         # Read all the rows:
@@ -1446,28 +1535,36 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Third row in vlarray ==>", row[2])
 
         self.assertEqual(earray.nrows, 3)
-        self.assertTrue(common.allequal(
-            row[0], np.array([1, 1, 1], dtype='int32')))
-        self.assertTrue(common.allequal(
-            row[1], np.array([0, 0, 0], dtype='int32')))
-        self.assertTrue(common.allequal(
-            row[2], np.array([-1, 0, 0], dtype='int32')))
+        self.assertTrue(
+            common.allequal(row[0], np.array([1, 1, 1], dtype="int32"))
+        )
+        self.assertTrue(
+            common.allequal(row[1], np.array([0, 0, 0], dtype="int32"))
+        )
+        self.assertTrue(
+            common.allequal(row[2], np.array([-1, 0, 0], dtype="int32"))
+        )
 
     def test02b_int(self):
         """Checking earray with strided NumPy ints appends."""
 
         root = self.rootgroup
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test02b_int..." % self.__class__.__name__)
 
-        earray = self.h5file.create_earray(root, 'EAtom',
-                                           atom=tb.Int32Atom(), shape=(0, 3),
-                                           title="array of ints")
-        a = np.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)],
-                     dtype='int32')
+        earray = self.h5file.create_earray(
+            root,
+            "EAtom",
+            atom=tb.Int32Atom(),
+            shape=(0, 3),
+            title="array of ints",
+        )
+        a = np.array(
+            [(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype="int32"
+        )
         earray.append(a[::3])  # Create an offset
-        a = np.array([(1, 1, 1), (-1, 0, 0)], dtype='int32')
+        a = np.array([(1, 1, 1), (-1, 0, 0)], dtype="int32")
         earray.append(a[::2])  # Create an offset
 
         # Read all the rows:
@@ -1478,27 +1575,35 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("Third row in vlarray ==>", row[2])
 
         self.assertEqual(earray.nrows, 3)
-        self.assertTrue(common.allequal(
-            row[0], np.array([0, 0, 0], dtype='int32')))
-        self.assertTrue(common.allequal(
-            row[1], np.array([3, 3, 3], dtype='int32')))
-        self.assertTrue(common.allequal(
-            row[2], np.array([1, 1, 1], dtype='int32')))
+        self.assertTrue(
+            common.allequal(row[0], np.array([0, 0, 0], dtype="int32"))
+        )
+        self.assertTrue(
+            common.allequal(row[1], np.array([3, 3, 3], dtype="int32"))
+        )
+        self.assertTrue(
+            common.allequal(row[2], np.array([1, 1, 1], dtype="int32"))
+        )
 
     def test03a_int(self):
         """Checking earray with byteswapped appends (ints)"""
 
         root = self.rootgroup
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test03a_int..." % self.__class__.__name__)
 
-        earray = self.h5file.create_earray(root, 'EAtom',
-                                           atom=tb.Int32Atom(), shape=(0, 3),
-                                           title="array of ints")
+        earray = self.h5file.create_earray(
+            root,
+            "EAtom",
+            atom=tb.Int32Atom(),
+            shape=(0, 3),
+            title="array of ints",
+        )
         # Add a native ordered array
-        a = np.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)],
-                     dtype='int32')
+        a = np.array(
+            [(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype="int32"
+        )
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1522,15 +1627,20 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test03b_float..." % self.__class__.__name__)
 
-        earray = self.h5file.create_earray(root, 'EAtom',
-                                           atom=tb.Float64Atom(), shape=(0, 3),
-                                           title="array of floats")
+        earray = self.h5file.create_earray(
+            root,
+            "EAtom",
+            atom=tb.Float64Atom(),
+            shape=(0, 3),
+            title="array of floats",
+        )
         # Add a native ordered array
-        a = np.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)],
-                     dtype='float64')
+        a = np.array(
+            [(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype="float64"
+        )
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1554,17 +1664,22 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test04a_int..." % self.__class__.__name__)
 
-        byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
-        earray = self.h5file.create_earray(root, 'EAtom',
-                                           atom=tb.Int32Atom(), shape=(0, 3),
-                                           title="array of ints",
-                                           byteorder=byteorder)
+        byteorder = {"little": "big", "big": "little"}[sys.byteorder]
+        earray = self.h5file.create_earray(
+            root,
+            "EAtom",
+            atom=tb.Int32Atom(),
+            shape=(0, 3),
+            title="array of ints",
+            byteorder=byteorder,
+        )
         # Add a native ordered array
-        a = np.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)],
-                     dtype='int32')
+        a = np.array(
+            [(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype="int32"
+        )
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1576,12 +1691,15 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         native = earray[:4, :]
         swapped = earray[4:, :]
         if common.verbose:
-            print("Byteorder native rows:",
-                  tb.utils.byteorders[native.dtype.byteorder])
+            print(
+                "Byteorder native rows:",
+                tb.utils.byteorders[native.dtype.byteorder],
+            )
             print("Byteorder earray on-disk:", earray.byteorder)
 
-        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder],
-                         sys.byteorder)
+        self.assertEqual(
+            tb.utils.byteorders[native.dtype.byteorder], sys.byteorder
+        )
         self.assertEqual(earray.byteorder, byteorder)
         self.assertTrue(common.allequal(native, swapped))
 
@@ -1590,19 +1708,24 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test04b_int..." % self.__class__.__name__)
 
-        byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
-        earray = self.h5file.create_earray(root, 'EAtom',
-                                           atom=tb.Int32Atom(), shape=(0, 3),
-                                           title="array of ints",
-                                           byteorder=byteorder)
+        byteorder = {"little": "big", "big": "little"}[sys.byteorder]
+        earray = self.h5file.create_earray(
+            root,
+            "EAtom",
+            atom=tb.Int32Atom(),
+            shape=(0, 3),
+            title="array of ints",
+            byteorder=byteorder,
+        )
         self._reopen(mode="a")
         earray = self.h5file.get_node("/EAtom")
         # Add a native ordered array
-        a = np.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)],
-                     dtype='int32')
+        a = np.array(
+            [(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype="int32"
+        )
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1614,12 +1737,15 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         native = earray[:4, :]
         swapped = earray[4:, :]
         if common.verbose:
-            print("Byteorder native rows:",
-                  tb.utils.byteorders[native.dtype.byteorder])
+            print(
+                "Byteorder native rows:",
+                tb.utils.byteorders[native.dtype.byteorder],
+            )
             print("Byteorder earray on-disk:", earray.byteorder)
 
-        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder],
-                         sys.byteorder)
+        self.assertEqual(
+            tb.utils.byteorders[native.dtype.byteorder], sys.byteorder
+        )
         self.assertEqual(earray.byteorder, byteorder)
         self.assertTrue(common.allequal(native, swapped))
 
@@ -1628,17 +1754,22 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test04c_float..." % self.__class__.__name__)
 
-        byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
-        earray = self.h5file.create_earray(root, 'EAtom',
-                                           atom=tb.Float64Atom(), shape=(0, 3),
-                                           title="array of floats",
-                                           byteorder=byteorder)
+        byteorder = {"little": "big", "big": "little"}[sys.byteorder]
+        earray = self.h5file.create_earray(
+            root,
+            "EAtom",
+            atom=tb.Float64Atom(),
+            shape=(0, 3),
+            title="array of floats",
+            byteorder=byteorder,
+        )
         # Add a native ordered array
-        a = np.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)],
-                     dtype='float64')
+        a = np.array(
+            [(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype="float64"
+        )
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1650,12 +1781,15 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         native = earray[:4, :]
         swapped = earray[4:, :]
         if common.verbose:
-            print("Byteorder native rows:",
-                  tb.utils.byteorders[native.dtype.byteorder])
+            print(
+                "Byteorder native rows:",
+                tb.utils.byteorders[native.dtype.byteorder],
+            )
             print("Byteorder earray on-disk:", earray.byteorder)
 
-        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder],
-                         sys.byteorder)
+        self.assertEqual(
+            tb.utils.byteorders[native.dtype.byteorder], sys.byteorder
+        )
         self.assertEqual(earray.byteorder, byteorder)
         self.assertTrue(common.allequal(native, swapped))
 
@@ -1664,19 +1798,24 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         root = self.rootgroup
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test04d_float..." % self.__class__.__name__)
 
-        byteorder = {'little': 'big', 'big': 'little'}[sys.byteorder]
-        earray = self.h5file.create_earray(root, 'EAtom',
-                                           atom=tb.Float64Atom(), shape=(0, 3),
-                                           title="array of floats",
-                                           byteorder=byteorder)
-        self._reopen(mode='a')
+        byteorder = {"little": "big", "big": "little"}[sys.byteorder]
+        earray = self.h5file.create_earray(
+            root,
+            "EAtom",
+            atom=tb.Float64Atom(),
+            shape=(0, 3),
+            title="array of floats",
+            byteorder=byteorder,
+        )
+        self._reopen(mode="a")
         earray = self.h5file.get_node("/EAtom")
         # Add a native ordered array
-        a = np.array([(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)],
-                     dtype='float64')
+        a = np.array(
+            [(0, 0, 0), (1, 0, 3), (1, 1, 1), (3, 3, 3)], dtype="float64"
+        )
         earray.append(a)
         # Change the byteorder of the array
         a = a.byteswap()
@@ -1688,12 +1827,15 @@ class OffsetStrideTestCase(common.TempFileMixin, common.PyTablesTestCase):
         native = earray[:4, :]
         swapped = earray[4:, :]
         if common.verbose:
-            print("Byteorder native rows:",
-                  tb.utils.byteorders[native.dtype.byteorder])
+            print(
+                "Byteorder native rows:",
+                tb.utils.byteorders[native.dtype.byteorder],
+            )
             print("Byteorder earray on-disk:", earray.byteorder)
 
-        self.assertEqual(tb.utils.byteorders[native.dtype.byteorder],
-                         sys.byteorder)
+        self.assertEqual(
+            tb.utils.byteorders[native.dtype.byteorder], sys.byteorder
+        )
         self.assertEqual(earray.byteorder, byteorder)
         self.assertTrue(common.allequal(native, swapped))
 
@@ -1704,24 +1846,28 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking EArray.copy() method."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test01_copy..." % self.__class__.__name__)
 
         # Create an EArray
         atom = tb.Int16Atom()
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
-        array1.append(np.array([[456, 2], [3, 457]], dtype='int16'))
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
+        array1.append(np.array([[456, 2], [3, 457]], dtype="int16"))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self._reopen(mode='a')
+            self._reopen(mode="a")
             array1 = self.h5file.root.array1
 
         # Copy it to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy("/", "array2")
 
         if self.close:
             if common.verbose:
@@ -1755,25 +1901,29 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking EArray.copy() method (where specified)"""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test02_copy..." % self.__class__.__name__)
 
         # Create an EArray
         atom = tb.Int16Atom()
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
-        array1.append(np.array([[456, 2], [3, 457]], dtype='int16'))
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
+        array1.append(np.array([[456, 2], [3, 457]], dtype="int16"))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self._reopen(mode='a')
+            self._reopen(mode="a")
             array1 = self.h5file.root.array1
 
         # Copy to another location
         group1 = self.h5file.create_group("/", "group1")
-        array2 = array1.copy(group1, 'array2')
+        array2 = array1.copy(group1, "array2")
 
         if self.close:
             if common.verbose:
@@ -1807,24 +1957,28 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking EArray.copy() method (python flavor)"""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test03b_copy..." % self.__class__.__name__)
 
         atom = tb.Int16Atom()
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
         array1.flavor = "python"
         array1.append(((456, 2), (3, 457)))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self._reopen(mode='a')
+            self._reopen(mode="a")
             array1 = self.h5file.root.array1
 
         # Copy to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy("/", "array2")
 
         if self.close:
             if common.verbose:
@@ -1854,24 +2008,28 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking EArray.copy() method (python string flavor)"""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test03d_copy..." % self.__class__.__name__)
 
         atom = tb.StringAtom(itemsize=3)
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
         array1.flavor = "python"
         array1.append([["456", "2"], ["3", "457"]])
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self._reopen(mode='a')
+            self._reopen(mode="a")
             array1 = self.h5file.root.array1
 
         # Copy to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy("/", "array2")
 
         if self.close:
             if common.verbose:
@@ -1902,24 +2060,28 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking EArray.copy() method (String flavor)"""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test03e_copy..." % self.__class__.__name__)
 
         atom = tb.StringAtom(itemsize=4)
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
         array1.flavor = "numpy"
         array1.append(np.array([["456", "2"], ["3", "457"]], dtype="S4"))
 
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self._reopen(mode='a')
+            self._reopen(mode="a")
             array1 = self.h5file.root.array1
 
         # Copy to another location
-        array2 = array1.copy('/', 'array2')
+        array2 = array1.copy("/", "array2")
 
         if self.close:
             if common.verbose:
@@ -1949,15 +2111,19 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking EArray.copy() method (checking title copying)"""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test04_copy..." % self.__class__.__name__)
 
         # Create an EArray
         atom = tb.Int16Atom()
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
-        array1.append(np.array([[456, 2], [3, 457]], dtype='int16'))
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
+        array1.append(np.array([[456, 2], [3, 457]], dtype="int16"))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -1965,11 +2131,11 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self._reopen(mode='a')
+            self._reopen(mode="a")
             array1 = self.h5file.root.array1
 
         # Copy it to another Array
-        array2 = array1.copy('/', 'array2', title="title array2")
+        array2 = array1.copy("/", "array2", title="title array2")
 
         if self.close:
             if common.verbose:
@@ -1987,15 +2153,19 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking EArray.copy() method (user attributes copied)"""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test05_copy..." % self.__class__.__name__)
 
         # Create an EArray
         atom = tb.Int16Atom()
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
-        array1.append(np.array([[456, 2], [3, 457]], dtype='int16'))
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
+        array1.append(np.array([[456, 2], [3, 457]], dtype="int16"))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -2003,11 +2173,11 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self._reopen(mode='a')
+            self._reopen(mode="a")
             array1 = self.h5file.root.array1
 
         # Copy it to another Array
-        array2 = array1.copy('/', 'array2', copyuserattrs=1)
+        array2 = array1.copy("/", "array2", copyuserattrs=1)
 
         if self.close:
             if common.verbose:
@@ -2028,15 +2198,19 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking EArray.copy() method (user attributes not copied)"""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test05b_copy..." % self.__class__.__name__)
 
         # Create an Array
         atom = tb.Int16Atom()
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
-        array1.append(np.array([[456, 2], [3, 457]], dtype='int16'))
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
+        array1.append(np.array([[456, 2], [3, 457]], dtype="int16"))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
         array1.attrs.attr2 = 2
@@ -2044,11 +2218,11 @@ class CopyTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if self.close:
             if common.verbose:
                 print("(closing file version)")
-            self._reopen(mode='a')
+            self._reopen(mode="a")
             array1 = self.h5file.root.array1
 
         # Copy it to another Array
-        array2 = array1.copy('/', 'array2', copyuserattrs=0)
+        array2 = array1.copy("/", "array2", copyuserattrs=0)
 
         if self.close:
             if common.verbose:
@@ -2081,15 +2255,19 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking EArray.copy() method with indexes."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test01_index..." % self.__class__.__name__)
 
         # Create an EArray
         atom = tb.Int32Atom()
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
-        r = np.arange(200, dtype='int32')
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
+        r = np.arange(200, dtype="int32")
         r.shape = (100, 2)
         array1.append(r)
 
@@ -2097,10 +2275,9 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
         array1.nrowsinbuf = self.nrowsinbuf
 
         # Copy to another array
-        array2 = array1.copy("/", 'array2',
-                             start=self.start,
-                             stop=self.stop,
-                             step=self.step)
+        array2 = array1.copy(
+            "/", "array2", start=self.start, stop=self.stop, step=self.step
+        )
         if common.verbose:
             print("array1-->", array1.read())
             print("array2-->", array2.read())
@@ -2108,7 +2285,7 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
-        r2 = r[self.start:self.stop:self.step]
+        r2 = r[self.start : self.stop : self.step]
         self.assertTrue(common.allequal(r2, array2.read()))
 
         # Assert the number of rows in array
@@ -2121,15 +2298,19 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking EArray.copy() method with indexes (close file version)"""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test02_indexclosef..." % self.__class__.__name__)
 
         # Create an EArray
         atom = tb.Int32Atom()
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
-        r = np.arange(200, dtype='int32')
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
+        r = np.arange(200, dtype="int32")
         r.shape = (100, 2)
         array1.append(r)
 
@@ -2137,10 +2318,9 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
         array1.nrowsinbuf = self.nrowsinbuf
 
         # Copy to another array
-        array2 = array1.copy("/", 'array2',
-                             start=self.start,
-                             stop=self.stop,
-                             step=self.step)
+        array2 = array1.copy(
+            "/", "array2", start=self.start, stop=self.stop, step=self.step
+        )
         # Close and reopen the file
         self._reopen()
         array1 = self.h5file.root.array1
@@ -2153,7 +2333,7 @@ class CopyIndexTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print("attrs array2-->", repr(array2.attrs))
 
         # Check that all the elements are equal
-        r2 = r[self.start:self.stop:self.step]
+        r2 = r[self.start : self.stop : self.step]
         self.assertTrue(common.allequal(r2, array2.read()))
 
         # Assert the number of rows in array
@@ -2237,7 +2417,7 @@ class CopyIndex11TestCase(CopyIndexTestCase):
 
 
 class CopyIndex12TestCase(CopyIndexTestCase):
-    start = -1   # Should point to the last element
+    start = -1  # Should point to the last element
     stop = None  # None should mean the last element (including it)
     step = 1
 
@@ -2249,11 +2429,15 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create an EArray
         atom = tb.Int16Atom(dflt=3)
-        array1 = self.h5file.create_earray(self.h5file.root, 'array1',
-                                           atom=atom, shape=(0, 2),
-                                           title="title array1")
+        array1 = self.h5file.create_earray(
+            self.h5file.root,
+            "array1",
+            atom=atom,
+            shape=(0, 2),
+            title="title array1",
+        )
         # Add a couple of rows
-        array1.append(np.array([[456, 2], [3, 457]], dtype='int16'))
+        array1.append(np.array([[456, 2], [3, 457]], dtype="int16"))
 
     def test00_truncate(self):
         """Checking EArray.truncate() method (truncating to 0 rows)"""
@@ -2271,8 +2455,11 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("array1-->", array1.read())
 
-        self.assertTrue(common.allequal(
-            array1[:], np.array([], dtype='int16').reshape(0, 2)))
+        self.assertTrue(
+            common.allequal(
+                array1[:], np.array([], dtype="int16").reshape(0, 2)
+            )
+        )
 
     def test01_truncate(self):
         """Checking EArray.truncate() method (truncating to 1 rows)"""
@@ -2290,8 +2477,9 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("array1-->", array1.read())
 
-        self.assertTrue(common.allequal(
-            array1.read(), np.array([[456, 2]], dtype='int16')))
+        self.assertTrue(
+            common.allequal(array1.read(), np.array([[456, 2]], dtype="int16"))
+        )
 
     def test02_truncate(self):
         """Checking EArray.truncate() method (truncating to == self.nrows)"""
@@ -2309,8 +2497,11 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("array1-->", array1.read())
 
-        self.assertTrue(common.allequal(
-            array1.read(), np.array([[456, 2], [3, 457]], dtype='int16')))
+        self.assertTrue(
+            common.allequal(
+                array1.read(), np.array([[456, 2], [3, 457]], dtype="int16")
+            )
+        )
 
     def test03_truncate(self):
         """Checking EArray.truncate() method (truncating to > self.nrows)"""
@@ -2330,11 +2521,17 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.assertEqual(array1.nrows, 4)
         # Check the original values
-        self.assertTrue(common.allequal(
-            array1[:2], np.array([[456, 2], [3, 457]], dtype='int16')))
+        self.assertTrue(
+            common.allequal(
+                array1[:2], np.array([[456, 2], [3, 457]], dtype="int16")
+            )
+        )
         # Check that the added rows have the default values
-        self.assertTrue(common.allequal(
-            array1[2:], np.array([[3, 3], [3, 3]], dtype='int16')))
+        self.assertTrue(
+            common.allequal(
+                array1[2:], np.array([[3, 3], [3, 3]], dtype="int16")
+            )
+        )
 
 
 class TruncateOpenTestCase(TruncateTestCase):
@@ -2347,25 +2544,28 @@ class TruncateCloseTestCase(TruncateTestCase):
 
 # The next test should be run only in **common.heavy** mode
 class Rows64bitsTestCase(common.TempFileMixin, common.PyTablesTestCase):
-    open_mode = 'a'
-    narows = 1000 * 1000   # each numpy object will have 1 million entries
+    open_mode = "a"
+    narows = 1000 * 1000  # each numpy object will have 1 million entries
     # narows = 1000   # for testing only
-    nanumber = 1000 * 3    # That should account for more than 2**31-1
+    nanumber = 1000 * 3  # That should account for more than 2**31-1
 
     def setUp(self):
         super().setUp()
 
         # Create an EArray
         array = self.h5file.create_earray(
-            self.h5file.root, 'array',
-            atom=tb.Int8Atom(), shape=(0,),
-            filters=tb.Filters(complib='lzo', complevel=1),
+            self.h5file.root,
+            "array",
+            atom=tb.Int8Atom(),
+            shape=(0,),
+            filters=tb.Filters(complib="lzo", complevel=1),
             # Specifying expectedrows takes more
             # CPU, but less disk
-            expectedrows=self.narows * self.nanumber)
+            expectedrows=self.narows * self.nanumber,
+        )
 
         # Fill the array
-        na = np.arange(self.narows, dtype='int8')
+        na = np.arange(self.narows, dtype="int8")
         for i in range(self.nanumber):
             array.append(na)
 
@@ -2399,7 +2599,7 @@ class Rows64bitsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if stop > 127:
                 stop -= 256
             start = stop - 10
-            print("Should look like-->", np.arange(start, stop, dtype='int8'))
+            print("Should look like-->", np.arange(start, stop, dtype="int8"))
 
         nrows = self.narows * self.nanumber
         # check nrows
@@ -2407,15 +2607,17 @@ class Rows64bitsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check shape
         self.assertEqual(array.shape, (nrows,))
         # check the 10 first elements
-        self.assertTrue(common.allequal(
-            array[:10], np.arange(10, dtype='int8')))
+        self.assertTrue(
+            common.allequal(array[:10], np.arange(10, dtype="int8"))
+        )
         # check the 10 last elements
         stop = self.narows % 256
         if stop > 127:
             stop -= 256
         start = stop - 10
-        self.assertTrue(common.allequal(
-            array[-10:], np.arange(start, stop, dtype='int8')))
+        self.assertTrue(
+            common.allequal(array[-10:], np.arange(start, stop, dtype="int8"))
+        )
 
 
 class Rows64bitsTestCase1(Rows64bitsTestCase):
@@ -2428,14 +2630,15 @@ class Rows64bitsTestCase2(Rows64bitsTestCase):
 
 # Test for appending zero-sized arrays
 class ZeroSizedTestCase(common.TempFileMixin, common.PyTablesTestCase):
-    open_mode = 'a'
+    open_mode = "a"
 
     def setUp(self):
         super().setUp()
 
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test',
-                                       atom=tb.Int32Atom(), shape=(3, 0))
+        ea = self.h5file.create_earray(
+            "/", "test", atom=tb.Int32Atom(), shape=(3, 0)
+        )
         # Append a single row
         ea.append([[1], [2], [3]])
 
@@ -2444,7 +2647,7 @@ class ZeroSizedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         fileh = self.h5file
         ea = fileh.root.test
-        arr = np.empty(shape=(3, 0), dtype='int32')
+        arr = np.empty(shape=(3, 0), dtype="int32")
         ea.append(arr)
         self.assertEqual(ea.nrows, 1, "The number of rows should be 1.")
 
@@ -2453,7 +2656,7 @@ class ZeroSizedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         fileh = self.h5file
         ea = fileh.root.test
-        arr = np.empty(shape=(3, 0, 3), dtype='int32')
+        arr = np.empty(shape=(3, 0, 3), dtype="int32")
         self.assertRaises(ValueError, ea.append, arr)
 
 
@@ -2464,89 +2667,102 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Append a row to a (unidimensional) EArray with a MD tables.Atom."""
 
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test',
-                                       atom=tb.Int32Atom((2, 2)), shape=(0,))
+        ea = self.h5file.create_earray(
+            "/", "test", atom=tb.Int32Atom((2, 2)), shape=(0,)
+        )
         if self.reopen:
-            self._reopen('a')
+            self._reopen("a")
             ea = self.h5file.root.test
         # Append one row
         ea.append([[[1, 3], [4, 5]]])
         self.assertEqual(ea.nrows, 1)
         if common.verbose:
             print("First row-->", ea[0])
-        self.assertTrue(common.allequal(
-            ea[0], np.array([[1, 3], [4, 5]], 'i4')))
+        self.assertTrue(
+            common.allequal(ea[0], np.array([[1, 3], [4, 5]], "i4"))
+        )
 
     def test01b_append(self):
         """Append several rows to a (unidimensional) EArray with a MD
         tables.Atom."""
 
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test',
-                                       atom=tb.Int32Atom((2, 2)), shape=(0,))
+        ea = self.h5file.create_earray(
+            "/", "test", atom=tb.Int32Atom((2, 2)), shape=(0,)
+        )
         if self.reopen:
-            self._reopen('a')
+            self._reopen("a")
             ea = self.h5file.root.test
         # Append three rows
-        ea.append([[[1]], [[2]], [[3]]])   # Simple broadcast
+        ea.append([[[1]], [[2]], [[3]]])  # Simple broadcast
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print("Third row-->", ea[2])
-        self.assertTrue(common.allequal(
-            ea[2], np.array([[3, 3], [3, 3]], 'i4')))
+        self.assertTrue(
+            common.allequal(ea[2], np.array([[3, 3], [3, 3]], "i4"))
+        )
 
     def test02a_append(self):
         """Append a row to a (multidimensional) EArray with a
         MD tables.Atom."""
 
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test',
-                                       atom=tb.Int32Atom((2,)), shape=(0, 3))
+        ea = self.h5file.create_earray(
+            "/", "test", atom=tb.Int32Atom((2,)), shape=(0, 3)
+        )
         if self.reopen:
-            self._reopen('a')
+            self._reopen("a")
             ea = self.h5file.root.test
         # Append one row
         ea.append([[[1, 3], [4, 5], [7, 9]]])
         self.assertEqual(ea.nrows, 1)
         if common.verbose:
             print("First row-->", ea[0])
-        self.assertTrue(common.allequal(
-            ea[0], np.array([[1, 3], [4, 5], [7, 9]], 'i4')))
+        self.assertTrue(
+            common.allequal(ea[0], np.array([[1, 3], [4, 5], [7, 9]], "i4"))
+        )
 
     def test02b_append(self):
         """Append several rows to a (multidimensional) EArray with a MD
         tables.Atom."""
 
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test',
-                                       atom=tb.Int32Atom((2,)), shape=(0, 3))
+        ea = self.h5file.create_earray(
+            "/", "test", atom=tb.Int32Atom((2,)), shape=(0, 3)
+        )
         if self.reopen:
-            self._reopen('a')
+            self._reopen("a")
             ea = self.h5file.root.test
         # Append three rows
-        ea.append([[[1, -3], [4, -5], [-7, 9]],
-                   [[-1, 3], [-4, 5], [7, -8]],
-                   [[-2, 3], [-5, 5], [7, -9]]])
+        ea.append(
+            [
+                [[1, -3], [4, -5], [-7, 9]],
+                [[-1, 3], [-4, 5], [7, -8]],
+                [[-2, 3], [-5, 5], [7, -9]],
+            ]
+        )
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print("Third row-->", ea[2])
-        self.assertTrue(common.allequal(
-            ea[2], np.array([[-2, 3], [-5, 5], [7, -9]], 'i4')))
+        self.assertTrue(
+            common.allequal(ea[2], np.array([[-2, 3], [-5, 5], [7, -9]], "i4"))
+        )
 
     def test03a_MDMDMD(self):
         """Complex append of a MD array in a MD EArray with a
         MD tables.Atom."""
 
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test', atom=tb.Int32Atom((2, 4)),
-                                       shape=(0, 2, 3))
+        ea = self.h5file.create_earray(
+            "/", "test", atom=tb.Int32Atom((2, 4)), shape=(0, 2, 3)
+        )
         if self.reopen:
-            self._reopen('a')
+            self._reopen("a")
             ea = self.h5file.root.test
         # Append three rows
         # The shape of the atom should be added at the end of the arrays
-        a = np.arange(2 * 3*2*4, dtype='i4').reshape((2, 3, 2, 4))
-        ea.append([a * 1, a*2, a*3])
+        a = np.arange(2 * 3 * 2 * 4, dtype="i4").reshape((2, 3, 2, 4))
+        ea.append([a * 1, a * 2, a * 3])
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print("Third row-->", ea[2])
@@ -2555,42 +2771,46 @@ class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03b_MDMDMD(self):
         """Complex append of a MD array in a MD EArray with a MD atom (II)."""
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test', atom=tb.Int32Atom((2, 4)),
-                                       shape=(2, 0, 3))
+        ea = self.h5file.create_earray(
+            "/", "test", atom=tb.Int32Atom((2, 4)), shape=(2, 0, 3)
+        )
         if self.reopen:
-            self._reopen('a')
+            self._reopen("a")
             ea = self.h5file.root.test
         # Append three rows
         # The shape of the atom should be added at the end of the arrays
-        a = np.arange(2 * 3*2*4, dtype='i4').reshape((2, 1, 3, 2, 4))
+        a = np.arange(2 * 3 * 2 * 4, dtype="i4").reshape((2, 1, 3, 2, 4))
         ea.append(a * 1)
         ea.append(a * 2)
         ea.append(a * 3)
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print("Third row-->", ea[:, 2, ...])
-        self.assertTrue(common.allequal(ea[:, 2, ...],
-                                        a.reshape((2, 3, 2, 4))*3))
+        self.assertTrue(
+            common.allequal(ea[:, 2, ...], a.reshape((2, 3, 2, 4)) * 3)
+        )
 
     def test03c_MDMDMD(self):
         """Complex append of a MD array in a MD EArray with a MD atom (III)."""
         # Create an EArray
-        ea = self.h5file.create_earray('/', 'test', atom=tb.Int32Atom((2, 4)),
-                                       shape=(2, 3, 0))
+        ea = self.h5file.create_earray(
+            "/", "test", atom=tb.Int32Atom((2, 4)), shape=(2, 3, 0)
+        )
         if self.reopen:
-            self._reopen('a')
+            self._reopen("a")
             ea = self.h5file.root.test
         # Append three rows
         # The shape of the atom should be added at the end of the arrays
-        a = np.arange(2 * 3*2*4, dtype='i4').reshape((2, 3, 1, 2, 4))
+        a = np.arange(2 * 3 * 2 * 4, dtype="i4").reshape((2, 3, 1, 2, 4))
         ea.append(a * 1)
         ea.append(a * 2)
         ea.append(a * 3)
         self.assertEqual(ea.nrows, 3)
         if common.verbose:
             print("Third row-->", ea[:, :, 2, ...])
-        self.assertTrue(common.allequal(ea[:, :, 2, ...],
-                                        a.reshape((2, 3, 2, 4))*3))
+        self.assertTrue(
+            common.allequal(ea[:, :, 2, ...], a.reshape((2, 3, 2, 4)) * 3)
+        )
 
 
 class MDAtomNoReopen(MDAtomTestCase):
@@ -2605,9 +2825,9 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def setUp(self):
         super().setUp()
-        self.array = self.h5file.create_earray(self.h5file.root, 'array',
-                                               atom=tb.Int32Atom(),
-                                               shape=(0, 10))
+        self.array = self.h5file.create_earray(
+            self.h5file.root, "array", atom=tb.Int32Atom(), shape=(0, 10)
+        )
         self.array.append(np.zeros((10, 10)))
 
     def test_read(self):
@@ -2624,17 +2844,18 @@ class AccessClosedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test_append(self):
         self.h5file.close()
-        self.assertRaises(tb.ClosedNodeError,
-                          self.array.append, np.zeros((10, 10)))
+        self.assertRaises(
+            tb.ClosedNodeError, self.array.append, np.zeros((10, 10))
+        )
 
 
 class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
     obj = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    where = '/'
-    name = 'earray'
+    where = "/"
+    name = "earray"
     atom = tb.Atom.from_dtype(obj.dtype)
     shape = (0,) + obj.shape[1:]
-    title = 'title'
+    title = "title"
     filters = None
     expectedrows = 1000
     chunkshape = (1, 2)
@@ -2642,10 +2863,16 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
     createparents = False
 
     def test_positional_args_01(self):
-        self.h5file.create_earray(self.where, self.name,
-                                  self.atom, self.shape,
-                                  self.title, self.filters,
-                                  self.expectedrows, self.chunkshape)
+        self.h5file.create_earray(
+            self.where,
+            self.name,
+            self.atom,
+            self.shape,
+            self.title,
+            self.filters,
+            self.expectedrows,
+            self.chunkshape,
+        )
 
         self._reopen()
 
@@ -2659,12 +2886,16 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ptarr.chunkshape, self.chunkshape)
 
     def test_positional_args_02(self):
-        ptarr = self.h5file.create_earray(self.where, self.name,
-                                          self.atom, self.shape,
-                                          self.title,
-                                          self.filters,
-                                          self.expectedrows,
-                                          self.chunkshape)
+        ptarr = self.h5file.create_earray(
+            self.where,
+            self.name,
+            self.atom,
+            self.shape,
+            self.title,
+            self.filters,
+            self.expectedrows,
+            self.chunkshape,
+        )
         ptarr.append(self.obj)
 
         self._reopen()
@@ -2681,15 +2912,19 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_positional_args_obj(self):
-        self.h5file.create_earray(self.where, self.name,
-                                  None, None,
-                                  self.title,
-                                  self.filters,
-                                  self.expectedrows,
-                                  self.chunkshape,
-                                  self.byteorder,
-                                  self.createparents,
-                                  self.obj)
+        self.h5file.create_earray(
+            self.where,
+            self.name,
+            None,
+            None,
+            self.title,
+            self.filters,
+            self.expectedrows,
+            self.chunkshape,
+            self.byteorder,
+            self.createparents,
+            self.obj,
+        )
 
         self._reopen()
 
@@ -2705,9 +2940,13 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj(self):
-        self.h5file.create_earray(self.where, self.name, title=self.title,
-                                  chunkshape=self.chunkshape,
-                                  obj=self.obj)
+        self.h5file.create_earray(
+            self.where,
+            self.name,
+            title=self.title,
+            chunkshape=self.chunkshape,
+            obj=self.obj,
+        )
 
         self._reopen()
 
@@ -2723,10 +2962,14 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_atom_shape_01(self):
-        ptarr = self.h5file.create_earray(self.where, self.name,
-                                          title=self.title,
-                                          chunkshape=self.chunkshape,
-                                          atom=self.atom, shape=self.shape)
+        ptarr = self.h5file.create_earray(
+            self.where,
+            self.name,
+            title=self.title,
+            chunkshape=self.chunkshape,
+            atom=self.atom,
+            shape=self.shape,
+        )
         ptarr.append(self.obj)
 
         self._reopen()
@@ -2743,10 +2986,14 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_atom_shape_02(self):
-        ptarr = self.h5file.create_earray(self.where, self.name,
-                                          title=self.title,
-                                          chunkshape=self.chunkshape,
-                                          atom=self.atom, shape=self.shape)
+        ptarr = self.h5file.create_earray(
+            self.where,
+            self.name,
+            title=self.title,
+            chunkshape=self.chunkshape,
+            atom=self.atom,
+            shape=self.shape,
+        )
         # ptarr.append(self.obj)
 
         self._reopen()
@@ -2761,11 +3008,14 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(ptarr.chunkshape, self.chunkshape)
 
     def test_kwargs_obj_atom(self):
-        ptarr = self.h5file.create_earray(self.where, self.name,
-                                          title=self.title,
-                                          chunkshape=self.chunkshape,
-                                          obj=self.obj,
-                                          atom=self.atom)
+        ptarr = self.h5file.create_earray(
+            self.where,
+            self.name,
+            title=self.title,
+            chunkshape=self.chunkshape,
+            obj=self.obj,
+            atom=self.atom,
+        )
 
         self._reopen()
 
@@ -2781,11 +3031,14 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj_shape(self):
-        ptarr = self.h5file.create_earray(self.where, self.name,
-                                          title=self.title,
-                                          chunkshape=self.chunkshape,
-                                          obj=self.obj,
-                                          shape=self.shape)
+        ptarr = self.h5file.create_earray(
+            self.where,
+            self.name,
+            title=self.title,
+            chunkshape=self.chunkshape,
+            obj=self.obj,
+            shape=self.shape,
+        )
 
         self._reopen()
 
@@ -2801,12 +3054,15 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj_atom_shape(self):
-        ptarr = self.h5file.create_earray(self.where, self.name,
-                                          title=self.title,
-                                          chunkshape=self.chunkshape,
-                                          obj=self.obj,
-                                          atom=self.atom,
-                                          shape=self.shape)
+        ptarr = self.h5file.create_earray(
+            self.where,
+            self.name,
+            title=self.title,
+            chunkshape=self.chunkshape,
+            obj=self.obj,
+            atom=self.atom,
+            shape=self.shape,
+        )
 
         self._reopen()
 
@@ -2822,62 +3078,72 @@ class TestCreateEArrayArgs(common.TempFileMixin, common.PyTablesTestCase):
         self.assertTrue(common.allequal(self.obj, nparr))
 
     def test_kwargs_obj_atom_error(self):
-        atom = tb.Atom.from_dtype(np.dtype('complex'))
+        atom = tb.Atom.from_dtype(np.dtype("complex"))
         # shape = self.shape + self.shape
-        self.assertRaises(TypeError,
-                          self.h5file.create_earray,
-                          self.where,
-                          self.name,
-                          title=self.title,
-                          obj=self.obj,
-                          atom=atom)
+        self.assertRaises(
+            TypeError,
+            self.h5file.create_earray,
+            self.where,
+            self.name,
+            title=self.title,
+            obj=self.obj,
+            atom=atom,
+        )
 
     def test_kwargs_obj_shape_error(self):
         # atom = tables.Atom.from_dtype(np.dtype('complex'))
         shape = self.shape + self.shape
-        self.assertRaises(TypeError,
-                          self.h5file.create_earray,
-                          self.where,
-                          self.name,
-                          title=self.title,
-                          obj=self.obj,
-                          shape=shape)
+        self.assertRaises(
+            TypeError,
+            self.h5file.create_earray,
+            self.where,
+            self.name,
+            title=self.title,
+            obj=self.obj,
+            shape=shape,
+        )
 
     def test_kwargs_obj_atom_shape_error_01(self):
-        atom = tb.Atom.from_dtype(np.dtype('complex'))
+        atom = tb.Atom.from_dtype(np.dtype("complex"))
         # shape = self.shape + self.shape
-        self.assertRaises(TypeError,
-                          self.h5file.create_earray,
-                          self.where,
-                          self.name,
-                          title=self.title,
-                          obj=self.obj,
-                          atom=atom,
-                          shape=self.shape)
+        self.assertRaises(
+            TypeError,
+            self.h5file.create_earray,
+            self.where,
+            self.name,
+            title=self.title,
+            obj=self.obj,
+            atom=atom,
+            shape=self.shape,
+        )
 
     def test_kwargs_obj_atom_shape_error_02(self):
         # atom = tables.Atom.from_dtype(np.dtype('complex'))
         shape = self.shape + self.shape
-        self.assertRaises(TypeError,
-                          self.h5file.create_earray,
-                          self.where,
-                          self.name,
-                          title=self.title,
-                          obj=self.obj,
-                          atom=self.atom,
-                          shape=shape)
+        self.assertRaises(
+            TypeError,
+            self.h5file.create_earray,
+            self.where,
+            self.name,
+            title=self.title,
+            obj=self.obj,
+            atom=self.atom,
+            shape=shape,
+        )
 
     def test_kwargs_obj_atom_shape_error_03(self):
-        atom = tb.Atom.from_dtype(np.dtype('complex'))
+        atom = tb.Atom.from_dtype(np.dtype("complex"))
         shape = self.shape + self.shape
-        self.assertRaises(TypeError,
-                          self.h5file.create_earray,
-                          self.where,
-                          self.name,
-                          title=self.title,
-                          obj=self.obj,
-                          atom=atom,
-                          shape=shape)
+        self.assertRaises(
+            TypeError,
+            self.h5file.create_earray,
+            self.where,
+            self.name,
+            title=self.title,
+            obj=self.obj,
+            atom=atom,
+            shape=shape,
+        )
 
 
 def suite():
@@ -2925,8 +3191,7 @@ def suite():
         theSuite.addTest(common.make_suite(StringTestCase))
         theSuite.addTest(common.make_suite(String2TestCase))
         theSuite.addTest(common.make_suite(StringComprTestCase))
-        theSuite.addTest(common.make_suite(
-            SizeOnDiskInMemoryPropertyTestCase))
+        theSuite.addTest(common.make_suite(SizeOnDiskInMemoryPropertyTestCase))
         theSuite.addTest(common.make_suite(OffsetStrideTestCase))
         theSuite.addTest(common.make_suite(Fletcher32TestCase))
         theSuite.addTest(common.make_suite(AllFiltersTestCase))
@@ -2969,7 +3234,7 @@ def suite():
     return theSuite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     common.parse_argv(sys.argv)
     common.print_versions()
-    common.unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest="suite")

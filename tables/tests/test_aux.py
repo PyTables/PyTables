@@ -1,4 +1,5 @@
 import unittest
+
 import numpy as np
 
 import tables as tb
@@ -9,8 +10,8 @@ class TestAuxiliaryFunctions(unittest.TestCase):
     def test_keysort(self):
         N = 1000
         rnd = np.random.randint(N, size=N)
-        for dtype1 in ('S6', 'b1', 'i1', 'i8', 'u4', 'u8', 'f4', 'f8'):
-            for dtype2 in ('u4', 'i8'):
+        for dtype1 in ("S6", "b1", "i1", "i8", "u4", "u8", "f4", "f8"):
+            for dtype2 in ("u4", "i8"):
                 a = np.array(rnd, dtype1)
                 b = np.array(rnd, dtype2)
 
@@ -30,5 +31,5 @@ def suite():
     return theSuite
 
 
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+if __name__ == "__main__":
+    unittest.main(defaultTest="suite")

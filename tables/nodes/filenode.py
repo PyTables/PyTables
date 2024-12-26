@@ -28,8 +28,7 @@ import numpy as np
 
 import tables as tb
 
-
-NodeType = 'file'
+NodeType = "file"
 """Value for NODE_TYPE node system attribute."""
 
 NodeTypeVersions = [1, 2]
@@ -43,7 +42,7 @@ class RawPyTablesIO(io.RawIOBase):
     _size_to_shape = [
         None,
         lambda n: (n, 1),
-        lambda m: (m, ),
+        lambda m: (m,),
     ]
 
     def __init__(self, node, mode=None):
@@ -146,7 +145,7 @@ class RawPyTablesIO(io.RawIOBase):
         """
 
         if not self.closed:
-            if getattr(self._node, '_v_file', None) is None:
+            if getattr(self._node, "_v_file", None) is None:
                 warnings.warn("host PyTables file is already closed!")
 
         try:
@@ -200,7 +199,7 @@ class RawPyTablesIO(io.RawIOBase):
         """
 
         mode = self._mode
-        return 'r' in mode or '+' in mode
+        return "r" in mode or "+" in mode
 
     # def writable(self) -> bool:
     def writable(self):
@@ -211,7 +210,7 @@ class RawPyTablesIO(io.RawIOBase):
         """
 
         mode = self._mode
-        return 'w' in mode or 'a' in mode or '+' in mode
+        return "w" in mode or "a" in mode or "+" in mode
 
     # def readinto(self, b: bytearray) -> int:
     def readinto(self, b):
@@ -267,7 +266,7 @@ class RawPyTablesIO(io.RawIOBase):
         chunksize = self._node.chunkshape[0] if self._node.chunkshape else -1
 
         # XXX: check
-        lsep = b'\n'
+        lsep = b"\n"
         lseplen = len(lsep)
 
         # Set the remaining bytes to read to the specified size.
@@ -313,7 +312,7 @@ class RawPyTablesIO(io.RawIOBase):
             elif lseplen > 1 and (limit <= 0 or remsize > 0):
                 # Seek back a little since the end of the read string
                 # may have fallen in the middle of the line separator.
-                obuff = ibuff[:-lseplen + 1]
+                obuff = ibuff[: -lseplen + 1]
                 self.seek(-lseplen + 1, 1)
                 remsize += lseplen - 1
             else:  # eolindex<0 and (lseplen<=1 or (limit>0 and remsize<=0))
@@ -328,7 +327,7 @@ class RawPyTablesIO(io.RawIOBase):
             if limit > 0 and remsize <= 0:
                 finished = True
 
-        return b''.join(partial)
+        return b"".join(partial)
 
     # def write(self, b: bytes) -> int:
     def write(self, b):
@@ -359,7 +358,8 @@ class RawPyTablesIO(io.RawIOBase):
 
         # Append data.
         self._node.append(
-            np.ndarray(buffer=b, dtype=self._vtype, shape=self._vshape(n)))
+            np.ndarray(buffer=b, dtype=self._vtype, shape=self._vshape(n))
+        )
 
         self._pos += n
 
@@ -375,7 +375,7 @@ class RawPyTablesIO(io.RawIOBase):
         """
 
         super()._checkClosed()
-        if getattr(self._node, '_v_file', None) is None:
+        if getattr(self._node, "_v_file", None) is None:
             raise ValueError("host PyTables file is already closed!")
 
     def _check_node(self, node):
@@ -422,15 +422,16 @@ class RawPyTablesIO(io.RawIOBase):
         #     raise ValueError("RawPyTablesIO can't be open in read mode if "
         #                      "the underlying hdf5 file is not readable")
 
-        writable = bool('w' in mode or 'a' in mode or '+' in mode)
+        writable = bool("w" in mode or "a" in mode or "+" in mode)
         h5writable = bool(
-            'w' in h5filemode or 'a' in h5filemode
-            or '+' in h5filemode
+            "w" in h5filemode or "a" in h5filemode or "+" in h5filemode
         )
 
         if writable and not h5writable:
-            raise ValueError("RawPyTablesIO can't be open in write mode if "
-                             "the underlying hdf5 file is not writable")
+            raise ValueError(
+                "RawPyTablesIO can't be open in write mode if "
+                "the underlying hdf5 file is not writable"
+            )
 
     def _check_attributes(self, node):
         """Checks file node-specific attributes.
@@ -443,14 +444,15 @@ class RawPyTablesIO(io.RawIOBase):
         """
 
         attrs = node.attrs
-        ltype = getattr(attrs, 'NODE_TYPE', None)
-        ltypever = getattr(attrs, 'NODE_TYPE_VERSION', None)
+        ltype = getattr(attrs, "NODE_TYPE", None)
+        ltypever = getattr(attrs, "NODE_TYPE_VERSION", None)
 
         if ltype != NodeType:
             raise ValueError(f"invalid type of node object: {ltype}")
         if ltypever not in NodeTypeVersions:
             raise ValueError(
-                f"unsupported type version of node object: {ltypever}")
+                f"unsupported type version of node object: {ltypever}"
+            )
 
     def _append_zeros(self, size):
         """_append_zeros(size) -> None.  Appends a string of zeros.
@@ -466,7 +468,8 @@ class RawPyTablesIO(io.RawIOBase):
 
         # XXX This may be redone to avoid a potentially large in-memory array.
         self._node.append(
-            np.zeros(dtype=self._vtype, shape=self._vshape(size)))
+            np.zeros(dtype=self._vtype, shape=self._vshape(size))
+        )
 
 
 class FileNodeMixin:
@@ -480,26 +483,24 @@ class FileNodeMixin:
     """
 
     # The attribute set property methods.
-    def _get_attrs(self):
+    @property
+    def attrs(self):
         """Returns the attribute set of the file node."""
 
         # sefl._checkClosed()
         return self._node.attrs
 
+    @attrs.setter
     def _set_attrs(self, value):
         """set_attrs(string) -> None.  Raises ValueError."""
 
         raise ValueError("changing the whole attribute set is not allowed")
 
+    @attrs.deleter
     def _del_attrs(self):
         """del_attrs() -> None.  Raises ValueError."""
 
         raise ValueError("deleting the whole attribute set is not allowed")
-
-    # The attribute set property.
-    attrs = property(
-        _get_attrs, _set_attrs, _del_attrs,
-        "A property pointing to the attribute set of the file node.")
 
 
 class ROFileNode(FileNodeMixin, RawPyTablesIO):
@@ -533,7 +534,7 @@ class ROFileNode(FileNodeMixin, RawPyTablesIO):
     """
 
     def __init__(self, node):
-        RawPyTablesIO.__init__(self, node, 'r')
+        RawPyTablesIO.__init__(self, node, "r")
         self._checkReadable()
 
     @property
@@ -584,7 +585,12 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
     ]
 
     __allowed_init_kwargs = [
-        'where', 'name', 'title', 'filters', 'expectedsize']
+        "where",
+        "name",
+        "title",
+        "filters",
+        "expectedsize",
+    ]
 
     def __init__(self, node, h5file, **kwargs):
         if node is not None:
@@ -597,30 +603,32 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
             for kwarg in kwargs:
                 if kwarg not in self.__allowed_init_kwargs:
                     raise TypeError(
-                        "%s keyword argument is not allowed" % repr(kwarg))
+                        "%s keyword argument is not allowed" % repr(kwarg)
+                    )
 
             # Turn 'expectedsize' into 'expectedrows'.
-            if 'expectedsize' in kwargs:
+            if "expectedsize" in kwargs:
                 # These match since one byte is stored per row.
-                expectedrows = kwargs['expectedsize']
+                expectedrows = kwargs["expectedsize"]
                 kwargs = kwargs.copy()
-                del kwargs['expectedsize']
-                kwargs['expectedrows'] = expectedrows
+                del kwargs["expectedsize"]
+                kwargs["expectedrows"] = expectedrows
 
             # Create a new array in the specified PyTables file.
             self._version = NodeTypeVersions[-1]
             shape = self._byte_shape[self._version]
             node = h5file.create_earray(
-                atom=tb.UInt8Atom(), shape=shape, **kwargs)
+                atom=tb.UInt8Atom(), shape=shape, **kwargs
+            )
 
             # Set the node attributes, else remove the array itself.
             try:
                 self._set_attributes(node)
             except RuntimeError:
-                h5file.remove_node(kwargs['where'], kwargs['name'])
+                h5file.remove_node(kwargs["where"], kwargs["name"])
                 raise
 
-        RawPyTablesIO.__init__(self, node, 'a+')
+        RawPyTablesIO.__init__(self, node, "a+")
         self._checkReadable()
         self._checkWritable()
 
@@ -656,7 +664,7 @@ def new_node(h5file, **kwargs):
     return RAFileNode(None, h5file, **kwargs)
 
 
-def open_node(node, mode='r'):
+def open_node(node, mode="r"):
     """Opens an existing file node.
 
     Returns a file node object from the existing specified PyTables
@@ -667,16 +675,17 @@ def open_node(node, mode='r'):
 
     """
 
-    if mode == 'r':
+    if mode == "r":
         return ROFileNode(node)
-    elif mode == 'a+':
+    elif mode == "a+":
         return RAFileNode(node, None)
     else:
         raise OSError(f"invalid mode: {mode}")
 
 
-def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
-                     title="", filters=None):
+def save_to_filenode(
+    h5file, filename, where, name=None, overwrite=False, title="", filters=None
+):
     """Save a file's contents to a filenode inside a PyTables file.
 
     .. versionadded:: 3.2
@@ -737,8 +746,9 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
 
     # sanitize name if necessary
     if not tb.path._python_id_re.match(name):
-        name = re.sub('(?![a-zA-Z0-9_]).', "_",
-                      re.sub('^(?![a-zA-Z_]).', "_", name))
+        name = re.sub(
+            "(?![a-zA-Z0-9_]).", "_", re.sub("^(?![a-zA-Z_]).", "_", name)
+        )
 
     new_h5file = not isinstance(h5file, tb.file.File)
     f = tb.File(h5file, "a") if new_h5file else h5file
@@ -775,8 +785,9 @@ def save_to_filenode(h5file, filename, where, name=None, overwrite=False,
         f.close()
 
 
-def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
-                       create_target=False):
+def read_from_filenode(
+    h5file, filename, where, name=None, overwrite=False, create_target=False
+):
     r"""Read a filenode from a PyTables file and write its contents to a file.
 
     .. versionadded:: 3.2
@@ -822,8 +833,9 @@ def read_from_filenode(h5file, filename, where, name=None, overwrite=False,
                 break
         if fnode is None:
             f.close()
-            raise tb.NoSuchNodeError("A filenode '%s' cannot be found at "
-                                     "'%s'" % (name, where))
+            raise tb.NoSuchNodeError(
+                "A filenode '%s' cannot be found at " "'%s'" % (name, where)
+            )
 
     # guess output filename if necessary
     # TODO: pathlib.Path strips trailing slash automatically :-(

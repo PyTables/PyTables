@@ -1,6 +1,8 @@
-import numpy as np
-import tables as tb
 from time import perf_counter as clock
+
+import numpy as np
+
+import tables as tb
 
 N = 1000 * 1000
 NCOLL = 200  # 200 collections maximum

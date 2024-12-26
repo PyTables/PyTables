@@ -1,5 +1,7 @@
 import sys
+
 import numpy as np
+
 import tables as tb
 from tables.tests import common
 
@@ -26,9 +28,14 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def populateFile(self):
         group = self.h5file.root
-        table = self.h5file.create_table(group, 'table', LargeTable, "Large table",
-                                         tb.Filters(complevel=1, complib=self.complib),
-                                         chunkshape=self.chunkshape)
+        table = self.h5file.create_table(
+            group,
+            "table",
+            LargeTable,
+            "Large table",
+            tb.Filters(complevel=1, complib=self.complib),
+            chunkshape=self.chunkshape,
+        )
 
         # Structured NumPy buffer for every day
         self.day_block = day_block = np.empty(self.nrows, dtype=table.dtype)
@@ -37,7 +44,7 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Append groups of rows ("days") so that we have more than 2**31
         # (see https://github.com/PyTables/PyTables/issues/995)
         self.ndays = ndays = 90
-        self.assertTrue(ndays * self.nrows > 2 ** 31)
+        self.assertTrue(ndays * self.nrows > 2**31)
         if common.verbose:
             print(f"Writing {ndays} days...")
         for day in range(ndays):
@@ -54,22 +61,29 @@ class BasicTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print(f"Checking {self.ndays} days...")
         for nday in range(self.ndays):
-            day_block2 = table[nday * nrows: (nday + 1) * nrows]
-            self.assertEqual(np.sum(day_block2['time'] == day_block['time']), nrows,
-                             f"Values differ in day {nday}")
+            day_block2 = table[nday * nrows : (nday + 1) * nrows]
+            self.assertEqual(
+                np.sum(day_block2["time"] == day_block["time"]),
+                nrows,
+                f"Values differ in day {nday}",
+            )
 
 
-@common.unittest.skipIf(not common.blosc_avail,
-                        'BLOSC compression library not available')
+@common.unittest.skipIf(
+    not common.blosc_avail, "BLOSC compression library not available"
+)
 class BloscTestCase(BasicTestCase):
     title = "Blosc table"
     complib = "blosc"
 
-@common.unittest.skipIf(not common.blosc2_avail,
-                        'BLOSC2 compression library not available')
+
+@common.unittest.skipIf(
+    not common.blosc2_avail, "BLOSC2 compression library not available"
+)
 class Blosc2TestCase(BasicTestCase):
     title = "Blosc2 table"
     complib = "blosc2"
+
 
 class ZlibTestCase(BasicTestCase):
     title = "Zlib table"
@@ -90,7 +104,7 @@ def suite():
     return theSuite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     common.parse_argv(sys.argv)
     common.print_versions()
-    common.unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest="suite")

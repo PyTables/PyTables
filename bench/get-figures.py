@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from matplotlib import pyplot as plt
 
 linewidth = 2

@@ -13,15 +13,16 @@
 # to simulate retrieving data and then modifying it.
 
 
-import multiprocessing
 import os
+import time
 import random
 import select
 import socket
-import time
+import multiprocessing
 from time import perf_counter as clock
 
 import numpy as np
+
 import tables as tb
 
 

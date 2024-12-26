@@ -12,6 +12,7 @@
 
 import sys
 
+
 cdef extern from *:
   ctypedef long uintptr_t
 
@@ -19,13 +20,11 @@ cdef extern from *:
 cdef extern from "time.h":
   ctypedef int time_t
 
+from numpy cimport dtype
 from libc.stdio cimport FILE
-
 
 #-----------------------------------------------------------------------------
 
-# API for NumPy objects
-from numpy cimport dtype
 cdef extern from "numpy/arrayobject.h":
   object PyArray_Scalar(void *data, dtype descr, object itemsize)
 

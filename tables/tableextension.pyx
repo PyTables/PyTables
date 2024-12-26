@@ -20,52 +20,111 @@ Functions:
 Misc variables:
 
 """
-import math
 import os
-import platform
 import sys
-import numpy as np
+import math
+import platform
 from time import time
 
-from .description import Col
-from .exceptions import HDF5ExtError
-from .conditions import call_on_recarr
-from .utilsextension import (get_nested_field, atom_from_hdf5_type,
-  create_nested_type, hdf5_to_np_ext_type, create_nested_type, platform_byteorder,
-  pttype_to_hdf5, pt_special_kinds, npext_prefixes_to_ptkinds, hdf5_class_to_string,
-  H5T_STD_I64)
-from .utils import SizeType
+import numpy as np
 
-from .utilsextension cimport get_native_type, cstr_to_pystr
+from .utils import SizeType
+from .conditions import call_on_recarr
+from .exceptions import HDF5ExtError
+from .description import Col
+from .utilsextension import (
+    get_nested_field,
+    atom_from_hdf5_type,
+    create_nested_type,
+    hdf5_to_np_ext_type,
+    platform_byteorder,
+    pttype_to_hdf5,
+    pt_special_kinds,
+    npext_prefixes_to_ptkinds,
+    hdf5_class_to_string,
+    H5T_STD_I64,
+)
+
+from numpy cimport (
+    import_array,
+    ndarray,
+    npy_intp,
+    PyArray_GETITEM,
+    PyArray_SETITEM,
+    PyArray_BYTES,
+    PyArray_DATA,
+    PyArray_NDIM,
+    PyArray_STRIDE,
+)
+from cpython cimport PyErr_Clear
+from libc.stdio cimport snprintf
+from libc.stdint cimport int32_t
+from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy, strdup, strcmp, strlen
+
+from .definitions cimport (
+    hid_t,
+    herr_t,
+    hsize_t,
+    haddr_t,
+    htri_t,
+    hbool_t,
+    H5F_ACC_RDONLY,
+    H5P_DEFAULT,
+    H5D_CHUNKED,
+    H5T_DIR_DEFAULT,
+    H5F_SCOPE_LOCAL,
+    H5F_SCOPE_GLOBAL,
+    H5T_COMPOUND,
+    H5Tget_order,
+    H5Fflush,
+    H5Dget_create_plist,
+    H5T_ORDER_LE,
+    H5D_layout_t,
+    H5Dopen,
+    H5Dclose,
+    H5Dread,
+    H5Dget_type,
+    H5Dget_space,
+    H5Pget_layout,
+    H5Pget_chunk,
+    H5Pclose,
+    H5Sget_simple_extent_ndims,
+    H5Sget_simple_extent_dims,
+    H5Sclose,
+    H5T_class_t,
+    H5Tget_size,
+    H5Tset_size,
+    H5Tcreate,
+    H5Tcopy,
+    H5Tclose,
+    H5Tget_nmembers,
+    H5Tget_member_name,
+    H5Tget_member_type,
+    H5Tget_native_type,
+    H5Tget_member_offset,
+    H5Tinsert,
+    H5Tget_class,
+    H5Tget_super,
+    H5Tget_offset,
+    H5T_cset_t,
+    H5T_CSET_ASCII,
+    H5T_CSET_UTF8,
+    H5ATTRset_attribute_string,
+    H5ATTRset_attribute,
+    get_len_of_range,
+    get_order,
+    set_order,
+    is_complex,
+    conv_float64_timeval32,
+    truncate_dset,
+    H5free_memory,
+)
 
 # numpy functions & objects
 from .hdf5extension cimport Leaf
-from cpython cimport PyErr_Clear
-from libc.stdio cimport snprintf
-from libc.stdlib cimport malloc, free
-from libc.stdint cimport int32_t
-from libc.string cimport memcpy, strdup, strcmp, strlen
-from numpy cimport (import_array, ndarray, npy_intp, PyArray_GETITEM,
-  PyArray_SETITEM, PyArray_BYTES, PyArray_DATA, PyArray_NDIM, PyArray_STRIDE)
-from .definitions cimport (hid_t, herr_t, hsize_t, haddr_t, htri_t, hbool_t,
-  H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT,
-  H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, H5T_COMPOUND, H5Tget_order,
-  H5Fflush, H5Dget_create_plist, H5T_ORDER_LE,
-  H5D_layout_t, H5Dopen, H5Dclose, H5Dread, H5Dget_type, H5Dget_space,
-  H5Pget_layout, H5Pget_chunk, H5Pclose,
-  H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose,
-  H5T_class_t, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose,
-  H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, H5Tget_native_type,
-  H5Tget_member_offset, H5Tinsert, H5Tget_class, H5Tget_super, H5Tget_offset,
-  H5T_cset_t, H5T_CSET_ASCII, H5T_CSET_UTF8,
-  H5ATTRset_attribute_string, H5ATTRset_attribute,
-  get_len_of_range, get_order, set_order, is_complex,
-  conv_float64_timeval32, truncate_dset,
-  H5free_memory)
-
+from .utilsextension cimport get_native_type, cstr_to_pystr
 from .lrucacheextension cimport ObjectCache, NumCache
-
-
 
 #-----------------------------------------------------------------
 

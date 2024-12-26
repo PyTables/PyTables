@@ -2,6 +2,7 @@
 # the node numbers in LRU cache. Tables version.
 
 from time import perf_counter as clock
+
 import tables as tb
 
 print("PyTables version-->", tb.__version__)
@@ -89,8 +90,8 @@ if 1:
     # modify_junk_LRU2()   # uses a regular loop (getattr)
     modify_junk_LRU3()  # uses a regular loop (getattr)
 else:
-    import profile
     import pstats
+    import profile
 
     profile.run("modify_junk_LRU2()", "modify.prof")
     stats = pstats.Stats("modify.prof")

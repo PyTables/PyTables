@@ -4,6 +4,7 @@
 VLArray."""
 
 import numpy as np
+
 import tables as tb
 
 N = 100

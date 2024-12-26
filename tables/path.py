@@ -9,19 +9,19 @@ Variables
 """
 
 import re
-import warnings
 import keyword
+import warnings
 
 from .exceptions import NaturalNameWarning
 
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""
 
 
-_python_id_re = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
+_python_id_re = re.compile("^[a-zA-Z_][a-zA-Z0-9_]*$")
 """Python identifier regular expression."""
 
-_reserved_id_re = re.compile('^_[cfgv]_')
+_reserved_id_re = re.compile("^_[cfgv]_")
 """PyTables reserved identifier regular expression.
 
 - c: class variables
@@ -30,13 +30,13 @@ _reserved_id_re = re.compile('^_[cfgv]_')
 - v: instance variables
 """
 
-_hidden_name_re = re.compile('^_[pi]_')
+_hidden_name_re = re.compile("^_[pi]_")
 """Nodes with a name *matching* this expression are considered hidden.
 
 For instance, ``name`` would be visible while ``_i_name`` would not.
 """
 
-_hidden_path_re = re.compile('/_[pi]_')
+_hidden_path_re = re.compile("/_[pi]_")
 """Nodes with a path *containing* this expression are considered hidden.
 
 For instance, a node with a pathname like ``/a/b/c`` would be visible
@@ -45,8 +45,9 @@ not.
 """
 
 _warnInfo = (
-        "you will not be able to use natural naming to access this object; "
-        "using ``getattr()`` will still work, though")
+    "you will not be able to use natural naming to access this object; "
+    "using ``getattr()`` will still work, though"
+)
 """Warning printed when a name will not be reachable through natural naming"""
 
 
@@ -80,31 +81,38 @@ def check_attribute_name(name: str) -> None:
     if not isinstance(name, str):  # Python >= 2.3
         raise TypeError(f"object name is not a string: {name!r}")
 
-    if name == '':
+    if name == "":
         raise ValueError("the empty string is not allowed as an object name")
 
     # Check whether `name` is a valid Python identifier.
     if not _python_id_re.match(name):
-        warnings.warn("object name is not a valid Python identifier: %r; "
-                      "it does not match the pattern ``%s``; %s"
-                      % (name, _python_id_re.pattern, _warnInfo),
-                      NaturalNameWarning, stacklevel=2)
+        warnings.warn(
+            "object name is not a valid Python identifier: %r; "
+            "it does not match the pattern ``%s``; %s"
+            % (name, _python_id_re.pattern, _warnInfo),
+            NaturalNameWarning,
+            stacklevel=2,
+        )
         return
 
     # However, Python identifiers and keywords have the same form.
     if keyword.iskeyword(name):
-        warnings.warn("object name is a Python keyword: %r; %s"
-                      % (name, _warnInfo), NaturalNameWarning, stacklevel=2)
+        warnings.warn(
+            f"object name is a Python keyword: {name!r}; {_warnInfo}",
+            NaturalNameWarning,
+            stacklevel=2,
+        )
         return
 
     # Still, names starting with reserved prefixes are not allowed.
     if _reserved_id_re.match(name):
-        raise ValueError("object name starts with a reserved prefix: %r; "
-                         "it matches the pattern ``%s``"
-                         % (name, _reserved_id_re.pattern))
+        raise ValueError(
+            "object name starts with a reserved prefix: %r; "
+            "it matches the pattern ``%s``" % (name, _reserved_id_re.pattern)
+        )
 
     # ``__members__`` is the only exception to that rule.
-    if name == '__members__':
+    if name == "__members__":
         raise ValueError("``__members__`` is not allowed as an object name")
 
 
@@ -138,11 +146,12 @@ def check_name_validity(name: str) -> None:
 
     # Check whether `name` is a valid HDF5 name.
     # http://hdfgroup.org/HDF5/doc/UG/03_Model.html#Structure
-    if name == '.':
+    if name == ".":
         raise ValueError("``.`` is not allowed as an object name")
-    elif '/' in name:
-        raise ValueError("the ``/`` character is not allowed "
-                         "in object names: %r" % name)
+    elif "/" in name:
+        raise ValueError(
+            "the ``/`` character is not allowed " "in object names: %r" % name
+        )
 
 
 def join_path(parentpath: str, name: str) -> str:
@@ -162,15 +171,15 @@ def join_path(parentpath: str, name: str) -> str:
 
     """
 
-    if name.startswith('./'):  # Support relative paths (mainly for links)
+    if name.startswith("./"):  # Support relative paths (mainly for links)
         name = name[2:]
-    if parentpath == '/' and name.startswith('/'):
-        pstr = '%s' % name
-    elif parentpath == '/' or name.startswith('/'):
-        pstr = f'{parentpath}{name}'
+    if parentpath == "/" and name.startswith("/"):
+        pstr = "%s" % name
+    elif parentpath == "/" or name.startswith("/"):
+        pstr = f"{parentpath}{name}"
     else:
-        pstr = f'{parentpath}/{name}'
-    if pstr.endswith('/'):
+        pstr = f"{parentpath}/{name}"
+    if pstr.endswith("/"):
         pstr = pstr[:-1]
     return pstr
 
@@ -188,12 +197,12 @@ def split_path(path: str) -> (str, str):
 
     """
 
-    lastslash = path.rfind('/')
+    lastslash = path.rfind("/")
     ppath = path[:lastslash]
-    name = path[lastslash + 1:]
+    name = path[lastslash + 1 :]
 
-    if ppath == '':
-        ppath = '/'
+    if ppath == "":
+        ppath = "/"
 
     return (ppath, name)
 
@@ -214,8 +223,9 @@ def _test() -> None:
     """Run ``doctest`` on this module."""
 
     import doctest
+
     doctest.testmod()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _test()

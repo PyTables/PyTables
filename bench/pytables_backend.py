@@ -1,7 +1,8 @@
 from pathlib import Path
 
-import tables as tb
 from indexed_search import DB
+
+import tables as tb
 
 
 class PyTables_DB(DB):

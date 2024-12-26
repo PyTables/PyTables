@@ -1,4 +1,5 @@
 """Proxy dictionary for objects stored in a container."""
+
 import weakref
 
 
@@ -31,7 +32,7 @@ class ProxyDict(dict):
 
     def __str__(self):
         # C implementation does not use `self.__getitem__()`. :(
-        return '{' + ", ".join("{k!r}: {v!r}" for k, v in self.items()) + '}'
+        return "{" + ", ".join("{k!r}: {v!r}" for k, v in self.items()) + "}"
 
     def values(self):
         # C implementation does not use `self.__getitem__()`. :(

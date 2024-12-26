@@ -1,9 +1,10 @@
 # Small benchmark for compare creation times with parameter
 # PYTABLES_SYS_ATTRS active or not.
 
-from pathlib import Path
-from time import perf_counter as clock
 import random
+from time import perf_counter as clock
+from pathlib import Path
+
 import tables as tb
 
 random.seed(2)

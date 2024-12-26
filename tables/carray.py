@@ -14,12 +14,12 @@ from .array import Array
 from .utils import correct_byteorder, SizeType
 
 if TYPE_CHECKING:
-    from .filters import Filters
     from .group import Group
+    from .filters import Filters
 
 # default version for CARRAY objects
 # obversion = "1.0"    # Support for time & enumerated datatypes.
-obversion = "1.1"    # Numeric and numarray flavors are gone.
+obversion = "1.1"  # Numeric and numarray flavors are gone.
 
 
 class CArray(Array):
@@ -126,7 +126,7 @@ class CArray(Array):
     """
 
     # Class identifier.
-    _c_classid = 'CARRAY'
+    _c_classid = "CARRAY"
 
     def __init__(
         self,
@@ -185,16 +185,19 @@ class CArray(Array):
 
         if new:
             if not isinstance(atom, Atom):
-                raise ValueError("atom parameter should be an instance of "
-                                 "tables.Atom and you passed a %s." %
-                                 type(atom))
+                raise ValueError(
+                    "atom parameter should be an instance of "
+                    "tables.Atom and you passed a %s." % type(atom)
+                )
             if shape is None:
                 raise ValueError("you must specify a non-empty shape")
             try:
                 shape = tuple(shape)
             except TypeError:
-                raise TypeError("`shape` parameter must be a sequence "
-                                "and you passed a %s" % type(shape))
+                raise TypeError(
+                    "`shape` parameter must be a sequence "
+                    "and you passed a %s" % type(shape)
+                )
             self.shape = tuple(SizeType(s) for s in shape)
 
             if chunkshape is not None:
@@ -203,25 +206,29 @@ class CArray(Array):
                 except TypeError:
                     raise TypeError(
                         "`chunkshape` parameter must be a sequence "
-                        "and you passed a %s" % type(chunkshape))
+                        "and you passed a %s" % type(chunkshape)
+                    )
                 if len(shape) != len(chunkshape):
-                    raise ValueError(f"the shape ({shape}) and chunkshape "
-                                     f"({chunkshape}) ranks must be equal.")
+                    raise ValueError(
+                        f"the shape ({shape}) and chunkshape "
+                        f"({chunkshape}) ranks must be equal."
+                    )
                 elif min(chunkshape) < 1:
-                    raise ValueError("chunkshape parameter cannot have "
-                                     "zero-dimensions.")
+                    raise ValueError(
+                        "chunkshape parameter cannot have " "zero-dimensions."
+                    )
                 self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         # The `Array` class is not abstract enough! :(
-        super(Array, self).__init__(parentnode, name, new, filters,
-                                    byteorder, _log, track_times)
+        super(Array, self).__init__(
+            parentnode, name, new, filters, byteorder, _log, track_times
+        )
 
     def _g_create(self) -> int:
         """Create a new array in file (specific part)."""
 
         if min(self.shape) < 1:
-            raise ValueError(
-                "shape parameter cannot have zero-dimensions.")
+            raise ValueError("shape parameter cannot have zero-dimensions.")
         # Finish the common part of creation process
         return self._g_create_common(self.nrows)
 
@@ -233,7 +240,8 @@ class CArray(Array):
         if self._v_chunkshape is None:
             # Compute the optimal chunk size
             self._v_chunkshape = self._calc_chunkshape(
-                expectedrows, self.rowsize, self.atom.size)
+                expectedrows, self.rowsize, self.atom.size
+            )
         # Compute the optimal nrowsinbuf
         self.nrowsinbuf = self._calc_nrowsinbuf()
         # Correct the byteorder if needed
@@ -279,9 +287,16 @@ class CArray(Array):
         # when copying buffers
         self._v_convert = False
         # Build the new CArray object
-        object = CArray(group, name, atom=self.atom, shape=shape,
-                        title=title, filters=filters, chunkshape=chunkshape,
-                        _log=_log)
+        object = CArray(
+            group,
+            name,
+            atom=self.atom,
+            shape=shape,
+            title=title,
+            filters=filters,
+            chunkshape=chunkshape,
+            _log=_log,
+        )
         # Start the copy itself
         for start2 in range(start, stop, step * nrowsinbuf):
             # Save the records on disk

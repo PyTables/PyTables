@@ -1,10 +1,10 @@
+import tempfile
+import unittest
+from time import perf_counter as clock
+from pathlib import Path
+
 import hotshot
 import hotshot.stats
-
-import unittest
-import tempfile
-from pathlib import Path
-from time import perf_counter as clock
 
 import tables as tb
 

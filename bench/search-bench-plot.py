@@ -1,5 +1,6 @@
-import tables as tb
 from matplotlib import pyplot as plt
+
+import tables as tb
 
 
 def get_values(filename, complib=""):

@@ -1,14 +1,15 @@
 #!/usr/bin/python
 
 import os
+import sys
 import random
 import sqlite3
-import sys
-from pathlib import Path
 from time import perf_counter as clock
 from time import process_time as cpuclock
+from pathlib import Path
 
 import numpy as np
+
 import tables as tb
 
 randomvalues = 0

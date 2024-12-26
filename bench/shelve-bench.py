@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
-import struct
 import sys
 import shelve
+import struct
+
 import numpy as np
-import tables as tb
 import psyco
+
+import tables as tb
 
 # This class is accessible only for the examples
 

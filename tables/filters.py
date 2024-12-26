@@ -6,6 +6,9 @@ import warnings
 from typing import Any, Literal, TYPE_CHECKING
 
 import numpy as np
+from packaging.version import Version
+
+import tables as tb
 
 from . import (
     utilsextension,
@@ -15,9 +18,6 @@ from . import (
     blosc2_compcode_to_compname,
 )
 from .exceptions import FiltersWarning
-from packaging.version import Version
-
-import tables as tb
 
 if TYPE_CHECKING:
     from .leaf import Leaf
@@ -29,17 +29,17 @@ blosc2_version = Version(tb.which_lib_version("blosc2")[1])
 __docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""
 
-all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc', 'blosc2']
-all_complibs += ['blosc:%s' % cname for cname in blosc_compressor_list()]
-all_complibs += ['blosc2:%s' % cname for cname in blosc2_compressor_list()]
+all_complibs = ["zlib", "lzo", "bzip2", "blosc", "blosc2"]
+all_complibs += ["blosc:%s" % cname for cname in blosc_compressor_list()]
+all_complibs += ["blosc2:%s" % cname for cname in blosc2_compressor_list()]
 
 
 """List of all compression libraries."""
 
-foreign_complibs = ['szip']
+foreign_complibs = ["szip"]
 """List of known but unsupported compression libraries."""
 
-default_complib = 'zlib'
+default_complib = "zlib"
 """The default compression library."""
 
 
@@ -174,7 +174,7 @@ class Filters:
     @property
     def shuffle_bitshuffle(self) -> Literal[0, 1, 2]:
         """Encode NoShuffle (0), Shuffle (1) and BitShuffle (2) filters."""
-        if (self.shuffle and self.bitshuffle):
+        if self.shuffle and self.bitshuffle:
             raise ValueError(
                 "Shuffle and BitShuffle cannot be active at the same time"
             )
@@ -204,33 +204,33 @@ class Filters:
             "least_significant_digit": None,
             "_new": False,
         }
-        for (name, values) in filters_dict.items():
-            if name == 'deflate':
-                name = 'zlib'
+        for name, values in filters_dict.items():
+            if name == "deflate":
+                name = "zlib"
             if name in all_complibs:
-                kwargs['complib'] = name
-                if name in ('blosc', 'blosc2'):
-                    kwargs['complevel'] = values[4]
+                kwargs["complib"] = name
+                if name in ("blosc", "blosc2"):
+                    kwargs["complevel"] = values[4]
                     if values[5] == 1:
                         # Shuffle filter is internal to blosc/blosc2
-                        kwargs['shuffle'] = True
+                        kwargs["shuffle"] = True
                     elif values[5] == 2:
                         # Shuffle filter is internal to blosc/blosc2
-                        kwargs['bitshuffle'] = True
+                        kwargs["bitshuffle"] = True
                     # From Blosc 1.3 on, parameter 6 is used for the compressor
                     if len(values) > 6:
                         if name == "blosc":
                             cname = blosc_compcode_to_compname(values[6])
-                            kwargs['complib'] = "blosc:%s" % cname
+                            kwargs["complib"] = "blosc:%s" % cname
                         else:
                             cname = blosc2_compcode_to_compname(values[6])
-                            kwargs['complib'] = "blosc2:%s" % cname
+                            kwargs["complib"] = "blosc2:%s" % cname
                 else:
-                    kwargs['complevel'] = values[0]
+                    kwargs["complevel"] = values[0]
             elif name in foreign_complibs:
-                kwargs['complib'] = name
-                kwargs['complevel'] = 1  # any nonzero value will do
-            elif name in ['shuffle', 'fletcher32']:
+                kwargs["complib"] = name
+                kwargs["complevel"] = 1  # any nonzero value will do
+            elif name in ["shuffle", "fletcher32"]:
                 kwargs[name] = True
         return cls(**kwargs)
 
@@ -258,34 +258,34 @@ bitshuffle=False, fletcher32=True, least_significant_digit=None)
 
         """
 
-        kwargs = {'_new': False}
+        kwargs = {"_new": False}
 
         # Byte 0: compression level.
-        kwargs['complevel'] = complevel = packed & 0xff
+        kwargs["complevel"] = complevel = packed & 0xFF
         packed >>= 8
 
         # Byte 1: compression library id (0 for none).
         if complevel > 0:
-            complib_id = int(packed & 0xff)
+            complib_id = int(packed & 0xFF)
             if not (0 < complib_id <= len(all_complibs)):
                 raise ValueError(
                     f"invalid compression library id: {complib_id}"
                 )
-            kwargs['complib'] = all_complibs[complib_id - 1]
+            kwargs["complib"] = all_complibs[complib_id - 1]
         packed >>= 8
 
         # Byte 2: parameterless filters.
-        kwargs['shuffle'] = packed & _shuffle_flag
-        kwargs['bitshuffle'] = packed & _bitshuffle_flag
-        kwargs['fletcher32'] = packed & _fletcher32_flag
+        kwargs["shuffle"] = packed & _shuffle_flag
+        kwargs["bitshuffle"] = packed & _bitshuffle_flag
+        kwargs["fletcher32"] = packed & _fletcher32_flag
         has_rounding = packed & _rounding_flag
         packed >>= 8
 
         # Byte 3: least significant digit.
         if has_rounding:
-            kwargs['least_significant_digit'] = np.int8(packed & 0xff)
+            kwargs["least_significant_digit"] = np.int8(packed & 0xFF)
         else:
-            kwargs['least_significant_digit'] = None
+            kwargs["least_significant_digit"] = None
 
         return cls(**kwargs)
 
@@ -343,11 +343,14 @@ bitshuffle=False, fletcher32=True, least_significant_digit=None)
                 raise ValueError(
                     "compression library ``%s`` is not supported; "
                     "it must be one of: %s"
-                    % (complib, ", ".join(all_complibs)))
+                    % (complib, ", ".join(all_complibs))
+                )
             if utilsextension.which_lib_version(complib) is None:
-                warnings.warn("compression library ``%s`` is not available; "
-                              "using ``%s`` instead"
-                              % (complib, default_complib), FiltersWarning)
+                warnings.warn(
+                    "compression library ``%s`` is not available; "
+                    "using ``%s`` instead" % (complib, default_complib),
+                    FiltersWarning,
+                )
                 complib = default_complib  # always available
 
         complevel = int(complevel)
@@ -384,7 +387,7 @@ bitshuffle=False, fletcher32=True, least_significant_digit=None)
         if (
             self.complib
             and self.bitshuffle
-            and not self.complib.startswith('blosc')
+            and not self.complib.startswith("blosc")
         ):
             raise ValueError("BitShuffle can only be used inside Blosc/Blosc2")
 
@@ -401,13 +404,13 @@ bitshuffle=False, fletcher32=True, least_significant_digit=None)
     def __repr__(self) -> str:
         args = []
         if self.complevel >= 0:  # meaningful compression level
-            args.append(f'complevel={self.complevel}')
+            args.append(f"complevel={self.complevel}")
         if self.complevel != 0:  # compression enabled (-1 or > 0)
-            args.append(f'complib={self.complib!r}')
-        args.append(f'shuffle={self.shuffle}')
-        args.append(f'bitshuffle={self.bitshuffle}')
-        args.append(f'fletcher32={self.fletcher32}')
-        args.append(f'least_significant_digit={self.least_significant_digit}')
+            args.append(f"complib={self.complib!r}")
+        args.append(f"shuffle={self.shuffle}")
+        args.append(f"bitshuffle={self.bitshuffle}")
+        args.append(f"fletcher32={self.fletcher32}")
+        args.append(f"least_significant_digit={self.least_significant_digit}")
         return f'{self.__class__.__name__}({", ".join(args)})'
 
     def __str__(self) -> str:
@@ -470,8 +473,9 @@ def _test() -> None:
     """Run ``doctest`` on this module."""
 
     import doctest
+
     doctest.testmod()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _test()

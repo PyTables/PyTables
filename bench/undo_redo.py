@@ -2,7 +2,9 @@
 Run this program without parameters for mode of use."""
 
 from time import perf_counter as clock
+
 import numpy as np
+
 import tables as tb
 
 verbose = 0

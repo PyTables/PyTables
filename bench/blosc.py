@@ -1,9 +1,10 @@
 import sys
-from pathlib import Path
 from time import perf_counter as clock
-import numpy as np
-import tables as tb
+from pathlib import Path
 
+import numpy as np
+
+import tables as tb
 
 niter = 3
 dirname = "/scratch2/faltet/blosc-data/"

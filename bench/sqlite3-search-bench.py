@@ -1,7 +1,8 @@
-from pathlib import Path
-from time import perf_counter as clock
-import numpy as np
 import random
+from time import perf_counter as clock
+from pathlib import Path
+
+import numpy as np
 
 # in order to always generate the same random sequence
 random.seed(19)

@@ -1,13 +1,13 @@
 # A simple script that illustrates how to write and read chunks directly,
 # also usable for profiling the implementation of direct chunking.
 
-import cProfile
 import time
+import cProfile
 
-import blosc2 as b2
 import numpy as np
-import tables as tb
+import blosc2 as b2
 
+import tables as tb
 
 # When not profiling, chunks are compressed and decompressed on each iteration
 # so as to make the example more realistic (but also way slower).

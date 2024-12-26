@@ -12,14 +12,13 @@ import platform
 import tempfile
 import textwrap
 import subprocess
-from pathlib import Path
 from typing import NamedTuple
+from pathlib import Path
 
 # Using ``setuptools`` enables lots of goodies
 from setuptools import setup, Extension
-from setuptools.command.build_ext import build_ext
 from packaging.version import Version
-
+from setuptools.command.build_ext import build_ext
 
 # The name for the pkg-config utility
 PKG_CONFIG = "pkg-config"
@@ -121,9 +120,8 @@ def get_blosc2_directories():
                     f"File does not exists: {library_path}"
                 )
             library_path = library_path.parent.resolve()
-        elif (
-            fnmatch.fnmatch(path, "**/include/blosc2.h")
-            or fnmatch.fnmatch(path, "include/blosc2.h")
+        elif fnmatch.fnmatch(path, "**/include/blosc2.h") or fnmatch.fnmatch(
+            path, "include/blosc2.h"
         ):
             include_path = basepath.parent.joinpath(path).resolve()
             if not include_path.is_file():
@@ -282,9 +280,7 @@ def get_default_dirs(conda_prefix: Path | None = None) -> DefaultDirs:
         _archs = ("lib64", "lib")
         # conda prefix
         if conda_prefix:
-            library_dirs.extend(
-                conda_prefix / _arch for _arch in _archs
-            )
+            library_dirs.extend(conda_prefix / _arch for _arch in _archs)
         # hardcoded system paths
         library_dirs.extend(
             _tree / _arch for _tree in prefix_paths for _arch in _archs
@@ -308,9 +304,7 @@ def get_default_dirs(conda_prefix: Path | None = None) -> DefaultDirs:
             Path(sys.prefix) / "Lib" / "site-packages" / "tables"
         )
 
-    return DefaultDirs(
-        header_dirs, library_dirs, runtime_dirs
-    )
+    return DefaultDirs(header_dirs, library_dirs, runtime_dirs)
 
 
 class BasePackage:
@@ -793,10 +787,12 @@ if __name__ == "__main__":
 
     # Force the 1.10.x HDF5 API even if the library as been compiled to use the
     # 1.6.x API by default
-    CFLAGS.extend([
-        "-DH5_USE_110_API",
-        "-DH5Rdereference_vers=2",
-    ])
+    CFLAGS.extend(
+        [
+            "-DH5_USE_110_API",
+            "-DH5Rdereference_vers=2",
+        ]
+    )
 
     # H5Oget_info_by_name seems to have performance issues (see gh-402), so we
     # need to use teh deprecated H5Gget_objinfo function
@@ -969,7 +965,8 @@ if __name__ == "__main__":
                         # (thereby avoiding a "are the same file" shutil error).
                         if Path(dll_dir) != libdir.parent / "bin":
                             shutil.copy(
-                                libdir.parent / "bin" / "libblosc2.dll", dll_dir
+                                libdir.parent / "bin" / "libblosc2.dll",
+                                dll_dir,
                             )
                     else:
                         shutil.copy(

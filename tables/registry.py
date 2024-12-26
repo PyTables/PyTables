@@ -20,7 +20,7 @@ from __future__ import annotations
 # (but standard modules are OK), since the main reason for this module
 # is avoiding circular imports!
 
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 
 """The format of documentation strings in this module."""
 
@@ -68,12 +68,13 @@ def get_class_by_name(classname: str | None) -> type:
 
     # The empty string is accepted for compatibility
     # with old default arguments.
-    if classname is None or classname == '':
-        classname = 'Node'
+    if classname is None or classname == "":
+        classname = "Node"
 
     # Get the class object corresponding to `classname`.
     if classname not in class_name_dict:
-        raise TypeError("there is no registered node class named ``%s``"
-                        % (classname,))
+        raise TypeError(
+            f"there is no registered node class named ``{classname}``"
+        )
 
     return class_name_dict[classname]

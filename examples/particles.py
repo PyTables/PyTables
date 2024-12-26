@@ -1,7 +1,9 @@
 """Beware! you need PyTables >= 2.3 to run this script!"""
 
 from time import perf_counter as clock
+
 import numpy as np
+
 import tables as tb
 
 # NEVENTS = 10000

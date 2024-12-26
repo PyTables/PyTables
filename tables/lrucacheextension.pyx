@@ -28,14 +28,16 @@ cdef extern from "Python.h":
 import sys
 
 import numpy as np
+
+from numpy cimport import_array, ndarray, PyArray_DATA
 from libc.string cimport memcpy, strcmp
 from cpython.unicode cimport PyUnicode_Check
-from numpy cimport import_array, ndarray, PyArray_DATA
 
-from .parameters import (DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES,
-  LOWEST_HIT_RATIO)
-
-
+from .parameters import (
+    DISABLE_EVERY_CYCLES,
+    ENABLE_EVERY_CYCLES,
+    LOWEST_HIT_RATIO,
+)
 
 #----------------------------------------------------------------------------
 # Initialization code.

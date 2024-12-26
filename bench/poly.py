@@ -1,12 +1,13 @@
 """This script compares the speed of the computation of a polynomial for
 different (numpy.memmap and tables.Expr) out-of-memory paradigms."""
 
-from pathlib import Path
 from time import perf_counter as clock
+from pathlib import Path
 
 import numpy as np
-import tables as tb
 import numexpr as ne
+
+import tables as tb
 
 expr = ".25*x**3 + .75*x**2 - 1.5*x - 2"  # the polynomial to compute
 N = 10 * 1000 * 1000  # the number of points to compute expression (80 MB)

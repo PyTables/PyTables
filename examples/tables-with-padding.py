@@ -1,5 +1,6 @@
 # This is an example on how to use complex columns
 import numpy as np
+
 import tables as tb
 
 N = 1000

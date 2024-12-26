@@ -13,8 +13,7 @@ import numpy.typing as npt
 from . import atom
 from .path import check_name_validity
 
-
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""
 
 
@@ -22,12 +21,14 @@ def same_position(
     oldmethod: Callable[[Col, Col], bool]
 ) -> Callable[[Col, Col], bool]:
     """Decorate `oldmethod` to also compare the `_v_pos` attribute."""
+
     def newmethod(self: Col, other: Col) -> bool:
         try:
             other._v_pos
         except AttributeError:
             return False  # not a column definition
         return self._v_pos == other._v_pos and oldmethod(self, other)
+
     newmethod.__name__ = oldmethod.__name__
     newmethod.__doc__ = oldmethod.__doc__
     return newmethod
@@ -76,6 +77,7 @@ class Col(atom.Atom, metaclass=type):
         :ref:`AttributeSetClassDescr`).
 
     """
+
     # filled as column classes are created
     _class_from_prefix: dict[str, type[Col]] = {}
     """Maps column prefixes to column classes."""
@@ -85,7 +87,7 @@ class Col(atom.Atom, metaclass=type):
         """Return the column class prefix."""
 
         cname = cls.__name__
-        return cname[:cname.rfind('Col')]
+        return cname[: cname.rfind("Col")]
 
     @classmethod
     def from_atom(
@@ -189,11 +191,11 @@ class Col(atom.Atom, metaclass=type):
     def _subclass_from_prefix(cls, prefix: str) -> type[Col]:
         """Get a column subclass for the given `prefix`."""
 
-        cname = '%sCol' % prefix
+        cname = "%sCol" % prefix
         class_from_prefix = cls._class_from_prefix
         if cname in class_from_prefix:
             return class_from_prefix[cname]
-        atombase = getattr(atom, '%sAtom' % prefix)
+        atombase = getattr(atom, "%sAtom" % prefix)
 
         class NewCol(cls, atombase):
             """Defines a non-nested column of a particular type.
@@ -208,9 +210,9 @@ class Col(atom.Atom, metaclass=type):
             """
 
             def __init__(self, *args, **kwargs) -> None:
-                pos = kwargs.pop('pos', None)
-                col_attrs = kwargs.pop('attrs', {})
-                offset = kwargs.pop('_offset', None)
+                pos = kwargs.pop("pos", None)
+                col_attrs = kwargs.pop("attrs", {})
+                offset = kwargs.pop("_offset", None)
                 class_from_prefix = self._class_from_prefix
                 atombase.__init__(self, *args, **kwargs)
                 # The constructor of an abstract atom may have changed
@@ -231,9 +233,10 @@ class Col(atom.Atom, metaclass=type):
             # def __hash__(self):
             #    return hash((self._v_pos, self.atombase))
 
-            if prefix == 'Enum':
+            if prefix == "Enum":
                 _is_equal_to_enumatom = same_position(
-                    atombase._is_equal_to_enumatom)
+                    atombase._is_equal_to_enumatom
+                )
 
         NewCol.__name__ = cname
 
@@ -243,20 +246,22 @@ class Col(atom.Atom, metaclass=type):
     def __repr__(self) -> str:
         # Reuse the atom representation.
         atomrepr = super().__repr__()
-        lpar = atomrepr.index('(')
-        rpar = atomrepr.rindex(')')
-        atomargs = atomrepr[lpar + 1:rpar]
+        lpar = atomrepr.index("(")
+        rpar = atomrepr.rindex(")")
+        atomargs = atomrepr[lpar + 1 : rpar]
         classname = self.__class__.__name__
         if self._v_col_attrs:
-            return (f'{classname}({atomargs}, pos={self._v_pos}'
-                    f', attrs={self._v_col_attrs})')
-        return f'{classname}({atomargs}, pos={self._v_pos})'
+            return (
+                f"{classname}({atomargs}, pos={self._v_pos}"
+                f", attrs={self._v_col_attrs})"
+            )
+        return f"{classname}({atomargs}, pos={self._v_pos})"
 
     def _get_init_args(self) -> dict[str, Any]:
         """Get a dictionary of instance constructor arguments."""
 
-        kwargs = {arg: getattr(self, arg) for arg in ('shape', 'dflt')}
-        kwargs['pos'] = getattr(self, '_v_pos', None)
+        kwargs = {arg: getattr(self, arg) for arg in ("shape", "dflt")}
+        kwargs["pos"] = getattr(self, "_v_pos", None)
         return kwargs
 
 
@@ -264,9 +269,9 @@ def _generate_col_classes() -> Generator[type[Col]]:
     """Generate all column classes."""
 
     # Abstract classes are not in the class map.
-    cprefixes = ['Int', 'UInt', 'Float', 'Time']
-    for (kind, kdata) in atom.atom_map.items():
-        if hasattr(kdata, 'kind'):  # atom class: non-fixed item size
+    cprefixes = ["Int", "UInt", "Float", "Time"]
+    for kind, kdata in atom.atom_map.items():
+        if hasattr(kdata, "kind"):  # atom class: non-fixed item size
             atomclass = kdata
             cprefixes.append(atomclass.prefix())
         else:  # dictionary: fixed item size
@@ -275,11 +280,11 @@ def _generate_col_classes() -> Generator[type[Col]]:
 
     # Bottom-level complex classes are not in the type map, of course.
     # We still want the user to get the compatibility warning, though.
-    cprefixes.extend(['Complex32', 'Complex64', 'Complex128'])
-    if hasattr(atom, 'Complex192Atom'):
-        cprefixes.append('Complex192')
-    if hasattr(atom, 'Complex256Atom'):
-        cprefixes.append('Complex256')
+    cprefixes.extend(["Complex32", "Complex64", "Complex128"])
+    if hasattr(atom, "Complex192Atom"):
+        cprefixes.append("Complex192")
+    if hasattr(atom, "Complex256Atom"):
+        cprefixes.append("Complex256")
 
     for cprefix in cprefixes:
         newclass = Col._subclass_from_prefix(cprefix)
@@ -291,42 +296,42 @@ def _generate_col_classes() -> Generator[type[Col]]:
 #     exec('%s = _newclass' % _newclass.__name__)
 # del _newclass
 
-StringCol = Col._subclass_from_prefix('String')
-BoolCol = Col._subclass_from_prefix('Bool')
-EnumCol = Col._subclass_from_prefix('Enum')
-IntCol = Col._subclass_from_prefix('Int')
-Int8Col = Col._subclass_from_prefix('Int8')
-Int16Col = Col._subclass_from_prefix('Int16')
-Int32Col = Col._subclass_from_prefix('Int32')
-Int64Col = Col._subclass_from_prefix('Int64')
-UIntCol = Col._subclass_from_prefix('UInt')
-UInt8Col = Col._subclass_from_prefix('UInt8')
-UInt16Col = Col._subclass_from_prefix('UInt16')
-UInt32Col = Col._subclass_from_prefix('UInt32')
-UInt64Col = Col._subclass_from_prefix('UInt64')
+StringCol = Col._subclass_from_prefix("String")
+BoolCol = Col._subclass_from_prefix("Bool")
+EnumCol = Col._subclass_from_prefix("Enum")
+IntCol = Col._subclass_from_prefix("Int")
+Int8Col = Col._subclass_from_prefix("Int8")
+Int16Col = Col._subclass_from_prefix("Int16")
+Int32Col = Col._subclass_from_prefix("Int32")
+Int64Col = Col._subclass_from_prefix("Int64")
+UIntCol = Col._subclass_from_prefix("UInt")
+UInt8Col = Col._subclass_from_prefix("UInt8")
+UInt16Col = Col._subclass_from_prefix("UInt16")
+UInt32Col = Col._subclass_from_prefix("UInt32")
+UInt64Col = Col._subclass_from_prefix("UInt64")
 
-FloatCol = Col._subclass_from_prefix('Float')
-if hasattr(atom, 'Float16Atom'):
-    Float16Col = Col._subclass_from_prefix('Float16')
-Float32Col = Col._subclass_from_prefix('Float32')
-Float64Col = Col._subclass_from_prefix('Float64')
-if hasattr(atom, 'Float96Atom'):
-    Float96Col = Col._subclass_from_prefix('Float96')
-if hasattr(atom, 'Float128Atom'):
-    Float128Col = Col._subclass_from_prefix('Float128')
+FloatCol = Col._subclass_from_prefix("Float")
+if hasattr(atom, "Float16Atom"):
+    Float16Col = Col._subclass_from_prefix("Float16")
+Float32Col = Col._subclass_from_prefix("Float32")
+Float64Col = Col._subclass_from_prefix("Float64")
+if hasattr(atom, "Float96Atom"):
+    Float96Col = Col._subclass_from_prefix("Float96")
+if hasattr(atom, "Float128Atom"):
+    Float128Col = Col._subclass_from_prefix("Float128")
 
-ComplexCol = Col._subclass_from_prefix('Complex')
-Complex32Col = Col._subclass_from_prefix('Complex32')
-Complex64Col = Col._subclass_from_prefix('Complex64')
-Complex128Col = Col._subclass_from_prefix('Complex128')
-if hasattr(atom, 'Complex192Atom'):
-    Complex192Col = Col._subclass_from_prefix('Complex192')
-if hasattr(atom, 'Complex256Atom'):
-    Complex256Col = Col._subclass_from_prefix('Complex256')
+ComplexCol = Col._subclass_from_prefix("Complex")
+Complex32Col = Col._subclass_from_prefix("Complex32")
+Complex64Col = Col._subclass_from_prefix("Complex64")
+Complex128Col = Col._subclass_from_prefix("Complex128")
+if hasattr(atom, "Complex192Atom"):
+    Complex192Col = Col._subclass_from_prefix("Complex192")
+if hasattr(atom, "Complex256Atom"):
+    Complex256Col = Col._subclass_from_prefix("Complex256")
 
-TimeCol = Col._subclass_from_prefix('Time')
-Time32Col = Col._subclass_from_prefix('Time32')
-Time64Col = Col._subclass_from_prefix('Time64')
+TimeCol = Col._subclass_from_prefix("Time")
+Time32Col = Col._subclass_from_prefix("Time32")
+Time64Col = Col._subclass_from_prefix("Time64")
 
 
 # Table description classes
@@ -481,7 +486,7 @@ class Description:
         # Do a shallow copy of classdict just in case this is going to
         # be shared by other instances
         newdict = self.__dict__
-        newdict["_v_name"] = "/"   # The name for root descriptor
+        newdict["_v_name"] = "/"  # The name for root descriptor
         newdict["_v_names"] = []
         newdict["_v_dtypes"] = {}
         newdict["_v_types"] = {}
@@ -500,8 +505,8 @@ class Description:
         valid_offsets = False  # by default there a no valid offsets
 
         # Check for special variables and convert column descriptions
-        for (name, descr) in classdict.items():
-            if name.startswith('_v_'):
+        for name, descr in classdict.items():
+            if name.startswith("_v_"):
                 if name in newdict:
                     # print("Warning!")
                     # special methods &c: copy to newdict, warn about conflicts
@@ -515,15 +520,13 @@ class Description:
                 continue  # This variable is not needed anymore
 
             columns = None
-            if (
-                type(descr) is type(IsDescription)
-                and issubclass(descr, IsDescription)
+            if type(descr) is type(IsDescription) and issubclass(
+                descr, IsDescription
             ):
                 # print("Nested object (type I)-->", name)
                 columns = descr().columns
-            elif (
-                type(descr.__class__) is type(IsDescription)
-                and issubclass(descr.__class__, IsDescription)
+            elif type(descr.__class__) is type(IsDescription) and issubclass(
+                descr.__class__, IsDescription
             ):
                 # print("Nested object (type II)-->", name)
                 columns = descr.columns
@@ -542,12 +545,12 @@ class Description:
                 )
             classdict[name] = descr
 
-            pos = getattr(descr, '_v_pos', None)
+            pos = getattr(descr, "_v_pos", None)
             if pos is None:
                 cols_no_pos.append(name)
             else:
                 cols_with_pos.append((pos, name))
-            offset = getattr(descr, '_v_offset', None)
+            offset = getattr(descr, "_v_offset", None)
             if offset is not None:
                 cols_offsets.append(offset)
 
@@ -569,21 +572,21 @@ class Description:
                 check_name_validity(k)
             # Class variables
             object = classdict[k]
-            newdict[k] = object    # To allow natural naming
+            newdict[k] = object  # To allow natural naming
             if not isinstance(object, (Col, Description)):
                 raise TypeError(
-                    f'Passing an incorrect value to a table column.'
-                    f' Expected a Col (or subclass) instance and '
+                    f"Passing an incorrect value to a table column."
+                    f" Expected a Col (or subclass) instance and "
                     f'got: "{object}". Please make use of the Col(), or '
-                    f'descendant, constructor to properly '
-                    f'initialize columns.'
+                    f"descendant, constructor to properly "
+                    f"initialize columns."
                 )
             object._v_pos = pos  # Set the position of this object
             object._v_parent = self  # The parent description
             pos += 1
-            newdict['_v_colobjects'][k] = object
-            newdict['_v_names'].append(k)
-            object.__dict__['_v_name'] = k
+            newdict["_v_colobjects"][k] = object
+            newdict["_v_names"].append(k)
+            object.__dict__["_v_name"] = k
 
             if not isinstance(k, str):
                 # numpy only accepts "str" for field names
@@ -594,9 +597,9 @@ class Description:
 
             if isinstance(object, Col):
                 dtype = object.dtype
-                newdict['_v_dtypes'][k] = dtype
-                newdict['_v_types'][k] = object.type
-                newdict['_v_dflts'][k] = object.dflt
+                newdict["_v_dtypes"][k] = dtype
+                newdict["_v_types"][k] = object.type
+                newdict["_v_dflts"][k] = object.dflt
                 nestedFormats.append(object.recarrtype)
                 baserecarrtype = dtype.base.str[1:]
                 nestedDType.append((kk, baserecarrtype, dtype.shape))
@@ -620,7 +623,7 @@ class Description:
         # unhandled situations (should be very few).
         # However, for development, option 2) is recommended as it catches
         # most of the unhandled situations.
-        allow_padding = ptparams is None or ptparams['ALLOW_PADDING']
+        allow_padding = ptparams is None or ptparams["ALLOW_PADDING"]
         # allow_padding = ptparams is not None and ptparams['ALLOW_PADDING']
         if (
             allow_padding
@@ -635,10 +638,10 @@ class Description:
             cols_offsets.sort()
             valid_offsets = True
         else:
-            newdict['_v_offsets'] = []
+            newdict["_v_offsets"] = []
 
         # Assign the format list to _v_nested_formats
-        newdict['_v_nested_formats'] = nestedFormats
+        newdict["_v_nested_formats"] = nestedFormats
 
         if self._v_nestedlvl == 0:
             # Get recursively nested _v_nested_names and _v_nested_descr attrs
@@ -649,24 +652,27 @@ class Description:
             if hasattr(self, "_v_byteorder"):
                 raise ValueError(
                     "Using a ``_v_byteorder`` in the description is obsolete. "
-                    "Use the byteorder parameter in the constructor instead.")
+                    "Use the byteorder parameter in the constructor instead."
+                )
 
         # Compute the dtype with offsets or without
         # print("offsets ->", cols_offsets, nestedDType, nested, valid_offsets)
         if valid_offsets:
             # TODO: support offsets within nested types
             dtype_fields = {
-                'names': newdict['_v_names'], 'formats': nestedFormats,
-                'offsets': cols_offsets}
-            itemsize = newdict.get('_v_itemsize', None)
+                "names": newdict["_v_names"],
+                "formats": nestedFormats,
+                "offsets": cols_offsets,
+            }
+            itemsize = newdict.get("_v_itemsize", None)
             if itemsize is not None:
-                dtype_fields['itemsize'] = itemsize
+                dtype_fields["itemsize"] = itemsize
             dtype = np.dtype(dtype_fields)
         else:
             dtype = np.dtype(nestedDType)
-        newdict['_v_dtype'] = dtype
-        newdict['_v_itemsize'] = dtype.itemsize
-        newdict['_v_offsets'] = [dtype.fields[name][1] for name in dtype.names]
+        newdict["_v_dtype"] = dtype
+        newdict["_v_itemsize"] = dtype.itemsize
+        newdict["_v_offsets"] = [dtype.fields[name][1] for name in dtype.names]
 
     def _g_set_nested_names_descr(self) -> None:
         """Computes the nested names and descriptions for nested datatypes."""
@@ -695,13 +701,15 @@ class Description:
         """
 
         def get_cols_in_order(description: Description) -> list[Col]:
-            return [description._v_colobjects[colname]
-                    for colname in description._v_names]
+            return [
+                description._v_colobjects[colname]
+                for colname in description._v_names
+            ]
 
         def join_paths(path1: str, path2: str) -> str:
             if not path1:
                 return path2
-            return f'{path1}/{path2}'
+            return f"{path1}/{path2}"
 
         # The top of the stack always has a nested description
         # and a list of its child columns
@@ -721,7 +729,7 @@ class Description:
 
         # We start by pushing the top-level description
         # and its child columns.
-        self._v_pathname = ''
+        self._v_pathname = ""
         stack.append((self, get_cols_in_order(self)))
 
         while stack:
@@ -763,7 +771,7 @@ class Description:
 
     def _f_walk(
         self,
-        type: Literal["All", "Col", "Description"] = 'All',
+        type: Literal["All", "Col", "Description"] = "All",
     ) -> Generator[Col | Description]:
         """Iterate over nested columns.
 
@@ -776,8 +784,10 @@ class Description:
         """
 
         if type not in ["All", "Col", "Description"]:
-            raise ValueError("""\
-type can only take the parameters 'All', 'Col' or 'Description'.""")
+            raise ValueError(
+                """\
+type can only take the parameters 'All', 'Col' or 'Description'."""
+            )
 
         stack: list[Description] = [self]
         while stack:
@@ -795,36 +805,38 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
     def __repr__(self) -> str:
         """Gives a detailed Description column representation."""
 
-        rep = ['%s\"%s\": %r' %
-               ("  " * self._v_nestedlvl, k, self._v_colobjects[k])
-               for k in self._v_names]
-        return '{\n  %s}' % (',\n  '.join(rep))
+        rep = [
+            f'{"  " * self._v_nestedlvl}"{k}": {self._v_colobjects[k]!r}'
+            for k in self._v_names
+        ]
+        return "{\n  %s}" % (",\n  ".join(rep))
 
     def __str__(self) -> str:
         """Gives a brief Description representation."""
 
-        return f'Description({self._v_nested_descr})'
+        return f"Description({self._v_nested_descr})"
 
 
 class MetaIsDescription(type):
     """Helper metaclass to return the class variables as a dictionary."""
 
     def __new__(
-        mcs,
-        classname: str, bases: Sequence, classdict: dict[str, Any]
+        mcs, classname: str, bases: Sequence, classdict: dict[str, Any]
     ) -> MetaIsDescription:
         """Return a new class with a "columns" attribute filled."""
 
-        newdict = {"columns": {}, }
-        if '__doc__' in classdict:
-            newdict['__doc__'] = classdict['__doc__']
+        newdict = {
+            "columns": {},
+        }
+        if "__doc__" in classdict:
+            newdict["__doc__"] = classdict["__doc__"]
         for b in bases:
             if "columns" in b.__dict__:
                 newdict["columns"].update(b.__dict__["columns"])
         for k in classdict:
             # if not (k.startswith('__') or k.startswith('_v_')):
             # We let pass _v_ variables to configure class behaviour
-            if not (k.startswith('__')):
+            if not (k.startswith("__")):
                 newdict["columns"][k] = classdict[k]
 
         # Return a new class with the "columns" attribute filled
@@ -882,32 +894,35 @@ def descr_from_dtype(
     """Get a description instance and byteorder from a (nested) NumPy dtype."""
 
     fields = {}
-    fbyteorder = '|'
+    fbyteorder = "|"
     for name in dtype_.names:
         dtype, offset = dtype_.fields[name][:2]
         kind = dtype.base.kind
         byteorder = dtype.base.byteorder
-        if byteorder in '><=':
-            if fbyteorder not in ['|', byteorder]:
+        if byteorder in "><=":
+            if fbyteorder not in ["|", byteorder]:
                 raise NotImplementedError(
                     "structured arrays with mixed byteorders "
-                    "are not supported yet, sorry")
+                    "are not supported yet, sorry"
+                )
             fbyteorder = byteorder
         # Non-nested column
-        if kind in 'biufSUc':
+        if kind in "biufSUc":
             col = Col.from_dtype(dtype, pos=offset, _offset=offset)
         # Nested column
-        elif kind == 'V' and dtype.shape in [(), (1,)]:
+        elif kind == "V" and dtype.shape in [(), (1,)]:
             if dtype.shape != ():
                 warnings.warn(
-                    "nested descriptions will be converted to scalar")
+                    "nested descriptions will be converted to scalar"
+                )
             col, _ = descr_from_dtype(dtype.base, ptparams=ptparams)
             col._v_pos = offset
             col._v_offset = offset
         else:
             raise NotImplementedError(
                 "structured arrays with columns with type description ``%s`` "
-                "are not supported yet, sorry" % dtype)
+                "are not supported yet, sorry" % dtype
+            )
         fields[name] = col
 
     return Description(fields, ptparams=ptparams), fbyteorder
@@ -927,18 +942,18 @@ def dtype_from_descr(
 
     if isinstance(descr, dict):
         descr = Description(descr, ptparams=ptparams)
-    elif (
-        type(descr) is type(IsDescription) and issubclass(descr, IsDescription)
+    elif type(descr) is type(IsDescription) and issubclass(
+        descr, IsDescription
     ):
         descr = Description(descr().columns, ptparams=ptparams)
     elif isinstance(descr, IsDescription):
         descr = Description(descr.columns, ptparams=ptparams)
     elif not isinstance(descr, Description):
-        raise ValueError(f'invalid description: {descr!r}')
+        raise ValueError(f"invalid description: {descr!r}")
 
     dtype_ = descr._v_dtype
 
-    if byteorder and byteorder != '|':
+    if byteorder and byteorder != "|":
         dtype_ = dtype_.newbyteorder(byteorder)
 
     return dtype_
@@ -956,7 +971,7 @@ if __name__ == "__main__":
         """A description that has several columns."""
 
         x = Col.from_type("int32", 2, 0, pos=0)
-        y = Col.from_kind('float', dflt=1, shape=(2, 3))
+        y = Col.from_kind("float", dflt=1, shape=(2, 3))
         z = UInt8Col(dflt=1)
         color = StringCol(2, dflt=" ")
         # color = UInt32Col(2)
@@ -966,11 +981,11 @@ if __name__ == "__main__":
             _v_pos = 1
             name = UInt32Col()
             value = Float64Col(pos=0)
-            y2 = Col.from_kind('float', dflt=1, shape=(2, 3), pos=1)
+            y2 = Col.from_kind("float", dflt=1, shape=(2, 3), pos=1)
             z2 = UInt8Col(dflt=1)
 
             class info2(IsDescription):
-                y3 = Col.from_kind('float', dflt=1, shape=(2, 3))
+                y3 = Col.from_kind("float", dflt=1, shape=(2, 3))
                 z3 = UInt8Col(dflt=1)
                 name = UInt32Col()
                 value = Float64Col()
@@ -978,37 +993,37 @@ if __name__ == "__main__":
                 class info3(IsDescription):
                     name = UInt32Col()
                     value = Float64Col()
-                    y4 = Col.from_kind('float', dflt=1, shape=(2, 3))
+                    y4 = Col.from_kind("float", dflt=1, shape=(2, 3))
                     z4 = UInt8Col(dflt=1)
 
-#     class Info(IsDescription):
-#         _v_pos = 2
-#         Name = StringCol(itemsize=2)
-#         Value = ComplexCol(itemsize=16)
+    #     class Info(IsDescription):
+    #         _v_pos = 2
+    #         Name = StringCol(itemsize=2)
+    #         Value = ComplexCol(itemsize=16)
 
-#     class Test(IsDescription):
-#         """A description that has several columns"""
-#         x = Col.from_type("int32", 2, 0, pos=0)
-#         y = Col.from_kind('float', dflt=1, shape=(2,3))
-#         z = UInt8Col(dflt=1)
-#         color = StringCol(2, dflt=" ")
-#         Info = Info()
-#         class info(IsDescription):
-#             _v_pos = 1
-#             name = StringCol(itemsize=2)
-#             value = ComplexCol(itemsize=16, pos=0)
-#             y2 = Col.from_kind('float', dflt=1, shape=(2,3), pos=1)
-#             z2 = UInt8Col(dflt=1)
-#             class info2(IsDescription):
-#                 y3 = Col.from_kind('float', dflt=1, shape=(2,3))
-#                 z3 = UInt8Col(dflt=1)
-#                 name = StringCol(itemsize=2)
-#                 value = ComplexCol(itemsize=16)
-#                 class info3(IsDescription):
-#                     name = StringCol(itemsize=2)
-#                     value = ComplexCol(itemsize=16)
-#                     y4 = Col.from_kind('float', dflt=1, shape=(2,3))
-#                     z4 = UInt8Col(dflt=1)
+    #     class Test(IsDescription):
+    #         """A description that has several columns"""
+    #         x = Col.from_type("int32", 2, 0, pos=0)
+    #         y = Col.from_kind('float', dflt=1, shape=(2,3))
+    #         z = UInt8Col(dflt=1)
+    #         color = StringCol(2, dflt=" ")
+    #         Info = Info()
+    #         class info(IsDescription):
+    #             _v_pos = 1
+    #             name = StringCol(itemsize=2)
+    #             value = ComplexCol(itemsize=16, pos=0)
+    #             y2 = Col.from_kind('float', dflt=1, shape=(2,3), pos=1)
+    #             z2 = UInt8Col(dflt=1)
+    #             class info2(IsDescription):
+    #                 y3 = Col.from_kind('float', dflt=1, shape=(2,3))
+    #                 z3 = UInt8Col(dflt=1)
+    #                 name = StringCol(itemsize=2)
+    #                 value = ComplexCol(itemsize=16)
+    #                 class info3(IsDescription):
+    #                     name = StringCol(itemsize=2)
+    #                     value = ComplexCol(itemsize=16)
+    #                     y4 = Col.from_kind('float', dflt=1, shape=(2,3))
+    #                     z4 = UInt8Col(dflt=1)
 
     # example cases of class Test
     klass = Test()
@@ -1030,7 +1045,7 @@ if __name__ == "__main__":
     # check _f_walk
     for object in desc._f_walk():
         if isinstance(object, Description):
-            print("******begin object*************", end=' ')
+            print("******begin object*************", end=" ")
             print("name -->", object._v_name)
             # print("name -->", object._v_dtype.name)
             # print("object childs-->", object._v_names)
@@ -1046,4 +1061,4 @@ if __name__ == "__main__":
     class testDesc(testDescParent):
         pass
 
-    assert 'c' in testDesc.columns
+    assert "c" in testDesc.columns

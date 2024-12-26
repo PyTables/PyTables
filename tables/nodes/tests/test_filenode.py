@@ -9,13 +9,19 @@ from pathlib import Path
 from ... import open_file, file, NoSuchNodeError
 from ...nodes import filenode
 from ...tests.common import (
-    unittest, TempFileMixin, parse_argv, print_versions, make_suite,
-    PyTablesTestCase as TestCase)
+    unittest,
+    TempFileMixin,
+    parse_argv,
+    print_versions,
+    make_suite,
+)
+from ...tests.common import PyTablesTestCase as TestCase
 
 
 def test_file(name):
     from importlib import resources
-    return resources.files('tables.nodes.tests') / name
+
+    return resources.files("tables.nodes.tests") / name
 
 
 class NewFileTestCase(TempFileMixin, TestCase):
@@ -25,14 +31,16 @@ class NewFileTestCase(TempFileMixin, TestCase):
         """Creation of a brand new file node."""
 
         try:
-            fnode = filenode.new_node(self.h5file, where='/', name='test')
-            node = self.h5file.get_node('/test')
+            fnode = filenode.new_node(self.h5file, where="/", name="test")
+            node = self.h5file.get_node("/test")
         except LookupError:
             self.fail("filenode.new_node() failed to create a new node.")
         else:
             self.assertEqual(
-                fnode.node, node,
-                "filenode.new_node() created a node in the wrong place.")
+                fnode.node,
+                node,
+                "filenode.new_node() created a node in the wrong place.",
+            )
 
     def test01_NewFileTooFewArgs(self):
         """Creation of a new file node without arguments for node creation."""
@@ -44,17 +52,24 @@ class NewFileTestCase(TempFileMixin, TestCase):
 
         try:
             filenode.new_node(
-                self.h5file, where='/', name='test', expectedsize=100_000)
+                self.h5file, where="/", name="test", expectedsize=100_000
+            )
         except TypeError:
-            self.fail("filenode.new_node() failed to accept 'expectedsize'"
-                      " argument.")
+            self.fail(
+                "filenode.new_node() failed to accept 'expectedsize' argument."
+            )
 
     def test03_NewFileWithExpectedRows(self):
         """Creation of a new file node with illegal 'expectedrows' argument."""
 
         self.assertRaises(
-            TypeError, filenode.new_node,
-            self.h5file, where='/', name='test', expectedrows=100_000)
+            TypeError,
+            filenode.new_node,
+            self.h5file,
+            where="/",
+            name="test",
+            expectedrows=100_000,
+        )
 
 
 class ClosedFileTestCase(TempFileMixin, TestCase):
@@ -71,7 +86,7 @@ class ClosedFileTestCase(TempFileMixin, TestCase):
         """
 
         super().setUp()
-        self.fnode = filenode.new_node(self.h5file, where='/', name='test')
+        self.fnode = filenode.new_node(self.h5file, where="/", name="test")
         self.fnode.close()
 
     def tearDown(self):
@@ -137,12 +152,12 @@ class ClosedFileTestCase(TempFileMixin, TestCase):
     def test09_Write(self):
         """Writing a closed file."""
 
-        self.assertRaises(ValueError, self.fnode.write, b'foo')
+        self.assertRaises(ValueError, self.fnode.write, b"foo")
 
     def test10_Writelines(self):
         """Writing lines to a closed file."""
 
-        self.assertRaises(ValueError, self.fnode.writelines, [b'foo\n'])
+        self.assertRaises(ValueError, self.fnode.writelines, [b"foo\n"])
 
 
 def copyFileToFile(srcfile, dstfile, blocksize=4096):
@@ -162,7 +177,7 @@ def copyFileToFile(srcfile, dstfile, blocksize=4096):
 class WriteFileTestCase(TempFileMixin, TestCase):
     """Tests writing, seeking and truncating a new file node."""
 
-    datafname = 'test_filenode.dat'
+    datafname = "test_filenode.dat"
 
     def setUp(self):
         """setUp() -> None
@@ -175,7 +190,7 @@ class WriteFileTestCase(TempFileMixin, TestCase):
         """
 
         super().setUp()
-        self.fnode = filenode.new_node(self.h5file, where='/', name='test')
+        self.fnode = filenode.new_node(self.h5file, where="/", name="test")
         self.datafname = test_file(self.datafname)
 
     def tearDown(self):
@@ -192,7 +207,7 @@ class WriteFileTestCase(TempFileMixin, TestCase):
     def test00_WriteFile(self):
         """Writing a whole file node."""
 
-        datafile = open(self.datafname, 'rb')
+        datafile = open(self.datafname, "rb")
         try:
             copyFileToFile(datafile, self.fnode)
         finally:
@@ -201,40 +216,45 @@ class WriteFileTestCase(TempFileMixin, TestCase):
     def test01_SeekFile(self):
         """Seeking and writing file node."""
 
-        self.fnode.write(b'0123')
+        self.fnode.write(b"0123")
         self.fnode.seek(8)
-        self.fnode.write(b'4567')
+        self.fnode.write(b"4567")
         self.fnode.seek(3)
         data = self.fnode.read(6)
         self.assertEqual(
-            data, b'3\0\0\0\0'b'4',
-            "Gap caused by forward seek was not properly filled.")
+            data,
+            b"3\0\0\0\0" b"4",
+            "Gap caused by forward seek was not properly filled.",
+        )
 
         self.fnode.seek(0)
-        self.fnode.write(b'test')
+        self.fnode.write(b"test")
 
         self.fnode.seek(0)
         data = self.fnode.read(4)
         self.assertNotEqual(
-            data, b'test', "Data was overwritten instead of appended.")
+            data, b"test", "Data was overwritten instead of appended."
+        )
 
         self.fnode.seek(-4, 2)
         data = self.fnode.read(4)
-        self.assertEqual(data, b'test', "Written data was not appended.")
+        self.assertEqual(data, b"test", "Written data was not appended.")
 
         self.fnode.seek(0, 2)
         oldendoff = self.fnode.tell()
         self.fnode.seek(-2, 2)
-        self.fnode.write(b'test')
+        self.fnode.write(b"test")
         newendoff = self.fnode.tell()
         self.assertEqual(
-            newendoff, oldendoff - 2 + 4,
-            "Pointer was not correctly moved on append.")
+            newendoff,
+            oldendoff - 2 + 4,
+            "Pointer was not correctly moved on append.",
+        )
 
     def test02_TruncateFile(self):
         """Truncating a file node."""
 
-        self.fnode.write(b'test')
+        self.fnode.write(b"test")
 
         self.fnode.seek(2)
         self.assertRaises(IOError, self.fnode.truncate)
@@ -244,13 +264,15 @@ class WriteFileTestCase(TempFileMixin, TestCase):
         self.fnode.seek(0)
         data = self.fnode.read()
         self.assertEqual(
-            data, b'test\0\0', "File was not grown to the current offset.")
+            data, b"test\0\0", "File was not grown to the current offset."
+        )
 
         self.fnode.truncate(8)
         self.fnode.seek(0)
         data = self.fnode.read()
         self.assertEqual(
-            data, b'test\0\0\0\0', "File was not grown to an absolute size.")
+            data, b"test\0\0\0\0", "File was not grown to an absolute size."
+        )
 
 
 class OpenFileTestCase(TempFileMixin, TestCase):
@@ -266,45 +288,56 @@ class OpenFileTestCase(TempFileMixin, TestCase):
         """
 
         super().setUp()
-        fnode = filenode.new_node(self.h5file, where='/', name='test')
+        fnode = filenode.new_node(self.h5file, where="/", name="test")
         fnode.close()
 
     def test00_OpenFileRead(self):
         """Opening an existing file node for reading."""
 
-        node = self.h5file.get_node('/test')
+        node = self.h5file.get_node("/test")
         fnode = filenode.open_node(node)
         self.assertEqual(
-            fnode.node, node, "filenode.open_node() opened the wrong node.")
+            fnode.node, node, "filenode.open_node() opened the wrong node."
+        )
         self.assertEqual(
-            fnode.mode, 'r',
-            "File was opened with an invalid mode %s." % repr(fnode.mode))
+            fnode.mode,
+            "r",
+            f"File was opened with an invalid mode {fnode.mode!r}.",
+        )
         self.assertEqual(
-            fnode.tell(), 0,
-            "Pointer is not positioned at the beginning of the file.")
+            fnode.tell(),
+            0,
+            "Pointer is not positioned at the beginning of the file.",
+        )
         fnode.close()
 
     def test01_OpenFileReadAppend(self):
         """Opening an existing file node for reading and appending."""
 
-        node = self.h5file.get_node('/test')
-        fnode = filenode.open_node(node, 'a+')
+        node = self.h5file.get_node("/test")
+        fnode = filenode.open_node(node, "a+")
         self.assertEqual(
-            fnode.node, node, "filenode.open_node() opened the wrong node.")
+            fnode.node, node, "filenode.open_node() opened the wrong node."
+        )
         self.assertEqual(
-            fnode.mode, 'a+',
-            "File was opened with an invalid mode %s." % repr(fnode.mode))
+            fnode.mode,
+            "a+",
+            f"File was opened with an invalid mode {fnode.mode!r}.",
+        )
 
         self.assertEqual(
-            fnode.tell(), 0,
-            "Pointer is not positioned at the beginning of the file.")
+            fnode.tell(),
+            0,
+            "Pointer is not positioned at the beginning of the file.",
+        )
         fnode.close()
 
     def test02_OpenFileInvalidMode(self):
         """Opening an existing file node with an invalid mode."""
 
         self.assertRaises(
-            IOError, filenode.open_node, self.h5file.get_node('/test'), 'w')
+            IOError, filenode.open_node, self.h5file.get_node("/test"), "w"
+        )
 
     # This no longer works since type and type version attributes
     # are now system attributes.  ivb(2004-12-29)
@@ -321,7 +354,7 @@ class OpenFileTestCase(TempFileMixin, TestCase):
 class ReadFileTestCase(TempFileMixin, TestCase):
     """Tests reading from an existing file node."""
 
-    datafname = 'test_filenode.xbm'
+    datafname = "test_filenode.xbm"
 
     def setUp(self):
         """setUp() -> None
@@ -335,16 +368,16 @@ class ReadFileTestCase(TempFileMixin, TestCase):
         """
 
         self.datafname = test_file(self.datafname)
-        self.datafile = open(self.datafname, 'rb')
+        self.datafile = open(self.datafname, "rb")
 
         super().setUp()
 
-        fnode = filenode.new_node(self.h5file, where='/', name='test')
+        fnode = filenode.new_node(self.h5file, where="/", name="test")
         copyFileToFile(self.datafile, fnode)
         fnode.close()
 
         self.datafile.seek(0)
-        self.fnode = filenode.open_node(self.h5file.get_node('/test'))
+        self.fnode = filenode.open_node(self.h5file.get_node("/test"))
 
     def tearDown(self):
         """tearDown() -> None
@@ -365,17 +398,20 @@ class ReadFileTestCase(TempFileMixin, TestCase):
         """Reading and comparing a whole file node."""
 
         import hashlib
+
         dfiledigest = hashlib.md5(self.datafile.read()).digest()
         fnodedigest = hashlib.md5(self.fnode.read()).digest()
 
         self.assertEqual(
-            dfiledigest, fnodedigest,
-            "Data read from file node differs from that in the file on disk.")
+            dfiledigest,
+            fnodedigest,
+            "Data read from file node differs from that in the file on disk.",
+        )
 
     def test01_Write(self):
         """Writing on a read-only file."""
 
-        self.assertRaises(IOError, self.fnode.write, 'no way')
+        self.assertRaises(IOError, self.fnode.write, "no way")
 
     def test02_UseAsImageFile(self):
         """Using a file node with Python Imaging Library."""
@@ -389,7 +425,8 @@ class ReadFileTestCase(TempFileMixin, TestCase):
             pass
         except OSError:
             self.fail(
-                "PIL was not able to create an image from the file node.")
+                "PIL was not able to create an image from the file node."
+            )
 
     def test_fileno(self):
         self.assertIsNot(self.fnode.fileno(), None)
@@ -417,18 +454,18 @@ class ReadlineTestCase(TempFileMixin, TestCase):
         linesep = self.line_separator
 
         # Fill the node file with some text.
-        fnode = filenode.new_node(self.h5file, where='/', name='test')
+        fnode = filenode.new_node(self.h5file, where="/", name="test")
         # fnode.line_separator = linesep
         fnode.write(linesep)
-        data = 'short line%sshort line%s%s' % ((linesep.decode('ascii'),) * 3)
-        data = data.encode('ascii')
+        data = "short line%sshort line%s%s" % ((linesep.decode("ascii"),) * 3)
+        data = data.encode("ascii")
         fnode.write(data)
-        fnode.write(b'long line ' * 20 + linesep)
-        fnode.write(b'unterminated')
+        fnode.write(b"long line " * 20 + linesep)
+        fnode.write(b"unterminated")
         fnode.close()
 
         # Re-open it for reading.
-        self.fnode = filenode.open_node(self.h5file.get_node('/test'))
+        self.fnode = filenode.open_node(self.h5file.get_node("/test"))
         # self.fnode.line_separator = linesep
 
     def tearDown(self):
@@ -452,21 +489,21 @@ class ReadlineTestCase(TempFileMixin, TestCase):
 
         line = self.fnode.readline()  # 'short line' + linesep
         line = self.fnode.readline()
-        self.assertEqual(line, b'short line' + linesep)
+        self.assertEqual(line, b"short line" + linesep)
         line = self.fnode.readline()
         self.assertEqual(line, linesep)
 
         line = self.fnode.readline()
-        self.assertEqual(line, b'long line ' * 20 + linesep)
+        self.assertEqual(line, b"long line " * 20 + linesep)
 
         line = self.fnode.readline()
-        self.assertEqual(line, b'unterminated')
+        self.assertEqual(line, b"unterminated")
 
         line = self.fnode.readline()
-        self.assertEqual(line, b'')
+        self.assertEqual(line, b"")
 
         line = self.fnode.readline()
-        self.assertEqual(line, b'')
+        self.assertEqual(line, b"")
 
     def test01_ReadlineSeek(self):
         """Reading individual lines and seeking back and forth."""
@@ -479,14 +516,17 @@ class ReadlineTestCase(TempFileMixin, TestCase):
 
         self.fnode.seek(-(lseplen + 4), 1)
         line = self.fnode.readline()
-        self.assertEqual(line, b'line' + linesep,
-                         "Seeking back yielded different data.")
+        self.assertEqual(
+            line, b"line" + linesep, "Seeking back yielded different data."
+        )
 
         self.fnode.seek(lseplen + 20, 1)  # Into the long line.
         line = self.fnode.readline()
         self.assertEqual(
-            line[-(lseplen + 10):], b'long line ' + linesep,
-            "Seeking forth yielded unexpected data.")
+            line[-(lseplen + 10) :],
+            b"long line " + linesep,
+            "Seeking forth yielded unexpected data.",
+        )
 
     def test02_Iterate(self):
         """Iterating over the lines."""
@@ -505,7 +545,7 @@ class ReadlineTestCase(TempFileMixin, TestCase):
         self.assertEqual(line, linesep)
 
         line = next(self.fnode)
-        self.assertEqual(line, b'short line' + linesep)
+        self.assertEqual(line, b"short line" + linesep)
 
     def test03_Readlines(self):
         """Reading a list of lines."""
@@ -513,9 +553,17 @@ class ReadlineTestCase(TempFileMixin, TestCase):
         linesep = self.line_separator
 
         lines = self.fnode.readlines()
-        self.assertEqual(lines, [
-            linesep, b'short line' + linesep, b'short line' + linesep,
-            linesep, b'long line ' * 20 + linesep, b'unterminated'])
+        self.assertEqual(
+            lines,
+            [
+                linesep,
+                b"short line" + linesep,
+                b"short line" + linesep,
+                linesep,
+                b"long line " * 20 + linesep,
+                b"unterminated",
+            ],
+        )
 
     def test04_ReadlineSize(self):
         """Reading individual lines of limited size."""
@@ -526,32 +574,32 @@ class ReadlineTestCase(TempFileMixin, TestCase):
         line = self.fnode.readline()  # linesep
 
         line = self.fnode.readline(lseplen + 20)
-        self.assertEqual(line, b'short line' + linesep)
+        self.assertEqual(line, b"short line" + linesep)
 
         line = self.fnode.readline(5)
-        self.assertEqual(line, b'short')
+        self.assertEqual(line, b"short")
 
         line = self.fnode.readline(lseplen + 20)
-        self.assertEqual(line, b' line' + linesep)
+        self.assertEqual(line, b" line" + linesep)
 
         line = self.fnode.readline(lseplen)
         self.assertEqual(line, linesep)
 
         self.fnode.seek(-4, 2)
         line = self.fnode.readline(4)
-        self.assertEqual(line, b'ated')
+        self.assertEqual(line, b"ated")
 
         self.fnode.seek(-4, 2)
         line = self.fnode.readline(20)
-        self.assertEqual(line, b'ated')
+        self.assertEqual(line, b"ated")
 
     def test05_ReadlinesSize(self):
         """Reading a list of lines with a limited size."""
 
         linesep = self.line_separator
 
-        data = '%sshort line%sshort' % ((linesep.decode('ascii'),) * 2)
-        data = data.encode('ascii')
+        data = "%sshort line%sshort" % ((linesep.decode("ascii"),) * 2)
+        data = data.encode("ascii")
         lines = self.fnode.readlines(len(data))
         # self.assertEqual(lines, [linesep, b'short line' + linesep, b'short'])
         #
@@ -560,16 +608,16 @@ class ReadlineTestCase(TempFileMixin, TestCase):
 
         # NOTE: the test is relaxed because the *hint* parameter of
         # io.BaseIO.readlines controls the amout of read data in a coarse way
-        self.assertEqual(len(lines), len(data.split(b'\n')))
-        self.assertEqual(lines[:-1], [linesep, b'short line' + linesep])
-        self.assertTrue(lines[-1].startswith(b'short'))
+        self.assertEqual(len(lines), len(data.split(b"\n")))
+        self.assertEqual(lines[:-1], [linesep, b"short line" + linesep])
+        self.assertTrue(lines[-1].startswith(b"short"))
 
 
 class MonoReadlineTestCase(ReadlineTestCase):
     """Tests reading one-byte-separated text lines from an existing
     file node."""
 
-    line_separator = b'\n'
+    line_separator = b"\n"
 
 
 # class MultiReadlineTestCase(ReadlineTestCase):
@@ -645,7 +693,7 @@ class AttrsTestCase(TempFileMixin, TestCase):
         """
 
         super().setUp()
-        self.fnode = filenode.new_node(self.h5file, where='/', name='test')
+        self.fnode = filenode.new_node(self.h5file, where="/", name="test")
 
     def tearDown(self):
         """tearDown() -> None
@@ -669,15 +717,18 @@ class AttrsTestCase(TempFileMixin, TestCase):
     def test00_MangleTypeAttrs(self):
         """Mangling the type attributes on a file node."""
 
-        nodeType = getattr(self.fnode.attrs, 'NODE_TYPE', None)
+        nodeType = getattr(self.fnode.attrs, "NODE_TYPE", None)
         self.assertEqual(
-            nodeType, filenode.NodeType,
-            "File node does not have a valid 'NODE_TYPE' attribute.")
+            nodeType,
+            filenode.NodeType,
+            "File node does not have a valid 'NODE_TYPE' attribute.",
+        )
 
-        nodeTypeVersion = getattr(self.fnode.attrs, 'NODE_TYPE_VERSION', None)
+        nodeTypeVersion = getattr(self.fnode.attrs, "NODE_TYPE_VERSION", None)
         self.assertTrue(
             nodeTypeVersion in filenode.NodeTypeVersions,
-            "File node does not have a valid 'NODE_TYPE_VERSION' attribute.")
+            "File node does not have a valid 'NODE_TYPE_VERSION' attribute.",
+        )
 
         # System attributes are now writable.  ivb(2004-12-30)
         # self.assertRaises(
@@ -688,12 +739,13 @@ class AttrsTestCase(TempFileMixin, TestCase):
         #      setattr, self.fnode.attrs, 'NODE_TYPE_VERSION', 'foobar')
 
         # System attributes are now removables.  F. Alted (2007-03-06)
-#         self.assertRaises(
-#                 AttributeError,
-#                 delattr, self.fnode.attrs, 'NODE_TYPE')
-#         self.assertRaises(
-#                 AttributeError,
-#                 delattr, self.fnode.attrs, 'NODE_TYPE_VERSION')
+
+    #         self.assertRaises(
+    #                 AttributeError,
+    #                 delattr, self.fnode.attrs, 'NODE_TYPE')
+    #         self.assertRaises(
+    #                 AttributeError,
+    #                 delattr, self.fnode.attrs, 'NODE_TYPE_VERSION')
 
     # System attributes are now writable.  ivb(2004-12-30)
     # def test01_SetSystemAttr(self):
@@ -705,23 +757,31 @@ class AttrsTestCase(TempFileMixin, TestCase):
         """Setting a user attribute on a file node."""
 
         self.assertEqual(
-            getattr(self.fnode.attrs, 'userAttr', None), None,
-            "Inexistent attribute has a value that is not 'None'.")
+            getattr(self.fnode.attrs, "userAttr", None),
+            None,
+            "Inexistent attribute has a value that is not 'None'.",
+        )
 
-        self.fnode.attrs.userAttr = 'foobar'
+        self.fnode.attrs.userAttr = "foobar"
         self.assertEqual(
-            getattr(self.fnode.attrs, 'userAttr', None), 'foobar',
-            "User attribute was not correctly set.")
+            getattr(self.fnode.attrs, "userAttr", None),
+            "foobar",
+            "User attribute was not correctly set.",
+        )
 
-        self.fnode.attrs.userAttr = 'bazquux'
+        self.fnode.attrs.userAttr = "bazquux"
         self.assertEqual(
-            getattr(self.fnode.attrs, 'userAttr', None), 'bazquux',
-            "User attribute was not correctly changed.")
+            getattr(self.fnode.attrs, "userAttr", None),
+            "bazquux",
+            "User attribute was not correctly changed.",
+        )
 
         del self.fnode.attrs.userAttr
         self.assertEqual(
-            getattr(self.fnode.attrs, 'userAttr', None), None,
-            "User attribute was not deleted.")
+            getattr(self.fnode.attrs, "userAttr", None),
+            None,
+            "User attribute was not deleted.",
+        )
         # Another way is looking up the attribute in the attribute list.
         # if 'userAttr' in self.fnode.attrs._f_list():
         #      self.fail("User attribute was not deleted.")
@@ -730,7 +790,7 @@ class AttrsTestCase(TempFileMixin, TestCase):
         """Accessing attributes on a closed file node."""
 
         self.fnode.close()
-        self.assertRaises(AttributeError, getattr, self.fnode, 'attrs')
+        self.assertRaises(AttributeError, getattr, self.fnode, "attrs")
 
 
 class ClosedH5FileTestCase(TempFileMixin, TestCase):
@@ -747,7 +807,7 @@ class ClosedH5FileTestCase(TempFileMixin, TestCase):
         """
 
         super().setUp()
-        self.fnode = filenode.new_node(self.h5file, where='/', name='test')
+        self.fnode = filenode.new_node(self.h5file, where="/", name="test")
         self.h5file.close()
 
     def tearDown(self):
@@ -760,13 +820,13 @@ class ClosedH5FileTestCase(TempFileMixin, TestCase):
         # ivilata:  We know that a UserWarning will be raised
         #   because the PyTables file has already been closed.
         #   However, we don't want it to pollute the test output.
-        warnings.filterwarnings('ignore', category=UserWarning)
+        warnings.filterwarnings("ignore", category=UserWarning)
         try:
             self.fnode.close()
         except ValueError:
             pass
         finally:
-            warnings.filterwarnings('default', category=UserWarning)
+            warnings.filterwarnings("default", category=UserWarning)
 
         self.fnode = None
         super().tearDown()
@@ -774,13 +834,13 @@ class ClosedH5FileTestCase(TempFileMixin, TestCase):
     def test00_Write(self):
         """Writing to a file node in a closed PyTables file."""
 
-        self.assertRaises(ValueError, self.fnode.write, 'data')
+        self.assertRaises(ValueError, self.fnode.write, "data")
 
     def test01_Attrs(self):
         """Accessing the attributes of a file node in a closed
         PyTables file."""
 
-        self.assertRaises(ValueError, getattr, self.fnode, 'attrs')
+        self.assertRaises(ValueError, getattr, self.fnode, "attrs")
 
 
 class OldVersionTestCase(TestCase):
@@ -802,7 +862,7 @@ class OldVersionTestCase(TestCase):
         """
 
         super().setUp()
-        self.h5fname = tempfile.mktemp(suffix='.h5')
+        self.h5fname = tempfile.mktemp(suffix=".h5")
 
         self.oldh5fname = test_file(self.oldh5fname)
         oldh5f = open_file(self.oldh5fname)
@@ -810,9 +870,11 @@ class OldVersionTestCase(TestCase):
         oldh5f.close()
 
         self.h5file = open_file(
-            self.h5fname, 'r+',
-            title="Test for file node old version compatibility")
-        self.fnode = filenode.open_node(self.h5file.root.test, 'a+')
+            self.h5fname,
+            "r+",
+            title="Test for file node old version compatibility",
+        )
+        self.fnode = filenode.open_node(self.h5file.root.test, "a+")
 
     def tearDown(self):
         """Closes ``fnode`` and ``h5file``; removes ``h5fname``."""
@@ -830,60 +892,66 @@ class OldVersionTestCase(TestCase):
         # self.fnode.line_separator = '\n'
 
         line = self.fnode.readline()
-        self.assertEqual(line, 'This is only\n')
+        self.assertEqual(line, "This is only\n")
 
         line = self.fnode.readline()
-        self.assertEqual(line, 'a test file\n')
+        self.assertEqual(line, "a test file\n")
 
         line = self.fnode.readline()
-        self.assertEqual(line, 'for FileNode version %d\n' % self.oldversion)
+        self.assertEqual(line, "for FileNode version %d\n" % self.oldversion)
 
         line = self.fnode.readline()
-        self.assertEqual(line, '')
+        self.assertEqual(line, "")
 
         self.fnode.seek(0)
         line = self.fnode.readline()
-        self.assertEqual(line, 'This is only\n')
+        self.assertEqual(line, "This is only\n")
 
     def test01_Write(self):
         """Writing an old version file node."""
 
         # self.fnode.line_separator = '\n'
 
-        self.fnode.write('foobar\n')
+        self.fnode.write("foobar\n")
         self.fnode.seek(-7, 2)
         line = self.fnode.readline()
-        self.assertEqual(line, 'foobar\n')
+        self.assertEqual(line, "foobar\n")
 
     def test02_Attributes(self):
         """Accessing attributes in an old version file node."""
 
-        self.fnode.attrs.userAttr = 'foobar'
+        self.fnode.attrs.userAttr = "foobar"
         self.assertEqual(
-            getattr(self.fnode.attrs, 'userAttr', None), 'foobar',
-            "User attribute was not correctly set.")
+            getattr(self.fnode.attrs, "userAttr", None),
+            "foobar",
+            "User attribute was not correctly set.",
+        )
 
-        self.fnode.attrs.userAttr = 'bazquux'
+        self.fnode.attrs.userAttr = "bazquux"
         self.assertEqual(
-            getattr(self.fnode.attrs, 'userAttr', None), 'bazquux',
-            "User attribute was not correctly changed.")
+            getattr(self.fnode.attrs, "userAttr", None),
+            "bazquux",
+            "User attribute was not correctly changed.",
+        )
 
         del self.fnode.attrs.userAttr
         self.assertEqual(
-            getattr(self.fnode.attrs, 'userAttr', None), None,
-            "User attribute was not deleted.")
+            getattr(self.fnode.attrs, "userAttr", None),
+            None,
+            "User attribute was not deleted.",
+        )
 
 
 class Version1TestCase(OldVersionTestCase):
     """Basic test for version 1 format compatibility."""
 
     oldversion = 1
-    oldh5fname = 'test_filenode_v1.h5'
+    oldh5fname = "test_filenode_v1.h5"
 
 
 class DirectReadWriteTestCase(TempFileMixin, TestCase):
 
-    datafname = 'test_filenode.dat'
+    datafname = "test_filenode.dat"
 
     def setUp(self):
         """This method sets the following instance attributes:
@@ -926,14 +994,21 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         # write contents of datafname to h5 testfile
         filenode.save_to_filenode(self.testh5fname, self.datafname, "/test1")
         # make sure writing to an existing node doesn't work ...
-        self.assertRaises(IOError, filenode.save_to_filenode, self.testh5fname,
-                          self.datafname, "/test1")
+        self.assertRaises(
+            IOError,
+            filenode.save_to_filenode,
+            self.testh5fname,
+            self.datafname,
+            "/test1",
+        )
         # ... except if overwrite is True
-        filenode.save_to_filenode(self.testh5fname, self.datafname, "/test1",
-                                  overwrite=True)
+        filenode.save_to_filenode(
+            self.testh5fname, self.datafname, "/test1", overwrite=True
+        )
         # write again, this time specifying a name
-        filenode.save_to_filenode(self.testh5fname, self.datafname, "/",
-                                  name="test2")
+        filenode.save_to_filenode(
+            self.testh5fname, self.datafname, "/", name="test2"
+        )
         # read from test h5file
         filenode.read_from_filenode(self.testh5fname, self.testfname, "/test1")
         # and compare result to what it should be
@@ -941,11 +1016,17 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         # make sure extracting to an existing file doesn't work ...
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.assertRaises(IOError, filenode.read_from_filenode,
-                              self.testh5fname, self.testfname, "/test1")
+            self.assertRaises(
+                IOError,
+                filenode.read_from_filenode,
+                self.testh5fname,
+                self.testfname,
+                "/test1",
+            )
         # except overwrite is True.  And try reading with a name
-        filenode.read_from_filenode(self.testh5fname, self.testfname, "/",
-                                    name="test2", overwrite=True)
+        filenode.read_from_filenode(
+            self.testh5fname, self.testfname, "/", name="test2", overwrite=True
+        )
         # and compare to what it should be
         self.assertEqual(Path(self.testfname).read_bytes(), self.data)
         # cleanup
@@ -956,18 +1037,29 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         # write contents of datafname to h5 testfile
         filenode.save_to_filenode(self.h5file, self.datafname, "/test1")
         # make sure writing to an existing node doesn't work ...
-        self.assertRaises(IOError, filenode.save_to_filenode, self.h5file,
-                          self.datafname, "/test1")
+        self.assertRaises(
+            IOError,
+            filenode.save_to_filenode,
+            self.h5file,
+            self.datafname,
+            "/test1",
+        )
         # ... except if overwrite is True
-        filenode.save_to_filenode(self.h5file, self.datafname, "/test1",
-                                  overwrite=True)
+        filenode.save_to_filenode(
+            self.h5file, self.datafname, "/test1", overwrite=True
+        )
         # read from test h5file
         filenode.read_from_filenode(self.h5file, self.testfname, "/test1")
         # and compare result to what it should be
         self.assertEqual(Path(self.testfname).read_bytes(), self.data)
         # make sure extracting to an existing file doesn't work ...
-        self.assertRaises(IOError, filenode.read_from_filenode, self.h5file,
-                          self.testfname, "/test1")
+        self.assertRaises(
+            IOError,
+            filenode.read_from_filenode,
+            self.h5file,
+            self.testfname,
+            "/test1",
+        )
         # make sure the original h5file is still alive and kicking
         self.assertEqual(isinstance(self.h5file, file.File), True)
         self.assertEqual(self.h5file.mode, "w")
@@ -977,36 +1069,50 @@ class DirectReadWriteTestCase(TempFileMixin, TestCase):
         filenode.save_to_filenode(self.testh5fname, self.datafname, "/")
         # and read again
         datafname = Path(self.datafname).name
-        filenode.read_from_filenode(self.testh5fname, self.testdir, "/",
-                                    name=datafname.replace(".", "_"))
+        filenode.read_from_filenode(
+            self.testh5fname,
+            self.testdir,
+            "/",
+            name=datafname.replace(".", "_"),
+        )
         # test if the output file really has the expected name
-        self.assertEqual(os.access(Path(self.testdir) / datafname, os.R_OK),
-                         True)
+        self.assertEqual(
+            os.access(Path(self.testdir) / datafname, os.R_OK), True
+        )
         # and compare result to what it should be
-        self.assertEqual((Path(self.testdir) / datafname).read_bytes(),
-                         self.data)
+        self.assertEqual(
+            (Path(self.testdir) / datafname).read_bytes(), self.data
+        )
 
     def test04_AutomaticNameGuessingWithFilenameAttribute(self):
         # write using the filename as node name
         filenode.save_to_filenode(self.testh5fname, self.datafname, "/")
         # and read again
         datafname = Path(self.datafname).name
-        filenode.read_from_filenode(self.testh5fname, self.testdir, "/",
-                                    name=datafname)
+        filenode.read_from_filenode(
+            self.testh5fname, self.testdir, "/", name=datafname
+        )
         # test if the output file really has the expected name
-        self.assertEqual(os.access(Path(self.testdir) / datafname, os.R_OK),
-                         True)
+        self.assertEqual(
+            os.access(Path(self.testdir) / datafname, os.R_OK), True
+        )
         # and compare result to what it should be
-        self.assertEqual((Path(self.testdir) / datafname).read_bytes(),
-                         self.data)
+        self.assertEqual(
+            (Path(self.testdir) / datafname).read_bytes(), self.data
+        )
 
     def test05_ReadFromNonexistingNodeRaises(self):
         # write using the filename as node name
         filenode.save_to_filenode(self.testh5fname, self.datafname, "/")
         # and read again
-        self.assertRaises(NoSuchNodeError, filenode.read_from_filenode,
-                          self.testh5fname, self.testdir, "/",
-                          name="THISNODEDOESNOTEXIST")
+        self.assertRaises(
+            NoSuchNodeError,
+            filenode.read_from_filenode,
+            self.testh5fname,
+            self.testdir,
+            "/",
+            name="THISNODEDOESNOTEXIST",
+        )
 
 
 def suite():
@@ -1033,8 +1139,9 @@ def suite():
     return theSuite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     parse_argv(sys.argv)
     print_versions()
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest="suite")

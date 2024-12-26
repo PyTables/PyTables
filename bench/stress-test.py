@@ -2,7 +2,9 @@ import gc
 import sys
 from time import perf_counter as clock
 from time import process_time as cpuclock
+
 import numpy as np
+
 import tables as tb
 
 

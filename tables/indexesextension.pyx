@@ -24,19 +24,35 @@ Misc variables:
 
 """
 
-import cython
 import numpy as np
+import cython
+
 cimport numpy as cnp
 
 from .exceptions import HDF5ExtError
-from .hdf5extension cimport Array
-
 
 # Types, constants, functions, classes & other objects from everywhere
-from numpy cimport (import_array, ndarray, npy_int8, npy_int16, npy_int32,
-                    npy_int64, npy_uint8, npy_uint16, npy_uint32, npy_uint64,
-                    npy_float32, npy_float64, npy_float, npy_double,
-                    npy_longdouble, PyArray_BYTES, PyArray_DATA)
+from numpy cimport (
+    import_array,
+    ndarray,
+    npy_int8,
+    npy_int16,
+    npy_int32,
+    npy_int64,
+    npy_uint8,
+    npy_uint16,
+    npy_uint32,
+    npy_uint64,
+    npy_float32,
+    npy_float64,
+    npy_float,
+    npy_double,
+    npy_longdouble,
+    PyArray_BYTES,
+    PyArray_DATA,
+)
+
+from .hdf5extension cimport Array
 
 # These two types are defined in npy_common.h but not in cython's numpy.pxd
 ctypedef unsigned char npy_bool
@@ -47,8 +63,6 @@ from libc.string cimport memcpy, strncmp
 
 from .definitions cimport hid_t, herr_t, hsize_t, H5Screate_simple, H5Sclose
 from .lrucacheextension cimport NumCache
-
-
 
 #-------------------------------------------------------------------
 

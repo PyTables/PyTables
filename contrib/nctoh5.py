@@ -9,7 +9,9 @@ http://starship.python.net/~hinsen/ScientificPython
 
 """
 import sys
+
 from Scientific.IO import NetCDF
+
 import tables as tb
 
 # open netCDF file
@@ -40,10 +42,10 @@ for varname in ncfile.variables.keys():
             filters=tb.Filters(complevel=6, complib="zlib"),
         )
 
-    # write data to enlargeable array on record at a time.
-    # (so the whole array doesn't have to be kept in memory).
+        # write data to enlargeable array on record at a time.
+        # (so the whole array doesn't have to be kept in memory).
         for n in range(var.shape[0]):
-            vardata.append(var[n:n+1])
+            vardata.append(var[n : n + 1])
     # or else, create regular array write data to it all at once.
     else:
         vardata = h5file.createArray(h5file.root, varname, var[:], title)
@@ -51,7 +53,7 @@ for varname in ncfile.variables.keys():
     # set variable attributes.
     for key, val in var.__dict__.iteritems():
         setattr(vardata.attrs, key, val)
-    setattr(vardata.attrs, 'dimensions', tuple(vardims))
+    setattr(vardata.attrs, "dimensions", tuple(vardims))
 
 # set global (file) attributes.
 for key, val in ncfile.__dict__.iteritems():

@@ -15,6 +15,7 @@ Misc variables:
     The format of documentation strings in this module.
 
 """
+
 from typing import Literal, TYPE_CHECKING
 
 from .path import split_path
@@ -22,46 +23,54 @@ from .path import split_path
 if TYPE_CHECKING:
     from .file import File
 
-__docformat__ = 'reStructuredText'
+__docformat__ = "reStructuredText"
 """The format of documentation strings in this module."""
 
 
-def undo(file_: "File",
-         operation: Literal["ADDATTR", "CREATE", "DELATTR", "MOVE", "REMOVE"],
-         *args: str) -> None:
-    if operation == 'CREATE':
+def undo(
+    file_: "File",
+    operation: Literal["ADDATTR", "CREATE", "DELATTR", "MOVE", "REMOVE"],
+    *args: str,
+) -> None:
+    if operation == "CREATE":
         undo_create(file_, args[0])
-    elif operation == 'REMOVE':
+    elif operation == "REMOVE":
         undo_remove(file_, args[0])
-    elif operation == 'MOVE':
+    elif operation == "MOVE":
         undo_move(file_, args[0], args[1])
-    elif operation == 'ADDATTR':
+    elif operation == "ADDATTR":
         undo_add_attr(file_, args[0], args[1])
-    elif operation == 'DELATTR':
+    elif operation == "DELATTR":
         undo_del_attr(file_, args[0], args[1])
     else:
-        raise NotImplementedError("the requested unknown operation %r can "
-                                  "not be undone; please report this to the "
-                                  "authors" % operation)
+        raise NotImplementedError(
+            "the requested unknown operation %r can "
+            "not be undone; please report this to the "
+            "authors" % operation
+        )
 
 
-def redo(file_: "File",
-         operation: Literal["ADDATTR", "CREATE", "DELATTR", "MOVE", "REMOVE"],
-         *args: str) -> None:
-    if operation == 'CREATE':
+def redo(
+    file_: "File",
+    operation: Literal["ADDATTR", "CREATE", "DELATTR", "MOVE", "REMOVE"],
+    *args: str,
+) -> None:
+    if operation == "CREATE":
         redo_create(file_, args[0])
-    elif operation == 'REMOVE':
+    elif operation == "REMOVE":
         redo_remove(file_, args[0])
-    elif operation == 'MOVE':
+    elif operation == "MOVE":
         redo_move(file_, args[0], args[1])
-    elif operation == 'ADDATTR':
+    elif operation == "ADDATTR":
         redo_add_attr(file_, args[0], args[1])
-    elif operation == 'DELATTR':
+    elif operation == "DELATTR":
         redo_del_attr(file_, args[0], args[1])
     else:
-        raise NotImplementedError("the requested unknown operation %r can "
-                                  "not be redone; please report this to the "
-                                  "authors" % operation)
+        raise NotImplementedError(
+            "the requested unknown operation %r can "
+            "not be redone; please report this to the "
+            "authors" % operation
+        )
 
 
 def move_to_shadow(file_: "File", path: str) -> None:

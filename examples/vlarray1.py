@@ -1,5 +1,6 @@
-import tables as tb
 import numpy as np
+
+import tables as tb
 
 # Create a VLArray:
 fileh = tb.open_file("vlarray1.h5", mode="w")

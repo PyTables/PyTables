@@ -4,7 +4,9 @@
 different types, UNICODE strings and general Python objects included."""
 
 import pickle
+
 import numpy as np
+
 import tables as tb
 
 # Open a new empty HDF5 file

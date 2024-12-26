@@ -1,6 +1,7 @@
 from time import perf_counter as clock
 
 import numpy as np
+
 import tables as tb
 
 N = 10_000_000

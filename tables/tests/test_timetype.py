@@ -1,6 +1,5 @@
 """Unit test for the Time datatypes."""
 
-
 import numpy as np
 
 import tables as tb
@@ -19,15 +18,15 @@ class LeafCreationTestCase(common.TempFileMixin, common.PyTablesTestCase):
             t32col = tb.Time32Col()
             t64col = tb.Time64Col()
 
-        self.h5file.create_table('/', 'table', MyTimeRow)
+        self.h5file.create_table("/", "table", MyTimeRow)
 
         # VLArray creation.
-        self.h5file.create_vlarray('/', 'vlarray4', tb.Time32Atom())
-        self.h5file.create_vlarray('/', 'vlarray8', tb.Time64Atom())
+        self.h5file.create_vlarray("/", "vlarray4", tb.Time32Atom())
+        self.h5file.create_vlarray("/", "vlarray8", tb.Time64Atom())
 
         # EArray creation.
-        self.h5file.create_earray('/', 'earray4', tb.Time32Atom(), shape=(0,))
-        self.h5file.create_earray('/', 'earray8', tb.Time64Atom(), shape=(0,))
+        self.h5file.create_earray("/", "earray4", tb.Time32Atom(), shape=(0,))
+        self.h5file.create_earray("/", "earray8", tb.Time64Atom(), shape=(0,))
 
     def test01_MultidimLeaves(self):
         """Creating new nodes with multidimensional time elements."""
@@ -37,19 +36,24 @@ class LeafCreationTestCase(common.TempFileMixin, common.PyTablesTestCase):
             intcol = tb.IntCol(shape=(2, 1))
             t32col = tb.Time32Col(shape=(2, 1))
             t64col = tb.Time64Col(shape=(2, 1))
-        self.h5file.create_table('/', 'table', MyTimeRow)
+
+        self.h5file.create_table("/", "table", MyTimeRow)
 
         # VLArray creation.
         self.h5file.create_vlarray(
-            '/', 'vlarray4', tb.Time32Atom(shape=(2, 1)))
+            "/", "vlarray4", tb.Time32Atom(shape=(2, 1))
+        )
         self.h5file.create_vlarray(
-            '/', 'vlarray8', tb.Time64Atom(shape=(2, 1)))
+            "/", "vlarray8", tb.Time64Atom(shape=(2, 1))
+        )
 
         # EArray creation.
         self.h5file.create_earray(
-            '/', 'earray4', tb.Time32Atom(), shape=(0, 2, 1))
+            "/", "earray4", tb.Time32Atom(), shape=(0, 2, 1)
+        )
         self.h5file.create_earray(
-            '/', 'earray8', tb.Time64Atom(), shape=(0, 2, 1))
+            "/", "earray8", tb.Time64Atom(), shape=(0, 2, 1)
+        )
 
 
 class OpenTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -68,11 +72,11 @@ class OpenTestCase(common.TempFileMixin, common.PyTablesTestCase):
         super().setUp()
 
         # Create test Table.
-        self.h5file.create_table('/', 'table', self.MyTimeRow)
+        self.h5file.create_table("/", "table", self.MyTimeRow)
 
         # Create test VLArrays.
-        self.h5file.create_vlarray('/', 'vlarray4', self.myTime32Atom)
-        self.h5file.create_vlarray('/', 'vlarray8', self.myTime64Atom)
+        self.h5file.create_vlarray("/", "vlarray4", self.myTime32Atom)
+        self.h5file.create_vlarray("/", "vlarray8", self.myTime64Atom)
 
         self._reopen()
 
@@ -82,30 +86,40 @@ class OpenTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Test the Table node.
         tbl = self.h5file.root.table
         self.assertEqual(
-            tbl.coldtypes['t32col'],
-            self.MyTimeRow.columns['t32col'].dtype,
-            "Column dtypes do not match.")
+            tbl.coldtypes["t32col"],
+            self.MyTimeRow.columns["t32col"].dtype,
+            "Column dtypes do not match.",
+        )
         self.assertEqual(
-            tbl.coldtypes['t64col'],
-            self.MyTimeRow.columns['t64col'].dtype,
-            "Column dtypes do not match.")
+            tbl.coldtypes["t64col"],
+            self.MyTimeRow.columns["t64col"].dtype,
+            "Column dtypes do not match.",
+        )
 
         # Test the VLArray nodes.
         vla4 = self.h5file.root.vlarray4
         self.assertEqual(
-            vla4.atom.dtype, self.myTime32Atom.dtype,
-            "Atom types do not match.")
+            vla4.atom.dtype,
+            self.myTime32Atom.dtype,
+            "Atom types do not match.",
+        )
         self.assertEqual(
-            vla4.atom.shape, self.myTime32Atom.shape,
-            "Atom shapes do not match.")
+            vla4.atom.shape,
+            self.myTime32Atom.shape,
+            "Atom shapes do not match.",
+        )
 
         vla8 = self.h5file.root.vlarray8
         self.assertEqual(
-            vla8.atom.dtype, self.myTime64Atom.dtype,
-            "Atom types do not match.")
+            vla8.atom.dtype,
+            self.myTime64Atom.dtype,
+            "Atom types do not match.",
+        )
         self.assertEqual(
-            vla8.atom.shape, self.myTime64Atom.shape,
-            "Atom shapes do not match.")
+            vla8.atom.shape,
+            self.myTime64Atom.shape,
+            "Atom shapes do not match.",
+        )
 
     def test01_OpenFileStype(self):
         """Opening a file with Time nodes, comparing Atom.stype."""
@@ -113,24 +127,26 @@ class OpenTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Test the Table node.
         tbl = self.h5file.root.table
         self.assertEqual(
-            tbl.coltypes['t32col'],
-            self.MyTimeRow.columns['t32col'].type,
-            "Column types do not match.")
+            tbl.coltypes["t32col"],
+            self.MyTimeRow.columns["t32col"].type,
+            "Column types do not match.",
+        )
         self.assertEqual(
-            tbl.coltypes['t64col'],
-            self.MyTimeRow.columns['t64col'].type,
-            "Column types do not match.")
+            tbl.coltypes["t64col"],
+            self.MyTimeRow.columns["t64col"].type,
+            "Column types do not match.",
+        )
 
         # Test the VLArray nodes.
         vla4 = self.h5file.root.vlarray4
         self.assertEqual(
-            vla4.atom.type, self.myTime32Atom.type,
-            "Atom types do not match.")
+            vla4.atom.type, self.myTime32Atom.type, "Atom types do not match."
+        )
 
         vla8 = self.h5file.root.vlarray8
         self.assertEqual(
-            vla8.atom.type, self.myTime64Atom.type,
-            "Atom types do not match.")
+            vla8.atom.type, self.myTime64Atom.type, "Atom types do not match."
+        )
 
 
 class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -151,15 +167,17 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         wtime = np.array((1_234_567_890,) * 2, np.int32)
 
         # Create test VLArray with data.
-        vla = self.h5file.create_vlarray('/', 'test', self.myTime32Atom)
+        vla = self.h5file.create_vlarray("/", "test", self.myTime32Atom)
         vla.append(wtime)
         self._reopen()
 
         # Check the written data.
         rtime = self.h5file.root.test.read()[0][0]
         self.h5file.close()
-        self.assertTrue(common.allequal(rtime, wtime),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            common.allequal(rtime, wtime),
+            "Stored and retrieved values do not match.",
+        )
 
     def test01_Compare64VLArray(self):
         """Comparing written 64-bit time data with read data in a VLArray."""
@@ -167,22 +185,24 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         wtime = np.array((1_234_567_890.123456,) * 2, np.float64)
 
         # Create test VLArray with data.
-        vla = self.h5file.create_vlarray('/', 'test', self.myTime64Atom)
+        vla = self.h5file.create_vlarray("/", "test", self.myTime64Atom)
         vla.append(wtime)
         self._reopen()
 
         # Check the written data.
         rtime = self.h5file.root.test.read()[0][0]
         self.h5file.close()
-        self.assertTrue(common.allequal(rtime, wtime),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            common.allequal(rtime, wtime),
+            "Stored and retrieved values do not match.",
+        )
 
     def test01b_Compare64VLArray(self):
         """Comparing several written and read 64-bit time values in a
         VLArray."""
 
         # Create test VLArray with data.
-        vla = self.h5file.create_vlarray('/', 'test', self.myTime64Atom)
+        vla = self.h5file.create_vlarray("/", "test", self.myTime64Atom)
 
         # Size of the test.
         nrows = vla.nrowsinbuf + 34  # Add some more rows than buffer.
@@ -205,8 +225,10 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", arr)
-        self.assertTrue(common.allequal(arr, orig_val),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            common.allequal(arr, orig_val),
+            "Stored and retrieved values do not match.",
+        )
 
     def test02_CompareTable(self):
         """Comparing written time data with read data in a Table."""
@@ -214,10 +236,10 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         wtime = 1_234_567_890.123456
 
         # Create test Table with data.
-        tbl = self.h5file.create_table('/', 'test', self.MyTimeRow)
+        tbl = self.h5file.create_table("/", "test", self.MyTimeRow)
         row = tbl.row
-        row['t32col'] = int(wtime)
-        row['t64col'] = (wtime, wtime)
+        row["t32col"] = int(wtime)
+        row["t64col"] = (wtime, wtime)
         row.append()
         self._reopen()
 
@@ -225,20 +247,22 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         recarr = self.h5file.root.test.read(0)
         self.h5file.close()
 
-        self.assertEqual(recarr['t32col'][0], int(wtime),
-                         "Stored and retrieved values do not match.")
+        self.assertEqual(
+            recarr["t32col"][0],
+            int(wtime),
+            "Stored and retrieved values do not match.",
+        )
 
-        comp = (recarr['t64col'][0] == np.array((wtime, wtime)))
+        comp = recarr["t64col"][0] == np.array((wtime, wtime))
         self.assertTrue(
-            np.all(comp),
-            "Stored and retrieved values do not match."
+            np.all(comp), "Stored and retrieved values do not match."
         )
 
     def test02b_CompareTable(self):
         """Comparing several written and read time values in a Table."""
 
         # Create test Table with data.
-        tbl = self.h5file.create_table('/', 'test', self.MyTimeRow)
+        tbl = self.h5file.create_table("/", "test", self.MyTimeRow)
 
         # Size of the test.
         nrows = tbl.nrowsinbuf + 34  # Add some more rows than buffer.
@@ -248,9 +272,9 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         row = tbl.row
         for i in range(nrows):
-            row['t32col'] = i
+            row["t32col"] = i
             j = i * 2
-            row['t64col'] = (j + 0.012, j+1+0.012)
+            row["t64col"] = (j + 0.012, j + 1 + 0.012)
             row.append()
 
         self._reopen()
@@ -263,10 +287,10 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         orig_val = np.arange(nrows, dtype=np.int32)
         if common.verbose:
             print("Original values:", orig_val)
-            print("Retrieved values:", recarr['t32col'][:])
+            print("Retrieved values:", recarr["t32col"][:])
         self.assertTrue(
-            np.all(recarr['t32col'][:] == orig_val),
-            "Stored and retrieved values do not match."
+            np.all(recarr["t32col"][:] == orig_val),
+            "Stored and retrieved values do not match.",
         )
 
         # Time64 column.
@@ -274,10 +298,11 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         orig_val.shape = (nrows, 2)
         if common.verbose:
             print("Original values:", orig_val)
-            print("Retrieved values:", recarr['t64col'][:])
+            print("Retrieved values:", recarr["t64col"][:])
         self.assertTrue(
-            common.allequal(recarr['t64col'][:], orig_val, np.float64),
-            "Stored and retrieved values do not match.")
+            common.allequal(recarr["t64col"][:], orig_val, np.float64),
+            "Stored and retrieved values do not match.",
+        )
 
     def test03_Compare64EArray(self):
         """Comparing written 64-bit time data with read data in an EArray."""
@@ -286,23 +311,27 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Create test EArray with data.
         ea = self.h5file.create_earray(
-            '/', 'test', tb.Time64Atom(), shape=(0,))
+            "/", "test", tb.Time64Atom(), shape=(0,)
+        )
         ea.append((wtime,))
         self._reopen()
 
         # Check the written data.
         rtime = self.h5file.root.test[0]
         self.h5file.close()
-        self.assertTrue(common.allequal(rtime, wtime),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            common.allequal(rtime, wtime),
+            "Stored and retrieved values do not match.",
+        )
 
     def test03b_Compare64EArray(self):
         """Comparing several written and read 64-bit time values in an
         EArray."""
 
         # Create test EArray with data.
-        ea = self.h5file.create_earray('/', 'test', tb.Time64Atom(),
-                                       shape=(0, 2))
+        ea = self.h5file.create_earray(
+            "/", "test", tb.Time64Atom(), shape=(0, 2)
+        )
 
         # Size of the test.
         nrows = ea.nrowsinbuf + 34  # Add some more rows than buffer.
@@ -324,8 +353,10 @@ class CompareTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print("Original values:", orig_val)
             print("Retrieved values:", arr)
-        self.assertTrue(common.allequal(arr, orig_val),
-                        "Stored and retrieved values do not match.")
+        self.assertTrue(
+            common.allequal(arr, orig_val),
+            "Stored and retrieved values do not match.",
+        )
 
 
 class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -342,7 +373,7 @@ class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Comparing written unaligned time data with read data in a Table."""
 
         # Create test Table with data.
-        tbl = self.h5file.create_table('/', 'test', self.MyTimeRow)
+        tbl = self.h5file.create_table("/", "test", self.MyTimeRow)
 
         # Size of the test.
         nrows = tbl.nrowsinbuf + 34  # Add some more rows than buffer.
@@ -352,10 +383,10 @@ class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         row = tbl.row
         for i in range(nrows):
-            row['i8col'] = np.array(i).astype('i1')
-            row['t32col'] = i
+            row["i8col"] = np.array(i).astype("i1")
+            row["t32col"] = i
             j = i * 2
-            row['t64col'] = (j + 0.012, j+1+0.012)
+            row["t64col"] = (j + 0.012, j + 1 + 0.012)
             row.append()
 
         self._reopen()
@@ -368,20 +399,20 @@ class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         orig_val = np.arange(nrows, dtype=np.int8)
         if common.verbose:
             print("Original values:", orig_val)
-            print("Retrieved values:", recarr['i8col'][:])
+            print("Retrieved values:", recarr["i8col"][:])
         self.assertTrue(
-            np.all(recarr['i8col'][:] == orig_val),
-            "Stored and retrieved values do not match."
+            np.all(recarr["i8col"][:] == orig_val),
+            "Stored and retrieved values do not match.",
         )
 
         # Time32 column.
         orig_val = np.arange(nrows, dtype=np.int32)
         if common.verbose:
             print("Original values:", orig_val)
-            print("Retrieved values:", recarr['t32col'][:])
+            print("Retrieved values:", recarr["t32col"][:])
         self.assertTrue(
-            np.all(recarr['t32col'][:] == orig_val),
-            "Stored and retrieved values do not match."
+            np.all(recarr["t32col"][:] == orig_val),
+            "Stored and retrieved values do not match.",
         )
 
         # Time64 column.
@@ -389,10 +420,11 @@ class UnalignedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         orig_val.shape = (nrows, 2)
         if common.verbose:
             print("Original values:", orig_val)
-            print("Retrieved values:", recarr['t64col'][:])
-        self.assertTrue(common.allequal(
-            recarr['t64col'][:], orig_val, np.float64),
-            "Stored and retrieved values do not match.")
+            print("Retrieved values:", recarr["t64col"][:])
+        self.assertTrue(
+            common.allequal(recarr["t64col"][:], orig_val, np.float64),
+            "Stored and retrieved values do not match.",
+        )
 
 
 class BigEndianTestCase(common.PyTablesTestCase):
@@ -400,8 +432,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
 
     def setUp(self):
         super().setUp()
-        filename = common.test_filename('times-nested-be.h5')
-        self.h5file = tb.open_file(filename, 'r')
+        filename = common.test_filename("times-nested-be.h5")
+        self.h5file = tb.open_file(filename, "r")
 
     def tearDown(self):
         self.h5file.close()
@@ -423,7 +455,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
             print("Should look like:", orig_val)
         self.assertTrue(
             np.all(earr == orig_val),
-            "Retrieved values do not match the expected values."
+            "Retrieved values do not match the expected values.",
         )
 
     def test00b_Read64Array(self):
@@ -440,8 +472,10 @@ class BigEndianTestCase(common.PyTablesTestCase):
         if common.verbose:
             print("Retrieved values:", earr)
             print("Should look like:", orig_val)
-        self.assertTrue(np.allclose(earr, orig_val, rtol=1.e-15),
-                        "Retrieved values do not match the expected values.")
+        self.assertTrue(
+            np.allclose(earr, orig_val, rtol=1.0e-15),
+            "Retrieved values do not match the expected values.",
+        )
 
     def test01a_ReadPlainColumn(self):
         """Checking Time32 type in plain columns."""
@@ -460,7 +494,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
             print("Should look like:", orig_val)
         self.assertTrue(
             np.all(t32 == orig_val),
-            "Retrieved values do not match the expected values."
+            "Retrieved values do not match the expected values.",
         )
 
     def test01b_ReadNestedColumn(self):
@@ -478,8 +512,10 @@ class BigEndianTestCase(common.PyTablesTestCase):
         if common.verbose:
             print("Retrieved values:", t64)
             print("Should look like:", orig_val)
-        self.assertTrue(np.allclose(t64, orig_val, rtol=1.e-15),
-                        "Retrieved values do not match the expected values.")
+        self.assertTrue(
+            np.allclose(t64, orig_val, rtol=1.0e-15),
+            "Retrieved values do not match the expected values.",
+        )
 
     def test02_ReadNestedColumnTwice(self):
         """Checking Time64 type in nested columns (read twice)."""
@@ -498,8 +534,10 @@ class BigEndianTestCase(common.PyTablesTestCase):
         if common.verbose:
             print("Retrieved values:", t64)
             print("Should look like:", orig_val)
-        self.assertTrue(np.allclose(t64, orig_val, rtol=1.e-15),
-                        "Retrieved values do not match the expected values.")
+        self.assertTrue(
+            np.allclose(t64, orig_val, rtol=1.0e-15),
+            "Retrieved values do not match the expected values.",
+        )
 
 
 def suite():
@@ -519,8 +557,9 @@ def suite():
     return theSuite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     common.parse_argv(sys.argv)
     common.print_versions()
-    common.unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest="suite")

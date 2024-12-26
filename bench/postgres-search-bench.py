@@ -1,6 +1,7 @@
-from time import perf_counter as clock
-import numpy as np
 import random
+from time import perf_counter as clock
+
+import numpy as np
 
 DSN = "dbname=test port = 5435"
 

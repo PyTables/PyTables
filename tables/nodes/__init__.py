@@ -11,4 +11,4 @@ Package modules:
 """
 
 # The list of names to be exported to the importing module.
-__all__ = ['filenode']
+__all__ = ["filenode"]

@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 # the performance by requiring the HDF5 to use a lot of memory and CPU
 # for its internal B-Tree.
 
+
 def csformula(nrows: int) -> float:
     """Return the fitted chunksize (a float value) for nrows."""
 
@@ -30,7 +31,7 @@ def csformula(nrows: int) -> float:
     # where 2**12 and 2**15 are reasonable values for chunksizes for indexes
     # with 10**6 and 10**9 elements respectively.
     # Yes, return a floating point number!
-    return 64 * 2**math.log10(nrows)
+    return 64 * 2 ** math.log10(nrows)
 
 
 def limit_er(expectedrows: int) -> int:
@@ -64,7 +65,7 @@ def computeslicesize(expectedrows: int, memlevel: int) -> int:
     ss = int(cs * memlevel**2)
     # We *need* slicesize to be an exact multiple of the actual chunksize
     ss = (ss // chunksize) * chunksize
-    ss *= 4    # slicesize should be at least divisible by 4
+    ss *= 4  # slicesize should be at least divisible by 4
     # ss cannot be bigger than 2**31 - 1 elements because of fundamental
     # reasons (this limitation comes mainly from the way of compute
     # indices for indexes, but also because C keysort is not implemented
@@ -123,8 +124,8 @@ def calc_chunksize(
     # see https://github.com/PyTables/PyTables/issues/879
     if node is not None:
         maxsize = (
-            node._v_file.params['BUFFER_TIMES']
-            * node._v_file.params['IO_BUFFER_SIZE']
+            node._v_file.params["BUFFER_TIMES"]
+            * node._v_file.params["IO_BUFFER_SIZE"]
         )
         while (slicesize * node.dtype.itemsize) > maxsize:
             slicesize = slicesize // 2
@@ -363,28 +364,25 @@ infinityf = math.ldexp(1.0, 128)
 
 # "infinity" for several types
 infinitymap = {
-    'bool': [0, 1],
-    'int8': [-2**7, 2**7 - 1],
-    'uint8': [0, 2**8 - 1],
-    'int16': [-2**15, 2**15 - 1],
-    'uint16': [0, 2**16 - 1],
-    'int32': [-2**31, 2**31 - 1],
-    'uint32': [0, 2**32 - 1],
-    'int64': [-2**63, 2**63 - 1],
-    'uint64': [0, 2**64 - 1],
-    'float32': [-infinityf, infinityf],
-    'float64': [-infinity, infinity],
+    "bool": [0, 1],
+    "int8": [-(2**7), 2**7 - 1],
+    "uint8": [0, 2**8 - 1],
+    "int16": [-(2**15), 2**15 - 1],
+    "uint16": [0, 2**16 - 1],
+    "int32": [-(2**31), 2**31 - 1],
+    "uint32": [0, 2**32 - 1],
+    "int64": [-(2**63), 2**63 - 1],
+    "uint64": [0, 2**64 - 1],
+    "float32": [-infinityf, infinityf],
+    "float64": [-infinity, infinity],
 }
 
-if hasattr(np, 'float16'):
-    infinitymap['float16'] = [-np.float16(np.inf),
-                              np.float16(np.inf)]
-if hasattr(np, 'float96'):
-    infinitymap['float96'] = [-np.float96(np.inf),
-                              np.float96(np.inf)]
-if hasattr(np, 'float128'):
-    infinitymap['float128'] = [-np.float128(np.inf),
-                               np.float128(np.inf)]
+if hasattr(np, "float16"):
+    infinitymap["float16"] = [-np.float16(np.inf), np.float16(np.inf)]
+if hasattr(np, "float96"):
+    infinitymap["float96"] = [-np.float96(np.inf), np.float96(np.inf)]
+if hasattr(np, "float128"):
+    infinitymap["float128"] = [-np.float128(np.inf), np.float128(np.inf)]
 
 # deprecated API
 infinityMap = infinitymap
@@ -433,8 +431,8 @@ def string_next_after(
             # Maximum value, return this
             return b"".join(xlist)
         for xchar in xlist:
-            if ord(xchar) < 0xff:
-                xlist[i] = chr(ord(xchar) + 1).encode('ascii')
+            if ord(xchar) < 0xFF:
+                xlist[i] = chr(ord(xchar) + 1).encode("ascii")
                 break
             else:
                 xlist[i] = b"\x00"
@@ -445,7 +443,7 @@ def string_next_after(
             return b"".join(xlist)
         for xchar in xlist:
             if ord(xchar) > 0x00:
-                xlist[i] = chr(ord(xchar) - 1).encode('ascii')
+                xlist[i] = chr(ord(xchar) - 1).encode("ascii")
                 break
             else:
                 xlist[i] = b"\xff"
@@ -492,10 +490,12 @@ def bool_type_next_after(
         return True
 
 
-def nextafter(x: bool | bytes | float | int,
-              direction: Literal[-1, 0, 1],
-              dtype: np.dtype,
-              itemsize: int) -> bool | bytes | int | float:
+def nextafter(
+    x: bool | bytes | float | int,
+    direction: Literal[-1, 0, 1],
+    dtype: np.dtype,
+    itemsize: int,
+) -> bool | bytes | int | float:
     """Return the next representable neighbor of x in the appropriate
     direction."""
 
@@ -508,9 +508,9 @@ def nextafter(x: bool | bytes | float | int,
     if dtype.kind == "S":
         return string_next_after(x, direction, itemsize)
 
-    if dtype.kind in ['b']:
+    if dtype.kind in ["b"]:
         return bool_type_next_after(x, direction, itemsize)
-    elif dtype.kind in ['i', 'u']:
+    elif dtype.kind in ["i", "u"]:
         return int_type_next_after(x, direction, itemsize)
     elif dtype.kind == "f":
         if direction < 0:

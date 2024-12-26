@@ -26,12 +26,13 @@
 # does not use the HDF5 filter pipeline, you may force it to only use the
 # latter by setting ``BLOSC2_FILTER=1`` in the environment.
 
-import blosc2
-import h5py
-import hdf5plugin
-import numpy
 import os
 import tempfile
+
+import h5py
+import numpy
+import blosc2
+import hdf5plugin
 
 # Import after h5py part is done so that it uses its own `hdf5-blosc2`.
 import tables

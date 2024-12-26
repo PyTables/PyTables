@@ -15,7 +15,7 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
         """Checking backward compatibility of old formats of tables."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test01_readTable..." % self.__class__.__name__)
 
         # Create an instance of an HDF5 Table
@@ -27,7 +27,7 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
             table = h5file.get_node("/tuple0")
 
             # Read the 100 records
-            result = [rec['var2'] for rec in table]
+            result = [rec["var2"] for rec in table]
             if common.verbose:
                 print("Nrows in", table._v_pathname, ":", table.nrows)
                 print("Last record in table ==>", table[-1])
@@ -38,29 +38,29 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
             h5file.close()
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'lzo not available')
+@common.unittest.skipIf(not common.lzo_avail, "lzo not available")
 class Table2_1LZO(BackCompatTablesTestCase):
     # pytables 0.8.x versions and after
     h5fname = "Table2_1_lzo_nrv2e_shuffle.h5"
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'lzo not available')
+@common.unittest.skipIf(not common.lzo_avail, "lzo not available")
 class Tables_LZO1(BackCompatTablesTestCase):
     h5fname = "Tables_lzo1.h5"  # files compressed with LZO1
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'lzo not available')
+@common.unittest.skipIf(not common.lzo_avail, "lzo not available")
 class Tables_LZO1_shuffle(BackCompatTablesTestCase):
     # files compressed with LZO1 and shuffle
     h5fname = "Tables_lzo1_shuffle.h5"
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'lzo not available')
+@common.unittest.skipIf(not common.lzo_avail, "lzo not available")
 class Tables_LZO2(BackCompatTablesTestCase):
     h5fname = "Tables_lzo2.h5"  # files compressed with LZO2
 
 
-@common.unittest.skipIf(not common.lzo_avail, 'lzo not available')
+@common.unittest.skipIf(not common.lzo_avail, "lzo not available")
 class Tables_LZO2_shuffle(BackCompatTablesTestCase):
     # files compressed with LZO2 and shuffle
     h5fname = "Tables_lzo2_shuffle.h5"
@@ -78,7 +78,7 @@ class BackCompatAttrsTestCase(common.TestFileMixin, common.PyTablesTestCase):
         """Checking backward compatibility of old formats for attributes."""
 
         if common.verbose:
-            print('\n', '-=' * 30)
+            print("\n", "-=" * 30)
             print("Running %s.test01_readAttr..." % self.__class__.__name__)
 
         # Read old formats
@@ -96,11 +96,11 @@ class BackCompatAttrsTestCase(common.TestFileMixin, common.PyTablesTestCase):
 
 
 class Attrs_1_3(BackCompatAttrsTestCase):
-    format = "1.3"    # pytables 1.0.x versions and earlier
+    format = "1.3"  # pytables 1.0.x versions and earlier
 
 
 class Attrs_1_4(BackCompatAttrsTestCase):
-    format = "1.4"    # pytables 1.1.x versions and later
+    format = "1.4"  # pytables 1.1.x versions and later
 
 
 class VLArrayTestCase(common.TestFileMixin, common.PyTablesTestCase):
@@ -114,7 +114,7 @@ class VLArrayTestCase(common.TestFileMixin, common.PyTablesTestCase):
         self.assertEqual(vlarray1.flavor, "numeric")
         vlarray2 = self.h5file.root.vlarray2
         self.assertEqual(vlarray2.flavor, "python")
-        self.assertEqual(vlarray2[1], [b'5', b'6', b'77'])
+        self.assertEqual(vlarray2[1], [b"5", b"6", b"77"])
 
 
 # Make sure that 1.x files with TimeXX types continue to be readable
@@ -152,12 +152,12 @@ class OldFlavorsTestCase01(common.PyTablesTestCase):
         with tb.open_file(h5fname) as h5file:
 
             # Assert other properties in array
-            self.assertEqual(h5file.root.array1.flavor, 'numeric')
-            self.assertEqual(h5file.root.array2.flavor, 'python')
-            self.assertEqual(h5file.root.carray1.flavor, 'numeric')
-            self.assertEqual(h5file.root.carray2.flavor, 'python')
-            self.assertEqual(h5file.root.vlarray1.flavor, 'numeric')
-            self.assertEqual(h5file.root.vlarray2.flavor, 'python')
+            self.assertEqual(h5file.root.array1.flavor, "numeric")
+            self.assertEqual(h5file.root.array2.flavor, "python")
+            self.assertEqual(h5file.root.carray1.flavor, "numeric")
+            self.assertEqual(h5file.root.carray2.flavor, "python")
+            self.assertEqual(h5file.root.vlarray1.flavor, "numeric")
+            self.assertEqual(h5file.root.vlarray2.flavor, "python")
 
     def test02_copy(self):
         """Checking (X)Array.copy() method ('numetic' flavor)"""
@@ -169,13 +169,17 @@ class OldFlavorsTestCase01(common.PyTablesTestCase):
             # Open the HDF5 with old numeric flavor
             with tb.open_file(tmpfile, "r+") as h5file:
                 # Copy to another location
-                self.assertWarns(tb.exceptions.FlavorWarning,
-                                 h5file.root.array1.copy, '/', 'array1copy')
-                h5file.root.array2.copy('/', 'array2copy')
-                h5file.root.carray1.copy('/', 'carray1copy')
-                h5file.root.carray2.copy('/', 'carray2copy')
-                h5file.root.vlarray1.copy('/', 'vlarray1copy')
-                h5file.root.vlarray2.copy('/', 'vlarray2copy')
+                self.assertWarns(
+                    tb.exceptions.FlavorWarning,
+                    h5file.root.array1.copy,
+                    "/",
+                    "array1copy",
+                )
+                h5file.root.array2.copy("/", "array2copy")
+                h5file.root.carray1.copy("/", "carray1copy")
+                h5file.root.carray2.copy("/", "carray2copy")
+                h5file.root.vlarray1.copy("/", "vlarray1copy")
+                h5file.root.vlarray2.copy("/", "vlarray2copy")
 
                 if self.close:
                     h5file.close()
@@ -184,12 +188,12 @@ class OldFlavorsTestCase01(common.PyTablesTestCase):
                     h5file.flush()
 
                 # Assert other properties in array
-                self.assertEqual(h5file.root.array1copy.flavor, 'numeric')
-                self.assertEqual(h5file.root.array2copy.flavor, 'python')
-                self.assertEqual(h5file.root.carray1copy.flavor, 'numeric')
-                self.assertEqual(h5file.root.carray2copy.flavor, 'python')
-                self.assertEqual(h5file.root.vlarray1copy.flavor, 'numeric')
-                self.assertEqual(h5file.root.vlarray2copy.flavor, 'python')
+                self.assertEqual(h5file.root.array1copy.flavor, "numeric")
+                self.assertEqual(h5file.root.array2copy.flavor, "python")
+                self.assertEqual(h5file.root.carray1copy.flavor, "numeric")
+                self.assertEqual(h5file.root.carray2copy.flavor, "python")
+                self.assertEqual(h5file.root.vlarray1copy.flavor, "numeric")
+                self.assertEqual(h5file.root.vlarray2copy.flavor, "python")
         finally:
             Path(tmpfile).unlink()
 
@@ -216,8 +220,9 @@ def suite():
     return theSuite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     common.parse_argv(sys.argv)
     common.print_versions()
-    common.unittest.main(defaultTest='suite')
+    common.unittest.main(defaultTest="suite")

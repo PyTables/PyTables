@@ -5,8 +5,9 @@ Example to be used in the second tutorial in the User's Guide.
 
 """
 
-import tables as tb
 import numpy as np
+
+import tables as tb
 
 # Describe a particle record
 

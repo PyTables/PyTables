@@ -6,13 +6,13 @@
 
 import sys
 import struct
-import cPickle
 
 import numpy as np
-import tables as tb
-
-from bsddb import db
 import psyco
+import cPickle
+from bsddb import db
+
+import tables as tb
 
 
 # This class is accessible only for the examples
