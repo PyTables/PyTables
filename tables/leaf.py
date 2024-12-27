@@ -599,7 +599,7 @@ class Leaf(Node):
             filters = self.filters
 
         # Create a copy of the object.
-        (new_node, bytes) = self._g_copy_with_stats(
+        (new_node, bytes_) = self._g_copy_with_stats(
             newparent,
             newname,
             start,
@@ -623,7 +623,7 @@ class Leaf(Node):
         # Update statistics if needed.
         if stats is not None:
             stats["leaves"] += 1
-            stats["bytes"] += bytes
+            stats["bytes"] += bytes_
 
         return new_node
 

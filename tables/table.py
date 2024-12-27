@@ -3037,7 +3037,7 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _g_copy_rows(
         self,
-        object: Table,
+        obj: Table,
         start: int,
         stop: int,
         step: int,
@@ -3046,7 +3046,7 @@ very small/large chunksize, you may want to increase/decrease it."""
     ) -> None:
         """Copy rows from self to object"""
         if sortby is None:
-            self._g_copy_rows_optim(object, start, stop, step)
+            self._g_copy_rows_optim(obj, start, stop, step)
             return
         lenbuf = self.nrowsinbuf
         absstep = step
@@ -3066,17 +3066,17 @@ very small/large chunksize, you may want to increase/decrease it."""
                 coords = index[start2:stop2:step]
                 rows = self.read_coordinates(coords)
             # Save the records on disk
-            object.append(rows)
-        object.flush()
+            obj.append(rows)
+        obj.flush()
 
     def _g_copy_rows_optim(
-        self, object: Table, start: int, stop: int, step: int
+        self, obj: Table, start: int, stop: int, step: int
     ) -> None:
         """Copy rows from self to object (optimized version)"""
 
         nrowsinbuf = self.nrowsinbuf
-        object._open_append(self._v_iobuf)
-        nrowsdest = object.nrows
+        obj._open_append(self._v_iobuf)
+        nrowsdest = obj.nrows
         for start2 in range(start, stop, step * nrowsinbuf):
             # Save the records on disk
             stop2 = start2 + step * nrowsinbuf
@@ -3087,9 +3087,9 @@ very small/large chunksize, you may want to increase/decrease it."""
             self.row._fill_col(self._v_iobuf, start2, stop2, step, None)
             # The output buffer is created anew,
             # so the operation is safe to in-place conversion.
-            object._append_records(nrows)
+            obj._append_records(nrows)
             nrowsdest += nrows
-        object._close_append()
+        obj._close_append()
 
     def _g_prop_indexes(self, other: Table) -> None:
         """Generate index in `other` table for every indexed column here."""
@@ -3290,14 +3290,14 @@ very small/large chunksize, you may want to increase/decrease it."""
         """This provides column metainfo in addition to standard __str__"""
 
         if self.indexed:
-            format = """\
+            fmt = """\
 %s
   description := %r
   byteorder := %r
   chunkshape := %r
   autoindex := %r
   colindexes := %r"""
-            return format % (
+            return fmt % (
                 str(self),
                 self.description,
                 self.byteorder,
@@ -3638,7 +3638,7 @@ class Column:
         return self.descr._v_dtypes[self.name].base  # Get rid of shape info
 
     @lazyattr
-    def type(self) -> str:
+    def type(self) -> str:  # noqa: A003
         """The PyTables type of the column (a string)."""
 
         return self.descr._v_types[self.name]

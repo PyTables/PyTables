@@ -151,7 +151,7 @@ class Col(atom.Atom, metaclass=type):
     @classmethod
     def from_type(
         cls,
-        type,
+        type_,
         shape: tuple[int, ...] = (),
         dflt: Any | None = None,
         pos: int | None = None,
@@ -163,7 +163,7 @@ class Col(atom.Atom, metaclass=type):
 
         """
 
-        newatom = atom.Atom.from_type(type, shape, dflt)
+        newatom = atom.Atom.from_type(type_, shape, dflt)
         return cls.from_atom(newatom, pos=pos)
 
     @classmethod
@@ -571,22 +571,22 @@ class Description:
                 # Check for key name validity
                 check_name_validity(k)
             # Class variables
-            object = classdict[k]
-            newdict[k] = object  # To allow natural naming
-            if not isinstance(object, (Col, Description)):
+            obj = classdict[k]
+            newdict[k] = obj  # To allow natural naming
+            if not isinstance(obj, (Col, Description)):
                 raise TypeError(
                     f"Passing an incorrect value to a table column."
                     f" Expected a Col (or subclass) instance and "
-                    f'got: "{object}". Please make use of the Col(), or '
+                    f'got: "{obj}". Please make use of the Col(), or '
                     f"descendant, constructor to properly "
                     f"initialize columns."
                 )
-            object._v_pos = pos  # Set the position of this object
-            object._v_parent = self  # The parent description
+            obj._v_pos = pos  # Set the position of this object
+            obj._v_parent = self  # The parent description
             pos += 1
-            newdict["_v_colobjects"][k] = object
+            newdict["_v_colobjects"][k] = obj
             newdict["_v_names"].append(k)
-            object.__dict__["_v_name"] = k
+            obj.__dict__["_v_name"] = k
 
             if not isinstance(k, str):
                 # numpy only accepts "str" for field names
@@ -595,17 +595,17 @@ class Description:
             else:
                 kk = k
 
-            if isinstance(object, Col):
-                dtype = object.dtype
+            if isinstance(obj, Col):
+                dtype = obj.dtype
                 newdict["_v_dtypes"][k] = dtype
-                newdict["_v_types"][k] = object.type
-                newdict["_v_dflts"][k] = object.dflt
-                nested_formats.append(object.recarrtype)
+                newdict["_v_types"][k] = obj.type
+                newdict["_v_dflts"][k] = obj.dflt
+                nested_formats.append(obj.recarrtype)
                 baserecarrtype = dtype.base.str[1:]
                 nested_dtype.append((kk, baserecarrtype, dtype.shape))
             else:  # A description
-                nested_formats.append(object._v_nested_formats)
-                nested_dtype.append((kk, object._v_dtype))
+                nested_formats.append(obj._v_nested_formats)
+                nested_dtype.append((kk, obj._v_dtype))
                 nested = True
 
         # Useful for debugging purposes
@@ -771,7 +771,7 @@ class Description:
 
     def _f_walk(
         self,
-        type: Literal["All", "Col", "Description"] = "All",
+        type: Literal["All", "Col", "Description"] = "All",  # noqa: A002
     ) -> Generator[Col | Description]:
         """Iterate over nested columns.
 
@@ -782,20 +782,19 @@ class Description:
         type are yielded.
 
         """
-
         if type not in ["All", "Col", "Description"]:
             raise ValueError(
-                """\
-type can only take the parameters 'All', 'Col' or 'Description'."""
+                "type can only take the parameters 'All', 'Col' or "
+                "'Description'."
             )
 
         stack: list[Description] = [self]
         while stack:
-            object = stack.pop(0)  # pop at the front so as to ensure the order
+            obj = stack.pop(0)  # pop at the front so as to ensure the order
             if type in ["All", "Description"]:
-                yield object  # yield description
-            for name in object._v_names:
-                new_object = object._v_colobjects[name]
+                yield obj  # yield description
+            for name in obj._v_names:
+                new_object = obj._v_colobjects[name]
                 if isinstance(new_object, Description):
                     stack.append(new_object)
                 else:
@@ -1043,17 +1042,17 @@ if __name__ == "__main__":
     print("Total size ==>", desc._v_dtype.itemsize)
 
     # check _f_walk
-    for object in desc._f_walk():
-        if isinstance(object, Description):
+    for obj in desc._f_walk():
+        if isinstance(obj, Description):
             print("******begin object*************", end=" ")
-            print("name -->", object._v_name)
+            print("name -->", obj._v_name)
             # print("name -->", object._v_dtype.name)
             # print("object childs-->", object._v_names)
             # print("object nested childs-->", object._v_nested_names)
-            print("totalsize-->", object._v_dtype.itemsize)
+            print("totalsize-->", obj._v_dtype.itemsize)
         else:
             # pass
-            print("leaf -->", object._v_name, object.dtype)
+            print("leaf -->", obj._v_name, obj.dtype)
 
     class TestDescParent(IsDescription):
         c = Int32Col()

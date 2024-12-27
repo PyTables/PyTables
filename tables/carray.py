@@ -287,7 +287,7 @@ class CArray(Array):
         # when copying buffers
         self._v_convert = False
         # Build the new CArray object
-        object = CArray(
+        obj = CArray(
             group,
             name,
             atom=self.atom,
@@ -312,9 +312,9 @@ class CArray(Array):
             # The next line should be generalised if, in the future,
             # maindim is designed to be different from 0 in CArrays.
             # See ticket #199.
-            object[start3:stop3] = self.__getitem__(tuple(slices))
+            obj[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True
         nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.size
 
-        return (object, nbytes)
+        return (obj, nbytes)

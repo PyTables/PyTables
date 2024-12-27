@@ -138,13 +138,13 @@ def convert_to_np_atom(
 
 # The next is used in Array, EArray and VLArray, and it is a bit more
 # high level than convert_to_np_atom
-def convert_to_np_atom2(object: npt.ArrayLike, atom: Atom) -> np.ndarray:
+def convert_to_np_atom2(obj: npt.ArrayLike, atom: Atom) -> np.ndarray:
     """Convert a generic object into a NumPy object compliant with atom."""
 
     # Check whether the object needs to be copied to make the operation
     # safe to in-place conversion.
     copy = True if atom.type in ["time64"] else copy_if_needed
-    nparr = convert_to_np_atom(object, atom, copy)
+    nparr = convert_to_np_atom(obj, atom, copy)
     # Finally, check the byteorder and change it if needed
     byteorder = byteorders[nparr.dtype.byteorder]
     if byteorder in ["little", "big"] and byteorder != sys.byteorder:

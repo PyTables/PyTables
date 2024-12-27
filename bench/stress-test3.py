@@ -19,7 +19,7 @@ class Test(tb.IsDescription):
     ngroup = tb.Int32Col(pos=1)
     ntable = tb.Int32Col(pos=2)
     nrow = tb.Int32Col(pos=3)
-    float = tb.Float32Col(pos=3)
+    float_ = tb.Float32Col(pos=3)
     # string = tb.StringCol(500, pos=4)
 
 

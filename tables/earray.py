@@ -264,7 +264,7 @@ class EArray(CArray):
         # The number of final rows
         nrows = len(range(start, stop, step))
         # Build the new EArray object
-        object = EArray(
+        obj = EArray(
             group,
             name,
             atom=self.atom,
@@ -290,9 +290,9 @@ class EArray(CArray):
                 stop2 = stop
             # Set the proper slice in the extensible dimension
             slices[maindim] = slice(start2, stop2, step)
-            object._append(self.__getitem__(tuple(slices)))
+            obj._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = True
         nbytes = np.prod(self.shape, dtype=SizeType) * self.atom.itemsize
 
-        return (object, nbytes)
+        return (obj, nbytes)

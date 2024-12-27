@@ -190,13 +190,13 @@ class TrackRefs:
         type2count = {}
         type2all = {}
         for o in obs:
-            all = sys.getrefcount(o)
+            all_ = sys.getrefcount(o)
             t = type(o)
             if verbose:
                 # if t == types.TupleType:
                 if isinstance(o, tb.Group):
                     # if isinstance(o, MetaIsDescription):
-                    print("-->", o, "refs:", all)
+                    print("-->", o, "refs:", all_)
                     refrs = gc.get_referrers(o)
                     trefrs = []
                     for refr in refrs:
@@ -206,10 +206,10 @@ class TrackRefs:
             # if t == types.StringType: print "-->",o
             if t in type2count:
                 type2count[t] += 1
-                type2all[t] += all
+                type2all[t] += all_
             else:
                 type2count[t] = 1
-                type2all[t] = all
+                type2all[t] = all_
 
         ct = sorted(
             [

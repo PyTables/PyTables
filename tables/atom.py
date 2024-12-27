@@ -39,7 +39,7 @@ deftype_from_kind = {}  # filled as atom classes are created
 _type_re = re.compile(r"^([a-z]+)([0-9]*)$")
 
 
-def split_type(type: str) -> tuple[str, int | None]:
+def split_type(type_: str) -> tuple[str, int | None]:
     """Split a PyTables type into a PyTables kind and an item size.
 
     Returns a tuple of (kind, itemsize). If no item size is present in the type
@@ -60,9 +60,9 @@ def split_type(type: str) -> tuple[str, int | None]:
 
     """
 
-    match = _type_re.match(type)
+    match = _type_re.match(type_)
     if not match:
-        raise ValueError("malformed type: %r" % type)
+        raise ValueError("malformed type: %r" % type_)
     kind, precision = match.groups()
     itemsize = None
     if precision:
@@ -293,7 +293,7 @@ class Atom(metaclass=MetaAtom):
 
     shape: Shape
 
-    type: str
+    type: str  # noqa: A003
 
     @classmethod
     def prefix(cls) -> str:
@@ -393,7 +393,9 @@ class Atom(metaclass=MetaAtom):
         return cls.from_type(basedtype.name, shape, dflt)
 
     @classmethod
-    def from_type(cls, type: str, shape: Shape = (), dflt: Any = None) -> Atom:
+    def from_type(
+        cls, type_: str, shape: Shape = (), dflt: Any = None
+    ) -> Atom:
         """Create an Atom from a PyTables type.
 
         Optional shape and default value may be specified as the
@@ -414,9 +416,9 @@ class Atom(metaclass=MetaAtom):
 
         """
 
-        if type not in all_types:
-            raise ValueError(f"unknown type: {type!r}")
-        kind, itemsize = split_type(type)
+        if type_ not in all_types:
+            raise ValueError(f"unknown type: {type_!r}")
+        kind, itemsize = split_type(type_)
         return cls.from_kind(kind, itemsize, shape, dflt)
 
     @classmethod
@@ -643,7 +645,7 @@ class StringAtom(Atom):  # type: ignore[misc]
     """
 
     kind: str = "string"
-    type: str = "string"
+    type: str = "string"  # noqa: A003
     _defvalue: bytes = b""
 
     @property  # type: ignore[misc]
@@ -667,7 +669,7 @@ class BoolAtom(Atom):  # type: ignore[misc]
 
     kind: str = "bool"
     itemsize: int = 1
-    type: str = "bool"
+    type: str = "bool"  # noqa: A003
     _deftype = "bool8"
     _defvalue = False
 
@@ -713,7 +715,7 @@ class FloatAtom(Atom):  # type: ignore[misc]
 class Int8Atom(IntAtom):  # type: ignore[misc]
 
     itemsize: int = 1
-    type: str = "int8"
+    type: str = "int8"  # noqa: A003
 
     def __init__(self, shape: Shape = (), dflt: int = 0) -> None:
         Atom.__init__(self, "int8", shape, dflt)
@@ -722,7 +724,7 @@ class Int8Atom(IntAtom):  # type: ignore[misc]
 class Int16Atom(IntAtom):  # type: ignore[misc]
 
     itemsize: int = 2
-    type: str = "int16"
+    type: str = "int16"  # noqa: A003
 
     def __init__(self, shape: Shape = (), dflt: int = 0) -> None:
         Atom.__init__(self, "int16", shape, dflt)
@@ -731,7 +733,7 @@ class Int16Atom(IntAtom):  # type: ignore[misc]
 class Int32Atom(IntAtom):  # type: ignore[misc]
 
     itemsize: int = 4
-    type: str = "int32"
+    type: str = "int32"  # noqa: A003
 
     def __init__(self, shape: Shape = (), dflt: int = 0) -> None:
         Atom.__init__(self, "int32", shape, dflt)
@@ -740,7 +742,7 @@ class Int32Atom(IntAtom):  # type: ignore[misc]
 class Int64Atom(IntAtom):  # type: ignore[misc]
 
     itemsize: int = 8
-    type: str = "int64"
+    type: str = "int64"  # noqa: A003
 
     def __init__(self, shape: Shape = (), dflt: int = 0) -> None:
         Atom.__init__(self, "int64", shape, dflt)
@@ -749,7 +751,7 @@ class Int64Atom(IntAtom):  # type: ignore[misc]
 class UInt8Atom(UIntAtom):  # type: ignore[misc]
 
     itemsize: int = 1
-    type: str = "uint8"
+    type: str = "uint8"  # noqa: A003
 
     def __init__(self, shape: Shape = (), dflt: int = 0) -> None:
         Atom.__init__(self, "uint8", shape, dflt)
@@ -758,7 +760,7 @@ class UInt8Atom(UIntAtom):  # type: ignore[misc]
 class UInt16Atom(UIntAtom):  # type: ignore[misc]
 
     itemsize: int = 2
-    type: str = "uint16"
+    type: str = "uint16"  # noqa: A003
 
     def __init__(self, shape: Shape = (), dflt: int = 0) -> None:
         Atom.__init__(self, "uint16", shape, dflt)
@@ -767,7 +769,7 @@ class UInt16Atom(UIntAtom):  # type: ignore[misc]
 class UInt32Atom(UIntAtom):  # type: ignore[misc]
 
     itemsize: int = 4
-    type: str = "uint32"
+    type: str = "uint32"  # noqa: A003
 
     def __init__(self, shape: Shape = (), dflt: int = 0) -> None:
         Atom.__init__(self, "uint32", shape, dflt)
@@ -776,7 +778,7 @@ class UInt32Atom(UIntAtom):  # type: ignore[misc]
 class UInt64Atom(UIntAtom):  # type: ignore[misc]
 
     itemsize: int = 8
-    type: str = "uint64"
+    type: str = "uint64"  # noqa: A003
 
     def __init__(self, shape: Shape = (), dflt: int = 0) -> None:
         Atom.__init__(self, "uint64", shape, dflt)
@@ -787,7 +789,7 @@ if hasattr(np, "float16"):
     class Float16Atom(FloatAtom):  # type: ignore[misc]
 
         itemsize: int = 2
-        type: str = "float16"
+        type: str = "float16"  # noqa: A003
 
         def __init__(self, shape: Shape = (), dflt: float = 0.0) -> None:
             Atom.__init__(self, "float16", shape, dflt)
@@ -796,7 +798,7 @@ if hasattr(np, "float16"):
 class Float32Atom(FloatAtom):  # type: ignore[misc]
 
     itemsize: int = 4
-    type: str = "float32"
+    type: str = "float32"  # noqa: A003
 
     def __init__(self, shape: Shape = (), dflt: float = 0.0) -> None:
         Atom.__init__(self, "float32", shape, dflt)
@@ -805,7 +807,7 @@ class Float32Atom(FloatAtom):  # type: ignore[misc]
 class Float64Atom(FloatAtom):  # type: ignore[misc]
 
     itemsize: int = 8
-    type: str = "float64"
+    type: str = "float64"  # noqa: A003
 
     def __init__(self, shape: Shape = (), dflt: float = 0.0) -> None:
         Atom.__init__(self, "float64", shape, dflt)
@@ -816,7 +818,7 @@ if hasattr(np, "float96"):
     class Float96Atom(FloatAtom):  # type: ignore[misc]
 
         itemsize: int = 12
-        type: str = "float96"
+        type: str = "float96"  # noqa: A003
 
         def __init__(self, shape: Shape = (), dflt: float = 0.0) -> None:
             Atom.__init__(self, "float96", shape, dflt)
@@ -827,7 +829,7 @@ if hasattr(np, "float128"):
     class Float128Atom(FloatAtom):  # type: ignore[misc]
 
         itemsize: int = 16
-        type: str = "float128"
+        type: str = "float128"  # noqa: A003
 
         def __init__(self, shape: Shape = (), dflt: float = 0.0) -> None:
             Atom.__init__(self, "float128", shape, dflt)
@@ -921,7 +923,7 @@ class Time32Atom(TimeAtom):  # type: ignore[misc]
     """Defines an atom of type time32."""
 
     itemsize: int = 4
-    type: str = "time32"
+    type: str = "time32"  # noqa: A003
     _defvalue = 0
 
     def __init__(self, shape: Shape = (), dflt=_defvalue) -> None:
@@ -932,7 +934,7 @@ class Time64Atom(TimeAtom):  # type: ignore[misc]
     """Defines an atom of type time64."""
 
     itemsize: int = 8
-    type: str = "time64"
+    type: str = "time64"  # noqa: A003
     _defvalue: float = 0.0
 
     def __init__(self, shape: Shape = (), dflt: float = _defvalue) -> None:
@@ -1032,7 +1034,7 @@ class EnumAtom(Atom):
     # work and I don't feel like creating a subclass of ``MetaAtom``.
 
     kind = "enum"
-    type = "enum"
+    type = "enum"  # noqa: A003
 
     @property  # type: ignore[misc]
     def itemsize(self) -> int:  # type: ignore[override]
@@ -1164,7 +1166,7 @@ class ReferenceAtom(Atom):
     """
 
     kind = "reference"
-    type = "object"
+    type = "object"  # noqa: A003
     _deftype = "NoneType"
     _defvalue = None
 
@@ -1269,7 +1271,7 @@ class VLStringAtom(_BufferedAtom):
     """
 
     kind = "vlstring"
-    type = "vlstring"
+    type = "vlstring"  # noqa: A003
     base = UInt8Atom()
 
     def _tobuffer(self, object_: bytes) -> np.bytes_:
@@ -1301,7 +1303,7 @@ class VLUnicodeAtom(_BufferedAtom):
     """
 
     kind = "vlunicode"
-    type = "vlunicode"
+    type = "vlunicode"  # noqa: A003
     base = UInt32Atom()
 
     # numpy.unicode_ no more implements the buffer interface in Python 3
@@ -1350,7 +1352,7 @@ class ObjectAtom(_BufferedAtom):
     """
 
     kind = "object"
-    type = "object"
+    type = "object"  # noqa: A003
     base = UInt8Atom()
 
     def _tobuffer(self, object_: object) -> bytes:

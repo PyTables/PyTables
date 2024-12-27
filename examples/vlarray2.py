@@ -100,9 +100,9 @@ fileh = tb.open_file("vlarray2.h5", mode="r")
 # Get the root group
 root = fileh.root
 
-for object in fileh.list_nodes(root, "Leaf"):
-    arr = object.read()
-    print(object.name, "-->", arr)
+for obj in fileh.list_nodes(root, "Leaf"):
+    arr = obj.read()
+    print(obj.name, "-->", arr)
     print("number of objects in this row:", len(arr))
 
 # Close the file

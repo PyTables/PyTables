@@ -50,10 +50,10 @@ class StreamChar:
     def read(self, n=None):
         self.nbytes = n
         try:
-            str = next(self.read_it)
+            str_ = next(self.read_it)
         except StopIteration:
-            str = ""
-        return str
+            str_ = ""
+        return str_
 
     # required by postgres2 driver, but not used
     def readline(self):

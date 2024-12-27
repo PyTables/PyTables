@@ -608,7 +608,7 @@ value of dimensions that are orthogonal (and preferably close) to the
             # For itermode, we don't need the out info
             return (i_nrows, slice_pos, start, stop, step, nrowsinbuf)
 
-    def eval(self) -> ContainerType:
+    def eval(self) -> ContainerType:  # noqa: A003
         """Evaluate the expression and return the outcome.
 
         Because of performance reasons, the computation order tries to go along

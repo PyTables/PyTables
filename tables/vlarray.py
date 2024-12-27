@@ -885,7 +885,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         """Private part of Leaf.copy() for each kind of leaf."""
 
         # Build the new VLArray object
-        object = VLArray(
+        obj = VLArray(
             group,
             name,
             self.atom,
@@ -917,11 +917,11 @@ class VLArray(hdf5extension.VLArray, Leaf):
                 stop2 = stop
             nparr = self._read_array(start=start2, stop=stop2, step=step)[0]
             nobjects = nparr.shape[0]
-            object._append(nparr, nobjects)
+            obj._append(nparr, nobjects)
             nbytes += nobjects * atomsize
             nrowscopied += 1
-        object.nrows = nrowscopied
-        return (object, nbytes)
+        obj.nrows = nrowscopied
+        return (obj, nbytes)
 
     def __repr__(self) -> str:
         """This provides more metainfo in addition to standard __str__"""

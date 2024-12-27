@@ -82,10 +82,10 @@ class Stream32:
     def read(self, n=None):
         self.n = n
         try:
-            str = next(self.read_it)
+            str_ = next(self.read_it)
         except StopIteration:
-            str = ""
-        return str
+            str_ = ""
+        return str_
 
 
 def open_db(filename, remove=0):
