@@ -12,10 +12,19 @@ development) from the master branch of the project repository using git::
 
     git clone --recursive git@github.com:PyTables/PyTables.git
 
+It is recommended to setup the `pre-commit`_ hooks::
+
+    pre-commit instal
+
+To test the SW, the following command can be used::
+
+    make check
+
 Also, be sure to subscribe to the `Users' Mailing List`_ and/or the
 `Developers' Mailing List`_.
 
 .. _`GitHub project site`: https://github.com/PyTables
+.. _`pre-commit`: https://pre-commit.com
 .. _`Users' Mailing List`: https://groups.google.com/group/pytables-users
 .. _`Developers' Mailing List`: https://groups.google.com/group/pytables-dev
 
