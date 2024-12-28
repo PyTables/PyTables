@@ -32,6 +32,7 @@ def undo(
     operation: Literal["ADDATTR", "CREATE", "DELATTR", "MOVE", "REMOVE"],
     *args: str,
 ) -> None:
+    """Undo action."""
     if operation == "CREATE":
         undo_create(file_, args[0])
     elif operation == "REMOVE":
@@ -55,6 +56,7 @@ def redo(
     operation: Literal["ADDATTR", "CREATE", "DELATTR", "MOVE", "REMOVE"],
     *args: str,
 ) -> None:
+    """Re-do action."""
     if operation == "CREATE":
         redo_create(file_, args[0])
     elif operation == "REMOVE":
@@ -74,6 +76,7 @@ def redo(
 
 
 def move_to_shadow(file_: "File", path: str) -> None:
+    """Move a node to the set of shadowed ones."""
     node = file_._get_node(path)
 
     (shparent, shname) = file_._shadow_name()
@@ -81,6 +84,7 @@ def move_to_shadow(file_: "File", path: str) -> None:
 
 
 def move_from_shadow(file_: "File", path: str) -> None:
+    """Move a node fro the set of shadowe dones back to foreground."""
     (shparent, shname) = file_._shadow_name()
     node = shparent._f_get_child(shname)
 
@@ -90,22 +94,27 @@ def move_from_shadow(file_: "File", path: str) -> None:
 
 
 def undo_create(file_: "File", path: str) -> None:
+    """Undo create node."""
     move_to_shadow(file_, path)
 
 
 def redo_create(file_: "File", path: str) -> None:
+    """Re-do create node."""
     move_from_shadow(file_, path)
 
 
 def undo_remove(file_: "File", path: str) -> None:
+    """Undo remove node."""
     move_from_shadow(file_, path)
 
 
 def redo_remove(file_: "File", path: str) -> None:
+    """Re-do remove node."""
     move_to_shadow(file_, path)
 
 
 def undo_move(file_: "File", origpath: str, destpath: str) -> None:
+    """Undo move node."""
     (origpname, origname) = split_path(origpath)
 
     node = file_._get_node(destpath)
@@ -114,6 +123,7 @@ def undo_move(file_: "File", origpath: str, destpath: str) -> None:
 
 
 def redo_move(file_: "File", origpath: str, destpath: str) -> None:
+    """Re-do move node."""
     (destpname, destname) = split_path(destpath)
 
     node = file_._get_node(origpath)
@@ -122,6 +132,7 @@ def redo_move(file_: "File", origpath: str, destpath: str) -> None:
 
 
 def attr_to_shadow(file_: "File", path: str, name: str) -> None:
+    """Move an attribute to the shadowed attribute set."""
     node = file_._get_node(path)
     attrs = node._v_attrs
     value = getattr(attrs, name)
@@ -138,6 +149,7 @@ def attr_to_shadow(file_: "File", path: str, name: str) -> None:
 
 
 def attr_from_shadow(file_: "File", path: str, name: str) -> None:
+    """Move an attribute from shadowed attribute set to foreground."""
     (shparent, shname) = file_._shadow_name()
     shattrs = shparent._v_attrs
     value = getattr(shattrs, shname)
@@ -150,16 +162,20 @@ def attr_from_shadow(file_: "File", path: str, name: str) -> None:
 
 
 def undo_add_attr(file_: "File", path: str, name: str) -> None:
+    """Undo add attribute."""
     attr_to_shadow(file_, path, name)
 
 
 def redo_add_attr(file_: "File", path: str, name: str) -> None:
+    """Re-do add attribute."""
     attr_from_shadow(file_, path, name)
 
 
 def undo_del_attr(file_: "File", path: str, name: str) -> None:
+    """Undo delete attribute."""
     attr_from_shadow(file_, path, name)
 
 
 def redo_del_attr(file_: "File", path: str, name: str) -> None:
+    """Re-do delete attribute."""
     attr_to_shadow(file_, path, name)

@@ -169,7 +169,7 @@ class Group(hdf5extension.Group, Node):
     # `_v_nchildren` is a direct read-only shorthand
     # for the number of *visible* children in a group.
     def _g_getnchildren(self) -> int:
-        """The number of children hanging from this group."""
+        """Return the number of children hanging from this group."""
         return len(self._v_children)
 
     _v_nchildren = property(_g_getnchildren)
@@ -240,7 +240,6 @@ class Group(hdf5extension.Group, Node):
            *_v_max_group_width*.
 
         """
-
         # Finally, set up this object as a node.
         super().__init__(parentnode, name, _log)
 
@@ -299,7 +298,6 @@ class Group(hdf5extension.Group, Node):
         `childname` must be the name of a *group* child.
 
         """
-
         child_cid = self._g_get_gchild_attr(childname, "CLASS")
         if child_cid is not None and not isinstance(child_cid, str):
             child_cid = child_cid.decode("utf-8")
@@ -320,7 +318,6 @@ class Group(hdf5extension.Group, Node):
         issued if `warn` is true.
 
         """
-
         if self._v_file.params["PYTABLES_SYS_ATTRS"]:
             child_cid = self._g_get_lchild_attr(childname, "CLASS")
             if child_cid is not None and not isinstance(child_cid, str):
@@ -356,9 +353,10 @@ class Group(hdf5extension.Group, Node):
             return class_id_dict[child_cid2]  # look up leaf class
 
     def _g_add_children_names(self) -> None:
-        """Add children names to this group taking into account their
-        visibility and kind."""
+        """Add children names to the group.
 
+        The method properly takes into account the visibility and kind.
+        """
         mydict = self.__dict__
 
         # The names of the lazy attributes
@@ -417,7 +415,6 @@ class Group(hdf5extension.Group, Node):
         "Unknown",
     ]:
         """Check whether 'name' is a children of 'self' and return its type."""
-
         # Get the HDF5 name matching the PyTables name.
         node_type = self._g_get_objinfo(name)
         if node_type == "NoSuchNode":
@@ -434,7 +431,6 @@ class Group(hdf5extension.Group, Node):
 
         Examples
         --------
-
         ::
 
             # Non-recursively list all the nodes hanging from '/detector'
@@ -443,17 +439,15 @@ class Group(hdf5extension.Group, Node):
                 print(node)
 
         """
-
         return self._f_iter_nodes()
 
     def __contains__(self, name: str) -> bool:
-        """Is there a child with that `name`?
+        """Return True if there is a child with the specified `name`.
 
         Returns a true value if the group has a child node (visible or
         hidden) with the given `name` (a string), false otherwise.
 
         """
-
         self._g_check_open()
         try:
             self._g_check_has_child(name)
@@ -462,7 +456,7 @@ class Group(hdf5extension.Group, Node):
         return True
 
     def __getitem__(self, childname: str) -> Node:
-        """Return the (visible or hidden) child with that `name` ( a string).
+        """Return the (visible or hidden) child with that `name` (a string).
 
         Raise IndexError if child not exist.
         """
@@ -485,7 +479,6 @@ class Group(hdf5extension.Group, Node):
 
         Examples
         --------
-
         ::
 
             # Recursively print all the arrays hanging from '/'
@@ -494,7 +487,6 @@ class Group(hdf5extension.Group, Node):
                 print(array)
 
         """
-
         self._g_check_open()
 
         # For compatibility with old default arguments.
@@ -509,9 +501,7 @@ class Group(hdf5extension.Group, Node):
                 yield from group._f_iter_nodes(classname)
 
     def _g_join(self, name: str) -> str:
-        """Helper method to correctly concatenate a name child object with the
-        pathname of this group."""
-
+        """Concatenate a name child object with the pathname of this group."""
         if name == "/":
             # This case can happen when doing copies
             return self._v_pathname
@@ -519,7 +509,6 @@ class Group(hdf5extension.Group, Node):
 
     def _g_width_warning(self) -> None:
         """Issue a :exc:`PerformanceWarning` on too many children."""
-
         warnings.warn(
             """\
 group ``%s`` is exceeding the recommended maximum number of children (%d); \
@@ -540,7 +529,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         nodes to the tree).
 
         """
-
         # Check for name validity.
         if validate:
             check_name_validity(childname)
@@ -598,7 +586,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         Removes all references to the named node.
 
         """
-
         # This can *not* be triggered because of the user.
         assert childname in self, (
             f"group ``{self._v_pathname}`` does not have a child node "
@@ -685,7 +672,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         logged.
 
         """
-
         # Recursive version of children copy.
         # for srcchild in self._v_children.itervalues():
         #     srcchild._g_copy_as_child(newparent, **kwargs)
@@ -744,7 +730,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         name is not a valid Python identifier.
 
         """
-
         self._g_check_open()
 
         self._g_check_has_child(childname)
@@ -758,7 +743,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         This is a list-returning version of :meth:`Group._f_iter_nodes()`.
 
         """
-
         return list(self._f_iter_nodes(classname))
 
     def _f_iter_nodes(self, classname: str | None = None) -> Iterator[Node]:
@@ -772,7 +756,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         This is an iterator version of :meth:`Group._f_list_nodes`.
 
         """
-
         self._g_check_open()
 
         if not classname:
@@ -807,7 +790,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         to bottom (preorder), following the same procedure.
 
         """
-
         self._g_check_open()
 
         stack = [self]
@@ -838,7 +820,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         the child node will be made accessible again via natural naming.
 
         """
-
         try:
             super().__delattr__(name)  # nothing particular
         except AttributeError as ae:
@@ -855,10 +836,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     def __getattr__(self, name: str) -> Any:
         """Get a Python attribute or child node called name.
+
         If the node has a child node called name it is returned,
         else an AttributeError is raised.
         """
-
         if name in self._c_lazy_children_attrs:
             self._g_add_children_names()
             return self.__dict__[name]
@@ -882,7 +863,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         dictionaries in the group (if visible).
 
         """
-
         # Show a warning if there is a child node with that name.
         #
         # ..note::
@@ -916,19 +896,16 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     def _f_flush(self) -> None:
         """Flush this Group."""
-
         self._g_check_open()
         self._g_flush_group()
 
     def _g_close_descendents(self) -> None:
         """Close all the *loaded* descendent nodes of this group."""
-
         node_manager = self._v_file._node_manager
         node_manager.close_subtree(self._v_pathname)
 
     def _g_close(self) -> None:
         """Close this (open) group."""
-
         if self._v_isopen:
             # hdf5extension operations:
             #   Close HDF5 group.
@@ -949,7 +926,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         the integrated LRU cache.
 
         """
-
         # If the group is already closed, return immediately
         if not self._v_isopen:
             return
@@ -973,7 +949,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         This version correctly handles both visible and hidden nodes.
 
         """
-
         if self._v_nchildren > 0:
             if not (recursive or force):
                 raise NodeError(
@@ -1026,7 +1001,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             bytes, respectively, that have been copied during the operation.
 
         """
-
         return super()._f_copy(
             newparent, newname, overwrite, recursive, createparents, **kwargs
         )
@@ -1064,7 +1038,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         see which options they support.
 
         """
-
         self._g_check_open()
 
         # `dstgroup` is used instead of its path to avoid accepting
@@ -1123,7 +1096,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         Examples
         --------
-
         ::
 
             >>> import tables
@@ -1133,7 +1105,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             >>> f.close()
 
         """
-
         return (
             f"{self._v_pathname} ({self.__class__.__name__}) "
             f"{self._v_title!r}"
@@ -1144,7 +1115,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         Examples
         --------
-
         ::
 
             >>> import tables
@@ -1155,7 +1125,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             >>> f.close()
 
         """
-
         rep = [
             f"{childname!r} ({child.__class__.__name__})"
             for (childname, child) in self._v_children.items()
@@ -1165,6 +1134,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 # Special definition for group root
 class RootGroup(Group):
+    """Root Group."""
 
     def __init__(
         self, ptfile: File, name: str, title: str, new: bool, filters: Filters
@@ -1221,7 +1191,6 @@ class RootGroup(Group):
         child, a `NoSuchNodeError` is raised.
 
         """
-
         if self._v_file.root_uep != "/":
             childname = join_path(self._v_file.root_uep, childname)
         # Is the node a group or a leaf?
@@ -1279,6 +1248,8 @@ class RootGroup(Group):
 
 
 class TransactionGroupG(NotLoggedMixin, Group):
+    """Transaction Group."""
+
     _c_classid = "TRANSGROUP"
 
     def _g_width_warning(self) -> None:
@@ -1291,6 +1262,8 @@ class TransactionGroupG(NotLoggedMixin, Group):
 
 
 class TransactionG(NotLoggedMixin, Group):
+    """Transaction group."""
+
     _c_classid = "TRANSG"
 
     def _g_width_warning(self) -> None:
@@ -1304,6 +1277,8 @@ class TransactionG(NotLoggedMixin, Group):
 
 
 class MarkG(NotLoggedMixin, Group):
+    """Mark group."""
+
     # Class identifier.
     _c_classid = "MARKG"
 
@@ -1327,7 +1302,6 @@ class MarkG(NotLoggedMixin, Group):
         and attributes.
 
         """
-
         # Remove action storage nodes.
         for child in list(self._v_children.values()):
             child._g_remove(True, True)

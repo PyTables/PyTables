@@ -24,7 +24,6 @@ if TYPE_CHECKING:
 
 def csformula(nrows: int) -> float:
     """Return the fitted chunksize (a float value) for nrows."""
-
     # This formula has been computed using two points:
     # 2**12 = m * 2**(n + log10(10**6))
     # 2**15 = m * 2**(n + log10(10**9))
@@ -36,7 +35,6 @@ def csformula(nrows: int) -> float:
 
 def limit_er(expectedrows: int) -> int:
     """Protection against creating too small or too large chunks or slices."""
-
     if expectedrows < 10**5:
         expectedrows = 10**5
     elif expectedrows > 10**12:
@@ -46,7 +44,6 @@ def limit_er(expectedrows: int) -> int:
 
 def computechunksize(expectedrows: int) -> int:
     """Get the optimum chunksize based on expectedrows."""
-
     expectedrows = limit_er(expectedrows)
     zone = int(math.log10(expectedrows))
     nrows = 10**zone
@@ -55,7 +52,6 @@ def computechunksize(expectedrows: int) -> int:
 
 def computeslicesize(expectedrows: int, memlevel: int) -> int:
     """Get the optimum slicesize based on expectedrows and memorylevel."""
-
     expectedrows = limit_er(expectedrows)
     # First, the optimum chunksize
     cs = csformula(expectedrows)
@@ -88,7 +84,6 @@ def computeblocksize(
     superblocks (using the PyTables terminology for blocks in indexes).
 
     """
-
     nlowerblocks = (expectedrows // lowercompoundsize) + 1
     if nlowerblocks > 2**20:
         # Protection against too large number of compound blocks
@@ -116,7 +111,6 @@ def calc_chunksize(
     optimized by doing more experiments.
 
     """
-
     chunksize = computechunksize(expectedrows)
     slicesize = computeslicesize(expectedrows, memlevel)
 
@@ -152,7 +146,6 @@ def ccs_ultralight(
     optlevel: int, chunksize: int, slicesize: int
 ) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
-
     if optlevel in (0, 1, 2):
         slicesize //= 2
         slicesize += optlevel * slicesize
@@ -169,7 +162,6 @@ def ccs_light(
     optlevel: int, chunksize: int, slicesize: int
 ) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
-
     if optlevel in (0, 1, 2):
         slicesize //= 2
     elif optlevel in (3, 4, 5):
@@ -188,7 +180,6 @@ def ccs_medium(
     optlevel: int, chunksize: int, slicesize: int
 ) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
-
     if optlevel in (0, 1, 2):
         slicesize //= 2
     elif optlevel in (3, 4, 5):
@@ -205,7 +196,6 @@ def ccs_medium(
 
 def ccs_full(optlevel: int, chunksize: int, slicesize: int) -> tuple[int, int]:
     """Correct the slicesize and the chunksize based on optlevel."""
-
     if optlevel in (0, 1, 2):
         slicesize //= 2
     elif optlevel in (3, 4, 5):
@@ -229,7 +219,6 @@ def calcoptlevels(
     indexing mode.
 
     """
-
     if indsize == 2:  # light
         return col_light(nblocks, optlevel)
     elif indsize == 4:  # medium
@@ -240,7 +229,6 @@ def calcoptlevels(
 
 def col_light(nblocks: int, optlevel: int) -> tuple[bool, bool, bool, bool]:
     """Compute the optimizations to be done for light indexes."""
-
     optmedian, optstarts, optstops, optfull = (False,) * 4
 
     if 0 < optlevel <= 3:
@@ -255,7 +243,6 @@ def col_light(nblocks: int, optlevel: int) -> tuple[bool, bool, bool, bool]:
 
 def col_medium(nblocks: int, optlevel: int) -> tuple[bool, bool, bool, bool]:
     """Compute the optimizations to be done for medium indexes."""
-
     optmedian, optstarts, optstops, optfull = (False,) * 4
 
     # Medium case
@@ -279,7 +266,6 @@ def col_medium(nblocks: int, optlevel: int) -> tuple[bool, bool, bool, bool]:
 
 def col_full(nblocks: int, optlevel: int) -> tuple[bool, bool, bool, bool]:
     """Compute the optimizations to be done for full indexes."""
-
     optmedian, optstarts, optstops, optfull = (False,) * 4
 
     # Full case
@@ -391,7 +377,6 @@ def inftype(
     dtype: np.dtype, itemsize: int, sign: Literal[-1, 1] = 1
 ) -> bytes | float | int:
     """Return a superior limit for maximum representable data type."""
-
     assert sign in [-1, +1]
 
     if dtype.kind == "S":
@@ -408,9 +393,7 @@ def inftype(
 def string_next_after(
     x: bytes, direction: Literal[-1, 1], itemsize: int
 ) -> bytes:
-    """Return the next representable neighbor of x in the appropriate
-    direction."""
-
+    """Return the next neighbor of x in the specified direction."""
     assert direction in [-1, +1]
 
     # Pad the string with \x00 chars until itemsize completion
@@ -451,9 +434,7 @@ def string_next_after(
 def int_type_next_after(
     x: float | int, direction: Literal[-1, 1], itemsize: int
 ) -> int:
-    """Return the next representable neighbor of x in the appropriate
-    direction."""
-
+    """Return the next neighbor of x in the specified direction."""
     assert direction in [-1, +1]
 
     # x is guaranteed to be either an int or a float
@@ -474,9 +455,7 @@ def int_type_next_after(
 def bool_type_next_after(
     x: bool, direction: Literal[-1, 1], itemsize: int
 ) -> bool:
-    """Return the next representable neighbor of x in the appropriate
-    direction."""
-
+    """Return the next representable neighbor of x in the specified direction."""
     assert direction in [-1, +1]
 
     # x is guaranteed to be either a boolean
@@ -492,9 +471,7 @@ def nextafter(
     dtype: np.dtype,
     itemsize: int,
 ) -> bool | bytes | int | float:
-    """Return the next representable neighbor of x in the appropriate
-    direction."""
-
+    """Return the next representable neighbor of x in the specified direction."""
     assert direction in [-1, 0, +1]
     assert dtype.kind == "S" or type(x) in (bool, float, int)
 

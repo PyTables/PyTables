@@ -59,7 +59,6 @@ def split_type(type_: str) -> tuple[str, int | None]:
         ValueError: malformed type: 'foo bar'
 
     """
-
     match = _type_re.match(type_)
     if not match:
         raise ValueError("malformed type: %r" % type_)
@@ -87,7 +86,6 @@ def _invalid_itemsize_error(
 
 def _normalize_shape(shape: Shape | np.integer | int) -> Shape:
     """Check that the `shape` is safe to be used and return it as a tuple."""
-
     if isinstance(shape, (np.integer, int)):
         if shape < 1:
             raise ValueError("shape value must be greater than 0: %d" % shape)
@@ -107,7 +105,6 @@ def _normalize_shape(shape: Shape | np.integer | int) -> Shape:
 
 def _normalize_default(value: Any, dtype: DTypeLike) -> np.ndarray:
     """Return `value` as a valid default of NumPy type `dtype`."""
-
     # Create NumPy objects as defaults
     # This is better in order to serialize them as attributes
     if value is None:
@@ -415,7 +412,6 @@ class Atom(metaclass=MetaAtom):
             ValueError: unknown type: 'Float64'
 
         """
-
         if type_ not in all_types:
             raise ValueError(f"unknown type: {type_!r}")
         kind, itemsize = split_type(type_)
@@ -461,7 +457,6 @@ class Atom(metaclass=MetaAtom):
             ValueError: the ``enum`` kind is not supported...
 
         """
-
         kwargs: dict[str, Any] = {"shape": shape}
         if kind not in atom_map:
             raise ValueError(f"unknown kind: {kind!r}")
@@ -502,14 +497,15 @@ class Atom(metaclass=MetaAtom):
 
     @property
     def recarrtype(self) -> str:
-        """String type to be used in numpy.rec.array()."""
+        """Return the string type to be used in `numpy.rec.array()`."""
         return str(self.dtype.shape) + self.dtype.base.str[1:]
 
     @property
     def ndim(self) -> int:
-        """The number of dimensions of the atom.
+        """Return the number of dimensions of the atom.
 
-        .. versionadded:: 2.4"""
+        .. versionadded:: 2.4
+        """
         return len(self.shape)
 
     def __init__(
@@ -601,8 +597,7 @@ class Atom(metaclass=MetaAtom):
         return {arg: getattr(self, arg) for arg in args if arg != "self"}
 
     def _is_equal_to_atom(self, atom: Atom) -> bool:
-        """Is this object equal to the given `atom`?"""
-
+        """Return True if the object is equal to the given `atom`."""
         return (
             self.type == atom.type
             and self.shape == atom.shape
@@ -615,7 +610,6 @@ def _abstract_atom_init(
     deftype: str, defvalue: Any
 ) -> Callable[[Atom, int | None, Shape, Any], None]:
     """Return a constructor for an abstract `Atom` class."""
-
     defitemsize = split_type(deftype)[1]
 
     def __init__(  # noqa: N807
@@ -713,6 +707,7 @@ class FloatAtom(Atom):  # type: ignore[misc]
 
 
 class Int8Atom(IntAtom):  # type: ignore[misc]
+    """Atom for 8 bit integers."""
 
     itemsize: int = 1
     type: str = "int8"  # noqa: A003
@@ -722,6 +717,7 @@ class Int8Atom(IntAtom):  # type: ignore[misc]
 
 
 class Int16Atom(IntAtom):  # type: ignore[misc]
+    """Atom for 12 bit integers."""
 
     itemsize: int = 2
     type: str = "int16"  # noqa: A003
@@ -731,6 +727,7 @@ class Int16Atom(IntAtom):  # type: ignore[misc]
 
 
 class Int32Atom(IntAtom):  # type: ignore[misc]
+    """Atom for 32 bit integers."""
 
     itemsize: int = 4
     type: str = "int32"  # noqa: A003
@@ -740,6 +737,7 @@ class Int32Atom(IntAtom):  # type: ignore[misc]
 
 
 class Int64Atom(IntAtom):  # type: ignore[misc]
+    """Atom for 64 bit integers."""
 
     itemsize: int = 8
     type: str = "int64"  # noqa: A003
@@ -749,6 +747,7 @@ class Int64Atom(IntAtom):  # type: ignore[misc]
 
 
 class UInt8Atom(UIntAtom):  # type: ignore[misc]
+    """Atom for 8 bit unsoged integers."""
 
     itemsize: int = 1
     type: str = "uint8"  # noqa: A003
@@ -758,6 +757,7 @@ class UInt8Atom(UIntAtom):  # type: ignore[misc]
 
 
 class UInt16Atom(UIntAtom):  # type: ignore[misc]
+    """Atom for 16 bit unsigned integers."""
 
     itemsize: int = 2
     type: str = "uint16"  # noqa: A003
@@ -767,6 +767,7 @@ class UInt16Atom(UIntAtom):  # type: ignore[misc]
 
 
 class UInt32Atom(UIntAtom):  # type: ignore[misc]
+    """Atom for 32 bit unsigned integers."""
 
     itemsize: int = 4
     type: str = "uint32"  # noqa: A003
@@ -776,6 +777,7 @@ class UInt32Atom(UIntAtom):  # type: ignore[misc]
 
 
 class UInt64Atom(UIntAtom):  # type: ignore[misc]
+    """Atom for 16 bit unsigned integers."""
 
     itemsize: int = 8
     type: str = "uint64"  # noqa: A003
@@ -787,6 +789,7 @@ class UInt64Atom(UIntAtom):  # type: ignore[misc]
 if hasattr(np, "float16"):
 
     class Float16Atom(FloatAtom):  # type: ignore[misc]
+        """FLoat 16 atom."""
 
         itemsize: int = 2
         type: str = "float16"  # noqa: A003
@@ -796,6 +799,7 @@ if hasattr(np, "float16"):
 
 
 class Float32Atom(FloatAtom):  # type: ignore[misc]
+    """Float 32 atom."""
 
     itemsize: int = 4
     type: str = "float32"  # noqa: A003
@@ -805,6 +809,7 @@ class Float32Atom(FloatAtom):  # type: ignore[misc]
 
 
 class Float64Atom(FloatAtom):  # type: ignore[misc]
+    """Float 64 atom."""
 
     itemsize: int = 8
     type: str = "float64"  # noqa: A003
@@ -816,6 +821,7 @@ class Float64Atom(FloatAtom):  # type: ignore[misc]
 if hasattr(np, "float96"):
 
     class Float96Atom(FloatAtom):  # type: ignore[misc]
+        """Float 96 atom."""
 
         itemsize: int = 12
         type: str = "float96"  # noqa: A003
@@ -827,6 +833,7 @@ if hasattr(np, "float96"):
 if hasattr(np, "float128"):
 
     class Float128Atom(FloatAtom):  # type: ignore[misc]
+        """Float 128 atom."""
 
         itemsize: int = 16
         type: str = "float128"  # noqa: A003
@@ -992,7 +999,6 @@ class EnumAtom(Atom):
 
     Examples
     --------
-
     The next C enum construction::
 
         enum myEnum {
@@ -1043,7 +1049,6 @@ class EnumAtom(Atom):
 
     def _checkbase(self, base: Atom) -> None:
         """Check the `base` storage atom."""
-
         if base.kind == "enum":
             raise TypeError(
                 "can not use an enumerated atom "
@@ -1090,7 +1095,6 @@ class EnumAtom(Atom):
 
     def _get_init_args(self) -> dict[str, Any]:
         """Get a dictionary of instance constructor arguments."""
-
         return {
             "enum": self.enum,
             "dflt": self._defname,
@@ -1099,13 +1103,11 @@ class EnumAtom(Atom):
         }
 
     def _is_equal_to_atom(self, atom) -> bool:
-        """Is this object equal to the given `atom`?"""
-
+        """Return True if the object is equal to the given `atom`."""
         return False
 
     def _is_equal_to_enumatom(self, enumatom: EnumAtom) -> bool:
-        """Is this object equal to the given `enumatom`?"""
-
+        """Return True if the object is equal to the given `enumatom`."""
         return (
             self.enum == enumatom.enum
             and self.shape == enumatom.shape
@@ -1162,6 +1164,7 @@ class EnumAtom(Atom):
 
 class ReferenceAtom(Atom):
     """Defines an atom of type object to read references.
+
     This atom is read-only.
     """
 
@@ -1217,12 +1220,10 @@ class PseudoAtom:
 
     def toarray(self, object_: Any) -> NoReturn:
         """Convert an `object_` into an array of base atoms."""
-
         raise NotImplementedError
 
     def fromarray(self, array: Any) -> NoReturn:
         """Convert an `array` of base atoms into an object."""
-
         raise NotImplementedError
 
 
@@ -1240,7 +1241,6 @@ class _BufferedAtom(PseudoAtom):
 
     def _tobuffer(self, object_: Any) -> NoReturn:
         """Convert an `object_` into a buffer."""
-
         raise NotImplementedError
 
 
@@ -1280,6 +1280,7 @@ class VLStringAtom(_BufferedAtom):
         return np.bytes_(object_)
 
     def fromarray(self, array: np.ndarray) -> bytes:
+        """Convert array data into bytes."""
         return array.tobytes()
 
 
@@ -1314,6 +1315,7 @@ class VLUnicodeAtom(_BufferedAtom):
     # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
     # array, we must override ``toarray()`` itself.
     def toarray(self, object_: str) -> np.ndarray:
+        """Convert a string into a numpy array."""
         if not isinstance(object_, str):
             raise TypeError(f"object is not a string: {object_!r}")
         ustr = str(object_)
@@ -1329,6 +1331,7 @@ class VLUnicodeAtom(_BufferedAtom):
         return np.str_(object_)
 
     def fromarray(self, array: np.ndarray) -> str:
+        """Convert array data into a string."""
         length = len(array)
         if length == 0:
             return ""  # ``array.view('U0')`` raises a `TypeError`
@@ -1359,6 +1362,10 @@ class ObjectAtom(_BufferedAtom):
         return pickle.dumps(object_, pickle.HIGHEST_PROTOCOL)
 
     def fromarray(self, array: np.ndarray) -> Any | None:
+        """Deserialize data contained in the input array.
+
+        A Python object is returned.
+        """
         # We have to check for an empty array because of a possible
         # bug in HDF5 which makes it claim that a dataset has one
         # record when in fact it is empty.

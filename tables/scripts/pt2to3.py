@@ -1,5 +1,6 @@
-"""This utility helps you migrate from PyTables 2.x APIs to 3.x APIs, which
-are PEP 8 compliant.
+"""Utility to helps the migration from PyTables 2.x APIs to 3.x APIs.
+
+The new API is PEP 8 compliant.
 
 """
 
@@ -467,6 +468,7 @@ new2oldnames = {v: k for k, v in old2newnames.items()}
 
 
 def make_subs(ns):
+    """Make stubs."""
     names = new2oldnames if ns.reverse else old2newnames
     s = r"(?<=\W)({})(?=\W)".format("|".join(list(names)))
     if ns.ignore_previous:
@@ -483,6 +485,7 @@ def make_subs(ns):
 
 
 def main():
+    """Implement the main CLI interface."""
     desc = (
         "PyTables 2.x -> 3.x API transition tool\n\n"
         "This tool displays to standard out, so it is \n"

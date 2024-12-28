@@ -35,12 +35,11 @@ _no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")
 
 
 def _unsupported_operation_error(exception: Exception) -> Exception:
-    """Make the \"no matching opcode\" Numexpr `exception` more clear.
+    r"""Make the \"no matching opcode\" Numexpr `exception` more clear.
 
     A new exception of the same kind is returned.
 
     """
-
     message = exception.args[0]
     op, types = _no_matching_opcode.search(message).groups()
     newmessage = "unsupported operand types for *%s*: " % op
@@ -99,7 +98,6 @@ def _get_indexable_cmp(
 
     Otherwise, the values in the tuple are ``None``.
     """
-
     not_indexable = (None, None, None)
     turncmp = {
         "lt": "gt",
@@ -168,7 +166,7 @@ def _equiv_expr_node(
     x: Any | ne.expressions.ExpressionNode,
     y: Any | ne.expressions.ExpressionNode,
 ) -> bool:
-    """Returns whether two ExpressionNodes are equivalent.
+    """Return Truen whether two ExpressionNodes are equivalent.
 
     This is needed because '==' is overridden on ExpressionNode to
     return a new ExpressionNode.
@@ -205,7 +203,7 @@ def _get_idx_expr_recurse(
     ]
     | tuple[list, list[str]]
 ):
-    """Here lives the actual implementation of the get_idx_expr() wrapper.
+    """Actual implementation of the `get_idx_expr()` wrapper.
 
     'idxexprs' is a list of expressions in the form ``(var, (ops),
     (limits))``. 'strexpr' is the indexable expression in string format.
@@ -216,7 +214,6 @@ def _get_idx_expr_recurse(
     ([], ['']) so as to signal this.
 
     """
-
     not_indexable = ([], [""])
     op_conv = {
         "and": "&",
@@ -305,7 +302,6 @@ def _get_idx_expr_recurse(
 
     def add_expr(expr, idxexprs: list, strexpr: list[str]) -> None:
         """Add a single expression to the list."""
-
         if isinstance(expr, list):
             # expr is a single expression
             idxexprs.append(expr[0])
@@ -364,7 +360,6 @@ def _get_idx_expr(
     * ``~((a > 0) & (c_bool))``
 
     """
-
     return _get_idx_expr_recurse(expr, indexedcols, [], [""])
 
 
@@ -373,8 +368,7 @@ class CompiledCondition:
 
     @lazyattr
     def index_variables(self) -> frozenset:
-        """The columns participating in the index expression."""
-
+        """Columns participating in the index expression."""
         idxexprs = self.index_expressions
         idxvars = []
         for expr in idxexprs:
@@ -415,7 +409,6 @@ idxvars: {self.index_variables}"""
         A new compiled condition is returned.  Values are taken from
         the `condvars` mapping and converted to Python scalars.
         """
-
         exprs = self.index_expressions
         exprs2 = []
         for expr in exprs:
@@ -444,7 +437,6 @@ def _get_variable_names(
     expression: ne.expressions.ExpressionNode,
 ) -> list[str]:
     """Return the list of variable names in the Numexpr `expression`."""
-
     names = []
     stack = [expression]
     while stack:
@@ -473,7 +465,6 @@ def compile_condition(
     indicates the order of its parameters.
 
     """
-
     # Get the expression tree and extract index conditions.
     expr = ne.necompiler.stringToExpression(condition, typemap, {})
     if expr.astKind != "bool":
@@ -527,7 +518,6 @@ def call_on_recarr(
     column from `recarr` is used as its value.
 
     """
-
     args = []
     for param in params:
         if param2arg:

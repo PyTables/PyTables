@@ -130,7 +130,6 @@ class Enum:
 
     def _check_and_set_pair(self, name: str, value: Any) -> None:
         """Check validity of enumerated value and insert it into type."""
-
         names = self._names
         values = self._values
 
@@ -166,7 +165,6 @@ class Enum:
 
         Examples
         --------
-
         Let ``enum`` be an enumerated type defined as:
 
         >>> enum = Enum({'T0': 0, 'T1': 2, 'T2': 5})
@@ -181,18 +179,17 @@ class Enum:
         KeyError: "no enumerated value with that name: 'foo'"
 
         """
-
         try:
             return self._names[name]
         except KeyError:
             raise KeyError(f"no enumerated value with that name: {name!r}")
 
     def __setitem__(self, name: Any, value: Any) -> NoReturn:
-        """This operation is forbidden."""
+        """Forbidden operation."""
         raise IndexError("operation not allowed")
 
     def __delitem__(self, name: Any) -> NoReturn:
-        """This operation is forbidden."""
+        """Forbidden operation."""
         raise IndexError("operation not allowed")
 
     def __getattr__(self, name: str) -> Any:
@@ -217,22 +214,21 @@ class Enum:
         AttributeError: no enumerated value with that name: 'foo'
 
         """
-
         try:
             return self[name]
         except KeyError as ke:
             raise AttributeError(*ke.args)
 
     def __setattr__(self, name: Any, value: Any) -> NoReturn:
-        """This operation is forbidden."""
+        """Forbidden operation."""
         raise AttributeError("operation not allowed")
 
     def __delattr__(self, name: Any) -> NoReturn:
-        """This operation is forbidden."""
+        """Forbidden operation."""
         raise AttributeError("operation not allowed")
 
     def __contains__(self, name: str) -> bool:
-        """Is there an enumerated value with that name in the type?
+        """Return True if the Enum has a value with the specified name.
 
         If the enumerated type has an enumerated value with that name, True is
         returned.  Otherwise, False is returned. The name must be a string.
@@ -262,7 +258,6 @@ class Enum:
         TypeError: name of enumerated value is not a string: 2
 
         """
-
         if not isinstance(name, str):
             raise TypeError(
                 f"name of enumerated value is not a string: {name!r}"
@@ -297,7 +292,6 @@ class Enum:
         ValueError: no enumerated value with that concrete value: 42
 
         """
-
         try:
             return self._values[value]
         except KeyError:
@@ -316,7 +310,6 @@ class Enum:
         10
 
         """
-
         return len(self._names)
 
     def __iter__(self) -> Generator[Any]:
@@ -334,18 +327,16 @@ class Enum:
         True
 
         """
-
         yield from self._names.items()
 
     def __eq__(self, other: Enum) -> bool:
-        """Is the other enumerated type equivalent to this one?
+        """Return True if `other` equivalent to this enumerated type.
 
         Two enumerated types are equivalent if they have exactly the same
         enumerated values (i.e. with the same names and concrete values).
 
         Examples
         --------
-
         Let ``enum*`` be enumerated types defined as:
 
         >>> enum1 = Enum({'T0': 0, 'T1': 2})
@@ -379,13 +370,12 @@ class Enum:
         False
 
         """
-
         if not isinstance(other, Enum):
             return False
         return self._names == other._names
 
     def __ne__(self, other: Enum) -> bool:
-        """Is the `other` enumerated type different from this one?
+        """Return True if `other` is different from this enumerated type.
 
         Two enumerated types are different if they don't have exactly
         the same enumerated values (i.e. with the same names and
@@ -393,7 +383,6 @@ class Enum:
 
         Examples
         --------
-
         Let ``enum*`` be enumerated types defined as:
 
         >>> enum1 = Enum({'T0': 0, 'T1': 2})
@@ -417,7 +406,6 @@ class Enum:
         True
 
         """
-
         return not self.__eq__(other)
 
     # XXX: API incompatible change for PyTables 3 line
@@ -425,9 +413,10 @@ class Enum:
     # def __hash__(self):
     #    return hash((self.__class__, tuple(self._names.items())))
     def __repr__(self) -> str:
-        """Return the canonical string representation of the enumeration. The
-        output of this method can be evaluated to give a new enumeration object
-        that will compare equal to this one.
+        """Return the canonical string representation of the enumeration.
+
+        The output of this method can be evaluated to give a new
+        enumeration object that will compare equal to this one.
 
         Examples
         --------
@@ -435,7 +424,6 @@ class Enum:
         "Enum({'name': 10})"
 
         """
-
         return f"Enum({self._names})"
 
 

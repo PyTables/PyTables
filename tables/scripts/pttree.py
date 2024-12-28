@@ -119,7 +119,7 @@ def _get_parser():
 
 
 def main():
-
+    """Implement the main CLI interface."""
     parser = _get_parser()
     args = parser.parse_args()
 
@@ -153,11 +153,7 @@ def get_tree_str(
     sort_by=None,
     use_si_units=False,
 ):
-    """
-    Generate the ASCII string representing the tree structure, and the summary
-    info (if requested)
-    """
-
+    """Return a string representing the tree structure, and the summary info."""
     root = f.get_node(where)
     root._g_check_open()
     start_depth = root._v_depth
@@ -396,14 +392,12 @@ def get_tree_str(
 
 
 class PrettyTree:
-    """
+    """Pretty ASCII representation of a recursive tree structure.
 
-    A pretty ASCII representation of a recursive tree structure. Each node can
-    have multiple labels, given as a list of strings.
+    Each node can have multiple labels, given as a list of strings.
 
     Example:
     --------
-
         A = PrettyTree('A', labels=['wow'])
         B = PrettyTree('B', labels=['such tree'])
         C = PrettyTree('C', children=[A, B])
@@ -433,6 +427,7 @@ class PrettyTree:
         self.sort_by = sort_by
 
     def add_child(self, child):
+        """Add a child to the tree."""
         # some basic checks to help to avoid infinite recursion
         assert child is not self
         assert self not in child.children
@@ -440,6 +435,7 @@ class PrettyTree:
             self.children.append(child)
 
     def tree_lines(self):
+        """Generate lines of teh string representation of a tree."""
         yield self.name
         for label in self.labels:
             yield "   " + label
@@ -459,7 +455,7 @@ class PrettyTree:
 
 
 def bytes2human(use_si_units=False):
-
+    """Return the string representation of the number of bytes with units."""
     if use_si_units:
         prefixes = "TB", "GB", "MB", "kB", "B"
         values = 1e12, 1e9, 1e6, 1e3, 1
@@ -480,6 +476,7 @@ def bytes2human(use_si_units=False):
 
 
 def make_test_file(prefix="/tmp"):
+    """Create a test file."""
     f = tb.open_file(str(Path(prefix) / "test_pttree.hdf5"), "w")
 
     g1 = f.create_group("/", "group1")

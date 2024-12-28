@@ -26,8 +26,7 @@ class CacheArray(indexesextension.CacheArray, NotLoggedMixin, EArray):
 
 
 class LastRowArray(indexesextension.LastRowArray, NotLoggedMixin, CArray):
-    """Container for keeping sorted and indices values of last row of an
-    index."""
+    """Container for keeping sorted indices values of last row of an index."""
 
     # Class identifier.
     _c_classid = "LASTROWARRAY"
@@ -66,12 +65,12 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
 
     @property
     def chunksize(self) -> int:
-        """The chunksize for this object."""
+        """Size of the chunk for the object."""
         return self.chunkshape[1]
 
     @property
     def slicesize(self) -> int:
-        """The slicesize for this object."""
+        """Size of the slice for the object."""
         return self.shape[1]
 
     def __init__(
@@ -84,7 +83,6 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         byteorder: str | None = None,
     ) -> None:
         """Create an IndexArray instance."""
-
         self._v_pathname = parentnode._g_join(name)
         if atom is not None:
             # The shape and chunkshape needs to be fixed here
@@ -178,12 +176,11 @@ class IndexArray(indexesextension.IndexArray, NotLoggedMixin, EArray):
         return (result1, result2)
 
     def __str__(self) -> str:
-        """A compact representation of this class"""
+        """Compact representation of the IndexArray object."""
         return f"IndexArray(path={self._v_pathname})"
 
     def __repr__(self) -> str:
-        """A verbose representation of this class."""
-
+        """Retunr the string representation of the IndexArray object."""
         return f"""{self}
   atom = {self.atom!r}
   shape = {self.shape}

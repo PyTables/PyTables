@@ -182,7 +182,7 @@ def _checkfilters(filters: Filters) -> None:
 def copy_file(
     srcfilename: str, dstfilename: str, overwrite: bool = False, **kwargs
 ) -> None:
-    """An easy way of copying one PyTables file to another.
+    """Copy the content of a PyTables file to another.
 
     This function allows you to copy an existing PyTables file named
     srcfilename to another file called dstfilename. The source file
@@ -197,7 +197,6 @@ def copy_file(
     arguments.
 
     """
-
     # Open the source file.
     srcfileh = open_file(srcfilename, mode="r")
 
@@ -368,6 +367,8 @@ class _DictCache(dict):
 
 
 class NodeManager:
+    """Node manager."""
+
     def __init__(self, nslots: int = 64, node_factory=None) -> None:
         super().__init__()
 
@@ -387,6 +388,7 @@ class NodeManager:
         self.node_factory = node_factory
 
     def register_node(self, node: Node, key: str | None) -> None:
+        """Register a node."""
         if key is None:
             key = node._v_pathname
 
@@ -403,6 +405,7 @@ class NodeManager:
             self.registry[key] = node
 
     def cache_node(self, node: Node, key: str | None = None) -> None:
+        """Create a node."""
         if key is None:
             key = node._v_pathname
 
@@ -418,6 +421,7 @@ class NodeManager:
         self.cache[key] = node
 
     def get_node(self, key: str) -> Node:
+        """Return a node matching the input key."""
         node = self.cache.pop(key, None)
         if node is not None:
             if node._v_isopen:
@@ -453,14 +457,14 @@ class NodeManager:
         return node
 
     def rename_node(self, oldkey: str, newkey: str) -> None:
+        """Rename a node."""
         for cache in (self.cache, self.registry):
             if oldkey in cache:
                 node = cache.pop(oldkey)
                 cache[newkey] = node
 
     def drop_from_cache(self, nodepath: str) -> None:
-        """Remove the node from cache"""
-
+        """Remove the node from cache."""
         # Remove the node from the cache.
         self.cache.pop(nodepath, None)
 
@@ -471,7 +475,6 @@ class NodeManager:
         close it.
 
         """
-
         # Remove all references to the node.
         nodepath = node._v_pathname
 
@@ -495,6 +498,7 @@ class NodeManager:
                 node._f_close()
 
     def flush_nodes(self) -> None:
+        """Flush all nodes."""
         # Only iter on the nodes in the registry since nodes in the cache
         # should always have an entry in the registry
         closed_keys = []
@@ -546,6 +550,7 @@ class NodeManager:
                     pass
 
     def close_subtree(self, prefix: str = "/") -> None:
+        """Close a sub-tree of nodes."""
         if not prefix.endswith("/"):
             prefix = prefix + "/"
 
@@ -577,6 +582,7 @@ class NodeManager:
         self._close_nodes(paths, registry.pop)
 
     def shutdown(self) -> None:
+        """Shutdown the node manager."""
         registry = self.registry
         cache = self.cache
 
@@ -725,7 +731,7 @@ class File(hdf5extension.File):
 
     @property
     def title(self) -> str:
-        """The title of the root group in the file."""
+        """Title of the root group in the file."""
         return self.root._v_title
 
     @title.setter
@@ -738,8 +744,10 @@ class File(hdf5extension.File):
 
     @property
     def filters(self) -> Filters:
-        """Default filter properties for the root group
-        (see :ref:`FiltersClassDescr`)."""
+        """Filter properties for the root group.
+
+        See :ref:`FiltersClassDescr`).
+        """
         return self.root._v_filters
 
     @filters.setter
@@ -857,15 +865,13 @@ class File(hdf5extension.File):
     def __get_root_group(
         self, root_uep: str | None, title: str, filters: Filters
     ) -> RootGroup:
-        """Returns a Group instance which will act as the root group in the
-        hierarchical tree.
+        """Return a Group instance which can act as the root group in a tree.
 
         If file is opened in "r", "r+" or "a" mode, and the file already
         exists, this method dynamically builds a python object tree
         emulating the structure present on file.
 
         """
-
         self._v_objectid = self._get_file_id()
 
         if root_uep in [None, ""]:
@@ -902,7 +908,6 @@ class File(hdf5extension.File):
         node, otherwise a `TypeError`will be raised.
 
         """
-
         if create:
             path = path._v_pathname if hasattr(path, "_v_pathname") else path
             return self._create_path(path)
@@ -915,7 +920,6 @@ class File(hdf5extension.File):
         The group associated with the given `path` is returned.
 
         """
-
         if not hasattr(path, "split"):
             raise TypeError("when creating parents, parent must be a path")
 
@@ -968,7 +972,6 @@ class File(hdf5extension.File):
         Group : for more information on groups
 
         """
-
         parentnode = self._get_or_create_path(where, createparents)
         _checkfilters(filters)
         return Group(parentnode, name, title=title, new=True, filters=filters)
@@ -1077,7 +1080,6 @@ class File(hdf5extension.File):
         Table : for more information on tables
 
         """
-
         if obj is not None:
             if not isinstance(obj, np.ndarray):
                 raise TypeError("invalid obj parameter %r" % obj)
@@ -1191,7 +1193,6 @@ class File(hdf5extension.File):
         create_table : for more information on the rest of parameters
 
         """
-
         if obj is None:
             if atom is None or shape is None:
                 raise TypeError(
@@ -1328,7 +1329,6 @@ class File(hdf5extension.File):
         CArray : for more information on chunked arrays
 
         """
-
         if obj is not None:
             flavor = flavor_of(obj)
             obj = array_as_internal(obj, flavor)
@@ -1471,7 +1471,6 @@ class File(hdf5extension.File):
         EArray : for more information on enlargeable arrays
 
         """
-
         if obj is not None:
             flavor = flavor_of(obj)
             obj = array_as_internal(obj, flavor)
@@ -1608,7 +1607,6 @@ class File(hdf5extension.File):
            *expectedrows*.
 
         """
-
         if obj is not None:
             flavor = flavor_of(obj)
             obj = array_as_internal(obj, flavor)
@@ -1660,7 +1658,6 @@ class File(hdf5extension.File):
         The returned node is a regular `Group` or `Leaf` instance.
 
         """
-
         targetnode = self.get_node(target)
         parentnode = self._get_or_create_path(where, createparents)
         linkextension._g_create_hard_link(parentnode, name, targetnode)
@@ -1690,7 +1687,6 @@ class File(hdf5extension.File):
         soft links.
 
         """
-
         if not isinstance(target, str):
             if hasattr(target, "_v_pathname"):  # quacks like a Node
                 target = target._v_pathname
@@ -1722,7 +1718,6 @@ class File(hdf5extension.File):
         The returned node is an :class:`ExternalLink` instance.
 
         """
-
         if not isinstance(target, str):
             if hasattr(target, "_v_pathname"):  # quacks like a Node
                 target = target._v_file.filename + ":" + target._v_pathname
@@ -1786,7 +1781,6 @@ class File(hdf5extension.File):
         raised. Please note that hidden nodes are also considered.
 
         """
-
         self._check_open()
 
         if isinstance(where, Node):
@@ -1823,12 +1817,11 @@ class File(hdf5extension.File):
         return node
 
     def is_visible_node(self, path: str) -> bool:
-        """Is the node under `path` visible?
+        """Return True if the node under `path` is visible.
 
         If the node does not exist, a NoSuchNodeError is raised.
 
         """
-
         # ``util.isvisiblepath()`` is still recommended for internal use.
         return self.get_node(path)._f_isvisible()
 
@@ -1853,7 +1846,6 @@ class File(hdf5extension.File):
             newname if it already exists (not done by default).
 
         """
-
         obj = self.get_node(where, name=name)
         obj._f_rename(newname, overwrite)
 
@@ -1895,7 +1887,6 @@ class File(hdf5extension.File):
         The other arguments work as in :meth:`Node._f_move`.
 
         """
-
         obj = self.get_node(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
 
@@ -1954,7 +1945,6 @@ class File(hdf5extension.File):
             semantics of copying nodes.
 
         """
-
         obj = self.get_node(where, name=name)
         if obj._v_depth == 0 and newparent and not newname:
             npobj = self.get_node(newparent)
@@ -1993,7 +1983,6 @@ class File(hdf5extension.File):
             completely removed.
 
         """
-
         obj = self.get_node(where, name=name)
         obj._f_remove(recursive)
 
@@ -2012,7 +2001,6 @@ class File(hdf5extension.File):
             attribute does not exist, an AttributeError is raised.
 
         """
-
         obj = self.get_node(where, name=name)
         return obj._f_getattr(attrname)
 
@@ -2046,7 +2034,6 @@ class File(hdf5extension.File):
         PerformanceWarning is issued.
 
         """
-
         obj = self.get_node(where, name=name)
         obj._f_setattr(attrname, attrvalue)
 
@@ -2065,7 +2052,6 @@ class File(hdf5extension.File):
             attribute does not exist, an AttributeError is raised.
 
         """
-
         obj = self.get_node(where, name=name)
         obj._f_delattr(attrname)
 
@@ -2084,7 +2070,6 @@ class File(hdf5extension.File):
             be a path string or a Node instance (see :ref:`NodeClassDescr`).
 
         """
-
         srcobject = self.get_node(where, name=name)
         dstobject = self.get_node(dstnode)
         srcobject._v_attrs._f_copy(dstobject)
@@ -2121,7 +2106,6 @@ class File(hdf5extension.File):
            for a description of those arguments.
 
         """
-
         srcgroup = self.get_node(srcgroup)  # Does the source node exist?
         self._check_group(srcgroup)  # Is it a group?
 
@@ -2166,7 +2150,6 @@ class File(hdf5extension.File):
         file.
 
         """
-
         self._check_open()
 
         # Check that we are not treading our own shoes
@@ -2214,7 +2197,6 @@ class File(hdf5extension.File):
         This is a list-returning version of :meth:`File.iter_nodes`.
 
         """
-
         group = self.get_node(where)  # Does the parent exist?
         self._check_group(group)  # Is it a group?
 
@@ -2241,20 +2223,18 @@ class File(hdf5extension.File):
         This is an iterator version of :meth:`File.list_nodes`.
 
         """
-
         group = self.get_node(where)  # Does the parent exist?
         self._check_group(group)  # Is it a group?
 
         return group._f_iter_nodes(classname)
 
     def __contains__(self, path: str) -> bool:
-        """Is there a node with that path?
+        """Return True if there is a node with the specified path.
 
         Returns True if the file has a node with the given path (a
         string), False otherwise.
 
         """
-
         try:
             self.get_node(path)
         except NoSuchNodeError:
@@ -2270,7 +2250,6 @@ class File(hdf5extension.File):
 
         Examples
         --------
-
         ::
 
             # Recursively list all the nodes in the object tree.
@@ -2280,7 +2259,6 @@ class File(hdf5extension.File):
                 print(node)
 
         """
-
         return self.walk_nodes("/")
 
     def walk_nodes(
@@ -2307,7 +2285,6 @@ class File(hdf5extension.File):
 
         Examples
         --------
-
         ::
 
             # Recursively print all the nodes hanging from '/detector'.
@@ -2316,7 +2293,6 @@ class File(hdf5extension.File):
                 print(node)
 
         """
-
         class_ = get_class_by_name(classname)
 
         if class_ is Group:  # only groups
@@ -2341,7 +2317,6 @@ class File(hdf5extension.File):
         or a Group instance (see :ref:`GroupClassDescr`).
 
         """
-
         group = self.get_node(where)  # Does the parent exist?
         self._check_group(group)  # Is it a group?
         return group._f_walk_groups()
@@ -2352,13 +2327,11 @@ class File(hdf5extension.File):
         If the file is closed, a `ClosedFileError` is raised.
 
         """
-
         if not self.isopen:
             raise ClosedFileError("the file object is closed")
 
     def _iswritable(self) -> bool:
-        """Is this file writable?"""
-
+        """Return True if the file is writable."""
         return self.mode in ("w", "a", "r+")
 
     def _check_writable(self) -> None:
@@ -2367,7 +2340,6 @@ class File(hdf5extension.File):
         If the file is not writable, a `FileModeError` is raised.
 
         """
-
         if not self._iswritable():
             raise FileModeError("the file is not writable")
 
@@ -2377,7 +2349,7 @@ class File(hdf5extension.File):
             raise TypeError(f"node ``{node._v_pathname}`` is not a group")
 
     def is_undo_enabled(self) -> bool:
-        """Is the Undo/Redo mechanism enabled?
+        """Return True uf the Undo/Redo mechanism is enabled.
 
         Returns True if the Undo/Redo mechanism has been enabled for
         this file, False otherwise. Please note that this mechanism is
@@ -2385,7 +2357,6 @@ class File(hdf5extension.File):
         Undo/Redo support enabled.
 
         """
-
         self._check_open()
         return self._undoEnabled
 
@@ -2433,7 +2404,6 @@ class File(hdf5extension.File):
         enabled raises an UndoRedoError.
 
         """
-
         maxundo = self.params["MAX_UNDO_PATH_LENGTH"]
 
         class ActionLog(NotLoggedMixin, Table):
@@ -2527,7 +2497,6 @@ class File(hdf5extension.File):
         disabled raises an UndoRedoError.
 
         """
-
         self._check_open()
 
         if not self.is_undo_enabled():
@@ -2564,7 +2533,6 @@ class File(hdf5extension.File):
         enabled. Otherwise, an UndoRedoError is raised.
 
         """
-
         self._check_open()
         self._check_undo_enabled()
 
@@ -2609,7 +2577,6 @@ class File(hdf5extension.File):
         been enabled.  Otherwise, an `UndoRedoError` is raised.
 
         """
-
         assert self.is_undo_enabled()
 
         maxundo = self.params["MAX_UNDO_PATH_LENGTH"]
@@ -2664,7 +2631,6 @@ class File(hdf5extension.File):
 
     def _get_mark_id(self, mark: int | str) -> int:
         """Get an integer markid from a mark sequence number or name."""
-
         if isinstance(mark, int):
             markid = mark
         elif isinstance(mark, str):
@@ -2690,7 +2656,6 @@ class File(hdf5extension.File):
         It does not touch the self private attributes
 
         """
-
         if markid > self._nmarks - 1:
             # The required mark is beyond the end of the action log
             # The final action is the last row
@@ -2704,7 +2669,6 @@ class File(hdf5extension.File):
 
     def _doundo(self, finalaction: int, direction: int) -> None:
         """Undo/Redo actions up to final action in the specified direction."""
-
         if direction < 0:
             actionlog = self._actionlog[finalaction + 1 : self._curaction + 1][
                 ::-1
@@ -2770,7 +2734,6 @@ class File(hdf5extension.File):
         is raised.
 
         """
-
         self._check_open()
         self._check_undo_enabled()
 
@@ -2818,7 +2781,6 @@ class File(hdf5extension.File):
         been enabled.  Otherwise, an UndoRedoError is raised.
 
         """
-
         self._check_open()
         self._check_undo_enabled()
 
@@ -2868,7 +2830,6 @@ class File(hdf5extension.File):
         enabled. Otherwise, an UndoRedoError is raised.
 
         """
-
         self._check_open()
         self._check_undo_enabled()
 
@@ -2895,7 +2856,6 @@ class File(hdf5extension.File):
         is raised.
 
         """
-
         self._check_open()
         self._check_undo_enabled()
         return self._curmark
@@ -2908,7 +2868,6 @@ class File(hdf5extension.File):
         shadow parent node and the name of the shadow in it.
 
         """
-
         parent = self.get_node(
             _shadow_parent % (self._curtransaction, self._curmark)
         )
@@ -2918,7 +2877,6 @@ class File(hdf5extension.File):
 
     def flush(self) -> None:
         """Flush all the alive leaves in the object tree."""
-
         self._check_open()
 
         # Flush the cache to disk
@@ -2927,7 +2885,6 @@ class File(hdf5extension.File):
 
     def close(self) -> None:
         """Flush all the alive leaves in object tree and close the file."""
-
         # If the file is already closed, return immediately
         if not self.isopen:
             return
@@ -2983,12 +2940,10 @@ class File(hdf5extension.File):
 
     def __enter__(self) -> File:
         """Enter a context and return the same file."""
-
         return self
 
     def __exit__(self, *exc_info) -> bool:
         """Exit a context and close the file."""
-
         self.close()
         return False  # do not hide exceptions
 
@@ -2997,7 +2952,6 @@ class File(hdf5extension.File):
 
         Examples
         --------
-
         ::
 
             >>> import tables
@@ -3042,7 +2996,6 @@ class File(hdf5extension.File):
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the object tree."""
-
         if not self.isopen:
             return "<closed File>"
 
@@ -3065,7 +3018,6 @@ class File(hdf5extension.File):
         This only affects *already loaded* nodes.
 
         """
-
         oldprefix = oldpath + "/"  # root node can not be renamed, anyway
         oldprefix_len = len(oldprefix)
 

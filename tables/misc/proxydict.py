@@ -35,19 +35,23 @@ class ProxyDict(dict):
         return "{" + ", ".join("{k!r}: {v!r}" for k, v in self.items()) + "}"
 
     def values(self):
+        """Return the list of values."""
         # C implementation does not use `self.__getitem__()`. :(
         return [self[key] for key in self.keys()]
 
     def itervalues(self):
+        """Iterate on values."""
         # C implementation does not use `self.__getitem__()`. :(
         for key in self.keys():
             yield self[key]
 
     def items(self):
+        """Return items as a list."""
         # C implementation does not use `self.__getitem__()`. :(
         return [(key, self[key]) for key in self.keys()]
 
     def iteritems(self):
+        """Items iterator."""
         # C implementation does not use `self.__getitem__()`. :(
         for key in self.keys():
             yield (key, self[key])

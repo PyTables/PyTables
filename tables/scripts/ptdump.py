@@ -21,6 +21,7 @@ options = argparse.Namespace(
 
 
 def dump_leaf(leaf):
+    """Dump an HDF5 leaf node."""
     if options.verbose:
         print(repr(leaf))
     else:
@@ -66,6 +67,7 @@ def dump_leaf(leaf):
 
 
 def dump_group(pgroup, sort=False):
+    """Dump an HDF5 group."""
     node_kinds = pgroup._v_file._node_kinds[1:]
     what = pgroup._f_walk_groups()
     if sort:
@@ -152,6 +154,7 @@ def _get_parser():
 
 
 def main():
+    """Implement the main CLI interface."""
     parser = _get_parser()
 
     args = parser.parse_args(namespace=options)

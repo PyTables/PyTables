@@ -117,8 +117,9 @@ def check_attribute_name(name: str) -> None:
 
 
 def check_name_validity(name: str) -> None:
-    """Check the validity of the `name` of a Node object, which more limited
-    than attribute names.
+    """Check the validity of the `name` of a Node object.
+
+    Validity of Node names is more limited than attribute names.
 
     If the name is not valid, a ``ValueError`` is raised.  If it is
     valid but it can not be used with natural naming, a
@@ -170,7 +171,6 @@ def join_path(parentpath: str, name: str) -> str:
     '/foo'
 
     """
-
     if name.startswith("./"):  # Support relative paths (mainly for links)
         name = name[2:]
     if parentpath == "/" and name.startswith("/"):
@@ -196,7 +196,6 @@ def split_path(path: str) -> (str, str):
     ('/foo', 'bar')
 
     """
-
     lastslash = path.rfind("/")
     ppath = path[:lastslash]
     name = path[lastslash + 1 :]
@@ -208,20 +207,17 @@ def split_path(path: str) -> (str, str):
 
 
 def isvisiblename(name: str) -> bool:
-    """Does this `name` make the named node a visible one?"""
-
+    """Return `True` if  `name` makes the named node visible."""
     return _hidden_name_re.match(name) is None
 
 
 def isvisiblepath(path: str) -> bool:
-    """Does this `path` make the named node a visible one?"""
-
+    """Return `True` if `path` makes the named node visible."""
     return _hidden_path_re.search(path) is None
 
 
 def _test() -> None:
     """Run ``doctest`` on this module."""
-
     import doctest
 
     doctest.testmod()

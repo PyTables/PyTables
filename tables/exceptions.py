@@ -103,6 +103,7 @@ class HDF5ExtError(RuntimeError):
 
     @classmethod
     def set_policy_from_env(cls) -> str:
+        """Set the policy from environment variables."""
         envmap = {
             "IGNORE": False,
             "FALSE": False,
@@ -162,7 +163,7 @@ class HDF5ExtError(RuntimeError):
             self.h5backtrace = None
 
     def __str__(self) -> str:
-        """Returns a sting representation of the exception.
+        """Return a sting representation of the exception.
 
         The actual result depends on policy set in the initializer
         :meth:`HDF5ExtError.__init__`.
@@ -170,7 +171,6 @@ class HDF5ExtError(RuntimeError):
         .. versionadded:: 2.4
 
         """
-
         verbose = bool(self._h5bt_policy in ("VERBOSE", "verbose"))
 
         if verbose and self.h5backtrace:
@@ -197,8 +197,11 @@ class HDF5ExtError(RuntimeError):
     def format_h5_backtrace(
         self, backtrace: list[tuple[str, int, str, str]] | None = None
     ) -> str:
-        """Convert the HDF5 trace back represented as a list of tuples.
-        (see :attr:`HDF5ExtError.h5backtrace`) into a string.
+        """Convert the HDF5 trace back into a string.
+
+        The HDF5 trace back is represented as a list of tuples.
+
+        See :attr:`HDF5ExtError.h5backtrace`.
 
         .. versionadded:: 2.4
 
@@ -242,7 +245,9 @@ class ClosedFileError(ValueError):
 
 
 class FileModeError(ValueError):
-    """The operation can not be carried out because the mode in which the
+    """FIle mode error.
+
+    The operation can not be carried out because the mode in which the
     hosting file is opened is not adequate.
 
     For instance, removing an existing leaf from a read-only file is not
@@ -404,9 +409,9 @@ class ExperimentalFeatureWarning(Warning):
 
 
 class UnclosedFileWarning(Warning):
-    """Warning raised when there are still open files at program exit
+    """Warning raised when there are still open files at program exit.
 
-    Pytables will close remaining open files at exit, but raise this warning.
+    PyTables will close remaining open files at exit, but raise this warning.
     """
 
     pass
@@ -436,7 +441,9 @@ class NotChunkedError(ChunkError):
 
 
 class NotChunkAlignedError(ChunkError):
-    """A direct chunk read/write operation was given coordinates that do not
+    """Coordinate not aligned to the chunks.
+
+    A direct chunk read/write operation was given coordinates that do not
     match the chunk's start.
 
     These operations require coordinates that are integer multiples of the

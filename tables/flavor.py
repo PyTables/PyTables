@@ -97,7 +97,6 @@ friendlier interfaces to flavor conversion.
 
 def check_flavor(flavor: FlavorType) -> None:
     """Raise a ``FlavorError`` if the `flavor` is not valid."""
-
     if flavor not in all_flavors:
         available_flavs = ", ".join(flav for flav in all_flavors)
         raise FlavorError(
@@ -121,7 +120,6 @@ def array_of_flavor2(
     If the conversion is not supported, a ``FlavorError`` is raised.
 
     """
-
     convkey = (src_flavor, dst_flavor)
     if convkey not in converter_map:
         raise FlavorError(
@@ -149,7 +147,6 @@ def flavor_to_flavor(
     and the input `array` is returned as is.
 
     """
-
     try:
         return array_of_flavor2(array, src_flavor, dst_flavor)
     except FlavorError as fe:
@@ -171,7 +168,6 @@ def internal_to_flavor(
     for more information.
 
     """
-
     return flavor_to_flavor(array, internal_flavor, dst_flavor)
 
 
@@ -186,7 +182,6 @@ def array_as_internal(
     If the conversion is not supported, a ``FlavorError`` is raised.
 
     """
-
     return array_of_flavor2(array, src_flavor, internal_flavor)
 
 
@@ -197,7 +192,6 @@ def flavor_of(array: npt.ArrayLike) -> FlavorType:
     is raised.
 
     """
-
     for flavor in all_flavors:
         if identifier_map[flavor](array):
             return flavor
@@ -220,7 +214,6 @@ def array_of_flavor(
     If the conversion is not supported, a ``FlavorError`` is raised.
 
     """
-
     return array_of_flavor2(array, flavor_of(array), dst_flavor)
 
 
@@ -234,7 +227,6 @@ def restrict_flavors(keep: Sequence[FlavorType] = ("python",)) -> None:
     .. important:: Once you disable a flavor, it can not be enabled again.
 
     """
-
     remove = set(all_flavors) - set(keep) - {internal_flavor}
     for flavor in remove:
         _disable_flavor(flavor)
@@ -252,7 +244,6 @@ all_flavors.append("python")  # this is always supported
 
 def _register_aliases() -> None:
     """Register aliases of *available* flavors."""
-
     for flavor in all_flavors:
         aliases = eval("_%s_aliases" % flavor)
         for alias in aliases:
@@ -267,7 +258,6 @@ def _register_descriptions() -> None:
 
 def _register_identifiers() -> None:
     """Register identifier functions of *available* flavors."""
-
     for flavor in all_flavors:
         identifier_map[flavor] = eval("_is_%s" % flavor)
 
@@ -296,7 +286,6 @@ def _register_converters() -> None:
 
 def _register_all() -> None:
     """Register all *available* flavors."""
-
     _register_aliases()
     _register_descriptions()
     _register_identifiers()
@@ -305,7 +294,6 @@ def _register_all() -> None:
 
 def _deregister_aliases(flavor: FlavorType) -> None:
     """Deregister aliases of a given `flavor` (no checks)."""
-
     rm_aliases = []
     for an_alias, a_flavor in alias_map.items():
         if a_flavor == flavor:
@@ -316,19 +304,16 @@ def _deregister_aliases(flavor: FlavorType) -> None:
 
 def _deregister_description(flavor: FlavorType) -> None:
     """Deregister description of a given `flavor` (no checks)."""
-
     del description_map[flavor]
 
 
 def _deregister_identifier(flavor: FlavorType) -> None:
     """Deregister identifier function of a given `flavor` (no checks)."""
-
     del identifier_map[flavor]
 
 
 def _deregister_converters(flavor: FlavorType) -> None:
     """Deregister converter functions of a given `flavor` (no checks)."""
-
     rm_flavor_pairs = []
     for flavor_pair in converter_map:
         if flavor in flavor_pair:
@@ -339,7 +324,6 @@ def _deregister_converters(flavor: FlavorType) -> None:
 
 def _disable_flavor(flavor: FlavorType) -> None:
     """Completely disable the given `flavor` (no checks)."""
-
     _deregister_aliases(flavor)
     _deregister_description(flavor)
     _deregister_identifier(flavor)
@@ -371,6 +355,7 @@ _numpy_desc = "NumPy array, record or scalar"
 if np.lib.NumpyVersion(np.__version__) >= np.lib.NumpyVersion("1.19.0"):
 
     def toarray(array: npt.ArrayLike, *args, **kwargs) -> np.ndarray:
+        """Convert the input to a numpy array if needed."""
         with warnings.catch_warnings():
             warnings.simplefilter("error")
             try:
@@ -462,7 +447,6 @@ _register_all()
 
 def _test() -> None:
     """Run ``doctest`` on this module."""
-
     import doctest
 
     doctest.testmod()

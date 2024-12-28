@@ -61,7 +61,6 @@ def get_class_by_name(classname: str | None) -> type:
     .. versionadded:: 3.0
 
     """
-
     # The empty string is accepted for compatibility
     # with old default arguments.
     if classname is None or classname == "":

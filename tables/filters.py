@@ -109,7 +109,6 @@ class Filters:
 
     Examples
     --------
-
     This is a small example on using the Filters class::
 
         import numpy as np
@@ -255,7 +254,6 @@ bitshuffle=False, fletcher32=True, least_significant_digit=None)
         ValueError: invalid compression library id: 0
 
         """
-
         kwargs = {"_new": False}
 
         # Byte 0: compression level.
@@ -289,7 +287,6 @@ bitshuffle=False, fletcher32=True, least_significant_digit=None)
 
     def _pack(self) -> np.int64:
         """Pack the `Filters` object into a 64-bit NumPy integer."""
-
         packed = np.int64(0)
 
         # Byte 3: least significant digit.
@@ -461,7 +458,6 @@ bitshuffle=False, fletcher32=False, least_significant_digit=None)
             TypeError: ...__init__() got an unexpected keyword argument ...
 
         """
-
         newargs = self.__dict__.copy()
         newargs.update(override)
         return self.__class__(**newargs)
@@ -469,7 +465,6 @@ bitshuffle=False, fletcher32=False, least_significant_digit=None)
 
 def _test() -> None:
     """Run ``doctest`` on this module."""
-
     import doctest
 
     doctest.testmod()

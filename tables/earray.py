@@ -25,7 +25,7 @@ obversion = "1.4"  # Numeric and numarray flavors are gone.
 
 
 class EArray(CArray):
-    """This class represents extendable, homogeneous datasets in an HDF5 file.
+    r"""This class represents extendable, homogeneous datasets in an HDF5 file.
 
     The main difference between an EArray and a CArray (see
     :ref:`CArrayClassDescr`), from which it inherits, is that the former
@@ -102,7 +102,6 @@ class EArray(CArray):
 
     Examples
     --------
-
     See below a small example of the use of the `EArray` class.  The
     code is available in ``examples/earray1.py``::
 
@@ -174,7 +173,6 @@ class EArray(CArray):
 
     def _g_create(self) -> int:
         """Create a new array in file (specific part)."""
-
         # Pre-conditions and extdim computation
         zerodims = np.sum(np.array(self.shape) == 0)
         if zerodims > 0:
@@ -195,7 +193,6 @@ class EArray(CArray):
 
     def _check_shape_append(self, nparr: np.ndarray) -> None:
         """Test that nparr shape is consistent with underlying EArray."""
-
         # Does the array conform to self expandibility?
         myrank = len(self.shape)
         narank = len(nparr.shape) - len(self.atom.shape)
@@ -229,7 +226,6 @@ class EArray(CArray):
         of the sequence is invalid, a ValueError is raised.
 
         """
-
         self._g_check_open()
         self._v_file._check_writable()
 
@@ -255,7 +251,6 @@ class EArray(CArray):
         **kwargs,
     ) -> tuple[EArray, int]:
         """Private part of Leaf.copy() for each kind of leaf."""
-
         (start, stop, step) = self._process_range_read(start, stop, step)
         # Build the new EArray object
         maindim = self.maindim

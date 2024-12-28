@@ -72,8 +72,7 @@ _new_filters_sub = rb"(\1tables.filters\n"
 
 
 def issysattrname(name: str) -> bool:
-    """Check if a name is a system attribute or not"""
-
+    """Check if a name is a system attribute or not."""
     return bool(
         name in SYS_ATTRS
         or np.prod([name.startswith(prefix) for prefix in SYS_ATTRS_PREFIXES])
@@ -81,7 +80,7 @@ def issysattrname(name: str) -> bool:
 
 
 class AttributeSet(hdf5extension.AttributeSet):
-    """Container for the HDF5 attributes of a Node.
+    r"""Container for the HDF5 attributes of a Node.
 
     This class provides methods to create new HDF5 node attributes,
     and to get, rename or delete existing ones.
@@ -211,7 +210,7 @@ class AttributeSet(hdf5extension.AttributeSet):
 
     @property
     def _v_node(self) -> Node:
-        """The :class:`Node` instance this attribute set is associated with."""
+        """:class:`Node` instance this attribute set is associated with."""
         return self._g_getnode()
 
     def __init__(self, node: Node) -> None:
@@ -225,7 +224,6 @@ class AttributeSet(hdf5extension.AttributeSet):
             The parent node
 
         """
-
         # Refuse to create an instance of an already closed node
         if not node._v_isopen:
             raise ClosedNodeError("the node for attribute set is closed")
@@ -269,8 +267,7 @@ class AttributeSet(hdf5extension.AttributeSet):
         self._v_attrnamesuser.sort()
 
     def _g_update_node_location(self, node: Node) -> None:
-        """Updates the location information about the associated `node`."""
-
+        """Update the location information about the associated `node`."""
         dict_ = self.__dict__
         dict_["_v__nodefile"] = node._v_file
         dict_["_v__nodepath"] = node._v_pathname
@@ -288,7 +285,6 @@ class AttributeSet(hdf5extension.AttributeSet):
         returns both system and user attributes.
 
         """
-
         if attrset == "user":
             return self._v_attrnamesuser[:]
         elif attrset == "sys":
@@ -311,7 +307,6 @@ class AttributeSet(hdf5extension.AttributeSet):
 
     def __getattr__(self, name: str) -> Any:
         """Get the attribute named "name"."""
-
         # If attribute does not exist, raise AttributeError
         if name not in self._v_attrnames:
             raise AttributeError(
@@ -436,7 +431,6 @@ class AttributeSet(hdf5extension.AttributeSet):
         It does not log the change.
 
         """
-
         # Save this attribute to disk
         # (overwriting an existing one if needed)
         stvalue = value
@@ -507,7 +501,6 @@ class AttributeSet(hdf5extension.AttributeSet):
         number of attributes in a node is going to be exceeded.
 
         """
-
         nodefile = self._v__nodefile
         attrnames = self._v_attrnames
 
@@ -557,7 +550,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         It does not log the change.
 
         """
-
         # Delete the attribute from disk
         self._g_remove(self._v_node, name)
 
@@ -580,7 +572,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         specified, an ``AttributeError`` is raised.
 
         """
-
         nodefile = self._v__nodefile
 
         # Check if attribute exists
@@ -599,8 +590,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             self._g__delattr(name)
 
     def __getitem__(self, name: str) -> Any:
-        """The dictionary like interface for __getattr__()."""
-
+        """Implement a dictionary like interface for `__getattr__()`."""
         try:
             return self.__getattr__(name)
         except AttributeError:
@@ -611,13 +601,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             )
 
     def __setitem__(self, name: str, value: Any) -> None:
-        """The dictionary like interface for __setattr__()."""
-
+        """Implement a dictionary like interface for `__setattr__()`."""
         self.__setattr__(name, value)
 
     def __delitem__(self, name: str) -> None:
-        """The dictionary like interface for __delattr__()."""
-
+        """Implement a dictionary like interface for `__delattr__()`."""
         try:
             self.__delattr__(name)
         except AttributeError:
@@ -628,18 +616,16 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             )
 
     def __contains__(self, name: str) -> bool:
-        """Is there an attribute with that name?
+        """Return True if the set contains an attribute with the specified name.
 
         A true value is returned if the attribute set has an attribute
         with the given name, false otherwise.
 
         """
-
         return name in self._v_attrnames
 
     def _f_rename(self, oldattrname: str, newattrname: str) -> None:
         """Rename an attribute from oldattrname to newattrname."""
-
         if oldattrname == newattrname:
             # Do nothing
             return
@@ -678,7 +664,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
            The *copyClass* parameter has been renamed into *copyclass*.
 
         """
-
         copysysattrs = newset._v__nodefile.params["PYTABLES_SYS_ATTRS"]
         if set_attr is None:
             set_attr = newset._g__setattr
@@ -712,7 +697,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         the existing ones.
 
         """
-
         # AttributeSet must be defined in order to define a Node.
         # However, we need to know Node here.
         # Using class_name_dict avoids a circular import.
@@ -726,8 +710,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         pass
 
     def __str__(self) -> str:
-        """The string representation for this object."""
-
+        """Return the string representation for the object."""
         # The pathname
         pathname = self._v__nodepath
         # Get this class name
@@ -737,8 +720,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return f"{pathname}._v_attrs ({classname}), {attrnumber} attributes"
 
     def __repr__(self) -> str:
-        """A detailed string representation for this object."""
-
+        """Detailed string representation for this object."""
         # print additional info only if there are attributes to show
         attrnames = list(self._v_attrnames)
         if attrnames:
@@ -749,6 +731,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
 class NotLoggedAttributeSet(AttributeSet):
+    """Attribut set without automatic logging."""
+
     def _g_log_add(self, name: str) -> None:
         pass
 

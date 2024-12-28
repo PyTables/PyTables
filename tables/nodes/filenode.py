@@ -68,13 +68,11 @@ class RawPyTablesIO(io.RawIOBase):
     @property
     def mode(self):
         """File mode."""
-
         return self._mode
 
     # def tell(self) -> int:
     def tell(self):
         """Return current stream position."""
-
         self._check_closed()
         return self._pos
 
@@ -93,7 +91,6 @@ class RawPyTablesIO(io.RawIOBase):
         Return the new absolute position.
 
         """
-
         self._check_closed()
         try:
             pos = pos.__index__()
@@ -121,18 +118,16 @@ class RawPyTablesIO(io.RawIOBase):
         method may need to do a test seek().
 
         """
-
         return True
 
     # def fileno(self) -> int:
     def fileno(self):
-        """Returns underlying file descriptor if one exists.
+        """Return underlying file descriptor if one exists.
 
         An IOError is raised if the IO object does not use a file
         descriptor.
 
         """
-
         self._check_closed()
         return self._node._v_file.fileno()
 
@@ -143,7 +138,6 @@ class RawPyTablesIO(io.RawIOBase):
         This method has no effect if the file is already closed.
 
         """
-
         if not self.closed:
             if getattr(self._node, "_v_file", None) is None:
                 warnings.warn("host PyTables file is already closed!")
@@ -160,7 +154,6 @@ class RawPyTablesIO(io.RawIOBase):
         This is not implemented for read-only and non-blocking streams.
 
         """
-
         self._check_closed()
         self._node.flush()
 
@@ -175,7 +168,6 @@ class RawPyTablesIO(io.RawIOBase):
         since data can not be rewritten nor deleted.
 
         """
-
         self._check_closed()
         self._checkWritable()
 
@@ -197,7 +189,6 @@ class RawPyTablesIO(io.RawIOBase):
         If False, read() will raise IOError.
 
         """
-
         mode = self._mode
         return "r" in mode or "+" in mode
 
@@ -208,7 +199,6 @@ class RawPyTablesIO(io.RawIOBase):
         If False, write() and truncate() will raise IOError.
 
         """
-
         mode = self._mode
         return "w" in mode or "a" in mode or "+" in mode
 
@@ -220,7 +210,6 @@ class RawPyTablesIO(io.RawIOBase):
         is set not to block as has no data to read.
 
         """
-
         self._check_closed()
         self._checkReadable()
 
@@ -250,7 +239,7 @@ class RawPyTablesIO(io.RawIOBase):
 
     # def readline(self, limit: int = -1) -> bytes:
     def readline(self, limit=-1):
-        """Read and return a line from the stream.
+        r"""Read and return a line from the stream.
 
         If limit is specified, at most limit bytes will be read.
 
@@ -259,7 +248,6 @@ class RawPyTablesIO(io.RawIOBase):
         terminator(s) recognized.
 
         """
-
         self._check_closed()
         self._checkReadable()
 
@@ -337,7 +325,6 @@ class RawPyTablesIO(io.RawIOBase):
         len(b).
 
         """
-
         self._check_closed()
         self._checkWritable()
 
@@ -366,14 +353,13 @@ class RawPyTablesIO(io.RawIOBase):
         return n
 
     def _check_closed(self):
-        """Checks if file node is open.
+        """Check if file node is open.
 
         Checks whether the file node is open or has been closed. In the
         second case, a ValueError is raised. If the host PyTables has
         been closed, ValueError is also raised.
 
         """
-
         # super()._check_closed()
         if getattr(self._node, "_v_file", None) is None:
             raise ValueError("host PyTables file is already closed!")
@@ -434,7 +420,7 @@ class RawPyTablesIO(io.RawIOBase):
             )
 
     def _check_attributes(self, node):
-        """Checks file node-specific attributes.
+        """Check file node-specific attributes.
 
         Checks for the presence and validity
         of the system attributes 'NODE_TYPE' and 'NODE_TYPE_VERSION'
@@ -442,7 +428,6 @@ class RawPyTablesIO(io.RawIOBase):
         ValueError is raised if an attribute is missing or incorrect.
 
         """
-
         attrs = node.attrs
         ltype = getattr(attrs, "NODE_TYPE", None)
         ltypever = getattr(attrs, "NODE_TYPE_VERSION", None)
@@ -455,13 +440,12 @@ class RawPyTablesIO(io.RawIOBase):
             )
 
     def _append_zeros(self, size):
-        """_append_zeros(size) -> None.  Appends a string of zeros.
+        """Append a string of zeros.
 
         Appends a string of 'size' zeros to the array,
         without moving the file pointer.
 
         """
-
         # Appending an empty array would raise an error.
         if size == 0:
             return
@@ -485,26 +469,23 @@ class FileNodeMixin:
     # The attribute set property methods.
     @property
     def attrs(self):
-        """Returns the attribute set of the file node."""
-
+        """Return the attribute set of the file node."""
         # self._check_closed()
         return self._node.attrs
 
     @attrs.setter
     def _set_attrs(self, value):
-        """set_attrs(string) -> None.  Raises ValueError."""
-
+        """Raise ValueError."""
         raise ValueError("changing the whole attribute set is not allowed")
 
     @attrs.deleter
     def _del_attrs(self):
-        """del_attrs() -> None.  Raises ValueError."""
-
+        """Raise ValueError."""
         raise ValueError("deleting the whole attribute set is not allowed")
 
 
 class ROFileNode(FileNodeMixin, RawPyTablesIO):
-    """Creates a new read-only file node.
+    r"""Creates a new read-only file node.
 
     Creates a new read-only file node associated with the specified
     PyTables node, providing a standard Python file interface to it.
@@ -539,11 +520,12 @@ class ROFileNode(FileNodeMixin, RawPyTablesIO):
 
     @property
     def node(self):
+        """Node property."""
         return self._node
 
 
 class RAFileNode(FileNodeMixin, RawPyTablesIO):
-    """Creates a new read-write file node.
+    r"""Creates a new read-write file node.
 
     The first syntax opens the specified PyTables node, while the
     second one creates a new node in the specified PyTables file.
@@ -634,23 +616,23 @@ class RAFileNode(FileNodeMixin, RawPyTablesIO):
 
     @property
     def node(self):
+        """Node property."""
         return self._node
 
-    def _set_attributes(self, node):
-        """_set_attributes(node) -> None.  Adds file node-specific attributes.
+    def _set_attributes(self, node) -> None:
+        """Add file node-specific attributes.
 
         Sets the system attributes 'NODE_TYPE' and 'NODE_TYPE_VERSION'
         in the specified PyTables node (leaf).
 
         """
-
         attrs = node.attrs
         attrs.NODE_TYPE = NodeType
         attrs.NODE_TYPE_VERSION = NodeTypeVersions[-1]
 
 
 def new_node(h5file, **kwargs):
-    """Creates a new file node object in the specified PyTables file object.
+    """Create a new file node object in the specified PyTables file object.
 
     Additional named arguments where and name must be passed to specify where
     the file node is to be created. Other named arguments such as title and
@@ -660,12 +642,11 @@ def new_node(h5file, **kwargs):
     file size in bytes, may also be passed. It returns the file node object.
 
     """
-
     return RAFileNode(None, h5file, **kwargs)
 
 
 def open_node(node, mode="r"):
-    """Opens an existing file node.
+    """Open an existing file node.
 
     Returns a file node object from the existing specified PyTables
     node. If mode is not specified or it is 'r', the file can only be
@@ -674,7 +655,6 @@ def open_node(node, mode="r"):
     positioned at the end of the file.
 
     """
-
     if mode == "r":
         return ROFileNode(node)
     elif mode == "a+":

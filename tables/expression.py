@@ -270,7 +270,6 @@ class Expr:
         or global variables.
 
         """
-
         # Get the names of variables used in the expression.
         exprvars_cache = self._exprvars_cache
         if expression not in exprvars_cache:
@@ -347,7 +346,6 @@ class Expr:
         used instead.
 
         """
-
         self.start = start
         self.stop = stop
         self.step = step
@@ -374,7 +372,6 @@ class Expr:
         elements are unaffected.
 
         """
-
         if not (hasattr(out, "shape") and hasattr(out, "__setitem__")):
             raise ValueError(
                 "You need to pass a settable multidimensional container "
@@ -402,7 +399,6 @@ class Expr:
         like a NumPy container).
 
         """
-
         if self.out is None:
             raise IndexError(
                 "You need to pass an output object to `setOut()` first"
@@ -413,15 +409,14 @@ class Expr:
 
     # Although the next code is similar to the method in `Leaf`, it
     # allows the use of pure NumPy objects.
-    def _calc_nrowsinbuf(self, object_: np.ndarray) -> int:
+    def _calc_nrowsinbuf(self, obj: np.ndarray) -> int:
         """Calculate the number of rows that will fit in a buffer."""
-
         # Compute the rowsize for the *leading* dimension
-        shape_ = list(object_.shape)
+        shape_ = list(obj.shape)
         if shape_:
             shape_[0] = 1
 
-        rowsize = np.prod(shape_) * object_.dtype.itemsize
+        rowsize = np.prod(shape_) * obj.dtype.itemsize
 
         # Compute the nrowsinbuf
         # Multiplying the I/O buffer size by 4 gives optimal results
@@ -436,14 +431,14 @@ class Expr:
             maxrowsize = BUFFER_TIMES * buffersize
             if rowsize > maxrowsize:
                 warnings.warn(
-                    """\
-The object ``%s`` is exceeding the maximum recommended rowsize (%d
+                    f"""\
+The object ``{obj}`` is exceeding the maximum recommended rowsize ({maxrowsize}
 bytes); be ready to see PyTables asking for *lots* of memory and
 possibly slow I/O.  You may want to reduce the rowsize by trimming the
 value of dimensions that are orthogonal (and preferably close) to the
-*leading* dimension of this object."""
-                    % (object, maxrowsize),
+*leading* dimension of this object.""",
                     PerformanceWarning,
+                    stacklevel=2,
                 )
 
         return nrowsinbuf
@@ -452,7 +447,6 @@ value of dimensions that are orthogonal (and preferably close) to the
         self,
     ) -> tuple[list[tuple[int, int]], int] | tuple[tuple, None]:
         """Guess the shape of the output of the expression."""
-
         # First, compute the maximum dimension of inputs and maindim
         # (if it exists)
         maxndim = 0
@@ -517,7 +511,6 @@ value of dimensions that are orthogonal (and preferably close) to the
         ]
     ):
         """Return various info needed for evaluating the computation loop."""
-
         # Compute the shape of the resulting container having
         # in account new possible values of start, stop and step in
         # the inputs range
@@ -639,7 +632,6 @@ value of dimensions that are orthogonal (and preferably close) to the
             on-disk container may consume all your available memory.
 
         """
-
         values, shape, maindim = self.values, self.shape, self.maindim
 
         # Get different info we need for the main computation loop
@@ -720,7 +712,6 @@ value of dimensions that are orthogonal (and preferably close) to the
         container specified in :meth:`Expr.set_output` method is ignored here.
 
         """
-
         values, shape, maindim = self.values, self.shape, self.maindim
 
         # Get different info we need for the main computation loop

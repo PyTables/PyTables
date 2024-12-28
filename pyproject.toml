@@ -204,5 +204,4 @@ line_length = 79
 # skip_glob = ["packagename/parse/*"]
 
 [tool.pydocstyle]
-add-ignore = "D105"
-# add-ignore = ["D105", "D107"]
+add-ignore = ["D105", "D107"]

@@ -32,7 +32,6 @@ byteorders = {
 # lengths, row numbers, shapes, chunk shapes, byte counts...
 SizeType = np.int64
 
-
 copy_if_needed: bool | None
 
 if np.lib.NumpyVersion(np.__version__) >= "2.0.0":
@@ -50,7 +49,6 @@ else:
 
 def correct_byteorder(ptype: str, byteorder: str) -> str:
     """Fix the byteorder depending on the PyTables types."""
-
     if ptype in ["string", "bool", "int8", "uint8", "object"]:
         return "irrelevant"
     else:
@@ -58,8 +56,7 @@ def correct_byteorder(ptype: str, byteorder: str) -> str:
 
 
 def is_idx(index: Any) -> bool:
-    """Checks if an object can work as an index or not."""
-
+    """Check if an object can work as an index or not."""
     if type(index) is int:
         return True
     elif hasattr(index, "__index__"):
@@ -93,7 +90,6 @@ def is_idx(index: Any) -> bool:
 
 def idx2long(index: int | float | np.ndarray) -> int:
     """Convert a possible index into a long int."""
-
     try:
         if hasattr(index, "item"):
             return index.item()
@@ -111,7 +107,6 @@ def convert_to_np_atom(
     arr: npt.ArrayLike, atom: Atom, copy: bool | None = copy_if_needed
 ) -> np.ndarray:
     """Convert a generic object into a NumPy object compliant with atom."""
-
     # First, convert the object into a NumPy array
     nparr = array_of_flavor(arr, "numpy")
     # Copy of data if necessary for getting a contiguous buffer, or if
@@ -140,7 +135,6 @@ def convert_to_np_atom(
 # high level than convert_to_np_atom
 def convert_to_np_atom2(obj: npt.ArrayLike, atom: Atom) -> np.ndarray:
     """Convert a generic object into a NumPy object compliant with atom."""
-
     # Check whether the object needs to be copied to make the operation
     # safe to in-place conversion.
     copy = True if atom.type in ["time64"] else copy_if_needed
@@ -170,7 +164,6 @@ def check_file_access(
     changes are ever made to the file system.
 
     """
-
     path = Path(filename).resolve()
 
     if mode == "r":
@@ -257,7 +250,6 @@ def lazyattr(fget: Callable[[Any], Any]) -> property:
         decorated object* from an instance method into a property.
 
     """
-
     name = fget.__name__
 
     def newfget(self):
@@ -272,7 +264,6 @@ def lazyattr(fget: Callable[[Any], Any]) -> property:
 
 def show_stats(explain: str, tref: float, encoding=None) -> float:
     """Show the used memory (only works for Linux 2.6.x)."""
-
     for line in Path("/proc/self/status").read_text().splitlines():
         if line.startswith("VmSize:"):
             vmsize = int(line.split()[1])
@@ -298,7 +289,7 @@ def show_stats(explain: str, tref: float, encoding=None) -> float:
 # truncate data before calling __setitem__, to improve compression ratio
 # this function is taken verbatim from netcdf4-python
 def quantize(data: npt.ArrayLike, least_significant_digit: int):
-    """quantize data to improve compression.
+    """Quantize data to improve compression.
 
     Data is quantized using around(scale*data)/scale, where scale is
     2**bits, and bits is determined from the least_significant_digit.
@@ -306,7 +297,6 @@ def quantize(data: npt.ArrayLike, least_significant_digit: int):
     For example, if least_significant_digit=1, bits will be 4.
 
     """
-
     exp = -least_significant_digit
     exp = math.floor(exp) if exp < 0 else math.ceil(exp)
     bits = math.ceil(math.log2(10**-exp))
@@ -322,6 +312,7 @@ tracked_classes: dict[str, list[weakref.ReferenceType]] = {}
 
 
 def log_instance_creation(instance: Any, name: str | None = None) -> None:
+    """Log instance creation."""
     if name is None:
         name = instance.__class__.__name__
         if name not in tracked_classes:
@@ -330,6 +321,7 @@ def log_instance_creation(instance: Any, name: str | None = None) -> None:
 
 
 def string_to_classes(s: str) -> list[str]:
+    """Return the list of tracked classes matching the input string."""
     if s == "*":
         c = sorted(tracked_classes)
         return c
@@ -338,16 +330,19 @@ def string_to_classes(s: str) -> list[str]:
 
 
 def fetch_logged_instances(classes: str = "*") -> list[tuple[str, int]]:
+    """Return the list of logged instances."""
     classnames = string_to_classes(classes)
     return [(cn, len(tracked_classes[cn])) for cn in classnames]
 
 
 def count_logged_instances(classes: str, file: TextIO = sys.stdout) -> None:
+    """Write to file the number of logged instances."""
     for classname in string_to_classes(classes):
         file.write(f"{classname}: {len(tracked_classes[classname])}\n")
 
 
 def list_logged_instances(classes: str, file: TextIO = sys.stdout) -> None:
+    """Write to file the list of loggen instances."""
     for classname in string_to_classes(classes):
         file.write(f"\n{classname}:\n")
         for ref in tracked_classes[classname]:
@@ -357,6 +352,7 @@ def list_logged_instances(classes: str, file: TextIO = sys.stdout) -> None:
 
 
 def dump_logged_instances(classes: str, file: TextIO = sys.stdout) -> None:
+    """Dump the logged instances."""
     for classname in string_to_classes(classes):
         file.write(f"\n{classname}:\n")
         for ref in tracked_classes[classname]:
@@ -402,12 +398,15 @@ class NailedDict:
     # the set of usable indexes.
 
     def clear(self) -> None:
+        """Clear teh dictionsry."""
         self._cache.clear()
 
     def nail(self) -> None:
+        """Increase the nail count."""
         self._nailcount += 1
 
     def unnail(self) -> None:
+        """Decrease the nail count."""
         self._nailcount -= 1
 
     # The following are intended to be used by ``Table`` code handling
@@ -424,6 +423,7 @@ class NailedDict:
         return self._cache[key]
 
     def get(self, key: Any, default: Any | None = None) -> Any:
+        """Return the value for the specified key."""
         if self._nailcount > 0:
             return default
         return self._cache.get(key, default)
@@ -442,12 +442,7 @@ class NailedDict:
 
 
 def detect_number_of_cores() -> int:
-    """Detects the number of cores on a system.
-
-    Cribbed from pp.
-
-    """
-
+    """Detect the number of cores on a system."""
     # Linux, Unix and MacOS:
     if hasattr(os, "sysconf"):
         if "SC_NPROCESSORS_ONLN" in os.sysconf_names:
@@ -467,7 +462,6 @@ def detect_number_of_cores() -> int:
 
 def _test() -> None:
     """Run ``doctest`` on this module."""
-
     import doctest
 
     doctest.testmod()

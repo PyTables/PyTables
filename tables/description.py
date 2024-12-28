@@ -85,7 +85,6 @@ class Col(atom.Atom, metaclass=type):
     @classmethod
     def prefix(cls) -> str:
         """Return the column class prefix."""
-
         cname = cls.__name__
         return cname[: cname.rfind("Col")]
 
@@ -101,7 +100,6 @@ class Col(atom.Atom, metaclass=type):
         An optional position may be specified as the pos argument.
 
         """
-
         prefix = atom.prefix()
         kwargs = atom._get_init_args()
         colclass = cls._class_from_prefix[prefix]
@@ -123,7 +121,6 @@ class Col(atom.Atom, metaclass=type):
         ignored.
 
         """
-
         newatom = atom.Atom.from_sctype(sctype, shape, dflt)
         return cls.from_atom(newatom, pos=pos)
 
@@ -144,7 +141,6 @@ class Col(atom.Atom, metaclass=type):
         is ignored.
 
         """
-
         newatom = atom.Atom.from_dtype(dtype, dflt)
         return cls.from_atom(newatom, pos=pos, _offset=_offset)
 
@@ -162,7 +158,6 @@ class Col(atom.Atom, metaclass=type):
         the `shape`, `dflt` and `pos` arguments, respectively.
 
         """
-
         newatom = atom.Atom.from_type(type_, shape, dflt)
         return cls.from_atom(newatom, pos=pos)
 
@@ -183,14 +178,12 @@ class Col(atom.Atom, metaclass=type):
         support a default item size.
 
         """
-
         newatom = atom.Atom.from_kind(kind, itemsize, shape, dflt)
         return cls.from_atom(newatom, pos=pos)
 
     @classmethod
     def _subclass_from_prefix(cls, prefix: str) -> type[Col]:
         """Get a column subclass for the given `prefix`."""
-
         cname = "%sCol" % prefix
         class_from_prefix = cls._class_from_prefix
         if cname in class_from_prefix:
@@ -259,7 +252,6 @@ class Col(atom.Atom, metaclass=type):
 
     def _get_init_args(self) -> dict[str, Any]:
         """Get a dictionary of instance constructor arguments."""
-
         kwargs = {arg: getattr(self, arg) for arg in ("shape", "dflt")}
         kwargs["pos"] = getattr(self, "_v_pos", None)
         return kwargs
@@ -267,7 +259,6 @@ class Col(atom.Atom, metaclass=type):
 
 def _generate_col_classes() -> Generator[type[Col]]:
     """Generate all column classes."""
-
     # Abstract classes are not in the class map.
     cprefixes = ["Int", "UInt", "Float", "Time"]
     for kind, kdata in atom.atom_map.items():
@@ -351,7 +342,6 @@ class Description:
     can be accessed as table.description.col1.col2. Because of natural naming,
     the names of members start with special prefixes, like in the Group class
     (see :ref:`GroupClassDescr`).
-
 
     .. rubric:: Description attributes
 
@@ -675,8 +665,7 @@ class Description:
         newdict["_v_offsets"] = [dtype.fields[name][1] for name in dtype.names]
 
     def _g_set_nested_names_descr(self) -> None:
-        """Computes the nested names and descriptions for nested datatypes."""
-
+        """Compute the nested names and descriptions for nested datatypes."""
         names = self._v_names
         fmts = self._v_nested_formats
         self._v_nested_names = names[:]  # Important to do a copy!
@@ -802,8 +791,7 @@ class Description:
                         yield new_object  # yield column
 
     def __repr__(self) -> str:
-        """Gives a detailed Description column representation."""
-
+        """Give a detailed Description column representation."""
         rep = [
             f'{"  " * self._v_nestedlvl}"{k}": {self._v_colobjects[k]!r}'
             for k in self._v_names
@@ -811,8 +799,7 @@ class Description:
         return "{\n  %s}" % (",\n  ".join(rep))
 
     def __str__(self) -> str:
-        """Gives a brief Description representation."""
-
+        """Give a brief Description representation."""
         return f"Description({self._v_nested_descr})"
 
 
@@ -823,7 +810,6 @@ class MetaIsDescription(type):
         cls, classname: str, bases: Sequence, classdict: dict[str, Any]
     ) -> MetaIsDescription:
         """Return a new class with a "columns" attribute filled."""
-
         newdict = {
             "columns": {},
         }
@@ -891,7 +877,6 @@ def descr_from_dtype(
     dtype_: npt.DTypeLike, ptparams: dict[str, Any] | None = None
 ) -> tuple[Description, str]:
     """Get a description instance and byteorder from a (nested) NumPy dtype."""
-
     fields = {}
     fbyteorder = "|"
     for name in dtype_.names:
@@ -938,7 +923,6 @@ def dtype_from_descr(
     instance, sub-class of IsDescription or a dictionary.
 
     """
-
     if isinstance(descr, dict):
         descr = Description(descr, ptparams=ptparams)
     elif type(descr) is type(IsDescription) and issubclass(
@@ -961,7 +945,7 @@ def dtype_from_descr(
 if __name__ == "__main__":
     """Test code."""
 
-    class Info(IsDescription):
+    class Info(IsDescription):  # noqa: D101
         _v_pos = 2
         Name = UInt32Col()
         Value = Float64Col()
@@ -976,20 +960,20 @@ if __name__ == "__main__":
         # color = UInt32Col(2)
         Info = Info()
 
-        class LInfo(IsDescription):
+        class LInfo(IsDescription):  # noqa: D106
             _v_pos = 1
             name = UInt32Col()
             value = Float64Col(pos=0)
             y2 = Col.from_kind("float", dflt=1, shape=(2, 3), pos=1)
             z2 = UInt8Col(dflt=1)
 
-            class LInfo2(IsDescription):
+            class LInfo2(IsDescription):  # noqa: D106
                 y3 = Col.from_kind("float", dflt=1, shape=(2, 3))
                 z3 = UInt8Col(dflt=1)
                 name = UInt32Col()
                 value = Float64Col()
 
-                class LInfo3(IsDescription):
+                class LInfo3(IsDescription):  # noqa: D106
                     name = UInt32Col()
                     value = Float64Col()
                     y4 = Col.from_kind("float", dflt=1, shape=(2, 3))
@@ -1054,10 +1038,10 @@ if __name__ == "__main__":
             # pass
             print("leaf -->", obj._v_name, obj.dtype)
 
-    class TestDescParent(IsDescription):
+    class TestDescParent(IsDescription):  # noqa: D101
         c = Int32Col()
 
-    class TestDesc(TestDescParent):
+    class TestDesc(TestDescParent):  # noqa: D101
         pass
 
     assert "c" in TestDesc.columns

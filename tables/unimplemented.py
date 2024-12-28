@@ -15,8 +15,7 @@ if TYPE_CHECKING:
 
 
 class UnImplemented(hdf5extension.UnImplemented, Leaf):
-    """This class represents datasets not supported by PyTables in an HDF5
-    file.
+    """Class represents datasets not supported by PyTables in an HDF5 file.
 
     When reading a generic HDF5 file (i.e. one that has not been created with
     PyTables, but with some other HDF5 library based tool), chances are that
@@ -44,7 +43,6 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
 
     def __init__(self, parentnode: Group, name: str) -> None:
         """Create the `UnImplemented` instance."""
-
         # UnImplemented objects always come from opening an existing node
         # (they can not be created).
         self._v_new = False
@@ -82,7 +80,6 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         ``None``.
 
         """
-
         warnings.warn(
             f"UnImplemented node {self._v_pathname!r} does not know how "
             f"to copy itself; skipping"
@@ -105,26 +102,22 @@ class UnImplemented(hdf5extension.UnImplemented, Leaf):
         that this method *does not return a new node*, but ``None``.
 
         """
-
         # This also does nothing but warn.
         self._g_copy(newparent, newname, recursive, **kwargs)
         return None  # Can you see it?
 
     def __repr__(self) -> str:
-        return """{}
+        return f"""{str(self)}
   NOTE: <The UnImplemented object represents a PyTables unimplemented
-         dataset present in the '{}' HDF5 file.  If you want to see this
-         kind of HDF5 dataset implemented in PyTables, please contact the
-         developers.>
-""".format(
-            str(self), self._v_file.filename
-        )
+         dataset present in the '{self._v_file.filename}' HDF5 file.
+         If you want to see this kind of HDF5 dataset implemented in
+         PyTables, please contact the developers.>
+"""
 
 
 # Classes reported as H5G_UNKNOWN by HDF5
 class Unknown(Node):
-    """This class represents nodes reported as *unknown* by the underlying
-    HDF5 library.
+    """Class representing nodes reported as *unknown* by the HDF5 library.
 
     This class does not have any public instance variables or methods, except
     those inherited from the Node class.
@@ -136,7 +129,6 @@ class Unknown(Node):
 
     def __init__(self, parentnode: Group, name: str) -> None:
         """Create the `Unknown` instance."""
-
         self._v_new = False
         super().__init__(parentnode, name)
 
@@ -175,4 +167,9 @@ class Unknown(Node):
 
 # These are listed here for backward compatibility with PyTables 0.9.x indexes
 class OldIndexArray(UnImplemented):
+    """Old IndexArray.
+
+    Provided for compatibility with PyTables 0.9.
+    """
+
     _c_classid = "IndexArray"

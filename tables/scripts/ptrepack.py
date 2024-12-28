@@ -28,6 +28,7 @@ numpy_aliases = [
 
 
 def newdst_group(dstfileh, dstgroup, title, filters):
+    """Return a new destination group."""
     group = dstfileh.root
     # Now, create the new group. This works even if dstgroup == '/'
     for nodename in dstgroup.split("/"):
@@ -46,6 +47,7 @@ def newdst_group(dstfileh, dstgroup, title, filters):
 
 
 def recreate_indexes(table, dstfileh, dsttable):
+    """Re-create indexes."""
     listoldindexes = table._listoldindexes
     if listoldindexes != []:
         if not regoldindexes:
@@ -90,6 +92,7 @@ def copy_leaf(
     upgradeflavors,
     allow_padding,
 ):
+    """Copy a leaf node."""
     # Open the source file
     srcfileh = tb.open_file(srcfile, "r", allow_padding=allow_padding)
     # Get the source node (that should exist)
@@ -227,7 +230,7 @@ def copy_children(
     allow_padding,
     use_hardlinks=True,
 ):
-    """Copy the children from source group to destination group"""
+    """Copy the children from source group to destination group."""
     # Open the source file with srcgroup as root_uep
     srcfileh = tb.open_file(
         srcfile, "r", root_uep=srcgroup, allow_padding=allow_padding
@@ -567,6 +570,7 @@ def _get_parser():
 
 
 def main():
+    """Implement the main CLI interface."""
     global verbose
     global regoldindexes
     global createsysattrs

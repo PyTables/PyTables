@@ -39,6 +39,7 @@ BufferLike = Union[bytes, bytearray, memoryview, NPByteArray]
 
 
 def read_cached_cpu_info() -> dict[str, Any]:
+    """Load the CPU information from a cache file."""
     try:
         with open(Path.home() / ".pytables-cpuinfo.json") as f:
             return json.load(f)
@@ -47,12 +48,14 @@ def read_cached_cpu_info() -> dict[str, Any]:
 
 
 def write_cached_cpu_info(cpu_info_dict: dict[str, Any]) -> None:
+    """Write CPU information to a cache file."""
     with open(Path.home() / ".pytables-cpuinfo.json", "w") as f:
         json.dump(cpu_info_dict, f, indent=4)
 
 
 @lru_cache(maxsize=1)
 def get_cpu_info() -> dict[str, Any]:
+    """Return a dictionary containing CPU information."""
     cached_info = read_cached_cpu_info()
     if cached_info:
         return cached_info
@@ -73,7 +76,6 @@ def get_cpu_info() -> dict[str, Any]:
 
 def csformula(expected_mb: int) -> int:
     """Return the fitted chunksize for expected_mb."""
-
     # For a basesize of 8 KB, this will return:
     # 8 KB for datasets <= 1 MB
     # 1 MB for datasets >= 10 TB
@@ -83,7 +85,6 @@ def csformula(expected_mb: int) -> int:
 
 def limit_es(expected_mb: int) -> int:
     """Protection against creating too small or too large chunks."""
-
     if expected_mb < 1:  # < 1 MB
         expected_mb = 1
     elif expected_mb > 10**7:  # > 10 TB
@@ -107,7 +108,6 @@ def calc_chunksize(expected_mb: int) -> int:
     always, your mileage may vary.
 
     """
-
     expected_mb = limit_es(expected_mb)
     zone = int(math.log10(expected_mb))
     expected_mb = 10**zone
@@ -218,13 +218,16 @@ class Leaf(Node):
 
     @property
     def name(self) -> str:
-        """The name of this node in its parent group (This is an
-        easier-to-write alias of :attr:`Node._v_name`)."""
+        """Name of the node.
+
+        The name of this node in its parent group (This is an
+        easier-to-write alias of :attr:`Node._v_name`).
+        """
         return self._v_name
 
     @property
     def chunkshape(self) -> tuple[int, ...]:
-        """The HDF5 chunk size for chunked leaves (a tuple).
+        """HDF5 chunk size for chunked leaves (a tuple).
 
         This is read-only because you cannot change the chunk size of a
         leaf once it has been created.
@@ -233,7 +236,8 @@ class Leaf(Node):
 
     @property
     def object_id(self) -> int:
-        """A node identifier, which may change from run to run.
+        """Node identifier, which may change from run to run.
+
         (This is an easier-to-write alias of :attr:`Node._v_objectid`).
 
         .. versionchanged:: 3.0
@@ -244,9 +248,10 @@ class Leaf(Node):
 
     @property
     def ndim(self) -> int:
-        """The number of dimensions of the leaf data.
+        """Return the number of dimensions of the leaf data.
 
-        .. versionadded: 2.4"""
+        .. versionadded: 2.4
+        """
         return len(self.shape)
 
     @lazyattr
@@ -258,12 +263,11 @@ class Leaf(Node):
         Filters
 
         """
-
         return Filters._from_leaf(self)
 
     @property
     def track_times(self) -> bool:
-        """Whether timestamps for the leaf are recorded
+        """Return True if the timestamps for the leaf are recorded.
 
         If the leaf is not a dataset, this will fail with HDF5ExtError.
 
@@ -277,19 +281,18 @@ class Leaf(Node):
 
     @property
     def maindim(self) -> int:
-        """The dimension along which iterators work.
+        """Dimension along which iterators work.
 
         Its value is 0 (i.e. the first dimension) when the dataset is not
         extendable, and self.extdim (where available) for extendable ones.
         """
-
         if self.extdim < 0:
             return 0  # choose the first dimension
         return self.extdim
 
     @property
     def flavor(self) -> Literal["numpy", "python"]:
-        """The type of data object read from this leaf.
+        """Type of the data object read from this leaf.
 
         It can be any of 'numpy' or 'python'.
 
@@ -297,7 +300,6 @@ class Leaf(Node):
         and delete the FLAVOR HDF5 attribute of the leaf. When the leaf
         has no such attribute, the default flavor is used.
         """
-
         return self._flavor
 
     @flavor.setter
@@ -313,7 +315,8 @@ class Leaf(Node):
 
     @property
     def size_on_disk(self) -> int:
-        """
+        """Size on disk of the object.
+
         The size of this leaf's data in bytes as it is stored on disk.  If the
         data is compressed, this shows the compressed size.  In the case of
         uncompressed, chunked data, this may be slightly larger than the amount
@@ -372,13 +375,14 @@ class Leaf(Node):
         Python that you can work around by using the nrows or shape attributes.
 
         """
-
         return self.nrows
 
     def __str__(self) -> str:
-        """The string representation for this object is its pathname in the
-        HDF5 object tree plus some additional metainfo."""
+        """Return the string representation of the object.
 
+        The string representation for this object is its pathname in the
+        HDF5 object tree plus some additional metainfo.
+        """
         filters = []
         if self.filters.fletcher32:
             filters.append("fletcher32")
@@ -399,7 +403,6 @@ class Leaf(Node):
         This method gets or sets the flavor of the leaf.
 
         """
-
         super()._g_post_init_hook()
         if self._v_new:  # set flavor of new node
             if self._flavor is None:
@@ -418,7 +421,6 @@ class Leaf(Node):
         self, expectedrows: int, rowsize: int, itemsize: int
     ) -> tuple[int, ...]:
         """Calculate the shape for the HDF5 chunk."""
-
         # In case of a scalar shape, return the unit chunksize
         if self.shape == ():
             return (SizeType(1),)
@@ -492,7 +494,6 @@ class Leaf(Node):
 
     def _calc_nrowsinbuf(self) -> int:
         """Calculate the number of rows that fits on a PyTables buffer."""
-
         params = self._v_file.params
         # Compute the nrowsinbuf
         rowsize = self.rowsize
@@ -769,7 +770,6 @@ class Leaf(Node):
         since leaves do not have child nodes.
 
         """
-
         self._f_remove(False)
 
     def rename(self, newname: str) -> None:
@@ -778,7 +778,6 @@ class Leaf(Node):
         This method has the behavior described in :meth:`Node._f_rename()`.
 
         """
-
         self._f_rename(newname)
 
     def move(
@@ -793,7 +792,6 @@ class Leaf(Node):
         This method has the behavior described in :meth:`Node._f_move`
 
         """
-
         self._f_move(newparent, newname, overwrite, createparents)
 
     def copy(
@@ -849,7 +847,6 @@ class Leaf(Node):
             matching the dimensions of the leaf.
 
         """
-
         return self._f_copy(
             newparent,
             newname,
@@ -869,19 +866,17 @@ class Leaf(Node):
         else a TypeError will be raised.
 
         """
-
         # A non-enlargeable arrays (Array, CArray) cannot be truncated
         if self.extdim < 0:
             raise TypeError("non-enlargeable datasets cannot be truncated")
         self._g_truncate(size)
 
     def isvisible(self) -> bool:
-        """Is this node visible?
+        """Return True if this node is visible.
 
         This method has the behavior described in :meth:`Node._f_isvisible()`.
 
         """
-
         return self._f_isvisible()
 
     # Attribute handling
@@ -891,7 +886,6 @@ class Leaf(Node):
         This method has the behavior described in :meth:`Node._f_getattr`.
 
         """
-
         return self._f_getattr(name)
 
     def set_attr(self, name: str, value: Any) -> None:
@@ -900,7 +894,6 @@ class Leaf(Node):
         This method has the behavior described in :meth:`Node._f_setattr()`.
 
         """
-
         self._f_setattr(name, value)
 
     def del_attr(self, name: str) -> None:
@@ -909,7 +902,6 @@ class Leaf(Node):
         This method has the behavior described in :meth:`Node_f_delAttr`.
 
         """
-
         self._f_delattr(name)
 
     # Data handling
@@ -922,7 +914,6 @@ class Leaf(Node):
         PyTables to keep memory requirements low.
 
         """
-
         self._g_flush()
 
     def chunk_info(self, coords: tuple[int, ...]) -> ChunkInfo:
@@ -1008,8 +999,7 @@ class Leaf(Node):
     def write_chunk(
         self, coords: tuple[int, ...], data: BufferLike, filter_mask: int = 0
     ) -> None:
-        """Write raw `data` to storage for the chunk that starts at the given
-        `coords`.
+        """Write `data` to storage for the chunk starting at the given `coords`.
 
         The coordinates `coords` are a tuple of integers with the same rank as
         the dataset.  If they are not multiples of its chunkshape,
@@ -1048,7 +1038,6 @@ class Leaf(Node):
         pending data to disk or not before closing.
 
         """
-
         if not self._v_isopen:
             return  # the node is already closed or not initialized
 
@@ -1071,5 +1060,4 @@ class Leaf(Node):
         This method is completely equivalent to :meth:`Leaf._f_close`.
 
         """
-
         self._f_close(flush)

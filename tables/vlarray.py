@@ -222,17 +222,18 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     @lazyattr
     def dtype(self) -> np.dtype:
-        """The NumPy ``dtype`` that most closely matches this array."""
+        """Return the NumPy ``dtype`` that most closely matches this array."""
         return self.atom.dtype
 
     @property
     def shape(self) -> tuple[int]:
-        """The shape of the stored array."""
+        """Return the shape of the stored array."""
         return (self.nrows,)
 
     @property
     def size_on_disk(self) -> NoReturn:
-        """
+        """Return the size on disk of the `VLArray` object.
+
         The HDF5 library does not include a function to determine size_on_disk
         for variable-length arrays.  Accessing this attribute will raise a
         NotImplementedError.
@@ -241,9 +242,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     @property
     def size_in_memory(self) -> int:
-        """
-        The size of this array's data in bytes when it is fully loaded
-        into memory.
+        """Size of the array's data in bytes.
 
         .. note::
 
@@ -396,7 +395,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     def _g_create(self) -> int:
         """Create a variable length array (ragged array)."""
-
         atom = self.atom
         self._v_version = obversion
         # Check for zero dims in atom shape (not allowed in VLArrays)
@@ -441,7 +439,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     def _g_open(self) -> int:
         """Get the metadata info for an array in file."""
-
         self._v_objectid, self.nrows, self._v_chunkshape, atom = (
             self._open_array()
         )
@@ -469,7 +466,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     def _getnobjects(self, nparr: np.ndarray) -> int:
         """Return the number of objects in a NumPy array."""
-
         # Check for zero dimensionality array
         zerodims = np.sum(np.array(nparr.shape) == 0)
         if zerodims > 0:
@@ -514,7 +510,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
         type, a TypeError is raised.
 
         """
-
         if self.atom.kind != "enum":
             raise TypeError(
                 "array ``%s`` is not of an enumerated type" % self._v_pathname
@@ -532,7 +527,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
         sequence.
 
         """
-
         self._g_check_open()
         self._v_file._check_writable()
 
@@ -578,7 +572,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         Examples
         --------
-
         ::
 
             for row in vlarray.iterrows(step=4):
@@ -590,7 +583,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
            In PyTables < 3.0 only one element was returned.
 
         """
-
         (self._start, self._stop, self._step) = self._process_range(
             start, stop, step
         )
@@ -605,7 +597,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         Examples
         --------
-
         ::
 
             result = [row for row in vlarray]
@@ -615,7 +606,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
             result = [row for row in vlarray.iterrows()]
 
         """
-
         if not self._init:
             # If the iterator is called directly, assign default variables
             self._start = 0
@@ -627,8 +617,7 @@ class VLArray(hdf5extension.VLArray, Leaf):
         return self
 
     def _init_loop(self) -> None:
-        """Initialization for the __iter__ iterator."""
-
+        """Initialize the __iter__ iterator."""
         self._nrowsread = self._start
         self._startb = self._start
         self._row = -1  # Sentinel
@@ -642,7 +631,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
         flavor.
 
         """
-
         if self._nrowsread >= self._stop:
             self._init = False
             raise StopIteration  # end of iteration
@@ -677,7 +665,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         Examples
         --------
-
         ::
 
             a_row = vlarray[4]
@@ -687,7 +674,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
             a_list4 = vlarray[np.array([True,...,False])]  # array of bools
 
         """
-
         self._g_check_open()
         if is_idx(key):
             key = operator.index(key)
@@ -714,7 +700,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
     def _assign_values(self, coords: Sequence[int], values: Sequence) -> None:
         """Assign the `values` to the positions stated in `coords`."""
-
         for nrow, value in zip(coords, values):
             if nrow >= self.nrows:
                 raise IndexError("First index out of range")
@@ -789,7 +774,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
 
         Examples
         --------
-
         ::
 
             vlarray[0] = vlarray[0] * 2 + 3
@@ -801,7 +785,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
             vlarray[[1,3]] = new_1_and_3_rows
 
         """
-
         self._g_check_open()
         self._v_file._check_writable()
 
@@ -845,7 +828,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
         start nor stop, then *all the rows* in the array are selected.
 
         """
-
         self._g_check_open()
         start, stop, step = self._process_range_read(start, stop, step)
         if start == stop:
@@ -883,7 +865,6 @@ class VLArray(hdf5extension.VLArray, Leaf):
         **kwargs,
     ) -> tuple[VLArray, int]:
         """Private part of Leaf.copy() for each kind of leaf."""
-
         # Build the new VLArray object
         obj = VLArray(
             group,
@@ -924,8 +905,10 @@ class VLArray(hdf5extension.VLArray, Leaf):
         return (obj, nbytes)
 
     def __repr__(self) -> str:
-        """This provides more metainfo in addition to standard __str__"""
+        """`VLArray` string representation.
 
+        Provides more metainfo w.r.t standard __str__.
+        """
         return f"""{self}
   atom = {self.atom!r}
   byteorder = {self.byteorder!r}

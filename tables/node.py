@@ -71,7 +71,7 @@ class MetaNode(type):
     def __new__(
         cls, name: str, bases: tuple, dict_: dict[str, Any]
     ) -> MetaNode:
-        # Add default behaviour for representing closed nodes.
+        """Add default behavior for representing closed nodes."""
         for mname in ["__str__", "__repr__"]:
             if mname in dict_:
                 dict_[mname] = _closedrepr(dict_[mname])
@@ -156,7 +156,7 @@ class Node(metaclass=MetaNode):
 
     # `_v_parent` is accessed via its file to avoid upwards references.
     def _g_getparent(self) -> Group:
-        """The parent :class:`Group` instance"""
+        """Return the parent :class:`Group` instance."""
         (parentpath, nodename) = split_path(self._v_pathname)
         return self._v_file._get_node(parentpath)
 
@@ -166,20 +166,22 @@ class Node(metaclass=MetaNode):
     # This saves 0.7s/3.8s.
     @lazyattr
     def _v_attrs(self) -> AttributeSet:
-        """The associated `AttributeSet` instance.
+        """`AttributeSet` instance associated to the `Node`.
 
         See Also
         --------
         tables.attributeset.AttributeSet : container for the HDF5 attributes
 
         """
-
         return self._AttributeSet(self)
 
     # '_v_title' is a direct read-write shorthand for the 'TITLE' attribute
     # with the empty string as a default value.
     def _g_gettitle(self) -> str:
-        """A description of this node. A shorthand for TITLE attribute."""
+        """Return the description of the node.
+
+        A shorthand for TITLE attribute.
+        """
         if hasattr(self._v_attrs, "TITLE"):
             return self._v_attrs.TITLE
         else:
@@ -340,7 +342,6 @@ class Node(metaclass=MetaNode):
         If the node is closed, a `ClosedNodeError` is raised.
 
         """
-
         if not self._v_isopen:
             raise ClosedNodeError("the node object is closed")
         assert self._v_file.isopen, "found an open node in a closed file"
@@ -357,7 +358,6 @@ class Node(metaclass=MetaNode):
         `PerformanceWarning` is issued.
 
         """
-
         file_ = parentnode._v_file
         parentdepth = parentnode._v_depth
 
@@ -406,7 +406,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         unique.
 
         """
-
         oldpath = self._v_pathname
         newpath = join_path(newparentpath, self._v_name)
         newdepth = newpath.count("/")
@@ -436,7 +435,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         This also triggers the removal of file references to this node.
 
         """
-
         node_manager = self._v_file._node_manager
         pathname = self._v_pathname
 
@@ -463,7 +461,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         must be updated here.
 
         """
-
         if "_v_attrs" in self.__dict__:
             self._v_attrs._g_update_node_location(self)
 
@@ -478,7 +475,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         the integrated LRU cache.
 
         """
-
         # After calling ``_f_close()``, two conditions are met:
         #
         #   1. The node object is detached from the tree.
@@ -519,7 +515,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         It does not log the change.
 
         """
-
         # Remove the node from the PyTables hierarchy.
         parent = self._v_parent
         parent._g_unrefnode(self._v_name)
@@ -539,7 +534,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         to delete it, you can do this by setting the force flag to true.
 
         """
-
         self._g_check_open()
         file_ = self._v_file
         file_._check_writable()
@@ -565,7 +559,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         It does not log the change.
 
         """
-
         oldparent = self._v_parent
         oldname = self._v_name
         oldpathname = self._v_pathname  # to move the HDF5 node
@@ -605,7 +598,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         it before renaming.
 
         """
-
         self._f_move(newname=newname, overwrite=overwrite)
 
     def _f_move(
@@ -618,12 +610,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """Move or rename this node.
 
         Moves a node into a new parent group, or changes the name of the
-        node. newparent can be a Group object (see :ref:`GroupClassDescr`) or a
-        pathname in string form. If it is not specified or None, the current
-        parent group is chosen as the new parent.  newname must be a string
-        with a new name. If it is not specified or None, the current name is
-        chosen as the new name. If createparents is true, the needed groups for
-        the given new parent group path to exist will be created.
+        node. `newparent` can be a Group object (see :ref:`GroupClassDescr`)
+        or a pathname in string form. If it is not specified or `None`, the
+        current parent group is chosen as the new parent.  newname must be
+        a string with a new name.
+        If it is not specified or None, the current name is chosen as the
+        new name. If `createparents` is true, the needed groups for the
+        given new parent group path to exist will be created.
 
         Moving a node across databases is not allowed, nor it is moving a node
         *into* itself. These result in a NodeError. However, moving a node
@@ -637,7 +630,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         second argument is equivalent to renaming the node in place.
 
         """
-
         self._g_check_open()
         file_ = self._v_file
         oldparent = self._v_parent
@@ -731,7 +723,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         optimising sub-tree copies.
 
         """
-
         raise NotImplementedError
 
     def _g_copy_as_child(self, newparent: Group, **kwargs) -> Node:
@@ -742,7 +733,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         be used when copying whole sub-trees.
 
         """
-
         return self._g_copy(
             newparent, self._v_name, recursive=False, _log=False, **kwargs
         )
@@ -786,7 +776,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         is equivalent to making a copy of the node in the same group.
 
         """
-
         self._g_check_open()
         srcfile = self._v_file
         srcparent = self._v_parent
@@ -856,8 +845,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return self._g_copy(dstparent, dstname, recursive, **kwargs)
 
     def _f_isvisible(self) -> bool:
-        """Is this node visible?"""
-
+        """Return True if the node is visible."""
         self._g_check_open()
         return isvisiblepath(self._v_pathname)
 
@@ -906,7 +894,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         have successfully passed.
 
         """
-
         if name.startswith("_i_"):
             # This is reserved for table index groups.
             raise ValueError(
@@ -920,7 +907,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         raised.
 
         """
-
         return getattr(self._v_attrs, name)
 
     def _f_setattr(self, name: str, value: Any) -> None:
@@ -930,7 +916,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         PerformanceWarning is issued.
 
         """
-
         setattr(self._v_attrs, name, value)
 
     def _f_delattr(self, name: str) -> None:
@@ -940,13 +925,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         raised.
 
         """
-
         delattr(self._v_attrs, name)
-
-    # </attribute handling>
 
 
 class NotLoggedMixin:
+    """Mixin class suppressing logging in a node tree."""
+
     # Include this class in your inheritance tree
     # to avoid changes to instances of your class from being logged.
 

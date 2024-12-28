@@ -84,7 +84,6 @@ class CArray(Array):
 
     Examples
     --------
-
     See below a small example of the use of the `CArray` class.
     The code is available in ``examples/carray1.py``::
 
@@ -226,7 +225,6 @@ class CArray(Array):
 
     def _g_create(self) -> int:
         """Create a new array in file (specific part)."""
-
         if min(self.shape) < 1:
             raise ValueError("shape parameter cannot have zero-dimensions.")
         # Finish the common part of creation process
@@ -234,7 +232,6 @@ class CArray(Array):
 
     def _g_create_common(self, expectedrows: int) -> int:
         """Create a new array in file (common part)."""
-
         self._v_version = obversion
 
         if self._v_chunkshape is None:
@@ -274,7 +271,6 @@ class CArray(Array):
         **kwargs,
     ) -> tuple[CArray, int]:
         """Private part of Leaf.copy() for each kind of leaf."""
-
         (start, stop, step) = self._process_range_read(start, stop, step)
         maindim = self.maindim
         shape = list(self.shape)

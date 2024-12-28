@@ -134,6 +134,7 @@ def _index_pathname_of_column_(table_path: str, colpathname: str) -> str:
 
 
 def restorecache(self: Table) -> None:
+    """Restore the chunk cache."""
     # Define a cache for sparse table reads
     params = self._v_file.params
     chunksize = self._v_chunkshape[0]
@@ -239,6 +240,7 @@ def _table__where_indexed(
 
 
 def create_indexes_table(table: Table) -> IndexesTableG:
+    """Create indexes for a table."""
     itgroup = IndexesTableG(
         table._v_parent,
         _index_name_of(table),
@@ -251,6 +253,7 @@ def create_indexes_table(table: Table) -> IndexesTableG:
 def create_indexes_descr(
     igroup: Group, dname: str, iname: str, filters: Filters | None
 ) -> IndexesDescG:
+    """Create indexes descriptor."""
     idgroup = IndexesDescG(
         igroup,
         iname,
@@ -370,11 +373,10 @@ def _column__create_index(
 
 
 class _ColIndexes(dict):
-    """Provides a nice representation of column indexes."""
+    """Provide a nice representation of column indexes."""
 
     def __repr__(self) -> str:
-        """Gives a detailed Description column representation."""
-
+        """Return a detailed Description column representation."""
         rep = [f'  "{k}": {v}' for k, v in self.items()]
         return "{\n  %s}" % (",\n  ".join(rep))
 
@@ -550,43 +552,41 @@ class Table(tableextension.Table, Leaf):
 
     @lazyattr
     def row(self) -> tableextension.Row:
-        """The associated Row instance (see :ref:`RowClassDescr`)."""
-
+        """Row instance (see :ref:`RowClassDescr`) associated to the Table."""
         return tableextension.Row(self)
 
     @lazyattr
     def dtype(self) -> np.dtype:
-        """The NumPy ``dtype`` that most closely matches this table."""
-
+        """Numpy ``dtype`` that most closely matches this table."""
         return self.description._v_dtype
 
     @property
     def shape(self) -> tuple[int]:
-        """The shape of this table."""
+        """Shape of this table."""
         return (self.nrows,)
 
     @property
     def rowsize(self) -> int:
-        """The size in bytes of each row in the table."""
+        """Size in bytes of each row in the table."""
         return self.description._v_dtype.itemsize
 
     @property
     def size_in_memory(self) -> int:
-        """The size of this table's data in bytes when it is fully loaded into
-        memory.  This may be used in combination with size_on_disk to calculate
-        the compression ratio of the data."""
+        """Size of the table's data in bytes when fully loaded in memory.
+
+        This may be used in combination with size_on_disk to calculate
+        the compression ratio of the data.
+        """
         return self.nrows * self.rowsize
 
     @lazyattr
     def _v_iobuf(self) -> np.ndarray:
-        """A buffer for doing I/O."""
-
+        """Buffer for doing I/O."""
         return self._get_container(self.nrowsinbuf)
 
     @lazyattr
     def _v_wdflts(self) -> np.ndarray | None:
-        """The defaults for writing in recarray format."""
-
+        """Contain the default values for writing in recarray format."""
         # First, do a check to see whether we need to set default values
         # different from 0 or not.
         for coldflt in self.coldflts.values():
@@ -603,7 +603,7 @@ class Table(tableextension.Table, Leaf):
 
     @lazyattr
     def _colunaligned(self) -> frozenset:
-        """The pathnames of unaligned, *unidimensional* columns."""
+        """Pathnames of unaligned, *unidimensional* columns."""
         colunaligned, rarr = [], self._get_container(0)
         for colpathname in self.colpathnames:
             carr = get_nested_field(rarr, colpathname)
@@ -624,7 +624,7 @@ class Table(tableextension.Table, Leaf):
 
     @property
     def autoindex(self) -> bool:
-        """Automatically keep column indexes up to date?
+        """Is True if the `Table` automatically keep column indexes up to date.
 
         Setting this value states whether existing indexes should be
         automatically updated after an append operation or recomputed
@@ -641,7 +641,6 @@ class Table(tableextension.Table, Leaf):
         .. versionchanged:: 3.0
            The *autoIndex* property has been renamed into *autoindex*.
         """
-
         if self._autoindex is None:
             try:
                 indexgroup = self._v_file._get_node(_index_pathname_of(self))
@@ -677,7 +676,7 @@ class Table(tableextension.Table, Leaf):
 
     @property
     def colindexes(self) -> _ColIndexes:
-        """A dictionary with the indexes of the indexed columns."""
+        """Return a dictionary with the indexes of the indexed columns."""
         return _ColIndexes(
             (_colpname, self.cols._f_col(_colpname).index)
             for _colpname in self.colpathnames
@@ -960,7 +959,6 @@ class Table(tableextension.Table, Leaf):
 
     def _calc_nrowsinbuf(self) -> int:
         """Calculate the number of rows that fits on a PyTables buffer."""
-
         params = self._v_file.params
         # Compute the nrowsinbuf
         rowsize = self.rowsize
@@ -989,14 +987,14 @@ class Table(tableextension.Table, Leaf):
             maxrowsize = params["BUFFER_TIMES"] * buffersize
             if rowsize > maxrowsize:
                 warnings.warn(
-                    """\
-The Table ``%s`` is exceeding the maximum recommended rowsize (%d bytes);
+                    f"""\
+The Table ``{self._v_pathname}`` is exceeding the maximum recommended rowsize
+({maxrowsize} bytes);
 be ready to see PyTables asking for *lots* of memory and possibly slow
 I/O.  You may want to reduce the rowsize by trimming the value of
 dimensions that are orthogonal (and preferably close) to the *main*
 dimension of this leave.  Alternatively, in case you have specified a
-very small/large chunksize, you may want to increase/decrease it."""
-                    % (self._v_pathname, maxrowsize),
+very small/large chunksize, you may want to increase/decrease it.""",
                     PerformanceWarning,
                 )
         return nrowsinbuf
@@ -1011,15 +1009,12 @@ very small/large chunksize, you may want to increase/decrease it."""
             return arr
 
     def _get_container(self, shape: int) -> np.ndarray:
-        """Get the appropriate buffer for data depending on table
-        nestedness."""
-
+        """Get the appropriate buffer for data depending on table nestedness."""
         # This is *much* faster than the numpy.rec.array counterpart
         return np.empty(shape=shape, dtype=self._v_dtype)
 
     def _get_type_col_names(self, type_: str) -> list[str]:
-        """Returns a list containing 'type_' column names."""
-
+        """Return a list containing 'type_' column names."""
         return [
             colobj._v_pathname
             for colobj in self.description._f_walk("Col")
@@ -1028,7 +1023,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _get_enum_map(self) -> dict[str, Enum]:
         """Return mapping from enumerated column names to `Enum` instances."""
-
         enum_map = {}
         for colobj in self.description._f_walk("Col"):
             if colobj.kind == "enum":
@@ -1037,7 +1031,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _g_create(self) -> int:
         """Create a new table on disk."""
-
         # Warning against assigning too much columns...
         # F. Alted 2005-06-05
         max_columns = self._v_file.params["MAX_COLUMNS"]
@@ -1096,13 +1089,12 @@ very small/large chunksize, you may want to increase/decrease it."""
         return self._v_objectid
 
     def _g_open(self) -> int:
-        """Opens a table from disk and read the metadata on it.
+        """Open a table from disk and read the metadata on it.
 
         Creates an user description on the flight to easy the access to
         the actual data.
 
         """
-
         # 1. Open the HDF5 table and get some data from it.
         self._v_objectid, description, chunksize = self._get_info()
         self._v_expectedrows = self.nrows  # the actual number of rows
@@ -1175,7 +1167,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         * `self._colenums`
 
         """
-
         self.colnames = list(self.description._v_names)
         self.colpathnames = [
             col._v_pathname
@@ -1209,7 +1200,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         raised.
 
         """
-
         try:
             return functools.reduce(
                 getattr, colpathname.split("/"), self.description
@@ -1228,7 +1218,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         *Use only for testing.*
 
         """
-
         if not self._enabled_indexing_in_queries:
             return  # already disabled
         # The nail avoids setting/getting compiled conditions in/from
@@ -1242,7 +1231,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         *Use only for testing.*
 
         """
-
         if self._enabled_indexing_in_queries:
             return  # already enabled
         self._condition_cache.unnail()
@@ -1275,7 +1263,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         or global variables.
 
         """
-
         # Get the names of variables used in the expression.
         exprvarscache = self._exprvars_cache
         if expression not in exprvarscache:
@@ -1382,7 +1369,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         (all are tuples).
 
         """
-
         # Variable names for column and normal variables.
         colnames, varnames = [], []
         # Column paths and types for each of the previous variable.
@@ -1420,7 +1406,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         This method makes use of the condition cache when possible.
 
         """
-
         # Look up the condition in the condition cache.
         condcache = self._condition_cache
         condkey = self._get_condition_key(condition, condvars)
@@ -1472,7 +1457,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         condition: str,
         condvars: dict[str, Column | np.ndarray] | None = None,
     ) -> frozenset:
-        """Will a query for the condition use indexing?
+        """Return True if the query for the condition will use indexing.
 
         The meaning of the condition and *condvars* arguments is the same as in
         the :meth:`Table.where` method. If condition can use indexing, this
@@ -1484,7 +1469,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         return different values for the same arguments at different times.
 
         """
-
         # Compile the condition and extract usable index conditions.
         condvars = self._required_expr_vars(condition, condvars, depth=2)
         compiled = self._compile_condition(condition, condvars)
@@ -1544,7 +1528,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Examples
         --------
-
         ::
 
             passvalues = [ row['col3'] for row in
@@ -1589,7 +1572,6 @@ very small/large chunksize, you may want to increase/decrease it."""
            The start, stop and step parameters now behave like in slice.
 
         """
-
         return self._where(condition, condvars, start, stop, step)
 
     def _where(
@@ -1601,7 +1583,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         step: str | None = None,
     ) -> Iterator[tableextension.Row]:
         """Low-level counterpart of `self.where()`."""
-
         if profile:
             tref = clock()
         if profile:
@@ -1658,7 +1639,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         :meth:`Table.where` method.
 
         """
-
         self._g_check_open()
         coords = [
             p.nrow for p in self._where(condition, condvars, start, stop, step)
@@ -1695,7 +1675,6 @@ very small/large chunksize, you may want to increase/decrease it."""
            The *whereAppend* method has been renamed into *append_where*.
 
         """
-
         self._g_check_open()
 
         # Check that the destination file is not in read-only mode.
@@ -1738,7 +1717,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         :meth:`Table.where` method.
 
         """
-
         self._g_check_open()
 
         coords = [
@@ -1753,7 +1731,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def itersequence(self, sequence: Sequence) -> Iterator[tableextension.Row]:
         """Iterate over a sequence of row coordinates."""
-
         if not hasattr(sequence, "__getitem__"):
             raise TypeError(
                 "Wrong 'sequence' parameter type. Only sequences "
@@ -1810,8 +1787,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         stop: int | None = None,
         step: int | None = None,
     ) -> Iterator[tableextension.Row]:
-        """Iterate table data following the order of the index of sortby
-        column.
+        """Iterate table data in the order of the index of sortby column.
 
         The sortby column must have associated a full index.  If you want to
         ensure a fully sorted order, the index must be a CSI one.  You may want
@@ -1827,7 +1803,6 @@ very small/large chunksize, you may want to increase/decrease it."""
            In PyTables < 3.0 only one element was returned.
 
         """
-
         index = self._check_sortby_csi(sortby, checkCSI)
         # Adjust the slice to be used.
         (start, stop, step) = self._process_range(
@@ -1868,7 +1843,6 @@ very small/large chunksize, you may want to increase/decrease it."""
            The start, stop and step parameters now behave like in slice.
 
         """
-
         self._g_check_open()
         index = self._check_sortby_csi(sortby, checkCSI)
         coords = index[start:stop:step]
@@ -1900,7 +1874,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Examples
         --------
-
         ::
 
             result = [ row['var2'] for row in table.iterrows(step=5)
@@ -1933,7 +1906,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Examples
         --------
-
         ::
 
             result = [ row['var2'] for row in table if row['var1'] <= 20 ]
@@ -1944,7 +1916,6 @@ very small/large chunksize, you may want to increase/decrease it."""
                                                     if row['var1'] <= 20 ]
 
         """
-
         return self.iterrows()
 
     def _read(
@@ -1956,7 +1927,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         out: np.ndarray | None = None,
     ) -> np.ndarray:
         """Read a range of rows and return an in-memory object."""
-
         select_field = None
         if field:
             if field not in self.coldtypes:
@@ -2081,7 +2051,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Examples
         --------
-
         Reading the entire table::
 
             t.read()
@@ -2095,7 +2064,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             t.read(6)
 
         """
-
         self._g_check_open()
 
         if field:
@@ -2119,7 +2087,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         self, coords: np.ndarray, field: str | None = None
     ) -> np.ndarray:
         """Private part of `read_coordinates()` with no flavor conversion."""
-
         coords = self._point_selection(coords)
 
         ncoords = len(coords)
@@ -2166,7 +2133,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         current flavor.
 
         """
-
         self._g_check_open()
         result = self._read_coordinates(coords, field)
         return internal_to_flavor(result, self.flavor)
@@ -2180,7 +2146,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         the column does not exist, a KeyError is raised.
 
         """
-
         self._check_column(colname)
 
         try:
@@ -2199,7 +2164,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Examples
         --------
-
         ::
 
             narray = table.col('var2')
@@ -2212,7 +2176,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         :meth:`Table.read` method.
 
         """
-
         return self.read(field=name)
 
     def __getitem__(
@@ -2234,7 +2197,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Examples
         --------
-
         ::
 
             record = table[4]
@@ -2253,7 +2215,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         :meth:`Table.read` and :meth:`Table.read_coordinates` methods.
 
         """
-
         self._g_check_open()
 
         if is_idx(key):
@@ -2301,7 +2262,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Examples
         --------
-
         ::
 
             # Modify just one existing row
@@ -2330,7 +2290,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         methods.
 
         """
-
         self._g_check_open()
         self._v_file._check_writable()
 
@@ -2357,7 +2316,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _save_buffered_rows(self, wbuf_ra: np.ndarray, lenrows: int) -> None:
         """Update the indexes after a flushing of rows."""
-
         self._open_append(wbuf_ra)
         self._append_records(lenrows)
         self._close_append()
@@ -2383,7 +2341,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Examples
         --------
-
         ::
 
             import tables as tb
@@ -2406,7 +2363,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             fileh.close()
 
         """
-
         self._g_check_open()
         self._v_file._check_writable()
 
@@ -2446,7 +2402,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _conv_to_recarr(self, obj: Sequence) -> np.ndarray:
         """Try to convert the object into a recarray."""
-
         try:
             iflavor = flavor_of(obj)
             if iflavor != "python":
@@ -2482,7 +2437,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         :meth:`Table.append`.
 
         """
-
         if rows is None:  # Nothing to be done
             return SizeType(0)
 
@@ -2526,7 +2480,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         :meth:`Table.append`.
 
         """
-
         if step is None:
             step = 1
         if rows is None:  # Nothing to be done
@@ -2766,7 +2719,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         :class:`Table`) and you want to update the indexes on it.
 
         """
-
         rowsadded = 0
         if self.indexed:
             # Update the number of unsaved indexed rows
@@ -2787,7 +2739,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         self, colname: str, start: int, nrows: int, lastrow: bool, update: bool
     ) -> int:
         """Add more elements to the existing index."""
-
         # This method really belongs to Column, but since it makes extensive
         # use of the table, it gets dangerous when closing the file, since the
         # column may be accessing a table which is being destroyed.
@@ -2849,7 +2800,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Examples
         --------
-
         Removing rows from 5 to 10 (excluded)::
 
             t.remove_rows(5, 10)
@@ -2868,7 +2818,6 @@ very small/large chunksize, you may want to increase/decrease it."""
             :meth:`remove_row` method.
 
         """
-
         (start, stop, step) = self._process_range(start, stop, step)
         nrows = self._remove_rows(start, stop, step)
         # remove_rows is an invalidating index operation
@@ -2877,7 +2826,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         return SizeType(nrows)
 
     def remove_row(self, n: int) -> None:
-        """Removes a row from the table.
+        """Remove a row from the table.
 
         Parameters
         ----------
@@ -2889,7 +2838,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
         Examples
         --------
-
         Remove row 15::
 
             table.remove_row(15)
@@ -2905,7 +2853,6 @@ very small/large chunksize, you may want to increase/decrease it."""
                 table.remove_rows(15)
 
         """
-
         self.remove_rows(start=n, stop=n + 1)
 
     def _g_update_dependent(self) -> None:
@@ -2924,7 +2871,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         This overloads the Node._g_move() method.
 
         """
-
         itgpathname = _index_pathname_of(self)
 
         # First, move the table to the new location.
@@ -2956,7 +2902,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _set_column_indexing(self, colpathname: str, indexed: bool) -> None:
         """Mark the referred column as indexed or non-indexed."""
-
         colindexed = self.colindexed
         isindexed, wasindexed = bool(indexed), colindexed[colpathname]
         if isindexed == wasindexed:
@@ -2969,7 +2914,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _mark_columns_as_dirty(self, colnames: list[str]) -> None:
         """Mark column indexes in `colnames` as dirty."""
-
         assert len(colnames) > 0
         if self.indexed:
             colindexed, cols = self.colindexed, self.cols
@@ -2981,7 +2925,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _reindex(self, colnames: list[str]) -> None:
         """Re-index columns in `colnames` if automatic indexing is true."""
-
         if self.indexed:
             colindexed, cols = self.colindexed, self.cols
             colstoindex = []
@@ -2998,8 +2941,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             self._dirtycache = True
 
     def _do_reindex(self, dirty: bool) -> int:
-        """Common code for `reindex()` and `reindex_dirty()`."""
-
+        """Execute common code for `reindex()` and `reindex_dirty()`."""
         indexedrows = 0
         for colname, colindexed in self.colindexed.items():
             if colindexed:
@@ -3020,7 +2962,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         rebuild the indexes on it.
 
         """
-
         self._do_reindex(dirty=False)
 
     def reindex_dirty(self) -> None:
@@ -3032,7 +2973,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         (:meth:`Table.remove_rows`, for example).
 
         """
-
         self._do_reindex(dirty=True)
 
     def _g_copy_rows(
@@ -3044,7 +2984,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         sortby: Column | str | None,
         checkCSI: bool,  # noqa: N803
     ) -> None:
-        """Copy rows from self to object"""
+        """Copy rows from self to object."""
         if sortby is None:
             self._g_copy_rows_optim(obj, start, stop, step)
             return
@@ -3072,8 +3012,7 @@ very small/large chunksize, you may want to increase/decrease it."""
     def _g_copy_rows_optim(
         self, obj: Table, start: int, stop: int, step: int
     ) -> None:
-        """Copy rows from self to object (optimized version)"""
-
+        """Copy rows from self to object (optimized version)."""
         nrowsinbuf = self.nrowsinbuf
         obj._open_append(self._v_iobuf)
         nrowsdest = obj.nrows
@@ -3093,7 +3032,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _g_prop_indexes(self, other: Table) -> None:
         """Generate index in `other` table for every indexed column here."""
-
         oldcols, newcols = self.colinstances, other.colinstances
         for colname in newcols:
             if isinstance(oldcols[colname], Column):
@@ -3122,7 +3060,6 @@ very small/large chunksize, you may want to increase/decrease it."""
         **kwargs,
     ) -> tuple[Table, int]:
         """Private part of Leaf.copy() for each kind of leaf."""
-
         # Get the private args for the Table flavor of copy()
         sortby = kwargs.pop("sortby", None)
         propindexes = kwargs.pop("propindexes", False)
@@ -3187,14 +3124,12 @@ very small/large chunksize, you may want to increase/decrease it."""
             not propagated.
 
         """
-
         return super().copy(
             newparent, newname, overwrite, createparents, **kwargs
         )
 
     def flush(self) -> None:
         """Flush the table buffers."""
-
         if self._v_file._iswritable():
             # Flush rows that remains to be appended
             if "row" in self.__dict__:
@@ -3216,7 +3151,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _g_pre_kill_hook(self) -> None:
         """Code to be called before killing the node."""
-
         # Flush the buffers before to clean-up them
         # self.flush()
         # It seems that flushing during the __del__ phase is a sure receipt for
@@ -3287,24 +3221,18 @@ very small/large chunksize, you may want to increase/decrease it."""
         super()._f_close(False)
 
     def __repr__(self) -> str:
-        """This provides column metainfo in addition to standard __str__"""
+        """Return the string representation of `Table` objects.
 
+        This provides column metainfo in addition to standard __str__.
+        """
         if self.indexed:
-            fmt = """\
-%s
-  description := %r
-  byteorder := %r
-  chunkshape := %r
-  autoindex := %r
-  colindexes := %r"""
-            return fmt % (
-                str(self),
-                self.description,
-                self.byteorder,
-                self.chunkshape,
-                self.autoindex,
-                _ColIndexes(self.colindexes),
-            )
+            return f"""\
+{self}
+  description := {self.description!r}
+  byteorder := {self.byteorder!r}
+  chunkshape := {self.chunkshape!r}
+  autoindex := {self.autoindex!r}
+  colindexes := {_ColIndexes(self.colindexes)!r}"""
         else:
             return f"""\
 {self}
@@ -3356,7 +3284,7 @@ class Cols:
 
     @property
     def _v_table(self) -> Table:
-        """The parent Table instance (see :ref:`TableClassDescr`)."""
+        """Return the parent Table instance (see :ref:`TableClassDescr`)."""
         return self._v__tableFile._get_node(self._v__tablePath)
 
     def __init__(self, table: Table, desc: Description) -> None:
@@ -3374,8 +3302,7 @@ class Cols:
                 dict_[name] = Cols(table, desc._v_colobjects[name])
 
     def _g_update_table_location(self, table: Table) -> None:
-        """Updates the location information about the associated `table`."""
-
+        """Update the location information about the associated `table`."""
         dict_ = self.__dict__
         dict_["_v__tableFile"] = table._v_file
         dict_["_v__tablePath"] = table._v_pathname
@@ -3386,7 +3313,6 @@ class Cols:
 
     def __len__(self) -> int:
         """Get the number of top level columns in table."""
-
         return len(self._v_colnames)
 
     def _f_col(self, colname: str) -> Cols:
@@ -3403,7 +3329,6 @@ class Cols:
         Python identifiers.
 
         """
-
         if not isinstance(colname, str):
             raise TypeError(
                 f"Parameter can only be an string. You passed object: "
@@ -3422,7 +3347,6 @@ class Cols:
 
     def _g_col(self, colname: str) -> Cols:
         """Like `self._f_col()` but it does not check arguments."""
-
         # Get the Column or Description object
         inames = colname.split("/")
         cols = self
@@ -3440,7 +3364,6 @@ class Cols:
 
         Examples
         --------
-
         ::
 
             record = table.cols[4]  # equivalent to table[4]
@@ -3498,7 +3421,6 @@ class Cols:
 
         Examples
         --------
-
         ::
 
             table.cols[4] = record
@@ -3514,7 +3436,6 @@ class Cols:
         :meth:`Table.modify_column` methods.
 
         """
-
         table = self._v_table
         nrows = table.nrows
         if is_idx(key):
@@ -3557,8 +3478,7 @@ class Cols:
         self.__dict__.clear()
 
     def __str__(self) -> str:
-        """The string representation for this object."""
-
+        """Return the string representation for this object."""
         # The pathname
         descpathname = self._v_desc._v_pathname
         if descpathname:
@@ -3570,8 +3490,7 @@ class Cols:
         )
 
     def __repr__(self) -> str:
-        """A detailed string representation for this object."""
-
+        """Detailed string representation for this object."""
         lines = [f"{self!s}"]
         for name in self._v_colnames:
             # Get this class name
@@ -3633,25 +3552,27 @@ class Column:
 
     @lazyattr
     def dtype(self) -> np.dtype:
-        """The NumPy dtype that most closely matches this column."""
-
+        """Return the NumPy dtype that most closely matches this column."""
         return self.descr._v_dtypes[self.name].base  # Get rid of shape info
 
     @lazyattr
     def type(self) -> str:  # noqa: A003
-        """The PyTables type of the column (a string)."""
-
+        """Return the PyTables type of the column (a string)."""
         return self.descr._v_types[self.name]
 
     @property
     def table(self) -> Table:
-        """The parent Table instance (see :ref:`TableClassDescr`)."""
+        """Return the parent Table instance (see :ref:`TableClassDescr`)."""
         return self._table_file._get_node(self._table_path)
 
     @property
     def index(self) -> Index | None:
-        """The Index instance (see :ref:`IndexClassDescr`) associated with this
-        column (None if the column is not indexed)."""
+        """Return the Index instance associated with this column.
+
+        Return `None` if the column is not indexed.
+
+        See :ref:`IndexClassDescr`.
+        """
         index_path = _index_pathname_of_column_(
             self._table_path, self.pathname
         )
@@ -3667,12 +3588,12 @@ class Column:
 
     @property
     def shape(self) -> tuple[int, ...]:
-        """The shape of this column."""
+        """Return the shape of this column."""
         return (self.table.nrows,) + self.descr._v_dtypes[self.name].shape
 
     @property
     def is_indexed(self) -> bool:
-        """True if the column is indexed, false otherwise."""
+        """Return True if the column is indexed, false otherwise."""
         if self.index is None:
             return False
         else:
@@ -3680,8 +3601,10 @@ class Column:
 
     @property
     def maindim(self) -> int:
-        """The dimension along which iterators work. Its value is 0 (i.e. the
-        first dimension)."""
+        """Return the dimension along which iterators work.
+
+        Its value is 0 (i.e. the first dimension).
+        """
         return 0
 
     def __init__(self, table: Table, name: str, descr: Description) -> None:
@@ -3698,8 +3621,7 @@ class Column:
         self._v_attrs = ColumnAttributeSet(self)
 
     def _g_update_table_location(self, table: Table) -> None:
-        """Updates the location information about the associated `table`."""
-
+        """Update the location information about the associated `table`."""
         self._table_file = table._v_file
         self._table_path = table._v_pathname
 
@@ -3709,7 +3631,6 @@ class Column:
         This matches the length in rows of the parent table.
 
         """
-
         return self.table.nrows
 
     def __getitem__(self, key: int | slice) -> np.ndarray:
@@ -3722,7 +3643,6 @@ class Column:
 
         Examples
         --------
-
         ::
 
             print("Column handlers:")
@@ -3754,7 +3674,6 @@ class Column:
         See the :file:`examples/table2.py` file for a more complete example.
 
         """
-
         table = self.table
 
         # Generalized key support not there yet, but at least allow
@@ -3784,7 +3703,6 @@ class Column:
 
     def __iter__(self) -> Generator[np.ndarray]:
         """Iterate through all items in the column."""
-
         table = self.table
         itemsize = self.dtype.itemsize
         nrowsinbuf = table._v_file.params["IO_BUFFER_SIZE"] // itemsize
@@ -3807,7 +3725,6 @@ class Column:
 
         Examples
         --------
-
         ::
 
             # Modify row 1
@@ -3827,7 +3744,6 @@ class Column:
                                  names=['col1'])
 
         """
-
         table = self.table
         table._v_file._check_writable()
 
@@ -3910,7 +3826,6 @@ class Column:
             original table.
 
         """
-
         kinds = ["ultralight", "light", "medium", "full"]
         if kind not in kinds:
             raise ValueError("Kind must have any of these values: %s" % kinds)
@@ -3964,7 +3879,6 @@ class Column:
         Column.create_index(optlevel=9, kind='full', ...).
 
         """
-
         return self.create_index(
             kind="full",
             optlevel=9,
@@ -3976,8 +3890,7 @@ class Column:
         )
 
     def _do_reindex(self, dirty: bool) -> int:
-        """Common code for reindex() and reindex_dirty() codes."""
-
+        """Execute common code for reindex() and reindex_dirty() codes."""
         index = self.index
         dodirty = True
         if dirty and not index.dirty:
@@ -4011,7 +3924,6 @@ class Column:
         This method does nothing if the column is not indexed.
 
         """
-
         self._do_reindex(dirty=False)
 
     def reindex_dirty(self) -> None:
@@ -4024,7 +3936,6 @@ class Column:
         This method does nothing if the column is not indexed.
 
         """
-
         self._do_reindex(dirty=True)
 
     def remove_index(self) -> None:
@@ -4035,7 +3946,6 @@ class Column:
         method.
 
         """
-
         self._table_file._check_writable()
 
         # Remove the index if existing.
@@ -4045,13 +3955,11 @@ class Column:
             self.table._set_column_indexing(self.pathname, False)
 
     def close(self) -> None:
-        """Close this column."""
-
+        """Close the column."""
         self.__dict__.clear()
 
     def __str__(self) -> str:
-        """The string representation for this object."""
-
+        """Return the string representation for this object."""
         return (
             f"{self._table_path}.cols.{self.pathname.replace('/', '.')} "
             f"({self.__class__.__name__}{self.shape}, "
@@ -4059,8 +3967,7 @@ class Column:
         )
 
     def __repr__(self) -> str:
-        """A detailed string representation for this object."""
-
+        """Detailed string representation for this object."""
         return str(self)
 
     @lazyattr
@@ -4073,10 +3980,12 @@ class Column:
 
     @property
     def attrs(self) -> ColumnAttributeSet:
+        """Column attributes."""
         return self._v_attrs
 
 
 class ColumnAttributeSet:
+    """Column attribute set."""
 
     def __init__(self, column: Column) -> None:
 
@@ -4090,51 +3999,51 @@ class ColumnAttributeSet:
             self.__setitem__(col_attr_key, col_attr_val)
 
     def issystemcolumnname(self, key: str) -> bool:
-        """Checks whether a key is a reserved attribute name."""
+        """Check whether a key is a reserved attribute name."""
         return key in ["_v_tableattrs", "_v_fieldindex", "_v_column_reference"]
 
     def _prefix(self, string: str) -> str:
-        """Prefixes keys with a special pattern for storing table attributes"""
+        """Prefix keys with a special pattern for storing table attributes."""
         field_index = self.__dict__["_v_fieldindex"]
         return "FIELD_%i_ATTR_%s" % (field_index, string)
 
     def __getattr__(self, key: str) -> Any:
-        """Retrieves a PyTables attribute for this column"""
+        """Retrieve a PyTables attribute for this column."""
         if not self.issystemcolumnname(key):
             return getattr(self._v_tableattrs, self._prefix(key))
         else:
             return super().__getattr__(key)
 
     def __setattr__(self, key: str, val: Any) -> Any:
-        """Sets a PyTables attribute for this column"""
+        """Set a PyTables attribute for this column."""
         if not self.issystemcolumnname(key):
             setattr(self._v_tableattrs, self._prefix(key), val)
         else:
             return super().__setattr__(key, val)
 
     def __getitem__(self, key: str) -> Any:
-        """A dictionary-like interface for __getattr__"""
+        """Dictionary-like interface for __getattr__."""
         if not self.issystemcolumnname(key):
             return self._v_tableattrs[self._prefix(key)]
         else:
             return self[key]
 
     def __setitem__(self, key: str, value: Any) -> None:
-        """A dictionary-like interface for __setattr__"""
+        """Dictionary-like interface for __setattr__."""
         if not self.issystemcolumnname(key):
             self._v_tableattrs[self._prefix(key)] = value
         else:
             self[key] = value
 
     def __delattr__(self, key: str) -> None:
-        """Deletes the attribute for this column"""
+        """Delete the attribute for this column."""
         if self.issystemcolumnname(key):
             raise TypeError("Deleting system attributes is prohibited")
         else:
             delattr(self._v_tableattrs, self._prefix(key))
 
     def __delitem__(self, key: str) -> None:
-        """A dictionary-like interface for __delattr__"""
+        """Dictionary-like interface for __delattr__."""
         if self.issystemcolumnname(key):
             raise TypeError("Deleting system attributes is prohibited")
         else:
@@ -4142,7 +4051,6 @@ class ColumnAttributeSet:
 
     def _f_rename(self, oldattrname: str, newattrname: str) -> None:
         """Rename an attribute from oldattrname to newattrname."""
-
         if oldattrname == newattrname:
             # Do nothing
             return
@@ -4160,8 +4068,7 @@ class ColumnAttributeSet:
         delattr(self, oldattrname)
 
     def _f_copy(self, where: Column) -> None:
-        """Copy attributes to another column"""
-
+        """Copy attributes to another column."""
         # Is there a better way to do this?
         if not isinstance(where, Column):
             raise TypeError(f"destination object is not a column: {where!r}")
@@ -4170,7 +4077,7 @@ class ColumnAttributeSet:
             where.attrs[key] = self[key]
 
     def keys(self) -> list[str]:
-        """Returns the list of attributes for this column"""
+        """Return the list of attributes for this column."""
         col_prefix = self._prefix("")
         length = len(col_prefix)
         return [
@@ -4180,12 +4087,11 @@ class ColumnAttributeSet:
         ]
 
     def contains(self, key: str) -> bool:
-        """Returns whether a key is in the attribute set"""
+        """Return whether a key is in the attribute set."""
         return key in self.keys()
 
     def __str__(self) -> str:
-        """The string representation for this object."""
-
+        """Return the string representation for this object."""
         pathname = self._v_tableattrs._v__nodepath
         classname = self._v_column_reference().__class__.__name__
         # self._v_tableattrs._v_node.__class__.__name__
@@ -4198,8 +4104,7 @@ class ColumnAttributeSet:
         )
 
     def __repr__(self) -> str:
-        """A detailed string representation for this object."""
-
+        """Detailed string representation for this object."""
         # print additional info only if there are attributes to show
         attrnames = self.keys()
         if attrnames:
