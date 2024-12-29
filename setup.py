@@ -369,11 +369,8 @@ class BasePackage:
         # Try this before the absolute path search below: A Valentino
         for prefix in self._runtime_prefixes:
             for suffix in self._runtime_suffixes:
-                path = f"{prefix}{self.runtime_name}{suffix}"
-                # Debug: print("find_runtime_path() trying ", path)
-                      
                 try:
-                    ctypes.CDLL(path)
+                    ctypes.CDLL(f"{prefix}{self.runtime_name}{suffix}")
                 except OSError:
                     pass
                 else:
@@ -523,8 +520,8 @@ class BasePackage:
                     directories[idx] = Path(path[: path.rfind(name)])
                 else:
                     directories[idx] = Path(path).parent
-            else:
-                print("Warning: path is not set.")
+            #else:
+            #    print("Warning: path is not set.")
         return tuple(directories)
 
 
