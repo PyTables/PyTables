@@ -10,7 +10,29 @@
 Changes from 3.10.2 to 3.10.1
 =============================
 
-XXX version-specific blurb XXX
+- Wheels for Python v3.13 are now provided (:issue:`1217`).
+- Convert HDF5-Blosc sources into Git submodule (:issue:`1197`).
+- Complete code re-formatting and improvement of variables naming.
+  Now the entire codebase is fully PEP8 compliant and regularly checked in
+  CI with `black`_, `flake8`_ and `isort`_ (:issue:`867`).
+- The automatic build of the documentation has been re-worked.
+- Fixed blosc2 search paths.
+- Fixed the copy of tables with `createparents=True` (:issue:`1208`).
+- Fixed links in `README.rst` (:issue:`1218`). Thanks to David Poznik.
+- Fixed the function for writing cpu info to cache file (:issue:`#1222`).
+  Thanks to Adrian Altenhoff.
+- Fixed an incorrect access to the obsolete `sys.maxint` in `pttree`
+  (:issue:`1224`).
+- Use `numpy.typing.DTypeLike` over `np.dtype` for parameters.
+  Thanks to Joel T. Collins
+- Accept IsDescription, dict, `numpy.dtype` as table descriptions.
+  Thanks to Joel T. Collins
+- Allow multi-dimension `chunkshape` when creating arrays.
+  Thanks to Joel T. Collins
+
+.. _black: https://github.com/psf/black
+.. _flake8: https://flake8.pycqa.org
+.. _isort: https://pycqa.github.io/isort
 
 
 Changes from 3.10.1 to 3.10.0
