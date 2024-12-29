@@ -34,7 +34,7 @@ sdist: $(GENERATED)
 	$(PYTHON) -m build --sdist
 
 clean:
-	$(RM) -r MANIFEST build dist tmp tables/__pycache__
+	$(RM) -r MANIFEST build dist tmp tables/__pycache__ doc/_build
 	$(RM) bench/*.h5 bench/*.prof
 	$(RM) -r examples/*.h5 examples/raw
 	$(RM) -r *.egg-info
@@ -46,7 +46,7 @@ distclean: clean
 	$(RM) tables/_comp_*.c tables/*extension.c
 	$(RM) doc/usersguide-*.pdf
 	$(RM) -r doc/html
-	$(RM) -r .pytest_cache
+	$(RM) -r .pytest_cache .mypy_cache
 	# git clean -fdx
 
 html: build
