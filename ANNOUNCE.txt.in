@@ -8,14 +8,7 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-This release of PyTables is mostly intended to make available a
-complete set of Python wheel packages.
-
-The source code of the package has been completely reformatted
-to be fully PEP-8 compliant and in line with the latest PyQA standards.
-Checking of formatting and cod quality is now regularly performed in CI.
-
-Finally some small bug-fixes and enhancements have been implemented.
+XXX version-specific blurb XXX
 
 In case you want to know more in detail what has changed in this
 version, please refer to: http://www.pytables.org/release_notes.html
