@@ -1,5 +1,8 @@
 version: 2
 
+submodules:
+  include: all
+
 build:
   os: "ubuntu-22.04"
   tools:

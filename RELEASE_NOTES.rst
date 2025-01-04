@@ -25,6 +25,8 @@ Improvements
   Thanks to Joel T. Collins
 - Allow multi-dimension `chunkshape` when creating arrays.
   Thanks to Joel T. Collins
+- Improve the way `setup.py` finds runtime libs (see :issue:`1219` and
+  :issue:`1223`). Thanks to Jason Bacon.
 
 Bugfixes
 --------

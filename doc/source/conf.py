@@ -22,7 +22,7 @@ def get_version(filename):
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "PyTables"
-copyright = "2011–2024, PyTables maintainers"  # noqa: A001
+copyright = "2011–2025, PyTables maintainers"  # noqa: A001
 author = "PyTables maintainers"
 version = get_version("../../tables/_version.py")
 release = version
