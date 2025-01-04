@@ -7,7 +7,13 @@
 
 .. py:currentmodule:: tables
 
-Changes from 3.10.2 to 3.10.1
+Changes from 3.10.2 to 3.10.3
+=============================
+
+* TBW
+
+
+Changes from 3.10.1 to 3.10.2
 =============================
 
 Improvements
@@ -44,7 +50,7 @@ Bugfixes
 .. _isort: https://pycqa.github.io/isort
 
 
-Changes from 3.10.1 to 3.10.0
+Changes from 3.10.0 to 3.10.1
 =============================
 
 Bugfixes
@@ -65,7 +71,7 @@ Improvements
 - Enable `faulthandler` in `tables.tests.test_all`. Thanks to Eric Larson.
 
 
-Changes from 3.10.0 to 3.9.2
+Changes from 3.9.2 to 3.10.0
 ============================
 
 New features
