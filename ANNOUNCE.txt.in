@@ -8,7 +8,24 @@ We are happy to announce PyTables @VERSION@.
 What's new
 ==========
 
-XXX version-specific blurb XXX
+This release of PyTables is mostly intended to make available a
+complete set of Python wheel packages.
+
+The source code of the package has been completely reformatted
+to be fully PEP-8 compliant and in line with the latest PyQA standards.
+Checking of formatting and cod quality is now regularly performed in CI.
+
+Finally some small bug-fixes and enhancements have been implemented.
+
+In case you want to know more in detail what has changed in this
+version, please refer to: http://www.pytables.org/release_notes.html
+
+You can install it via pip or download a source package with generated
+PDF and HTML docs from:
+https://github.com/PyTables/PyTables/releases/v@VERSION@
+
+For an online version of the manual, visit:
+http://www.pytables.org/usersguide/index.html
 
 
 What it is?
@@ -30,7 +47,7 @@ About PyTables: http://www.pytables.org
 
 About the HDF5 library: http://hdfgroup.org/HDF5/
 
-About NumPy: http://numpy.scipy.org/
+About NumPy: http://numpy.org/
 
 
 Acknowledgments
