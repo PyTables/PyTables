@@ -66,7 +66,6 @@ If you don't, fetch and install them before proceeding.
 * Numexpr_ >= 2.6.2
 * packaging_
 * py-cpuinfo_
-* typing-extensions >= 4.4.0
 * c-blosc_ >= 1.11.1 (sources are bundled with PyTables sources but the user can
   use an external version of sources using the :envvar:`BLOSC_DIR` environment
   variable or the `--blosc` flag of the :file:`setup.py`)

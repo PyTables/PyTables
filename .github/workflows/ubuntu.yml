@@ -28,7 +28,6 @@ jobs:
           liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev \
           python3-all-dev python3-pip python3-build python3-setuptools cython3 \
           python3-numpy python3-packaging python3-cpuinfo python3-numexpr \
-          python3-typing-extensions \
           python3-pytest python3-pytest-doctestplus \
           python3-sphinx python3-sphinx-rtd-theme python3-numpydoc python3-ipython \
           latexmk texlive-fonts-recommended texlive-latex-recommended \

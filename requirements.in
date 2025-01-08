@@ -6,4 +6,4 @@ numexpr>=2.6.2
 numpy>=1.25
 packaging
 py-cpuinfo
-typing-extensions>=4.4.0
+typing-extensions>=4.4.0  # workaround for anyio

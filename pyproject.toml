@@ -76,7 +76,6 @@ dependencies = [
     "packaging",
     "py-cpuinfo",
     "blosc2 >= 2.3.0",
-    "typing-extensions >= 4.4.0",
 ]
 
 
