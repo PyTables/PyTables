@@ -1,5 +1,5 @@
 include MANIFEST.in
-include *.txt THANKS README.rst
+include *.txt *.rst THANKS
 include setup.py Makefile
 recursive-exclude * *
 
