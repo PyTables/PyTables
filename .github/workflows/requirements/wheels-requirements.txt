@@ -184,7 +184,7 @@ charset-normalizer==3.4.1 \
 cibuildwheel==2.22.0 \
     --hash=sha256:6651e775ac26a86a49d67639aa3540f19728caf0dfcd80f156ba4f241aad4940 \
     --hash=sha256:c40bb7ac7b57fed8195fca624cc9bd68334375d32b75bea6fa8330ac1cd902c4
-    # via -r .github/workflows/requirements/wheels-requirements.in
+    # via -r wheels-requirements.in
 cryptography==44.0.0 \
     --hash=sha256:1923cb251c04be85eec9fda837661c67c1049063305d6be5721643c22dd4e2b7 \
     --hash=sha256:37d76e6863da3774cd9db5b409a9ecfd2c71c981c38788d3fcfaf177f447b731 \
@@ -226,6 +226,10 @@ filelock==3.16.1 \
     --hash=sha256:2082e5703d51fbf98ea75855d9d5527e33d8ff23099bec374a134febee6946b0 \
     --hash=sha256:c249fbfcd5db47e5e2d6d62198e565475ee65e4831e2561c8e313fa7eb961435
     # via cibuildwheel
+id==1.5.0 \
+    --hash=sha256:292cb8a49eacbbdbce97244f47a97b4c62540169c976552e497fd57df0734c1d \
+    --hash=sha256:f1434e1cef91f2cbb8a4ec64663d5a23b9ed43ef44c4c957d02583d61714c658
+    # via twine
 idna==3.10 \
     --hash=sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9 \
     --hash=sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3
@@ -299,10 +303,6 @@ packaging==24.2 \
     #   cibuildwheel
     #   dependency-groups
     #   twine
-pkginfo==1.12.0 \
-    --hash=sha256:8ad91a0445a036782b9366ef8b8c2c50291f83a553478ba8580c73d3215700cf \
-    --hash=sha256:dcd589c9be4da8973eceffa247733c144812759aa67eaf4bbf97016a02f39088
-    # via twine
 platformdirs==4.3.6 \
     --hash=sha256:357fb2acbc885b0419afd3ce3ed34564c13c9b95c89360cd9563f73aa5e2b907 \
     --hash=sha256:73e575e1408ab8103900836b97580d5307456908a03e92031bab39e4554cc3fb
@@ -320,7 +320,7 @@ pygments==2.18.0 \
 pywin32-ctypes==0.2.3 \
     --hash=sha256:8a1513379d709975552d202d942d9837758905c8d01eb82b8bcc30918929e7b8 \
     --hash=sha256:d162dc04946d704503b2edc4d55f3dba5c1d539ead017afa00142c38b9885755
-    # via -r .github/workflows/requirements/wheels-requirements.in
+    # via -r wheels-requirements.in
 readme-renderer==44.0 \
     --hash=sha256:2fbca89b81a08526aadf1357a8c2ae889ec05fb03f5da67f9769c9a592166151 \
     --hash=sha256:8712034eabbfa6805cacf1402b4eeb2a73028f72d1166d6f5cb7f9c047c5d1e1
@@ -329,6 +329,7 @@ requests==2.32.3 \
     --hash=sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760 \
     --hash=sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
     # via
+    #   id
     #   requests-toolbelt
     #   twine
 requests-toolbelt==1.0.0 \
@@ -347,12 +348,12 @@ secretstorage==3.3.3 \
     --hash=sha256:2403533ef369eca6d2ba81718576c5e0f564d5cca1b58f73a8b23e7d4eeebd77 \
     --hash=sha256:f356e6628222568e3af06f2eba8df495efa13b3b63081dafd4f7d9a7b7bc9f99
     # via
-    #   -r .github/workflows/requirements/wheels-requirements.in
+    #   -r wheels-requirements.in
     #   keyring
-twine==6.0.1 \
-    --hash=sha256:36158b09df5406e1c9c1fb8edb24fc2be387709443e7376689b938531582ee27 \
-    --hash=sha256:9c6025b203b51521d53e200f4a08b116dee7500a38591668c6a6033117bdc218
-    # via -r .github/workflows/requirements/wheels-requirements.in
+twine==6.1.0 \
+    --hash=sha256:a47f973caf122930bf0fbbf17f80b83bc1602c9ce393c7845f289a3001dc5384 \
+    --hash=sha256:be324f6272eff91d07ee93f251edf232fc647935dd585ac003539b42404a8dbd
+    # via -r wheels-requirements.in
 urllib3==2.3.0 \
     --hash=sha256:1cee9ad369867bfdbbb48b7dd50374c0967a0bb7710050facf0dd6911440e3df \
     --hash=sha256:f8c5449b3cf0861679ce7e0503c7b44b5ec981bec0d1d3795a07f1ba96f0204d
