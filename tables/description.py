@@ -18,7 +18,7 @@ __docformat__ = "reStructuredText"
 
 
 def same_position(
-    oldmethod: Callable[[Col, Col], bool]
+    oldmethod: Callable[[Col, Col], bool],
 ) -> Callable[[Col, Col], bool]:
     """Decorate `oldmethod` to also compare the `_v_pos` attribute."""
 

@@ -376,7 +376,7 @@ def _is_numpy(array: Any) -> bool:
 
 
 def _numpy_contiguous(
-    convfunc: Callable[[npt.ArrayLike], np.ndarray]
+    convfunc: Callable[[npt.ArrayLike], np.ndarray],
 ) -> Callable[[npt.ArrayLike], np.ndarray]:
     """Decorate `convfunc` to return a *contiguous* NumPy array.
 

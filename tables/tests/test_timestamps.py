@@ -1,6 +1,4 @@
-"""This test unit checks control of dataset timestamps with track_times.
-
-"""
+"""This test unit checks control of dataset timestamps with track_times."""
 
 import sys
 import time
