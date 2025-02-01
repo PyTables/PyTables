@@ -115,7 +115,7 @@ jobs:
         if: runner.os != 'Windows'
 
       - name: Install Python and dependencies on Windows
-        uses: mamba-org/setup-micromamba@068f1ab4b37ed9b3d9f73da7db90a0cda0a48d29 # v2.0.3
+        uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
         with:
           environment-name: build
           create-args: >
@@ -123,7 +123,7 @@ jobs:
           init-shell: bash powershell
         if: runner.os == 'Windows'
 
-      - uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+      - uses: docker/setup-qemu-action@53851d14592bedcffcf25ea515637cff71ef929a # v3.3.0
         if: runner.os == 'Linux' && matrix.arch != 'x64_64'
         name: Set up QEMU on Linux
 
