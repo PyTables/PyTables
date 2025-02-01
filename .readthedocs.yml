@@ -1,15 +1,21 @@
 version: 2
 
-submodules:
-  include: all
-
 build:
-  os: "ubuntu-22.04"
+  os: ubuntu-22.04
   tools:
     python: "3"
   apt_packages:
     - libhdf5-dev
     - libblosc-dev
+
+sphinx:
+  configuration: doc/source/conf.py
+
+submodules:
+  include: all
+
+formats:
+  - pdf
 
 python:
   install:
