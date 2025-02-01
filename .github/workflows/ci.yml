@@ -67,14 +67,17 @@ jobs:
 
       - name: Lint (flake8)
         run: |
+          python -m flake8 --version
           python -m flake8 --count --show-source --statistics ${PACKAGE}
 
       - name: Lint (isort)
         run: |
+          python -m isort --version
           python -m isort --check ${PACKAGE}
 
       - name: Lint (black)
         run: |
+          python -m black --version
           python -m black --check ${PACKAGE}
 
 
