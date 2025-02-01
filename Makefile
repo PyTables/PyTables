@@ -13,7 +13,7 @@ OPT = PYTHONPATH="$(PYBUILDDIR)"
 MD5SUM = md5sum
 
 
-.PHONY: default dist sdist build check heavycheck clean distclean html latex requirements
+.PHONY: default dist sdist build check heavycheck clean distclean html latex requirements lint
 
 default: $(GENERATED) build
 
@@ -80,3 +80,11 @@ requirements: \
 
 %.txt: %.in
 	pip-compile -U --allow-unsafe --generate-hashes --strip-extras $<
+
+lint:
+	$(PYTHON) -m flake8 --count --statistics tables
+	# $(PYTHON) -m pydocstyle --count tables
+	$(PYTHON) -m isort --check tables
+	$(PYTHON) -m black --check tables
+	# $(PYTHON) -m mypy --check-untyped-defs --ignore-missing-imports tables
+	# ruff check tables
