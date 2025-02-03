@@ -872,6 +872,8 @@ if __name__ == "__main__":
                 include_dirs=[str(d) for d in inc_dirs],
                 library_dirs=[str(d) for d in lib_dirs],
             )
+            if not hdrdir and libdir is True:
+                hdrdir = True
 
         if not (hdrdir and libdir):
             err_msg = (
@@ -895,7 +897,11 @@ if __name__ == "__main__":
 
             continue  # look for the next library
 
-        if libdir in ("", True):
+        if hdrdir is True and libdir is True:
+            print(f"* Found {package.name} in the standard system search dirs.")
+            # set header dir to one of the default include dirs to fudge checks below
+            hdrdir = default_dirs.header[0]
+        elif libdir in ("", True):
             print(
                 f"* Found {package.name} headers at ``{hdrdir}``, the library "
                 f"is located in the standard system search dirs."
