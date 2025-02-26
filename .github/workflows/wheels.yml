@@ -26,6 +26,8 @@ on:
   # from scientific-python-nightly-wheels
   schedule:
     - cron:  '12 13 * * 0'
+  # Allow manual triggering of the workflow (which will release the wheels to nightly)
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -198,7 +200,7 @@ jobs:
 
       - name: Upload wheel
         uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
-        if: github.repository == 'PyTables/PyTables' && github.event_name == 'schedule'
+        if: github.repository == 'PyTables/PyTables' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         with:
           artifacts_path: wheelhouse
           anaconda_nightly_upload_token: ${{secrets.ANACONDA_ORG_UPLOAD_TOKEN}}
