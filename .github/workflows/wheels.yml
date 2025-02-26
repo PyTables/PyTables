@@ -130,7 +130,6 @@ jobs:
         env:
           CFLAGS: -g0
           HDF5_DIR: ${{ github.workspace }}/hdf5_build
-          HDF5_VERSION: 1.14.3
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         if: runner.os != 'Windows' && steps.deps-cache.outputs.cache-hit != 'true'
         run: |
