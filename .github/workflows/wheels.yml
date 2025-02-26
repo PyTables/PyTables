@@ -73,7 +73,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       # Keep in sync with "Prerequisites" in User's Guide.
-      HDF5_VERSION: 1.14.3  # H5Dchunk_iter needs at least 1.14.1
+      HDF5_VERSION: 1.14.6  # H5Dchunk_iter needs at least 1.14.1
       MACOSX_DEPLOYMENT_TARGET: "10.9"
     strategy:
       fail-fast: false
@@ -91,16 +91,9 @@ jobs:
           - os: windows-latest
             arch: AMD64
             build: 'cp*'
-          # The aarch64 wheels are very slow so split into separate jobs
-          - os: ubuntu-latest
+          - os: ubuntu-24.04-arm
             arch: aarch64
-            build: 'cp311-*'
-          - os: ubuntu-latest
-            arch: aarch64
-            build: 'cp312-*'
-          - os: ubuntu-latest
-            arch: aarch64
-            build: 'cp313-*'
+            build: 'cp*'
 
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -122,10 +115,6 @@ jobs:
             python=3.12 blosc c-blosc2 bzip2 hdf5 lz4 snappy zstd zlib pkgconfig
           init-shell: bash powershell
         if: runner.os == 'Windows'
-
-      - uses: docker/setup-qemu-action@53851d14592bedcffcf25ea515637cff71ef929a # v3.3.0
-        if: runner.os == 'Linux' && matrix.arch != 'x64_64'
-        name: Set up QEMU on Linux
 
       - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         id: deps-cache
