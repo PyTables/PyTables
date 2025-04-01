@@ -118,7 +118,7 @@ jobs:
           init-shell: bash powershell
         if: runner.os == 'Windows'
 
-      - uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         id: deps-cache
         with:
           path: hdf5_build
@@ -199,7 +199,7 @@ jobs:
         working-directory: wheelhouse
 
       - name: Upload wheel
-        uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
+        uses: scientific-python/upload-nightly-action@b36e8c0c10dbcfd2e05bf95f17ef8c14fd708dbf # 0.6.2
         if: github.repository == 'PyTables/PyTables' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         with:
           artifacts_path: wheelhouse
