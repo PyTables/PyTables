@@ -28,7 +28,7 @@ ZLIB_VERSION="1.2.13"
 
 echo "building HDF5"
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    brew install automake cmake@3.3.1 pkg-config
+    brew install automake cmake@3.31.6 pkg-config
 
     NPROC=$(sysctl -n hw.ncpu)
     pushd /tmp
