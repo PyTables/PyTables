@@ -28,10 +28,17 @@ ZLIB_VERSION="1.2.13"
 
 echo "building HDF5"
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    brew install automake cmake pkg-config
+    # brew install automake cmake pkg-config
 
     NPROC=$(sysctl -n hw.ncpu)
     pushd /tmp
+
+    brew install automake pkg-config
+    brew tap-new local/cmake
+    brew extract --version=3.31.6 cmake local/cmake
+    brew unlink cmake
+    brew update
+    brew install cmake@3.31.6
 
     # lzo
     curl -sLO https://www.oberhumer.com/opensource/lzo/download/lzo-$LZO_VERSION.tar.gz
