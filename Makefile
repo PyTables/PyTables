@@ -80,6 +80,7 @@ requirements: \
 
 %.txt: %.in
 	pip-compile -U --allow-unsafe --generate-hashes --strip-extras $<
+	# uv pip compile -U --allow-unsafe --generate-hashes --strip-extras -o $@ $<
 
 lint:
 	$(PYTHON) -m flake8 --count --statistics tables
