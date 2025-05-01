@@ -34,8 +34,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     pushd /tmp
 
     brew install automake pkg-config
-    brew tap-new ${PWD}/local-cmake
-    brew extract --version=3.31.6 cmake ${PWD}/local-cmake
+    brew tap-new local/cmake
+    brew extract --version=3.31.6 cmake local/cmake
     brew install cmake@3.31.6
 
     # lzo
