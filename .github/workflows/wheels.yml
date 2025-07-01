@@ -110,7 +110,7 @@ jobs:
         if: runner.os != 'Windows'
 
       - name: Install Python and dependencies on Windows
-        uses: mamba-org/setup-micromamba@0dea6379afdaffa5d528b3d1dabc45da37f443fc # v2.0.4
+        uses: mamba-org/setup-micromamba@b09ef9b599704322748535812ca03efb2625677b # v2.0.5
         with:
           environment-name: build
           create-args: >
