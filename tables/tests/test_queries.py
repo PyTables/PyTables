@@ -485,9 +485,7 @@ def create_test_method(type_, op, extracond, func=None):
                     for _ in range(2)
                 ]
             except TypeError as te:
-                if self.condNotBoolean_re.search(str(te)):
-                    raise SilentlySkipTest("The condition is not boolean.")
-                raise
+                raise SilentlySkipTest("The condition is not boolean.")
             except NotImplementedError:
                 raise SilentlySkipTest(
                     "The PyTables type does not support the operation."
