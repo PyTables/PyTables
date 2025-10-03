@@ -400,9 +400,9 @@ tomli==2.2.1 \
     # via
     #   cibuildwheel
     #   dependency-groups
-twine==6.1.0 \
-    --hash=sha256:a47f973caf122930bf0fbbf17f80b83bc1602c9ce393c7845f289a3001dc5384 \
-    --hash=sha256:be324f6272eff91d07ee93f251edf232fc647935dd585ac003539b42404a8dbd
+twine==6.2.0 \
+    --hash=sha256:418ebf08ccda9a8caaebe414433b0ba5e25eb5e4a927667122fbe8f829f985d8 \
+    --hash=sha256:e5ed0d2fd70c9959770dce51c8f39c8945c574e18173a7b81802dab51b4b75cf
     # via -r wheels-requirements.in
 typing-extensions==4.14.0 \
     --hash=sha256:8676b788e32f02ab42d9e7c61324048ae4c6d844a399eebace3d4979d75ceef4 \
