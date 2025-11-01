@@ -41,7 +41,7 @@ jobs:
           pip install build
           python -m build --sdist
       - name: Save source distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: tables-sdist
           path: dist/*.tar.gz
@@ -129,7 +129,7 @@ jobs:
         python -m pip install --require-hashes -r requirements.txt
         python -m pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple '${{ matrix.numpy }}'
     - name: Get source distribution
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: tables-sdist
     - name: Installation
@@ -173,7 +173,7 @@ jobs:
         # ``build-system.requires`` in ``pyproject.toml``.
         conda install bzip2 hdf5 lzo zlib blosc c-blosc2 pip setuptools wheel packaging py-cpuinfo "numpy>=2" cython numexpr
     - name: Get source distrubtion
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: tables-sdist
     - name: Installation
