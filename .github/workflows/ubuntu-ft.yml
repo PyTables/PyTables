@@ -1,0 +1,44 @@
+name: Ubuntu free-threaded tests
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}
+  cancel-in-progress: true
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    name: Test free-threaded - ${{ matrix.os }} - ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-24.04-arm]
+        python-version: ['3.14t']
+
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+        submodules: true
+    - name: Install APT packages
+      run: |
+        sudo apt-get update
+        sudo apt install -y \
+          libhdf5-dev libblosc-dev libblosc2-dev libbz2-dev liblz4-dev \
+          liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
+    - name: Setup python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install python packages
+      shell: bash
+      run: |
+        python3 -m pip install -r .github/workflows/requirements/build-requirements.in
+        # Install from requirements.in but exclude the blosc2 package
+        python3 -m pip install -r <(grep -v ^blosc2 requirements.in)
+    - name: Build PyTables
+      run: make build
+      env:
+        PYTABLES_NO_EMBEDDED_LIBS: TRUE
+    - name: Test in parallel
+      run: make parallelcheck
