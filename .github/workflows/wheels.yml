@@ -37,12 +37,12 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493 # v4.1.7
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@2e3e4b15a884dc73a63f962bff250a855150a234 # v5.1.1
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         name: Install Python
         with:
           python-version: 3.x
@@ -65,7 +65,7 @@ jobs:
       - name: Build dist (sdist and docs)
         run: make PYTHON=python dist
 
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           path: dist/*
           name: dist
@@ -98,19 +98,19 @@ jobs:
             build: 'cp*'
 
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493 # v4.1.7
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/setup-python@2e3e4b15a884dc73a63f962bff250a855150a234 # v5.1.1
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         name: Install Python on Unix
         with:
           python-version: '3.12'
         if: runner.os != 'Windows'
 
       - name: Install Python and dependencies on Windows
-        uses: mamba-org/setup-micromamba@add3a49764cedee8ee24e82dfde87f5bc2914462 # v2.0.7
+        uses: mamba-org/setup-micromamba@7f29b8b80078b1b601dfa018b0f7425c587c63bb # v2.0.6
         with:
           environment-name: build
           create-args: >
@@ -118,7 +118,7 @@ jobs:
           init-shell: bash powershell
         if: runner.os == 'Windows'
 
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         id: deps-cache
         with:
           path: hdf5_build
@@ -157,7 +157,7 @@ jobs:
         run: |
           cp requirements.txt ./wheelhouse/
 
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           path: |
             ./wheelhouse/*.whl
@@ -170,12 +170,12 @@ jobs:
     runs-on: 'ubuntu-latest'
 
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493 # v4.1.7
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
           submodules: true
 
-      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v4.1.8
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           pattern: '*'
           merge-multiple: true
@@ -185,7 +185,7 @@ jobs:
         run: ls -alR ./wheelhouse/
 
       - name: Install Python
-        uses: actions/setup-python@2e3e4b15a884dc73a63f962bff250a855150a234 # v5.1.1
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.x'
 
@@ -199,7 +199,7 @@ jobs:
         working-directory: wheelhouse
 
       - name: Upload wheel
-        uses: scientific-python/upload-nightly-action@b36e8c0c10dbcfd2e05bf95f17ef8c14fd708dbf # 0.6.2
+        uses: scientific-python/upload-nightly-action@5748273c71e2d8d3a61f3a11a16421c8954f9ecf # 0.6.3
         if: github.repository == 'PyTables/PyTables' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         with:
           artifacts_path: wheelhouse

@@ -9,17 +9,15 @@ updates:
         patterns:
           - "*"
 
-  - package-ecosystem: "pip"
+  - package-ecosystem: "gitsubmodule"
     directory: "/"
     schedule:
       interval: "monthly"
-    groups:
-      pip:
-        patterns:
-          - "*"
 
   - package-ecosystem: "pip"
-    directory: "/.github/workflows/requirements"
+    directories:
+      - "/"
+      - ".github/workflows/requirements"
     schedule:
       interval: "monthly"
     groups:
