@@ -35,7 +35,7 @@ jobs:
         run:  |
           sudo apt update
           # Keep in sync with "Prerequisites" in User's Guide.
-          sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
+          DEBIAN_FRONTEND=noninteractive sudo apt install -y --no-install-recommends libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
       - name: Source distribution
         run: |
           pip install build
@@ -94,7 +94,7 @@ jobs:
         # os: [ubuntu-latest, macos-15-intel, macos-latest, windows-latest]
         os: [ubuntu-latest, macos-latest, windows-latest]
         # Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
-        python: ['3.11', '3.12', '3.13']
+        python: ['3.11', '3.12', '3.13', '3.14']
         numpy: ['numpy']
         include:
           - os: ubuntu-latest
