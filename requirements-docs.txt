@@ -136,9 +136,9 @@ imagesize==1.4.1 \
     --hash=sha256:0d8d18d08f840c19d0ee7ca1fd82490fdc3729b7ac93f49870406ddde8ef8d8b \
     --hash=sha256:69150444affb9cb0d5cc5a92b3676f0b2fb7cd9ae39e947a5e11a36b4497cd4a
     # via sphinx
-ipython==9.6.0 \
-    --hash=sha256:5603d6d5d356378be5043e69441a072b50a5b33b4503428c77b04cb8ce7bc731 \
-    --hash=sha256:5f77efafc886d2f023442479b8149e7d86547ad0a979e9da9f045d252f648196
+ipython==9.8.0 \
+    --hash=sha256:8e4ce129a627eb9dd221c41b1d2cdaed4ef7c9da8c17c63f6f578fe231141f83 \
+    --hash=sha256:ebe6d1d58d7d988fbf23ff8ff6d8e1622cfdb194daf4b7b73b792c4ec3b85385
     # via -r requirements-docs.in
 ipython-pygments-lexers==1.1.1 \
     --hash=sha256:09c0138009e56b6854f9535736f4171d855c8c08a563a0dcd8022f78355c7e81 \
