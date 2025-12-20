@@ -50,7 +50,6 @@ def int_generator_slow(nrows):
 
 
 class Stream32:
-
     "Object simulating a file for reading"
 
     def __init__(self):
