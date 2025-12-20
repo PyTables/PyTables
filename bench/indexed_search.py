@@ -42,7 +42,6 @@ def get_nrows(nrows_str):
 class DB:
 
     def __init__(self, nrows, rng, userandom):
-        global step, scale
         self.step = STEP
         self.scale = SCALE
         self.rng = rng
