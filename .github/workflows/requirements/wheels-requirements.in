@@ -1,4 +1,4 @@
-cibuildwheel<3.0
+cibuildwheel<4.0
 colorama  # dep not resolved
 pywin32-ctypes>=0.2.0  # dep not resolved
 SecretStorage>=3.3.0  # dep not resolved
