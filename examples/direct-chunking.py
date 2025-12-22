@@ -70,7 +70,8 @@ with tb.open_file(fname, mode="w") as h5f:
         for c in range(shape[0]):
             if profile:
                 # The same image/chunk is written over and over again.
-                global wchunk
+                # global wchunk
+                pass
             else:
                 # A new image/chunk.is written.
                 wchunk = chunk_from_data(np_data)

@@ -375,9 +375,11 @@ class BasePackage:
         for location in locations:
             for prefix in self._runtime_prefixes:
                 for suffix in self._runtime_suffixes:
-                    abs_path = f"{location}/{prefix}{self.runtime_name}{suffix}"
+                    abs_path = (
+                        f"{location}/{prefix}{self.runtime_name}{suffix}"
+                    )
                     # Debug: print("find_runtime_path() trying ", abs_path)
-                          
+
                     try:
                         ctypes.CDLL(abs_path)
                     except OSError:
@@ -514,7 +516,7 @@ class BasePackage:
                     directories[idx] = Path(path[: path.rfind(name)])
                 else:
                     directories[idx] = Path(path).parent
-            #else:
+            # else:
             #    print("Warning: path is not set.")
         return tuple(directories)
 

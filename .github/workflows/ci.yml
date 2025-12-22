@@ -23,11 +23,11 @@ jobs:
     name: Create sdist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
           submodules: true
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         name: Install Python
         with:
           python-version: 3.x
@@ -35,13 +35,13 @@ jobs:
         run:  |
           sudo apt update
           # Keep in sync with "Prerequisites" in User's Guide.
-          sudo apt install libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
+          DEBIAN_FRONTEND=noninteractive sudo apt install -y --no-install-recommends libblosc-dev libbz2-dev libhdf5-dev liblz4-dev liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev
       - name: Source distribution
         run: |
           pip install build
           python -m build --sdist
       - name: Save source distribution
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: tables-sdist
           path: dist/*.tar.gz
@@ -51,10 +51,10 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: "3.x"
 
@@ -94,23 +94,20 @@ jobs:
         # os: [ubuntu-latest, macos-15-intel, macos-latest, windows-latest]
         os: [ubuntu-latest, macos-latest, windows-latest]
         # Keep in sync with ``project.classifiers`` in ``pyproject.toml``.
-        python: ['3.11', '3.12', '3.13']
-        numpy: ['numpy']
+        python: ['3.11', '3.12', '3.13', '3.14']
+        numpy: ['stable']
         include:
           - os: ubuntu-latest
-            python: '3.12'
-            numpy: 'numpy>=2.2.dev0'
-          - os: ubuntu-latest
-            python: '3.12'
-            numpy: 'numpy<2'
+            python: '3.14'
+            numpy: 'dev' # Extra build: NumPy dev with latest Python
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       with:
         fetch-depth: 0
         submodules: true
     - name: Set up Python ${{ matrix.python }}
-      uses: conda-incubator/setup-miniconda@v3
+      uses: conda-incubator/setup-miniconda@835234971496cad1653abb28a638a281cf32541f # v3.2.0
       with:
         python-version: ${{ matrix.python }}
         auto-update-conda: true
@@ -127,15 +124,21 @@ jobs:
         # ``build-system.requires`` in ``pyproject.toml``.
         conda install -q bzip2 hdf5 lzo zlib pip
         python -m pip install --require-hashes -r requirements.txt
-        python -m pip install --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple '${{ matrix.numpy }}'
+    - name: Reinstall NumPy dev
+      if: ${{ matrix.numpy == 'dev' }}
+      run: |
+        python -m pip install --force-reinstall --index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy
+    - name: NumPy version
+      run: python3 --version && numpy-config --version
     - name: Get source distribution
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: tables-sdist
     - name: Installation
       run: |
         python -m pip install -v tables-*.tar.gz
     - name: 'Run test'
+      continue-on-error: ${{ matrix.numpy == 'dev' }} # Do not abort job if NumPy dev fails
       run: |
         cd .. && python -m tables.tests.test_all -v
         pt2to3 -h
@@ -153,12 +156,12 @@ jobs:
         shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       with:
         fetch-depth: 0
         submodules: true
     - name: Set up Python
-      uses: conda-incubator/setup-miniconda@v3
+      uses: conda-incubator/setup-miniconda@835234971496cad1653abb28a638a281cf32541f # v3.2.0
       with:
         auto-update-conda: true
         channels: conda-forge
@@ -173,7 +176,7 @@ jobs:
         # ``build-system.requires`` in ``pyproject.toml``.
         conda install bzip2 hdf5 lzo zlib blosc c-blosc2 pip setuptools wheel packaging py-cpuinfo "numpy>=2" cython numexpr
     - name: Get source distrubtion
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: tables-sdist
     - name: Installation
