@@ -3,7 +3,7 @@
 # "Prerequisites" in User's Guide,
 # build jobs in `.github/workflows/*.yml`.
 requires = [
-    "setuptools >= 77.0.0",
+    "setuptools >= 61.0.0",
     "wheel",
     # NOTE: it is still possible to build PyTables with numpy 1.x
     # Please refer to https://github.com/PyTables/PyTables/issues/1200
@@ -30,8 +30,7 @@ description = "Hierarchical datasets for Python"
 # `classifiers` below,
 # `min_python_version` in `setup.py`.
 requires-python = ">=3.11"
-license = "BSD 3-Clause License"
-license-files = ["LICENSE.txt", "LICENSES/*.txt"]
+license = { text = "BSD 3-Clause License" }
 keywords = [ "hdf5" ]
 authors = [
     { name = "Francesc Alted" },
