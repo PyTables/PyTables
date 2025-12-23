@@ -903,7 +903,7 @@ class Table(tableextension.Table, Leaf):
 
         if self._v_new:
             # Columns are never indexed on creation.
-            self.colindexed = {cpn: False for cpn in self.colpathnames}
+            self.colindexed = dict.fromkeys(self.colpathnames, False)
             return
 
         # The following code is only for opened tables.

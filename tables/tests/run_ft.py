@@ -4,22 +4,23 @@
 
 from __future__ import annotations
 
-import argparse
-import collections
-import logging
 import os
-import random
 import sys
-import threading
 import time
+import random
+import logging
+import argparse
 import unittest
+import threading
+import collections
+from typing import Any, Self, TextIO
+from dataclasses import dataclass, field
+from collections.abc import Generator
 from concurrent.futures import (
     Future,
     ThreadPoolExecutor,
     as_completed,
 )
-from dataclasses import dataclass, field
-from typing import Any, Generator, Self, TextIO
 
 LOG = logging.getLogger(__name__)
 
@@ -125,7 +126,7 @@ class FTTestResult(unittest.TestResult):
 
 def get_individual_tests(
     suite: unittest.TestSuite,
-) -> Generator[unittest.TestCase, None, None]:
+) -> Generator[unittest.TestCase]:
     for test in suite:
         if isinstance(test, unittest.TestSuite):
             yield from get_individual_tests(test)
@@ -135,7 +136,7 @@ def get_individual_tests(
 
 def run_single_test(suite: unittest.TestSuite) -> tuple[str, FTTestResult]:
     test_id = suite.id()
-    LOG.debug(f'Running test {threading.get_ident()} {test_id}')
+    LOG.debug(f"Running test {threading.get_ident()} {test_id}")
     result = FTTestResult(descriptions=True, verbosity=2)
     suite.run(result)
     LOG.debug("Finished test %s", test_id)
@@ -187,7 +188,7 @@ class Output:
 
 
 _EXCLUDE_CASES = set(
-    '''
+    """
     tables.filters.Filters
     tables.misc.enum
     tables.tests.test_array.SI1NACloseTestCase
@@ -201,7 +202,7 @@ _EXCLUDE_CASES = set(
     tables.tests.test_utils.ptdumpTestCase.test_paths_windows
     tables.tests.test_utils.ptrepackTestCase.test_paths_windows
     tables.tests.test_utils.pttreeTestCase.test_paths_windows
-    '''.strip().split()
+    """.strip().split()
 )
 
 
@@ -302,5 +303,5 @@ def main():
     print(result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
