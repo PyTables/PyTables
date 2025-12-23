@@ -13,7 +13,7 @@ OPT = PYTHONPATH="$(PYBUILDDIR)"
 MD5SUM = md5sum
 
 
-.PHONY: default dist sdist build check heavycheck clean distclean html latex requirements lint
+.PHONY: default dist sdist build check heavycheck parallelcheck clean distclean html latex requirements lint
 
 default: $(GENERATED) build
 
@@ -71,6 +71,9 @@ check: build
 
 heavycheck: build
 	cd build/lib.* && env PYTHONPATH=. $(PYTHON) tables/tests/test_all.py --heavy
+
+parallelcheck: build
+	cd build/lib.* && env PYTHONPATH=. $(PYTHON) tables/tests/run_ft.py --max-tests=400
 
 requirements: \
 	requirements.txt \
