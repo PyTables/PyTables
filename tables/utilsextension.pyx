@@ -581,7 +581,7 @@ cdef hid_t get_native_float_type(hid_t type_id) nogil:
 # not implement support for H5Tget_native_type with some types, like
 # H5T_BITFIELD and probably others.  When 1.8.x would be a requisite,
 # this can be simplified.
-cdef hid_t get_native_type(hid_t type_id) nogil:
+cdef hid_t get_native_type(hid_t type_id) noexcept nogil:
   """Get the native type of a HDF5 type."""
 
   cdef H5T_class_t class_id, super_class_id
