@@ -130,7 +130,7 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 "tables.nodes.tests" = [ "*.dat", "*.xbm", "*.h5" ]
 
 [tool.cibuildwheel]
-# cp314t segfaults on Ubuntu x86_64 tests
+# cp314t segfaults, see https://github.com/PyTables/PyTables/issues/1269
 skip = "*-musllinux_* cp314t*"
 archs = "native"
 build = "cp*"
