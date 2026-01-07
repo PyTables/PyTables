@@ -130,7 +130,9 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 "tables.nodes.tests" = [ "*.dat", "*.xbm", "*.h5" ]
 
 [tool.cibuildwheel]
-skip = "*-musllinux_* cp310*"
+# cp314t segfaults on Ubuntu x86_64 tests
+skip = "*-musllinux_* cp314t*"
+archs = "native"
 build = "cp*"
 build-verbosity = 1
 test-command = [
