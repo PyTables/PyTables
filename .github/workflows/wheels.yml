@@ -125,7 +125,7 @@ jobs:
           mkdir hdf5_build
           if [[ "${{ runner.os }}" = 'Linux' ]]; then
             ARCH=${{ matrix.arch }}
-            if [[ "${{ matrix.arch }}" = 'native' ]]; then
+            if [[ "$ARCH" = 'native' ]]; then
               ARCH=$(uname -m)
             fi
             docker run --rm -e HDF5_DIR=/io/hdf5_build -e CFLAGS="$CFLAGS" -e HDF5_VERSION="$HDF5_VERSION" -v `pwd`:/io:rw quay.io/pypa/manylinux2014_${ARCH} /io/ci/github/get_hdf5.sh
