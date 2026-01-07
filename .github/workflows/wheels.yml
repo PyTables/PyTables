@@ -185,6 +185,11 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install patchelf
+        if: runner.os != 'Windows'
+        run: |
+          python -m pip install patchelf
+
       - name: Install twine
         run: |
           python -m pip install --require-hashes -r ./.github/workflows/requirements/wheels-requirements.txt
