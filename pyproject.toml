@@ -131,7 +131,8 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 
 [tool.cibuildwheel]
 # cp314t segfaults, see https://github.com/PyTables/PyTables/issues/1269
-skip = "*-musllinux_* cp314t*"
+# cp314 has failures on Windows, see https://github.com/PyTables/PyTables/pull/1286#issuecomment-3719953407
+skip = "*-musllinux_* cp314t* cp314-win_amd64*"
 archs = "native"
 build = "cp*"
 build-verbosity = 1
