@@ -934,7 +934,7 @@ cdef class AttributeSet:
       # Get the NumPy dtype from the type_id
       try:
         stype_, shape_ = hdf5_to_np_ext_type(type_id, pure_numpy_types=True, ptparams=node._v_file.params)
-        dtype_ = np.dtype(stype_, shape_)
+        dtype_ = np.dtype((stype_, shape_))
       except TypeError:
         if class_id == H5T_STRING and H5Tis_variable_str(type_id):
           nelements = H5ATTRget_attribute_vlen_string_array(dset_id, cattrname,
