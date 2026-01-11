@@ -1602,9 +1602,9 @@ cdef int load_reference(hid_t dataset_id, hobj_ref_t *refbuf, size_t item_size, 
       # read entire dataset as numpy array
       stype_, shape_ = hdf5_to_np_ext_type(reftype_id, pure_numpy_types=True, atom=True)
       if stype_ == "_ref_":
-        dtype_ = np.dtype("O", shape_)
+        dtype_ = np.dtype(("O", shape_))
       else:
-        dtype_ = np.dtype(stype_, shape_)
+        dtype_ = np.dtype((stype_, shape_))
       shape = []
       for j in range(rank):
         shape.append(<int>dims[j])
