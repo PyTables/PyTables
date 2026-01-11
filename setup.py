@@ -570,10 +570,12 @@ if __name__ == "__main__":
     try:
         import cython
 
-        print(f"* Found cython {cython.__version__}")
+        cython_version = cython.__version__
+
+        print(f"* Found cython {cython_version}")
         del cython
     except ImportError:
-        pass
+        cython_version = "0.0"
 
     # Minimum required versions for numpy, numexpr and HDF5
     _min_versions = {}
@@ -1049,6 +1051,9 @@ if __name__ == "__main__":
         "indexesextension",
     ]
 
+    cmdclass = {"build_ext": BuildExtensions}
+
+
     def get_cython_extfiles(extnames):
         extdir = Path("tables")
         extfiles = {}
@@ -1287,5 +1292,5 @@ if __name__ == "__main__":
 
     setup(
         ext_modules=extensions,
-        cmdclass={"build_ext": BuildExtensions},
+        cmdclass=cmdclass,
     )

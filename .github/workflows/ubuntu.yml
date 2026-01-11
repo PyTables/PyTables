@@ -26,12 +26,14 @@ jobs:
         sudo apt install -y \
           libhdf5-dev libblosc-dev libblosc2-dev libbz2-dev liblz4-dev \
           liblzo2-dev libsnappy-dev libzstd-dev zlib1g-dev \
-          python3-all-dev python3-pip python3-build python3-setuptools cython3 \
-          python3-numpy python3-packaging python3-cpuinfo python3-numexpr \
+          python3-all-dev python3-pip python3-build python3-setuptools \
+          python3-packaging python3-cpuinfo \
           python3-pytest python3-pytest-doctestplus \
           python3-sphinx python3-sphinx-rtd-theme python3-numpydoc python3-ipython \
           latexmk texlive-fonts-recommended texlive-latex-recommended \
           texlive-latex-extra texlive-plain-generic
+        # In our pyproject.toml these are required for building
+        pip install "cython==3.1" "numpy==2.0" "numexpr==2.10.0"
     - name: Build PyTables
       run: make build
       env:

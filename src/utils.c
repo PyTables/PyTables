@@ -1,4 +1,6 @@
 #include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 #include "utils.h"
 
 #define PyString_FromString PyUnicode_FromString
