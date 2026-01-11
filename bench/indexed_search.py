@@ -46,15 +46,14 @@ class DB:
         self.scale = SCALE
         self.rng = rng
         self.userandom = userandom
-        self.filename = "-".join([rdm_cod[userandom], nrows])
+        self.filename = Path("-".join([rdm_cod[userandom], nrows]))
         self.nrows = get_nrows(nrows)
 
     def get_db_size(self):
-        sout = subprocess.Popen(
+        sout = subprocess.run(
             "sync;du -s %s" % self.filename, shell=True, stdout=subprocess.PIPE
         ).stdout
-        line = sout[0]
-        return int(line.split()[0])
+        return int(sout.split(maxsplit=1)[0])
 
     def print_mtime(self, t1, explain):
         mtime = clock() - t1

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Benchmark the effect of chunkshapes in reading large datasets.
 # You need at least PyTables 2.1 to run this!
 # F. Alted

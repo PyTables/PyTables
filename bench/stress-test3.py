@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """This script allows to create arbitrarily large files with the desired
 combination of groups, tables per group and rows per table.

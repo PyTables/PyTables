@@ -52,7 +52,7 @@ def populate(f, nlevels):
 def getnode(f, nlevels, niter, range_):
     for i in range(niter):
         nlevel = random.randrange(
-            (nlevels - range_) / 2, (nlevels + range_) / 2
+            (nlevels - range_) // 2, (nlevels + range_) // 2
         )
         groupname = ""
         for i in range(nlevel):

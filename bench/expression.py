@@ -5,7 +5,7 @@ import numpy as np
 
 import tables as tb
 
-OUT_DIR = Path("/scratch2/faltet/")  # the directory for data output
+OUT_DIR = Path("/tmp/pytebles-expr-data/")  # the directory for data output
 
 shape = (1000, 1000 * 1000)  # shape for input arrays
 expr = "a*b+1"  # Expression to be computed

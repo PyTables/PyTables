@@ -1,5 +1,5 @@
 #!/bin/sh
-python="python2.5 -O"
+python="python3 -O"
 
 writedata () {
   nrows=$1

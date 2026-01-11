@@ -1,15 +1,13 @@
 #!/bin/sh
 
-#export LD_LIBRARY_PATH=$HOME/computacio/hdf5-1.10.2/hdf5/lib
-export PYTHONPATH=..${PYTHONPATH:+:$PYTHONPATH}
+# export PYTHONPATH=..${PYTHONPATH:+:$PYTHONPATH}
 
-bench="python2.7 -O -u indexed_search.py"
+bench="python3 -O -u $(dirname $0)/indexed_search.py"
 flags="-T -m -v "
 #sizes="1g 500m 200m 100m 50m 20m 10m 5m 2m 1m"
 sizes="1g"
 #sizes="1m"
 working_dir="data.nobackup"
-#working_dir="/scratch2/faltet"
 
 #for comprlvl in '-z0' '-z1 -llzo' '-z1 -lzlib' ; do
 #for comprlvl in '-z6 -lblosc' '-z3 -lblosc' '-z1 -lblosc' ; do

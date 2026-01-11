@@ -24,20 +24,12 @@ class PyTablesDB(DB):
         self.docompress = docompress
         self.complib = complib
         # Complete the filename
-        self.filename = "pro-" + self.filename
-        self.filename += "-" + "O%s" % optlevel
-        self.filename += "-" + kind
+        filename = f"pro-{self.filename.name}-O{optlevel}-{kind}"
         if docompress:
-            self.filename += "-" + complib + str(docompress)
-        self.datadir = datadir
-        path = Path(self.datadir)
-        if not path.is_dir():
-            if not path.is_absolute():
-                dir_path = Path(".") / self.datadir
-            else:
-                dir_path = Path(self.datadir)
-            dir_path.mkdir(parents=True, exist_ok=True)
-            self.datadir = dir_path
+            filename = f"{filename}-{complib}{docompress}"
+        self.datadir = Path(datadir)
+        if not self.datadir.is_dir():
+            self.datadir.mkdir(parents=True, exist_ok=True)
             print(f"Created {self.datadir}.")
         self.filename = self.datadir / f"{self.filename}.h5"
         # The chosen filters

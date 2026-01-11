@@ -1,7 +1,6 @@
 #!/bin/sh
-# I don't know why, but the /usr/bin/python2.3 from Debian is a 30% slower
-# than my own compiled version! 2004-08-18
-python="/usr/local/bin/python2.3 -O"
+
+python="python3 -O"
 
 writedata () {
   nrows=$1

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Benchmark the times reading large datasets with Blosc and Blosc2 filters.
 
 import sys

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # a stacked bar plot with errorbars
 
 from pathlib import Path

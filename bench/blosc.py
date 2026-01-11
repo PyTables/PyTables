@@ -7,7 +7,7 @@ import numpy as np
 import tables as tb
 
 niter = 3
-dirname = "/scratch2/faltet/blosc-data/"
+dirname = "/tmp/blosc-data/"
 # expression = "a**2 + b**3 + 2*a*b + 3"
 # expression = "a+b"
 # expression = "a**2 + 2*a/b + 3"

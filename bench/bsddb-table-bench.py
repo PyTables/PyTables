@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # ##### WARNING #######
 # ## This script is obsoleted ###
 # If you get it working again, please drop me a line
