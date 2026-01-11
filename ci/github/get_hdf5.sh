@@ -113,7 +113,7 @@ pushd /tmp
 curl -fsSLO "https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${HDF5_VERSION}.tar.gz"
 tar -xzvf "hdf5_$HDF5_VERSION.tar.gz"
 pushd "hdf5-hdf5_$HDF5_VERSION"
-./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" "$EXTRA_MPI_FLAGS" --enable-build-mode=production
+./configure --prefix="$HDF5_DIR" --with-zlib="$HDF5_DIR" $EXTRA_SERIAL_FLAGS $EXTRA_MPI_FLAGS --enable-build-mode=production
 make -j "$NPROC"
 make install
 
