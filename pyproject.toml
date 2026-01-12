@@ -132,9 +132,7 @@ tables = [ "*.dll", "*.so*", "*.dylib" ]
 [tool.cibuildwheel]
 skip = "*-musllinux_*"
 archs = "native"
-# cp314t segfaults, see https://github.com/PyTables/PyTables/issues/1269
-# once it works it should be added here
-build = "cp311-*"
+build = "cp311-* cp314t-*"
 build-verbosity = 1
 test-command = [
     "python -c \"import tables; keys = 'zlib bzip2 blosc blosc2'.split(); missing = [key for key in keys if tables.which_lib_version(key) is None]; assert missing == [], missing\"",
@@ -157,7 +155,8 @@ before-all = [
 ]
 repair-wheel-command = [
     "auditwheel repair -w {dest_dir} {wheel}",
-    "pipx run abi3audit --strict --report {wheel}",
+    # Free-threaded Python 3.14 doesn't support the stable ABI, so skip abi3audit
+    "if [[ {wheel} != *-cp314-cp314t-* ]]; then pipx run abi3audit --strict --report {wheel}; fi",
 ]
 
 [tool.cibuildwheel.linux.environment]
@@ -174,7 +173,8 @@ before-all = [
 repair-wheel-command = [
     "DYLD_LIBRARY_PATH=/tmp/hdf5/lib delocate-listdeps {wheel}",
     "DYLD_LIBRARY_PATH=/tmp/hdf5/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}",
-    "pipx run abi3audit --strict --report {wheel}",
+    # Free-threaded Python 3.14 doesn't support the stable ABI, so skip abi3audit
+    "if [[ {wheel} != *-cp314-cp314t-* ]]; then pipx run abi3audit --strict --report {wheel}; fi",
 ]
 
 [tool.cibuildwheel.macos.environment]
@@ -196,7 +196,8 @@ before-build = [
 # We check for "libblosc2.dll" so don't let delvewheel mangle it
 repair-wheel-command = [
     "delvewheel repair --no-mangle libblosc2.dll -v -w {dest_dir} {wheel}",
-    "pipx run abi3audit --strict --report {wheel}",
+    # Free-threaded Python 3.14 doesn't support the stable ABI, so skip abi3audit
+    "echo {wheel} | findstr /C:\"cp314t\">nul && call || pipx run abi3audit --strict --report {wheel}",
 ]
 
 [tool.cibuildwheel.windows.environment]
