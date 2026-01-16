@@ -105,12 +105,21 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         itemsize = self.obj.dtype.itemsize
         return b"".join(bytes_[d::itemsize] for d in range(itemsize))
 
-    def filter_chunk(self, bytes_, shuffle=None):
-        assert self.filters.complib == "zlib"
+    def prepare_chunk(self, bytes_, shuffle=None):
+        """Prepare chunk bytes by applying shuffle filter (without compression).
+
+        This returns the bytes as they would appear after decompression,
+        to allow comparison with decompressed data from HDF5.
+        """
         if shuffle is None:
             shuffle = self.shuffle
-        maybe_shuffled = self.shuffled(bytes_) if shuffle else bytes_
-        return zlib.compress(maybe_shuffled, self.filters.complevel)
+        return self.shuffled(bytes_) if shuffle else bytes_
+
+    def compress_chunk(self, bytes_, shuffle=None):
+        """Prepare and compress chunk bytes for writing to HDF5."""
+        assert self.filters.complib == "zlib"
+        prepared = self.prepare_chunk(bytes_, shuffle)
+        return zlib.compress(prepared, self.filters.complevel)
 
     def test_read_chunk(self):
         # Extended to fit chunk boundaries.
@@ -125,8 +134,9 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 slice(s, s + cs)
                 for (s, cs) in zip(chunk_start, self.chunkshape)
             )
-            obj_bytes = self.filter_chunk(ext_obj[obj_slice].tobytes())
-            self.assertEqual(chunk, obj_bytes)
+            # Compare decompressed data to avoid zlib implementation differences
+            expected_bytes = self.prepare_chunk(ext_obj[obj_slice].tobytes())
+            self.assertEqual(zlib.decompress(chunk), expected_bytes)
 
     def test_read_chunk_out(self):
         # Extended to fit chunk boundaries.
@@ -138,8 +148,11 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         obj_slice = tuple(
             slice(s, s + cs) for (s, cs) in zip(chunk_start, self.chunkshape)
         )
-        obj_bytes = self.filter_chunk(ext_obj[obj_slice].tobytes())
-        chunk_size = len(obj_bytes)
+        expected_bytes = self.prepare_chunk(ext_obj[obj_slice].tobytes())
+
+        # First read the chunk to get its actual compressed size
+        chunk_reference = self.array.read_chunk(chunk_start)
+        chunk_size = len(chunk_reference)
 
         chunk_out = bytearray(chunk_size - 1)  # too short
         self.assertRaises(
@@ -149,8 +162,9 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         chunk_out = bytearray(chunk_size)
         chunk = self.array.read_chunk(chunk_start, out=chunk_out)
         self.assertIsInstance(chunk, memoryview)
-        self.assertEqual(chunk, obj_bytes)
-        self.assertEqual(chunk_out, obj_bytes)
+        # Compare decompressed data to avoid zlib implementation differences
+        self.assertEqual(zlib.decompress(bytes(chunk)), expected_bytes)
+        self.assertEqual(zlib.decompress(bytes(chunk_out)), expected_bytes)
 
     def test_read_chunk_unaligned(self):
         self.assertRaises(
@@ -177,7 +191,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
                 slice(s, s + cs)
                 for (s, cs) in zip(chunk_start, self.chunkshape)
             )
-            obj_bytes = self.filter_chunk(ext_obj[obj_slice].tobytes())
+            obj_bytes = self.compress_chunk(ext_obj[obj_slice].tobytes())
             self.array.write_chunk(chunk_start, obj_bytes)
 
         self._reopen()
@@ -192,7 +206,7 @@ class DirectChunkingTestCase(common.TempFileMixin, common.PyTablesTestCase):
         )
         new_obj = self.obj.copy()
         new_obj[obj_slice] = self.modified(new_obj[obj_slice])
-        obj_bytes = self.filter_chunk(
+        obj_bytes = self.compress_chunk(
             new_obj[obj_slice].tobytes(), shuffle=False
         )
         self.array.write_chunk(
